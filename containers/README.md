@@ -40,10 +40,17 @@ Database port: 3306
 Database name: esti
 Database user: esti
 Database password: esti_dev_password
+Create database: No
+Create database user: No
 Data root: /var/www/documents
 Default language: en_IN
 Timezone: Asia/Kolkata
 ```
+
+The development database and user are already created by the MariaDB container.
+If the installer asks for a database superuser, leave database/user creation
+disabled. For local troubleshooting only, the root password is
+`esti_root_dev_password`.
 
 ## Optional Adminer
 
