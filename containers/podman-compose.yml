@@ -1,0 +1,52 @@
+services:
+  esti-db:
+    image: docker.io/library/mariadb:11
+    container_name: esti-db
+    environment:
+      MYSQL_DATABASE: ${ESTI_DB_NAME:-esti}
+      MYSQL_USER: ${ESTI_DB_USER:-esti}
+      MYSQL_PASSWORD: ${ESTI_DB_PASSWORD:-esti_dev_password}
+      MYSQL_ROOT_PASSWORD: ${ESTI_DB_ROOT_PASSWORD:-esti_root_dev_password}
+      TZ: Asia/Kolkata
+    volumes:
+      - esti-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  esti-app:
+    build:
+      context: ..
+      dockerfile: containers/Containerfile
+    container_name: esti-app
+    depends_on:
+      esti-db:
+        condition: service_healthy
+    ports:
+      - "${ESTI_HTTP_PORT:-8080}:80"
+    environment:
+      TZ: Asia/Kolkata
+      ESTI_DB_HOST: esti-db
+      ESTI_DB_PORT: 3306
+      ESTI_DB_NAME: ${ESTI_DB_NAME:-esti}
+      ESTI_DB_USER: ${ESTI_DB_USER:-esti}
+      ESTI_DB_PASSWORD: ${ESTI_DB_PASSWORD:-esti_dev_password}
+    volumes:
+      - esti-documents:/var/www/documents
+
+  esti-adminer:
+    image: docker.io/library/adminer:4
+    container_name: esti-adminer
+    depends_on:
+      esti-db:
+        condition: service_healthy
+    ports:
+      - "${ESTI_ADMINER_PORT:-8081}:8080"
+    profiles:
+      - tools
+
+volumes:
+  esti-db-data:
+  esti-documents:
