@@ -65,6 +65,7 @@ podman run -d `
 	-e ESTI_DB_NAME=$DbName `
 	-e ESTI_DB_USER=$DbUser `
 	-e ESTI_DB_PASSWORD=$DbPassword `
+	-e ESTI_DB_ROOT_PASSWORD=$DbRootPassword `
 	localhost/esti-erp-dev:latest
 
 if ($WithAdminer) {

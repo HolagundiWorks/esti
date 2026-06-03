@@ -31,7 +31,8 @@ Open:
 http://localhost:8080/install/
 ```
 
-Installer values:
+Installer values are prefilled by `install.forced.php` in the development
+container:
 
 ```text
 Database type: mysqli

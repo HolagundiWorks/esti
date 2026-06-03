@@ -33,6 +33,7 @@ services:
       ESTI_DB_NAME: ${ESTI_DB_NAME:-esti}
       ESTI_DB_USER: ${ESTI_DB_USER:-esti}
       ESTI_DB_PASSWORD: ${ESTI_DB_PASSWORD:-esti_dev_password}
+      ESTI_DB_ROOT_PASSWORD: ${ESTI_DB_ROOT_PASSWORD:-esti_root_dev_password}
     volumes:
       - esti-documents:/var/www/documents
 
