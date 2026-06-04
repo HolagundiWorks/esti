@@ -144,3 +144,6 @@ AssetErrorReversalDateNotGreaterThanCurrentBeginFiscalDateForMode='%s' मूल
 AssetErrorReversalAmountNotProvidedForMode=मूल्यह्रास मोड '%s' के लिए प्रतिवर्तन राशि प्रदान नहीं की गई है।
 AssetErrorFetchCumulativeDepreciation=मूल्यह्रास रेखा से संचित मूल्यह्रास राशि प्राप्त करते समय त्रुटि
 AssetErrorSetLastCumulativeDepreciation=अंतिम संचित मूल्यह्रास राशि रिकॉर्ड करते समय त्रुटि
+
+# ESTI GST terminology overrides
+AssetRecoveredVAT=Recovered GST

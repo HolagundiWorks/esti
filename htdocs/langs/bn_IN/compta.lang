@@ -343,3 +343,31 @@ Prepaid=প্রিপেইড
 Postpaid=পোস্টপেইড
 SetRuleForLinesDates=লাইন তারিখের জন্য নিয়ম সেট করুন
 SomeNotConvertedCreditNoteExists=There is <b>%s</b> credit notes not yet converted for consumption
+
+# ESTI GST terminology overrides
+TaxModuleSetupToModifyRules=To modify GST calculation rules, go to <a href="%s">GST module setup</a>
+TaxModuleSetupToModifyRulesLT=To modify CGST/SGST rules, go to <a href="%s">company setup</a>
+VATReportBuildWithOptionDefinedInModule=Amounts shown here are calculated using rules defined by the GST module setup.
+VATToPay=GST on sales
+VATReceived=GST received
+VATToCollect=GST on purchases
+VATSummary=Monthly GST
+VATBalance=GST balance
+VATPaid=GST paid
+VATCollected=GST collected
+VATExpensesArea=Area for all GST payments
+VATPayment=GST payment
+VATPayments=GST payments
+VATDeclarations=GST returns
+VATDeclaration=GST return
+VATRefund=GST refund
+VATReport=GST report
+VATReportByPeriods=GST report by periods
+VATReportByMonth=Monthly GST report
+VATReportByRates=GST report by rates
+VATReportByThirdParties=GST report by third parties
+VATReportByCustomers=GST report by customers
+VATReportByCustomersInInputOutputMode=Report of GST collected and paid by customer
+VATReportByQuartersInInputOutputMode=Report of GST collected and paid by quarter
+VATReportShowByRateDetails=Show details for this GST rate
+VATDue=GST due

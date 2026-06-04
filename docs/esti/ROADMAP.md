@@ -24,7 +24,9 @@ https://github.com/HolagundiWorks/esti
 
 - Default country, currency, timezone, and language profile to India.
 - Restrict ESTI-supported languages to Indian locales shipped in the fork.
-- Set INR and GST as the default finance vocabulary.
+- Set INR and GST as the default finance vocabulary and tax profile.
+- Present GST, GSTIN, CGST, SGST, and IGST in India-facing screens while keeping
+  legacy Dolibarr tax storage compatible.
 - Disable global currency, non-Indian tax, and unrelated localization choices by
   configuration before removing code.
 

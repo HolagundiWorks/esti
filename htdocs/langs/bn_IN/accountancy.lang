@@ -566,3 +566,15 @@ ReturnAccount=প্রত্যাবর্তন
 Clone=ক্লোন
 AlreadyReturnedAccount=এন্ট্রি n°%s ইতিমধ্যেই উল্টে দেওয়া হয়েছে
 SuccessReturnedAccount=এন্ট্রি n°%s উল্টানো হয়েছে
+
+# ESTI GST terminology overrides
+VATAccountNotDefined=Account for GST not defined
+
+# ESTI GST additional terminology overrides
+MainAccountForVatPaymentNotDefined=Account for GST payment is not defined in setup
+AccountancyAreaDescVat=Step %s: define accounting accounts for each GST rate. Use menu entry %s.
+MenuVatAccounts=GST accounts
+ACCOUNTING_FORCE_ENABLE_VAT_REVERSE_CHARGE=Enable GST reverse charge management on supplier purchases
+ACCOUNTING_FORCE_ENABLE_VAT_REVERSE_CHARGE_DESC=When this option is enabled, supplier invoices can be transferred to accounting with additional debit and credit lines for GST reverse charge accounts configured in setup page "%s".
+SaleEECWithVAT=Sale has non-zero GST. ESTI treats this as a domestic India GST sale unless a specific GST rule says otherwise.
+SaleEECWithoutVATNumber=Sale has GST context but the third party GSTIN is not defined. Fix the third party GSTIN or adjust the suggested account if needed.

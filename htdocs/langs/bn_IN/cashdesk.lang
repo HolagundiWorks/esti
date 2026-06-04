@@ -197,3 +197,7 @@ CreditCardDeclared=Card declared
 CashLifetime=Cash lifetime
 ChequeLifetime=Cheque lifetime
 CardLifetime=Card lifetime
+
+# ESTI GST terminology overrides
+NoVAT=No GST for this sale
+TicketVatGrouped=Group GST by rate on tickets/receipts

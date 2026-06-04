@@ -182,3 +182,7 @@ SentOrderToKitchen=Send order to kitchen
 LifetimeAmount=Lifetime amount
 LifetimeStatDate=Lifetime amount start date
 AllTerminals=All terminals
+
+# ESTI GST terminology overrides
+NoVAT=No GST for this sale
+TicketVatGrouped=Group GST by rate on tickets/receipts

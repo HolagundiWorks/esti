@@ -332,3 +332,6 @@ BadSetupOfField = Error bad setup of field
 BadSetupOfFieldClassNotFoundForValidation = Error bad setup of field : Class not found for validation
 BadSetupOfFieldFileNotFound = Error bad setup of field : File not found for inclusion
 BadSetupOfFieldFetchNotCallable = Error bad setup of field : Fetch not callable on class
+
+# ESTI GST terminology overrides
+ErrorLinesCantBeNegativeForOneVATRate=Total of lines (net of tax) cannot be negative for a non-zero GST rate (found a negative total for GST rate <b>%s</b>%%).

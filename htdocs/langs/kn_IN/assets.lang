@@ -63,3 +63,6 @@ MenuListTypeAssets = List
 #
 NewAssetType=New asset type
 NewAsset=New asset
+
+# ESTI GST terminology overrides
+AssetRecoveredVAT=Recovered GST

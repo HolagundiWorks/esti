@@ -479,3 +479,21 @@ ErrorCommercialNotAllowedForThirdparty=उपयोगकर्ता %s को 
 EnablePublicCompanyPages=Enable the public contact page
 PublicInterfaceCompanyDesc=This option offer a public page with an online contact form to allow any anonymous visitor to send you a message (creating also a thirdparty and/or contact, automatically).
 ImpossibleToCreateUserFromContact=Impossible to create user from this contact
+
+# ESTI GST terminology overrides
+ProfId1IN=GSTIN
+VATIntra=GSTIN
+VATIntraShort=GSTIN
+VATIntraSyntaxIsValid=GSTIN syntax looks valid
+VATPaymentFrequency=GST return frequency
+VATIntraCheck=Check GSTIN
+VATIntraCheckDesc=Enter the 15-character Indian GSTIN. Automated GST portal validation will be added in a future ESTI integration.
+VATIntraCheckURL=https://www.gst.gov.in/
+VATIntraCheckableOnEUSite=Check GSTIN on the GST portal
+VATIntraManualCheck=You can manually verify the GSTIN on the GST portal: <a href="%s" target="_blank" rel="noopener noreferrer">%s</a>
+VATIsUsed=GST is used
+VATIsUsedWhenSelling=Defines whether this third party applies GST when invoicing customers.
+VATIsNotUsed=GST is not used
+VATReverseCharge=GST reverse charge
+VATReverseChargeByDefault=GST reverse charge by default
+VATReverseChargeByDefaultDesc=On supplier invoice, GST reverse charge is used by default

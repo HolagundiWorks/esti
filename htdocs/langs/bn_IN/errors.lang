@@ -445,3 +445,6 @@ ThisIdNotDefined=আইডি সংজ্ঞায়িত করা হয়
 OperNotDefined=পেমেন্ট পদ্ধতি সংজ্ঞায়িত নয়
 EmptyMessageNotAllowedError=খালি বার্তা অনুমোদিত নয়।
 SomeShipmentExists=ত্রুটি, অর্ডারের সাথে কিছু চালান লিঙ্ক করা আছে। মুছে ফেলা প্রত্যাখ্যান করা হয়েছে।
+
+# ESTI GST terminology overrides
+ErrorLinesCantBeNegativeForOneVATRate=Total of lines (net of tax) cannot be negative for a non-zero GST rate (found a negative total for GST rate <b>%s</b>%%).

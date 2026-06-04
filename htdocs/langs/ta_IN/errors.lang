@@ -438,3 +438,6 @@ ErrorThisGroupIsAlreadyDefinedAsThisType=The contacts with this group are alread
 EmptyMessageNotAllowedError=Empty message is not allowed
 ErrorIsNotInError=%s is not in error
 ErrorFilenameExtensionNotAllowed=File %s has a forbidden file extension
+
+# ESTI GST terminology overrides
+ErrorLinesCantBeNegativeForOneVATRate=Total of lines (net of tax) cannot be negative for a non-zero GST rate (found a negative total for GST rate <b>%s</b>%%).

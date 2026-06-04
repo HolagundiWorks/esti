@@ -1424,3 +1424,30 @@ since=since
 SignatureID=Signature
 except=except
 DUPLICATA=DUPLICATA
+
+# ESTI GST terminology overrides
+ErrorNoVATRateDefinedForSellerCountry=Error, no GST rates are defined for country '%s'.
+TotalVAT=Total GST
+TotalVATShort=Total GST
+TotalVATShortCurrency=Total GST (in currency)
+TotalVATIN=Total IGST
+VAT=GST
+VATIN=IGST
+VATs=GST
+VATINs=IGST taxes
+VATRate=GST Rate
+VATCode=GST Rate Code
+VATNPR=GST NPR
+VATAmount=GST amount
+LT1=CGST
+LT2=SGST
+TotalLT1=Total CGST
+TotalLT2=Total SGST
+LineLT1Rate=CGST Rate of line
+LineLT2Rate=SGST Rate of line
+LineTotalLT1=Amount of CGST for line
+LineTotalLT2=Amount of SGST for line
+
+# ESTI GST additional terminology overrides
+AmountVAT=GST amount
+MulticurrencyAmountVAT=GST amount, original currency

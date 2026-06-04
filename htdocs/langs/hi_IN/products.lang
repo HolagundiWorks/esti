@@ -465,3 +465,6 @@ ProductType=Type of product
 UseBarCodeForProducts=Use barcode for products
 UseBarCodeForThirdParties=Use barcode for third parties
 NotSupportedOnKits=Not supported on kits
+
+# ESTI GST terminology overrides
+UpdateVAT=Update GST

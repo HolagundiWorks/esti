@@ -38,6 +38,10 @@
 
 - Replace VAT-facing user journeys with GST terminology and India-specific tax
   setup where possible.
+- Treat Dolibarr `tva_*` storage as legacy compatibility fields; ESTI UI and
+  documents must call the tax system GST.
+- Enable CGST, SGST, and IGST in the ESTI default profile using India tax
+  dictionary rows.
 - Model GST rates, HSN/SAC codes, place of supply, CGST, SGST, IGST, cess, RCM,
   TDS/TCS, and e-invoice/e-way-bill integration readiness.
 - Disable unsupported VAT and multi-currency modules for the ESTI default

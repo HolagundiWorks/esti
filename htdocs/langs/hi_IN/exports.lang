@@ -167,3 +167,7 @@ ImportTriggerModeSummaryStrict=Secure mode (automatic actions on each line)
 ImportTriggerModeSummaryHint=Use fast mode for high volumes, if secure mode is too slow or if you want avoid triggered business event.
 ImportTriggerModeFastBulkFinalWarningTitle=Fast mode
 ImportTriggerModeFastBulkFinalWarning=During this import, automatic actions will not be executed line by line.
+
+# ESTI GST terminology overrides
+LineVATRate=GST Rate of line
+LineTotalVAT=Amount of GST for line

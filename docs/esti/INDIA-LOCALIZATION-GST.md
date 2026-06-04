@@ -39,10 +39,17 @@ ESTI should support:
 - GST reporting exports for review and future filing integrations.
 - E-invoice and e-way-bill integration readiness through extension modules.
 
-## VAT and Multi-Currency Policy
+## GST and Multi-Currency Policy
 
-Dolibarr contains VAT and multi-currency features for global use. ESTI should:
+Dolibarr stores the primary sales tax in legacy `tva_*` fields and keeps
+CGST/SGST in `localtax1/localtax2` for India. ESTI uses those internal fields
+only as compatibility storage. The product, setup, documents, and reports must
+present the system as GST.
 
+- Enable GST in the ESTI default profile.
+- Enable CGST and SGST for same-state India transactions.
+- Use IGST for inter-state India transactions through the existing `I-*` tax
+  codes.
 - Disable VAT-oriented labels and setup paths in the ESTI default profile.
 - Replace user-facing tax terminology with GST where the workflow is India-only.
 - Keep internal compatibility until all dependent invoices, accounting exports,

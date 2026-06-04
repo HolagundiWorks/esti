@@ -721,3 +721,9 @@ InvoiceSentFromTemplate=Invoice %s sent from recurring invoice template %s
 InvoiceSentFromTemplateError=Failed to send invoice %s from recurring invoice template %s : %s
 BillStatusValidatedWithSendind=Validated (needs to be paid) and sending
 sendAutoEmailInvoiceKO=Failed to send email from %s to %s
+
+# ESTI GST terminology overrides
+ErrorVATIntraNotConfigured=GSTIN is not configured yet
+VATIsNotUsedForInvoice=* GST not applicable
+VATIsNotUsedForInvoiceAsso=* GST not applicable
+VATIsNotUsedReverseChargeProcedure=* GST reverse charge not applicable

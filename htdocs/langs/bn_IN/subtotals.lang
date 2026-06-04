@@ -52,3 +52,8 @@ CorrespondingTitleNotFound=The corresponding title was not found
 # PDF
 #
 SubtotalOf=Subtotal of %s:
+
+# ESTI GST terminology overrides
+ShowTotalExludingVATOnPDF=Show the total excluding GST on the PDF
+SelectVATRate=Select GST rate
+ApplyVATForBlock=Apply GST for this block

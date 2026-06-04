@@ -669,3 +669,9 @@ SearchValidatedSupplierInvoicesWithDate=Search unpaid supplier invoices with a v
 SendEmailsRemindersOnSupplierInvoiceDueDate=Send reminder by email for validated and unpaid supplier invoices
 PaymentMadeForSeveralInvoices=Payment made for several invoices
 SituationInvoiceProgressCurrent=Invoice progress
+
+# ESTI GST terminology overrides
+ErrorVATIntraNotConfigured=GSTIN is not configured yet
+VATIsNotUsedForInvoice=* GST not applicable
+VATIsNotUsedForInvoiceAsso=* GST not applicable
+VATIsNotUsedReverseChargeProcedure=* GST reverse charge not applicable

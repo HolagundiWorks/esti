@@ -65,3 +65,6 @@ Asset=சொத்து
 NewAssetType=புதிய சொத்து வகை
 NewAsset=புதிய சொத்து
 ConfirmDeleteAsset=இந்தச் சொத்தை நிச்சயமாக நீக்க விரும்புகிறீர்களா?
+
+# ESTI GST terminology overrides
+AssetRecoveredVAT=Recovered GST

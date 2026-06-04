@@ -135,3 +135,7 @@ NbInsert=Number of inserted lines: %s
 NbUpdate=Number of updated lines: %s
 MultipleRecordFoundWithTheseFilters=Multiple records have been found with these filters: %s
 StocksWithBatch=Stocks and location (warehouse) of products with batch/serial number
+
+# ESTI GST terminology overrides
+LineVATRate=GST Rate of line
+LineTotalVAT=Amount of GST for line

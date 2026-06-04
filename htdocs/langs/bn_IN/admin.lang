@@ -2776,3 +2776,47 @@ InitModuleIsSlow=Init of module is slow
 PreviousOptionGuaranteeThatDateIsAlwaysHigher=The previous option already guarantees that the date of invoice is always higher than the previous validated invoice
 ESTIRemoteModuleMarketplaceDisabled=The remote module marketplace is disabled in ESTI ERP.
 ESTIRemoteModuleInstallDisabled=Remote module installation is disabled in ESTI ERP. Upload a vetted module ZIP from the deployment tab instead.
+
+# ESTI GST terminology overrides
+OldVATRates=Old GST rate
+NewVATRates=New GST rate
+Module500Name=GST, Taxes & Statutory Payments
+Module500Desc=Management of GST payments, statutory taxes, dividends, and other fiscal expenses
+DictionaryVAT=GST Rates
+VATManagement=GST Management
+VATIsUsed=GST is used
+VATIsNotUsed=GST is not used
+VATIsUsedStandard=When creating documents (quotations, invoices, orders...), the default GST rate is selected from India GST rules based on seller and buyer locations.
+VATIsUsedDesc=By default when creating quotations, invoices, orders etc. ESTI selects GST from the India tax dictionary.<br>For same-state sales, use CGST and SGST rates.<br>For inter-state sales, use IGST rates.<br>If the seller is not registered for GST, the proposed GST rate is 0.
+VATIsNotUsedDesc=By default the proposed GST is 0. Use this only when the company is not registered for GST or the transaction is outside GST scope.
+VATType=GST usage
+LocalTax1IsUsedIN=CGST is used
+LocalTax1IsNotUsedIN=CGST is not used
+LocalTax1IsUsedDescIN=Use CGST for same-state India GST transactions.
+LocalTax1IsNotUsedDescIN=Do not use CGST.
+LocalTax1ManagementIN=CGST
+LocalTax2IsUsedIN=SGST is used
+LocalTax2IsNotUsedIN=SGST is not used
+LocalTax2IsUsedDescIN=Use SGST for same-state India GST transactions.
+LocalTax2IsNotUsedDescIN=Do not use SGST.
+LocalTax2ManagementIN=SGST
+VATIsUsedIsOff=Note: GST usage is set to <strong>Off</strong> in %s - %s, so GST used will always be 0 for sales.
+
+# ESTI GST additional terminology overrides
+HideAnyVATInformationOnPDF=Hide all GST information on PDF
+PDFRulesForSalesTax=Rules for GST
+HideLocalTaxOnPDF=Hide %s rate in GST columns
+ShowVATIntaInAddress=Hide GSTIN in address
+AddVatInList=Show customer/supplier GSTIN in combo lists.
+OptionVatMode=GST due date
+OptionVATDefault=Standard GST basis
+OptionVATDebitOption=Accrual GST basis
+OptionVatDefaultDesc=GST is due:<br>- for goods, on invoice/date of supply<br>- for services, according to payment/date of supply rules configured for India
+OptionVatDebitOptionDesc=GST is due on invoice/date of supply for goods and services.
+OptionPaymentForProductAndServicesDesc=GST is due on payment for goods and services when configured by law or accountant direction.
+SummaryOfVatExigibilityUsedByDefault=GST due timing used by default according to the selected option:
+YourCompanyDoesNotUseVAT=Your company has been defined to not use GST (Home - Setup - Company/Organization), so there are no GST options to setup.
+CREATE_NEW_VAT_WITHOUT_AUTO_PAYMENT=Keep the "create payment automatically" checkbox empty by default when creating a new GST payment
+DeadlineDayVATSubmission=Deadline day for GST submission in the next month
+PDF_INVOICE_SHOW_VAT_ANALYSIS=Show GST rate analysis in columns instead of lines
+RecuperableOnly=For ESTI GST, keep this value to "No" unless your accountant explicitly requires a recoverable-only tax code.
