@@ -998,7 +998,7 @@ if ($urllogo && !$ws) {
 	print '>';
 	print '</div>';
 	if (!getDolGlobalString('MAIN_HIDE_POWERED_BY')) {
-		print '<div class="poweredbypublicpayment opacitymedium right"><a class="poweredbyhref" href="https://www.dolibarr.org?utm_medium=website&utm_source=poweredby" target="dolibarr" rel="noopener">'.$langs->trans("PoweredBy").'<br><img class="poweredbyimg" src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg" width="80px"></a></div>';
+		print '<div class="poweredbypublicpayment opacitymedium right"><a class="poweredbyhref" href="'.ESTI_REPOSITORY_URL.'" target="dolibarr" rel="noopener">'.$langs->trans("PoweredBy").'<br><img class="poweredbyimg" src="'.DOL_URL_ROOT.'/theme/esti_logo.png" width="80px"></a></div>';
 	}
 	print '</div>';
 } elseif ($creditor && !$ws) {
@@ -1792,7 +1792,7 @@ if ($source == 'member' || $source == 'membersubscription') {
 			$pp = 1;
 		}
 
-		$s = $langs->trans("AreYouAPreferredPartner", '<a href="https://partners.dolibarr.org" target="_blank">{s1}</a>');
+		$s = $langs->trans("AreYouAPreferredPartner", '<a href="'.ESTI_ISSUES_URL.'" target="_blank">{s1}</a>');
 		$s = str_replace('{s1}', 'Preferred Partner', $s);
 		print '<tr id="trbudget" class="trcompany"><td><label for="pp" class="small">'.$s.'</label></td><td>';
 		print '<input type="checkbox" name="pp" id="pp" value="1"'.((GETPOST('reload') ? GETPOST('pp') : $pp) ? ' checked="checked"' : '').' class="reposition">';

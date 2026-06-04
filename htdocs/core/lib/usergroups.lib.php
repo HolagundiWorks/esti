@@ -420,7 +420,7 @@ function showSkins($fuser, $edit = 0, $foruserprofile = false)
 		print $form->textwithpicto($langs->trans("DefaultSkin"), $langs->trans("ThemeDir").' : '.$dirthemestring);
 		print '</td>';
 		print '<td class="right">';
-		$url = 'https://www.dolistore.com/9-skins';
+		$url = ESTI_REPOSITORY_URL;
 		print '<a href="'.$url.'" target="_blank" rel="noopener noreferrer external">';
 		print $langs->trans('DownloadMoreSkins');
 		print img_picto('', 'globe', 'class="paddingleft"');

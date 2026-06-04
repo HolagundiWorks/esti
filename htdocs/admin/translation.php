@@ -368,7 +368,7 @@ if ($mode == 'overwrite') {
 	}
 
 	$text = $langs->trans("SomeTranslationAreUncomplete");
-	$urlwikitranslatordoc = 'https://wiki.dolibarr.org/index.php/Translator_documentation';
+	$urlwikitranslatordoc = ESTI_DOCS_URL;
 	$text .= ' - <a href="'.$urlwikitranslatordoc.'" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeAlso", $langs->transnoentitiesnoconv("Here")).' '.img_picto('', 'url').'</a>.<br>';
 	$infoOnTransProcess = info_admin($text);
 
@@ -707,7 +707,7 @@ if ($mode == 'searchkey') {
 			if (getDolGlobalInt('MAIN_FEATURES_LEVEL')) {
 				$transifexlangfile = '$'; // $ means 'All'
 				//$transifexurl = 'https://www.transifex.com/dolibarr-association/dolibarr/translate/#'.$langcode.'/'.$transifexlangfile.'?key='.$key;
-				$transifexurl = 'https://app.transifex.com/dolibarr-association/dolibarr/translate/#'.$langcode.'/'.$transifexlangfile.'?q=key%3A'.$key;
+				$transifexurl = ESTI_REPOSITORY_URL.'/issues';
 
 				print ' &nbsp; <a href="'.$transifexurl.'" target="transifex">'.img_picto($langs->trans('FixOnTransifex'), 'globe').'</a>';
 			}

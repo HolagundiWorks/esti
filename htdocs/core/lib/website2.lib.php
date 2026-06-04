@@ -218,7 +218,7 @@ function dolSavePageContent($filetpl, Website $object, WebsitePage $objectpage, 
 		$tplcontent .= '<meta name="keywords" content="'.dol_string_nohtmltag($objectpage->keywords, 1, 'UTF-8').'" />'."\n";
 		$tplcontent .= '<meta name="title" content="'.dol_string_nohtmltag($objectpage->title, 1, 'UTF-8').'" />'."\n";
 		$tplcontent .= '<meta name="description" content="'.dol_string_nohtmltag($objectpage->description, 1, 'UTF-8').'" />'."\n";
-		$tplcontent .= '<meta name="generator" content="'.DOL_APPLICATION_TITLE.' '.DOL_VERSION.' (https://www.dolibarr.org)" />'."\n";
+		$tplcontent .= '<meta name="generator" content="'.DOL_APPLICATION_TITLE.' '.DOL_VERSION.' ('.ESTI_REPOSITORY_URL.')" />'."\n";
 		$tplcontent .= '<meta name="dolibarr:pageid" content="'.((int) $objectpage->id).'" />'."\n";
 
 		// Add favicon if not already done in htmlheader
@@ -871,7 +871,7 @@ function showWebsiteTemplates(Website $website, int $refresh)
 	print '</a>';
 	print '</th>';
 	print '<th class="right">';
-	$url = 'https://www.dolistore.com/index.php?cat=84';
+	$url = ESTI_REPOSITORY_URL;
 	print '<a href="'.$url.'" target="_blank" rel="noopener noreferrer external">';
 	print img_picto('', 'globe', 'class="pictofixedwidth"').$langs->trans('DownloadMoreSkins');
 	print '</a>';

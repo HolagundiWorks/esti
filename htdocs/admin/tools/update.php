@@ -20,7 +20,7 @@
 
 /**
  *		\file 		htdocs/admin/tools/update.php
- *		\brief      Page to make a Dolibarr online upgrade
+ *		\brief      Page to make an ESTI online upgrade
  */
 
 if (! defined('CSRFCHECK_WITH_TOKEN')) {
@@ -55,13 +55,10 @@ if (GETPOST('msg', 'alpha')) {
 }
 
 
-$urldolibarr = 'https://www.dolibarr.org/downloads/';
+$urlesti = ESTI_REPOSITORY_URL;
 $dolibarrroot = preg_replace('/([\\/]+)$/i', '', DOL_DOCUMENT_ROOT);
 $dolibarrroot = preg_replace('/([^\\/]+)$/i', '', $dolibarrroot);
 $dolibarrdataroot = preg_replace('/([\\/]+)$/i', '', DOL_DATA_ROOT);
-
-$sfurl = '';
-$version = '0.0';
 
 
 /*
@@ -69,20 +66,7 @@ $version = '0.0';
  */
 
 if ($action == 'getlastversion') {
-	$result = getURLContent('https://sourceforge.net/projects/dolibarr/rss');
-	//var_dump($result['content']);
-	if (function_exists('simplexml_load_string')) {
-		if (LIBXML_VERSION < 20900) {
-			// Avoid load of external entities (security problem).
-			// Required only if LIBXML_VERSION < 20900
-			// @phan-suppress-next-line PhanDeprecatedFunctionInternal
-			libxml_disable_entity_loader(true);
-		}
-
-		$sfurl = simplexml_load_string($result['content'], 'SimpleXMLElement', LIBXML_NOCDATA|LIBXML_NONET);
-	} else {
-		$sfurl = 'xml_not_available';
-	}
+	setEventMessages('ESTI releases are tracked from the ESTI GitHub repository. Upstream Dolibarr release feeds are disabled in this fork.', null, 'warnings');
 }
 
 
@@ -99,38 +83,7 @@ print '<br>';
 
 print $langs->trans("CurrentVersion").' : <strong>'.DOL_VERSION.'</strong><br>';
 
-if (function_exists('curl_init')) {
-	$conf->global->MAIN_USE_RESPONSE_TIMEOUT = 10;
-
-	if ($action == 'getlastversion') {
-		if ($sfurl == 'xml_not_available') {
-			$langs->load("errors");
-			print $langs->trans("LastStableVersion").' : <b class="error">'.$langs->trans("ErrorFunctionNotAvailableInPHP", 'simplexml_load_string').'</b><br>';
-		} elseif ($sfurl) {
-			$i = 0;
-			while (!empty($sfurl->channel[0]->item[$i]->title) && $i < 10000) {
-				$title = $sfurl->channel[0]->item[$i]->title;
-				if (preg_match('/([0-9]+\.([0-9\.]+))/', $title, $reg)) {
-					$newversion = $reg[1];
-					$newversionarray = explode('.', $newversion);
-					$versionarray = explode('.', $version);
-					//var_dump($newversionarray);var_dump($versionarray);
-					if (versioncompare($newversionarray, $versionarray) > 0) {
-						$version = $newversion;
-					}
-				}
-				$i++;
-			}
-
-			// Show version
-			print $langs->trans("LastStableVersion").' : <b>'.(($version != '0.0') ? $version : $langs->trans("Unknown")).'</b><br>';
-		} else {
-			print $langs->trans("LastStableVersion").' : <b>'.$langs->trans("UpdateServerOffline").'</b><br>';
-		}
-	} else {
-		print $langs->trans("LastStableVersion").' : <a href="'.$_SERVER["PHP_SELF"].'?action=getlastversion&token='.newToken().'" class="button smallpaddingimp">'.$langs->trans("Check").'</a><br>';
-	}
-}
+print $langs->trans("LastStableVersion").' : <a href="'.ESTI_REPOSITORY_URL.'/releases" target="_blank" rel="noopener noreferrer external" class="button smallpaddingimp">'.$langs->trans("Check").'</a><br>';
 
 print '<br>';
 print '<br>';
@@ -140,7 +93,7 @@ print $langs->trans("Upgrade").'<br>';
 print '<hr>';
 print $langs->trans("ThisIsProcessToFollow").'<br>';
 print '<b>'.$langs->trans("StepNb", 1).'</b>: ';
-$fullurl = '<a href="'.$urldolibarr.'" target="_blank" rel="noopener noreferrer">'.$urldolibarr.'</a>';
+$fullurl = '<a href="'.$urlesti.'/releases" target="_blank" rel="noopener noreferrer">'.$urlesti.'/releases</a>';
 print str_replace('{s}', $fullurl, $langs->trans("DownloadPackageFromWebSite", '{s}')).'<br>';
 print '<b>'.$langs->trans("StepNb", 2).'</b>: ';
 print str_replace('{s}', $dolibarrroot, $langs->trans("UnpackPackageInDolibarrRoot", '{s}')).'<br>';

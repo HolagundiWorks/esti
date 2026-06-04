@@ -58,11 +58,25 @@ http://localhost:8090/install/
 ESTI planning documents are in [docs/esti](docs/esti):
 
 - [License and Notices](docs/esti/LICENSE-NOTICE.md)
+- [Product Roadmap](docs/esti/ROADMAP.md)
 - [Migration Roadmap](docs/esti/MIGRATION-ROADMAP.md)
 - [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
 - [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
 - [Construction Modules](docs/esti/CONSTRUCTION-MODULES.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
+
+## Repository Links
+
+Use the ESTI repository for source, issues, updates, release notes, and public
+documentation:
+
+```text
+https://github.com/HolagundiWorks/esti
+```
+
+Dolibarr references are kept only where they are required for license,
+copyright, trademark attribution, upstream compatibility, or security patch
+review.
 
 ## License
 

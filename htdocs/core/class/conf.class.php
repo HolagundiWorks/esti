@@ -1345,10 +1345,10 @@ class Conf extends stdClass
 			}
 
 			if (empty($this->global->MAIN_MODULE_DOLISTORE_API_SRV)) {
-				$this->global->MAIN_MODULE_DOLISTORE_API_SRV = 'https://www.dolistore.com/api/';
+				$this->global->MAIN_MODULE_DOLISTORE_API_SRV = '';
 			}
 			if (empty($this->global->MAIN_MODULE_DOLISTORE_API_KEY)) {
-				$this->global->MAIN_MODULE_DOLISTORE_API_KEY = 'dolistorepublicapi';
+				$this->global->MAIN_MODULE_DOLISTORE_API_KEY = '';
 			}
 
 			// Enable by default the CSRF protection by token.

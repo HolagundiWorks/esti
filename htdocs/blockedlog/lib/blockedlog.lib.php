@@ -412,7 +412,7 @@ function callApiToPushCounter($id, $signature, $datecreation, $test, $previousid
 		// TODO Do it only for selected events: BILL_VALIDATE ?
 
 		// Code here is similar to the one into printCodeForPing(), except that message code/properties/fields may differ.
-		$url_for_ping = getDolGlobalString('MAIN_URL_FOR_PING', "https://ping.dolibarr.org/");
+		$url_for_ping = getDolGlobalString('MAIN_URL_FOR_PING', '');
 
 		$algo = 'sha256';
 		$hash_unique_id = getHashUniqueIdOfRegistration($algo);		// The hash of the unique IDof instance

@@ -9,7 +9,7 @@ Extract any data or push insert, update or delete record using our new REST APIs
 
 
 <div align="center">
-  <img class="imgdoc" src="https://www.dolibarr.org//images/doc_apirest.png" alt="Dolibarr API explorer"/>
+  <img class="imgdoc" src="https://github.com/HolagundiWorks/esti" alt="Dolibarr API explorer"/>
 </div>
 
 
@@ -35,7 +35,7 @@ To get a token you can:
 
 Then call other services with
 
-https://**yourdolibarr.tld**/mydolibarr/api/index.php/otherservice?DOLAPIKEY=**api_key**
+https://**youresti.tld**/esti/api/index.php/otherservice?DOLAPIKEY=**api_key**
 
 
 Develop an API

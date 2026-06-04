@@ -130,7 +130,7 @@ if (!GETPOST('buttonreset', 'alpha')) {
 }
 
 $dirins = DOL_DOCUMENT_ROOT.'/custom';
-$urldolibarrmodules = 'https://www.dolistore.com/';
+$urldolibarrmodules = ESTI_REPOSITORY_URL;
 
 // Initialize a technical object to manage hooks of page. Note that conf->hooks_modules contains an array of hook context
 $hookmanager->initHooks(array('adminmodules', 'globaladmin'));
@@ -1375,7 +1375,7 @@ if ($mode == 'marketplace') {
 
 
 	// Source Community github
-	$url = 'https://github.com/Dolibarr/dolibarr-community-modules';
+	$url = ESTI_REPOSITORY_URL;
 
 	print '<tr class="oddeven nohover" height="100">'."\n";
 	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg"></a></td>';
@@ -1398,10 +1398,10 @@ if ($mode == 'marketplace') {
 
 
 	// Source Marketplace DoliStore
-	$url = 'https://www.dolistore.com';
+	$url = ESTI_REPOSITORY_URL;
 
 	print '<tr class="oddeven nohover" height="100">'."\n";
-	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/dolistore_logo.svg"></a></td>';
+	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/esti_logo.png"></a></td>';
 	print '<td class="minwidth500imp smallonsmartphone"><span class="opacitymedium">'.$langs->trans("DoliStoreDesc").'</span><br>';
 	print img_picto('', 'url', 'class="pictofixedwidth"').'<a href="'.$url.'" target="_blank" rel="noopener noreferrer external">'.$url.'</a></td>';
 	print '<td>';
@@ -1712,7 +1712,7 @@ if ($mode == 'develop') {
 	print '</tr>';
 
 	print '<tr class="oddeven nohover" height="100">'."\n";
-	$url = 'https://partners.dolibarr.org';
+	$url = ESTI_ISSUES_URL;
 	print '<td class="center hideonsmartphone">';
 	print'<a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth180" src="'.DOL_URL_ROOT.'/theme/dolibarr_preferred_partner.png"></a>';
 	print '</td>';

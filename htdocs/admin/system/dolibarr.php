@@ -21,7 +21,7 @@
 
 /**
  *  \file       htdocs/admin/system/dolibarr.php
- *  \brief      Page to show Dolibarr information
+ *  \brief      Page to show ESTI information
  */
 
 // Load Dolibarr environment
@@ -57,9 +57,6 @@ if (!$user->admin) {
 	accessforbidden();
 }
 
-$sfurl = '';
-$version = '0.0';
-
 // Version blockedlog
 $versionbadge = '<span class="badge-text badge-secondary">'.getBlockedLogVersionToShow().'</span>';
 
@@ -69,19 +66,7 @@ $versionbadge = '<span class="badge-text badge-secondary">'.getBlockedLogVersion
  */
 
 if ($action == 'getlastversion') {
-	$result = getURLContent('https://sourceforge.net/projects/dolibarr/rss');
-	if (function_exists('simplexml_load_string')) {
-		if (LIBXML_VERSION < 20900) {
-			// Avoid load of external entities (security problem).
-			// Required only if LIBXML_VERSION < 20900
-			// @phan-suppress-next-line PhanDeprecatedFunctionInternal
-			libxml_disable_entity_loader(true);
-		}
-
-		$sfurl = simplexml_load_string($result['content'], 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NONET);
-	} else {
-		setEventMessages($langs->trans("ErrorPHPDoesNotSupport", "xml"), null, 'errors');
-	}
+	setEventMessages('ESTI releases are tracked from the ESTI GitHub repository. Upstream Dolibarr release feeds are disabled in this fork.', null, 'warnings');
 }
 
 
@@ -92,7 +77,7 @@ if ($action == 'getlastversion') {
 $form = new Form($db);
 
 $help_url = '';
-$title = $langs->trans("InfoDolibarr");
+$title = 'ESTI information';
 
 llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'mod-admin page-system_dolibarr');
 
@@ -122,46 +107,14 @@ if (preg_match('/[a-z]+/i', $version)) {
 	$version = 'develop'; // If version contains text, it is not an official tagged version, so we use the full change log.
 }
 
-$urlofchangelog = 'https://raw.githubusercontent.com/Dolibarr/dolibarr/'.$version.'/ChangeLog';
+$urlofchangelog = ESTI_CHANGELOG_URL;
 
 print ' &nbsp; ';
 //print dolButtonToOpenUrlInDialogPopup('changelogpopup', $langs->trans("SeeChangeLog"), $langs->trans("SeeChangeLog"), $urlofchangelog);
 print '<a href="'.$urlofchangelog.'" target="_blank" rel="noopener noreferrer external">'.img_picto('', 'url', 'class="paddingright"').$langs->trans("SeeChangeLog").'</a>';
 
-$newversion = '';
-if (function_exists('curl_init')) {
-	$conf->global->MAIN_USE_RESPONSE_TIMEOUT = 10;
-	print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';
-	if ($action == 'getlastversion') {
-		if ($sfurl) {
-			$i = 0;
-			while (!empty($sfurl->channel[0]->item[$i]->title) && $i < 10000) {
-				$title = $sfurl->channel[0]->item[$i]->title;
-				$reg = array();
-				if (preg_match('/([0-9]+\.([0-9\.]+))/', $title, $reg)) {
-					$newversion = $reg[1];
-					$newversionarray = explode('.', $newversion);
-					$versionarray = explode('.', $version);
-					//var_dump($newversionarray);var_dump($versionarray);
-					if (versioncompare($newversionarray, $versionarray) > 0) {
-						$version = $newversion;
-					}
-				}
-				$i++;
-			}
-
-			// Show version
-			print $langs->trans("LastStableVersion").' : <b>'.(($version != '0.0') ? $version : $langs->trans("Unknown")).'</b>';
-			if ($version != '0.0') {
-				print ' &nbsp; <a href="https://raw.githubusercontent.com/Dolibarr/dolibarr/'.$version.'/ChangeLog" target="_blank" rel="noopener noreferrer external">'.img_picto('', 'url', 'class="paddingright"').$langs->trans("SeeChangeLog").'</a>';
-			}
-		} else {
-			print $langs->trans("LastStableVersion").' : <b>'.$langs->trans("UpdateServerOffline").'</b>';
-		}
-	} else {
-		print $langs->trans("LastStableVersion").' : <a href="'.$_SERVER["PHP_SELF"].'?action=getlastversion" class="butAction smallpaddingimp">'.$langs->trans("Check").'</a>';
-	}
-}
+print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';
+print $langs->trans("LastStableVersion").' : <a href="'.ESTI_REPOSITORY_URL.'/releases" target="_blank" rel="noopener noreferrer external" class="butAction smallpaddingimp">'.$langs->trans("Check").'</a>';
 
 // Now show link to the changelog
 //print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';

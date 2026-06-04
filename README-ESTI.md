@@ -31,11 +31,19 @@ ESTI will prioritize construction workflows:
 The ESTI planning documents are in [docs/esti](docs/esti):
 
 - [License and Notices](docs/esti/LICENSE-NOTICE.md)
+- [Product Roadmap](docs/esti/ROADMAP.md)
 - [Migration Roadmap](docs/esti/MIGRATION-ROADMAP.md)
 - [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
 - [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
 - [Construction Modules](docs/esti/CONSTRUCTION-MODULES.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
+
+## Repository Links
+
+Use `https://github.com/HolagundiWorks/esti` for ESTI source, issues, updates,
+release notes, and public documentation. Dolibarr references should remain only
+for legal notices, upstream-derived code, compatibility APIs, or upstream patch
+review.
 
 ## Legal Note
 

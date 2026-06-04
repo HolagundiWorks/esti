@@ -141,7 +141,7 @@ if ($mysoc->country_code == 'FR') {
 // Show generic message (for countries that need registration) to explain we need registration to collect data and why
 if (in_array($mysoc->country_code, array('FR')) && !userIsTaxAuditor()) {
 	$organization_for_ping = getDolGlobalString('MAIN_ORGANIZATION_FOR_PING', "Association Dolibarr");
-	$dataprivacy_url = getDolGlobalString('MAIN_ORGANIZATION_URL_PRIVACY', "https://www.dolibarr.org/legal-privacy-gdpr.php");
+	$dataprivacy_url = getDolGlobalString('MAIN_ORGANIZATION_URL_PRIVACY', ESTI_REPOSITORY_URL);
 
 	if (!isRegistrationDataSavedAndPushed() || $origin == 'initmodule') {
 		if ($infotoshow) {
@@ -191,7 +191,7 @@ print '<br>';
 print '<center><br>';
 print $langs->trans("YouMayFindDocumentOn").'<br>';
 print '<br>';
-print img_picto('', 'url').' <a href="https://www.dolibarr.org/certifications-lf" target="_blank">https://www.dolibarr.org/certifications-lf</a>';
+print img_picto('', 'url').' <a href="'.ESTI_REPOSITORY_URL.'" target="_blank">'.ESTI_REPOSITORY_URL.'</a>';
 print '<center>';
 
 

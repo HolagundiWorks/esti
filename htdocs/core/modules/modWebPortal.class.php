@@ -44,7 +44,7 @@ class modWebPortal extends DolibarrModules
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 11000; // TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve an id number for your module
+		$this->numero = 11000; // TODO Track ESTI module ids in the ESTI repository.
 
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'webportal';

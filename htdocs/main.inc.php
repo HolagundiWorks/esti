@@ -3417,23 +3417,7 @@ function left_menu($menu_array_before, $helppagename = '', $notused = '', $menu_
 
 			// Version
 			if (getDolGlobalString('MAIN_SHOW_VERSION')) {    // Version is already on help picto and on login page.
-				$doliurl = 'https://www.dolibarr.org';
-				//local communities
-				if (preg_match('/fr/i', $langs->defaultlang)) {
-					$doliurl = 'https://www.dolibarr.fr';
-				}
-				if (preg_match('/es/i', $langs->defaultlang)) {
-					$doliurl = 'https://www.dolibarr.es';
-				}
-				if (preg_match('/de/i', $langs->defaultlang)) {
-					$doliurl = 'https://www.dolibarr.de';
-				}
-				if (preg_match('/it/i', $langs->defaultlang)) {
-					$doliurl = 'https://www.dolibarr.it';
-				}
-				if (preg_match('/gr/i', $langs->defaultlang)) {
-					$doliurl = 'https://www.dolibarr.gr';
-				}
+				$doliurl = ESTI_REPOSITORY_URL;
 
 				$appli = constant('DOL_APPLICATION_TITLE');
 				$applicustom = getDolGlobalString('MAIN_APPLICATION_TITLE');
@@ -3468,7 +3452,7 @@ function left_menu($menu_array_before, $helppagename = '', $notused = '', $menu_
 				require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 				if (getDolGlobalString('MAIN_BUGTRACK_ENABLELINK') == 'github') {
-					$bugbaseurl = 'https://github.com/Dolibarr/dolibarr/issues/new?labels=Bug';
+					$bugbaseurl = ESTI_ISSUES_URL.'/new?labels=Bug';
 					$bugbaseurl .= '&title=';
 					$bugbaseurl .= urlencode("Bug: ");
 					$bugbaseurl .= '&body=';
@@ -3628,33 +3612,9 @@ function getHelpParamFor($helppagename, $langs)
 		$helppage = $helppagename;
 		$mode = 'local';
 	} else {
-		// If WIKI URL
-		$reg = array();
-		if (preg_match('/^es/i', $langs->defaultlang)) {
-			$helpbaseurl = 'http://wiki.dolibarr.org/index.php/%s';
-			if (preg_match('/ES:([^|]+)/i', $helppagename, $reg)) {
-				$helppage = $reg[1];
-			}
-		}
-		if (preg_match('/^fr/i', $langs->defaultlang)) {
-			$helpbaseurl = 'http://wiki.dolibarr.org/index.php/%s';
-			if (preg_match('/FR:([^|]+)/i', $helppagename, $reg)) {
-				$helppage = $reg[1];
-			}
-		}
-		if (preg_match('/^de/i', $langs->defaultlang)) {
-			$helpbaseurl = 'http://wiki.dolibarr.org/index.php/%s';
-			if (preg_match('/DE:([^|]+)/i', $helppagename, $reg)) {
-				$helppage = $reg[1];
-			}
-		}
-		if (empty($helppage)) {	// If help page not already found
-			$helpbaseurl = 'http://wiki.dolibarr.org/index.php/%s';
-			if (preg_match('/EN:([^|]+)/i', $helppagename, $reg)) {
-				$helppage = $reg[1];
-			}
-		}
-		$mode = 'wiki';
+		$helpbaseurl = '%s';
+		$helppage = ESTI_DOCS_URL;
+		$mode = 'local';
 	}
 	return array('helpbaseurl' => $helpbaseurl, 'helppage' => $helppage, 'mode' => $mode);
 }

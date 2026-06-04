@@ -1091,7 +1091,7 @@ if ($action == 'check' || $action == 'checkconfirmed') {
 		print img_picto('', 'minus', 'class="valignmiddle pictofixedwidth"');
 		print '<b>'.$langs->trans("DetectionOfSystemRestoration").'</b>: ';
 		print '<span class="opacitymedium">';
-		print $langs->trans("FeatureOnlyWhenArchiveAnalyzedFrom", "https://www.dolibarr.org/onlinecheckarchive.php");
+		print $langs->trans("FeatureOnlyWhenArchiveAnalyzedFrom", ESTI_REPOSITORY_URL);
 		print '</span><br>';
 		print '<br>';
 		*/

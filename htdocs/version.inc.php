@@ -35,6 +35,18 @@
 if (!defined('DOL_APPLICATION_TITLE')) {
 	define('DOL_APPLICATION_TITLE', 'ESTI');
 }
+if (!defined('ESTI_REPOSITORY_URL')) {
+	define('ESTI_REPOSITORY_URL', 'https://github.com/HolagundiWorks/esti');
+}
+if (!defined('ESTI_CHANGELOG_URL')) {
+	define('ESTI_CHANGELOG_URL', ESTI_REPOSITORY_URL.'/blob/codex/esti-rebrand-baseline/ChangeLog');
+}
+if (!defined('ESTI_ISSUES_URL')) {
+	define('ESTI_ISSUES_URL', ESTI_REPOSITORY_URL.'/issues');
+}
+if (!defined('ESTI_DOCS_URL')) {
+	define('ESTI_DOCS_URL', ESTI_REPOSITORY_URL.'/tree/codex/esti-rebrand-baseline/docs/esti');
+}
 
 // The major version of Dolibarr
 define('DOL_MAJOR_VERSION', '24');

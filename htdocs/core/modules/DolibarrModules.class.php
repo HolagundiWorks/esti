@@ -139,7 +139,7 @@ class DolibarrModules // Can not be abstract, because we need to instantiate it 
 	 */
 	public $rights_class;
 
-	const URL_FOR_BLACKLISTED_MODULES = 'https://www.dolibarr.org/modules-blacklist.php';
+	const URL_FOR_BLACKLISTED_MODULES = ESTI_REPOSITORY_URL;
 
 	const KEY_ID = 0;
 	const KEY_LABEL = 1;

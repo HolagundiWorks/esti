@@ -3369,7 +3369,7 @@ $morehtmlright = '<a href="'.DOL_URL_ROOT.'/admin/tools/ui/index.php" target="_b
 print load_fiche_titre($text, $morehtmlright, 'title_setup');
 
 print '<div class="info hideonsmartphone">';
-print $langs->trans("ModuleBuilderDesc", 'https://wiki.dolibarr.org/index.php/Module_development').'</span>';
+print $langs->trans("ModuleBuilderDesc", ESTI_DOCS_URL).'</span>';
 print '</div>';
 
 
@@ -3579,7 +3579,7 @@ if ($module == 'initmodule') {
 	print ' &nbsp; &nbsp; ';
 	print dolButtonToOpenUrlInDialogPopup('popup_modules_id', $langs->transnoentitiesnoconv("SeeIDsInUse"), $langs->transnoentitiesnoconv("SeeIDsInUse"), '/admin/system/modules.php?mainmenu=home&leftmenu=admintools_info&hidetitle=1', '', '');
 	print ' - ';
-	print '<a href="https://wiki.dolibarr.org/index.php/List_of_modules_id" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeReservedIDsRangeHere").'</a>';
+	print '<a href="'.ESTI_DOCS_URL.'" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeReservedIDsRangeHere").'</a>';
 	print '</span>';
 	print '</div></div>';
 
@@ -3885,7 +3885,7 @@ if ($module == 'initmodule') {
 					print '<span class="opacitymedium">';
 					print ' &nbsp; (';
 					print dolButtonToOpenUrlInDialogPopup('popup_modules_id', $langs->transnoentitiesnoconv("SeeIDsInUse"), $langs->transnoentitiesnoconv("SeeIDsInUse"), '/admin/system/modules.php?mainmenu=home&leftmenu=admintools_info', '', '');
-					print ' - <a href="https://wiki.dolibarr.org/index.php/List_of_modules_id" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeReservedIDsRangeHere").'</a>)';
+					print ' - <a href="'.ESTI_DOCS_URL.'" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeReservedIDsRangeHere").'</a>)';
 					print '</span>';
 					print '</td></tr>';
 
@@ -4754,7 +4754,7 @@ if ($module == 'initmodule') {
 								print '<th class="tdstickyright tdstickyghostwhite"></th>';
 							}
 							print '<th class="tdsticky tdstickygray">';
-							$htmltext = $langs->trans("PropertyDesc").'<br><br><a class="" href="https://wiki.dolibarr.org/index.php/Language_and_development_rules#Table_and_fields_structures" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeExamples").'</a>';
+							$htmltext = $langs->trans("PropertyDesc").'<br><br><a class="" href="'.ESTI_DOCS_URL.'" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SeeExamples").'</a>';
 							print $form->textwithpicto($langs->trans("Code"), $htmltext, 1, 'help', 'extracss', 0, 3, 'propertyhelp');
 							print '</th>';
 							print '<th>';

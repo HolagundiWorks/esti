@@ -149,12 +149,12 @@ class ExternalModules
 		$this->url       = DOL_URL_ROOT.'/admin/modules.php?mode=marketplace';
 
 		// For dolistore modules
-		$this->dolistore_api_url = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_SRV', 'https://www.dolistore.com/api/');	// 'https://www.dolistore.com/api/', 'https://admin2.dolibarr.org/api/index.php/marketplace/'
-		$this->dolistore_api_key = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_KEY', 'dolistorepublicapi');
-		$this->shop_url  = getDolGlobalString('MAIN_MODULE_DOLISTORE_SHOP_URL', 'https://www.dolistore.com');
+		$this->dolistore_api_url = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_SRV', '');
+		$this->dolistore_api_key = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_KEY', '');
+		$this->shop_url  = getDolGlobalString('MAIN_MODULE_DOLISTORE_SHOP_URL', ESTI_REPOSITORY_URL);
 
 		// For community modules
-		$this->file_source_url = "https://raw.githubusercontent.com/Dolibarr/dolibarr-community-modules/refs/heads/main/index.yaml";
+		$this->file_source_url = getDolGlobalString('MAIN_MODULE_COMMUNITY_SOURCE_URL', ESTI_REPOSITORY_URL);
 		$this->cache_file = DOL_DATA_ROOT.'/admin/temp/remote_github_modules_file.yaml';
 
 		$lang       = $langs->defaultlang;
@@ -370,8 +370,8 @@ class ExternalModules
 		if ($this->categorie == 87) {
 			$html = '<div class="shop-container">
                             <div class="shop-image">
-								<a href="https://merch.dolibarr.org/" target="_blank">
-	                                <img src="https://www.dolistore.com/medias/image/marketplace/img/goodies-shop.jpg" width="50%" alt="DoliStore Merch and Gifts" />
+								<a href="'.ESTI_REPOSITORY_URL.'" target="_blank">
+	                                <img src="'.DOL_URL_ROOT.'/theme/esti_logo.png" width="50%" alt="ESTI repository" />
 	                                <div class="shop-overlay">
 	                                    <button target="new" class="shop-button">'.$langs->trans("GoodiesButtonTitle").' <i class="icon-chevron-right"></i></button>
 	                                </div>
@@ -553,7 +553,7 @@ class ExternalModules
 					if (!empty($product['direct-download']) && $product['direct-download'] == 'yes') {
 						$reg = array();
 						if (preg_match('/https:.*\?id=(\d+)$/', $urlview, $reg)) {
-							$urldownload = 'https://www.dolistore.com/_service_download.php?t=free&p='.$reg[1];
+							$urldownload = ESTI_REPOSITORY_URL;
 							$download_link .= '<a class="paddingleft paddingright" target="_blank" title="'.$langs->trans("Download").'" href="'.$urldownload.'" rel="noopener noreferrer">';
 							$download_link .= img_picto('', 'download', 'class="size2x paddingright"');
 							//$download_link .= '<img width="32" src="'.DOL_URL_ROOT.'/admin/remotestore/img/download.png" />';
@@ -562,7 +562,7 @@ class ExternalModules
 					}
 				} elseif ($product['source'] === 'dolistore') {
 					$urlview = $this->shop_url.'/product.php?id='.((int) $product["id"]);
-					$urldownload = 'https://www.dolistore.com/_service_download.php?t=free&p=' . $product['id'];
+					$urldownload = ESTI_REPOSITORY_URL;
 					$download_link = '<a class="paddingleft paddingright" target="_blank" title="'.$langs->trans("View").'" href="'.$urlview.'">';
 					$download_link .= img_picto('', 'url', 'class="size2x"');
 					$download_link .= '</a>';
@@ -1356,7 +1356,7 @@ class ExternalModules
 		switch ($producttoinstall['source']) {
 			case 'dolistore':
 				if ($producttoinstall['id'] > 0) {
-					$source_url = 'https://www.dolistore.com/_service_download.php?t=free&p=' . $producttoinstall['id'];
+					$source_url = ESTI_REPOSITORY_URL;
 					$downloaded = $this->_downloadFile($source_url, $tmpdir);
 					if (!$downloaded) {
 						dol_syslog(__METHOD__ . ': Dolistore download failed: ' . $source_url, LOG_ERR);
@@ -1369,12 +1369,12 @@ class ExternalModules
 				break;
 			case 'githubcommunity':
 				if ($producttoinstall['direct-download'] && $producttoinstall['direct-download'] == 'yes') {
-					$source_url = 'https://github.com/Dolibarr/dolibarr-community-modules/raw/refs/heads/main/' . $module_name . '/module_' . $module_name . '-' . $current_version . '.zip';
+					$source_url = ESTI_REPOSITORY_URL;
 					$downloaded = $this->_downloadFile($source_url, $tmpdir);
 					if (!$downloaded) {
 						dol_syslog(__METHOD__ . ': GitHub community module download failed: ' . $source_url . ', Try to find a Dolistore link', LOG_WARNING);
 						if ($producttoinstall['id'] > 0) {
-							$source_url = 'https://www.dolistore.com/_service_download.php?t=free&p=' . $producttoinstall['id'];
+							$source_url = ESTI_REPOSITORY_URL;
 							$downloaded = $this->_downloadFile($source_url, $tmpdir);
 							if (!$downloaded) {
 								dol_syslog(__METHOD__ . ': Dolistore download failed: ' . $source_url, LOG_ERR);

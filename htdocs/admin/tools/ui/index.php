@@ -64,9 +64,9 @@ $documentation->showSidebar(); ?>
 					<div class="link-title"><span class="fas fa-info-circle paddingright"></span> <?php print $langs->trans('DocHowContribute'); ?></div>
 					<div class="link-content"><?php print $langs->trans('DocHowContributeDescription'); ?></div>
 				</a>
-				<a class="doc-link size-default" href="https://www.dolibarr.fr/forum/" target="_blank">
-					<div class="link-title"><span class="fas fa-external-link-alt paddingright"></span> Dolibarr community</div>
-					<div class="link-content">Meet and chat with the Dolibarr community on the dedicated forum</div>
+				<a class="doc-link size-default" href="<?php echo ESTI_REPOSITORY_URL; ?>" target="_blank">
+					<div class="link-title"><span class="fas fa-external-link-alt paddingright"></span> ESTI repository</div>
+					<div class="link-content">Open ESTI source, issues, releases, and documentation on GitHub</div>
 				</a>
 			</div>
 		</div>

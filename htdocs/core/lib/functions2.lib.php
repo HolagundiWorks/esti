@@ -3145,7 +3145,7 @@ function printCodeForPing($constanttosavelastko, $constanttosavefirstok, $arrayo
 		print "\n";
 		print '<!-- printCodeForPing: Includes JS to make ajax call for '.$constanttosavefirstok.'. forceping='.$forceping.' '.$constanttosavefirstok.'='.getDolGlobalString($constanttosavefirstok).' '.$constanttosavelastko.'='.getDolGlobalString($constanttosavelastko).' -->'."\n";
 		print "<!-- JS CODE TO ENABLE the call -->\n";
-		$url_for_ping = getDolGlobalString('MAIN_URL_FOR_PING', "https://ping.dolibarr.org/");
+		$url_for_ping = getDolGlobalString('MAIN_URL_FOR_PING', '');
 		// Try to guess the distrib used
 		$distrib = 'standard';
 		if (isset($_SERVER["SERVER_ADMIN"]) && $_SERVER["SERVER_ADMIN"] == 'doliwamp@localhost') {
@@ -3394,7 +3394,7 @@ function validateZipFile($zip, $originalfilename, $zipfile, $langs)
 	if (!empty($error)) {
 		dol_syslog("validateZipFile Error");
 
-		$link = '<a target="_blank" class="linktowiki" href="https://wiki.dolibarr.org/index.php/Modules - Packaging rules and Dolistore validation rules">Dolibarr wiki developer documentation</a>';
+		$link = '<a target="_blank" class="linktowiki" href="'.ESTI_DOCS_URL.'">ESTI developer documentation</a>';
 		$return['errormsg'] .= $langs->trans("UnvalidZipFile") .'<br>';
 		$return['errormsg'] .= $langs->trans("SeeDocumentation", $link).'<br>';
 		$return['errormsg'] .= "<br>\n";

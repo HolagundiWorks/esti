@@ -290,14 +290,14 @@ print "\n";
 
 print '<div class="demoban demobackground">';
 print '<div class="right" style="padding-right: 30px; padding-top: 30px;">';
-print '<a alt="Official portal of your ERP CRM application" targe="_blank" href="https://www.dolibarr.org?utm_medium=website&utm_source=demo"><img class="demologo" src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg" alt="Dolibarr logo"></a>';
+print '<a alt="ESTI repository" targe="_blank" href="'.ESTI_REPOSITORY_URL.'"><img class="demologo" src="'.DOL_URL_ROOT.'/theme/esti_logo.png" alt="ESTI logo"></a>';
 print '</div>';
 print '</div>';
 
 print '<div class="demobantext" style="max-width: 1024px;">';
 print '<div style="font-size: 0.8em; padding: 40px;">';
 print '<div class="hideonsmartphone" style="text-align: justify;">'.$langs->trans("DemoDesc").'<br>';
-print $langs->trans("DemoDesc2", 'https://www.dolibarr.org/onlinedemo');
+print $langs->trans("DemoDesc2", ESTI_REPOSITORY_URL);
 print '</div><br>';
 print '<div class="titre"><span style="font-size: 20px">'.$langs->trans("ChooseYourDemoProfil").'</span></div>';
 print '</div>';

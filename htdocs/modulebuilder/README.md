@@ -12,6 +12,6 @@ After enabling this module, you should find features to generate or edit modules
 Documentation
 -------------
 
-[Module tutorial](https://wiki.dolibarr.org/index.php/Module_development)
+[Module tutorial](https://github.com/HolagundiWorks/esti/tree/codex/esti-rebrand-baseline/docs/esti)
 
-[Dolibarr development](https://wiki.dolibarr.org/index.php/Developer_documentation)
+[Dolibarr development](https://github.com/HolagundiWorks/esti/tree/codex/esti-rebrand-baseline/docs/esti)

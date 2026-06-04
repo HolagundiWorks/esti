@@ -271,7 +271,7 @@ if (!getDolGlobalString('ADD_UNSPLASH_LOGIN_BACKGROUND')) {
 <div class="login_table_title center" tabindex="-1" title="<?php echo dolPrintHTMLForAttribute($title); ?>">
 <?php
 if ($disablenofollow) {
-	echo '<a class="login_table_title" tabindex="-1" href="https://www.dolibarr.org" target="_blank" rel="noopener noreferrer external">';
+	echo '<a class="login_table_title" tabindex="-1" href="'.ESTI_REPOSITORY_URL.'" target="_blank" rel="noopener noreferrer external">';
 }
 echo dolPrintHTML($title);
 if ($disablenofollow) {

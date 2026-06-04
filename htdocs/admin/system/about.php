@@ -22,7 +22,7 @@
 
 /**
  *       \file       htdocs/admin/system/about.php
- *       \brief      About Dolibarr File page
+ *       \brief      About ESTI File page
  */
 
 // Load Dolibarr environment
@@ -83,8 +83,8 @@ print'</div>';
 print '<div class="divsection wordwrap">';
 print $langs->trans("Developpers").':';
 print '<ul>';
-print '<li>'.$langs->trans("SourcesRepository").': <a href="https://www.github.com/Dolibarr/dolibarr" target="_blank" rel="noopener noreferrer external">https://www.github.com/Dolibarr/dolibarr</a></li>';
-print '<li>'.$langs->trans("SeeWikiForAllTeam").': <a href="https://wiki.dolibarr.org/index.php/Dolibarr_Project" target="_blank" rel="noopener noreferrer external">https://wiki.dolibarr.org/index.php/Dolibarr_Project</a></li>';
+print '<li>'.$langs->trans("SourcesRepository").': <a href="'.ESTI_REPOSITORY_URL.'" target="_blank" rel="noopener noreferrer external">'.ESTI_REPOSITORY_URL.'</a></li>';
+print '<li>'.$langs->trans("SeeWikiForAllTeam").': <a href="'.ESTI_DOCS_URL.'" target="_blank" rel="noopener noreferrer external">'.ESTI_DOCS_URL.'</a></li>';
 print '</ul>';
 print '</div>';
 
@@ -95,42 +95,10 @@ print $langs->trans("OtherInformations").':';
 
 print '<ul>';
 print '<li>';
-print '<a target="_blank" href="https://www.dolibarr.org/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSite").'</a>';
+print '<a target="_blank" href="'.ESTI_REPOSITORY_URL.'" rel="noopener noreferrer external">ESTI repository</a>';
 print '</li>';
-// Show local site
-/*
-if (preg_match('/^fr_/i', $langs->getDefaultLang()))
-{
-	print '<li>';
-	print '<a target="_blank" href="https://www.dolibarr.fr/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSiteLocal", $langs->transnoentitiesnoconv("CountryFR")).'</a>';
-	print '</li>';
-}
-if (preg_match('/^el_/i', $langs->getDefaultLang()))
-{
-	print '<li>';
-	print '<a target="_blank" href="https://www.dolibarr.gr/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSiteLocal", $langs->transnoentitiesnoconv("CountryGR")).'</a>';
-	print '</li>';
-}
-if (preg_match('/^es_/i', $langs->getDefaultLang()))
-{
-	print '<li>';
-	print '<a target="_blank" href="https://www.dolibarr.es/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSiteLocal", $langs->transnoentitiesnoconv("CountryES")).'</a>';
-	print '</li>';
-}
-if (preg_match('/^it_/i', $langs->getDefaultLang()))
-{
-	print '<li>';
-	print '<a target="_blank" href="https://www.dolibarr.it/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSiteLocal", $langs->transnoentitiesnoconv("CountryIT")).'</a>';
-	print '</li>';
-}
-if (preg_match('/^de_/i', $langs->getDefaultLang()))
-{
-	print '<li>';
-	print '<a target="_blank" href="https://www.dolibarr.de/" rel="noopener noreferrer external">'.$langs->trans("OfficialWebSiteLocal", $langs->transnoentitiesnoconv("CountryDE")).'</a>';
-	print '</li>';
-}*/
 print '<li>';
-print '<a target="_blank" href="https://wiki.dolibarr.org/" rel="noopener noreferrer external">'.$langs->trans("OfficialWiki").'</a>';
+print '<a target="_blank" href="'.ESTI_DOCS_URL.'" rel="noopener noreferrer external">ESTI documentation</a>';
 print '</li>';
 print '</ul>';
 print '</div>';
@@ -139,7 +107,7 @@ print '<div class="divsection wordwrap">';
 print $langs->trans("Demo").':';
 print '<ul>';
 print '<li>';
-print '<a target="_blank" href="https://www.dolibarr.org/onlinedemo/" rel="noopener noreferrer external">'.$langs->trans("OfficialDemo").'</a>';
+print '<a target="_blank" href="'.ESTI_REPOSITORY_URL.'" rel="noopener noreferrer external">ESTI demo information</a>';
 print '</li>';
 print '</ul>';
 print '</div>';
@@ -148,7 +116,7 @@ print '<div class="divsection wordwrap">';
 print $langs->trans("ModulesMarketPlaces").':';
 print '<ul>';
 print '<li>';
-print '<a target="_blank" href="https://www.dolistore.com" rel="noopener noreferrer external">'.$langs->trans("OfficialMarketPlace").'</a>';
+print '<a target="_blank" href="'.ESTI_REPOSITORY_URL.'" rel="noopener noreferrer external">ESTI modules</a>';
 print '</li>';
 print '</ul>';
 print '</div>';
@@ -159,14 +127,8 @@ print '<div class="divsection wordwrap">';
 print $langs->trans("Foundation").':';
 
 print '<ul>';
-$url = 'https://wiki.dolibarr.org/index.php/Subscribe';
-if (preg_match('/^fr_/i', $langs->getDefaultLang())) {
-	$url = 'https://wiki.dolibarr.org/index.php/Adh%C3%A9rer';
-}
-if (preg_match('/^es_/i', $langs->getDefaultLang())) {
-	$url = 'https://wiki.dolibarr.org/index.php/Subscribirse';
-}
-print '<li><a href="'.$url.'" target="_blank" rel="noopener noreferrer external">'.$langs->trans("SubscribeToFoundation").'</a></li>';
+$url = ESTI_REPOSITORY_URL;
+print '<li><a href="'.$url.'" target="_blank" rel="noopener noreferrer external">ESTI project repository</a></li>';
 print '</ul>';
 print '</div>';
 
@@ -175,7 +137,7 @@ print $langs->trans("SocialNetworks").':';
 
 print '<ul>';
 
-print '<li><a href="https://wiki.dolibarr.org/index.php?title=Social_Networks" target="_blank" rel="noopener noreferrer external">See wiki</a></li>';
+print '<li><a href="'.ESTI_REPOSITORY_URL.'" target="_blank" rel="noopener noreferrer external">ESTI repository</a></li>';
 
 print '</ul>';
 print '</div>';
@@ -184,17 +146,11 @@ print '<div class="divsection wordwrap">';
 print $langs->trans("OtherResources").':';
 print '<ul>';
 
-$url = 'https://saas.dolibarr.org'; $title = $langs->trans("OfficialWebHostingService");
-if (preg_match('/^fr_/i', $langs->getDefaultLang())) {
-	$url = 'https://wiki.dolibarr.org/index.php/Solutions_Cloud_pour_Dolibarr_ERP_CRM';
-}
-if (preg_match('/^es_/i', $langs->getDefaultLang())) {
-	$url = 'https://wiki.dolibarr.org/index.php/Soluciones_en_la_Nube';
-}
+$url = ESTI_REPOSITORY_URL; $title = 'ESTI releases';
 print '<li>';
 print '<a target="_blank" rel="noopener noreferrer external" href="'.$url.'">'.$title.'</a>';
 print '</li>';
-$url = 'https://partners.dolibarr.org'; $title = $langs->trans("ReferencedPreferredPartners");
+$url = ESTI_ISSUES_URL; $title = 'ESTI issues';
 print '<li>';
 print '<a target="_blank" rel="noopener noreferrer external" href="'.$url.'">'.$title.'</a>';
 print '</li>';

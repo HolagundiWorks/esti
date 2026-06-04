@@ -7,6 +7,10 @@
   `master`, or `develop`.
 - Keep a clean upstream remote so Dolibarr security fixes can be merged.
 - Add ESTI documentation, license notices, and contribution rules.
+- Route public source, issue, release, update, and support links to
+  `https://github.com/HolagundiWorks/esti`.
+- Keep Dolibarr links only for legal attribution, upstream merge research, and
+  compatibility references.
 - Run the upstream installer in a local Podman environment before functional
   changes begin.
 
@@ -73,6 +77,8 @@
 - Add PHPUnit coverage for construction object classes and GST calculations.
 - Document upgrade path from upstream Dolibarr and from earlier ESTI versions.
 - Publish GPL source, container image metadata, changelog, and security policy.
+- Publish ESTI releases and changelogs from the ESTI GitHub repository, not from
+  upstream Dolibarr release feeds.
 
 ## Non-Goals For The First Release
 

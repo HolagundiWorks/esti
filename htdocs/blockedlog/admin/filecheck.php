@@ -155,7 +155,7 @@ if (empty($xmlremote) && getDolGlobalString($param)) {
 	$xmlremote = getDolGlobalString($param);
 }
 if (empty($xmlremote)) {
-	$xmlremote = 'https://www.dolibarr.org/files/stable/signatures/filelist-'.DOL_VERSION.'.xml';
+	$xmlremote = ESTI_REPOSITORY_URL.'/releases';
 }
 if (!preg_match('/^https?:\/\//', $xmlremote)) {
 	$langs->load("errors");

@@ -77,7 +77,7 @@ llxHeader('', '', '', '', 0, 0, '', '', '', 'mod-admin page-system_security');
 
 print load_fiche_titre($langs->trans("Security"), '', 'title_setup');
 
-print '<span class="opacitymedium">'.$langs->trans("YouMayFindSecurityAdviceHere", 'hhttps://wiki.dolibarr.org/index.php/Security_information').'</span>';
+print '<span class="opacitymedium">'.$langs->trans("YouMayFindSecurityAdviceHere", ESTI_REPOSITORY_URL.'/security/policy').'</span>';
 print ' &nbsp; &nbsp; ';
 print '<a href="'.$_SERVER["PHP_SELF"].'">';
 print img_picto($langs->trans("Reload"), 'refresh').' ';
@@ -1087,12 +1087,12 @@ print $langs->trans("RecommendMitigationOnURL").'<br>';
 print '</span>';
 
 print '<br>';
-$urlexamplebase = 'https://github.com/Dolibarr/dolibarr/blob/develop/dev/setup/fail2ban/filter.d/';
+$urlexamplebase = ESTI_REPOSITORY_URL.'/tree/codex/esti-rebrand-baseline/dev/setup/fail2ban/filter.d/';
 print '<span class="fas fa-shield-alt"></span> Login or API authentication (see <a target="_blank" rel="noopener" href="'.$urlexamplebase.'web-dolibarr-rulesbruteforce.conf">fail2ban example on GitHub</a>)<br>';
 print '<span class="fas fa-shield-alt"></span> '.DOL_URL_ROOT.'/passwordforgotten.php (see <a target="_blank" rel="noopener" href="'.$urlexamplebase.'web-dolibarr-rulespassforgotten.conf">fail2ban example on GitHub</a>)<br>';
 print '<span class="fas fa-shield-alt"></span> '.DOL_URL_ROOT.'/public/* (see <a target="_blank" rel="noopener" href="'.$urlexamplebase.'web-dolibarr-limitpublic.conf">fail2ban example on GitHub</a>)<br>';
 print '<br>';
-$urlexamplebase = 'https://github.com/Dolibarr/dolibarr/blob/develop/dev/setup/apache/';
+$urlexamplebase = ESTI_REPOSITORY_URL.'/tree/codex/esti-rebrand-baseline/dev/setup/apache/';
 print '<span class="fas fa-shield-alt"></span> You can also protect the application using a HTTP Basic authentication layer (see <a target="_blank" rel="noopener" href="'.$urlexamplebase.'virtualhost">apache2 virtualhost example on GitHub</a>)<br>';
 
 print '</div>';

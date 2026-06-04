@@ -42,6 +42,21 @@ policy. ESTI should:
 - Replace Dolibarr visual branding in the user interface, documentation, and
   container metadata after completing a trademark review.
 
+## Link Policy
+
+ESTI public links for source code, issues, updates, releases, support, module
+distribution, and documentation must point to:
+
+```text
+https://github.com/HolagundiWorks/esti
+```
+
+Dolibarr URLs should remain only when they are needed to identify upstream legal
+notices, original copyrights, GPL source provenance, trademark context, or
+engineering-only upstream merge references. Do not send ESTI users to Dolibarr
+update feeds, marketplaces, partner pages, demos, or support pages as the normal
+ESTI path.
+
 ## New ESTI Contributions
 
 New original ESTI code should carry GPL-compatible notices. Suggested header:

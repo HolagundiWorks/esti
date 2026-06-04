@@ -181,7 +181,7 @@ $head = security_prepare_head();
 
 print dol_get_fiche_head($head, 'openid', '', -1);
 
-$urlforwikidoc = img_picto('', 'url', 'class="pictofixedwidth"') . '<a target="_blank" href="https://wiki.dolibarr.org/index.php?title=Authentication,_SSO_and_SSL#Mode_openid_connect">';
+$urlforwikidoc = img_picto('', 'url', 'class="pictofixedwidth"') . '<a target="_blank" href="'.ESTI_DOCS_URL.'">';
 $urlforwikidoc .= $langs->trans("SeeHere");
 $urlforwikidoc .= '</a>';
 /*

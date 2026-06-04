@@ -30,7 +30,7 @@ Module structure:
 ├── `tpl/`
 └── `admin/`
 
-A template of the module directory content can be found in the `htdocs/modulebuilder/template` folder of the Dolibarr project at: https://github.com/Dolibarr/dolibarr/tree/develop/htdocs/modulebuilder/template.
+A template of the module directory content can be found in the `htdocs/modulebuilder/template` folder of the Dolibarr project at: https://github.com/HolagundiWorks/esti/tree/codex/esti-rebrand-baseline/htdocs/modulebuilder/template.
 
 ## 🧠 PHP Best Practices
 

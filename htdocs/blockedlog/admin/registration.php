@@ -296,7 +296,7 @@ if ($mysoc->country_code == 'FR') {
 // Show generic message (for countries that need registration) to explain we need registration to collect data and why
 if (in_array($mysoc->country_code, array('FR'))) {
 	$organization_for_ping = getDolGlobalString('MAIN_ORGANIZATION_FOR_PING', "Association Dolibarr");
-	$dataprivacy_url = getDolGlobalString('MAIN_ORGANIZATION_URL_PRIVACY', "https://www.dolibarr.org/legal-privacy-gdpr.php");
+	$dataprivacy_url = getDolGlobalString('MAIN_ORGANIZATION_URL_PRIVACY', ESTI_REPOSITORY_URL);
 
 	if (!isRegistrationDataSavedAndPushed() || $origin == 'initmodule') {
 		if ($infotoshow) {

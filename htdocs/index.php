@@ -152,7 +152,7 @@ if (getDolGlobalString('MAIN_FORCE_UPGRADE_MESSAGE') || getDolGlobalString('MAIN
 /*
 if (getDolGlobalInt('INVOICE_USE_SITUATION') == 1) {
 	$langs->loadLangs(array("admin"));
-	print info_admin($langs->trans("WarningExperimentalFeatureInvoiceSituationNeedToUpgradeToProgressiveMode", 'https://partners.dolibarr.org'));
+	print info_admin($langs->trans("WarningExperimentalFeatureInvoiceSituationNeedToUpgradeToProgressiveMode", ESTI_ISSUES_URL));
 	//print "<br>";
 }
 */
