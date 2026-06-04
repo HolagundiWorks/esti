@@ -11,6 +11,7 @@ license notices, source availability, backup, and upgrade procedures are ready.
 - `esti-app`: PHP and web server serving `htdocs`.
 - `esti-db`: MariaDB database.
 - `esti-documents`: persistent Dolibarr/ESTI document storage volume.
+- `esti-conf`: persistent Dolibarr/ESTI generated configuration volume.
 - `esti-db-data`: persistent database volume.
 - Optional `esti-adminer`: database inspection tool for local development only.
 

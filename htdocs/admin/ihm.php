@@ -57,6 +57,7 @@ if (!$user->admin) {
 $action = GETPOST('action', 'aZ09');
 $contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'adminihm'; // To manage different context of search
 $mode = GETPOST('mode', 'aZ09') ? GETPOST('mode', 'aZ09') : 'other'; // 'template', 'dashboard', 'login', 'other'
+$estiCarbonUiLocked = true;
 
 if (!defined("MAIN_MOTD")) {
 	define("MAIN_MOTD", "");
@@ -112,7 +113,22 @@ if ($action == 'removebackgroundlogin' && getDolGlobalString('MAIN_LOGIN_BACKGRO
 if ($action == 'update') {
 	$error = 0;
 
-	if ($mode == 'template') {
+	if ($mode == 'template' && $estiCarbonUiLocked) {
+		dolibarr_set_const($db, "MAIN_THEME", 'eldy', 'chaine', 0, 'ESTI Carbon UI uses the locked shared UI layer', $conf->entity);
+		dolibarr_set_const($db, "MAIN_FORCETHEME", 'eldy', 'chaine', 0, 'ESTI Carbon UI is not a selectable alternate theme', $conf->entity);
+		dolibarr_set_const($db, "THEME_DARKMODEENABLED", '1', 'chaine', 0, 'ESTI supports light and dark modes only', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_BORDER_RADIUS", '2', 'chaine', 0, 'ESTI Carbon radius', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_TOPMENU_BACK1", '22,22,22', 'chaine', 0, 'ESTI Carbon shell header', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_VERMENU_BACK1", '255,255,255', 'chaine', 0, 'ESTI Carbon side navigation layer', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_BACKBODY", '244,244,244', 'chaine', 0, 'ESTI Carbon page background', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_BTNACTION", '15,98,254', 'chaine', 0, 'ESTI Carbon primary button', $conf->entity);
+		dolibarr_set_const($db, "THEME_ELDY_TEXTBTNACTION", '255,255,255', 'chaine', 0, 'ESTI Carbon primary button text', $conf->entity);
+		dolibarr_del_const($db, "MAIN_IHM_CUSTOM_CSS", $conf->entity);
+		dolibarr_set_const($db, "MAIN_IHM_PARAMS_REV", getDolGlobalInt('MAIN_IHM_PARAMS_REV') + 1, 'chaine', 0, '', $conf->entity);
+		setEventMessages($langs->trans("ESTICarbonUILocked"), null);
+	}
+
+	if ($mode == 'template' && !$estiCarbonUiLocked) {
 		//dolibarr_del_const($db, "MAIN_THEME", 0);	// To be sure we don't have this constant set for all entities
 
 		dolibarr_set_const($db, "MAIN_THEME", GETPOST("main_theme", 'aZ09'), 'chaine', 0, '', $conf->entity);
@@ -334,7 +350,13 @@ if ($action == 'update') {
 		}
 	}
 
-	if ($mode == 'css') {
+	if ($mode == 'css' && $estiCarbonUiLocked) {
+		dolibarr_del_const($db, "MAIN_IHM_CUSTOM_CSS", $conf->entity);
+		dolibarr_set_const($db, "MAIN_IHM_PARAMS_REV", getDolGlobalInt('MAIN_IHM_PARAMS_REV') + 1, 'chaine', 0, '', $conf->entity);
+		setEventMessages($langs->trans("ESTICustomCSSDisabled"), null);
+	}
+
+	if ($mode == 'css' && !$estiCarbonUiLocked) {
 		$csscontent = GETPOST('MAIN_IHM_CUSTOM_CSS', 'restricthtml');	// Will return a sanitized HTML content (so with double spaes that may be replaced with one, ...
 		$csscontent = dol_string_nohtmltag($csscontent, 2, 'UTF-8', 0, 0);
 
@@ -558,8 +580,14 @@ if ($mode == 'other') {
 
 
 if ($mode == 'template') {
-	// Themes and themes options
-	showSkins(null, 1);
+	print '<div class="div-table-responsive-no-min">';
+	print '<table summary="estiuipolicy" class="noborder centpercent editmode tableforfield">';
+	print '<tr class="liste_titre"><td>'.$langs->trans("ESTICarbonUI").'</td><td></td></tr>';
+	print '<tr class="oddeven"><td class="titlefield">'.$langs->trans("Theme").'</td><td>ESTI Carbon UI</td></tr>';
+	print '<tr class="oddeven"><td>'.$langs->trans("Status").'</td><td>'.$langs->trans("ESTICarbonUILockedDesc").'</td></tr>';
+	print '<tr class="oddeven"><td>'.$langs->trans("ThemeDarkMode").'</td><td>'.$langs->trans("ESTILightDarkOnly").'</td></tr>';
+	print '</table>';
+	print '</div>';
 }
 
 
@@ -739,21 +767,30 @@ if ($mode == 'login') {
 }
 
 if ($mode == 'css') {
-	print '<div class="div-table-responsive-no-min">';
-	print '<table summary="edit" class="noborder centpercent editmode tableforfield">';
+	if ($estiCarbonUiLocked) {
+		print '<div class="div-table-responsive-no-min">';
+		print '<table summary="esticsspolicy" class="noborder centpercent editmode tableforfield">';
+		print '<tr class="liste_titre"><td>'.$langs->trans("ESTICarbonUI").'</td><td></td></tr>';
+		print '<tr class="oddeven"><td class="titlefield">'.$langs->trans("CustomCSS").'</td><td>'.$langs->trans("ESTICustomCSSDisabledDesc").'</td></tr>';
+		print '</table>';
+		print '</div>';
+	} else {
+		print '<div class="div-table-responsive-no-min">';
+		print '<table summary="edit" class="noborder centpercent editmode tableforfield">';
 
-	print '<tr class="liste_titre">';
-	print '<td colspan="2">';
+		print '<tr class="liste_titre">';
+		print '<td colspan="2">';
 
-	//$customcssValue = file_get_contents(DOL_DATA_ROOT.'/admin/customcss.css');
-	$customcssValue = getDolGlobalString('MAIN_IHM_CUSTOM_CSS');
+		//$customcssValue = file_get_contents(DOL_DATA_ROOT.'/admin/customcss.css');
+		$customcssValue = getDolGlobalString('MAIN_IHM_CUSTOM_CSS');
 
-	$doleditor = new DolEditor('MAIN_IHM_CUSTOM_CSS', $customcssValue, '80%', 400, 'Basic', 'In', true, false, 'ace', 10, '90%');
-	$doleditor->Create(0, '', true, 'css', 'css');
-	print '</td></tr>'."\n";
+		$doleditor = new DolEditor('MAIN_IHM_CUSTOM_CSS', $customcssValue, '80%', 400, 'Basic', 'In', true, false, 'ace', 10, '90%');
+		$doleditor->Create(0, '', true, 'css', 'css');
+		print '</td></tr>'."\n";
 
-	print '</table>'."\n";
-	print '</div>';
+		print '</table>'."\n";
+		print '</div>';
+	}
 }
 
 

@@ -9660,6 +9660,7 @@ include dol_buildpath($path.'/theme/'.$theme.'/timeline.inc.php', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/search-input.inc.css', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/tooltips.inc.css', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/input-feedback.css', 0);
+include dol_buildpath($path.'/theme/'.$theme.'/esti-carbon-ui.inc.css', 0);
 
 
 // Add custom CSS if defined

@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $networkName = "esti-net"
 $dbVolume = "esti-db-data"
+$confVolume = "esti-conf"
 $documentsVolume = "esti-documents"
 
 function Ensure-PodmanResource {
@@ -29,6 +30,7 @@ function Ensure-PodmanResource {
 
 Ensure-PodmanResource "podman network inspect $networkName" "podman network create $networkName"
 Ensure-PodmanResource "podman volume inspect $dbVolume" "podman volume create $dbVolume"
+Ensure-PodmanResource "podman volume inspect $confVolume" "podman volume create $confVolume"
 Ensure-PodmanResource "podman volume inspect $documentsVolume" "podman volume create $documentsVolume"
 
 podman container exists esti-db
@@ -58,6 +60,7 @@ podman run -d `
 	--name esti-app `
 	--network $networkName `
 	-p "${HttpPort}:80" `
+	-v "${confVolume}:/var/www/html/conf" `
 	-v "${documentsVolume}:/var/www/documents" `
 	-e TZ=Asia/Kolkata `
 	-e ESTI_DB_HOST=esti-db `

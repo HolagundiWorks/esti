@@ -53,6 +53,15 @@ If the installer asks for a database superuser, leave database/user creation
 disabled. For local troubleshooting only, the root password is
 `esti_root_dev_password`.
 
+The runtime persists the generated application configuration, documents, and
+database in Podman volumes:
+
+```text
+esti-conf       -> /var/www/html/conf
+esti-documents  -> /var/www/documents
+esti-db-data    -> /var/lib/mysql
+```
+
 ## Apply ESTI Defaults
 
 After the web installer finishes and the administrator account is created, apply
@@ -64,8 +73,7 @@ the ESTI India/construction baseline:
 
 This sets the application title, `en_IN` default language, allowed Indian
 languages (`en_IN`, `hi_IN`, `bn_IN`, `kn_IN`, `ta_IN`), INR currency, India
-country, Asia/Kolkata timezone, and the initial IBM-blue Dolibarr theme
-defaults.
+country, Asia/Kolkata timezone, and the locked ESTI Carbon product UI.
 
 ## Optional Adminer
 

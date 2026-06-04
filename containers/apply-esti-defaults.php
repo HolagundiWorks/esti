@@ -70,8 +70,8 @@ estiSetConst('FACTURE_LOCAL_TAX1_OPTION', 'localtax1on', 'Enable CGST for India 
 estiSetConst('FACTURE_LOCAL_TAX2_OPTION', 'localtax2on', 'Enable SGST for India GST');
 estiSetConst('MAIN_INFO_VAT_RETURN', '1', 'Default GST return frequency to monthly');
 estiSetConst('MAIN_INFO_TVA_DAY_DEADLINE_SUBMISSION', '20', 'Default GST return submission day');
-estiSetConst('MAIN_THEME', 'eldy', 'ESTI default Dolibarr theme');
-estiSetConst('MAIN_FORCETHEME', 'eldy', 'ESTI locked Dolibarr theme while Carbon UI work is staged');
+estiSetConst('MAIN_THEME', 'eldy', 'ESTI Carbon UI uses the locked shared UI layer');
+estiSetConst('MAIN_FORCETHEME', 'eldy', 'ESTI Carbon UI is not a selectable alternate theme');
 estiSetConst('MAIN_BUGTRACK_ENABLELINK', 'github', 'Route bug reports to the ESTI repository');
 estiSetConst('MAIN_DISABLE_EXTERNALMODULES_COMMUNITY', '1', 'Disable remote community module discovery in ESTI');
 estiSetConst('MAIN_DISABLE_EXTERNALMODULES_DOLISTORE', '1', 'Disable remote module marketplace discovery in ESTI');
@@ -83,7 +83,7 @@ estiSetConst('MAIN_MODULE_DOLISTORE_SHOP_URL', ESTI_REPOSITORY_URL, 'Route modul
 estiSetConst('MAIN_MODULE_COMMUNITY_SOURCE_URL', ESTI_REPOSITORY_URL, 'Route community module links to ESTI repository');
 estiSetConst('THEME_DARKMODEENABLED', '1', 'ESTI dark mode follows the browser');
 estiSetConst('THEME_TOPMENU_DISABLE_IMAGE', '0', 'ESTI keeps menu icons visible');
-estiSetConst('THEME_ELDY_BORDER_RADIUS', '2', 'ESTI Carbon-inspired radius');
+estiSetConst('THEME_ELDY_BORDER_RADIUS', '2', 'ESTI Carbon radius');
 estiSetConst('THEME_ELDY_TOPMENU_BACK1', '15,98,254', 'ESTI IBM blue top menu');
 estiSetConst('THEME_ELDY_VERMENU_BACK1', '15,98,254', 'ESTI IBM blue side menu');
 estiSetConst('THEME_ELDY_BACKBODY', '244,244,244', 'ESTI light background');
@@ -114,4 +114,4 @@ print "ESTI defaults applied for entity ".$entity.".\n";
 print "Default language: en_IN\n";
 print "Allowed languages: en_IN, hi_IN, bn_IN, kn_IN, ta_IN\n";
 print "Currency/timezone: INR / Asia/Kolkata\n";
-print "Theme: eldy with IBM blue defaults; dark mode follows browser\n";
+print "UI: ESTI Carbon product UI, locked to light/dark IBM blue defaults\n";
