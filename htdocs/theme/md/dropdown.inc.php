@@ -177,7 +177,7 @@ div#topmenu-global-search-dropdown a::after, div#topmenu-quickadd-dropdown a::af
 
 .dropdown-toggle::after {
 	/* font part */
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	font-size: 0.7em;
 	line-height: 1.7em;
 	font-weight: 900;
@@ -439,7 +439,7 @@ a.dropdown-item {
 
 .dropdown-item::before {
 	/* font part */
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	font-weight: 900;
 	font-style: normal;
 	font-variant: normal;

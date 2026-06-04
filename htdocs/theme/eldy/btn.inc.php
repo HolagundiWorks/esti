@@ -211,7 +211,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 /*
 .butActionDelete#action-delete::before {
 	content: "\f1f8";
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	font-weight: 600;
 	width: 20px;
 	visibility: visible;

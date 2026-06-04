@@ -54,7 +54,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 	text-decoration:none;
 }
 .mainmenu:not(.fab)::before, .mainmenu:not(.fab) span:not(.fab)::before {
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 }
 
 div.mainmenu.menu {

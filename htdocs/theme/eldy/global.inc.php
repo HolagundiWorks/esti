@@ -1663,7 +1663,7 @@ div.divsearchfield {
 	content: "\f080";
 }
 .a-filter:before, .a-mesure:before {
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	font-weight: 600;
 	padding-right: 5px;
 	padding-left: 5px;
@@ -4236,7 +4236,7 @@ div.tabsElem {
 /*
 div.tabsElem a.tabactive::before, div.tabsElem a.tabunactive::before {
 	content: "\f0da";
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	padding-right: 2px;
 	font-weight: 900;
 }
@@ -8931,7 +8931,7 @@ a.phpdebugbar-tab.phpdebugbar-active {
 	font-weight: 600 !important;
 }
 .phpdebugbar-fa-tags, .phpdebugbar-fa-tasks, .phpdebugbar-indicator .fa {
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>";
+	font-family: inherit;
 	font-weight: 600;
 }
 div.phpdebugbar-widgets-messages li.phpdebugbar-widgets-list-item span.phpdebugbar-widgets-value.phpdebugbar-widgets-warning:before,
@@ -8949,7 +8949,7 @@ div.phpdebugbar-widgets-templates span.phpdebugbar-widgets-param-count:before,
 div.phpdebugbar-widgets-templates span.phpdebugbar-widgets-type:before,
 div.phpdebugbar-widgets-templates a.phpdebugbar-widgets-editor-link:before
 {
-	font-family: "<?php echo getDolGlobalString('MAIN_FONTAWESOME_FAMILY', 'Font Awesome 5 Free'); ?>" !important;
+	font-family: inherit !important;
 }
 
 /* ============================================================================== */
