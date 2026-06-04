@@ -64,7 +64,7 @@ top_httphead();
 		<link href="browser.css" type="text/css" rel="stylesheet">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <?php
-print '<!-- Includes CSS for Dolibarr theme -->'."\n";
+print '<!-- Includes CSS for ESTI theme -->'."\n";
 // Output style sheets (optioncss='print' or ''). Note: $conf->css looks like '/theme/eldy/style.css.php'
 $themepath = dol_buildpath($conf->css, 1);
 $themesubdir = '';

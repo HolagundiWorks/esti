@@ -5829,9 +5829,11 @@ div.divphotoref > div > .photowithmargin, div.divphotoref > img.photowithmargin,
 
 .logo_setup
 {
-	content:url(<?php echo dol_buildpath($path.'/theme/'.$theme.'/img/logo_setup.svg', 1) ?>);	/* content is used to best fit the container */
+	content:url(<?php echo dol_buildpath($path.'/theme/esti_logo.png', 1) ?>);	/* content is used to best fit the container */
 	display: inline-block;
-	opacity: 0.2;
+	opacity: 1;
+	max-height: 96px;
+	max-width: 220px;
 }
 .nographyet
 {

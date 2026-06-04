@@ -104,7 +104,7 @@ class WebPortalTheme
 
 		$context = Context::getInstance();
 
-		$urllogo = Context::getRootConfigUrl() . 'img/login_logo.svg';
+		$urllogo = Context::getRootConfigUrl() . 'img/esti_logo.png';
 		if ($context->userIsLog()) {
 			if (!empty($mysoc->logo_small) && is_readable($conf->mycompany->dir_output . '/logos/thumbs/' . $mysoc->logo_small)) {
 				$urllogo = $context->getControllerUrl('viewimage') . '&modulepart=mycompany&entity=' . $conf->entity . '&file=' . urlencode('logos/thumbs/' . $mysoc->logo_small);

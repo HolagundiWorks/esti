@@ -589,7 +589,7 @@ class dolReceiptPrinter extends Printer
 	public function sendTestToPrinter($printerid, $addimgandbarcode = 0)
 	{
 		$error = 0;
-		$img = EscposImage::load(DOL_DOCUMENT_ROOT.'/theme/dolibarr_logo_bw.png');
+		$img = EscposImage::load(DOL_DOCUMENT_ROOT.'/theme/esti_logo.png');
 
 		// TODO Set the profile into $this->profile (used by initPrinter). Profile not used yet.
 

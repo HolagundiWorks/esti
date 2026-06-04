@@ -191,7 +191,7 @@ function llxHeaderVierge($title, $head = "", $disablejs = 0, $disablehead = 0, $
 	print '<body id="mainbody" class="publicnewmemberform">';
 
 	// Define urllogo
-	$urllogo = DOL_URL_ROOT.'/theme/common/login_logo.png';
+	$urllogo = DOL_URL_ROOT.'/theme/esti_logo.png';
 
 	if (!empty($mysoc->logo_small) && is_readable($conf->mycompany->dir_output.'/logos/thumbs/'.$mysoc->logo_small)) {
 		$urllogo = DOL_URL_ROOT.'/viewimage.php?cache=1&amp;modulepart=mycompany&amp;file='.urlencode('logos/thumbs/'.$mysoc->logo_small);
