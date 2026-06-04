@@ -1,0 +1,10 @@
+.git
+.gitignore
+.containerignore
+logo
+docs
+*.log
+tmp
+var
+node_modules
+vendor

@@ -38,6 +38,7 @@ COPY htdocs/ /var/www/html/
 COPY containers/php.ini /usr/local/etc/php/conf.d/esti.ini
 COPY containers/apache-site.conf /etc/apache2/sites-available/000-default.conf
 COPY containers/entrypoint.sh /usr/local/bin/esti-entrypoint
+COPY containers/apply-esti-defaults.php /usr/local/bin/apply-esti-defaults.php
 COPY containers/install.forced.php /var/www/html/install/install.forced.php
 
 RUN chmod +x /usr/local/bin/esti-entrypoint \
