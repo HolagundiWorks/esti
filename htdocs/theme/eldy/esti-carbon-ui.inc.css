@@ -685,3 +685,290 @@ a.tabactive {
 		font-size: 0.875rem;
 	}
 }
+
+/* ESTI Carbon layout corrections
+ *
+ * Dolibarr uses .fiche, .noborder, and many nested tables as structural layout.
+ * Keep those placement rules intact, then apply Carbon spacing to actual UI
+ * surfaces and controls.
+ */
+
+#id-right,
+#mainbody {
+	box-sizing: border-box;
+	padding: 16px 24px 24px;
+}
+
+.fiche {
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	margin: 0;
+	padding: 0 !important;
+}
+
+.fichecenter,
+.fichethirdleft,
+.fichetwothirdright,
+.fichehalfleft,
+.fichehalfright {
+	box-sizing: border-box;
+}
+
+div.tabBar,
+.tabBar,
+.arearef,
+.arearefnobottom,
+.box,
+.info-box {
+	background: var(--esti-layer-01) !important;
+	border: 1px solid var(--esti-border-subtle) !important;
+	border-radius: var(--esti-radius) !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+}
+
+div.tabBar {
+	margin-top: 0;
+	padding: 16px !important;
+}
+
+table.noborder:not(.liste),
+table.nobordernopadding,
+table.tableforfield,
+table.tableforfieldcreate,
+table.tableforfieldedit {
+	border: 0 !important;
+	box-shadow: none !important;
+}
+
+table.tableforfield,
+table.tableforfieldcreate,
+table.tableforfieldedit {
+	background: transparent !important;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+table.tableforfield > tbody > tr > td,
+table.tableforfieldcreate > tbody > tr > td,
+table.tableforfieldedit > tbody > tr > td {
+	padding: 8px 12px !important;
+	vertical-align: middle;
+}
+
+table.tableforfield > tbody > tr > td:first-child,
+table.tableforfieldcreate > tbody > tr > td:first-child,
+table.tableforfieldedit > tbody > tr > td:first-child {
+	color: var(--esti-text-secondary);
+	font-weight: 450;
+}
+
+table.table-fiche-title {
+	margin-bottom: 12px;
+}
+
+table.table-fiche-title td {
+	vertical-align: middle;
+}
+
+.tabsAction,
+div.tabsAction {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: flex-end;
+	margin: 12px 0 16px;
+}
+
+div.tabsAction > a.butAction,
+div.tabsAction > a.butActionRefused,
+div.tabsAction > a.butActionDelete,
+div.tabsAction > span.butAction,
+div.tabsAction > span.butActionRefused,
+div.tabsAction > span.butActionDelete,
+div.tabsAction > .dropdown > .dropdown-toggle {
+	margin: 0 !important;
+}
+
+.butAction,
+.butActionRefused,
+.butActionDelete,
+input.button,
+button.button,
+.button {
+	align-items: center;
+	box-sizing: border-box;
+	display: inline-flex !important;
+	gap: 6px;
+	justify-content: center;
+	line-height: 1rem;
+	padding: 7px 15px !important;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+#id-top,
+.tmenu,
+.topnav {
+	box-sizing: border-box;
+	height: var(--esti-shell-height);
+	min-height: var(--esti-shell-height);
+}
+
+.tmenu a,
+.topnav a,
+.login_block a {
+	align-items: center;
+	box-sizing: border-box;
+	display: inline-flex !important;
+	gap: 6px;
+	height: var(--esti-shell-height);
+	justify-content: center;
+	line-height: 1rem;
+	padding: 0 12px !important;
+	vertical-align: top;
+}
+
+.mainmenuaspan,
+.mainmenuaspan:hover,
+.tmenudisabled {
+	align-items: center;
+	display: inline-flex;
+	line-height: 1rem;
+	min-height: 1rem;
+}
+
+#id-left {
+	box-sizing: border-box;
+	padding: 8px 0;
+}
+
+#id-left td,
+#id-left div {
+	background: transparent !important;
+}
+
+a.vmenu,
+span.vmenu {
+	align-items: center;
+	box-sizing: border-box;
+	display: flex !important;
+	gap: 8px;
+	line-height: 1.2rem;
+	min-height: 36px;
+	padding: 8px 12px !important;
+	width: 100%;
+}
+
+a.vmenu.vmenusel,
+.vmenusel,
+.vmenu.selected {
+	padding-left: 8px !important;
+}
+
+.dropdown-menu,
+.dropdown-content,
+.select2-dropdown {
+	padding: 4px 0;
+}
+
+.dropdown-menu a,
+.dropdown-content a,
+.select2-results__option {
+	align-items: center;
+	display: flex;
+	min-height: 32px;
+	padding: 7px 12px !important;
+}
+
+.login_center {
+	box-sizing: border-box;
+	min-height: 100vh;
+	padding: 24px;
+}
+
+.login_vertical_align {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	min-height: calc(100vh - 48px);
+	width: 100%;
+}
+
+.login_table_title {
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	margin-bottom: 16px;
+	padding: 0 !important;
+}
+
+.login_table {
+	box-sizing: border-box;
+	margin: 0 auto !important;
+	max-width: 400px;
+	padding: 24px 32px !important;
+	width: min(400px, calc(100vw - 48px));
+}
+
+.login_table .tagtable,
+.login_table .tagtd,
+.login_table #login_line1,
+.login_table #login_left,
+.login_table #login_right {
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.bodylogin input[type="text"],
+.bodylogin input[type="password"],
+.bodylogin .input-icon-user,
+.bodylogin .input-icon-password {
+	box-sizing: border-box;
+	height: 40px;
+	margin-bottom: 12px;
+	width: 100%;
+}
+
+#login-submit-wrapper {
+	clear: both;
+	width: 100%;
+}
+
+.bodylogin .butActionLogin,
+.bodylogin input.button {
+	display: flex !important;
+	margin: 4px 0 0 !important;
+	width: 100%;
+}
+
+@media only screen and (max-width: 768px) {
+	#id-right,
+	#mainbody {
+		padding: 10px;
+	}
+
+	div.tabBar {
+		padding: 10px !important;
+	}
+
+	table.tableforfield > tbody > tr > td,
+	table.tableforfieldcreate > tbody > tr > td,
+	table.tableforfieldedit > tbody > tr > td {
+		padding: 7px 8px !important;
+	}
+
+	.tabsAction,
+	div.tabsAction {
+		justify-content: stretch;
+	}
+
+	.tabsAction .butAction,
+	.tabsAction .butActionRefused,
+	.tabsAction .butActionDelete {
+		flex: 1 1 auto;
+	}
+}
