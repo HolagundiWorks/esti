@@ -1,6 +1,5 @@
-# Security policies of Dolibarr ERP CRM project
-Contact: mailto:security@dolibarr.org
+# Security policy of ESTI ERP
+Contact: https://github.com/HolagundiWorks/esti/security/advisories/new
 Preferred-Languages: en
 Policy: https://github.com/HolagundiWorks/esti/security/policy
 Expires: Sat, 31 Dec 2050 00:00:00 GMT
-OpenBugBounty: https://openbugbounty.org/bugbounty/Eldy/

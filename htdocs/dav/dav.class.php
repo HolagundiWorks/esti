@@ -220,19 +220,19 @@ class CdavLib
 		$caldata .= "DESCRIPTION:";
 		$caldata .= strtr($obj->note, array("\n" => "\\n", "\r" => ""));
 		if (!empty($obj->soc_nom)) {
-			$caldata .= "\\n*DOLIBARR-SOC: ".$obj->soc_nom;
+			$caldata .= "\\n*ESTI-SOC: ".$obj->soc_nom;
 		}
 		if (!empty($obj->soc_phone)) {
-			$caldata .= "\\n*DOLIBARR-SOC-TEL: ".$obj->soc_phone;
+			$caldata .= "\\n*ESTI-SOC-TEL: ".$obj->soc_phone;
 		}
 		if (!empty($obj->firstname) || !empty($obj->lastname)) {
-			$caldata .= "\\n*DOLIBARR-CTC: ".trim($obj->firstname.' '.$obj->lastname);
+			$caldata .= "\\n*ESTI-CTC: ".trim($obj->firstname.' '.$obj->lastname);
 		}
 		if (!empty($obj->phone) || !empty($obj->phone_perso) || !empty($obj->phone_mobile)) {
-			$caldata .= "\\n*DOLIBARR-CTC-TEL: ".trim($obj->phone.' '.$obj->phone_perso.' '.$obj->phone_mobile);
+			$caldata .= "\\n*ESTI-CTC-TEL: ".trim($obj->phone.' '.$obj->phone_perso.' '.$obj->phone_mobile);
 		}
 		if (strpos($obj->other_users, ',')) { // several
-			$caldata .= "\\n*DOLIBARR-USR: ".$obj->other_users;
+			$caldata .= "\\n*ESTI-USR: ".$obj->other_users;
 		}
 		$caldata .= "\n";
 

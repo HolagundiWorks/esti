@@ -110,8 +110,8 @@ class WebPortalTheme
 				$urllogo = $context->getControllerUrl('viewimage') . '&modulepart=mycompany&entity=' . $conf->entity . '&file=' . urlencode('logos/thumbs/' . $mysoc->logo_small);
 			} elseif (!empty($mysoc->logo) && is_readable($conf->mycompany->dir_output . '/logos/' . $mysoc->logo)) {
 				$urllogo = $context->getControllerUrl('viewimage') . '&modulepart=mycompany&entity=' . $conf->entity . '&file=' . urlencode('logos/' . $mysoc->logo);
-			} elseif (is_readable(DOL_DOCUMENT_ROOT . '/public/webportal/img/dolibarr_logo.svg')) {
-				$urllogo = Context::getRootConfigUrl() . 'img/dolibarr_logo.svg';
+			} elseif (is_readable(DOL_DOCUMENT_ROOT . '/public/webportal/img/esti_logo.png')) {
+				$urllogo = Context::getRootConfigUrl() . 'img/esti_logo.png';
 			}
 		}
 

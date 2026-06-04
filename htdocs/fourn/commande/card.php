@@ -3205,7 +3205,7 @@ if ($action == 'create') {
 			$error_occurred = false;
 
 			// NS and Authentication parameters
-			$ws_ns = 'http://www.dolibarr.org/ns/';
+			$ws_ns = 'https://github.com/HolagundiWorks/esti/ns/';
 			$ws_authentication = array(
 				'dolibarrkey' => $ws_key,
 				'sourceapplication' => 'DolibarrWebServiceClient',

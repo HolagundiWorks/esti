@@ -73,7 +73,7 @@ if (!getDolGlobalString('MAIN_MODULE_WEBSERVICES')) {
 $server = new nusoap_server();
 $server->soap_defencoding = 'UTF-8';
 $server->decode_utf8 = false;
-$ns = 'http://www.dolibarr.org/ns/';
+$ns = 'https://github.com/HolagundiWorks/esti/ns/';
 $server->configureWSDL('WebServicesDolibarrOther', $ns);
 
 // $server->wsdl is expected to be a nusoap_xmlschema (default = \wsdl)

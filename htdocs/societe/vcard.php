@@ -57,9 +57,9 @@ if ($result <= 0) {
 
 // Compute VCard
 $v = new vCard();
-$v->setProdId('Dolibarr '.DOL_VERSION);
+$v->setProdId(DOL_APPLICATION_TITLE.' '.DOL_VERSION);
 
-$v->setUid('DOLIBARR-THIRDPARTYID-'.$company->id);
+$v->setUid('ESTI-THIRDPARTYID-'.$company->id);
 
 
 // Data from company

@@ -148,7 +148,7 @@ class ExternalModules
 
 		$this->url       = DOL_URL_ROOT.'/admin/modules.php?mode=marketplace';
 
-		// For dolistore modules
+		// For ESTI Repository modules
 		$this->dolistore_api_url = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_SRV', '');
 		$this->dolistore_api_key = getDolGlobalString('MAIN_MODULE_DOLISTORE_API_KEY', '');
 		$this->shop_url  = getDolGlobalString('MAIN_MODULE_DOLISTORE_SHOP_URL', ESTI_REPOSITORY_URL);
@@ -183,7 +183,7 @@ class ExternalModules
 			$this->githubFileStatus = dol_is_file($this->cache_file) ? 1 : 0;
 		}
 
-		// Check access to Dolistore API /api/categories -> /api/index.php/marketplace/categories
+		// Check access to ESTI Repository API /api/categories -> /api/index.php/marketplace/categories
 		if (getDolGlobalString('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE')) {
 			$this->dolistoreApiStatus = $this->checkApiStatus();
 		}
@@ -193,7 +193,7 @@ class ExternalModules
 	}
 
 	/**
-	 * Test if we can access to remote Dolistore market place.
+	 * Test if we can access to remote ESTI Repository market place.
 	 *
 	 * @param string 						$resource 	Resource relative URL ('categories' or 'products')
 	 * @param array<string, mixed>|false 	$options 	Options for the request
@@ -382,7 +382,7 @@ class ExternalModules
 			return $html;
 		}
 
-		// Fetch the products from Dolistore source
+		// Fetch the products from ESTI Repository source
 
 		$dolistoreProducts = array();
 		$dolistoreProductsTotal = 0;
@@ -420,7 +420,7 @@ class ExternalModules
 		// Number of pages
 		$this->numberTotalOfPages = (int) ceil(max($fileProductsTotal / $this->per_page, $dolistoreProductsTotal / $this->per_page));
 
-		// Merge both sources (github community modules have priority on dolistore).
+		// Merge both sources (github community modules have priority on ESTI Repository).
 		$this->products = $dolistoreProducts;
 		foreach ($fileProducts as $fileProduct) {
 			$id = $fileProduct['id'];
@@ -517,9 +517,9 @@ class ExternalModules
 				$download_link .= '</a>';
 			} else {
 				$download_link = '#';
-				if ($product['source'] === 'dolistore') {	// 0 on dolistore may mean 0 or a complementary fee to subscribe
+				if ($product['source'] === 'dolistore') {	// 0 on ESTI Repository may mean 0 or a complementary fee to subscribe
 					$urlview = $this->shop_url.'/product.php?id='.((int) $product["id"]);
-					$price = '<h3><a href="'.$urlview.'" target="_blank">'.$langs->trans('SeeOnDoliStore').'</a></h3>';
+					$price = '<h3><a href="'.$urlview.'" target="_blank">'.$langs->trans('ESTIRepository').'</a></h3>';
 				} elseif ($product['source'] === 'githubcommunity') {
 					if (array_key_exists('price_ht', $product) && empty($product['price_ht'])) {
 						if ($product['status'] == 'soon') {
@@ -529,7 +529,7 @@ class ExternalModules
 						}
 					} else {
 						if ($product["dolistore-download"]) {
-							$price = '<h3><a href="'.$product["dolistore-download"].'" target="_blank">'.$langs->trans('SeeOnDoliStore').'</a></h3>';
+							$price = '<h3><a href="'.$product["dolistore-download"].'" target="_blank">'.$langs->trans('ESTIRepository').'</a></h3>';
 						} else {
 							$price = '<h3>'.$langs->trans('Unknown').'</h3>';
 						}
@@ -543,7 +543,7 @@ class ExternalModules
 					$download_link .= img_picto('', 'file-code', 'class="size2x paddingright colorgrey"');
 					$download_link .= '</a>';
 
-					$urlview = $product["dolistore-download"];		// View on Dolistore
+					$urlview = $product["dolistore-download"];		// View on ESTI Repository
 					if ($urlview) {
 						$download_link .= '<a class="paddingleft paddingright" target="_blank" title="'.$langs->trans("View").'" href="'.$urlview.'" rel="noopener noreferrer">';
 						$download_link .= img_picto('', 'url', 'class="size2x"');
@@ -635,7 +635,7 @@ class ExternalModules
 
 			$html .= '<div class="appSource inline-block valigntop">';
 			if ($product["source"] == 'dolistore') {
-				$html .= '<img border="0" title="'.dolPrintHTML($langs->trans('Source').": DoliStore").'" class="imgautosize valignmiddle inline-block pictofixedwidth" style="height: 14px" src="'.DOL_URL_ROOT.'/theme/dolistore_squarred.svg">';
+				$html .= '<img border="0" title="'.dolPrintHTML($langs->trans('Source').": ESTI Repository").'" class="imgautosize valignmiddle inline-block pictofixedwidth" style="height: 14px" src="'.DOL_URL_ROOT.'/theme/esti_logo.png">';
 			} elseif ($product["source"] == 'githubcommunity') {
 				$html .= img_picto($langs->trans('Source').': GitHub community repo', 'group', 'class="pictofixedwidth valignmiddle"');
 			} else {
@@ -1100,7 +1100,7 @@ class ExternalModules
 				// Check if there is a known ID
 				$reg = array();
 				$id = 0;
-				if (!empty($package['dolistore-download']) && preg_match('/www\.dolistore\.com\/product\.php\?id=(\d+)/', (string) $package['dolistore-download'], $reg)) {
+				if (!empty($package['dolistore-download']) && preg_match('/product\.php\?id=(\d+)/', (string) $package['dolistore-download'], $reg)) {
 					$id = $reg[1];
 				}
 
@@ -1269,7 +1269,7 @@ class ExternalModules
 	}
 
 	/**
-	 * Check if an Dolistore API is up
+	 * Check if an ESTI Repository API is up
 	 *
 	 * @return int
 	 */
@@ -1316,7 +1316,7 @@ class ExternalModules
 
 
 	/**
-	 * Download a Dolibarr module from a Git repository URL or Dolistore download URL.
+	 * Download a Dolibarr module from a Git repository URL or ESTI Repository download URL.
 	 *
 	 * @param  array<string, mixed> 	$producttoinstall Product information array
 	 * @return string|false				Path to the final ZIP file, or false on error
@@ -1359,11 +1359,11 @@ class ExternalModules
 					$source_url = ESTI_REPOSITORY_URL;
 					$downloaded = $this->_downloadFile($source_url, $tmpdir);
 					if (!$downloaded) {
-						dol_syslog(__METHOD__ . ': Dolistore download failed: ' . $source_url, LOG_ERR);
+						dol_syslog(__METHOD__ . ': ESTI Repository download failed: ' . $source_url, LOG_ERR);
 						return false;
 					}
 				} else {
-					dol_syslog(__METHOD__ . ': Invalid product ID for Dolistore download: ' . $producttoinstall['id'], LOG_ERR);
+					dol_syslog(__METHOD__ . ': Invalid product ID for ESTI Repository download: ' . $producttoinstall['id'], LOG_ERR);
 					return false;
 				}
 				break;
@@ -1372,12 +1372,12 @@ class ExternalModules
 					$source_url = ESTI_REPOSITORY_URL;
 					$downloaded = $this->_downloadFile($source_url, $tmpdir);
 					if (!$downloaded) {
-						dol_syslog(__METHOD__ . ': GitHub community module download failed: ' . $source_url . ', Try to find a Dolistore link', LOG_WARNING);
+						dol_syslog(__METHOD__ . ': GitHub community module download failed: ' . $source_url . ', Try to find a ESTI Repository link', LOG_WARNING);
 						if ($producttoinstall['id'] > 0) {
 							$source_url = ESTI_REPOSITORY_URL;
 							$downloaded = $this->_downloadFile($source_url, $tmpdir);
 							if (!$downloaded) {
-								dol_syslog(__METHOD__ . ': Dolistore download failed: ' . $source_url, LOG_ERR);
+								dol_syslog(__METHOD__ . ': ESTI Repository download failed: ' . $source_url, LOG_ERR);
 								return false;
 							}
 						} else {

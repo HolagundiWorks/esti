@@ -76,7 +76,7 @@ estiSetConst('MAIN_BUGTRACK_ENABLELINK', 'github', 'Route bug reports to the EST
 estiSetConst('MAIN_DISABLE_EXTERNALMODULES_COMMUNITY', '1', 'Disable remote community module discovery in ESTI');
 estiSetConst('MAIN_DISABLE_EXTERNALMODULES_DOLISTORE', '1', 'Disable remote module marketplace discovery in ESTI');
 estiSetConst('MAIN_ENABLE_EXTERNALMODULES_COMMUNITY', '0', 'Disable upstream community module feed by default');
-estiSetConst('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE', '0', 'Disable DoliStore feed by default');
+estiSetConst('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE', '0', 'Disable ESTI Repository feed by default');
 estiSetConst('MAIN_MODULE_DOLISTORE_API_SRV', '', 'Disable upstream marketplace API by default');
 estiSetConst('MAIN_MODULE_DOLISTORE_API_KEY', '', 'Disable upstream marketplace API key by default');
 estiSetConst('MAIN_MODULE_DOLISTORE_SHOP_URL', ESTI_REPOSITORY_URL, 'Route module links to ESTI repository');

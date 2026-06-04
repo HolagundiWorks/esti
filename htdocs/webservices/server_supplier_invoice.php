@@ -72,7 +72,7 @@ if (!getDolGlobalString('MAIN_MODULE_WEBSERVICES')) {
 $server = new nusoap_server();
 $server->soap_defencoding = 'UTF-8';
 $server->decode_utf8 = false;
-$ns = 'http://www.dolibarr.org/ns/';
+$ns = 'https://github.com/HolagundiWorks/esti/ns/';
 $server->configureWSDL('WebServicesDolibarrSupplierInvoice', $ns);
 // @phan-suppress-next-line PhanUndeclaredProperty
 $server->wsdl->schemaTargetNamespace = $ns;

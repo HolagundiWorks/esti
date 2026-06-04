@@ -97,7 +97,7 @@ if (GETPOST('buttonsubmit', 'alphanohtml', 2)) {
 	$options['no_page'] = 1;
 }
 
-// MAIN_ENABLE_EXTERNALMODULES_DOLISTORE is 1 if we enabled the dolistore modules
+// MAIN_ENABLE_EXTERNALMODULES_DOLISTORE is 1 if we enabled the ESTI Repository modules
 $options['search_source_dolistore']	= $estiRemoteModuleStoreDisabled ? 0 : getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE');
 // MAIN_ENABLE_EXTERNALMODULES_COMMUNITY is 1 if we enabled the community modules
 $options['search_source_github']	= $estiRemoteModuleStoreDisabled ? 0 : getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_COMMUNITY');
@@ -1398,7 +1398,7 @@ if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 	$url = ESTI_REPOSITORY_URL;
 
 	print '<tr class="oddeven nohover" height="100">'."\n";
-	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg"></a></td>';
+	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/esti_logo.png"></a></td>';
 	print '<td class="minwidth500imp smallonsmartphone"><span class="opacitymedium">'.$langs->trans("CommunityModulesDesc").'</span><br>';
 	print img_picto('', 'url', 'class="pictofixedwidth"').'<a href="'.$url.'" target="_blank" rel="noopener noreferrer external">'.$url.'</a></td>';
 	print '<td>';
@@ -1417,12 +1417,12 @@ if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 	print '</tr>';
 
 
-	// Source Marketplace DoliStore
+	// Source Marketplace ESTI Repository
 	$url = ESTI_REPOSITORY_URL;
 
 	print '<tr class="oddeven nohover" height="100">'."\n";
 	print '<td class="hideonsmartphone center width150 nopaddingleftimp nopaddingrightimp"><a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth100" src="'.DOL_URL_ROOT.'/theme/esti_logo.png"></a></td>';
-	print '<td class="minwidth500imp smallonsmartphone"><span class="opacitymedium">'.$langs->trans("DoliStoreDesc").'</span><br>';
+	print '<td class="minwidth500imp smallonsmartphone"><span class="opacitymedium">'.$langs->trans("ESTIRepositoryDesc").'</span><br>';
 	print img_picto('', 'url', 'class="pictofixedwidth"').'<a href="'.$url.'" target="_blank" rel="noopener noreferrer external">'.$url.'</a></td>';
 	print '<td>';
 	print ajax_constantonoff('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE', array(), null, 0, 0, 1);
@@ -1465,7 +1465,7 @@ if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 		//$remotestore->getRemoteCategories();
 		//$remotestore->getRemoteProducts($options);
 
-		//print '<span class="opacitymedium hideonsmartphone">'.$langs->trans('DOLISTOREdescriptionLong').'</span><br><br>';
+		//print '<span class="opacitymedium hideonsmartphone">'.$langs->trans('ESTIRepositoryDescriptionLong').'</span><br><br>';
 
 		$categories_tree = $remotestore->getCategories($options['categorie']);		// Call API to get the categories
 
@@ -1491,7 +1491,7 @@ if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 		if ($search_keyword !== '') {
 			print '<a class="buttonreset reposition" href="'.$_SERVER["PHP_SELF"].'?mode=marketplace">'.$langs->trans('Reset').'</a>';
 		} else {
-			print $form->textwithpicto('', $langs->trans('DOLISTOREdescriptionLong'));
+			print $form->textwithpicto('', $langs->trans('ESTIRepositoryDescriptionLong'));
 		}
 		?>
 						&nbsp;

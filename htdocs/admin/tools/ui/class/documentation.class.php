@@ -86,8 +86,8 @@ class Documentation
 
 		$hookmanager->initHooks(array('uidocumentation'));
 
-		// Go back to Dolibarr
-		$this->menu['BackToDolibarr'] = array(
+		// Go back to ESTI
+		$this->menu['BackToESTI'] = array(
 			'url' => dol_buildpath('modulebuilder/index.php', 1),
 			'icon' => 'fas fa-arrow-left',
 			'submenu' => array(),
@@ -367,8 +367,8 @@ class Documentation
 
 		// LOGO
 		print '<div class="sidebar-logo">';
-		if (is_readable(DOL_DOCUMENT_ROOT.'/theme/dolibarr_logo.svg')) {
-			$urllogo = DOL_URL_ROOT.'/theme/dolibarr_logo.svg';
+		if (is_readable(DOL_DOCUMENT_ROOT.'/theme/esti_logo.png')) {
+			$urllogo = DOL_URL_ROOT.'/theme/esti_logo.png';
 			print '<img src="'.$urllogo.'" />';
 		}
 		print '</div>';
@@ -399,7 +399,7 @@ class Documentation
 		foreach ($menu as $key => $item) {
 			$levelclass = (!empty($item['submenu'])) ? 'li-withsubmenu' : '';
 			$levelclass .= (in_array($key, $this->view)) ? ' active' : '';
-			$levelclass .= ($key == 'BackToDolibarr') ? ' li-withseparator' : '';
+			$levelclass .= ($key == 'BackToESTI') ? ' li-withseparator' : '';
 
 			print '<li class="'.trim($levelclass).' level-'.$level.'">';
 			print '<a href="'.$item['url'].'" class="'.((!empty($item['submenu'])) ? 'link-withsubmenu' : '').'">';

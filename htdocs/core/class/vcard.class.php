@@ -420,7 +420,7 @@ class vCard
 	{
 		global $dolibarr_main_instance_unique_id;
 
-		$this->setProdId('Dolibarr '.DOL_VERSION);
+		$this->setProdId(DOL_APPLICATION_TITLE.' '.DOL_VERSION);
 
 		$this->setUID('DOL-USERID-'.dol_trunc(md5('vcard'.$dolibarr_main_instance_unique_id), 8, 'right', 'UTF-8', 1).'-'.$object->id);
 		$this->setName($object->lastname, $object->firstname, "", $object->civility_code, "");

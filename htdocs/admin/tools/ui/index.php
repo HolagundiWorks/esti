@@ -74,9 +74,9 @@ $documentation->showSidebar(); ?>
 		<?php
 		$indexMenu = $documentation->menu;
 
-		// Remove BackToDolibarr and Documentation Home from menu
+		// Remove BackToESTI and Documentation Home from menu
 		// Remove Resources from menu (Set manually above)
-		unset($indexMenu['BackToDolibarr']);
+		unset($indexMenu['BackToESTI']);
 		unset($indexMenu['DocumentationHome']);
 		unset($indexMenu['Resources']);
 

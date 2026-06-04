@@ -93,9 +93,9 @@ if ($object->socid) {
 
 // We create VCard
 $v = new vCard();
-$v->setProdId('Dolibarr '.DOL_VERSION);
+$v->setProdId(DOL_APPLICATION_TITLE.' '.DOL_VERSION);
 
-$v->setUid('DOLIBARR-ADHERENTID-'.$object->id);
+$v->setUid('ESTI-MEMBERID-'.$object->id);
 $v->setName($object->lastname, $object->firstname, "", (string) $object->civility, "");
 $v->setFormattedName($object->getFullName($langs, 1));
 
