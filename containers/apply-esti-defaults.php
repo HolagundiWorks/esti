@@ -67,6 +67,8 @@ estiSetConst('MAIN_SERVER_TZ', 'Asia/Kolkata', 'ESTI default timezone');
 estiSetConst('MAIN_THEME', 'eldy', 'ESTI default Dolibarr theme');
 estiSetConst('MAIN_FORCETHEME', 'eldy', 'ESTI locked Dolibarr theme while Carbon UI work is staged');
 estiSetConst('MAIN_BUGTRACK_ENABLELINK', 'github', 'Route bug reports to the ESTI repository');
+estiSetConst('MAIN_DISABLE_EXTERNALMODULES_COMMUNITY', '1', 'Disable remote community module discovery in ESTI');
+estiSetConst('MAIN_DISABLE_EXTERNALMODULES_DOLISTORE', '1', 'Disable remote module marketplace discovery in ESTI');
 estiSetConst('MAIN_ENABLE_EXTERNALMODULES_COMMUNITY', '0', 'Disable upstream community module feed by default');
 estiSetConst('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE', '0', 'Disable DoliStore feed by default');
 estiSetConst('MAIN_MODULE_DOLISTORE_API_SRV', '', 'Disable upstream marketplace API by default');

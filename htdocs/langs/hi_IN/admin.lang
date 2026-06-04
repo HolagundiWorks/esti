@@ -2774,3 +2774,5 @@ YouAreUsingTheSimplePermissionsMode=You are using the simple permission mode. Go
 GoodiesButtonTitle=Visit Our Merch & Gifts Store
 InitModuleIsSlow=Init of module is slow
 PreviousOptionGuaranteeThatDateIsAlwaysHigher=The previous option already guarantees that the date of invoice is always higher than the previous validated invoice
+ESTIRemoteModuleMarketplaceDisabled=The remote module marketplace is disabled in ESTI ERP.
+ESTIRemoteModuleInstallDisabled=Remote module installation is disabled in ESTI ERP. Upload a vetted module ZIP from the deployment tab instead.

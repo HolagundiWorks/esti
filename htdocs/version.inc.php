@@ -47,6 +47,9 @@ if (!defined('ESTI_ISSUES_URL')) {
 if (!defined('ESTI_DOCS_URL')) {
 	define('ESTI_DOCS_URL', ESTI_REPOSITORY_URL.'/tree/codex/esti-rebrand-baseline/docs/esti');
 }
+if (!defined('ESTI_DISABLE_REMOTE_MODULE_STORE')) {
+	define('ESTI_DISABLE_REMOTE_MODULE_STORE', true);
+}
 
 // The major version of Dolibarr
 define('DOL_MAJOR_VERSION', '24');

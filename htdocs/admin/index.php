@@ -186,7 +186,7 @@ if ($mysoc->country_code && in_array($mysoc->country_code, array_keys($arrayofei
 		}
 	}
 	if (!$modulefound) {
-		$urleinvoice = DOL_URL_ROOT.'/admin/modules.php?mode=marketplace&search_keyword='.urlencode($einvoiceneed['search']);
+		$urleinvoice = DOL_URL_ROOT.'/admin/modules.php?search_keyword='.urlencode($einvoiceneed['search']);
 	} else {
 		$urleinvoice = DOL_URL_ROOT.'/admin/modules.php?search_keyword='.urlencode($modulefound);
 	}

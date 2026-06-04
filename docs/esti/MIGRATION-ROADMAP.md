@@ -11,6 +11,8 @@
   `https://github.com/HolagundiWorks/esti`.
 - Keep Dolibarr links only for legal attribution, upstream merge research, and
   compatibility references.
+- Disable the remote module marketplace and upstream module feeds as the first
+  backend strip-down step.
 - Run the upstream installer in a local Podman environment before functional
   changes begin.
 
@@ -83,6 +85,7 @@
 ## Non-Goals For The First Release
 
 - Massive deletion of upstream modules before compatibility testing.
+- Remote marketplace installation in the ESTI distribution profile.
 - Proprietary relicensing of Dolibarr-derived code.
 - Global ERP support for all countries.
 - Complex theme marketplace or user-defined theme customization.

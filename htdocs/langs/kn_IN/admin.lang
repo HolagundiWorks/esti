@@ -2760,3 +2760,5 @@ SpecificParameters=Specific parameters
 YouAreUsingTheAdvancedPermissionsMode=You are using the advanced permission mode. Granularity of permissions is higher. Go to Home - Setup - Security to go back to the simple mode.
 YouAreUsingTheSimplePermissionsMode=You are using the simple permission mode. Go to Home - Setup - Security to switch to advanced mode if you need more granularity on permissions.
 GoodiesButtonTitle=Visit Our Merch & Gifts Store
+ESTIRemoteModuleMarketplaceDisabled=The remote module marketplace is disabled in ESTI ERP.
+ESTIRemoteModuleInstallDisabled=Remote module installation is disabled in ESTI ERP. Upload a vetted module ZIP from the deployment tab instead.

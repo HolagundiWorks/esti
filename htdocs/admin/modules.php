@@ -56,8 +56,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/events.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
-require_once DOL_DOCUMENT_ROOT.'/admin/remotestore/class/externalModules.class.php';
 
+$estiRemoteModuleStoreDisabled = (defined('ESTI_DISABLE_REMOTE_MODULE_STORE') && ESTI_DISABLE_REMOTE_MODULE_STORE);
+if (!$estiRemoteModuleStoreDisabled) {
+	require_once DOL_DOCUMENT_ROOT.'/admin/remotestore/class/externalModules.class.php';
+}
 
 // Load translation files required by the page
 $langs->loadLangs(array("errors", "admin", "modulebuilder"));
@@ -76,6 +79,11 @@ $search_status = GETPOST('search_status', 'alpha');
 $search_nature = GETPOST('search_nature', 'alpha');
 $search_version = GETPOST('search_version', 'alpha');
 
+if ($estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
+	$mode = getDolGlobalString('MAIN_MODULE_SETUP_ON_LIST_BY_DEFAULT', 'commonkanban');
+	setEventMessages($langs->trans('ESTIRemoteModuleMarketplaceDisabled'), null, 'warnings');
+}
+
 
 // For remotestore search
 $options              		= array();
@@ -90,9 +98,9 @@ if (GETPOST('buttonsubmit', 'alphanohtml', 2)) {
 }
 
 // MAIN_ENABLE_EXTERNALMODULES_DOLISTORE is 1 if we enabled the dolistore modules
-$options['search_source_dolistore']	= getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE');
+$options['search_source_dolistore']	= $estiRemoteModuleStoreDisabled ? 0 : getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_DOLISTORE');
 // MAIN_ENABLE_EXTERNALMODULES_COMMUNITY is 1 if we enabled the community modules
-$options['search_source_github']	= getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_COMMUNITY');
+$options['search_source_github']	= $estiRemoteModuleStoreDisabled ? 0 : getDolGlobalInt('MAIN_ENABLE_EXTERNALMODULES_COMMUNITY');
 
 if (!$user->admin) {
 	accessforbidden();
@@ -160,9 +168,12 @@ if (dol_is_file($dolibarrdataroot.'/installmodules.lock')) {
 }
 
 $debug = false;
-$remotestore = new ExternalModules($debug);
+$remotestore = null;
+if (!$estiRemoteModuleStoreDisabled) {
+	$remotestore = new ExternalModules($debug);
+}
 
-if ($mode == 'marketplace') {
+if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 	// Make remote calls
 	if (GETPOSTINT('dol_resetcache')) {
 		dol_delete_file($remotestore->cache_file);
@@ -190,6 +201,10 @@ if ($reshook < 0) {
 // if we set another view list mode, we keep it (till we change one more time)
 if (GETPOSTISSET('mode')) {
 	$mode = GETPOST('mode', 'alpha');
+	if ($estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
+		$mode = getDolGlobalString('MAIN_MODULE_SETUP_ON_LIST_BY_DEFAULT', 'commonkanban');
+		setEventMessages($langs->trans('ESTIRemoteModuleMarketplaceDisabled'), null, 'warnings');
+	}
 	if ($mode == 'common' && !getDolGlobalString('MAIN_MODULE_SETUP_ON_LIST_BY_DEFAULT')) {
 		dolibarr_set_const($db, "MAIN_MODULE_SETUP_ON_LIST_BY_DEFAULT", $mode, 'chaine', 0, '', $conf->entity);
 	}
@@ -213,8 +228,12 @@ if ($action == 'install' && $allowonlineinstall) {
 
 	// $original_file should match format module_modulename-x.y[.z].zip
 	if ($producttoinstall) {
+		if ($estiRemoteModuleStoreDisabled || !is_object($remotestore)) {
+			setEventMessages($langs->trans('ESTIRemoteModuleInstallDisabled'), null, 'errors');
+			$error++;
+		}
 		$isExternalDownload = 1;
-		$tmpExternalModuleZipFile = $remotestore->getModuleZIP($producttoinstall); // Return the zip file path.
+		$tmpExternalModuleZipFile = empty($error) ? $remotestore->getModuleZIP($producttoinstall) : ''; // Return the zip file path.
 		if ($tmpExternalModuleZipFile) {
 			// We fill $_FILES with the zip file we just created to reuse the same code as if file was uploaded by user
 			$_FILES['fileinstall'] = array(
@@ -227,8 +246,9 @@ if ($action == 'install' && $allowonlineinstall) {
 		}
 	}
 
-	$tmpfile = (string) $_FILES['fileinstall']['tmp_name'];
-	$original_file = basename($_FILES["fileinstall"]["name"]);
+	$uploadedFile = empty($_FILES['fileinstall']) ? array('tmp_name' => '', 'name' => '', 'error' => UPLOAD_ERR_NO_FILE) : $_FILES['fileinstall'];
+	$tmpfile = (string) $uploadedFile['tmp_name'];
+	$original_file = basename($uploadedFile["name"]);
 	$original_file = preg_replace('/\s*\(\d+\)\.zip$/i', '.zip', $original_file);
 	$newfile = dol_sanitizePathName($conf->admin->dir_temp.'/'.$original_file.'/'.$original_file);
 
@@ -271,7 +291,7 @@ if ($action == 'install' && $allowonlineinstall) {
 			dol_mkdir($conf->admin->dir_temp.'/'.$tmpdir);
 		}
 
-		$result = dol_move_uploaded_file($tmpfile, $newfile, 1, 0, $_FILES['fileinstall']['error'], 0, 'addedfile', '', $isExternalDownload ? 1 : 0);
+		$result = dol_move_uploaded_file($tmpfile, $newfile, 1, 0, $uploadedFile['error'], 0, 'addedfile', '', $isExternalDownload ? 1 : 0);
 		if ((int) $result > 0) {
 			$resultuncompress = dol_uncompress($newfile, $conf->admin->dir_temp.'/'.$tmpdir);
 
@@ -407,10 +427,10 @@ if ($action == 'install' && $allowonlineinstall) {
 	// Add event purge
 	$securityevent = new Events($db);
 	if ($error) {
-		$text = $langs->trans("SecurityModuleDeploymentError", dol_sanitizePathName($_FILES["fileinstall"]["name"]));
+		$text = $langs->trans("SecurityModuleDeploymentError", dol_sanitizePathName($uploadedFile["name"]));
 		$securityevent->type = 'MODULE_DEPLOYMENT_ERROR';
 	} else {
-		$text = $langs->trans("SecurityModuleDeploymentSuccess", dol_sanitizePathName($_FILES["fileinstall"]["name"]));
+		$text = $langs->trans("SecurityModuleDeploymentSuccess", dol_sanitizePathName($uploadedFile["name"]));
 		$securityevent->type = 'MODULE_DEPLOYMENT_SUCCESS';
 	}
 	$securityevent->dateevent = $now;
@@ -521,7 +541,7 @@ if ($action == 'set' && $user->admin) {
 $form = new Form($db);
 
 $morejs = array();
-$morecss = array("/admin/remotestore/css/store.css");
+$morecss = $estiRemoteModuleStoreDisabled ? array() : array("/admin/remotestore/css/store.css");
 
 // Set dir where external modules are installed
 if (!dol_is_dir($dirins)) {
@@ -1354,7 +1374,7 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 	print '</form>';
 }
 
-if ($mode == 'marketplace') {
+if (!$estiRemoteModuleStoreDisabled && $mode == 'marketplace') {
 	print dol_get_fiche_head($head, $mode, '', -1);
 
 	print $deschelp;

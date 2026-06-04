@@ -13,6 +13,8 @@ https://github.com/HolagundiWorks/esti
 - Preserve GPL notices and upstream attribution required for redistributed
   Dolibarr-derived code.
 - Replace public-facing product links with ESTI repository links.
+- Disable the remote module marketplace and upstream module feeds in the ESTI
+  runtime before deleting dormant compatibility code.
 - Keep upstream compatibility notes for engineering only, so security patches can
   be reviewed and merged without confusing ESTI users.
 - Finish Podman development runtime, installer defaults, and post-install ESTI
@@ -58,6 +60,8 @@ https://github.com/HolagundiWorks/esti
 
 - Validate create, edit, delete, permissions, multi-entity behavior, and audit
   logs for every ESTI module.
+- Review dormant upstream marketplace source for deletion only after installer,
+  module deployment, upgrade, and security checks pass.
 - Add PHPUnit coverage for construction object classes and GST calculations.
 - Publish release notes, source code, container metadata, security policy, and
   migration notes from the ESTI repository.
