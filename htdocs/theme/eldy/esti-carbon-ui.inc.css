@@ -4,6 +4,70 @@
  * It is not a selectable theme; it is the ESTI product UI layer applied globally.
  */
 
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans/IBMPlexSans-Regular.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 450;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans/IBMPlexSans-Text.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans/IBMPlexSans-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans/IBMPlexSans-Bold.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans Devanagari";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans-devanagari/IBMPlexSansDevanagari-Regular.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans Devanagari";
+	font-style: normal;
+	font-weight: 450;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans-devanagari/IBMPlexSansDevanagari-Text.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans Devanagari";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans-devanagari/IBMPlexSansDevanagari-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Sans Devanagari";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/includes/fonts/ibm-plex/sans-devanagari/IBMPlexSansDevanagari-Bold.woff2") format("woff2");
+}
+
 :root {
 	--esti-blue-60: #0f62fe;
 	--esti-blue-70: #0043ce;
@@ -61,8 +125,17 @@ html {
 body {
 	background: var(--colorbackbody, var(--esti-gray-10));
 	color: var(--esti-text-primary);
-	font-family: "IBM Plex Sans", "Inter", "Segoe UI", Arial, sans-serif;
+	font-family: "IBM Plex Sans", "IBM Plex Sans Devanagari", "Nirmala UI", "Segoe UI", Arial, sans-serif;
 	letter-spacing: 0;
+}
+
+button,
+input,
+select,
+textarea,
+.select2-container,
+.ui-widget {
+	font-family: "IBM Plex Sans", "IBM Plex Sans Devanagari", "Nirmala UI", "Segoe UI", Arial, sans-serif !important;
 }
 
 body.bodylogin {
@@ -440,6 +513,161 @@ a.tabactive {
 	background: var(--esti-blue-60) !important;
 	border-color: var(--esti-blue-60) !important;
 	border-radius: var(--esti-radius) !important;
+}
+
+:is(
+	.fa-search,
+	.fa-home,
+	.fa-bars,
+	.fa-user,
+	.fa-users,
+	.fa-cog,
+	.fa-gear,
+	.fa-save,
+	.fa-times,
+	.fa-close,
+	.fa-download,
+	.fa-upload,
+	.fa-info-circle,
+	.fa-question-circle,
+	.fa-exclamation-triangle,
+	.fa-warning,
+	.fa-external-link-alt,
+	.fa-chevron-down,
+	.fa-caret-down,
+	.fa-chevron-left,
+	.fa-arrow-left,
+	.fa-chevron-right,
+	.fa-arrow-right,
+	.fa-bell
+)::before {
+	background-color: currentColor;
+	content: "";
+	display: inline-block;
+	height: 1em;
+	mask-position: center;
+	mask-repeat: no-repeat;
+	mask-size: contain;
+	-webkit-mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: contain;
+	width: 1em;
+}
+
+.fa-search::before,
+.fas.fa-search::before {
+	mask-image: url("/includes/carbon/icons/svg/16/search.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/search.svg");
+}
+
+.fa-home::before,
+.fas.fa-home::before {
+	mask-image: url("/includes/carbon/icons/svg/16/apps.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/apps.svg");
+}
+
+.fa-bars::before,
+.fas.fa-bars::before {
+	mask-image: url("/includes/carbon/icons/svg/16/menu.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/menu.svg");
+}
+
+.fa-user::before,
+.fas.fa-user::before,
+.fa-users::before,
+.fas.fa-users::before {
+	mask-image: url("/includes/carbon/icons/svg/16/user.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/user.svg");
+}
+
+.fa-cog::before,
+.fas.fa-cog::before,
+.fa-gear::before,
+.fas.fa-gear::before {
+	mask-image: url("/includes/carbon/icons/svg/16/settings.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/settings.svg");
+}
+
+.fa-save::before,
+.fas.fa-save::before {
+	mask-image: url("/includes/carbon/icons/svg/16/save.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/save.svg");
+}
+
+.fa-download::before,
+.fas.fa-download::before {
+	mask-image: url("/includes/carbon/icons/svg/16/download.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/download.svg");
+}
+
+.fa-upload::before,
+.fas.fa-upload::before {
+	mask-image: url("/includes/carbon/icons/svg/16/upload.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/upload.svg");
+}
+
+.fa-info-circle::before,
+.fas.fa-info-circle::before {
+	mask-image: url("/includes/carbon/icons/svg/16/information.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/information.svg");
+}
+
+.fa-question-circle::before,
+.fas.fa-question-circle::before {
+	mask-image: url("/includes/carbon/icons/svg/16/help.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/help.svg");
+}
+
+.fa-times::before,
+.fas.fa-times::before,
+.fa-close::before,
+.fas.fa-close::before {
+	mask-image: url("/includes/carbon/icons/svg/16/close--filled.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/close--filled.svg");
+}
+
+.fa-exclamation-triangle::before,
+.fas.fa-exclamation-triangle::before,
+.fa-warning::before,
+.fas.fa-warning::before {
+	mask-image: url("/includes/carbon/icons/svg/16/warning.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/warning.svg");
+}
+
+.fa-external-link-alt::before,
+.fas.fa-external-link-alt::before {
+	mask-image: url("/includes/carbon/icons/svg/16/launch.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/launch.svg");
+}
+
+.fa-chevron-down::before,
+.fas.fa-chevron-down::before,
+.fa-caret-down::before,
+.fas.fa-caret-down::before {
+	mask-image: url("/includes/carbon/icons/svg/16/chevron--down.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/chevron--down.svg");
+}
+
+.fa-chevron-left::before,
+.fas.fa-chevron-left::before,
+.fa-arrow-left::before,
+.fas.fa-arrow-left::before {
+	mask-image: url("/includes/carbon/icons/svg/16/chevron--left.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/chevron--left.svg");
+}
+
+.fa-chevron-right::before,
+.fas.fa-chevron-right::before,
+.fa-arrow-right::before,
+.fas.fa-arrow-right::before {
+	mask-image: url("/includes/carbon/icons/svg/16/chevron--right.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/chevron--right.svg");
+}
+
+.fa-bell::before,
+.fas.fa-bell::before {
+	mask-image: url("/includes/carbon/icons/svg/16/notification.svg");
+	-webkit-mask-image: url("/includes/carbon/icons/svg/16/notification.svg");
 }
 
 @media only screen and (max-width: 768px) {

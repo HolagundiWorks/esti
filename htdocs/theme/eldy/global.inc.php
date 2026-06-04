@@ -161,6 +161,8 @@ $borderradius = getDolGlobalString('THEME_ELDY_USEBORDERONTABLE') ? getDolGlobal
 ?>
 /* IDE Hack <style type="text/css"> */
 
+@import url("/includes/carbon/styles/css/styles.min.css");
+
 /* ============================================================================== */
 /* Default styles                                                                 */
 /* ============================================================================== */
