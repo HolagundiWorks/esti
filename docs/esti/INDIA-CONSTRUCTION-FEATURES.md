@@ -1,9 +1,14 @@
 # India Construction Feature Requirements
 
-This document defines the mandatory India-specific construction features for
-ESTI ERP. These requirements drive the first construction modules and replace
-generic upstream product, project, ECM, and stock workflows with ESTI-specific
-construction workflows.
+Pivot note: ESTI is now the **ESTI Architect Platform** developed by Holagundi
+Consulting Works. This document is retained as reference material for supporting
+cost, tender, BOQ, DSR/SOR, and drawing takeoff workflows. Contractor operations
+are not the first-release product focus.
+
+This document defines India-specific construction features that may support
+architecture office workflows. These requirements no longer drive the primary
+product roadmap; see `ROADMAP.md` and `ARCHITECT-PROFILE.md` for the active
+architecture-office direction.
 
 ## Mandatory Schedule Support
 

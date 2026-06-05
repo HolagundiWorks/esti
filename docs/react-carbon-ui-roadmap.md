@@ -1,6 +1,7 @@
 # React / Carbon UI Migration
 
-This is the starting scaffold for moving ESTI from the inherited PHP UI to a React-first Carbon interface.
+This is the starting scaffold for moving ESTI from the inherited PHP UI to a
+React-first Carbon interface for the ESTI Architect Platform.
 
 ## Entry Point
 
@@ -13,9 +14,12 @@ This is the starting scaffold for moving ESTI from the inherited PHP UI to a Rea
 
 1. Keep Dolibarr PHP as the authenticated backend and service layer.
 2. Mount React screens inside Dolibarr routes while modules are migrated.
-3. Replace construction workflows first: rate analysis, estimation, BOQ, billing, labour teams, stock, purchase orders, and GST.
-4. Convert legacy pages into API-backed React screens one workflow at a time.
-5. Remove old PHP screens only after the React replacement is functionally complete and permission-safe.
+3. Replace architect-office workflows first: dashboard, clients, projects,
+   phases, fee proposals, drawings, permits, invoices, consultants, and client
+   portal.
+4. Keep DSR/SOR and BOQ screens as supporting reference/costing workflows.
+5. Convert legacy pages into API-backed React screens one workflow at a time.
+6. Remove old PHP screens only after the React replacement is functionally complete and permission-safe.
 
 ## UI Rules
 

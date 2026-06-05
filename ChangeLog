@@ -6,6 +6,9 @@ ESTI ChangeLog
 
 For users:
 ----------
+NEW: #0 Pivot ESTI documentation to the ESTI Architect Platform for Indian
+freelance architects and small architecture offices by Holagundi Consulting
+Works.
 NEW: #0 Add DSR/SOR item audit trail and import batch tracking.
 NEW: #0 Add DSR/SOR Excel and CSV import with validation preview and commit
 workflow.
@@ -22,6 +25,8 @@ barcode, multi-currency, and subtotals routes.
 
 For developers:
 ---------------
+NEW: #0 Document architect-office backend, Carbon React, drawing, permit, fee
+proposal, invoice, consultant, and client-portal roadmap.
 NEW: #0 Add `llx_esti_dsrsor_audit` and
 `llx_esti_dsrsor_import_batch` tables.
 NEW: #0 Add reusable `DsrSorImport` helper for XLSX, XLS, ODS, and CSV schedule

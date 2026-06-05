@@ -40,23 +40,28 @@
 - Upstream VAT and currency code retained until upgrade-safe removal is
   planned.
 
-## Phase 4: Backend Profile And Construction Modules — In Progress
+## Phase 4: Backend Profile And Architect Modules — In Progress
 
-- Construction-only backend profile documented in `docs/esti/BACKEND-PROFILE.md`.
+- Architect-office backend profile documented in `docs/esti/BACKEND-PROFILE.md`.
 - Stale menus and permissions for removed modules: pending audit.
-- `esti_dsrsor` — DSR/SOR library module: **operational**. Includes module
-  descriptor, SQL tables (master, version, item, import_batch, audit),
-  DsrItem class, DsrSorImport class, item list with full search/filter, item
-  card, import page with preview validation, admin setup, and live dashboard.
+- `esti_dsrsor` — DSR/SOR library module: **operational** as a supporting
+  reference/costing engine for architecture BOQ, tender, and takeoff workflows.
+  Includes module descriptor, SQL tables (master, version, item, import_batch,
+  audit), DsrItem class, DsrSorImport class, item list with full search/filter,
+  item card, import page with preview validation, admin setup, and live
+  dashboard.
 
-Next construction modules to build:
+Next architect-office modules to build:
 
-- `esti_projectsite` — first; defines project/site data model that all billing
-  and BOQ modules will reference.
-- `esti_rateanalysis` — rate buildup library.
-- `esti_estimation` — estimate header and line items.
-- `esti_boq` — bill of quantities.
-- `esti_billing`, `esti_labour`, `esti_sitestock`, `esti_purchase` — operations.
+- `esti_projectoffice` / phase model — project, client, jurisdiction, phase
+  plan, billing percentage, status, and office ownership.
+- `esti_feeproposal` — COA benchmark, scope, deliverables, exclusions,
+  revisions, approvals, and PDF output.
+- `esti_invoiceindia` — phase-linked invoices, GST, SAC, TDS u/s 194J, receipts,
+  and accountant exports.
+- `esti_permit` and `esti_bylaw` — approval tracker and local rule reference.
+- `esti_drawing`, `esti_approval`, and `esti_takeoff` — drawing register,
+  issue/revision log, viewer integration, and BOQ/fee support.
 
 Use Dolibarr hooks and CommonObject patterns before changing core classes. All
 new database tables use the `llx_` prefix and store entity for multi-company.
@@ -67,8 +72,9 @@ new database tables use the `llx_` prefix and store entity for multi-company.
   icon substitution for all FA icons, IBM Plex typography.
 - React shell at `/estiui/` shows live module-card dashboard with status
   indicators (Available / In Design / Planned) and live link to DSR/SOR.
-- Remaining workflow screens will be migrated to Carbon/React one module at a
-  time after PHP scaffolds are functional and permission-safe.
+- Remaining workflow screens will be migrated to Carbon/React around architect
+  office journeys: dashboard, projects/phases, fee proposals, drawing register,
+  permits, invoices, consultants, and client portal.
 - Theme customization modules remain disabled in the ESTI distribution profile.
 
 ## Phase 6: Containers and Install — Partial
@@ -95,3 +101,5 @@ new database tables use the `llx_` prefix and store entity for multi-company.
 - Proprietary relicensing of Dolibarr-derived code.
 - Global ERP support for all countries.
 - Complex theme marketplace or user-defined theme customization.
+- Contractor-first operations: RA billing, labour teams, site stock, purchase
+  orders, GRN, warehouse workflows, and subcontractor payment operations.

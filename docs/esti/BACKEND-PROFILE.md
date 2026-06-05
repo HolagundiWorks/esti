@@ -1,9 +1,9 @@
 # ESTI Backend Profile
 
 ESTI is no longer a general-purpose Dolibarr distribution. The backend profile is
-being reduced to the modules needed for Indian construction contractors, with
-new ESTI construction modules replacing broad CRM, commerce, HR, and inventory
-features.
+being reduced to the modules needed for Indian freelance architects and small
+architecture offices, with new ESTI architect-office modules replacing broad
+CRM, commerce, HR, inventory, and contractor-operation features.
 
 ## Removed From Module Discovery
 
@@ -63,22 +63,29 @@ permissions, search entries, dictionary rows, and document templates.
 
 ## Replacement Direction
 
-ESTI should replace removed generic modules with construction-specific modules:
+ESTI should replace removed generic modules with architect-office modules:
 
-- `esti_projectsite`
-- `esti_rateanalysis`
-- `esti_estimation`
-- `esti_boq`
-- `esti_billing`
-- `esti_labour`
-- `esti_purchase`
-- `esti_sitestock`
+- `esti_projectoffice` — architecture projects, project type, jurisdiction,
+  client, phase plan, billing percentage, and office status.
+- `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion.
+- `esti_feeproposal` — COA benchmark, scope, deliverables, exclusions,
+  revisions, client approval, and proposal output.
+- `esti_invoiceindia` — phase-linked invoices, GST, SAC, TDS, receipts, and
+  accountant exports.
+- `esti_permit` and `esti_bylaw` — statutory approval tracking and quick
+  reference rules.
+- `esti_drawing`, `esti_approval`, and `esti_takeoff` — drawing register,
+  revision/issue log, client/authority approvals, and measured quantities.
+- `esti_collaborator` — consultant scope, fee, payments, balance, and access.
+- `esti_dsrsor` and `esti_boq` — supporting reference/costing engines for
+  tender, quantity, and takeoff workflows.
 
-`esti_sitestock` should model site stores, issue, return, transfer, wastage, and
-BOQ-linked consumption without re-enabling the generic upstream warehouse module.
-`esti_projectsite` should model construction projects, sites, work packages,
-locations, client references, and project cost centres without re-enabling the
-generic upstream project/collaboration module.
+Do not re-enable generic upstream projects, products, ECM UI, stock, purchase,
+or CRM modules as the primary user workflow. Where Dolibarr base tables are
+useful, expose them through ESTI-specific APIs and Carbon screens.
+
+Contractor modules such as labour, site stock, purchase orders, RA billing, and
+measurement book are outside the first architect release.
 
 ## Next Cleanup Tasks
 

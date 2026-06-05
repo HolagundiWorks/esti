@@ -36,7 +36,7 @@ Every ESTI distribution must keep:
 The Dolibarr name and related branding are restricted by the upstream trademark
 policy. ESTI should:
 
-- Use `ESTI ERP` as the visible product name.
+- Use `ESTI Architect Platform` or `ESTI` as the visible product name.
 - Avoid implying that ESTI is the official Dolibarr distribution.
 - Keep an attribution such as `ESTI ERP is a modified fork of Dolibarr ERP & CRM`.
 - Replace Dolibarr visual branding in the user interface, documentation, and
@@ -63,7 +63,7 @@ New original ESTI code should carry GPL-compatible notices. Suggested header:
 
 ```php
 /**
- * ESTI ERP - Indian construction ERP fork based on Dolibarr.
+ * ESTI Architect Platform - architecture office management fork based on Dolibarr.
  *
  * Copyright (C) 2026 ESTI contributors
  * SPDX-License-Identifier: GPL-3.0-or-later

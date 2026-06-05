@@ -1,5 +1,11 @@
 # ESTI Construction Modules
 
+> Pivot note: ESTI is now the **ESTI Architect Platform** developed by
+> Holagundi Consulting Works. This document is retained as a technical reference
+> for construction/costing engines that may support architecture workflows
+> (DSR/SOR, BOQ, tender quantities, and takeoff). It is not the first-release
+> product roadmap.
+
 ## Module Architecture
 
 ESTI modules should follow Dolibarr's module structure:

@@ -3,7 +3,8 @@
 ## Objective
 
 ESTI should move toward a Carbon-inspired interface using IBM blue and a focused
-light/dark mode system, while preserving Dolibarr's proven ERP workflows.
+light/dark mode system, while turning Dolibarr's retained backend capabilities
+into an architect-office product experience.
 
 This is a redesign direction, not a first-step rewrite. The implementation
 should begin with an ESTI theme and reusable templates before core UI changes.
@@ -13,7 +14,7 @@ should begin with an ESTI theme and reusable templates before core UI changes.
 - Use IBM blue as the primary brand color.
 - Provide light and dark modes only.
 - Remove theme marketplace/customization from the ESTI distribution profile.
-- Keep dense ERP screens readable for repeated operational use.
+- Keep dense office-management screens readable for repeated operational use.
 - Prefer tables, filters, tabs, side panels, and clear action bars over
   marketing-style layouts.
 - Keep forms compact and predictable for keyboard-heavy users.
@@ -21,7 +22,7 @@ should begin with an ESTI theme and reusable templates before core UI changes.
 
 ## Theme Scope
 
-Initial theme work should cover:
+Initial UI work should cover:
 
 - Login screen.
 - Main navigation.
@@ -29,40 +30,44 @@ Initial theme work should cover:
 - Object detail pages.
 - Forms and validation states.
 - Buttons, tabs, badges, alerts, filters, and modals.
-- Construction dashboards and project cost views.
+- Architect office dashboards, project phase views, drawing registers, permit
+  lists, fee proposals, and invoice views.
 
-Core construction screens should include:
+Core architect screens should include:
 
 - Dashboard.
-- DSR/SOR Library.
-- BOQ Builder.
-- Estimate Builder.
-- Rate Analysis Sheet.
-- Lead/Lift Calculator.
-- Measurement Book Entry.
-- RA Billing.
-- Project Dashboard.
+- Client and enquiry list.
+- Project dashboard.
+- Project phases.
+- Fee proposal builder.
+- Invoice and receipt tracking.
+- Permit tracker.
+- Drawing register and revision detail.
+- Consultant register.
+- Client portal.
+- Drawing viewer and takeoff.
 - Reports.
 
 ## Carbon Component Map
 
-- Use `DataTable` patterns for DSR/SOR search, BOQ lines, measurement entries,
-  RA bill quantities, and project cost tracking.
+- Use `DataTable` patterns for projects, fee proposals, drawing registers,
+  permit lists, consultant balances, invoices, and takeoff/BOQ support lines.
 - Use `SideNav` for fixed global navigation and fluid local navigation.
-- Use `Tabs` for estimate versions, BOQ views, rate-analysis components, and RA
-  bill sections.
-- Use `Modal` for approvals, revision creation, import confirmation, and locked
-  record warnings.
-- Use `ComboBox` for DSR/SOR item lookup, unit selection, source/site selection,
-  and project/package selection.
-- Use `Toast` notifications for saves, import results, approvals, and validation
-  failures.
-- Use `DatePicker` for schedule effective dates, estimate validity, measurement
-  dates, and billing periods.
-- Use inline loading states for imports, formula recalculation, and report
-  generation.
-- Use tags and status indicators for lifecycle states such as draft, internal
-  review, client submission, technical sanction, approved, revised, and locked.
+- Use `Tabs` for project overview, phases, drawings, permits, fees, invoices,
+  communication, and audit history.
+- Use `Modal` for approvals, revision creation, issue-set confirmation, and
+  locked/superseded record warnings.
+- Use `ComboBox` for client, project, jurisdiction, phase, consultant,
+  discipline, authority, SAC, and drawing lookup.
+- Use `Toast` notifications for saves, uploads, issue-set creation, approvals,
+  and validation failures.
+- Use `DatePicker` for project milestones, permit due dates, drawing issue
+  dates, proposal validity, and billing periods.
+- Use inline loading states for uploads, DXF conversion, PDF rendering, report
+  generation, and invoice exports.
+- Use tags and status indicators for lifecycle states such as enquiry, active,
+  on hold, concept, client review, issued, approved, superseded, overdue, paid,
+  and pending TDS.
 
 ## Implementation Guardrails
 
@@ -71,8 +76,9 @@ Core construction screens should include:
 - Start with CSS and template alignment rather than a full frontend framework.
 - Use Dolibarr hooks and theme extension points where possible.
 - Keep JavaScript in separate files under the relevant module or theme path.
-- Verify UI changes on common ERP workflows: estimate creation, BOQ editing,
-  purchase order creation, stock issue, and billing.
+- Verify UI changes on common architect workflows: project creation, fee
+  proposal revision, drawing issue, permit update, invoice creation, consultant
+  assignment, and client portal review.
 
 ## Proposed Color Tokens
 

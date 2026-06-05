@@ -1,107 +1,126 @@
-# ESTI Product Roadmap
+# ESTI Architect Platform Roadmap
 
-This roadmap is the public ESTI direction for the Indian construction ERP fork.
-Operational links for releases, updates, issues, and documentation should point
-to the ESTI repository:
+This roadmap is the public ESTI direction after the product pivot to an Indian
+architecture office management platform developed by **Holagundi Consulting
+Works (HCW)**.
+
+Operational links for source, releases, updates, issues, and documentation point
+to:
 
 ```text
 https://github.com/HolagundiWorks/esti
 ```
 
-## 0. Fork Foundation — DONE
+## 0. Fork Foundation — Done
 
 - Preserve GPL notices and upstream attribution required for redistributed
   Dolibarr-derived code.
 - Replace public-facing product links with ESTI repository links.
-- Disable the remote module marketplace and upstream module feeds.
-- Remove non-construction module descriptors from backend discovery.
-- Keep upstream compatibility notes for engineering only.
-- Podman development runtime, installer defaults, and post-install ESTI
-  defaults in place.
+- Disable remote module marketplace and upstream module feeds.
+- Podman development runtime, installer defaults, and post-install ESTI defaults
+  are in place.
+- Keep Dolibarr references only where needed for legal attribution,
+  compatibility APIs, and upstream merge/security work.
 
-Current status: the ESTI backend profile removes the module descriptors for CRM,
-proposals, orders, stock/warehouse, POS, ecommerce, subscriptions, donations,
-members, HR, recruitment, expenses, MRP, helpdesk, email campaigns, surveys,
-shipping, events, interventions, knowledge base, generic product management,
-generic services, product variants, projects/collaboration, ECM, barcodes,
-multi-currency, and subtotals. Legacy routes return `410 Gone`. Retained
-source directories are compatibility boundaries until hard includes, menus,
-permissions, and upgrade paths are audited.
+## 1. Product Pivot — Current
 
-## 1. India Operating Baseline — DONE
+ESTI is no longer being shaped as a contractor ERP. It is now the ESTI Architect
+Platform: practice management software for Indian freelance architects and small
+architecture offices.
 
-- Default country, currency, timezone, and language profile set to India.
-- Language selection restricted to Indian locales shipped in the fork.
-- INR and GST set as the default finance vocabulary and tax profile.
-- CGST, SGST, and IGST enabled in the ESTI default profile.
-- Global currency and non-Indian tax choices disabled by configuration.
+Immediate documentation and product decisions:
 
-## 2. Construction Core — In Progress
+- Update all ESTI docs to identify Holagundi Consulting Works as the developer.
+- Reframe construction modules as supporting services, not the main product.
+- Prioritize architect workflows: clients, projects, phases, fees, invoices,
+  permits, drawings, consultants, client portal, and office dashboard.
+- Keep DSR/SOR and BOQ work as reusable reference/costing engines for architects.
+- Remove first-release plans for labour teams, site stock, purchase orders,
+  RA billing, and contractor measurement book.
 
-`esti_dsrsor` is the first live construction module. It is scaffolded and
-operational with XLSX/XLS/ODS/CSV import, audit tracking, item list with
-search/filter, item card view, admin setup, and a dashboard showing live stats.
+## 2. Architecture Office Core — Next Build
 
-Remaining modules to build in implementation order:
+Build the minimum office-management backbone before adding advanced viewers or
+dashboards.
 
-1. `esti_projectsite` — construction project, site, work package, cost-centre,
-   and client/consultant/subcontractor records.
-2. `esti_rateanalysis` — material, labour, machinery, overhead, wastage,
-   carriage, lead, lift, royalty, contractor margin, GST-aware rate buildup
-   with formula engine and approval workflow.
-3. `esti_estimation` — project estimates, revisions, approvals, locked versions,
-   and full audit history.
-4. `esti_boq` — BOQ sections, line items, versioning, variation tracking, client
-   versus internal BOQ, and links to billing and purchase.
-5. `esti_billing` — RA bills, measurement book, advances, retention, deductions,
-   recoveries, and GST-ready invoice documents.
-6. `esti_labour` — labour teams, attendance, muster, and wage calculation.
-7. `esti_sitestock` — site stores, material issue/return/transfer/wastage, and
-   BOQ-linked consumption.
-8. `esti_purchase` — purchase requisitions, supplier quotations, purchase
-   orders, GRN, and supplier bills.
-9. Lead/lift calculator — quarry/source mapping, distance, lead and lift
-   statements, and carriage cost sheet.
-10. GST reporting exports — GSTR-ready output for review and future filing.
+1. `esti_projectoffice` — architecture project record, project type,
+   jurisdiction, phase plan, client, owner, dates, and status.
+2. `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion,
+   with status, planned/actual dates, billing percentage, and linked invoice.
+3. `esti_clientlog` — enquiry, meeting notes, calls, decisions, approvals, and
+   client communication timeline using Dolibarr thirdparty/contact foundations.
+4. `esti_feeproposal` — scope, deliverables, exclusions, fee calculation, COA
+   benchmark, revisions, approval state, and PDF output.
+5. `esti_invoiceindia` — phase-linked invoices with GST, SAC `998311`, TDS u/s
+   194J, receipts, and accountant-friendly exports.
 
-Use Dolibarr `CommonObject`, hooks, permissions, and `llx_` table conventions
-throughout.
+This phase should produce a usable app for one architect to track active
+projects, fees, invoices, and client decisions.
 
-## 3. Contractor Operations — Planned
+## 3. Drawing And Compliance Core — Planned
 
-- RA bills, final bills, retention, advances, deductions, debit/credit notes,
-  and GST-ready invoices.
-- Measurement book entries with previous, current, cumulative, and certified
-  quantities.
-- Labour cess, royalty, TDS, GST, advance recovery, and final payable.
-- Labour teams, subcontractors, attendance, work orders, and wage sheets.
-- Site stock, purchase requisitions, purchase orders, GRN, issue, return,
-  transfer, wastage, and reconciliation.
-- Project cost control by site, package, BOQ item, supplier, subcontractor,
-  and billing milestone.
-- Lead and lift calculations with quarry/source mapping, site mapping,
-  transport mode, lead statements, lift statements, and carriage cost sheets.
+1. `esti_permit` — statutory approval tracker for BPAS, RERA, Fire NOC,
+   Aviation NOC, environmental clearance, OC, CC, and local authority workflows.
+2. `esti_bylaw` — quick-reference library for authority, zone, FAR, setback,
+   height, parking, and document checklist rules.
+3. `esti_drawing` — drawing register with discipline, drawing number, title,
+   revision, status, issue purpose, and linked ECM document.
+4. `esti_approval` — drawing/fee/submission approval log with sent date, channel,
+   recipient, status, and superseded history.
+5. Watermarked client/authority issue sets for drawings and PDFs.
 
-## 4. ESTI UI — In Progress
+This phase turns ESTI into the central record for drawing versions, statutory
+submissions, and client approvals.
 
-- Carbon-inspired theme with IBM blue and light/dark modes is operational.
-- React shell at `/estiui/` shows module cards with live status indicators.
-- DSR/SOR library is the first module with an active link from the dashboard.
-- Remaining workflow screens (rate analysis, estimation, BOQ, billing, etc.)
-  are planned for Carbon/React migration after PHP scaffolds are complete.
-- Disable user theme marketplace and customization paths in the ESTI
-  distribution profile.
+## 4. Viewer And Takeoff — Planned
 
-## 5. Release Hardening — Planned
+- Add the Node.js viewer service inside the Podman pod.
+- Convert DXF to SVG server-side and cache by file hash.
+- Render PDFs for drawing review.
+- Add Carbon React drawing viewer with canvas measurement overlay.
+- Store per-drawing scale calibration.
+- Support Phase 1 linear two-point measurement.
+- Push measured quantities into BOQ / fee-support lines.
 
-- Validate create, edit, delete, permissions, multi-entity behaviour, and audit
-  logs for every ESTI module.
-- Review dormant upstream marketplace source for deletion only after installer,
-  module deployment, upgrade, and security checks pass.
-- Continue pruning stale menus, permissions, dictionaries, API surfaces, and
-  document templates for modules already removed from ESTI discovery.
-- Add PHPUnit coverage for construction object classes and GST calculations.
-- Publish release notes, source code, container metadata, security policy, and
+Area measurement, counting tools, snapping, and title-block metadata extraction
+are later enhancements.
+
+## 5. Collaboration And Portal — Planned
+
+- Consultant register with discipline, scope, agreed fee, payments, balance, and
+  assigned project/drawing access.
+- Project-scoped collaborator login.
+- Client portal with read-only access to issued drawings, invoices, approvals,
+  and project status.
+- Approval requests and notifications for stale client decisions or consultant
+  deliverables.
+
+## 6. Carbon React UI — In Progress
+
+- Current embedded React shell at `/estiui/` is the seed.
+- Target UI is a standalone Carbon React SPA.
+- Navigation model: fixed global side nav and flexible local side panel.
+- IBM Plex Sans typography and Carbon icons only.
+- Use Carbon DataTable, Grid, Tabs, SidePanel, Modal, ComboBox, DatePicker,
+  InlineLoading, ToastNotification, Tag, and status indicators.
+- First React workflows to build: dashboard, projects/phases, fee proposals,
+  drawing register, permit list, invoices, and client portal.
+
+## 7. Release Hardening — Planned
+
+- Validate create, edit, delete, permissions, CSRF, and multi-entity behaviour
+  for every ESTI module.
+- Add smoke tests for disabled upstream modules and architect workflows.
+- Add PHPUnit coverage for object classes, fee calculations, GST/TDS logic, and
+  drawing/permit lifecycle rules.
+- Publish source code, container metadata, release notes, security policy, and
   migration notes from the ESTI repository.
-- Keep Dolibarr references only where they identify upstream-derived code,
-  copyrights, GPL obligations, compatibility APIs, or merge procedures.
+
+## Non-Goals For The First Architect Release
+
+- General-purpose ERP functionality.
+- Contractor RA billing, measurement book certification, labour team payroll,
+  warehouse/site stock, purchase orders, GRN, or supplier bill operations.
+- Global multi-country accounting or multi-currency.
+- Theme marketplace or user-defined theme customization.
+- Proprietary relicensing of Dolibarr-derived code.
