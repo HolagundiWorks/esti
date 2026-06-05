@@ -49,12 +49,90 @@ if (!$user->hasRight('esti_dsrsor', 'dsritem', 'read')) {
 // No action on dashboard.
 
 /*
+ * Data
+ */
+
+$dashboard = array(
+	'total_items' => 0,
+	'active_schedules' => 0,
+	'import_warnings' => 0,
+	'latest_import' => $langs->trans('NoImportYet'),
+	'default_schedule_type' => getDolGlobalString('ESTI_DSRSOR_DEFAULT_SCHEDULE_TYPE', 'CPWD_DSR'),
+);
+$scheduleTypeLabels = array(
+	'CPWD_DSR' => 'CpwdDsr',
+	'STATE_PWD_SOR' => 'StatePwdSor',
+	'IRRIGATION' => 'IrrigationSchedule',
+	'NHAI' => 'NhaiSchedule',
+	'MES' => 'MesSchedule',
+);
+
+$sql = "SELECT COUNT(*) as nb FROM ".$db->prefix()."esti_dsrsor_item";
+$sql .= " WHERE entity IN (".getEntity('dsritem').")";
+$resql = $db->query($sql);
+if ($resql) {
+	$obj = $db->fetch_object($resql);
+	$dashboard['total_items'] = $obj ? (int) $obj->nb : 0;
+	$db->free($resql);
+}
+
+$sql = "SELECT COUNT(*) as nb FROM ".$db->prefix()."esti_dsrsor_version";
+$sql .= " WHERE entity IN (".getEntity('dsritem').")";
+$sql .= " AND status = 1";
+$resql = $db->query($sql);
+if ($resql) {
+	$obj = $db->fetch_object($resql);
+	$dashboard['active_schedules'] = $obj ? (int) $obj->nb : 0;
+	$db->free($resql);
+}
+
+$sql = "SELECT COUNT(*) as nb FROM ".$db->prefix()."esti_dsrsor_import_batch";
+$sql .= " WHERE entity IN (".getEntity('dsritem').")";
+$sql .= " AND error_count > 0";
+$resql = $db->query($sql);
+if ($resql) {
+	$obj = $db->fetch_object($resql);
+	$dashboard['import_warnings'] = $obj ? (int) $obj->nb : 0;
+	$db->free($resql);
+}
+
+$sql = "SELECT ref, original_filename, date_creation FROM ".$db->prefix()."esti_dsrsor_import_batch";
+$sql .= " WHERE entity IN (".getEntity('dsritem').")";
+$sql .= " ORDER BY date_creation DESC, rowid DESC";
+$sql .= $db->plimit(1);
+$resql = $db->query($sql);
+if ($resql) {
+	$obj = $db->fetch_object($resql);
+	if ($obj) {
+		$dashboard['latest_import'] = $obj->original_filename ? $obj->original_filename : $obj->ref;
+	}
+	$db->free($resql);
+}
+
+/*
  * View
  */
 
 llxHeader('', $langs->trans('EstiDsrSorArea'), '', '', 0, 0, '', '', '', 'mod-esti-dsrsor page-index');
 
-print load_fiche_titre($langs->trans('EstiDsrSorArea'), '', 'fa-list-alt');
+print load_fiche_titre($langs->trans('EstiDsrSorArea'), '', 'fa-catalog');
+
+print '<div class="fichecenter">';
+foreach (array(
+	array('label' => 'TotalItems', 'value' => (string) $dashboard['total_items'], 'picto' => 'fa-data-table'),
+	array('label' => 'ActiveSchedules', 'value' => (string) $dashboard['active_schedules'], 'picto' => 'fa-check'),
+	array('label' => 'LatestImport', 'value' => $dashboard['latest_import'], 'picto' => 'fa-upload'),
+	array('label' => 'ImportWarnings', 'value' => (string) $dashboard['import_warnings'], 'picto' => 'fa-warning'),
+	array('label' => 'DefaultScheduleType', 'value' => $langs->trans($scheduleTypeLabels[$dashboard['default_schedule_type']] ?? $dashboard['default_schedule_type']), 'picto' => 'fa-cog'),
+) as $metric) {
+	print '<div class="fichehalfleft">';
+	print '<table class="noborder centpercent">';
+	print '<tr class="liste_titre"><td>'.img_picto('', $metric['picto'], 'class="pictofixedwidth"').$langs->trans($metric['label']).'</td></tr>';
+	print '<tr class="oddeven"><td><span class="amount">'.dol_escape_htmltag($metric['value']).'</span></td></tr>';
+	print '</table>';
+	print '</div>';
+}
+print '</div>';
 
 print '<div class="fichecenter">';
 print '<div class="fichehalfleft">';

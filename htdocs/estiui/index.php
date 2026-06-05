@@ -44,14 +44,15 @@ $css = array(
 llxHeader('', $title, '', '', 0, 0, $scripts, $css);
 
 $cards = array(
-	array('key' => 'rateAnalysis', 'pictogram' => 'chart--bar', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'estimation', 'pictogram' => 'build', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'boq', 'pictogram' => 'document--conversion', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'billing', 'pictogram' => 'invoice', 'label' => $langs->trans('Billing'), 'description' => $langs->trans('BillingDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'labour', 'pictogram' => 'construction-worker', 'label' => $langs->trans('LabourTeams'), 'description' => $langs->trans('LabourTeamsDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'stock', 'pictogram' => 'data--store', 'label' => $langs->trans('Stock'), 'description' => $langs->trans('StockDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'purchase', 'pictogram' => 'shopping--cart', 'label' => $langs->trans('PurchaseOrders'), 'description' => $langs->trans('PurchaseOrdersDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'gst', 'pictogram' => 'global--currency', 'label' => $langs->trans('GST'), 'description' => $langs->trans('GSTDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'dsrSor', 'pictogram' => 'analytics', 'icon' => 'catalog', 'label' => $langs->trans('DsrSorLibrary'), 'description' => $langs->trans('DsrSorLibraryDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_dsrsor/index.php'),
+	array('key' => 'rateAnalysis', 'pictogram' => 'chart--bar', 'icon' => 'calculator', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('InDesign'), 'statusKey' => 'design'),
+	array('key' => 'estimation', 'pictogram' => 'build', 'icon' => 'ruler', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('InDesign'), 'statusKey' => 'design'),
+	array('key' => 'boq', 'pictogram' => 'document--conversion', 'icon' => 'document--tasks', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'billing', 'pictogram' => 'invoice', 'icon' => 'receipt', 'label' => $langs->trans('Billing'), 'description' => $langs->trans('BillingDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'labour', 'pictogram' => 'construction-worker', 'icon' => 'user--multiple', 'label' => $langs->trans('LabourTeams'), 'description' => $langs->trans('LabourTeamsDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'stock', 'pictogram' => 'data--store', 'icon' => 'inventory-management', 'label' => $langs->trans('Stock'), 'description' => $langs->trans('StockDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'purchase', 'pictogram' => 'shopping--cart', 'icon' => 'purchase', 'label' => $langs->trans('PurchaseOrders'), 'description' => $langs->trans('PurchaseOrdersDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'gst', 'pictogram' => 'global--currency', 'icon' => 'currency', 'label' => $langs->trans('GST'), 'description' => $langs->trans('GSTDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
 );
 
 $context = array(
@@ -64,6 +65,7 @@ $context = array(
 	'cards' => $cards,
 	'labels' => array(
 		'open' => $langs->trans('Open'),
+		'notReady' => $langs->trans('NotReady'),
 		'workspaceStatus' => $langs->trans('WorkspaceStatus'),
 		'migrationLane' => $langs->trans('MigrationLane'),
 		'backendMode' => $langs->trans('BackendMode'),

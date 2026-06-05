@@ -10,6 +10,7 @@
 
 	function ModuleCard(props) {
 		var card = props.card;
+		var actionLabel = card.url ? props.openLabel : props.notReadyLabel;
 
 		return h('article', { className: 'esti-module-card', 'data-module': card.key },
 			h('div', { className: 'esti-module-card__header' },
@@ -19,11 +20,21 @@
 					className: 'esti-module-card__pictogram',
 					src: '/includes/carbon/pictograms/svg/' + (card.pictogram || 'build') + '.svg'
 				}),
-				h('span', { className: 'esti-module-card__status' }, card.status)
+				h('span', { className: 'esti-module-card__status esti-module-card__status--' + (card.statusKey || 'planned') },
+					h('img', {
+						alt: '',
+						'aria-hidden': 'true',
+						className: 'esti-module-card__icon',
+						src: '/includes/carbon/icons/svg/16/' + (card.icon || 'apps') + '.svg'
+					}),
+					card.status
+				)
 			),
 			h('h2', { className: 'esti-module-card__title' }, card.label),
 			h('p', { className: 'esti-module-card__description' }, card.description),
-			h('button', { className: 'esti-carbon-button', type: 'button' }, props.openLabel)
+			card.url
+				? h('a', { className: 'esti-carbon-button', href: card.url }, actionLabel)
+				: h('button', { className: 'esti-carbon-button esti-carbon-button--disabled', disabled: true, type: 'button' }, actionLabel)
 		);
 	}
 
@@ -46,7 +57,7 @@
 			),
 			h('section', { className: 'esti-module-grid', 'aria-label': labels.migrationLane },
 				cards.map(function (card) {
-					return h(ModuleCard, { card: card, key: card.key, openLabel: labels.open });
+					return h(ModuleCard, { card: card, key: card.key, notReadyLabel: labels.notReady, openLabel: labels.open });
 				})
 			)
 		);

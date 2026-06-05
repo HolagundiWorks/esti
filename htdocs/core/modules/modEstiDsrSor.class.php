@@ -41,7 +41,7 @@ class modEstiDsrSor extends DolibarrModules
 		$this->editor_url = 'https://github.com/HolagundiWorks/esti';
 		$this->version = 'development';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
-		$this->picto = 'fa-list-alt';
+		$this->picto = 'fa-catalog';
 		$this->module_parts = array(
 			'triggers' => 0,
 			'login' => 0,

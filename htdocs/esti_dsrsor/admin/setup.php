@@ -67,8 +67,8 @@ $head = esti_dsrsor_admin_prepare_head();
 
 llxHeader('', $langs->trans('EstiDsrSorSetup'), '', '', 0, 0, '', '', '', 'mod-esti-dsrsor page-admin');
 
-print load_fiche_titre($langs->trans('EstiDsrSorSetup'), '', 'fa-list-alt');
-print dol_get_fiche_head($head, 'settings', $langs->trans('ModuleEstiDsrSorName'), -1, 'fa-list-alt');
+print load_fiche_titre($langs->trans('EstiDsrSorSetup'), '', 'fa-cog');
+print dol_get_fiche_head($head, 'settings', $langs->trans('ModuleEstiDsrSorName'), -1, 'fa-cog');
 
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
