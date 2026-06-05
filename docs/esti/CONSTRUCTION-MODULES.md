@@ -71,6 +71,9 @@ The detailed India construction requirements are maintained in
 - Initial scaffold lives in `htdocs/esti_dsrsor` with Dolibarr module descriptor
   `modEstiDsrSor`. The first object is `DsrItem`, backed by DSR/SOR master,
   version, and item tables.
+- Import workflow supports XLSX, XLS, ODS, and CSV files with preview validation
+  and duplicate item updates by schedule type, authority, department, year, and
+  item code.
 
 ### Lead And Lift
 

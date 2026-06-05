@@ -132,6 +132,20 @@ class modEstiDsrSor extends DolibarrModules
 			'target' => '',
 			'user' => 2,
 		);
+		$this->menu[$r++] = array(
+			'fk_menu' => 'fk_mainmenu=esti_dsrsor,fk_leftmenu=esti_dsrsor_library',
+			'type' => 'left',
+			'titre' => 'ImportDsrSorItems',
+			'mainmenu' => 'esti_dsrsor',
+			'leftmenu' => 'esti_dsrsor_import',
+			'url' => '/esti_dsrsor/import.php',
+			'langs' => 'esti_dsrsor@esti_dsrsor',
+			'position' => 1102,
+			'enabled' => "isModEnabled('esti_dsrsor')",
+			'perms' => '$user->hasRight("esti_dsrsor", "dsritem", "write")',
+			'target' => '',
+			'user' => 2,
+		);
 	}
 
 	/**
@@ -146,6 +160,8 @@ class modEstiDsrSor extends DolibarrModules
 		if ($result < 0) {
 			return -1;
 		}
+
+		$this->remove($options);
 
 		$sql = array();
 		return $this->_init($sql, $options);

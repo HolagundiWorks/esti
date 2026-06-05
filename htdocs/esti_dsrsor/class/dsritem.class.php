@@ -176,6 +176,48 @@ class DsrItem extends CommonObject
 	}
 
 	/**
+	 * Load object by natural DSR/SOR item key.
+	 *
+	 * @param  string $scheduleType Schedule type
+	 * @param  string $authority    Authority/state
+	 * @param  string $department   Department
+	 * @param  int    $year         Schedule year
+	 * @param  string $itemCode     Item code
+	 * @return int                  <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchByScheduleItem($scheduleType, $authority, $department, $year, $itemCode)
+	{
+		global $conf;
+
+		$sql = "SELECT rowid FROM ".$this->db->prefix().$this->table_element;
+		$sql .= " WHERE entity = ".((int) $conf->entity);
+		$sql .= " AND schedule_type = '".$this->db->escape($scheduleType)."'";
+		if ($authority === '') {
+			$sql .= " AND (authority IS NULL OR authority = '')";
+		} else {
+			$sql .= " AND authority = '".$this->db->escape($authority)."'";
+		}
+		$sql .= " AND department = '".$this->db->escape($department)."'";
+		$sql .= " AND year = ".((int) $year);
+		$sql .= " AND item_code = '".$this->db->escape($itemCode)."'";
+		$sql .= " LIMIT 1";
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return -1;
+		}
+
+		$obj = $this->db->fetch_object($resql);
+		$this->db->free($resql);
+		if (!$obj) {
+			return 0;
+		}
+
+		return $this->fetch((int) $obj->rowid);
+	}
+
+	/**
 	 * Load list of DSR/SOR items.
 	 *
 	 * @param  string $sortorder Sort order

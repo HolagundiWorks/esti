@@ -64,7 +64,7 @@ Initial implementation scaffold: `htdocs/esti_dsrsor`.
 
 ### Features
 
-- Excel import with validation and import preview.
+- Excel/CSV import with validation and import preview.
 - Year-wise item comparison.
 - Search and filter by department, year, chapter, item code, description, unit,
   and effective date.

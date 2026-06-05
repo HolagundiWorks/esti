@@ -123,6 +123,7 @@ if ($resql) {
 $newcardbutton = '';
 if ($user->hasRight('esti_dsrsor', 'dsritem', 'write')) {
 	$newcardbutton = dolGetButtonTitle($langs->trans('NewDsrSorItem'), '', 'fa fa-plus-circle', DOL_URL_ROOT.'/esti_dsrsor/dsritem_card.php?action=create', '', 1);
+	$newcardbutton .= dolGetButtonTitle($langs->trans('ImportDsrSorItems'), '', 'fa fa-upload', DOL_URL_ROOT.'/esti_dsrsor/import.php', '', 1);
 }
 
 llxHeader('', $langs->trans('DsrSorLibrary'), '', '', 0, 0, '', '', '', 'mod-esti-dsrsor page-list');

@@ -12,10 +12,12 @@ NHAI, and MES schedules.
 - Searchable DSR/SOR item library.
 - Automatic master/version creation from schedule type, authority, department,
   and year.
+- XLSX, XLS, ODS, and CSV import with validation preview.
+- Duplicate schedule items update by schedule type, authority, department, year,
+  and item code.
 
 ## Next Scope
 
-- Excel import with validation preview.
 - Year-wise item comparison.
 - Historical rate audit log.
 - BOQ item linking.
