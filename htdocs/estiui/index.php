@@ -44,14 +44,14 @@ $css = array(
 llxHeader('', $title, '', '', 0, 0, $scripts, $css);
 
 $cards = array(
-	array('key' => 'rateAnalysis', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'estimation', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'boq', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'billing', 'label' => $langs->trans('Billing'), 'description' => $langs->trans('BillingDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'labour', 'label' => $langs->trans('LabourTeams'), 'description' => $langs->trans('LabourTeamsDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'stock', 'label' => $langs->trans('Stock'), 'description' => $langs->trans('StockDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'purchase', 'label' => $langs->trans('PurchaseOrders'), 'description' => $langs->trans('PurchaseOrdersDescription'), 'status' => $langs->trans('ReadyForScaffold')),
-	array('key' => 'gst', 'label' => $langs->trans('GST'), 'description' => $langs->trans('GSTDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'rateAnalysis', 'pictogram' => 'chart--bar', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'estimation', 'pictogram' => 'build', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'boq', 'pictogram' => 'document--conversion', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'billing', 'pictogram' => 'invoice', 'label' => $langs->trans('Billing'), 'description' => $langs->trans('BillingDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'labour', 'pictogram' => 'construction-worker', 'label' => $langs->trans('LabourTeams'), 'description' => $langs->trans('LabourTeamsDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'stock', 'pictogram' => 'data--store', 'label' => $langs->trans('Stock'), 'description' => $langs->trans('StockDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'purchase', 'pictogram' => 'shopping--cart', 'label' => $langs->trans('PurchaseOrders'), 'description' => $langs->trans('PurchaseOrdersDescription'), 'status' => $langs->trans('ReadyForScaffold')),
+	array('key' => 'gst', 'pictogram' => 'global--currency', 'label' => $langs->trans('GST'), 'description' => $langs->trans('GSTDescription'), 'status' => $langs->trans('ReadyForScaffold')),
 );
 
 $context = array(

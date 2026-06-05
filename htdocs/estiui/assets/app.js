@@ -13,7 +13,12 @@
 
 		return h('article', { className: 'esti-module-card', 'data-module': card.key },
 			h('div', { className: 'esti-module-card__header' },
-				h('span', { className: 'esti-module-card__marker', 'aria-hidden': 'true' }),
+				h('img', {
+					alt: '',
+					'aria-hidden': 'true',
+					className: 'esti-module-card__pictogram',
+					src: '/includes/carbon/pictograms/svg/' + (card.pictogram || 'build') + '.svg'
+				}),
 				h('span', { className: 'esti-module-card__status' }, card.status)
 			),
 			h('h2', { className: 'esti-module-card__title' }, card.label),

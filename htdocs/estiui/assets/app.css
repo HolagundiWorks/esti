@@ -116,11 +116,11 @@
 	margin-bottom: calc(var(--esti-react-grid-unit) * 2);
 }
 
-.esti-module-card__marker {
-	background: var(--esti-blue-60, #0f62fe);
-	display: inline-block;
-	height: 16px;
-	width: 16px;
+.esti-module-card__pictogram {
+	display: block;
+	height: 48px;
+	object-fit: contain;
+	width: 48px;
 }
 
 .esti-module-card__status {
