@@ -14,7 +14,7 @@
 .esti-react-shell {
 	box-sizing: border-box;
 	color: var(--esti-text-primary, #161616);
-	font-family: "IBM Plex Sans", "IBM Plex Sans Devanagari", "Nirmala UI", "Segoe UI", Arial, sans-serif;
+	font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
 	margin: 0 auto;
 	max-width: var(--esti-react-max-width);
 	padding: calc(var(--esti-react-grid-unit) * 2) var(--esti-react-grid-margin) calc(var(--esti-react-grid-unit) * 4);
