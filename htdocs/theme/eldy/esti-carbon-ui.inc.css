@@ -67,6 +67,7 @@
 	--esti-grid-margin: 24px;
 	--esti-grid-columns: 4;
 	--esti-content-max-width: 1600px;
+	--esti-global-nav-width: 56px;
 	--esti-side-panel-width: 256px;
 	--esti-side-panel-collapsed-width: 56px;
 }
@@ -1685,14 +1686,14 @@ img[src*="/theme/"][src*="error"] {
 
 body:not(.bodylogin) #id-right,
 body:not(.bodylogin) #mainbody {
-	margin-left: var(--esti-side-panel-width);
-	width: calc(100% - var(--esti-side-panel-width));
+	margin-left: calc(var(--esti-global-nav-width) + var(--esti-side-panel-width));
+	width: calc(100% - var(--esti-global-nav-width) - var(--esti-side-panel-width));
 }
 
 body.sidebar-collapse:not(.bodylogin) #id-right,
 body.sidebar-collapse:not(.bodylogin) #mainbody {
-	margin-left: var(--esti-side-panel-collapsed-width);
-	width: calc(100% - var(--esti-side-panel-collapsed-width));
+	margin-left: calc(var(--esti-global-nav-width) + var(--esti-side-panel-collapsed-width));
+	width: calc(100% - var(--esti-global-nav-width) - var(--esti-side-panel-collapsed-width));
 }
 
 .fiche {
@@ -1899,35 +1900,176 @@ button.button,
 	white-space: nowrap;
 }
 
-#id-top,
+#id-top {
+	align-items: stretch;
+	background: var(--esti-gray-100) !important;
+	border-bottom: 0 !important;
+	border-right: 1px solid var(--esti-gray-90);
+	box-shadow: none !important;
+	box-sizing: border-box;
+	display: flex !important;
+	flex-direction: column;
+	height: 100vh !important;
+	left: 0;
+	min-height: 100vh !important;
+	overflow: visible;
+	position: fixed !important;
+	top: 0;
+	width: var(--esti-global-nav-width) !important;
+	z-index: 90;
+}
+
+#id-top .tmenu,
+#id-top ul.tmenu,
 .tmenu,
 .topnav {
+	align-items: stretch;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
 	box-sizing: border-box;
-	height: var(--esti-shell-height);
-	min-height: var(--esti-shell-height);
+	display: flex !important;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 0;
+	height: auto !important;
+	margin: 0 !important;
+	min-height: 0 !important;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 0 !important;
+	width: 100% !important;
 }
 
-.tmenu a,
-.topnav a,
-.login_block a {
-	align-items: center;
+#id-top li.tmenu,
+#id-top li.tmenusel,
+.tmenu li.tmenu,
+.tmenu li.tmenusel {
+	align-items: stretch;
+	background: transparent !important;
 	box-sizing: border-box;
-	display: inline-flex !important;
-	gap: 6px;
-	height: var(--esti-shell-height);
+	display: block !important;
+	height: var(--esti-global-nav-width) !important;
+	margin: 0 !important;
+	min-height: var(--esti-global-nav-width) !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+	position: relative;
+	width: var(--esti-global-nav-width) !important;
+}
+
+#id-top .tmenudiv,
+#id-top div.tmenucenter,
+#id-top div.tmenuleft,
+#id-top .mainmenu,
+#id-top .mainmenuaspan,
+#id-top .tmenuimage,
+#id-top a.tmenu,
+#id-top a.tmenusel,
+#id-top a.tmenudisabled,
+.tmenu a,
+.topnav a {
+	align-items: center;
+	background: transparent !important;
+	border: 0 !important;
+	box-sizing: border-box;
+	color: var(--esti-text-inverse) !important;
+	display: flex !important;
+	height: var(--esti-global-nav-width) !important;
 	justify-content: center;
 	line-height: 1rem;
-	padding: 0 12px !important;
-	vertical-align: top;
+	margin: 0 !important;
+	min-height: var(--esti-global-nav-width) !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+	text-decoration: none !important;
+	width: var(--esti-global-nav-width) !important;
 }
 
-.mainmenuaspan,
-.mainmenuaspan:hover,
-.tmenudisabled {
+#id-top a.tmenusel,
+#id-top li.tmenusel,
+#id-top a.tmenu:hover,
+#id-top li.tmenu:hover,
+#id-top a.tmenu:focus {
+	background: var(--esti-gray-90) !important;
+	color: var(--esti-text-inverse) !important;
+	outline-offset: -2px;
+}
+
+#id-top li.tmenusel::after,
+#id-top li.tmenu:hover::after {
+	background: var(--esti-blue-60);
+	content: "";
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 4px;
+}
+
+#id-top .tmenulabel,
+#id-top .atoploginusername,
+#id-top .aversion,
+#id-top .login_block_elem_name,
+#id-top .hideonsmartphone {
+	clip: rect(0 0 0 0);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+#id-top .fas,
+#id-top .far,
+#id-top .fab,
+#id-top .fa,
+#id-top img {
+	flex: 0 0 auto;
+	height: 20px;
+	width: 20px;
+}
+
+div.login_block {
 	align-items: center;
-	display: inline-flex;
-	line-height: 1rem;
-	min-height: 1rem;
+	background: var(--esti-gray-100) !important;
+	border: 0 !important;
+	border-top: 1px solid var(--esti-gray-90) !important;
+	box-shadow: none !important;
+	box-sizing: border-box;
+	display: flex !important;
+	flex: 0 0 auto;
+	flex-direction: column;
+	gap: 0;
+	inset: auto auto 0 0;
+	margin: 0 !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	position: fixed !important;
+	width: var(--esti-global-nav-width) !important;
+	z-index: 95;
+}
+
+div.login_block .login_block_elem,
+div.login_block a,
+div.login_block span.atoplogin {
+	align-items: center;
+	box-sizing: border-box;
+	color: var(--esti-text-inverse) !important;
+	display: flex !important;
+	height: var(--esti-global-nav-width) !important;
+	justify-content: center;
+	margin: 0 !important;
+	min-height: var(--esti-global-nav-width) !important;
+	padding: 0 !important;
+	width: var(--esti-global-nav-width) !important;
+}
+
+div.login_block a:hover,
+div.login_block a:focus,
+div.login_block .login_block_elem:hover {
+	background: var(--esti-gray-90) !important;
+	text-decoration: none !important;
 }
 
 #id-left {
@@ -1942,12 +2084,13 @@ body:not(.bodylogin) .side-nav-vert {
 	border-right: 1px solid var(--esti-border-subtle) !important;
 	box-shadow: none !important;
 	box-sizing: border-box;
-	height: calc(100vh - var(--esti-shell-height));
-	left: 0;
+	height: 100vh;
+	left: var(--esti-global-nav-width);
 	overflow-x: hidden;
 	overflow-y: auto;
 	position: fixed !important;
-	top: var(--esti-shell-height);
+	resize: horizontal;
+	top: 0;
 	width: var(--esti-side-panel-width) !important;
 	z-index: 30;
 }
@@ -1961,7 +2104,7 @@ body.sidebar-collapse:not(.bodylogin) .side-nav-vert {
 body:not(.bodylogin) .side-nav,
 body:not(.bodylogin) .side-nav-vert {
 	min-width: var(--esti-side-panel-width) !important;
-	max-width: var(--esti-side-panel-width) !important;
+	max-width: min(360px, calc(100vw - var(--esti-global-nav-width) - 320px)) !important;
 }
 
 body.sidebar-collapse:not(.bodylogin) .side-nav,
@@ -2144,17 +2287,23 @@ a.vmenu.vmenusel,
 	body:not(.bodylogin) #mainbody,
 	body.sidebar-collapse:not(.bodylogin) #id-right,
 	body.sidebar-collapse:not(.bodylogin) #mainbody {
-		margin-left: 0;
-		width: 100%;
+		margin-left: var(--esti-global-nav-width);
+		width: calc(100% - var(--esti-global-nav-width));
+	}
+
+	#id-top {
+		width: var(--esti-global-nav-width) !important;
 	}
 
 	body:not(.bodylogin) #id-left,
 	body:not(.bodylogin) .side-nav,
 	body:not(.bodylogin) .side-nav-vert {
 		height: auto;
+		left: auto;
 		max-width: none !important;
 		min-width: 0 !important;
 		position: static !important;
+		resize: none;
 		top: auto;
 		width: 100% !important;
 	}
