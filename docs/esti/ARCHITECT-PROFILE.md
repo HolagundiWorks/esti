@@ -31,7 +31,7 @@ technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
 ## Project Phases
 
 Standard HCW phase sequence (editable per project), stored in `llx_esti_phase`
-linked to `esti_projectsite` projects. Each phase carries status, planned/actual
+linked to `esti_projectoffice` projects. Each phase carries status, planned/actual
 dates, a billing percentage, and a linked invoice.
 
 | Code | Phase | Typical billing % |

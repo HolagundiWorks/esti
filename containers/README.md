@@ -1,6 +1,6 @@
 # ESTI Podman Runtime
 
-This directory contains the development runtime for ESTI ERP.
+This directory contains the development runtime for the ESTI Architect Platform.
 
 ## Start
 
@@ -65,7 +65,7 @@ esti-db-data    -> /var/lib/mysql
 ## Apply ESTI Defaults
 
 After the web installer finishes and the administrator account is created, apply
-the ESTI India/construction baseline:
+the ESTI India architect-office baseline:
 
 ```powershell
 .\containers\apply-esti-defaults.ps1

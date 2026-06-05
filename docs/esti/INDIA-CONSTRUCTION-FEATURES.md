@@ -35,7 +35,7 @@ comparison reports.
 
 ## Tax And Statutory Handling
 
-ESTI construction workflows must support:
+Supporting construction/costing workflows may need:
 
 - GST, including CGST, SGST, IGST, cess, and HSN/SAC classification.
 - Labour cess.

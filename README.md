@@ -1,33 +1,50 @@
-# ESTI ERP
+# ESTI Architect Platform
 
-ESTI ERP is an Indian construction ERP fork based on Dolibarr ERP & CRM.
+ESTI is an architecture office management platform for Indian freelance
+architects and small architecture practices, developed by **Holagundi Consulting
+Works (HCW)**.
 
-The project keeps Dolibarr's modular PHP ERP foundation and focuses the product
-for contractors, builders, quantity surveyors, civil engineers, purchase teams,
-site stores, and billing teams working in the Indian construction industry.
+ESTI is a modified fork of Dolibarr ERP & CRM. Dolibarr is retained as the
+GPL-licensed backend foundation and compatibility layer; the product direction
+is an architect-first Carbon React application for managing clients, projects,
+phases, fee proposals, drawings, permits, invoices, consultants, and office
+health.
 
-## Planned Construction Focus
+## Product Focus
 
-- Rate analysis for material, labour, machinery, overheads, and margin.
-- Estimation and costing for construction projects.
-- BOQ preparation, revision, approval, and comparison.
-- RA bills, final bills, advances, retention, deductions, and GST-ready billing.
-- Labour team, subcontractor, attendance, and wage management.
-- Site stock, material issue, return, transfer, wastage, and reconciliation.
-- Purchase requisitions, supplier comparison, purchase orders, GRN, and supplier
-  bills.
-- Project cost control by site, work package, BOQ item, and contractor.
+- Client enquiries, contacts, meetings, decisions, and approval history.
+- Architecture projects with phase plans, jurisdiction, status, dates, and
+  billing percentages.
+- COA-aware fee proposals with scope, deliverables, exclusions, revisions, and
+  client approval.
+- Phase-linked invoicing with GST, SAC `998311`, TDS u/s 194J, receipts, and
+  accountant-friendly exports.
+- Permit and compliance tracking for BPAS, RERA, Fire NOC, Aviation NOC,
+  environmental clearance, OC, CC, and local authorities.
+- Drawing and document vault with drawing register, revision control, issue
+  sets, watermarks, and approval logs.
+- Consultant and collaborator tracking for structural, MEP, interiors,
+  landscape, fire, survey, legal, and other project teams.
+- Client portal for read-only project, drawing, invoice, and approval access.
+- DXF/PDF drawing viewer and takeoff tools that support BOQ or fee proposal
+  quantities.
+
+Construction estimating features such as DSR/SOR and BOQ are retained as
+supporting reference/costing engines for architecture workflows. Contractor
+operations such as labour teams, site stock, warehouse workflows, purchase
+orders, GRN, RA billing, and measurement book certification are not first-release
+goals.
 
 ## India-First Direction
 
-ESTI is intended to default to:
+ESTI defaults to:
 
 - India as the operating country.
 - INR as the operating currency.
 - Asia/Kolkata as the timezone.
-- Indian language support, starting with existing Indian locales in the fork.
-- GST-oriented tax workflows instead of global VAT-first setup.
-- IBM blue inspired light/dark UI direction.
+- Indian language support, starting with maintained Indian locales.
+- GST-oriented tax workflows instead of VAT-first setup.
+- IBM Carbon Design System, IBM Plex Sans, Carbon icons, and light/dark modes.
 
 ## Runtime
 
@@ -57,14 +74,17 @@ http://localhost:8090/install/
 
 ESTI planning documents are in [docs/esti](docs/esti):
 
-- [License and Notices](docs/esti/LICENSE-NOTICE.md)
+- [Architecture Office Platform](docs/esti/AEC-PLATFORM.md)
+- [Architect Practice Profile](docs/esti/ARCHITECT-PROFILE.md)
 - [Product Roadmap](docs/esti/ROADMAP.md)
+- [SPA Architecture](docs/esti/SPA-ARCHITECTURE.md)
 - [Migration Roadmap](docs/esti/MIGRATION-ROADMAP.md)
-- [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
-- [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
-- [Construction Modules](docs/esti/CONSTRUCTION-MODULES.md)
 - [Backend Profile](docs/esti/BACKEND-PROFILE.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
+- [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
+- [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
+- [License and Notices](docs/esti/LICENSE-NOTICE.md)
+- [Construction Reference Modules](docs/esti/CONSTRUCTION-MODULES.md)
 
 ## Repository Links
 
@@ -75,13 +95,12 @@ documentation:
 https://github.com/HolagundiWorks/esti
 ```
 
-Dolibarr references are kept only where they are required for license,
-copyright, trademark attribution, upstream compatibility, or security patch
-review.
+Dolibarr references are kept only where required for license, copyright,
+trademark attribution, upstream compatibility, or security patch review.
 
 ## License
 
-ESTI ERP is a modified fork of Dolibarr ERP & CRM.
+ESTI is a modified fork of Dolibarr ERP & CRM.
 
 Dolibarr is distributed under GPL-3.0-or-later. ESTI keeps the same license for
 Dolibarr-derived code. Redistributed versions must preserve upstream notices,

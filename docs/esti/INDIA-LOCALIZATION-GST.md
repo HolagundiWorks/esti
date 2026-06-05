@@ -1,9 +1,10 @@
-# India Localization and GST Direction
+# India Localization, GST, And TDS Direction
 
 ## Localization Scope
 
-ESTI ERP is intended as India-focused generic construction software. The default
-distribution should support Indian languages only.
+ESTI is an India-focused architecture office management platform. The default
+distribution should support Indian practice workflows, Indian tax vocabulary,
+and Indian language packs that are actively maintained.
 
 Initial language set:
 
@@ -11,6 +12,7 @@ Initial language set:
 - `hi_IN`
 - `bn_IN`
 - `kn_IN`
+- `ta_IN`
 
 Additional Indian languages can be added after translation ownership is clear.
 Do not delete upstream language folders early in the fork. First disable
@@ -24,32 +26,38 @@ only after upgrade and installer impact is tested.
 - Timezone: Asia/Kolkata.
 - Date and number formats: Indian business defaults.
 - Fiscal year: configurable, with Indian defaults.
-- Measurement: metric units, construction-friendly unit dictionaries.
+- Measurement: metric units, with optional architecture/construction unit
+  dictionaries for BOQ and drawing takeoff support.
 
-## GST Requirements
+## Architecture Service Tax Requirements
 
 ESTI should support:
 
-- GSTIN validation and storage for company, customers, suppliers, and sites.
-- HSN/SAC codes on products, services, BOQ items, and invoice lines.
-- CGST, SGST, IGST, cess, RCM, TDS, and TCS where applicable.
+- GSTIN validation and storage for company, clients, consultants, and suppliers.
+- SAC codes on fee proposal lines, invoice lines, and consultant services.
+- Default architectural services SAC `998311`.
+- CGST, SGST, IGST, cess where applicable, RCM where applicable, and TDS/TCS
+  tracking where applicable.
 - Place-of-supply logic for intra-state and inter-state transactions.
-- GST-ready invoice, credit note, debit note, supplier bill, and purchase order
+- GST-ready invoice, credit note, debit note, receipt, and consultant/supplier
   documents.
-- GST reporting exports for review and future filing integrations.
-- E-invoice and e-way-bill integration readiness through extension modules.
+- TDS u/s 194J tracking on professional fee invoices, including pending
+  certificate/reconciliation state.
+- GST and TDS reporting exports for accountant review and future filing
+  integrations.
 
-## Construction Tax And Deduction Requirements
+## Supporting Costing And Construction References
 
-Construction billing and estimation must also support:
+Architecture workflows may still need costing support for BOQs, tender
+documents, PMC/turnkey work, or drawing takeoff. For those supporting workflows,
+ESTI may also store:
 
-- Labour cess on eligible work values.
-- Royalty deductions or cost components for materials where applicable.
-- TDS on contractor and subcontractor payments.
-- Advance recovery, retention, statutory deductions, and other recoveries in RA
-  and final bills.
-- Clear separation between taxable value, GST, cess, deductions, recoveries, and
-  final payable amount.
+- HSN/SAC codes on BOQ/support line items.
+- Labour cess, royalty, and statutory deductions as optional cost components.
+- Clear separation between taxable value, GST, deductions, recoveries, and final
+  payable amounts where a contractor-style support document is produced.
+
+These are supporting capabilities, not the primary first-release product scope.
 
 ## GST and Multi-Currency Policy
 
@@ -71,13 +79,17 @@ present the system as GST.
 - Avoid deleting upstream VAT or currency code until an upgrade-safe removal plan
   is approved.
 
-## Construction-Specific Localization
+## Architecture Office Localization
 
-- Site address and project location should support state, district, city, PIN,
-  and optional GPS coordinates.
-- Labour workflows should support daily wage, piece-rate, subcontractor, muster,
-  and attendance concepts.
-- Estimation templates should support common Indian construction units such as
-  cum, sqm, sqft, rmt, kg, tonne, bag, brass, nos, day, and hour.
-- BOQ documents should support item number, description, unit, quantity, rate,
-  amount, GST classification, and revision history.
+- Project addresses should support state, district, city, PIN, and optional GPS
+  coordinates.
+- Jurisdiction should support authorities such as BBMP, BDA, Panchayat, HMDA,
+  CMDA, and other local bodies.
+- Permit workflows should support authority, application number, submitted date,
+  due date, approval date, document checklist, and portal link.
+- Fee proposal templates should support scope, deliverables, exclusions,
+  revision number, validity, payment schedule, GST, and TDS notes.
+- Drawing documents should support drawing number, discipline, revision, issue
+  purpose, watermark, issue date, recipient, and approval state.
+- BOQ/takeoff support should include item number, description, unit, quantity,
+  rate, amount, GST classification, and revision history.

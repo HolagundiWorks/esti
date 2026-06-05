@@ -98,8 +98,8 @@ ESTI is moving to an **API-only Dolibarr backend + standalone Carbon React SPA**
 - A Carbon Design System React SPA is the only product UI.
 - A Node.js viewer service renders DXF to SVG and supports PDF drawing review.
 - All services run as one Podman pod in development.
-- Existing ESTI construction modules remain backend data services where useful,
-  but new product work prioritizes architect-office modules.
+- Existing ESTI costing/reference modules remain backend data services where
+  useful, but new product work prioritizes architect-office modules.
 
 ## Naming Conventions
 

@@ -20,10 +20,10 @@ REST API (`/api/index.php/`) plus ESTI custom REST endpoints registered by the
 
 **Rationale.**
 - Dolibarr already has solid models for `societe` (client/supplier), `facture`
-  (invoice), `projet`, and `user`. The ESTI construction modules add `esti_*`
-  models on top. Re-implementing these from scratch is high-risk.
+  (invoice), `projet`, and `user`. The ESTI architect-office modules add
+  `esti_*` models on top. Re-implementing these from scratch is high-risk.
 - Stripping the UI removes PHP/template debt and makes the Carbon React SPA the
-  single front end for both profiles.
+  single front end for the ESTI Architect Platform.
 
 **Consequences.**
 - The existing `esti_*` modules keep their SQL tables and CommonObject classes

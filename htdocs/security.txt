@@ -1,4 +1,4 @@
-# Security policy of ESTI ERP
+# Security policy of ESTI Architect Platform
 Contact: https://github.com/HolagundiWorks/esti/security/advisories/new
 Preferred-Languages: en
 Policy: https://github.com/HolagundiWorks/esti/security/policy

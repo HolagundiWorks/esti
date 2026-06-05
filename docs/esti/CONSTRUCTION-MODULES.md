@@ -109,7 +109,7 @@ The detailed India construction requirements are maintained in
 
 - Site-wise stock, material issue, return, transfer, wastage, and reconciliation.
 - Link material consumption to BOQ and work package.
-- Implement this as an ESTI construction site-store module. The generic upstream
+- If this is ever revived, implement it as an ESTI support module. The generic upstream
   stock/warehouse module descriptor is removed from ESTI discovery and must not
   be re-enabled as the primary workflow.
 - Generic product, service, barcode, and variant module descriptors are also
@@ -121,7 +121,7 @@ The detailed India construction requirements are maintained in
 - Project/site documents, drawings, revisions, approvals, transmittals, and
   contractor submissions.
 - BOQ, estimate, purchase, billing, and GST document links.
-- Implement this as an ESTI construction document-control module. The generic
+- If this is ever revived, implement it as an ESTI support module. The generic
   upstream ECM descriptor is removed from ESTI discovery.
 
 ### Purchase Orders

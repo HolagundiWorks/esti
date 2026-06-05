@@ -11,16 +11,18 @@
 - Dolibarr links retained only for legal attribution, upstream merge research,
   and compatibility references.
 - Remote module marketplace and upstream module feeds disabled.
-- Non-construction module descriptors removed from backend discovery; legacy
+- Non-architect-office module descriptors removed from backend discovery; legacy
   routes return `410 Gone`.
 - Podman development runtime in place (`containers/`).
 
 ## Phase 1: Product Identity — DONE
 
-- Visible product name replaced with `ESTI ERP` through theme and configuration.
+- Visible product name replaced with `ESTI Architect Platform` / `ESTI` through
+  theme and configuration.
 - Logos, favicon, login branding, document headers, and email footers updated.
 - Upstream legal attribution kept in About, docs, and distribution metadata.
-- ESTI default configuration profile for Indian construction users in place.
+- ESTI default configuration profile for Indian architecture-office users in
+  place.
 
 ## Phase 2: India-First Baseline — DONE
 

@@ -9,7 +9,7 @@ listed in `COPYRIGHT` and in dependency-specific license files.
 
 ## ESTI Fork License
 
-ESTI ERP should be distributed under:
+ESTI should be distributed under:
 
 ```text
 GNU General Public License v3.0 or later
@@ -38,7 +38,7 @@ policy. ESTI should:
 
 - Use `ESTI Architect Platform` or `ESTI` as the visible product name.
 - Avoid implying that ESTI is the official Dolibarr distribution.
-- Keep an attribution such as `ESTI ERP is a modified fork of Dolibarr ERP & CRM`.
+- Keep an attribution such as `ESTI is a modified fork of Dolibarr ERP & CRM`.
 - Replace Dolibarr visual branding in the user interface, documentation, and
   container metadata after completing a trademark review.
 

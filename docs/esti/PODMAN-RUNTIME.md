@@ -2,18 +2,21 @@
 
 ## Objective
 
-Provide a reproducible local runtime for ESTI ERP using Podman. The first target
-is development and testing. Production images should be created only after
-license notices, source availability, backup, and upgrade procedures are ready.
+Provide a reproducible local runtime for the ESTI Architect Platform using
+Podman. The first target is development and testing. Production images should be
+created only after license notices, source availability, backup, and upgrade
+procedures are ready.
 
 ## Planned Services
 
-- `esti-app`: PHP and web server serving `htdocs`.
+- `esti-app`: PHP and web server serving `htdocs` for the API/backend service.
 - `esti-db`: MariaDB database.
 - `esti-documents`: persistent Dolibarr/ESTI document storage volume.
 - `esti-conf`: persistent Dolibarr/ESTI generated configuration volume.
 - `esti-db-data`: persistent database volume.
 - Optional `esti-adminer`: database inspection tool for local development only.
+- Future `esti-frontend`: Carbon React development server.
+- Future `esti-viewer`: DXF/PDF viewer and measurement service.
 
 ## Suggested Defaults
 

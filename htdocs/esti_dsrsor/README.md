@@ -1,8 +1,9 @@
 # ESTI DSR/SOR Module
 
-`esti_dsrsor` is the first ESTI construction module. It stores Indian
-construction schedule libraries such as CPWD DSR, State PWD SOR, Irrigation,
-NHAI, and MES schedules.
+`esti_dsrsor` is a supporting ESTI reference/costing module for the ESTI
+Architect Platform. It stores Indian public-work and construction schedule
+libraries such as CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES schedules
+for BOQ, tender, and drawing takeoff support.
 
 ## Current Scope
 

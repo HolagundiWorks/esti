@@ -22,7 +22,8 @@ repository maintainers before publishing details.
 ## Scope
 
 Reports should target the ESTI web application, REST/SOAP APIs, public pages,
-installer/runtime profile, and ESTI-specific construction/GST modules.
+installer/runtime profile, and ESTI-specific architect-office, GST/TDS, drawing,
+permit, fee proposal, and supporting costing modules.
 
 For local testing, use the Podman development runtime documented in:
 
