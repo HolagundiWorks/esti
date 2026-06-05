@@ -71,7 +71,7 @@ class modMargin extends DolibarrModules
 
 		// Dependencies
 		$this->hidden = false; // A condition to hide module
-		$this->depends = array("modProduct"); // ESTI removed proposal CRM; keep margins available for product/costing workflows.
+		$this->depends = array(); // ESTI removed generic product management from module discovery.
 		$this->requiredby = array(); // List of module ids to disable if this one is disabled
 		$this->conflictwith = array(); // List of module class names as string this module is in conflict with
 		$this->phpmin = array(7, 0); // Minimum version of PHP required by module
