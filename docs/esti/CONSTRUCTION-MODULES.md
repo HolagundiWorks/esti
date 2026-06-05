@@ -68,6 +68,9 @@ The detailed India construction requirements are maintained in
   specification reference.
 - Excel import, search/filter, year-wise comparison, state-specific rates, and
   historical tracking.
+- Initial scaffold lives in `htdocs/esti_dsrsor` with Dolibarr module descriptor
+  `modEstiDsrSor`. The first object is `DsrItem`, backed by DSR/SOR master,
+  version, and item tables.
 
 ### Lead And Lift
 

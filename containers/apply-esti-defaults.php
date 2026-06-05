@@ -62,6 +62,31 @@ function estiDeleteConst($name)
 	}
 }
 
+function estiEnableModule($className, $classFile, $constName)
+{
+	global $db, $errors;
+
+	if (!is_file(DOL_DOCUMENT_ROOT.$classFile)) {
+		$errors[] = $className.' descriptor missing';
+		return;
+	}
+
+	require_once DOL_DOCUMENT_ROOT.$classFile;
+	if (!class_exists($className)) {
+		$errors[] = $className.' class missing';
+		return;
+	}
+
+	$module = new $className($db);
+	$result = $module->init('');
+	if ($result < 0) {
+		$errors[] = $className.' activation';
+		return;
+	}
+
+	estiSetConst($constName, '1', 'Enabled by ESTI construction ERP default profile');
+}
+
 $constTable = MAIN_DB_PREFIX.'const';
 $resql = $db->query('SELECT COUNT(*) as nb FROM '.$constTable);
 if (!$resql) {
@@ -255,6 +280,8 @@ if (!empty($escapedRemovedBoxFiles)) {
 	}
 }
 
+estiEnableModule('modEstiDsrSor', '/core/modules/modEstiDsrSor.class.php', 'MAIN_MODULE_ESTIDSRSOR');
+
 $sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX."c_country WHERE code = 'IN' LIMIT 1";
 $resql = $db->query($sql);
 if ($resql) {
@@ -274,4 +301,5 @@ print "Default language: en_IN\n";
 print "Allowed languages: en_IN, hi_IN, bn_IN, kn_IN, ta_IN\n";
 print "Currency/timezone: INR / Asia/Kolkata\n";
 print "Removed backend modules: ".implode(', ', $removedModules)."\n";
+print "Enabled ESTI modules: MAIN_MODULE_ESTIDSRSOR\n";
 print "UI: ESTI Carbon product UI, locked to light/dark IBM blue defaults\n";

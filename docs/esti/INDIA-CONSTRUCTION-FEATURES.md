@@ -44,6 +44,8 @@ GST terminology.
 
 ## DSR/SOR Module
 
+Initial implementation scaffold: `htdocs/esti_dsrsor`.
+
 ### Fields
 
 - Department.

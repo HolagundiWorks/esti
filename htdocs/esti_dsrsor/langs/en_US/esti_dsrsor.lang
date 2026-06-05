@@ -1,0 +1,44 @@
+# ESTI DSR/SOR translations
+
+ModuleEstiDsrSorName=ESTI DSR/SOR
+ModuleEstiDsrSorDesc=Indian construction DSR/SOR schedule library for ESTI ERP
+EstiDsrSorArea=ESTI DSR/SOR
+EstiDsrSorSetup=ESTI DSR/SOR setup
+DsrSorLibrary=DSR/SOR Library
+DsrSorDashboardIntro=Manage CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES schedule items with year-wise rates.
+DsrSorNextWorkflows=Next workflows: Excel import, year-wise comparison, historical rates, BOQ linking, and rate analysis templates.
+OpenDsrSorLibrary=Open library
+NextWorkflows=Next workflows
+
+DsrSorItem=DSR/SOR item
+NewDsrSorItem=New DSR/SOR item
+EditDsrSorItem=Edit DSR/SOR item
+DsrSorMaster=DSR/SOR master
+DsrSorVersion=DSR/SOR version
+ScheduleType=Schedule type
+DefaultScheduleType=Default schedule type
+Department=Department
+Authority=Authority / State
+Year=Year
+Chapter=Chapter
+ItemCode=Item code
+Description=Description
+Unit=Unit
+BaseRate=Base rate
+LeadIncluded=Lead included
+LiftIncluded=Lift included
+GstInclusion=GST inclusion
+EffectiveDate=Effective date
+SpecificationReference=Specification reference
+ImportId=Import ID
+
+CpwdDsr=CPWD DSR
+StatePwdSor=State PWD SOR
+IrrigationSchedule=Irrigation schedule
+NhaiSchedule=NHAI schedule
+MesSchedule=MES schedule
+Draft=Draft
+Active=Active
+Archived=Archived
+
+ErrorMissingDsrSorScheduleFields=Department, schedule type, and year are required.

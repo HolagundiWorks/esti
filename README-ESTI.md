@@ -58,6 +58,13 @@ The ESTI planning documents are in [docs/esti](docs/esti):
 - [Backend Profile](docs/esti/BACKEND-PROFILE.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
 
+## First ESTI Module
+
+The first construction module scaffold is `htdocs/esti_dsrsor`, exposed as
+`ESTI DSR/SOR`. It creates DSR/SOR master, version, and item tables and provides
+a searchable schedule-item library for CPWD DSR, State PWD SOR, Irrigation,
+NHAI, and MES schedules.
+
 ## Repository Links
 
 Use `https://github.com/HolagundiWorks/esti` for ESTI source, issues, updates,
