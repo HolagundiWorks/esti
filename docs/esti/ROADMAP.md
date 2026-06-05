@@ -25,9 +25,11 @@ https://github.com/HolagundiWorks/esti
 Current status: the ESTI backend profile removes the module descriptors for CRM,
 proposals, orders, stock/warehouse, POS, ecommerce, subscriptions, donations,
 members, HR, recruitment, expenses, MRP, helpdesk, email campaigns, surveys,
-shipping, events, interventions, and knowledge base. Legacy routes now return
-`410 Gone`; retained source directories are compatibility boundaries until hard
-includes, menus, permissions, and upgrade paths are audited.
+shipping, events, interventions, knowledge base, generic product management,
+generic services, product variants, projects/collaboration, ECM, barcodes,
+multi-currency, and subtotals. Legacy routes now return `410 Gone`; retained
+source directories are compatibility boundaries until hard includes, menus,
+permissions, and upgrade paths are audited.
 
 ## 1. India Operating Baseline
 
@@ -43,6 +45,8 @@ includes, menus, permissions, and upgrade paths are audited.
 
 - Build `esti_rateanalysis` for material, labour, machinery, overhead, wastage,
   contractor margin, and GST-aware rate buildup.
+- Build `esti_projectsite` for India construction project/site metadata, work
+  packages, cost centres, locations, and operational ownership.
 - Build `esti_estimation` for project estimates, revisions, approvals, and
   quantity takeoff.
 - Build `esti_boq` for BOQ packages, work items, schedules, comparison, and

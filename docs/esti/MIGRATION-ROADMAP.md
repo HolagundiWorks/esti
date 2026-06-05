@@ -48,7 +48,8 @@
 - Model GST rates, HSN/SAC codes, place of supply, CGST, SGST, IGST, cess, RCM,
   TDS/TCS, and e-invoice/e-way-bill integration readiness.
 - Disable unsupported VAT and multi-currency modules for the ESTI default
-  profile before considering code removal.
+  profile. The multi-currency descriptor is removed from ESTI module discovery;
+  retained accounting storage must still be audited before deeper code removal.
 - Preserve upstream accounting compatibility until GST workflows are fully
   tested with invoices, supplier bills, credit notes, and exports.
 
@@ -58,10 +59,13 @@
   `docs/esti/BACKEND-PROFILE.md`.
 - Remove stale menus, permissions, search surfaces, dictionaries, and templates
   for modules removed from ESTI discovery.
+- Keep generic products, services, projects, ECM, barcodes, multi-currency, and
+  subtotals unavailable in module administration. Replace them with ESTI
+  construction modules instead of re-enabling upstream descriptors.
 - Build ESTI construction modules under `htdocs/esti_*` or a consistent module
   namespace, following Dolibarr modulebuilder structure.
-- Start with estimation, BOQ, and rate analysis because they define the core
-  construction data model.
+- Start with project/site metadata, estimation, BOQ, and rate analysis because
+  they define the core construction data model.
 - Add billing, labour, site-store, and purchase workflows after BOQ links are
   stable.
 - Use Dolibarr hooks and CommonObject patterns before changing core classes.

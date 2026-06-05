@@ -18,6 +18,21 @@ ESTI will prioritize construction workflows:
 - Purchase requisitions, supplier comparison, purchase orders, GRN, and supplier bills.
 - Project cost control by site, work package, BOQ item, and contractor.
 
+## Backend Profile
+
+ESTI is being stripped down from a general ERP profile into an India-first
+construction profile. The current backend removes module discovery for broad
+CRM, sales orders, POS, ecommerce, HR, recruitment, expenses, MRP, helpdesk,
+surveys, email campaigns, events, interventions, knowledge base, generic product
+management, generic services, projects/collaboration, ECM, barcodes,
+multi-currency, and subtotals.
+
+Legacy routes for removed modules return `410 Gone`, and
+`containers/apply-esti-defaults.php` keeps the related module constants disabled
+for new and existing development databases. Some upstream source directories may
+remain as compatibility boundaries until hard includes, upgrade assumptions,
+menus, permissions, APIs, and templates are audited.
+
 ## Forking Principles
 
 - Preserve Dolibarr compatibility where possible so upstream updates can be merged.

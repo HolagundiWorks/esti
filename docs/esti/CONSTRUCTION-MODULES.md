@@ -19,6 +19,15 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 
 ## Core Modules
 
+### Project and Site Metadata
+
+- Construction project, site, package, location, and cost-centre records.
+- Client, consultant, architect, subcontractor, and internal owner links.
+- Work package status, planned dates, actual dates, and billing milestones.
+- Implement this as an ESTI module. The generic upstream project/collaboration
+  descriptor is removed from ESTI discovery and must not be re-enabled as the
+  primary workflow.
+
 ### Rate Analysis
 
 - Material, labour, machinery, subcontract, overhead, and profit components.
@@ -60,6 +69,17 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Implement this as an ESTI construction site-store module. The generic upstream
   stock/warehouse module descriptor is removed from ESTI discovery and must not
   be re-enabled as the primary workflow.
+- Generic product, service, barcode, and variant module descriptors are also
+  removed. Site-store item masters should be construction material/service
+  masters with HSN/SAC, unit, GST, supplier-rate, and BOQ-consumption context.
+
+### Document Control
+
+- Project/site documents, drawings, revisions, approvals, transmittals, and
+  contractor submissions.
+- BOQ, estimate, purchase, billing, and GST document links.
+- Implement this as an ESTI construction document-control module. The generic
+  upstream ECM descriptor is removed from ESTI discovery.
 
 ### Purchase Orders
 

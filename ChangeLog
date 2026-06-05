@@ -1,4 +1,25 @@
 --------------------------------------------------------------
+ESTI ChangeLog
+--------------------------------------------------------------
+
+***** ChangeLog for ESTI fork *****
+
+For users:
+----------
+FIX: #0 Remove module discovery for generic product management, services,
+projects/collaboration, ECM, barcodes, multi-currency, and subtotals from the
+ESTI construction backend profile.
+FIX: #0 Return 410 Gone for removed product, project, ECM, resource, variant,
+barcode, multi-currency, and subtotals routes.
+
+For developers:
+---------------
+FIX: #0 Disable removed module constants and related dashboard boxes through
+containers/apply-esti-defaults.php for existing development databases.
+FIX: #0 Document the replacement direction for ESTI project/site, document
+control, site-store, BOQ, billing, purchase, labour, and GST modules.
+
+--------------------------------------------------------------
 English Dolibarr ChangeLog
 --------------------------------------------------------------
 
