@@ -31,7 +31,6 @@ require_once DOL_DOCUMENT_ROOT.'/api/class/api.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/cstate.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/cregion.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/ccountry.class.php';
-require_once DOL_DOCUMENT_ROOT.'/hrm/class/establishment.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 
@@ -2785,6 +2784,11 @@ class Setup extends DolibarrApi
 	 */
 	public function getEtablishmentByID($id)
 	{
+		if (!is_readable(DOL_DOCUMENT_ROOT.'/hrm/class/establishment.class.php')) {
+			throw new RestException(404, 'Establishment module removed from ESTI');
+		}
+		require_once DOL_DOCUMENT_ROOT.'/hrm/class/establishment.class.php';
+
 		$establishment = new Establishment($this->db);
 
 		$result = $establishment->fetch($id);

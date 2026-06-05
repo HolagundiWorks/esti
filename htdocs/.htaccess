@@ -1,0 +1,6 @@
+# ESTI backend profile pruning.
+# These legacy Dolibarr modules are not part of ESTI construction ERP.
+RedirectMatch 410 ^/(adherents|bom|commande|contrat|delivery|don|eventorganization|expedition|expensereport|fichinter|holiday|hrm|knowledgemanagement|mailmanspip|mrp|opensurvey|recruitment|salaries|takepos|ticket|website|workstation)(/|$)
+RedirectMatch 410 ^/comm/(mailing|propal|prospect)(/|$)
+RedirectMatch 410 ^/compta/deplacement(/|$)
+RedirectMatch 410 ^/product/(inventory|stock)(/|$)

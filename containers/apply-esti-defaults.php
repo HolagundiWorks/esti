@@ -52,6 +52,16 @@ function estiSetConst($name, $value, $note = '')
 	}
 }
 
+function estiDeleteConst($name)
+{
+	global $db, $entity, $errors;
+
+	$result = dolibarr_del_const($db, $name, $entity);
+	if ($result < 0) {
+		$errors[] = $name;
+	}
+}
+
 $constTable = MAIN_DB_PREFIX.'const';
 $resql = $db->query('SELECT COUNT(*) as nb FROM '.$constTable);
 if (!$resql) {
@@ -96,6 +106,79 @@ estiSetConst('THEME_ELDY_BTNACTION', '15,98,254', 'ESTI primary buttons');
 estiSetConst('THEME_ELDY_TEXTBTNACTION', '255,255,255', 'ESTI primary button text');
 estiSetConst('MAIN_IHM_PARAMS_REV', (string) time(), 'Refresh ESTI UI assets');
 
+$removedModules = array(
+	'MAIN_MODULE_ADHERENT',
+	'MAIN_MODULE_BOM',
+	'MAIN_MODULE_COMMANDE',
+	'MAIN_MODULE_MEMBER',
+	'MAIN_MODULE_ORDER',
+	'MAIN_MODULE_CONTRAT',
+	'MAIN_MODULE_DEPLACEMENT',
+	'MAIN_MODULE_DON',
+	'MAIN_MODULE_EVENTORGANIZATION',
+	'MAIN_MODULE_EXPEDITION',
+	'MAIN_MODULE_EXPENSEREPORT',
+	'MAIN_MODULE_FICHEINTER',
+	'MAIN_MODULE_HOLIDAY',
+	'MAIN_MODULE_HRM',
+	'MAIN_MODULE_KNOWLEDGEMANAGEMENT',
+	'MAIN_MODULE_MAILING',
+	'MAIN_MODULE_MAILMANSPIP',
+	'MAIN_MODULE_MRP',
+	'MAIN_MODULE_OPENSURVEY',
+	'MAIN_MODULE_PRODUCTBATCH',
+	'MAIN_MODULE_PROPAL',
+	'MAIN_MODULE_PROPALE',
+	'MAIN_MODULE_RECRUITMENT',
+	'MAIN_MODULE_SALARIES',
+	'MAIN_MODULE_STOCK',
+	'MAIN_MODULE_STOCKTRANSFER',
+	'MAIN_MODULE_TAKEPOS',
+	'MAIN_MODULE_TICKET',
+	'MAIN_MODULE_WEBSITE',
+	'MAIN_MODULE_WORKSTATION',
+);
+
+foreach ($removedModules as $removedModuleConst) {
+	estiDeleteConst($removedModuleConst);
+	estiSetConst($removedModuleConst, '0', 'Removed from ESTI construction ERP backend profile');
+}
+
+$removedExternalModules = array(
+	'adherent',
+	'bom',
+	'commande',
+	'contrat',
+	'deplacement',
+	'don',
+	'eventorganization',
+	'expedition',
+	'expensereport',
+	'ficheinter',
+	'holiday',
+	'hrm',
+	'knowledgemanagement',
+	'mailing',
+	'mailmanspip',
+	'mrp',
+	'opensurvey',
+	'productbatch',
+	'propal',
+	'recruitment',
+	'salaries',
+	'stock',
+	'stocktransfer',
+	'takepos',
+	'ticket',
+	'website',
+	'workstation',
+);
+$externalModules = array_filter(array_map('trim', explode(',', getDolGlobalString('MAIN_MODULES_FOR_EXTERNAL', ''))));
+if (!empty($externalModules)) {
+	$externalModules = array_values(array_diff($externalModules, $removedExternalModules));
+	estiSetConst('MAIN_MODULES_FOR_EXTERNAL', implode(',', $externalModules), 'Remove pruned modules from external access list');
+}
+
 $sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX."c_country WHERE code = 'IN' LIMIT 1";
 $resql = $db->query($sql);
 if ($resql) {
@@ -114,4 +197,5 @@ print "ESTI defaults applied for entity ".$entity.".\n";
 print "Default language: en_IN\n";
 print "Allowed languages: en_IN, hi_IN, bn_IN, kn_IN, ta_IN\n";
 print "Currency/timezone: INR / Asia/Kolkata\n";
+print "Removed backend modules: ".implode(', ', $removedModules)."\n";
 print "UI: ESTI Carbon product UI, locked to light/dark IBM blue defaults\n";
