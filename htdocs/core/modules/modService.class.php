@@ -79,8 +79,7 @@ class modService extends DolibarrModules
 
 		// Boxes
 		$this->boxes = array(
-			0 => array('file' => 'box_services_contracts.php', 'enabledbydefaulton' => 'Home'),
-			1 => array('file' => 'box_graph_product_distribution.php', 'enabledbydefaulton' => 'Home')
+			0 => array('file' => 'box_graph_product_distribution.php', 'enabledbydefaulton' => 'Home')
 		);
 
 		// Permissions

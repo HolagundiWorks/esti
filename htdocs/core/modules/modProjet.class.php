@@ -130,10 +130,9 @@ class modProjet extends DolibarrModules
 		// Boxes
 		$this->boxes = array(
 			0 => array('file' => 'box_project.php', 'enabledbydefaulton' => 'Home'),	// open projects
-			1 => array('file' => 'box_project_opportunities.php', 'enabledbydefaulton' => 'Home'),	// open opportunities
-			2 => array('file' => 'box_task.php', 'enabledbydefaulton' => 'Home'),
-			3 => array('file' => 'box_validated_projects.php', 'enabledbydefaulton' => 'Home'),	// task without timespent
-			4 => array('file' => 'box_funnel_of_prospection.php', 'enabledbydefaulton' => 'Home'),
+			1 => array('file' => 'box_task.php', 'enabledbydefaulton' => 'Home'),
+			2 => array('file' => 'box_validated_projects.php', 'enabledbydefaulton' => 'Home'),	// task without timespent
+			3 => array('file' => 'box_funnel_of_prospection.php', 'enabledbydefaulton' => 'Home'),
 		);
 		// Cronjobs
 		$this->cronjobs[] = array(

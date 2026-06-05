@@ -65,7 +65,7 @@ class modFckeditor extends DolibarrModules
 		// Dependencies
 		$this->disabled = (defined('JS_CKEDITOR') && in_array(constant('JS_CKEDITOR'), array('disabled', 'disabled/')));
 		$this->depends = array();
-		$this->requiredby = array('modWebsites');
+		$this->requiredby = array(); // ESTI removed the upstream website/ecommerce module.
 		$this->enabled_bydefault = true; // Will be enabled during install
 
 		// Constants

@@ -125,7 +125,6 @@ class modSociete extends DolibarrModules
 		// Boxes
 		$this->boxes = [
 			['file' => 'box_clients.php', 'enabledbydefaulton' => 'Home'],
-			['file' => 'box_prospect.php', 'enabledbydefaulton' => 'Home'],
 			['file' => 'box_contacts.php', 'enabledbydefaulton' => 'Home'],
 			['file' => 'box_activity.php', 'enabledbydefaulton' => 'Home', 'note' => '(WarningUsingThisBoxSlowDown)'],
 			['file' => 'box_goodcustomers.php', 'enabledbydefaulton' => 'Home', 'note' => '(WarningUsingThisBoxSlowDown)'],

@@ -104,6 +104,7 @@ estiSetConst('THEME_ELDY_TEXTTITLELINK', '15,98,254', 'ESTI title links');
 estiSetConst('THEME_ELDY_TEXTLINK', '15,98,254', 'ESTI links');
 estiSetConst('THEME_ELDY_BTNACTION', '15,98,254', 'ESTI primary buttons');
 estiSetConst('THEME_ELDY_TEXTBTNACTION', '255,255,255', 'ESTI primary button text');
+estiSetConst('FCKEDITOR_ENABLE_MAILING', '0', 'Disable WYSIWYG for removed email campaign module');
 estiSetConst('MAIN_IHM_PARAMS_REV', (string) time(), 'Refresh ESTI UI assets');
 
 $removedModules = array(
@@ -177,6 +178,52 @@ $externalModules = array_filter(array_map('trim', explode(',', getDolGlobalStrin
 if (!empty($externalModules)) {
 	$externalModules = array_values(array_diff($externalModules, $removedExternalModules));
 	estiSetConst('MAIN_MODULES_FOR_EXTERNAL', implode(',', $externalModules), 'Remove pruned modules from external access list');
+}
+
+$removedBoxFiles = array(
+	'box_birthdays_members.php',
+	'box_boms.php',
+	'box_commandes.php',
+	'box_contracts.php',
+	'box_ficheinter.php',
+	'box_graph_nb_ticket_last_x_days.php',
+	'box_graph_nb_tickets_type.php',
+	'box_graph_new_vs_close_ticket.php',
+	'box_graph_orders_permonth.php',
+	'box_graph_propales_permonth.php',
+	'box_graph_ticket_by_severity.php',
+	'box_last_knowledgerecord.php',
+	'box_last_modified_knowledgerecord.php',
+	'box_last_modified_ticket.php',
+	'box_last_ticket.php',
+	'box_members_by_tags.php',
+	'box_members_by_type.php',
+	'box_members_last_modified.php',
+	'box_members_last_subscriptions.php',
+	'box_members_subscriptions_by_year.php',
+	'box_mos.php',
+	'box_project_opportunities.php',
+	'box_propales.php',
+	'box_prospect.php',
+	'box_produits_alerte_stock.php',
+	'box_services_contracts.php',
+	'box_services_expired.php',
+	'box_shipments.php',
+);
+$escapedRemovedBoxFiles = array();
+foreach ($removedBoxFiles as $removedBoxFile) {
+	$escapedRemovedBoxFiles[] = "'".$db->escape($removedBoxFile)."'";
+}
+if (!empty($escapedRemovedBoxFiles)) {
+	$boxFileSql = implode(',', $escapedRemovedBoxFiles);
+	$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'boxes WHERE box_id IN (SELECT rowid FROM '.MAIN_DB_PREFIX.'boxes_def WHERE file IN ('.$boxFileSql.'))';
+	if (!$db->query($sql)) {
+		$errors[] = 'llx_boxes removed module cleanup';
+	}
+	$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'boxes_def WHERE file IN ('.$boxFileSql.')';
+	if (!$db->query($sql)) {
+		$errors[] = 'llx_boxes_def removed module cleanup';
+	}
 }
 
 $sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX."c_country WHERE code = 'IN' LIMIT 1";
