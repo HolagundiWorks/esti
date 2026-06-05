@@ -39,6 +39,18 @@ ESTI should support:
 - GST reporting exports for review and future filing integrations.
 - E-invoice and e-way-bill integration readiness through extension modules.
 
+## Construction Tax And Deduction Requirements
+
+Construction billing and estimation must also support:
+
+- Labour cess on eligible work values.
+- Royalty deductions or cost components for materials where applicable.
+- TDS on contractor and subcontractor payments.
+- Advance recovery, retention, statutory deductions, and other recoveries in RA
+  and final bills.
+- Clear separation between taxable value, GST, cess, deductions, recoveries, and
+  final payable amount.
+
 ## GST and Multi-Currency Policy
 
 Dolibarr stores the primary sales tax in legacy `tva_*` fields and keeps

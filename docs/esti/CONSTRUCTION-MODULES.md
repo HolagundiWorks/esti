@@ -16,6 +16,8 @@ htdocs/esti_module/
 
 Use `htdocs/modulebuilder/template` as the implementation reference. Prefer
 hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
+The detailed India construction requirements are maintained in
+`docs/esti/INDIA-CONSTRUCTION-FEATURES.md`.
 
 ## Core Modules
 
@@ -34,6 +36,9 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Standard schedule item library.
 - Rate build-up by unit and project/site.
 - Revision history and approval status.
+- Components for carriage, lead, lift, royalty, wastage, contractor profit, GST,
+  labour cess, and TDS-aware deductions.
+- Formula engine, templates, non-scheduled item support, and approval workflow.
 
 ### Estimation
 
@@ -41,6 +46,10 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Estimate lines linked to rate analysis items and BOQ items.
 - Abstract, detailed, and comparison views.
 - Exportable estimate documents.
+- Lifecycle states: draft, internal review, client submission, revised estimate,
+  technical sanction, and approved copy.
+- Approved estimates are locked; revisions create new versions with full audit
+  history.
 
 ### BOQ
 
@@ -48,6 +57,23 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Versioning, locked revisions, and change notes.
 - Links to estimate, purchase, stock issue, and billing workflows.
 - Support for work packages and subcontract packages.
+- Spreadsheet-style editing, auto amount calculation, DSR/SOR item linking,
+  client BOQ versus internal BOQ, and variation tracking.
+
+### DSR/SOR Library
+
+- CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES schedules.
+- Department, authority/state, year, chapter, item code, description, unit, base
+  rate, lead included, lift included, GST inclusion, effective date, and
+  specification reference.
+- Excel import, search/filter, year-wise comparison, state-specific rates, and
+  historical tracking.
+
+### Lead And Lift
+
+- Quarry/source mapping, site mapping, distance calculation, initial lead
+  inclusion, extra lead calculation, lift calculation, and transport mode.
+- Lead statement, lift statement, and carriage cost sheet outputs.
 
 ### Billing
 
@@ -55,6 +81,9 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Measurement book references and certified quantity tracking.
 - GST-ready invoice documents.
 - Customer and subcontractor billing variants.
+- Previous, current, cumulative, and certified quantities for measurement book
+  and RA billing.
+- Labour cess, royalty, TDS, GST, advance recovery, and final payable amount.
 
 ### Labour Team Management
 
@@ -95,14 +124,19 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 - Avoid SQL queries inside loops; use joins or batched queries.
 - Keep permissions explicit in each `modEsti*.class.php`.
 - Add list query limits and indexes for project, site, status, and entity fields.
+- Initial table families: DSR/SOR, BOQ, estimate versions, rate analysis, lead
+  and lift statements, measurement books, RA bills, variation claims, and project
+  cost tracking.
 
 ## First Implementation Order
 
 1. ESTI project/site metadata.
-2. Rate analysis.
-3. Estimation.
-4. BOQ.
-5. Billing.
-6. Purchase and site-store links.
-7. Labour team management.
-8. GST reporting exports.
+2. DSR/SOR library.
+3. Rate analysis.
+4. Estimation.
+5. BOQ.
+6. Lead and lift.
+7. Measurement book and RA billing.
+8. Purchase and site-store links.
+9. Labour team management.
+10. GST reporting exports.

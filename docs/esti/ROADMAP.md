@@ -43,25 +43,35 @@ permissions, and upgrade paths are audited.
 
 ## 2. Construction Core
 
+- Build `esti_dsrsor` for CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES
+  schedule libraries with year-wise versions and historical rates.
 - Build `esti_rateanalysis` for material, labour, machinery, overhead, wastage,
-  contractor margin, and GST-aware rate buildup.
+  carriage, lead, lift, royalty, contractor margin, formula-driven analysis, and
+  GST/labour-cess aware rate buildup.
 - Build `esti_projectsite` for India construction project/site metadata, work
   packages, cost centres, locations, and operational ownership.
 - Build `esti_estimation` for project estimates, revisions, approvals, and
-  quantity takeoff.
+  quantity takeoff with locked approved versions and full audit history.
 - Build `esti_boq` for BOQ packages, work items, schedules, comparison, and
-  downstream billing links.
+  downstream billing links, including client BOQ versus internal BOQ and
+  variation tracking.
 - Use Dolibarr `CommonObject`, hooks, permissions, and `llx_` table conventions.
 
 ## 3. Contractor Operations
 
 - RA bills, final bills, retention, advances, deductions, debit/credit notes, and
   GST-ready invoices.
+- Measurement book entries with previous, current, cumulative, and certified
+  quantities.
+- Labour cess, royalty, TDS, GST, advance recovery, and final payable
+  calculations.
 - Labour teams, subcontractors, attendance, work orders, and wage sheets.
 - Site stock, purchase requisitions, purchase orders, GRN, issue, return,
   transfer, wastage, and reconciliation.
 - Project cost control by site, package, BOQ item, supplier, subcontractor, and
   billing milestone.
+- Lead and lift calculations with quarry/source mapping, site mapping, transport
+  mode, lead statements, lift statements, and carriage cost sheets.
 
 ## 4. ESTI UI
 
@@ -70,6 +80,9 @@ permissions, and upgrade paths are audited.
   profile.
 - Keep ERP screens dense, scannable, and workflow-first.
 - Redesign using theme/templates before core rewrites.
+- Prioritize Carbon-aligned screens for dashboard, DSR/SOR library, BOQ builder,
+  estimate builder, rate analysis sheet, lead/lift calculator, measurement book,
+  RA billing, project dashboard, and reports.
 
 ## 5. Release Hardening
 

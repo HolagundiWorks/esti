@@ -10,9 +10,12 @@ procurement teams in India.
 ESTI will prioritize construction workflows:
 
 - Rate analysis for materials, labour, machinery, overheads, and contractor margin.
+- CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES schedule libraries.
 - Estimation and costing for residential, commercial, infrastructure, and interior projects.
 - BOQ preparation, revisions, versioning, and approval workflows.
+- Lead and lift calculations, carriage statements, and source/site mapping.
 - Running bills, RA bills, final bills, retention, advances, deductions, and GST-ready invoices.
+- Measurement book entry with previous, current, cumulative, and certified quantities.
 - Labour team management, attendance, subcontractor work orders, and wage tracking.
 - Stock, site stores, material issue, returns, wastage, and reconciliation.
 - Purchase requisitions, supplier comparison, purchase orders, GRN, and supplier bills.
@@ -50,6 +53,7 @@ The ESTI planning documents are in [docs/esti](docs/esti):
 - [Migration Roadmap](docs/esti/MIGRATION-ROADMAP.md)
 - [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
 - [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
+- [India Construction Feature Requirements](docs/esti/INDIA-CONSTRUCTION-FEATURES.md)
 - [Construction Modules](docs/esti/CONSTRUCTION-MODULES.md)
 - [Backend Profile](docs/esti/BACKEND-PROFILE.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)

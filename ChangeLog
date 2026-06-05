@@ -6,6 +6,9 @@ ESTI ChangeLog
 
 For users:
 ----------
+NEW: #0 Document India construction requirements for CPWD DSR, State PWD SOR,
+Irrigation, NHAI, MES, BOQ, rate analysis, lead/lift, measurement book, and RA
+billing workflows.
 FIX: #0 Remove module discovery for generic product management, services,
 projects/collaboration, ECM, barcodes, multi-currency, and subtotals from the
 ESTI construction backend profile.
@@ -14,6 +17,9 @@ barcode, multi-currency, and subtotals routes.
 
 For developers:
 ---------------
+NEW: #0 Add initial ESTI construction table plan for DSR/SOR, BOQ, estimate
+versions, rate analysis, lead/lift statements, measurement books, RA bills,
+variation claims, and project cost tracking.
 FIX: #0 Disable removed module constants and related dashboard boxes through
 containers/apply-esti-defaults.php for existing development databases.
 FIX: #0 Document the replacement direction for ESTI project/site, document

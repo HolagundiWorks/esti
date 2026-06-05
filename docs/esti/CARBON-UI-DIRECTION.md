@@ -31,6 +31,39 @@ Initial theme work should cover:
 - Buttons, tabs, badges, alerts, filters, and modals.
 - Construction dashboards and project cost views.
 
+Core construction screens should include:
+
+- Dashboard.
+- DSR/SOR Library.
+- BOQ Builder.
+- Estimate Builder.
+- Rate Analysis Sheet.
+- Lead/Lift Calculator.
+- Measurement Book Entry.
+- RA Billing.
+- Project Dashboard.
+- Reports.
+
+## Carbon Component Map
+
+- Use `DataTable` patterns for DSR/SOR search, BOQ lines, measurement entries,
+  RA bill quantities, and project cost tracking.
+- Use `SideNav` for fixed global navigation and fluid local navigation.
+- Use `Tabs` for estimate versions, BOQ views, rate-analysis components, and RA
+  bill sections.
+- Use `Modal` for approvals, revision creation, import confirmation, and locked
+  record warnings.
+- Use `ComboBox` for DSR/SOR item lookup, unit selection, source/site selection,
+  and project/package selection.
+- Use `Toast` notifications for saves, import results, approvals, and validation
+  failures.
+- Use `DatePicker` for schedule effective dates, estimate validity, measurement
+  dates, and billing periods.
+- Use inline loading states for imports, formula recalculation, and report
+  generation.
+- Use tags and status indicators for lifecycle states such as draft, internal
+  review, client submission, technical sanction, approved, revised, and locked.
+
 ## Implementation Guardrails
 
 - Avoid introducing Carbon packages until dependency and GPL compatibility are
