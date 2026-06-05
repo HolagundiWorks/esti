@@ -84,7 +84,6 @@ ESTI planning documents are in [docs/esti](docs/esti):
 - [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
 - [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
 - [License and Notices](docs/esti/LICENSE-NOTICE.md)
-- [Construction Reference Modules](docs/esti/CONSTRUCTION-MODULES.md)
 
 ## Repository Links
 

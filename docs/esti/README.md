@@ -29,10 +29,8 @@ and construction/costing features are supporting engines only.
 - [Podman Runtime Plan](PODMAN-RUNTIME.md)
 - [License and Notices](LICENSE-NOTICE.md)
 
-## Reference-Only Construction Documents
+## Module-Level Reference
 
-These documents are retained only for DSR/SOR, BOQ, tender, cost reference, and
-drawing takeoff support. They are not the first-release product roadmap.
-
-- [Construction Reference Modules](CONSTRUCTION-MODULES.md)
-- [India Construction Feature Requirements](INDIA-CONSTRUCTION-FEATURES.md)
+Module-level implementation notes live with the module source. For example,
+`htdocs/esti_dsrsor/README.md` documents the retained DSR/SOR reference module
+used for BOQ, tender, and drawing takeoff support.

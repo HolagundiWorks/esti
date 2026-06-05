@@ -6,6 +6,8 @@ ESTI ChangeLog
 
 For users:
 ----------
+NEW: #0 Clean up duplicate and superseded documentation after the ESTI Architect
+Platform pivot.
 NEW: #0 Pivot ESTI documentation to the ESTI Architect Platform for Indian
 freelance architects and small architecture offices by Holagundi Consulting
 Works.
@@ -25,6 +27,8 @@ barcode, multi-currency, and subtotals routes.
 
 For developers:
 ---------------
+NEW: #0 Remove obsolete contractor-reference and duplicate React roadmap docs in
+favour of the `docs/esti` source-of-truth set.
 NEW: #0 Document architect-office backend, Carbon React, drawing, permit, fee
 proposal, invoice, consultant, and client-portal roadmap.
 NEW: #0 Add `llx_esti_dsrsor_audit` and
