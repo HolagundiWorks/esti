@@ -48,7 +48,7 @@ class DsrItem extends CommonObject
 	/**
 	 * @var string Picto
 	 */
-	public $picto = 'fa-list-alt';
+	public $picto = 'fa-document-tasks';
 
 	/**
 	 * @var int Does object support extrafields
@@ -120,6 +120,8 @@ class DsrItem extends CommonObject
 	public $fk_user_modif;
 	public $status;
 	public $import_key;
+	public $fk_import_batch;
+	public $audit_reason;
 
 	/**
 	 * Constructor.
@@ -158,7 +160,13 @@ class DsrItem extends CommonObject
 			$this->ref = $this->buildItemRef();
 		}
 
-		return $this->createCommon($user, $notrigger);
+		$result = $this->createCommon($user, $notrigger);
+		if ($result > 0) {
+			$this->id = $result;
+			$this->writeAudit($user, 'CREATE', '', '', $this->encodeAuditValue($this->getAuditSnapshot()), $this->audit_reason);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -274,6 +282,11 @@ class DsrItem extends CommonObject
 	 */
 	public function update(User $user, $notrigger = 0)
 	{
+		$oldobject = new self($this->db);
+		if (!empty($this->id)) {
+			$oldobject->fetch((int) $this->id);
+		}
+
 		$result = $this->ensureMasterVersion($user);
 		if ($result < 0) {
 			return -1;
@@ -282,7 +295,12 @@ class DsrItem extends CommonObject
 			$this->ref = $this->buildItemRef();
 		}
 
-		return $this->updateCommon($user, $notrigger);
+		$result = $this->updateCommon($user, $notrigger);
+		if ($result > 0 && !empty($oldobject->id)) {
+			$this->writeAuditChanges($user, $oldobject);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -294,7 +312,13 @@ class DsrItem extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = 0)
 	{
-		return $this->deleteCommon($user, $notrigger);
+		$snapshot = $this->getAuditSnapshot();
+		$result = $this->deleteCommon($user, $notrigger);
+		if ($result > 0) {
+			$this->writeAudit($user, 'DELETE', '', $this->encodeAuditValue($snapshot), '', $this->audit_reason);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -437,5 +461,133 @@ class DsrItem extends CommonObject
 	private function buildItemRef()
 	{
 		return strtoupper($this->buildMasterRef().'-'.((int) $this->year).'-'.dol_sanitizeFileName((string) $this->item_code));
+	}
+
+	/**
+	 * Return fields tracked in audit log.
+	 *
+	 * @return array<int,string>
+	 */
+	private function getAuditFieldNames()
+	{
+		return array(
+			'department',
+			'authority',
+			'schedule_type',
+			'year',
+			'chapter',
+			'item_code',
+			'description',
+			'unit',
+			'base_rate',
+			'lead_included',
+			'lift_included',
+			'gst_inclusion',
+			'effective_date',
+			'specification_reference',
+			'status',
+		);
+	}
+
+	/**
+	 * Return current tracked values.
+	 *
+	 * @return array<string,string>
+	 */
+	private function getAuditSnapshot()
+	{
+		$snapshot = array();
+		foreach ($this->getAuditFieldNames() as $field) {
+			$snapshot[$field] = $this->normalizeAuditValue(isset($this->$field) ? $this->$field : '');
+		}
+		return $snapshot;
+	}
+
+	/**
+	 * Write audit rows for changed fields.
+	 *
+	 * @param  User    $user      User making change
+	 * @param  DsrItem $oldobject Previous object
+	 * @return void
+	 */
+	private function writeAuditChanges(User $user, DsrItem $oldobject)
+	{
+		foreach ($this->getAuditFieldNames() as $field) {
+			$oldValue = $this->normalizeAuditValue(isset($oldobject->$field) ? $oldobject->$field : '');
+			$newValue = $this->normalizeAuditValue(isset($this->$field) ? $this->$field : '');
+			if ($oldValue !== $newValue) {
+				$this->writeAudit($user, 'UPDATE', $field, $oldValue, $newValue, $this->audit_reason);
+			}
+		}
+	}
+
+	/**
+	 * Normalize an audit value.
+	 *
+	 * @param  mixed $value Value
+	 * @return string
+	 */
+	private function normalizeAuditValue($value)
+	{
+		if (is_array($value)) {
+			return $this->encodeAuditValue($value);
+		}
+		if ($value === null) {
+			return '';
+		}
+		if (is_numeric($value)) {
+			return (string) price2num((string) $value);
+		}
+		return (string) $value;
+	}
+
+	/**
+	 * Encode an audit value.
+	 *
+	 * @param  mixed $value Value
+	 * @return string
+	 */
+	private function encodeAuditValue($value)
+	{
+		$encoded = json_encode($value);
+		return $encoded === false ? '' : $encoded;
+	}
+
+	/**
+	 * Write one audit row. Audit is best effort so the source workflow does not
+	 * fail after the business row has already been written.
+	 *
+	 * @param  User   $user       User making change
+	 * @param  string $actionCode Action code
+	 * @param  string $fieldName  Field name
+	 * @param  string $oldValue   Old value
+	 * @param  string $newValue   New value
+	 * @param  string $reason     Reason
+	 * @return void
+	 */
+	private function writeAudit(User $user, $actionCode, $fieldName, $oldValue, $newValue, $reason = '')
+	{
+		global $conf;
+
+		$sql = "INSERT INTO ".$this->db->prefix()."esti_dsrsor_audit (";
+		$sql .= "entity, object_type, object_id, fk_item, fk_import_batch, action_code, field_name, old_value, new_value, reason, date_creation, fk_user_creat";
+		$sql .= ") VALUES (";
+		$sql .= ((int) (empty($this->entity) ? $conf->entity : $this->entity)).",";
+		$sql .= "'dsritem',";
+		$sql .= ((int) $this->id).",";
+		$sql .= ((int) $this->id).",";
+		$sql .= (empty($this->fk_import_batch) ? "NULL" : ((int) $this->fk_import_batch)).",";
+		$sql .= "'".$this->db->escape($actionCode)."',";
+		$sql .= ($fieldName === '' ? "NULL" : "'".$this->db->escape($fieldName)."'").",";
+		$sql .= ($oldValue === '' ? "NULL" : "'".$this->db->escape($oldValue)."'").",";
+		$sql .= ($newValue === '' ? "NULL" : "'".$this->db->escape($newValue)."'").",";
+		$sql .= ($reason === '' ? "NULL" : "'".$this->db->escape($reason)."'").",";
+		$sql .= "'".$this->db->idate(dol_now())."',";
+		$sql .= ((int) $user->id);
+		$sql .= ")";
+
+		if (!$this->db->query($sql)) {
+			dol_syslog(__METHOD__.' '.$this->db->lasterror(), LOG_WARNING);
+		}
 	}
 }

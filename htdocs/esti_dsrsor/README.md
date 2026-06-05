@@ -15,10 +15,11 @@ NHAI, and MES schedules.
 - XLSX, XLS, ODS, and CSV import with validation preview.
 - Duplicate schedule items update by schedule type, authority, department, year,
   and item code.
+- Import batch tracking for committed uploads.
+- Item audit trail for create, update, delete, and import-driven changes.
 
 ## Next Scope
 
 - Year-wise item comparison.
-- Historical rate audit log.
 - BOQ item linking.
 - Rate analysis template linking.

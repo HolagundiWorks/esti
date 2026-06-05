@@ -74,6 +74,8 @@ The detailed India construction requirements are maintained in
 - Import workflow supports XLSX, XLS, ODS, and CSV files with preview validation
   and duplicate item updates by schedule type, authority, department, year, and
   item code.
+- Import batches and item-level audit rows are stored so rate changes can be
+  reviewed before BOQ, estimate, and rate-analysis modules depend on them.
 
 ### Lead And Lift
 

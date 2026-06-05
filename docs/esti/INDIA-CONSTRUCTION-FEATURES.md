@@ -71,6 +71,8 @@ Initial implementation scaffold: `htdocs/esti_dsrsor`.
 - Historical tracking for rates and specifications.
 - State-specific rates and authority-specific schedules.
 - Locking for published schedule versions used by estimates or BOQs.
+- Import batch tracking and audit trail for create, update, delete, and
+  import-driven changes.
 
 ## BOQ Module
 

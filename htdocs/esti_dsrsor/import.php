@@ -88,12 +88,15 @@ if ($action == 'preview') {
 
 if ($action == 'commit') {
 	$importFile = dol_sanitizeFileName(basename(GETPOST('import_file', 'restricthtml')));
+	$originalFile = dol_sanitizeFileName(basename(GETPOST('original_file', 'restricthtml')));
 	$fullPath = $uploadDir.'/'.$importFile;
 	if (!$importFile || !is_file($fullPath)) {
 		setEventMessages($langs->trans('ImportFileMissing'), null, 'errors');
 	} else {
 		$preview = $importer->parseFile($fullPath, $defaults);
-		$result = $importer->importRows($preview['rows'], $user);
+		$batchId = $importer->createBatch($user, $originalFile ? $originalFile : $importFile, $importFile, $defaults, $preview['rows'], $preview['errors']);
+		$result = $importer->importRows($preview['rows'], $user, $batchId, $langs->transnoentities('ImportDsrSorItems'));
+		$importer->completeBatch($batchId, $result);
 		if (empty($result['errors'])) {
 			setEventMessages($langs->trans('DsrSorImportDone', $result['created'], $result['updated'], $result['skipped']), null, 'mesgs');
 			dol_delete_file($fullPath, 1);
@@ -138,6 +141,50 @@ print '</table>';
 print '<div class="center"><input type="submit" class="button" value="'.$langs->trans('PreviewImport').'"></div>';
 print '</form>';
 
+$sql = "SELECT ref, original_filename, total_rows, valid_rows, created_count, updated_count, skipped_count, error_count, date_creation, status";
+$sql .= " FROM ".$db->prefix()."esti_dsrsor_import_batch";
+$sql .= " WHERE entity IN (".getEntity('dsritem').")";
+$sql .= " ORDER BY date_creation DESC, rowid DESC";
+$sql .= $db->plimit(5);
+$resql = $db->query($sql);
+if ($resql) {
+	print '<br>';
+	print load_fiche_titre($langs->trans('RecentImportBatches'), '', 'fa-upload');
+	print '<div class="div-table-responsive">';
+	print '<table class="tagtable liste centpercent">';
+	print '<tr class="liste_titre">';
+	print '<th>'.$langs->trans('Date').'</th>';
+	print '<th>'.$langs->trans('ImportBatch').'</th>';
+	print '<th>'.$langs->trans('ImportFile').'</th>';
+	print '<th class="right">'.$langs->trans('TotalRows').'</th>';
+	print '<th class="right">'.$langs->trans('Ready').'</th>';
+	print '<th class="right">'.$langs->trans('CreatedRows').'</th>';
+	print '<th class="right">'.$langs->trans('UpdatedRows').'</th>';
+	print '<th class="right">'.$langs->trans('SkippedRows').'</th>';
+	print '<th class="right">'.$langs->trans('Errors').'</th>';
+	print '</tr>';
+	$num = $db->num_rows($resql);
+	while ($obj = $db->fetch_object($resql)) {
+		print '<tr class="oddeven">';
+		print '<td>'.dol_print_date($db->jdate($obj->date_creation), 'dayhour').'</td>';
+		print '<td>'.dol_escape_htmltag($obj->ref).'</td>';
+		print '<td>'.dol_escape_htmltag($obj->original_filename).'</td>';
+		print '<td class="right">'.((int) $obj->total_rows).'</td>';
+		print '<td class="right">'.((int) $obj->valid_rows).'</td>';
+		print '<td class="right">'.((int) $obj->created_count).'</td>';
+		print '<td class="right">'.((int) $obj->updated_count).'</td>';
+		print '<td class="right">'.((int) $obj->skipped_count).'</td>';
+		print '<td class="right">'.((int) $obj->error_count).'</td>';
+		print '</tr>';
+	}
+	if ($num == 0) {
+		print '<tr class="oddeven"><td colspan="9"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td></tr>';
+	}
+	print '</table>';
+	print '</div>';
+	$db->free($resql);
+}
+
 if (!empty($rows)) {
 	if (!empty($previewErrors)) {
 		setEventMessages('', $previewErrors, 'warnings');
@@ -151,8 +198,16 @@ if (!empty($rows)) {
 	}
 
 	print '<br>';
-	print load_fiche_titre($langs->trans('ImportPreview'), '', '');
+	print load_fiche_titre($langs->trans('ImportPreview'), '', 'fa-data-table');
 	print '<div class="opacitymedium">'.$langs->trans('ImportPreviewCount', $validRows, count($rows) - $validRows).'</div>';
+	if (!empty($previewErrors)) {
+		print '<table class="noborder centpercent">';
+		print '<tr class="liste_titre"><td>'.img_picto('', 'fa-warning', 'class="pictofixedwidth"').$langs->trans('ImportPreviewErrors').'</td></tr>';
+		foreach ($previewErrors as $previewError) {
+			print '<tr class="oddeven"><td>'.dol_escape_htmltag($previewError).'</td></tr>';
+		}
+		print '</table>';
+	}
 	print '<div class="div-table-responsive">';
 	print '<table class="tagtable liste centpercent">';
 	print '<tr class="liste_titre">';
@@ -194,6 +249,7 @@ if (!empty($rows)) {
 		print '<input type="hidden" name="token" value="'.newToken().'">';
 		print '<input type="hidden" name="action" value="commit">';
 		print '<input type="hidden" name="import_file" value="'.dol_escape_htmltag($importFile).'">';
+		print '<input type="hidden" name="original_file" value="'.dol_escape_htmltag(isset($originalName) ? $originalName : $importFile).'">';
 		print '<input type="hidden" name="schedule_type" value="'.dol_escape_htmltag($defaults['schedule_type']).'">';
 		print '<input type="hidden" name="department" value="'.dol_escape_htmltag($defaults['department']).'">';
 		print '<input type="hidden" name="authority" value="'.dol_escape_htmltag($defaults['authority']).'">';

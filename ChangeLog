@@ -6,6 +6,7 @@ ESTI ChangeLog
 
 For users:
 ----------
+NEW: #0 Add DSR/SOR item audit trail and import batch tracking.
 NEW: #0 Add DSR/SOR Excel and CSV import with validation preview and commit
 workflow.
 NEW: #0 Add initial ESTI DSR/SOR module scaffold with dashboard, setup page,
@@ -21,6 +22,8 @@ barcode, multi-currency, and subtotals routes.
 
 For developers:
 ---------------
+NEW: #0 Add `llx_esti_dsrsor_audit` and
+`llx_esti_dsrsor_import_batch` tables.
 NEW: #0 Add reusable `DsrSorImport` helper for XLSX, XLS, ODS, and CSV schedule
 imports.
 NEW: #0 Add `modEstiDsrSor`, `DsrItem`, and DSR/SOR master, version, and item

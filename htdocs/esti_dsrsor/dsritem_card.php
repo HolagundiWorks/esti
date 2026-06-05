@@ -138,7 +138,7 @@ llxHeader('', $title, '', '', 0, 0, '', '', '', 'mod-esti-dsrsor page-card');
 
 if ($action == 'create' || $action == 'edit') {
 	$iscreate = ($action == 'create');
-	print load_fiche_titre($iscreate ? $langs->trans('NewDsrSorItem') : $langs->trans('EditDsrSorItem'), '', 'fa-list-alt');
+	print load_fiche_titre($iscreate ? $langs->trans('NewDsrSorItem') : $langs->trans('EditDsrSorItem'), '', 'fa-document-tasks');
 	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	print '<input type="hidden" name="action" value="'.($iscreate ? 'add' : 'update').'">';
@@ -177,7 +177,7 @@ if ($action == 'create' || $action == 'edit') {
 	print '</div>';
 	print '</form>';
 } else {
-	print load_fiche_titre($object->getNomUrl(1), '', 'fa-list-alt');
+	print load_fiche_titre($object->getNomUrl(1), '', 'fa-document-tasks');
 	print '<table class="border centpercent tableforfield">';
 	print '<tr><td class="titlefield">'.$langs->trans('ScheduleType').'</td><td>'.dol_escape_htmltag($langs->trans($object->fields['schedule_type']['arrayofkeyval'][$object->schedule_type] ?? $object->schedule_type)).'</td></tr>';
 	print '<tr><td>'.$langs->trans('Department').'</td><td>'.dol_escape_htmltag($object->department).'</td></tr>';
@@ -193,7 +193,7 @@ if ($action == 'create' || $action == 'edit') {
 	print '<tr><td>'.$langs->trans('GstInclusion').'</td><td>'.dol_escape_htmltag($object->gst_inclusion).'</td></tr>';
 	print '<tr><td>'.$langs->trans('EffectiveDate').'</td><td>'.($object->effective_date ? dol_print_date($object->effective_date, 'day') : '').'</td></tr>';
 	print '<tr><td>'.$langs->trans('SpecificationReference').'</td><td>'.dol_escape_htmltag($object->specification_reference).'</td></tr>';
-	print '<tr><td>'.$langs->trans('Status').'</td><td>'.dol_escape_htmltag($object->fields['status']['arrayofkeyval'][$object->status] ?? $object->status).'</td></tr>';
+	print '<tr><td>'.$langs->trans('Status').'</td><td><span class="badge badge-status">'.dol_escape_htmltag($object->fields['status']['arrayofkeyval'][$object->status] ?? $object->status).'</span></td></tr>';
 	print '</table>';
 	print '<div class="tabsAction">';
 	if ($permissiontoadd) {
@@ -201,6 +201,48 @@ if ($action == 'create' || $action == 'edit') {
 	}
 	print '<a class="butAction" href="'.DOL_URL_ROOT.'/esti_dsrsor/dsritem_list.php">'.$langs->trans('BackToList').'</a>';
 	print '</div>';
+
+	print '<br>';
+	print '<details class="tabBar">';
+	print '<summary>'.img_picto('', 'fa-list-check', 'class="pictofixedwidth"').$langs->trans('AuditTrail').'</summary>';
+	print '<div class="div-table-responsive">';
+	print '<table class="tagtable liste centpercent">';
+	print '<tr class="liste_titre">';
+	print '<th>'.$langs->trans('Date').'</th>';
+	print '<th>'.$langs->trans('Action').'</th>';
+	print '<th>'.$langs->trans('Field').'</th>';
+	print '<th>'.$langs->trans('OldValue').'</th>';
+	print '<th>'.$langs->trans('NewValue').'</th>';
+	print '<th>'.$langs->trans('Reason').'</th>';
+	print '</tr>';
+	$sql = "SELECT date_creation, action_code, field_name, old_value, new_value, reason";
+	$sql .= " FROM ".$db->prefix()."esti_dsrsor_audit";
+	$sql .= " WHERE fk_item = ".((int) $object->id);
+	$sql .= " ORDER BY date_creation DESC, rowid DESC";
+	$sql .= $db->plimit(20);
+	$resql = $db->query($sql);
+	if ($resql) {
+		$num = $db->num_rows($resql);
+		while ($obj = $db->fetch_object($resql)) {
+			print '<tr class="oddeven">';
+			print '<td>'.dol_print_date($db->jdate($obj->date_creation), 'dayhour').'</td>';
+			print '<td>'.dol_escape_htmltag($obj->action_code).'</td>';
+			print '<td>'.dol_escape_htmltag($obj->field_name).'</td>';
+			print '<td>'.dol_escape_htmltag(dol_trunc($obj->old_value, 80)).'</td>';
+			print '<td>'.dol_escape_htmltag(dol_trunc($obj->new_value, 80)).'</td>';
+			print '<td>'.dol_escape_htmltag($obj->reason).'</td>';
+			print '</tr>';
+		}
+		$db->free($resql);
+		if ($num == 0) {
+			print '<tr class="oddeven"><td colspan="6"><span class="opacitymedium">'.$langs->trans('NoRecordFound').'</span></td></tr>';
+		}
+	} else {
+		print '<tr class="oddeven"><td colspan="6">'.dol_escape_htmltag($db->lasterror()).'</td></tr>';
+	}
+	print '</table>';
+	print '</div>';
+	print '</details>';
 }
 
 llxFooter();

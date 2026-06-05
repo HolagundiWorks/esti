@@ -98,7 +98,7 @@ class DsrSorImport
 	 * @param  User                          $user User importing
 	 * @return array<string,mixed>
 	 */
-	public function importRows($rows, User $user)
+	public function importRows($rows, User $user, $batchId = 0, $reason = 'DSR/SOR import')
 	{
 		$created = 0;
 		$updated = 0;
@@ -120,6 +120,8 @@ class DsrSorImport
 			}
 
 			$this->fillItem($item, $row);
+			$item->fk_import_batch = (int) $batchId;
+			$item->audit_reason = $reason;
 			if ($result > 0) {
 				$resultUpdate = $item->update($user);
 				if ($resultUpdate > 0) {
@@ -140,6 +142,87 @@ class DsrSorImport
 		}
 
 		return array('created' => $created, 'updated' => $updated, 'skipped' => $skipped, 'errors' => $errors);
+	}
+
+	/**
+	 * Create an import batch.
+	 *
+	 * @param  User                          $user             User importing
+	 * @param  string                        $originalFilename Original filename
+	 * @param  string                        $storedFilename   Stored filename
+	 * @param  array<string,mixed>           $defaults         Import defaults
+	 * @param  array<int,array<string,mixed>> $rows             Parsed rows
+	 * @param  array<int,string>             $errors           Preview errors
+	 * @return int                                             Batch id, <0 if KO
+	 */
+	public function createBatch(User $user, $originalFilename, $storedFilename, $defaults, $rows, $errors)
+	{
+		global $conf;
+
+		$validRows = 0;
+		foreach ($rows as $row) {
+			if (empty($row['errors'])) {
+				$validRows++;
+			}
+		}
+
+		$ref = 'DSRSORIMP-'.dol_print_date(dol_now(), '%Y%m%d%H%M%S').'-'.((int) $user->id);
+		$sql = "INSERT INTO ".$this->db->prefix()."esti_dsrsor_import_batch (";
+		$sql .= "entity, ref, original_filename, stored_filename, schedule_type, department, authority, year, total_rows, valid_rows, error_count, error_summary, date_creation, fk_user_creat, status";
+		$sql .= ") VALUES (";
+		$sql .= ((int) $conf->entity).",";
+		$sql .= "'".$this->db->escape($ref)."',";
+		$sql .= ($originalFilename === '' ? "NULL" : "'".$this->db->escape($originalFilename)."'").",";
+		$sql .= ($storedFilename === '' ? "NULL" : "'".$this->db->escape($storedFilename)."'").",";
+		$sql .= "'".$this->db->escape((string) $this->getDefault($defaults, 'schedule_type'))."',";
+		$sql .= "'".$this->db->escape((string) $this->getDefault($defaults, 'department'))."',";
+		$sql .= "'".$this->db->escape((string) $this->getDefault($defaults, 'authority'))."',";
+		$sql .= ((int) $this->getDefault($defaults, 'year')).",";
+		$sql .= ((int) count($rows)).",";
+		$sql .= ((int) $validRows).",";
+		$sql .= ((int) count($errors)).",";
+		$sql .= (empty($errors) ? "NULL" : "'".$this->db->escape(implode("\n", $errors))."'").",";
+		$sql .= "'".$this->db->idate(dol_now())."',";
+		$sql .= ((int) $user->id).",";
+		$sql .= "0)";
+
+		if (!$this->db->query($sql)) {
+			dol_syslog(__METHOD__.' '.$this->db->lasterror(), LOG_ERR);
+			return -1;
+		}
+
+		return (int) $this->db->last_insert_id($this->db->prefix()."esti_dsrsor_import_batch");
+	}
+
+	/**
+	 * Complete an import batch.
+	 *
+	 * @param  int                 $batchId Batch id
+	 * @param  array<string,mixed> $result  Import result
+	 * @return int                          1 if OK, <0 if KO
+	 */
+	public function completeBatch($batchId, $result)
+	{
+		if ($batchId <= 0) {
+			return 0;
+		}
+
+		$errors = empty($result['errors']) ? array() : $result['errors'];
+		$sql = "UPDATE ".$this->db->prefix()."esti_dsrsor_import_batch SET";
+		$sql .= " created_count = ".((int) $result['created']);
+		$sql .= ", updated_count = ".((int) $result['updated']);
+		$sql .= ", skipped_count = ".((int) $result['skipped']);
+		$sql .= ", error_count = ".((int) count($errors));
+		$sql .= ", error_summary = ".(empty($errors) ? "NULL" : "'".$this->db->escape(implode("\n", $errors))."'");
+		$sql .= ", status = ".(empty($errors) ? "1" : "9");
+		$sql .= " WHERE rowid = ".((int) $batchId);
+
+		if (!$this->db->query($sql)) {
+			dol_syslog(__METHOD__.' '.$this->db->lasterror(), LOG_ERR);
+			return -1;
+		}
+
+		return 1;
 	}
 
 	/**
