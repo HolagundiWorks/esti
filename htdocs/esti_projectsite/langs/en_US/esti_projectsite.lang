@@ -1,0 +1,72 @@
+# Copyright (C) 2026 ESTI contributors
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+
+ModuleEstiProjectSiteName=Project / Site
+ModuleEstiProjectSiteDesc=Manage Indian construction projects, sites, work packages, cost centres, and stakeholder references.
+
+EstiProjectSiteArea=Projects and Sites
+EstiProjectSiteSetup=Project / Site Settings
+
+# Object labels
+EstiProject=Construction Project
+EstiWorkPackage=Work Package
+ProjectList=Projects
+WorkPackageList=Work Packages
+NewProject=New project
+NewWorkPackage=New work package
+
+# Field labels
+ProjectTitle=Title
+ProjectType=Project type
+WorkPackageTitle=Title
+WorkPackageType=Package type
+State=State
+District=District
+City=City
+PIN=PIN code
+GPSLat=GPS latitude
+GPSLng=GPS longitude
+Client=Client
+Consultant=Consultant
+Architect=Architect
+Subcontractor=Subcontractor
+ContractValue=Contract value
+DateStart=Start date
+DateEndPlanned=Planned completion
+DateEndActual=Actual completion
+CostCentre=Cost centre
+Location=Location / zone
+
+# Project types
+Building=Building
+Road=Road
+Bridge=Bridge
+Irrigation=Irrigation
+Electrical=Electrical
+Plumbing=Plumbing
+Industrial=Industrial
+
+# Work package types
+Civil=Civil
+Structural=Structural
+Finishing=Finishing
+Drainage=Drainage
+
+# Status
+Active=Active
+Completed=Completed
+Cancelled=Cancelled
+
+# Dashboard
+TotalProjects=Total projects
+ActiveProjects=Active projects
+TotalWorkPackages=Work packages
+ActiveWorkPackages=Active packages
+
+# Misc
+NoProjectFound=No project found
+NoWorkPackageFound=No work package found

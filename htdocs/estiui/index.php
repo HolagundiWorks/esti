@@ -45,6 +45,7 @@ llxHeader('', $title, '', '', 0, 0, $scripts, $css);
 
 $cards = array(
 	array('key' => 'dsrSor', 'pictogram' => 'analytics', 'icon' => 'catalog', 'label' => $langs->trans('DsrSorLibrary'), 'description' => $langs->trans('DsrSorLibraryDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_dsrsor/index.php'),
+	array('key' => 'projectSite', 'pictogram' => 'building', 'icon' => 'building', 'label' => $langs->trans('ProjectSite'), 'description' => $langs->trans('ProjectSiteDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_projectsite/index.php'),
 	array('key' => 'rateAnalysis', 'pictogram' => 'chart--bar', 'icon' => 'calculator', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('InDesign'), 'statusKey' => 'design'),
 	array('key' => 'estimation', 'pictogram' => 'build', 'icon' => 'ruler', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('InDesign'), 'statusKey' => 'design'),
 	array('key' => 'boq', 'pictogram' => 'document--conversion', 'icon' => 'document--tasks', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),

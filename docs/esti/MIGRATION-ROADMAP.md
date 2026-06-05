@@ -1,101 +1,91 @@
 # ESTI Migration Roadmap
 
-## Phase 0: Repository Baseline
+## Phase 0: Repository Baseline — DONE
 
-- Record the exact upstream Dolibarr version and commit used as the fork base.
-- Create an ESTI branch strategy that never commits directly to `main`,
-  `master`, or `develop`.
-- Keep a clean upstream remote so Dolibarr security fixes can be merged.
-- Add ESTI documentation, license notices, and contribution rules.
-- Route public source, issue, release, update, and support links to
+- Exact upstream Dolibarr version recorded as the fork base.
+- ESTI branch strategy in place; no direct commits to main/master/develop.
+- Clean upstream remote kept for merging Dolibarr security fixes.
+- ESTI documentation, license notices, and contribution rules added.
+- Public source, issue, release, update, and support links route to
   `https://github.com/HolagundiWorks/esti`.
-- Keep Dolibarr links only for legal attribution, upstream merge research, and
-  compatibility references.
-- Disable the remote module marketplace and upstream module feeds as the first
-  backend strip-down step.
-- Remove non-construction module descriptors from backend discovery and block
-  their legacy routes after confirming the app still installs, boots, and opens
-  module administration.
-- Run the upstream installer in a local Podman environment before functional
-  changes begin.
+- Dolibarr links retained only for legal attribution, upstream merge research,
+  and compatibility references.
+- Remote module marketplace and upstream module feeds disabled.
+- Non-construction module descriptors removed from backend discovery; legacy
+  routes return `410 Gone`.
+- Podman development runtime in place (`containers/`).
 
-## Phase 1: Product Identity
+## Phase 1: Product Identity — DONE
 
-- Replace visible product name with `ESTI ERP` through configuration or theme
-  extension points first.
-- Replace logos, favicon, login branding, document headers, and email footers.
-- Keep upstream legal attribution in About, docs, and distribution metadata.
-- Create an ESTI default configuration profile for Indian construction users.
+- Visible product name replaced with `ESTI ERP` through theme and configuration.
+- Logos, favicon, login branding, document headers, and email footers updated.
+- Upstream legal attribution kept in About, docs, and distribution metadata.
+- ESTI default configuration profile for Indian construction users in place.
 
-## Phase 2: India-First Baseline
+## Phase 2: India-First Baseline — DONE
 
-- Default country to India, currency to INR, timezone to Asia/Kolkata, and
-  fiscal defaults to Indian business expectations.
-- Keep Indian language folders initially: `en_IN`, `hi_IN`, `bn_IN`, `kn_IN`,
-  and any future Indian locales chosen for launch.
-- Disable non-Indian country, currency, and tax choices by configuration first.
-- Avoid deleting upstream language and dictionary data until upgrade impact is
+- Default country India, currency INR, timezone Asia/Kolkata.
+- Language selection restricted to `en_IN`, `en_US`, and Indian locales.
+- Non-Indian country, currency, and tax choices disabled by configuration.
+- Upstream language and dictionary data retained until upgrade impact is
   tested.
 
-## Phase 3: GST and Accounting Direction
+## Phase 3: GST and Accounting Direction — DONE
 
-- Replace VAT-facing user journeys with GST terminology and India-specific tax
-  setup where possible.
-- Treat Dolibarr `tva_*` storage as legacy compatibility fields; ESTI UI and
-  documents must call the tax system GST.
-- Enable CGST, SGST, and IGST in the ESTI default profile using India tax
-  dictionary rows.
-- Model GST rates, HSN/SAC codes, place of supply, CGST, SGST, IGST, cess, RCM,
-  TDS/TCS, and e-invoice/e-way-bill integration readiness.
-- Disable unsupported VAT and multi-currency modules for the ESTI default
-  profile. The multi-currency descriptor is removed from ESTI module discovery;
-  retained accounting storage must still be audited before deeper code removal.
-- Preserve upstream accounting compatibility until GST workflows are fully
-  tested with invoices, supplier bills, credit notes, and exports.
+- GST terminology and India-specific tax profile enabled in ESTI defaults.
+- Dolibarr `tva_*` storage treated as legacy compatibility; ESTI UI shows GST.
+- CGST, SGST, and IGST enabled using India tax dictionary rows.
+- Multi-currency disabled; INR is the only active currency for the first
+  release.
+- Upstream VAT and currency code retained until upgrade-safe removal is
+  planned.
 
-## Phase 4: Backend Profile And Construction Modules
+## Phase 4: Backend Profile And Construction Modules — In Progress
 
-- Keep the construction-only backend profile documented in
-  `docs/esti/BACKEND-PROFILE.md`.
-- Remove stale menus, permissions, search surfaces, dictionaries, and templates
-  for modules removed from ESTI discovery.
-- Keep generic products, services, projects, ECM, barcodes, multi-currency, and
-  subtotals unavailable in module administration. Replace them with ESTI
-  construction modules instead of re-enabling upstream descriptors.
-- Build ESTI construction modules under `htdocs/esti_*` or a consistent module
-  namespace, following Dolibarr modulebuilder structure.
-- Start with project/site metadata, estimation, BOQ, and rate analysis because
-  they define the core construction data model.
-- Add billing, labour, site-store, and purchase workflows after BOQ links are
-  stable.
-- Use Dolibarr hooks and CommonObject patterns before changing core classes.
+- Construction-only backend profile documented in `docs/esti/BACKEND-PROFILE.md`.
+- Stale menus and permissions for removed modules: pending audit.
+- `esti_dsrsor` — DSR/SOR library module: **operational**. Includes module
+  descriptor, SQL tables (master, version, item, import_batch, audit),
+  DsrItem class, DsrSorImport class, item list with full search/filter, item
+  card, import page with preview validation, admin setup, and live dashboard.
 
-## Phase 5: UI Redesign
+Next construction modules to build:
 
-- Introduce an ESTI Carbon-inspired theme with IBM blue, light mode, and dark
-  mode only.
-- Keep Dolibarr form and table semantics intact while redesigning CSS and
-  reusable UI templates.
-- Disable theme customization modules for the ESTI distribution profile.
-- Verify screens with real ERP workflows, not only dashboards.
+- `esti_projectsite` — first; defines project/site data model that all billing
+  and BOQ modules will reference.
+- `esti_rateanalysis` — rate buildup library.
+- `esti_estimation` — estimate header and line items.
+- `esti_boq` — bill of quantities.
+- `esti_billing`, `esti_labour`, `esti_sitestock`, `esti_purchase` — operations.
 
-## Phase 6: Containers and Install
+Use Dolibarr hooks and CommonObject patterns before changing core classes. All
+new database tables use the `llx_` prefix and store entity for multi-company.
 
-- Add Podman Compose runtime for app, database, and optional admin tools.
-- Provide one-command development startup.
-- Add initialization scripts for default ESTI configuration after Dolibarr
-  install completes.
-- Include upgrade and backup documentation before public test releases.
+## Phase 5: UI Redesign — In Progress
 
-## Phase 7: Release Hardening
+- ESTI Carbon-inspired theme operational: IBM blue, light/dark mode, Carbon
+  icon substitution for all FA icons, IBM Plex typography.
+- React shell at `/estiui/` shows live module-card dashboard with status
+  indicators (Available / In Design / Planned) and live link to DSR/SOR.
+- Remaining workflow screens will be migrated to Carbon/React one module at a
+  time after PHP scaffolds are functional and permission-safe.
+- Theme customization modules remain disabled in the ESTI distribution profile.
+
+## Phase 6: Containers and Install — Partial
+
+- Podman Compose runtime in place: app, database, and admin tools.
+- One-command start/stop scripts (`containers/start-dev.ps1`, `stop-dev.ps1`).
+- Post-install ESTI defaults script (`containers/apply-esti-defaults.php`).
+- Upgrade and backup documentation: **pending**.
+
+## Phase 7: Release Hardening — Not Started
 
 - Run creation, edit, delete, permissions, and multi-entity validation for all
   ESTI modules.
 - Add PHPUnit coverage for construction object classes and GST calculations.
 - Document upgrade path from upstream Dolibarr and from earlier ESTI versions.
 - Publish GPL source, container image metadata, changelog, and security policy.
-- Publish ESTI releases and changelogs from the ESTI GitHub repository, not from
-  upstream Dolibarr release feeds.
+- Publish ESTI releases and changelogs from the ESTI GitHub repository.
 
 ## Non-Goals For The First Release
 
