@@ -15,10 +15,19 @@ https://github.com/HolagundiWorks/esti
 - Replace public-facing product links with ESTI repository links.
 - Disable the remote module marketplace and upstream module feeds in the ESTI
   runtime before deleting dormant compatibility code.
+- Remove non-construction module descriptors from backend discovery after a
+  compatibility review.
 - Keep upstream compatibility notes for engineering only, so security patches can
   be reviewed and merged without confusing ESTI users.
 - Finish Podman development runtime, installer defaults, and post-install ESTI
   defaults.
+
+Current status: the ESTI backend profile removes the module descriptors for CRM,
+proposals, orders, stock/warehouse, POS, ecommerce, subscriptions, donations,
+members, HR, recruitment, expenses, MRP, helpdesk, email campaigns, surveys,
+shipping, events, interventions, and knowledge base. Legacy routes now return
+`410 Gone`; retained source directories are compatibility boundaries until hard
+includes, menus, permissions, and upgrade paths are audited.
 
 ## 1. India Operating Baseline
 
@@ -64,6 +73,8 @@ https://github.com/HolagundiWorks/esti
   logs for every ESTI module.
 - Review dormant upstream marketplace source for deletion only after installer,
   module deployment, upgrade, and security checks pass.
+- Continue pruning stale menus, permissions, dictionaries, API surfaces, and
+  document templates for modules already removed from ESTI discovery.
 - Add PHPUnit coverage for construction object classes and GST calculations.
 - Publish release notes, source code, container metadata, security policy, and
   migration notes from the ESTI repository.

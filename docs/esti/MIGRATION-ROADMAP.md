@@ -13,6 +13,9 @@
   compatibility references.
 - Disable the remote module marketplace and upstream module feeds as the first
   backend strip-down step.
+- Remove non-construction module descriptors from backend discovery and block
+  their legacy routes after confirming the app still installs, boots, and opens
+  module administration.
 - Run the upstream installer in a local Podman environment before functional
   changes begin.
 
@@ -49,14 +52,18 @@
 - Preserve upstream accounting compatibility until GST workflows are fully
   tested with invoices, supplier bills, credit notes, and exports.
 
-## Phase 4: Construction Modules
+## Phase 4: Backend Profile And Construction Modules
 
+- Keep the construction-only backend profile documented in
+  `docs/esti/BACKEND-PROFILE.md`.
+- Remove stale menus, permissions, search surfaces, dictionaries, and templates
+  for modules removed from ESTI discovery.
 - Build ESTI construction modules under `htdocs/esti_*` or a consistent module
   namespace, following Dolibarr modulebuilder structure.
 - Start with estimation, BOQ, and rate analysis because they define the core
   construction data model.
-- Add billing, labour, stock/site store, and purchase workflows after BOQ links
-  are stable.
+- Add billing, labour, site-store, and purchase workflows after BOQ links are
+  stable.
 - Use Dolibarr hooks and CommonObject patterns before changing core classes.
 
 ## Phase 5: UI Redesign
@@ -88,7 +95,8 @@
 
 ## Non-Goals For The First Release
 
-- Massive deletion of upstream modules before compatibility testing.
+- Physical deletion of retained upstream compatibility directories before hard
+  includes, upgrade scripts, menus, permissions, and APIs are audited.
 - Remote marketplace installation in the ESTI distribution profile.
 - Proprietary relicensing of Dolibarr-derived code.
 - Global ERP support for all countries.

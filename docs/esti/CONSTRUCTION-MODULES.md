@@ -57,7 +57,9 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 
 - Site-wise stock, material issue, return, transfer, wastage, and reconciliation.
 - Link material consumption to BOQ and work package.
-- Preserve Dolibarr stock compatibility where possible.
+- Implement this as an ESTI construction site-store module. The generic upstream
+  stock/warehouse module descriptor is removed from ESTI discovery and must not
+  be re-enabled as the primary workflow.
 
 ### Purchase Orders
 
@@ -81,6 +83,6 @@ hooks, `CommonObject`, and Dolibarr database APIs before modifying core code.
 3. Estimation.
 4. BOQ.
 5. Billing.
-6. Purchase and site stock links.
+6. Purchase and site-store links.
 7. Labour team management.
 8. GST reporting exports.
