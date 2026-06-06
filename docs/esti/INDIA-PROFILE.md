@@ -105,6 +105,60 @@ The fee-proposal and invoice line picks the SAC per the work type; default
 - Payment/receipt reconciliation against bank statement imports.
 - All owned by the **reconcile module**.
 
+## COA — Scale of Charges, Conditions of Engagement, Conduct
+
+ESTI benchmarks fees against the Council of Architecture (COA) scale and follows
+its Conditions of Engagement. The rates below are **effective-dated reference
+data** (encoded in `@esti/contracts` `coa.ts`); the COA scale is revised
+periodically — verify against the current official COA circular before relying on
+it for billing.
+
+### Scale of charges (minimum professional fee, % of *cost of works*, excluding land)
+
+| Work category | Min % |
+|---|---|
+| Individual / independent house | 7.5 |
+| Single-block housing (≤0.5 ha) | 5.0 |
+| Group housing (0.5–2.5 / 2.5–5 / >5 ha) | 3.5 / 2.5 / 2.0 |
+| All non-housing | 5.0 |
+| Interiors / conservation / landscape | 7.5 |
+| Urban design / renewal | 1.0 |
+| Site development | 2.5 |
+| Repeated design (same campus / different site) | 2.5 / 3.5 |
+
+- The fee % is on the **cost of works** (construction) — land is excluded.
+- **Documentation & Communication @ 10%** of the professional fee (all stages).
+- **Contractor payment-certificate verification @ 1%** of cost (optional).
+- A fee **below the COA minimum** for its category is a compliance risk; ESTI
+  warns and records an audited override rather than hard-blocking.
+
+### Conditions of Engagement — stages & cumulative payment schedule
+
+| # | Stage | Cumulative % |
+|---|---|---|
+| 1 | Client's brief (retainer) | 5 |
+| 2 | Concept design | 10 |
+| 3 | Preliminary design & estimate | 20 |
+| 4 | Drawings for statutory approvals | 35 |
+| 5 | Working drawings & tender documents | 45 |
+| 6 | Appointment of contractors | 55 |
+| 7 | Construction / site supervision | 90 |
+| 8 | Completion | 100 |
+
+Phase-linked invoicing uses these milestones; the default phase plan is derived
+from this schedule. Topographical survey and soil tests are client-borne, not
+part of the professional fee.
+
+### Professional Conduct (Regulations, 1989)
+
+- The COA registration number and architect name appear on every drawing, fee
+  proposal, invoice, and certificate.
+- No advertising of services beyond the narrow permitted exceptions.
+- Do not solicit or accept a commission another architect holds without written
+  notice and termination — ESTI prompts a conflict-of-interest check on
+  enquiry→project conversion.
+- No trade commissions or discounts from suppliers/contractors.
+
 ## Explicitly Out of Scope
 
 - **e-Way bill** — not applicable (pure professional services, no goods movement).

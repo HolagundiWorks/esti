@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { coaStagePlan } from "./coa.js";
 
 export const ProjectType = z.enum([
   "RESIDENTIAL",
@@ -13,28 +14,25 @@ export const Jurisdiction = z.enum(["BBMP", "BDA", "PANCHAYAT", "HMDA", "CMDA", 
 
 export const ProjectStatus = z.enum(["ENQUIRY", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]);
 
+// Phases follow COA's Conditions of Engagement stages (see coa.ts / INDIA-PROFILE).
 export const PhaseCode = z.enum([
+  "BRIEF",
   "CONCEPT",
-  "SD",
-  "DD",
-  "WD",
-  "PERMIT",
-  "TENDER",
-  "EXECUTION",
+  "PRELIMINARY",
+  "APPROVALS",
+  "WORKING_TENDER",
+  "CONTRACTOR",
+  "CONSTRUCTION",
   "COMPLETION",
 ]);
+export type PhaseCode = z.infer<typeof PhaseCode>;
 
-/** Default HCW phase plan with typical billing percentages. */
-export const DEFAULT_PHASE_PLAN = [
-  { code: "CONCEPT", label: "Concept design", billingPct: 10 },
-  { code: "SD", label: "Schematic design", billingPct: 10 },
-  { code: "DD", label: "Design development", billingPct: 15 },
-  { code: "WD", label: "Working drawings", billingPct: 25 },
-  { code: "PERMIT", label: "Permit drawings & submission", billingPct: 15 },
-  { code: "TENDER", label: "Tender documents", billingPct: 10 },
-  { code: "EXECUTION", label: "Construction administration", billingPct: 10 },
-  { code: "COMPLETION", label: "As-built & completion", billingPct: 5 },
-] as const;
+/** Default phase plan = COA stages; `billingPct` is the per-stage share (sums to 100). */
+export const DEFAULT_PHASE_PLAN = coaStagePlan().map((s) => ({
+  code: s.code,
+  label: s.label,
+  billingPct: s.stagePct,
+}));
 
 export const ProjectOfficeCreate = z.object({
   title: z.string().min(2).max(200),

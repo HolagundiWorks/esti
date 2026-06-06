@@ -36,20 +36,21 @@ handles DXF/PDF/imports.
 
 ## Project Phases
 
-Standard HCW phase sequence (editable per project), stored in `esti_phase`
-linked to `esti_projectoffice` projects. Each phase carries status, planned/actual
-dates, a billing percentage, and a linked invoice.
+Phases follow the **COA Conditions of Engagement** stages (editable per project),
+stored in `esti_phase` linked to `esti_projectoffice` projects. Each phase carries
+status, planned/actual dates, a billing percentage, and a linked invoice. The
+cumulative payment schedule is in [INDIA-PROFILE](INDIA-PROFILE.md).
 
-| Code | Phase | Typical billing % |
+| Code | COA stage | Per-stage billing % |
 |---|---|---|
-| `CONCEPT` | Concept design | 10 |
-| `SD` | Schematic design | 10 |
-| `DD` | Design development | 15 |
-| `WD` | Working drawings | 25 |
-| `PERMIT` | Permit drawings & submission | 15 |
-| `TENDER` | Tender documents | 10 |
-| `EXECUTION` | Construction administration | 10 |
-| `COMPLETION` | As-built & completion | 5 |
+| `BRIEF` | Client's brief (retainer) | 5 |
+| `CONCEPT` | Concept design | 5 |
+| `PRELIMINARY` | Preliminary design & estimate | 10 |
+| `APPROVALS` | Drawings for statutory approvals | 15 |
+| `WORKING_TENDER` | Working drawings & tender documents | 10 |
+| `CONTRACTOR` | Appointment of contractors | 10 |
+| `CONSTRUCTION` | Construction / site supervision | 35 |
+| `COMPLETION` | Completion | 10 |
 
 Rendered in the SPA as a Carbon `ProgressIndicator`. Project type taxonomy
 (Residential / Commercial / Institutional / Site & Landscape / Interiors) and
@@ -93,12 +94,21 @@ write-once).
 
 ## COA Fee Proposals (`esti_feeproposal` + COA)
 
-The architect profile uses an architect-specific fee proposal workflow with a
-COA scale-of-charges calculator. The SPA shows the proposed fee against the
-Council of Architecture benchmark (e.g. "Billing at 87% of COA scale"). COA
-rates are user-editable in Settings (the published scale is dated and may be
-revised), held in `src/constants/coaRates.ts` as effective-dated data with a
-Settings override.
+Fee proposals benchmark against the **COA scale of charges** (encoded in
+`@esti/contracts` `coa.ts`; rates and rules in [INDIA-PROFILE](INDIA-PROFILE.md)):
+
+- The COA minimum is computed from **work category × cost of works**
+  (construction cost, excluding land); the SPA shows "Quoted at X% of the COA
+  minimum".
+- A quote **below the COA minimum** raises a compliance warning with an audited
+  override + reason — not a hard block.
+- **Documentation & Communication @ 10%** of the professional fee is a
+  first-class proposal/invoice line; optional **1% contractor-verification** and
+  advisory day-rate lines are supported.
+- Reimbursable expenses are itemised separately from the % fee; client-borne
+  items (topo survey, soil tests) are tracked as scope notes.
+- Lifecycle: draft → internal review → client submission → revised → approved
+  (locked); revisions create new versions with full audit history.
 
 ## Fee & Invoicing — GST / TDS (`esti_invoiceindia`)
 

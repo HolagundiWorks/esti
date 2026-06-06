@@ -1,3 +1,4 @@
+import "@fastify/cookie"; // loads the FastifyReply.setCookie type augmentation
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { db } from "../db/index.js";
 import { SESSION_COOKIE, userFromToken, type AuthUser } from "../auth/session.js";

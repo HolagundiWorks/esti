@@ -26,8 +26,8 @@ export const authRouter = router({
    * users (single-firm — see ARCHITECTURE ADR-03/ADR-04).
    */
   register: publicProcedure.input(RegisterInput).mutation(async ({ ctx, input }) => {
-    const [{ n }] = await ctx.db.select({ n: count() }).from(users);
-    const isFirst = Number(n) === 0;
+    const rows = await ctx.db.select({ n: count() }).from(users);
+    const isFirst = Number(rows[0]?.n ?? 0) === 0;
     if (!isFirst && ctx.user?.role !== "OWNER") {
       throw new TRPCError({ code: "FORBIDDEN", message: "Only the owner can add users" });
     }

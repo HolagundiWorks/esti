@@ -2,12 +2,16 @@ import {
   Content,
   Header,
   HeaderName,
+  Loading,
   SideNav,
   SideNavItems,
   SideNavLink,
 } from "@carbon/react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useAuth } from "./lib/auth.js";
+import { trpc } from "./lib/trpc.js";
 import { Dashboard } from "./routes/Dashboard.js";
+import { Login } from "./routes/Login.js";
 import { Projects } from "./routes/Projects.js";
 
 const NAV = [
@@ -16,7 +20,14 @@ const NAV = [
 ];
 
 export function App() {
+  const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
+  const utils = trpc.useUtils();
+  const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+
+  if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
+  if (!user) return <Login />;
+
   return (
     <>
       <Header aria-label="ESTI AORMS">
@@ -29,6 +40,9 @@ export function App() {
               {n.label}
             </SideNavLink>
           ))}
+          <SideNavLink as="button" type="button" onClick={() => logout.mutate()}>
+            Sign out ({user.email})
+          </SideNavLink>
         </SideNavItems>
       </SideNav>
       <Content>
