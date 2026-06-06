@@ -1,5 +1,9 @@
 # India Localization, GST, And TDS Direction
 
+> _Part of the [ESTI documentation set](README.md). Canonical source for
+> GST / TDS / India tax policy — other documents reference this rather than
+> restating tax rules._
+
 ## Localization Scope
 
 ESTI is an India-focused architecture office management platform. The default

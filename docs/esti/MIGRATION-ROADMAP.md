@@ -1,5 +1,10 @@
 # ESTI Migration Roadmap
 
+> _Part of the [ESTI documentation set](README.md). This covers the
+> **Dolibarr→ESTI fork migration** (strip-down, identity, India baseline,
+> backend profile, release hardening). For the forward product build order, see
+> [ROADMAP](ROADMAP.md)._
+
 ## Phase 0: Repository Baseline — DONE
 
 - Exact upstream Dolibarr version recorded as the fork base.

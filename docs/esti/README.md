@@ -1,36 +1,80 @@
-# ESTI Documentation Index
+# ESTI Documentation
 
 ESTI is the **ESTI Architect Platform**, developed by **Holagundi Consulting
-Works (HCW)** for Indian freelance architects and small architecture practices.
+Works (HCW)** — practice-management software for Indian freelance architects and
+small architecture offices, built as a fork of Dolibarr ERP (GPL-3.0-or-later).
 
 This directory is the source of truth for product, architecture, migration, and
-runtime planning. Keep documents aligned with the architect-office pivot:
-Dolibarr is the GPL upstream/backend base, Carbon React is the target product UI,
-and construction/costing features are supporting engines only.
+runtime planning.
 
-## Source-Of-Truth Documents
+## How this documentation is organised
 
-- [Architecture Office Platform](AEC-PLATFORM.md) — product positioning and
-  ownership.
-- [Architect Practice Profile](ARCHITECT-PROFILE.md) — modules, users, workflow
-  scope, and build order.
-- [Product Roadmap](ROADMAP.md) — release direction and non-goals.
-- [SPA Architecture](SPA-ARCHITECTURE.md) — API-only backend, Carbon React SPA,
-  viewer service, and Podman pod direction.
-- [Backend Profile](BACKEND-PROFILE.md) — retained/disabled backend surfaces and
-  replacement module direction.
-- [Migration Roadmap](MIGRATION-ROADMAP.md) — fork migration, backend profile,
-  UI migration, and release hardening.
+The set is layered. Read top-down; lower tiers assume the tiers above.
 
-## Supporting Policies
+| Tier | Changes | Documents |
+|---|---|---|
+| **1 — Vision** (why) | Rarely | [AEC-PLATFORM](AEC-PLATFORM.md) |
+| **2 — Specification** (what / how) | Per major decision | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md), [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) |
+| **3 — Plans** (when / in what order) | Every release | [ROADMAP](ROADMAP.md), [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) |
+| **4 — Reference & Policy** (rules) | Rarely | [BACKEND-PROFILE](BACKEND-PROFILE.md), [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md), [INDIA-LOCALIZATION-GST](INDIA-LOCALIZATION-GST.md), [PODMAN-RUNTIME](PODMAN-RUNTIME.md), [LICENSE-NOTICE](LICENSE-NOTICE.md) |
 
-- [Carbon UI Direction](CARBON-UI-DIRECTION.md)
-- [India Localization, GST, And TDS](INDIA-LOCALIZATION-GST.md)
-- [Podman Runtime Plan](PODMAN-RUNTIME.md)
-- [License and Notices](LICENSE-NOTICE.md)
+### Recommended reading order
 
-## Module-Level Reference
+1. [AEC-PLATFORM](AEC-PLATFORM.md) — what ESTI is, who it serves, who owns it.
+2. [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) — the modules, users, and workflows.
+3. [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) — API-only backend, Carbon React SPA,
+   viewer service, Podman pod, and the architecture decision records.
+4. [ROADMAP](ROADMAP.md) then [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) — the
+   forward build order and the Dolibarr→ESTI fork-migration phases.
+5. Reference & Policy docs as needed.
 
-Module-level implementation notes live with the module source. For example,
-`htdocs/esti_dsrsor/README.md` documents the retained DSR/SOR reference module
-used for BOQ, tender, and drawing takeoff support.
+## Single sources of truth (avoid duplication)
+
+To keep the set drift-free, each topic has exactly one canonical document. Other
+documents **link** to it rather than restating it.
+
+| Topic | Canonical document |
+|---|---|
+| Product positioning & ownership | [AEC-PLATFORM](AEC-PLATFORM.md) |
+| **Module registry** (names, bases, tables) | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) → *Module Map* |
+| Frontend stack & UI architecture | [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) |
+| UI design language (principles, components, tokens) | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) |
+| GST / TDS / India tax policy | [INDIA-LOCALIZATION-GST](INDIA-LOCALIZATION-GST.md) |
+| Removed / retained backend surfaces | [BACKEND-PROFILE](BACKEND-PROFILE.md) |
+| Dev/target container runtime | [PODMAN-RUNTIME](PODMAN-RUNTIME.md) (dev) + [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) (target pod) |
+| License, trademark, attribution | [LICENSE-NOTICE](LICENSE-NOTICE.md) |
+
+## Conventions
+
+- **Module / table naming:** backend modules under `htdocs/esti_*`; descriptors
+  `htdocs/core/modules/modEsti*.class.php`; tables `llx_esti_*`. Where a module
+  layers on a Dolibarr base, its name disambiguates from the base — canonical
+  names `esti_clientlog` and `esti_invoiceindia` (see
+  [AEC-PLATFORM § Naming Conventions](AEC-PLATFORM.md)).
+- **`hcw_` in source design docs** maps to `esti_` in this repository.
+- When you add a module, table, or endpoint, update the **canonical** document
+  for that topic (above) and link from anywhere else that mentions it.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| HCW | Holagundi Consulting Works — ESTI's developer |
+| SPA | Single-page application (the Carbon React front end) |
+| ADR | Architecture Decision Record |
+| COA | Council of Architecture (India) — fee scale of charges |
+| SAC / HSN | Service / Harmonised tax classification codes (SAC 998311 = architectural services) |
+| GST / CGST / SGST / IGST | Goods & Services Tax and its central/state/inter-state components |
+| TDS | Tax Deducted at Source (u/s 194J for professional fees) |
+| BPAS / RERA / OC / CC | Building Plan Approval System / Real Estate regulator / Occupancy / Completion Certificate |
+| Phase | Architect work stage: Concept, SD, DD, WD, Permit, Tender, Execution, Completion |
+| DXF | AutoCAD drawing exchange format (input to the takeoff viewer) |
+| Takeoff | Measuring quantities off a drawing into BOQ / fee lines |
+| DSR / SOR | (CPWD) Schedule of Rates — retained reference/costing engine |
+| BOQ | Bill of Quantities — costing support, rebuilt only when takeoff needs it |
+
+## Module-level reference
+
+Implementation notes live with the module source, e.g.
+[`htdocs/esti_dsrsor/README.md`](../../htdocs/esti_dsrsor/README.md) documents the
+retained DSR/SOR reference module used for BOQ, tender, and takeoff support.

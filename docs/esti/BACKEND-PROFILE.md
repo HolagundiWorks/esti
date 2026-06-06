@@ -1,5 +1,9 @@
 # ESTI Backend Profile
 
+> _Part of the [ESTI documentation set](README.md). Canonical source for which
+> Dolibarr surfaces are removed vs retained. The architect module registry lives
+> in the [Module Map](ARCHITECT-PROFILE.md)._
+
 ESTI is no longer a general-purpose Dolibarr distribution. The backend profile is
 being reduced to the modules needed for Indian freelance architects and small
 architecture offices, with new ESTI architect-office modules replacing broad
@@ -64,25 +68,17 @@ permissions, search entries, dictionary rows, and document templates.
 
 ## Replacement Direction
 
-ESTI should replace removed generic modules with architect-office modules:
+Removed generic modules are replaced by architect-office modules. The canonical
+list — module names, Dolibarr bases, and tables — is the **Module Map** in
+[ARCHITECT-PROFILE](ARCHITECT-PROFILE.md). Do not maintain a second copy here.
 
-- `esti_projectoffice` — architecture projects, project type, jurisdiction,
-  client, phase plan, billing percentage, and office status.
-- `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion.
-- `esti_feeproposal` — COA benchmark, scope, deliverables, exclusions,
-  revisions, client approval, and proposal output.
-- `esti_invoiceindia` — phase-linked invoices, GST, SAC, TDS, receipts, and
-  accountant exports.
-- `esti_permit` and `esti_bylaw` — statutory approval tracking and quick
-  reference rules.
-- `esti_drawing`, `esti_approval`, and `esti_takeoff` — drawing register,
-  revision/issue log, client/authority approvals, and measured quantities.
-- `esti_collaborator` — consultant scope, fee, payments, balance, and access.
-- `esti_dsrsor` — retained supporting reference/costing engine for tender,
+For this document the relevant facts are:
+
+- `esti_dsrsor` is retained as a supporting reference/costing engine for tender,
   quantity, and takeoff workflows.
-- Future architect-office BOQ/takeoff support should be rebuilt against
-  `esti_projectoffice`, `esti_feeproposal`, `esti_drawing`, and
-  `esti_takeoff`, not the removed contractor BOQ module.
+- Future architect BOQ/takeoff support is rebuilt against `esti_projectoffice`,
+  `esti_feeproposal`, `esti_drawing`, and `esti_takeoff` — not the removed
+  contractor BOQ module.
 
 Do not re-enable generic upstream projects, products, ECM UI, stock, purchase,
 or CRM modules as the primary user workflow. Where Dolibarr base tables are

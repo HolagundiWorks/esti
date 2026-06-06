@@ -1,5 +1,8 @@
 # ESTI License and Notice Policy
 
+> _Part of the [ESTI documentation set](README.md). Canonical source for
+> license, trademark, and attribution policy._
+
 ## Current Upstream License
 
 This repository contains Dolibarr ERP & CRM. The upstream project is licensed as

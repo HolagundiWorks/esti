@@ -1,5 +1,10 @@
 # ESTI Architect Platform Roadmap
 
+> _Part of the [ESTI documentation set](README.md). This is the **forward
+> product build** plan. For the Dolibarr→ESTI fork-migration phases, see
+> [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md); for what the modules are, see the
+> [Module Map](ARCHITECT-PROFILE.md)._
+
 This roadmap is the public ESTI direction after the product pivot to an Indian
 architecture office management platform developed by **Holagundi Consulting
 Works (HCW)**.
