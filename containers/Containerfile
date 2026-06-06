@@ -1,7 +1,7 @@
 FROM docker.io/library/php:8.2-apache
 
-LABEL org.opencontainers.image.title="ESTI ERP development runtime"
-LABEL org.opencontainers.image.description="Development container for ESTI ERP, a GPL fork based on Dolibarr ERP & CRM"
+LABEL org.opencontainers.image.title="ESTI Architect Platform development runtime"
+LABEL org.opencontainers.image.description="Development container for ESTI Architect Platform, a GPL fork based on Dolibarr ERP & CRM"
 LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 ARG DEBIAN_FRONTEND=noninteractive

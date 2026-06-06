@@ -1,5 +1,5 @@
 <?php
-/* ESTI ERP development installer defaults.
+/* ESTI Architect Platform development installer defaults.
  *
  * This file is copied into htdocs/install/install.forced.php by the
  * development container. It must not be used for production secrets.
@@ -8,7 +8,7 @@
 $force_install_distrib = 'custom';
 $force_install_nophpinfo = true;
 $force_install_noedit = 2;
-$force_install_message = 'Welcome to your ESTI ERP development install.';
+$force_install_message = 'Welcome to your ESTI Architect Platform development install.';
 
 $force_install_main_data_root = '/var/www/documents';
 $force_install_mainforcehttps = false;

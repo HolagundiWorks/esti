@@ -1,12 +1,12 @@
 # ESTI DSR/SOR translations
 
 ModuleEstiDsrSorName=ESTI DSR/SOR
-ModuleEstiDsrSorDesc=Indian construction DSR/SOR schedule library for ESTI ERP
+ModuleEstiDsrSorDesc=Indian DSR/SOR schedule library for ESTI Architect Platform costing support
 EstiDsrSorArea=ESTI DSR/SOR
 EstiDsrSorSetup=ESTI DSR/SOR setup
 DsrSorLibrary=DSR/SOR Library
 DsrSorDashboardIntro=Manage CPWD DSR, State PWD SOR, Irrigation, NHAI, and MES schedule items with year-wise rates.
-DsrSorNextWorkflows=Next workflows: Excel import, year-wise comparison, historical rates, BOQ linking, and rate analysis templates.
+DsrSorNextWorkflows=Next workflows: year-wise comparison, historical rates, BOQ support, and drawing takeoff support.
 OpenDsrSorLibrary=Open library
 NextWorkflows=Next workflows
 TotalItems=Total items

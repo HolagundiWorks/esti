@@ -10,7 +10,7 @@
 /**
  * \file        htdocs/estiui/index.php
  * \ingroup     estiui
- * \brief       React/Carbon workspace shell for ESTI ERP.
+ * \brief       React/Carbon workspace shell for ESTI Architect Platform.
  */
 
 // Load Dolibarr environment.
@@ -45,22 +45,21 @@ llxHeader('', $title, '', '', 0, 0, $scripts, $css);
 
 $cards = array(
 	array('key' => 'dsrSor', 'pictogram' => 'analytics', 'icon' => 'catalog', 'label' => $langs->trans('DsrSorLibrary'), 'description' => $langs->trans('DsrSorLibraryDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_dsrsor/index.php'),
-	array('key' => 'projectSite', 'pictogram' => 'building', 'icon' => 'building', 'label' => $langs->trans('ProjectSite'), 'description' => $langs->trans('ProjectSiteDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_projectsite/index.php'),
-	array('key' => 'rateAnalysis', 'pictogram' => 'chart--bar', 'icon' => 'calculator', 'label' => $langs->trans('RateAnalysis'), 'description' => $langs->trans('RateAnalysisDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_rateanalysis/index.php'),
-	array('key' => 'estimation', 'pictogram' => 'build', 'icon' => 'ruler', 'label' => $langs->trans('Estimation'), 'description' => $langs->trans('EstimationDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_estimation/index.php'),
-	array('key' => 'boq', 'pictogram' => 'document--conversion', 'icon' => 'document--tasks', 'label' => $langs->trans('BOQ'), 'description' => $langs->trans('BOQDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_boq/index.php'),
-	array('key' => 'billing', 'pictogram' => 'invoice', 'icon' => 'receipt', 'label' => $langs->trans('Billing'), 'description' => $langs->trans('BillingDescription'), 'status' => $langs->trans('Available'), 'statusKey' => 'available', 'url' => DOL_URL_ROOT.'/esti_billing/index.php'),
-	array('key' => 'labour', 'pictogram' => 'construction-worker', 'icon' => 'user--multiple', 'label' => $langs->trans('LabourTeams'), 'description' => $langs->trans('LabourTeamsDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
-	array('key' => 'stock', 'pictogram' => 'data--store', 'icon' => 'inventory-management', 'label' => $langs->trans('Stock'), 'description' => $langs->trans('StockDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
-	array('key' => 'purchase', 'pictogram' => 'shopping--cart', 'icon' => 'purchase', 'label' => $langs->trans('PurchaseOrders'), 'description' => $langs->trans('PurchaseOrdersDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
-	array('key' => 'gst', 'pictogram' => 'global--currency', 'icon' => 'currency', 'label' => $langs->trans('GST'), 'description' => $langs->trans('GSTDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'projectOffice', 'pictogram' => 'building', 'icon' => 'building', 'label' => $langs->trans('ProjectOffice'), 'description' => $langs->trans('ProjectOfficeDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'feeProposal', 'pictogram' => 'document--tasks', 'icon' => 'document--tasks', 'label' => $langs->trans('FeeProposal'), 'description' => $langs->trans('FeeProposalDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'invoices', 'pictogram' => 'invoice', 'icon' => 'receipt', 'label' => $langs->trans('Invoices'), 'description' => $langs->trans('InvoicesDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'permits', 'pictogram' => 'security', 'icon' => 'certificate', 'label' => $langs->trans('Permits'), 'description' => $langs->trans('PermitsDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'drawings', 'pictogram' => 'document--conversion', 'icon' => 'document', 'label' => $langs->trans('Drawings'), 'description' => $langs->trans('DrawingsDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'consultants', 'pictogram' => 'collaborate', 'icon' => 'user--multiple', 'label' => $langs->trans('Consultants'), 'description' => $langs->trans('ConsultantsDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'clientPortal', 'pictogram' => 'user--avatar', 'icon' => 'user--avatar', 'label' => $langs->trans('ClientPortal'), 'description' => $langs->trans('ClientPortalDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
+	array('key' => 'takeoff', 'pictogram' => 'chart--relationship', 'icon' => 'ruler', 'label' => $langs->trans('DrawingTakeoff'), 'description' => $langs->trans('DrawingTakeoffDescription'), 'status' => $langs->trans('Planned'), 'statusKey' => 'planned'),
 );
 
 $context = array(
 	'appName' => $langs->trans('EstiWorkspace'),
-	'headline' => $langs->trans('ConstructionWorkspace'),
+	'headline' => $langs->trans('ArchitectWorkspace'),
 	'eyebrow' => $langs->trans('ReactCarbonShell'),
-	'summary' => $langs->trans('ConstructionWorkspaceSummary'),
+	'summary' => $langs->trans('ArchitectWorkspaceSummary'),
 	'userName' => isset($user->firstname) && $user->firstname ? $user->firstname : $user->login,
 	'entity' => (int) $conf->entity,
 	'cards' => $cards,

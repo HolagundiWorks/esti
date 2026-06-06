@@ -6,6 +6,8 @@ ESTI ChangeLog
 
 For users:
 ----------
+NEW: #0 Remove obsolete contractor-first ESTI modules from the architect
+platform profile.
 NEW: #0 Clean up duplicate and superseded documentation after the ESTI Architect
 Platform pivot.
 NEW: #0 Pivot ESTI documentation to the ESTI Architect Platform for Indian
@@ -27,6 +29,11 @@ barcode, multi-currency, and subtotals routes.
 
 For developers:
 ---------------
+NEW: #0 Delete superseded `esti_billing`, `esti_boq`, `esti_estimation`,
+`esti_projectsite`, and `esti_rateanalysis` modules and descriptors; keep
+`esti_dsrsor` as the retained reference/costing module.
+NEW: #0 Remove supplier order, supplier proposal, and reception activation
+descriptors from the architect-platform backend profile.
 NEW: #0 Remove obsolete contractor-reference and duplicate React roadmap docs in
 favour of the `docs/esti` source-of-truth set.
 NEW: #0 Document architect-office backend, Carbon React, drawing, permit, fee

@@ -84,7 +84,7 @@ function estiEnableModule($className, $classFile, $constName)
 		return;
 	}
 
-	estiSetConst($constName, '1', 'Enabled by ESTI construction ERP default profile');
+	estiSetConst($constName, '1', 'Enabled by ESTI architect-office default profile');
 }
 
 $constTable = MAIN_DB_PREFIX.'const';
@@ -94,7 +94,7 @@ if (!$resql) {
 	exit(1);
 }
 
-estiSetConst('MAIN_APPLICATION_TITLE', 'ESTI ERP', 'ESTI default application title');
+estiSetConst('MAIN_APPLICATION_TITLE', 'ESTI Architect Platform', 'ESTI default application title');
 estiSetConst('MAIN_LANG_DEFAULT', 'en_IN', 'ESTI default language');
 estiSetConst('MAIN_LANGUAGES_ALLOWED', 'en_IN,hi_IN,bn_IN,kn_IN,ta_IN', 'ESTI supported Indian languages');
 estiSetConst('MAIN_MONNAIE', 'INR', 'ESTI default currency');
@@ -143,6 +143,11 @@ $removedModules = array(
 	'MAIN_MODULE_DEPLACEMENT',
 	'MAIN_MODULE_DON',
 	'MAIN_MODULE_ECM',
+	'MAIN_MODULE_ESTIBILLING',
+	'MAIN_MODULE_ESTIBOQ',
+	'MAIN_MODULE_ESTIESTIMATION',
+	'MAIN_MODULE_ESTIPROJECTSITE',
+	'MAIN_MODULE_ESTIRATEANALYSIS',
 	'MAIN_MODULE_EVENTORGANIZATION',
 	'MAIN_MODULE_EXPEDITION',
 	'MAIN_MODULE_EXPENSEREPORT',
@@ -162,12 +167,17 @@ $removedModules = array(
 	'MAIN_MODULE_PROJET',
 	'MAIN_MODULE_RECRUITMENT',
 	'MAIN_MODULE_RESOURCE',
+	'MAIN_MODULE_RECEPTION',
 	'MAIN_MODULE_SALARIES',
 	'MAIN_MODULE_SERVICE',
 	'MAIN_MODULE_STOCK',
 	'MAIN_MODULE_STOCKTRANSFER',
 	'MAIN_MODULE_SUBTOTAL',
 	'MAIN_MODULE_SUBTOTALS',
+	'MAIN_MODULE_SUPPLIERORDER',
+	'MAIN_MODULE_SUPPLIER_ORDER',
+	'MAIN_MODULE_SUPPLIERPROPOSAL',
+	'MAIN_MODULE_SUPPLIER_PROPOSAL',
 	'MAIN_MODULE_TAKEPOS',
 	'MAIN_MODULE_TICKET',
 	'MAIN_MODULE_MULTICURRENCY',
@@ -178,7 +188,7 @@ $removedModules = array(
 
 foreach ($removedModules as $removedModuleConst) {
 	estiDeleteConst($removedModuleConst);
-	estiSetConst($removedModuleConst, '0', 'Removed from ESTI construction ERP backend profile');
+	estiSetConst($removedModuleConst, '0', 'Removed from ESTI architect-office backend profile');
 }
 
 $removedExternalModules = array(
@@ -190,6 +200,11 @@ $removedExternalModules = array(
 	'deplacement',
 	'don',
 	'ecm',
+	'esti_billing',
+	'esti_boq',
+	'esti_estimation',
+	'esti_projectsite',
+	'esti_rateanalysis',
 	'eventorganization',
 	'expedition',
 	'expensereport',
@@ -207,6 +222,7 @@ $removedExternalModules = array(
 	'produit',
 	'project',
 	'projet',
+	'reception',
 	'recruitment',
 	'resource',
 	'salaries',
@@ -215,6 +231,10 @@ $removedExternalModules = array(
 	'stocktransfer',
 	'subtotal',
 	'subtotals',
+	'supplierorder',
+	'supplier_order',
+	'supplierproposal',
+	'supplier_proposal',
 	'takepos',
 	'ticket',
 	'multicurrency',

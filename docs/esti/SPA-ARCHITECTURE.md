@@ -40,11 +40,12 @@ or bespoke component frameworks. Icons from `@carbon/icons-react`; charts from
 `@carbon/charts-react`.
 
 **Rationale.** Carbon is built for data-dense enterprise UIs — the DataTables,
-multi-step forms, side panels, and notifications that BOQ, billing, fee, and
-permit screens need. The token system lets a small team produce a coherent UI
-without a dedicated designer. This supersedes the earlier "CSS-and-theme-first,
-avoid Carbon packages" guidance in [Carbon UI Direction](CARBON-UI-DIRECTION.md),
-which described the interim embedded-theme phase.
+multi-step forms, side panels, and notifications that fee proposal, invoice,
+drawing, permit, consultant, and takeoff screens need. The token system lets a
+small team produce a coherent UI without a dedicated designer. This supersedes
+the earlier "CSS-and-theme-first, avoid Carbon packages" guidance in
+[Carbon UI Direction](CARBON-UI-DIRECTION.md), which described the interim
+embedded-theme phase.
 
 **Consequences.** Use `@carbon/themes` tokens, not raw hex. Layout via Carbon
 `Grid`/`Column`/`Row`. Keep the existing ESTI blue/IBM-blue token layer as Carbon
@@ -52,11 +53,11 @@ theme overrides.
 
 ### ADR-ESTI-03: Fee proposal is the migration anchor
 
-**Decision.** Migrate the estimation experience to Carbon React first — it
-validates the Dolibarr/ESTI API ↔ React data flow end to end before any other
-screen is built. The first product workflow is the architect fee proposal:
-scope, deliverables, exclusions, COA benchmark, revision history, client
-approval, and phase-linked billing.
+**Decision.** Migrate the architect fee proposal experience to Carbon React
+first — it validates the Dolibarr/ESTI API ↔ React data flow end to end before
+any other screen is built. The first product workflow is scope, deliverables,
+exclusions, COA benchmark, revision history, client approval, and phase-linked
+billing.
 
 ### ADR-ESTI-04: DXF rendering via a Node.js conversion service → SVG
 
@@ -202,6 +203,8 @@ esti/
   htdocs/                         Dolibarr + esti_* backend modules (API-only)
     esti_dsrsor/ ...              reference/costing support modules
     esti_projectoffice/           architect-office project modules
+    esti_feeproposal/             fee proposal and COA benchmark modules
+    esti_invoiceindia/            GST/TDS invoice support modules
     esti_permit/ esti_drawing/    drawing and compliance modules
     ...
   containers/
@@ -211,8 +214,8 @@ esti/
     src/
       api/        client.js, queryKeys.js
       layouts/    AppShell.jsx, PortalShell.jsx
-      modules/    estimation/ projects/ boq/ billing/ permits/ drawings/
-                  consultants/ dashboard/ takeoff/
+      modules/    feeproposals/ projects/ invoices/ permits/ drawings/
+                  consultants/ dashboard/ takeoff/ portal/
       store/      authStore.js, takeoffStore.js, uiStore.js
       utils/      gst.js, coaFee.js, formatCurrency.js
       constants/  permitTypes.js, projectPhases.js, disciplines.js, coaRates.js

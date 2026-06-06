@@ -15,7 +15,8 @@ The following upstream module descriptors have been removed from
 - Product management: generic products, services, product variants, product
   batches, and barcodes.
 - Projects and collaboration: generic projects and shared resources.
-- Logistics and stock: stock, warehouse, stock transfer, and shipping.
+- Logistics and stock: stock, warehouse, stock transfer, shipping, receptions,
+  supplier price requests, and supplier purchase orders.
 - Retail and online commerce: POS/TakePOS, ecommerce/website.
 - Non-construction operations: donations, events, interventions, surveys,
   helpdesk/tickets, knowledge base, email campaigns, and generic ECM.
@@ -77,8 +78,11 @@ ESTI should replace removed generic modules with architect-office modules:
 - `esti_drawing`, `esti_approval`, and `esti_takeoff` — drawing register,
   revision/issue log, client/authority approvals, and measured quantities.
 - `esti_collaborator` — consultant scope, fee, payments, balance, and access.
-- `esti_dsrsor` and `esti_boq` — supporting reference/costing engines for
-  tender, quantity, and takeoff workflows.
+- `esti_dsrsor` — retained supporting reference/costing engine for tender,
+  quantity, and takeoff workflows.
+- Future architect-office BOQ/takeoff support should be rebuilt against
+  `esti_projectoffice`, `esti_feeproposal`, `esti_drawing`, and
+  `esti_takeoff`, not the removed contractor BOQ module.
 
 Do not re-enable generic upstream projects, products, ECM UI, stock, purchase,
 or CRM modules as the primary user workflow. Where Dolibarr base tables are

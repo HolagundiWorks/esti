@@ -29,11 +29,11 @@ health.
 - DXF/PDF drawing viewer and takeoff tools that support BOQ or fee proposal
   quantities.
 
-Construction estimating features such as DSR/SOR and BOQ are retained as
-supporting reference/costing engines for architecture workflows. Contractor
-operations such as labour teams, site stock, warehouse workflows, purchase
-orders, GRN, RA billing, and measurement book certification are not first-release
-goals.
+DSR/SOR is retained as a supporting reference/costing engine for architecture
+workflows. Future BOQ/takeoff support will be rebuilt for architect workflows.
+Contractor operations such as labour teams, site stock, warehouse workflows,
+purchase orders, GRN, RA billing, and measurement book certification are not
+first-release goals.
 
 ## India-First Direction
 

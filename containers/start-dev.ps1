@@ -84,7 +84,7 @@ if ($WithAdminer) {
 		docker.io/library/adminer:4
 }
 
-Write-Host "ESTI ERP installer: http://localhost:$HttpPort/install/"
+Write-Host "ESTI Architect Platform installer: http://localhost:$HttpPort/install/"
 if ($WithAdminer) {
 	Write-Host "Adminer: http://localhost:$AdminerPort"
 }
