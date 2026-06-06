@@ -13,6 +13,7 @@ import { trpc } from "./lib/trpc.js";
 import { Clients } from "./routes/Clients.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
+import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 
 const NAV = [
@@ -51,6 +52,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

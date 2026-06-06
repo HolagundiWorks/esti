@@ -1,6 +1,7 @@
 import { GST_RATES, SAC_CODES } from "@esti/contracts";
 import { authRouter } from "../modules/auth/router.js";
 import { clientRouter } from "../modules/clientlog/router.js";
+import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
@@ -18,6 +19,7 @@ export const appRouter = router({
   auth: authRouter,
   clients: clientRouter,
   projectOffice: projectOfficeRouter,
+  phases: phaseRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

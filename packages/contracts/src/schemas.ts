@@ -90,3 +90,22 @@ export const Client = ClientCreate.extend({
   createdAt: z.string().datetime(),
 });
 export type Client = z.infer<typeof Client>;
+
+// --- Phases (esti_phase) ---
+
+export const PhaseStatus = z.enum([
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "CLIENT_REVIEW",
+  "APPROVED",
+  "COMPLETE",
+]);
+export type PhaseStatus = z.infer<typeof PhaseStatus>;
+
+export const PhaseUpdate = z.object({
+  id: z.string().uuid(),
+  status: PhaseStatus.optional(),
+  datePlanned: z.string().date().nullish(),
+  dateActual: z.string().date().nullish(),
+});
+export type PhaseUpdate = z.infer<typeof PhaseUpdate>;

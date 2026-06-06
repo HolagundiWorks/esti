@@ -17,6 +17,7 @@ import {
 } from "@carbon/react";
 import { Jurisdiction, ProjectType, formatINR } from "@esti/contracts";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
 const headers = [
@@ -51,7 +52,7 @@ export function Projects() {
   const rows =
     list.data?.map((p) => ({
       id: p.id,
-      ref: p.ref,
+      ref: <Link to={`/projects/${p.id}`}>{p.ref}</Link>,
       title: p.title,
       projectType: p.projectType,
       status: p.status,

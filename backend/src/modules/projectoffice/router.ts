@@ -1,7 +1,7 @@
-import { ListParams, ProjectOfficeCreate } from "@esti/contracts";
+import { ListParams, ProjectOfficeCreate, coaStagePlan } from "@esti/contracts";
 import { desc, eq, ilike } from "drizzle-orm";
 import { z } from "zod";
-import { projectOffices } from "../../db/schema.js";
+import { phases, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -25,23 +25,36 @@ export const projectOfficeRouter = router({
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
     const { ref } = await nextRef(ctx.db, "projectoffice", "PRJ");
-    const [row] = await ctx.db
-      .insert(projectOffices)
-      .values({
-        ref,
-        title: input.title,
-        projectType: input.projectType,
-        jurisdiction: input.jurisdiction,
-        clientId: input.clientId ?? null,
-        state: input.state ?? null,
-        district: input.district ?? null,
-        city: input.city ?? null,
-        pin: input.pin ?? null,
-        contractValuePaise: input.contractValuePaise,
-        dateStart: input.dateStart ?? null,
-      })
-      .returning();
-    await writeAudit(ctx.db, { entity: "projectoffice", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
-    return row!;
+    // Project + its COA phase plan are created atomically.
+    const row = await ctx.db.transaction(async (tx) => {
+      const [p] = await tx
+        .insert(projectOffices)
+        .values({
+          ref,
+          title: input.title,
+          projectType: input.projectType,
+          jurisdiction: input.jurisdiction,
+          clientId: input.clientId ?? null,
+          state: input.state ?? null,
+          district: input.district ?? null,
+          city: input.city ?? null,
+          pin: input.pin ?? null,
+          contractValuePaise: input.contractValuePaise,
+          dateStart: input.dateStart ?? null,
+        })
+        .returning();
+      await tx.insert(phases).values(
+        coaStagePlan().map((s, i) => ({
+          projectId: p!.id,
+          code: s.code,
+          label: s.label,
+          billingPct: s.stagePct,
+          sortOrder: (i + 1) * 10,
+        })),
+      );
+      return p!;
+    });
+    await writeAudit(ctx.db, { entity: "projectoffice", entityId: row.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row;
   }),
 });
