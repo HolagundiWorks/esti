@@ -2,9 +2,11 @@
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
-> _Part of the [ESTI documentation set](README.md). This covers the
-> **Dolibarr→ESTI fork migration** (strip-down, identity, India baseline,
-> backend profile, release hardening). For the forward product build order, see
+> _Part of the [ESTI documentation set](README.md). **Historical record.** The
+> fork-and-strip approach below is **superseded** — ESTI is now greenfield with
+> no Dolibarr (see [ARCHITECTURE](ARCHITECTURE.md) ADR-01 and
+> [BACKEND-PROFILE](BACKEND-PROFILE.md) for decommissioning). Phases 0–3 describe
+> the fork era; they are kept for provenance. The forward build is in
 > [ROADMAP](ROADMAP.md)._
 
 ## Phase 0: Repository Baseline — DONE

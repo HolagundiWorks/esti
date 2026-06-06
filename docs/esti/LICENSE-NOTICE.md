@@ -3,89 +3,60 @@
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
 > _Part of the [ESTI documentation set](README.md). Canonical source for
-> license, trademark, and attribution policy._
+> license, trademark, and attribution policy. This is an engineering policy, not
+> legal advice — get a legal review before public/commercial distribution._
 
-## Current Upstream License
+## Two phases: transitional fork → greenfield original
 
-This repository contains Dolibarr ERP & CRM. The upstream project is licensed as
-GPL-3.0-or-later, as stated in the top-level `COPYING` and `COPYRIGHT` files.
-Some bundled third-party libraries and assets have their own compatible licenses,
-listed in `COPYRIGHT` and in dependency-specific license files.
+ESTI started as a fork of **Dolibarr ERP & CRM** (GPL-3.0-or-later) but is being
+rebuilt as **greenfield, original software** with **no Dolibarr code and no PHP**
+(see [ARCHITECTURE](ARCHITECTURE.md) ADR-01). Licensing follows that transition.
 
-## ESTI Fork License
+### While the Dolibarr tree (`htdocs/`) is still present
 
-ESTI should be distributed under:
+- The repository still contains Dolibarr GPL code. While that code is present
+  and distributed, the distributed combination is governed by **GPL-3.0-or-later**.
+- Keep `COPYING`, `COPYRIGHT`, and third-party license files intact.
+- Do not strip Dolibarr copyright headers from Dolibarr-derived files.
+- The legacy `esti_dsrsor` PHP module is Dolibarr-derived (built on Dolibarr's
+  module/CommonObject framework) and is therefore GPL while it exists.
 
-```text
-GNU General Public License v3.0 or later
-SPDX-License-Identifier: GPL-3.0-or-later
-```
+### Greenfield ESTI code (`backend/`, `frontend/`, `worker/`, `packages/`)
 
-This is the correct license direction for a fork of Dolibarr's GPL codebase.
-Do not replace the GPL with a proprietary, MIT, Apache-only, or closed-source
-license for files derived from Dolibarr.
+- This is **original work authored by Holagundi Consulting Works**. It does not
+  incorporate or derive from Dolibarr GPL code.
+- Keep it **clean-room**: port DSR/SOR and other *data/facts* (which are not
+  copyrightable), but do **not** copy Dolibarr source, schemas-as-code, or
+  GPL-derived logic into the greenfield tree. This is what preserves HCW's
+  freedom to license it independently.
 
-## Required Notices
+### After the Dolibarr tree is removed
 
-Every ESTI distribution must keep:
+- Once `htdocs/` (and any Dolibarr-derived module) is deleted and nothing GPL
+  remains, ESTI is **original software and HCW chooses its license** —
+  proprietary, source-available, or a permissive/again-GPL open-source license,
+  at HCW's discretion.
+- Until then, treat distributions as GPL-3.0-or-later to be safe.
 
-- The top-level `COPYING` file with the GPL text.
-- The upstream `COPYRIGHT` file, updated only with accurate ESTI additions.
-- Third-party license files included with bundled libraries.
-- Clear notices that ESTI is a modified fork of Dolibarr ERP & CRM.
-- A source-code offer whenever ESTI binaries, container images, or hosted
-  install packages are distributed to third parties.
+## Trademark
 
-## Trademark Policy
+- Product name is **ESTI** / **ESTI Architect Platform**.
+- Do not imply affiliation with or endorsement by Dolibarr.
+- Remove all Dolibarr visual branding from UI, docs, and container metadata
+  (largely moot once the greenfield UI replaces the legacy tree).
 
-The Dolibarr name and related branding are restricted by the upstream trademark
-policy. ESTI should:
+## Links
 
-- Use `ESTI Architect Platform` or `ESTI` as the visible product name.
-- Avoid implying that ESTI is the official Dolibarr distribution.
-- Keep an attribution such as `ESTI is a modified fork of Dolibarr ERP & CRM`.
-- Replace Dolibarr visual branding in the user interface, documentation, and
-  container metadata after completing a trademark review.
-
-## Link Policy
-
-ESTI public links for source code, issues, updates, releases, support, module
-distribution, and documentation must point to:
-
-```text
-https://github.com/HolagundiWorks/esti
-```
-
-Dolibarr URLs should remain only when they are needed to identify upstream legal
-notices, original copyrights, GPL source provenance, trademark context, or
-engineering-only upstream merge references. Do not send ESTI users to Dolibarr
-update feeds, marketplaces, partner pages, demos, or support pages as the normal
-ESTI path.
-
-## New ESTI Contributions
-
-New original ESTI code should carry GPL-compatible notices. Suggested header:
-
-```php
-/**
- * ESTI Architect Platform - architecture office management fork based on Dolibarr.
- *
- * Copyright (C) 2026 ESTI contributors
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-```
-
-Use this only for new ESTI files. Do not remove or overwrite upstream Dolibarr
-headers in modified upstream files.
+ESTI source, issues, releases, and docs:
+`https://github.com/HolagundiWorks/esti`. Dolibarr URLs remain only where needed
+to identify the original GPL provenance of any still-present Dolibarr code.
 
 ## Distribution Checklist
 
-- GPL license included.
-- Source code available for the exact distributed version.
-- Upstream and ESTI copyright notices preserved.
-- Third-party licenses reviewed before dependency removal or addition.
-- Container images include license labels and source repository reference.
-- Dolibarr trademark usage reviewed before public release.
-
-This document is an engineering policy, not legal advice. A legal review is
-recommended before commercial distribution.
+- If any Dolibarr code is included: GPL text, full corresponding source, and
+  upstream + ESTI copyright notices are present.
+- If fully greenfield: HCW's chosen `LICENSE` file is present and consistent
+  across the repo and container images.
+- Third-party dependency licenses (Carbon, ezdxf, WeasyPrint, etc.) reviewed and
+  compatible with the chosen license.
+- Legal review completed before commercial distribution.

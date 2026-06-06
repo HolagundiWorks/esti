@@ -12,8 +12,8 @@
 ## Objective
 
 ESTI's product UI is a Carbon Design System interface using IBM blue and a
-focused light/dark mode system, turning Dolibarr's retained backend capabilities
-into an architect-office product experience. The interface is delivered as the
+focused light/dark mode system, presenting ESTI's architect-office workflows as a
+clean, data-dense product experience. The interface is delivered as the
 standalone Carbon React SPA described in [ARCHITECTURE](ARCHITECTURE.md);
 this document governs how that UI should look and behave, not how it is built.
 

@@ -48,19 +48,19 @@ Immediate documentation and product decisions:
 ## 2. Architecture Office Core — Next Build
 
 Stand up the ESTI TypeScript service and the Carbon React SPA shell first, then
-the backbone domain modules (all TypeScript service modules with `llx_esti_*`
+the backbone domain modules (all TypeScript service modules with `esti_*`
 tables — see [ARCHITECTURE](ARCHITECTURE.md)).
 
 0. **Backend service + SPA shell** — Fastify + tRPC + ORM + auth
    (owner / consultant / client), the money/tax utilities, per-FY numbering
-   sequences, the append-only audit log, and the Dolibarr anti-corruption
-   adapter.
+   sequences, the append-only audit log, the PostgreSQL schema, and the Redis
+   job bus to the Python worker.
 1. `esti_projectoffice` — architecture project record, project type,
    jurisdiction, phase plan, client, owner, dates, and status.
 2. `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion,
    with status, planned/actual dates, billing percentage, and linked invoice.
 3. `esti_clientlog` — enquiry, meeting notes, calls, decisions, approvals, and
-   client communication timeline on the Dolibarr `societe` base.
+   client communication timeline in ESTI-native client tables.
 4. `esti_feeproposal` — scope, deliverables, exclusions, fee calculation, COA
    benchmark, revisions, approval state, and PDF output.
 5. `esti_invoiceindia` — phase-linked invoices under the firm's GST system, SAC
@@ -78,7 +78,7 @@ projects, fees, invoices, client decisions, and reconciliation.
 2. `esti_bylaw` — quick-reference library for authority, zone, FAR, setback,
    height, parking, and document checklist rules.
 3. `esti_drawing` — drawing register with discipline, drawing number, title,
-   revision, status, issue purpose, and linked ECM document.
+   revision, status, issue purpose, and linked stored document (object storage).
 4. `esti_approval` — drawing/fee/submission approval log with sent date, channel,
    recipient, status, and superseded history.
 5. Watermarked client/authority issue sets for drawings and PDFs.
@@ -137,4 +137,4 @@ are later enhancements.
   warehouse/site stock, purchase orders, GRN, or supplier bill operations.
 - Global multi-country accounting or multi-currency.
 - Theme marketplace or user-defined theme customization.
-- Proprietary relicensing of Dolibarr-derived code.
+- Re-introducing Dolibarr or any general-purpose ERP surface.

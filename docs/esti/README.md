@@ -4,7 +4,8 @@
 
 ESTI is the **ESTI Architect Platform**, developed by **Holagundi Consulting
 Works (HCW)** — practice-management software for Indian freelance architects and
-small architecture offices, built as a fork of Dolibarr ERP (GPL-3.0-or-later).
+small architecture offices. Greenfield (TypeScript + Python, no PHP); originally
+forked from Dolibarr ERP, now being rebuilt as original software.
 
 This directory is the source of truth for product, architecture, migration, and
 runtime planning.
@@ -24,11 +25,10 @@ The set is layered. Read top-down; lower tiers assume the tiers above.
 
 1. [PRODUCT-VISION](PRODUCT-VISION.md) — what ESTI is, who it serves, who owns it.
 2. [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) — the modules, users, and workflows.
-3. [ARCHITECTURE](ARCHITECTURE.md) — TS service of record + Dolibarr-as-data,
-   Carbon React SPA, viewer worker, Podman pod, and the architecture decision
-   records.
+3. [ARCHITECTURE](ARCHITECTURE.md) — greenfield hybrid (TS core + React SPA +
+   Python worker), PostgreSQL, Podman pod, and the architecture decision records.
 4. [ROADMAP](ROADMAP.md) then [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) — the
-   forward build order and the Dolibarr→ESTI fork-migration phases.
+   forward build order, and the historical fork-era record (now superseded).
 5. Reference & Policy docs as needed.
 
 ## Single sources of truth (avoid duplication)
@@ -49,10 +49,9 @@ documents **link** to it rather than restating it.
 
 ## Conventions
 
-- **Module / table naming:** backend modules under `htdocs/esti_*`; descriptors
-  `htdocs/core/modules/modEsti*.class.php`; tables `llx_esti_*`. Where a module
-  layers on a Dolibarr base, its name disambiguates from the base — canonical
-  names `esti_clientlog` and `esti_invoiceindia` (see
+- **Module / table naming:** domain modules are TypeScript under
+  `backend/src/modules/*`; tables use the `esti_*` prefix. Names disambiguate
+  their concern — canonical names `esti_clientlog` and `esti_invoiceindia` (see
   [PRODUCT-VISION § Naming Conventions](PRODUCT-VISION.md)).
 - **`hcw_` in source design docs** maps to `esti_` in this repository.
 - When you add a module, table, or endpoint, update the **canonical** document

@@ -4,11 +4,12 @@ ESTI is an architecture office management platform for Indian freelance
 architects and small architecture practices, developed by **Holagundi Consulting
 Works (HCW)**.
 
-ESTI is a modified fork of Dolibarr ERP & CRM. Dolibarr is retained as the
-GPL-licensed backend foundation and compatibility layer; the product direction
-is an architect-first Carbon React application for managing clients, projects,
-phases, fee proposals, drawings, permits, invoices, consultants, and office
-health.
+ESTI began as a Dolibarr ERP fork but is being rebuilt as **greenfield, original
+software** with no Dolibarr code and no PHP. It is an architect-first
+application — a TypeScript backend, a Carbon React SPA, and a Python worker for
+drawings/PDF/reconciliation — for managing clients, projects, phases, fee
+proposals, drawings, permits, invoices, consultants, and office health. See
+[docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 
 ## Product Focus
 
@@ -95,17 +96,15 @@ documentation:
 https://github.com/HolagundiWorks/esti
 ```
 
-Dolibarr references are kept only where required for license, copyright,
-trademark attribution, upstream compatibility, or security patch review.
+Dolibarr references are kept only to identify the original GPL provenance of any
+still-present legacy Dolibarr code.
 
 ## License
 
-ESTI is a modified fork of Dolibarr ERP & CRM.
-
-Dolibarr is distributed under GPL-3.0-or-later. ESTI keeps the same license for
-Dolibarr-derived code. Redistributed versions must preserve upstream notices,
-include the GPL license text, provide corresponding source code, and avoid
-implying that ESTI is the official Dolibarr distribution.
+ESTI is being rebuilt as greenfield, original software. While the legacy
+`htdocs/` Dolibarr tree is still present, the distributed combination remains
+**GPL-3.0-or-later**; once it is removed and no Dolibarr code remains, ESTI is
+original work and **HCW chooses its license**.
 
 See [COPYING](COPYING), [COPYRIGHT](COPYRIGHT), and
 [docs/esti/LICENSE-NOTICE.md](docs/esti/LICENSE-NOTICE.md).

@@ -5,9 +5,9 @@
 Developed by **Holagundi Consulting Works (HCW)**. This profile turns ESTI into
 practice-management software for Indian freelance and small architect offices.
 It is the primary ESTI product profile — see [Product Vision](PRODUCT-VISION.md) —
-and runs on the API-only backend + Carbon React SPA described in
-[System Architecture](ARCHITECTURE.md). It adapts the HCW Architect Platform
-technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
+and runs on the greenfield TypeScript backend + Carbon React SPA + Python worker
+described in [System Architecture](ARCHITECTURE.md). It adapts the HCW Architect
+Platform technical documentation and viewer addendum to ESTI (`hcw` → `esti`).
 
 ## Primary Users
 
@@ -18,22 +18,25 @@ technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
 
 ## Module Map (HCW design → ESTI modules)
 
-| HCW module | ESTI module | Dolibarr / ESTI base | New tables |
-|---|---|---|---|
-| Fee Proposal | `esti_feeproposal` (+ COA calc) | ESTI / Dolibarr proposal base | `llx_esti_feeproposal_revision` |
-| Project Management (phases) | `esti_projectoffice` + phases | ESTI | `llx_esti_phase` |
-| Client & Communication | `esti_clientlog` (societe + actioncomm) | `societe` | `llx_esti_approval` |
-| Fee & Invoicing | `esti_invoiceindia` (GST/TDS) | `facture` | `llx_esti_gst_detail` |
-| Permit & Compliance | `esti_permit` | new | `llx_esti_permit`, `llx_esti_bylaw` |
-| Drawing & Document Vault | `esti_drawing` | `ecm` | `llx_esti_drawing_revision` |
-| Collaborators & Consultants | `esti_collaborator` | `user` | `llx_esti_collaborator` |
-| Drawing takeoff | `esti_takeoff` + viewer service | new | `llx_esti_takeoff_item`, `llx_esti_drawing_scale` |
-| Reconciliation | `esti_reconcile` | `facture` + bank / 26AS / GSTR imports | `llx_esti_reconcile_*` |
-| Business Health Dashboard | dashboard (aggregation) | all of the above | — |
+All modules are ESTI-native (TypeScript backend + PostgreSQL); the Python worker
+handles DXF/PDF/imports.
+
+| HCW design module | ESTI module | New tables |
+|---|---|---|
+| Fee Proposal | `esti_feeproposal` (+ COA calc) | `esti_feeproposal_revision` |
+| Project Management (phases) | `esti_projectoffice` + phases | `esti_phase` |
+| Client & Communication | `esti_clientlog` | `esti_client`, `esti_approval` |
+| Fee & Invoicing | `esti_invoiceindia` (GST/TDS) | `esti_invoice`, `esti_gst_detail` |
+| Permit & Compliance | `esti_permit` | `esti_permit`, `esti_bylaw` |
+| Drawing & Document Vault | `esti_drawing` (object storage) | `esti_drawing_revision` |
+| Collaborators & Consultants | `esti_collaborator` | `esti_collaborator` |
+| Drawing takeoff | `esti_takeoff` + Python worker | `esti_takeoff_item`, `esti_drawing_scale` |
+| Reconciliation | `esti_reconcile` (+ pandas imports) | `esti_reconcile_*` |
+| Business Health Dashboard | dashboard (aggregation) | — |
 
 ## Project Phases
 
-Standard HCW phase sequence (editable per project), stored in `llx_esti_phase`
+Standard HCW phase sequence (editable per project), stored in `esti_phase`
 linked to `esti_projectoffice` projects. Each phase carries status, planned/actual
 dates, a billing percentage, and a linked invoice.
 
@@ -66,7 +69,7 @@ APPROVED / REJECTED / EXPIRED`.
 Due-date alerts surface on the dashboard and permit list: red = overdue, yellow =
 due within 14 days, blue = upcoming (15–30 days).
 
-A Karnataka **bylaw quick-reference library** (`llx_esti_bylaw`) seeds FAR,
+A Karnataka **bylaw quick-reference library** (`esti_bylaw`) seeds FAR,
 setbacks, height limits, and zone rules by authority. Selecting a project's
 jurisdiction auto-populates the applicable reference panel.
 
@@ -75,13 +78,14 @@ manual status entry with a link to the portal application.
 
 ## Drawing & Document Vault (`esti_drawing`)
 
-Revision-controlled drawing register on top of Dolibarr ECM file storage.
+Revision-controlled drawing register on ESTI object storage (content-addressed,
+write-once).
 
 - HCW drawing numbering: discipline prefix `A-`/`S-`/`M-`/`E-`/`L-`/`I-` + number
   (e.g. `A-101`, `S-001`), enforced by a Zod schema in the SPA.
 - Revision codes `A→B→C` (or `P1→P2` for permit sets); issue purpose
   CLIENT / CONTRACTOR / AUTHORITY / INTERNAL.
-- Each issue creates an approval record (`llx_esti_approval`) tracking what was
+- Each issue creates an approval record (`esti_approval`) tracking what was
   sent, when, via which channel (email / WhatsApp / portal), and the sign-off
   status (PENDING / APPROVED / REJECTED / SUPERSEDED).
 - Watermarked download for client/authority sets ("FOR APPROVAL" / "NOT FOR
@@ -103,9 +107,9 @@ applicable / Composition 5% (bill of supply) / Regular 18% — with the fixed
 rules, SAC table (998321–998339), thresholds, and TDS defined in
 [INDIA-PROFILE](INDIA-PROFILE.md).
 
-- Invoices issue through Dolibarr `facture` (numbering, PDF, accounting); the
-  ESTI service owns the workflow and the GST/TDS detail in `llx_esti_gst_detail`,
-  mapped to `tva_*`/`localtax*` by the anti-corruption adapter.
+- ESTI-native invoices (gap-free per-FY numbering, GST/TDS detail in
+  `esti_gst_detail`); the Python worker renders the GST tax-invoice /
+  bill-of-supply PDF via WeasyPrint.
 - TDS u/s 194J (10%) tracked per invoice; 26AS/AIS reconciliation via the
   reconcile module.
 
@@ -149,12 +153,12 @@ Upload DXF (or PDF) in EstimationDetail
     manual two-point calibration → pixels-per-metre (ppm) stored per file hash
   → user clicks two points → MeasureTool returns real-world metres
   → user labels it ("Room 2 – north wall") and confirms a rate
-  → measurement saved to llx_esti_takeoff_item and pushed as a line into the
-    estimate / BOQ (and the Dolibarr proposal line if applicable)
+  → measurement saved to esti_takeoff_item and pushed as a fee-proposal/BOQ
+    line in one transactional backend call
 ```
 
 - Linear two-point distance is Phase 1; polygon area and count tools are Phase 2.
-- Scale calibration is persisted per drawing file hash (`llx_esti_drawing_scale`)
+- Scale calibration is persisted per drawing file hash (`esti_drawing_scale`)
   so a drawing need not be recalibrated on reopen.
 - Layout: Carbon `Grid` 8/4 split — drawing viewer left, BOQ DataTable right; on
   small screens, "Drawing" / "BOQ" tabs.
@@ -164,28 +168,28 @@ The viewer service, scale engine, MeasureTool, and component breakdown are in
 
 ## New Tables (ESTI naming)
 
-Tables use the `llx_esti_*` prefix. ESTI is single-firm: `entity` is fixed to
+Tables use the `esti_*` prefix. ESTI is single-firm: `entity` is fixed to
 `1` and there is no `fk_firm` column (see [ARCHITECTURE](ARCHITECTURE.md) ADR-03):
 
-- `llx_esti_phase` — design phases on a project (code, status, dates, billing %).
-- `llx_esti_feeproposal_revision` — fee proposal version, scope, exclusions,
+- `esti_phase` — design phases on a project (code, status, dates, billing %).
+- `esti_feeproposal_revision` — fee proposal version, scope, exclusions,
   deliverables, COA benchmark, approval state, and client-facing notes.
-- `llx_esti_permit` — statutory approval tracking (type, authority, dates,
+- `esti_permit` — statutory approval tracking (type, authority, dates,
   linked document).
-- `llx_esti_bylaw` — Karnataka bylaw quick-reference (FAR, setbacks, height).
-- `llx_esti_drawing_revision` — drawing register + revision control.
-- `llx_esti_approval` — issue/sign-off log per drawing or fee proposal.
-- `llx_esti_collaborator` — consultant assignment, fee, payments.
-- `llx_esti_gst_detail` — GST/TDS detail per invoice (SAC, CGST/SGST/IGST, TDS,
-  financial year), mapped to Dolibarr `tva_*`/`localtax*` by the ACL adapter.
-- `llx_esti_takeoff_item` — measurement pushed to a fee/BOQ line.
-- `llx_esti_drawing_scale` — per-drawing scale calibration.
-- `llx_esti_reconcile_payment`, `llx_esti_reconcile_tds`,
-  `llx_esti_reconcile_gst` — reconciliation runs and matches.
-- `llx_esti_audit`, `llx_esti_sequence` — append-only audit log and per-FY
+- `esti_bylaw` — Karnataka bylaw quick-reference (FAR, setbacks, height).
+- `esti_drawing_revision` — drawing register + revision control.
+- `esti_approval` — issue/sign-off log per drawing or fee proposal.
+- `esti_collaborator` — consultant assignment, fee, payments.
+- `esti_gst_detail` — GST/TDS detail per invoice (SAC, CGST/SGST/IGST, TDS,
+  financial year), stored natively (no Dolibarr tax fields).
+- `esti_takeoff_item` — measurement pushed to a fee/BOQ line.
+- `esti_drawing_scale` — per-drawing scale calibration.
+- `esti_reconcile_payment`, `esti_reconcile_tds`,
+  `esti_reconcile_gst` — reconciliation runs and matches.
+- `esti_audit`, `esti_sequence` — append-only audit log and per-FY
   numbering sequences (see [ARCHITECTURE](ARCHITECTURE.md) ADR-06, ADR-11).
 
-These are built as ESTI **TypeScript service** modules with `llx_esti_*` tables,
+These are built as ESTI **TypeScript service** modules with `esti_*` tables,
 not Dolibarr PHP modules (see [ARCHITECTURE](ARCHITECTURE.md) ADR-01).
 
 ## Business Health Dashboard

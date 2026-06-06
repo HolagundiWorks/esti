@@ -13,8 +13,7 @@ in the UI, and never exposed as options.
 
 ## Fixed Firm Profile
 
-- **One firm only.** No multi-company, no multi-tenant. The Dolibarr `entity`
-  is fixed to `1`; ESTI carries no `fk_firm` column.
+- **One firm only.** No multi-company, no multi-tenant, no tenant column.
 - **COA registration number is a mandatory firm Legal ID.** Architecture
   practice in India requires the principal to be registered with the Council of
   Architecture; the COA number is stored as the firm's primary Legal ID and is
@@ -114,10 +113,9 @@ The fee-proposal and invoice line picks the SAC per the work type; default
   fields so it can be added later without schema churn (most small practices are
   below the e-invoice turnover threshold).
 
-## Storage Mapping (Dolibarr compatibility)
+## Tax Storage (native)
 
-Invoices are issued through Dolibarr `facture`, which stores the primary tax in
-`tva_*` and CGST/SGST in `localtax1/localtax2`. These are **compatibility
-storage only**. ESTI's domain, UI, and documents speak **GST** exclusively; a
-single anti-corruption adapter (see [ARCHITECTURE](ARCHITECTURE.md)) maps
-`tva_*`/`localtax*` ↔ GST so Dolibarr field names never reach the SPA.
+ESTI stores GST natively — taxable value, CGST/SGST/IGST, cess, TDS, SAC, place
+of supply, and the active GST system — in its own `esti_invoice` /
+`esti_gst_detail` tables. There is no Dolibarr `tva_*`/`localtax*` mapping; the
+domain, UI, and documents speak **GST** end to end.

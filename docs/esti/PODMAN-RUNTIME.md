@@ -2,10 +2,11 @@
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
-> _Part of the [ESTI documentation set](README.md). This describes the **current
-> development runtime**. The **target** multi-service pod (API-only Dolibarr +
-> Node viewer + Carbon React frontend) is specified in
-> [ARCHITECTURE § Podman Pod Topology](ARCHITECTURE.md)._
+> _Part of the [ESTI documentation set](README.md). This describes the **legacy
+> Dolibarr development runtime**, now being retired. The **target** greenfield
+> pod (PostgreSQL + Redis + TS backend + Python worker + Carbon React frontend +
+> MinIO, no Dolibarr) is specified in
+> [ARCHITECTURE § Podman Pod (target)](ARCHITECTURE.md)._
 
 ## Objective
 

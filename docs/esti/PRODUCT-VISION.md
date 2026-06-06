@@ -4,18 +4,17 @@
 
 ESTI is developed by **Holagundi Consulting Works (HCW)**.
 
-ESTI began as a Dolibarr ERP fork and an Indian construction-estimation tool.
-The product direction is now narrowed and sharpened: ESTI is a **practice
-management platform for Indian freelance architects and small architecture
-offices**. Construction estimating remains available only where it supports
-architectural workflows, such as BOQ support, drawing takeoff, consultant scope,
-and client fee proposals.
+ESTI began as a Dolibarr ERP fork but is now **greenfield, original software**
+(no Dolibarr, no PHP). It is a **practice management platform for Indian
+freelance architects and small architecture offices**. Construction estimating
+remains only where it supports architectural workflows — BOQ support, drawing
+takeoff, consultant scope, and client fee proposals.
 
 This document is the product-vision source of truth. The detailed engineering
 direction lives in:
 
-- [System Architecture](ARCHITECTURE.md) — API-only Dolibarr backend, Carbon
-  React single-page app, DXF/PDF viewer service, and Podman pod.
+- [System Architecture](ARCHITECTURE.md) — greenfield hybrid: TypeScript core +
+  React SPA + Python worker (DXF/PDF/reconciliation), PostgreSQL, Podman pod.
 - [Architect Practice Profile](ARCHITECT-PROFILE.md) — phases, permits,
   drawings, COA fees, consultants, client portal, and drawing takeoff.
 - [Product Roadmap](ROADMAP.md) and [Migration Roadmap](MIGRATION-ROADMAP.md).
@@ -25,9 +24,10 @@ direction lives in:
 - **Developer / maintainer:** Holagundi Consulting Works (HCW).
 - **Product name:** ESTI (ESTI Architect Platform).
 - **Source, issues, releases, docs:** `https://github.com/HolagundiWorks/esti`.
-- **Upstream base:** Dolibarr ERP & CRM (GPL-3.0-or-later). ESTI preserves the
-  GPL, upstream copyright notices, and clear "modified fork of Dolibarr"
-  attribution. See [License and Notices](LICENSE-NOTICE.md).
+- **Origin / license:** began as a Dolibarr fork (GPL-3.0-or-later); now
+  rebuilt greenfield with no Dolibarr code. Once the legacy `htdocs/` tree is
+  removed, ESTI is original work and **HCW chooses its license**. See
+  [License and Notices](LICENSE-NOTICE.md).
 
 Holagundi Consulting Works is both the developer of ESTI and the reference
 architecture practice whose workflows drive the product.
@@ -92,18 +92,17 @@ and subcontractor payment workflows.
 
 ## Architecture Direction
 
-ESTI's system of record is an **ESTI TypeScript service**; **Dolibarr is a
-data-only backbone** stripped to the bare minimum. Full detail and the
+ESTI is **greenfield with no Dolibarr and no PHP**. Full detail and the
 architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
 
-- The ESTI TypeScript/Fastify service owns the domain, auth, and business rules
-  in its own `llx_esti_*` tables.
-- Dolibarr runs headless and is reached only by that service, for `facture`
-  (GST invoices), `societe` (third parties), `user`, and `ecm` (documents).
-- A Carbon Design System React + TypeScript SPA is the only product UI.
-- A Node.js viewer worker renders DXF→SVG and PDFs as async jobs.
-- All services run as one Podman pod (DB, Redis, Dolibarr, backend, frontend,
-  object storage).
+- An **ESTI TypeScript/Fastify** service is the system of record and owns the
+  domain, auth, money/tax, and business rules in its own **PostgreSQL** schema.
+- A **Carbon Design System React + TypeScript** SPA is the only UI, type-unified
+  with the backend via tRPC.
+- A **Python worker** handles DXF takeoff (ezdxf), PDF generation (WeasyPrint),
+  and reconciliation imports (pandas).
+- All services run as one Podman pod (Postgres, Redis, backend, worker,
+  frontend, object storage) — no Dolibarr container.
 - Single firm, INR-only, FY Apr–Mar, and the three GST systems are hardcoded —
   see [INDIA-PROFILE](INDIA-PROFILE.md).
 
@@ -111,14 +110,13 @@ architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
 
 - Product and documentation use **ESTI Architect Platform** or **ESTI**.
 - Company name is **Holagundi Consulting Works (HCW)**.
-- All new database tables use the `llx_esti_*` prefix.
+- All new database tables use the `esti_*` prefix.
 - New domain modules are **ESTI TypeScript service modules** (`backend/src/…`),
-  not Dolibarr PHP modules. The only retained PHP module is the `esti_dsrsor`
-  reference engine under `htdocs/esti_dsrsor` until it is ported/fronted.
-- Where an ESTI module layers on a Dolibarr base, its name describes the
-  ESTI-added layer and disambiguates from the base. The canonical names are
-  `esti_clientlog` (lead/communication log over `societe`) and
-  `esti_invoiceindia` (GST/TDS layer over `facture`) — not `esti_client` or
+  not PHP. The legacy `esti_dsrsor` PHP module is retired once its reference data
+  is ported (see [BACKEND-PROFILE](BACKEND-PROFILE.md)).
+- Module/table names disambiguate their concern. The canonical names are
+  `esti_clientlog` (client + communication/lead log) and
+  `esti_invoiceindia` (India GST/TDS invoicing) — not `esti_client` or
   `esti_invoice`. Use these exact names in docs, directories, and REST paths.
 - HCW draft documents may contain `hcw`-prefixed examples. In this repository
   they are implemented as `esti`-prefixed modules, tables, and endpoints.
