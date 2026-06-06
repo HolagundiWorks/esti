@@ -1,12 +1,14 @@
-# ESTI — Architecture Office Management Platform
+# ESTI — Architectural Office Resource Management System (AORMS)
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
 ESTI is developed by **Holagundi Consulting Works (HCW)**.
 
-ESTI began as a Dolibarr ERP fork but is now **greenfield, original software**
-(no Dolibarr, no PHP). It is a **practice management platform for Indian
-freelance architects and small architecture offices**. Construction estimating
+ESTI is an **AORMS — Architectural Office Resource Management System**: software
+purpose-built to run an Indian architecture office, **not** a general-purpose
+ERP. It began as a Dolibarr fork but is now **greenfield, original software**
+(no Dolibarr, no PHP) for **Indian freelance architects and small architecture
+offices**. Construction estimating
 remains only where it supports architectural workflows — BOQ support, drawing
 takeoff, consultant scope, and client fee proposals.
 

@@ -1,0 +1,11 @@
+# Keep the legacy Dolibarr tree and other heavy/irrelevant paths out of build context
+htdocs/
+docs/
+containers/
+.git/
+**/node_modules/
+**/dist/
+**/.venv/
+**/__pycache__/
+*.log
+.env

@@ -1,0 +1,68 @@
+# ESTI AORMS — greenfield development pod (Podman / Docker compose).
+#   podman compose up -d --build
+# No Dolibarr, no PHP, no MariaDB.
+name: esti-aorms
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: esti-db
+    environment:
+      POSTGRES_USER: esti
+      POSTGRES_PASSWORD: esti
+      POSTGRES_DB: esti
+    ports: ["5432:5432"]
+    volumes: ["esti-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esti"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: esti-redis
+    ports: ["6379:6379"]
+
+  minio:
+    image: minio/minio:latest
+    container_name: esti-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: esti
+      MINIO_ROOT_PASSWORD: esti-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["esti-minio-data:/data"]
+
+  backend:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    container_name: esti-backend
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgres://esti:esti@db:5432/esti
+      REDIS_URL: redis://redis:6379
+    ports: ["4000:4000"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  worker:
+    build: { context: ., dockerfile: worker/Dockerfile }
+    container_name: esti-worker
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgres://esti:esti@db:5432/esti
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+    depends_on:
+      redis: { condition: service_started }
+      minio: { condition: service_started }
+
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile.dev }
+    container_name: esti-frontend
+    ports: ["5173:5173"]
+    depends_on: [backend]
+
+volumes:
+  esti-db-data:
+  esti-minio-data:

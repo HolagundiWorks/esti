@@ -6,3 +6,30 @@ containers/.env
 *.tmp
 Thumbs.db
 .DS_Store
+
+# --- greenfield AORMS monorepo ---
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# data / volumes
+data/
+.idea/
+.vscode/

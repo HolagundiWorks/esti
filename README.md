@@ -4,12 +4,14 @@ ESTI is an architecture office management platform for Indian freelance
 architects and small architecture practices, developed by **Holagundi Consulting
 Works (HCW)**.
 
-ESTI began as a Dolibarr ERP fork but is being rebuilt as **greenfield, original
-software** with no Dolibarr code and no PHP. It is an architect-first
-application — a TypeScript backend, a Carbon React SPA, and a Python worker for
-drawings/PDF/reconciliation — for managing clients, projects, phases, fee
-proposals, drawings, permits, invoices, consultants, and office health. See
-[docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
+ESTI is an **AORMS — Architectural Office Resource Management System**: software
+to run an Indian architecture office, not a general ERP. It began as a Dolibarr
+fork but is being rebuilt as **greenfield, original software** (no Dolibarr, no
+PHP) — a TypeScript backend, a Carbon React SPA, and a Python worker for
+drawings/PDF/reconciliation — managing clients, projects, phases, fee proposals,
+drawings, permits, invoices, consultants, and office health. See
+[docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md) and
+[DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Product Focus
 
