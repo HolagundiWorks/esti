@@ -1,4 +1,5 @@
 import { GST_RATES, SAC_CODES } from "@esti/contracts";
+import { authRouter } from "../modules/auth/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
@@ -13,6 +14,7 @@ export const appRouter = router({
     sacCodes: SAC_CODES,
   })),
 
+  auth: authRouter,
   projectOffice: projectOfficeRouter,
 });
 
