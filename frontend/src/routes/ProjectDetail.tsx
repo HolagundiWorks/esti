@@ -29,6 +29,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -251,6 +252,8 @@ export function ProjectDetail() {
       </TableContainer>
 
       <ProjectPermits projectId={id} />
+
+      <ProjectDrawings projectId={id} />
 
       <Modal
         open={open}

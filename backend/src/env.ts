@@ -8,6 +8,10 @@ const Env = z.object({
   DATABASE_URL: z.string().default("postgres://esti:esti@localhost:5432/esti"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   WORKER_JOB_STREAM: z.string().default("esti:jobs"),
+  S3_ENDPOINT: z.string().default("http://minio:9000"),
+  S3_BUCKET: z.string().default("esti-documents"),
+  S3_ACCESS_KEY: z.string().default("esti"),
+  S3_SECRET_KEY: z.string().default("esti-secret"),
 });
 
 export const env = Env.parse(process.env);

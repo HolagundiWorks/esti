@@ -2,6 +2,7 @@ import { GST_RATES, SAC_CODES } from "@esti/contracts";
 import { authRouter } from "../modules/auth/router.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { dashboardRouter } from "../modules/dashboard/router.js";
+import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { permitRouter } from "../modules/permit/router.js";
@@ -28,6 +29,7 @@ export const appRouter = router({
   feeProposals: feeProposalRouter,
   invoices: invoiceRouter,
   permits: permitRouter,
+  drawings: drawingRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

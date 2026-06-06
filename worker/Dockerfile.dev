@@ -1,8 +1,9 @@
-# Dev image for the worker: only the deps the consumer loop imports today.
-# The heavy job libs (ezdxf, WeasyPrint, pandas) come in via the prod Dockerfile
-# when the real handlers are implemented.
+# Dev image for the worker. ezdxf (DXF takeoff), boto3 (object storage) and
+# psycopg (result write-back) are pure-wheel installs. WeasyPrint/pandas still
+# come in via the prod Dockerfile when those handlers are implemented.
 FROM python:3.12-slim
 WORKDIR /app
-RUN pip install --no-cache-dir redis pydantic-settings
+RUN pip install --no-cache-dir \
+    redis pydantic-settings ezdxf boto3 "psycopg[binary]" pillow
 COPY worker/ ./
 CMD ["python", "-m", "esti_worker.main"]

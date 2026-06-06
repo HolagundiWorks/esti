@@ -1,13 +1,18 @@
+import { DRAWING_MAX_BYTES } from "@esti/contracts";
 import cookie from "@fastify/cookie";
+import multipart from "@fastify/multipart";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
 import { env } from "./env.js";
+import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 
 const app = Fastify({ logger: true, genReqId: () => crypto.randomUUID() });
 
 await app.register(cookie, { secret: env.SESSION_SECRET });
+await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 } });
+registerDrawingUpload(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",

@@ -130,6 +130,28 @@ export const permits = pgTable("esti_permit", {
   updatedAt: updatedAt(),
 });
 
+/** Uploaded DXF drawings + automated worker takeoff (layers, bounds, counts). */
+export const drawings = pgTable("esti_drawing", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  fileName: text("file_name").notNull(),
+  fileHash: text("file_hash").notNull(),
+  storageKey: text("storage_key").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull().default(0),
+  status: text("status").notNull().default("PENDING"),
+  svgKey: text("svg_key"),
+  entityCount: integer("entity_count").notNull().default(0),
+  layers: jsonb("layers"),
+  bounds: jsonb("bounds"),
+  errorText: text("error_text"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** India GST/TDS invoices — phase-linked; stores the computed tax snapshot. */
 export const invoices = pgTable("esti_invoice", {
   id: id(),
