@@ -110,6 +110,26 @@ export const feeProposals = pgTable("esti_feeproposal", {
   updatedAt: updatedAt(),
 });
 
+/** Statutory permits / approvals tracked per project, with due dates. */
+export const permits = pgTable("esti_permit", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  permitType: text("permit_type").notNull(),
+  authority: text("authority").notNull(),
+  applicationNo: text("application_no"),
+  status: text("status").notNull().default("NOT_STARTED"),
+  dateSubmitted: date("date_submitted"),
+  dateDue: date("date_due"),
+  dateApproved: date("date_approved"),
+  portalUrl: text("portal_url"),
+  remarks: text("remarks"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** India GST/TDS invoices — phase-linked; stores the computed tax snapshot. */
 export const invoices = pgTable("esti_invoice", {
   id: id(),

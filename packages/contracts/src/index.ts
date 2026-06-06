@@ -3,4 +3,5 @@ export * from "./money.js";
 export * from "./gst.js";
 export * from "./coa.js";
 export * from "./fy.js";
+export * from "./permits.js";
 export * from "./schemas.js";

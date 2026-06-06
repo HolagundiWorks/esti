@@ -29,6 +29,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> = {
@@ -248,6 +249,8 @@ export function ProjectDetail() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ProjectPermits projectId={id} />
 
       <Modal
         open={open}
