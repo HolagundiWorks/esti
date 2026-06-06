@@ -10,6 +10,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
+import { Clients } from "./routes/Clients.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
 import { Projects } from "./routes/Projects.js";
@@ -17,6 +18,7 @@ import { Projects } from "./routes/Projects.js";
 const NAV = [
   { label: "Dashboard", to: "/" },
   { label: "Projects", to: "/projects" },
+  { label: "Clients", to: "/clients" },
 ];
 
 export function App() {
@@ -49,6 +51,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/clients" element={<Clients />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Content>

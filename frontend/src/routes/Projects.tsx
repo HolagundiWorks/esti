@@ -36,6 +36,8 @@ export function Projects() {
   const [projectType, setProjectType] = useState<string>("RESIDENTIAL");
   const [jurisdiction, setJurisdiction] = useState<string>("BBMP");
   const [valueRupees, setValueRupees] = useState("");
+  const [clientId, setClientId] = useState("");
+  const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
 
   const create = trpc.projectOffice.create.useMutation({
     onSuccess: () => {
@@ -109,6 +111,7 @@ export function Projects() {
             projectType: projectType as (typeof ProjectType.options)[number],
             jurisdiction: jurisdiction as (typeof Jurisdiction.options)[number],
             contractValuePaise: Math.round(Number(valueRupees || "0") * 100),
+            clientId: clientId || undefined,
           })
         }
       >
@@ -137,6 +140,17 @@ export function Projects() {
           >
             {Jurisdiction.options.map((j) => (
               <SelectItem key={j} value={j} text={j} />
+            ))}
+          </Select>
+          <Select
+            id="client"
+            labelText="Client (optional)"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+          >
+            <SelectItem value="" text="— none —" />
+            {(clientsQ.data ?? []).map((c) => (
+              <SelectItem key={c.id} value={c.id} text={c.name} />
             ))}
           </Select>
           <TextInput

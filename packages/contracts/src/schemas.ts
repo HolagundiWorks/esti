@@ -63,3 +63,30 @@ export const ListParams = z.object({
   offset: z.number().int().min(0).default(0),
 });
 export type ListParams = z.infer<typeof ListParams>;
+
+// --- Clients (esti_clientlog) ---
+
+export const ClientKind = z.enum(["INDIVIDUAL", "COMPANY"]);
+export type ClientKind = z.infer<typeof ClientKind>;
+
+/** Indian GSTIN: 2-digit state + 10-char PAN + entity + 'Z' + checksum. */
+export const GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+export const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+export const ClientCreate = z.object({
+  name: z.string().min(2).max(200),
+  kind: ClientKind.default("INDIVIDUAL"),
+  gstin: z.string().regex(GSTIN_RE, "Invalid GSTIN").optional(),
+  pan: z.string().regex(PAN_RE, "Invalid PAN").optional(),
+  state: z.string().max(64).optional(),
+  city: z.string().max(128).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().max(20).optional(),
+});
+export type ClientCreate = z.infer<typeof ClientCreate>;
+
+export const Client = ClientCreate.extend({
+  id: z.string().uuid(),
+  createdAt: z.string().datetime(),
+});
+export type Client = z.infer<typeof Client>;
