@@ -90,15 +90,20 @@ new database tables use the `llx_` prefix and store entity for multi-company.
 
 - Run creation, edit, delete, permissions, and multi-entity validation for all
   ESTI modules.
-- Add PHPUnit coverage for construction object classes and GST calculations.
+- Add PHPUnit coverage for architect-office object classes (project/phase, fee
+  proposal, India invoice, permit, drawing/approval) and GST/TDS calculations.
 - Document upgrade path from upstream Dolibarr and from earlier ESTI versions.
 - Publish GPL source, container image metadata, changelog, and security policy.
 - Publish ESTI releases and changelogs from the ESTI GitHub repository.
 
 ## Non-Goals For The First Release
 
-- Physical deletion of retained upstream compatibility directories before hard
-  includes, upgrade scripts, menus, permissions, and APIs are audited.
+- Physical deletion of upstream *shared/core* directories that still have hard
+  includes, upgrade scripts, menus, permissions, or APIs, before those
+  references are audited. (Standalone module descriptors and ESTI's own removed
+  modules — e.g. the pruned contractor modules and supplier/reception
+  descriptors — are already audited and exempt; they remain recoverable from
+  git history.)
 - Remote marketplace installation in the ESTI distribution profile.
 - Proprietary relicensing of Dolibarr-derived code.
 - Global ERP support for all countries.

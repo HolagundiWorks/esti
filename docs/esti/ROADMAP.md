@@ -34,7 +34,10 @@ Immediate documentation and product decisions:
 - Reframe construction modules as supporting services, not the main product.
 - Prioritize architect workflows: clients, projects, phases, fees, invoices,
   permits, drawings, consultants, client portal, and office dashboard.
-- Keep DSR/SOR and BOQ work as reusable reference/costing engines for architects.
+- Keep `esti_dsrsor` (DSR/SOR library) as the surviving reference/costing
+  engine. The earlier contractor BOQ/estimate modules were removed in the pivot;
+  a lighter BOQ/quantity structure is reintroduced only when `esti_takeoff`
+  needs a push target (see Phase 4), recoverable from git history if reused.
 - Remove first-release plans for labour teams, site stock, purchase orders,
   RA billing, and contractor measurement book.
 

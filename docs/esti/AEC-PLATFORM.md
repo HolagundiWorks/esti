@@ -108,5 +108,10 @@ ESTI is moving to an **API-only Dolibarr backend + standalone Carbon React SPA**
 - All new database tables use the `llx_esti_*` prefix.
 - All new backend modules live under `htdocs/esti_*` with descriptors in
   `htdocs/core/modules/modEsti*.class.php`.
+- Where an ESTI module layers on a Dolibarr base, its name describes the
+  ESTI-added layer and disambiguates from the base. The canonical names are
+  `esti_clientlog` (lead/communication log over `societe`) and
+  `esti_invoiceindia` (GST/TDS layer over `facture`) — not `esti_client` or
+  `esti_invoice`. Use these exact names in docs, directories, and REST paths.
 - HCW draft documents may contain `hcw`-prefixed examples. In this repository
   they are implemented as `esti`-prefixed modules, tables, and endpoints.

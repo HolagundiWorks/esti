@@ -20,8 +20,8 @@ technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
 |---|---|---|---|
 | Fee Proposal | `esti_feeproposal` (+ COA calc) | ESTI / Dolibarr proposal base | `llx_esti_feeproposal_revision` |
 | Project Management (phases) | `esti_projectoffice` + phases | ESTI | `llx_esti_phase` |
-| Client & Communication | `esti_client` (societe + actioncomm) | `societe` | `llx_esti_approval` |
-| Fee & Invoicing | `esti_invoice` (GST/TDS) | `facture` | `llx_esti_gst_detail` |
+| Client & Communication | `esti_clientlog` (societe + actioncomm) | `societe` | `llx_esti_approval` |
+| Fee & Invoicing | `esti_invoiceindia` (GST/TDS) | `facture` | `llx_esti_gst_detail` |
 | Permit & Compliance | `esti_permit` | new | `llx_esti_permit`, `llx_esti_bylaw` |
 | Drawing & Document Vault | `esti_drawing` | `ecm` | `llx_esti_drawing_revision` |
 | Collaborators & Consultants | `esti_collaborator` | `user` | `llx_esti_collaborator` |
@@ -92,7 +92,7 @@ Council of Architecture benchmark (e.g. "Billing at 87% of COA scale"). COA
 rates are user-editable in Settings (the published scale is dated and may be
 revised), held in `src/constants/coaRates.js` with a Settings override.
 
-## Fee & Invoicing — GST / TDS (`esti_invoice`)
+## Fee & Invoicing — GST / TDS (`esti_invoiceindia`)
 
 Stage-wise (phase-linked) invoicing with the India tax layer:
 
