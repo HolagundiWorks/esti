@@ -11,6 +11,7 @@ import json
 import logging
 import signal
 import sys
+import time
 
 import redis
 
@@ -53,13 +54,20 @@ def run() -> None:
     log.info("worker up; consuming %s as %s/%s", settings.worker_job_stream, settings.worker_group, settings.consumer_name)
 
     while _running:
-        resp = r.xreadgroup(
-            settings.worker_group,
-            settings.consumer_name,
-            {settings.worker_job_stream: ">"},
-            count=1,
-            block=5000,
-        )
+        try:
+            resp = r.xreadgroup(
+                settings.worker_group,
+                settings.consumer_name,
+                {settings.worker_job_stream: ">"},
+                count=1,
+                block=5000,
+            )
+        except redis.exceptions.TimeoutError:
+            continue  # BLOCK window elapsed with no jobs — poll again
+        except redis.exceptions.ConnectionError:
+            log.warning("redis connection lost; retrying")
+            time.sleep(1)
+            continue
         if not resp:
             continue
         for _stream, entries in resp:

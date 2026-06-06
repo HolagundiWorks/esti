@@ -1,11 +1,12 @@
-# ESTI AORMS — greenfield development pod (Podman / Docker compose).
+# ESTI AORMS — greenfield development pod (Podman).
 #   podman compose up -d --build
+# Everything runs in containers — nothing is installed on the host.
 # No Dolibarr, no PHP, no MariaDB.
 name: esti-aorms
 
 services:
   db:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     container_name: esti-db
     environment:
       POSTGRES_USER: esti
@@ -19,12 +20,12 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     container_name: esti-redis
     ports: ["6379:6379"]
 
   minio:
-    image: minio/minio:latest
+    image: docker.io/minio/minio:latest
     container_name: esti-minio
     command: server /data --console-address ":9001"
     environment:
@@ -34,32 +35,32 @@ services:
     volumes: ["esti-minio-data:/data"]
 
   backend:
-    build: { context: ., dockerfile: backend/Dockerfile }
+    image: localhost/esti-backend:dev
     container_name: esti-backend
-    env_file: [.env]
     environment:
+      NODE_ENV: development
+      BACKEND_PORT: "4000"
+      SESSION_SECRET: dev-session-secret-change-me
       DATABASE_URL: postgres://esti:esti@db:5432/esti
       REDIS_URL: redis://redis:6379
     ports: ["4000:4000"]
-    depends_on:
-      db: { condition: service_healthy }
-      redis: { condition: service_started }
+    depends_on: [db, redis]
 
   worker:
-    build: { context: ., dockerfile: worker/Dockerfile }
+    image: localhost/esti-worker:dev
     container_name: esti-worker
-    env_file: [.env]
     environment:
-      DATABASE_URL: postgres://esti:esti@db:5432/esti
       REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgres://esti:esti@db:5432/esti
       S3_ENDPOINT: http://minio:9000
-    depends_on:
-      redis: { condition: service_started }
-      minio: { condition: service_started }
+    depends_on: [redis, minio]
 
   frontend:
-    build: { context: ., dockerfile: frontend/Dockerfile.dev }
+    image: localhost/esti-frontend:dev
     container_name: esti-frontend
+    environment:
+      VITE_API_URL: http://localhost:4000
+      VITE_PROXY_TARGET: http://backend:4000
     ports: ["5173:5173"]
     depends_on: [backend]
 

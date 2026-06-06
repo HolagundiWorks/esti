@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
-import argon2 from "argon2";
+// Prebuilt native bindings (no node-gyp / build tools needed in the image).
+import { hash as argonHash, verify as argonVerify } from "@node-rs/argon2";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions, users } from "../db/schema.js";
@@ -8,11 +9,11 @@ export const SESSION_COOKIE = "esti_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8h
 
 export function hashPassword(plain: string): Promise<string> {
-  return argon2.hash(plain, { type: argon2.argon2id });
+  return argonHash(plain); // Argon2id by default
 }
 
 export function verifyPassword(hash: string, plain: string): Promise<boolean> {
-  return argon2.verify(hash, plain);
+  return argonVerify(hash, plain);
 }
 
 function hashToken(token: string): string {

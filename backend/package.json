@@ -20,8 +20,8 @@
   "dependencies": {
     "@esti/contracts": "workspace:*",
     "@fastify/cookie": "^9.4.0",
+    "@node-rs/argon2": "^2.0.2",
     "@trpc/server": "^11.0.0",
-    "argon2": "^0.41.1",
     "drizzle-orm": "^0.33.0",
     "fastify": "^4.28.1",
     "ioredis": "^5.4.1",
