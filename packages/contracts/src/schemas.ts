@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CoaWorkCategory, coaStagePlan } from "./coa.js";
+import { GstSystem } from "./gst.js";
 
 export const ProjectType = z.enum([
   "RESIDENTIAL",
@@ -132,3 +133,23 @@ export const FeeProposalCreate = z.object({
   overrideReason: z.string().max(500).optional(),
 });
 export type FeeProposalCreate = z.infer<typeof FeeProposalCreate>;
+
+// --- Invoices (esti_invoiceindia) ---
+
+export const InvoiceStatus = z.enum(["DRAFT", "ISSUED", "PAID", "CANCELLED"]);
+export type InvoiceStatus = z.infer<typeof InvoiceStatus>;
+
+export const InvoiceCreate = z.object({
+  projectId: z.string().uuid(),
+  phaseId: z.string().uuid().optional(),
+  clientId: z.string().uuid().optional(),
+  /** Defaults to the firm's active GST system on the server. */
+  gstSystem: z.nativeEnum(GstSystem).optional(),
+  taxablePaise: z.number().int().nonnegative(),
+  interState: z.boolean().default(false),
+  tdsApplicable: z.boolean().default(true),
+  sac: z.string().max(10).default("998322"),
+  dateInvoice: z.string().date().optional(),
+  notes: z.string().max(2000).optional(),
+});
+export type InvoiceCreate = z.infer<typeof InvoiceCreate>;

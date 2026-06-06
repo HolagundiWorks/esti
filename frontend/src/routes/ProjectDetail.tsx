@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   InlineNotification,
   Modal,
   Select,
@@ -18,8 +19,11 @@ import {
 import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
+  GstSystem,
   PhaseStatus,
   coaMinimumFee,
+  computeGst,
+  computeTds194j,
   formatINR,
   isBelowCoaMinimum,
 } from "@esti/contracts";
@@ -62,6 +66,21 @@ export function ProjectDetail() {
     },
   });
 
+  const invoicesQ = trpc.invoices.listByProject.useQuery({ projectId: id }, { enabled: !!id });
+  const [invOpen, setInvOpen] = useState(false);
+  const [invPhase, setInvPhase] = useState("");
+  const [invSystem, setInvSystem] = useState<string>("REGULAR");
+  const [invTaxableR, setInvTaxableR] = useState("");
+  const [invInter, setInvInter] = useState(false);
+  const [invTdsOn, setInvTdsOn] = useState(true);
+  const createInvoice = trpc.invoices.create.useMutation({
+    onSuccess: () => {
+      utils.invoices.listByProject.invalidate({ projectId: id });
+      setInvOpen(false);
+      setInvTaxableR("");
+    },
+  });
+
   if (project.isLoading) return <p>Loading…</p>;
   if (!project.data)
     return (
@@ -78,6 +97,13 @@ export function ProjectDetail() {
   const below = feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
   const ratioPct = coaMin > 0 ? Math.round((feePaise / coaMin) * 100) : 0;
   const docCommPaise = Math.round((feePaise * Number(docComm || "0")) / 100);
+
+  // Live GST/TDS preview for the invoice modal
+  const invTaxablePaise = Math.round(Number(invTaxableR || "0") * 100);
+  const invSys = invSystem as (typeof GstSystem)[keyof typeof GstSystem];
+  const invBreakup = computeGst(invSys, invTaxablePaise, invInter);
+  const invTdsPaise = invTdsOn ? computeTds194j(invTaxablePaise) : 0;
+  const invNet = invBreakup.grandTotal - invTdsPaise;
 
   return (
     <div>
@@ -181,6 +207,48 @@ export function ProjectDetail() {
         </Table>
       </TableContainer>
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 32,
+        }}
+      >
+        <h3>Invoices (GST / TDS)</h3>
+        <Button size="sm" onClick={() => setInvOpen(true)}>
+          New invoice
+        </Button>
+      </div>
+      <TableContainer title="India invoices" description="GST + TDS, phase-linked">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Ref</TableHeader>
+              <TableHeader>Document</TableHeader>
+              <TableHeader>Taxable</TableHeader>
+              <TableHeader>GST</TableHeader>
+              <TableHeader>TDS</TableHeader>
+              <TableHeader>Net receivable</TableHeader>
+              <TableHeader>Status</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(invoicesQ.data ?? []).map((iv) => (
+              <TableRow key={iv.id}>
+                <TableCell>{iv.ref}</TableCell>
+                <TableCell>{iv.documentKind}</TableCell>
+                <TableCell>{formatINR(iv.taxablePaise, { paise: false })}</TableCell>
+                <TableCell>{formatINR(iv.gstTotalPaise, { paise: false })}</TableCell>
+                <TableCell>{formatINR(iv.tdsPaise, { paise: false })}</TableCell>
+                <TableCell>{formatINR(iv.netReceivablePaise, { paise: false })}</TableCell>
+                <TableCell>{iv.status}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
       <Modal
         open={open}
         modalHeading="New fee proposal"
@@ -260,6 +328,88 @@ export function ProjectDetail() {
               kind="error"
               title="Could not create"
               subtitle={createFee.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={invOpen}
+        modalHeading="New invoice (GST / TDS)"
+        primaryButtonText={createInvoice.isPending ? "Creating…" : "Create"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!invTaxableR || createInvoice.isPending}
+        onRequestClose={() => setInvOpen(false)}
+        onRequestSubmit={() =>
+          createInvoice.mutate({
+            projectId: id,
+            phaseId: invPhase || undefined,
+            gstSystem: invSys,
+            taxablePaise: invTaxablePaise,
+            interState: invInter,
+            tdsApplicable: invTdsOn,
+          })
+        }
+      >
+        <Stack gap={5}>
+          <Select
+            id="iv-phase"
+            labelText="Phase (optional)"
+            value={invPhase}
+            onChange={(e) => setInvPhase(e.target.value)}
+          >
+            <SelectItem value="" text="— none —" />
+            {(phasesQ.data ?? []).map((ph) => (
+              <SelectItem key={ph.id} value={ph.id} text={ph.label} />
+            ))}
+          </Select>
+          <Select
+            id="iv-sys"
+            labelText="GST system"
+            value={invSystem}
+            onChange={(e) => setInvSystem(e.target.value)}
+          >
+            {Object.values(GstSystem).map((g) => (
+              <SelectItem key={g} value={g} text={g} />
+            ))}
+          </Select>
+          <TextInput
+            id="iv-tax"
+            labelText="Taxable value (₹)"
+            type="number"
+            value={invTaxableR}
+            onChange={(e) => setInvTaxableR(e.target.value)}
+          />
+          <Checkbox
+            id="iv-inter"
+            labelText="Inter-state (IGST)"
+            checked={invInter}
+            onChange={(_, { checked }) => setInvInter(checked)}
+          />
+          <Checkbox
+            id="iv-tds"
+            labelText="TDS u/s 194J (10%)"
+            checked={invTdsOn}
+            onChange={(_, { checked }) => setInvTdsOn(checked)}
+          />
+          {invTaxablePaise > 0 && (
+            <div style={{ fontSize: "0.875rem" }}>
+              {invBreakup.documentKind} · GST {formatINR(invBreakup.gstTotal, { paise: false })}
+              {invBreakup.igst > 0 ? " (IGST)" : invBreakup.gstTotal > 0 ? " (CGST+SGST)" : ""}
+              {invBreakup.compositionLevy > 0
+                ? ` · Composition levy ${formatINR(invBreakup.compositionLevy, { paise: false })}`
+                : ""}{" "}
+              · TDS {formatINR(invTdsPaise, { paise: false })} · Net receivable{" "}
+              <strong>{formatINR(invNet, { paise: false })}</strong>
+            </div>
+          )}
+          {createInvoice.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not create"
+              subtitle={createInvoice.error.message}
               hideCloseButton
               lowContrast
             />

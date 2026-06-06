@@ -110,6 +110,36 @@ export const feeProposals = pgTable("esti_feeproposal", {
   updatedAt: updatedAt(),
 });
 
+/** India GST/TDS invoices — phase-linked; stores the computed tax snapshot. */
+export const invoices = pgTable("esti_invoice", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  phaseId: uuid("phase_id").references(() => phases.id),
+  clientId: uuid("client_id").references(() => clients.id),
+  status: text("status").notNull().default("DRAFT"),
+  gstSystem: text("gst_system").notNull(),
+  documentKind: text("document_kind").notNull(),
+  sac: text("sac"),
+  interState: boolean("inter_state").notNull().default(false),
+  tdsApplicable: boolean("tds_applicable").notNull().default(true),
+  taxablePaise: bigint("taxable_paise", { mode: "number" }).notNull().default(0),
+  cgstPaise: bigint("cgst_paise", { mode: "number" }).notNull().default(0),
+  sgstPaise: bigint("sgst_paise", { mode: "number" }).notNull().default(0),
+  igstPaise: bigint("igst_paise", { mode: "number" }).notNull().default(0),
+  gstTotalPaise: bigint("gst_total_paise", { mode: "number" }).notNull().default(0),
+  compositionLevyPaise: bigint("composition_levy_paise", { mode: "number" }).notNull().default(0),
+  tdsPaise: bigint("tds_paise", { mode: "number" }).notNull().default(0),
+  grandTotalPaise: bigint("grand_total_paise", { mode: "number" }).notNull().default(0),
+  netReceivablePaise: bigint("net_receivable_paise", { mode: "number" }).notNull().default(0),
+  dateInvoice: date("date_invoice"),
+  notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Gap-free per-(scope, financial year) sequences. See ARCHITECTURE ADR-06. */
 export const sequences = pgTable(
   "esti_sequence",
