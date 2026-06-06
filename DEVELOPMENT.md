@@ -1,7 +1,7 @@
 # ESTI AORMS — Development
 
 Greenfield monorepo for ESTI, the **Architectural Office Resource Management
-System** by Holagundi Consulting Works. No Dolibarr, no PHP. See
+System** by Holagundi Consulting Works. See
 [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 
 ## Layout
@@ -53,4 +53,3 @@ cd worker && ruff check . && pytest          # Python
 - The three GST systems, SAC table, FY (1 Apr–31 Mar), and INR are fixed in
   `@esti/contracts` — see [docs/esti/INDIA-PROFILE.md](docs/esti/INDIA-PROFILE.md).
 - Numbering is gap-free per-FY via `nextRef()` — never `MAX(id)+1`.
-- The legacy `htdocs/` Dolibarr tree is retired and not part of the build.

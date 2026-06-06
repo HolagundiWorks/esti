@@ -1,8 +1,0 @@
-# Dolibarr language file - Source file is en_US - bills
-RelatedCommercialProposals=Related quotations
-
-# ESTI GST terminology overrides
-ErrorVATIntraNotConfigured=GSTIN is not configured yet
-VATIsNotUsedForInvoice=* GST not applicable
-VATIsNotUsedForInvoiceAsso=* GST not applicable
-VATIsNotUsedReverseChargeProcedure=* GST reverse charge not applicable

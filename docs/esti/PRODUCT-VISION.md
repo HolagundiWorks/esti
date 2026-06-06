@@ -6,9 +6,8 @@ ESTI is developed by **Holagundi Consulting Works (HCW)**.
 
 ESTI is an **AORMS — Architectural Office Resource Management System**: software
 purpose-built to run an Indian architecture office, **not** a general-purpose
-ERP. It began as a Dolibarr fork but is now **greenfield, original software**
-(no Dolibarr, no PHP) for **Indian freelance architects and small architecture
-offices**. Construction estimating
+ERP. It is **greenfield, original software** for **Indian freelance architects
+and small architecture offices**. Construction estimating
 remains only where it supports architectural workflows — BOQ support, drawing
 takeoff, consultant scope, and client fee proposals.
 
@@ -19,17 +18,15 @@ direction lives in:
   React SPA + Python worker (DXF/PDF/reconciliation), PostgreSQL, Podman pod.
 - [Architect Practice Profile](ARCHITECT-PROFILE.md) — phases, permits,
   drawings, COA fees, consultants, client portal, and drawing takeoff.
-- [Product Roadmap](ROADMAP.md) and [Migration Roadmap](MIGRATION-ROADMAP.md).
+- [Product Roadmap](ROADMAP.md) — the forward build order.
 
 ## Ownership and Attribution
 
 - **Developer / maintainer:** Holagundi Consulting Works (HCW).
 - **Product name:** ESTI (ESTI Architect Platform).
 - **Source, issues, releases, docs:** `https://github.com/HolagundiWorks/esti`.
-- **Origin / license:** began as a Dolibarr fork (GPL-3.0-or-later); now
-  rebuilt greenfield with no Dolibarr code. Once the legacy `htdocs/` tree is
-  removed, ESTI is original work and **HCW chooses its license**. See
-  [License and Notices](LICENSE-NOTICE.md).
+- **License:** ESTI is original software owned by HCW; **HCW chooses its
+  license**. See [License and Notices](LICENSE-NOTICE.md).
 
 Holagundi Consulting Works is both the developer of ESTI and the reference
 architecture practice whose workflows drive the product.
@@ -94,8 +91,8 @@ and subcontractor payment workflows.
 
 ## Architecture Direction
 
-ESTI is **greenfield with no Dolibarr and no PHP**. Full detail and the
-architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
+ESTI is **greenfield**. Full detail and the architecture decision records are in
+[ARCHITECTURE](ARCHITECTURE.md).
 
 - An **ESTI TypeScript/Fastify** service is the system of record and owns the
   domain, auth, money/tax, and business rules in its own **PostgreSQL** schema.
@@ -104,7 +101,7 @@ architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
 - A **Python worker** handles DXF takeoff (ezdxf), PDF generation (WeasyPrint),
   and reconciliation imports (pandas).
 - All services run as one Podman pod (Postgres, Redis, backend, worker,
-  frontend, object storage) — no Dolibarr container.
+  frontend, object storage).
 - Single firm, INR-only, FY Apr–Mar, and the three GST systems are hardcoded —
   see [INDIA-PROFILE](INDIA-PROFILE.md).
 
@@ -113,9 +110,8 @@ architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
 - Product and documentation use **ESTI Architect Platform** or **ESTI**.
 - Company name is **Holagundi Consulting Works (HCW)**.
 - All new database tables use the `esti_*` prefix.
-- New domain modules are **ESTI TypeScript service modules** (`backend/src/…`),
-  not PHP. The legacy `esti_dsrsor` PHP module is retired once its reference data
-  is ported (see [BACKEND-PROFILE](BACKEND-PROFILE.md)).
+- Domain modules are **ESTI TypeScript service modules** (`backend/src/…`).
+  DSR/SOR reference data loads into ESTI tables.
 - Module/table names disambiguate their concern. The canonical names are
   `esti_clientlog` (client + communication/lead log) and
   `esti_invoiceindia` (India GST/TDS invoicing) — not `esti_client` or

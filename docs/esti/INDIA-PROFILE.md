@@ -117,5 +117,4 @@ The fee-proposal and invoice line picks the SAC per the work type; default
 
 ESTI stores GST natively — taxable value, CGST/SGST/IGST, cess, TDS, SAC, place
 of supply, and the active GST system — in its own `esti_invoice` /
-`esti_gst_detail` tables. There is no Dolibarr `tva_*`/`localtax*` mapping; the
-domain, UI, and documents speak **GST** end to end.
+`esti_gst_detail` tables; the domain, UI, and documents speak **GST** end to end.

@@ -1,9 +1,0 @@
-# ESTI backend profile pruning.
-# These legacy and superseded modules are not part of ESTI Architect Platform.
-RedirectMatch 410 ^/(adherents|bom|commande|contrat|delivery|don|eventorganization|expedition|expensereport|fichinter|holiday|hrm|knowledgemanagement|mailmanspip|mrp|opensurvey|reception|recruitment|salaries|supplier_proposal|takepos|ticket|website|workstation)(/|$)
-RedirectMatch 410 ^/(barcode|ecm|multicurrency|product|projet|resource|variants)(/|$)
-RedirectMatch 410 ^/(esti_billing|esti_boq|esti_estimation|esti_projectsite|esti_rateanalysis)(/|$)
-RedirectMatch 410 ^/comm/(mailing|propal|prospect)(/|$)
-RedirectMatch 410 ^/fourn/commande(/|$)
-RedirectMatch 410 ^/compta/deplacement(/|$)
-RedirectMatch 410 ^/admin/(barcode|ecm|multicurrency|product|project|resource|subtotals)(\.php|/|$)

@@ -2,61 +2,49 @@
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
-> _Part of the [ESTI documentation set](README.md). Canonical source for
-> license, trademark, and attribution policy. This is an engineering policy, not
-> legal advice — get a legal review before public/commercial distribution._
+> _Part of the [ESTI documentation set](README.md). Canonical source for license,
+> trademark, and attribution policy. This is an engineering policy, not legal
+> advice — get a legal review before public/commercial distribution._
 
-## Two phases: transitional fork → greenfield original
+## Ownership
 
-ESTI started as a fork of **Dolibarr ERP & CRM** (GPL-3.0-or-later) but is being
-rebuilt as **greenfield, original software** with **no Dolibarr code and no PHP**
-(see [ARCHITECTURE](ARCHITECTURE.md) ADR-01). Licensing follows that transition.
+ESTI is **original software authored and owned by Holagundi Consulting Works
+(HCW)**. There is no third-party application code in the product; the codebase is
+HCW's own work across `backend/`, `frontend/`, `worker/`, and `packages/`.
 
-### While the Dolibarr tree (`htdocs/`) is still present
+## License
 
-- The repository still contains Dolibarr GPL code. While that code is present
-  and distributed, the distributed combination is governed by **GPL-3.0-or-later**.
-- Keep `COPYING`, `COPYRIGHT`, and third-party license files intact.
-- Do not strip Dolibarr copyright headers from Dolibarr-derived files.
-- The legacy `esti_dsrsor` PHP module is Dolibarr-derived (built on Dolibarr's
-  module/CommonObject framework) and is therefore GPL while it exists.
+HCW chooses ESTI's license — proprietary, source-available, or open-source — at
+its discretion. Add the chosen terms as a top-level `LICENSE` file and keep it
+consistent across the repository and container images. Until a `LICENSE` file is
+added, the code is "all rights reserved" by default.
 
-### Greenfield ESTI code (`backend/`, `frontend/`, `worker/`, `packages/`)
+## Third-party dependencies
 
-- This is **original work authored by Holagundi Consulting Works**. It does not
-  incorporate or derive from Dolibarr GPL code.
-- Keep it **clean-room**: port DSR/SOR and other *data/facts* (which are not
-  copyrightable), but do **not** copy Dolibarr source, schemas-as-code, or
-  GPL-derived logic into the greenfield tree. This is what preserves HCW's
-  freedom to license it independently.
+ESTI builds on open-source libraries (e.g. Carbon, React, Fastify, tRPC,
+Drizzle, ezdxf, WeasyPrint, pandas). Their licenses (MIT / Apache-2.0 / BSD /
+LGPL, etc.) are permissive and compatible with HCW's options, but:
 
-### After the Dolibarr tree is removed
-
-- Once `htdocs/` (and any Dolibarr-derived module) is deleted and nothing GPL
-  remains, ESTI is **original software and HCW chooses its license** —
-  proprietary, source-available, or a permissive/again-GPL open-source license,
-  at HCW's discretion.
-- Until then, treat distributions as GPL-3.0-or-later to be safe.
+- Review each dependency's license before adding it.
+- **WeasyPrint is GPL/BSD-licensed and runs as a separate process** in the
+  Python worker (invoked, not linked into HCW code), which keeps it at arm's
+  length. Confirm this boundary if a proprietary license is chosen, or swap to a
+  permissively-licensed PDF engine.
+- Keep a generated dependency-license report in releases.
 
 ## Trademark
 
-- Product name is **ESTI** / **ESTI Architect Platform**.
-- Do not imply affiliation with or endorsement by Dolibarr.
-- Remove all Dolibarr visual branding from UI, docs, and container metadata
-  (largely moot once the greenfield UI replaces the legacy tree).
+- Product name is **ESTI** / **ESTI AORMS**.
+- Use HCW's own branding, logo, and favicon.
 
 ## Links
 
 ESTI source, issues, releases, and docs:
-`https://github.com/HolagundiWorks/esti`. Dolibarr URLs remain only where needed
-to identify the original GPL provenance of any still-present Dolibarr code.
+`https://github.com/HolagundiWorks/esti`.
 
-## Distribution Checklist
+## Distribution checklist
 
-- If any Dolibarr code is included: GPL text, full corresponding source, and
-  upstream + ESTI copyright notices are present.
-- If fully greenfield: HCW's chosen `LICENSE` file is present and consistent
-  across the repo and container images.
-- Third-party dependency licenses (Carbon, ezdxf, WeasyPrint, etc.) reviewed and
-  compatible with the chosen license.
+- A `LICENSE` file with HCW's chosen terms is present and consistent.
+- Third-party dependency licenses reviewed and a license report shipped.
+- The WeasyPrint process boundary confirmed for the chosen license.
 - Legal review completed before commercial distribution.

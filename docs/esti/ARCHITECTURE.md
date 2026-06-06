@@ -11,9 +11,7 @@
 ## Overview
 
 ESTI is **greenfield, single-firm** software for one Indian architecture
-practice. There is **no Dolibarr and no PHP** in the target system — Dolibarr was
-the original fork base and is being decommissioned (see
-[BACKEND-PROFILE](BACKEND-PROFILE.md)). ESTI owns its entire schema and logic.
+practice. ESTI owns its entire schema and logic.
 
 The system is a **hybrid**: a TypeScript core for the application and UI (where
 end-to-end type safety matters most), and a focused **Python worker** for the
@@ -47,13 +45,12 @@ document- and data-heavy work where Python's libraries are strongest.
 
 ## Architecture Decision Records
 
-### ADR-01 — Greenfield; no Dolibarr, no PHP
+### ADR-01 — Greenfield, original software
 
-ESTI is original software. Dolibarr (and all PHP) is removed: ESTI owns its own
-PostgreSQL schema for clients, users, documents, invoices, and the architect
-domain. The `esti_dsrsor` reference data is ported to the TypeScript backend as
-ESTI tables; the legacy `htdocs/` Dolibarr tree is retired. No anti-corruption
-adapter, no cross-store transactions, no Dolibarr strip waves.
+ESTI is original software owned by HCW. The TypeScript/Fastify service owns the
+entire PostgreSQL schema — clients, users, documents, invoices, and the
+architect domain. DSR/SOR reference data is loaded into ESTI tables. A single
+datastore means no anti-corruption adapter and no cross-store transactions.
 
 ### ADR-02 — Hybrid stack: TypeScript core + Python worker
 
@@ -126,8 +123,8 @@ is the storage and cache key.
 Request-ID propagation SPA→backend→worker; health/readiness per service;
 structured logs. **Postgres + object-store backups with tested restore** are
 release-blocking. CI: typecheck, lint, unit tests for money/tax/numbering/state
-machines (TS) and the worker (Python). With no Dolibarr/GPL code in the target
-system, **HCW chooses ESTI's license** — see [LICENSE-NOTICE](LICENSE-NOTICE.md).
+machines (TS) and the worker (Python). ESTI is original software; **HCW chooses
+its license** — see [LICENSE-NOTICE](LICENSE-NOTICE.md).
 
 ## Backend (TypeScript / Fastify)
 
@@ -198,11 +195,10 @@ system of record.
 | `esti-frontend` | Node 20 (Vite, custom) | Carbon React SPA (dev) |
 | `esti-minio` | MinIO (S3 in prod) | document object storage |
 
-No Dolibarr, no MariaDB, no PHP. The reverse proxy exposes only the backend
-(and the SPA in dev). Replaces the current `containers/` Dolibarr stack
-([PODMAN-RUNTIME](PODMAN-RUNTIME.md)).
+The reverse proxy exposes only the backend (and the SPA in dev). The pod is
+defined in `compose.yaml` (run instructions in `DEVELOPMENT.md`).
 
-## Repository Layout (target)
+## Repository Layout
 
 ```
 esti/
@@ -210,15 +206,6 @@ esti/
   frontend/           Carbon React + TypeScript SPA (Vite)
   worker/             Python worker (ezdxf, WeasyPrint, pandas)
   packages/contracts/ shared tRPC router types + Zod schemas
-  containers/         Podman pod (postgres, redis, backend, worker, frontend, minio)
+  compose.yaml        Podman pod (postgres, redis, backend, worker, frontend, minio)
   docs/esti/          this documentation set
-  htdocs/             legacy Dolibarr — retired, removed once nothing references it
 ```
-
-## Decommissioning Dolibarr
-
-ESTI no longer builds on Dolibarr. The `htdocs/` tree is dead weight: it is not
-wired into the new stack and can be deleted wholesale once the greenfield app
-covers its data (clients, documents, invoices) and `esti_dsrsor` reference data
-is ported. Until then it stays only as a read-only data/reference source for the
-port; it serves no runtime role. No boot-tested strip waves are needed.

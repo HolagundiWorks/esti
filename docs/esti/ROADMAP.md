@@ -3,13 +3,11 @@
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
 > _Part of the [ESTI documentation set](README.md). This is the **forward
-> product build** plan. For the Dolibarr→ESTI fork-migration phases, see
-> [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md); for what the modules are, see the
+> product build** plan; for what the modules are, see the
 > [Module Map](ARCHITECT-PROFILE.md)._
 
-This roadmap is the public ESTI direction after the product pivot to an Indian
-architecture office management platform developed by **Holagundi Consulting
-Works (HCW)**.
+This roadmap is the public ESTI direction — an Indian architecture office
+management system (AORMS) developed by **Holagundi Consulting Works (HCW)**.
 
 Operational links for source, releases, updates, issues, and documentation point
 to:
@@ -18,32 +16,25 @@ to:
 https://github.com/HolagundiWorks/esti
 ```
 
-## 0. Fork Foundation — Done
+## 0. Foundation — Done
 
-The Dolibarr→ESTI fork strip-down, product identity, India baseline, and GST
-profile are complete. That work and its remaining backend-strip and
-fork-release tasks are tracked in [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) and
-are not restated here. From this point on, this document covers only the forward
-product build.
+- Greenfield monorepo scaffolded: shared `contracts` (money, GST, FY, schemas),
+  TypeScript backend (Fastify + tRPC + Drizzle/PostgreSQL), Python worker, and
+  the Carbon React SPA.
+- India profile locked and hardcoded — INR, FY Apr–Mar, COA Legal ID, the three
+  GST systems, SAC table, and TDS (see [INDIA-PROFILE](INDIA-PROFILE.md)).
+- Development pod runs every service in containers (see `DEVELOPMENT.md`).
 
-## 1. Product Pivot — Current
+## 1. Scope
 
-ESTI is no longer being shaped as a contractor ERP. It is now the ESTI Architect
-Platform: practice management software for Indian freelance architects and small
-architecture offices.
+ESTI is an architecture-office system, not a general ERP. First-release focus:
+clients, projects, phases, fee proposals, invoices, permits, drawings,
+consultants, client portal, reconciliation, and the office dashboard.
 
-Immediate documentation and product decisions:
-
-- Update all ESTI docs to identify Holagundi Consulting Works as the developer.
-- Reframe construction modules as supporting services, not the main product.
-- Prioritize architect workflows: clients, projects, phases, fees, invoices,
-  permits, drawings, consultants, client portal, and office dashboard.
-- Keep `esti_dsrsor` (DSR/SOR library) as the surviving reference/costing
-  engine. The earlier contractor BOQ/estimate modules were removed in the pivot;
-  a lighter BOQ/quantity structure is reintroduced only when `esti_takeoff`
-  needs a push target (see Phase 4), recoverable from git history if reused.
-- Remove first-release plans for labour teams, site stock, purchase orders,
-  RA billing, and contractor measurement book.
+DSR/SOR rate reference and BOQ/quantity structures exist only to support
+architect workflows (tender costing, drawing takeoff) — not as the product
+centre. Labour teams, site stock, purchase orders, RA billing, and contractor
+measurement books are out of scope.
 
 ## 2. Architecture Office Core — Next Build
 
@@ -137,4 +128,4 @@ are later enhancements.
   warehouse/site stock, purchase orders, GRN, or supplier bill operations.
 - Global multi-country accounting or multi-currency.
 - Theme marketplace or user-defined theme customization.
-- Re-introducing Dolibarr or any general-purpose ERP surface.
+- Any general-purpose ERP, CRM, or commerce surface.

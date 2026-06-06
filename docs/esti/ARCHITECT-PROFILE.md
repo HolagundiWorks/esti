@@ -181,7 +181,7 @@ Tables use the `esti_*` prefix. ESTI is single-firm: `entity` is fixed to
 - `esti_approval` — issue/sign-off log per drawing or fee proposal.
 - `esti_collaborator` — consultant assignment, fee, payments.
 - `esti_gst_detail` — GST/TDS detail per invoice (SAC, CGST/SGST/IGST, TDS,
-  financial year), stored natively (no Dolibarr tax fields).
+  financial year), stored natively.
 - `esti_takeoff_item` — measurement pushed to a fee/BOQ line.
 - `esti_drawing_scale` — per-drawing scale calibration.
 - `esti_reconcile_payment`, `esti_reconcile_tds`,
@@ -189,8 +189,8 @@ Tables use the `esti_*` prefix. ESTI is single-firm: `entity` is fixed to
 - `esti_audit`, `esti_sequence` — append-only audit log and per-FY
   numbering sequences (see [ARCHITECTURE](ARCHITECTURE.md) ADR-06, ADR-11).
 
-These are built as ESTI **TypeScript service** modules with `esti_*` tables,
-not Dolibarr PHP modules (see [ARCHITECTURE](ARCHITECTURE.md) ADR-01).
+These are ESTI **TypeScript service** modules with `esti_*` tables (see
+[ARCHITECTURE](ARCHITECTURE.md) ADR-01).
 
 ## Business Health Dashboard
 
