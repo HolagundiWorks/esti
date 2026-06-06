@@ -5,7 +5,7 @@
 > _Part of the [ESTI documentation set](README.md). This describes the **current
 > development runtime**. The **target** multi-service pod (API-only Dolibarr +
 > Node viewer + Carbon React frontend) is specified in
-> [SPA-ARCHITECTURE § Podman Pod Topology](SPA-ARCHITECTURE.md)._
+> [ARCHITECTURE § Podman Pod Topology](ARCHITECTURE.md)._
 
 ## Objective
 

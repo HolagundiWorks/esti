@@ -14,7 +14,7 @@ and client fee proposals.
 This document is the product-vision source of truth. The detailed engineering
 direction lives in:
 
-- [SPA Architecture](SPA-ARCHITECTURE.md) — API-only Dolibarr backend, Carbon
+- [System Architecture](ARCHITECTURE.md) — API-only Dolibarr backend, Carbon
   React single-page app, DXF/PDF viewer service, and Podman pod.
 - [Architect Practice Profile](ARCHITECT-PROFILE.md) — phases, permits,
   drawings, COA fees, consultants, client portal, and drawing takeoff.
@@ -92,24 +92,29 @@ and subcontractor payment workflows.
 
 ## Architecture Direction
 
-ESTI is moving to an **API-only Dolibarr backend + standalone Carbon React SPA**:
+ESTI's system of record is an **ESTI TypeScript service**; **Dolibarr is a
+data-only backbone** stripped to the bare minimum. Full detail and the
+architecture decision records are in [ARCHITECTURE](ARCHITECTURE.md).
 
-- Dolibarr runs headless. Its server-rendered PHP UI is a compatibility boundary
-  while APIs are built and will be blocked for end users once React screens are
-  complete.
-- A Carbon Design System React SPA is the only product UI.
-- A Node.js viewer service renders DXF to SVG and supports PDF drawing review.
-- All services run as one Podman pod in development.
-- Existing ESTI costing/reference modules remain backend data services where
-  useful, but new product work prioritizes architect-office modules.
+- The ESTI TypeScript/Fastify service owns the domain, auth, and business rules
+  in its own `llx_esti_*` tables.
+- Dolibarr runs headless and is reached only by that service, for `facture`
+  (GST invoices), `societe` (third parties), `user`, and `ecm` (documents).
+- A Carbon Design System React + TypeScript SPA is the only product UI.
+- A Node.js viewer worker renders DXF→SVG and PDFs as async jobs.
+- All services run as one Podman pod (DB, Redis, Dolibarr, backend, frontend,
+  object storage).
+- Single firm, INR-only, FY Apr–Mar, and the three GST systems are hardcoded —
+  see [INDIA-PROFILE](INDIA-PROFILE.md).
 
 ## Naming Conventions
 
 - Product and documentation use **ESTI Architect Platform** or **ESTI**.
 - Company name is **Holagundi Consulting Works (HCW)**.
 - All new database tables use the `llx_esti_*` prefix.
-- All new backend modules live under `htdocs/esti_*` with descriptors in
-  `htdocs/core/modules/modEsti*.class.php`.
+- New domain modules are **ESTI TypeScript service modules** (`backend/src/…`),
+  not Dolibarr PHP modules. The only retained PHP module is the `esti_dsrsor`
+  reference engine under `htdocs/esti_dsrsor` until it is ported/fronted.
 - Where an ESTI module layers on a Dolibarr base, its name describes the
   ESTI-added layer and disambiguates from the base. The canonical names are
   `esti_clientlog` (lead/communication log over `societe`) and

@@ -6,10 +6,14 @@
 > Dolibarr surfaces are removed vs retained. The architect module registry lives
 > in the [Module Map](ARCHITECT-PROFILE.md)._
 
-ESTI is no longer a general-purpose Dolibarr distribution. The backend profile is
-being reduced to the modules needed for Indian freelance architects and small
-architecture offices, with new ESTI architect-office modules replacing broad
-CRM, commerce, HR, inventory, and contractor-operation features.
+ESTI is no longer a general-purpose Dolibarr distribution. Dolibarr is reduced to
+a **data-only backbone** — `facture` (GST invoices, numbering, PDF, accounting),
+`societe` (clients / consultants / suppliers), `user`, `ecm` (document storage),
+and the REST API — reached only by the ESTI TypeScript service. The
+architect-office domain (projects, phases, fee proposals, permits, drawings,
+takeoff, reconcile) lives in that service, not in Dolibarr PHP modules (see
+[ARCHITECTURE](ARCHITECTURE.md) ADR-01). All other Dolibarr modules and all
+Dolibarr web UI are removed or disabled.
 
 ## Removed From Module Discovery
 

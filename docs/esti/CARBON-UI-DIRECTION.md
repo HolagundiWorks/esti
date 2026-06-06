@@ -5,7 +5,7 @@
 > _Part of the [ESTI documentation set](README.md). This document is the
 > **design-language** reference (principles, screens, components, tokens). The
 > **technology stack and UI architecture are decided in
-> [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md)** — ADR-ESTI-02 mandates `@carbon/react`
+> [ARCHITECTURE](ARCHITECTURE.md)** — ADR-ESTI-02 mandates `@carbon/react`
 > v11 as the sole component library and supersedes the earlier theme-first /
 > "avoid Carbon packages" guidance._
 
@@ -14,7 +14,7 @@
 ESTI's product UI is a Carbon Design System interface using IBM blue and a
 focused light/dark mode system, turning Dolibarr's retained backend capabilities
 into an architect-office product experience. The interface is delivered as the
-standalone Carbon React SPA described in [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md);
+standalone Carbon React SPA described in [ARCHITECTURE](ARCHITECTURE.md);
 this document governs how that UI should look and behave, not how it is built.
 
 ## Design Principles
@@ -68,7 +68,7 @@ screens:
 
 ## Implementation Guardrails
 
-The build mechanics are governed by [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md). For
+The build mechanics are governed by [ARCHITECTURE](ARCHITECTURE.md). For
 UI work specifically:
 
 - Use `@carbon/react` components and `@carbon/themes` tokens. Do **not** use raw
@@ -76,7 +76,7 @@ UI work specifically:
 - Layout with Carbon `Grid` / `Column` / `Row`.
 - Icons from `@carbon/icons-react`; dashboard charts from `@carbon/charts-react`.
 - Keep server state in React Query and form state in React Hook Form (see the
-  frontend stack in SPA-ARCHITECTURE).
+  frontend stack in ARCHITECTURE).
 - Verify UI changes on real architect workflows: project creation, fee proposal
   revision, drawing issue, permit update, invoice creation, consultant
   assignment, and client portal review.

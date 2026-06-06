@@ -47,22 +47,29 @@ Immediate documentation and product decisions:
 
 ## 2. Architecture Office Core — Next Build
 
-Build the minimum office-management backbone before adding advanced viewers or
-dashboards.
+Stand up the ESTI TypeScript service and the Carbon React SPA shell first, then
+the backbone domain modules (all TypeScript service modules with `llx_esti_*`
+tables — see [ARCHITECTURE](ARCHITECTURE.md)).
 
+0. **Backend service + SPA shell** — Fastify + tRPC + ORM + auth
+   (owner / consultant / client), the money/tax utilities, per-FY numbering
+   sequences, the append-only audit log, and the Dolibarr anti-corruption
+   adapter.
 1. `esti_projectoffice` — architecture project record, project type,
    jurisdiction, phase plan, client, owner, dates, and status.
 2. `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion,
    with status, planned/actual dates, billing percentage, and linked invoice.
 3. `esti_clientlog` — enquiry, meeting notes, calls, decisions, approvals, and
-   client communication timeline using Dolibarr thirdparty/contact foundations.
+   client communication timeline on the Dolibarr `societe` base.
 4. `esti_feeproposal` — scope, deliverables, exclusions, fee calculation, COA
    benchmark, revisions, approval state, and PDF output.
-5. `esti_invoiceindia` — phase-linked invoices with GST, SAC `998311`, TDS u/s
-   194J, receipts, and accountant-friendly exports.
+5. `esti_invoiceindia` — phase-linked invoices under the firm's GST system, SAC
+   per [INDIA-PROFILE](INDIA-PROFILE.md), TDS u/s 194J, receipts, and exports.
+6. `esti_reconcile` — payments/receipts, TDS vs 26AS/AIS, and GST-output
+   reconciliation.
 
 This phase should produce a usable app for one architect to track active
-projects, fees, invoices, and client decisions.
+projects, fees, invoices, client decisions, and reconciliation.
 
 ## 3. Drawing And Compliance Core — Planned
 

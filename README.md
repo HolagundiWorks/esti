@@ -17,8 +17,9 @@ health.
   billing percentages.
 - COA-aware fee proposals with scope, deliverables, exclusions, revisions, and
   client approval.
-- Phase-linked invoicing with GST, SAC `998311`, TDS u/s 194J, receipts, and
-  accountant-friendly exports.
+- Phase-linked invoicing under the firm's GST system (Not applicable /
+  Composition 5% / Regular 18%), SAC 998321–998339, TDS u/s 194J, and exports.
+- Reconciliation of payments, TDS against 26AS/AIS, and GST output vs returns.
 - Permit and compliance tracking for BPAS, RERA, Fire NOC, Aviation NOC,
   environmental clearance, OC, CC, and local authorities.
 - Drawing and document vault with drawing register, revision control, issue
@@ -77,11 +78,11 @@ ESTI planning documents are in [docs/esti](docs/esti):
 - [Product Vision](docs/esti/PRODUCT-VISION.md)
 - [Architect Practice Profile](docs/esti/ARCHITECT-PROFILE.md)
 - [Product Roadmap](docs/esti/ROADMAP.md)
-- [SPA Architecture](docs/esti/SPA-ARCHITECTURE.md)
+- [System Architecture](docs/esti/ARCHITECTURE.md)
 - [Migration Roadmap](docs/esti/MIGRATION-ROADMAP.md)
 - [Backend Profile](docs/esti/BACKEND-PROFILE.md)
 - [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
-- [India Localization and GST](docs/esti/INDIA-LOCALIZATION-GST.md)
+- [India Profile](docs/esti/INDIA-PROFILE.md)
 - [Podman Runtime Plan](docs/esti/PODMAN-RUNTIME.md)
 - [License and Notices](docs/esti/LICENSE-NOTICE.md)
 

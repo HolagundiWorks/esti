@@ -6,7 +6,7 @@ Developed by **Holagundi Consulting Works (HCW)**. This profile turns ESTI into
 practice-management software for Indian freelance and small architect offices.
 It is the primary ESTI product profile — see [Product Vision](PRODUCT-VISION.md) —
 and runs on the API-only backend + Carbon React SPA described in
-[SPA Architecture](SPA-ARCHITECTURE.md). It adapts the HCW Architect Platform
+[System Architecture](ARCHITECTURE.md). It adapts the HCW Architect Platform
 technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
 
 ## Primary Users
@@ -28,6 +28,7 @@ technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).
 | Drawing & Document Vault | `esti_drawing` | `ecm` | `llx_esti_drawing_revision` |
 | Collaborators & Consultants | `esti_collaborator` | `user` | `llx_esti_collaborator` |
 | Drawing takeoff | `esti_takeoff` + viewer service | new | `llx_esti_takeoff_item`, `llx_esti_drawing_scale` |
+| Reconciliation | `esti_reconcile` | `facture` + bank / 26AS / GSTR imports | `llx_esti_reconcile_*` |
 | Business Health Dashboard | dashboard (aggregation) | all of the above | — |
 
 ## Project Phases
@@ -92,25 +93,42 @@ The architect profile uses an architect-specific fee proposal workflow with a
 COA scale-of-charges calculator. The SPA shows the proposed fee against the
 Council of Architecture benchmark (e.g. "Billing at 87% of COA scale"). COA
 rates are user-editable in Settings (the published scale is dated and may be
-revised), held in `src/constants/coaRates.js` with a Settings override.
+revised), held in `src/constants/coaRates.ts` as effective-dated data with a
+Settings override.
 
 ## Fee & Invoicing — GST / TDS (`esti_invoiceindia`)
 
-Stage-wise (phase-linked) invoicing with the India tax layer:
+Phase-linked invoicing under the firm's single active GST system — Not
+applicable / Composition 5% (bill of supply) / Regular 18% — with the fixed
+rules, SAC table (998321–998339), thresholds, and TDS defined in
+[INDIA-PROFILE](INDIA-PROFILE.md).
 
-- GST: intra-state Karnataka CGST 9% + SGST 9%; inter-state IGST 18%; SAC
-  `998311` (architectural services). GSTR-1 CSV export.
-- TDS u/s 194J: 10% on professional fees, tracked per invoice for year-end Form
-  26AS reconciliation; CSV export of TDS receivables.
-- Detail stored in `llx_esti_gst_detail` linked to `facture`.
+- Invoices issue through Dolibarr `facture` (numbering, PDF, accounting); the
+  ESTI service owns the workflow and the GST/TDS detail in `llx_esti_gst_detail`,
+  mapped to `tva_*`/`localtax*` by the anti-corruption adapter.
+- TDS u/s 194J (10%) tracked per invoice; 26AS/AIS reconciliation via the
+  reconcile module.
 
 ## Consultants & Collaborators (`esti_collaborator`)
 
 Per-project consultant register: discipline (structural, MEP, electrical,
 plumbing, fire, landscape, interior, geotechnical, acoustic, facade, legal,
 survey), agreed fee, payments made, running balance, and scope notes.
-Collaborators can be invited as Dolibarr `consultant`-role users limited to their
-assigned project's drawing folder.
+Collaborators are invited as ESTI `consultant`-role users, row-scoped to their
+assigned project (see [ARCHITECTURE](ARCHITECTURE.md) ADR-04).
+
+## Reconciliation (`esti_reconcile`)
+
+Closes the loop between invoices, receipts, and statutory deductions:
+
+- **Payments / receipts:** match invoices to receipts and bank-statement imports
+  by UTR / amount / date; flag unmatched.
+- **TDS:** expected TDS per invoice vs **Form 26AS / AIS** import; flag
+  mismatches for year-end.
+- **GST output:** invoices issued vs the period return — **GSTR-1** (Regular) or
+  **CMP-08 / GSTR-4** (Composition).
+
+See [INDIA-PROFILE](INDIA-PROFILE.md) for the tax rules these reconcile against.
 
 ## Client Portal
 
@@ -142,13 +160,12 @@ Upload DXF (or PDF) in EstimationDetail
   small screens, "Drawing" / "BOQ" tabs.
 
 The viewer service, scale engine, MeasureTool, and component breakdown are in
-[SPA Architecture](SPA-ARCHITECTURE.md).
+[System Architecture](ARCHITECTURE.md).
 
 ## New Tables (ESTI naming)
 
-Tables use the `llx_esti_*` prefix (HCW `llx_hcw_*` renamed). Each carries
-`entity` for multi-company compatibility and an optional `fk_firm` reserved for
-future multi-firm SaaS:
+Tables use the `llx_esti_*` prefix. ESTI is single-firm: `entity` is fixed to
+`1` and there is no `fk_firm` column (see [ARCHITECTURE](ARCHITECTURE.md) ADR-03):
 
 - `llx_esti_phase` — design phases on a project (code, status, dates, billing %).
 - `llx_esti_feeproposal_revision` — fee proposal version, scope, exclusions,
@@ -159,13 +176,17 @@ future multi-firm SaaS:
 - `llx_esti_drawing_revision` — drawing register + revision control.
 - `llx_esti_approval` — issue/sign-off log per drawing or fee proposal.
 - `llx_esti_collaborator` — consultant assignment, fee, payments.
-- `llx_esti_gst_detail` — GST/TDS detail per invoice (HSN/SAC, CGST/SGST/IGST,
-  TDS, financial year).
-- `llx_esti_takeoff_item` — measurement pushed to a BOQ line.
+- `llx_esti_gst_detail` — GST/TDS detail per invoice (SAC, CGST/SGST/IGST, TDS,
+  financial year), mapped to Dolibarr `tva_*`/`localtax*` by the ACL adapter.
+- `llx_esti_takeoff_item` — measurement pushed to a fee/BOQ line.
 - `llx_esti_drawing_scale` — per-drawing scale calibration.
+- `llx_esti_reconcile_payment`, `llx_esti_reconcile_tds`,
+  `llx_esti_reconcile_gst` — reconciliation runs and matches.
+- `llx_esti_audit`, `llx_esti_sequence` — append-only audit log and per-FY
+  numbering sequences (see [ARCHITECTURE](ARCHITECTURE.md) ADR-06, ADR-11).
 
-Full column definitions follow the HCW technical documentation, renamed to ESTI
-conventions and built as Dolibarr-native `esti_*` modules.
+These are built as ESTI **TypeScript service** modules with `llx_esti_*` tables,
+not Dolibarr PHP modules (see [ARCHITECTURE](ARCHITECTURE.md) ADR-01).
 
 ## Business Health Dashboard
 
@@ -186,4 +207,5 @@ Read-only aggregation (Carbon `Tile` KPI cards + `@carbon/charts-react`):
 4. Drawing vault + revision/approval log.
 5. Drawing takeoff (viewer service + DXF/PDF + two-point measure → BOQ).
 6. Consultants + client portal.
+7. Reconciliation (payments, TDS/26AS, GST output).
 7. Business health dashboard.

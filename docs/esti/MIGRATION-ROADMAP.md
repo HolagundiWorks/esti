@@ -75,7 +75,7 @@ Migration-side UI work only:
 - Theme customization modules remain disabled in the ESTI distribution profile.
 
 The forward Carbon React SPA build is owned by [ROADMAP § 6](ROADMAP.md) and
-[SPA-ARCHITECTURE](SPA-ARCHITECTURE.md).
+[ARCHITECTURE](ARCHITECTURE.md).
 
 ## Phase 6: Containers and Install — Partial
 
