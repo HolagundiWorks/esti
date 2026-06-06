@@ -1,5 +1,7 @@
 # ESTI Documentation
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 ESTI is the **ESTI Architect Platform**, developed by **Holagundi Consulting
 Works (HCW)** — practice-management software for Indian freelance architects and
 small architecture offices, built as a fork of Dolibarr ERP (GPL-3.0-or-later).
@@ -13,14 +15,14 @@ The set is layered. Read top-down; lower tiers assume the tiers above.
 
 | Tier | Changes | Documents |
 |---|---|---|
-| **1 — Vision** (why) | Rarely | [AEC-PLATFORM](AEC-PLATFORM.md) |
+| **1 — Vision** (why) | Rarely | [PRODUCT-VISION](PRODUCT-VISION.md) |
 | **2 — Specification** (what / how) | Per major decision | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md), [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) |
 | **3 — Plans** (when / in what order) | Every release | [ROADMAP](ROADMAP.md), [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) |
 | **4 — Reference & Policy** (rules) | Rarely | [BACKEND-PROFILE](BACKEND-PROFILE.md), [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md), [INDIA-LOCALIZATION-GST](INDIA-LOCALIZATION-GST.md), [PODMAN-RUNTIME](PODMAN-RUNTIME.md), [LICENSE-NOTICE](LICENSE-NOTICE.md) |
 
 ### Recommended reading order
 
-1. [AEC-PLATFORM](AEC-PLATFORM.md) — what ESTI is, who it serves, who owns it.
+1. [PRODUCT-VISION](PRODUCT-VISION.md) — what ESTI is, who it serves, who owns it.
 2. [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) — the modules, users, and workflows.
 3. [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) — API-only backend, Carbon React SPA,
    viewer service, Podman pod, and the architecture decision records.
@@ -35,7 +37,7 @@ documents **link** to it rather than restating it.
 
 | Topic | Canonical document |
 |---|---|
-| Product positioning & ownership | [AEC-PLATFORM](AEC-PLATFORM.md) |
+| Product positioning & ownership | [PRODUCT-VISION](PRODUCT-VISION.md) |
 | **Module registry** (names, bases, tables) | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) → *Module Map* |
 | Frontend stack & UI architecture | [SPA-ARCHITECTURE](SPA-ARCHITECTURE.md) |
 | UI design language (principles, components, tokens) | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) |
@@ -50,10 +52,14 @@ documents **link** to it rather than restating it.
   `htdocs/core/modules/modEsti*.class.php`; tables `llx_esti_*`. Where a module
   layers on a Dolibarr base, its name disambiguates from the base — canonical
   names `esti_clientlog` and `esti_invoiceindia` (see
-  [AEC-PLATFORM § Naming Conventions](AEC-PLATFORM.md)).
+  [PRODUCT-VISION § Naming Conventions](PRODUCT-VISION.md)).
 - **`hcw_` in source design docs** maps to `esti_` in this repository.
 - When you add a module, table, or endpoint, update the **canonical** document
   for that topic (above) and link from anywhere else that mentions it.
+- **Every document carries a status line** under its title
+  (`Status · Owner · Reviewed`). Update `Reviewed` when a doc materially changes,
+  and mark a superseded doc explicitly (as CARBON-UI-DIRECTION points to
+  SPA-ARCHITECTURE for stack decisions).
 
 ## Glossary
 

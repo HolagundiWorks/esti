@@ -1,5 +1,7 @@
 # ESTI Migration Roadmap
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). This covers the
 > **Dolibarr→ESTI fork migration** (strip-down, identity, India baseline,
 > backend profile, release hardening). For the forward product build order, see
@@ -58,31 +60,22 @@
   item card, import page with preview validation, admin setup, and live
   dashboard.
 
-Next architect-office modules to build:
+The forward architect-office modules to build — their names, Dolibarr bases,
+tables, and build order — are owned by [ROADMAP § 2–3](ROADMAP.md) and the
+[Module Map](ARCHITECT-PROFILE.md). This migration document tracks only the
+backend strip itself, not the forward build.
 
-- `esti_projectoffice` / phase model — project, client, jurisdiction, phase
-  plan, billing percentage, status, and office ownership.
-- `esti_feeproposal` — COA benchmark, scope, deliverables, exclusions,
-  revisions, approvals, and PDF output.
-- `esti_invoiceindia` — phase-linked invoices, GST, SAC, TDS u/s 194J, receipts,
-  and accountant exports.
-- `esti_permit` and `esti_bylaw` — approval tracker and local rule reference.
-- `esti_drawing`, `esti_approval`, and `esti_takeoff` — drawing register,
-  issue/revision log, viewer integration, and BOQ/fee support.
+## Phase 5: UI Baseline — In Progress
 
-Use Dolibarr hooks and CommonObject patterns before changing core classes. All
-new database tables use the `llx_` prefix and store entity for multi-company.
+Migration-side UI work only:
 
-## Phase 5: UI Redesign — In Progress
-
-- ESTI Carbon-inspired theme operational: IBM blue, light/dark mode, Carbon
-  icon substitution for all FA icons, IBM Plex typography.
-- React shell at `/estiui/` shows live module-card dashboard with status
-  indicators (Available / In Design / Planned) and live link to DSR/SOR.
-- Remaining workflow screens will be migrated to Carbon/React around architect
-  office journeys: dashboard, projects/phases, fee proposals, drawing register,
-  permits, invoices, consultants, and client portal.
+- ESTI Carbon-inspired theme operational on the legacy pages: IBM blue,
+  light/dark mode, Carbon icon substitution for all FA icons, IBM Plex.
+- Embedded React shell at `/estiui/` seeded as the future SPA root.
 - Theme customization modules remain disabled in the ESTI distribution profile.
+
+The forward Carbon React SPA build is owned by [ROADMAP § 6](ROADMAP.md) and
+[SPA-ARCHITECTURE](SPA-ARCHITECTURE.md).
 
 ## Phase 6: Containers and Install — Partial
 
@@ -91,15 +84,17 @@ new database tables use the `llx_` prefix and store entity for multi-company.
 - Post-install ESTI defaults script (`containers/apply-esti-defaults.php`).
 - Upgrade and backup documentation: **pending**.
 
-## Phase 7: Release Hardening — Not Started
+## Phase 7: Fork Release Hardening — Not Started
 
-- Run creation, edit, delete, permissions, and multi-entity validation for all
-  ESTI modules.
-- Add PHPUnit coverage for architect-office object classes (project/phase, fee
-  proposal, India invoice, permit, drawing/approval) and GST/TDS calculations.
-- Document upgrade path from upstream Dolibarr and from earlier ESTI versions.
-- Publish GPL source, container image metadata, changelog, and security policy.
-- Publish ESTI releases and changelogs from the ESTI GitHub repository.
+Fork/distribution concerns only — product test coverage (object classes, fee,
+GST/TDS, lifecycle rules) is owned by [ROADMAP § 7](ROADMAP.md):
+
+- Smoke tests asserting removed routes stay `410 Gone` and removed module
+  constants stay disabled.
+- Document the upgrade path from upstream Dolibarr and from earlier ESTI
+  versions.
+- Publish GPL source, container image metadata, changelog, and security policy
+  from the ESTI repository.
 
 ## Non-Goals For The First Release
 
@@ -113,5 +108,5 @@ new database tables use the `llx_` prefix and store entity for multi-company.
 - Proprietary relicensing of Dolibarr-derived code.
 - Global ERP support for all countries.
 - Complex theme marketplace or user-defined theme customization.
-- Contractor-first operations: RA billing, labour teams, site stock, purchase
-  orders, GRN, warehouse workflows, and subcontractor payment operations.
+- Product-scope non-goals (e.g. contractor RA billing, labour, site stock,
+  purchase) live in [ROADMAP § Non-Goals](ROADMAP.md), not here.

@@ -1,5 +1,7 @@
 # ESTI Backend Profile
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). Canonical source for which
 > Dolibarr surfaces are removed vs retained. The architect module registry lives
 > in the [Module Map](ARCHITECT-PROFILE.md)._

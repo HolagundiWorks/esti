@@ -74,7 +74,7 @@ http://localhost:8090/install/
 
 ESTI planning documents are in [docs/esti](docs/esti):
 
-- [Architecture Office Platform](docs/esti/AEC-PLATFORM.md)
+- [Product Vision](docs/esti/PRODUCT-VISION.md)
 - [Architect Practice Profile](docs/esti/ARCHITECT-PROFILE.md)
 - [Product Roadmap](docs/esti/ROADMAP.md)
 - [SPA Architecture](docs/esti/SPA-ARCHITECTURE.md)

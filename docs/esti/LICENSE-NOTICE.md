@@ -1,5 +1,7 @@
 # ESTI License and Notice Policy
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). Canonical source for
 > license, trademark, and attribution policy._
 

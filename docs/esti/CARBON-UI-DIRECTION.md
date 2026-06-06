@@ -1,5 +1,7 @@
 # Carbon UI Direction — Design Language
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). This document is the
 > **design-language** reference (principles, screens, components, tokens). The
 > **technology stack and UI architecture are decided in

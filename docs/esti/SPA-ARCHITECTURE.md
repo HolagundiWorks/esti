@@ -1,12 +1,14 @@
 # ESTI SPA Architecture — API-only Backend + Carbon React
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 Developed by **Holagundi Consulting Works (HCW)**. This document is the
 engineering architecture for ESTI's move to an API-only Dolibarr backend with a
 standalone Carbon Design System React front end, a DXF/PDF viewer service, and a
 Podman pod. It adapts the HCW Architect Platform technical documentation and
 viewer addendum to ESTI naming and the existing module base.
 
-See [AEC Platform](AEC-PLATFORM.md) for the product vision and
+See [Product Vision](PRODUCT-VISION.md) for the positioning and
 [Architect Practice Profile](ARCHITECT-PROFILE.md) for the product modules.
 
 ## Architecture Decision Records

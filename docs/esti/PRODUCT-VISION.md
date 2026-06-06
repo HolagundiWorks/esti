@@ -1,5 +1,7 @@
 # ESTI — Architecture Office Management Platform
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 ESTI is developed by **Holagundi Consulting Works (HCW)**.
 
 ESTI began as a Dolibarr ERP fork and an Indian construction-estimation tool.

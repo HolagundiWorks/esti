@@ -1,5 +1,7 @@
 # ESTI Architect Platform Roadmap
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). This is the **forward
 > product build** plan. For the Dolibarr→ESTI fork-migration phases, see
 > [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md); for what the modules are, see the
@@ -18,14 +20,11 @@ https://github.com/HolagundiWorks/esti
 
 ## 0. Fork Foundation — Done
 
-- Preserve GPL notices and upstream attribution required for redistributed
-  Dolibarr-derived code.
-- Replace public-facing product links with ESTI repository links.
-- Disable remote module marketplace and upstream module feeds.
-- Podman development runtime, installer defaults, and post-install ESTI defaults
-  are in place.
-- Keep Dolibarr references only where needed for legal attribution,
-  compatibility APIs, and upstream merge/security work.
+The Dolibarr→ESTI fork strip-down, product identity, India baseline, and GST
+profile are complete. That work and its remaining backend-strip and
+fork-release tasks are tracked in [MIGRATION-ROADMAP](MIGRATION-ROADMAP.md) and
+are not restated here. From this point on, this document covers only the forward
+product build.
 
 ## 1. Product Pivot — Current
 

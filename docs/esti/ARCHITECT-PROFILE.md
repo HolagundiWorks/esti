@@ -1,8 +1,10 @@
 # ESTI Architect Practice Profile
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 Developed by **Holagundi Consulting Works (HCW)**. This profile turns ESTI into
 practice-management software for Indian freelance and small architect offices.
-It is the primary ESTI product profile — see [AEC Platform](AEC-PLATFORM.md) —
+It is the primary ESTI product profile — see [Product Vision](PRODUCT-VISION.md) —
 and runs on the API-only backend + Carbon React SPA described in
 [SPA Architecture](SPA-ARCHITECTURE.md). It adapts the HCW Architect Platform
 technical documentation and viewer addendum to ESTI naming (`hcw` → `esti`).

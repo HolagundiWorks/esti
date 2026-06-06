@@ -1,5 +1,7 @@
 # India Localization, GST, And TDS Direction
 
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+
 > _Part of the [ESTI documentation set](README.md). Canonical source for
 > GST / TDS / India tax policy — other documents reference this rather than
 > restating tax rules._
