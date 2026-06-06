@@ -5,6 +5,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   date,
   integer,
   jsonb,
@@ -86,6 +87,27 @@ export const phases = pgTable("esti_phase", {
   dateActual: date("date_actual"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
+});
+
+/** Fee proposals — COA scale benchmark + below-minimum compliance snapshot. */
+export const feeProposals = pgTable("esti_feeproposal", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  status: text("status").notNull().default("DRAFT"),
+  revisionNo: integer("revision_no").notNull().default(0),
+  workCategory: text("work_category").notNull(),
+  costOfWorksPaise: bigint("cost_of_works_paise", { mode: "number" }).notNull().default(0),
+  feePaise: bigint("fee_paise", { mode: "number" }).notNull().default(0),
+  docCommPct: integer("doc_comm_pct").notNull().default(10),
+  coaMinimumPaise: bigint("coa_minimum_paise", { mode: "number" }).notNull().default(0),
+  belowMinimum: boolean("below_minimum").notNull().default(false),
+  overrideReason: text("override_reason"),
+  scope: text("scope"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });
 
 /** Gap-free per-(scope, financial year) sequences. See ARCHITECTURE ADR-06. */

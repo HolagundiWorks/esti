@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { coaStagePlan } from "./coa.js";
+import { CoaWorkCategory, coaStagePlan } from "./coa.js";
 
 export const ProjectType = z.enum([
   "RESIDENTIAL",
@@ -109,3 +109,26 @@ export const PhaseUpdate = z.object({
   dateActual: z.string().date().nullish(),
 });
 export type PhaseUpdate = z.infer<typeof PhaseUpdate>;
+
+// --- Fee proposals (esti_feeproposal) ---
+
+export const FeeProposalStatus = z.enum([
+  "DRAFT",
+  "INTERNAL_REVIEW",
+  "CLIENT_SUBMISSION",
+  "APPROVED",
+  "REVISED",
+]);
+export type FeeProposalStatus = z.infer<typeof FeeProposalStatus>;
+
+export const FeeProposalCreate = z.object({
+  projectId: z.string().uuid(),
+  workCategory: z.nativeEnum(CoaWorkCategory),
+  costOfWorksPaise: z.number().int().nonnegative(),
+  feePaise: z.number().int().nonnegative(),
+  docCommPct: z.number().min(0).max(100).default(10),
+  scope: z.string().max(4000).optional(),
+  /** Required when the quoted fee is below the COA minimum (compliance override). */
+  overrideReason: z.string().max(500).optional(),
+});
+export type FeeProposalCreate = z.infer<typeof FeeProposalCreate>;
