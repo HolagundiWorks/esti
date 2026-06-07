@@ -1,4 +1,4 @@
-import "@carbon/react/scss/index.scss";
+import "./styles.scss";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import React from "react";
