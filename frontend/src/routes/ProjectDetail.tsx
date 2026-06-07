@@ -20,6 +20,7 @@ import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
   GstSystem,
+  InvoiceStatus,
   PhaseStatus,
   coaMinimumFee,
   computeGst,
@@ -82,6 +83,12 @@ export function ProjectDetail() {
       utils.invoices.listByProject.invalidate({ projectId: id });
       setInvOpen(false);
       setInvTaxableR("");
+    },
+  });
+  const updateInvoiceStatus = trpc.invoices.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.invoices.listByProject.invalidate({ projectId: id });
+      utils.dashboard.summary.invalidate();
     },
   });
 
@@ -247,7 +254,26 @@ export function ProjectDetail() {
                 <TableCell>{formatINR(iv.gstTotalPaise, { paise: false })}</TableCell>
                 <TableCell>{formatINR(iv.tdsPaise, { paise: false })}</TableCell>
                 <TableCell>{formatINR(iv.netReceivablePaise, { paise: false })}</TableCell>
-                <TableCell>{iv.status}</TableCell>
+                <TableCell>
+                  <Select
+                    id={`inv-status-${iv.id}`}
+                    labelText=""
+                    hideLabel
+                    size="sm"
+                    value={iv.status}
+                    disabled={iv.status === "PAID" || iv.status === "CANCELLED"}
+                    onChange={(e) =>
+                      updateInvoiceStatus.mutate({
+                        id: iv.id,
+                        status: e.target.value as (typeof InvoiceStatus.options)[number],
+                      })
+                    }
+                  >
+                    {InvoiceStatus.options.map((st) => (
+                      <SelectItem key={st} value={st} text={st} />
+                    ))}
+                  </Select>
+                </TableCell>
                 <TableCell>
                   <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} />
                 </TableCell>

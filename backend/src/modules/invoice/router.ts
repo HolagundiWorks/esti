@@ -1,4 +1,4 @@
-import { FIRM_PROFILE, InvoiceCreate, computeGst, computeTds194j } from "@esti/contracts";
+import { FIRM_PROFILE, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -47,6 +47,48 @@ export const invoiceRouter = router({
         firm: FIRM_PROFILE,
       });
       return { ok: true };
+    }),
+
+  updateStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), status: InvoiceStatus }))
+    .mutation(async ({ ctx, input }) => {
+      const [current] = await ctx.db.select().from(invoices).where(eq(invoices.id, input.id));
+      if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Forward-only lifecycle; cancel allowed from any non-terminal state.
+      const allowed: Record<string, string[]> = {
+        DRAFT: ["ISSUED", "CANCELLED"],
+        ISSUED: ["PAID", "CANCELLED"],
+        PAID: [],
+        CANCELLED: [],
+      };
+      if (current.status !== input.status && !allowed[current.status]?.includes(input.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot move invoice from ${current.status} to ${input.status}`,
+        });
+      }
+
+      const [row] = await ctx.db
+        .update(invoices)
+        .set({
+          status: input.status,
+          // Stamp the invoice date when first issued, if not already set.
+          ...(input.status === "ISSUED" && !current.dateInvoice
+            ? { dateInvoice: new Date().toISOString().slice(0, 10) }
+            : {}),
+        })
+        .where(eq(invoices.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "invoice",
+        entityId: input.id,
+        action: "STATUS",
+        actorId: ctx.user.id,
+        before: { status: current.status },
+        after: { status: input.status },
+      });
+      return row!;
     }),
 
   create: protectedProcedure.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
