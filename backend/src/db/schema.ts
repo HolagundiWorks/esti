@@ -116,6 +116,8 @@ export const feeProposals = pgTable("esti_feeproposal", {
   belowMinimum: boolean("below_minimum").notNull().default(false),
   overrideReason: text("override_reason"),
   scope: text("scope"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

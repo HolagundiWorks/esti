@@ -86,6 +86,38 @@ def fetch_payslip_full(payslip_id: str) -> dict[str, Any] | None:
         return conn.execute(sql, [payslip_id]).fetchone()
 
 
+def update_feeproposal(fee_id: str, **fields: Any) -> None:
+    _patch("esti_feeproposal", fee_id, set(), fields)
+
+
+def fetch_feeproposal_full(fee_id: str) -> dict[str, Any] | None:
+    """Fee proposal joined with its project + client, plus the stage plan."""
+    sql = """
+        select
+          f.ref, f.work_category, f.cost_of_works_paise, f.fee_paise,
+          f.doc_comm_pct, f.coa_minimum_paise, f.below_minimum,
+          f.override_reason, f.scope, f.revision_no,
+          p.id as project_id, p.ref as project_ref, p.title as project_title,
+          p.project_type, p.jurisdiction,
+          c.name as client_name, c.city as client_city, c.state as client_state
+        from esti_feeproposal f
+        join esti_projectoffice p on p.id = f.project_id
+        left join esti_client c on c.id = p.client_id
+        where f.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [fee_id]).fetchone()
+        if row is None:
+            return None
+        phases = conn.execute(
+            "select label, billing_pct from esti_phase "
+            "where project_id = %s order by sort_order",
+            [row["project_id"]],
+        ).fetchall()
+        row["phases"] = phases
+        return row
+
+
 def fetch_open_invoices() -> list[dict[str, Any]]:
     """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:

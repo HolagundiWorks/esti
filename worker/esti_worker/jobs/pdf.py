@@ -12,8 +12,10 @@ from typing import Any
 
 from ..config import settings
 from ..db import (
+    fetch_feeproposal_full,
     fetch_invoice_full,
     fetch_payslip_full,
+    update_feeproposal,
     update_invoice,
     update_payslip,
 )
@@ -178,30 +180,92 @@ def _payslip_html(p: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    fee = int(f["fee_paise"] or 0)
+    coa_min = int(f["coa_minimum_paise"] or 0)
+    pct_of_coa = f"{(fee / coa_min * 100):.0f}%" if coa_min else "—"
+    below = (
+        '<p class="warn">Quoted fee is below the COA minimum scale of charges.'
+        f' Override: {_e(f.get("override_reason") or "—")}</p>'
+        if f["below_minimum"]
+        else ""
+    )
+    stage_rows = "".join(
+        f"<tr><td>{_e(ph['label'])}</td><td class='r'>{ph['billing_pct']}%</td>"
+        f"<td class='r'>{_inr(round(fee * ph['billing_pct'] / 100))}</td></tr>"
+        for ph in f.get("phases", [])
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>
+      @page {{ size: A4; margin: 18mm; }}
+      body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 11px; }}
+      .firm {{ font-size: 18px; font-weight: 700; }}
+      .muted {{ color: #6f6f6f; }}
+      .title {{ font-size: 15px; font-weight: 700; text-transform: uppercase;
+                border-top: 2px solid #161616; border-bottom: 2px solid #161616;
+                padding: 6px 0; margin: 16px 0; letter-spacing: 1px; }}
+      table {{ width: 100%; border-collapse: collapse; margin-top: 8px; }}
+      th, td {{ padding: 5px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; }}
+      th {{ background: #f4f4f4; }} td.r, th.r {{ text-align: right; }}
+      .kv td {{ border: none; padding: 2px 8px; }}
+      .warn {{ color: #8a3800; background: #fff8e1; padding: 8px; margin-top: 10px; }}
+      h4 {{ margin: 18px 0 4px; }}
+    </style></head><body>
+      <div class="firm">{_e(firm.get('legalName'))}</div>
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+
+      <div class="title">Fee Proposal — {_e(f['ref'])}</div>
+      <table class="kv">
+        <tr><td class="muted">Client</td><td>{_e(f.get('client_name') or '—')}</td></tr>
+        <tr><td class="muted">Project</td><td>{_e(f['project_title'])} ({_e(f['project_ref'])})</td></tr>
+        <tr><td class="muted">Type / jurisdiction</td><td>{_e(f['project_type'])} · {_e(f['jurisdiction'])}</td></tr>
+        <tr><td class="muted">Work category</td><td>{_e(f['work_category'])}</td></tr>
+      </table>
+
+      <h4>Fee</h4>
+      <table class="kv">
+        <tr><td class="muted">Cost of works</td><td class="r">{_inr(f['cost_of_works_paise'])}</td></tr>
+        <tr><td class="muted">Professional fee</td><td class="r"><b>{_inr(fee)}</b></td></tr>
+        <tr><td class="muted">COA minimum (benchmark)</td><td class="r">{_inr(coa_min)} ({pct_of_coa} of COA)</td></tr>
+        <tr><td class="muted">Documentation &amp; communication</td><td class="r">{f['doc_comm_pct']}%</td></tr>
+      </table>
+      {below}
+
+      <h4>Stage-wise billing</h4>
+      <table>
+        <thead><tr><th>Stage</th><th class="r">Billing %</th><th class="r">Amount</th></tr></thead>
+        <tbody>{stage_rows or '<tr><td colspan=3 class="muted">No stage plan</td></tr>'}</tbody>
+      </table>
+
+      {f'<h4>Scope</h4><p style="white-space:pre-wrap">{_e(f.get("scope"))}</p>' if f.get("scope") else ''}
+      <p class="muted" style="margin-top:24px">{_e(firm.get('legalName'))} · architectural services per the COA Conditions of Engagement.</p>
+    </body></html>"""
+
+
+_RENDERERS = {
+    "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
+    "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
+    "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
+}
+
+
 def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
     target: str = payload.get("target", "invoice")
     record_id: str = payload["id"]
     firm: dict[str, Any] = payload.get("firm", {})
 
-    update = update_payslip if target == "payslip" else update_invoice
+    fetch, render_html, update, folder = _RENDERERS.get(target, _RENDERERS["invoice"])
     update(record_id, pdf_status="PROCESSING")
     try:
         # Heavy import (pango/cairo) kept local so the module imports without
         # system libs (e.g. in CI / unit tests).
         from weasyprint import HTML
 
-        if target == "payslip":
-            rec = fetch_payslip_full(record_id)
-            if rec is None:
-                raise ValueError("payslip not found")
-            html_str, pdf_key = _payslip_html(rec, firm), f"pdf/payslip/{record_id}.pdf"
-        else:
-            rec = fetch_invoice_full(record_id)
-            if rec is None:
-                raise ValueError("invoice not found")
-            html_str, pdf_key = _render_html(rec, firm), f"pdf/invoice/{record_id}.pdf"
-
-        pdf_bytes = HTML(string=html_str).write_pdf()
+        rec = fetch(record_id)
+        if rec is None:
+            raise ValueError(f"{target} not found")
+        pdf_key = f"pdf/{folder}/{record_id}.pdf"
+        pdf_bytes = HTML(string=render_html(rec, firm)).write_pdf()
         put_bytes(settings.s3_bucket, pdf_key, pdf_bytes, "application/pdf")
         update(record_id, pdf_key=pdf_key, pdf_status="READY")
         return {"status": "ok", "id": record_id, "target": target, "bytes": len(pdf_bytes)}

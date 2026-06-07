@@ -30,6 +30,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
@@ -200,6 +201,7 @@ export function ProjectDetail() {
               <TableHeader>COA min</TableHeader>
               <TableHeader>% of COA</TableHeader>
               <TableHeader>Status</TableHeader>
+              <TableHeader>Document</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -216,6 +218,9 @@ export function ProjectDetail() {
                     <Tag type={f.belowMinimum ? "red" : "green"}>{pct}%</Tag>
                   </TableCell>
                   <TableCell>{f.status}</TableCell>
+                  <TableCell>
+                    <FeeProposalPdfCell feeId={f.id} initialStatus={f.pdfStatus} />
+                  </TableCell>
                 </TableRow>
               );
             })}

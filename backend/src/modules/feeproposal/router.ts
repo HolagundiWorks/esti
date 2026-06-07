@@ -1,10 +1,12 @@
-import { FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contracts";
+import { FIRM_PROFILE, FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { feeProposals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { enqueueJob } from "../../lib/redis.js";
+import { presignedGet } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const feeProposalRouter = router({
@@ -53,4 +55,26 @@ export const feeProposalRouter = router({
     });
     return row!;
   }),
+
+  byId: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(feeProposals).where(eq(feeProposals.id, input.id));
+      if (!row) return null;
+      const pdfUrl = row.pdfKey ? await presignedGet(row.pdfKey).catch(() => null) : null;
+      return { ...row, pdfUrl };
+    }),
+
+  generatePdf: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(feeProposals).where(eq(feeProposals.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db
+        .update(feeProposals)
+        .set({ pdfStatus: "PENDING" })
+        .where(eq(feeProposals.id, input.id));
+      await enqueueJob("render_pdf", { target: "feeproposal", id: row.id, firm: FIRM_PROFILE });
+      return { ok: true };
+    }),
 });
