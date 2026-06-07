@@ -47,6 +47,14 @@ export function Reconcile() {
         ? 2000
         : false,
   });
+  const [settleMsg, setSettleMsg] = useState<string | null>(null);
+  const settle = trpc.reconcile.settle.useMutation({
+    onSuccess: (res) => {
+      setSettleMsg(`Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`);
+      utils.reconcile.list.invalidate();
+      utils.dashboard.summary.invalidate();
+    },
+  });
 
   const [label, setLabel] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -106,6 +114,15 @@ export function Reconcile() {
         </Button>
       </div>
       {error && <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast />}
+      {settleMsg && (
+        <InlineNotification
+          kind="success"
+          title="Settled"
+          subtitle={settleMsg}
+          lowContrast
+          onCloseButtonClick={() => setSettleMsg(null)}
+        />
+      )}
 
       <TableContainer title="Reconciliation batches">
         <Table>
@@ -143,13 +160,25 @@ export function Reconcile() {
                 </TableCell>
                 <TableCell>
                   {r.status === "READY" && (
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                    >
-                      {openId === r.id ? "Hide" : "Lines"}
-                    </Button>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                      >
+                        {openId === r.id ? "Hide" : "Lines"}
+                      </Button>
+                      {r.matchedCount > 0 && (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          disabled={settle.isPending}
+                          onClick={() => settle.mutate({ id: r.id })}
+                        >
+                          Settle matched
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </TableCell>
               </TableRow>

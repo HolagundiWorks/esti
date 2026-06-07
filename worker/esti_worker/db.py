@@ -67,11 +67,11 @@ def fetch_invoice_full(invoice_id: str) -> dict[str, Any] | None:
 
 
 def fetch_open_invoices() -> list[dict[str, Any]]:
-    """Invoices eligible for matching (everything except cancelled)."""
+    """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:
         cur = conn.execute(
             "select id, ref, grand_total_paise, net_receivable_paise "
-            "from esti_invoice where status <> 'CANCELLED'"
+            "from esti_invoice where status = 'ISSUED'"
         )
         return [
             {
