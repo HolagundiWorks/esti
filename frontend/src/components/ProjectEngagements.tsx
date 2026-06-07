@@ -32,12 +32,20 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
   const invalidate = () => utils.engagements.listByProject.invalidate({ projectId });
 
   const updateStatus = trpc.engagements.updateStatus.useMutation({ onSuccess: invalidate });
-  const pay = trpc.engagements.recordPayment.useMutation({ onSuccess: invalidate });
+  const pay = trpc.engagements.recordPayment.useMutation({
+    onSuccess: () => {
+      invalidate();
+      setPayId(null);
+      setPayAmt("");
+    },
+  });
 
   const [open, setOpen] = useState(false);
   const [consultantId, setConsultantId] = useState("");
   const [agreedFee, setAgreedFee] = useState("");
   const [scope, setScope] = useState("");
+  const [payId, setPayId] = useState<string | null>(null);
+  const [payAmt, setPayAmt] = useState("");
 
   const create = trpc.engagements.create.useMutation({
     onSuccess: () => {
@@ -49,13 +57,6 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
   });
 
   const consultants = consultantsQ.data ?? [];
-
-  function recordPayment(id: string) {
-    const v = window.prompt("Payment amount (₹)");
-    if (!v) return;
-    const amountPaise = rupeesToPaise(v);
-    if (amountPaise > 0) pay.mutate({ id, amountPaise });
-  }
 
   return (
     <>
@@ -127,7 +128,10 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                       kind="ghost"
                       size="sm"
                       disabled={pay.isPending || e.status === "CANCELLED"}
-                      onClick={() => recordPayment(e.id)}
+                      onClick={() => {
+                        setPayId(e.id);
+                        setPayAmt("");
+                      }}
                     >
                       Record payment
                     </Button>
@@ -186,6 +190,26 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
             onChange={(e) => setScope(e.target.value)}
           />
         </Stack>
+      </Modal>
+
+      <Modal
+        open={payId !== null}
+        modalHeading="Record payment"
+        primaryButtonText={pay.isPending ? "Saving…" : "Record"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!payAmt || Number(payAmt) <= 0 || pay.isPending}
+        onRequestClose={() => setPayId(null)}
+        onRequestSubmit={() =>
+          payId && pay.mutate({ id: payId, amountPaise: rupeesToPaise(payAmt) })
+        }
+      >
+        <TextInput
+          id="eng-pay"
+          labelText="Payment amount (₹)"
+          type="number"
+          value={payAmt}
+          onChange={(e) => setPayAmt(e.target.value)}
+        />
       </Modal>
     </>
   );

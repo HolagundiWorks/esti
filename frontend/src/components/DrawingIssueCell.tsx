@@ -1,4 +1,4 @@
-import { Button } from "@carbon/react";
+import { Button, Modal, TextInput } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
@@ -12,6 +12,8 @@ export function DrawingIssueCell({
 }) {
   const utils = trpc.useUtils();
   const [active, setActive] = useState(initialStatus !== "NONE");
+  const [open, setOpen] = useState(false);
+  const [watermark, setWatermark] = useState("ISSUED FOR APPROVAL");
 
   const byId = trpc.drawings.byId.useQuery(
     { id: drawingId },
@@ -28,6 +30,7 @@ export function DrawingIssueCell({
   const issue = trpc.drawings.issuePdf.useMutation({
     onSuccess: () => {
       setActive(true);
+      setOpen(false);
       utils.drawings.byId.invalidate({ id: drawingId });
     },
   });
@@ -46,16 +49,26 @@ export function DrawingIssueCell({
     return <span style={{ fontSize: 12, color: "#6f6f6f" }}>Rendering…</span>;
   }
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={issue.isPending}
-      onClick={() => {
-        const watermark = window.prompt("Watermark text", "ISSUED FOR APPROVAL") ?? undefined;
-        issue.mutate({ id: drawingId, watermark });
-      }}
-    >
-      {status === "FAILED" ? "Retry issue" : "Issue PDF"}
-    </Button>
+    <>
+      <Button kind="ghost" size="sm" disabled={issue.isPending} onClick={() => setOpen(true)}>
+        {status === "FAILED" ? "Retry issue" : "Issue PDF"}
+      </Button>
+      <Modal
+        open={open}
+        modalHeading="Issue drawing (watermarked PDF)"
+        primaryButtonText={issue.isPending ? "Rendering…" : "Generate"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={issue.isPending}
+        onRequestClose={() => setOpen(false)}
+        onRequestSubmit={() => issue.mutate({ id: drawingId, watermark: watermark || undefined })}
+      >
+        <TextInput
+          id={`wm-${drawingId}`}
+          labelText="Watermark text"
+          value={watermark}
+          onChange={(e) => setWatermark(e.target.value)}
+        />
+      </Modal>
+    </>
   );
 }
