@@ -131,6 +131,26 @@ export const permits = pgTable("esti_permit", {
   updatedAt: updatedAt(),
 });
 
+/** Approval / issue log — what was sent for sign-off, status, supersede chain. */
+export const approvals = pgTable("esti_approval", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  entityType: text("entity_type").notNull(),
+  title: text("title").notNull(),
+  recipient: text("recipient"),
+  channel: text("channel").notNull(),
+  status: text("status").notNull().default("DRAFT"),
+  sentDate: date("sent_date"),
+  responseDate: date("response_date"),
+  remarks: text("remarks"),
+  supersedesId: uuid("supersedes_id"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Client communication timeline — dated interactions per project. */
 export const clientLogs = pgTable("esti_clientlog", {
   id: id(),

@@ -31,6 +31,7 @@ import {
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
+import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
@@ -291,6 +292,8 @@ export function ProjectDetail() {
       <ProjectBylaws projectId={id} />
 
       <ProjectDrawings projectId={id} />
+
+      <ProjectApprovals projectId={id} />
 
       <Modal
         open={open}
