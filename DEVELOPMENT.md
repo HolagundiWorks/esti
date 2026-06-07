@@ -42,10 +42,28 @@ podman compose up -d --build
 # create tables from the Drizzle schema (dev: push, no migration files)
 podman exec esti-backend sh -c "cd /app/backend && pnpm exec drizzle-kit push --force"
 
-# bootstrap the firm owner (the first registered user becomes OWNER)
-curl -X POST http://localhost:4000/trpc/auth.register -H 'content-type: application/json' \
-  -d '{"email":"owner@hcw.in","password":"ChangeMe123","fullName":"Principal Architect"}'
+# seed a known OWNER login (idempotent — safe to re-run)
+podman exec esti-backend sh -c "cd /app/backend && pnpm seed"
 ```
+
+This gives a fresh pod a known login:
+
+| Field    | Default value   | Override env          |
+| -------- | --------------- | --------------------- |
+| email    | `owner@hcw.in`  | `SEED_OWNER_EMAIL`    |
+| password | `ChangeMe123`   | `SEED_OWNER_PASSWORD` |
+| name     | `HCW Owner`     | `SEED_OWNER_NAME`     |
+
+```sh
+# pick your own credentials:
+podman exec -e SEED_OWNER_EMAIL=me@studio.in -e SEED_OWNER_PASSWORD='S3cret!' \
+  esti-backend sh -c "cd /app/backend && pnpm seed"
+```
+
+> **Dev defaults only** — `ChangeMe123` is not for production. The seed creates
+> the first OWNER; auth otherwise bootstraps OWNER from the first registered
+> user. In the live bind-mount container (image built before this script was
+> added) run it as `pnpm exec tsx src/scripts/seed.ts` instead of `pnpm seed`.
 
 ## Quick start (local)
 
