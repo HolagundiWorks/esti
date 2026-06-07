@@ -31,6 +31,52 @@ export const orgSettings = pgTable("esti_orgsettings", {
   updatedAt: updatedAt(),
 });
 
+/** Single-row editable firm profile (ADR-12). Solo architect details inline. */
+export const firm = pgTable("esti_firm", {
+  id: id(),
+  companyName: text("company_name").notNull().default("Holagundi Consulting Works"),
+  firmType: text("firm_type").notNull().default("SOLO"),
+  logoKey: text("logo_key"),
+  gstType: text("gst_type").notNull().default("REGULAR"),
+  gstin: text("gstin"),
+  architectName: text("architect_name"),
+  coaRegNo: text("coa_reg_no"),
+  pan: text("pan"),
+  email: text("email"),
+  phone1Type: text("phone1_type"),
+  phone1: text("phone1"),
+  phone2Type: text("phone2_type"),
+  phone2: text("phone2"),
+  addressLine1: text("address_line1"),
+  addressLine2: text("address_line2"),
+  city: text("city"),
+  pincode: text("pincode"),
+  district: text("district"),
+  state: text("state"),
+  updatedAt: updatedAt(),
+});
+
+/** Partners in a partnership firm (includes DIN). */
+export const partners = pgTable("esti_partner", {
+  id: id(),
+  name: text("name").notNull(),
+  coaRegNo: text("coa_reg_no"),
+  pan: text("pan"),
+  din: text("din"),
+  email: text("email"),
+  phone1Type: text("phone1_type"),
+  phone1: text("phone1"),
+  phone2Type: text("phone2_type"),
+  phone2: text("phone2"),
+  addressLine1: text("address_line1"),
+  addressLine2: text("address_line2"),
+  city: text("city"),
+  pincode: text("pincode"),
+  district: text("district"),
+  state: text("state"),
+  createdAt: createdAt(),
+});
+
 export const users = pgTable("esti_user", {
   id: id(),
   email: text("email").notNull().unique(),

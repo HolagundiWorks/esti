@@ -1,13 +1,13 @@
-import { FIRM_PROFILE, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
+import { InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { invoices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmGstSystem, firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
-import { ACTIVE_GST_SYSTEM } from "../../lib/tax.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const invoiceRouter = router({
@@ -44,7 +44,7 @@ export const invoiceRouter = router({
       await enqueueJob("render_pdf", {
         documentKind: row.documentKind,
         id: row.id,
-        firm: FIRM_PROFILE,
+        firm: await firmPayload(ctx.db),
       });
       return { ok: true };
     }),
@@ -92,7 +92,7 @@ export const invoiceRouter = router({
     }),
 
   create: protectedProcedure.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
-    const system = input.gstSystem ?? ACTIVE_GST_SYSTEM;
+    const system = input.gstSystem ?? (await firmGstSystem(ctx.db));
     const g = computeGst(system, input.taxablePaise, input.interState);
     const tdsPaise = input.tdsApplicable ? computeTds194j(input.taxablePaise) : 0;
     const netReceivablePaise = g.grandTotal - tdsPaise;

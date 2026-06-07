@@ -1,8 +1,8 @@
-import { FIRM_PROFILE } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { drawings } from "../../db/schema.js";
+import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { getObjectText, presignedGet } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -44,7 +44,7 @@ export const drawingRouter = router({
       await enqueueJob("render_pdf", {
         target: "drawing",
         id: row.id,
-        firm: FIRM_PROFILE,
+        firm: await firmPayload(ctx.db),
         watermark: input.watermark || "ISSUED FOR APPROVAL",
       });
       return { ok: true };

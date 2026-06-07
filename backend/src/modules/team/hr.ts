@@ -1,15 +1,10 @@
-import {
-  FIRM_PROFILE,
-  LeaveCreate,
-  LeaveStatusUpdate,
-  PayslipCreate,
-  PayslipMarkPaid,
-} from "@esti/contracts";
+import { LeaveCreate, LeaveStatusUpdate, PayslipCreate, PayslipMarkPaid } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { leaves, payslips, teamMembers } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { requireHrEnabled } from "../../lib/settings.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -143,7 +138,11 @@ export const payrollRouter = router({
       const [row] = await ctx.db.select().from(payslips).where(eq(payslips.id, input.id));
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.update(payslips).set({ pdfStatus: "PENDING" }).where(eq(payslips.id, input.id));
-      await enqueueJob("render_pdf", { target: "payslip", id: row.id, firm: FIRM_PROFILE });
+      await enqueueJob("render_pdf", {
+        target: "payslip",
+        id: row.id,
+        firm: await firmPayload(ctx.db),
+      });
       return { ok: true };
     }),
 });

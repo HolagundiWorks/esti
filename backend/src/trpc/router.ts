@@ -11,6 +11,7 @@ import { dashboardRouter } from "../modules/dashboard/router.js";
 import { measurementRouter } from "../modules/drawing/measurement.js";
 import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
+import { firmRouter } from "../modules/firm/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { notificationsRouter } from "../modules/notifications/router.js";
 import { permitRouter } from "../modules/permit/router.js";
@@ -53,6 +54,7 @@ export const appRouter = router({
   reconcile: reconcileRouter,
   portal: portalRouter,
   settings: settingsRouter,
+  firm: firmRouter,
   notifications: notificationsRouter,
   team: teamRouter,
   assignments: assignmentRouter,

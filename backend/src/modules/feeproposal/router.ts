@@ -1,9 +1,10 @@
-import { FIRM_PROFILE, FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contracts";
+import { FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { feeProposals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -74,7 +75,11 @@ export const feeProposalRouter = router({
         .update(feeProposals)
         .set({ pdfStatus: "PENDING" })
         .where(eq(feeProposals.id, input.id));
-      await enqueueJob("render_pdf", { target: "feeproposal", id: row.id, firm: FIRM_PROFILE });
+      await enqueueJob("render_pdf", {
+        target: "feeproposal",
+        id: row.id,
+        firm: await firmPayload(ctx.db),
+      });
       return { ok: true };
     }),
 });

@@ -181,10 +181,12 @@ is off, not merely hidden.
 - Publish container metadata, release notes, security policy, and operator docs.
   **Pending.**
 
-## 8. Firm Profile, Partners & User Management — Planned
+## 8. Firm Profile, Partners & User Management — In Progress
 
 Replaces the early hardcoded `FIRM_PROFILE` constant with an editable,
-single-firm profile that feeds every document and the GST engine.
+single-firm profile that feeds every document and the GST engine. **Firm profile,
+partners, logo, GST type, and states/districts are delivered**; owner/partner/
+team **login & profile management** is the remaining item.
 
 - **Company profile** — company name, address, **logo** (object storage), and
   firm type **Solo | Partnership**.

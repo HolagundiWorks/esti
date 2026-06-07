@@ -13,6 +13,7 @@ import { trpc } from "./lib/trpc.js";
 import { Alerts } from "./routes/Alerts.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
+import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
@@ -59,6 +60,7 @@ export function App() {
         ]
       : []),
     { label: "Reconcile", to: "/reconcile" },
+    { label: "Company", to: "/company" },
     { label: "Settings", to: "/settings" },
   ];
 
@@ -90,6 +92,7 @@ export function App() {
           <Route path="/reconcile" element={<Reconcile />} />
           {hrEnabled && <Route path="/team" element={<Team />} />}
           {hrEnabled && <Route path="/hr" element={<Hr />} />}
+          <Route path="/company" element={<Company />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

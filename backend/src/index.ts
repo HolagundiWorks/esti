@@ -5,6 +5,7 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
 import { env } from "./env.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
+import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
@@ -15,6 +16,7 @@ await app.register(cookie, { secret: env.SESSION_SECRET });
 await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 } });
 registerDrawingUpload(app);
 registerReconcileUpload(app);
+registerFirmLogoUpload(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
