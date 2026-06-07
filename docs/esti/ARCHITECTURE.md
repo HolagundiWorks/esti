@@ -1,6 +1,6 @@
 # ESTI System Architecture
 
-**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-07
 
 > _Part of the [ESTI documentation set](README.md). Canonical source for the
 > system architecture, technology stack, and architecture decision records
@@ -67,14 +67,37 @@ datastore means no anti-corruption adapter and no cross-store transactions.
 One firm only. No tenant column, no multi-company paths. India profile constants
 are hardcoded — see [INDIA-PROFILE](INDIA-PROFILE.md).
 
-### ADR-04 — ESTI owns authentication and authorization
+### ADR-04 — ESTI owns authentication and authorization (four tiers)
 
-- **Owner (principal architect):** username + password (Argon2id) → HttpOnly,
-  Secure, SameSite=Strict session cookie, short TTL + refresh; **optional TOTP MFA**.
-- **Consultants:** same login, **row-level scoped** to assigned projects.
-- **Clients:** passwordless **magic-link** (or per-project expiring token),
-  read-only portal.
-- Authorization (role + row-level) is enforced centrally in the backend.
+Argon2id password hashing → HttpOnly, Secure, SameSite=Strict session cookie.
+Four access tiers, all enforced centrally in the backend:
+
+- **Owner** — full office access; the first registered user bootstraps as owner.
+- **Internal staff** — `CONSULTANT` role **without** a linked consultant record;
+  full office access.
+- **Collaborating consultant** — `CONSULTANT` role **linked to a consultant
+  record** (`users.consultant_id`); a project-scoped read-only portal limited to
+  engaged projects.
+- **Client** — `CLIENT` role linked to a client record (`users.client_id`); a
+  read-only portal for their own projects.
+
+`protectedProcedure` is staff-only (rejects both portal types); `clientProcedure`
+and `collaboratorProcedure` gate the two portals. Owner-provisioned logins
+(email + password) replace the earlier magic-link idea. Optional TOTP MFA and
+per-partner/team logins land with Phase 8. Partner and team-member profiles tie
+to user accounts.
+
+### ADR-12 — Configurable firm profile + feature toggles
+
+Earlier builds hardcoded a `FIRM_PROFILE` constant; the firm profile is now an
+**editable single-firm record** (`esti_firm` + `esti_partner`): name, address,
+logo, Solo|Partnership type, partners, and the **GST type (NA | Composition |
+Regular) + GSTIN**, which is the single source that drives invoice GST behaviour
+(supersedes the hardcoded active-system constant). Optional capabilities are
+gated by flags in `esti_orgsettings` (e.g. the Team & HR module); write paths for
+a disabled module are rejected server-side, not merely hidden. India profile
+**tax rules and rates** remain fixed in code per ADR-07 — only the firm's
+*selection* among them is configurable.
 
 ### ADR-05 — Money and rounding
 

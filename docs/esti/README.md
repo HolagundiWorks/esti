@@ -1,6 +1,6 @@
 # ESTI Documentation
 
-**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-07
 
 ESTI is an **AORMS — Architectural Office Resource Management System**, developed
 by **Holagundi Consulting Works (HCW)** for Indian freelance architects and small
@@ -17,7 +17,7 @@ planning.
 | **1 — Vision** (why) | Rarely | [PRODUCT-VISION](PRODUCT-VISION.md) |
 | **2 — Specification** (what / how) | Per major decision | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md), [ARCHITECTURE](ARCHITECTURE.md) |
 | **3 — Plan** (when) | Every release | [ROADMAP](ROADMAP.md) |
-| **4 — Reference & Policy** (rules) | Rarely | [INDIA-PROFILE](INDIA-PROFILE.md), [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md), [LICENSE-NOTICE](LICENSE-NOTICE.md) |
+| **4 — Reference & Policy** (rules) | Rarely | [INDIA-PROFILE](INDIA-PROFILE.md), [BYLAWS-BBMP](BYLAWS-BBMP.md), [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md), [LICENSE-NOTICE](LICENSE-NOTICE.md) |
 
 Build/run instructions live in [`DEVELOPMENT.md`](../../DEVELOPMENT.md).
 
@@ -70,4 +70,11 @@ Build/run instructions live in [`DEVELOPMENT.md`](../../DEVELOPMENT.md).
 | DXF | AutoCAD drawing exchange format (input to the takeoff viewer) |
 | Takeoff | Measuring quantities off a drawing into BOQ / fee lines |
 | tRPC | Typed RPC contract between the SPA and the ESTI backend |
-| Magic-link | Passwordless client-portal login via emailed token |
+| Portal login | Owner-provisioned, role-scoped login for a client or collaborating consultant (email + password) |
+| DSR | Delhi/State Schedule of Rates — versioned rate master for estimation |
+| BOQ | Bill of Quantities — priced quantity schedule derived from an estimate |
+| BBS | Bar Bending Schedule — reinforcement cutting-length & weight calculator |
+| FAR / FSI | Floor Area Ratio — permissible built-up area ÷ site area |
+| RBL | Restricted Building Line — building line measured from the road centre |
+| ECS | Equivalent Car Space — parking demand unit |
+| DIN | Director Identification Number (captured per partner in a partnership firm) |

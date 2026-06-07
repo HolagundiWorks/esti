@@ -49,10 +49,15 @@ ESTI is an architecture-office system, not a general ERP. First-release focus:
 clients, projects, phases, fee proposals, invoices, permits, drawings,
 consultants, client portal, reconciliation, and the office dashboard.
 
-DSR/SOR rate reference and BOQ/quantity structures exist only to support
-architect workflows (tender costing, drawing takeoff) — not as the product
-centre. Labour teams, site stock, purchase orders, RA billing, and contractor
-measurement books are out of scope.
+A **DSR-based estimation / BOQ / Bar-Bending-Schedule module** is in scope as an
+architect's costing tool (a versioned master DSR, estimate leads, and a BBS
+calculator) — see Phase 10. It is **not** contractor execution accounting: labour
+teams, site stock, purchase orders, GRN, RA billing, and contractor measurement
+books remain out of scope.
+
+The **firm profile is configurable** (Phase 8): solo or partnership, partner
+records, GST type, and logo replace the early hardcoded firm constant and feed
+all documents.
 
 ## 2. Architecture Office Core — Done
 
@@ -176,11 +181,78 @@ is off, not merely hidden.
 - Publish container metadata, release notes, security policy, and operator docs.
   **Pending.**
 
+## 8. Firm Profile, Partners & User Management — Planned
+
+Replaces the early hardcoded `FIRM_PROFILE` constant with an editable,
+single-firm profile that feeds every document and the GST engine.
+
+- **Company profile** — company name, address, **logo** (object storage), and
+  firm type **Solo | Partnership**.
+- **Solo** — one architect: name, COA registration no, PAN, email, two phones
+  (each `type` + number), address (line 1/2, city, pincode, **district**,
+  **state**).
+- **Partnership** — partner count + a record per partner: name, COA no, PAN,
+  **DIN**, email, two phones, full address.
+- **States & districts** reference data — cascading dropdowns (district list
+  filtered by selected state), seeded for India.
+- **GST configuration** — type **NA | Composition | Regular** + GSTIN; this is
+  the single source that sets invoice GST behaviour (supersedes the hardcoded
+  `ACTIVE_GST_SYSTEM`).
+- **User & login management** — owner / partner / team-member logins and
+  self-service profile management; ties partner and team records to user
+  accounts.
+
+`esti_firm`, `esti_partner`, `esti_state`, `esti_district`; firm GST + logo on
+`esti_firm`.
+
+## 9. Bylaw Calculator (BBMP) — Planned
+
+A development-control calculator that turns site geometry into the governing
+setbacks, FAR, ground coverage, and parking — see
+[BYLAWS-BBMP](BYLAWS-BBMP.md) for the rule tables.
+
+- Inputs: project type (Commercial / Residential / Semi-Public / Public), site
+  area (sq m), neighbouring sides (Left / Right / Front / Back), and up to four
+  abutting roads with lengths mapped to sides.
+- **Road-centre RBL** (restricted building line) per road; the governing
+  **setback on each side = max(RBL-derived setback, table setback)**.
+- Range tables (editable, versioned) for FAR, setback, ground coverage, and
+  parking keyed by **site-area band × road width**; when several conditions
+  apply, the **least permissive value governs** (e.g. lowest FAR).
+- Outputs the buildable envelope per project and links to `esti_bylaw`
+  compliance.
+
+`esti_bylaw_rule` (range tables), `esti_bylaw_calc` (per-project inputs +
+computed result).
+
+## 10. Estimation / BOQ / BBS Module — Planned
+
+DSR-driven estimation, bill of quantities, and bar-bending schedules; an approved
+output is attached to the project file.
+
+- **Master DSR with version control** — e.g. `2023-24`, `2026-27`; an estimate
+  pins a DSR version.
+- **Estimation** — line items from the DSR with quantities; **two lead types**:
+  a whole-estimate lead and per-item leads (carriage/lead charges).
+- **BOQ** — priced bill derived from the estimate.
+- **Bar Bending Schedule (BBS)** — reinforcement calculator (bar shapes, cutting
+  length, weight by dia) producing steel quantities.
+- Lifecycle: draft → **approved** → reflected on the project file.
+
+`esti_dsr_version`, `esti_dsr_item`, `esti_estimate`, `esti_estimate_item`,
+`esti_boq`, `esti_bbs`, `esti_bbs_item`.
+
+## 11. Utilities — Planned
+
+- **Floating calculator** — a toggle pinned bottom-left of the SPA, available on
+  every screen.
+
 ## Non-Goals For The First Architect Release
 
 - General-purpose ERP functionality.
-- Contractor RA billing, measurement book certification, labour team payroll,
-  warehouse/site stock, purchase orders, GRN, or supplier bill operations.
+- Contractor RA billing, measurement-book certification, warehouse/site stock,
+  purchase orders, GRN, or supplier bill operations. (Office-staff payroll is in
+  scope via the optional Team & HR module; contractor/labour payroll is not.)
 - Global multi-country accounting or multi-currency.
 - Theme marketplace or user-defined theme customization.
 - Any general-purpose ERP, CRM, or commerce surface.

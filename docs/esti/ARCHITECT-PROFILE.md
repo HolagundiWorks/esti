@@ -1,6 +1,6 @@
 # ESTI Architect Practice Profile
 
-**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-07
 
 Developed by **Holagundi Consulting Works (HCW)**. This profile turns ESTI into
 practice-management software for Indian freelance and small architect offices.
@@ -9,30 +9,47 @@ and runs on the greenfield TypeScript backend + Carbon React SPA + Python worker
 described in [System Architecture](ARCHITECTURE.md). It adapts the HCW Architect
 Platform technical documentation and viewer addendum to ESTI (`hcw` → `esti`).
 
-## Primary Users
+## Primary Users (four access tiers, all enforced in the backend)
 
-- **Principal architect (HCW)** — full access.
-- **Collaborating consultants** (structural, MEP, interior) — project-scoped,
-  no fee/invoice visibility.
-- **Clients** — read-only portal for drawings, invoices, and approvals.
+- **Owner (principal architect)** — full office access.
+- **Internal staff** — a `CONSULTANT`-role user **not** linked to a consultant
+  record; full office access (intended for office employees).
+- **Collaborating consultant** — a `CONSULTANT`-role user **linked to a
+  consultant record**; a project-scoped read-only portal limited to the projects
+  they are engaged on (no other projects, no office endpoints).
+- **Client** — a `CLIENT`-role user scoped to one client record; a read-only
+  portal for their own projects (status, issued invoices, sent approvals, ready
+  drawings).
 
-## Module Map (HCW design → ESTI modules)
+Office endpoints are staff-only; portal users (client / collaborator) are
+rejected from them — see [ARCHITECTURE](ARCHITECTURE.md) ADR-04.
+
+## Module Map (as built)
 
 All modules are ESTI-native (TypeScript backend + PostgreSQL); the Python worker
-handles DXF/PDF/imports.
+handles DXF takeoff, PDF rendering and statement imports.
 
-| HCW design module | ESTI module | New tables |
+| Domain | ESTI module(s) | Tables |
 |---|---|---|
-| Fee Proposal | `esti_feeproposal` (+ COA calc) | `esti_feeproposal_revision` |
-| Project Management (phases) | `esti_projectoffice` + phases | `esti_phase` |
-| Client & Communication | `esti_clientlog` | `esti_client`, `esti_approval` |
-| Fee & Invoicing | `esti_invoiceindia` (GST/TDS) | `esti_invoice`, `esti_gst_detail` |
-| Permit & Compliance | `esti_permit` | `esti_permit`, `esti_bylaw` |
-| Drawing & Document Vault | `esti_drawing` (object storage) | `esti_drawing_revision` |
-| Collaborators & Consultants | `esti_collaborator` | `esti_collaborator` |
-| Drawing takeoff | `esti_takeoff` + Python worker | `esti_takeoff_item`, `esti_drawing_scale` |
-| Reconciliation | `esti_reconcile` (+ pandas imports) | `esti_reconcile_*` |
-| Business Health Dashboard | dashboard (aggregation) | — |
+| Clients & communication | client register + communication timeline | `esti_client`, `esti_clientlog` |
+| Projects & phases | project office + COA 8-stage phases | `esti_projectoffice`, `esti_phase` |
+| Fee proposals (COA) | COA benchmark + below-min guardrail + PDF | `esti_feeproposal` |
+| Invoicing (GST/TDS) | GST/TDS invoice + DRAFT→ISSUED→PAID + PDF | `esti_invoice` |
+| Permits & compliance | statutory permit tracker | `esti_permit` |
+| Bylaws (DCR) | development-control compliance params | `esti_bylaw` |
+| Drawings & takeoff | register, ezdxf takeoff, viewer + measurement | `esti_drawing`, `esti_measurement` |
+| Approvals & issues | issue/sign-off log + watermarked issue PDF | `esti_approval` |
+| Consultants | register + per-project engagements (fee/balance) | `esti_consultant`, `esti_engagement` |
+| Reconciliation | bank-statement import → match → settle | `esti_reconcile` |
+| Collaboration & portals | client portal · consultant portal · alerts | `esti_user` (`client_id`/`consultant_id`), notifications (aggregation) |
+| Team & HR (optional) | staff, site-incharge, leaves, payroll + slip PDF | `esti_teammember`, `esti_assignment`, `esti_leave`, `esti_payslip` |
+| Office settings | feature toggle (HR module) | `esti_orgsettings` |
+| Dashboard | office-health KPIs (+ HR tile when enabled) | — |
+| Platform | auth, sessions, audit, per-FY numbering | `esti_user`, `esti_session`, `esti_audit`, `esti_sequence` |
+
+The render-PDF worker produces four document types from one dispatch table —
+**GST invoice, salary slip, fee proposal, and a watermarked drawing issue set** —
+with an optional watermark applicable to any of them.
 
 ## Project Phases
 
@@ -123,13 +140,15 @@ rules, SAC table (998321–998339), thresholds, and TDS defined in
 - TDS u/s 194J (10%) tracked per invoice; 26AS/AIS reconciliation via the
   reconcile module.
 
-## Consultants & Collaborators (`esti_collaborator`)
+## Consultants & Engagements (`esti_consultant` + `esti_engagement`)
 
-Per-project consultant register: discipline (structural, MEP, electrical,
-plumbing, fire, landscape, interior, geotechnical, acoustic, facade, legal,
-survey), agreed fee, payments made, running balance, and scope notes.
-Collaborators are invited as ESTI `consultant`-role users, row-scoped to their
-assigned project (see [ARCHITECTURE](ARCHITECTURE.md) ADR-04).
+Office-wide consultant register (discipline: structural, MEP, electrical,
+plumbing, HVAC, landscape, interior, survey, soil/geotech, PMC) plus per-project
+**engagements** that track agreed fee, payments recorded, running balance, and
+engagement status (engaged / completed / cancelled). The owner can provision a
+**project-scoped collaborator login** for a consultant (`consultants.createLogin`):
+a `CONSULTANT`-role user linked to the consultant record, who then sees only
+their engaged projects (see [ARCHITECTURE](ARCHITECTURE.md) ADR-04).
 
 ## Reconciliation (`esti_reconcile`)
 
@@ -144,82 +163,105 @@ Closes the loop between invoices, receipts, and statutory deductions:
 
 See [INDIA-PROFILE](INDIA-PROFILE.md) for the tax rules these reconcile against.
 
-## Client Portal
+## Portals & Alerts
 
-A separate SPA route (`/portal`, no sidebar) for `client`-role users showing only
-their projects' drawings, invoices, and approvals.
+- **Client portal** — a separate role-based shell (no office sidebar) for
+  `CLIENT`-role users, showing only their projects' status, stages, issued
+  invoices, sent approvals, and ready drawings. The owner provisions logins via
+  `clients.createPortalUser`.
+- **Consultant portal** — the same pattern for collaborator logins, scoped to
+  the consultant's engaged projects (status, stages, ready drawings, and their
+  own engagement balance).
+- **Alerts** — a staff Alerts surface (with a nav count badge) aggregates stale
+  client decisions (sent approvals unanswered > 7 days), due/overdue client-log
+  follow-ups, and overdue statutory permits, each linked to its project.
 
-## Drawing Takeoff (`esti_takeoff` + viewer service)
+## Drawing Viewer & Takeoff (`esti_drawing` + `esti_measurement`)
 
-The signature architect-profile feature: measure on a drawing and push the
-measurement straight into a BOQ / fee proposal line.
+The signature architect-profile feature: measure on a drawing and collect the
+quantities into a per-project takeoff.
 
-### Flow
+### Flow (as built)
 
 ```
-Upload DXF (or PDF) in EstimationDetail
-  → viewer service returns SVG + bounds (DXF) or pdf.js renders PNG (PDF)
-  → scale set: auto from DXF INSUNITS=6 (metres, HCW-TOOLS standard) or
-    manual two-point calibration → pixels-per-metre (ppm) stored per file hash
-  → user clicks two points → MeasureTool returns real-world metres
-  → user labels it ("Room 2 – north wall") and confirms a rate
-  → measurement saved to esti_takeoff_item and pushed as a fee-proposal/BOQ
-    line in one transactional backend call
+Upload DXF  → worker (ezdxf) renders SVG + extracts layers/bounds, content-
+              addressed in object storage; row goes READY
+  → "View / measure" opens the drawing: the backend proxies the SVG same-origin;
+     the SPA overlays a transparent <svg> sharing the same viewBox
+  → Calibrate: draw a line over a known dimension, enter its real length + unit
+     → scale (real units per viewBox unit) saved on the drawing (drawings.setScale)
+  → Measure: draw a line → length = viewBox-distance x scale; label and save
+     (esti_measurement) — clicks map via getScreenCTM, so it is resolution-
+     independent
+  → measurements roll up into the project's "Measured quantities (takeoff)" table
 ```
 
-- Linear two-point distance is Phase 1; polygon area and count tools are Phase 2.
-- Scale calibration is persisted per drawing file hash (`esti_drawing_scale`)
-  so a drawing need not be recalibrated on reopen.
-- Layout: Carbon `Grid` 8/4 split — drawing viewer left, BOQ DataTable right; on
-  small screens, "Drawing" / "BOQ" tabs.
+- Linear two-point distance is delivered; polygon area and count tools are later.
+- Calibration is persisted per drawing (`esti_drawing.scale_units_per_vb` +
+  `scale_unit`); a drawing need not be recalibrated on reopen.
+- A watermarked **drawing issue PDF** (landscape, embedded SVG + title block) is
+  produced by the render-PDF worker for client/authority issue sets.
 
-The viewer service, scale engine, MeasureTool, and component breakdown are in
-[System Architecture](ARCHITECTURE.md).
+## Team & HR (optional module — `esti_orgsettings.hrEnabled`)
 
-## New Tables (ESTI naming)
+Off by default so a solo freelancer never sees it; a studio owner toggles it on
+from **Settings**. Write paths are guarded server-side (not just hidden) — HR
+mutations are rejected while the module is off.
 
-Tables use the `esti_*` prefix. ESTI is single-firm: `entity` is fixed to
-`1` and there is no `fk_firm` column (see [ARCHITECTURE](ARCHITECTURE.md) ADR-03):
+- `esti_teammember` — office staff register: role/designation, employment type,
+  monthly salary, active flag.
+- `esti_assignment` — per-project staff assignment, including the **site
+  in-charge** role.
+- `esti_leave` — leave requests (casual / sick / earned / unpaid / comp-off),
+  owner approve/reject.
+- `esti_payslip` — monthly payroll, one per member per month (unique), net of
+  deductions, mark-paid, and a **salary-slip PDF** via the render-PDF worker.
 
-- `esti_phase` — design phases on a project (code, status, dates, billing %).
-- `esti_feeproposal_revision` — fee proposal version, scope, exclusions,
-  deliverables, COA benchmark, approval state, and client-facing notes.
-- `esti_permit` — statutory approval tracking (type, authority, dates,
-  linked document).
-- `esti_bylaw` — Karnataka bylaw quick-reference (FAR, setbacks, height).
-- `esti_drawing_revision` — drawing register + revision control.
-- `esti_approval` — issue/sign-off log per drawing or fee proposal.
-- `esti_collaborator` — consultant assignment, fee, payments.
-- `esti_gst_detail` — GST/TDS detail per invoice (SAC, CGST/SGST/IGST, TDS,
-  financial year), stored natively.
-- `esti_takeoff_item` — measurement pushed to a fee/BOQ line.
-- `esti_drawing_scale` — per-drawing scale calibration.
-- `esti_reconcile_payment`, `esti_reconcile_tds`,
-  `esti_reconcile_gst` — reconciliation runs and matches.
-- `esti_audit`, `esti_sequence` — append-only audit log and per-FY
-  numbering sequences (see [ARCHITECTURE](ARCHITECTURE.md) ADR-06, ADR-11).
+When enabled, the dashboard gains a Team & HR tile (headcount, pending leaves,
+unpaid payslips).
+
+## Schema (as built — `esti_*` tables)
+
+Single-firm: no `fk_firm` column (see [ARCHITECTURE](ARCHITECTURE.md) ADR-03).
+
+- **Platform** — `esti_user` (+ `client_id` / `consultant_id` for portal
+  scoping), `esti_session`, `esti_orgsettings`, `esti_audit`, `esti_sequence`.
+- **Clients** — `esti_client`, `esti_clientlog`.
+- **Projects** — `esti_projectoffice`, `esti_phase`.
+- **Money** — `esti_feeproposal`, `esti_invoice` (GST/TDS snapshot + PDF status).
+- **Compliance** — `esti_permit`, `esti_bylaw`.
+- **Drawings** — `esti_drawing` (svg key, layers/bounds, scale, issue-PDF),
+  `esti_measurement` (takeoff lines).
+- **Approvals** — `esti_approval` (issue/sign-off + supersede chain).
+- **Consultants** — `esti_consultant`, `esti_engagement`.
+- **Reconcile** — `esti_reconcile` (batch + matched lines).
+- **Team & HR (optional)** — `esti_teammember`, `esti_assignment`, `esti_leave`,
+  `esti_payslip`.
 
 These are ESTI **TypeScript service** modules with `esti_*` tables (see
 [ARCHITECTURE](ARCHITECTURE.md) ADR-01).
 
 ## Business Health Dashboard
 
-Read-only aggregation (Carbon `Tile` KPI cards + `@carbon/charts-react`):
+Read-only aggregation (Carbon `Tile` KPI cards):
 
-- KPIs: active projects, outstanding receivables, invoiced this FY, TDS pending
-  reconciliation, permits due in 30 days, drawings issued this month.
-- Charts: fee pipeline (invoiced vs received vs outstanding), project-stage
-  distribution, permit-status breakdown.
-- Priority alerts: overdue permits, invoices unpaid > 30 days, stale projects,
-  TDS certificates not yet received.
+- KPIs: projects by status + contract value; invoiced / outstanding (net of TDS)
+  / collected; permits open + overdue; fee proposals below COA minimum.
+- Team & HR tile (only when the HR module is enabled): headcount, pending
+  leaves, unpaid payslips.
+- The standalone **Alerts** surface carries the priority nudges (stale client
+  decisions, due follow-ups, overdue permits).
 
-## Build Order (architect profile)
+## Build Order (delivered)
+
+All phases below are implemented and verified against the running pod; see the
+[ROADMAP](ROADMAP.md) for per-phase status.
 
 1. Project office + phase model and COA fee proposal workflow.
-2. Fee & invoicing GST/TDS layer.
-3. Permit tracker with due-date alerts + bylaw reference.
-4. Drawing vault + revision/approval log.
-5. Drawing takeoff (viewer service + DXF/PDF + two-point measure → BOQ).
-6. Consultants + client portal.
-7. Reconciliation (payments, TDS/26AS, GST output).
-7. Business health dashboard.
+2. Fee & invoicing GST/TDS layer (+ lifecycle, PDFs).
+3. Permit tracker + bylaw (DCR) compliance.
+4. Drawings: register, ezdxf takeoff, viewer + calibrated measurement, issue PDF.
+5. Consultants + client portal + consultant portal + alerts.
+6. Reconciliation (bank-statement import → match → settle).
+7. Optional Team & HR (staff, site-incharge, leaves, payroll).
+8. Office dashboard.
