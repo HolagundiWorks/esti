@@ -167,6 +167,41 @@ export const assignments = pgTable("esti_assignment", {
   createdAt: createdAt(),
 });
 
+/** Staff leave records (optional HR module). */
+export const leaves = pgTable("esti_leave", {
+  id: id(),
+  teamMemberId: uuid("team_member_id")
+    .notNull()
+    .references(() => teamMembers.id),
+  type: text("type").notNull(),
+  fromDate: date("from_date").notNull(),
+  toDate: date("to_date").notNull(),
+  days: doublePrecision("days").notNull().default(0),
+  reason: text("reason"),
+  status: text("status").notNull().default("REQUESTED"),
+  createdAt: createdAt(),
+});
+
+/** Monthly payslips (optional HR module). One per member per month. */
+export const payslips = pgTable(
+  "esti_payslip",
+  {
+    id: id(),
+    teamMemberId: uuid("team_member_id")
+      .notNull()
+      .references(() => teamMembers.id),
+    month: text("month").notNull(), // YYYY-MM
+    grossPaise: bigint("gross_paise", { mode: "number" }).notNull().default(0),
+    deductionsPaise: bigint("deductions_paise", { mode: "number" }).notNull().default(0),
+    netPaise: bigint("net_paise", { mode: "number" }).notNull().default(0),
+    paid: boolean("paid").notNull().default(false),
+    paidDate: date("paid_date"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+  },
+  (t) => ({ uq: uniqueIndex("esti_payslip_member_month").on(t.teamMemberId, t.month) }),
+);
+
 /** Consultant directory — discipline specialists the office sub-engages. */
 export const consultants = pgTable("esti_consultant", {
   id: id(),

@@ -9,6 +9,7 @@ export * from "./clientlog.js";
 export * from "./approval.js";
 export * from "./consultant.js";
 export * from "./team.js";
+export * from "./hr.js";
 export * from "./drawing.js";
 export * from "./reconcile.js";
 export * from "./firm.js";

@@ -18,6 +18,7 @@ import { Portal } from "./routes/Portal.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
+import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Team } from "./routes/Team.js";
 
@@ -76,6 +77,7 @@ export function App() {
           <Route path="/consultants" element={<Consultants />} />
           <Route path="/reconcile" element={<Reconcile />} />
           {hrEnabled && <Route path="/team" element={<Team />} />}
+          {hrEnabled && <Route path="/hr" element={<Hr />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

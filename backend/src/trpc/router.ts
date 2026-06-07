@@ -13,6 +13,7 @@ import { invoiceRouter } from "../modules/invoice/router.js";
 import { permitRouter } from "../modules/permit/router.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
+import { leaveRouter, payrollRouter } from "../modules/team/hr.js";
 import { assignmentRouter, teamRouter } from "../modules/team/router.js";
 import { reconcileRouter } from "../modules/reconcile/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
@@ -49,6 +50,8 @@ export const appRouter = router({
   settings: settingsRouter,
   team: teamRouter,
   assignments: assignmentRouter,
+  leaves: leaveRouter,
+  payroll: payrollRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */
