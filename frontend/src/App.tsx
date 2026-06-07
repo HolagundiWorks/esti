@@ -69,6 +69,8 @@ export function App() {
   const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const isStaff = !!user && (user.role === "OWNER" || (user.role === "CONSULTANT" && !user.consultantId));
+  const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
+  const firmName = firmQ.data?.companyName ?? "AORMS";
   const alertsQ = trpc.notifications.list.useQuery(undefined, {
     enabled: isStaff,
     refetchInterval: 60000,
@@ -76,7 +78,12 @@ export function App() {
   const alertCount = alertsQ.data?.length ?? 0;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
-  if (!user) return <Login />;
+  if (!user)
+    return (
+      <Theme theme={theme}>
+        <Login />
+      </Theme>
+    );
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT") return <Portal />;
   // External consultants (scoped to a consultant record) get the collaborator portal.
@@ -103,7 +110,7 @@ export function App() {
   return (
     <Theme theme={theme}>
       <Header aria-label="ESTI AORMS">
-        <HeaderName prefix="ESTI">AORMS</HeaderName>
+        <HeaderName prefix="ESTI">{firmName}</HeaderName>
         <HeaderGlobalBar>
           <HeaderGlobalAction
             aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
