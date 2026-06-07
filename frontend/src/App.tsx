@@ -10,6 +10,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
+import { Alerts } from "./routes/Alerts.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Consultants } from "./routes/Consultants.js";
@@ -31,6 +32,12 @@ export function App() {
   // Only staff read settings; CLIENT users never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
+  const isStaff = !!user && (user.role === "OWNER" || (user.role === "CONSULTANT" && !user.consultantId));
+  const alertsQ = trpc.notifications.list.useQuery(undefined, {
+    enabled: isStaff,
+    refetchInterval: 60000,
+  });
+  const alertCount = alertsQ.data?.length ?? 0;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user) return <Login />;
@@ -41,6 +48,7 @@ export function App() {
 
   const nav = [
     { label: "Dashboard", to: "/" },
+    { label: alertCount > 0 ? `Alerts (${alertCount})` : "Alerts", to: "/alerts" },
     { label: "Projects", to: "/projects" },
     { label: "Clients", to: "/clients" },
     { label: "Consultants", to: "/consultants" },
@@ -74,6 +82,7 @@ export function App() {
       <Content>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/clients" element={<Clients />} />

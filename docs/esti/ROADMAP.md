@@ -28,7 +28,7 @@ module below is verified against the running system.
 | Office core | `esti_projectoffice`, `esti_phase` (COA 8-stage), `esti_clientlog`, `esti_feeproposal`, `esti_invoiceindia`, `esti_reconcile` | ✅ |
 | Drawing & compliance | `esti_permit`, `esti_bylaw`, `esti_drawing`, `esti_approval` | ✅ (watermarked issue sets pending) |
 | Viewer & takeoff | DXF→SVG + ezdxf layer/entity takeoff (worker) | ◐ canvas measurement overlay pending |
-| Collaboration & portal | consultant register + engagements, read-only **client portal** (role-scoped) | ◐ consultant login pending |
+| Collaboration & portal | consultant register + engagements, client portal, consultant collaborator login, alerts | ✅ |
 | Optional **Team & HR** | settings toggle, `esti_teammember`, site-incharge, `esti_leave`, payroll | ✅ (off by default for freelancers) |
 | Documents | invoice / payslip / fee-proposal **PDF** (WeasyPrint, one dispatch table) | ✅ |
 | Office dashboard | project/fee/invoice/permit KPIs + HR tile (gated) | ✅ |
@@ -113,17 +113,20 @@ issue sets remain.
 Area measurement, counting tools, snapping, and title-block metadata extraction
 are later enhancements.
 
-## 5. Collaboration And Portal — In Progress
+## 5. Collaboration And Portal — Done
 
 - Consultant register with discipline, scope, agreed fee, payments, balance.
   **Done** (`esti_consultant` + per-project `esti_engagement` with payment →
   balance tracking).
 - Client portal with read-only access to issued invoices, approvals, ready
   drawings, and project status. **Done** — owner provisions a CLIENT login
-  scoped to one client; office endpoints are staff-only (OWNER/CONSULTANT).
-- Project-scoped consultant collaborator login. **Pending.**
-- Approval requests and notifications for stale client decisions or consultant
-  deliverables. **Pending.**
+  scoped to one client; office endpoints are staff-only.
+- Project-scoped consultant collaborator login. **Done** — a CONSULTANT user
+  linked to a consultant record sees only their engaged projects; internal
+  staff (CONSULTANT without a link) keep full office access.
+- Notifications for stale client decisions / overdue items. **Done** — the
+  Alerts surface aggregates unanswered sent approvals (>7d), due client-log
+  follow-ups, and overdue statutory permits, with a nav count badge.
 
 ## 5a. Team & HR — Done (optional module)
 
