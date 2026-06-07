@@ -38,6 +38,7 @@ import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
+import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
@@ -301,6 +302,8 @@ export function ProjectDetail() {
       <ProjectBylaws projectId={id} />
 
       <ProjectBylawCalc projectId={id} />
+
+      <ProjectEstimates projectId={id} />
 
       <ProjectDrawings projectId={id} />
 

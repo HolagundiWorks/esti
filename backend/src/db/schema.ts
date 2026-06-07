@@ -460,6 +460,85 @@ export const sequences = pgTable(
   (t) => ({ uq: uniqueIndex("esti_sequence_scope_fy").on(t.scope, t.fy) }),
 );
 
+/** Versioned master DSR (Schedule of Rates) — Phase 10. */
+export const dsrVersions = pgTable("esti_dsr_version", {
+  id: id(),
+  label: text("label").notNull().unique(),
+  description: text("description"),
+  active: boolean("active").notNull().default(false),
+  createdAt: createdAt(),
+});
+
+export const dsrItems = pgTable("esti_dsr_item", {
+  id: id(),
+  versionId: uuid("version_id")
+    .notNull()
+    .references(() => dsrVersions.id),
+  code: text("code").notNull(),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Project estimate / BOQ — whole-estimate lead + per-item leads; approve -> BOQ. */
+export const estimates = pgTable("esti_estimate", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  dsrVersionId: uuid("dsr_version_id").references(() => dsrVersions.id),
+  leadPct: doublePrecision("lead_pct").notNull().default(0),
+  status: text("status").notNull().default("DRAFT"),
+  subtotalPaise: bigint("subtotal_paise", { mode: "number" }).notNull().default(0),
+  totalPaise: bigint("total_paise", { mode: "number" }).notNull().default(0),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const estimateItems = pgTable("esti_estimate_item", {
+  id: id(),
+  estimateId: uuid("estimate_id")
+    .notNull()
+    .references(() => estimates.id),
+  dsrItemId: uuid("dsr_item_id").references(() => dsrItems.id),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  qty: doublePrecision("qty").notNull().default(0),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  itemLeadPct: doublePrecision("item_lead_pct").notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Bar Bending Schedule — Phase 10. */
+export const bbsSchedules = pgTable("esti_bbs", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  createdAt: createdAt(),
+});
+
+export const bbsItems = pgTable("esti_bbs_item", {
+  id: id(),
+  bbsId: uuid("bbs_id")
+    .notNull()
+    .references(() => bbsSchedules.id),
+  barMark: text("bar_mark").notNull(),
+  member: text("member"),
+  diaMm: integer("dia_mm").notNull(),
+  noOfMembers: integer("no_of_members").notNull().default(1),
+  barsPerMember: integer("bars_per_member").notNull().default(1),
+  cuttingLengthMm: doublePrecision("cutting_length_mm").notNull().default(0),
+  weightKg: doublePrecision("weight_kg").notNull().default(0),
+  createdAt: createdAt(),
+});
+
 /** Append-only audit log. See ARCHITECTURE ADR-09. */
 export const audit = pgTable("esti_audit", {
   id: id(),

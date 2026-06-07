@@ -6,6 +6,7 @@ export * from "./fy.js";
 export * from "./permits.js";
 export * from "./bylaw.js";
 export * from "./bylawcalc.js";
+export * from "./boq.js";
 export * from "./clientlog.js";
 export * from "./approval.js";
 export * from "./consultant.js";
