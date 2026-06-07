@@ -51,6 +51,21 @@ export function Clients() {
     },
   });
 
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [portalForm, setPortalForm] = useState({ clientId: "", email: "", password: "" });
+  const [portalMsg, setPortalMsg] = useState<string | null>(null);
+  const setP =
+    (k: keyof typeof portalForm) =>
+    (e: { target: { value: string } }) =>
+      setPortalForm((f) => ({ ...f, [k]: e.target.value }));
+  const createPortal = trpc.clients.createPortalUser.useMutation({
+    onSuccess: (u) => {
+      setPortalMsg(`Portal login created for ${u.email}`);
+      setPortalOpen(false);
+      setPortalForm({ clientId: "", email: "", password: "" });
+    },
+  });
+
   const rows =
     list.data?.map((c) => ({
       id: c.id,
@@ -65,8 +80,22 @@ export function Clients() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Clients</h1>
-        <Button onClick={() => setOpen(true)}>New client</Button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button kind="tertiary" onClick={() => setPortalOpen(true)}>
+            Create portal login
+          </Button>
+          <Button onClick={() => setOpen(true)}>New client</Button>
+        </div>
       </div>
+      {portalMsg && (
+        <InlineNotification
+          kind="success"
+          title="Portal login"
+          subtitle={portalMsg}
+          lowContrast
+          onCloseButtonClick={() => setPortalMsg(null)}
+        />
+      )}
 
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
@@ -146,6 +175,58 @@ export function Clients() {
               kind="error"
               title="Could not create"
               subtitle={create.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={portalOpen}
+        modalHeading="Create client portal login"
+        primaryButtonText={createPortal.isPending ? "Creating…" : "Create login"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={
+          !portalForm.clientId ||
+          !portalForm.email ||
+          portalForm.password.length < 8 ||
+          createPortal.isPending
+        }
+        onRequestClose={() => setPortalOpen(false)}
+        onRequestSubmit={() => createPortal.mutate(portalForm)}
+      >
+        <Stack gap={5}>
+          <Select
+            id="pl-client"
+            labelText="Client"
+            value={portalForm.clientId}
+            onChange={setP("clientId")}
+          >
+            <SelectItem value="" text="Select…" />
+            {(list.data ?? []).map((c) => (
+              <SelectItem key={c.id} value={c.id} text={c.name} />
+            ))}
+          </Select>
+          <TextInput
+            id="pl-email"
+            labelText="Login email"
+            type="email"
+            value={portalForm.email}
+            onChange={setP("email")}
+          />
+          <TextInput
+            id="pl-password"
+            labelText="Temporary password (min 8 chars)"
+            type="password"
+            value={portalForm.password}
+            onChange={setP("password")}
+          />
+          {createPortal.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not create login"
+              subtitle={createPortal.error.message}
               hideCloseButton
               lowContrast
             />

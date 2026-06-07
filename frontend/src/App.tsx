@@ -14,6 +14,7 @@ import { Clients } from "./routes/Clients.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
+import { Portal } from "./routes/Portal.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
@@ -34,6 +35,8 @@ export function App() {
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user) return <Login />;
+  // Client-role users get the read-only portal, not the office workspace.
+  if (user.role === "CLIENT") return <Portal />;
 
   return (
     <>

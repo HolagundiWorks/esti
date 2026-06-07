@@ -6,14 +6,29 @@ const t = initTRPC.context<Context>().create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-/** Requires any authenticated user. */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+/** Any authenticated user (staff or portal client). Internal base only. */
+const authedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
   return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
+/**
+ * Office (staff) procedures — OWNER or CONSULTANT. Portal CLIENT users are
+ * rejected so they can never reach office endpoints; they use clientProcedure.
+ */
+export const protectedProcedure = authedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role === "CLIENT") throw new TRPCError({ code: "FORBIDDEN" });
+  return next({ ctx });
 });
 
 /** Requires the firm owner. */
 export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "OWNER") throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx });
+});
+
+/** Requires a portal client user (role CLIENT scoped to a client record). */
+export const clientProcedure = authedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "CLIENT" || !ctx.user.clientId) throw new TRPCError({ code: "FORBIDDEN" });
+  return next({ ctx: { ...ctx, user: { ...ctx.user, clientId: ctx.user.clientId } } });
 });
