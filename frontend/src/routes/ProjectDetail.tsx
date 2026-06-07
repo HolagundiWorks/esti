@@ -6,6 +6,10 @@ import {
   Select,
   SelectItem,
   Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
   Table,
   TableBody,
   TableCell,
@@ -13,6 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tabs,
   Tag,
   TextInput,
 } from "@carbon/react";
@@ -141,6 +146,18 @@ export function ProjectDetail() {
         {formatINR(p.contractValuePaise, { paise: false })}
       </p>
 
+      <Tabs>
+        <TabList aria-label="Project sections" contained>
+          <Tab>Phases &amp; Fees</Tab>
+          <Tab>Invoices</Tab>
+          <Tab>Client log</Tab>
+          <Tab>Compliance</Tab>
+          <Tab>Costing</Tab>
+          <Tab>Drawings</Tab>
+          <Tab>Team</Tab>
+        </TabList>
+        <TabPanels>
+        <TabPanel>
       <h3 style={{ marginTop: 24, marginBottom: 8 }}>COA phases</h3>
       <TableContainer title="Conditions of Engagement" description="Phase plan & billing schedule">
         <Table>
@@ -236,6 +253,8 @@ export function ProjectDetail() {
         </Table>
       </TableContainer>
 
+        </TabPanel>
+        <TabPanel>
       <div
         style={{
           display: "flex",
@@ -301,25 +320,34 @@ export function ProjectDetail() {
         </Table>
       </TableContainer>
 
+        </TabPanel>
+        <TabPanel>
       <ProjectClientLog projectId={id} />
-
+        </TabPanel>
+        <TabPanel>
       <ProjectPermits projectId={id} />
 
       <ProjectBylaws projectId={id} />
 
       <ProjectBylawCalc projectId={id} />
-
+        </TabPanel>
+        <TabPanel>
       <ProjectEstimates projectId={id} />
 
       <ProjectBbs projectId={id} />
-
+        </TabPanel>
+        <TabPanel>
       <ProjectDrawings projectId={id} />
 
       <ProjectApprovals projectId={id} />
-
+        </TabPanel>
+        <TabPanel>
       {hrEnabled && <ProjectTeam projectId={id} />}
 
       <ProjectEngagements projectId={id} />
+        </TabPanel>
+        </TabPanels>
+      </Tabs>
 
       <Modal
         open={open}
