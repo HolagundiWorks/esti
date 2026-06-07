@@ -6,5 +6,5 @@ declare module "@carbon/pictograms-react" {
   export type Pictogram = FC<
     SVGProps<SVGSVGElement> & { width?: number | string; height?: number | string }
   >;
-  export const Architecture: Pictogram;
+  export const Building: Pictogram;
 }
