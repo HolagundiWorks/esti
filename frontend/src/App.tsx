@@ -1,12 +1,33 @@
 import {
   Content,
   Header,
+  HeaderGlobalAction,
+  HeaderGlobalBar,
   HeaderName,
   Loading,
   SideNav,
   SideNavItems,
   SideNavLink,
+  Theme,
 } from "@carbon/react";
+import {
+  Asleep,
+  Building,
+  Calculation,
+  Catalog,
+  Dashboard as DashboardIcon,
+  Enterprise,
+  Identification,
+  Light,
+  Logout,
+  Notification,
+  Partnership,
+  Settings as SettingsIcon,
+  UserMultiple,
+  Wallet,
+  type CarbonIconType,
+} from "@carbon/icons-react";
+import { useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
@@ -27,11 +48,24 @@ import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Team } from "./routes/Team.js";
 
+type ThemeName = "white" | "g100";
+
 export function App() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  const [theme, setTheme] = useState<ThemeName>(
+    () => (localStorage.getItem("esti-theme") as ThemeName) || "white",
+  );
+  function toggleTheme() {
+    setTheme((t) => {
+      const next: ThemeName = t === "white" ? "g100" : "white";
+      localStorage.setItem("esti-theme", next);
+      return next;
+    });
+  }
+
   // Only staff read settings; CLIENT users never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -49,37 +83,54 @@ export function App() {
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId) return <CollaboratorPortal />;
 
-  const nav = [
-    { label: "Dashboard", to: "/" },
-    { label: alertCount > 0 ? `Alerts (${alertCount})` : "Alerts", to: "/alerts" },
-    { label: "Projects", to: "/projects" },
-    { label: "Clients", to: "/clients" },
-    { label: "Consultants", to: "/consultants" },
+  const nav: { label: string; to: string; icon: CarbonIconType }[] = [
+    { label: "Dashboard", to: "/", icon: DashboardIcon },
+    { label: alertCount > 0 ? `Alerts (${alertCount})` : "Alerts", to: "/alerts", icon: Notification },
+    { label: "Projects", to: "/projects", icon: Building },
+    { label: "Clients", to: "/clients", icon: UserMultiple },
+    { label: "Consultants", to: "/consultants", icon: Partnership },
     ...(hrEnabled
       ? [
-          { label: "Team", to: "/team" },
-          { label: "HR", to: "/hr" },
+          { label: "Team", to: "/team", icon: UserMultiple },
+          { label: "HR", to: "/hr", icon: Identification },
         ]
       : []),
-    { label: "Reconcile", to: "/reconcile" },
-    { label: "Master DSR", to: "/dsr" },
-    { label: "Company", to: "/company" },
-    { label: "Settings", to: "/settings" },
+    { label: "Reconcile", to: "/reconcile", icon: Wallet },
+    { label: "Master DSR", to: "/dsr", icon: Catalog },
+    { label: "Company", to: "/company", icon: Enterprise },
+    { label: "Settings", to: "/settings", icon: SettingsIcon },
   ];
 
   return (
-    <>
+    <Theme theme={theme}>
       <Header aria-label="ESTI AORMS">
         <HeaderName prefix="ESTI">AORMS</HeaderName>
+        <HeaderGlobalBar>
+          <HeaderGlobalAction
+            aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
+            onClick={toggleTheme}
+          >
+            {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
+          </HeaderGlobalAction>
+          <HeaderGlobalAction aria-label="Sign out" onClick={() => logout.mutate()}>
+            <Logout size={20} />
+          </HeaderGlobalAction>
+        </HeaderGlobalBar>
       </Header>
-      <SideNav aria-label="Side navigation" isRail expanded>
+      <SideNav aria-label="Side navigation" isRail>
         <SideNavItems>
           {nav.map((n) => (
-            <SideNavLink key={n.to} as={Link} to={n.to} isActive={pathname === n.to}>
+            <SideNavLink
+              key={n.to}
+              as={Link}
+              to={n.to}
+              renderIcon={n.icon}
+              isActive={pathname === n.to}
+            >
               {n.label}
             </SideNavLink>
           ))}
-          <SideNavLink as="button" type="button" onClick={() => logout.mutate()}>
+          <SideNavLink as="button" type="button" renderIcon={Calculation} onClick={() => logout.mutate()}>
             Sign out ({user.email})
           </SideNavLink>
         </SideNavItems>
@@ -102,6 +153,6 @@ export function App() {
         </Routes>
       </Content>
       <FloatingCalculator />
-    </>
+    </Theme>
   );
 }

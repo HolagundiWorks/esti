@@ -1,4 +1,5 @@
 import { ClickableTile, Tag, Tile } from "@carbon/react";
+import { Architecture } from "@carbon/pictograms-react";
 import { formatINRShort } from "@esti/contracts";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
@@ -24,8 +25,13 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1>Office dashboard</h1>
-      <p>Architectural Office Resource Management System</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Architecture width={48} height={48} />
+        <div>
+          <h1>Office dashboard</h1>
+          <p>Architectural Office Resource Management System</p>
+        </div>
+      </div>
 
       <div style={{ display: "flex", gap: 16, marginTop: 24, flexWrap: "wrap" }}>
         <Kpi

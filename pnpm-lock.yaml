@@ -81,6 +81,12 @@ importers:
 
   frontend:
     dependencies:
+      '@carbon/icons-react':
+        specifier: ^11.42.0
+        version: 11.82.0(react@18.3.1)
+      '@carbon/pictograms-react':
+        specifier: ^11.57.0
+        version: 11.103.0(react@18.3.1)
       '@carbon/react':
         specifier: ^1.71.0
         version: 1.109.0(react-dom@18.3.1(react@18.3.1))(react-is@18.2.0)(react@18.3.1)(sass@1.100.0)
@@ -255,6 +261,11 @@ packages:
 
   '@carbon/motion@11.46.0':
     resolution: {integrity: sha512-b2UQvDfHiAw7UIFbDTMrr/Op2q51xqLOTVdPNsHoQT9Jb8jpBXsDw5y9C14pTQtk07KVcYh0LlZyBoUdTogpRw==}
+
+  '@carbon/pictograms-react@11.103.0':
+    resolution: {integrity: sha512-Y2NyciXG7dZvHucexaoikUSce0kZ9NRnNwVptro3LJPE5Z7W6m2j05B0dTkPHwjyP712GNQeLfaSN5HgVRf2Iw==}
+    peerDependencies:
+      react: '>=16'
 
   '@carbon/react@1.109.0':
     resolution: {integrity: sha512-C2wpOM4YyVhndqfKVFxHkbOC3TmsslHJDmMxtLi5IMk/Y1of/oShPmzK5/Ck2sxgt67UF9V/zYeHtgwr87J0rw==}
@@ -2773,6 +2784,13 @@ snapshots:
   '@carbon/motion@11.46.0':
     dependencies:
       '@ibm/telemetry-js': 1.11.0
+
+  '@carbon/pictograms-react@11.103.0(react@18.3.1)':
+    dependencies:
+      '@carbon/icon-helpers': 10.76.0
+      '@ibm/telemetry-js': 1.11.0
+      prop-types: 15.8.1
+      react: 18.3.1
 
   '@carbon/react@1.109.0(react-dom@18.3.1(react@18.3.1))(react-is@18.2.0)(react@18.3.1)(sass@1.100.0)':
     dependencies:

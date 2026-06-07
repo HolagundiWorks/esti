@@ -1,4 +1,4 @@
-import { InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
+import { GstSystem, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -93,6 +93,8 @@ export const invoiceRouter = router({
 
   create: protectedProcedure.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
     const system = input.gstSystem ?? (await firmGstSystem(ctx.db));
+    // SAC applies only to a regular GST tax invoice; drop it otherwise.
+    const sac = system === GstSystem.REGULAR ? (input.sac ?? null) : null;
     const g = computeGst(system, input.taxablePaise, input.interState);
     const tdsPaise = input.tdsApplicable ? computeTds194j(input.taxablePaise) : 0;
     const netReceivablePaise = g.grandTotal - tdsPaise;
@@ -107,7 +109,7 @@ export const invoiceRouter = router({
         clientId: input.clientId ?? null,
         gstSystem: system,
         documentKind: g.documentKind,
-        sac: input.sac,
+        sac,
         interState: input.interState,
         tdsApplicable: input.tdsApplicable,
         taxablePaise: g.taxable,

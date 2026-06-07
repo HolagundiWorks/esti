@@ -22,6 +22,7 @@ import {
   GstSystem,
   InvoiceStatus,
   PhaseStatus,
+  SAC_CODES,
   coaMinimumFee,
   computeGst,
   computeTds194j,
@@ -80,13 +81,16 @@ export function ProjectDetail() {
     },
   });
 
+  // The firm's GST system (from Company settings) governs invoices — not a
+  // per-invoice choice.
+  const firmGst = (trpc.firm.get.useQuery().data?.gstType ?? GstSystem.REGULAR) as GstSystem;
   const invoicesQ = trpc.invoices.listByProject.useQuery({ projectId: id }, { enabled: !!id });
   const [invOpen, setInvOpen] = useState(false);
   const [invPhase, setInvPhase] = useState("");
-  const [invSystem, setInvSystem] = useState<string>("REGULAR");
   const [invTaxableR, setInvTaxableR] = useState("");
   const [invInter, setInvInter] = useState(false);
   const [invTdsOn, setInvTdsOn] = useState(true);
+  const [invSac, setInvSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
   const createInvoice = trpc.invoices.create.useMutation({
     onSuccess: () => {
       utils.invoices.listByProject.invalidate({ projectId: id });
@@ -120,8 +124,9 @@ export function ProjectDetail() {
 
   // Live GST/TDS preview for the invoice modal
   const invTaxablePaise = Math.round(Number(invTaxableR || "0") * 100);
-  const invSys = invSystem as (typeof GstSystem)[keyof typeof GstSystem];
+  const invSys = firmGst;
   const invBreakup = computeGst(invSys, invTaxablePaise, invInter);
+  const showSac = firmGst === GstSystem.REGULAR;
   const invTdsPaise = invTdsOn ? computeTds194j(invTaxablePaise) : 0;
   const invNet = invBreakup.grandTotal - invTdsPaise;
 
@@ -413,10 +418,11 @@ export function ProjectDetail() {
           createInvoice.mutate({
             projectId: id,
             phaseId: invPhase || undefined,
-            gstSystem: invSys,
+            // GST system is taken from Company settings server-side.
             taxablePaise: invTaxablePaise,
             interState: invInter,
             tdsApplicable: invTdsOn,
+            sac: showSac ? invSac : undefined,
           })
         }
       >
@@ -432,16 +438,9 @@ export function ProjectDetail() {
               <SelectItem key={ph.id} value={ph.id} text={ph.label} />
             ))}
           </Select>
-          <Select
-            id="iv-sys"
-            labelText="GST system"
-            value={invSystem}
-            onChange={(e) => setInvSystem(e.target.value)}
-          >
-            {Object.values(GstSystem).map((g) => (
-              <SelectItem key={g} value={g} text={g} />
-            ))}
-          </Select>
+          <div style={{ fontSize: "0.875rem", color: "#6f6f6f" }}>
+            GST system: <strong>{firmGst}</strong> (from Company settings)
+          </div>
           <TextInput
             id="iv-tax"
             labelText="Taxable value (₹)"
@@ -449,6 +448,13 @@ export function ProjectDetail() {
             value={invTaxableR}
             onChange={(e) => setInvTaxableR(e.target.value)}
           />
+          {showSac && (
+            <Select id="iv-sac" labelText="SAC code" value={invSac} onChange={(e) => setInvSac(e.target.value)}>
+              {SAC_CODES.map((s) => (
+                <SelectItem key={s.code} value={s.code} text={`${s.code} — ${s.label}`} />
+              ))}
+            </Select>
+          )}
           <Checkbox
             id="iv-inter"
             labelText="Inter-state (IGST)"
