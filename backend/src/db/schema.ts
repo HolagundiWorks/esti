@@ -152,6 +152,27 @@ export const drawings = pgTable("esti_drawing", {
   updatedAt: updatedAt(),
 });
 
+/** Bank-statement reconciliation batches + matched/unmatched line results. */
+export const reconciliations = pgTable("esti_reconcile", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  label: text("label").notNull(),
+  fileName: text("file_name").notNull(),
+  fileHash: text("file_hash").notNull(),
+  storageKey: text("storage_key").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull().default(0),
+  status: text("status").notNull().default("PENDING"),
+  rowCount: integer("row_count").notNull().default(0),
+  matchedCount: integer("matched_count").notNull().default(0),
+  unmatchedCount: integer("unmatched_count").notNull().default(0),
+  totalCreditPaise: bigint("total_credit_paise", { mode: "number" }).notNull().default(0),
+  matchedCreditPaise: bigint("matched_credit_paise", { mode: "number" }).notNull().default(0),
+  lines: jsonb("lines"),
+  errorText: text("error_text"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** India GST/TDS invoices — phase-linked; stores the computed tax snapshot. */
 export const invoices = pgTable("esti_invoice", {
   id: id(),

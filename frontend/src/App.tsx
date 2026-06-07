@@ -15,11 +15,13 @@ import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
+import { Reconcile } from "./routes/Reconcile.js";
 
 const NAV = [
   { label: "Dashboard", to: "/" },
   { label: "Projects", to: "/projects" },
   { label: "Clients", to: "/clients" },
+  { label: "Reconcile", to: "/reconcile" },
 ];
 
 export function App() {
@@ -54,6 +56,7 @@ export function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/clients" element={<Clients />} />
+          <Route path="/reconcile" element={<Reconcile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Content>

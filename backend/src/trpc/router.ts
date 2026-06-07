@@ -6,6 +6,7 @@ import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { permitRouter } from "../modules/permit/router.js";
+import { reconcileRouter } from "../modules/reconcile/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { publicProcedure, router } from "./trpc.js";
@@ -30,6 +31,7 @@ export const appRouter = router({
   invoices: invoiceRouter,
   permits: permitRouter,
   drawings: drawingRouter,
+  reconcile: reconcileRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */
