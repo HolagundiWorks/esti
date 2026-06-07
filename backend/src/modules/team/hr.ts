@@ -1,9 +1,18 @@
-import { LeaveCreate, LeaveStatusUpdate, PayslipCreate, PayslipMarkPaid } from "@esti/contracts";
+import {
+  FIRM_PROFILE,
+  LeaveCreate,
+  LeaveStatusUpdate,
+  PayslipCreate,
+  PayslipMarkPaid,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
 import { leaves, payslips, teamMembers } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { enqueueJob } from "../../lib/redis.js";
 import { requireHrEnabled } from "../../lib/settings.js";
+import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const leaveRouter = router({
@@ -62,6 +71,7 @@ export const payrollRouter = router({
         netPaise: payslips.netPaise,
         paid: payslips.paid,
         paidDate: payslips.paidDate,
+        pdfStatus: payslips.pdfStatus,
       })
       .from(payslips)
       .innerJoin(teamMembers, eq(teamMembers.id, payslips.teamMemberId))
@@ -116,4 +126,24 @@ export const payrollRouter = router({
       .returning();
     return row ?? null;
   }),
+
+  byId: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(payslips).where(eq(payslips.id, input.id));
+      if (!row) return null;
+      const pdfUrl = row.pdfKey ? await presignedGet(row.pdfKey).catch(() => null) : null;
+      return { ...row, pdfUrl };
+    }),
+
+  generatePdf: ownerProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
+      const [row] = await ctx.db.select().from(payslips).where(eq(payslips.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db.update(payslips).set({ pdfStatus: "PENDING" }).where(eq(payslips.id, input.id));
+      await enqueueJob("render_pdf", { target: "payslip", id: row.id, firm: FIRM_PROFILE });
+      return { ok: true };
+    }),
 });

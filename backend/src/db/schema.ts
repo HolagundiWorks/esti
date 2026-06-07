@@ -197,7 +197,10 @@ export const payslips = pgTable(
     paid: boolean("paid").notNull().default(false),
     paidDate: date("paid_date"),
     notes: text("notes"),
+    pdfKey: text("pdf_key"),
+    pdfStatus: text("pdf_status").notNull().default("NONE"),
     createdAt: createdAt(),
+    updatedAt: updatedAt(),
   },
   (t) => ({ uq: uniqueIndex("esti_payslip_member_month").on(t.teamMemberId, t.month) }),
 );

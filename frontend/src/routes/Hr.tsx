@@ -16,6 +16,7 @@ import {
 } from "@carbon/react";
 import { LEAVE_TYPES, type LeaveTypeCode, formatINR } from "@esti/contracts";
 import { useState } from "react";
+import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { trpc } from "../lib/trpc.js";
 
 const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
@@ -133,6 +134,7 @@ export function Hr() {
               <TableHeader>Net</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Action</TableHeader>
+              <TableHeader>Slip</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -154,6 +156,9 @@ export function Hr() {
                       Mark paid
                     </Button>
                   )}
+                </TableCell>
+                <TableCell>
+                  <PayslipPdfCell payslipId={p.id} initialStatus={p.pdfStatus} />
                 </TableCell>
               </TableRow>
             ))}

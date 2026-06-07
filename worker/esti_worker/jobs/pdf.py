@@ -11,7 +11,12 @@ import logging
 from typing import Any
 
 from ..config import settings
-from ..db import fetch_invoice_full, update_invoice
+from ..db import (
+    fetch_invoice_full,
+    fetch_payslip_full,
+    update_invoice,
+    update_payslip,
+)
 from ..storage import put_bytes
 
 log = logging.getLogger("esti.worker.pdf")
@@ -139,27 +144,68 @@ def _render_html(inv: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _payslip_html(p: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>
+      @page {{ size: A4; margin: 18mm; }}
+      body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 11px; }}
+      .firm {{ font-size: 18px; font-weight: 700; }}
+      .muted {{ color: #6f6f6f; }}
+      .title {{ font-size: 15px; font-weight: 700; text-transform: uppercase;
+                border-top: 2px solid #161616; border-bottom: 2px solid #161616;
+                padding: 6px 0; margin: 18px 0; letter-spacing: 1px; }}
+      table {{ width: 60%; border-collapse: collapse; margin-top: 10px; }}
+      td {{ padding: 5px 8px; border-bottom: 1px solid #e0e0e0; }}
+      td.r {{ text-align: right; }}
+      .net {{ font-weight: 700; border-top: 2px solid #161616; }}
+    </style></head><body>
+      <div class="grid">
+        <div class="firm">{_e(firm.get('legalName'))}</div>
+        <div class="muted">{addr}</div>
+        <div class="muted">COA Reg {_e(firm.get('coaRegNo'))}</div>
+      </div>
+      <div class="title">Salary Slip — {_e(p['month'])}</div>
+      <div><b>{_e(p['member_name'])}</b> · {_e(p['member_role'])} · {_e(p['employment_type'])}</div>
+      <div class="muted">Date joined: {_e(p.get('date_joined') or '—')}</div>
+      <table>
+        <tr><td>Gross salary</td><td class="r">{_inr(p['gross_paise'])}</td></tr>
+        <tr><td>Deductions</td><td class="r">- {_inr(p['deductions_paise'])}</td></tr>
+        <tr class="net"><td>Net pay</td><td class="r">{_inr(p['net_paise'])}</td></tr>
+        <tr><td>Status</td><td class="r">{'Paid ' + _e(p.get('paid_date') or '') if p['paid'] else 'Unpaid'}</td></tr>
+      </table>
+      {f'<p class="muted">{_e(p.get("notes"))}</p>' if p.get("notes") else ''}
+      <p class="muted" style="margin-top:24px">Computer-generated salary slip — {_e(firm.get('legalName'))}.</p>
+    </body></html>"""
+
+
 def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
-    invoice_id: str = payload["id"]
+    target: str = payload.get("target", "invoice")
+    record_id: str = payload["id"]
     firm: dict[str, Any] = payload.get("firm", {})
 
-    update_invoice(invoice_id, pdf_status="PROCESSING")
+    update = update_payslip if target == "payslip" else update_invoice
+    update(record_id, pdf_status="PROCESSING")
     try:
         # Heavy import (pango/cairo) kept local so the module imports without
         # system libs (e.g. in CI / unit tests).
         from weasyprint import HTML
 
-        inv = fetch_invoice_full(invoice_id)
-        if inv is None:
-            raise ValueError("invoice not found")
+        if target == "payslip":
+            rec = fetch_payslip_full(record_id)
+            if rec is None:
+                raise ValueError("payslip not found")
+            html_str, pdf_key = _payslip_html(rec, firm), f"pdf/payslip/{record_id}.pdf"
+        else:
+            rec = fetch_invoice_full(record_id)
+            if rec is None:
+                raise ValueError("invoice not found")
+            html_str, pdf_key = _render_html(rec, firm), f"pdf/invoice/{record_id}.pdf"
 
-        pdf_bytes = HTML(string=_render_html(inv, firm)).write_pdf()
-        pdf_key = f"pdf/invoice/{invoice_id}.pdf"
+        pdf_bytes = HTML(string=html_str).write_pdf()
         put_bytes(settings.s3_bucket, pdf_key, pdf_bytes, "application/pdf")
-
-        update_invoice(invoice_id, pdf_key=pdf_key, pdf_status="READY")
-        return {"status": "ok", "id": invoice_id, "pdfKey": pdf_key, "bytes": len(pdf_bytes)}
+        update(record_id, pdf_key=pdf_key, pdf_status="READY")
+        return {"status": "ok", "id": record_id, "target": target, "bytes": len(pdf_bytes)}
     except Exception as exc:  # noqa: BLE001
-        log.exception("pdf render failed for %s", invoice_id)
-        update_invoice(invoice_id, pdf_status="FAILED")
-        return {"status": "error", "id": invoice_id, "error": str(exc)}
+        log.exception("pdf render failed for %s %s", target, record_id)
+        update(record_id, pdf_status="FAILED")
+        return {"status": "error", "id": record_id, "error": str(exc)}

@@ -66,6 +66,26 @@ def fetch_invoice_full(invoice_id: str) -> dict[str, Any] | None:
         return cur.fetchone()
 
 
+def update_payslip(payslip_id: str, **fields: Any) -> None:
+    _patch("esti_payslip", payslip_id, set(), fields)
+
+
+def fetch_payslip_full(payslip_id: str) -> dict[str, Any] | None:
+    """Payslip joined with its team member, for rendering."""
+    sql = """
+        select
+          p.month, p.gross_paise, p.deductions_paise, p.net_paise,
+          p.paid, p.paid_date, p.notes,
+          m.name as member_name, m.role as member_role,
+          m.employment_type, m.date_joined
+        from esti_payslip p
+        join esti_teammember m on m.id = p.team_member_id
+        where p.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [payslip_id]).fetchone()
+
+
 def fetch_open_invoices() -> list[dict[str, Any]]:
     """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:
