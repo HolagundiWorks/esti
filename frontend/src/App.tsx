@@ -13,7 +13,6 @@ import {
 import {
   Asleep,
   Building,
-  Calculation,
   Catalog,
   Dashboard as DashboardIcon,
   Enterprise,
@@ -130,9 +129,6 @@ export function App() {
               {n.label}
             </SideNavLink>
           ))}
-          <SideNavLink as="button" type="button" renderIcon={Calculation} onClick={() => logout.mutate()}>
-            Sign out ({user.email})
-          </SideNavLink>
         </SideNavItems>
       </SideNav>
       <Content>
