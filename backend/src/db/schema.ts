@@ -126,9 +126,23 @@ export const projectOffices = pgTable("esti_projectoffice", {
   district: text("district"),
   city: text("city"),
   pin: text("pin"),
+  siteAddress: text("site_address"),
+  siteAreaSqm: doublePrecision("site_area_sqm"),
   contractValuePaise: bigint("contract_value_paise", { mode: "number" }).notNull().default(0),
   dateStart: date("date_start"),
   createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Per-project BBMP bylaw-calculator inputs + computed envelope (one per project). */
+export const bylawCalcs = pgTable("esti_bylaw_calc", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .unique()
+    .references(() => projectOffices.id),
+  input: jsonb("input").notNull(),
+  result: jsonb("result").notNull(),
   updatedAt: updatedAt(),
 });
 

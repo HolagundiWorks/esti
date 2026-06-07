@@ -33,6 +33,7 @@ import { Link, useParams } from "react-router-dom";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
+import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
@@ -298,6 +299,8 @@ export function ProjectDetail() {
       <ProjectPermits projectId={id} />
 
       <ProjectBylaws projectId={id} />
+
+      <ProjectBylawCalc projectId={id} />
 
       <ProjectDrawings projectId={id} />
 

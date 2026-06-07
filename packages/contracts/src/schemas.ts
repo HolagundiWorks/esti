@@ -44,10 +44,20 @@ export const ProjectOfficeCreate = z.object({
   district: z.string().max(128).nullish(),
   city: z.string().max(128).nullish(),
   pin: z.string().regex(/^\d{6}$/).nullish(),
+  siteAddress: z.string().max(400).nullish(),
+  siteAreaSqm: z.number().nonnegative().nullish(),
   contractValuePaise: z.number().int().nonnegative().default(0),
   dateStart: z.string().date().nullish(),
 });
 export type ProjectOfficeCreate = z.infer<typeof ProjectOfficeCreate>;
+
+/** Editable site details on a project (drives the bylaw calculator). */
+export const ProjectSiteUpdate = z.object({
+  id: z.string().uuid(),
+  siteAddress: z.string().max(400).nullish(),
+  siteAreaSqm: z.number().nonnegative().nullish(),
+});
+export type ProjectSiteUpdate = z.infer<typeof ProjectSiteUpdate>;
 
 export const ProjectOffice = ProjectOfficeCreate.extend({
   id: z.string().uuid(),

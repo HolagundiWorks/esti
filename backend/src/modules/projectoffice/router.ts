@@ -1,4 +1,4 @@
-import { ListParams, ProjectOfficeCreate, coaStagePlan } from "@esti/contracts";
+import { ListParams, ProjectOfficeCreate, ProjectSiteUpdate, coaStagePlan } from "@esti/contracts";
 import { desc, eq, ilike } from "drizzle-orm";
 import { z } from "zod";
 import { phases, projectOffices } from "../../db/schema.js";
@@ -39,6 +39,8 @@ export const projectOfficeRouter = router({
           district: input.district ?? null,
           city: input.city ?? null,
           pin: input.pin ?? null,
+          siteAddress: input.siteAddress ?? null,
+          siteAreaSqm: input.siteAreaSqm ?? null,
           contractValuePaise: input.contractValuePaise,
           dateStart: input.dateStart ?? null,
         })
@@ -56,5 +58,17 @@ export const projectOfficeRouter = router({
     });
     await writeAudit(ctx.db, { entity: "projectoffice", entityId: row.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row;
+  }),
+
+  updateSite: protectedProcedure.input(ProjectSiteUpdate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .update(projectOffices)
+      .set({
+        siteAddress: input.siteAddress ?? null,
+        siteAreaSqm: input.siteAreaSqm ?? null,
+      })
+      .where(eq(projectOffices.id, input.id))
+      .returning();
+    return row ?? null;
   }),
 });

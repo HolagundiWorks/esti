@@ -207,11 +207,15 @@ team **login & profile management** is the remaining item.
 `esti_firm`, `esti_partner`, `esti_state`, `esti_district`; firm GST + logo on
 `esti_firm`.
 
-## 9. Bylaw Calculator (BBMP) — Planned
+## 9. Bylaw Calculator (BBMP) — Done
 
 A development-control calculator that turns site geometry into the governing
 setbacks, FAR, ground coverage, and parking — see
-[BYLAWS-BBMP](BYLAWS-BBMP.md) for the rule tables.
+[BYLAWS-BBMP](BYLAWS-BBMP.md) for the rule tables. **Delivered**: per-project
+calculator on the project file (site area + 4 sides with road width & RBL),
+server-authoritative `computeBylawEnvelope`, persisted in `esti_bylaw_calc`;
+project records now carry site address + area. Editable/versioned rule tables in
+the DB are a later enhancement (rules are currently seeded in `@esti/contracts`).
 
 - Inputs: project type (Commercial / Residential / Semi-Public / Public), site
   area (sq m), neighbouring sides (Left / Right / Front / Back), and up to four
