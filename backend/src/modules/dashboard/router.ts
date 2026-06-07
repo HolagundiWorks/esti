@@ -1,5 +1,14 @@
-import { count, sql } from "drizzle-orm";
-import { feeProposals, invoices, permits, projectOffices } from "../../db/schema.js";
+import { count, eq, sql } from "drizzle-orm";
+import {
+  feeProposals,
+  invoices,
+  leaves,
+  payslips,
+  permits,
+  projectOffices,
+  teamMembers,
+} from "../../db/schema.js";
+import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
@@ -57,7 +66,40 @@ export const dashboardRouter = router({
       if (r.status !== "DRAFT" && r.status !== "CANCELLED") invoicedPaise += Number(r.grand);
     }
 
+    // HR stats only when the optional module is enabled (otherwise null).
+    const settings = await getOrgSettings(ctx.db);
+    let hr: {
+      headcount: number;
+      pendingLeaves: number;
+      unpaidPayslips: number;
+      unpaidNetPaise: number;
+    } | null = null;
+    if (settings.hrEnabled) {
+      const [headRow] = await ctx.db
+        .select({ n: count() })
+        .from(teamMembers)
+        .where(eq(teamMembers.active, true));
+      const [leaveRow] = await ctx.db
+        .select({ n: count() })
+        .from(leaves)
+        .where(eq(leaves.status, "REQUESTED"));
+      const [payRow] = await ctx.db
+        .select({
+          n: count(),
+          net: sql<string>`coalesce(sum(${payslips.netPaise}), 0)`,
+        })
+        .from(payslips)
+        .where(eq(payslips.paid, false));
+      hr = {
+        headcount: Number(headRow?.n ?? 0),
+        pendingLeaves: Number(leaveRow?.n ?? 0),
+        unpaidPayslips: Number(payRow?.n ?? 0),
+        unpaidNetPaise: Number(payRow?.net ?? 0),
+      };
+    }
+
     return {
+      hr,
       projects: { total: projectTotal, byStatus, contractValuePaise },
       invoices: { invoicedPaise, outstandingPaise, collectedPaise },
       permits: {

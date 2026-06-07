@@ -76,6 +76,33 @@ export function Dashboard() {
           <p style={{ fontSize: 20, fontWeight: 600 }}>Project offices →</p>
         </ClickableTile>
       </div>
+
+      {s?.hr && (
+        <>
+          <h3 style={{ marginTop: 32 }}>Team &amp; HR</h3>
+          <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+            <ClickableTile onClick={() => navigate("/team")} style={{ minWidth: 200 }}>
+              <p style={{ fontSize: 12, color: "#6f6f6f" }}>Headcount</p>
+              <p style={{ fontSize: 28, fontWeight: 600 }}>{s.hr.headcount}</p>
+              <p style={{ fontSize: 12, color: "#6f6f6f" }}>active staff</p>
+            </ClickableTile>
+            <ClickableTile onClick={() => navigate("/hr")} style={{ minWidth: 200 }}>
+              <p style={{ fontSize: 12, color: "#6f6f6f" }}>Pending leaves</p>
+              <p style={{ fontSize: 28, fontWeight: 600 }}>{s.hr.pendingLeaves}</p>
+              {!!s.hr.pendingLeaves && (
+                <Tag type="blue" style={{ marginTop: 8 }}>
+                  awaiting approval
+                </Tag>
+              )}
+            </ClickableTile>
+            <ClickableTile onClick={() => navigate("/hr")} style={{ minWidth: 200 }}>
+              <p style={{ fontSize: 12, color: "#6f6f6f" }}>Unpaid payslips</p>
+              <p style={{ fontSize: 28, fontWeight: 600 }}>{s.hr.unpaidPayslips}</p>
+              <p style={{ fontSize: 12, color: "#6f6f6f" }}>{formatINRShort(s.hr.unpaidNetPaise)} due</p>
+            </ClickableTile>
+          </div>
+        </>
+      )}
     </div>
   );
 }
