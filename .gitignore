@@ -33,3 +33,4 @@ __pycache__/
 data/
 .idea/
 .vscode/
+.claude/
