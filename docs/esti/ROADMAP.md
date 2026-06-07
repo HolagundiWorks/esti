@@ -231,10 +231,14 @@ the DB are a later enhancement (rules are currently seeded in `@esti/contracts`)
 `esti_bylaw_rule` (range tables), `esti_bylaw_calc` (per-project inputs +
 computed result).
 
-## 10. Estimation / BOQ / BBS Module — Planned
+## 10. Estimation / BOQ / BBS Module — Done
 
 DSR-driven estimation, bill of quantities, and bar-bending schedules; an approved
-output is attached to the project file.
+output is attached to the project file. **Delivered**: versioned Master DSR
+(`esti_dsr_version/_item`), project estimates (`esti_estimate/_item`) with a
+whole-estimate lead + per-item leads and DSR-prefill, approve → BOQ (locks
+edits), and a Bar Bending Schedule (`esti_bbs/_item`) with d²/162 weights and a
+steel summary by diameter.
 
 - **Master DSR with version control** — e.g. `2023-24`, `2026-27`; an estimate
   pins a DSR version.

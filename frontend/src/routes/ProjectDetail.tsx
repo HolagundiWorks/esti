@@ -38,6 +38,7 @@ import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
+import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
@@ -304,6 +305,8 @@ export function ProjectDetail() {
       <ProjectBylawCalc projectId={id} />
 
       <ProjectEstimates projectId={id} />
+
+      <ProjectBbs projectId={id} />
 
       <ProjectDrawings projectId={id} />
 
