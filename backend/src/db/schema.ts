@@ -24,6 +24,13 @@ const updatedAt = () =>
     .notNull()
     .default(sql`now()`);
 
+/** Single-row org settings — feature toggles (e.g. the optional HR module). */
+export const orgSettings = pgTable("esti_orgsettings", {
+  id: id(),
+  hrEnabled: boolean("hr_enabled").notNull().default(false),
+  updatedAt: updatedAt(),
+});
+
 export const users = pgTable("esti_user", {
   id: id(),
   email: text("email").notNull().unique(),

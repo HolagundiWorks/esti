@@ -18,25 +18,36 @@ import { Portal } from "./routes/Portal.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
-
-const NAV = [
-  { label: "Dashboard", to: "/" },
-  { label: "Projects", to: "/projects" },
-  { label: "Clients", to: "/clients" },
-  { label: "Consultants", to: "/consultants" },
-  { label: "Reconcile", to: "/reconcile" },
-];
+import { Settings } from "./routes/Settings.js";
 
 export function App() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  // Only staff read settings; CLIENT users never reach this query.
+  const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
+  const hrEnabled = settingsQ.data?.hrEnabled ?? false;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user) return <Login />;
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT") return <Portal />;
+
+  const nav = [
+    { label: "Dashboard", to: "/" },
+    { label: "Projects", to: "/projects" },
+    { label: "Clients", to: "/clients" },
+    { label: "Consultants", to: "/consultants" },
+    ...(hrEnabled
+      ? [
+          { label: "Team", to: "/team" },
+          { label: "HR", to: "/hr" },
+        ]
+      : []),
+    { label: "Reconcile", to: "/reconcile" },
+    { label: "Settings", to: "/settings" },
+  ];
 
   return (
     <>
@@ -45,7 +56,7 @@ export function App() {
       </Header>
       <SideNav aria-label="Side navigation" isRail expanded>
         <SideNavItems>
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <SideNavLink key={n.to} as={Link} to={n.to} isActive={pathname === n.to}>
               {n.label}
             </SideNavLink>
@@ -63,6 +74,7 @@ export function App() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
           <Route path="/reconcile" element={<Reconcile />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Content>
