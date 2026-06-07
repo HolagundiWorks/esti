@@ -248,10 +248,10 @@ output is attached to the project file.
 `esti_dsr_version`, `esti_dsr_item`, `esti_estimate`, `esti_estimate_item`,
 `esti_boq`, `esti_bbs`, `esti_bbs_item`.
 
-## 11. Utilities — Planned
+## 11. Utilities — In Progress
 
-- **Floating calculator** — a toggle pinned bottom-left of the SPA, available on
-  every screen.
+- **Floating calculator** — **Done**. A toggle pinned bottom-left of the office
+  shell opens a basic calculator (digits, + − × ÷, %, ←, C, =) on every screen.
 
 ## Non-Goals For The First Architect Release
 

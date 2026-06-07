@@ -10,6 +10,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
+import { FloatingCalculator } from "./components/FloatingCalculator.js";
 import { Alerts } from "./routes/Alerts.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
@@ -97,6 +98,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Content>
+      <FloatingCalculator />
     </>
   );
 }
