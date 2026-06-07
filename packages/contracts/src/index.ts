@@ -4,6 +4,7 @@ export * from "./gst.js";
 export * from "./coa.js";
 export * from "./fy.js";
 export * from "./permits.js";
+export * from "./bylaw.js";
 export * from "./drawing.js";
 export * from "./reconcile.js";
 export * from "./firm.js";
