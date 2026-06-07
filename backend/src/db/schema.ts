@@ -40,6 +40,8 @@ export const users = pgTable("esti_user", {
   totpSecret: text("totp_secret"),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),
+  // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.
+  consultantId: uuid("consultant_id"),
   createdAt: createdAt(),
 });
 

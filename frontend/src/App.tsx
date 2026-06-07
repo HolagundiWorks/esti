@@ -11,6 +11,7 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { Clients } from "./routes/Clients.js";
+import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Login } from "./routes/Login.js";
@@ -35,6 +36,8 @@ export function App() {
   if (!user) return <Login />;
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT") return <Portal />;
+  // External consultants (scoped to a consultant record) get the collaborator portal.
+  if (user.role === "CONSULTANT" && user.consultantId) return <CollaboratorPortal />;
 
   const nav = [
     { label: "Dashboard", to: "/" },

@@ -3,6 +3,7 @@ import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
+import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
@@ -44,6 +45,7 @@ export const appRouter = router({
   approvals: approvalRouter,
   consultants: consultantRouter,
   engagements: engagementRouter,
+  collab: collaboratorRouter,
   drawings: drawingRouter,
   reconcile: reconcileRouter,
   portal: portalRouter,

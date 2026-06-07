@@ -36,13 +36,20 @@ export interface AuthUser {
   email: string;
   role: "OWNER" | "CONSULTANT" | "CLIENT";
   clientId: string | null;
+  consultantId: string | null;
 }
 
 /** Resolve a cookie token to a live user, or null. */
 export async function userFromToken(token: string | undefined): Promise<AuthUser | null> {
   if (!token) return null;
   const rows = await db
-    .select({ id: users.id, email: users.email, role: users.role, clientId: users.clientId })
+    .select({
+      id: users.id,
+      email: users.email,
+      role: users.role,
+      clientId: users.clientId,
+      consultantId: users.consultantId,
+    })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date())))

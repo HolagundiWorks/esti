@@ -13,11 +13,14 @@ const authedProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 /**
- * Office (staff) procedures — OWNER or CONSULTANT. Portal CLIENT users are
- * rejected so they can never reach office endpoints; they use clientProcedure.
+ * Office (staff) procedures — OWNER or internal CONSULTANT. Rejected: CLIENT
+ * portal users and external CONSULTANT collaborators (a CONSULTANT scoped to a
+ * consultant record). Those use clientProcedure / collaboratorProcedure.
  */
 export const protectedProcedure = authedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role === "CLIENT") throw new TRPCError({ code: "FORBIDDEN" });
+  if (ctx.user.role === "CONSULTANT" && ctx.user.consultantId)
+    throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx });
 });
 
@@ -31,4 +34,11 @@ export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const clientProcedure = authedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "CLIENT" || !ctx.user.clientId) throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx: { ...ctx, user: { ...ctx.user, clientId: ctx.user.clientId } } });
+});
+
+/** Requires an external collaborator (role CONSULTANT scoped to a consultant). */
+export const collaboratorProcedure = authedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "CONSULTANT" || !ctx.user.consultantId)
+    throw new TRPCError({ code: "FORBIDDEN" });
+  return next({ ctx: { ...ctx, user: { ...ctx.user, consultantId: ctx.user.consultantId } } });
 });

@@ -43,12 +43,32 @@ export function Consultants() {
     },
   });
 
+  const [login, setLogin] = useState<{ id: string; name: string } | null>(null);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginMsg, setLoginMsg] = useState<string | null>(null);
+  const createLogin = trpc.consultants.createLogin.useMutation({
+    onSuccess: (u) => {
+      setLoginMsg(`Collaborator login created for ${u.email}`);
+      setLogin(null);
+      setLoginForm({ email: "", password: "" });
+    },
+  });
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Consultants</h1>
         <Button onClick={() => setOpen(true)}>New consultant</Button>
       </div>
+      {loginMsg && (
+        <InlineNotification
+          kind="success"
+          title="Collaborator login"
+          subtitle={loginMsg}
+          lowContrast
+          onCloseButtonClick={() => setLoginMsg(null)}
+        />
+      )}
 
       <TableContainer title="Consultant register" description="Discipline specialists the office engages">
         <Table>
@@ -59,6 +79,7 @@ export function Consultants() {
               <TableHeader>Firm</TableHeader>
               <TableHeader>Email</TableHeader>
               <TableHeader>Phone</TableHeader>
+              <TableHeader>Portal</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -71,6 +92,11 @@ export function Consultants() {
                 <TableCell>{c.firm ?? "—"}</TableCell>
                 <TableCell>{c.email ?? "—"}</TableCell>
                 <TableCell>{c.phone ?? "—"}</TableCell>
+                <TableCell>
+                  <Button kind="ghost" size="sm" onClick={() => setLogin({ id: c.id, name: c.name })}>
+                    Create login
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -115,6 +141,49 @@ export function Consultants() {
               kind="error"
               title="Could not create"
               subtitle={create.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={!!login}
+        modalHeading={`Create login — ${login?.name ?? ""}`}
+        primaryButtonText={createLogin.isPending ? "Creating…" : "Create login"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={
+          !loginForm.email || loginForm.password.length < 8 || createLogin.isPending
+        }
+        onRequestClose={() => setLogin(null)}
+        onRequestSubmit={() =>
+          login && createLogin.mutate({ consultantId: login.id, ...loginForm })
+        }
+      >
+        <Stack gap={5}>
+          <p style={{ color: "#6f6f6f" }}>
+            Gives this consultant a project-scoped portal login (their engaged projects only).
+          </p>
+          <TextInput
+            id="cl-email"
+            labelText="Login email"
+            type="email"
+            value={loginForm.email}
+            onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
+          />
+          <TextInput
+            id="cl-password"
+            labelText="Temporary password (min 8 chars)"
+            type="password"
+            value={loginForm.password}
+            onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
+          />
+          {createLogin.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not create login"
+              subtitle={createLogin.error.message}
               hideCloseButton
               lowContrast
             />

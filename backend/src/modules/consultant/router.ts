@@ -1,8 +1,11 @@
 import { ConsultantCreate } from "@esti/contracts";
-import { asc } from "drizzle-orm";
-import { consultants } from "../../db/schema.js";
+import { TRPCError } from "@trpc/server";
+import { asc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { hashPassword } from "../../auth/session.js";
+import { consultants, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const consultantRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -29,4 +32,46 @@ export const consultantRouter = router({
     });
     return row!;
   }),
+
+  /** Owner provisions a project-scoped collaborator login for a consultant. */
+  createLogin: ownerProcedure
+    .input(
+      z.object({
+        consultantId: z.string().uuid(),
+        email: z.string().email(),
+        password: z.string().min(8),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [consultant] = await ctx.db
+        .select()
+        .from(consultants)
+        .where(eq(consultants.id, input.consultantId));
+      if (!consultant) throw new TRPCError({ code: "NOT_FOUND", message: "consultant not found" });
+
+      const [taken] = await ctx.db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, input.email));
+      if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
+
+      const [u] = await ctx.db
+        .insert(users)
+        .values({
+          email: input.email,
+          fullName: consultant.name,
+          role: "CONSULTANT",
+          consultantId: input.consultantId,
+          passwordHash: await hashPassword(input.password),
+        })
+        .returning({ id: users.id, email: users.email });
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: u!.id,
+        action: "CREATE_COLLAB",
+        actorId: ctx.user.id,
+        after: { email: input.email, consultantId: input.consultantId },
+      });
+      return u!;
+    }),
 });
