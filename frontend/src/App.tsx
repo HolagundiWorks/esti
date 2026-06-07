@@ -19,6 +19,7 @@ import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Settings } from "./routes/Settings.js";
+import { Team } from "./routes/Team.js";
 
 export function App() {
   const { user, isLoading } = useAuth();
@@ -74,6 +75,7 @@ export function App() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
           <Route path="/reconcile" element={<Reconcile />} />
+          {hrEnabled && <Route path="/team" element={<Team />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

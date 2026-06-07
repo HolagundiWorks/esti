@@ -140,6 +140,33 @@ export const permits = pgTable("esti_permit", {
   updatedAt: updatedAt(),
 });
 
+/** Office staff register (optional HR module). */
+export const teamMembers = pgTable("esti_teammember", {
+  id: id(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  employmentType: text("employment_type").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  monthlySalaryPaise: bigint("monthly_salary_paise", { mode: "number" }).notNull().default(0),
+  dateJoined: date("date_joined"),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Per-project staff assignment — includes the site in-charge. */
+export const assignments = pgTable("esti_assignment", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  teamMemberId: uuid("team_member_id")
+    .notNull()
+    .references(() => teamMembers.id),
+  role: text("role").notNull(),
+  createdAt: createdAt(),
+});
+
 /** Consultant directory — discipline specialists the office sub-engages. */
 export const consultants = pgTable("esti_consultant", {
   id: id(),

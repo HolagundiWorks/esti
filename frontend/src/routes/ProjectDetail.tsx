@@ -36,6 +36,7 @@ import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
+import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -51,6 +52,7 @@ export function ProjectDetail() {
   const { id = "" } = useParams();
   const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
+  const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId: id }, { enabled: !!id });
   const feesQ = trpc.feeProposals.listByProject.useQuery({ projectId: id }, { enabled: !!id });
   const updatePhase = trpc.phases.update.useMutation({
@@ -295,6 +297,8 @@ export function ProjectDetail() {
       <ProjectDrawings projectId={id} />
 
       <ProjectApprovals projectId={id} />
+
+      {hrEnabled && <ProjectTeam projectId={id} />}
 
       <ProjectEngagements projectId={id} />
 
