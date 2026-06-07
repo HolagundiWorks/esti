@@ -29,6 +29,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
@@ -233,6 +234,7 @@ export function ProjectDetail() {
               <TableHeader>TDS</TableHeader>
               <TableHeader>Net receivable</TableHeader>
               <TableHeader>Status</TableHeader>
+              <TableHeader>Document</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -245,6 +247,9 @@ export function ProjectDetail() {
                 <TableCell>{formatINR(iv.tdsPaise, { paise: false })}</TableCell>
                 <TableCell>{formatINR(iv.netReceivablePaise, { paise: false })}</TableCell>
                 <TableCell>{iv.status}</TableCell>
+                <TableCell>
+                  <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

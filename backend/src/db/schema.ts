@@ -199,6 +199,8 @@ export const invoices = pgTable("esti_invoice", {
   netReceivablePaise: bigint("net_receivable_paise", { mode: "number" }).notNull().default(0),
   dateInvoice: date("date_invoice"),
   notes: text("notes"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

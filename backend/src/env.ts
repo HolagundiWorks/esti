@@ -9,6 +9,8 @@ const Env = z.object({
   REDIS_URL: z.string().default("redis://localhost:6379"),
   WORKER_JOB_STREAM: z.string().default("esti:jobs"),
   S3_ENDPOINT: z.string().default("http://minio:9000"),
+  // Browser-reachable endpoint used only to sign GET URLs (presign is host-bound).
+  S3_PUBLIC_ENDPOINT: z.string().default("http://localhost:9000"),
   S3_BUCKET: z.string().default("esti-documents"),
   S3_ACCESS_KEY: z.string().default("esti"),
   S3_SECRET_KEY: z.string().default("esti-secret"),

@@ -1,9 +1,11 @@
-# Dev image for the worker. ezdxf (DXF takeoff), boto3 (object storage) and
-# psycopg (result write-back) are pure-wheel installs. WeasyPrint/pandas still
-# come in via the prod Dockerfile when those handlers are implemented.
+# Dev image for the worker. ezdxf (DXF takeoff), boto3, psycopg and pandas are
+# pure-wheel installs; WeasyPrint needs the pango/cairo/gdk-pixbuf system libs.
 FROM python:3.12-slim
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir \
-    redis pydantic-settings ezdxf boto3 "psycopg[binary]" pillow pandas openpyxl
+    redis pydantic-settings ezdxf boto3 "psycopg[binary]" pillow pandas openpyxl weasyprint
 COPY worker/ ./
 CMD ["python", "-m", "esti_worker.main"]
