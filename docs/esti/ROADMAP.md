@@ -165,14 +165,14 @@ is off, not merely hidden.
 
 ## 7. Release Hardening — In Progress
 
-- GitHub Actions CI (typecheck + vitest for contracts/backend, ruff + pytest for
-  the worker) on every push. **Done.**
+- GitHub Actions CI (typecheck + **eslint** + vitest for contracts/backend,
+  ruff + pytest for the worker) on every push. **Done** — eslint runs from the
+  repo root against the flat config across all three TS workspaces.
 - Validate create/edit/delete, permissions, and multi-entity behaviour for every
   module. **Ongoing** — each module is verified against the running pod at build
   time; automated coverage is being broadened.
 - Unit coverage for money/GST/TDS, COA fee logic, and worker pure helpers.
   **Partial** (contracts + tax + worker helper tests in place).
-- Re-enable repo-wide `eslint` in CI (flat-config wiring fix). **Pending.**
 - Publish container metadata, release notes, security policy, and operator docs.
   **Pending.**
 

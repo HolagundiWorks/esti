@@ -2,6 +2,7 @@
   "name": "esti-aorms",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "ESTI — Architectural Office Resource Management System (AORMS) by Holagundi Consulting Works",
   "packageManager": "pnpm@9.7.0",
   "engines": { "node": ">=20" },
@@ -9,7 +10,7 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint",
+    "lint": "eslint .",
     "test": "pnpm -r test",
     "db:generate": "pnpm --filter @esti/backend db:generate",
     "db:migrate": "pnpm --filter @esti/backend db:migrate"

@@ -23,12 +23,6 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const STATUS_TAG: Record<string, "blue" | "green" | "gray"> = {
-  ENGAGED: "blue",
-  COMPLETED: "green",
-  CANCELLED: "gray",
-};
-
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
 export function ProjectEngagements({ projectId }: { projectId: string }) {
