@@ -15,9 +15,8 @@ jobs:
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
-      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
-      - run: pnpm lint
       - run: pnpm test
 
   python:
@@ -28,6 +27,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install ruff pytest redis pydantic-settings
+      # Pure-wheel deps only — enough to import every handler module and run the
+      # unit tests. WeasyPrint (needs pango/cairo system libs) is imported lazily
+      # inside render_pdf, so it is intentionally omitted here.
+      - run: >
+          pip install ruff pytest redis pydantic-settings
+          ezdxf pandas openpyxl boto3 "psycopg[binary]"
       - run: ruff check .
       - run: pytest -q

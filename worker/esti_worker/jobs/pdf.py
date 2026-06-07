@@ -10,8 +10,6 @@ import html
 import logging
 from typing import Any
 
-from weasyprint import HTML
-
 from ..config import settings
 from ..db import fetch_invoice_full, update_invoice
 from ..storage import put_bytes
@@ -147,6 +145,10 @@ def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
 
     update_invoice(invoice_id, pdf_status="PROCESSING")
     try:
+        # Heavy import (pango/cairo) kept local so the module imports without
+        # system libs (e.g. in CI / unit tests).
+        from weasyprint import HTML
+
         inv = fetch_invoice_full(invoice_id)
         if inv is None:
             raise ValueError("invoice not found")
