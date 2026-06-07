@@ -40,3 +40,11 @@ export async function putObject(key: string, body: Buffer, contentType: string):
 export async function presignedGet(key: string, expirySeconds = 300): Promise<string> {
   return s3Public.presignedGetObject(BUCKET, key, expirySeconds);
 }
+
+/** Read an object's full contents as UTF-8 text (used to proxy the SVG). */
+export async function getObjectText(key: string): Promise<string> {
+  const stream = await s3.getObject(BUCKET, key);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString("utf-8");
+}

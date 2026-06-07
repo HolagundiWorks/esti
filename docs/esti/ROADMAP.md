@@ -27,7 +27,7 @@ module below is verified against the running system.
 | Foundation | auth (owner/consultant/client), money/GST/TDS, per-FY numbering, audit log, Redis job bus | ✅ |
 | Office core | `esti_projectoffice`, `esti_phase` (COA 8-stage), `esti_clientlog`, `esti_feeproposal`, `esti_invoiceindia`, `esti_reconcile` | ✅ |
 | Drawing & compliance | `esti_permit`, `esti_bylaw`, `esti_drawing`, `esti_approval` | ✅ (watermarked issue sets pending) |
-| Viewer & takeoff | DXF→SVG + ezdxf layer/entity takeoff (worker) | ◐ canvas measurement overlay pending |
+| Viewer & takeoff | DXF→SVG + ezdxf takeoff, drawing viewer with calibrated two-point measurement, project takeoff rollup | ✅ |
 | Collaboration & portal | consultant register + engagements, client portal, consultant collaborator login, alerts | ✅ |
 | Optional **Team & HR** | settings toggle, `esti_teammember`, site-incharge, `esti_leave`, payroll | ✅ (off by default for freelancers) |
 | Documents | invoice / payslip / fee-proposal **PDF** (WeasyPrint, one dispatch table) | ✅ |
@@ -99,16 +99,21 @@ This phase turns ESTI into the central record for drawing versions, statutory
 submissions, and client approvals. Items 1–4 are delivered; only the watermarked
 issue sets remain.
 
-## 4. Viewer And Takeoff — In Progress
+## 4. Viewer And Takeoff — Done
 
 - Convert DXF to SVG server-side and cache by file hash. **Done** (Python worker,
   ezdxf; content-addressed in MinIO).
 - Extract per-layer entity counts and model bounds. **Done** (automated takeoff
   written back to `esti_drawing`).
 - Render PDFs for drawing/document review. **Done** (WeasyPrint worker).
-- Carbon React drawing viewer with canvas measurement overlay. **Pending.**
-- Per-drawing scale calibration + linear two-point measurement. **Pending.**
-- Push measured quantities into BOQ / fee-support lines. **Pending.**
+- Carbon React drawing viewer with measurement overlay. **Done** — inline SVG +
+  shared-viewBox overlay; the backend proxies the SVG (same-origin, no CORS).
+- Per-drawing scale calibration + linear two-point measurement. **Done** —
+  calibrate by drawing a line of known length (`drawings.setScale`, units per
+  viewBox unit); measurements use `getScreenCTM` so they are resolution-
+  independent.
+- Push measured quantities into a takeoff list. **Done** (`esti_measurement`;
+  per-drawing list + per-project rollup surfaced under the project drawings).
 
 Area measurement, counting tools, snapping, and title-block metadata extraction
 are later enhancements.

@@ -1,3 +1,11 @@
 // Full Carbon v11 stylesheet. Resolved via @carbon/react's package "sass"
 // entry (its root index.scss) — the bundler/Sass resolver handles the path.
 @use "@carbon/react";
+
+// Drawing viewer: make the injected SVG scale to the container width so the
+// measurement overlay (same viewBox) lines up at any size.
+.dwg-base svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

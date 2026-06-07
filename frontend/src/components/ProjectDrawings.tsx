@@ -13,6 +13,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { useState } from "react";
+import { DrawingViewer } from "./DrawingViewer.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -24,6 +25,8 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
 
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
+  const [viewerId, setViewerId] = useState<string | null>(null);
+  const takeoffQ = trpc.measurements.listByProject.useQuery({ projectId }, { enabled: !!projectId });
   const drawingsQ = trpc.drawings.listByProject.useQuery(
     { projectId },
     {
@@ -99,6 +102,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
               <TableHeader>Status</TableHeader>
               <TableHeader>Entities</TableHeader>
               <TableHeader>Layers</TableHeader>
+              <TableHeader>View</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -126,12 +130,57 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                           .map((l) => `${l.name} (${l.entityCount})`)
                           .join(", ") + (layers.length > 4 ? ` +${layers.length - 4}` : "")}
                   </TableCell>
+                  <TableCell>
+                    {d.status === "READY" && (
+                      <Button kind="ghost" size="sm" onClick={() => setViewerId(d.id)}>
+                        View / measure
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {(takeoffQ.data ?? []).length > 0 && (
+        <TableContainer
+          title="Measured quantities (takeoff)"
+          description="Calibrated measurements across this project's drawings"
+          style={{ marginTop: 16 }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Label</TableHeader>
+                <TableHeader>Length</TableHeader>
+                <TableHeader>Drawing</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(takeoffQ.data ?? []).map((m) => (
+                <TableRow key={m.id}>
+                  <TableCell>{m.label}</TableCell>
+                  <TableCell>
+                    {m.realLength.toFixed(1)} {m.unit}
+                  </TableCell>
+                  <TableCell>{m.drawingRef}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {viewerId && (
+        <DrawingViewer
+          drawingId={viewerId}
+          projectId={projectId}
+          open={!!viewerId}
+          onClose={() => setViewerId(null)}
+        />
+      )}
     </>
   );
 }

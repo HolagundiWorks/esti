@@ -307,9 +307,29 @@ export const drawings = pgTable("esti_drawing", {
   entityCount: integer("entity_count").notNull().default(0),
   layers: jsonb("layers"),
   bounds: jsonb("bounds"),
+  // Viewer calibration: real units per SVG viewBox unit + the unit label.
+  scaleUnitsPerVb: doublePrecision("scale_units_per_vb"),
+  scaleUnit: text("scale_unit"),
   errorText: text("error_text"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/** Calibrated measurements taken on a drawing — the project's takeoff lines. */
+export const measurements = pgTable("esti_measurement", {
+  id: id(),
+  drawingId: uuid("drawing_id")
+    .notNull()
+    .references(() => drawings.id),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  label: text("label").notNull(),
+  kind: text("kind").notNull().default("LINEAR"),
+  vbLength: doublePrecision("vb_length").notNull().default(0),
+  realLength: doublePrecision("real_length").notNull().default(0),
+  unit: text("unit").notNull(),
+  createdAt: createdAt(),
 });
 
 /** Bank-statement reconciliation batches + matched/unmatched line results. */

@@ -8,6 +8,7 @@ import { consultantRouter } from "../modules/consultant/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { dashboardRouter } from "../modules/dashboard/router.js";
+import { measurementRouter } from "../modules/drawing/measurement.js";
 import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
@@ -48,6 +49,7 @@ export const appRouter = router({
   engagements: engagementRouter,
   collab: collaboratorRouter,
   drawings: drawingRouter,
+  measurements: measurementRouter,
   reconcile: reconcileRouter,
   portal: portalRouter,
   settings: settingsRouter,
