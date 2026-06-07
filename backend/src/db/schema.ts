@@ -131,6 +131,34 @@ export const permits = pgTable("esti_permit", {
   updatedAt: updatedAt(),
 });
 
+/** Consultant directory — discipline specialists the office sub-engages. */
+export const consultants = pgTable("esti_consultant", {
+  id: id(),
+  name: text("name").notNull(),
+  discipline: text("discipline").notNull(),
+  firm: text("firm"),
+  email: text("email"),
+  phone: text("phone"),
+  createdAt: createdAt(),
+});
+
+/** Per-project consultant engagement — agreed fee, payments, balance, status. */
+export const engagements = pgTable("esti_engagement", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  consultantId: uuid("consultant_id")
+    .notNull()
+    .references(() => consultants.id),
+  scope: text("scope"),
+  agreedFeePaise: bigint("agreed_fee_paise", { mode: "number" }).notNull().default(0),
+  paidPaise: bigint("paid_paise", { mode: "number" }).notNull().default(0),
+  status: text("status").notNull().default("ENGAGED"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Approval / issue log — what was sent for sign-off, status, supersede chain. */
 export const approvals = pgTable("esti_approval", {
   id: id(),

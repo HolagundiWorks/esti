@@ -2,6 +2,8 @@ import { GST_RATES, SAC_CODES } from "@esti/contracts";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
+import { engagementRouter } from "../modules/consultant/engagement.js";
+import { consultantRouter } from "../modules/consultant/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { dashboardRouter } from "../modules/dashboard/router.js";
@@ -36,6 +38,8 @@ export const appRouter = router({
   permits: permitRouter,
   bylaws: bylawRouter,
   approvals: approvalRouter,
+  consultants: consultantRouter,
+  engagements: engagementRouter,
   drawings: drawingRouter,
   reconcile: reconcileRouter,
 });

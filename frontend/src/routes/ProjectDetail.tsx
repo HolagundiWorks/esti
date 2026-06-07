@@ -35,6 +35,7 @@ import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
+import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -294,6 +295,8 @@ export function ProjectDetail() {
       <ProjectDrawings projectId={id} />
 
       <ProjectApprovals projectId={id} />
+
+      <ProjectEngagements projectId={id} />
 
       <Modal
         open={open}
