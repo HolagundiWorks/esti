@@ -1,6 +1,7 @@
 import { GST_RATES, SAC_CODES } from "@esti/contracts";
 import { authRouter } from "../modules/auth/router.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
+import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { dashboardRouter } from "../modules/dashboard/router.js";
 import { drawingRouter } from "../modules/drawing/router.js";
@@ -26,6 +27,7 @@ export const appRouter = router({
   auth: authRouter,
   dashboard: dashboardRouter,
   clients: clientRouter,
+  clientLog: clientLogRouter,
   projectOffice: projectOfficeRouter,
   phases: phaseRouter,
   feeProposals: feeProposalRouter,

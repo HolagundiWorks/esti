@@ -131,6 +131,22 @@ export const permits = pgTable("esti_permit", {
   updatedAt: updatedAt(),
 });
 
+/** Client communication timeline — dated interactions per project. */
+export const clientLogs = pgTable("esti_clientlog", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  clientId: uuid("client_id").references(() => clients.id),
+  kind: text("kind").notNull(),
+  occurredAt: date("occurred_at").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body"),
+  followUpDate: date("follow_up_date"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+});
+
 /** Development-control (zoning/bylaw) compliance parameters per project. */
 export const bylaws = pgTable("esti_bylaw", {
   id: id(),

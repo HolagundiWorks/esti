@@ -32,6 +32,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
+import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
@@ -282,6 +283,8 @@ export function ProjectDetail() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ProjectClientLog projectId={id} />
 
       <ProjectPermits projectId={id} />
 
