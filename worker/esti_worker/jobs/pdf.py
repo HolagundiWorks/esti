@@ -8,18 +8,21 @@ from __future__ import annotations
 
 import html
 import logging
+import re
 from typing import Any
 
 from ..config import settings
 from ..db import (
+    fetch_drawing_full,
     fetch_feeproposal_full,
     fetch_invoice_full,
     fetch_payslip_full,
+    update_drawing,
     update_feeproposal,
     update_invoice,
     update_payslip,
 )
-from ..storage import put_bytes
+from ..storage import get_bytes, put_bytes
 
 log = logging.getLogger("esti.worker.pdf")
 
@@ -249,10 +252,73 @@ _RENDERERS = {
 }
 
 
+def _inject_watermark(html_str: str, text: str) -> str:
+    """Overlay a faint diagonal watermark, repeated on every page."""
+    wm = (
+        '<div style="position:fixed; top:42%; left:-10%; right:-10%; text-align:center;'
+        " transform:rotate(-28deg); font-size:64px; font-weight:700; letter-spacing:6px;"
+        f' color:rgba(218,30,40,0.12);">{_e(text)}</div>'
+    )
+    return html_str.replace("</body>", wm + "</body>")
+
+
+def _drawing_issue_html(rec: dict[str, Any], firm: dict[str, Any], svg: str) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    # Let the embedded SVG scale to the page via its viewBox.
+    svg = re.sub(r'(<svg\b[^>]*?)\s(?:width|height)="[^"]*"', r"\1", svg, count=2)
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>
+      @page {{ size: A4 landscape; margin: 12mm; }}
+      body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 10px; }}
+      .tb {{ display: flex; justify-content: space-between; border-bottom: 2px solid #161616;
+             padding-bottom: 6px; margin-bottom: 8px; }}
+      .firm {{ font-size: 14px; font-weight: 700; }}
+      .muted {{ color: #6f6f6f; }}
+      .frame {{ border: 1px solid #e0e0e0; padding: 6px; }}
+      .frame svg {{ width: 100%; height: auto; }}
+    </style></head><body>
+      <div class="tb">
+        <div><span class="firm">{_e(firm.get('legalName'))}</span>
+          <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div></div>
+        <div style="text-align:right">
+          <div><b>{_e(rec['title'])}</b> ({_e(rec['ref'])})</div>
+          <div class="muted">{_e(rec['project_title'])} · {_e(rec['project_ref'])}</div>
+        </div>
+      </div>
+      <div class="frame">{svg}</div>
+    </body></html>"""
+
+
+def _render_drawing_issue(record_id: str, firm: dict[str, Any], watermark: str | None) -> dict:
+    update_drawing(record_id, issue_pdf_status="PROCESSING")
+    try:
+        from weasyprint import HTML
+
+        rec = fetch_drawing_full(record_id)
+        if rec is None or not rec.get("svg_key"):
+            raise ValueError("drawing/svg not found")
+        svg = get_bytes(settings.s3_bucket, rec["svg_key"]).decode("utf-8")
+        html_str = _drawing_issue_html(rec, firm, svg)
+        if watermark:
+            html_str = _inject_watermark(html_str, watermark)
+        pdf_key = f"pdf/drawing/{record_id}.pdf"
+        pdf_bytes = HTML(string=html_str).write_pdf()
+        put_bytes(settings.s3_bucket, pdf_key, pdf_bytes, "application/pdf")
+        update_drawing(record_id, issue_pdf_key=pdf_key, issue_pdf_status="READY")
+        return {"status": "ok", "id": record_id, "target": "drawing", "bytes": len(pdf_bytes)}
+    except Exception as exc:  # noqa: BLE001
+        log.exception("drawing issue pdf failed for %s", record_id)
+        update_drawing(record_id, issue_pdf_status="FAILED")
+        return {"status": "error", "id": record_id, "error": str(exc)}
+
+
 def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
     target: str = payload.get("target", "invoice")
     record_id: str = payload["id"]
     firm: dict[str, Any] = payload.get("firm", {})
+    watermark: str | None = payload.get("watermark")
+
+    if target == "drawing":
+        return _render_drawing_issue(record_id, firm, watermark)
 
     fetch, render_html, update, folder = _RENDERERS.get(target, _RENDERERS["invoice"])
     update(record_id, pdf_status="PROCESSING")
@@ -265,7 +331,10 @@ def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
         if rec is None:
             raise ValueError(f"{target} not found")
         pdf_key = f"pdf/{folder}/{record_id}.pdf"
-        pdf_bytes = HTML(string=render_html(rec, firm)).write_pdf()
+        html_str = render_html(rec, firm)
+        if watermark:
+            html_str = _inject_watermark(html_str, watermark)
+        pdf_bytes = HTML(string=html_str).write_pdf()
         put_bytes(settings.s3_bucket, pdf_key, pdf_bytes, "application/pdf")
         update(record_id, pdf_key=pdf_key, pdf_status="READY")
         return {"status": "ok", "id": record_id, "target": target, "bytes": len(pdf_bytes)}

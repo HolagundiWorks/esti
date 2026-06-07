@@ -13,6 +13,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { useState } from "react";
+import { DrawingIssueCell } from "./DrawingIssueCell.js";
 import { DrawingViewer } from "./DrawingViewer.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -103,6 +104,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
               <TableHeader>Entities</TableHeader>
               <TableHeader>Layers</TableHeader>
               <TableHeader>View</TableHeader>
+              <TableHeader>Issue</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -135,6 +137,11 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                       <Button kind="ghost" size="sm" onClick={() => setViewerId(d.id)}>
                         View / measure
                       </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {d.status === "READY" && (
+                      <DrawingIssueCell drawingId={d.id} initialStatus={d.issuePdfStatus} />
                     )}
                   </TableCell>
                 </TableRow>

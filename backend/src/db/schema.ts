@@ -310,6 +310,9 @@ export const drawings = pgTable("esti_drawing", {
   // Viewer calibration: real units per SVG viewBox unit + the unit label.
   scaleUnitsPerVb: doublePrecision("scale_units_per_vb"),
   scaleUnit: text("scale_unit"),
+  // Watermarked issue-set PDF (worker render target "drawing").
+  issuePdfKey: text("issue_pdf_key"),
+  issuePdfStatus: text("issue_pdf_status").notNull().default("NONE"),
   errorText: text("error_text"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

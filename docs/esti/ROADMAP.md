@@ -26,7 +26,7 @@ module below is verified against the running system.
 | --- | --- | --- |
 | Foundation | auth (owner/consultant/client), money/GST/TDS, per-FY numbering, audit log, Redis job bus | ✅ |
 | Office core | `esti_projectoffice`, `esti_phase` (COA 8-stage), `esti_clientlog`, `esti_feeproposal`, `esti_invoiceindia`, `esti_reconcile` | ✅ |
-| Drawing & compliance | `esti_permit`, `esti_bylaw`, `esti_drawing`, `esti_approval` | ✅ (watermarked issue sets pending) |
+| Drawing & compliance | `esti_permit`, `esti_bylaw`, `esti_drawing`, `esti_approval`, watermarked issue PDFs | ✅ |
 | Viewer & takeoff | DXF→SVG + ezdxf takeoff, drawing viewer with calibrated two-point measurement, project takeoff rollup | ✅ |
 | Collaboration & portal | consultant register + engagements, client portal, consultant collaborator login, alerts | ✅ |
 | Optional **Team & HR** | settings toggle, `esti_teammember`, site-incharge, `esti_leave`, payroll | ✅ (off by default for freelancers) |
@@ -93,11 +93,13 @@ lifecycle that feeds the dashboard and reconciliation settlement loop.
 4. `esti_approval` — drawing/fee/submission approval log with sent date, channel,
    recipient, status, and superseded (revision) history. **Done** — a new
    revision auto-retires the one it supersedes.
-5. Watermarked client/authority issue sets for drawings and PDFs. **Pending.**
+5. Watermarked client/authority issue sets for drawings and PDFs. **Done** — a
+   landscape drawing issue PDF embeds the rendered SVG with a title block and a
+   repeating diagonal watermark (e.g. "ISSUED FOR APPROVAL"); the render_pdf
+   worker also applies the watermark to any document type on request.
 
 This phase turns ESTI into the central record for drawing versions, statutory
-submissions, and client approvals. Items 1–4 are delivered; only the watermarked
-issue sets remain.
+submissions, and client approvals — all items delivered.
 
 ## 4. Viewer And Takeoff — Done
 

@@ -90,6 +90,19 @@ def update_feeproposal(fee_id: str, **fields: Any) -> None:
     _patch("esti_feeproposal", fee_id, set(), fields)
 
 
+def fetch_drawing_full(drawing_id: str) -> dict[str, Any] | None:
+    """Drawing + its project, for the watermarked issue-set PDF."""
+    sql = """
+        select d.ref, d.title, d.svg_key, d.file_name,
+               p.ref as project_ref, p.title as project_title
+        from esti_drawing d
+        join esti_projectoffice p on p.id = d.project_id
+        where d.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [drawing_id]).fetchone()
+
+
 def fetch_feeproposal_full(fee_id: str) -> dict[str, Any] | None:
     """Fee proposal joined with its project + client, plus the stage plan."""
     sql = """
