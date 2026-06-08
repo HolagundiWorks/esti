@@ -45,6 +45,82 @@ def handle(type_: str, payload: dict) -> dict:
     return handler(payload)
 
 
+def _delivery_count(r: redis.Redis, entry_id: str) -> int:
+    """How many times this entry has been delivered (1 on first receipt)."""
+    try:
+        pending = r.xpending_range(
+            settings.worker_job_stream, settings.worker_group, min=entry_id, max=entry_id, count=1
+        )
+    except redis.exceptions.RedisError:
+        return 1
+    if pending:
+        return int(pending[0].get("times_delivered", 1))
+    return 1
+
+
+def _dead_letter(r: redis.Redis, entry_id: str, fields: dict, attempts: int, error: str) -> None:
+    """Route a poison job to the dead-letter stream and clear it from pending."""
+    r.xadd(
+        settings.worker_dead_letter_stream,
+        {
+            "type": fields.get("type", ""),
+            "payload": fields.get("payload", "{}"),
+            "original_id": entry_id,
+            "attempts": str(attempts),
+            "error": error[:1000],
+        },
+    )
+    r.xack(settings.worker_job_stream, settings.worker_group, entry_id)
+    log.error("job %s dead-lettered after %d attempts: %s", entry_id, attempts, error)
+
+
+def process_entry(r: redis.Redis, entry_id: str, fields: dict | None) -> None:
+    """Run one job. ACK on success or permanent failure; leave pending to retry."""
+    # XAUTOCLAIM yields None fields for entries deleted from the stream — just clear.
+    if fields is None:
+        r.xack(settings.worker_job_stream, settings.worker_group, entry_id)
+        return
+    try:
+        payload = json.loads(fields.get("payload", "{}"))
+        result = handle(fields.get("type", ""), payload)
+        log.info("job %s %s -> %s", entry_id, fields.get("type"), result.get("status"))
+        r.xack(settings.worker_job_stream, settings.worker_group, entry_id)
+    except Exception as exc:  # noqa: BLE001 - keep the loop alive
+        attempts = _delivery_count(r, entry_id)
+        if attempts >= settings.worker_max_retries:
+            _dead_letter(r, entry_id, fields, attempts, repr(exc))
+        else:
+            # Leave the entry pending (unacked); it is reclaimed and retried
+            # once it has been idle for worker_reclaim_idle_ms (backoff).
+            log.warning(
+                "job %s failed (attempt %d/%d); will retry",
+                entry_id,
+                attempts,
+                settings.worker_max_retries,
+            )
+
+
+def reclaim_stale(r: redis.Redis) -> None:
+    """Reclaim and retry entries left pending by a crashed/stuck consumer."""
+    try:
+        result = r.xautoclaim(
+            settings.worker_job_stream,
+            settings.worker_group,
+            settings.consumer_name,
+            min_idle_time=settings.worker_reclaim_idle_ms,
+            start_id="0-0",
+            count=10,
+        )
+    except redis.exceptions.RedisError as exc:
+        log.warning("xautoclaim failed: %s", exc)
+        return
+    # redis-py >= 7 returns (cursor, [(id, fields), ...], deleted_ids)
+    claimed = result[1] if len(result) > 1 else []
+    for entry_id, fields in claimed:
+        log.info("reclaimed stale job %s for retry", entry_id)
+        process_entry(r, entry_id, fields)
+
+
 def run() -> None:
     signal.signal(signal.SIGINT, _stop)
     signal.signal(signal.SIGTERM, _stop)
@@ -54,6 +130,8 @@ def run() -> None:
     log.info("worker up; consuming %s as %s/%s", settings.worker_job_stream, settings.worker_group, settings.consumer_name)
 
     while _running:
+        # First reclaim any stale pending entries (retry path), then take new work.
+        reclaim_stale(r)
         try:
             resp = r.xreadgroup(
                 settings.worker_group,
@@ -72,14 +150,7 @@ def run() -> None:
             continue
         for _stream, entries in resp:
             for entry_id, fields in entries:
-                try:
-                    payload = json.loads(fields.get("payload", "{}"))
-                    result = handle(fields.get("type", ""), payload)
-                    log.info("job %s %s -> %s", entry_id, fields.get("type"), result.get("status"))
-                except Exception:  # noqa: BLE001 - keep the loop alive; log and ack
-                    log.exception("job %s failed", entry_id)
-                finally:
-                    r.xack(settings.worker_job_stream, settings.worker_group, entry_id)
+                process_entry(r, entry_id, fields)
 
     log.info("worker stopped")
 
