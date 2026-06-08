@@ -19,7 +19,6 @@ import {
   Identification,
   Light,
   Logout,
-  Notification,
   Partnership,
   Settings as SettingsIcon,
   UserAdmin,
@@ -31,6 +30,7 @@ import { useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
+import { AlertsBell } from "./components/AlertsBell.js";
 import { FloatingCalculator } from "./components/FloatingCalculator.js";
 import { Alerts } from "./routes/Alerts.js";
 import { Clients } from "./routes/Clients.js";
@@ -73,11 +73,6 @@ export function App() {
   const isStaff = !!user && (user.role === "OWNER" || (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
-  const alertsQ = trpc.notifications.list.useQuery(undefined, {
-    enabled: isStaff,
-    refetchInterval: 60000,
-  });
-  const alertCount = alertsQ.data?.length ?? 0;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
@@ -93,7 +88,6 @@ export function App() {
 
   const nav: { label: string; to: string; icon: CarbonIconType }[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
-    { label: alertCount > 0 ? `Alerts (${alertCount})` : "Alerts", to: "/alerts", icon: Notification },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Clients", to: "/clients", icon: UserMultiple },
     { label: "Consultants", to: "/consultants", icon: Partnership },
@@ -115,6 +109,7 @@ export function App() {
       <Header aria-label="ESTI AORMS">
         <HeaderName prefix="ESTI">{firmName}</HeaderName>
         <HeaderGlobalBar>
+          <AlertsBell />
           <HeaderGlobalAction
             aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
             onClick={toggleTheme}
