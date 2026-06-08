@@ -30,6 +30,10 @@ export type DrawingBounds = z.infer<typeof DrawingBounds>;
 export const DrawingUploadFields = z.object({
   projectId: z.string().uuid(),
   title: z.string().min(1).max(200),
+  // When uploading a new revision of an existing drawing, any revision id in
+  // that drawing's chain; the server links it and bumps the revision number.
+  rootId: z.string().uuid().optional(),
+  revisionNote: z.string().max(500).optional(),
 });
 export type DrawingUploadFields = z.infer<typeof DrawingUploadFields>;
 

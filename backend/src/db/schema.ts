@@ -463,6 +463,12 @@ export const drawings = pgTable("esti_drawing", {
   issuePdfKey: text("issue_pdf_key"),
   issuePdfStatus: text("issue_pdf_status").notNull().default("NONE"),
   errorText: text("error_text"),
+  // Version control: revisions of one drawing share rootId (the first
+  // revision's id, or self when null); only the latest is isCurrent.
+  revNo: integer("rev_no").notNull().default(1),
+  rootId: uuid("root_id"),
+  revisionNote: text("revision_note"),
+  isCurrent: boolean("is_current").notNull().default(true),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

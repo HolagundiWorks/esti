@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { drawings } from "../../db/schema.js";
 import { firmPayload } from "../../lib/firm.js";
@@ -9,13 +9,26 @@ import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const drawingRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(z.object({ projectId: z.string().uuid(), currentOnly: z.boolean().default(true) }))
     .query(async ({ ctx, input }) => {
+      const where = input.currentOnly
+        ? and(eq(drawings.projectId, input.projectId), eq(drawings.isCurrent, true))
+        : eq(drawings.projectId, input.projectId);
+      return ctx.db.select().from(drawings).where(where).orderBy(desc(drawings.createdAt));
+    }),
+
+  /** All revisions of a drawing (pass any revision's id), oldest first. */
+  versions: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [seed] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
+      if (!seed) return [];
+      const root = seed.rootId ?? seed.id;
       return ctx.db
         .select()
         .from(drawings)
-        .where(eq(drawings.projectId, input.projectId))
-        .orderBy(desc(drawings.createdAt));
+        .where(or(eq(drawings.id, root), eq(drawings.rootId, root)))
+        .orderBy(asc(drawings.revNo));
     }),
 
   byId: protectedProcedure

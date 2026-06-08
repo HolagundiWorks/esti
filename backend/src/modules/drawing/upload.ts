@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { DRAWING_MAX_BYTES, DrawingUploadFields } from "@esti/contracts";
+import { eq, inArray, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { db } from "../../db/index.js";
@@ -46,6 +47,26 @@ export function registerDrawingUpload(app: FastifyInstance): void {
     const storageKey = `dxf/${fileHash}.dxf`;
     await putObject(storageKey, fileBuf, "application/dxf");
 
+    // Revision chaining: if rootId is given, supersede the current revision of
+    // that drawing chain and bump the revision number.
+    let revNo = 1;
+    let rootId: string | null = null;
+    if (parsed.data.rootId) {
+      const [seed] = await db.select().from(drawings).where(eq(drawings.id, parsed.data.rootId));
+      if (seed) {
+        const chainRoot = seed.rootId ?? seed.id;
+        const chain = await db
+          .select()
+          .from(drawings)
+          .where(or(eq(drawings.id, chainRoot), eq(drawings.rootId, chainRoot)));
+        revNo = Math.max(...chain.map((d) => d.revNo)) + 1;
+        rootId = chainRoot;
+        const currentIds = chain.filter((d) => d.isCurrent).map((d) => d.id);
+        if (currentIds.length)
+          await db.update(drawings).set({ isCurrent: false }).where(inArray(drawings.id, currentIds));
+      }
+    }
+
     const { ref } = await nextRef(db, "drawing", "DRW");
     const [row] = await db
       .insert(drawings)
@@ -58,6 +79,10 @@ export function registerDrawingUpload(app: FastifyInstance): void {
         storageKey,
         sizeBytes: fileBuf.length,
         status: "PENDING",
+        revNo,
+        rootId,
+        revisionNote: parsed.data.revisionNote ?? null,
+        isCurrent: true,
       })
       .returning();
 

@@ -2,6 +2,8 @@ import {
   Button,
   FileUploaderButton,
   InlineNotification,
+  Modal,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -45,6 +47,19 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Revision upload + history modals.
+  const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(null);
+  const [revFile, setRevFile] = useState<File | null>(null);
+  const [revNote, setRevNote] = useState("");
+  const [histId, setHistId] = useState<string | null>(null);
+  const versionsQ = trpc.drawings.versions.useQuery({ id: histId ?? "" }, { enabled: !!histId });
+
+  async function postUpload(fd: FormData) {
+    const res = await fetch("/upload/drawing", { method: "POST", body: fd, credentials: "include" });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+    utils.drawings.listByProject.invalidate({ projectId });
+  }
+
   async function upload() {
     if (!file || !title) return;
     setBusy(true);
@@ -54,11 +69,31 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       fd.append("projectId", projectId);
       fd.append("title", title);
       fd.append("file", file);
-      const res = await fetch("/upload/drawing", { method: "POST", body: fd, credentials: "include" });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+      await postUpload(fd);
       setTitle("");
       setFile(null);
-      utils.drawings.listByProject.invalidate({ projectId });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function uploadRevision() {
+    if (!revFile || !revFor) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("projectId", projectId);
+      fd.append("title", revFor.title);
+      fd.append("rootId", revFor.id);
+      if (revNote) fd.append("revisionNote", revNote);
+      fd.append("file", revFile);
+      await postUpload(fd);
+      setRevFor(null);
+      setRevFile(null);
+      setRevNote("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -100,22 +135,28 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
             <TableRow>
               <TableHeader>Ref</TableHeader>
               <TableHeader>Title</TableHeader>
+              <TableHeader>Rev</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Entities</TableHeader>
-              <TableHeader>Layers</TableHeader>
               <TableHeader>View</TableHeader>
               <TableHeader>Issue</TableHeader>
+              <TableHeader>Versions</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {(drawingsQ.data ?? []).map((d) => {
-              const layers = (d.layers as { name: string; entityCount: number }[] | null) ?? [];
               return (
                 <TableRow key={d.id}>
                   <TableCell>{d.ref}</TableCell>
                   <TableCell>
                     {d.title}
                     <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{d.fileName}</div>
+                    {d.revisionNote && (
+                      <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>“{d.revisionNote}”</div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Tag type={d.revNo > 1 ? "blue" : "gray"}>Rev {d.revNo}</Tag>
                   </TableCell>
                   <TableCell>
                     <Tag type={STATUS_TAG[d.status] ?? "gray"}>{d.status}</Tag>
@@ -124,14 +165,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                     )}
                   </TableCell>
                   <TableCell>{d.entityCount}</TableCell>
-                  <TableCell>
-                    {layers.length === 0
-                      ? "—"
-                      : layers
-                          .slice(0, 4)
-                          .map((l) => `${l.name} (${l.entityCount})`)
-                          .join(", ") + (layers.length > 4 ? ` +${layers.length - 4}` : "")}
-                  </TableCell>
                   <TableCell>
                     {d.status === "READY" && (
                       <Button kind="ghost" size="sm" onClick={() => setViewerId(d.id)}>
@@ -143,6 +176,16 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                     {d.status === "READY" && (
                       <DrawingIssueCell drawingId={d.id} initialStatus={d.issuePdfStatus} />
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <Button kind="ghost" size="sm" onClick={() => setRevFor({ id: d.id, title: d.title })}>
+                        New rev
+                      </Button>
+                      <Button kind="ghost" size="sm" onClick={() => setHistId(d.id)}>
+                        History
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -188,6 +231,60 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           onClose={() => setViewerId(null)}
         />
       )}
+
+      <Modal
+        open={!!revFor}
+        modalHeading={`Upload new revision — ${revFor?.title ?? ""}`}
+        primaryButtonText={busy ? "Uploading…" : "Upload revision"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!revFile || busy}
+        onRequestClose={() => { setRevFor(null); setRevFile(null); setRevNote(""); }}
+        onRequestSubmit={uploadRevision}
+      >
+        <Stack gap={5}>
+          <p style={{ color: "var(--cds-text-secondary)" }}>
+            The new DXF supersedes the current revision; the previous version is kept in history.
+          </p>
+          <FileUploaderButton
+            labelText={revFile ? revFile.name : "Choose DXF"}
+            accept={[".dxf"]}
+            disableLabelChanges
+            buttonKind="tertiary"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRevFile(e.target.files?.[0] ?? null)}
+          />
+          <TextInput id="rev-note" labelText="Revision note (optional)" value={revNote} onChange={(e) => setRevNote(e.target.value)} />
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={!!histId}
+        passiveModal
+        modalHeading="Revision history"
+        onRequestClose={() => setHistId(null)}
+      >
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Rev</TableHeader>
+              <TableHeader>Ref</TableHeader>
+              <TableHeader>File</TableHeader>
+              <TableHeader>Note</TableHeader>
+              <TableHeader>Current</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(versionsQ.data ?? []).map((v) => (
+              <TableRow key={v.id}>
+                <TableCell>Rev {v.revNo}</TableCell>
+                <TableCell>{v.ref}</TableCell>
+                <TableCell>{v.fileName}</TableCell>
+                <TableCell>{v.revisionNote ?? "—"}</TableCell>
+                <TableCell>{v.isCurrent ? <Tag type="green" size="sm">Current</Tag> : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Modal>
     </>
   );
 }
