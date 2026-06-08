@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   InlineNotification,
   Modal,
   Select,
@@ -24,24 +23,17 @@ import {
 import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
-  GstSystem,
-  InvoiceStatus,
   PROJECT_WORK_TYPE_LABEL,
   PhaseStatus,
-  SAC_CODES,
   can,
   coaMinimumFee,
-  computeGst,
-  computeTds194j,
   formatINR,
   isBelowCoaMinimum,
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ConfirmModal } from "../components/ConfirmModal.js";
 import { useAuth } from "../lib/auth.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
-import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
@@ -79,8 +71,6 @@ export function ProjectDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const canFees = can(user?.role, "fees:manage");
-  const canInvoice = can(user?.role, "invoice:manage");
-  const canDeleteInvoice = can(user?.role, "invoice:delete");
   const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
@@ -107,43 +97,10 @@ export function ProjectDetail() {
     },
   });
 
-  // The firm's GST system (from Company settings) governs invoices — not a
-  // per-invoice choice.
-  const firmQ = trpc.firm.get.useQuery();
-  const firmGst = (firmQ.data?.gstType ?? GstSystem.REGULAR) as GstSystem;
-  // TDS is a firm-wide declaration (Company settings), not a per-invoice choice.
-  const firmTdsDefault = firmQ.data?.tdsApplicableDefault ?? true;
-  const invoicesQ = trpc.invoices.listByProject.useQuery({ projectId: id }, { enabled: !!id });
-  const [invOpen, setInvOpen] = useState(false);
-  const [invPhase, setInvPhase] = useState("");
-  const [invTaxableR, setInvTaxableR] = useState("");
-  const [invInter, setInvInter] = useState(false);
-  const [invSac, setInvSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
-  const createInvoice = trpc.invoices.create.useMutation({
-    onSuccess: () => {
-      utils.invoices.listByProject.invalidate({ projectId: id });
-      setInvOpen(false);
-      setInvTaxableR("");
-    },
-  });
-  const updateInvoiceStatus = trpc.invoices.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.invoices.listByProject.invalidate({ projectId: id });
-      utils.dashboard.summary.invalidate();
-    },
-  });
-  const removeInvoice = trpc.invoices.remove.useMutation({
-    onSuccess: () => {
-      utils.invoices.listByProject.invalidate({ projectId: id });
-      utils.dashboard.summary.invalidate();
-    },
-  });
-  const [delInv, setDelInv] = useState<{ id: string; ref: string } | null>(null);
 
   const TAB_SLUGS = [
     "phases",
     ...(canFees ? ["fees"] : []),
-    "invoices",
     "clientlog",
     "compliance",
     "costing",
@@ -171,14 +128,6 @@ export function ProjectDetail() {
   const below = feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
   const ratioPct = coaMin > 0 ? Math.round((feePaise / coaMin) * 100) : 0;
   const docCommPaise = Math.round((feePaise * Number(docComm || "0")) / 100);
-
-  // Live GST/TDS preview for the invoice modal
-  const invTaxablePaise = Math.round(Number(invTaxableR || "0") * 100);
-  const invSys = firmGst;
-  const invBreakup = computeGst(invSys, invTaxablePaise, invInter);
-  const showSac = firmGst === GstSystem.REGULAR;
-  const invTdsPaise = firmTdsDefault ? computeTds194j(invTaxablePaise) : 0;
-  const invNet = invBreakup.grandTotal - invTdsPaise;
 
   return (
     <div>
@@ -215,7 +164,6 @@ export function ProjectDetail() {
         <TabList aria-label="Project sections" contained>
           <Tab>Phases</Tab>
           {canFees && <Tab>Fees</Tab>}
-          <Tab>Invoices</Tab>
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
@@ -326,90 +274,6 @@ export function ProjectDetail() {
 
         </TabPanel>
         )}
-        <TabPanel>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 32,
-        }}
-      >
-        <h3>Invoices (GST / TDS)</h3>
-        {canInvoice && (
-          <Button size="sm" onClick={() => setInvOpen(true)}>
-            New invoice
-          </Button>
-        )}
-      </div>
-      <TableContainer title="India invoices" description="GST + TDS, phase-linked">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>Document</TableHeader>
-              <TableHeader>Taxable</TableHeader>
-              <TableHeader>GST</TableHeader>
-              <TableHeader>TDS</TableHeader>
-              <TableHeader>Net receivable</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Document</TableHeader>
-              {canDeleteInvoice && <TableHeader></TableHeader>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(invoicesQ.data ?? []).map((iv) => (
-              <TableRow key={iv.id}>
-                <TableCell>{iv.ref}</TableCell>
-                <TableCell>{iv.documentKind}</TableCell>
-                <TableCell>{formatINR(iv.taxablePaise, { paise: false })}</TableCell>
-                <TableCell>{formatINR(iv.gstTotalPaise, { paise: false })}</TableCell>
-                <TableCell>{formatINR(iv.tdsPaise, { paise: false })}</TableCell>
-                <TableCell>{formatINR(iv.netReceivablePaise, { paise: false })}</TableCell>
-                <TableCell>
-                  <Select
-                    id={`inv-status-${iv.id}`}
-                    labelText="Invoice status"
-                    hideLabel
-                    size="sm"
-                    value={iv.status}
-                    disabled={!canInvoice || iv.status === "PAID" || iv.status === "CANCELLED"}
-                    onChange={(e) =>
-                      updateInvoiceStatus.mutate({
-                        id: iv.id,
-                        status: e.target.value as (typeof InvoiceStatus.options)[number],
-                      })
-                    }
-                  >
-                    {InvoiceStatus.options.map((st) => (
-                      <SelectItem key={st} value={st} text={st} />
-                    ))}
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} canManage={canInvoice} />
-                </TableCell>
-                {canDeleteInvoice && (
-                  <TableCell>
-                    {(iv.status === "DRAFT" || iv.status === "CANCELLED") && (
-                      <Button
-                        kind="danger--ghost"
-                        size="sm"
-                        disabled={removeInvoice.isPending}
-                        onClick={() => setDelInv({ id: iv.id, ref: iv.ref })}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-        </TabPanel>
         <TabPanel>
       <ProjectClientLog projectId={id} />
         </TabPanel>
@@ -533,100 +397,6 @@ export function ProjectDetail() {
           )}
         </Stack>
       </Modal>
-
-      <Modal
-        open={invOpen}
-        modalHeading="New invoice (GST / TDS)"
-        primaryButtonText={createInvoice.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!invTaxableR || createInvoice.isPending}
-        onRequestClose={() => setInvOpen(false)}
-        onRequestSubmit={() =>
-          createInvoice.mutate({
-            projectId: id,
-            phaseId: invPhase || undefined,
-            // GST system is taken from Company settings server-side.
-            taxablePaise: invTaxablePaise,
-            interState: invInter,
-            // TDS is resolved server-side from the firm's declaration.
-            sac: showSac ? invSac : undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="iv-phase"
-            labelText="Phase (optional)"
-            value={invPhase}
-            onChange={(e) => setInvPhase(e.target.value)}
-          >
-            <SelectItem value="" text="— none —" />
-            {(phasesQ.data ?? []).map((ph) => (
-              <SelectItem key={ph.id} value={ph.id} text={ph.label} />
-            ))}
-          </Select>
-          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
-            GST system: <strong>{firmGst}</strong> (from Company settings)
-          </div>
-          <TextInput
-            id="iv-tax"
-            labelText="Taxable value (₹)"
-            type="number"
-            value={invTaxableR}
-            onChange={(e) => setInvTaxableR(e.target.value)}
-          />
-          {showSac && (
-            <Select id="iv-sac" labelText="SAC code" value={invSac} onChange={(e) => setInvSac(e.target.value)}>
-              {SAC_CODES.map((s) => (
-                <SelectItem key={s.code} value={s.code} text={`${s.code} — ${s.label}`} />
-              ))}
-            </Select>
-          )}
-          <Checkbox
-            id="iv-inter"
-            labelText="Inter-state (IGST)"
-            checked={invInter}
-            onChange={(_, { checked }) => setInvInter(checked)}
-          />
-          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
-            TDS u/s 194J:{" "}
-            <strong>{firmTdsDefault ? "deducted (10%)" : "not applicable"}</strong> (from Company settings)
-          </div>
-          {invTaxablePaise > 0 && (
-            <div style={{ fontSize: "0.875rem" }}>
-              {invBreakup.documentKind} · GST {formatINR(invBreakup.gstTotal, { paise: false })}
-              {invBreakup.igst > 0 ? " (IGST)" : invBreakup.gstTotal > 0 ? " (CGST+SGST)" : ""}
-              {invBreakup.compositionLevy > 0
-                ? ` · Composition levy ${formatINR(invBreakup.compositionLevy, { paise: false })}`
-                : ""}{" "}
-              · TDS {formatINR(invTdsPaise, { paise: false })} · Net receivable{" "}
-              <strong>{formatINR(invNet, { paise: false })}</strong>
-            </div>
-          )}
-          {createInvoice.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={createInvoice.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
-
-      <ConfirmModal
-        open={!!delInv}
-        heading="Delete invoice?"
-        body={`This permanently deletes invoice ${delInv?.ref ?? ""} and its PDF. This cannot be undone.`}
-        confirmText="Delete"
-        pending={removeInvoice.isPending}
-        onConfirm={() => {
-          if (delInv) removeInvoice.mutate({ id: delInv.id });
-          setDelInv(null);
-        }}
-        onClose={() => setDelInv(null)}
-      />
     </div>
   );
 }
