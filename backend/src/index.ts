@@ -14,7 +14,14 @@ import { appRouter } from "./trpc/router.js";
 
 // trustProxy lets req.ip reflect X-Forwarded-For behind the dev/prod proxy so
 // per-IP rate limits key on the real client, not the proxy.
-const app = Fastify({ logger: true, genReqId: () => crypto.randomUUID(), trustProxy: true });
+// maxParamLength is raised because tRPC batches the procedure list into the
+// route param — the default of 100 chars 404s large batched GETs.
+const app = Fastify({
+  logger: true,
+  genReqId: () => crypto.randomUUID(),
+  trustProxy: true,
+  maxParamLength: 5000,
+});
 
 // Coarse global abuse protection (per IP). Generous enough for the SPA's
 // normal tRPC + polling traffic; upload routes set a stricter cap below.

@@ -7,6 +7,11 @@ const proxyTarget = process.env.VITE_PROXY_TARGET ?? "http://localhost:4000";
 
 export default defineConfig({
   plugins: [react()],
+  // Some CJS deps (e.g. react-grid-layout) read process.env.NODE_ENV at
+  // runtime; the browser has no `process`, so define it at build time.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "development"),
+  },
   server: {
     port: 5173,
     host: true,
