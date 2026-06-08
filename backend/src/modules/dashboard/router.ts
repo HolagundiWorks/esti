@@ -7,6 +7,7 @@ import {
   payslips,
   permits,
   projectOffices,
+  tasks,
   teamMembers,
   users,
 } from "../../db/schema.js";
@@ -58,6 +59,55 @@ export const dashboardRouter = router({
   saveLayout: protectedProcedure.input(DashboardLayout).mutation(async ({ ctx, input }) => {
     await ctx.db.update(users).set({ dashboardLayout: input }).where(eq(users.id, ctx.user.id));
     return { ok: true };
+  }),
+
+  /** Aggregations for the dashboard board widgets. */
+  boards: protectedProcedure.query(async ({ ctx }) => {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const byType = await ctx.db
+      .select({ type: projectOffices.projectType, n: count() })
+      .from(projectOffices)
+      .groupBy(projectOffices.projectType);
+
+    // A project's current phase = its lowest-ordered phase that isn't complete.
+    const phaseRows = (await ctx.db.execute(sql`
+      select cur.code as code, cur.label as label, count(*)::int as n
+      from (
+        select distinct on (project_id) project_id, code, label, sort_order
+        from esti_phase
+        where status <> 'COMPLETE'
+        order by project_id, sort_order asc
+      ) cur
+      group by cur.code, cur.label
+      order by min(cur.sort_order)
+    `)) as unknown as { code: string; label: string; n: number }[];
+
+    const [leaveRow] = await ctx.db
+      .select({ n: sql<string>`count(distinct ${leaves.teamMemberId})` })
+      .from(leaves)
+      .where(and(eq(leaves.status, "APPROVED"), sql`${today} between ${leaves.fromDate} and ${leaves.toDate}`));
+
+    const [taskTodayRow] = await ctx.db
+      .select({ n: count() })
+      .from(tasks)
+      .where(and(sql`${tasks.status} <> 'DONE'`, sql`${tasks.dueDate} is not null and ${tasks.dueDate} <= ${today}`));
+
+    const workload = await ctx.db
+      .select({ assignee: tasks.assignee, n: count() })
+      .from(tasks)
+      .where(and(sql`${tasks.status} <> 'DONE'`, sql`${tasks.assignee} is not null and ${tasks.assignee} <> ''`))
+      .groupBy(tasks.assignee)
+      .orderBy(sql`count(*) desc`)
+      .limit(8);
+
+    return {
+      byType: byType.map((r) => ({ type: r.type, count: Number(r.n) })),
+      byPhase: phaseRows.map((r) => ({ code: r.code, label: r.label, count: Number(r.n) })),
+      onLeaveToday: Number(leaveRow?.n ?? 0),
+      tasksDueToday: Number(taskTodayRow?.n ?? 0),
+      workload: workload.map((r) => ({ assignee: r.assignee ?? "—", count: Number(r.n) })),
+    };
   }),
 
   summary: protectedProcedure.query(async ({ ctx }) => {

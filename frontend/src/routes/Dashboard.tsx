@@ -42,12 +42,40 @@ function Stat({ label, value, helper, tag, onClick }: {
   );
 }
 
+/** A compact horizontal-bar distribution board (label + count). */
+function DistroBoard({ title, items, emptyText }: { title: string; items: { label: string; count: number }[]; emptyText?: string }) {
+  const max = Math.max(1, ...items.map((i) => i.count));
+  return (
+    <Tile style={{ height: "100%", overflow: "auto" }}>
+      <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginBottom: 8 }}>{title}</p>
+      {items.length === 0 ? (
+        <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{emptyText ?? "No data"}</p>
+      ) : (
+        <div style={{ display: "grid", gap: 8 }}>
+          {items.map((it) => (
+            <div key={it.label}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "75%" }}>{it.label}</span>
+                <strong>{it.count}</strong>
+              </div>
+              <div style={{ height: 6, background: "var(--cds-layer-accent)", borderRadius: 3 }}>
+                <div style={{ height: 6, width: `${(it.count / max) * 100}%`, background: "var(--cds-button-primary)", borderRadius: 3 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Tile>
+  );
+}
+
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
   const summary = trpc.dashboard.summary.useQuery();
+  const boardsQ = trpc.dashboard.boards.useQuery();
   const tasksQ = trpc.tasks.list.useQuery({ openOnly: true });
   const alertsQ = trpc.notifications.list.useQuery();
   const layoutQ = trpc.dashboard.layout.useQuery();
@@ -140,6 +168,30 @@ export function Dashboard() {
             label="Headcount"
             value={String(s?.hr?.headcount ?? "…")}
             helper={`${s?.hr?.pendingLeaves ?? 0} leaves pending`}
+            onClick={edit ? undefined : () => navigate("/hr")}
+          />
+        );
+      case "projectsByPhase":
+        return <DistroBoard title="Projects by phase" items={(boardsQ.data?.byPhase ?? []).map((r) => ({ label: r.label, count: r.count }))} />;
+      case "projectsByType":
+        return <DistroBoard title="Projects by type" items={(boardsQ.data?.byType ?? []).map((r) => ({ label: r.type, count: r.count }))} />;
+      case "workload":
+        return <DistroBoard title="Workload — open tasks" items={(boardsQ.data?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))} emptyText="No assigned open tasks" />;
+      case "tasksToday":
+        return (
+          <Stat
+            label="Tasks due today"
+            value={String(boardsQ.data?.tasksDueToday ?? "…")}
+            helper="due today or overdue, not done"
+            onClick={edit ? undefined : () => navigate("/tasks")}
+          />
+        );
+      case "onLeave":
+        return (
+          <Stat
+            label="On leave today"
+            value={String(boardsQ.data?.onLeaveToday ?? "…")}
+            helper="approved leave covering today"
             onClick={edit ? undefined : () => navigate("/hr")}
           />
         );

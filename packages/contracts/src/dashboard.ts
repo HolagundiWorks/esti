@@ -11,6 +11,11 @@ export const DASHBOARD_WIDGETS = [
   { id: "tasks", title: "Open tasks", w: 3, h: 2, capability: null },
   { id: "alerts", title: "Alerts", w: 3, h: 2, capability: null },
   { id: "hr", title: "HR summary", w: 3, h: 2, capability: "hr:manage" },
+  { id: "projectsByPhase", title: "Projects by phase", w: 4, h: 4, capability: null },
+  { id: "projectsByType", title: "Projects by type", w: 4, h: 4, capability: null },
+  { id: "tasksToday", title: "Tasks due today", w: 3, h: 2, capability: null },
+  { id: "workload", title: "Workload by assignee", w: 4, h: 4, capability: null },
+  { id: "onLeave", title: "On leave today", w: 3, h: 2, capability: "hr:manage" },
 ] as const satisfies readonly {
   id: string;
   title: string;
