@@ -1,4 +1,5 @@
 import { GST_RATES, SAC_CODES } from "@esti/contracts";
+import { adminRouter } from "../modules/admin/router.js";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
 import { bbsRouter } from "../modules/boq/bbs.js";
@@ -66,6 +67,7 @@ export const appRouter = router({
   measurements: measurementRouter,
   reconcile: reconcileRouter,
   reports: reportsRouter,
+  admin: adminRouter,
   portal: portalRouter,
   settings: settingsRouter,
   firm: firmRouter,

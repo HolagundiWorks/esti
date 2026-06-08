@@ -2,6 +2,8 @@ import {
   Button,
   FileUploaderButton,
   InlineNotification,
+  Modal,
+  PasswordInput,
   Select,
   SelectItem,
   Stack,
@@ -260,7 +262,79 @@ export function Company() {
           </p>
         )}
       </Tile>
+
+      {isOwner && <DataTools />}
     </div>
+  );
+}
+
+function DataTools() {
+  const utils = trpc.useUtils();
+  const [msg, setMsg] = useState<string | null>(null);
+  const importDemo = trpc.admin.importDemo.useMutation({
+    onSuccess: (r) => {
+      utils.invalidate();
+      setMsg(`Demo data imported: ${r.clientsCreated} clients, ${r.projectsCreated} projects.`);
+    },
+  });
+  const [purgeOpen, setPurgeOpen] = useState(false);
+  const [pwd, setPwd] = useState("");
+  const purge = trpc.admin.purge.useMutation({
+    onSuccess: (r) => {
+      utils.invalidate();
+      setPurgeOpen(false);
+      setPwd("");
+      setMsg(`Data reset complete (${r.tablesWiped} tables cleared).`);
+    },
+  });
+
+  return (
+    <Tile style={{ maxWidth: 760, marginTop: 24, borderLeft: "3px solid #da1e28" }}>
+      <h4>Data tools</h4>
+      {msg && (
+        <InlineNotification kind="success" title="Done" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
+      )}
+      <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 12px" }}>
+        Load sample records to explore the system, or reset everything to a clean slate. Reset keeps
+        your firm profile, this owner login and DSR reference data — all projects, clients, invoices,
+        drawings, HR and other logins are permanently removed.
+      </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        <Button kind="tertiary" disabled={importDemo.isPending} onClick={() => importDemo.mutate()}>
+          {importDemo.isPending ? "Importing…" : "Import demo data"}
+        </Button>
+        <Button kind="danger" onClick={() => setPurgeOpen(true)}>
+          Reset all data…
+        </Button>
+      </div>
+
+      <Modal
+        open={purgeOpen}
+        danger
+        modalHeading="Reset all data?"
+        primaryButtonText={purge.isPending ? "Resetting…" : "Permanently reset"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={pwd.length === 0 || purge.isPending}
+        onRequestClose={() => { setPurgeOpen(false); setPwd(""); purge.reset(); }}
+        onRequestSubmit={() => purge.mutate({ password: pwd })}
+      >
+        <Stack gap={5}>
+          <p>
+            This permanently deletes <strong>all operational data</strong> and cannot be undone.
+            Enter your admin password to confirm.
+          </p>
+          <PasswordInput
+            id="purge-pwd"
+            labelText="Admin password"
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+          />
+          {purge.error && (
+            <InlineNotification kind="error" lowContrast title="Reset failed" subtitle={purge.error.message} />
+          )}
+        </Stack>
+      </Modal>
+    </Tile>
   );
 }
 
