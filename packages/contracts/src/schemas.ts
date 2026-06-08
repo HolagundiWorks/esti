@@ -11,6 +11,17 @@ export const ProjectType = z.enum([
 ]);
 export type ProjectType = z.infer<typeof ProjectType>;
 
+/** Discipline / engagement type — orthogonal to the building-use ProjectType. */
+export const ProjectWorkType = z.enum(["ARCHITECTURE", "INTERIOR", "LANDSCAPE", "MISC"]);
+export type ProjectWorkType = z.infer<typeof ProjectWorkType>;
+
+export const PROJECT_WORK_TYPE_LABEL: Record<ProjectWorkType, string> = {
+  ARCHITECTURE: "Architecture Consultancy",
+  INTERIOR: "Interior Consultancy",
+  LANDSCAPE: "Landscape",
+  MISC: "Miscellaneous",
+};
+
 export const Jurisdiction = z.enum(["BBMP", "BDA", "PANCHAYAT", "HMDA", "CMDA", "OTHER"]);
 
 export const ProjectStatus = z.enum(["ENQUIRY", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]);
@@ -38,6 +49,7 @@ export const DEFAULT_PHASE_PLAN = coaStagePlan().map((s) => ({
 export const ProjectOfficeCreate = z.object({
   title: z.string().min(2).max(200),
   projectType: ProjectType,
+  workType: ProjectWorkType.default("ARCHITECTURE"),
   jurisdiction: Jurisdiction.default("OTHER"),
   clientId: z.string().uuid().nullish(),
   state: z.string().max(64).nullish(),

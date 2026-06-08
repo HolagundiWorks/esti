@@ -3,6 +3,7 @@ import {
   ProjectOfficeCreate,
   ProjectSiteUpdate,
   ProjectStatus,
+  ProjectWorkType,
   can,
   coaStagePlan,
 } from "@esti/contracts";
@@ -62,6 +63,7 @@ export const projectOfficeRouter = router({
           ref,
           title: input.title,
           projectType: input.projectType,
+          workType: input.workType,
           jurisdiction: input.jurisdiction,
           clientId: input.clientId ?? null,
           state: input.state ?? null,
@@ -110,6 +112,7 @@ export const projectOfficeRouter = router({
         title: z.string().min(2).max(200),
         status: ProjectStatus,
         projectType: z.string().min(1),
+        workType: ProjectWorkType.optional(),
         jurisdiction: z.string().min(1),
         dateStart: z.string().nullish(),
       }),
@@ -121,6 +124,7 @@ export const projectOfficeRouter = router({
           title: input.title,
           status: input.status,
           projectType: input.projectType,
+          ...(input.workType ? { workType: input.workType } : {}),
           jurisdiction: input.jurisdiction,
           dateStart: input.dateStart ?? null,
         })

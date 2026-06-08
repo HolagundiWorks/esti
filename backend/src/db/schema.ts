@@ -127,6 +127,11 @@ export const projectOffices = pgTable("esti_projectoffice", {
   ref: text("ref").notNull().unique(),
   title: text("title").notNull(),
   projectType: text("project_type").notNull(),
+  workType: text("work_type", {
+    enum: ["ARCHITECTURE", "INTERIOR", "LANDSCAPE", "MISC"],
+  })
+    .notNull()
+    .default("ARCHITECTURE"),
   jurisdiction: text("jurisdiction").notNull().default("OTHER"),
   status: text("status").notNull().default("ENQUIRY"),
   clientId: uuid("client_id").references(() => clients.id),

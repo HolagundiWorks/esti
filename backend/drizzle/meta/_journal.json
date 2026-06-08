@@ -22,6 +22,13 @@
       "when": 1780911025295,
       "tag": "0002_dashboard_layout",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780929229265,
+      "tag": "0003_project_work_type",
+      "breakpoints": true
     }
   ]
 }

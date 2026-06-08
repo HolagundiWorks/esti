@@ -10,7 +10,7 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Jurisdiction, ProjectStatus, ProjectType } from "@esti/contracts";
+import { Jurisdiction, PROJECT_WORK_TYPE_LABEL, ProjectStatus, ProjectType, ProjectWorkType } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
@@ -23,7 +23,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId }, { enabled: !!projectId });
   const logsQ = trpc.projectOffice.logs.useQuery({ projectId }, { enabled: !!projectId });
 
-  const [f, setF] = useState({ title: "", status: "ENQUIRY", projectType: "RESIDENTIAL", jurisdiction: "OTHER", dateStart: "" });
+  const [f, setF] = useState({ title: "", status: "ENQUIRY", projectType: "RESIDENTIAL", workType: "ARCHITECTURE", jurisdiction: "OTHER", dateStart: "" });
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +33,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         title: p.title,
         status: p.status,
         projectType: p.projectType,
+        workType: (p as { workType?: string }).workType ?? "ARCHITECTURE",
         jurisdiction: p.jurisdiction,
         dateStart: p.dateStart ?? "",
       });
@@ -83,8 +84,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             <Select id="ps-status" labelText="Status" value={f.status} onChange={(e) => setF((x) => ({ ...x, status: e.target.value }))}>
               {ProjectStatus.options.map((s) => <SelectItem key={s} value={s} text={s} />)}
             </Select>
-            <Select id="ps-type" labelText="Type" value={f.projectType} onChange={(e) => setF((x) => ({ ...x, projectType: e.target.value }))}>
+            <Select id="ps-type" labelText="Building use" value={f.projectType} onChange={(e) => setF((x) => ({ ...x, projectType: e.target.value }))}>
               {ProjectType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}
+            </Select>
+            <Select id="ps-worktype" labelText="Work type" value={f.workType} onChange={(e) => setF((x) => ({ ...x, workType: e.target.value }))}>
+              {ProjectWorkType.options.map((t) => <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />)}
             </Select>
             <Select id="ps-jur" labelText="Jurisdiction" value={f.jurisdiction} onChange={(e) => setF((x) => ({ ...x, jurisdiction: e.target.value }))}>
               {Jurisdiction.options.map((j) => <SelectItem key={j} value={j} text={j} />)}
@@ -99,6 +103,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                 title: f.title,
                 status: f.status as (typeof ProjectStatus.options)[number],
                 projectType: f.projectType,
+                workType: f.workType as (typeof ProjectWorkType.options)[number],
                 jurisdiction: f.jurisdiction,
                 dateStart: f.dateStart || null,
               })

@@ -26,6 +26,7 @@ import {
   CoaWorkCategory,
   GstSystem,
   InvoiceStatus,
+  PROJECT_WORK_TYPE_LABEL,
   PhaseStatus,
   SAC_CODES,
   can,
@@ -194,7 +195,7 @@ export function ProjectDetail() {
           {p.ref} — {p.title}
         </h1>
         <p style={{ margin: 0, color: "var(--cds-text-secondary)", fontSize: "0.875rem" }}>
-          {p.projectType} · {p.jurisdiction} ·{" "}
+          {PROJECT_WORK_TYPE_LABEL[(p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ?? "ARCHITECTURE"]} · {p.projectType} · {p.jurisdiction} ·{" "}
           <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>{" "}
           · {formatINR(p.contractValuePaise, { paise: false })}
         </p>
