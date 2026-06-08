@@ -2,6 +2,7 @@ import {
   Button,
   InlineNotification,
   Modal,
+  PasswordInput,
   Select,
   SelectItem,
   Stack,
@@ -54,12 +55,18 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   });
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [adminPwd, setAdminPwd] = useState("");
   const remove = trpc.projectOffice.remove.useMutation({
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
       navigate("/projects");
     },
   });
+  function closeDelete() {
+    setConfirmDelete(false);
+    setAdminPwd("");
+    remove.reset();
+  }
 
   const p = projectQ.data;
   const isOwner = user?.role === "OWNER";
@@ -150,14 +157,30 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         modalHeading="Delete project?"
         primaryButtonText={remove.isPending ? "Deleting…" : "Delete permanently"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={remove.isPending}
-        onRequestClose={() => setConfirmDelete(false)}
-        onRequestSubmit={() => remove.mutate({ id: projectId })}
+        primaryButtonDisabled={remove.isPending || adminPwd.length === 0}
+        onRequestClose={closeDelete}
+        onRequestSubmit={() => remove.mutate({ id: projectId, password: adminPwd })}
       >
-        <p>
-          This deletes <strong>{p?.title}</strong> and every related record. This action cannot be
-          undone.
-        </p>
+        <Stack gap={5}>
+          <p>
+            This deletes <strong>{p?.title}</strong> and every related record. This action cannot be
+            undone.
+          </p>
+          <PasswordInput
+            id="ps-admin-pwd"
+            labelText="Enter your admin password to confirm"
+            value={adminPwd}
+            onChange={(e) => setAdminPwd(e.target.value)}
+          />
+          {remove.error && (
+            <InlineNotification
+              kind="error"
+              lowContrast
+              title="Delete failed"
+              subtitle={remove.error.message}
+            />
+          )}
+        </Stack>
       </Modal>
     </div>
   );

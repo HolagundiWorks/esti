@@ -27,7 +27,9 @@ import {
   phases,
   projectLogs,
   projectOffices,
+  users,
 } from "../../db/schema.js";
+import { verifyPassword } from "../../auth/session.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -136,10 +138,15 @@ export const projectOfficeRouter = router({
 
   /** Delete a project and all of its child records (owner). */
   remove: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string().uuid(), password: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "OWNER")
         throw new TRPCError({ code: "FORBIDDEN", message: "Only the owner can delete a project" });
+      // Re-authenticate the owner before this irreversible cascade delete.
+      const [me] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id));
+      if (!me?.passwordHash || !(await verifyPassword(me.passwordHash, input.password))) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });
+      }
       const pid = input.id;
       await ctx.db.transaction(async (tx) => {
         const estIds = (
