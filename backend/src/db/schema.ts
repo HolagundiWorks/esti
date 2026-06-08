@@ -131,8 +131,21 @@ export const projectOffices = pgTable("esti_projectoffice", {
   siteAreaSqm: doublePrecision("site_area_sqm"),
   contractValuePaise: bigint("contract_value_paise", { mode: "number" }).notNull().default(0),
   dateStart: date("date_start"),
+  createdById: uuid("created_by_id"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/** Internal project activity / audit notes (distinct from the client log). */
+export const projectLogs = pgTable("esti_projectlog", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  note: text("note").notNull(),
+  authorId: uuid("author_id"),
+  authorName: text("author_name"),
+  createdAt: createdAt(),
 });
 
 /** Per-project BBMP bylaw-calculator inputs + computed envelope (one per project). */

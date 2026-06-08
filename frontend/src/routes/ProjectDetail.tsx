@@ -36,6 +36,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../lib/auth.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
@@ -46,6 +47,7 @@ import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
+import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
@@ -60,6 +62,8 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> 
 
 export function ProjectDetail() {
   const { id = "" } = useParams();
+  const { user } = useAuth();
+  const isOwner = user?.role === "OWNER";
   const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
@@ -148,13 +152,15 @@ export function ProjectDetail() {
 
       <Tabs>
         <TabList aria-label="Project sections" contained>
-          <Tab>Phases &amp; Fees</Tab>
+          <Tab>Phases</Tab>
+          {isOwner && <Tab>Fees</Tab>}
           <Tab>Invoices</Tab>
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
           <Tab>Drawings</Tab>
           <Tab>Team</Tab>
+          <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
         <TabPanel>
@@ -202,6 +208,9 @@ export function ProjectDetail() {
         </Table>
       </TableContainer>
 
+        </TabPanel>
+        {isOwner && (
+        <TabPanel>
       <div
         style={{
           display: "flex",
@@ -254,6 +263,7 @@ export function ProjectDetail() {
       </TableContainer>
 
         </TabPanel>
+        )}
         <TabPanel>
       <div
         style={{
@@ -345,6 +355,9 @@ export function ProjectDetail() {
       {hrEnabled && <ProjectTeam projectId={id} />}
 
       <ProjectEngagements projectId={id} />
+        </TabPanel>
+        <TabPanel>
+          <ProjectSettings projectId={id} />
         </TabPanel>
         </TabPanels>
       </Tabs>
