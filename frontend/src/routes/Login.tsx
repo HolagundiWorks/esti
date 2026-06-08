@@ -1,5 +1,6 @@
 import { Button, Form, InlineNotification, Stack, TextInput, Tile } from "@carbon/react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
 export function Login() {
@@ -52,6 +53,7 @@ export function Login() {
             <Button type="submit" disabled={login.isPending}>
               {login.isPending ? "Signing in…" : "Sign in"}
             </Button>
+            <Link to="/" style={{ fontSize: "0.875rem" }}>← Back to home</Link>
           </Stack>
         </Form>
       </Tile>

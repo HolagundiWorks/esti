@@ -42,6 +42,7 @@ import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Filing } from "./routes/Filing.js";
+import { Landing } from "./routes/Landing.js";
 import { Login } from "./routes/Login.js";
 import { MasterDsr } from "./routes/MasterDsr.js";
 import { Portal } from "./routes/Portal.js";
@@ -84,7 +85,10 @@ export function App() {
   if (!user)
     return (
       <Theme theme={theme}>
-        <Login />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Landing theme={theme} onToggleTheme={toggleTheme} />} />
+        </Routes>
       </Theme>
     );
   // Client-role users get the read-only portal, not the office workspace.
