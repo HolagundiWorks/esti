@@ -1,12 +1,10 @@
 // Full Carbon v11 stylesheet. Resolved via @carbon/react's package "sass"
 // entry (its root index.scss) — the bundler/Sass resolver handles the path.
 //
-// Override $font-path away from Carbon's webpack-only "~@ibm/plex" default so
-// Vite can resolve the self-hosted IBM Plex woff2 files from node_modules
-// (the @ibm/plex package ships the exact IBM-Plex-*/fonts/split/woff2 layout
-// Carbon's @font-face URLs expect).
+// Override $font-path off Carbon's webpack-only "~@ibm/plex" default (which
+// 404s under Vite) to the IBM Plex CDN so the @font-face URLs resolve.
 @use "@carbon/react" with (
-  $font-path: "@ibm/plex"
+  $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
 );
 
 // Drawing viewer: make the injected SVG scale to the container width so the
