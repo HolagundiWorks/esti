@@ -21,6 +21,7 @@ import { notificationsRouter } from "../modules/notifications/router.js";
 import { permitRouter } from "../modules/permit/router.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
+import { taskRouter } from "../modules/task/router.js";
 import { userRouter } from "../modules/users/router.js";
 import { leaveRouter, payrollRouter } from "../modules/team/hr.js";
 import { assignmentRouter, teamRouter } from "../modules/team/router.js";
@@ -65,6 +66,7 @@ export const appRouter = router({
   settings: settingsRouter,
   firm: firmRouter,
   users: userRouter,
+  tasks: taskRouter,
   notifications: notificationsRouter,
   team: teamRouter,
   assignments: assignmentRouter,

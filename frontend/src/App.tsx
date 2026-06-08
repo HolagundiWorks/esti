@@ -21,6 +21,7 @@ import {
   Logout,
   Partnership,
   Settings as SettingsIcon,
+  TaskComplete,
   UserAdmin,
   UserMultiple,
   Wallet,
@@ -46,6 +47,7 @@ import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
+import { Tasks } from "./routes/Tasks.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 
@@ -89,6 +91,7 @@ export function App() {
   const nav: { label: string; to: string; icon: CarbonIconType }[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
+    { label: "Tasks", to: "/tasks", icon: TaskComplete },
     { label: "Clients", to: "/clients", icon: UserMultiple },
     { label: "Consultants", to: "/consultants", icon: Partnership },
     ...(hrEnabled
@@ -142,6 +145,7 @@ export function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/tasks" element={<Tasks />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
           <Route path="/reconcile" element={<Reconcile />} />

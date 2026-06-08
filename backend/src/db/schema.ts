@@ -553,6 +553,22 @@ export const bbsItems = pgTable("esti_bbs_item", {
   createdAt: createdAt(),
 });
 
+/** Office / project tasks. */
+export const tasks = pgTable("esti_task", {
+  id: id(),
+  title: text("title").notNull(),
+  description: text("description"),
+  projectId: uuid("project_id").references(() => projectOffices.id),
+  assignee: text("assignee"),
+  status: text("status").notNull().default("TODO"),
+  priority: text("priority").notNull().default("MEDIUM"),
+  dueDate: date("due_date"),
+  createdById: uuid("created_by_id"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Append-only audit log. See ARCHITECTURE ADR-09. */
 export const audit = pgTable("esti_audit", {
   id: id(),
