@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { invoices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { firmGstSystem, firmPayload } from "../../lib/firm.js";
+import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -92,11 +92,14 @@ export const invoiceRouter = router({
     }),
 
   create: protectedProcedure.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
-    const system = input.gstSystem ?? (await firmGstSystem(ctx.db));
+    const firm = await getFirm(ctx.db);
+    const system = input.gstSystem ?? (firm.gstType as GstSystem);
     // SAC applies only to a regular GST tax invoice; drop it otherwise.
     const sac = system === GstSystem.REGULAR ? (input.sac ?? null) : null;
+    // TDS u/s 194J defaults to the firm's declaration (Company settings).
+    const tdsApplicable = input.tdsApplicable ?? firm.tdsApplicableDefault;
     const g = computeGst(system, input.taxablePaise, input.interState);
-    const tdsPaise = input.tdsApplicable ? computeTds194j(input.taxablePaise) : 0;
+    const tdsPaise = tdsApplicable ? computeTds194j(input.taxablePaise) : 0;
     const netReceivablePaise = g.grandTotal - tdsPaise;
     const { ref } = await nextRef(ctx.db, "invoice", "INV");
 
@@ -111,7 +114,7 @@ export const invoiceRouter = router({
         documentKind: g.documentKind,
         sac,
         interState: input.interState,
-        tdsApplicable: input.tdsApplicable,
+        tdsApplicable,
         taxablePaise: g.taxable,
         cgstPaise: g.cgst,
         sgstPaise: g.sgst,

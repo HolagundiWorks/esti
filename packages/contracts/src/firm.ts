@@ -52,6 +52,8 @@ export const FirmUpdate = z.object({
   firmType: FirmType,
   gstType: GstType,
   gstin: z.string().max(20).optional().or(z.literal("")),
+  /** Whether clients deduct TDS u/s 194J on professional fees (firm default). */
+  tdsApplicableDefault: z.boolean().default(true),
   // Solo architect (also the primary signatory for a partnership cover block).
   architectName: z.string().max(200).optional().or(z.literal("")),
   coaRegNo: z.string().max(40).optional().or(z.literal("")),

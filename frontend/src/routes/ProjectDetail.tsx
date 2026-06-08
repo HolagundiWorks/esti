@@ -93,13 +93,15 @@ export function ProjectDetail() {
 
   // The firm's GST system (from Company settings) governs invoices — not a
   // per-invoice choice.
-  const firmGst = (trpc.firm.get.useQuery().data?.gstType ?? GstSystem.REGULAR) as GstSystem;
+  const firmQ = trpc.firm.get.useQuery();
+  const firmGst = (firmQ.data?.gstType ?? GstSystem.REGULAR) as GstSystem;
+  // TDS is a firm-wide declaration (Company settings), not a per-invoice choice.
+  const firmTdsDefault = firmQ.data?.tdsApplicableDefault ?? true;
   const invoicesQ = trpc.invoices.listByProject.useQuery({ projectId: id }, { enabled: !!id });
   const [invOpen, setInvOpen] = useState(false);
   const [invPhase, setInvPhase] = useState("");
   const [invTaxableR, setInvTaxableR] = useState("");
   const [invInter, setInvInter] = useState(false);
-  const [invTdsOn, setInvTdsOn] = useState(true);
   const [invSac, setInvSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
   const createInvoice = trpc.invoices.create.useMutation({
     onSuccess: () => {
@@ -137,7 +139,7 @@ export function ProjectDetail() {
   const invSys = firmGst;
   const invBreakup = computeGst(invSys, invTaxablePaise, invInter);
   const showSac = firmGst === GstSystem.REGULAR;
-  const invTdsPaise = invTdsOn ? computeTds194j(invTaxablePaise) : 0;
+  const invTdsPaise = firmTdsDefault ? computeTds194j(invTaxablePaise) : 0;
   const invNet = invBreakup.grandTotal - invTdsPaise;
 
   return (
@@ -465,7 +467,7 @@ export function ProjectDetail() {
             // GST system is taken from Company settings server-side.
             taxablePaise: invTaxablePaise,
             interState: invInter,
-            tdsApplicable: invTdsOn,
+            // TDS is resolved server-side from the firm's declaration.
             sac: showSac ? invSac : undefined,
           })
         }
@@ -505,12 +507,10 @@ export function ProjectDetail() {
             checked={invInter}
             onChange={(_, { checked }) => setInvInter(checked)}
           />
-          <Checkbox
-            id="iv-tds"
-            labelText="TDS u/s 194J (10%)"
-            checked={invTdsOn}
-            onChange={(_, { checked }) => setInvTdsOn(checked)}
-          />
+          <div style={{ fontSize: "0.875rem", color: "#6f6f6f" }}>
+            TDS u/s 194J:{" "}
+            <strong>{firmTdsDefault ? "deducted (10%)" : "not applicable"}</strong> (from Company settings)
+          </div>
           {invTaxablePaise > 0 && (
             <div style={{ fontSize: "0.875rem" }}>
               {invBreakup.documentKind} · GST {formatINR(invBreakup.gstTotal, { paise: false })}

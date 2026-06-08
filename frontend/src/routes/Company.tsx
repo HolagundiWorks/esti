@@ -39,6 +39,7 @@ type Form = {
   firmType: FirmType;
   gstType: GstType;
   gstin: string;
+  tdsApplicableDefault: boolean;
   architectName: string;
   coaRegNo: string;
   pan: string;
@@ -60,6 +61,7 @@ const EMPTY: Form = {
   firmType: "SOLO",
   gstType: GstSystem.REGULAR,
   gstin: "",
+  tdsApplicableDefault: true,
   architectName: "",
   coaRegNo: "",
   pan: "",
@@ -165,6 +167,15 @@ export function Company() {
             </Select>
             <TextInput id="co-gstin" labelText="GSTIN" value={f.gstin} onChange={set("gstin")} disabled={!isOwner} />
           </div>
+          <Toggle
+            id="co-tds"
+            labelText="TDS declaration — clients deduct TDS u/s 194J (10%)"
+            labelA="No TDS"
+            labelB="TDS deducted"
+            toggled={f.tdsApplicableDefault}
+            disabled={!isOwner}
+            onToggle={(checked) => setF((p) => ({ ...p, tdsApplicableDefault: checked }))}
+          />
 
           <h4>{f.firmType === "SOLO" ? "Architect" : "Primary signatory"}</h4>
           <div style={{ display: "flex", gap: 16 }}>

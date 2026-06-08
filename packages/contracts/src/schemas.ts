@@ -157,7 +157,8 @@ export const InvoiceCreate = z.object({
   gstSystem: z.nativeEnum(GstSystem).optional(),
   taxablePaise: z.number().int().nonnegative(),
   interState: z.boolean().default(false),
-  tdsApplicable: z.boolean().default(true),
+  /** Defaults to the firm's TDS declaration (Company settings) when omitted. */
+  tdsApplicable: z.boolean().optional(),
   sac: z.string().max(10).default("998322"),
   dateInvoice: z.string().date().optional(),
   notes: z.string().max(2000).optional(),

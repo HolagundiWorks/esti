@@ -25,6 +25,7 @@ export const firmRouter = router({
         firmType: input.firmType,
         gstType: input.gstType,
         gstin: blankToNull(input.gstin),
+        tdsApplicableDefault: input.tdsApplicableDefault,
         architectName: blankToNull(input.architectName),
         coaRegNo: blankToNull(input.coaRegNo),
         pan: blankToNull(input.pan),

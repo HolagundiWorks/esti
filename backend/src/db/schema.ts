@@ -39,6 +39,7 @@ export const firm = pgTable("esti_firm", {
   logoKey: text("logo_key"),
   gstType: text("gst_type").notNull().default("REGULAR"),
   gstin: text("gstin"),
+  tdsApplicableDefault: boolean("tds_applicable_default").notNull().default(true),
   architectName: text("architect_name"),
   coaRegNo: text("coa_reg_no"),
   pan: text("pan"),
