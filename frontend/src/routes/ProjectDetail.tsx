@@ -1,21 +1,15 @@
 import {
+  Button,
   Select,
   SelectItem,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tabs,
   Tag,
 } from "@carbon/react";
-import { PROJECT_WORK_TYPE_LABEL, PhaseStatus, formatINR } from "@esti/contracts";
+import { PROJECT_WORK_TYPE_LABEL, formatINR } from "@esti/contracts";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
@@ -32,14 +26,6 @@ import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
-const STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> = {
-  NOT_STARTED: "gray",
-  IN_PROGRESS: "blue",
-  CLIENT_REVIEW: "purple",
-  APPROVED: "teal",
-  COMPLETE: "green",
-};
-
 const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red"> = {
   ENQUIRY: "gray",
   ACTIVE: "blue",
@@ -51,16 +37,11 @@ const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | 
 export function ProjectDetail() {
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId: id }, { enabled: !!id });
-  const updatePhase = trpc.phases.update.useMutation({
-    onSuccess: () => utils.phases.listByProject.invalidate({ projectId: id }),
-  });
 
   const TAB_SLUGS = [
-    "phases",
     "clientlog",
     "compliance",
     "costing",
@@ -69,7 +50,7 @@ export function ProjectDetail() {
     "team",
     "settings",
   ];
-  const tabSlug = searchParams.get("tab") ?? "phases";
+  const tabSlug = searchParams.get("tab") ?? "clientlog";
   const tabIndex = Math.max(0, TAB_SLUGS.indexOf(tabSlug));
 
   if (project.isLoading) return <p>Loading…</p>;
@@ -80,6 +61,9 @@ export function ProjectDetail() {
       </p>
     );
   const p = project.data;
+  const phases = phasesQ.data ?? [];
+  // Current COA stage = the first stage that isn't complete (else the last).
+  const currentPhase = phases.find((ph) => ph.status !== "COMPLETE") ?? phases[phases.length - 1];
 
   return (
     <div>
@@ -105,16 +89,34 @@ export function ProjectDetail() {
           <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>
           <span>· {formatINR(p.contractValuePaise, { paise: false })}</span>
         </div>
+        {phases.length > 0 && (
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 8, maxWidth: 520 }}>
+            <Select
+              id="coa-stage"
+              labelText="COA stage — Conditions of Engagement"
+              size="sm"
+              value={currentPhase?.id ?? ""}
+              onChange={() => setSearchParams({ tab: "settings" }, { replace: true })}
+              style={{ flex: 1 }}
+            >
+              {phases.map((ph) => (
+                <SelectItem key={ph.id} value={ph.id} text={`${ph.label} — ${ph.status}`} />
+              ))}
+            </Select>
+            <Button kind="ghost" size="sm" onClick={() => setSearchParams({ tab: "settings" }, { replace: true })}>
+              Update stages
+            </Button>
+          </div>
+        )}
       </div>
 
       <Tabs
         selectedIndex={tabIndex}
         onChange={({ selectedIndex }) =>
-          setSearchParams({ tab: TAB_SLUGS[selectedIndex] ?? "phases" }, { replace: true })
+          setSearchParams({ tab: TAB_SLUGS[selectedIndex] ?? "clientlog" }, { replace: true })
         }
       >
         <TabList aria-label="Project sections" contained>
-          <Tab>Phases</Tab>
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
@@ -124,52 +126,6 @@ export function ProjectDetail() {
           <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
-        <TabPanel>
-      <h3 style={{ marginTop: 24, marginBottom: 8 }}>COA phases</h3>
-      <TableContainer title="Conditions of Engagement" description="Phase plan & billing schedule">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Stage</TableHeader>
-              <TableHeader>Billing %</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Update</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(phasesQ.data ?? []).map((ph) => (
-              <TableRow key={ph.id}>
-                <TableCell>{ph.label}</TableCell>
-                <TableCell>{ph.billingPct}%</TableCell>
-                <TableCell>
-                  <Tag type={STATUS_TAG[ph.status] ?? "gray"}>{ph.status}</Tag>
-                </TableCell>
-                <TableCell>
-                  <Select
-                    id={`st-${ph.id}`}
-                    labelText="Phase status"
-                    hideLabel
-                    size="sm"
-                    value={ph.status}
-                    onChange={(e) =>
-                      updatePhase.mutate({
-                        id: ph.id,
-                        status: e.target.value as (typeof PhaseStatus.options)[number],
-                      })
-                    }
-                  >
-                    {PhaseStatus.options.map((s) => (
-                      <SelectItem key={s} value={s} text={s} />
-                    ))}
-                  </Select>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-        </TabPanel>
         <TabPanel>
       <ProjectClientLog projectId={id} />
         </TabPanel>

@@ -6,16 +6,32 @@ import {
   Select,
   SelectItem,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tag,
   TextArea,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Jurisdiction, PROJECT_WORK_TYPE_LABEL, ProjectStatus, ProjectType, ProjectWorkType } from "@esti/contracts";
+import { Jurisdiction, PROJECT_WORK_TYPE_LABEL, PhaseStatus, ProjectStatus, ProjectType, ProjectWorkType } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
+
+const PHASE_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> = {
+  NOT_STARTED: "gray",
+  IN_PROGRESS: "blue",
+  CLIENT_REVIEW: "purple",
+  APPROVED: "teal",
+  COMPLETE: "green",
+};
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -23,6 +39,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId }, { enabled: !!projectId });
   const logsQ = trpc.projectOffice.logs.useQuery({ projectId }, { enabled: !!projectId });
+  const phasesQ = trpc.phases.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const updatePhase = trpc.phases.update.useMutation({
+    onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
+  });
 
   const [f, setF] = useState({ title: "", status: "ENQUIRY", projectType: "RESIDENTIAL", workType: "ARCHITECTURE", jurisdiction: "OTHER", dateStart: "" });
   const [msg, setMsg] = useState<string | null>(null);
@@ -119,6 +139,46 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             </p>
           )}
         </Stack>
+      </Tile>
+
+      <Tile style={{ maxWidth: 760, marginTop: 16 }}>
+        <h4 style={{ marginBottom: 4 }}>COA phases — Conditions of Engagement</h4>
+        <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginBottom: 8 }}>
+          Update the status of each engagement stage. The current stage shows below the project header.
+        </p>
+        <TableContainer title="" description="">
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Stage</TableHeader>
+                <TableHeader>Billing %</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Update</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(phasesQ.data ?? []).map((ph) => (
+                <TableRow key={ph.id}>
+                  <TableCell>{ph.label}</TableCell>
+                  <TableCell>{ph.billingPct}%</TableCell>
+                  <TableCell><Tag type={PHASE_TAG[ph.status] ?? "gray"} size="sm">{ph.status}</Tag></TableCell>
+                  <TableCell>
+                    <Select
+                      id={`ph-${ph.id}`}
+                      labelText="Phase status"
+                      hideLabel
+                      size="sm"
+                      value={ph.status}
+                      onChange={(e) => updatePhase.mutate({ id: ph.id, status: e.target.value as (typeof PhaseStatus.options)[number] })}
+                    >
+                      {PhaseStatus.options.map((s) => <SelectItem key={s} value={s} text={s} />)}
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Tile>
 
       <div style={{ maxWidth: 760, marginTop: 16 }}>
