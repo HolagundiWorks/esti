@@ -3,6 +3,7 @@ import {
   DataTable,
   InlineNotification,
   Modal,
+  Pagination,
   Select,
   SelectItem,
   Stack,
@@ -13,6 +14,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
   TextInput,
 } from "@carbon/react";
 import { Jurisdiction, ProjectType, formatINR } from "@esti/contracts";
@@ -21,7 +25,7 @@ import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
 
-const headers = [
+const HEADERS = [
   { key: "ref", header: "Ref" },
   { key: "title", header: "Title" },
   { key: "projectType", header: "Type" },
@@ -29,9 +33,11 @@ const headers = [
   { key: "value", header: "Contract value" },
 ];
 
+const PAGE_SIZES = [10, 25, 50];
+
 export function Projects() {
   const utils = trpc.useUtils();
-  const list = trpc.projectOffice.list.useQuery({ limit: 50, offset: 0 });
+  const list = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -40,6 +46,9 @@ export function Projects() {
   const [valueRupees, setValueRupees] = useState("");
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
   const create = trpc.projectOffice.create.useMutation({
     onSuccess: () => {
@@ -50,7 +59,7 @@ export function Projects() {
     },
   });
 
-  const rows =
+  const allRows =
     list.data?.map((p) => ({
       id: p.id,
       ref: <Link to={`/projects/${p.id}`}>{p.ref}</Link>,
@@ -62,14 +71,9 @@ export function Projects() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Projects</h1>
-        <Button onClick={() => setOpen(true)}>New project</Button>
-      </div>
-
       <DataState
         loading={list.isLoading}
-        isEmpty={rows.length === 0}
+        isEmpty={allRows.length === 0}
         columnCount={5}
         empty={{
           title: "No projects yet",
@@ -77,38 +81,61 @@ export function Projects() {
           action: <Button size="sm" onClick={() => setOpen(true)}>New project</Button>,
         }}
       >
-      <DataTable rows={rows} headers={headers}>
-        {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-          <TableContainer title="Architecture projects" description="All office projects">
-            <Table {...getTableProps()}>
-              <TableHead>
-                <TableRow>
-                  {headers.map((header) => {
-                    const { key, ...rest } = getHeaderProps({ header });
-                    return (
-                      <TableHeader key={key} {...rest}>
-                        {header.header}
-                      </TableHeader>
-                    );
-                  })}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row) => {
-                  const { key, ...rest } = getRowProps({ row });
-                  return (
-                    <TableRow key={key} {...rest}>
-                      {row.cells.map((cell) => (
-                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                      ))}
+        <DataTable rows={allRows} headers={HEADERS} isSortable>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => {
+            const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
+            return (
+              <TableContainer title="Architecture projects" description="All office projects">
+                <TableToolbar>
+                  <TableToolbarContent>
+                    <TableToolbarSearch
+                      placeholder="Search projects…"
+                      persistent
+                      onChange={(e) => { setPage(1); onInputChange(e); }}
+                    />
+                    <Button onClick={() => setOpen(true)}>New project</Button>
+                  </TableToolbarContent>
+                </TableToolbar>
+                <Table {...getTableProps()}>
+                  <TableHead>
+                    <TableRow>
+                      {headers.map((header) => {
+                        const { key, ...rest } = getHeaderProps({ header });
+                        return (
+                          <TableHeader key={key} {...rest}>
+                            {header.header}
+                          </TableHeader>
+                        );
+                      })}
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DataTable>
+                  </TableHead>
+                  <TableBody>
+                    {pagedRows.map((row) => {
+                      const { key, ...rest } = getRowProps({ row });
+                      return (
+                        <TableRow key={key} {...rest}>
+                          {row.cells.map((cell) => (
+                            <TableCell key={cell.id}>{cell.value}</TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                <Pagination
+                  totalItems={rows.length}
+                  pageSize={pageSize}
+                  pageSizes={PAGE_SIZES}
+                  page={page}
+                  onChange={({ page: p, pageSize: ps }) => {
+                    setPage(p);
+                    setPageSize(ps);
+                  }}
+                />
+              </TableContainer>
+            );
+          }}
+        </DataTable>
       </DataState>
 
       <Modal

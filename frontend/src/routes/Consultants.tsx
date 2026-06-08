@@ -1,5 +1,6 @@
 import {
   Button,
+  DataTable,
   InlineNotification,
   Modal,
   Select,
@@ -12,11 +13,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
   TextInput,
 } from "@carbon/react";
 import { CONSULTANT_DISCIPLINES, type ConsultantDisciplineCode } from "@esti/contracts";
 import { useState } from "react";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
+
+const HEADERS = [
+  { key: "name", header: "Name" },
+  { key: "discipline", header: "Discipline" },
+  { key: "firm", header: "Firm" },
+  { key: "email", header: "Email" },
+  { key: "phone", header: "Phone" },
+  { key: "portal", header: "Portal" },
+];
 
 export function Consultants() {
   const utils = trpc.useUtils();
@@ -54,12 +68,23 @@ export function Consultants() {
     },
   });
 
+  const allRows =
+    list.data?.map((c) => ({
+      id: c.id,
+      name: c.name,
+      discipline: CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ?? c.discipline,
+      firm: c.firm ?? "—",
+      email: c.email ?? "—",
+      phone: c.phone ?? "—",
+      portal: (
+        <Button kind="ghost" size="sm" onClick={() => setLogin({ id: c.id, name: c.name })}>
+          Create login
+        </Button>
+      ),
+    })) ?? [];
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Consultants</h1>
-        <Button onClick={() => setOpen(true)}>New consultant</Button>
-      </div>
       {loginMsg && (
         <InlineNotification
           kind="success"
@@ -70,38 +95,62 @@ export function Consultants() {
         />
       )}
 
-      <TableContainer title="Consultant register" description="Discipline specialists the office engages">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Name</TableHeader>
-              <TableHeader>Discipline</TableHeader>
-              <TableHeader>Firm</TableHeader>
-              <TableHeader>Email</TableHeader>
-              <TableHeader>Phone</TableHeader>
-              <TableHeader>Portal</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(list.data ?? []).map((c) => (
-              <TableRow key={c.id}>
-                <TableCell>{c.name}</TableCell>
-                <TableCell>
-                  {CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ?? c.discipline}
-                </TableCell>
-                <TableCell>{c.firm ?? "—"}</TableCell>
-                <TableCell>{c.email ?? "—"}</TableCell>
-                <TableCell>{c.phone ?? "—"}</TableCell>
-                <TableCell>
-                  <Button kind="ghost" size="sm" onClick={() => setLogin({ id: c.id, name: c.name })}>
-                    Create login
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataState
+        loading={list.isLoading}
+        isEmpty={allRows.length === 0}
+        columnCount={6}
+        empty={{
+          title: "No consultants yet",
+          description: "Add discipline specialists the office engages on projects.",
+          action: <Button size="sm" onClick={() => setOpen(true)}>New consultant</Button>,
+        }}
+      >
+        <DataTable rows={allRows} headers={HEADERS} isSortable>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => (
+            <TableContainer
+              title="Consultant register"
+              description="Discipline specialists the office engages"
+            >
+              <TableToolbar>
+                <TableToolbarContent>
+                  <TableToolbarSearch
+                    placeholder="Search consultants…"
+                    persistent
+                    onChange={onInputChange}
+                  />
+                  <Button onClick={() => setOpen(true)}>New consultant</Button>
+                </TableToolbarContent>
+              </TableToolbar>
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    {headers.map((header) => {
+                      const { key, ...rest } = getHeaderProps({ header });
+                      return (
+                        <TableHeader key={key} {...rest}>
+                          {header.header}
+                        </TableHeader>
+                      );
+                    })}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => {
+                    const { key, ...rest } = getRowProps({ row });
+                    return (
+                      <TableRow key={key} {...rest}>
+                        {row.cells.map((cell) => (
+                          <TableCell key={cell.id}>{cell.value}</TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DataTable>
+      </DataState>
 
       <Modal
         open={open}

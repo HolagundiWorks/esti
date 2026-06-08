@@ -1,5 +1,6 @@
 import {
   Button,
+  DataTable,
   InlineNotification,
   Modal,
   Select,
@@ -12,6 +13,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
   Tag,
   TextInput,
 } from "@carbon/react";
@@ -23,7 +27,17 @@ import {
   formatINR,
 } from "@esti/contracts";
 import { useState } from "react";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
+
+const HEADERS = [
+  { key: "name", header: "Name" },
+  { key: "role", header: "Role" },
+  { key: "employmentType", header: "Employment" },
+  { key: "salary", header: "Monthly salary" },
+  { key: "status", header: "Status" },
+  { key: "actions", header: "" },
+];
 
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
@@ -63,55 +77,110 @@ export function Team() {
     },
   });
 
+  const allRows =
+    list.data?.map((m) => ({
+      id: m.id,
+      name: m.name,
+      _contact: m.email ?? m.phone ?? "",
+      role: TEAM_ROLES[m.role as TeamRoleCode] ?? m.role,
+      employmentType: EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ?? m.employmentType,
+      salary: formatINR(m.monthlySalaryPaise, { paise: false }),
+      status: m.active ? "Active" : "Inactive",
+      _active: m.active,
+      actions: m.active ? "Deactivate" : "Activate",
+    })) ?? [];
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Team</h1>
-        <Button onClick={() => setOpen(true)}>New member</Button>
-      </div>
-
-      <TableContainer title="Staff register" description="Office team members and monthly salary">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Name</TableHeader>
-              <TableHeader>Role</TableHeader>
-              <TableHeader>Employment</TableHeader>
-              <TableHeader>Monthly salary</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(list.data ?? []).map((m) => (
-              <TableRow key={m.id}>
-                <TableCell>
-                  {m.name}
-                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{m.email ?? m.phone ?? ""}</div>
-                </TableCell>
-                <TableCell>{TEAM_ROLES[m.role as TeamRoleCode] ?? m.role}</TableCell>
-                <TableCell>
-                  {EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ?? m.employmentType}
-                </TableCell>
-                <TableCell>{formatINR(m.monthlySalaryPaise, { paise: false })}</TableCell>
-                <TableCell>
-                  <Tag type={m.active ? "green" : "gray"}>{m.active ? "Active" : "Inactive"}</Tag>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    kind="ghost"
-                    size="sm"
-                    disabled={update.isPending}
-                    onClick={() => update.mutate({ id: m.id, active: !m.active })}
-                  >
-                    {m.active ? "Deactivate" : "Activate"}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataState
+        loading={list.isLoading}
+        isEmpty={allRows.length === 0}
+        columnCount={6}
+        empty={{
+          title: "No team members yet",
+          description: "Add staff to enable HR, payroll and project team tracking.",
+          action: <Button size="sm" onClick={() => setOpen(true)}>New member</Button>,
+        }}
+      >
+        <DataTable rows={allRows} headers={HEADERS} isSortable>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => (
+            <TableContainer title="Staff register" description="Office team members and monthly salary">
+              <TableToolbar>
+                <TableToolbarContent>
+                  <TableToolbarSearch
+                    placeholder="Search team…"
+                    persistent
+                    onChange={onInputChange}
+                  />
+                  <Button onClick={() => setOpen(true)}>New member</Button>
+                </TableToolbarContent>
+              </TableToolbar>
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    {headers.map((header) => {
+                      const { key, ...rest } = getHeaderProps({ header });
+                      return (
+                        <TableHeader key={key} {...rest}>
+                          {header.header}
+                        </TableHeader>
+                      );
+                    })}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => {
+                    const { key, ...rest } = getRowProps({ row });
+                    const original = allRows.find((r) => r.id === row.id);
+                    return (
+                      <TableRow key={key} {...rest}>
+                        {row.cells.map((cell) => {
+                          if (cell.id.endsWith(":name")) {
+                            return (
+                              <TableCell key={cell.id}>
+                                {cell.value}
+                                {original?._contact && (
+                                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
+                                    {original._contact}
+                                  </div>
+                                )}
+                              </TableCell>
+                            );
+                          }
+                          if (cell.id.endsWith(":status")) {
+                            return (
+                              <TableCell key={cell.id}>
+                                <Tag type={original?._active ? "green" : "gray"}>{cell.value}</Tag>
+                              </TableCell>
+                            );
+                          }
+                          if (cell.id.endsWith(":actions")) {
+                            return (
+                              <TableCell key={cell.id}>
+                                <Button
+                                  kind="ghost"
+                                  size="sm"
+                                  disabled={update.isPending}
+                                  onClick={() =>
+                                    original && update.mutate({ id: original.id, active: !original._active })
+                                  }
+                                >
+                                  {cell.value}
+                                </Button>
+                              </TableCell>
+                            );
+                          }
+                          return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DataTable>
+      </DataState>
 
       <Modal
         open={open}

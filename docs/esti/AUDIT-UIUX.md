@@ -12,11 +12,11 @@
 |---|---|---|
 | Feedback | ✅ Global toast on every failed query/mutation (React Query caches); ✅ top-level error boundary. | — |
 | Theme | ✅ Light/dark toggle in header, persisted; ✅ login/loading themed. Verify all ad-hoc inline colors use `--cds-*` tokens (several still hardcode `#6f6f6f`, `#161616`). | P2 |
-| Loading states | Most tables render an empty body while loading. Add `DataTableSkeleton` / `InlineLoading` and a uniform "No records yet" empty row. | P1 |
-| Tables | `Clients` uses sortable `DataTable`; everything else uses plain `Table`. Standardise list pages on `DataTable` (sort, search, pagination for free). | P2 |
-| Pagination | List endpoints take `limit/offset` but the UI never paginates (Projects/Clients fetch 50–200). Add pager or infinite scroll. | P2 |
+| Loading states | ✅ `DataState` component — skeleton while loading, illustrated empty state with action CTA; applied to Projects, Clients, Tasks, Master DSR, Consultants, Team. | P1 |
+| Tables | ✅ Projects, Clients, Consultants, Team migrated to `DataTable` with `TableToolbarSearch` + `isSortable`; Projects and Clients also have `Pagination`. | P2 |
+| Pagination | ✅ Projects and Clients paginated (10/25/50 per page, resets on search). Server-side pagination deferred (A1). | P2 |
 | Money input | Raw `type=number` ₹ fields everywhere. A shared `RupeeInput` (₹ prefix, grouping, paise discipline) would cut entry errors. | P2 |
-| A11y | Many inline `Select`/`TextInput` use `hideLabel` + empty `labelText` → unlabeled for screen readers. Give each an `aria-label`. | P1 |
+| A11y | ✅ All `hideLabel` controls now have descriptive `labelText` (11 fixes across 9 files). | P1 |
 | Responsiveness | ✅ Dashboard on Carbon Grid. Most other pages use flexbox with fixed `maxWidth` tiles; check < 672 px (sidebar rail + tables overflow). | P2 |
 | Keyboard | ✅ Calculator Alt+C/Esc. No other shortcuts; consider `g p` (projects), `/` (search). | P3 |
 
