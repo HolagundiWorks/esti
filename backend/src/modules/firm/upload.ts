@@ -6,6 +6,7 @@ import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { db } from "../../db/index.js";
 import { firm } from "../../db/schema.js";
 import { getFirm } from "../../lib/firm.js";
+import { imageMatchesExt } from "../../lib/filetype.js";
 import { putObject } from "../../lib/storage.js";
 
 const LOGO_EXT = [".png", ".jpg", ".jpeg", ".svg", ".webp"];
@@ -32,6 +33,10 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
     if (buf.length > LOGO_MAX) return reply.code(413).send({ error: "file too large" });
     const ext = extname(fileName).toLowerCase();
     if (!LOGO_EXT.includes(ext)) return reply.code(415).send({ error: `unsupported type ${ext}` });
+    // Content sniff: magic bytes must match the claimed image type; SVGs must
+    // also be free of script/event-handler XSS vectors.
+    if (!imageMatchesExt(buf, ext))
+      return reply.code(415).send({ error: "file content does not match its type" });
 
     const hash = createHash("sha256").update(buf).digest("hex").slice(0, 16);
     const key = `logo/${hash}${ext}`;

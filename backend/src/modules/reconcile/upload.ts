@@ -9,6 +9,7 @@ import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { db } from "../../db/index.js";
 import { reconciliations } from "../../db/schema.js";
+import { tabularMatchesExt } from "../../lib/filetype.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { BUCKET, putObject } from "../../lib/storage.js";
@@ -46,6 +47,9 @@ export function registerReconcileUpload(app: FastifyInstance): void {
     const ext = extname(fileName).toLowerCase();
     if (!RECONCILE_EXTENSIONS.includes(ext as (typeof RECONCILE_EXTENSIONS)[number]))
       return reply.code(415).send({ error: `unsupported type ${ext}` });
+    // Content sniff: CSV must be textual; XLSX/XLS must have the right container.
+    if (!tabularMatchesExt(fileBuf, ext))
+      return reply.code(415).send({ error: "file content does not match its type" });
 
     const fileHash = createHash("sha256").update(fileBuf).digest("hex");
     const storageKey = `reconcile/${fileHash}${ext}`;

@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { db } from "../../db/index.js";
 import { drawings } from "../../db/schema.js";
+import { looksLikeDxf } from "../../lib/filetype.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { nextRef } from "../../lib/numbering.js";
 import { BUCKET, putObject } from "../../lib/storage.js";
@@ -38,6 +39,8 @@ export function registerDrawingUpload(app: FastifyInstance): void {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
     if (!fileBuf || fileBuf.length === 0) return reply.code(400).send({ error: "no file" });
     if (fileBuf.length > DRAWING_MAX_BYTES) return reply.code(413).send({ error: "file too large" });
+    // Content sniff: reject anything that isn't a real (ASCII or binary) DXF.
+    if (!looksLikeDxf(fileBuf)) return reply.code(415).send({ error: "not a valid DXF file" });
 
     const fileHash = createHash("sha256").update(fileBuf).digest("hex");
     const storageKey = `dxf/${fileHash}.dxf`;
