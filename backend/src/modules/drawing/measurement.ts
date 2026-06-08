@@ -40,6 +40,9 @@ export const measurementRouter = router({
         drawingId: z.string().uuid(),
         projectId: z.string().uuid(),
         label: z.string().min(1).max(120),
+        // LINEAR stores length; AREA stores the polygon's area magnitude in the
+        // same vb/real columns (unit then carries the squared label, e.g. m²).
+        kind: z.enum(["LINEAR", "AREA"]).default("LINEAR"),
         vbLength: z.number().nonnegative(),
         realLength: z.number().nonnegative(),
         unit: z.string().min(1).max(8),
@@ -52,7 +55,7 @@ export const measurementRouter = router({
           drawingId: input.drawingId,
           projectId: input.projectId,
           label: input.label,
-          kind: "LINEAR",
+          kind: input.kind,
           vbLength: input.vbLength,
           realLength: input.realLength,
           unit: input.unit,
