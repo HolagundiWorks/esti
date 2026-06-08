@@ -27,6 +27,7 @@ import { userRouter } from "../modules/users/router.js";
 import { leaveRouter, payrollRouter } from "../modules/team/hr.js";
 import { assignmentRouter, teamRouter } from "../modules/team/router.js";
 import { reconcileRouter } from "../modules/reconcile/router.js";
+import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { publicProcedure, router } from "./trpc.js";
@@ -64,6 +65,7 @@ export const appRouter = router({
   drawings: drawingRouter,
   measurements: measurementRouter,
   reconcile: reconcileRouter,
+  reports: reportsRouter,
   portal: portalRouter,
   settings: settingsRouter,
   firm: firmRouter,

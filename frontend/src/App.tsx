@@ -17,6 +17,7 @@ import {
   Dashboard as DashboardIcon,
   Enterprise,
   Identification,
+  Report,
   Light,
   Logout,
   Partnership,
@@ -39,6 +40,7 @@ import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
+import { Filing } from "./routes/Filing.js";
 import { Login } from "./routes/Login.js";
 import { MasterDsr } from "./routes/MasterDsr.js";
 import { Portal } from "./routes/Portal.js";
@@ -102,6 +104,7 @@ export function App() {
       : []),
     { label: "Reconcile", to: "/reconcile", icon: Wallet },
     { label: "Master DSR", to: "/dsr", icon: Catalog },
+    ...(user.role === "OWNER" ? [{ label: "Filing", to: "/filing", icon: Report }] : []),
     { label: "Company", to: "/company", icon: Enterprise },
     ...(user.role === "OWNER" ? [{ label: "Users", to: "/users", icon: UserAdmin }] : []),
     { label: "Settings", to: "/settings", icon: SettingsIcon },
@@ -152,6 +155,7 @@ export function App() {
           {hrEnabled && <Route path="/team" element={<Team />} />}
           {hrEnabled && <Route path="/hr" element={<Hr />} />}
           <Route path="/dsr" element={<MasterDsr />} />
+          {user.role === "OWNER" && <Route path="/filing" element={<Filing />} />}
           <Route path="/company" element={<Company />} />
           {user.role === "OWNER" && <Route path="/users" element={<Users />} />}
           <Route path="/settings" element={<Settings />} />
