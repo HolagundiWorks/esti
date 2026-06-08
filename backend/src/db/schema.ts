@@ -148,6 +148,38 @@ export const projectOffices = pgTable("esti_projectoffice", {
   updatedAt: updatedAt(),
 });
 
+/** Office correspondence — a letter rendered to a branded PDF. */
+export const letters = pgTable("esti_letter", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id").references(() => projectOffices.id),
+  recipient: text("recipient").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  dateLetter: date("date_letter"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Contract / agreement register (clients, consultants, vendors). */
+export const contracts = pgTable("esti_contract", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id").references(() => projectOffices.id),
+  title: text("title").notNull(),
+  party: text("party").notNull(),
+  contractType: text("contract_type").notNull().default("CLIENT"),
+  valuePaise: bigint("value_paise", { mode: "number" }).notNull().default(0),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  status: text("status").notNull().default("DRAFT"),
+  notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Project proposal / agreement (COA scope template) — rendered to PDF. */
 export const proposals = pgTable("esti_proposal", {
   id: id(),

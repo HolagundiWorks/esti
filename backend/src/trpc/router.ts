@@ -20,6 +20,7 @@ import { firmRouter } from "../modules/firm/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { notificationsRouter } from "../modules/notifications/router.js";
 import { inspectionRouter } from "../modules/inspection/router.js";
+import { contractRouter, letterRouter } from "../modules/office/router.js";
 import { permitRouter } from "../modules/permit/router.js";
 import { poRouter } from "../modules/po/router.js";
 import { proposalRouter } from "../modules/proposal/router.js";
@@ -76,6 +77,8 @@ export const appRouter = router({
   proposals: proposalRouter,
   inspections: inspectionRouter,
   spec: specRouter,
+  letters: letterRouter,
+  contracts: contractRouter,
   portal: portalRouter,
   settings: settingsRouter,
   firm: firmRouter,

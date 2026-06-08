@@ -18,17 +18,27 @@ import {
   bylawCalcs,
   bylaws,
   clientLogs,
+  contracts,
   drawings,
   engagements,
   estimateItems,
   estimates,
   feeProposals,
+  inspections,
   invoices,
+  letters,
   measurements,
+  moodBoards,
+  moodImages,
   permits,
   phases,
+  poItems,
   projectLogs,
   projectOffices,
+  proposals,
+  purchaseOrders,
+  specItems,
+  specSheets,
   users,
 } from "../../db/schema.js";
 import { verifyPassword } from "../../auth/session.js";
@@ -162,6 +172,20 @@ export const projectOfficeRouter = router({
         ).map((r) => r.id);
         if (estIds.length) await tx.delete(estimateItems).where(inArray(estimateItems.estimateId, estIds));
         if (bbsIds.length) await tx.delete(bbsItems).where(inArray(bbsItems.bbsId, bbsIds));
+        // Procurement, documents & office records added since the original cascade.
+        const poIds = (await tx.select({ id: purchaseOrders.id }).from(purchaseOrders).where(eq(purchaseOrders.projectId, pid))).map((r) => r.id);
+        if (poIds.length) await tx.delete(poItems).where(inArray(poItems.poId, poIds));
+        await tx.delete(purchaseOrders).where(eq(purchaseOrders.projectId, pid));
+        const specIds = (await tx.select({ id: specSheets.id }).from(specSheets).where(eq(specSheets.projectId, pid))).map((r) => r.id);
+        if (specIds.length) await tx.delete(specItems).where(inArray(specItems.specSheetId, specIds));
+        await tx.delete(specSheets).where(eq(specSheets.projectId, pid));
+        const boardIds = (await tx.select({ id: moodBoards.id }).from(moodBoards).where(eq(moodBoards.projectId, pid))).map((r) => r.id);
+        if (boardIds.length) await tx.delete(moodImages).where(inArray(moodImages.moodBoardId, boardIds));
+        await tx.delete(moodBoards).where(eq(moodBoards.projectId, pid));
+        await tx.delete(proposals).where(eq(proposals.projectId, pid));
+        await tx.delete(inspections).where(eq(inspections.projectId, pid));
+        await tx.delete(letters).where(eq(letters.projectId, pid));
+        await tx.delete(contracts).where(eq(contracts.projectId, pid));
         await tx.delete(measurements).where(eq(measurements.projectId, pid));
         await tx.delete(estimates).where(eq(estimates.projectId, pid));
         await tx.delete(bbsSchedules).where(eq(bbsSchedules.projectId, pid));

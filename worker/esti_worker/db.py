@@ -200,6 +200,22 @@ def fetch_inspection_full(iid: str) -> dict[str, Any] | None:
         return conn.execute(sql, [iid]).fetchone()
 
 
+def update_letter(lid: str, **fields: Any) -> None:
+    _patch("esti_letter", lid, set(), fields)
+
+
+def fetch_letter_full(lid: str) -> dict[str, Any] | None:
+    sql = """
+        select l.ref, l.recipient, l.subject, l.body, l.date_letter,
+               p.ref as project_ref, p.title as project_title
+        from esti_letter l
+        left join esti_projectoffice p on p.id = l.project_id
+        where l.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [lid]).fetchone()
+
+
 def update_specsheet(sid: str, **fields: Any) -> None:
     _patch("esti_specsheet", sid, set(), fields)
 

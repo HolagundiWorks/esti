@@ -22,4 +22,5 @@ export * from "./permissions.js";
 export * from "./dashboard.js";
 export * from "./po.js";
 export * from "./projectdocs.js";
+export * from "./office.js";
 export * from "./schemas.js";

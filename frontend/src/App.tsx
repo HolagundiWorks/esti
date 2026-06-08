@@ -17,6 +17,7 @@ import {
   Building,
   Catalog,
   Dashboard as DashboardIcon,
+  Document,
   Enterprise,
   Money,
   Light,
@@ -36,6 +37,8 @@ import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
+import { Contracts } from "./routes/Contracts.js";
+import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Filing } from "./routes/Filing.js";
 import { Invoices } from "./routes/Invoices.js";
@@ -119,6 +122,14 @@ export function App() {
       ],
     },
     {
+      label: "Office",
+      icon: Document,
+      items: [
+        { label: "Letters", to: "/office/letters" },
+        { label: "Contracts", to: "/office/contracts" },
+      ],
+    },
+    {
       label: "Resources",
       icon: Catalog,
       items: [
@@ -183,6 +194,8 @@ export function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/invoices" element={<Invoices />} />
+          <Route path="/office/letters" element={<Letters />} />
+          <Route path="/office/contracts" element={<Contracts />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />

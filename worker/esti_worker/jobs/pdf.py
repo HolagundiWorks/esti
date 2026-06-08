@@ -18,6 +18,7 @@ from ..db import (
     fetch_feeproposal_full,
     fetch_inspection_full,
     fetch_invoice_full,
+    fetch_letter_full,
     fetch_payslip_full,
     fetch_proposal_full,
     fetch_specsheet_full,
@@ -26,6 +27,7 @@ from ..db import (
     update_feeproposal,
     update_inspection,
     update_invoice,
+    update_letter,
     update_payslip,
     update_proposal,
     update_specsheet,
@@ -437,6 +439,30 @@ def _specsheet_html(s: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _letter_html(l: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    proj = (
+        f"<div class='muted'>Re: {_e(l['project_title'])} ({_e(l['project_ref'])})</div>"
+        if l.get("project_ref")
+        else ""
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start">
+        <div>{_firm_heading(firm)}<div class="muted">{addr}</div>
+          <div class="muted">{_e(firm.get('email'))} · {_e(firm.get('phone'))}</div></div>
+        <div class="muted" style="text-align:right">
+          <div>Ref: {_e(l['ref'])}</div>
+          <div>{_e(l.get('date_letter') or '')}</div>
+        </div>
+      </div>
+      <div style="margin-top:24px">To,<br><b>{_e(l['recipient'])}</b></div>
+      {proj}
+      <div style="margin-top:16px"><b>Subject: {_e(l['subject'])}</b></div>
+      <p class="pre" style="margin-top:12px">{_e(l['body'])}</p>
+      <div style="margin-top:36px">Yours faithfully,<br><br>{_firm_heading(firm, 'span')}</div>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -445,6 +471,7 @@ _RENDERERS = {
     "proposal": (fetch_proposal_full, _proposal_html, update_proposal, "proposal"),
     "inspection": (fetch_inspection_full, _inspection_html, update_inspection, "inspection"),
     "specsheet": (fetch_specsheet_full, _specsheet_html, update_specsheet, "specsheet"),
+    "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
 }
 
 
