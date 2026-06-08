@@ -200,7 +200,7 @@ export function ProjectDetail() {
                 <TableCell>
                   <Select
                     id={`st-${ph.id}`}
-                    labelText=""
+                    labelText="Phase status"
                     hideLabel
                     size="sm"
                     value={ph.status}
@@ -321,7 +321,7 @@ export function ProjectDetail() {
                 <TableCell>
                   <Select
                     id={`inv-status-${iv.id}`}
-                    labelText=""
+                    labelText="Invoice status"
                     hideLabel
                     size="sm"
                     value={iv.status}

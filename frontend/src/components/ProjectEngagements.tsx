@@ -107,7 +107,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                   <TableCell>
                     <Select
                       id={`eng-${e.id}`}
-                      labelText=""
+                      labelText="Engagement status"
                       hideLabel
                       size="sm"
                       value={e.status}

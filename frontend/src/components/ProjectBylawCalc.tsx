@@ -158,7 +158,8 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
                     <TableCell>
                       <Checkbox
                         id={`bc-${name}-road`}
-                        labelText=""
+                        labelText="Abuts road"
+                        hideLabel
                         checked={sides[name]!.abutsRoad}
                         onChange={(_e, { checked }) => setSide(name, { abutsRoad: checked })}
                       />
@@ -166,7 +167,7 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
                     <TableCell>
                       <TextInput
                         id={`bc-${name}-w`}
-                        labelText=""
+                        labelText="Road width (m)"
                         hideLabel
                         size="sm"
                         type="number"
@@ -178,7 +179,7 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
                     <TableCell>
                       <TextInput
                         id={`bc-${name}-rbl`}
-                        labelText=""
+                        labelText="RBL from centre (m)"
                         hideLabel
                         size="sm"
                         type="number"

@@ -100,7 +100,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
                   <TableCell>
                     <Select
                       id={`pm-${p.id}`}
-                      labelText=""
+                      labelText="Permit status"
                       hideLabel
                       size="sm"
                       value={p.status}

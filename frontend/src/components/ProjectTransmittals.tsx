@@ -179,7 +179,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
                   {checked && (
                     <TextInput
                       id={`tr-c-${d.id}`}
-                      labelText=""
+                      labelText="Copy count"
                       hideLabel
                       size="sm"
                       type="number"

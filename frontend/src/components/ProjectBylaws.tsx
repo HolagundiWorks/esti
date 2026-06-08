@@ -106,7 +106,7 @@ export function ProjectBylaws({ projectId }: { projectId: string }) {
                   <TableCell>
                     <TextInput
                       id={`bl-prop-${b.id}`}
-                      labelText=""
+                      labelText="Proposed value"
                       hideLabel
                       size="sm"
                       type="number"

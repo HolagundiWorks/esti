@@ -102,7 +102,7 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
                 <TableCell>
                   <Select
                     id={`ap-${a.id}`}
-                    labelText=""
+                    labelText="Update approval status"
                     hideLabel
                     size="sm"
                     value={a.status}

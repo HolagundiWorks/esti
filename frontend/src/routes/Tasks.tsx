@@ -100,7 +100,7 @@ export function Tasks() {
                   <TableCell>
                     <Select
                       id={`ts-${t.id}`}
-                      labelText=""
+                      labelText="Task status"
                       hideLabel
                       size="sm"
                       value={t.status}

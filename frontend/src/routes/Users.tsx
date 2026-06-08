@@ -102,7 +102,7 @@ export function Users() {
                     {!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId ? (
                       <Select
                         id={`role-${u.id}`}
-                        labelText=""
+                        labelText="User role"
                         hideLabel
                         size="sm"
                         value={isStaffRole(u.role) ? u.role : "ASSOCIATE"}
