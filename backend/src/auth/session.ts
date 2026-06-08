@@ -35,7 +35,9 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName: string;
-  role: "OWNER" | "CONSULTANT" | "CLIENT";
+  // Staff ladder (OWNER/PARTNER/SENIOR/ASSOCIATE/VIEWER) plus the two portal
+  // roles (CONSULTANT collaborator, CLIENT). See @esti/contracts permissions.
+  role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT";
   clientId: string | null;
   consultantId: string | null;
 }

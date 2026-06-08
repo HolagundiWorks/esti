@@ -30,6 +30,7 @@ import {
 } from "@carbon/icons-react";
 import { useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { can, isStaffRole } from "@esti/contracts";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
@@ -74,7 +75,8 @@ export function App() {
   // Only staff read settings; CLIENT users never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  const isStaff = !!user && (user.role === "OWNER" || (user.role === "CONSULTANT" && !user.consultantId));
+  const isStaff =
+    !!user && (isStaffRole(user.role) || (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
 
@@ -104,9 +106,9 @@ export function App() {
       : []),
     { label: "Reconcile", to: "/reconcile", icon: Wallet },
     { label: "Master DSR", to: "/dsr", icon: Catalog },
-    ...(user.role === "OWNER" ? [{ label: "Filing", to: "/filing", icon: Report }] : []),
+    ...(can(user.role, "reports:view") ? [{ label: "Filing", to: "/filing", icon: Report }] : []),
     { label: "Company", to: "/company", icon: Enterprise },
-    ...(user.role === "OWNER" ? [{ label: "Users", to: "/users", icon: UserAdmin }] : []),
+    ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users", icon: UserAdmin }] : []),
     { label: "Settings", to: "/settings", icon: SettingsIcon },
   ];
 
@@ -155,9 +157,9 @@ export function App() {
           {hrEnabled && <Route path="/team" element={<Team />} />}
           {hrEnabled && <Route path="/hr" element={<Hr />} />}
           <Route path="/dsr" element={<MasterDsr />} />
-          {user.role === "OWNER" && <Route path="/filing" element={<Filing />} />}
+          {can(user.role, "reports:view") && <Route path="/filing" element={<Filing />} />}
           <Route path="/company" element={<Company />} />
-          {user.role === "OWNER" && <Route path="/users" element={<Users />} />}
+          {can(user.role, "firm:admin") && <Route path="/users" element={<Users />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -7,8 +7,10 @@ import { writeAudit } from "../../lib/audit.js";
 import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
-import { presignedGet } from "../../lib/storage.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { presignedGet, removeObject } from "../../lib/storage.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+
+const manageInvoice = capabilityProcedure("invoice:manage");
 
 export const invoiceRouter = router({
   listByProject: protectedProcedure
@@ -30,7 +32,7 @@ export const invoiceRouter = router({
       return { ...row, pdfUrl };
     }),
 
-  generatePdf: protectedProcedure
+  generatePdf: manageInvoice
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db.select().from(invoices).where(eq(invoices.id, input.id));
@@ -49,7 +51,7 @@ export const invoiceRouter = router({
       return { ok: true };
     }),
 
-  updateStatus: protectedProcedure
+  updateStatus: manageInvoice
     .input(z.object({ id: z.string().uuid(), status: InvoiceStatus }))
     .mutation(async ({ ctx, input }) => {
       const [current] = await ctx.db.select().from(invoices).where(eq(invoices.id, input.id));
@@ -91,7 +93,35 @@ export const invoiceRouter = router({
       return row!;
     }),
 
-  create: protectedProcedure.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
+  /**
+   * Delete an invoice. Only DRAFT or CANCELLED invoices may be removed — an
+   * ISSUED/PAID invoice is a statutory record and must be cancelled, not
+   * deleted. Owner/Partner only (audit-sensitive).
+   */
+  remove: capabilityProcedure("invoice:delete")
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(invoices).where(eq(invoices.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (row.status !== "DRAFT" && row.status !== "CANCELLED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot delete a ${row.status} invoice — cancel it instead.`,
+        });
+      }
+      if (row.pdfKey) await removeObject(row.pdfKey);
+      await ctx.db.delete(invoices).where(eq(invoices.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "invoice",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before: { ref: row.ref, status: row.status },
+      });
+      return { ok: true };
+    }),
+
+  create: manageInvoice.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
     const firm = await getFirm(ctx.db);
     const system = input.gstSystem ?? (firm.gstType as GstSystem);
     // SAC applies only to a regular GST tax invoice; drop it otherwise.

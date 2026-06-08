@@ -6,9 +6,12 @@ import { trpc } from "../lib/trpc.js";
 export function InvoicePdfCell({
   invoiceId,
   initialStatus,
+  canManage = true,
 }: {
   invoiceId: string;
   initialStatus: string;
+  /** Only roles with invoice:manage may (re)generate the PDF. */
+  canManage?: boolean;
 }) {
   const utils = trpc.useUtils();
   const [active, setActive] = useState(initialStatus !== "NONE");
@@ -36,13 +39,28 @@ export function InvoicePdfCell({
 
   if (status === "READY" && url) {
     return (
-      <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
-        Open PDF
-      </Button>
+      <span style={{ display: "inline-flex", gap: 4 }}>
+        <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+          Open PDF
+        </Button>
+        {canManage && (
+          <Button
+            kind="ghost"
+            size="sm"
+            disabled={generate.isPending}
+            onClick={() => generate.mutate({ id: invoiceId })}
+          >
+            Regenerate
+          </Button>
+        )}
+      </span>
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {
     return <span style={{ fontSize: 12, color: "#6f6f6f" }}>Generating…</span>;
+  }
+  if (!canManage) {
+    return <span style={{ fontSize: 12, color: "#6f6f6f" }}>—</span>;
   }
   return (
     <Button

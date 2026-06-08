@@ -1,3 +1,4 @@
+import { ASSIGNABLE_STAFF_ROLES } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -22,13 +23,14 @@ export const userRouter = router({
     return ctx.db.select(publicUser).from(users).orderBy(asc(users.email));
   }),
 
-  /** Owner creates an internal staff login (role CONSULTANT, full office). */
+  /** Owner creates an internal staff login at a seniority tier (not OWNER). */
   createStaff: ownerProcedure
     .input(
       z.object({
         email: z.string().email(),
         fullName: z.string().min(2).max(200),
         password: z.string().min(8).max(200),
+        role: z.enum(ASSIGNABLE_STAFF_ROLES).default("ASSOCIATE"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -42,7 +44,7 @@ export const userRouter = router({
         .values({
           email: input.email,
           fullName: input.fullName,
-          role: "CONSULTANT",
+          role: input.role,
           passwordHash: await hashPassword(input.password),
         })
         .returning(publicUser);
@@ -51,8 +53,36 @@ export const userRouter = router({
         entityId: u!.id,
         action: "CREATE_STAFF",
         actorId: ctx.user.id,
+        after: { role: input.role },
       });
       return u!;
+    }),
+
+  /** Owner changes a staff member's seniority tier (cannot change own role). */
+  setRole: ownerProcedure
+    .input(z.object({ id: z.string().uuid(), role: z.enum(ASSIGNABLE_STAFF_ROLES) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.id === ctx.user.id)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot change your own role" });
+      const [target] = await ctx.db.select().from(users).where(eq(users.id, input.id));
+      if (!target) throw new TRPCError({ code: "NOT_FOUND" });
+      if (target.role === "OWNER")
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The owner role cannot be changed" });
+      if (target.clientId || target.consultantId)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Portal users have no staff role" });
+      const [u] = await ctx.db
+        .update(users)
+        .set({ role: input.role })
+        .where(eq(users.id, input.id))
+        .returning(publicUser);
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: input.id,
+        action: "SET_ROLE",
+        actorId: ctx.user.id,
+        after: { role: input.role },
+      });
+      return u ?? null;
     }),
 
   /** Owner enables/disables a login (cannot disable own account). */

@@ -2,6 +2,8 @@ import {
   Button,
   InlineNotification,
   Modal,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -13,12 +15,13 @@ import {
   Tag,
   TextInput,
 } from "@carbon/react";
+import { ASSIGNABLE_STAFF_ROLES, STAFF_ROLE_LABEL, isStaffRole } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
 const ROLE_LABEL: Record<string, string> = {
-  OWNER: "Owner",
+  ...STAFF_ROLE_LABEL,
   CONSULTANT: "Staff / Consultant",
   CLIENT: "Client",
 };
@@ -30,15 +33,23 @@ export function Users() {
   const invalidate = () => utils.users.list.invalidate();
 
   const setDisabled = trpc.users.setDisabled.useMutation({ onSuccess: invalidate });
+  const setRole = trpc.users.setRole.useMutation({
+    onSuccess: () => {
+      invalidate();
+      setMsg("Role updated");
+    },
+  });
 
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", fullName: "", password: "" });
+  const [form, setForm] = useState<{ email: string; fullName: string; password: string; role: (typeof ASSIGNABLE_STAFF_ROLES)[number] }>(
+    { email: "", fullName: "", password: "", role: "ASSOCIATE" },
+  );
   const [msg, setMsg] = useState<string | null>(null);
   const createStaff = trpc.users.createStaff.useMutation({
     onSuccess: (u) => {
       invalidate();
       setAddOpen(false);
-      setForm({ email: "", fullName: "", password: "" });
+      setForm({ email: "", fullName: "", password: "", role: "ASSOCIATE" });
       setMsg(`Staff login created for ${u.email}`);
     },
   });
@@ -88,8 +99,30 @@ export function Users() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.fullName}</TableCell>
                   <TableCell>
-                    {ROLE_LABEL[u.role] ?? u.role}
-                    {scope}
+                    {!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId ? (
+                      <Select
+                        id={`role-${u.id}`}
+                        labelText=""
+                        hideLabel
+                        size="sm"
+                        value={isStaffRole(u.role) ? u.role : "ASSOCIATE"}
+                        onChange={(e) =>
+                          setRole.mutate({
+                            id: u.id,
+                            role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
+                          })
+                        }
+                      >
+                        {ASSIGNABLE_STAFF_ROLES.map((r) => (
+                          <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
+                        ))}
+                      </Select>
+                    ) : (
+                      <>
+                        {ROLE_LABEL[u.role] ?? u.role}
+                        {scope}
+                      </>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Tag type={u.disabled ? "red" : "green"}>{u.disabled ? "Disabled" : "Active"}</Tag>
@@ -128,10 +161,20 @@ export function Users() {
       >
         <Stack gap={5}>
           <p style={{ color: "var(--cds-text-secondary)" }}>
-            Creates a full-office staff login (architect / partner / team member).
+            Creates an office staff login at the chosen seniority tier.
           </p>
           <TextInput id="u-name" labelText="Full name" value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
           <TextInput id="u-email" labelText="Login email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+          <Select
+            id="u-role"
+            labelText="Role (seniority tier)"
+            value={form.role}
+            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number] }))}
+          >
+            {ASSIGNABLE_STAFF_ROLES.map((r) => (
+              <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
+            ))}
+          </Select>
           <TextInput id="u-pw" labelText="Temporary password (min 8 chars)" type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
           {createStaff.error && (
             <InlineNotification kind="error" title="Could not create" subtitle={createStaff.error.message} hideCloseButton lowContrast />

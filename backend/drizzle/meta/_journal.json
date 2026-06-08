@@ -8,6 +8,13 @@
       "when": 1780908035242,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780910210136,
+      "tag": "0001_staff_roles",
+      "breakpoints": true
     }
   ]
 }

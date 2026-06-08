@@ -41,6 +41,11 @@ export async function presignedGet(key: string, expirySeconds = 300): Promise<st
   return s3Public.presignedGetObject(BUCKET, key, expirySeconds);
 }
 
+/** Best-effort delete; ignores "not found" so callers can fire-and-forget. */
+export async function removeObject(key: string): Promise<void> {
+  await s3.removeObject(BUCKET, key).catch(() => undefined);
+}
+
 /** Read an object's full contents as UTF-8 text (used to proxy the SVG). */
 export async function getObjectText(key: string): Promise<string> {
   const stream = await s3.getObject(BUCKET, key);

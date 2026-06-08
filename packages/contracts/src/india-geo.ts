@@ -1,8 +1,8 @@
 /**
  * India states/UTs and districts for cascading address dropdowns (firm profile).
- * STATES is complete; DISTRICTS_BY_STATE is seeded for the states the firm most
- * uses (Karnataka complete) and is extensible — the SPA falls back to free text
- * for any state without a seeded district list.
+ * STATES is complete. The firm operates in Karnataka, so only Karnataka has a
+ * district dropdown; every other state falls back to a free-text district field
+ * (add a state's district list here to enable its dropdown).
  */
 export const STATES: string[] = [
   "Andhra Pradesh",
@@ -76,53 +76,6 @@ export const DISTRICTS_BY_STATE: Record<string, string[]> = {
     "Vijayapura",
     "Yadgir",
     "Vijayanagara",
-  ],
-  Delhi: [
-    "Central Delhi",
-    "East Delhi",
-    "New Delhi",
-    "North Delhi",
-    "North East Delhi",
-    "North West Delhi",
-    "Shahdara",
-    "South Delhi",
-    "South East Delhi",
-    "South West Delhi",
-    "West Delhi",
-  ],
-  Telangana: [
-    "Hyderabad",
-    "Rangareddy",
-    "Medchal–Malkajgiri",
-    "Sangareddy",
-    "Warangal",
-    "Karimnagar",
-    "Khammam",
-    "Nalgonda",
-    "Nizamabad",
-  ],
-  "Tamil Nadu": [
-    "Chennai",
-    "Coimbatore",
-    "Madurai",
-    "Tiruchirappalli",
-    "Salem",
-    "Tirunelveli",
-    "Erode",
-    "Vellore",
-    "Kancheepuram",
-    "Thanjavur",
-  ],
-  Maharashtra: [
-    "Mumbai City",
-    "Mumbai Suburban",
-    "Pune",
-    "Thane",
-    "Nagpur",
-    "Nashik",
-    "Aurangabad",
-    "Solapur",
-    "Kolhapur",
   ],
 };
 

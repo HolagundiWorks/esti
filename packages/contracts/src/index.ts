@@ -18,4 +18,5 @@ export * from "./drawing.js";
 export * from "./reconcile.js";
 export * from "./firm.js";
 export * from "./india-geo.js";
+export * from "./permissions.js";
 export * from "./schemas.js";

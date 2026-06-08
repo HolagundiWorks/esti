@@ -28,6 +28,7 @@ import {
   InvoiceStatus,
   PhaseStatus,
   SAC_CODES,
+  can,
   coaMinimumFee,
   computeGst,
   computeTds194j,
@@ -64,7 +65,9 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> 
 export function ProjectDetail() {
   const { id = "" } = useParams();
   const { user } = useAuth();
-  const isOwner = user?.role === "OWNER";
+  const canFees = can(user?.role, "fees:manage");
+  const canInvoice = can(user?.role, "invoice:manage");
+  const canDeleteInvoice = can(user?.role, "invoice:delete");
   const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
@@ -116,6 +119,12 @@ export function ProjectDetail() {
       utils.dashboard.summary.invalidate();
     },
   });
+  const removeInvoice = trpc.invoices.remove.useMutation({
+    onSuccess: () => {
+      utils.invoices.listByProject.invalidate({ projectId: id });
+      utils.dashboard.summary.invalidate();
+    },
+  });
 
   if (project.isLoading) return <p>Loading…</p>;
   if (!project.data)
@@ -156,7 +165,7 @@ export function ProjectDetail() {
       <Tabs>
         <TabList aria-label="Project sections" contained>
           <Tab>Phases</Tab>
-          {isOwner && <Tab>Fees</Tab>}
+          {canFees && <Tab>Fees</Tab>}
           <Tab>Invoices</Tab>
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
@@ -212,7 +221,7 @@ export function ProjectDetail() {
       </TableContainer>
 
         </TabPanel>
-        {isOwner && (
+        {canFees && (
         <TabPanel>
       <div
         style={{
@@ -277,9 +286,11 @@ export function ProjectDetail() {
         }}
       >
         <h3>Invoices (GST / TDS)</h3>
-        <Button size="sm" onClick={() => setInvOpen(true)}>
-          New invoice
-        </Button>
+        {canInvoice && (
+          <Button size="sm" onClick={() => setInvOpen(true)}>
+            New invoice
+          </Button>
+        )}
       </div>
       <TableContainer title="India invoices" description="GST + TDS, phase-linked">
         <Table>
@@ -293,6 +304,7 @@ export function ProjectDetail() {
               <TableHeader>Net receivable</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Document</TableHeader>
+              {canDeleteInvoice && <TableHeader></TableHeader>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -311,7 +323,7 @@ export function ProjectDetail() {
                     hideLabel
                     size="sm"
                     value={iv.status}
-                    disabled={iv.status === "PAID" || iv.status === "CANCELLED"}
+                    disabled={!canInvoice || iv.status === "PAID" || iv.status === "CANCELLED"}
                     onChange={(e) =>
                       updateInvoiceStatus.mutate({
                         id: iv.id,
@@ -325,8 +337,25 @@ export function ProjectDetail() {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} />
+                  <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} canManage={canInvoice} />
                 </TableCell>
+                {canDeleteInvoice && (
+                  <TableCell>
+                    {(iv.status === "DRAFT" || iv.status === "CANCELLED") && (
+                      <Button
+                        kind="danger--ghost"
+                        size="sm"
+                        disabled={removeInvoice.isPending}
+                        onClick={() => {
+                          if (window.confirm(`Delete invoice ${iv.ref}? This cannot be undone.`))
+                            removeInvoice.mutate({ id: iv.id });
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

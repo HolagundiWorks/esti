@@ -1,3 +1,4 @@
+import { type Capability, can } from "@esti/contracts";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { Context } from "./context.js";
 
@@ -12,23 +13,41 @@ const authedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+// Mutations a read-only (Viewer) staff member may still perform on themselves.
+const SELF_SERVICE_MUTATIONS = new Set([
+  "auth.logout",
+  "users.updateProfile",
+  "users.changePassword",
+  "dashboard.saveLayout",
+]);
+
 /**
- * Office (staff) procedures — OWNER or internal CONSULTANT. Rejected: CLIENT
- * portal users and external CONSULTANT collaborators (a CONSULTANT scoped to a
- * consultant record). Those use clientProcedure / collaboratorProcedure.
+ * Office (staff) procedures — the staff ladder (OWNER/PARTNER/SENIOR/ASSOCIATE/
+ * VIEWER) or a legacy internal CONSULTANT. Rejected: CLIENT portal users and
+ * external CONSULTANT collaborators (a CONSULTANT scoped to a consultant
+ * record). A Viewer (no "write" capability) is read-only: mutations are blocked
+ * except a short self-service allowlist.
  */
-export const protectedProcedure = authedProcedure.use(({ ctx, next }) => {
+export const protectedProcedure = authedProcedure.use(({ ctx, next, type, path }) => {
   if (ctx.user.role === "CLIENT") throw new TRPCError({ code: "FORBIDDEN" });
   if (ctx.user.role === "CONSULTANT" && ctx.user.consultantId)
     throw new TRPCError({ code: "FORBIDDEN" });
+  if (type === "mutation" && !SELF_SERVICE_MUTATIONS.has(path) && !can(ctx.user.role, "write")) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
+  }
   return next({ ctx });
 });
 
-/** Requires the firm owner. */
-export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "OWNER") throw new TRPCError({ code: "FORBIDDEN" });
-  return next({ ctx });
-});
+/** A staff procedure that additionally requires a specific capability. */
+export function capabilityProcedure(cap: Capability) {
+  return protectedProcedure.use(({ ctx, next }) => {
+    if (!can(ctx.user.role, cap)) throw new TRPCError({ code: "FORBIDDEN" });
+    return next({ ctx });
+  });
+}
+
+/** Requires the firm owner (firm + user administration). */
+export const ownerProcedure = capabilityProcedure("firm:admin");
 
 /** Requires a portal client user (role CLIENT scoped to a client record). */
 export const clientProcedure = authedProcedure.use(({ ctx, next }) => {

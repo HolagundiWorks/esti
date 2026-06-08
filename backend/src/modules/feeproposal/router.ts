@@ -8,10 +8,13 @@ import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, router } from "../../trpc/trpc.js";
+
+// Fee proposals expose firm economics — Partner and Owner only.
+const feesProcedure = capabilityProcedure("fees:manage");
 
 export const feeProposalRouter = router({
-  listByProject: protectedProcedure
+  listByProject: feesProcedure
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return ctx.db
@@ -21,7 +24,7 @@ export const feeProposalRouter = router({
         .orderBy(desc(feeProposals.createdAt));
     }),
 
-  create: protectedProcedure.input(FeeProposalCreate).mutation(async ({ ctx, input }) => {
+  create: feesProcedure.input(FeeProposalCreate).mutation(async ({ ctx, input }) => {
     const coaMinimumPaise = coaMinimumFee(input.workCategory, input.costOfWorksPaise);
     const below = isBelowCoaMinimum(input.feePaise, coaMinimumPaise);
     // COA compliance guardrail: a below-minimum fee needs an audited override.
@@ -57,7 +60,7 @@ export const feeProposalRouter = router({
     return row!;
   }),
 
-  byId: protectedProcedure
+  byId: feesProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [row] = await ctx.db.select().from(feeProposals).where(eq(feeProposals.id, input.id));
@@ -66,7 +69,7 @@ export const feeProposalRouter = router({
       return { ...row, pdfUrl };
     }),
 
-  generatePdf: protectedProcedure
+  generatePdf: feesProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db.select().from(feeProposals).where(eq(feeProposals.id, input.id));

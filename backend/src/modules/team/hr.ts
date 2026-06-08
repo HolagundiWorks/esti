@@ -8,7 +8,10 @@ import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { requireHrEnabled } from "../../lib/settings.js";
 import { presignedGet } from "../../lib/storage.js";
-import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+
+// Leave approvals and payroll are management actions — Partner and Owner only.
+const hrProcedure = capabilityProcedure("hr:manage");
 
 export const leaveRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -44,7 +47,7 @@ export const leaveRouter = router({
     return row!;
   }),
 
-  setStatus: ownerProcedure.input(LeaveStatusUpdate).mutation(async ({ ctx, input }) => {
+  setStatus: hrProcedure.input(LeaveStatusUpdate).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db
       .update(leaves)
       .set({ status: input.status })
@@ -55,7 +58,7 @@ export const leaveRouter = router({
 });
 
 export const payrollRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: hrProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select({
         id: payslips.id,
@@ -73,7 +76,7 @@ export const payrollRouter = router({
       .orderBy(desc(payslips.month), desc(payslips.createdAt));
   }),
 
-  generate: ownerProcedure.input(PayslipCreate).mutation(async ({ ctx, input }) => {
+  generate: hrProcedure.input(PayslipCreate).mutation(async ({ ctx, input }) => {
     await requireHrEnabled(ctx.db);
     const [member] = await ctx.db
       .select()
@@ -113,7 +116,7 @@ export const payrollRouter = router({
     }
   }),
 
-  markPaid: ownerProcedure.input(PayslipMarkPaid).mutation(async ({ ctx, input }) => {
+  markPaid: hrProcedure.input(PayslipMarkPaid).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db
       .update(payslips)
       .set({ paid: true, paidDate: new Date().toISOString().slice(0, 10) })
@@ -131,7 +134,7 @@ export const payrollRouter = router({
       return { ...row, pdfUrl };
     }),
 
-  generatePdf: ownerProcedure
+  generatePdf: hrProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await requireHrEnabled(ctx.db);

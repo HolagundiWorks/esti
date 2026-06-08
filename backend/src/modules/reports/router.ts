@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { invoices } from "../../db/schema.js";
-import { ownerProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, router } from "../../trpc/trpc.js";
+
+const reportProcedure = capabilityProcedure("reports:view");
 
 /**
  * Statutory filing abstracts (GST output tax, TDS deducted) aggregated by
@@ -31,7 +33,7 @@ const period = sql<string>`to_char(${periodDate}, 'YYYY-MM')`;
 const filedStatuses = sql`${invoices.status} in ('ISSUED', 'PAID')`;
 
 export const reportsRouter = router({
-  gstAbstract: ownerProcedure.input(RangeInput).query(async ({ ctx, input }) => {
+  gstAbstract: reportProcedure.input(RangeInput).query(async ({ ctx, input }) => {
     const fy = defaultFinancialYear();
     const from = input?.fromDate ?? fy.from;
     const to = input?.toDate ?? fy.to;
@@ -92,7 +94,7 @@ export const reportsRouter = router({
     return { from, to, periods, totals };
   }),
 
-  tdsAbstract: ownerProcedure.input(RangeInput).query(async ({ ctx, input }) => {
+  tdsAbstract: reportProcedure.input(RangeInput).query(async ({ ctx, input }) => {
     const fy = defaultFinancialYear();
     const from = input?.fromDate ?? fy.from;
     const to = input?.toDate ?? fy.to;

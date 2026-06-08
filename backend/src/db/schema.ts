@@ -82,7 +82,11 @@ export const users = pgTable("esti_user", {
   id: id(),
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(),
-  role: text("role", { enum: ["OWNER", "CONSULTANT", "CLIENT"] }).notNull().default("CONSULTANT"),
+  role: text("role", {
+    enum: ["OWNER", "PARTNER", "SENIOR", "ASSOCIATE", "VIEWER", "CONSULTANT", "CLIENT"],
+  })
+    .notNull()
+    .default("ASSOCIATE"),
   passwordHash: text("password_hash"), // null for magic-link-only client users
   totpSecret: text("totp_secret"),
   disabled: boolean("disabled").notNull().default(false),
