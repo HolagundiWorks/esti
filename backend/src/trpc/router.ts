@@ -20,6 +20,7 @@ import { firmRouter } from "../modules/firm/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { notificationsRouter } from "../modules/notifications/router.js";
 import { permitRouter } from "../modules/permit/router.js";
+import { poRouter } from "../modules/po/router.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
 import { taskRouter } from "../modules/task/router.js";
@@ -68,6 +69,7 @@ export const appRouter = router({
   reconcile: reconcileRouter,
   reports: reportsRouter,
   admin: adminRouter,
+  purchaseOrders: poRouter,
   portal: portalRouter,
   settings: settingsRouter,
   firm: firmRouter,

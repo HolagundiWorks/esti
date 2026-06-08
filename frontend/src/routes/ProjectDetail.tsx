@@ -50,6 +50,7 @@ import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
+import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
@@ -418,6 +419,8 @@ export function ProjectDetail() {
       <ProjectEstimates projectId={id} />
 
       <ProjectBbs projectId={id} />
+
+      <ProjectPurchaseOrders projectId={id} />
         </TabPanel>
         <TabPanel>
       <ProjectDrawings projectId={id} />

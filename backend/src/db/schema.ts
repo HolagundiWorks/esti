@@ -148,6 +148,37 @@ export const projectOffices = pgTable("esti_projectoffice", {
   updatedAt: updatedAt(),
 });
 
+/** Purchase orders (simple quantity × rate procurement, per project). */
+export const purchaseOrders = pgTable("esti_purchaseorder", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  vendor: text("vendor"),
+  title: text("title"),
+  status: text("status").notNull().default("DRAFT"),
+  datePo: date("date_po"),
+  notes: text("notes"),
+  totalPaise: bigint("total_paise", { mode: "number" }).notNull().default(0),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Purchase-order line item — quantity × rate = amount. */
+export const poItems = pgTable("esti_po_item", {
+  id: id(),
+  poId: uuid("po_id")
+    .notNull()
+    .references(() => purchaseOrders.id),
+  description: text("description").notNull(),
+  unit: text("unit"),
+  qty: doublePrecision("qty").notNull().default(0),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 /** Internal project activity / audit notes (distinct from the client log). */
 export const projectLogs = pgTable("esti_projectlog", {
   id: id(),
