@@ -18,6 +18,7 @@ planning.
 | **2 — Specification** (what / how) | Per major decision | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md), [ARCHITECTURE](ARCHITECTURE.md) |
 | **3 — Plan** (when) | Every release | [ROADMAP](ROADMAP.md) |
 | **4 — Reference & Policy** (rules) | Rarely | [INDIA-PROFILE](INDIA-PROFILE.md), [BYLAWS-BBMP](BYLAWS-BBMP.md), [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md), [LICENSE-NOTICE](LICENSE-NOTICE.md) |
+| **5 — Audits** (point-in-time review) | Per review | [AUDIT-UIUX](AUDIT-UIUX.md), [AUDIT-ARCHITECTURE](AUDIT-ARCHITECTURE.md) |
 
 Build/run instructions live in [`DEVELOPMENT.md`](../../DEVELOPMENT.md).
 
