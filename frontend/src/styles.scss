@@ -14,3 +14,10 @@
   height: auto;
   display: block;
 }
+
+// Let the themed app shell fill the viewport (no unstyled strip in dark theme).
+html,
+body,
+#root {
+  min-height: 100vh;
+}

@@ -2,7 +2,7 @@ import { GstSystem, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } f
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { invoices } from "../../db/schema.js";
+import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -21,6 +21,32 @@ export const invoiceRouter = router({
         .from(invoices)
         .where(eq(invoices.projectId, input.projectId))
         .orderBy(desc(invoices.createdAt));
+    }),
+
+  /** All invoices across projects (office-wide Accounting view). */
+  listAll: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(500).default(200) }).optional())
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select({
+          id: invoices.id,
+          ref: invoices.ref,
+          projectId: invoices.projectId,
+          projectRef: projectOffices.ref,
+          projectTitle: projectOffices.title,
+          documentKind: invoices.documentKind,
+          status: invoices.status,
+          taxablePaise: invoices.taxablePaise,
+          gstTotalPaise: invoices.gstTotalPaise,
+          tdsPaise: invoices.tdsPaise,
+          netReceivablePaise: invoices.netReceivablePaise,
+          dateInvoice: invoices.dateInvoice,
+          pdfStatus: invoices.pdfStatus,
+        })
+        .from(invoices)
+        .innerJoin(projectOffices, eq(projectOffices.id, invoices.projectId))
+        .orderBy(desc(invoices.createdAt))
+        .limit(input?.limit ?? 200);
     }),
 
   byId: protectedProcedure

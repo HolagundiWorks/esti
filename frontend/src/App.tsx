@@ -8,6 +8,8 @@ import {
   SideNav,
   SideNavItems,
   SideNavLink,
+  SideNavMenu,
+  SideNavMenuItem,
   Theme,
 } from "@carbon/react";
 import {
@@ -16,16 +18,10 @@ import {
   Catalog,
   Dashboard as DashboardIcon,
   Enterprise,
-  Identification,
-  Report,
+  Money,
   Light,
   Logout,
-  Partnership,
-  Settings as SettingsIcon,
-  TaskComplete,
-  UserAdmin,
   UserMultiple,
-  Wallet,
   type CarbonIconType,
 } from "@carbon/icons-react";
 import { useState } from "react";
@@ -42,6 +38,7 @@ import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { Filing } from "./routes/Filing.js";
+import { Invoices } from "./routes/Invoices.js";
 import { Landing } from "./routes/Landing.js";
 import { Login } from "./routes/Login.js";
 import { MasterDsr } from "./routes/MasterDsr.js";
@@ -96,28 +93,55 @@ export function App() {
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId) return <CollaboratorPortal />;
 
-  const nav: { label: string; to: string; icon: CarbonIconType }[] = [
-    { label: "Dashboard", to: "/", icon: DashboardIcon },
-    { label: "Projects", to: "/projects", icon: Building },
-    { label: "Tasks", to: "/tasks", icon: TaskComplete },
-    { label: "Clients", to: "/clients", icon: UserMultiple },
-    { label: "Consultants", to: "/consultants", icon: Partnership },
-    ...(hrEnabled
-      ? [
-          { label: "Team", to: "/team", icon: UserMultiple },
-          { label: "HR", to: "/hr", icon: Identification },
-        ]
-      : []),
-    { label: "Reconcile", to: "/reconcile", icon: Wallet },
-    { label: "Master DSR", to: "/dsr", icon: Catalog },
-    ...(can(user.role, "reports:view") ? [{ label: "Filing", to: "/filing", icon: Report }] : []),
-    { label: "Company", to: "/company", icon: Enterprise },
-    ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users", icon: UserAdmin }] : []),
-    { label: "Settings", to: "/settings", icon: SettingsIcon },
+  type NavLink = { label: string; to: string };
+  // Grouped navigation (modules → sub-modules).
+  const links: NavLink[] = [
+    { label: "Dashboard", to: "/" },
+    { label: "Projects", to: "/projects" },
+  ];
+  const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
+    {
+      label: "People",
+      icon: UserMultiple,
+      items: [
+        { label: "Clients", to: "/clients" },
+        { label: "Consultants", to: "/consultants" },
+        ...(hrEnabled ? [{ label: "Team", to: "/team" }, { label: "HR", to: "/hr" }] : []),
+      ],
+    },
+    {
+      label: "Accounting",
+      icon: Money,
+      items: [
+        { label: "Invoices", to: "/invoices" },
+        { label: "Reconciliation", to: "/reconcile" },
+        ...(can(user.role, "reports:view") ? [{ label: "GST / TDS filing", to: "/filing" }] : []),
+      ],
+    },
+    {
+      label: "Resources",
+      icon: Catalog,
+      items: [
+        { label: "Master DSR", to: "/dsr" },
+        { label: "Tasks", to: "/tasks" },
+      ],
+    },
+    {
+      label: "Admin",
+      icon: Enterprise,
+      items: [
+        { label: "Company", to: "/company" },
+        ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
+        { label: "My profile", to: "/settings" },
+      ],
+    },
   ];
 
   return (
     <Theme theme={theme}>
+      {/* Full-height themed shell so the page background fills the viewport in
+          dark theme (no white strip below the content). */}
+      <div style={{ minHeight: "100vh", background: "var(--cds-background)" }}>
       <Header aria-label="ESTI AORMS">
         <HeaderName prefix="ESTI">{firmName}</HeaderName>
         <HeaderGlobalBar>
@@ -135,25 +159,30 @@ export function App() {
       </Header>
       <SideNav aria-label="Side navigation" isRail>
         <SideNavItems>
-          {nav.map((n) => (
-            <SideNavLink
-              key={n.to}
-              as={Link}
-              to={n.to}
-              renderIcon={n.icon}
-              isActive={pathname === n.to}
-            >
+          {links.map((n) => (
+            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.to === "/" ? DashboardIcon : Building} isActive={pathname === n.to}>
               {n.label}
             </SideNavLink>
           ))}
+          {groups.map((g) => (
+            <SideNavMenu key={g.label} title={g.label} renderIcon={g.icon} defaultExpanded={g.items.some((it) => it.to === pathname)}>
+              {g.items.map((it) => (
+                <SideNavMenuItem key={it.to} as={Link} to={it.to} isActive={pathname === it.to}>
+                  {it.label}
+                </SideNavMenuItem>
+              ))}
+            </SideNavMenu>
+          ))}
         </SideNavItems>
       </SideNav>
-      <Content>
+      <Content style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 3rem)" }}>
+        <div style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/invoices" element={<Invoices />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
@@ -167,8 +196,28 @@ export function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </div>
+        <footer
+          style={{
+            marginTop: "2.5rem",
+            paddingTop: "1rem",
+            borderTop: "1px solid var(--cds-border-subtle)",
+            color: "var(--cds-text-secondary)",
+            fontSize: "0.8125rem",
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <span>ESTI — AORMS</span>
+          <span>·</span>
+          <a href="mailto:hi@aorms.in" style={{ color: "var(--cds-link-primary)" }}>hi@aorms.in</a>
+          <span>·</span>
+          <span>Developed by Holagundi Consulting Works</span>
+        </footer>
       </Content>
       <FloatingCalculator />
+      </div>
     </Theme>
   );
 }
