@@ -46,7 +46,7 @@ export const drawingRouter = router({
         id: row.id,
         firm: await firmPayload(ctx.db),
         watermark: input.watermark || "ISSUED FOR APPROVAL",
-      });
+      }, ctx.requestId);
       return { ok: true };
     }),
 

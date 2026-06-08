@@ -66,7 +66,7 @@ export function registerDrawingUpload(app: FastifyInstance): void {
       bucket: BUCKET,
       storageKey,
       fileHash,
-    });
+    }, String(req.id));
 
     return reply.code(201).send(row);
   });

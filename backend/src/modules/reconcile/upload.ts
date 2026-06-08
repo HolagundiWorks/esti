@@ -74,7 +74,7 @@ export function registerReconcileUpload(app: FastifyInstance): void {
       bucket: BUCKET,
       storageKey,
       fileName,
-    });
+    }, String(req.id));
 
     return reply.code(201).send(row);
   });

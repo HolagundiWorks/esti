@@ -13,8 +13,9 @@
 | **R1** Worker retry/DLQ | Failed jobs retried via XAUTOCLAIM reclaim + backoff; poison jobs routed to a dead-letter stream after `worker_max_retries`. |
 | **S1** Rate limiting | `@fastify/rate-limit` global (600/min) + uploads (30/min); login throttled per-IP (10/min) and per-email (10/5min) via Redis. |
 | **S3** Upload validation | Magic-byte content sniffing for DXF/images/CSV-XLSX; SVG XSS-vector rejection (`lib/filetype.ts`). |
+| **O3** Request-ID propagation + `/readyz` | SPA sends `X-Request-Id` per batch; Fastify honours it (falls back to `crypto.randomUUID()`), echoes it in responses, stores it in tRPC context, and threads it into every worker job payload. Worker logs `req=<id>` on each job. `/readyz` probes DB + Redis + MinIO, returns 200/503. |
 
-Still open (next): **D4** backups/restore · **S4** secrets management · **S5** public object-store endpoint + TLS · **A1** cursor pagination · **O2** API integration tests · **O3** request-ID propagation + `/readyz`.
+Still open (next): **D4** backups/restore · **S4** secrets management · **S5** public object-store endpoint + TLS · **A1** cursor pagination · **O2** API integration tests.
 
 ## Snapshot
 

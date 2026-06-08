@@ -47,7 +47,7 @@ export const invoiceRouter = router({
         documentKind: row.documentKind,
         id: row.id,
         firm: await firmPayload(ctx.db),
-      });
+      }, ctx.requestId);
       return { ok: true };
     }),
 

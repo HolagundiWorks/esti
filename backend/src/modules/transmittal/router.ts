@@ -86,7 +86,7 @@ export const transmittalRouter = router({
         target: "transmittal",
         id: row.id,
         firm: await firmPayload(ctx.db),
-      });
+      }, ctx.requestId);
       return { ok: true };
     }),
 });

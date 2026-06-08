@@ -22,7 +22,14 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({ onError: toErrorToast }),
 });
 const trpcClient = trpc.createClient({
-  links: [httpBatchLink({ url: "/trpc" })],
+  links: [
+    httpBatchLink({
+      url: "/trpc",
+      // Attach a per-batch request ID so backend and worker logs can be
+      // correlated to the originating SPA interaction (audit O3).
+      headers: () => ({ "x-request-id": crypto.randomUUID() }),
+    }),
+  ],
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

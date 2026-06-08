@@ -82,8 +82,10 @@ def process_entry(r: redis.Redis, entry_id: str, fields: dict | None) -> None:
         return
     try:
         payload = json.loads(fields.get("payload", "{}"))
+        # request_id propagated from SPA→backend→worker for log correlation (audit O3).
+        req_id = payload.get("request_id", "-")
         result = handle(fields.get("type", ""), payload)
-        log.info("job %s %s -> %s", entry_id, fields.get("type"), result.get("status"))
+        log.info("job %s %s req=%s -> %s", entry_id, fields.get("type"), req_id, result.get("status"))
         r.xack(settings.worker_job_stream, settings.worker_group, entry_id)
     except Exception as exc:  # noqa: BLE001 - keep the loop alive
         attempts = _delivery_count(r, entry_id)

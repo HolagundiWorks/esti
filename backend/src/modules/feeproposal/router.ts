@@ -82,7 +82,7 @@ export const feeProposalRouter = router({
         target: "feeproposal",
         id: row.id,
         firm: await firmPayload(ctx.db),
-      });
+      }, ctx.requestId);
       return { ok: true };
     }),
 });

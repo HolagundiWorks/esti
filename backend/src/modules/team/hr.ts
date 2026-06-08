@@ -145,7 +145,7 @@ export const payrollRouter = router({
         target: "payslip",
         id: row.id,
         firm: await firmPayload(ctx.db),
-      });
+      }, ctx.requestId);
       return { ok: true };
     }),
 });
