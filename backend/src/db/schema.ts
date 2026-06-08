@@ -311,6 +311,38 @@ export const engagements = pgTable("esti_engagement", {
   updatedAt: updatedAt(),
 });
 
+/** Drawing transmittals — a recorded issue of a drawing set, with a cover PDF. */
+export const transmittals = pgTable("esti_transmittal", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  recipient: text("recipient").notNull(),
+  purpose: text("purpose").notNull(),
+  channel: text("channel").notNull(),
+  dateIssued: date("date_issued"),
+  notes: text("notes"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdById: uuid("created_by_id"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const transmittalItems = pgTable("esti_transmittal_item", {
+  id: id(),
+  transmittalId: uuid("transmittal_id")
+    .notNull()
+    .references(() => transmittals.id),
+  drawingId: uuid("drawing_id"),
+  drawingRef: text("drawing_ref").notNull(),
+  title: text("title").notNull(),
+  rev: text("rev"),
+  copies: integer("copies").notNull().default(1),
+  createdAt: createdAt(),
+});
+
 /** Approval / issue log — what was sent for sign-off, status, supersede chain. */
 export const approvals = pgTable("esti_approval", {
   id: id(),

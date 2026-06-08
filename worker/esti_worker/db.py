@@ -90,6 +90,31 @@ def update_feeproposal(fee_id: str, **fields: Any) -> None:
     _patch("esti_feeproposal", fee_id, set(), fields)
 
 
+def update_transmittal(tr_id: str, **fields: Any) -> None:
+    _patch("esti_transmittal", tr_id, set(), fields)
+
+
+def fetch_transmittal_full(tr_id: str) -> dict[str, Any] | None:
+    """Transmittal + project + its item rows, for the cover-sheet PDF."""
+    sql = """
+        select t.ref, t.recipient, t.purpose, t.channel, t.date_issued, t.notes,
+               p.ref as project_ref, p.title as project_title
+        from esti_transmittal t
+        join esti_projectoffice p on p.id = t.project_id
+        where t.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [tr_id]).fetchone()
+        if row is None:
+            return None
+        row["items"] = conn.execute(
+            "select drawing_ref, title, rev, copies from esti_transmittal_item "
+            "where transmittal_id = %s order by created_at",
+            [tr_id],
+        ).fetchall()
+        return row
+
+
 def fetch_drawing_full(drawing_id: str) -> dict[str, Any] | None:
     """Drawing + its project, for the watermarked issue-set PDF."""
     sql = """

@@ -48,6 +48,7 @@ import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
+import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
@@ -348,6 +349,8 @@ export function ProjectDetail() {
         </TabPanel>
         <TabPanel>
       <ProjectDrawings projectId={id} />
+
+      <ProjectTransmittals projectId={id} />
 
       <ProjectApprovals projectId={id} />
         </TabPanel>

@@ -8,6 +8,7 @@ export * from "./bylaw.js";
 export * from "./bylawcalc.js";
 export * from "./boq.js";
 export * from "./task.js";
+export * from "./transmittal.js";
 export * from "./clientlog.js";
 export * from "./approval.js";
 export * from "./consultant.js";

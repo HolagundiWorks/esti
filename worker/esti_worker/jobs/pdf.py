@@ -18,10 +18,12 @@ from ..db import (
     fetch_feeproposal_full,
     fetch_invoice_full,
     fetch_payslip_full,
+    fetch_transmittal_full,
     update_drawing,
     update_feeproposal,
     update_invoice,
     update_payslip,
+    update_transmittal,
 )
 from ..storage import get_bytes, put_bytes
 
@@ -278,10 +280,62 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_PURPOSE_LABEL = {
+    "FOR_APPROVAL": "For approval",
+    "FOR_CONSTRUCTION": "For construction",
+    "FOR_INFORMATION": "For information",
+    "FOR_TENDER": "For tender",
+    "AS_BUILT": "As built",
+}
+
+
+def _transmittal_html(t: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = "".join(
+        f"<tr><td>{i + 1}</td><td>{_e(it['drawing_ref'])}</td><td>{_e(it['title'])}</td>"
+        f"<td class='c'>{_e(it.get('rev') or '—')}</td><td class='c'>{it['copies']}</td></tr>"
+        for i, it in enumerate(t.get("items", []))
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>
+      @page {{ size: A4; margin: 18mm; }}
+      body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 11px; }}
+      .firm {{ font-size: 18px; font-weight: 700; }}
+      .muted {{ color: #6f6f6f; }}
+      .title {{ font-size: 15px; font-weight: 700; text-transform: uppercase;
+                border-top: 2px solid #161616; border-bottom: 2px solid #161616;
+                padding: 6px 0; margin: 16px 0; letter-spacing: 1px; }}
+      table {{ width: 100%; border-collapse: collapse; margin-top: 8px; }}
+      th, td {{ padding: 6px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; }}
+      th {{ background: #f4f4f4; }} td.c, th.c {{ text-align: center; }}
+      .kv td {{ border: none; padding: 2px 8px; }}
+    </style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+
+      <div class="title">Drawing Transmittal — {_e(t['ref'])}</div>
+      <table class="kv">
+        <tr><td class="muted">To</td><td>{_e(t['recipient'])}</td></tr>
+        <tr><td class="muted">Project</td><td>{_e(t['project_title'])} ({_e(t['project_ref'])})</td></tr>
+        <tr><td class="muted">Purpose</td><td>{_e(_PURPOSE_LABEL.get(t['purpose'], t['purpose']))}</td></tr>
+        <tr><td class="muted">Channel</td><td>{_e(t['channel'])}</td></tr>
+        <tr><td class="muted">Date issued</td><td>{_e(t.get('date_issued') or '—')}</td></tr>
+      </table>
+
+      <table>
+        <thead><tr><th>#</th><th>Drawing no</th><th>Title</th><th class="c">Rev</th><th class="c">Copies</th></tr></thead>
+        <tbody>{rows or '<tr><td colspan=5 class="muted">No items</td></tr>'}</tbody>
+      </table>
+
+      {f'<p class="muted" style="margin-top:10px">{_e(t.get("notes"))}</p>' if t.get("notes") else ''}
+      <p class="muted" style="margin-top:24px">Issued by {_e(firm.get('legalName'))}. Please acknowledge receipt.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
+    "transmittal": (fetch_transmittal_full, _transmittal_html, update_transmittal, "transmittal"),
 }
 
 
