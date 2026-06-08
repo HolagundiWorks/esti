@@ -14,6 +14,7 @@ import {
   TableRow,
   TextInput,
   Tile,
+  Toggle,
 } from "@carbon/react";
 import {
   type FirmType,
@@ -80,6 +81,10 @@ export function Company() {
   const isOwner = user?.role === "OWNER";
   const utils = trpc.useUtils();
   const firmQ = trpc.firm.get.useQuery();
+  const settingsQ = trpc.settings.get.useQuery();
+  const setHr = trpc.settings.setHrEnabled.useMutation({
+    onSuccess: () => utils.settings.get.invalidate(),
+  });
 
   const [f, setF] = useState<Form>(EMPTY);
   const [msg, setMsg] = useState<string | null>(null);
@@ -216,6 +221,28 @@ export function Company() {
       </Tile>
 
       {f.firmType === "PARTNERSHIP" && <Partners isOwner={isOwner} />}
+
+      <Tile style={{ maxWidth: 760, marginTop: 24 }}>
+        <h4>Team &amp; HR module</h4>
+        <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 16px" }}>
+          Staff register, site in-charge assignment, leaves and salary. Leave off for a solo
+          freelancer — the Team and HR areas stay hidden.
+        </p>
+        <Toggle
+          id="hr-toggle"
+          labelText="Enable Team &amp; HR"
+          labelA="Off (freelance)"
+          labelB="On"
+          toggled={settingsQ.data?.hrEnabled ?? false}
+          disabled={!isOwner || setHr.isPending || settingsQ.isLoading}
+          onToggle={(checked) => setHr.mutate({ hrEnabled: checked })}
+        />
+        {!isOwner && (
+          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 12 }}>
+            Only the owner can change this.
+          </p>
+        )}
+      </Tile>
     </div>
   );
 }

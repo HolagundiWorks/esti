@@ -46,6 +46,9 @@ export const authRouter = router({
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
     }
+    if (u.disabled) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+    }
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
     return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };

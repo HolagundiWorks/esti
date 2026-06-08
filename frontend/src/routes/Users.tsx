@@ -1,0 +1,155 @@
+import {
+  Button,
+  InlineNotification,
+  Modal,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tag,
+  TextInput,
+} from "@carbon/react";
+import { useState } from "react";
+import { useAuth } from "../lib/auth.js";
+import { trpc } from "../lib/trpc.js";
+
+const ROLE_LABEL: Record<string, string> = {
+  OWNER: "Owner",
+  CONSULTANT: "Staff / Consultant",
+  CLIENT: "Client",
+};
+
+export function Users() {
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const listQ = trpc.users.list.useQuery();
+  const invalidate = () => utils.users.list.invalidate();
+
+  const setDisabled = trpc.users.setDisabled.useMutation({ onSuccess: invalidate });
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState({ email: "", fullName: "", password: "" });
+  const [msg, setMsg] = useState<string | null>(null);
+  const createStaff = trpc.users.createStaff.useMutation({
+    onSuccess: (u) => {
+      invalidate();
+      setAddOpen(false);
+      setForm({ email: "", fullName: "", password: "" });
+      setMsg(`Staff login created for ${u.email}`);
+    },
+  });
+
+  const [reset, setReset] = useState<{ id: string; email: string } | null>(null);
+  const [resetPw, setResetPw] = useState("");
+  const resetPassword = trpc.users.resetPassword.useMutation({
+    onSuccess: () => {
+      setReset(null);
+      setResetPw("");
+      setMsg("Password reset");
+    },
+  });
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Users &amp; access</h1>
+        <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
+      </div>
+      <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
+        Owner / staff / portal logins. Client and consultant portal logins are created from their
+        records (Clients / Consultants).
+      </p>
+      {msg && (
+        <InlineNotification kind="success" title="Done" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
+      )}
+
+      <TableContainer title="Logins">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Email</TableHeader>
+              <TableHeader>Name</TableHeader>
+              <TableHeader>Role</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Actions</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(listQ.data ?? []).map((u) => {
+              const isSelf = u.id === user?.id;
+              const scope =
+                u.role === "CLIENT" ? " (client portal)" : u.consultantId ? " (consultant portal)" : "";
+              return (
+                <TableRow key={u.id}>
+                  <TableCell>{u.email}</TableCell>
+                  <TableCell>{u.fullName}</TableCell>
+                  <TableCell>
+                    {ROLE_LABEL[u.role] ?? u.role}
+                    {scope}
+                  </TableCell>
+                  <TableCell>
+                    <Tag type={u.disabled ? "red" : "green"}>{u.disabled ? "Disabled" : "Active"}</Tag>
+                  </TableCell>
+                  <TableCell>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <Button kind="ghost" size="sm" onClick={() => setReset({ id: u.id, email: u.email })}>
+                        Reset password
+                      </Button>
+                      {!isSelf && (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          onClick={() => setDisabled.mutate({ id: u.id, disabled: !u.disabled })}
+                        >
+                          {u.disabled ? "Enable" : "Disable"}
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Modal
+        open={addOpen}
+        modalHeading="Add staff login"
+        primaryButtonText={createStaff.isPending ? "Creating…" : "Create"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!form.email || form.fullName.length < 2 || form.password.length < 8 || createStaff.isPending}
+        onRequestClose={() => setAddOpen(false)}
+        onRequestSubmit={() => createStaff.mutate(form)}
+      >
+        <Stack gap={5}>
+          <p style={{ color: "var(--cds-text-secondary)" }}>
+            Creates a full-office staff login (architect / partner / team member).
+          </p>
+          <TextInput id="u-name" labelText="Full name" value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
+          <TextInput id="u-email" labelText="Login email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+          <TextInput id="u-pw" labelText="Temporary password (min 8 chars)" type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
+          {createStaff.error && (
+            <InlineNotification kind="error" title="Could not create" subtitle={createStaff.error.message} hideCloseButton lowContrast />
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={reset !== null}
+        modalHeading={`Reset password — ${reset?.email ?? ""}`}
+        primaryButtonText={resetPassword.isPending ? "Saving…" : "Reset"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={resetPw.length < 8 || resetPassword.isPending}
+        onRequestClose={() => setReset(null)}
+        onRequestSubmit={() => reset && resetPassword.mutate({ id: reset.id, password: resetPw })}
+      >
+        <TextInput id="u-reset" labelText="New password (min 8 chars)" type="password" value={resetPw} onChange={(e) => setResetPw(e.target.value)} />
+      </Modal>
+    </div>
+  );
+}

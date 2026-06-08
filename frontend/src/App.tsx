@@ -22,6 +22,7 @@ import {
   Notification,
   Partnership,
   Settings as SettingsIcon,
+  UserAdmin,
   UserMultiple,
   Wallet,
   type CarbonIconType,
@@ -46,6 +47,7 @@ import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Team } from "./routes/Team.js";
+import { Users } from "./routes/Users.js";
 
 type ThemeName = "white" | "g100";
 
@@ -104,6 +106,7 @@ export function App() {
     { label: "Reconcile", to: "/reconcile", icon: Wallet },
     { label: "Master DSR", to: "/dsr", icon: Catalog },
     { label: "Company", to: "/company", icon: Enterprise },
+    ...(user.role === "OWNER" ? [{ label: "Users", to: "/users", icon: UserAdmin }] : []),
     { label: "Settings", to: "/settings", icon: SettingsIcon },
   ];
 
@@ -151,6 +154,7 @@ export function App() {
           {hrEnabled && <Route path="/hr" element={<Hr />} />}
           <Route path="/dsr" element={<MasterDsr />} />
           <Route path="/company" element={<Company />} />
+          {user.role === "OWNER" && <Route path="/users" element={<Users />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

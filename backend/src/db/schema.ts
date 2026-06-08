@@ -84,6 +84,7 @@ export const users = pgTable("esti_user", {
   role: text("role", { enum: ["OWNER", "CONSULTANT", "CLIENT"] }).notNull().default("CONSULTANT"),
   passwordHash: text("password_hash"), // null for magic-link-only client users
   totpSecret: text("totp_secret"),
+  disabled: boolean("disabled").notNull().default(false),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),
   // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.

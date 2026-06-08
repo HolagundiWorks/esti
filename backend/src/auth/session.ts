@@ -34,6 +34,7 @@ export async function createSession(userId: string): Promise<string> {
 export interface AuthUser {
   id: string;
   email: string;
+  fullName: string;
   role: "OWNER" | "CONSULTANT" | "CLIENT";
   clientId: string | null;
   consultantId: string | null;
@@ -46,13 +47,20 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
     .select({
       id: users.id,
       email: users.email,
+      fullName: users.fullName,
       role: users.role,
       clientId: users.clientId,
       consultantId: users.consultantId,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.tokenHash, hashToken(token)), gt(sessions.expiresAt, new Date())))
+    .where(
+      and(
+        eq(sessions.tokenHash, hashToken(token)),
+        gt(sessions.expiresAt, new Date()),
+        eq(users.disabled, false),
+      ),
+    )
     .limit(1);
   return (rows[0] as AuthUser | undefined) ?? null;
 }
