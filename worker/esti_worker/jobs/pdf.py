@@ -75,6 +75,14 @@ def _logo_img(firm: dict[str, Any]) -> str:
     )
 
 
+def _firm_heading(firm: dict[str, Any], tag: str = "div") -> str:
+    """Print the logo if one is set, otherwise the company name."""
+    logo = _logo_img(firm)
+    if logo:
+        return logo
+    return f'<{tag} class="firm">{_e(firm.get("legalName"))}</{tag}>'
+
+
 def _tax_rows(inv: dict[str, Any]) -> str:
     rows = ""
     if inv["cgst_paise"]:
@@ -121,7 +129,7 @@ def _render_html(inv: dict[str, Any], firm: dict[str, Any]) -> str:
     </style></head><body>
       <div class="grid">
         <div>
-          {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
+          {_firm_heading(firm)}
           <div class="muted">{addr}</div>
           <div class="muted">{_e(firm.get('email'))} · {_e(firm.get('phone'))}</div>
         </div>
@@ -190,7 +198,7 @@ def _payslip_html(p: dict[str, Any], firm: dict[str, Any]) -> str:
       .net {{ font-weight: 700; border-top: 2px solid #161616; }}
     </style></head><body>
       <div class="grid">
-        {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
+        {_firm_heading(firm)}
         <div class="muted">{addr}</div>
         <div class="muted">COA Reg {_e(firm.get('coaRegNo'))}</div>
       </div>
@@ -239,7 +247,7 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
       .warn {{ color: #8a3800; background: #fff8e1; padding: 8px; margin-top: 10px; }}
       h4 {{ margin: 18px 0 4px; }}
     </style></head><body>
-      {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
+      {_firm_heading(firm)}
       <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
 
       <div class="title">Fee Proposal — {_e(f['ref'])}</div>
@@ -302,7 +310,7 @@ def _drawing_issue_html(rec: dict[str, Any], firm: dict[str, Any], svg: str) -> 
       .frame svg {{ width: 100%; height: auto; }}
     </style></head><body>
       <div class="tb">
-        <div>{_logo_img(firm)} <span class="firm">{_e(firm.get('legalName'))}</span>
+        <div>{_firm_heading(firm, "span")}
           <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div></div>
         <div style="text-align:right">
           <div><b>{_e(rec['title'])}</b> ({_e(rec['ref'])})</div>

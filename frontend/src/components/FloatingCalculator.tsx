@@ -1,6 +1,6 @@
 import { Button, TextInput } from "@carbon/react";
 import { Calculator } from "@carbon/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Office-wide floating calculator — a single "screen": type an arithmetic
@@ -11,12 +11,26 @@ export function FloatingCalculator() {
   const [expr, setExpr] = useState("");
   const result = safeEval(expr);
 
+  // Alt+C toggles the calculator from anywhere; Esc closes it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === "c" || e.key === "C")) {
+        e.preventDefault();
+        setOpen((o) => !o);
+      } else if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <>
       <Button
         size="sm"
         renderIcon={Calculator}
-        iconDescription="Calculator"
+        iconDescription="Calculator (Alt+C)"
         hasIconOnly
         kind="secondary"
         onClick={() => setOpen((o) => !o)}
