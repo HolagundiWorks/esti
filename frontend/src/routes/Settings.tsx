@@ -58,7 +58,7 @@ export function Settings() {
           <TextInput id="pf-new" labelText="New password (min 8 chars)" type="password" value={pw.next} onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))} />
           <TextInput id="pf-conf" labelText="Confirm new password" type="password" value={pw.confirm} onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))} />
           {pw.next && pw.confirm && pw.next !== pw.confirm && (
-            <p style={{ fontSize: 12, color: "#da1e28" }}>Passwords do not match.</p>
+            <p style={{ fontSize: 12, color: "var(--cds-text-error)" }}>Passwords do not match.</p>
           )}
           <Button
             disabled={

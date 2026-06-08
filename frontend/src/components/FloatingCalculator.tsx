@@ -44,7 +44,7 @@ export function FloatingCalculator() {
             bottom: 56,
             zIndex: 8000,
             width: 280,
-            background: "#161616",
+            background: "var(--cds-text-primary)",
             color: "#fff",
             padding: 12,
             boxShadow: "0 2px 12px rgba(0,0,0,0.4)",

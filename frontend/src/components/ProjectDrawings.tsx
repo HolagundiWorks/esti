@@ -115,12 +115,12 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                   <TableCell>{d.ref}</TableCell>
                   <TableCell>
                     {d.title}
-                    <div style={{ fontSize: 12, color: "#6f6f6f" }}>{d.fileName}</div>
+                    <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{d.fileName}</div>
                   </TableCell>
                   <TableCell>
                     <Tag type={STATUS_TAG[d.status] ?? "gray"}>{d.status}</Tag>
                     {d.status === "FAILED" && d.errorText && (
-                      <div style={{ fontSize: 12, color: "#da1e28" }}>{d.errorText}</div>
+                      <div style={{ fontSize: 12, color: "var(--cds-text-error)" }}>{d.errorText}</div>
                     )}
                   </TableCell>
                   <TableCell>{d.entityCount}</TableCell>

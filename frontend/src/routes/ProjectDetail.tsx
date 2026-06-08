@@ -37,6 +37,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 import { useAuth } from "../lib/auth.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
@@ -125,6 +126,7 @@ export function ProjectDetail() {
       utils.dashboard.summary.invalidate();
     },
   });
+  const [delInv, setDelInv] = useState<{ id: string; ref: string } | null>(null);
 
   if (project.isLoading) return <p>Loading…</p>;
   if (!project.data)
@@ -346,10 +348,7 @@ export function ProjectDetail() {
                         kind="danger--ghost"
                         size="sm"
                         disabled={removeInvoice.isPending}
-                        onClick={() => {
-                          if (window.confirm(`Delete invoice ${iv.ref}? This cannot be undone.`))
-                            removeInvoice.mutate({ id: iv.id });
-                        }}
+                        onClick={() => setDelInv({ id: iv.id, ref: iv.ref })}
                       >
                         Delete
                       </Button>
@@ -513,7 +512,7 @@ export function ProjectDetail() {
               <SelectItem key={ph.id} value={ph.id} text={ph.label} />
             ))}
           </Select>
-          <div style={{ fontSize: "0.875rem", color: "#6f6f6f" }}>
+          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
             GST system: <strong>{firmGst}</strong> (from Company settings)
           </div>
           <TextInput
@@ -536,7 +535,7 @@ export function ProjectDetail() {
             checked={invInter}
             onChange={(_, { checked }) => setInvInter(checked)}
           />
-          <div style={{ fontSize: "0.875rem", color: "#6f6f6f" }}>
+          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
             TDS u/s 194J:{" "}
             <strong>{firmTdsDefault ? "deducted (10%)" : "not applicable"}</strong> (from Company settings)
           </div>
@@ -562,6 +561,19 @@ export function ProjectDetail() {
           )}
         </Stack>
       </Modal>
+
+      <ConfirmModal
+        open={!!delInv}
+        heading="Delete invoice?"
+        body={`This permanently deletes invoice ${delInv?.ref ?? ""} and its PDF. This cannot be undone.`}
+        confirmText="Delete"
+        pending={removeInvoice.isPending}
+        onConfirm={() => {
+          if (delInv) removeInvoice.mutate({ id: delInv.id });
+          setDelInv(null);
+        }}
+        onClose={() => setDelInv(null)}
+      />
     </div>
   );
 }

@@ -184,7 +184,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
             <TextInput id="bb-cut" labelText="Cutting length (mm)" type="number" value={itf.cuttingLengthMm} onChange={(e) => setItf((f) => ({ ...f, cuttingLengthMm: e.target.value }))} />
           </div>
           {preview && (
-            <p style={{ fontSize: 13, color: "#6f6f6f" }}>
+            <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>
               {preview.totalBars} bars · {preview.totalLengthM} m · <strong>{preview.weightKg} kg</strong>
             </p>
           )}

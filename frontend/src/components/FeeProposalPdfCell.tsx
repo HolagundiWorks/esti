@@ -43,7 +43,7 @@ export function FeeProposalPdfCell({
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {
-    return <span style={{ fontSize: 12, color: "#6f6f6f" }}>Generating…</span>;
+    return <span style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>Generating…</span>;
   }
   return (
     <Button

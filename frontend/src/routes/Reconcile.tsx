@@ -143,12 +143,12 @@ export function Reconcile() {
                 <TableCell>{r.ref}</TableCell>
                 <TableCell>
                   {r.label}
-                  <div style={{ fontSize: 12, color: "#6f6f6f" }}>{r.fileName}</div>
+                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{r.fileName}</div>
                 </TableCell>
                 <TableCell>
                   <Tag type={STATUS_TAG[r.status] ?? "gray"}>{r.status}</Tag>
                   {r.status === "FAILED" && r.errorText && (
-                    <div style={{ fontSize: 12, color: "#da1e28" }}>{r.errorText}</div>
+                    <div style={{ fontSize: 12, color: "var(--cds-text-error)" }}>{r.errorText}</div>
                   )}
                 </TableCell>
                 <TableCell>{r.rowCount}</TableCell>

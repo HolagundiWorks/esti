@@ -139,7 +139,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       </Tile>
 
       {isOwner && (
-        <Tile style={{ maxWidth: 640, marginTop: 16, borderLeft: "3px solid #da1e28" }}>
+        <Tile style={{ maxWidth: 640, marginTop: 16, borderLeft: "3px solid var(--cds-text-error)" }}>
           <h4>Danger zone</h4>
           <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 12px" }}>
             Permanently delete this project and all its records (phases, fees, invoices, drawings,

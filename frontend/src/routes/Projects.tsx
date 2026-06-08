@@ -18,6 +18,7 @@ import {
 import { Jurisdiction, ProjectType, formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
 
 const headers = [
@@ -66,6 +67,16 @@ export function Projects() {
         <Button onClick={() => setOpen(true)}>New project</Button>
       </div>
 
+      <DataState
+        loading={list.isLoading}
+        isEmpty={rows.length === 0}
+        columnCount={5}
+        empty={{
+          title: "No projects yet",
+          description: "Create your first project office to start tracking phases, fees and invoices.",
+          action: <Button size="sm" onClick={() => setOpen(true)}>New project</Button>,
+        }}
+      >
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
           <TableContainer title="Architecture projects" description="All office projects">
@@ -98,6 +109,7 @@ export function Projects() {
           </TableContainer>
         )}
       </DataTable>
+      </DataState>
 
       <Modal
         open={open}

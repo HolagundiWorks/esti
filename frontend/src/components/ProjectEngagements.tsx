@@ -74,7 +74,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         </Button>
       </div>
       {consultants.length === 0 && (
-        <p style={{ color: "#6f6f6f" }}>Add consultants in the Consultants register first.</p>
+        <p style={{ color: "var(--cds-text-secondary)" }}>Add consultants in the Consultants register first.</p>
       )}
       <TableContainer title="Sub-consultant engagements" description="Agreed fee, paid, and balance">
         <Table>
@@ -101,7 +101,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                   </TableCell>
                   <TableCell>{formatINR(e.agreedFeePaise, { paise: false })}</TableCell>
                   <TableCell>{formatINR(e.paidPaise, { paise: false })}</TableCell>
-                  <TableCell style={{ color: balance > 0 ? "#da1e28" : "#198038" }}>
+                  <TableCell style={{ color: balance > 0 ? "var(--cds-text-error)" : "#198038" }}>
                     {formatINR(balance, { paise: false })}
                   </TableCell>
                   <TableCell>

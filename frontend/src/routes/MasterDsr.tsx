@@ -15,6 +15,8 @@ import {
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useEffect, useState } from "react";
+import { ConfirmModal } from "../components/ConfirmModal.js";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
 
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
@@ -51,6 +53,7 @@ export function MasterDsr() {
     },
   });
   const removeItem = trpc.dsr.removeItem.useMutation({ onSuccess: () => utils.dsr.listItems.invalidate({ versionId }) });
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
 
@@ -74,6 +77,16 @@ export function MasterDsr() {
         <Button disabled={!versionId} onClick={() => setIOpen(true)}>Add item</Button>
       </div>
 
+      <DataState
+        loading={!!versionId && itemsQ.isLoading}
+        isEmpty={!versionId || (itemsQ.data ?? []).length === 0}
+        columnCount={5}
+        empty={{
+          title: versionId ? "No rate items in this version" : "Select or create a DSR version",
+          description: versionId ? "Add schedule-of-rates items to build estimates from." : undefined,
+          action: versionId ? <Button size="sm" onClick={() => setIOpen(true)}>Add item</Button> : undefined,
+        }}
+      >
       <TableContainer title="Rate items" description={activeVersion?.description ?? ""}>
         <Table>
           <TableHead>
@@ -93,13 +106,27 @@ export function MasterDsr() {
                 <TableCell>{it.unit}</TableCell>
                 <TableCell>{formatINR(it.ratePaise)}</TableCell>
                 <TableCell>
-                  <Button kind="ghost" size="sm" onClick={() => removeItem.mutate({ id: it.id })}>Remove</Button>
+                  <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(it.id)}>Remove</Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      </DataState>
+
+      <ConfirmModal
+        open={!!confirmId}
+        heading="Remove rate item?"
+        body="This removes the item from this DSR version."
+        confirmText="Remove"
+        pending={removeItem.isPending}
+        onConfirm={() => {
+          if (confirmId) removeItem.mutate({ id: confirmId });
+          setConfirmId(null);
+        }}
+        onClose={() => setConfirmId(null)}
+      />
 
       <Modal
         open={vOpen}

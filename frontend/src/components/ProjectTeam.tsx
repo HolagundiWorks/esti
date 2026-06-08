@@ -59,7 +59,7 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
         </Button>
       </div>
       {team.length === 0 && (
-        <p style={{ color: "#6f6f6f" }}>Add staff in the Team register first.</p>
+        <p style={{ color: "var(--cds-text-secondary)" }}>Add staff in the Team register first.</p>
       )}
       <TableContainer title="Assignments" description="Site in-charge and project staff">
         <Table>

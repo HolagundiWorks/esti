@@ -162,7 +162,7 @@ export function Consultants() {
         }
       >
         <Stack gap={5}>
-          <p style={{ color: "#6f6f6f" }}>
+          <p style={{ color: "var(--cds-text-secondary)" }}>
             Gives this consultant a project-scoped portal login (their engaged projects only).
           </p>
           <TextInput

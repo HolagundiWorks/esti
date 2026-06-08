@@ -64,13 +64,13 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
 
       <div style={{ marginTop: 8 }}>
         {(logQ.data ?? []).length === 0 && (
-          <p style={{ color: "#6f6f6f" }}>No interactions logged yet.</p>
+          <p style={{ color: "var(--cds-text-secondary)" }}>No interactions logged yet.</p>
         )}
         {(logQ.data ?? []).map((e) => (
           <div
             key={e.id}
             style={{
-              borderLeft: "2px solid #e0e0e0",
+              borderLeft: "2px solid var(--cds-border-subtle)",
               padding: "8px 0 8px 16px",
               marginLeft: 8,
               position: "relative",
@@ -81,7 +81,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
                 {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               </Tag>
               <strong>{e.subject}</strong>
-              <span style={{ color: "#6f6f6f", fontSize: 12 }}>{e.occurredAt}</span>
+              <span style={{ color: "var(--cds-text-secondary)", fontSize: 12 }}>{e.occurredAt}</span>
               <Button
                 kind="ghost"
                 size="sm"

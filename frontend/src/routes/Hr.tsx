@@ -232,7 +232,7 @@ export function Hr() {
           <TextInput id="py-g" labelText="Gross (₹ — blank = member salary)" type="number" value={py.gross} onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))} />
           <TextInput id="py-d" labelText="Deductions (₹)" type="number" value={py.deductions} onChange={(e) => setPy((f) => ({ ...f, deductions: e.target.value }))} />
           {generate.error && (
-            <p style={{ color: "#da1e28", fontSize: 12 }}>{generate.error.message}</p>
+            <p style={{ color: "var(--cds-text-error)", fontSize: 12 }}>{generate.error.message}</p>
           )}
         </Stack>
       </Modal>

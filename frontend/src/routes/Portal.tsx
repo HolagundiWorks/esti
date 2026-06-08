@@ -45,7 +45,7 @@ export function Portal() {
         {!openId && (
           <>
             <h2>Your projects</h2>
-            <p style={{ color: "#6f6f6f", marginBottom: 16 }}>
+            <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
               Read-only access to status, invoices, approvals and issued drawings.
             </p>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -56,7 +56,7 @@ export function Portal() {
                   style={{ minWidth: 240, cursor: "pointer" }}
                   onClick={() => setOpenId(p.id)}
                 >
-                  <p style={{ fontSize: 12, color: "#6f6f6f" }}>{p.ref}</p>
+                  <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{p.ref}</p>
                   <p style={{ fontSize: 18, fontWeight: 600 }}>{p.title}</p>
                   <Tag type="cool-gray">{p.status}</Tag>
                 </Tile>
@@ -71,7 +71,7 @@ export function Portal() {
               ← All projects
             </Button>
             <h2 style={{ marginTop: 8 }}>{d.project.title}</h2>
-            <p style={{ color: "#6f6f6f" }}>
+            <p style={{ color: "var(--cds-text-secondary)" }}>
               {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·{" "}
               <Tag type="cool-gray">{d.project.status}</Tag>
             </p>

@@ -49,7 +49,7 @@ export function Filing() {
     <Stack gap={6}>
       <div>
         <h2>Filing abstracts</h2>
-        <p style={{ color: "#6f6f6f" }}>
+        <p style={{ color: "var(--cds-text-secondary)" }}>
           GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J, aggregated by month from issued and
           paid invoices. Default period is the current financial year.
         </p>
@@ -69,7 +69,7 @@ export function Filing() {
           <TabPanel>
             {gst.data && (
               <Stack gap={4}>
-                <p style={{ color: "#6f6f6f" }}>
+                <p style={{ color: "var(--cds-text-secondary)" }}>
                   Period {gst.data.from} → {gst.data.to}
                 </p>
                 <TableContainer title="GST output tax by month" description="Taxable value and output GST">
@@ -145,7 +145,7 @@ export function Filing() {
           <TabPanel>
             {tds.data && (
               <Stack gap={4}>
-                <p style={{ color: "#6f6f6f" }}>
+                <p style={{ color: "var(--cds-text-secondary)" }}>
                   Period {tds.data.from} → {tds.data.to} · TDS deducted by clients on professional fees (u/s
                   194J).
                 </p>

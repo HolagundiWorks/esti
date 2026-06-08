@@ -96,7 +96,7 @@ export function ProjectBylaws({ projectId }: { projectId: string }) {
                 <TableRow key={b.id}>
                   <TableCell>
                     {meta?.label ?? b.parameter}
-                    <div style={{ fontSize: 12, color: "#6f6f6f" }}>
+                    <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
                       {b.direction === "max" ? "max" : "min"} · {b.unit}
                     </div>
                   </TableCell>

@@ -87,7 +87,7 @@ export function Team() {
               <TableRow key={m.id}>
                 <TableCell>
                   {m.name}
-                  <div style={{ fontSize: 12, color: "#6f6f6f" }}>{m.email ?? m.phone ?? ""}</div>
+                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{m.email ?? m.phone ?? ""}</div>
                 </TableCell>
                 <TableCell>{TEAM_ROLES[m.role as TeamRoleCode] ?? m.role}</TableCell>
                 <TableCell>

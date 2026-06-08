@@ -19,6 +19,8 @@ import {
 import { TASK_STATUS_LABEL, TaskPriority, TaskStatus } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ConfirmModal } from "../components/ConfirmModal.js";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
 
 const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = { HIGH: "red", MEDIUM: "blue", LOW: "gray" };
@@ -33,6 +35,7 @@ export function Tasks() {
   const remove = trpc.tasks.remove.useMutation({ onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", projectId: "", assignee: "", priority: "MEDIUM", dueDate: "", description: "" });
   const create = trpc.tasks.create.useMutation({
     onSuccess: () => {
@@ -54,6 +57,16 @@ export function Tasks() {
         <Checkbox id="t-open" labelText="Open tasks only (To do)" checked={openOnly} onChange={(_e, { checked }) => setOpenOnly(checked)} />
       </div>
 
+      <DataState
+        loading={listQ.isLoading}
+        isEmpty={(listQ.data ?? []).length === 0}
+        columnCount={7}
+        empty={{
+          title: openOnly ? "No open tasks" : "No tasks yet",
+          description: "Create a task to track work across the office and projects.",
+          action: <Button size="sm" onClick={() => setOpen(true)}>New task</Button>,
+        }}
+      >
       <TableContainer title="Task list">
         <Table>
           <TableHead>
@@ -83,7 +96,7 @@ export function Tasks() {
                   <TableCell>
                     <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>{t.priority}</Tag>
                   </TableCell>
-                  <TableCell style={{ color: overdue ? "#da1e28" : undefined }}>{t.dueDate ?? "—"}</TableCell>
+                  <TableCell style={{ color: overdue ? "var(--cds-text-error)" : undefined }}>{t.dueDate ?? "—"}</TableCell>
                   <TableCell>
                     <Select
                       id={`ts-${t.id}`}
@@ -99,7 +112,7 @@ export function Tasks() {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Button kind="ghost" size="sm" onClick={() => remove.mutate({ id: t.id })}>Remove</Button>
+                    <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(t.id)}>Remove</Button>
                   </TableCell>
                 </TableRow>
               );
@@ -107,6 +120,20 @@ export function Tasks() {
           </TableBody>
         </Table>
       </TableContainer>
+      </DataState>
+
+      <ConfirmModal
+        open={!!confirmId}
+        heading="Remove task?"
+        body="This permanently removes the task."
+        confirmText="Remove"
+        pending={remove.isPending}
+        onConfirm={() => {
+          if (confirmId) remove.mutate({ id: confirmId });
+          setConfirmId(null);
+        }}
+        onClose={() => setConfirmId(null)}
+      />
 
       <Modal
         open={open}

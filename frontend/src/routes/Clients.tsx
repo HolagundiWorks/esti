@@ -17,6 +17,7 @@ import {
 } from "@carbon/react";
 import { ClientKind } from "@esti/contracts";
 import { useState } from "react";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
 
 const headers = [
@@ -97,6 +98,16 @@ export function Clients() {
         />
       )}
 
+      <DataState
+        loading={list.isLoading}
+        isEmpty={rows.length === 0}
+        columnCount={5}
+        empty={{
+          title: "No clients yet",
+          description: "Add a client or lead to attach projects, invoices and a portal login.",
+          action: <Button size="sm" onClick={() => setOpen(true)}>New client</Button>,
+        }}
+      >
       <DataTable rows={rows} headers={headers}>
         {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
           <TableContainer title="Clients" description="Clients and leads">
@@ -129,6 +140,7 @@ export function Clients() {
           </TableContainer>
         )}
       </DataTable>
+      </DataState>
 
       <Modal
         open={open}

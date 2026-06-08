@@ -219,13 +219,13 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
             <strong>Parking:</strong> {preview.parking}
           </p>
           {preview.notes.length > 0 && (
-            <ul style={{ fontSize: 12, color: "#6f6f6f", marginTop: 8 }}>
+            <ul style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
               {preview.notes.map((n, i) => (
                 <li key={i}>{n}</li>
               ))}
             </ul>
           )}
-          <p style={{ fontSize: 12, color: "#6f6f6f", marginTop: 8 }}>
+          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
             Seed BBMP rules — verify against the current byelaws / RMP.
           </p>
         </Tile>
@@ -245,7 +245,7 @@ function toSide(s: { abutsRoad: boolean; roadWidthM: number; rblFromCentreM: num
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p style={{ fontSize: 12, color: "#6f6f6f" }}>{label}</p>
+      <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{label}</p>
       <p style={{ fontSize: 22, fontWeight: 600 }}>{value}</p>
     </div>
   );

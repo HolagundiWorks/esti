@@ -160,7 +160,7 @@ export function DrawingViewer({
         onClick={() => setFullscreen((v) => !v)}
         style={{ marginLeft: "auto" }}
       />
-      <span style={{ fontSize: 12, color: "#6f6f6f" }}>
+      <span style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
         {mode === "area" ? "Click vertices to outline an area." : "Click two points to draw a line."}
       </span>
     </div>
@@ -175,7 +175,7 @@ export function DrawingViewer({
           style={{
             position: "relative",
             width: "100%",
-            border: "1px solid #e0e0e0",
+            border: "1px solid var(--cds-border-subtle)",
             background: "#fff",
             flex: fullscreen ? 1 : undefined,
             maxHeight: fullscreen ? "none" : "55vh",

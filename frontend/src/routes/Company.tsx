@@ -131,7 +131,7 @@ export function Company() {
   return (
     <div>
       <h1>Company profile</h1>
-      {!isOwner && <p style={{ color: "#6f6f6f" }}>Read-only — only the owner can edit.</p>}
+      {!isOwner && <p style={{ color: "var(--cds-text-secondary)" }}>Read-only — only the owner can edit.</p>}
       {msg && (
         <InlineNotification kind="success" title="Saved" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
       )}
@@ -146,7 +146,7 @@ export function Company() {
               <SelectItem value="PARTNERSHIP" text="Partnership" />
             </Select>
             {firmQ.data?.logoUrl && (
-              <img src={firmQ.data.logoUrl} alt="logo" style={{ height: 48, border: "1px solid #e0e0e0" }} />
+              <img src={firmQ.data.logoUrl} alt="logo" style={{ height: 48, border: "1px solid var(--cds-border-subtle)" }} />
             )}
             <FileUploaderButton
               labelText="Upload logo"
@@ -289,7 +289,7 @@ function DataTools() {
   });
 
   return (
-    <Tile style={{ maxWidth: 760, marginTop: 24, borderLeft: "3px solid #da1e28" }}>
+    <Tile style={{ maxWidth: 760, marginTop: 24, borderLeft: "3px solid var(--cds-text-error)" }}>
       <h4>Data tools</h4>
       {msg && (
         <InlineNotification kind="success" title="Done" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />

@@ -24,7 +24,7 @@ export function Alerts() {
   return (
     <div>
       <h1>Alerts</h1>
-      <p style={{ color: "#6f6f6f", marginBottom: 16 }}>
+      <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
         Stale client decisions, due follow-ups and overdue statutory permits.
       </p>
 
@@ -53,7 +53,7 @@ export function Alerts() {
                 <TableCell>{KIND_LABEL[a.kind] ?? a.kind}</TableCell>
                 <TableCell>
                   {a.title}
-                  <div style={{ fontSize: 12, color: "#6f6f6f" }}>{a.detail}</div>
+                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{a.detail}</div>
                 </TableCell>
                 <TableCell>
                   <Link to={`/projects/${a.projectId}`}>{a.projectRef}</Link>

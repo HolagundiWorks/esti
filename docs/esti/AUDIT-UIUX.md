@@ -78,3 +78,43 @@
 3. **DataTable migration** for list pages (sort/search/pagination).
 4. **Sticky project header** above the ProjectDetail tabs; URL-addressable tabs.
 5. **Charts on the dashboard**; **RupeeInput** component; **Tasks Kanban**.
+
+---
+
+## Re-audit — 2026-06-08 (all screens)
+
+Full pass over all 18 routes + 21 components after the RBAC / dashboard /
+admin-tools work.
+
+### Systemic findings (recur across most screens)
+
+| # | Finding | Sev | Status |
+|---|---|---|---|
+| G1 | No loading states — lists render an empty table while fetching. | P1 | 🔧 `DataState` wrapper |
+| G2 | No empty states — bare headers, no "add your first…" guidance. | P1 | 🔧 `DataState` wrapper |
+| G3 | No search / filter / pagination despite backend `search`/`status`/`limit`/`offset`. | P1 | open |
+| G4 | Inconsistent destructive UX: password-modal vs `window.confirm` vs instant remove. | P1 | 🔧 `ConfirmModal` |
+| G5 | Hard-coded hex (`#6f6f6f`, `#da1e28`, `#fff`) → poor dark-theme contrast. | P1 | 🔧 token sweep |
+| G6 | Two table paradigms (`DataTable` on 2 screens, hand-rolled elsewhere). | P2 | open |
+| G7 | Status as plain text on Projects/Portal vs coloured `Tag` elsewhere. | P2 | open |
+| G8 | Heading levels skip (`h1`→`h3`); cards use `h3` as page title. | P2 | open |
+| G9 | Forms validate only on submit; no inline `invalid`/`invalidText`. | P2 | open |
+| G10 | Modal inline-error display inconsistent (some rely on global toast only). | P3 | open |
+
+### Per-screen
+- **Login** P2 title is `h3`; no password reveal (`PasswordInput`), no product mark.
+- **Projects / Clients** P1 G1/G2/G3; Projects status plain text (G7).
+- **Tasks / Master DSR** P1 instant "Remove" (G4); no empty/loading.
+- **Reconcile / DrawingViewer / Portal / ClockLeaves** P1 hard-coded colors (G5).
+- **Portal / CollaboratorPortal** P1 a11y — project cards are `Tile onClick` (not
+  keyboard-focusable); use `ClickableTile`.
+- **HR** P2 `h1`→`h3`; instant Approve/Reject/Mark-paid.
+- **ProjectDetail** P2 no breadcrumb; invoice delete uses `window.confirm` (G4).
+- **Dashboard / Filing / Users / Company** in good shape post-recent work.
+
+### Fix order (this pass)
+1. ✅/🔧 `DataState` (skeleton + empty) → list screens (G1, G2).
+2. 🔧 `ConfirmModal` standardising destructive actions (G4).
+3. 🔧 Color-token sweep for dark theme (G5).
+4. Search + cursor pagination on Projects/Clients via `DataTable` (G3, G6).
+5. Inline validation (G9); a11y pass — `ClickableTile`, heading levels (G8).

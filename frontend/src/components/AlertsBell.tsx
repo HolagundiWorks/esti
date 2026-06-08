@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
-const SEV_COLOR: Record<string, string> = { high: "#da1e28", medium: "#8a3ffc" };
+const SEV_COLOR: Record<string, string> = { high: "var(--cds-text-error)", medium: "#8a3ffc" };
 const KEY = "esti-dismissed-alerts";
 
 function loadDismissed(): string[] {
@@ -46,7 +46,7 @@ export function AlertsBell() {
                 height: 16,
                 padding: "0 4px",
                 borderRadius: 8,
-                background: "#da1e28",
+                background: "var(--cds-text-error)",
                 color: "#fff",
                 fontSize: 10,
                 lineHeight: "16px",
@@ -70,10 +70,10 @@ export function AlertsBell() {
             maxHeight: "70vh",
             overflow: "auto",
             background: "var(--cds-layer, #fff)",
-            color: "var(--cds-text-primary, #161616)",
+            color: "var(--cds-text-primary, var(--cds-text-primary))",
             boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
             zIndex: 9000,
-            border: "1px solid var(--cds-border-subtle, #e0e0e0)",
+            border: "1px solid var(--cds-border-subtle, var(--cds-border-subtle))",
           }}
         >
           <div
@@ -82,7 +82,7 @@ export function AlertsBell() {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "10px 12px",
-              borderBottom: "1px solid var(--cds-border-subtle, #e0e0e0)",
+              borderBottom: "1px solid var(--cds-border-subtle, var(--cds-border-subtle))",
             }}
           >
             <strong>Alerts ({alerts.length})</strong>
@@ -97,7 +97,7 @@ export function AlertsBell() {
           </div>
 
           {alerts.length === 0 && (
-            <div style={{ padding: 24, textAlign: "center", color: "var(--cds-text-secondary, #6f6f6f)" }}>
+            <div style={{ padding: 24, textAlign: "center", color: "var(--cds-text-secondary, var(--cds-text-secondary))" }}>
               <NotificationOff size={24} />
               <p style={{ marginTop: 8 }}>Nothing needs attention.</p>
             </div>
@@ -110,7 +110,7 @@ export function AlertsBell() {
                 display: "flex",
                 gap: 8,
                 padding: "10px 12px",
-                borderBottom: "1px solid var(--cds-border-subtle, #e0e0e0)",
+                borderBottom: "1px solid var(--cds-border-subtle, var(--cds-border-subtle))",
               }}
             >
               <span style={{ width: 4, alignSelf: "stretch", background: SEV_COLOR[a.severity] ?? "#8d8d8d" }} />
@@ -118,14 +118,14 @@ export function AlertsBell() {
                 <Link to={`/projects/${a.projectId}`} onClick={() => setOpen(false)} style={{ fontWeight: 600 }}>
                   {a.title}
                 </Link>
-                <div style={{ fontSize: 12, color: "var(--cds-text-secondary, #6f6f6f)" }}>
+                <div style={{ fontSize: 12, color: "var(--cds-text-secondary, var(--cds-text-secondary))" }}>
                   {a.detail} · {a.projectRef}
                 </div>
               </div>
               <button
                 onClick={() => dismiss(a.id)}
                 aria-label="Dismiss"
-                style={{ background: "none", border: "none", color: "#6f6f6f", cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "var(--cds-text-secondary)", cursor: "pointer" }}
               >
                 ✕
               </button>

@@ -36,7 +36,7 @@ export function CollaboratorPortal() {
         {!openId && (
           <>
             <h2>Your engagements</h2>
-            <p style={{ color: "#6f6f6f", marginBottom: 16 }}>
+            <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
               Projects you are engaged on — status, stages, issued drawings and your fee balance.
             </p>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -49,10 +49,10 @@ export function CollaboratorPortal() {
                     style={{ minWidth: 260, cursor: "pointer" }}
                     onClick={() => setOpenId(p.id)}
                   >
-                    <p style={{ fontSize: 12, color: "#6f6f6f" }}>{p.ref}</p>
+                    <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{p.ref}</p>
                     <p style={{ fontSize: 18, fontWeight: 600 }}>{p.title}</p>
                     <Tag type="cool-gray">{p.status}</Tag>
-                    <p style={{ fontSize: 12, color: "#6f6f6f", marginTop: 8 }}>
+                    <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
                       Balance {formatINR(balance, { paise: false })}
                     </p>
                   </Tile>
@@ -68,7 +68,7 @@ export function CollaboratorPortal() {
               ← All engagements
             </Button>
             <h2 style={{ marginTop: 8 }}>{d.project.title}</h2>
-            <p style={{ color: "#6f6f6f" }}>
+            <p style={{ color: "var(--cds-text-secondary)" }}>
               {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·{" "}
               <Tag type="cool-gray">{d.project.status}</Tag>
             </p>
