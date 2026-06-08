@@ -5,6 +5,17 @@
 > Review of the as-built system against the design in [ARCHITECTURE](ARCHITECTURE.md).
 > Severity: **P1** (address before production) · **P2** (should) · **P3** (nice).
 
+### Resolved since this audit (2026-06-08)
+
+| Item | Resolution |
+| --- | --- |
+| **D1** Migrations | Baseline migration committed (`backend/drizzle/`); `runMigrations()` applies pending migrations on boot. `push --force` retired. |
+| **R1** Worker retry/DLQ | Failed jobs retried via XAUTOCLAIM reclaim + backoff; poison jobs routed to a dead-letter stream after `worker_max_retries`. |
+| **S1** Rate limiting | `@fastify/rate-limit` global (600/min) + uploads (30/min); login throttled per-IP (10/min) and per-email (10/5min) via Redis. |
+| **S3** Upload validation | Magic-byte content sniffing for DXF/images/CSV-XLSX; SVG XSS-vector rejection (`lib/filetype.ts`). |
+
+Still open (next): **D4** backups/restore · **S4** secrets management · **S5** public object-store endpoint + TLS · **A1** cursor pagination · **O2** API integration tests · **O3** request-ID propagation + `/readyz`.
+
 ## Snapshot
 
 - **Backend** TypeScript / Fastify 4 + tRPC v11 + Drizzle ORM (postgres-js).
