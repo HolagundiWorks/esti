@@ -13,6 +13,7 @@ import { BUCKET, s3 } from "./lib/storage.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
+import { registerMoodImageUpload } from "./modules/spec/upload.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 
@@ -54,6 +55,7 @@ await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 
 registerDrawingUpload(app);
 registerReconcileUpload(app);
 registerFirmLogoUpload(app);
+registerMoodImageUpload(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",

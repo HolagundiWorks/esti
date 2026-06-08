@@ -16,13 +16,19 @@ from ..config import settings
 from ..db import (
     fetch_drawing_full,
     fetch_feeproposal_full,
+    fetch_inspection_full,
     fetch_invoice_full,
     fetch_payslip_full,
+    fetch_proposal_full,
+    fetch_specsheet_full,
     fetch_transmittal_full,
     update_drawing,
     update_feeproposal,
+    update_inspection,
     update_invoice,
     update_payslip,
+    update_proposal,
+    update_specsheet,
     update_transmittal,
 )
 from ..storage import get_bytes, put_bytes
@@ -331,11 +337,114 @@ def _transmittal_html(t: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_WORK_TYPE_LABEL = {
+    "ARCHITECTURE": "Architecture Consultancy",
+    "INTERIOR": "Interior Consultancy",
+    "LANDSCAPE": "Landscape",
+    "MISC": "Miscellaneous",
+}
+
+_DOC_CSS = """
+  @page { size: A4; margin: 18mm; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 11px; line-height: 1.5; }
+  .firm { font-size: 18px; font-weight: 700; }
+  .muted { color: #6f6f6f; }
+  .title { font-size: 15px; font-weight: 700; text-transform: uppercase;
+           border-top: 2px solid #161616; border-bottom: 2px solid #161616;
+           padding: 6px 0; margin: 16px 0; letter-spacing: 1px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; vertical-align: top; }
+  th { background: #f4f4f4; }
+  .kv td { border: none; padding: 2px 8px; }
+  h4 { margin: 16px 0 4px; }
+  .pre { white-space: pre-wrap; }
+"""
+
+
+def _proposal_html(pr: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    work = _WORK_TYPE_LABEL.get(pr.get("work_type", "ARCHITECTURE"), pr.get("work_type"))
+    stage_rows = "".join(
+        f"<tr><td>{_e(ph['label'])}</td><td class='r'>{ph['billing_pct']}%</td></tr>"
+        for ph in pr.get("phases", [])
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
+      td.r,th.r {{ text-align: right; }}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+      <div class="title">Proposal &amp; Agreement — {_e(pr['ref'])}</div>
+      <table class="kv">
+        <tr><td class="muted">Client</td><td>{_e(pr.get('client_name') or '—')}</td></tr>
+        <tr><td class="muted">Project</td><td>{_e(pr['project_title'])} ({_e(pr['project_ref'])})</td></tr>
+        <tr><td class="muted">Site</td><td>{_e(pr.get('site_address') or '—')}</td></tr>
+        <tr><td class="muted">Discipline</td><td>{_e(work)}</td></tr>
+        <tr><td class="muted">Professional fee</td><td><b>{_inr(pr['fee_paise'])}</b></td></tr>
+      </table>
+      <h4>Scope of work</h4>
+      <p class="pre">{_e(pr.get('scope') or '—')}</p>
+      <h4>Stage-wise engagement (COA)</h4>
+      <table><thead><tr><th>Stage</th><th class="r">Billing %</th></tr></thead>
+        <tbody>{stage_rows or '<tr><td colspan=2 class="muted">—</td></tr>'}</tbody></table>
+      {f'<h4>Notes</h4><p class="pre">{_e(pr.get("notes"))}</p>' if pr.get('notes') else ''}
+      <p class="muted" style="margin-top:28px">Accepted for and on behalf of the Client: ____________________
+        &nbsp;&nbsp; Date: __________</p>
+      <p class="muted">For {_e(firm.get('legalName'))} — per the COA Conditions of Engagement.</p>
+    </body></html>"""
+
+
+def _inspection_html(s: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    def block(label: str, val: Any) -> str:
+        return f"<h4>{label}</h4><p class='pre'>{_e(val or '—')}</p>"
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+      <div class="title">Site Inspection Report — {_e(s['ref'])}</div>
+      <table class="kv">
+        <tr><td class="muted">Project</td><td>{_e(s['project_title'])} ({_e(s['project_ref'])})</td></tr>
+        <tr><td class="muted">Site</td><td>{_e(s.get('site_address') or '—')}</td></tr>
+        <tr><td class="muted">Date of visit</td><td>{_e(s.get('date_visit') or '—')}</td></tr>
+        <tr><td class="muted">Weather</td><td>{_e(s.get('weather') or '—')}</td></tr>
+        <tr><td class="muted">Inspected by</td><td>{_e(s.get('inspector_name') or '—')}</td></tr>
+        <tr><td class="muted">Next visit</td><td>{_e(s.get('next_visit') or '—')}</td></tr>
+      </table>
+      {block('Attendees', s.get('attendees'))}
+      {block('Progress of work', s.get('progress'))}
+      {block('Observations', s.get('observations'))}
+      {block('Instructions issued', s.get('instructions'))}
+      <p class="muted" style="margin-top:24px">{_e(firm.get('legalName'))} — site inspection record.</p>
+    </body></html>"""
+
+
+def _specsheet_html(s: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = "".join(
+        f"<tr><td>{_e(it.get('category'))}</td><td>{_e(it['item'])}</td>"
+        f"<td>{_e(it.get('make'))}</td><td>{_e(it.get('specification'))}</td>"
+        f"<td>{_e(it.get('finish'))}</td><td>{_e(it.get('remarks'))}</td></tr>"
+        for it in s.get("items", [])
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+      <div class="title">Specification Sheet — {_e(s['title'])}</div>
+      <div class="muted">{_e(s['project_title'])} ({_e(s['project_ref'])}) · {_e(s['ref'])}</div>
+      <table>
+        <thead><tr><th>Category</th><th>Item</th><th>Make</th><th>Specification</th><th>Finish</th><th>Remarks</th></tr></thead>
+        <tbody>{rows or '<tr><td colspan=6 class="muted">No items</td></tr>'}</tbody>
+      </table>
+      <p class="muted" style="margin-top:24px">{_e(firm.get('legalName'))} — material specification.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
     "transmittal": (fetch_transmittal_full, _transmittal_html, update_transmittal, "transmittal"),
+    "proposal": (fetch_proposal_full, _proposal_html, update_proposal, "proposal"),
+    "inspection": (fetch_inspection_full, _inspection_html, update_inspection, "inspection"),
+    "specsheet": (fetch_specsheet_full, _specsheet_html, update_specsheet, "specsheet"),
 }
 
 

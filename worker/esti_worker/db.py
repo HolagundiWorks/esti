@@ -156,6 +156,74 @@ def fetch_feeproposal_full(fee_id: str) -> dict[str, Any] | None:
         return row
 
 
+def update_proposal(pid: str, **fields: Any) -> None:
+    _patch("esti_proposal", pid, set(), fields)
+
+
+def fetch_proposal_full(pid: str) -> dict[str, Any] | None:
+    sql = """
+        select pr.ref, pr.work_type, pr.scope, pr.fee_paise, pr.notes,
+               p.ref as project_ref, p.title as project_title,
+               p.project_type, p.jurisdiction, p.site_address,
+               c.name as client_name, c.city as client_city, c.state as client_state
+        from esti_proposal pr
+        join esti_projectoffice p on p.id = pr.project_id
+        left join esti_client c on c.id = p.client_id
+        where pr.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [pid]).fetchone()
+        if row is None:
+            return None
+        row["phases"] = conn.execute(
+            "select label, billing_pct from esti_phase where project_id = "
+            "(select project_id from esti_proposal where id = %s) order by sort_order",
+            [pid],
+        ).fetchall()
+        return row
+
+
+def update_inspection(iid: str, **fields: Any) -> None:
+    _patch("esti_inspection", iid, set(), fields)
+
+
+def fetch_inspection_full(iid: str) -> dict[str, Any] | None:
+    sql = """
+        select s.ref, s.date_visit, s.weather, s.attendees, s.progress,
+               s.observations, s.instructions, s.next_visit, s.inspector_name,
+               p.ref as project_ref, p.title as project_title, p.site_address
+        from esti_inspection s
+        join esti_projectoffice p on p.id = s.project_id
+        where s.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [iid]).fetchone()
+
+
+def update_specsheet(sid: str, **fields: Any) -> None:
+    _patch("esti_specsheet", sid, set(), fields)
+
+
+def fetch_specsheet_full(sid: str) -> dict[str, Any] | None:
+    sql = """
+        select s.ref, s.title,
+               p.ref as project_ref, p.title as project_title
+        from esti_specsheet s
+        join esti_projectoffice p on p.id = s.project_id
+        where s.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [sid]).fetchone()
+        if row is None:
+            return None
+        row["items"] = conn.execute(
+            "select category, item, make, specification, finish, remarks "
+            "from esti_specitem where spec_sheet_id = %s order by sort_order",
+            [sid],
+        ).fetchall()
+        return row
+
+
 def fetch_open_invoices() -> list[dict[str, Any]]:
     """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:

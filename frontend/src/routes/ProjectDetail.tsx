@@ -49,6 +49,7 @@ import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
+import { ProjectDocuments } from "../components/ProjectDocuments.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
@@ -147,6 +148,7 @@ export function ProjectDetail() {
     "compliance",
     "costing",
     "drawings",
+    "documents",
     "team",
     "settings",
   ];
@@ -216,6 +218,7 @@ export function ProjectDetail() {
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
           <Tab>Drawings</Tab>
+          <Tab>Documents</Tab>
           <Tab>Team</Tab>
           <Tab>Settings</Tab>
         </TabList>
@@ -428,6 +431,9 @@ export function ProjectDetail() {
       <ProjectTransmittals projectId={id} />
 
       <ProjectApprovals projectId={id} />
+        </TabPanel>
+        <TabPanel>
+      <ProjectDocuments projectId={id} />
         </TabPanel>
         <TabPanel>
       {hrEnabled && <ProjectTeam projectId={id} />}

@@ -19,8 +19,11 @@ import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { firmRouter } from "../modules/firm/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { notificationsRouter } from "../modules/notifications/router.js";
+import { inspectionRouter } from "../modules/inspection/router.js";
 import { permitRouter } from "../modules/permit/router.js";
 import { poRouter } from "../modules/po/router.js";
+import { proposalRouter } from "../modules/proposal/router.js";
+import { specRouter } from "../modules/spec/router.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
 import { taskRouter } from "../modules/task/router.js";
@@ -70,6 +73,9 @@ export const appRouter = router({
   reports: reportsRouter,
   admin: adminRouter,
   purchaseOrders: poRouter,
+  proposals: proposalRouter,
+  inspections: inspectionRouter,
+  spec: specRouter,
   portal: portalRouter,
   settings: settingsRouter,
   firm: firmRouter,

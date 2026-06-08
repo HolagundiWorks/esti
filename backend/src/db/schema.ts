@@ -148,6 +148,94 @@ export const projectOffices = pgTable("esti_projectoffice", {
   updatedAt: updatedAt(),
 });
 
+/** Project proposal / agreement (COA scope template) — rendered to PDF. */
+export const proposals = pgTable("esti_proposal", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  workType: text("work_type").notNull().default("ARCHITECTURE"),
+  scope: text("scope"),
+  feePaise: bigint("fee_paise", { mode: "number" }).notNull().default(0),
+  notes: text("notes"),
+  status: text("status").notNull().default("DRAFT"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Site inspection report — rendered to PDF. */
+export const inspections = pgTable("esti_inspection", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  dateVisit: date("date_visit"),
+  weather: text("weather"),
+  attendees: text("attendees"),
+  progress: text("progress"),
+  observations: text("observations"),
+  instructions: text("instructions"),
+  nextVisit: date("next_visit"),
+  inspectorName: text("inspector_name"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Material specification sheet — structured rows, rendered to PDF. */
+export const specSheets = pgTable("esti_specsheet", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const specItems = pgTable("esti_specitem", {
+  id: id(),
+  specSheetId: uuid("spec_sheet_id")
+    .notNull()
+    .references(() => specSheets.id),
+  category: text("category"),
+  item: text("item").notNull(),
+  make: text("make"),
+  specification: text("specification"),
+  finish: text("finish"),
+  remarks: text("remarks"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+/** Mood board — a captioned collection of uploaded reference images. */
+export const moodBoards = pgTable("esti_moodboard", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  createdAt: createdAt(),
+});
+
+export const moodImages = pgTable("esti_moodimage", {
+  id: id(),
+  moodBoardId: uuid("mood_board_id")
+    .notNull()
+    .references(() => moodBoards.id),
+  storageKey: text("storage_key").notNull(),
+  caption: text("caption"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
 /** Purchase orders (simple quantity × rate procurement, per project). */
 export const purchaseOrders = pgTable("esti_purchaseorder", {
   id: id(),
