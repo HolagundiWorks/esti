@@ -41,8 +41,10 @@ import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
+import { FeeProposals } from "./routes/FeeProposals.js";
 import { Filing } from "./routes/Filing.js";
 import { Invoices } from "./routes/Invoices.js";
+import { Proposals } from "./routes/Proposals.js";
 import { Landing } from "./routes/Landing.js";
 import { Login } from "./routes/Login.js";
 import { MasterDsr } from "./routes/MasterDsr.js";
@@ -119,6 +121,7 @@ export function App() {
       icon: Money,
       items: [
         { label: "Invoices", to: "/invoices" },
+        ...(can(user.role, "fees:manage") ? [{ label: "Fee proposals", to: "/accounting/fees" }] : []),
         { label: "Reconciliation", to: "/reconcile" },
         ...(can(user.role, "reports:view") ? [{ label: "GST / TDS filing", to: "/filing" }] : []),
       ],
@@ -127,6 +130,7 @@ export function App() {
       label: "Office",
       icon: Document,
       items: [
+        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
       ],
@@ -193,6 +197,8 @@ export function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/invoices" element={<Invoices />} />
+          {can(user.role, "fees:manage") && <Route path="/accounting/fees" element={<FeeProposals />} />}
+          {can(user.role, "fees:manage") && <Route path="/office/proposals" element={<Proposals />} />}
           <Route path="/office/letters" element={<Letters />} />
           <Route path="/office/contracts" element={<Contracts />} />
           <Route path="/tasks" element={<Tasks />} />

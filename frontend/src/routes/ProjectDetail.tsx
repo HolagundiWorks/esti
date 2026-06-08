@@ -1,10 +1,6 @@
 import {
-  Button,
-  InlineNotification,
-  Modal,
   Select,
   SelectItem,
-  Stack,
   Tab,
   TabList,
   TabPanel,
@@ -18,28 +14,14 @@ import {
   TableRow,
   Tabs,
   Tag,
-  TextInput,
 } from "@carbon/react";
-import {
-  COA_MIN_FEE_PCT,
-  CoaWorkCategory,
-  PROJECT_WORK_TYPE_LABEL,
-  PhaseStatus,
-  can,
-  coaMinimumFee,
-  formatINR,
-  isBelowCoaMinimum,
-} from "@esti/contracts";
-import { useState } from "react";
+import { PROJECT_WORK_TYPE_LABEL, PhaseStatus, formatINR } from "@esti/contracts";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { useAuth } from "../lib/auth.js";
-import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
 import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
-import { ProjectEngagements } from "../components/ProjectEngagements.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectDocuments } from "../components/ProjectDocuments.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
@@ -69,38 +51,16 @@ const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | 
 export function ProjectDetail() {
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
-  const canFees = can(user?.role, "fees:manage");
   const utils = trpc.useUtils();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId: id }, { enabled: !!id });
-  const feesQ = trpc.feeProposals.listByProject.useQuery({ projectId: id }, { enabled: !!id });
   const updatePhase = trpc.phases.update.useMutation({
     onSuccess: () => utils.phases.listByProject.invalidate({ projectId: id }),
   });
 
-  const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState<string>("RESIDENTIAL_INDIVIDUAL");
-  const [cost, setCost] = useState("");
-  const [fee, setFee] = useState("");
-  const [docComm, setDocComm] = useState("10");
-  const [override, setOverride] = useState("");
-
-  const createFee = trpc.feeProposals.create.useMutation({
-    onSuccess: () => {
-      utils.feeProposals.listByProject.invalidate({ projectId: id });
-      setOpen(false);
-      setCost("");
-      setFee("");
-      setOverride("");
-    },
-  });
-
-
   const TAB_SLUGS = [
     "phases",
-    ...(canFees ? ["fees"] : []),
     "clientlog",
     "compliance",
     "costing",
@@ -120,14 +80,6 @@ export function ProjectDetail() {
       </p>
     );
   const p = project.data;
-
-  // Live COA benchmark in the modal
-  const costPaise = Math.round(Number(cost || "0") * 100);
-  const feePaise = Math.round(Number(fee || "0") * 100);
-  const coaMin = costPaise > 0 ? coaMinimumFee(category as keyof typeof COA_MIN_FEE_PCT, costPaise) : 0;
-  const below = feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
-  const ratioPct = coaMin > 0 ? Math.round((feePaise / coaMin) * 100) : 0;
-  const docCommPaise = Math.round((feePaise * Number(docComm || "0")) / 100);
 
   return (
     <div>
@@ -163,7 +115,6 @@ export function ProjectDetail() {
       >
         <TabList aria-label="Project sections" contained>
           <Tab>Phases</Tab>
-          {canFees && <Tab>Fees</Tab>}
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
@@ -219,61 +170,6 @@ export function ProjectDetail() {
       </TableContainer>
 
         </TabPanel>
-        {canFees && (
-        <TabPanel>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 32,
-        }}
-      >
-        <h3>Fee proposals</h3>
-        <Button size="sm" onClick={() => setOpen(true)}>
-          New fee proposal
-        </Button>
-      </div>
-      <TableContainer title="COA fee proposals" description="Benchmarked against the COA scale">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>Category</TableHeader>
-              <TableHeader>Cost of works</TableHeader>
-              <TableHeader>Quoted fee</TableHeader>
-              <TableHeader>COA min</TableHeader>
-              <TableHeader>% of COA</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Document</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(feesQ.data ?? []).map((f) => {
-              const pct = f.coaMinimumPaise > 0 ? Math.round((f.feePaise / f.coaMinimumPaise) * 100) : 0;
-              return (
-                <TableRow key={f.id}>
-                  <TableCell>{f.ref}</TableCell>
-                  <TableCell>{f.workCategory}</TableCell>
-                  <TableCell>{formatINR(f.costOfWorksPaise, { paise: false })}</TableCell>
-                  <TableCell>{formatINR(f.feePaise, { paise: false })}</TableCell>
-                  <TableCell>{formatINR(f.coaMinimumPaise, { paise: false })}</TableCell>
-                  <TableCell>
-                    <Tag type={f.belowMinimum ? "red" : "green"}>{pct}%</Tag>
-                  </TableCell>
-                  <TableCell>{f.status}</TableCell>
-                  <TableCell>
-                    <FeeProposalPdfCell feeId={f.id} initialStatus={f.pdfStatus} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-        </TabPanel>
-        )}
         <TabPanel>
       <ProjectClientLog projectId={id} />
         </TabPanel>
@@ -302,101 +198,19 @@ export function ProjectDetail() {
       <ProjectDocuments projectId={id} />
         </TabPanel>
         <TabPanel>
-      {hrEnabled && <ProjectTeam projectId={id} />}
-
-      <ProjectEngagements projectId={id} />
+      {hrEnabled ? (
+        <ProjectTeam projectId={id} />
+      ) : (
+        <p style={{ marginTop: 24, color: "var(--cds-text-secondary)" }}>
+          The Team &amp; HR module is off — enable it in Company settings to assign staff.
+        </p>
+      )}
         </TabPanel>
         <TabPanel>
           <ProjectSettings projectId={id} />
         </TabPanel>
         </TabPanels>
       </Tabs>
-
-      <Modal
-        open={open}
-        modalHeading="New fee proposal"
-        primaryButtonText={createFee.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!cost || !fee || (below && !override) || createFee.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          createFee.mutate({
-            projectId: id,
-            workCategory: category as (typeof CoaWorkCategory)[keyof typeof CoaWorkCategory],
-            costOfWorksPaise: costPaise,
-            feePaise,
-            docCommPct: Number(docComm || "0"),
-            overrideReason: override || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="f-cat"
-            labelText="Work category (COA scale)"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            {Object.values(CoaWorkCategory).map((c) => (
-              <SelectItem key={c} value={c} text={`${c} (${COA_MIN_FEE_PCT[c]}%)`} />
-            ))}
-          </Select>
-          <TextInput
-            id="f-cost"
-            labelText="Cost of works — construction, excl. land (₹)"
-            type="number"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-          />
-          <TextInput
-            id="f-fee"
-            labelText="Quoted professional fee (₹)"
-            type="number"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-          />
-          <TextInput
-            id="f-dc"
-            labelText="Documentation & Communication (%)"
-            type="number"
-            value={docComm}
-            onChange={(e) => setDocComm(e.target.value)}
-          />
-          {coaMin > 0 && (
-            <div style={{ fontSize: "0.875rem" }}>
-              COA minimum: <strong>{formatINR(coaMin, { paise: false })}</strong> · Quoted at{" "}
-              <strong>{ratioPct}%</strong> of COA minimum · D&amp;C{" "}
-              {formatINR(docCommPaise, { paise: false })}
-            </div>
-          )}
-          {below && (
-            <>
-              <InlineNotification
-                kind="warning"
-                title="Below COA minimum"
-                subtitle="An override reason is required to quote below the COA scale."
-                hideCloseButton
-                lowContrast
-              />
-              <TextInput
-                id="f-override"
-                labelText="Override reason (required)"
-                value={override}
-                onChange={(e) => setOverride(e.target.value)}
-              />
-            </>
-          )}
-          {createFee.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={createFee.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
     </div>
   );
 }

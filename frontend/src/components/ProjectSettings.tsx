@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { ProjectEngagements } from "./ProjectEngagements.js";
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -119,6 +120,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           )}
         </Stack>
       </Tile>
+
+      <div style={{ maxWidth: 760, marginTop: 16 }}>
+        <ProjectEngagements projectId={projectId} />
+      </div>
 
       <Tile style={{ maxWidth: 640, marginTop: 16 }}>
         <Stack gap={5}>

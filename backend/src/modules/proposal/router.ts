@@ -2,7 +2,7 @@ import { ProposalCreate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { proposals } from "../../db/schema.js";
+import { projectOffices, proposals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -19,6 +19,26 @@ export const proposalRouter = router({
     .query(async ({ ctx, input }) =>
       ctx.db.select().from(proposals).where(eq(proposals.projectId, input.projectId)).orderBy(desc(proposals.createdAt)),
     ),
+
+  /** All proposals across projects (office-wide Office view). */
+  listAll: protectedProcedure.query(async ({ ctx }) =>
+    ctx.db
+      .select({
+        id: proposals.id,
+        ref: proposals.ref,
+        projectId: proposals.projectId,
+        projectRef: projectOffices.ref,
+        projectTitle: projectOffices.title,
+        workType: proposals.workType,
+        feePaise: proposals.feePaise,
+        status: proposals.status,
+        pdfStatus: proposals.pdfStatus,
+      })
+      .from(proposals)
+      .innerJoin(projectOffices, eq(projectOffices.id, proposals.projectId))
+      .orderBy(desc(proposals.createdAt))
+      .limit(300),
+  ),
 
   byId: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(proposals).where(eq(proposals.id, input.id));

@@ -2,7 +2,7 @@ import { FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contr
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { feeProposals } from "../../db/schema.js";
+import { feeProposals, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -23,6 +23,27 @@ export const feeProposalRouter = router({
         .where(eq(feeProposals.projectId, input.projectId))
         .orderBy(desc(feeProposals.createdAt));
     }),
+
+  /** All fee proposals across projects (office-wide Accounting view). */
+  listAll: feesProcedure.query(async ({ ctx }) =>
+    ctx.db
+      .select({
+        id: feeProposals.id,
+        ref: feeProposals.ref,
+        projectId: feeProposals.projectId,
+        projectRef: projectOffices.ref,
+        projectTitle: projectOffices.title,
+        workCategory: feeProposals.workCategory,
+        feePaise: feeProposals.feePaise,
+        belowMinimum: feeProposals.belowMinimum,
+        status: feeProposals.status,
+        pdfStatus: feeProposals.pdfStatus,
+      })
+      .from(feeProposals)
+      .innerJoin(projectOffices, eq(projectOffices.id, feeProposals.projectId))
+      .orderBy(desc(feeProposals.createdAt))
+      .limit(300),
+  ),
 
   create: feesProcedure.input(FeeProposalCreate).mutation(async ({ ctx, input }) => {
     const coaMinimumPaise = coaMinimumFee(input.workCategory, input.costOfWorksPaise);

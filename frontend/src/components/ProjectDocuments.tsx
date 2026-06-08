@@ -2,8 +2,6 @@ import {
   Button,
   FileUploaderButton,
   Modal,
-  Select,
-  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -16,12 +14,6 @@ import {
   TextInput,
 } from "@carbon/react";
 import { Add, TrashCan } from "@carbon/icons-react";
-import {
-  COA_SCOPE_TEMPLATE,
-  PROJECT_WORK_TYPE_LABEL,
-  ProjectWorkType,
-  formatINR,
-} from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { ConfirmModal } from "./ConfirmModal.js";
@@ -38,12 +30,6 @@ function pdfPollOpts(initial: string) {
   };
 }
 
-function ProposalPdf({ id, initial }: { id: string; initial: string }) {
-  const utils = trpc.useUtils();
-  const q = trpc.proposals.byId.useQuery({ id }, pdfPollOpts(initial));
-  const gen = trpc.proposals.generatePdf.useMutation({ onSuccess: () => utils.proposals.byId.invalidate({ id }) });
-  return <PdfButton status={q.data?.pdfStatus ?? initial} url={q.data?.pdfUrl ?? null} pending={gen.isPending} onGen={() => gen.mutate({ id })} />;
-}
 function InspectionPdf({ id, initial }: { id: string; initial: string }) {
   const utils = trpc.useUtils();
   const q = trpc.inspections.byId.useQuery({ id }, pdfPollOpts(initial));
@@ -67,66 +53,10 @@ function PdfButton({ status, url, pending, onGen }: { status: string; url: strin
 export function ProjectDocuments({ projectId }: { projectId: string }) {
   return (
     <Stack gap={7} style={{ marginTop: 16 }}>
-      <Proposals projectId={projectId} />
       <Inspections projectId={projectId} />
       <SpecSheets projectId={projectId} />
       <MoodBoards projectId={projectId} />
     </Stack>
-  );
-}
-
-// --- Proposals --------------------------------------------------------------
-function Proposals({ projectId }: { projectId: string }) {
-  const utils = trpc.useUtils();
-  const listQ = trpc.proposals.listByProject.useQuery({ projectId });
-  const inv = () => utils.proposals.listByProject.invalidate({ projectId });
-  const [open, setOpen] = useState(false);
-  const [workType, setWorkType] = useState<string>("ARCHITECTURE");
-  const [scope, setScope] = useState(COA_SCOPE_TEMPLATE.ARCHITECTURE);
-  const [fee, setFee] = useState("");
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const create = trpc.proposals.create.useMutation({ onSuccess: () => { inv(); setOpen(false); setFee(""); } });
-  const remove = trpc.proposals.remove.useMutation({ onSuccess: inv });
-
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3>Proposals &amp; agreements</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>New proposal</Button>
-      </div>
-      <DataState loading={listQ.isLoading} isEmpty={(listQ.data ?? []).length === 0} columnCount={4}
-        empty={{ title: "No proposals", description: "Draft a COA-based proposal with scope and fee." }}>
-        <TableContainer title="Proposals">
-          <Table>
-            <TableHead><TableRow><TableHeader>Ref</TableHeader><TableHeader>Discipline</TableHeader><TableHeader>Fee</TableHeader><TableHeader>Document</TableHeader><TableHeader></TableHeader></TableRow></TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.ref}</TableCell>
-                  <TableCell>{PROJECT_WORK_TYPE_LABEL[p.workType as keyof typeof PROJECT_WORK_TYPE_LABEL] ?? p.workType}</TableCell>
-                  <TableCell>{formatINR(p.feePaise, { paise: false })}</TableCell>
-                  <TableCell><ProposalPdf id={p.id} initial={p.pdfStatus} /></TableCell>
-                  <TableCell><Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(p.id)}>Delete</Button></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </DataState>
-      <ConfirmModal open={!!confirmId} heading="Delete proposal?" body="This permanently removes the proposal." confirmText="Delete"
-        pending={remove.isPending} onConfirm={() => { if (confirmId) remove.mutate({ id: confirmId }); setConfirmId(null); }} onClose={() => setConfirmId(null)} />
-      <Modal open={open} modalHeading="New proposal" primaryButtonText={create.isPending ? "Creating…" : "Create"} secondaryButtonText="Cancel"
-        primaryButtonDisabled={create.isPending} size="lg" onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => create.mutate({ projectId, workType: workType as (typeof ProjectWorkType.options)[number], scope, feePaise: Math.round(Number(fee || "0") * 100) })}>
-        <Stack gap={5}>
-          <Select id="pr-work" labelText="Discipline" value={workType} onChange={(e) => { setWorkType(e.target.value); setScope(COA_SCOPE_TEMPLATE[e.target.value as keyof typeof COA_SCOPE_TEMPLATE]); }}>
-            {ProjectWorkType.options.map((t) => <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />)}
-          </Select>
-          <TextInput id="pr-fee" labelText="Professional fee (₹)" type="number" value={fee} onChange={(e) => setFee(e.target.value)} />
-          <TextArea id="pr-scope" labelText="Scope of work (COA template — edit as needed)" rows={10} value={scope} onChange={(e) => setScope(e.target.value)} />
-        </Stack>
-      </Modal>
-    </div>
   );
 }
 
