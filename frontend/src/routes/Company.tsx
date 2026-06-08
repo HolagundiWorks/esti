@@ -112,8 +112,14 @@ export function Company() {
   async function uploadLogo(file: File) {
     const fd = new FormData();
     fd.append("file", file);
-    await fetch("/upload/firm-logo", { method: "POST", body: fd, credentials: "include" });
-    utils.firm.get.invalidate();
+    const res = await fetch("/upload/firm-logo", { method: "POST", body: fd, credentials: "include" });
+    if (res.ok) {
+      utils.firm.get.invalidate();
+      setMsg("Logo uploaded");
+    } else {
+      const err = (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`;
+      setMsg(`Logo upload failed: ${err}`);
+    }
   }
 
   const districts = districtsFor(f.state);

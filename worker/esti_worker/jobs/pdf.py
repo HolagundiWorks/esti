@@ -6,6 +6,7 @@ object storage and records the key on the invoice row.
 """
 from __future__ import annotations
 
+import base64
 import html
 import logging
 import re
@@ -48,6 +49,30 @@ def _inr(paise: int | None) -> str:
 
 def _e(value: Any) -> str:
     return html.escape("" if value is None else str(value))
+
+
+def _logo_img(firm: dict[str, Any]) -> str:
+    """Embed the firm logo as a base64 data-URI (read from object storage)."""
+    key = firm.get("logoKey")
+    if not key:
+        return ""
+    try:
+        data = get_bytes(settings.s3_bucket, key)
+    except Exception:  # noqa: BLE001
+        return ""
+    ext = str(key).rsplit(".", 1)[-1].lower()
+    mime = (
+        "image/svg+xml"
+        if ext == "svg"
+        else "image/jpeg"
+        if ext in ("jpg", "jpeg")
+        else f"image/{ext}"
+    )
+    b64 = base64.b64encode(data).decode("ascii")
+    return (
+        f'<img src="data:{mime};base64,{b64}" '
+        'style="max-height:56px;max-width:220px;margin-bottom:6px" />'
+    )
 
 
 def _tax_rows(inv: dict[str, Any]) -> str:
@@ -96,7 +121,7 @@ def _render_html(inv: dict[str, Any], firm: dict[str, Any]) -> str:
     </style></head><body>
       <div class="grid">
         <div>
-          <div class="firm">{_e(firm.get('legalName'))}</div>
+          {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
           <div class="muted">{addr}</div>
           <div class="muted">{_e(firm.get('email'))} · {_e(firm.get('phone'))}</div>
         </div>
@@ -165,7 +190,7 @@ def _payslip_html(p: dict[str, Any], firm: dict[str, Any]) -> str:
       .net {{ font-weight: 700; border-top: 2px solid #161616; }}
     </style></head><body>
       <div class="grid">
-        <div class="firm">{_e(firm.get('legalName'))}</div>
+        {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
         <div class="muted">{addr}</div>
         <div class="muted">COA Reg {_e(firm.get('coaRegNo'))}</div>
       </div>
@@ -214,7 +239,7 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
       .warn {{ color: #8a3800; background: #fff8e1; padding: 8px; margin-top: 10px; }}
       h4 {{ margin: 18px 0 4px; }}
     </style></head><body>
-      <div class="firm">{_e(firm.get('legalName'))}</div>
+      {_logo_img(firm)}<div class="firm">{_e(firm.get('legalName'))}</div>
       <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
 
       <div class="title">Fee Proposal — {_e(f['ref'])}</div>
@@ -277,7 +302,7 @@ def _drawing_issue_html(rec: dict[str, Any], firm: dict[str, Any], svg: str) -> 
       .frame svg {{ width: 100%; height: auto; }}
     </style></head><body>
       <div class="tb">
-        <div><span class="firm">{_e(firm.get('legalName'))}</span>
+        <div>{_logo_img(firm)} <span class="firm">{_e(firm.get('legalName'))}</span>
           <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div></div>
         <div style="text-align:right">
           <div><b>{_e(rec['title'])}</b> ({_e(rec['ref'])})</div>

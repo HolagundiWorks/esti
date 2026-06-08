@@ -13,6 +13,8 @@ export interface FirmProfile {
   addressLines: string[];
   email: string;
   phone: string;
+  /** Object-storage key of the firm logo, embedded into document PDFs. */
+  logoKey?: string | null;
 }
 
 export const FIRM_PROFILE: FirmProfile = {

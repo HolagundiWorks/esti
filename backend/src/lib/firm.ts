@@ -42,5 +42,6 @@ export async function firmPayload(db: DB): Promise<FirmProfile> {
     addressLines: addressLines.length ? addressLines : ["—"],
     email: f.email ?? "",
     phone,
+    logoKey: f.logoKey,
   };
 }
