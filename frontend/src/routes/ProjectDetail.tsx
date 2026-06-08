@@ -197,11 +197,13 @@ export function ProjectDetail() {
         <h1 style={{ marginTop: 4, marginBottom: 2 }}>
           {p.ref} — {p.title}
         </h1>
-        <p style={{ margin: 0, color: "var(--cds-text-secondary)", fontSize: "0.875rem" }}>
-          {PROJECT_WORK_TYPE_LABEL[(p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ?? "ARCHITECTURE"]} · {p.projectType} · {p.jurisdiction} ·{" "}
-          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>{" "}
-          · {formatINR(p.contractValuePaise, { paise: false })}
-        </p>
+        <div style={{ margin: 0, color: "var(--cds-text-secondary)", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <span>
+            {PROJECT_WORK_TYPE_LABEL[(p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ?? "ARCHITECTURE"]} · {p.projectType} · {p.jurisdiction}
+          </span>
+          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>
+          <span>· {formatINR(p.contractValuePaise, { paise: false })}</span>
+        </div>
       </div>
 
       <Tabs
