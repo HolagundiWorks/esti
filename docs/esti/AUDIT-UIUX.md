@@ -41,9 +41,9 @@
 
 ### ProjectDetail (tabbed)
 - ✅ Reorganised into tabs (Phases · Fees · Invoices · Client log · Compliance · Costing · Drawings · Team · Settings); ✅ Fees tab owner-only.
-- P2: 9 tabs is a lot — consider grouping (e.g. "Drawings" already holds drawings+viewer+transmittals+approvals; "Costing" holds estimates+BBS). Add a sticky project header (ref, status, client, contract value) above the tabs so context persists across tabs.
-- P2: each sub-section repeats its own heading/“New …” button pattern — consistent, but the Drawings tab is dense (4 sections). Consider an inner secondary tab or accordions.
-- P3: deep-link to a tab via URL (`?tab=invoices`) for shareable links.
+- ✅ Sticky project header (ref · type · jurisdiction · status Tag · contract value) with `position:sticky; top:48px` persists above the tabs as the user scrolls.
+- ✅ URL-addressable tabs via `?tab=<slug>` (phases/fees/invoices/clientlog/compliance/costing/drawings/team/settings); `replace: true` keeps browser history clean.
+- P2: 9 tabs is a lot — consider grouping. Each sub-section repeats its own heading/”New …” button pattern — consistent, but the Drawings tab is dense (4 sections).
 
 ### Tasks ✅ (new)
 - P2: it's a flat table; a Kanban (To do / In progress / Blocked / Done columns) would suit task triage. Add assignee filter and "my tasks".

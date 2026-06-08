@@ -36,7 +36,7 @@ import {
   isBelowCoaMinimum,
 } from "@esti/contracts";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { useAuth } from "../lib/auth.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
@@ -63,8 +63,17 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> 
   COMPLETE: "green",
 };
 
+const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red"> = {
+  ENQUIRY: "gray",
+  ACTIVE: "blue",
+  ON_HOLD: "purple",
+  COMPLETED: "green",
+  CANCELLED: "red",
+};
+
 export function ProjectDetail() {
   const { id = "" } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const canFees = can(user?.role, "fees:manage");
   const canInvoice = can(user?.role, "invoice:manage");
@@ -128,6 +137,20 @@ export function ProjectDetail() {
   });
   const [delInv, setDelInv] = useState<{ id: string; ref: string } | null>(null);
 
+  const TAB_SLUGS = [
+    "phases",
+    ...(canFees ? ["fees"] : []),
+    "invoices",
+    "clientlog",
+    "compliance",
+    "costing",
+    "drawings",
+    "team",
+    "settings",
+  ];
+  const tabSlug = searchParams.get("tab") ?? "phases";
+  const tabIndex = Math.max(0, TAB_SLUGS.indexOf(tabSlug));
+
   if (project.isLoading) return <p>Loading…</p>;
   if (!project.data)
     return (
@@ -155,16 +178,34 @@ export function ProjectDetail() {
 
   return (
     <div>
-      <Link to="/projects">← Projects</Link>
-      <h1 style={{ marginTop: 8 }}>
-        {p.ref} — {p.title}
-      </h1>
-      <p style={{ color: "var(--cds-text-secondary)" }}>
-        {p.projectType} · {p.jurisdiction} · {p.status} ·{" "}
-        {formatINR(p.contractValuePaise, { paise: false })}
-      </p>
+      {/* Sticky project context banner — persists as user scrolls through tab content */}
+      <div
+        style={{
+          position: "sticky",
+          top: 48,
+          zIndex: 100,
+          backgroundColor: "var(--cds-background)",
+          borderBottom: "1px solid var(--cds-border-subtle)",
+          paddingBottom: 8,
+        }}
+      >
+        <Link to="/projects" style={{ fontSize: "0.875rem" }}>← Projects</Link>
+        <h1 style={{ marginTop: 4, marginBottom: 2 }}>
+          {p.ref} — {p.title}
+        </h1>
+        <p style={{ margin: 0, color: "var(--cds-text-secondary)", fontSize: "0.875rem" }}>
+          {p.projectType} · {p.jurisdiction} ·{" "}
+          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>{" "}
+          · {formatINR(p.contractValuePaise, { paise: false })}
+        </p>
+      </div>
 
-      <Tabs>
+      <Tabs
+        selectedIndex={tabIndex}
+        onChange={({ selectedIndex }) =>
+          setSearchParams({ tab: TAB_SLUGS[selectedIndex] ?? "phases" }, { replace: true })
+        }
+      >
         <TabList aria-label="Project sections" contained>
           <Tab>Phases</Tab>
           {canFees && <Tab>Fees</Tab>}
