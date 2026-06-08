@@ -22,6 +22,7 @@ import {
   Money,
   Light,
   Logout,
+  TaskComplete,
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
@@ -101,6 +102,7 @@ export function App() {
   const links: NavLink[] = [
     { label: "Dashboard", to: "/" },
     { label: "Projects", to: "/projects" },
+    { label: "Tasks", to: "/tasks" },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -132,10 +134,7 @@ export function App() {
     {
       label: "Resources",
       icon: Catalog,
-      items: [
-        { label: "Master DSR", to: "/dsr" },
-        { label: "Tasks", to: "/tasks" },
-      ],
+      items: [{ label: "Master DSR", to: "/dsr" }],
     },
     {
       label: "Admin",
@@ -171,7 +170,7 @@ export function App() {
       <SideNav aria-label="Side navigation" isRail>
         <SideNavItems>
           {links.map((n) => (
-            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.to === "/" ? DashboardIcon : Building} isActive={pathname === n.to}>
+            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.to === "/" ? DashboardIcon : n.to === "/tasks" ? TaskComplete : Building} isActive={pathname === n.to}>
               {n.label}
             </SideNavLink>
           ))}

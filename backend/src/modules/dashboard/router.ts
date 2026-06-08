@@ -101,12 +101,27 @@ export const dashboardRouter = router({
       .orderBy(sql`count(*) desc`)
       .limit(8);
 
+    // Receivables aging: outstanding (ISSUED) net amount bucketed by invoice age.
+    const [aging] = await ctx.db
+      .select({
+        d0_30: sql<string>`coalesce(sum(case when ${invoices.dateInvoice} >= current_date - 30 then ${invoices.netReceivablePaise} else 0 end), 0)`,
+        d31_60: sql<string>`coalesce(sum(case when ${invoices.dateInvoice} < current_date - 30 and ${invoices.dateInvoice} >= current_date - 60 then ${invoices.netReceivablePaise} else 0 end), 0)`,
+        d60p: sql<string>`coalesce(sum(case when ${invoices.dateInvoice} < current_date - 60 or ${invoices.dateInvoice} is null then ${invoices.netReceivablePaise} else 0 end), 0)`,
+      })
+      .from(invoices)
+      .where(eq(invoices.status, "ISSUED"));
+
     return {
       byType: byType.map((r) => ({ type: r.type, count: Number(r.n) })),
       byPhase: phaseRows.map((r) => ({ code: r.code, label: r.label, count: Number(r.n) })),
       onLeaveToday: Number(leaveRow?.n ?? 0),
       tasksDueToday: Number(taskTodayRow?.n ?? 0),
       workload: workload.map((r) => ({ assignee: r.assignee ?? "—", count: Number(r.n) })),
+      receivablesAging: {
+        d0_30: Number(aging?.d0_30 ?? 0),
+        d31_60: Number(aging?.d31_60 ?? 0),
+        d60p: Number(aging?.d60p ?? 0),
+      },
     };
   }),
 

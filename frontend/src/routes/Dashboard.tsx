@@ -42,8 +42,9 @@ function Stat({ label, value, helper, tag, onClick }: {
   );
 }
 
-/** A compact horizontal-bar distribution board (label + count). */
-function DistroBoard({ title, items, emptyText }: { title: string; items: { label: string; count: number }[]; emptyText?: string }) {
+/** A compact horizontal-bar distribution board (label + value). */
+function DistroBoard({ title, items, emptyText, format }: { title: string; items: { label: string; count: number }[]; emptyText?: string; format?: (n: number) => string }) {
+  const fmt = format ?? ((n: number) => String(n));
   const max = Math.max(1, ...items.map((i) => i.count));
   return (
     <Tile style={{ height: "100%", overflow: "auto" }}>
@@ -55,8 +56,8 @@ function DistroBoard({ title, items, emptyText }: { title: string; items: { labe
           {items.map((it) => (
             <div key={it.label}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "75%" }}>{it.label}</span>
-                <strong>{it.count}</strong>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{it.label}</span>
+                <strong>{fmt(it.count)}</strong>
               </div>
               <div style={{ height: 6, background: "var(--cds-layer-accent)", borderRadius: 3 }}>
                 <div style={{ height: 6, width: `${(it.count / max) * 100}%`, background: "var(--cds-button-primary)", borderRadius: 3 }} />
@@ -177,6 +178,20 @@ export function Dashboard() {
         return <DistroBoard title="Projects by type" items={(boardsQ.data?.byType ?? []).map((r) => ({ label: r.type, count: r.count }))} />;
       case "workload":
         return <DistroBoard title="Workload — open tasks" items={(boardsQ.data?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))} emptyText="No assigned open tasks" />;
+      case "receivables": {
+        const a = boardsQ.data?.receivablesAging;
+        return (
+          <DistroBoard
+            title="Receivables aging (outstanding)"
+            format={(n) => formatINRShort(n)}
+            items={[
+              { label: "0–30 days", count: a?.d0_30 ?? 0 },
+              { label: "31–60 days", count: a?.d31_60 ?? 0 },
+              { label: "60+ days", count: a?.d60p ?? 0 },
+            ]}
+          />
+        );
+      }
       case "tasksToday":
         return (
           <Stat
