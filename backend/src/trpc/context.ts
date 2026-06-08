@@ -6,6 +6,8 @@ import { SESSION_COOKIE, userFromToken, type AuthUser } from "../auth/session.js
 export interface Context {
   db: typeof db;
   user: AuthUser | null;
+  /** Client IP (honours the trusted proxy config) — used for login throttling. */
+  ip: string;
   setCookie: (name: string, value: string) => void;
 }
 
@@ -15,6 +17,7 @@ export async function createContext({ req, res }: CreateFastifyContextOptions): 
   return {
     db,
     user,
+    ip: req.ip,
     setCookie: (name, value) => void res.setCookie(name, value, { httpOnly: true, sameSite: "strict", path: "/" }),
   };
 }

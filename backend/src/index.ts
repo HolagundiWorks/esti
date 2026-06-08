@@ -1,6 +1,7 @@
 import { DRAWING_MAX_BYTES } from "@esti/contracts";
 import cookie from "@fastify/cookie";
 import multipart from "@fastify/multipart";
+import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
 import { runMigrations } from "./db/migrate.js";
@@ -11,7 +12,13 @@ import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 
-const app = Fastify({ logger: true, genReqId: () => crypto.randomUUID() });
+// trustProxy lets req.ip reflect X-Forwarded-For behind the dev/prod proxy so
+// per-IP rate limits key on the real client, not the proxy.
+const app = Fastify({ logger: true, genReqId: () => crypto.randomUUID(), trustProxy: true });
+
+// Coarse global abuse protection (per IP). Generous enough for the SPA's
+// normal tRPC + polling traffic; upload routes set a stricter cap below.
+await app.register(rateLimit, { global: true, max: 600, timeWindow: "1 minute" });
 
 // Bring the schema up to date before serving traffic (idempotent).
 try {

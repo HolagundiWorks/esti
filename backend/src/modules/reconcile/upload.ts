@@ -18,7 +18,9 @@ import { BUCKET, putObject } from "../../lib/storage.js";
  * reconcile_import job is enqueued for the Python worker (pandas).
  */
 export function registerReconcileUpload(app: FastifyInstance): void {
-  app.post("/upload/reconcile", async (req, reply) => {
+  app.post("/upload/reconcile", {
+    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+  }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
 

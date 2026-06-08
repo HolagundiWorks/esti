@@ -8,6 +8,7 @@ import {
   verifyPassword,
 } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
+import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
 
 const Credentials = z.object({
@@ -41,6 +42,10 @@ export const authRouter = router({
   }),
 
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
+    // Throttle brute-force: cap attempts per IP and per targeted email.
+    await enforceRateLimit("login-ip", ctx.ip, 10, 60);
+    await enforceRateLimit("login-email", input.email.toLowerCase(), 10, 300);
+
     const rows = await ctx.db.select().from(users).where(eq(users.email, input.email)).limit(1);
     const u = rows[0];
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
@@ -51,6 +56,9 @@ export const authRouter = router({
     }
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
+    // Successful login clears the per-email counter so it can't lock out a
+    // legitimate user who just fat-fingered the password a few times.
+    await clearRateLimit("login-email", input.email.toLowerCase());
     return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
   }),
 

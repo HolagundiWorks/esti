@@ -13,7 +13,9 @@ const LOGO_MAX = 2 * 1024 * 1024; // 2 MB
 
 /** Owner uploads the firm logo (binary, outside tRPC). */
 export function registerFirmLogoUpload(app: FastifyInstance): void {
-  app.post("/upload/firm-logo", async (req, reply) => {
+  app.post("/upload/firm-logo", {
+    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+  }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
     if (user.role !== "OWNER") return reply.code(403).send({ error: "owner only" });

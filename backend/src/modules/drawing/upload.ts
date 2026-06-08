@@ -14,7 +14,9 @@ import { BUCKET, putObject } from "../../lib/storage.js";
  * dxf_to_svg job is enqueued for the Python worker.
  */
 export function registerDrawingUpload(app: FastifyInstance): void {
-  app.post("/upload/drawing", async (req, reply) => {
+  app.post("/upload/drawing", {
+    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+  }, async (req, reply) => {
     const token = req.cookies[SESSION_COOKIE];
     const user = await userFromToken(token);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
