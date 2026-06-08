@@ -15,6 +15,13 @@
       "when": 1780910210136,
       "tag": "0001_staff_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780911025295,
+      "tag": "0002_dashboard_layout",
+      "breakpoints": true
     }
   ]
 }

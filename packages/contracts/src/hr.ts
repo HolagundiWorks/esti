@@ -14,6 +14,9 @@ export const LeaveType = z.enum(Object.keys(LEAVE_TYPES) as [LeaveTypeCode, ...L
 export const LeaveStatus = z.enum(["REQUESTED", "APPROVED", "REJECTED"]);
 export type LeaveStatus = z.infer<typeof LeaveStatus>;
 
+/** Default paid-leave entitlement per staff member per calendar year (days). */
+export const ANNUAL_LEAVE_ALLOWANCE_DAYS = 24;
+
 export const LeaveCreate = z.object({
   teamMemberId: z.string().uuid(),
   type: LeaveType,

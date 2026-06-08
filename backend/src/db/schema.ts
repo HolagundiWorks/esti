@@ -94,6 +94,8 @@ export const users = pgTable("esti_user", {
   clientId: uuid("client_id"),
   // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.
   consultantId: uuid("consultant_id"),
+  // Per-user dashboard layout (react-grid-layout items); null = default layout.
+  dashboardLayout: jsonb("dashboard_layout"),
   createdAt: createdAt(),
 });
 

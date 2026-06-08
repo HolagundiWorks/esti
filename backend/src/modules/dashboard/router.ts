@@ -1,4 +1,5 @@
-import { count, eq, sql } from "drizzle-orm";
+import { ANNUAL_LEAVE_ALLOWANCE_DAYS, DashboardLayout } from "@esti/contracts";
+import { and, count, eq, gte, sql } from "drizzle-orm";
 import {
   feeProposals,
   invoices,
@@ -7,12 +8,58 @@ import {
   permits,
   projectOffices,
   teamMembers,
+  users,
 } from "../../db/schema.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({
+  /** Per-user header strip: server date + this user's leave balance. */
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const today = new Date().toISOString().slice(0, 10);
+    // Match the login to a team member by email to read their leave balance.
+    const [member] = ctx.user.email
+      ? await ctx.db.select().from(teamMembers).where(eq(teamMembers.email, ctx.user.email))
+      : [];
+    let leave: { allowance: number; used: number; remaining: number } | null = null;
+    if (member) {
+      const yearStart = `${new Date().getUTCFullYear()}-01-01`;
+      const [agg] = await ctx.db
+        .select({ used: sql<string>`coalesce(sum(${leaves.days}), 0)` })
+        .from(leaves)
+        .where(
+          and(
+            eq(leaves.teamMemberId, member.id),
+            eq(leaves.status, "APPROVED"),
+            gte(leaves.fromDate, yearStart),
+          ),
+        );
+      const used = Number(agg?.used ?? 0);
+      leave = {
+        allowance: ANNUAL_LEAVE_ALLOWANCE_DAYS,
+        used,
+        remaining: Math.max(0, ANNUAL_LEAVE_ALLOWANCE_DAYS - used),
+      };
+    }
+    return { today, fullName: ctx.user.fullName, role: ctx.user.role, leave };
+  }),
+
+  /** This user's saved dashboard layout (null = use the default). */
+  layout: protectedProcedure.query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select({ layout: users.dashboardLayout })
+      .from(users)
+      .where(eq(users.id, ctx.user.id));
+    return (row?.layout as unknown) ?? null;
+  }),
+
+  /** Persist this user's dashboard layout (self-service). */
+  saveLayout: protectedProcedure.input(DashboardLayout).mutation(async ({ ctx, input }) => {
+    await ctx.db.update(users).set({ dashboardLayout: input }).where(eq(users.id, ctx.user.id));
+    return { ok: true };
+  }),
+
   summary: protectedProcedure.query(async ({ ctx }) => {
     const projectRows = await ctx.db
       .select({
