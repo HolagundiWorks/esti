@@ -9,9 +9,9 @@ services:
     image: docker.io/library/postgres:16-alpine
     container_name: esti-db
     environment:
-      POSTGRES_USER: esti
-      POSTGRES_PASSWORD: esti
-      POSTGRES_DB: esti
+      POSTGRES_USER: ${POSTGRES_USER:-esti}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-esti}
+      POSTGRES_DB: ${POSTGRES_DB:-esti}
     ports: ["5432:5432"]
     volumes: ["esti-db-data:/var/lib/postgresql/data"]
     healthcheck:
@@ -29,8 +29,8 @@ services:
     container_name: esti-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: esti
-      MINIO_ROOT_PASSWORD: esti-secret
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-esti}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-esti-secret}
     ports: ["9000:9000", "9001:9001"]
     volumes: ["esti-minio-data:/data"]
 
@@ -38,16 +38,21 @@ services:
     image: localhost/esti-backend:dev
     container_name: esti-backend
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       BACKEND_PORT: "4000"
-      SESSION_SECRET: dev-session-secret-change-me
-      DATABASE_URL: postgres://esti:esti@db:5432/esti
+      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-me}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DATABASE_URL: ${DATABASE_URL:-postgres://esti:esti@db:5432/esti}
       REDIS_URL: redis://redis:6379
       S3_ENDPOINT: http://minio:9000
-      S3_PUBLIC_ENDPOINT: http://localhost:9000
-      S3_BUCKET: esti-documents
-      S3_ACCESS_KEY: esti
-      S3_SECRET_KEY: esti-secret
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_BUCKET: ${S3_BUCKET:-esti-documents}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-esti}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-esti-secret}
+      # First-run owner (consumed by `pnpm --filter @esti/backend seed`).
+      SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL:-owner@hcw.in}
+      SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD:-ChangeMe123}
+      SEED_OWNER_NAME: ${SEED_OWNER_NAME:-HCW Owner}
     # Dev hot-reload: host source is mounted over the image; node_modules stays.
     volumes:
       - ./backend/src:/app/backend/src
@@ -60,11 +65,11 @@ services:
     container_name: esti-worker
     environment:
       REDIS_URL: redis://redis:6379
-      DATABASE_URL: postgres://esti:esti@db:5432/esti
+      DATABASE_URL: ${DATABASE_URL:-postgres://esti:esti@db:5432/esti}
       S3_ENDPOINT: http://minio:9000
-      S3_BUCKET: esti-documents
-      S3_ACCESS_KEY: esti
-      S3_SECRET_KEY: esti-secret
+      S3_BUCKET: ${S3_BUCKET:-esti-documents}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-esti}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-esti-secret}
     depends_on: [redis, minio]
 
   frontend:
