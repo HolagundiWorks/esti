@@ -179,7 +179,12 @@ export function Dashboard() {
   useEffect(() => {
     if (layoutQ.isLoading) return;
     const saved = (layoutQ.data as DashboardLayout | null) ?? null;
-    const base = saved && saved.length > 0 ? saved : DEFAULT_DASHBOARD_LAYOUT;
+    // Auto-migrate legacy 12-column layouts: they never span columns 13-16, so
+    // they render as cramped left-packed strips on the new 16-col grid. Treat
+    // any layout that never reaches past column 12 as legacy and re-seed from
+    // the current default.
+    const isLegacy = !!saved && saved.length > 0 && saved.every((it) => it.x + it.w <= 12);
+    const base = saved && saved.length > 0 && !isLegacy ? saved : DEFAULT_DASHBOARD_LAYOUT;
     setLayout(base.filter((it) => allowedIds.has(it.i)));
   }, [layoutQ.data, layoutQ.isLoading, allowedIds]);
 
@@ -393,7 +398,11 @@ export function Dashboard() {
         onLayoutChange={onLayoutChange}
       >
         {layout.map((item, idx) => (
-          <div key={item.i} className="dash-widget" style={{ overflow: "hidden", animationDelay: `${Math.min(idx, 8) * 50}ms` }}>
+          <div key={item.i} style={{ overflow: "hidden" }}>
+            <div
+              className="dash-widget"
+              style={{ height: "100%", animationDelay: `${Math.min(idx, 8) * 50}ms` }}
+            >
             {edit && (
               <div
                 className="widget-drag"
@@ -413,6 +422,7 @@ export function Dashboard() {
               </div>
             )}
             <div style={{ height: edit ? "calc(100% - 28px)" : "100%" }}>{renderWidget(item.i)}</div>
+            </div>
           </div>
         ))}
       </Grid>
