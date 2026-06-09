@@ -89,6 +89,9 @@ export function Company() {
   const setHr = trpc.settings.setHrEnabled.useMutation({
     onSuccess: () => utils.settings.get.invalidate(),
   });
+  const setModule = trpc.settings.setModuleEnabled.useMutation({
+    onSuccess: () => utils.settings.get.invalidate(),
+  });
 
   const [f, setF] = useState<Form>(EMPTY);
   const [msg, setMsg] = useState<string | null>(null);
@@ -259,6 +262,48 @@ export function Company() {
         {!isOwner && (
           <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 12 }}>
             Only the owner can change this.
+          </p>
+        )}
+      </Tile>
+
+      <Tile style={{ maxWidth: 760, marginTop: 24 }}>
+        <h4>Module switches</h4>
+        <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 16px" }}>
+          Turn whole module groups on or off for this office. The matching navigation areas hide
+          when a group is off. Company settings stay available so you can switch them back on.
+        </p>
+        <Stack gap={6}>
+          <Toggle
+            id="mod-financial"
+            labelText="Financial"
+            labelA="Off"
+            labelB="On"
+            toggled={settingsQ.data?.financialEnabled ?? true}
+            disabled={!isOwner || setModule.isPending || settingsQ.isLoading}
+            onToggle={(checked) => setModule.mutate({ module: "financial", enabled: checked })}
+          />
+          <Toggle
+            id="mod-project"
+            labelText="Project (proposals, letters, contracts, resources)"
+            labelA="Off"
+            labelB="On"
+            toggled={settingsQ.data?.projectEnabled ?? true}
+            disabled={!isOwner || setModule.isPending || settingsQ.isLoading}
+            onToggle={(checked) => setModule.mutate({ module: "project", enabled: checked })}
+          />
+          <Toggle
+            id="mod-admin"
+            labelText="Admin (user management)"
+            labelA="Off"
+            labelB="On"
+            toggled={settingsQ.data?.adminEnabled ?? true}
+            disabled={!isOwner || setModule.isPending || settingsQ.isLoading}
+            onToggle={(checked) => setModule.mutate({ module: "admin", enabled: checked })}
+          />
+        </Stack>
+        {!isOwner && (
+          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 12 }}>
+            Only the owner can change these.
           </p>
         )}
       </Tile>

@@ -29,4 +29,28 @@ export const settingsRouter = router({
       });
       return row!;
     }),
+
+  /** Toggle a module-group switch — financial / project / admin (owner only). */
+  setModuleEnabled: ownerProcedure
+    .input(z.object({ module: z.enum(["financial", "project", "admin"]), enabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const column = (
+        { financial: "financialEnabled", project: "projectEnabled", admin: "adminEnabled" } as const
+      )[input.module];
+      const current = await getOrgSettings(ctx.db);
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({ [column]: input.enabled })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { [column]: current[column] },
+        after: { [column]: input.enabled },
+      });
+      return row!;
+    }),
 });

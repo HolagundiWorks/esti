@@ -28,6 +28,10 @@ const updatedAt = () =>
 export const orgSettings = pgTable("esti_orgsettings", {
   id: id(),
   hrEnabled: boolean("hr_enabled").notNull().default(false),
+  // Module-group switches (default on) controlling whole nav areas.
+  financialEnabled: boolean("financial_enabled").notNull().default(true),
+  projectEnabled: boolean("project_enabled").notNull().default(true),
+  adminEnabled: boolean("admin_enabled").notNull().default(true),
   updatedAt: updatedAt(),
 });
 
