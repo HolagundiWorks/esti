@@ -43,3 +43,12 @@ body,
   row-gap: 2rem;
   padding-inline: 0;
 }
+
+// Structural-only: a 7-column month calendar grid (Carbon's Grid is 16 columns
+// and cannot express 7 equal day columns). Layout/spacing only — the day cells
+// themselves are Carbon Tiles.
+.esti-cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}

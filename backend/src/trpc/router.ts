@@ -36,6 +36,7 @@ import { reconcileRouter } from "../modules/reconcile/router.js";
 import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
+import { workloadRouter } from "../modules/workload/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -84,6 +85,7 @@ export const appRouter = router({
   firm: firmRouter,
   users: userRouter,
   tasks: taskRouter,
+  workload: workloadRouter,
   notifications: notificationsRouter,
   team: teamRouter,
   assignments: assignmentRouter,

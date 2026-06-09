@@ -55,6 +55,7 @@ import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Tasks } from "./routes/Tasks.js";
+import { Workload } from "./routes/Workload.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 
@@ -113,6 +114,7 @@ export function App() {
       items: [
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
+        ...(can(user.role, "write") ? [{ label: "Workload", to: "/workload" }] : []),
         ...(hrEnabled ? [{ label: "Team", to: "/team" }, { label: "HR", to: "/hr" }] : []),
       ],
     },
@@ -202,6 +204,7 @@ export function App() {
           <Route path="/office/letters" element={<Letters />} />
           <Route path="/office/contracts" element={<Contracts />} />
           <Route path="/tasks" element={<Tasks />} />
+          {can(user.role, "write") && <Route path="/workload" element={<Workload />} />}
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
           <Route path="/reconcile" element={<Reconcile />} />
