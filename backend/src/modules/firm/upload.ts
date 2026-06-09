@@ -19,6 +19,7 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
   }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
+    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
     if (user.role !== "OWNER") return reply.code(403).send({ error: "owner only" });
 
     let buf: Buffer | null = null;

@@ -16,7 +16,8 @@
     "test": "vitest run --passWithNoTests",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "seed:demo": "tsx src/scripts/seedDemo.ts"
   },
   "dependencies": {
     "@esti/contracts": "workspace:*",

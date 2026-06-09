@@ -74,7 +74,7 @@ export function Clients() {
   });
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0] ?? 10);
 
   const allRows =
     list.data?.map((c) => ({

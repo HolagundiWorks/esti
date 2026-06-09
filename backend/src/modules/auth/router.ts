@@ -27,6 +27,12 @@ export const authRouter = router({
    * users (single-firm — see ARCHITECTURE ADR-03/ADR-04).
    */
   register: publicProcedure.input(RegisterInput).mutation(async ({ ctx, input }) => {
+    if (ctx.user?.isDemo) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Managing users and credentials is disabled on the demo account.",
+      });
+    }
     const rows = await ctx.db.select({ n: count() }).from(users);
     const isFirst = Number(rows[0]?.n ?? 0) === 0;
     if (!isFirst && ctx.user?.role !== "OWNER") {

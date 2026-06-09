@@ -7,9 +7,27 @@ const t = initTRPC.context<Context>().create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
+// Account and credential mutations a demo login may not perform.
+const DEMO_BLOCKED_MUTATIONS = new Set([
+  "clients.createPortalUser",
+  "consultants.createLogin",
+  "users.changePassword",
+  "users.createStaff",
+  "users.resetPassword",
+  "users.setDisabled",
+  "users.setRole",
+  "users.updateProfile",
+]);
+
 /** Any authenticated user (staff or portal client). Internal base only. */
-const authedProcedure = t.procedure.use(({ ctx, next }) => {
+const authedProcedure = t.procedure.use(({ ctx, next, type, path }) => {
   if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (ctx.user.isDemo && type === "mutation" && DEMO_BLOCKED_MUTATIONS.has(path)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Managing users and credentials is disabled on the demo account.",
+    });
+  }
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 

@@ -24,6 +24,7 @@ export function registerReconcileUpload(app: FastifyInstance): void {
   }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
+    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
 
     const fields: Record<string, string> = {};
     let fileBuf: Buffer | null = null;

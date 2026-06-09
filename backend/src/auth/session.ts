@@ -40,6 +40,8 @@ export interface AuthUser {
   role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT";
   clientId: string | null;
   consultantId: string | null;
+  /** Demo accounts: blocked from uploads and credential changes. */
+  isDemo: boolean;
 }
 
 /** Resolve a cookie token to a live user, or null. */
@@ -53,6 +55,7 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
       role: users.role,
       clientId: users.clientId,
       consultantId: users.consultantId,
+      isDemo: users.isDemo,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))

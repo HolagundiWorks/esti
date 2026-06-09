@@ -34,6 +34,18 @@ body,
   min-width: 0;
 }
 
+.esti-login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.esti-login-panel {
+  width: 100%;
+  max-width: 24rem;
+}
+
 // Structural-only: Carbon's CSS Grid spaces columns with padding (horizontal
 // gutter) but emits no row-gap, so wrapped tile rows would touch vertically.
 // Add a row-gap equal to the 32px column gutter for matching vertical rhythm,

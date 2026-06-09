@@ -1,0 +1,1 @@
+ALTER TABLE "esti_user" ADD COLUMN "is_demo" boolean DEFAULT false NOT NULL;

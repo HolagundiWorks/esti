@@ -22,6 +22,7 @@ export function registerDrawingUpload(app: FastifyInstance): void {
     const token = req.cookies[SESSION_COOKIE];
     const user = await userFromToken(token);
     if (!user) return reply.code(401).send({ error: "unauthenticated" });
+    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
 
     const fields: Record<string, string> = {};
     let fileBuf: Buffer | null = null;

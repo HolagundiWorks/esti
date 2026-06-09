@@ -104,7 +104,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
   const [annual, setAnnual] = useState(true);
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
 
-  const runDemo = () => demo.mutate({ email: "owner@hcw.in", password: "ChangeMe123" });
+  const runDemo = () => demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
   const trial = () => {
     window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20%E2%80%94%2014-day%20free%20trial";
   };

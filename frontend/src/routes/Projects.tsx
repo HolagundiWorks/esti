@@ -48,7 +48,7 @@ export function Projects() {
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0] ?? 10);
 
   const create = trpc.projectOffice.create.useMutation({
     onSuccess: () => {

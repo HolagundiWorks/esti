@@ -100,6 +100,8 @@ export const users = pgTable("esti_user", {
   consultantId: uuid("consultant_id"),
   // Per-user dashboard layout (react-grid-layout items); null = default layout.
   dashboardLayout: jsonb("dashboard_layout"),
+  // Read-mostly demo accounts: blocked from uploads and credential changes.
+  isDemo: boolean("is_demo").notNull().default(false),
   createdAt: createdAt(),
 });
 
