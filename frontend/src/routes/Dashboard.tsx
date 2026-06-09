@@ -1,34 +1,18 @@
-import { Column, Grid, ClickableTile, Tag, Tile } from "@carbon/react";
 import {
-  Building,
-  ChartColumn,
-  Money,
-  TaskComplete,
-  UserMultiple,
-  WarningAlt,
-  type CarbonIconType,
-} from "@carbon/icons-react";
+  ClickableTile,
+  Column,
+  Grid,
+  ProgressBar,
+  Stack,
+  Tag,
+  Tile,
+} from "@carbon/react";
 import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
 import { can, formatINRShort } from "@esti/contracts";
 import { useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
-
-// A designed accent palette (Carbon colour ramp) rotated across the
-// per-phase / per-type cards so the board reads as a deliberate set.
-const ACCENTS = [
-  "#0f62fe", // blue 60
-  "#42be65", // green 40
-  "#8a3ffc", // purple 60
-  "#ff832b", // orange 40
-  "#08bdba", // teal 40
-  "#ee5396", // magenta 50
-  "#4589ff", // blue 50
-  "#24a148", // green 50
-  "#d12771", // magenta 60
-  "#fa4d56", // red 50
-];
 
 /** Friendlier labels for the raw project-type enum values. */
 const TYPE_LABEL: Record<string, string> = {
@@ -45,108 +29,6 @@ const TYPE_LABEL: Record<string, string> = {
   LANDSCAPE: "Landscape",
   OTHER: "Other",
 };
-
-/** Top-level KPI tile: big number, label, an accent icon chip, optional tag. */
-function KpiTile({ label, value, helper, icon: Icon, accent, tag, onClick, delay }: {
-  label: string;
-  value: string;
-  helper?: string;
-  icon: CarbonIconType;
-  accent: string;
-  tag?: { type: "red" | "magenta" | "blue" | "green"; text: string };
-  onClick?: () => void;
-  delay: number;
-}) {
-  return (
-    <ClickableTile onClick={onClick} className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{label}</p>
-          <p style={{ fontSize: "2.25rem", fontWeight: 600, lineHeight: 1.15, fontVariantNumeric: "tabular-nums" }}>{value}</p>
-          {helper && <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{helper}</p>}
-          {tag && <Tag type={tag.type} size="sm" style={{ marginTop: 8 }}>{tag.text}</Tag>}
-        </div>
-        <div
-          style={{
-            flexShrink: 0,
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: `${accent}1f`,
-            color: accent,
-          }}
-        >
-          <Icon size={20} />
-        </div>
-      </div>
-    </ClickableTile>
-  );
-}
-
-/** One card representing a single phase or project type, with a share bar. */
-function CountCard({ label, count, total, accent, delay, onClick }: {
-  label: string;
-  count: number;
-  total: number;
-  accent: string;
-  delay: number;
-  onClick?: () => void;
-}) {
-  const share = total > 0 ? Math.round((count / total) * 100) : 0;
-  const body = (
-    <>
-      <div style={{ height: 4, borderRadius: 2, background: accent, marginBottom: 12, width: 36 }} />
-      <p style={{ fontSize: 13, color: "var(--cds-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</p>
-      <p style={{ fontSize: "2rem", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{count}</p>
-      <div style={{ height: 6, background: "var(--cds-layer-accent)", borderRadius: 3, marginTop: 10 }}>
-        <div className="dash-bar-fill" style={{ height: 6, width: `${share}%`, background: accent, borderRadius: 3 }} />
-      </div>
-      <p style={{ fontSize: 11, color: "var(--cds-text-secondary)", marginTop: 6 }}>{share}% of projects</p>
-    </>
-  );
-  return onClick ? (
-    <ClickableTile onClick={onClick} className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>{body}</ClickableTile>
-  ) : (
-    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>{body}</Tile>
-  );
-}
-
-/** Horizontal-bar distribution board (label + value + animated bar). */
-function BarBoard({ title, items, emptyText, format, delay }: {
-  title: string;
-  items: { label: string; count: number }[];
-  emptyText?: string;
-  format?: (n: number) => string;
-  delay: number;
-}) {
-  const fmt = format ?? ((n: number) => String(n));
-  const max = Math.max(1, ...items.map((i) => i.count));
-  return (
-    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
-      <p style={{ fontSize: 13, color: "var(--cds-text-secondary)", marginBottom: 12 }}>{title}</p>
-      {items.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{emptyText ?? "No data"}</p>
-      ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          {items.map((it, i) => (
-            <div key={it.label}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{it.label}</span>
-                <strong style={{ fontVariantNumeric: "tabular-nums" }}>{fmt(it.count)}</strong>
-              </div>
-              <div style={{ height: 8, background: "var(--cds-layer-accent)", borderRadius: 4 }}>
-                <div className="dash-bar-fill" style={{ height: 8, width: `${(it.count / max) * 100}%`, background: ACCENTS[i % ACCENTS.length], borderRadius: 4 }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </Tile>
-  );
-}
 
 /** Days from today (local) until an ISO yyyy-mm-dd date. */
 function daysUntil(iso: string): number {
@@ -168,7 +50,10 @@ function nextMonthlyDue(day: number): string {
   let m = now.getMonth();
   if (now.getDate() > day) {
     m += 1;
-    if (m > 11) { m = 0; y += 1; }
+    if (m > 11) {
+      m = 0;
+      y += 1;
+    }
   }
   return isoDate(y, m, day);
 }
@@ -193,36 +78,78 @@ function nextTdsReturnDue(): string {
   return isoDate(next.getFullYear(), next.getMonth(), next.getDate());
 }
 
+function dueTagType(days: number): "red" | "magenta" | "blue" {
+  return days <= 3 ? "red" : days <= 7 ? "magenta" : "blue";
+}
+
+function dueLabel(days: number): string {
+  return days === 0 ? "Due today" : days < 0 ? `${-days}d overdue` : `${days}d left`;
+}
+
 /** A board listing statutory filing deadlines with a days-remaining countdown. */
-function FilingDueBoard({ title, Pictogram, rows, delay }: {
+function FilingDueBoard({ title, Pictogram, rows }: {
   title: string;
   Pictogram: Pictogram;
   rows: { label: string; iso: string }[];
-  delay: number;
 }) {
   const fmtDate = (iso: string) =>
     new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
   return (
-    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <Pictogram width={28} height={28} />
-        <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{title}</p>
-      </div>
-      <div style={{ display: "grid", gap: 12 }}>
-        {rows.map((r) => {
-          const days = daysUntil(r.iso);
-          const tagType = days <= 3 ? "red" : days <= 7 ? "magenta" : "blue";
-          return (
-            <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</div>
-                <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{fmtDate(r.iso)}</div>
-              </div>
-              <Tag type={tagType} size="sm">{days === 0 ? "today" : days < 0 ? `${-days}d ago` : `${days}d`}</Tag>
-            </div>
-          );
-        })}
-      </div>
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <Stack orientation="horizontal" gap={4}>
+          <Pictogram width={32} height={32} />
+          <h4>{title}</h4>
+        </Stack>
+        <Stack gap={4}>
+          {rows.map((r) => {
+            const days = daysUntil(r.iso);
+            return (
+              <Stack key={r.label} orientation="horizontal" gap={4}>
+                <div className="esti-grow">
+                  <p>{r.label}</p>
+                  <p>{fmtDate(r.iso)}</p>
+                </div>
+                <Tag type={dueTagType(days)}>{dueLabel(days)}</Tag>
+              </Stack>
+            );
+          })}
+        </Stack>
+      </Stack>
+    </Tile>
+  );
+}
+
+/** A distribution board: one labelled Carbon ProgressBar per row. */
+function DistroBoard({ title, rows, max, format, emptyText }: {
+  title: string;
+  rows: { label: string; value: number }[];
+  max: number;
+  format?: (n: number) => string;
+  emptyText?: string;
+}) {
+  const fmt = format ?? ((n: number) => String(n));
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <h4>{title}</h4>
+        {rows.length === 0 ? (
+          <p>{emptyText ?? "No data"}</p>
+        ) : (
+          <Stack gap={5}>
+            {rows.map((r) => (
+              <ProgressBar
+                key={r.label}
+                label={r.label}
+                helperText={fmt(r.value)}
+                value={r.value}
+                max={Math.max(1, max)}
+                size="small"
+              />
+            ))}
+          </Stack>
+        )}
+      </Stack>
     </Tile>
   );
 }
@@ -250,173 +177,173 @@ export function Dashboard() {
     year: "numeric",
   });
 
+  const agingMax =
+    (b?.receivablesAging.d0_30 ?? 0) +
+    (b?.receivablesAging.d31_60 ?? 0) +
+    (b?.receivablesAging.d60p ?? 0);
+  const workloadMax = Math.max(1, ...(b?.workload ?? []).map((w) => w.count));
+
   return (
-    <div>
+    <Grid>
       {/* Header — title at left, clock/leave widget pinned top-right */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <Column lg={12} md={6} sm={4}>
+        <Stack orientation="horizontal" gap={5}>
           <ChartLine width={44} height={44} />
           <div>
             <h1>Office dashboard</h1>
-            <p style={{ color: "var(--cds-text-secondary)" }}>
-              {(user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : "")}{today}
+            <p>
+              {user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : ""}
+              {today}
             </p>
           </div>
-        </div>
-        <div style={{ width: 320, maxWidth: "100%", flex: "0 0 auto" }}>
-          <div className="dash-widget">
-            <ClockLeavesWidget />
-          </div>
-        </div>
-      </div>
+        </Stack>
+      </Column>
+      <Column lg={4} md={2} sm={4}>
+        <ClockLeavesWidget />
+      </Column>
 
-      {/* KPI row */}
-      <Grid narrow className="dash-grid" style={{ marginTop: 16 }}>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <KpiTile
-            label="Projects"
-            value={String(totalProjects || (s ? 0 : "…"))}
-            helper={`${s?.projects.byStatus.ACTIVE ?? 0} active · ${s?.projects.byStatus.ENQUIRY ?? 0} enquiry`}
-            icon={Building}
-            accent={ACCENTS[0]!}
-            onClick={() => navigate("/projects")}
-            delay={0}
-          />
-        </Column>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <KpiTile
-            label="Outstanding (net of TDS)"
-            value={s ? formatINRShort(s.invoices.outstandingPaise) : "…"}
-            helper={s ? `${formatINRShort(s.invoices.collectedPaise)} collected` : undefined}
-            icon={Money}
-            accent={ACCENTS[1]!}
-            onClick={() => navigate("/invoices")}
-            delay={50}
-          />
-        </Column>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <KpiTile
-            label="Tasks due today"
-            value={String(b?.tasksDueToday ?? "…")}
-            helper="due today or overdue"
-            icon={TaskComplete}
-            accent={ACCENTS[3]!}
-            onClick={() => navigate("/tasks")}
-            delay={100}
-          />
-        </Column>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          {canHr ? (
-            <KpiTile
-              label="On leave today"
-              value={String(b?.onLeaveToday ?? "…")}
-              helper={`${s?.hr?.headcount ?? 0} on the team`}
-              icon={UserMultiple}
-              accent={ACCENTS[2]!}
-              onClick={() => navigate("/hr")}
-              delay={150}
-            />
-          ) : (
-            <KpiTile
-              label="Permits open"
-              value={String(s?.permits.open ?? "…")}
-              helper={`of ${s?.permits.total ?? 0} total`}
-              icon={WarningAlt}
-              accent={ACCENTS[5]!}
-              tag={s?.permits.overdue ? { type: "red", text: `${s.permits.overdue} overdue` } : undefined}
-              delay={150}
-            />
-          )}
-        </Column>
-      </Grid>
+      {/* KPI tiles */}
+      <Column lg={4} md={4} sm={4}>
+        <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
+          <Stack gap={3}>
+            <p>Projects</p>
+            <h2>{totalProjects || (s ? 0 : "…")}</h2>
+            <Stack orientation="horizontal" gap={3}>
+              <Tag type="blue">{s?.projects.byStatus.ACTIVE ?? 0} active</Tag>
+              <Tag type="gray">{s?.projects.byStatus.ENQUIRY ?? 0} enquiry</Tag>
+            </Stack>
+          </Stack>
+        </ClickableTile>
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        <ClickableTile className="esti-fill" onClick={() => navigate("/invoices")}>
+          <Stack gap={3}>
+            <p>Outstanding (net of TDS)</p>
+            <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
+            <Tag type="green">{s ? `${formatINRShort(s.invoices.collectedPaise)} collected` : "—"}</Tag>
+          </Stack>
+        </ClickableTile>
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        <ClickableTile className="esti-fill" onClick={() => navigate("/tasks")}>
+          <Stack gap={3}>
+            <p>Tasks due today</p>
+            <h2>{b?.tasksDueToday ?? "…"}</h2>
+            <Tag type="gray">due today or overdue</Tag>
+          </Stack>
+        </ClickableTile>
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        {canHr ? (
+          <ClickableTile className="esti-fill" onClick={() => navigate("/hr")}>
+            <Stack gap={3}>
+              <p>On leave today</p>
+              <h2>{b?.onLeaveToday ?? "…"}</h2>
+              <Tag type="purple">{s?.hr?.headcount ?? 0} on the team</Tag>
+            </Stack>
+          </ClickableTile>
+        ) : (
+          <Tile className="esti-fill">
+            <Stack gap={3}>
+              <p>Permits open</p>
+              <h2>{s?.permits.open ?? "…"}</h2>
+              {s?.permits.overdue ? (
+                <Tag type="red">{s.permits.overdue} overdue</Tag>
+              ) : (
+                <Tag type="gray">of {s?.permits.total ?? 0} total</Tag>
+              )}
+            </Stack>
+          </Tile>
+        )}
+      </Column>
 
-      {/* Projects by phase — one card per phase */}
-      {byPhase.length === 0 ? null : (
-        <Grid narrow className="dash-grid" style={{ marginTop: 16 }}>
-          {byPhase.map((p, i) => (
-            <Column key={p.code} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-              <CountCard label={p.label} count={p.count} total={totalProjects} accent={ACCENTS[i % ACCENTS.length]!} delay={i * 40} onClick={() => navigate("/projects")} />
-            </Column>
-          ))}
-        </Grid>
-      )}
+      {/* One board per phase */}
+      {byPhase.map((p) => (
+        <Column key={p.code} lg={4} md={4} sm={4}>
+          <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
+            <Stack gap={3}>
+              <p>{p.label}</p>
+              <h2>{p.count}</h2>
+              <ProgressBar
+                label={p.label}
+                hideLabel
+                helperText={`${totalProjects > 0 ? Math.round((p.count / totalProjects) * 100) : 0}% of projects`}
+                value={p.count}
+                max={Math.max(1, totalProjects)}
+                size="small"
+              />
+            </Stack>
+          </ClickableTile>
+        </Column>
+      ))}
 
-      {/* Projects by type — one card per type */}
-      {byType.length === 0 ? null : (
-        <Grid narrow className="dash-grid">
-          {byType.map((t, i) => (
-            <Column key={t.type} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-              <CountCard label={TYPE_LABEL[t.type] ?? t.type} count={t.count} total={totalProjects} accent={ACCENTS[(i + 2) % ACCENTS.length]!} delay={i * 40} onClick={() => navigate("/projects")} />
-            </Column>
-          ))}
-        </Grid>
-      )}
+      {/* One board per project type */}
+      {byType.map((t) => (
+        <Column key={t.type} lg={4} md={4} sm={4}>
+          <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
+            <Stack gap={3}>
+              <p>{TYPE_LABEL[t.type] ?? t.type}</p>
+              <h2>{t.count}</h2>
+              <ProgressBar
+                label={TYPE_LABEL[t.type] ?? t.type}
+                hideLabel
+                helperText={`${totalProjects > 0 ? Math.round((t.count / totalProjects) * 100) : 0}% of projects`}
+                value={t.count}
+                max={Math.max(1, totalProjects)}
+                size="small"
+              />
+            </Stack>
+          </ClickableTile>
+        </Column>
+      ))}
 
-      {/* Operations & compliance */}
-      <Grid narrow className="dash-grid">
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <FilingDueBoard
-            title="GST filing due"
-            Pictogram={Receipt}
-            rows={[
-              { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
-              { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
-            ]}
-            delay={0}
-          />
-        </Column>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <FilingDueBoard
-            title="TDS filing due"
-            Pictogram={Banking}
-            rows={[
-              { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
-              { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
-            ]}
-            delay={50}
-          />
-        </Column>
-        <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
-          <BarBoard
-            title="Workload — open tasks"
-            items={(b?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))}
-            emptyText="No assigned open tasks"
-            delay={100}
-          />
-        </Column>
-      </Grid>
+      {/* Statutory filing deadlines */}
+      <Column lg={4} md={4} sm={4}>
+        <FilingDueBoard
+          title="GST filing due"
+          Pictogram={Receipt}
+          rows={[
+            { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
+            { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
+          ]}
+        />
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        <FilingDueBoard
+          title="TDS filing due"
+          Pictogram={Banking}
+          rows={[
+            { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
+            { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
+          ]}
+        />
+      </Column>
+
+      {/* Workload */}
+      <Column lg={4} md={4} sm={4}>
+        <DistroBoard
+          title="Workload — open tasks"
+          rows={(b?.workload ?? []).map((r) => ({ label: r.assignee, value: r.count }))}
+          max={workloadMax}
+          emptyText="No assigned open tasks"
+        />
+      </Column>
 
       {/* Receivables — fees managers only */}
       {canFees && (
-        <Grid narrow className="dash-grid">
-          <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
-            <BarBoard
-              title="Receivables aging (outstanding)"
-              format={(n) => formatINRShort(n)}
-              items={[
-                { label: "0–30 days", count: b?.receivablesAging.d0_30 ?? 0 },
-                { label: "31–60 days", count: b?.receivablesAging.d31_60 ?? 0 },
-                { label: "60+ days", count: b?.receivablesAging.d60p ?? 0 },
-              ]}
-              delay={0}
-            />
-          </Column>
-          <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
-            <Tile className="dash-widget" style={{ height: "100%" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                <ChartColumn size={20} style={{ color: ACCENTS[6] }} />
-                <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>Fee proposals</p>
-              </div>
-              <p style={{ fontSize: "2rem", fontWeight: 600, lineHeight: 1.2 }}>{s?.feeProposals.total ?? "…"}</p>
-              {s?.feeProposals.belowMinimum ? (
-                <Tag type="magenta" size="sm" style={{ marginTop: 8 }}>{s.feeProposals.belowMinimum} below COA minimum</Tag>
-              ) : (
-                <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>All at or above COA minimum.</p>
-              )}
-            </Tile>
-          </Column>
-        </Grid>
+        <Column lg={4} md={4} sm={4}>
+          <DistroBoard
+            title="Receivables aging"
+            rows={[
+              { label: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
+              { label: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
+              { label: "60+ days", value: b?.receivablesAging.d60p ?? 0 },
+            ]}
+            max={agingMax}
+            format={(n) => formatINRShort(n)}
+          />
+        </Column>
       )}
-    </div>
+    </Grid>
   );
 }
