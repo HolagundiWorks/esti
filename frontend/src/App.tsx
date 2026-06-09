@@ -80,10 +80,6 @@ export function App() {
   // Only staff read settings; CLIENT users never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  // Module-group switches (default on).
-  const financialEnabled = settingsQ.data?.financialEnabled ?? true;
-  const projectEnabled = settingsQ.data?.projectEnabled ?? true;
-  const adminEnabled = settingsQ.data?.adminEnabled ?? true;
   const isStaff =
     !!user && (isStaffRole(user.role) || (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
@@ -122,42 +118,36 @@ export function App() {
         ...(hrEnabled ? [{ label: "Team", to: "/team" }, { label: "HR", to: "/hr" }] : []),
       ],
     },
-    ...(financialEnabled
-      ? [{
-          label: "Accounting",
-          icon: Money,
-          items: [
-            { label: "Invoices", to: "/invoices" },
-            ...(can(user.role, "fees:manage") ? [{ label: "Fee proposals", to: "/accounting/fees" }] : []),
-            { label: "Reconciliation", to: "/reconcile" },
-            ...(can(user.role, "reports:view") ? [{ label: "GST / TDS filing", to: "/filing" }] : []),
-          ],
-        }]
-      : []),
-    ...(projectEnabled
-      ? [
-          {
-            label: "Office",
-            icon: Document,
-            items: [
-              ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
-              { label: "Letters", to: "/office/letters" },
-              { label: "Contracts", to: "/office/contracts" },
-            ],
-          },
-          {
-            label: "Resources",
-            icon: Catalog,
-            items: [{ label: "Master DSR", to: "/dsr" }],
-          },
-        ]
-      : []),
+    {
+      label: "Accounting",
+      icon: Money,
+      items: [
+        { label: "Invoices", to: "/invoices" },
+        ...(can(user.role, "fees:manage") ? [{ label: "Fee proposals", to: "/accounting/fees" }] : []),
+        { label: "Reconciliation", to: "/reconcile" },
+        ...(can(user.role, "reports:view") ? [{ label: "GST / TDS filing", to: "/filing" }] : []),
+      ],
+    },
+    {
+      label: "Office",
+      icon: Document,
+      items: [
+        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
+        { label: "Letters", to: "/office/letters" },
+        { label: "Contracts", to: "/office/contracts" },
+      ],
+    },
+    {
+      label: "Resources",
+      icon: Catalog,
+      items: [{ label: "Master DSR", to: "/dsr" }],
+    },
     {
       label: "Admin",
       icon: Enterprise,
       items: [
         { label: "Company", to: "/company" },
-        ...(adminEnabled && can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
+        ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
         { label: "My profile", to: "/settings" },
       ],
     },
@@ -208,22 +198,22 @@ export function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
-          {financialEnabled && <Route path="/invoices" element={<Invoices />} />}
-          {financialEnabled && can(user.role, "fees:manage") && <Route path="/accounting/fees" element={<FeeProposals />} />}
-          {projectEnabled && can(user.role, "fees:manage") && <Route path="/office/proposals" element={<Proposals />} />}
-          {projectEnabled && <Route path="/office/letters" element={<Letters />} />}
-          {projectEnabled && <Route path="/office/contracts" element={<Contracts />} />}
+          <Route path="/invoices" element={<Invoices />} />
+          {can(user.role, "fees:manage") && <Route path="/accounting/fees" element={<FeeProposals />} />}
+          {can(user.role, "fees:manage") && <Route path="/office/proposals" element={<Proposals />} />}
+          <Route path="/office/letters" element={<Letters />} />
+          <Route path="/office/contracts" element={<Contracts />} />
           <Route path="/tasks" element={<Tasks />} />
           {can(user.role, "write") && <Route path="/workload" element={<Workload />} />}
           <Route path="/clients" element={<Clients />} />
           <Route path="/consultants" element={<Consultants />} />
-          {financialEnabled && <Route path="/reconcile" element={<Reconcile />} />}
+          <Route path="/reconcile" element={<Reconcile />} />
           {hrEnabled && <Route path="/team" element={<Team />} />}
           {hrEnabled && <Route path="/hr" element={<Hr />} />}
-          {projectEnabled && <Route path="/dsr" element={<MasterDsr />} />}
-          {financialEnabled && can(user.role, "reports:view") && <Route path="/filing" element={<Filing />} />}
+          <Route path="/dsr" element={<MasterDsr />} />
+          {can(user.role, "reports:view") && <Route path="/filing" element={<Filing />} />}
           <Route path="/company" element={<Company />} />
-          {adminEnabled && can(user.role, "firm:admin") && <Route path="/users" element={<Users />} />}
+          {can(user.role, "firm:admin") && <Route path="/users" element={<Users />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

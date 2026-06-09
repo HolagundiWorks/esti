@@ -6,6 +6,7 @@ import {
   Stack,
   Tag,
   Tile,
+  Toggle,
 } from "@carbon/react";
 import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
 import { can, formatINRShort } from "@esti/contracts";
@@ -170,6 +171,17 @@ export function Dashboard() {
   const canFees = can(user?.role, "fees:manage");
   const canHr = can(user?.role, "hr:manage");
 
+  // Board-group switches (Financial / Project / Admin) — owner-controlled.
+  const utils = trpc.useUtils();
+  const settingsQ = trpc.settings.get.useQuery();
+  const isAdmin = can(user?.role, "firm:admin");
+  const showFinancial = settingsQ.data?.financialEnabled ?? true;
+  const showProject = settingsQ.data?.projectEnabled ?? true;
+  const showAdmin = settingsQ.data?.adminEnabled ?? true;
+  const setModule = trpc.settings.setModuleEnabled.useMutation({
+    onSuccess: () => utils.settings.get.invalidate(),
+  });
+
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "numeric",
@@ -202,7 +214,51 @@ export function Dashboard() {
         <ClockLeavesWidget />
       </Column>
 
+      {/* Board-group switches — owner shows/hides boards by module group */}
+      {isAdmin && (
+      <Column lg={16} md={8} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={4}>
+            <p>Show board groups</p>
+            <Stack orientation="horizontal" gap={6}>
+              <Toggle
+                id="db-financial"
+                size="sm"
+                labelText="Financial"
+                labelA="Off"
+                labelB="On"
+                toggled={showFinancial}
+                disabled={setModule.isPending || settingsQ.isLoading}
+                onToggle={(checked) => setModule.mutate({ module: "financial", enabled: checked })}
+              />
+              <Toggle
+                id="db-project"
+                size="sm"
+                labelText="Project"
+                labelA="Off"
+                labelB="On"
+                toggled={showProject}
+                disabled={setModule.isPending || settingsQ.isLoading}
+                onToggle={(checked) => setModule.mutate({ module: "project", enabled: checked })}
+              />
+              <Toggle
+                id="db-admin"
+                size="sm"
+                labelText="Admin"
+                labelA="Off"
+                labelB="On"
+                toggled={showAdmin}
+                disabled={setModule.isPending || settingsQ.isLoading}
+                onToggle={(checked) => setModule.mutate({ module: "admin", enabled: checked })}
+              />
+            </Stack>
+          </Stack>
+        </Tile>
+      </Column>
+      )}
+
       {/* KPI tiles */}
+      {showProject && (
       <Column lg={4} md={4} sm={4}>
         <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
           <Stack gap={3}>
@@ -215,6 +271,8 @@ export function Dashboard() {
           </Stack>
         </ClickableTile>
       </Column>
+      )}
+      {showFinancial && (
       <Column lg={4} md={4} sm={4}>
         <ClickableTile className="esti-fill" onClick={() => navigate("/invoices")}>
           <Stack gap={3}>
@@ -224,6 +282,8 @@ export function Dashboard() {
           </Stack>
         </ClickableTile>
       </Column>
+      )}
+      {showProject && (
       <Column lg={4} md={4} sm={4}>
         <ClickableTile className="esti-fill" onClick={() => navigate("/tasks")}>
           <Stack gap={3}>
@@ -233,6 +293,8 @@ export function Dashboard() {
           </Stack>
         </ClickableTile>
       </Column>
+      )}
+      {showAdmin && (
       <Column lg={4} md={4} sm={4}>
         {canHr ? (
           <ClickableTile className="esti-fill" onClick={() => navigate("/hr")}>
@@ -256,9 +318,10 @@ export function Dashboard() {
           </Tile>
         )}
       </Column>
+      )}
 
       {/* One board per phase */}
-      {byPhase.map((p) => (
+      {showProject && byPhase.map((p) => (
         <Column key={p.code} lg={4} md={4} sm={4}>
           <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
             <Stack gap={3}>
@@ -278,7 +341,7 @@ export function Dashboard() {
       ))}
 
       {/* One board per project type */}
-      {byType.map((t) => (
+      {showProject && byType.map((t) => (
         <Column key={t.type} lg={4} md={4} sm={4}>
           <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
             <Stack gap={3}>
@@ -298,6 +361,7 @@ export function Dashboard() {
       ))}
 
       {/* Statutory filing deadlines */}
+      {showFinancial && (
       <Column lg={4} md={4} sm={4}>
         <FilingDueBoard
           title="GST filing due"
@@ -308,6 +372,8 @@ export function Dashboard() {
           ]}
         />
       </Column>
+      )}
+      {showFinancial && (
       <Column lg={4} md={4} sm={4}>
         <FilingDueBoard
           title="TDS filing due"
@@ -318,8 +384,10 @@ export function Dashboard() {
           ]}
         />
       </Column>
+      )}
 
       {/* Workload */}
+      {showProject && (
       <Column lg={4} md={4} sm={4}>
         <DistroBoard
           title="Workload — open tasks"
@@ -328,9 +396,10 @@ export function Dashboard() {
           emptyText="No assigned open tasks"
         />
       </Column>
+      )}
 
       {/* Receivables — fees managers only */}
-      {canFees && (
+      {showFinancial && canFees && (
         <Column lg={4} md={4} sm={4}>
           <DistroBoard
             title="Receivables aging"
