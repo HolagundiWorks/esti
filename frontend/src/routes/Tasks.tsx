@@ -37,6 +37,11 @@ export function Tasks() {
   const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", projectId: "", assignee: "", priority: "MEDIUM", dueDate: "", description: "" });
+  const teamQ = trpc.assignments.listByProject.useQuery(
+    { projectId: form.projectId },
+    { enabled: !!form.projectId },
+  );
+  const team = teamQ.data ?? [];
   const create = trpc.tasks.create.useMutation({
     onSuccess: () => {
       invalidate();
@@ -140,12 +145,12 @@ export function Tasks() {
         modalHeading="New task"
         primaryButtonText={create.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.title || create.isPending}
+        primaryButtonDisabled={!form.title || !form.projectId || create.isPending}
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() =>
           create.mutate({
             title: form.title,
-            projectId: form.projectId || null,
+            projectId: form.projectId,
             assignee: form.assignee || undefined,
             priority: form.priority as (typeof TaskPriority.options)[number],
             dueDate: form.dueDate || null,
@@ -155,12 +160,33 @@ export function Tasks() {
       >
         <Stack gap={5}>
           <TextInput id="nt-title" labelText="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-          <Select id="nt-proj" labelText="Project (optional)" value={form.projectId} onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value }))}>
-            <SelectItem value="" text="— office task —" />
+          <Select
+            id="nt-proj"
+            labelText="Project"
+            value={form.projectId}
+            onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value, assignee: "" }))}
+          >
+            <SelectItem value="" text="— select a project —" />
             {(projectsQ.data ?? []).map((p) => <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />)}
           </Select>
+          <Select
+            id="nt-assignee"
+            labelText="Assignee (project team)"
+            disabled={!form.projectId || team.length === 0}
+            helperText={
+              !form.projectId
+                ? "Select a project first"
+                : team.length === 0
+                  ? "No team members assigned to this project yet"
+                  : undefined
+            }
+            value={form.assignee}
+            onChange={(e) => setForm((f) => ({ ...f, assignee: e.target.value }))}
+          >
+            <SelectItem value="" text="— unassigned —" />
+            {team.map((m) => <SelectItem key={m.teamMemberId} value={m.name} text={`${m.name} (${m.role})`} />)}
+          </Select>
           <div style={{ display: "flex", gap: 12 }}>
-            <TextInput id="nt-assignee" labelText="Assignee" value={form.assignee} onChange={(e) => setForm((f) => ({ ...f, assignee: e.target.value }))} />
             <Select id="nt-prio" labelText="Priority" value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
               {TaskPriority.options.map((p) => <SelectItem key={p} value={p} text={p} />)}
             </Select>

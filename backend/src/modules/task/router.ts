@@ -1,7 +1,8 @@
 import { TaskCreate, TaskUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { projectOffices, tasks } from "../../db/schema.js";
+import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const withProject = {
@@ -45,12 +46,26 @@ export const taskRouter = router({
     }),
 
   create: protectedProcedure.input(TaskCreate).mutation(async ({ ctx, input }) => {
+    // The assignee, if set, must be a member of this project's team.
+    if (input.assignee) {
+      const team = await ctx.db
+        .select({ name: teamMembers.name })
+        .from(assignments)
+        .innerJoin(teamMembers, eq(teamMembers.id, assignments.teamMemberId))
+        .where(eq(assignments.projectId, input.projectId));
+      if (!team.some((m) => m.name === input.assignee)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Assignee must be a member of the project team",
+        });
+      }
+    }
     const [row] = await ctx.db
       .insert(tasks)
       .values({
         title: input.title,
         description: input.description ?? null,
-        projectId: input.projectId ?? null,
+        projectId: input.projectId,
         assignee: input.assignee ?? null,
         priority: input.priority,
         dueDate: input.dueDate ?? null,

@@ -17,7 +17,9 @@ export const TASK_STATUS_LABEL: Record<string, string> = {
 export const TaskCreate = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
-  projectId: z.string().uuid().nullable().optional(),
+  // Tasks are project-specific: a project is required.
+  projectId: z.string().uuid(),
+  // Assignee must belong to the project's team (member name stored for display).
   assignee: z.string().max(120).optional(),
   priority: TaskPriority.default("MEDIUM"),
   dueDate: z.string().nullable().optional(),
