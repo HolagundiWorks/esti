@@ -134,13 +134,14 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
         <section style={{ padding: "0 1rem" }}>
           <Grid style={{ paddingTop: "4rem", paddingBottom: "3rem" }}>
             <Column sm={4} md={8} lg={10}>
-              <Tag type="blue" size="sm" style={{ marginBottom: 16 }}>For Indian architecture studios</Tag>
+              <Tag type="blue" size="sm" style={{ marginBottom: 16 }}>Built for Indian architects</Tag>
               <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.25rem)", fontWeight: 600, lineHeight: 1.1, margin: 0 }}>
-                Run your architectural office — projects, COA fees, GST invoicing and drawings — in one place.
+                Spend more time on design — not writing letters or figuring out taxes.
               </h1>
               <p style={{ fontSize: "1.125rem", color: "var(--cds-text-secondary)", maxWidth: 640, marginTop: 16 }}>
-                ESTI is an Architectural Office Resource Management System built around the Council of
-                Architecture's Conditions of Engagement and Indian GST/TDS compliance.
+                An architect's place is at the drawing board, not buried in invoices, COA fee maths and
+                GST returns. ESTI runs your office effortlessly — projects, fees, billing, drawings and
+                documents in one place — so you can get back to designing.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 28 }}>
                 <Button size="lg" renderIcon={ArrowRight} onClick={trial}>Start 14-day free trial</Button>
@@ -165,9 +166,10 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
         <section style={{ background: "var(--cds-layer)", padding: "3rem 1rem" }}>
           <Grid>
             <Column sm={4} md={8} lg={16}>
-              <h2 style={{ marginBottom: 4 }}>Everything an Indian architecture office needs</h2>
+              <h2 style={{ marginBottom: 4 }}>The admin runs itself, so your studio runs on design</h2>
               <p style={{ color: "var(--cds-text-secondary)", marginBottom: 24 }}>
-                One system — from enquiry to completion certificate.
+                Everything an Indian architecture office needs — from enquiry to completion certificate —
+                handled for you.
               </p>
             </Column>
             {FEATURES.map((f) => {
@@ -275,9 +277,9 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
           <Grid>
             <Column sm={4} md={8} lg={16}>
               <div style={{ textAlign: "center" }}>
-                <h2 style={{ margin: 0 }}>See it with your own eyes</h2>
+                <h2 style={{ margin: 0 }}>Get back to the drawing board</h2>
                 <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 20px" }}>
-                  Jump straight into a fully populated demo workspace.
+                  Open a fully populated demo studio and see how little admin ESTI leaves you.
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                   <Button size="lg" renderIcon={ArrowRight} onClick={runDemo} disabled={demo.isPending}>
