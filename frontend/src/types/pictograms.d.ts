@@ -7,4 +7,7 @@ declare module "@carbon/pictograms-react" {
     SVGProps<SVGSVGElement> & { width?: number | string; height?: number | string }
   >;
   export const Building: Pictogram;
+  export const Receipt: Pictogram;
+  export const Banking: Pictogram;
+  export const ChartLine: Pictogram;
 }
