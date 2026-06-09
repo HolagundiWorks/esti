@@ -46,21 +46,6 @@ const TYPE_LABEL: Record<string, string> = {
   OTHER: "Other",
 };
 
-function SectionHeading({ title, hint, count }: { title: string; hint?: string; count?: number }) {
-  return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "28px 0 12px" }}>
-      <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>{title}</h2>
-      {typeof count === "number" && (
-        <span style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{count}</span>
-      )}
-      {hint && (
-        <span style={{ fontSize: 13, color: "var(--cds-text-secondary)", marginLeft: "auto" }}>{hint}</span>
-      )}
-      <div style={{ flex: hint ? 0 : 1, height: 1, background: "var(--cds-border-subtle)", alignSelf: "center" }} />
-    </div>
-  );
-}
-
 /** Top-level KPI tile: big number, label, an accent icon chip, optional tag. */
 function KpiTile({ label, value, helper, icon: Icon, accent, tag, onClick, delay }: {
   label: string;
@@ -267,14 +252,21 @@ export function Dashboard() {
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4 }}>
-        <ChartLine width={44} height={44} />
-        <div>
-          <h1>Office dashboard</h1>
-          <p style={{ color: "var(--cds-text-secondary)" }}>
-            {(user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : "")}{today}
-          </p>
+      {/* Header — title at left, clock/leave widget pinned top-right */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <ChartLine width={44} height={44} />
+          <div>
+            <h1>Office dashboard</h1>
+            <p style={{ color: "var(--cds-text-secondary)" }}>
+              {(user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : "")}{today}
+            </p>
+          </div>
+        </div>
+        <div style={{ width: 320, maxWidth: "100%", flex: "0 0 auto" }}>
+          <div className="dash-widget">
+            <ClockLeavesWidget />
+          </div>
         </div>
       </div>
 
@@ -339,11 +331,8 @@ export function Dashboard() {
       </Grid>
 
       {/* Projects by phase — one card per phase */}
-      <SectionHeading title="Projects by phase" count={byPhase.length} hint="current engagement stage" />
-      {byPhase.length === 0 ? (
-        <Tile><p style={{ color: "var(--cds-text-secondary)" }}>No active project phases yet.</p></Tile>
-      ) : (
-        <Grid narrow className="dash-grid">
+      {byPhase.length === 0 ? null : (
+        <Grid narrow className="dash-grid" style={{ marginTop: 16 }}>
           {byPhase.map((p, i) => (
             <Column key={p.code} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
               <CountCard label={p.label} count={p.count} total={totalProjects} accent={ACCENTS[i % ACCENTS.length]!} delay={i * 40} onClick={() => navigate("/projects")} />
@@ -353,10 +342,7 @@ export function Dashboard() {
       )}
 
       {/* Projects by type — one card per type */}
-      <SectionHeading title="Projects by type" count={byType.length} hint="building use" />
-      {byType.length === 0 ? (
-        <Tile><p style={{ color: "var(--cds-text-secondary)" }}>No projects yet.</p></Tile>
-      ) : (
+      {byType.length === 0 ? null : (
         <Grid narrow className="dash-grid">
           {byType.map((t, i) => (
             <Column key={t.type} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
@@ -367,11 +353,7 @@ export function Dashboard() {
       )}
 
       {/* Operations & compliance */}
-      <SectionHeading title="Operations & compliance" hint="today" />
       <Grid narrow className="dash-grid">
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
-          <ClockLeavesWidget />
-        </Column>
         <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
           <FilingDueBoard
             title="GST filing due"
@@ -380,7 +362,7 @@ export function Dashboard() {
               { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
               { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
             ]}
-            delay={50}
+            delay={0}
           />
         </Column>
         <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
@@ -391,15 +373,15 @@ export function Dashboard() {
               { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
               { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
             ]}
-            delay={100}
+            delay={50}
           />
         </Column>
-        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+        <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
           <BarBoard
             title="Workload — open tasks"
             items={(b?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))}
             emptyText="No assigned open tasks"
-            delay={150}
+            delay={100}
           />
         </Column>
       </Grid>
