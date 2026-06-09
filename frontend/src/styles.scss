@@ -33,3 +33,13 @@ body,
   flex: 1 1 auto;
   min-width: 0;
 }
+
+// Structural-only: Carbon's CSS Grid spaces columns with padding (horizontal
+// gutter) but emits no row-gap, so wrapped tile rows would touch vertically.
+// Add a row-gap equal to the 32px column gutter for matching vertical rhythm,
+// and drop the grid's extra inline padding so tiles align flush with the page
+// (the app shell's Content already supplies the horizontal page gutter).
+.esti-dash {
+  row-gap: 2rem;
+  padding-inline: 0;
+}

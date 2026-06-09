@@ -184,7 +184,7 @@ export function Dashboard() {
   const workloadMax = Math.max(1, ...(b?.workload ?? []).map((w) => w.count));
 
   return (
-    <Grid>
+    <Grid fullWidth className="esti-dash">
       {/* Header — title at left, clock/leave widget pinned top-right */}
       <Column lg={12} md={6} sm={4}>
         <Stack orientation="horizontal" gap={5}>
