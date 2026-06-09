@@ -1,45 +1,165 @@
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
-import { Button, ClickableTile, OverflowMenu, OverflowMenuItem, Tag, Tile } from "@carbon/react";
-import { Add, Close, Edit, Save } from "@carbon/icons-react";
-import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
+import { Column, Grid, ClickableTile, Tag, Tile } from "@carbon/react";
 import {
-  DASHBOARD_WIDGETS,
-  DEFAULT_DASHBOARD_LAYOUT,
-  type DashboardLayout,
-  can,
-  formatINRShort,
-} from "@esti/contracts";
-import { useEffect, useMemo, useState } from "react";
-import GridLayout, { type Layout, WidthProvider } from "react-grid-layout";
+  Building,
+  ChartColumn,
+  Money,
+  TaskComplete,
+  UserMultiple,
+  WarningAlt,
+  type CarbonIconType,
+} from "@carbon/icons-react";
+import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
+import { can, formatINRShort } from "@esti/contracts";
 import { useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
-const Grid = WidthProvider(GridLayout);
+// A designed accent palette (Carbon colour ramp) rotated across the
+// per-phase / per-type cards so the board reads as a deliberate set.
+const ACCENTS = [
+  "#0f62fe", // blue 60
+  "#42be65", // green 40
+  "#8a3ffc", // purple 60
+  "#ff832b", // orange 40
+  "#08bdba", // teal 40
+  "#ee5396", // magenta 50
+  "#4589ff", // blue 50
+  "#24a148", // green 50
+  "#d12771", // magenta 60
+  "#fa4d56", // red 50
+];
 
-const WIDGET_TITLE = Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w.title]));
+/** Friendlier labels for the raw project-type enum values. */
+const TYPE_LABEL: Record<string, string> = {
+  RESIDENTIAL: "Residential",
+  COMMERCIAL: "Commercial",
+  INSTITUTIONAL: "Institutional",
+  INDUSTRIAL: "Industrial",
+  HOSPITALITY: "Hospitality",
+  HEALTHCARE: "Healthcare",
+  RETAIL: "Retail",
+  MIXED_USE: "Mixed use",
+  URBAN_DESIGN: "Urban design",
+  INTERIOR: "Interior",
+  LANDSCAPE: "Landscape",
+  OTHER: "Other",
+};
 
-function Stat({ label, value, helper, tag, onClick }: {
+function SectionHeading({ title, hint, count }: { title: string; hint?: string; count?: number }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "28px 0 12px" }}>
+      <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>{title}</h2>
+      {typeof count === "number" && (
+        <span style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{count}</span>
+      )}
+      {hint && (
+        <span style={{ fontSize: 13, color: "var(--cds-text-secondary)", marginLeft: "auto" }}>{hint}</span>
+      )}
+      <div style={{ flex: hint ? 0 : 1, height: 1, background: "var(--cds-border-subtle)", alignSelf: "center" }} />
+    </div>
+  );
+}
+
+/** Top-level KPI tile: big number, label, an accent icon chip, optional tag. */
+function KpiTile({ label, value, helper, icon: Icon, accent, tag, onClick, delay }: {
   label: string;
   value: string;
   helper?: string;
-  tag?: { type: "red" | "magenta" | "blue"; text: string };
+  icon: CarbonIconType;
+  accent: string;
+  tag?: { type: "red" | "magenta" | "blue" | "green"; text: string };
+  onClick?: () => void;
+  delay: number;
+}) {
+  return (
+    <ClickableTile onClick={onClick} className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{label}</p>
+          <p style={{ fontSize: "2.25rem", fontWeight: 600, lineHeight: 1.15, fontVariantNumeric: "tabular-nums" }}>{value}</p>
+          {helper && <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{helper}</p>}
+          {tag && <Tag type={tag.type} size="sm" style={{ marginTop: 8 }}>{tag.text}</Tag>}
+        </div>
+        <div
+          style={{
+            flexShrink: 0,
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `${accent}1f`,
+            color: accent,
+          }}
+        >
+          <Icon size={20} />
+        </div>
+      </div>
+    </ClickableTile>
+  );
+}
+
+/** One card representing a single phase or project type, with a share bar. */
+function CountCard({ label, count, total, accent, delay, onClick }: {
+  label: string;
+  count: number;
+  total: number;
+  accent: string;
+  delay: number;
   onClick?: () => void;
 }) {
+  const share = total > 0 ? Math.round((count / total) * 100) : 0;
   const body = (
     <>
-      <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{label}</p>
-      <p style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.2 }}>{value}</p>
-      {helper && <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{helper}</p>}
-      {tag && <Tag type={tag.type} style={{ marginTop: 8 }}>{tag.text}</Tag>}
+      <div style={{ height: 4, borderRadius: 2, background: accent, marginBottom: 12, width: 36 }} />
+      <p style={{ fontSize: 13, color: "var(--cds-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</p>
+      <p style={{ fontSize: "2rem", fontWeight: 600, lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>{count}</p>
+      <div style={{ height: 6, background: "var(--cds-layer-accent)", borderRadius: 3, marginTop: 10 }}>
+        <div className="dash-bar-fill" style={{ height: 6, width: `${share}%`, background: accent, borderRadius: 3 }} />
+      </div>
+      <p style={{ fontSize: 11, color: "var(--cds-text-secondary)", marginTop: 6 }}>{share}% of projects</p>
     </>
   );
   return onClick ? (
-    <ClickableTile onClick={onClick} style={{ height: "100%" }}>{body}</ClickableTile>
+    <ClickableTile onClick={onClick} className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>{body}</ClickableTile>
   ) : (
-    <Tile style={{ height: "100%" }}>{body}</Tile>
+    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>{body}</Tile>
+  );
+}
+
+/** Horizontal-bar distribution board (label + value + animated bar). */
+function BarBoard({ title, items, emptyText, format, delay }: {
+  title: string;
+  items: { label: string; count: number }[];
+  emptyText?: string;
+  format?: (n: number) => string;
+  delay: number;
+}) {
+  const fmt = format ?? ((n: number) => String(n));
+  const max = Math.max(1, ...items.map((i) => i.count));
+  return (
+    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
+      <p style={{ fontSize: 13, color: "var(--cds-text-secondary)", marginBottom: 12 }}>{title}</p>
+      {items.length === 0 ? (
+        <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{emptyText ?? "No data"}</p>
+      ) : (
+        <div style={{ display: "grid", gap: 12 }}>
+          {items.map((it, i) => (
+            <div key={it.label}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{it.label}</span>
+                <strong style={{ fontVariantNumeric: "tabular-nums" }}>{fmt(it.count)}</strong>
+              </div>
+              <div style={{ height: 8, background: "var(--cds-layer-accent)", borderRadius: 4 }}>
+                <div className="dash-bar-fill" style={{ height: 8, width: `${(it.count / max) * 100}%`, background: ACCENTS[i % ACCENTS.length], borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Tile>
   );
 }
 
@@ -72,12 +192,11 @@ function nextMonthlyDue(day: number): string {
 function nextTdsReturnDue(): string {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  // Month index, day for each quarterly return deadline.
   const deadlines = [
-    { m: 6, d: 31 }, // 31 Jul
-    { m: 9, d: 31 }, // 31 Oct
-    { m: 0, d: 31 }, // 31 Jan
-    { m: 4, d: 31 }, // 31 May
+    { m: 6, d: 31 },
+    { m: 9, d: 31 },
+    { m: 0, d: 31 },
+    { m: 4, d: 31 },
   ];
   const y = now.getFullYear();
   const cands: Date[] = [];
@@ -90,28 +209,29 @@ function nextTdsReturnDue(): string {
 }
 
 /** A board listing statutory filing deadlines with a days-remaining countdown. */
-function FilingDueBoard({ title, Pictogram, rows }: {
+function FilingDueBoard({ title, Pictogram, rows, delay }: {
   title: string;
   Pictogram: Pictogram;
   rows: { label: string; iso: string }[];
+  delay: number;
 }) {
   const fmtDate = (iso: string) =>
     new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
   return (
-    <Tile style={{ height: "100%", overflow: "auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <Pictogram width={24} height={24} />
-        <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{title}</p>
+    <Tile className="dash-widget" style={{ height: "100%", animationDelay: `${delay}ms` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+        <Pictogram width={28} height={28} />
+        <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>{title}</p>
       </div>
-      <div style={{ display: "grid", gap: 8 }}>
+      <div style={{ display: "grid", gap: 12 }}>
         {rows.map((r) => {
           const days = daysUntil(r.iso);
           const tagType = days <= 3 ? "red" : days <= 7 ? "magenta" : "blue";
           return (
             <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</div>
-                <div style={{ fontSize: 11, color: "var(--cds-text-secondary)" }}>{fmtDate(r.iso)}</div>
+                <div style={{ fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</div>
+                <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{fmtDate(r.iso)}</div>
               </div>
               <Tag type={tagType} size="sm">{days === 0 ? "today" : days < 0 ? `${-days}d ago` : `${days}d`}</Tag>
             </div>
@@ -122,181 +242,137 @@ function FilingDueBoard({ title, Pictogram, rows }: {
   );
 }
 
-/** A compact horizontal-bar distribution board (label + value). */
-function DistroBoard({ title, items, emptyText, format }: { title: string; items: { label: string; count: number }[]; emptyText?: string; format?: (n: number) => string }) {
-  const fmt = format ?? ((n: number) => String(n));
-  const max = Math.max(1, ...items.map((i) => i.count));
-  return (
-    <Tile style={{ height: "100%", overflow: "auto" }}>
-      <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginBottom: 8 }}>{title}</p>
-      {items.length === 0 ? (
-        <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{emptyText ?? "No data"}</p>
-      ) : (
-        <div style={{ display: "grid", gap: 8 }}>
-          {items.map((it) => (
-            <div key={it.label}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{it.label}</span>
-                <strong>{fmt(it.count)}</strong>
-              </div>
-              <div style={{ height: 6, background: "var(--cds-layer-accent)", borderRadius: 3 }}>
-                <div className="dash-bar-fill" style={{ height: 6, width: `${(it.count / max) * 100}%`, background: "var(--cds-button-primary)", borderRadius: 3 }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </Tile>
-  );
-}
-
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
-  const tasksQ = trpc.tasks.list.useQuery({ openOnly: true });
-  const alertsQ = trpc.notifications.list.useQuery();
-  const layoutQ = trpc.dashboard.layout.useQuery();
-  const saveLayout = trpc.dashboard.saveLayout.useMutation({
-    onSuccess: () => utils.dashboard.layout.invalidate(),
-  });
-
-  const [edit, setEdit] = useState(false);
-  const [layout, setLayout] = useState<DashboardLayout>([]);
-
-  // Widgets this user is allowed to see (capability-gated catalogue).
-  const allowed = useMemo(
-    () => DASHBOARD_WIDGETS.filter((w) => !w.capability || can(user?.role, w.capability)),
-    [user?.role],
-  );
-  const allowedIds = useMemo(() => new Set<string>(allowed.map((w) => w.id)), [allowed]);
-
-  // Seed from the saved layout (or the default), dropping any widget the user
-  // may no longer access.
-  useEffect(() => {
-    if (layoutQ.isLoading) return;
-    const saved = (layoutQ.data as DashboardLayout | null) ?? null;
-    // Auto-migrate legacy 12-column layouts: they never span columns 13-16, so
-    // they render as cramped left-packed strips on the new 16-col grid. Treat
-    // any layout that never reaches past column 12 as legacy and re-seed from
-    // the current default.
-    const isLegacy = !!saved && saved.length > 0 && saved.every((it) => it.x + it.w <= 12);
-    const base = saved && saved.length > 0 && !isLegacy ? saved : DEFAULT_DASHBOARD_LAYOUT;
-    setLayout(base.filter((it) => allowedIds.has(it.i)));
-  }, [layoutQ.data, layoutQ.isLoading, allowedIds]);
 
   const s = summary.data;
-  const placed = new Set(layout.map((l) => l.i));
-  const addable = allowed.filter((w) => !placed.has(w.id));
+  const b = boardsQ.data;
+  const totalProjects = s?.projects.total ?? 0;
+  const byPhase = b?.byPhase ?? [];
+  const byType = b?.byType ?? [];
 
-  function renderWidget(id: string) {
-    switch (id) {
-      case "clock":
-        return <ClockLeavesWidget />;
-      case "projects":
-        return (
-          <Stat
+  const canFees = can(user?.role, "fees:manage");
+  const canHr = can(user?.role, "hr:manage");
+
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4 }}>
+        <ChartLine width={44} height={44} />
+        <div>
+          <h1>Office dashboard</h1>
+          <p style={{ color: "var(--cds-text-secondary)" }}>
+            {(user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : "")}{today}
+          </p>
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <Grid narrow className="dash-grid" style={{ marginTop: 16 }}>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          <KpiTile
             label="Projects"
-            value={String(s?.projects.total ?? "…")}
+            value={String(totalProjects || (s ? 0 : "…"))}
             helper={`${s?.projects.byStatus.ACTIVE ?? 0} active · ${s?.projects.byStatus.ENQUIRY ?? 0} enquiry`}
-            onClick={edit ? undefined : () => navigate("/projects")}
+            icon={Building}
+            accent={ACCENTS[0]!}
+            onClick={() => navigate("/projects")}
+            delay={0}
           />
-        );
-      case "invoices":
-        return (
-          <Stat
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          <KpiTile
             label="Outstanding (net of TDS)"
             value={s ? formatINRShort(s.invoices.outstandingPaise) : "…"}
             helper={s ? `${formatINRShort(s.invoices.collectedPaise)} collected` : undefined}
+            icon={Money}
+            accent={ACCENTS[1]!}
+            onClick={() => navigate("/invoices")}
+            delay={50}
           />
-        );
-      case "permits":
-        return (
-          <Stat
-            label="Permits"
-            value={String(s?.permits.open ?? "…")}
-            helper={`open of ${s?.permits.total ?? 0}`}
-            tag={s?.permits.overdue ? { type: "red", text: `${s.permits.overdue} overdue` } : undefined}
-          />
-        );
-      case "fees":
-        return (
-          <Stat
-            label="Fee proposals"
-            value={String(s?.feeProposals.total ?? "…")}
-            tag={s?.feeProposals.belowMinimum ? { type: "magenta", text: `${s.feeProposals.belowMinimum} below COA min` } : undefined}
-          />
-        );
-      case "tasks":
-        return (
-          <Stat
-            label="Open tasks"
-            value={String(tasksQ.data?.length ?? "…")}
-            helper="across all projects"
-            onClick={edit ? undefined : () => navigate("/tasks")}
-          />
-        );
-      case "alerts":
-        return (
-          <Stat
-            label="Alerts"
-            value={String(alertsQ.data?.length ?? "…")}
-            helper="compliance & deadlines"
-            onClick={edit ? undefined : () => navigate("/alerts")}
-          />
-        );
-      case "hr":
-        return (
-          <Stat
-            label="Headcount"
-            value={String(s?.hr?.headcount ?? "…")}
-            helper={`${s?.hr?.pendingLeaves ?? 0} leaves pending`}
-            onClick={edit ? undefined : () => navigate("/hr")}
-          />
-        );
-      case "projectsByPhase":
-        return <DistroBoard title="Projects by phase" items={(boardsQ.data?.byPhase ?? []).map((r) => ({ label: r.label, count: r.count }))} />;
-      case "projectsByType":
-        return <DistroBoard title="Projects by type" items={(boardsQ.data?.byType ?? []).map((r) => ({ label: r.type, count: r.count }))} />;
-      case "workload":
-        return <DistroBoard title="Workload — open tasks" items={(boardsQ.data?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))} emptyText="No assigned open tasks" />;
-      case "receivables": {
-        const a = boardsQ.data?.receivablesAging;
-        return (
-          <DistroBoard
-            title="Receivables aging (outstanding)"
-            format={(n) => formatINRShort(n)}
-            items={[
-              { label: "0–30 days", count: a?.d0_30 ?? 0 },
-              { label: "31–60 days", count: a?.d31_60 ?? 0 },
-              { label: "60+ days", count: a?.d60p ?? 0 },
-            ]}
-          />
-        );
-      }
-      case "tasksToday":
-        return (
-          <Stat
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          <KpiTile
             label="Tasks due today"
-            value={String(boardsQ.data?.tasksDueToday ?? "…")}
-            helper="due today or overdue, not done"
-            onClick={edit ? undefined : () => navigate("/tasks")}
+            value={String(b?.tasksDueToday ?? "…")}
+            helper="due today or overdue"
+            icon={TaskComplete}
+            accent={ACCENTS[3]!}
+            onClick={() => navigate("/tasks")}
+            delay={100}
           />
-        );
-      case "onLeave":
-        return (
-          <Stat
-            label="On leave today"
-            value={String(boardsQ.data?.onLeaveToday ?? "…")}
-            helper="approved leave covering today"
-            onClick={edit ? undefined : () => navigate("/hr")}
-          />
-        );
-      case "gstDue":
-        return (
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          {canHr ? (
+            <KpiTile
+              label="On leave today"
+              value={String(b?.onLeaveToday ?? "…")}
+              helper={`${s?.hr?.headcount ?? 0} on the team`}
+              icon={UserMultiple}
+              accent={ACCENTS[2]!}
+              onClick={() => navigate("/hr")}
+              delay={150}
+            />
+          ) : (
+            <KpiTile
+              label="Permits open"
+              value={String(s?.permits.open ?? "…")}
+              helper={`of ${s?.permits.total ?? 0} total`}
+              icon={WarningAlt}
+              accent={ACCENTS[5]!}
+              tag={s?.permits.overdue ? { type: "red", text: `${s.permits.overdue} overdue` } : undefined}
+              delay={150}
+            />
+          )}
+        </Column>
+      </Grid>
+
+      {/* Projects by phase — one card per phase */}
+      <SectionHeading title="Projects by phase" count={byPhase.length} hint="current engagement stage" />
+      {byPhase.length === 0 ? (
+        <Tile><p style={{ color: "var(--cds-text-secondary)" }}>No active project phases yet.</p></Tile>
+      ) : (
+        <Grid narrow className="dash-grid">
+          {byPhase.map((p, i) => (
+            <Column key={p.code} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+              <CountCard label={p.label} count={p.count} total={totalProjects} accent={ACCENTS[i % ACCENTS.length]!} delay={i * 40} onClick={() => navigate("/projects")} />
+            </Column>
+          ))}
+        </Grid>
+      )}
+
+      {/* Projects by type — one card per type */}
+      <SectionHeading title="Projects by type" count={byType.length} hint="building use" />
+      {byType.length === 0 ? (
+        <Tile><p style={{ color: "var(--cds-text-secondary)" }}>No projects yet.</p></Tile>
+      ) : (
+        <Grid narrow className="dash-grid">
+          {byType.map((t, i) => (
+            <Column key={t.type} sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+              <CountCard label={TYPE_LABEL[t.type] ?? t.type} count={t.count} total={totalProjects} accent={ACCENTS[(i + 2) % ACCENTS.length]!} delay={i * 40} onClick={() => navigate("/projects")} />
+            </Column>
+          ))}
+        </Grid>
+      )}
+
+      {/* Operations & compliance */}
+      <SectionHeading title="Operations & compliance" hint="today" />
+      <Grid narrow className="dash-grid">
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          <ClockLeavesWidget />
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
           <FilingDueBoard
             title="GST filing due"
             Pictogram={Receipt}
@@ -304,10 +380,10 @@ export function Dashboard() {
               { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
               { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
             ]}
+            delay={50}
           />
-        );
-      case "tdsDue":
-        return (
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
           <FilingDueBoard
             title="TDS filing due"
             Pictogram={Banking}
@@ -315,117 +391,50 @@ export function Dashboard() {
               { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
               { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
             ]}
+            delay={100}
           />
-        );
-      default:
-        return <Tile>Unknown widget</Tile>;
-    }
-  }
-
-  function addWidget(id: string) {
-    const def = DASHBOARD_WIDGETS.find((w) => w.id === id);
-    if (!def) return;
-    setLayout((prev) => [...prev, { i: id, x: 0, y: Infinity as unknown as number, w: def.w, h: def.h }]);
-  }
-
-  function removeWidget(id: string) {
-    setLayout((prev) => prev.filter((l) => l.i !== id));
-  }
-
-  function onLayoutChange(next: Layout[]) {
-    if (!edit) return;
-    setLayout(next.map((l) => ({ i: l.i, x: l.x, y: l.y, w: l.w, h: l.h })));
-  }
-
-  function save() {
-    // Clamp to the contract bounds (RGL can leave Infinity y on new widgets).
-    const clean: DashboardLayout = layout.map((l) => ({
-      i: l.i,
-      x: Math.max(0, Math.min(15, l.x)),
-      y: Number.isFinite(l.y) ? Math.max(0, Math.min(200, l.y)) : 200,
-      w: Math.max(1, Math.min(16, l.w)),
-      h: Math.max(1, Math.min(12, l.h)),
-    }));
-    saveLayout.mutate(clean, { onSuccess: () => setEdit(false) });
-  }
-
-  return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <ChartLine width={40} height={40} />
-          <div>
-          <h1>Office dashboard</h1>
-          <p style={{ color: "var(--cds-text-secondary)" }}>
-            {edit ? "Drag to move, drag a corner to resize, × to remove." : "Architectural Office Resource Management System"}
-          </p>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {edit && addable.length > 0 && (
-            <OverflowMenu renderIcon={Add} flipped aria-label="Add widget" iconDescription="Add widget">
-              {addable.map((w) => (
-                <OverflowMenuItem key={w.id} itemText={w.title} onClick={() => addWidget(w.id)} />
-              ))}
-            </OverflowMenu>
-          )}
-          {edit ? (
-            <>
-              <Button kind="ghost" size="sm" onClick={() => { setEdit(false); utils.dashboard.layout.invalidate(); }}>
-                Cancel
-              </Button>
-              <Button size="sm" renderIcon={Save} disabled={saveLayout.isPending} onClick={save}>
-                Save layout
-              </Button>
-            </>
-          ) : (
-            <Button kind="tertiary" size="sm" renderIcon={Edit} onClick={() => setEdit(true)}>
-              Customise
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <Grid
-        className="layout"
-        layout={layout}
-        cols={16}
-        rowHeight={72}
-        margin={[16, 16]}
-        isDraggable={edit}
-        isResizable={edit}
-        draggableHandle=".widget-drag"
-        onLayoutChange={onLayoutChange}
-      >
-        {layout.map((item, idx) => (
-          <div key={item.i} style={{ overflow: "hidden" }}>
-            <div
-              className="dash-widget"
-              style={{ height: "100%", animationDelay: `${Math.min(idx, 8) * 50}ms` }}
-            >
-            {edit && (
-              <div
-                className="widget-drag"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  cursor: "move",
-                  fontSize: 12,
-                  padding: "2px 4px",
-                  color: "var(--cds-text-secondary)",
-                  background: "var(--cds-layer-accent)",
-                }}
-              >
-                <span>{WIDGET_TITLE[item.i] ?? item.i}</span>
-                <Button kind="ghost" size="sm" hasIconOnly iconDescription="Remove" renderIcon={Close} onClick={() => removeWidget(item.i)} />
-              </div>
-            )}
-            <div style={{ height: edit ? "calc(100% - 28px)" : "100%" }}>{renderWidget(item.i)}</div>
-            </div>
-          </div>
-        ))}
+        </Column>
+        <Column sm={4} md={4} lg={4} style={{ marginBottom: 16 }}>
+          <BarBoard
+            title="Workload — open tasks"
+            items={(b?.workload ?? []).map((r) => ({ label: r.assignee, count: r.count }))}
+            emptyText="No assigned open tasks"
+            delay={150}
+          />
+        </Column>
       </Grid>
+
+      {/* Receivables — fees managers only */}
+      {canFees && (
+        <Grid narrow className="dash-grid">
+          <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
+            <BarBoard
+              title="Receivables aging (outstanding)"
+              format={(n) => formatINRShort(n)}
+              items={[
+                { label: "0–30 days", count: b?.receivablesAging.d0_30 ?? 0 },
+                { label: "31–60 days", count: b?.receivablesAging.d31_60 ?? 0 },
+                { label: "60+ days", count: b?.receivablesAging.d60p ?? 0 },
+              ]}
+              delay={0}
+            />
+          </Column>
+          <Column sm={4} md={8} lg={8} style={{ marginBottom: 16 }}>
+            <Tile className="dash-widget" style={{ height: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <ChartColumn size={20} style={{ color: ACCENTS[6] }} />
+                <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>Fee proposals</p>
+              </div>
+              <p style={{ fontSize: "2rem", fontWeight: 600, lineHeight: 1.2 }}>{s?.feeProposals.total ?? "…"}</p>
+              {s?.feeProposals.belowMinimum ? (
+                <Tag type="magenta" size="sm" style={{ marginTop: 8 }}>{s.feeProposals.belowMinimum} below COA minimum</Tag>
+              ) : (
+                <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>All at or above COA minimum.</p>
+              )}
+            </Tile>
+          </Column>
+        </Grid>
+      )}
     </div>
   );
 }
