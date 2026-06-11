@@ -17,11 +17,18 @@ export function ContextualComments({
 }) {
   const utils = trpc.useUtils();
   const [body, setBody] = useState("");
-  const commentsQ = trpc.comments.listByObject.useQuery({ projectId, objectType, objectId }, { enabled: !!projectId && !!objectId });
+  const commentsQ = trpc.comments.listByObject.useQuery(
+    { projectId, objectType, objectId },
+    { enabled: !!projectId && !!objectId },
+  );
   const create = trpc.comments.create.useMutation({
     onSuccess: async () => {
       setBody("");
-      await utils.comments.listByObject.invalidate({ projectId, objectType, objectId });
+      await utils.comments.listByObject.invalidate({
+        projectId,
+        objectType,
+        objectId,
+      });
       await utils.activity.listByProject.invalidate({ projectId });
     },
   });
@@ -43,7 +50,9 @@ export function ContextualComments({
         <Button
           kind="primary"
           disabled={!body.trim() || create.isPending}
-          onClick={() => create.mutate({ projectId, objectType, objectId, body })}
+          onClick={() =>
+            create.mutate({ projectId, objectType, objectId, body })
+          }
         >
           {create.isPending ? "Adding…" : "Add comment"}
         </Button>
@@ -55,7 +64,12 @@ export function ContextualComments({
                   {comment.visibility}
                 </Tag>
                 <span>{comment.actorName ?? "System"}</span>
-                <span>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(comment.createdAt))}</span>
+                <span>
+                  {new Intl.DateTimeFormat("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(comment.createdAt))}
+                </span>
               </Stack>
               <p style={{ whiteSpace: "pre-wrap" }}>{comment.body}</p>
             </Stack>

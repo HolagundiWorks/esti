@@ -24,7 +24,10 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "magenta" | "red" | "cool-gray"> = {
+const STATUS_TAG: Record<
+  string,
+  "gray" | "blue" | "green" | "magenta" | "red" | "cool-gray"
+> = {
   DRAFT: "gray",
   SENT: "blue",
   APPROVED: "green",
@@ -35,12 +38,17 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "magenta" | "red" |
 
 export function ProjectApprovals({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const listQ = trpc.approvals.listByProject.useQuery({ projectId }, { enabled: !!projectId });
-  const invalidate = () => utils.approvals.listByProject.invalidate({ projectId });
+  const listQ = trpc.approvals.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
+  const invalidate = () =>
+    utils.approvals.listByProject.invalidate({ projectId });
   const update = trpc.approvals.update.useMutation({ onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
-  const [entityType, setEntityType] = useState<ApprovalEntityTypeCode>("DRAWING");
+  const [entityType, setEntityType] =
+    useState<ApprovalEntityTypeCode>("DRAWING");
   const [title, setTitle] = useState("");
   const [recipient, setRecipient] = useState("");
   const [channel, setChannel] = useState<ApprovalChannelCode>("EMAIL");
@@ -71,7 +79,10 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
           Record issue
         </Button>
       </div>
-      <TableContainer title="Issue / approval log" description="Sign-off tracking with revisions">
+      <TableContainer
+        title="Issue / approval log"
+        description="Sign-off tracking with revisions"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -89,11 +100,14 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
               <TableRow key={a.id}>
                 <TableCell>{a.title}</TableCell>
                 <TableCell>
-                  {APPROVAL_ENTITY_TYPES[a.entityType as ApprovalEntityTypeCode] ?? a.entityType}
+                  {APPROVAL_ENTITY_TYPES[
+                    a.entityType as ApprovalEntityTypeCode
+                  ] ?? a.entityType}
                 </TableCell>
                 <TableCell>{a.recipient ?? "—"}</TableCell>
                 <TableCell>
-                  {APPROVAL_CHANNELS[a.channel as ApprovalChannelCode] ?? a.channel}
+                  {APPROVAL_CHANNELS[a.channel as ApprovalChannelCode] ??
+                    a.channel}
                 </TableCell>
                 <TableCell>{a.sentDate ?? "—"}</TableCell>
                 <TableCell>
@@ -108,13 +122,22 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
                     value={a.status}
                     disabled={a.status === "SUPERSEDED"}
                     onChange={(e) => {
-                      const status = e.target.value as (typeof ApprovalStatus.options)[number];
-                      const decided = ["APPROVED", "REJECTED", "REVISIONS"].includes(status);
+                      const status = e.target
+                        .value as (typeof ApprovalStatus.options)[number];
+                      const decided = [
+                        "APPROVED",
+                        "REJECTED",
+                        "REVISIONS",
+                      ].includes(status);
                       update.mutate({
                         id: a.id,
                         status,
                         ...(decided && !a.responseDate
-                          ? { responseDate: new Date().toISOString().slice(0, 10) }
+                          ? {
+                              responseDate: new Date()
+                                .toISOString()
+                                .slice(0, 10),
+                            }
                           : {}),
                       });
                     }}
@@ -153,9 +176,13 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
             id="ap-type"
             labelText="What was issued"
             value={entityType}
-            onChange={(e) => setEntityType(e.target.value as ApprovalEntityTypeCode)}
+            onChange={(e) =>
+              setEntityType(e.target.value as ApprovalEntityTypeCode)
+            }
           >
-            {(Object.keys(APPROVAL_ENTITY_TYPES) as ApprovalEntityTypeCode[]).map((k) => (
+            {(
+              Object.keys(APPROVAL_ENTITY_TYPES) as ApprovalEntityTypeCode[]
+            ).map((k) => (
               <SelectItem key={k} value={k} text={APPROVAL_ENTITY_TYPES[k]} />
             ))}
           </Select>
@@ -178,9 +205,11 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
             value={channel}
             onChange={(e) => setChannel(e.target.value as ApprovalChannelCode)}
           >
-            {(Object.keys(APPROVAL_CHANNELS) as ApprovalChannelCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={APPROVAL_CHANNELS[k]} />
-            ))}
+            {(Object.keys(APPROVAL_CHANNELS) as ApprovalChannelCode[]).map(
+              (k) => (
+                <SelectItem key={k} value={k} text={APPROVAL_CHANNELS[k]} />
+              ),
+            )}
           </Select>
           <TextInput
             id="ap-sent"

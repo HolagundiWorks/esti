@@ -37,7 +37,10 @@ export function ActivityCenter() {
     <Stack gap={7}>
       <Stack gap={3}>
         <h1>Activity Center</h1>
-        <p>Office-wide timeline for changes, notes, and future change-control signals.</p>
+        <p>
+          Office-wide timeline for changes, notes, and future change-control
+          signals.
+        </p>
       </Stack>
 
       <Grid condensed>
@@ -46,7 +49,9 @@ export function ActivityCenter() {
             id="activity-visibility"
             labelText="Visibility"
             value={visibility}
-            onChange={(event) => setVisibility(event.target.value as Visibility)}
+            onChange={(event) =>
+              setVisibility(event.target.value as Visibility)
+            }
           >
             <SelectItem value="STAFF" text="Staff activity" />
             <SelectItem value="ALL" text="All activity" />
@@ -70,7 +75,8 @@ export function ActivityCenter() {
         columnCount={4}
         empty={{
           title: "No activity yet",
-          description: "Project changes and internal notes will appear here as the office works.",
+          description:
+            "Project changes and internal notes will appear here as the office works.",
         }}
       >
         <Stack gap={4}>
@@ -78,7 +84,10 @@ export function ActivityCenter() {
             <Tile key={item.id}>
               <Stack gap={3}>
                 <Stack orientation="horizontal" gap={4}>
-                  <Tag type={item.visibility === "ALL" ? "purple" : "blue"} size="sm">
+                  <Tag
+                    type={item.visibility === "ALL" ? "purple" : "blue"}
+                    size="sm"
+                  >
                     {item.visibility}
                   </Tag>
                   <Tag type="gray" size="sm">

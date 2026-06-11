@@ -23,7 +23,10 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const TAG: Record<BylawCompliance, { type: "green" | "red" | "gray"; label: string }> = {
+const TAG: Record<
+  BylawCompliance,
+  { type: "green" | "red" | "gray"; label: string }
+> = {
   compliant: { type: "green", label: "Compliant" },
   violation: { type: "red", label: "Violation" },
   pending: { type: "gray", label: "Pending" },
@@ -31,7 +34,10 @@ const TAG: Record<BylawCompliance, { type: "green" | "red" | "gray"; label: stri
 
 export function ProjectBylaws({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const listQ = trpc.bylaws.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const listQ = trpc.bylaws.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const invalidate = () => utils.bylaws.listByProject.invalidate({ projectId });
 
   const update = trpc.bylaws.update.useMutation({ onSuccess: invalidate });
@@ -96,7 +102,7 @@ export function ProjectBylaws({ projectId }: { projectId: string }) {
                 <TableRow key={b.id}>
                   <TableCell>
                     {meta?.label ?? b.parameter}
-                    <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
+                    <div>
                       {b.direction === "max" ? "max" : "min"} · {b.unit}
                     </div>
                   </TableCell>
@@ -112,7 +118,8 @@ export function ProjectBylaws({ projectId }: { projectId: string }) {
                       type="number"
                       defaultValue={b.proposedValue ?? ""}
                       onBlur={(e) => {
-                        const v = e.target.value === "" ? null : Number(e.target.value);
+                        const v =
+                          e.target.value === "" ? null : Number(e.target.value);
                         if (v !== b.proposedValue)
                           update.mutate({ id: b.id, proposedValue: v });
                       }}
@@ -164,9 +171,15 @@ export function ProjectBylaws({ projectId }: { projectId: string }) {
             value={parameter}
             onChange={(e) => setParameter(e.target.value as BylawParameterCode)}
           >
-            {(Object.keys(BYLAW_PARAMETERS) as BylawParameterCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={BYLAW_PARAMETERS[k].label} />
-            ))}
+            {(Object.keys(BYLAW_PARAMETERS) as BylawParameterCode[]).map(
+              (k) => (
+                <SelectItem
+                  key={k}
+                  value={k}
+                  text={BYLAW_PARAMETERS[k].label}
+                />
+              ),
+            )}
           </Select>
           <TextInput
             id="bl-permitted"

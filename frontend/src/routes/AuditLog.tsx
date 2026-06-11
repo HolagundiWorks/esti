@@ -27,13 +27,19 @@ const PAGE_SIZES = [10, 25, 50, 100];
 type Filters = { search: string; entity: string; action: string };
 
 function jsonDetail(value: unknown) {
-  return value === null || value === undefined ? "No snapshot recorded" : JSON.stringify(value, null, 2);
+  return value === null || value === undefined
+    ? "No snapshot recorded"
+    : JSON.stringify(value, null, 2);
 }
 
 export function AuditLog() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<Filters>({ search: "", entity: "", action: "" });
+  const [filters, setFilters] = useState<Filters>({
+    search: "",
+    entity: "",
+    action: "",
+  });
   const [applied, setApplied] = useState<Filters>(filters);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -71,7 +77,12 @@ export function AuditLog() {
             id="audit-search"
             labelText="Search actor, entity, or action"
             value={filters.search}
-            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                search: event.target.value,
+              }))
+            }
             onKeyDown={(event) => event.key === "Enter" && applyFilters()}
           />
         </Column>
@@ -80,7 +91,12 @@ export function AuditLog() {
             id="audit-entity"
             labelText="Entity"
             value={filters.entity}
-            onChange={(event) => setFilters((current) => ({ ...current, entity: event.target.value }))}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                entity: event.target.value,
+              }))
+            }
           >
             <SelectItem value="" text="All entities" />
             {(list.data?.filters.entities ?? []).map((entity) => (
@@ -93,7 +109,12 @@ export function AuditLog() {
             id="audit-action"
             labelText="Action"
             value={filters.action}
-            onChange={(event) => setFilters((current) => ({ ...current, action: event.target.value }))}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                action: event.target.value,
+              }))
+            }
           >
             <SelectItem value="" text="All actions" />
             {(list.data?.filters.actions ?? []).map((action) => (
@@ -104,7 +125,9 @@ export function AuditLog() {
         <Column sm={4} md={8} lg={4}>
           <Stack orientation="horizontal" gap={3}>
             <Button onClick={applyFilters}>Apply filters</Button>
-            <Button kind="secondary" onClick={clearFilters}>Clear</Button>
+            <Button kind="secondary" onClick={clearFilters}>
+              Clear
+            </Button>
           </Stack>
         </Column>
       </Grid>
@@ -123,9 +146,15 @@ export function AuditLog() {
         loading={list.isLoading}
         isEmpty={!list.error && (list.data?.rows.length ?? 0) === 0}
         columnCount={6}
-        empty={{ title: "No audit entries found", description: "Change or clear the current filters." }}
+        empty={{
+          title: "No audit entries found",
+          description: "Change or clear the current filters.",
+        }}
       >
-        <TableContainer title="Recorded changes" description={`${list.data?.total ?? 0} entries`}>
+        <TableContainer
+          title="Recorded changes"
+          description={`${list.data?.total ?? 0} entries`}
+        >
           <Table>
             <TableHead>
               <TableRow>
@@ -140,13 +169,26 @@ export function AuditLog() {
             <TableBody>
               {(list.data?.rows ?? []).map((row) => (
                 <TableRow key={row.id}>
-                  <TableCell>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(row.createdAt))}</TableCell>
+                  <TableCell>
+                    {new Intl.DateTimeFormat("en-IN", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(row.createdAt))}
+                  </TableCell>
                   <TableCell>{row.entity}</TableCell>
                   <TableCell>{row.action}</TableCell>
-                  <TableCell>{row.actorName ?? row.actorEmail ?? "System"}</TableCell>
+                  <TableCell>
+                    {row.actorName ?? row.actorEmail ?? "System"}
+                  </TableCell>
                   <TableCell>{row.entityId ?? "—"}</TableCell>
                   <TableCell>
-                    <Button kind="ghost" size="sm" onClick={() => setSelectedId(row.id)}>View</Button>
+                    <Button
+                      kind="ghost"
+                      size="sm"
+                      onClick={() => setSelectedId(row.id)}
+                    >
+                      View
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -168,20 +210,35 @@ export function AuditLog() {
       <Modal
         open={selected !== null}
         passiveModal
-        modalHeading={selected ? `${selected.entity} · ${selected.action}` : "Audit details"}
+        modalHeading={
+          selected ? `${selected.entity} · ${selected.action}` : "Audit details"
+        }
         onRequestClose={() => setSelectedId(null)}
       >
         {selected && (
           <Stack gap={5}>
-            <p>Record: {selected.entityId ?? "Not associated with a domain record"}</p>
-            <p>Actor: {selected.actorName ?? selected.actorEmail ?? selected.actorId ?? "System"}</p>
+            <p>
+              Record:{" "}
+              {selected.entityId ?? "Not associated with a domain record"}
+            </p>
+            <p>
+              Actor:{" "}
+              {selected.actorName ??
+                selected.actorEmail ??
+                selected.actorId ??
+                "System"}
+            </p>
             <Stack gap={3}>
               <h3>Before</h3>
-              <CodeSnippet type="multi">{jsonDetail(selected.before)}</CodeSnippet>
+              <CodeSnippet type="multi">
+                {jsonDetail(selected.before)}
+              </CodeSnippet>
             </Stack>
             <Stack gap={3}>
               <h3>After</h3>
-              <CodeSnippet type="multi">{jsonDetail(selected.after)}</CodeSnippet>
+              <CodeSnippet type="multi">
+                {jsonDetail(selected.after)}
+              </CodeSnippet>
             </Stack>
           </Stack>
         )}

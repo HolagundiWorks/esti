@@ -79,19 +79,35 @@ export function Invoices() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div>
           <h1>Invoices</h1>
-          <p style={{ color: "var(--cds-text-secondary)" }}>GST tax invoices &amp; bills of supply across all projects.</p>
+          <p>GST tax invoices &amp; bills of supply across all projects.</p>
         </div>
-        {canInvoice && <Button onClick={() => setOpen(true)}>New invoice</Button>}
+        {canInvoice && (
+          <Button onClick={() => setOpen(true)}>New invoice</Button>
+        )}
       </div>
 
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}
         columnCount={8}
-        empty={{ title: "No invoices yet", description: "Raise an invoice against any project.", action: canInvoice ? <Button size="sm" onClick={() => setOpen(true)}>New invoice</Button> : undefined }}
+        empty={{
+          title: "No invoices yet",
+          description: "Raise an invoice against any project.",
+          action: canInvoice ? (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New invoice
+            </Button>
+          ) : undefined,
+        }}
       >
         <TableContainer title="All invoices" description="Office-wide">
           <Table>
@@ -112,13 +128,21 @@ export function Invoices() {
                 <TableRow key={iv.id}>
                   <TableCell>{iv.ref}</TableCell>
                   <TableCell>
-                    <Link to={`/projects/${iv.projectId}?tab=invoices`}>{iv.projectRef}</Link>
-                    <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{iv.projectTitle}</div>
+                    <Link to={`/projects/${iv.projectId}?tab=invoices`}>
+                      {iv.projectRef}
+                    </Link>
+                    <div>{iv.projectTitle}</div>
                   </TableCell>
                   <TableCell>{iv.documentKind}</TableCell>
-                  <TableCell>{formatINR(iv.taxablePaise, { paise: false })}</TableCell>
-                  <TableCell>{formatINR(iv.gstTotalPaise, { paise: false })}</TableCell>
-                  <TableCell>{formatINR(iv.netReceivablePaise, { paise: false })}</TableCell>
+                  <TableCell>
+                    {formatINR(iv.taxablePaise, { paise: false })}
+                  </TableCell>
+                  <TableCell>
+                    {formatINR(iv.gstTotalPaise, { paise: false })}
+                  </TableCell>
+                  <TableCell>
+                    {formatINR(iv.netReceivablePaise, { paise: false })}
+                  </TableCell>
                   <TableCell>
                     <Select
                       id={`inv-st-${iv.id}`}
@@ -126,17 +150,37 @@ export function Invoices() {
                       hideLabel
                       size="sm"
                       value={iv.status}
-                      disabled={!canInvoice || iv.status === "PAID" || iv.status === "CANCELLED"}
-                      onChange={(e) => updateStatus.mutate({ id: iv.id, status: e.target.value as (typeof InvoiceStatus.options)[number] })}
+                      disabled={
+                        !canInvoice ||
+                        iv.status === "PAID" ||
+                        iv.status === "CANCELLED"
+                      }
+                      onChange={(e) =>
+                        updateStatus.mutate({
+                          id: iv.id,
+                          status: e.target
+                            .value as (typeof InvoiceStatus.options)[number],
+                        })
+                      }
                     >
                       {InvoiceStatus.options.map((st) => (
                         <SelectItem key={st} value={st} text={st} />
                       ))}
                     </Select>
-                    <Tag type={STATUS_TAG[iv.status] ?? "gray"} size="sm" style={{ marginLeft: 4 }}>{iv.status}</Tag>
+                    <Tag
+                      type={STATUS_TAG[iv.status] ?? "gray"}
+                      size="sm"
+                      style={{ marginLeft: 4 }}
+                    >
+                      {iv.status}
+                    </Tag>
                   </TableCell>
                   <TableCell>
-                    <InvoicePdfCell invoiceId={iv.id} initialStatus={iv.pdfStatus} canManage={canInvoice} />
+                    <InvoicePdfCell
+                      invoiceId={iv.id}
+                      initialStatus={iv.pdfStatus}
+                      canManage={canInvoice}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -153,39 +197,85 @@ export function Invoices() {
         primaryButtonDisabled={!projectId || !taxableR || create.isPending}
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() =>
-          create.mutate({ projectId, taxablePaise, interState: inter, sac: showSac ? sac : undefined })
+          create.mutate({
+            projectId,
+            taxablePaise,
+            interState: inter,
+            sac: showSac ? sac : undefined,
+          })
         }
       >
         <Stack gap={5}>
-          <Select id="gi-proj" labelText="Project" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+          <Select
+            id="gi-proj"
+            labelText="Project"
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+          >
             <SelectItem value="" text="Select a project…" />
             {(projectsQ.data ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id} text={`${p.ref} — ${p.title}`} />
+              <SelectItem
+                key={p.id}
+                value={p.id}
+                text={`${p.ref} — ${p.title}`}
+              />
             ))}
           </Select>
-          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
+          <div>
             GST system: <strong>{firmGst}</strong> (from Company settings)
           </div>
-          <TextInput id="gi-tax" labelText="Taxable value (₹)" type="number" value={taxableR} onChange={(e) => setTaxableR(e.target.value)} />
+          <TextInput
+            id="gi-tax"
+            labelText="Taxable value (₹)"
+            type="number"
+            value={taxableR}
+            onChange={(e) => setTaxableR(e.target.value)}
+          />
           {showSac && (
-            <Select id="gi-sac" labelText="SAC code" value={sac} onChange={(e) => setSac(e.target.value)}>
+            <Select
+              id="gi-sac"
+              labelText="SAC code"
+              value={sac}
+              onChange={(e) => setSac(e.target.value)}
+            >
               {SAC_CODES.map((s) => (
-                <SelectItem key={s.code} value={s.code} text={`${s.code} — ${s.label}`} />
+                <SelectItem
+                  key={s.code}
+                  value={s.code}
+                  text={`${s.code} — ${s.label}`}
+                />
               ))}
             </Select>
           )}
-          <Checkbox id="gi-inter" labelText="Inter-state (IGST)" checked={inter} onChange={(_, { checked }) => setInter(checked)} />
-          <div style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
-            TDS u/s 194J: <strong>{firmTdsDefault ? "deducted (10%)" : "not applicable"}</strong> (from Company settings)
+          <Checkbox
+            id="gi-inter"
+            labelText="Inter-state (IGST)"
+            checked={inter}
+            onChange={(_, { checked }) => setInter(checked)}
+          />
+          <div>
+            TDS u/s 194J:{" "}
+            <strong>
+              {firmTdsDefault ? "deducted (10%)" : "not applicable"}
+            </strong>{" "}
+            (from Company settings)
           </div>
           {taxablePaise > 0 && (
-            <div style={{ fontSize: "0.875rem" }}>
-              {breakup.documentKind} · GST {formatINR(breakup.gstTotal, { paise: false })} · TDS {formatINR(tdsPaise, { paise: false })} · Net{" "}
+            <div>
+              {breakup.documentKind} · GST{" "}
+              {formatINR(breakup.gstTotal, { paise: false })} · TDS{" "}
+              {formatINR(tdsPaise, { paise: false })} · Net{" "}
               <strong>{formatINR(net, { paise: false })}</strong>
             </div>
           )}
           {create.error && (
-            <InlineNotification kind="error" title="Could not create" subtitle={create.error.message} hideCloseButton lowContrast />
+            <InlineNotification
+              kind="error"
+              title="Could not create"
+              subtitle={create.error.message}
+              hideCloseButton
+              lowContrast
+            />
           )}
         </Stack>
       </Modal>

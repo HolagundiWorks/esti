@@ -19,7 +19,8 @@ export function FeeProposalPdfCell({
       enabled: active,
       refetchInterval: (q) =>
         q.state.data &&
-        (q.state.data.pdfStatus === "PENDING" || q.state.data.pdfStatus === "PROCESSING")
+        (q.state.data.pdfStatus === "PENDING" ||
+          q.state.data.pdfStatus === "PROCESSING")
           ? 1500
           : false,
     },
@@ -37,13 +38,19 @@ export function FeeProposalPdfCell({
 
   if (status === "READY" && url) {
     return (
-      <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+      <Button
+        kind="ghost"
+        size="sm"
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+      >
         Open PDF
       </Button>
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {
-    return <span style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>Generating…</span>;
+    return <span>Generating…</span>;
   }
   return (
     <Button

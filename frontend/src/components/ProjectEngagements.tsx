@@ -27,11 +27,17 @@ const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
 export function ProjectEngagements({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const listQ = trpc.engagements.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const listQ = trpc.engagements.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const consultantsQ = trpc.consultants.list.useQuery();
-  const invalidate = () => utils.engagements.listByProject.invalidate({ projectId });
+  const invalidate = () =>
+    utils.engagements.listByProject.invalidate({ projectId });
 
-  const updateStatus = trpc.engagements.updateStatus.useMutation({ onSuccess: invalidate });
+  const updateStatus = trpc.engagements.updateStatus.useMutation({
+    onSuccess: invalidate,
+  });
   const pay = trpc.engagements.recordPayment.useMutation({
     onSuccess: () => {
       invalidate();
@@ -69,14 +75,21 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         }}
       >
         <h3>Consultants engaged</h3>
-        <Button size="sm" disabled={consultants.length === 0} onClick={() => setOpen(true)}>
+        <Button
+          size="sm"
+          disabled={consultants.length === 0}
+          onClick={() => setOpen(true)}
+        >
           Engage consultant
         </Button>
       </div>
       {consultants.length === 0 && (
-        <p style={{ color: "var(--cds-text-secondary)" }}>Add consultants in the Consultants register first.</p>
+        <p>Add consultants in the Consultants register first.</p>
       )}
-      <TableContainer title="Sub-consultant engagements" description="Agreed fee, paid, and balance">
+      <TableContainer
+        title="Sub-consultant engagements"
+        description="Agreed fee, paid, and balance"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -96,14 +109,17 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                 <TableRow key={e.id}>
                   <TableCell>{e.consultantName}</TableCell>
                   <TableCell>
-                    {CONSULTANT_DISCIPLINES[e.discipline as ConsultantDisciplineCode] ??
-                      e.discipline}
+                    {CONSULTANT_DISCIPLINES[
+                      e.discipline as ConsultantDisciplineCode
+                    ] ?? e.discipline}
                   </TableCell>
-                  <TableCell>{formatINR(e.agreedFeePaise, { paise: false })}</TableCell>
-                  <TableCell>{formatINR(e.paidPaise, { paise: false })}</TableCell>
-                  <TableCell style={{ color: balance > 0 ? "var(--cds-text-error)" : "#198038" }}>
-                    {formatINR(balance, { paise: false })}
+                  <TableCell>
+                    {formatINR(e.agreedFeePaise, { paise: false })}
                   </TableCell>
+                  <TableCell>
+                    {formatINR(e.paidPaise, { paise: false })}
+                  </TableCell>
+                  <TableCell>{formatINR(balance, { paise: false })}</TableCell>
                   <TableCell>
                     <Select
                       id={`eng-${e.id}`}
@@ -114,7 +130,8 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                       onChange={(ev) =>
                         updateStatus.mutate({
                           id: e.id,
-                          status: ev.target.value as (typeof EngagementStatus.options)[number],
+                          status: ev.target
+                            .value as (typeof EngagementStatus.options)[number],
                         })
                       }
                     >
@@ -135,7 +152,9 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                     >
                       Record payment
                     </Button>
-                    {balance <= 0 && e.agreedFeePaise > 0 && <Tag type="green">Settled</Tag>}
+                    {balance <= 0 && e.agreedFeePaise > 0 && (
+                      <Tag type="green">Settled</Tag>
+                    )}
                   </TableCell>
                 </TableRow>
               );
@@ -149,7 +168,9 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         modalHeading="Engage a consultant"
         primaryButtonText={create.isPending ? "Saving…" : "Engage"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!consultantId || agreedFee === "" || create.isPending}
+        primaryButtonDisabled={
+          !consultantId || agreedFee === "" || create.isPending
+        }
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() =>
           create.mutate({

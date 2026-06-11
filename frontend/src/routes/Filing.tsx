@@ -23,7 +23,21 @@ import { trpc } from "../lib/trpc.js";
 /** Render a YYYY-MM period key as e.g. "Apr 2026". */
 function periodLabel(p: string): string {
   const [y, m] = p.split("-");
-  const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = [
+    "",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   return `${months[Number(m)] ?? m} ${y}`;
 }
 
@@ -49,15 +63,26 @@ export function Filing() {
     <Stack gap={6}>
       <div>
         <h2>Filing abstracts</h2>
-        <p style={{ color: "var(--cds-text-secondary)" }}>
-          GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J, aggregated by month from issued and
-          paid invoices. Default period is the current financial year.
+        <p>
+          GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J,
+          aggregated by month from issued and paid invoices. Default period is
+          the current financial year.
         </p>
       </div>
 
       <DatePicker datePickerType="range" dateFormat="Y-m-d" onChange={onRange}>
-        <DatePickerInput id="filing-from" labelText="From" placeholder="YYYY-MM-DD" size="md" />
-        <DatePickerInput id="filing-to" labelText="To" placeholder="YYYY-MM-DD" size="md" />
+        <DatePickerInput
+          id="filing-from"
+          labelText="From"
+          placeholder="YYYY-MM-DD"
+          size="md"
+        />
+        <DatePickerInput
+          id="filing-to"
+          labelText="To"
+          placeholder="YYYY-MM-DD"
+          size="md"
+        />
       </DatePicker>
 
       <Tabs>
@@ -69,10 +94,13 @@ export function Filing() {
           <TabPanel>
             {gst.data && (
               <Stack gap={4}>
-                <p style={{ color: "var(--cds-text-secondary)" }}>
+                <p>
                   Period {gst.data.from} → {gst.data.to}
                 </p>
-                <TableContainer title="GST output tax by month" description="Taxable value and output GST">
+                <TableContainer
+                  title="GST output tax by month"
+                  description="Taxable value and output GST"
+                >
                   <Table size="lg">
                     <TableHead>
                       <TableRow>
@@ -96,12 +124,16 @@ export function Filing() {
                           <TableCell>{formatINR(r.sgstPaise)}</TableCell>
                           <TableCell>{formatINR(r.igstPaise)}</TableCell>
                           <TableCell>{formatINR(r.gstTotalPaise)}</TableCell>
-                          <TableCell>{formatINR(r.invoiceTotalPaise)}</TableCell>
+                          <TableCell>
+                            {formatINR(r.invoiceTotalPaise)}
+                          </TableCell>
                         </TableRow>
                       ))}
                       {gst.data.periods.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={8}>No invoices in this period.</TableCell>
+                          <TableCell colSpan={8}>
+                            No invoices in this period.
+                          </TableCell>
                         </TableRow>
                       )}
                       <TableRow>
@@ -112,22 +144,34 @@ export function Filing() {
                           <strong>{gst.data.totals.count}</strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.taxablePaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.taxablePaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.cgstPaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.cgstPaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.sgstPaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.sgstPaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.igstPaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.igstPaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.gstTotalPaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.gstTotalPaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(gst.data.totals.invoiceTotalPaise)}</strong>
+                          <strong>
+                            {formatINR(gst.data.totals.invoiceTotalPaise)}
+                          </strong>
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -135,7 +179,10 @@ export function Filing() {
                 </TableContainer>
                 {gst.data.totals.compositionLevyPaise > 0 && (
                   <Tile>
-                    Composition levy payable: <strong>{formatINR(gst.data.totals.compositionLevyPaise)}</strong>
+                    Composition levy payable:{" "}
+                    <strong>
+                      {formatINR(gst.data.totals.compositionLevyPaise)}
+                    </strong>
                   </Tile>
                 )}
               </Stack>
@@ -145,11 +192,14 @@ export function Filing() {
           <TabPanel>
             {tds.data && (
               <Stack gap={4}>
-                <p style={{ color: "var(--cds-text-secondary)" }}>
-                  Period {tds.data.from} → {tds.data.to} · TDS deducted by clients on professional fees (u/s
-                  194J).
+                <p>
+                  Period {tds.data.from} → {tds.data.to} · TDS deducted by
+                  clients on professional fees (u/s 194J).
                 </p>
-                <TableContainer title="TDS deducted by month" description="For 26AS / TDS-credit reconciliation">
+                <TableContainer
+                  title="TDS deducted by month"
+                  description="For 26AS / TDS-credit reconciliation"
+                >
                   <Table size="lg">
                     <TableHead>
                       <TableRow>
@@ -167,12 +217,16 @@ export function Filing() {
                           <TableCell>{r.count}</TableCell>
                           <TableCell>{formatINR(r.grossPaise)}</TableCell>
                           <TableCell>{formatINR(r.tdsPaise)}</TableCell>
-                          <TableCell>{formatINR(r.netReceivablePaise)}</TableCell>
+                          <TableCell>
+                            {formatINR(r.netReceivablePaise)}
+                          </TableCell>
                         </TableRow>
                       ))}
                       {tds.data.periods.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5}>No TDS deducted in this period.</TableCell>
+                          <TableCell colSpan={5}>
+                            No TDS deducted in this period.
+                          </TableCell>
                         </TableRow>
                       )}
                       <TableRow>
@@ -183,13 +237,17 @@ export function Filing() {
                           <strong>{tds.data.totals.count}</strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(tds.data.totals.grossPaise)}</strong>
+                          <strong>
+                            {formatINR(tds.data.totals.grossPaise)}
+                          </strong>
                         </TableCell>
                         <TableCell>
                           <strong>{formatINR(tds.data.totals.tdsPaise)}</strong>
                         </TableCell>
                         <TableCell>
-                          <strong>{formatINR(tds.data.totals.netReceivablePaise)}</strong>
+                          <strong>
+                            {formatINR(tds.data.totals.netReceivablePaise)}
+                          </strong>
                         </TableCell>
                       </TableRow>
                     </TableBody>

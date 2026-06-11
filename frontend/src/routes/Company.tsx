@@ -97,12 +97,19 @@ export function Company() {
 
   useEffect(() => {
     if (firmQ.data) {
-      setF((p) => ({
-        ...p,
-        ...Object.fromEntries(
-          Object.keys(EMPTY).map((k) => [k, (firmQ.data as Record<string, unknown>)[k] ?? EMPTY[k as keyof Form]]),
-        ),
-      } as Form));
+      setF(
+        (p) =>
+          ({
+            ...p,
+            ...Object.fromEntries(
+              Object.keys(EMPTY).map((k) => [
+                k,
+                (firmQ.data as Record<string, unknown>)[k] ??
+                  EMPTY[k as keyof Form],
+              ]),
+            ),
+          }) as Form,
+      );
     }
   }, [firmQ.data]);
 
@@ -116,12 +123,17 @@ export function Company() {
   async function uploadLogo(file: File) {
     const fd = new FormData();
     fd.append("file", file);
-    const res = await fetch("/upload/firm-logo", { method: "POST", body: fd, credentials: "include" });
+    const res = await fetch("/upload/firm-logo", {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
     if (res.ok) {
       utils.firm.get.invalidate();
       setMsg("Logo uploaded");
     } else {
-      const err = (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`;
+      const err =
+        (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`;
       setMsg(`Logo upload failed: ${err}`);
     }
   }
@@ -131,22 +143,40 @@ export function Company() {
   return (
     <div>
       <h1>Company profile</h1>
-      {!isOwner && <p style={{ color: "var(--cds-text-secondary)" }}>Read-only — only the owner can edit.</p>}
+      {!isOwner && <p>Read-only — only the owner can edit.</p>}
       {msg && (
-        <InlineNotification kind="success" title="Saved" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
+        <InlineNotification
+          kind="success"
+          title="Saved"
+          subtitle={msg}
+          lowContrast
+          onCloseButtonClick={() => setMsg(null)}
+        />
       )}
 
       <Tile style={{ maxWidth: 760, marginTop: 16 }}>
         <Stack gap={5}>
-          <TextInput id="co-name" labelText="Company name" value={f.companyName} onChange={set("companyName")} disabled={!isOwner} />
+          <TextInput
+            id="co-name"
+            labelText="Company name"
+            value={f.companyName}
+            onChange={set("companyName")}
+            disabled={!isOwner}
+          />
 
           <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-            <Select id="co-type" labelText="Firm type" value={f.firmType} onChange={set("firmType")} disabled={!isOwner}>
+            <Select
+              id="co-type"
+              labelText="Firm type"
+              value={f.firmType}
+              onChange={set("firmType")}
+              disabled={!isOwner}
+            >
               <SelectItem value="SOLO" text="Solo" />
               <SelectItem value="PARTNERSHIP" text="Partnership" />
             </Select>
             {firmQ.data?.logoUrl && (
-              <img src={firmQ.data.logoUrl} alt="logo" style={{ height: 48, border: "1px solid var(--cds-border-subtle)" }} />
+              <img src={firmQ.data.logoUrl} alt="logo" style={{ height: 48 }} />
             )}
             <FileUploaderButton
               labelText="Upload logo"
@@ -162,12 +192,24 @@ export function Company() {
           </div>
 
           <div style={{ display: "flex", gap: 16 }}>
-            <Select id="co-gst" labelText="GST type (sets invoice GST)" value={f.gstType} onChange={set("gstType")} disabled={!isOwner}>
+            <Select
+              id="co-gst"
+              labelText="GST type (sets invoice GST)"
+              value={f.gstType}
+              onChange={set("gstType")}
+              disabled={!isOwner}
+            >
               {Object.values(GstSystem).map((g) => (
                 <SelectItem key={g} value={g} text={GST_LABEL[g] ?? g} />
               ))}
             </Select>
-            <TextInput id="co-gstin" labelText="GSTIN" value={f.gstin} onChange={set("gstin")} disabled={!isOwner} />
+            <TextInput
+              id="co-gstin"
+              labelText="GSTIN"
+              value={f.gstin}
+              onChange={set("gstin")}
+              disabled={!isOwner}
+            />
           </div>
           <Toggle
             id="co-tds"
@@ -176,49 +218,146 @@ export function Company() {
             labelB="TDS deducted"
             toggled={f.tdsApplicableDefault}
             disabled={!isOwner}
-            onToggle={(checked) => setF((p) => ({ ...p, tdsApplicableDefault: checked }))}
+            onToggle={(checked) =>
+              setF((p) => ({ ...p, tdsApplicableDefault: checked }))
+            }
           />
 
           <h4>{f.firmType === "SOLO" ? "Architect" : "Primary signatory"}</h4>
           <div style={{ display: "flex", gap: 16 }}>
-            <TextInput id="co-arch" labelText="Architect name" value={f.architectName} onChange={set("architectName")} disabled={!isOwner} />
-            <TextInput id="co-coa" labelText="COA registration no" value={f.coaRegNo} onChange={set("coaRegNo")} disabled={!isOwner} />
-            <TextInput id="co-pan" labelText="PAN" value={f.pan} onChange={set("pan")} disabled={!isOwner} />
+            <TextInput
+              id="co-arch"
+              labelText="Architect name"
+              value={f.architectName}
+              onChange={set("architectName")}
+              disabled={!isOwner}
+            />
+            <TextInput
+              id="co-coa"
+              labelText="COA registration no"
+              value={f.coaRegNo}
+              onChange={set("coaRegNo")}
+              disabled={!isOwner}
+            />
+            <TextInput
+              id="co-pan"
+              labelText="PAN"
+              value={f.pan}
+              onChange={set("pan")}
+              disabled={!isOwner}
+            />
           </div>
           <div style={{ display: "flex", gap: 16 }}>
-            <TextInput id="co-email" labelText="Email" type="email" value={f.email} onChange={set("email")} disabled={!isOwner} />
-            <Select id="co-p1t" labelText="Phone 1 type" value={f.phone1Type} onChange={set("phone1Type")} disabled={!isOwner}>
-              {PhoneType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}
+            <TextInput
+              id="co-email"
+              labelText="Email"
+              type="email"
+              value={f.email}
+              onChange={set("email")}
+              disabled={!isOwner}
+            />
+            <Select
+              id="co-p1t"
+              labelText="Phone 1 type"
+              value={f.phone1Type}
+              onChange={set("phone1Type")}
+              disabled={!isOwner}
+            >
+              {PhoneType.options.map((t) => (
+                <SelectItem key={t} value={t} text={t} />
+              ))}
             </Select>
-            <TextInput id="co-p1" labelText="Phone 1" value={f.phone1} onChange={set("phone1")} disabled={!isOwner} />
-            <Select id="co-p2t" labelText="Phone 2 type" value={f.phone2Type} onChange={set("phone2Type")} disabled={!isOwner}>
-              {PhoneType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}
+            <TextInput
+              id="co-p1"
+              labelText="Phone 1"
+              value={f.phone1}
+              onChange={set("phone1")}
+              disabled={!isOwner}
+            />
+            <Select
+              id="co-p2t"
+              labelText="Phone 2 type"
+              value={f.phone2Type}
+              onChange={set("phone2Type")}
+              disabled={!isOwner}
+            >
+              {PhoneType.options.map((t) => (
+                <SelectItem key={t} value={t} text={t} />
+              ))}
             </Select>
-            <TextInput id="co-p2" labelText="Phone 2" value={f.phone2} onChange={set("phone2")} disabled={!isOwner} />
+            <TextInput
+              id="co-p2"
+              labelText="Phone 2"
+              value={f.phone2}
+              onChange={set("phone2")}
+              disabled={!isOwner}
+            />
           </div>
 
           <h4>Address</h4>
-          <TextInput id="co-a1" labelText="Address line 1" value={f.addressLine1} onChange={set("addressLine1")} disabled={!isOwner} />
-          <TextInput id="co-a2" labelText="Address line 2" value={f.addressLine2} onChange={set("addressLine2")} disabled={!isOwner} />
+          <TextInput
+            id="co-a1"
+            labelText="Address line 1"
+            value={f.addressLine1}
+            onChange={set("addressLine1")}
+            disabled={!isOwner}
+          />
+          <TextInput
+            id="co-a2"
+            labelText="Address line 2"
+            value={f.addressLine2}
+            onChange={set("addressLine2")}
+            disabled={!isOwner}
+          />
           <div style={{ display: "flex", gap: 16 }}>
-            <TextInput id="co-city" labelText="City" value={f.city} onChange={set("city")} disabled={!isOwner} />
-            <TextInput id="co-pin" labelText="Pincode" value={f.pincode} onChange={set("pincode")} disabled={!isOwner} />
+            <TextInput
+              id="co-city"
+              labelText="City"
+              value={f.city}
+              onChange={set("city")}
+              disabled={!isOwner}
+            />
+            <TextInput
+              id="co-pin"
+              labelText="Pincode"
+              value={f.pincode}
+              onChange={set("pincode")}
+              disabled={!isOwner}
+            />
             <Select
               id="co-state"
               labelText="State"
               value={f.state}
-              onChange={(e) => setF((p) => ({ ...p, state: e.target.value, district: "" }))}
+              onChange={(e) =>
+                setF((p) => ({ ...p, state: e.target.value, district: "" }))
+              }
               disabled={!isOwner}
             >
-              {STATES.map((s) => <SelectItem key={s} value={s} text={s} />)}
+              {STATES.map((s) => (
+                <SelectItem key={s} value={s} text={s} />
+              ))}
             </Select>
             {districts.length > 0 ? (
-              <Select id="co-dist" labelText="District" value={f.district} onChange={set("district")} disabled={!isOwner}>
+              <Select
+                id="co-dist"
+                labelText="District"
+                value={f.district}
+                onChange={set("district")}
+                disabled={!isOwner}
+              >
                 <SelectItem value="" text="Select…" />
-                {districts.map((d) => <SelectItem key={d} value={d} text={d} />)}
+                {districts.map((d) => (
+                  <SelectItem key={d} value={d} text={d} />
+                ))}
               </Select>
             ) : (
-              <TextInput id="co-dist" labelText="District" value={f.district} onChange={set("district")} disabled={!isOwner} />
+              <TextInput
+                id="co-dist"
+                labelText="District"
+                value={f.district}
+                onChange={set("district")}
+                disabled={!isOwner}
+              />
             )}
           </div>
 
@@ -243,9 +382,9 @@ export function Company() {
 
       <Tile style={{ maxWidth: 760, marginTop: 24 }}>
         <h4>Team &amp; HR module</h4>
-        <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 16px" }}>
-          Staff register, site in-charge assignment, leaves and salary. Leave off for a solo
-          freelancer — the Team and HR areas stay hidden.
+        <p style={{ margin: "8px 0 16px" }}>
+          Staff register, site in-charge assignment, leaves and salary. Leave
+          off for a solo freelancer — the Team and HR areas stay hidden.
         </p>
         <Toggle
           id="hr-toggle"
@@ -257,9 +396,7 @@ export function Company() {
           onToggle={(checked) => setHr.mutate({ hrEnabled: checked })}
         />
         {!isOwner && (
-          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 12 }}>
-            Only the owner can change this.
-          </p>
+          <p style={{ marginTop: 12 }}>Only the owner can change this.</p>
         )}
       </Tile>
 
@@ -274,7 +411,9 @@ function DataTools() {
   const importDemo = trpc.admin.importDemo.useMutation({
     onSuccess: (r) => {
       utils.invalidate();
-      setMsg(`Demo data imported: ${r.clientsCreated} clients, ${r.projectsCreated} projects.`);
+      setMsg(
+        `Demo data imported: ${r.clientsCreated} clients, ${r.projectsCreated} projects.`,
+      );
     },
   });
   const [purgeOpen, setPurgeOpen] = useState(false);
@@ -289,18 +428,29 @@ function DataTools() {
   });
 
   return (
-    <Tile style={{ maxWidth: 760, marginTop: 24, borderLeft: "3px solid var(--cds-text-error)" }}>
+    <Tile style={{ maxWidth: 760, marginTop: 24 }}>
       <h4>Data tools</h4>
       {msg && (
-        <InlineNotification kind="success" title="Done" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
+        <InlineNotification
+          kind="success"
+          title="Done"
+          subtitle={msg}
+          lowContrast
+          onCloseButtonClick={() => setMsg(null)}
+        />
       )}
-      <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 12px" }}>
-        Load sample records to explore the system, or reset everything to a clean slate. Reset keeps
-        your firm profile, this owner login and DSR reference data — all projects, clients, invoices,
-        drawings, HR and other logins are permanently removed.
+      <p style={{ margin: "8px 0 12px" }}>
+        Load sample records to explore the system, or reset everything to a
+        clean slate. Reset keeps your firm profile, this owner login and DSR
+        reference data — all projects, clients, invoices, drawings, HR and other
+        logins are permanently removed.
       </p>
       <div style={{ display: "flex", gap: 8 }}>
-        <Button kind="tertiary" disabled={importDemo.isPending} onClick={() => importDemo.mutate()}>
+        <Button
+          kind="tertiary"
+          disabled={importDemo.isPending}
+          onClick={() => importDemo.mutate()}
+        >
           {importDemo.isPending ? "Importing…" : "Import demo data"}
         </Button>
         <Button kind="danger" onClick={() => setPurgeOpen(true)}>
@@ -315,13 +465,17 @@ function DataTools() {
         primaryButtonText={purge.isPending ? "Resetting…" : "Permanently reset"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={pwd.length === 0 || purge.isPending}
-        onRequestClose={() => { setPurgeOpen(false); setPwd(""); purge.reset(); }}
+        onRequestClose={() => {
+          setPurgeOpen(false);
+          setPwd("");
+          purge.reset();
+        }}
         onRequestSubmit={() => purge.mutate({ password: pwd })}
       >
         <Stack gap={5}>
           <p>
-            This permanently deletes <strong>all operational data</strong> and cannot be undone.
-            Enter your admin password to confirm.
+            This permanently deletes <strong>all operational data</strong> and
+            cannot be undone. Enter your admin password to confirm.
           </p>
           <PasswordInput
             id="purge-pwd"
@@ -330,7 +484,12 @@ function DataTools() {
             onChange={(e) => setPwd(e.target.value)}
           />
           {purge.error && (
-            <InlineNotification kind="error" lowContrast title="Reset failed" subtitle={purge.error.message} />
+            <InlineNotification
+              kind="error"
+              lowContrast
+              title="Reset failed"
+              subtitle={purge.error.message}
+            />
           )}
         </Stack>
       </Modal>
@@ -359,7 +518,15 @@ function Partners({ isOwner }: { isOwner: boolean }) {
   const add = trpc.firm.addPartner.useMutation({
     onSuccess: () => {
       invalidate();
-      setP((x) => ({ ...x, name: "", coaRegNo: "", pan: "", din: "", email: "", phone1: "" }));
+      setP((x) => ({
+        ...x,
+        name: "",
+        coaRegNo: "",
+        pan: "",
+        din: "",
+        email: "",
+        phone1: "",
+      }));
     },
   });
   const districts = districtsFor(p.state);
@@ -389,7 +556,11 @@ function Partners({ isOwner }: { isOwner: boolean }) {
                 <TableCell>{row.email ?? "—"}</TableCell>
                 <TableCell>
                   {isOwner && (
-                    <Button kind="ghost" size="sm" onClick={() => remove.mutate({ id: row.id })}>
+                    <Button
+                      kind="ghost"
+                      size="sm"
+                      onClick={() => remove.mutate({ id: row.id })}
+                    >
                       Remove
                     </Button>
                   )}
@@ -405,25 +576,90 @@ function Partners({ isOwner }: { isOwner: boolean }) {
           <Stack gap={5}>
             <h4>Add partner</h4>
             <div style={{ display: "flex", gap: 16 }}>
-              <TextInput id="pt-name" labelText="Name" value={p.name} onChange={(e) => setP((x) => ({ ...x, name: e.target.value }))} />
-              <TextInput id="pt-coa" labelText="COA no" value={p.coaRegNo} onChange={(e) => setP((x) => ({ ...x, coaRegNo: e.target.value }))} />
-              <TextInput id="pt-pan" labelText="PAN" value={p.pan} onChange={(e) => setP((x) => ({ ...x, pan: e.target.value }))} />
-              <TextInput id="pt-din" labelText="DIN" value={p.din} onChange={(e) => setP((x) => ({ ...x, din: e.target.value }))} />
+              <TextInput
+                id="pt-name"
+                labelText="Name"
+                value={p.name}
+                onChange={(e) => setP((x) => ({ ...x, name: e.target.value }))}
+              />
+              <TextInput
+                id="pt-coa"
+                labelText="COA no"
+                value={p.coaRegNo}
+                onChange={(e) =>
+                  setP((x) => ({ ...x, coaRegNo: e.target.value }))
+                }
+              />
+              <TextInput
+                id="pt-pan"
+                labelText="PAN"
+                value={p.pan}
+                onChange={(e) => setP((x) => ({ ...x, pan: e.target.value }))}
+              />
+              <TextInput
+                id="pt-din"
+                labelText="DIN"
+                value={p.din}
+                onChange={(e) => setP((x) => ({ ...x, din: e.target.value }))}
+              />
             </div>
             <div style={{ display: "flex", gap: 16 }}>
-              <TextInput id="pt-email" labelText="Email" type="email" value={p.email} onChange={(e) => setP((x) => ({ ...x, email: e.target.value }))} />
-              <TextInput id="pt-phone" labelText="Phone" value={p.phone1} onChange={(e) => setP((x) => ({ ...x, phone1: e.target.value }))} />
-              <TextInput id="pt-city" labelText="City" value={p.city} onChange={(e) => setP((x) => ({ ...x, city: e.target.value }))} />
-              <Select id="pt-state" labelText="State" value={p.state} onChange={(e) => setP((x) => ({ ...x, state: e.target.value, district: "" }))}>
-                {STATES.map((s) => <SelectItem key={s} value={s} text={s} />)}
+              <TextInput
+                id="pt-email"
+                labelText="Email"
+                type="email"
+                value={p.email}
+                onChange={(e) => setP((x) => ({ ...x, email: e.target.value }))}
+              />
+              <TextInput
+                id="pt-phone"
+                labelText="Phone"
+                value={p.phone1}
+                onChange={(e) =>
+                  setP((x) => ({ ...x, phone1: e.target.value }))
+                }
+              />
+              <TextInput
+                id="pt-city"
+                labelText="City"
+                value={p.city}
+                onChange={(e) => setP((x) => ({ ...x, city: e.target.value }))}
+              />
+              <Select
+                id="pt-state"
+                labelText="State"
+                value={p.state}
+                onChange={(e) =>
+                  setP((x) => ({ ...x, state: e.target.value, district: "" }))
+                }
+              >
+                {STATES.map((s) => (
+                  <SelectItem key={s} value={s} text={s} />
+                ))}
               </Select>
               {districts.length > 0 ? (
-                <Select id="pt-dist" labelText="District" value={p.district} onChange={(e) => setP((x) => ({ ...x, district: e.target.value }))}>
+                <Select
+                  id="pt-dist"
+                  labelText="District"
+                  value={p.district}
+                  onChange={(e) =>
+                    setP((x) => ({ ...x, district: e.target.value }))
+                  }
+                >
                   <SelectItem value="" text="Select…" />
-                  {districts.map((d) => <SelectItem key={d} value={d} text={d} />)}
+                  {districts.map((d) => (
+                    <SelectItem key={d} value={d} text={d} />
+                  ))}
                 </Select>
               ) : (
-                <TextInput id="pt-dist" labelText="District" value={p.district} onChange={(e) => setP((x) => ({ ...x, district: e.target.value }))} />
+                <TextInput
+                  id="pt-dist"
+                  labelText="District"
+                  value={p.district}
+                  onChange={(e) =>
+                    setP((x) => ({ ...x, district: e.target.value }))
+                  }
+                />
               )}
             </div>
             <Button

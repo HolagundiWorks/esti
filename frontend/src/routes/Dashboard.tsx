@@ -10,7 +10,12 @@ import {
   Toggle,
 } from "@carbon/react";
 import { PieChart, type PieChartOptions } from "@carbon/charts-react";
-import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
+import {
+  Banking,
+  ChartLine,
+  type Pictogram,
+  Receipt,
+} from "@carbon/pictograms-react";
 import { can, formatINRShort } from "@esti/contracts";
 import { useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
@@ -42,7 +47,10 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: "Cancelled",
 };
 
-const STATUS_TAG: Record<string, "blue" | "gray" | "magenta" | "green" | "red" | "teal"> = {
+const STATUS_TAG: Record<
+  string,
+  "blue" | "gray" | "magenta" | "green" | "red" | "teal"
+> = {
   ENQUIRY: "gray",
   PROPOSAL: "teal",
   ACTIVE: "blue",
@@ -104,17 +112,28 @@ function dueTagType(days: number): "red" | "magenta" | "blue" {
 }
 
 function dueLabel(days: number): string {
-  return days === 0 ? "Due today" : days < 0 ? `${-days}d overdue` : `${days}d left`;
+  return days === 0
+    ? "Due today"
+    : days < 0
+      ? `${-days}d overdue`
+      : `${days}d left`;
 }
 
 /** A board listing statutory filing deadlines with a days-remaining countdown. */
-function FilingDueBoard({ title, Pictogram, rows }: {
+function FilingDueBoard({
+  title,
+  Pictogram,
+  rows,
+}: {
   title: string;
   Pictogram: Pictogram;
   rows: { label: string; iso: string }[];
 }) {
   const fmtDate = (iso: string) =>
-    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+    });
   return (
     <Tile className="esti-fill">
       <Stack gap={5}>
@@ -142,7 +161,13 @@ function FilingDueBoard({ title, Pictogram, rows }: {
 }
 
 /** A distribution board: one labelled Carbon ProgressBar per row. */
-function DistroBoard({ title, rows, max, format, emptyText }: {
+function DistroBoard({
+  title,
+  rows,
+  max,
+  format,
+  emptyText,
+}: {
   title: string;
   rows: { label: string; value: number }[];
   max: number;
@@ -175,7 +200,11 @@ function DistroBoard({ title, rows, max, format, emptyText }: {
   );
 }
 
-function ProjectStatusBoard({ rows, total, onOpen }: {
+function ProjectStatusBoard({
+  rows,
+  total,
+  onOpen,
+}: {
   rows: { status: string; count: number }[];
   total: number;
   onOpen: () => void;
@@ -237,7 +266,10 @@ export function Dashboard() {
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
-  const activityQ = trpc.activity.listOffice.useQuery({ limit: 5, visibility: "STAFF" });
+  const activityQ = trpc.activity.listOffice.useQuery({
+    limit: 5,
+    visibility: "STAFF",
+  });
 
   const s = summary.data;
   const b = boardsQ.data;
@@ -286,7 +318,9 @@ export function Dashboard() {
           <div>
             <h1>Office dashboard</h1>
             <p>
-              {user?.fullName ? `Welcome, ${user.fullName.split(" ")[0]} · ` : ""}
+              {user?.fullName
+                ? `Welcome, ${user.fullName.split(" ")[0]} · `
+                : ""}
               {today}
             </p>
           </div>
@@ -305,7 +339,10 @@ export function Dashboard() {
             </Stack>
             <Grid condensed>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
+                <ClickableTile
+                  className="esti-fill"
+                  onClick={() => navigate("/projects")}
+                >
                   <Stack gap={2}>
                     <p>Active projects</p>
                     <h2>{activeProjects}</h2>
@@ -314,7 +351,10 @@ export function Dashboard() {
                 </ClickableTile>
               </Column>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile className="esti-fill" onClick={() => navigate("/tasks")}>
+                <ClickableTile
+                  className="esti-fill"
+                  onClick={() => navigate("/tasks")}
+                >
                   <Stack gap={2}>
                     <p>Tasks due today</p>
                     <h2>{b?.tasksDueToday ?? "…"}</h2>
@@ -323,7 +363,10 @@ export function Dashboard() {
                 </ClickableTile>
               </Column>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile className="esti-fill" onClick={() => navigate("/activity")}>
+                <ClickableTile
+                  className="esti-fill"
+                  onClick={() => navigate("/activity")}
+                >
                   <Stack gap={2}>
                     <p>Recent activity</p>
                     <h2>{recentActivity.length}</h2>
@@ -332,10 +375,15 @@ export function Dashboard() {
                 </ClickableTile>
               </Column>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile className="esti-fill" onClick={() => navigate("/invoices")}>
+                <ClickableTile
+                  className="esti-fill"
+                  onClick={() => navigate("/invoices")}
+                >
                   <Stack gap={2}>
                     <p>Outstanding fees</p>
-                    <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
+                    <h2>
+                      {s ? formatINRShort(s.invoices.outstandingPaise) : "…"}
+                    </h2>
                     <Tag type="green">cashflow view</Tag>
                   </Stack>
                 </ClickableTile>
@@ -347,103 +395,122 @@ export function Dashboard() {
 
       {/* Board-group switches — owner shows/hides boards by module group */}
       {isAdmin && (
-      <Column lg={16} md={8} sm={4}>
-        <Tile className="esti-fill">
-          <Stack gap={4}>
-            <p>Show board groups</p>
-            <Stack orientation="horizontal" gap={6}>
-              <Toggle
-                id="db-financial"
-                size="sm"
-                labelText="Financial"
-                labelA="Off"
-                labelB="On"
-                toggled={showFinancial}
-                disabled={setModule.isPending || settingsQ.isLoading}
-                onToggle={(checked) => setModule.mutate({ module: "financial", enabled: checked })}
-              />
-              <Toggle
-                id="db-project"
-                size="sm"
-                labelText="Project"
-                labelA="Off"
-                labelB="On"
-                toggled={showProject}
-                disabled={setModule.isPending || settingsQ.isLoading}
-                onToggle={(checked) => setModule.mutate({ module: "project", enabled: checked })}
-              />
-              <Toggle
-                id="db-admin"
-                size="sm"
-                labelText="Admin"
-                labelA="Off"
-                labelB="On"
-                toggled={showAdmin}
-                disabled={setModule.isPending || settingsQ.isLoading}
-                onToggle={(checked) => setModule.mutate({ module: "admin", enabled: checked })}
-              />
+        <Column lg={16} md={8} sm={4}>
+          <Tile className="esti-fill">
+            <Stack gap={4}>
+              <p>Show board groups</p>
+              <Stack orientation="horizontal" gap={6}>
+                <Toggle
+                  id="db-financial"
+                  size="sm"
+                  labelText="Financial"
+                  labelA="Off"
+                  labelB="On"
+                  toggled={showFinancial}
+                  disabled={setModule.isPending || settingsQ.isLoading}
+                  onToggle={(checked) =>
+                    setModule.mutate({ module: "financial", enabled: checked })
+                  }
+                />
+                <Toggle
+                  id="db-project"
+                  size="sm"
+                  labelText="Project"
+                  labelA="Off"
+                  labelB="On"
+                  toggled={showProject}
+                  disabled={setModule.isPending || settingsQ.isLoading}
+                  onToggle={(checked) =>
+                    setModule.mutate({ module: "project", enabled: checked })
+                  }
+                />
+                <Toggle
+                  id="db-admin"
+                  size="sm"
+                  labelText="Admin"
+                  labelA="Off"
+                  labelB="On"
+                  toggled={showAdmin}
+                  disabled={setModule.isPending || settingsQ.isLoading}
+                  onToggle={(checked) =>
+                    setModule.mutate({ module: "admin", enabled: checked })
+                  }
+                />
+              </Stack>
             </Stack>
-          </Stack>
-        </Tile>
-      </Column>
+          </Tile>
+        </Column>
       )}
 
       {/* KPI tiles */}
       {showProject && (
-      <Column lg={8} md={4} sm={4}>
-        <ProjectStatusBoard
-          rows={projectStatusRows}
-          total={totalProjects || (s ? 0 : 0)}
-          onOpen={() => navigate("/projects")}
-        />
-      </Column>
+        <Column lg={8} md={4} sm={4}>
+          <ProjectStatusBoard
+            rows={projectStatusRows}
+            total={totalProjects || (s ? 0 : 0)}
+            onOpen={() => navigate("/projects")}
+          />
+        </Column>
       )}
       {showFinancial && (
-      <Column lg={4} md={4} sm={4}>
-        <ClickableTile className="esti-fill" onClick={() => navigate("/invoices")}>
-          <Stack gap={3}>
-            <p>Outstanding (net of TDS)</p>
-            <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
-            <Tag type="green">{s ? `${formatINRShort(s.invoices.collectedPaise)} collected` : "—"}</Tag>
-          </Stack>
-        </ClickableTile>
-      </Column>
-      )}
-      {showProject && (
-      <Column lg={4} md={4} sm={4}>
-        <ClickableTile className="esti-fill" onClick={() => navigate("/tasks")}>
-          <Stack gap={3}>
-            <p>Tasks due today</p>
-            <h2>{b?.tasksDueToday ?? "…"}</h2>
-            <Tag type="gray">due today or overdue</Tag>
-          </Stack>
-        </ClickableTile>
-      </Column>
-      )}
-      {showAdmin && (
-      <Column lg={4} md={4} sm={4}>
-        {canHr ? (
-          <ClickableTile className="esti-fill" onClick={() => navigate("/hr")}>
+        <Column lg={4} md={4} sm={4}>
+          <ClickableTile
+            className="esti-fill"
+            onClick={() => navigate("/invoices")}
+          >
             <Stack gap={3}>
-              <p>On leave today</p>
-              <h2>{b?.onLeaveToday ?? "…"}</h2>
-              <Tag type="purple">{s?.hr?.headcount ?? 0} on the team</Tag>
+              <p>Outstanding (net of TDS)</p>
+              <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
+              <Tag type="green">
+                {s
+                  ? `${formatINRShort(s.invoices.collectedPaise)} collected`
+                  : "—"}
+              </Tag>
             </Stack>
           </ClickableTile>
-        ) : (
-          <Tile className="esti-fill">
+        </Column>
+      )}
+      {showProject && (
+        <Column lg={4} md={4} sm={4}>
+          <ClickableTile
+            className="esti-fill"
+            onClick={() => navigate("/tasks")}
+          >
             <Stack gap={3}>
-              <p>Permits open</p>
-              <h2>{s?.permits.open ?? "…"}</h2>
-              {s?.permits.overdue ? (
-                <Tag type="red">{s.permits.overdue} overdue</Tag>
-              ) : (
-                <Tag type="gray">of {s?.permits.total ?? 0} total</Tag>
-              )}
+              <p>Tasks due today</p>
+              <h2>{b?.tasksDueToday ?? "…"}</h2>
+              <Tag type="gray">due today or overdue</Tag>
             </Stack>
-          </Tile>
-        )}
-      </Column>
+          </ClickableTile>
+        </Column>
+      )}
+      {showAdmin && (
+        <Column lg={4} md={4} sm={4}>
+          {canHr ? (
+            <ClickableTile
+              className="esti-fill"
+              onClick={() => navigate("/hr")}
+            >
+              <Stack gap={3}>
+                <p>On leave today</p>
+                <h2>{b?.onLeaveToday ?? "…"}</h2>
+                <Tag type="purple">{s?.hr?.headcount ?? 0} on the team</Tag>
+              </Stack>
+            </ClickableTile>
+          ) : (
+            <Tile className="esti-fill">
+              <Stack gap={3}>
+                <p>Permits open</p>
+                <h2>{s?.permits.open ?? "…"}</h2>
+                {s?.permits.overdue ? (
+                  <Tag type="red">{s.permits.overdue} overdue</Tag>
+                ) : (
+                  <Tag type="gray">of {s?.permits.total ?? 0} total</Tag>
+                )}
+              </Stack>
+            </Tile>
+          )}
+        </Column>
       )}
 
       <Column lg={8} md={4} sm={4}>
@@ -465,13 +532,25 @@ export function Dashboard() {
                 {recentActivity.map((item) => (
                   <Stack key={item.id} gap={2}>
                     <Stack orientation="horizontal" gap={3}>
-                      <Tag size="sm" type={item.visibility === "ALL" ? "purple" : "blue"}>
+                      <Tag
+                        size="sm"
+                        type={item.visibility === "ALL" ? "purple" : "blue"}
+                      >
                         {item.eventType}
                       </Tag>
-                      <span>{new Date(item.createdAt as unknown as string).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+                      <span>
+                        {new Date(
+                          item.createdAt as unknown as string,
+                        ).toLocaleString("en-IN", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </Stack>
                     <p>{item.summary}</p>
-                    <p style={{ color: "var(--cds-text-secondary)" }}>
+                    <p>
                       {item.projectRef ? `${item.projectRef} · ` : ""}
                       {item.actorName ?? "System"}
                     </p>
@@ -479,7 +558,11 @@ export function Dashboard() {
                 ))}
               </Stack>
             )}
-            <Button kind="ghost" size="sm" onClick={() => navigate("/activity")}>
+            <Button
+              kind="ghost"
+              size="sm"
+              onClick={() => navigate("/activity")}
+            >
               Open Activity Center
             </Button>
           </Stack>
@@ -487,81 +570,92 @@ export function Dashboard() {
       </Column>
 
       {/* One board per phase */}
-      {showProject && byPhase.map((p) => (
-        <Column key={p.code} lg={4} md={4} sm={4}>
-          <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
-            <Stack gap={3}>
-              <p>{p.label}</p>
-              <h2>{p.count}</h2>
-              <ProgressBar
-                label={p.label}
-                hideLabel
-                helperText={`${totalProjects > 0 ? Math.round((p.count / totalProjects) * 100) : 0}% of projects`}
-                value={p.count}
-                max={Math.max(1, totalProjects)}
-                size="small"
-              />
-            </Stack>
-          </ClickableTile>
-        </Column>
-      ))}
+      {showProject &&
+        byPhase.map((p) => (
+          <Column key={p.code} lg={4} md={4} sm={4}>
+            <ClickableTile
+              className="esti-fill"
+              onClick={() => navigate("/projects")}
+            >
+              <Stack gap={3}>
+                <p>{p.label}</p>
+                <h2>{p.count}</h2>
+                <ProgressBar
+                  label={p.label}
+                  hideLabel
+                  helperText={`${totalProjects > 0 ? Math.round((p.count / totalProjects) * 100) : 0}% of projects`}
+                  value={p.count}
+                  max={Math.max(1, totalProjects)}
+                  size="small"
+                />
+              </Stack>
+            </ClickableTile>
+          </Column>
+        ))}
 
       {/* One board per project type */}
-      {showProject && byType.map((t) => (
-        <Column key={t.type} lg={4} md={4} sm={4}>
-          <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
-            <Stack gap={3}>
-              <p>{TYPE_LABEL[t.type] ?? t.type}</p>
-              <h2>{t.count}</h2>
-              <ProgressBar
-                label={TYPE_LABEL[t.type] ?? t.type}
-                hideLabel
-                helperText={`${totalProjects > 0 ? Math.round((t.count / totalProjects) * 100) : 0}% of projects`}
-                value={t.count}
-                max={Math.max(1, totalProjects)}
-                size="small"
-              />
-            </Stack>
-          </ClickableTile>
-        </Column>
-      ))}
+      {showProject &&
+        byType.map((t) => (
+          <Column key={t.type} lg={4} md={4} sm={4}>
+            <ClickableTile
+              className="esti-fill"
+              onClick={() => navigate("/projects")}
+            >
+              <Stack gap={3}>
+                <p>{TYPE_LABEL[t.type] ?? t.type}</p>
+                <h2>{t.count}</h2>
+                <ProgressBar
+                  label={TYPE_LABEL[t.type] ?? t.type}
+                  hideLabel
+                  helperText={`${totalProjects > 0 ? Math.round((t.count / totalProjects) * 100) : 0}% of projects`}
+                  value={t.count}
+                  max={Math.max(1, totalProjects)}
+                  size="small"
+                />
+              </Stack>
+            </ClickableTile>
+          </Column>
+        ))}
 
       {/* Statutory filing deadlines */}
       {showFinancial && (
-      <Column lg={4} md={4} sm={4}>
-        <FilingDueBoard
-          title="GST filing due"
-          Pictogram={Receipt}
-          rows={[
-            { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
-            { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
-          ]}
-        />
-      </Column>
+        <Column lg={4} md={4} sm={4}>
+          <FilingDueBoard
+            title="GST filing due"
+            Pictogram={Receipt}
+            rows={[
+              { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
+              { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
+            ]}
+          />
+        </Column>
       )}
       {showFinancial && (
-      <Column lg={4} md={4} sm={4}>
-        <FilingDueBoard
-          title="TDS filing due"
-          Pictogram={Banking}
-          rows={[
-            { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
-            { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
-          ]}
-        />
-      </Column>
+        <Column lg={4} md={4} sm={4}>
+          <FilingDueBoard
+            title="TDS filing due"
+            Pictogram={Banking}
+            rows={[
+              { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
+              { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
+            ]}
+          />
+        </Column>
       )}
 
       {/* Workload */}
       {showProject && (
-      <Column lg={4} md={4} sm={4}>
-        <DistroBoard
-          title="Workload — open tasks"
-          rows={(b?.workload ?? []).map((r) => ({ label: r.assignee, value: r.count }))}
-          max={workloadMax}
-          emptyText="No assigned open tasks"
-        />
-      </Column>
+        <Column lg={4} md={4} sm={4}>
+          <DistroBoard
+            title="Workload — open tasks"
+            rows={(b?.workload ?? []).map((r) => ({
+              label: r.assignee,
+              value: r.count,
+            }))}
+            max={workloadMax}
+            emptyText="No assigned open tasks"
+          />
+        </Column>
       )}
 
       {/* Receivables — fees managers only */}

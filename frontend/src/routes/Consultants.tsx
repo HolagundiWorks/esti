@@ -18,7 +18,10 @@ import {
   TableToolbarSearch,
   TextInput,
 } from "@carbon/react";
-import { CONSULTANT_DISCIPLINES, type ConsultantDisciplineCode } from "@esti/contracts";
+import {
+  CONSULTANT_DISCIPLINES,
+  type ConsultantDisciplineCode,
+} from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
@@ -44,16 +47,20 @@ export function Consultants() {
     email: "",
     phone: "",
   });
-  const set =
-    (k: keyof typeof form) =>
-    (e: { target: { value: string } }) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.consultants.create.useMutation({
     onSuccess: () => {
       utils.consultants.list.invalidate();
       setOpen(false);
-      setForm({ name: "", discipline: "STRUCTURAL", firm: "", email: "", phone: "" });
+      setForm({
+        name: "",
+        discipline: "STRUCTURAL",
+        firm: "",
+        email: "",
+        phone: "",
+      });
     },
   });
 
@@ -72,12 +79,18 @@ export function Consultants() {
     list.data?.map((c) => ({
       id: c.id,
       name: c.name,
-      discipline: CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ?? c.discipline,
+      discipline:
+        CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ??
+        c.discipline,
       firm: c.firm ?? "—",
       email: c.email ?? "—",
       phone: c.phone ?? "—",
       portal: (
-        <Button kind="ghost" size="sm" onClick={() => setLogin({ id: c.id, name: c.name })}>
+        <Button
+          kind="ghost"
+          size="sm"
+          onClick={() => setLogin({ id: c.id, name: c.name })}
+        >
           Create login
         </Button>
       ),
@@ -101,12 +114,24 @@ export function Consultants() {
         columnCount={6}
         empty={{
           title: "No consultants yet",
-          description: "Add discipline specialists the office engages on projects.",
-          action: <Button size="sm" onClick={() => setOpen(true)}>New consultant</Button>,
+          description:
+            "Add discipline specialists the office engages on projects.",
+          action: (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New consultant
+            </Button>
+          ),
         }}
       >
         <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => (
+          {({
+            rows,
+            headers,
+            getTableProps,
+            getHeaderProps,
+            getRowProps,
+            onInputChange,
+          }) => (
             <TableContainer
               title="Consultant register"
               description="Discipline specialists the office engages"
@@ -170,13 +195,30 @@ export function Consultants() {
         }
       >
         <Stack gap={5}>
-          <TextInput id="co-name" labelText="Name" value={form.name} onChange={set("name")} />
-          <Select id="co-disc" labelText="Discipline" value={form.discipline} onChange={set("discipline")}>
-            {(Object.keys(CONSULTANT_DISCIPLINES) as ConsultantDisciplineCode[]).map((k) => (
+          <TextInput
+            id="co-name"
+            labelText="Name"
+            value={form.name}
+            onChange={set("name")}
+          />
+          <Select
+            id="co-disc"
+            labelText="Discipline"
+            value={form.discipline}
+            onChange={set("discipline")}
+          >
+            {(
+              Object.keys(CONSULTANT_DISCIPLINES) as ConsultantDisciplineCode[]
+            ).map((k) => (
               <SelectItem key={k} value={k} text={CONSULTANT_DISCIPLINES[k]} />
             ))}
           </Select>
-          <TextInput id="co-firm" labelText="Firm (optional)" value={form.firm} onChange={set("firm")} />
+          <TextInput
+            id="co-firm"
+            labelText="Firm (optional)"
+            value={form.firm}
+            onChange={set("firm")}
+          />
           <TextInput
             id="co-email"
             labelText="Email (optional)"
@@ -184,7 +226,12 @@ export function Consultants() {
             value={form.email}
             onChange={set("email")}
           />
-          <TextInput id="co-phone" labelText="Phone (optional)" value={form.phone} onChange={set("phone")} />
+          <TextInput
+            id="co-phone"
+            labelText="Phone (optional)"
+            value={form.phone}
+            onChange={set("phone")}
+          />
           {create.error && (
             <InlineNotification
               kind="error"
@@ -203,7 +250,9 @@ export function Consultants() {
         primaryButtonText={createLogin.isPending ? "Creating…" : "Create login"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={
-          !loginForm.email || loginForm.password.length < 8 || createLogin.isPending
+          !loginForm.email ||
+          loginForm.password.length < 8 ||
+          createLogin.isPending
         }
         onRequestClose={() => setLogin(null)}
         onRequestSubmit={() =>
@@ -211,22 +260,27 @@ export function Consultants() {
         }
       >
         <Stack gap={5}>
-          <p style={{ color: "var(--cds-text-secondary)" }}>
-            Gives this consultant a project-scoped portal login (their engaged projects only).
+          <p>
+            Gives this consultant a project-scoped portal login (their engaged
+            projects only).
           </p>
           <TextInput
             id="cl-email"
             labelText="Login email"
             type="email"
             value={loginForm.email}
-            onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
+            onChange={(e) =>
+              setLoginForm((f) => ({ ...f, email: e.target.value }))
+            }
           />
           <TextInput
             id="cl-password"
             labelText="Temporary password (min 8 chars)"
             type="password"
             value={loginForm.password}
-            onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
+            onChange={(e) =>
+              setLoginForm((f) => ({ ...f, password: e.target.value }))
+            }
           />
           {createLogin.error && (
             <InlineNotification

@@ -18,13 +18,15 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 export function Alerts() {
-  const alertsQ = trpc.notifications.list.useQuery(undefined, { refetchInterval: 60000 });
+  const alertsQ = trpc.notifications.list.useQuery(undefined, {
+    refetchInterval: 60000,
+  });
   const alerts = alertsQ.data ?? [];
 
   return (
     <div>
       <h1>Alerts</h1>
-      <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
+      <p style={{ marginBottom: 16 }}>
         Stale client decisions, due follow-ups and overdue statutory permits.
       </p>
 
@@ -48,12 +50,14 @@ export function Alerts() {
             {alerts.map((a) => (
               <TableRow key={a.id}>
                 <TableCell>
-                  <Tag type={a.severity === "high" ? "red" : "magenta"}>{a.severity}</Tag>
+                  <Tag type={a.severity === "high" ? "red" : "magenta"}>
+                    {a.severity}
+                  </Tag>
                 </TableCell>
                 <TableCell>{KIND_LABEL[a.kind] ?? a.kind}</TableCell>
                 <TableCell>
                   {a.title}
-                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{a.detail}</div>
+                  <div>{a.detail}</div>
                 </TableCell>
                 <TableCell>
                   <Link to={`/projects/${a.projectId}`}>{a.projectRef}</Link>

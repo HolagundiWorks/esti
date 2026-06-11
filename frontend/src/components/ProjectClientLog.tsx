@@ -12,7 +12,9 @@ import { CLIENT_LOG_KINDS, type ClientLogKindCode } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const KIND_TAG: Partial<Record<ClientLogKindCode, "blue" | "green" | "purple" | "teal" | "gray">> = {
+const KIND_TAG: Partial<
+  Record<ClientLogKindCode, "blue" | "green" | "purple" | "teal" | "gray">
+> = {
   DECISION: "purple",
   APPROVAL: "green",
   MEETING: "blue",
@@ -25,8 +27,12 @@ function today(): string {
 
 export function ProjectClientLog({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const logQ = trpc.clientLog.listByProject.useQuery({ projectId }, { enabled: !!projectId });
-  const invalidate = () => utils.clientLog.listByProject.invalidate({ projectId });
+  const logQ = trpc.clientLog.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
+  const invalidate = () =>
+    utils.clientLog.listByProject.invalidate({ projectId });
   const remove = trpc.clientLog.remove.useMutation({ onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
@@ -63,14 +69,11 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
       </div>
 
       <div style={{ marginTop: 8 }}>
-        {(logQ.data ?? []).length === 0 && (
-          <p style={{ color: "var(--cds-text-secondary)" }}>No interactions logged yet.</p>
-        )}
+        {(logQ.data ?? []).length === 0 && <p>No interactions logged yet.</p>}
         {(logQ.data ?? []).map((e) => (
           <div
             key={e.id}
             style={{
-              borderLeft: "2px solid var(--cds-border-subtle)",
               padding: "8px 0 8px 16px",
               marginLeft: 8,
               position: "relative",
@@ -81,7 +84,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
                 {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               </Tag>
               <strong>{e.subject}</strong>
-              <span style={{ color: "var(--cds-text-secondary)", fontSize: 12 }}>{e.occurredAt}</span>
+              <span>{e.occurredAt}</span>
               <Button
                 kind="ghost"
                 size="sm"
@@ -91,10 +94,12 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
                 Remove
               </Button>
             </div>
-            {e.body && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{e.body}</p>}
-            {e.followUpDate && (
-              <span style={{ fontSize: 12, color: "#8a3ffc" }}>Follow-up: {e.followUpDate}</span>
+            {e.body && (
+              <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>
+                {e.body}
+              </p>
             )}
+            {e.followUpDate && <span>Follow-up: {e.followUpDate}</span>}
           </div>
         ))}
       </div>

@@ -1,6 +1,11 @@
 import "@carbon/charts-react/styles.css";
 import "./styles.scss";
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -13,7 +18,11 @@ import { trpc } from "./lib/trpc.js";
 
 function toErrorToast(error: unknown) {
   const message = error instanceof Error ? error.message : "Unexpected error";
-  pushToast({ kind: "error", title: "Something went wrong", subtitle: message });
+  pushToast({
+    kind: "error",
+    title: "Something went wrong",
+    subtitle: message,
+  });
 }
 
 // App-wide error surfacing: every failed query/mutation raises a toast — no

@@ -10,6 +10,7 @@ import {
   SideNavLink,
   SideNavMenu,
   SideNavMenuItem,
+  Stack,
   Theme,
 } from "@carbon/react";
 import {
@@ -70,7 +71,9 @@ export function App() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => utils.auth.me.invalidate(),
+  });
   const [theme, setTheme] = useState<ThemeName>(
     () => (localStorage.getItem("esti-theme") as ThemeName) || "white",
   );
@@ -83,10 +86,14 @@ export function App() {
   }
 
   // Only staff read settings; CLIENT users never reach this query.
-  const settingsQ = trpc.settings.get.useQuery(undefined, { enabled: !!user && user.role !== "CLIENT" });
+  const settingsQ = trpc.settings.get.useQuery(undefined, {
+    enabled: !!user && user.role !== "CLIENT",
+  });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const isStaff =
-    !!user && (isStaffRole(user.role) || (user.role === "CONSULTANT" && !user.consultantId));
+    !!user &&
+    (isStaffRole(user.role) ||
+      (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
 
@@ -96,14 +103,18 @@ export function App() {
       <Theme theme={theme}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Landing theme={theme} onToggleTheme={toggleTheme} />} />
+          <Route
+            path="*"
+            element={<Landing theme={theme} onToggleTheme={toggleTheme} />}
+          />
         </Routes>
       </Theme>
     );
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT") return <Portal />;
   // External consultants (scoped to a consultant record) get the collaborator portal.
-  if (user.role === "CONSULTANT" && user.consultantId) return <CollaboratorPortal />;
+  if (user.role === "CONSULTANT" && user.consultantId)
+    return <CollaboratorPortal />;
 
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
   // Grouped navigation (modules → sub-modules).
@@ -121,8 +132,15 @@ export function App() {
       items: [
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
-        ...(can(user.role, "write") ? [{ label: "Workload", to: "/workload" }] : []),
-        ...(hrEnabled ? [{ label: "Team", to: "/team" }, { label: "HR", to: "/hr" }] : []),
+        ...(can(user.role, "write")
+          ? [{ label: "Workload", to: "/workload" }]
+          : []),
+        ...(hrEnabled
+          ? [
+              { label: "Team", to: "/team" },
+              { label: "HR", to: "/hr" },
+            ]
+          : []),
       ],
     },
     {
@@ -130,16 +148,22 @@ export function App() {
       icon: Money,
       items: [
         { label: "Invoices", to: "/invoices" },
-        ...(can(user.role, "fees:manage") ? [{ label: "Fee proposals", to: "/accounting/fees" }] : []),
+        ...(can(user.role, "fees:manage")
+          ? [{ label: "Fee proposals", to: "/accounting/fees" }]
+          : []),
         { label: "Reconciliation", to: "/reconcile" },
-        ...(can(user.role, "reports:view") ? [{ label: "GST / TDS filing", to: "/filing" }] : []),
+        ...(can(user.role, "reports:view")
+          ? [{ label: "GST / TDS filing", to: "/filing" }]
+          : []),
       ],
     },
     {
       label: "Office",
       icon: Document,
       items: [
-        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
+        ...(can(user.role, "fees:manage")
+          ? [{ label: "Proposals", to: "/office/proposals" }]
+          : []),
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
       ],
@@ -154,9 +178,15 @@ export function App() {
       icon: Enterprise,
       items: [
         { label: "Company", to: "/company" },
-        ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
-        ...(can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
-        ...(can(user.role, "project:delete") ? [{ label: "Archived projects", to: "/archived-projects" }] : []),
+        ...(can(user.role, "firm:admin")
+          ? [{ label: "Users", to: "/users" }]
+          : []),
+        ...(can(user.role, "firm:admin")
+          ? [{ label: "Audit log", to: "/audit" }]
+          : []),
+        ...(can(user.role, "project:delete")
+          ? [{ label: "Archived projects", to: "/archived-projects" }]
+          : []),
         { label: "My profile", to: "/settings" },
       ],
     },
@@ -166,91 +196,120 @@ export function App() {
     <Theme theme={theme}>
       {/* Full-height themed shell so the page background fills the viewport in
           dark theme (no white strip below the content). */}
-      <div style={{ minHeight: "100vh", background: "var(--cds-background)" }}>
-      <Header aria-label="ESTI AORMS">
-        <HeaderName prefix="ESTI">{firmName}</HeaderName>
-        <HeaderGlobalBar>
-          <AlertsBell />
-          <HeaderGlobalAction
-            aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
-            onClick={toggleTheme}
-          >
-            {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
-          </HeaderGlobalAction>
-          <HeaderGlobalAction aria-label="Sign out" onClick={() => logout.mutate()}>
-            <Logout size={20} />
-          </HeaderGlobalAction>
-        </HeaderGlobalBar>
-      </Header>
-      <SideNav aria-label="Side navigation" isRail>
-        <SideNavItems>
-          {links.map((n) => (
-            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.icon ?? DashboardIcon} isActive={pathname === n.to}>
-              {n.label}
-            </SideNavLink>
-          ))}
-          {groups.map((g) => (
-            <SideNavMenu key={g.label} title={g.label} renderIcon={g.icon} defaultExpanded={g.items.some((it) => it.to === pathname)}>
-              {g.items.map((it) => (
-                <SideNavMenuItem key={it.to} as={Link} to={it.to} isActive={pathname === it.to}>
-                  {it.label}
-                </SideNavMenuItem>
-              ))}
-            </SideNavMenu>
-          ))}
-        </SideNavItems>
-      </SideNav>
-      <Content style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 3rem)" }}>
-        <div style={{ flex: 1 }}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/activity" element={<ActivityCenter />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} />
-          <Route path="/compliance" element={<Compliance />} />
-          <Route path="/invoices" element={<Invoices />} />
-          {can(user.role, "fees:manage") && <Route path="/accounting/fees" element={<FeeProposals />} />}
-          {can(user.role, "fees:manage") && <Route path="/office/proposals" element={<Proposals />} />}
-          <Route path="/office/letters" element={<Letters />} />
-          <Route path="/office/contracts" element={<Contracts />} />
-          <Route path="/tasks" element={<Tasks />} />
-          {can(user.role, "write") && <Route path="/workload" element={<Workload />} />}
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/consultants" element={<Consultants />} />
-          <Route path="/reconcile" element={<Reconcile />} />
-          {hrEnabled && <Route path="/team" element={<Team />} />}
-          {hrEnabled && <Route path="/hr" element={<Hr />} />}
-          <Route path="/dsr" element={<MasterDsr />} />
-          {can(user.role, "reports:view") && <Route path="/filing" element={<Filing />} />}
-          <Route path="/company" element={<Company />} />
-          {can(user.role, "firm:admin") && <Route path="/users" element={<Users />} />}
-          {can(user.role, "firm:admin") && <Route path="/audit" element={<AuditLog />} />}
-          {can(user.role, "project:delete") && <Route path="/archived-projects" element={<ArchivedProjects />} />}
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        </div>
-        <footer
-          style={{
-            marginTop: "2.5rem",
-            paddingTop: "1rem",
-            borderTop: "1px solid var(--cds-border-subtle)",
-            color: "var(--cds-text-secondary)",
-            fontSize: "0.8125rem",
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-          }}
-        >
-          <span>ESTI — AORMS</span>
-          <span>·</span>
-          <a href="mailto:hi@aorms.in" style={{ color: "var(--cds-link-primary)" }}>hi@aorms.in</a>
-          <span>·</span>
-          <span>Developed by Holagundi Consulting Works</span>
-        </footer>
-      </Content>
-      <FloatingCalculator />
+      <div className="esti-app-shell">
+        <Header aria-label="ESTI AORMS">
+          <HeaderName prefix="ESTI">{firmName}</HeaderName>
+          <HeaderGlobalBar>
+            <AlertsBell />
+            <HeaderGlobalAction
+              aria-label={
+                theme === "white"
+                  ? "Switch to dark theme"
+                  : "Switch to light theme"
+              }
+              onClick={toggleTheme}
+            >
+              {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
+            </HeaderGlobalAction>
+            <HeaderGlobalAction
+              aria-label="Sign out"
+              onClick={() => logout.mutate()}
+            >
+              <Logout size={20} />
+            </HeaderGlobalAction>
+          </HeaderGlobalBar>
+        </Header>
+        <SideNav aria-label="Side navigation" isRail>
+          <SideNavItems>
+            {links.map((n) => (
+              <SideNavLink
+                key={n.to}
+                as={Link}
+                to={n.to}
+                renderIcon={n.icon ?? DashboardIcon}
+                isActive={pathname === n.to}
+              >
+                {n.label}
+              </SideNavLink>
+            ))}
+            {groups.map((g) => (
+              <SideNavMenu
+                key={g.label}
+                title={g.label}
+                renderIcon={g.icon}
+                defaultExpanded={g.items.some((it) => it.to === pathname)}
+              >
+                {g.items.map((it) => (
+                  <SideNavMenuItem
+                    key={it.to}
+                    as={Link}
+                    to={it.to}
+                    isActive={pathname === it.to}
+                  >
+                    {it.label}
+                  </SideNavMenuItem>
+                ))}
+              </SideNavMenu>
+            ))}
+          </SideNavItems>
+        </SideNav>
+        <Content className="esti-app-content">
+          <main className="esti-grow">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/activity" element={<ActivityCenter />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/compliance" element={<Compliance />} />
+              <Route path="/invoices" element={<Invoices />} />
+              {can(user.role, "fees:manage") && (
+                <Route path="/accounting/fees" element={<FeeProposals />} />
+              )}
+              {can(user.role, "fees:manage") && (
+                <Route path="/office/proposals" element={<Proposals />} />
+              )}
+              <Route path="/office/letters" element={<Letters />} />
+              <Route path="/office/contracts" element={<Contracts />} />
+              <Route path="/tasks" element={<Tasks />} />
+              {can(user.role, "write") && (
+                <Route path="/workload" element={<Workload />} />
+              )}
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/consultants" element={<Consultants />} />
+              <Route path="/reconcile" element={<Reconcile />} />
+              {hrEnabled && <Route path="/team" element={<Team />} />}
+              {hrEnabled && <Route path="/hr" element={<Hr />} />}
+              <Route path="/dsr" element={<MasterDsr />} />
+              {can(user.role, "reports:view") && (
+                <Route path="/filing" element={<Filing />} />
+              )}
+              <Route path="/company" element={<Company />} />
+              {can(user.role, "firm:admin") && (
+                <Route path="/users" element={<Users />} />
+              )}
+              {can(user.role, "firm:admin") && (
+                <Route path="/audit" element={<AuditLog />} />
+              )}
+              {can(user.role, "project:delete") && (
+                <Route
+                  path="/archived-projects"
+                  element={<ArchivedProjects />}
+                />
+              )}
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Stack as="footer" orientation="horizontal" gap={3}>
+            <span>ESTI — AORMS</span>
+            <span>·</span>
+            <a href="mailto:hi@aorms.in">hi@aorms.in</a>
+            <span>·</span>
+            <span>Developed by Holagundi Consulting Works</span>
+          </Stack>
+        </Content>
+        <FloatingCalculator />
       </div>
     </Theme>
   );

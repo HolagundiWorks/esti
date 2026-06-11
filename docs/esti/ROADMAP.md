@@ -61,18 +61,18 @@ override the remediation work below.
 project archive preserves child records, and the append-only audit survives both
 archive/restore and administrative operational-data reset.
 
-## Phase 2 - Pure Carbon And Responsive Shell [P0]
+## Phase 2 - Pure Carbon And Responsive Shell [P0] - Complete 2026-06-11
 
-- [ ] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars,
+- [x] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars,
   and non-permitted visual CSS.
-- [ ] Convert layouts to `Grid`, `Column`, `Stack`, Carbon tiles and tables.
-- [ ] Keep only colourless structural CSS permitted by `AGENTS.md`.
-- [ ] Standardize loading, empty, error, validation, and destructive states.
-- [ ] Fix heading hierarchy, portal keyboard access, focus flow, and mobile tables.
-- [ ] Add automated checks for hard-coded colours and browser smoke tests at
+- [x] Convert layouts to `Grid`, `Column`, `Stack`, Carbon tiles and tables.
+- [x] Keep only colourless structural CSS permitted by `AGENTS.md`.
+- [x] Standardize loading, empty, error, validation, and destructive states.
+- [x] Fix heading hierarchy, portal keyboard access, focus flow, and mobile tables.
+- [x] Add automated checks for hard-coded colours and browser smoke tests at
   desktop, tablet, and mobile breakpoints.
 
-**Gate:** frontend typecheck/lint/build pass and representative routes pass
+**Gate met:** frontend typecheck/lint/build pass and representative routes pass
 keyboard, dark-theme, and responsive browser review.
 
 ## Phase 3 - Domain Activity Foundation [P1]

@@ -44,7 +44,9 @@ const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 export function Team() {
   const utils = trpc.useUtils();
   const list = trpc.team.list.useQuery();
-  const update = trpc.team.update.useMutation({ onSuccess: () => utils.team.list.invalidate() });
+  const update = trpc.team.update.useMutation({
+    onSuccess: () => utils.team.list.invalidate(),
+  });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -56,10 +58,8 @@ export function Team() {
     salary: "",
     dateJoined: "",
   });
-  const set =
-    (k: keyof typeof form) =>
-    (e: { target: { value: string } }) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.team.create.useMutation({
     onSuccess: () => {
@@ -83,7 +83,9 @@ export function Team() {
       name: m.name,
       _contact: m.email ?? m.phone ?? "",
       role: TEAM_ROLES[m.role as TeamRoleCode] ?? m.role,
-      employmentType: EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ?? m.employmentType,
+      employmentType:
+        EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
+        m.employmentType,
       salary: formatINR(m.monthlySalaryPaise, { paise: false }),
       status: m.active ? "Active" : "Inactive",
       _active: m.active,
@@ -98,13 +100,28 @@ export function Team() {
         columnCount={6}
         empty={{
           title: "No team members yet",
-          description: "Add staff to enable HR, payroll and project team tracking.",
-          action: <Button size="sm" onClick={() => setOpen(true)}>New member</Button>,
+          description:
+            "Add staff to enable HR, payroll and project team tracking.",
+          action: (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New member
+            </Button>
+          ),
         }}
       >
         <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => (
-            <TableContainer title="Staff register" description="Office team members and monthly salary">
+          {({
+            rows,
+            headers,
+            getTableProps,
+            getHeaderProps,
+            getRowProps,
+            onInputChange,
+          }) => (
+            <TableContainer
+              title="Staff register"
+              description="Office team members and monthly salary"
+            >
               <TableToolbar>
                 <TableToolbarContent>
                   <TableToolbarSearch
@@ -140,9 +157,7 @@ export function Team() {
                               <TableCell key={cell.id}>
                                 {cell.value}
                                 {original?._contact && (
-                                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
-                                    {original._contact}
-                                  </div>
+                                  <div>{original._contact}</div>
                                 )}
                               </TableCell>
                             );
@@ -150,7 +165,11 @@ export function Team() {
                           if (cell.id.endsWith(":status")) {
                             return (
                               <TableCell key={cell.id}>
-                                <Tag type={original?._active ? "green" : "gray"}>{cell.value}</Tag>
+                                <Tag
+                                  type={original?._active ? "green" : "gray"}
+                                >
+                                  {cell.value}
+                                </Tag>
                               </TableCell>
                             );
                           }
@@ -162,7 +181,11 @@ export function Team() {
                                   size="sm"
                                   disabled={update.isPending}
                                   onClick={() =>
-                                    original && update.mutate({ id: original.id, active: !original._active })
+                                    original &&
+                                    update.mutate({
+                                      id: original.id,
+                                      active: !original._active,
+                                    })
                                   }
                                 >
                                   {cell.value}
@@ -170,7 +193,9 @@ export function Team() {
                               </TableCell>
                             );
                           }
-                          return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                          return (
+                            <TableCell key={cell.id}>{cell.value}</TableCell>
+                          );
                         })}
                       </TableRow>
                     );
@@ -202,8 +227,18 @@ export function Team() {
         }
       >
         <Stack gap={5}>
-          <TextInput id="tm-name" labelText="Name" value={form.name} onChange={set("name")} />
-          <Select id="tm-role" labelText="Role" value={form.role} onChange={set("role")}>
+          <TextInput
+            id="tm-name"
+            labelText="Name"
+            value={form.name}
+            onChange={set("name")}
+          />
+          <Select
+            id="tm-role"
+            labelText="Role"
+            value={form.role}
+            onChange={set("role")}
+          >
             {(Object.keys(TEAM_ROLES) as TeamRoleCode[]).map((k) => (
               <SelectItem key={k} value={k} text={TEAM_ROLES[k]} />
             ))}
@@ -214,9 +249,11 @@ export function Team() {
             value={form.employmentType}
             onChange={set("employmentType")}
           >
-            {(Object.keys(EMPLOYMENT_TYPES) as EmploymentTypeCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={EMPLOYMENT_TYPES[k]} />
-            ))}
+            {(Object.keys(EMPLOYMENT_TYPES) as EmploymentTypeCode[]).map(
+              (k) => (
+                <SelectItem key={k} value={k} text={EMPLOYMENT_TYPES[k]} />
+              ),
+            )}
           </Select>
           <TextInput
             id="tm-salary"
@@ -239,7 +276,12 @@ export function Team() {
             value={form.email}
             onChange={set("email")}
           />
-          <TextInput id="tm-phone" labelText="Phone (optional)" value={form.phone} onChange={set("phone")} />
+          <TextInput
+            id="tm-phone"
+            labelText="Phone (optional)"
+            value={form.phone}
+            onChange={set("phone")}
+          />
           {create.error && (
             <InlineNotification
               kind="error"

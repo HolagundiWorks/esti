@@ -1,5 +1,9 @@
 import {
   Button,
+  ClickableTile,
+  Column,
+  Content,
+  Grid,
   Header,
   HeaderName,
   Table,
@@ -10,14 +14,20 @@ import {
   TableHeader,
   TableRow,
   Tag,
-  Tile,
+  Stack,
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const INV_TAG: Record<string, "blue" | "green"> = { ISSUED: "blue", PAID: "green" };
-const AP_TAG: Record<string, "blue" | "green" | "magenta" | "red" | "cool-gray"> = {
+const INV_TAG: Record<string, "blue" | "green"> = {
+  ISSUED: "blue",
+  PAID: "green",
+};
+const AP_TAG: Record<
+  string,
+  "blue" | "green" | "magenta" | "red" | "cool-gray"
+> = {
   SENT: "blue",
   APPROVED: "green",
   REVISIONS: "magenta",
@@ -27,41 +37,52 @@ const AP_TAG: Record<string, "blue" | "green" | "magenta" | "red" | "cool-gray">
 
 export function Portal() {
   const utils = trpc.useUtils();
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => utils.auth.me.invalidate(),
+  });
   const projectsQ = trpc.portal.myProjects.useQuery();
   const [openId, setOpenId] = useState<string | null>(null);
-  const detailQ = trpc.portal.projectDetail.useQuery({ projectId: openId ?? "" }, { enabled: !!openId });
+  const detailQ = trpc.portal.projectDetail.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
   const d = detailQ.data;
 
   return (
     <>
       <Header aria-label="ESTI client portal">
         <HeaderName prefix="ESTI">Client portal</HeaderName>
-        <Button kind="ghost" size="sm" style={{ marginLeft: "auto" }} onClick={() => logout.mutate()}>
+        <Button
+          kind="ghost"
+          size="sm"
+          style={{ marginLeft: "auto" }}
+          onClick={() => logout.mutate()}
+        >
           Sign out
         </Button>
       </Header>
-      <div style={{ padding: 32, marginTop: 48 }}>
+      <Content>
         {!openId && (
           <>
             <h2>Your projects</h2>
-            <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
-              Read-only access to status, invoices, approvals and issued drawings.
+            <p style={{ marginBottom: 16 }}>
+              Read-only access to status, invoices, approvals and issued
+              drawings.
             </p>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Grid>
               {(projectsQ.data ?? []).length === 0 && <p>No projects yet.</p>}
               {(projectsQ.data ?? []).map((p) => (
-                <Tile
-                  key={p.id}
-                  style={{ minWidth: 240, cursor: "pointer" }}
-                  onClick={() => setOpenId(p.id)}
-                >
-                  <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{p.ref}</p>
-                  <p style={{ fontSize: 18, fontWeight: 600 }}>{p.title}</p>
-                  <Tag type="cool-gray">{p.status}</Tag>
-                </Tile>
+                <Column key={p.id} sm={4} md={4} lg={4}>
+                  <ClickableTile onClick={() => setOpenId(p.id)}>
+                    <Stack gap={3}>
+                      <p>{p.ref}</p>
+                      <h3>{p.title}</h3>
+                      <Tag type="cool-gray">{p.status}</Tag>
+                    </Stack>
+                  </ClickableTile>
+                </Column>
               ))}
-            </div>
+            </Grid>
           </>
         )}
 
@@ -71,8 +92,9 @@ export function Portal() {
               ← All projects
             </Button>
             <h2 style={{ marginTop: 8 }}>{d.project.title}</h2>
-            <p style={{ color: "var(--cds-text-secondary)" }}>
-              {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·{" "}
+            <p>
+              {d.project.ref} · {d.project.projectType} ·{" "}
+              {d.project.jurisdiction} ·{" "}
               <Tag type="cool-gray">{d.project.status}</Tag>
             </p>
 
@@ -114,9 +136,13 @@ export function Portal() {
                       <TableCell>{iv.ref}</TableCell>
                       <TableCell>{iv.documentKind}</TableCell>
                       <TableCell>{iv.dateInvoice ?? "—"}</TableCell>
-                      <TableCell>{formatINR(iv.grandTotalPaise, { paise: false })}</TableCell>
                       <TableCell>
-                        <Tag type={INV_TAG[iv.status] ?? "blue"}>{iv.status}</Tag>
+                        {formatINR(iv.grandTotalPaise, { paise: false })}
+                      </TableCell>
+                      <TableCell>
+                        <Tag type={INV_TAG[iv.status] ?? "blue"}>
+                          {iv.status}
+                        </Tag>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -167,12 +193,18 @@ export function Portal() {
             </Section>
           </>
         )}
-      </div>
+      </Content>
     </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <TableContainer title={title} style={{ marginTop: 24 }}>
       {children}

@@ -19,9 +19,15 @@ import { trpc } from "../lib/trpc.js";
 
 export function ProjectBbs({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const listQ = trpc.bbs.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const listQ = trpc.bbs.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const [openId, setOpenId] = useState<string | null>(null);
-  const itemsQ = trpc.bbs.items.useQuery({ bbsId: openId ?? "" }, { enabled: !!openId });
+  const itemsQ = trpc.bbs.items.useQuery(
+    { bbsId: openId ?? "" },
+    { enabled: !!openId },
+  );
 
   const [newOpen, setNewOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -34,12 +40,27 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
     },
   });
 
-  const invalidateItems = () => openId && utils.bbs.items.invalidate({ bbsId: openId });
-  const addItem = trpc.bbs.addItem.useMutation({ onSuccess: () => { invalidateItems(); setItemOpen(false); } });
-  const removeItem = trpc.bbs.removeItem.useMutation({ onSuccess: invalidateItems });
+  const invalidateItems = () =>
+    openId && utils.bbs.items.invalidate({ bbsId: openId });
+  const addItem = trpc.bbs.addItem.useMutation({
+    onSuccess: () => {
+      invalidateItems();
+      setItemOpen(false);
+    },
+  });
+  const removeItem = trpc.bbs.removeItem.useMutation({
+    onSuccess: invalidateItems,
+  });
 
   const [itemOpen, setItemOpen] = useState(false);
-  const [itf, setItf] = useState({ barMark: "", member: "", diaMm: "12", noOfMembers: "1", barsPerMember: "1", cuttingLengthMm: "" });
+  const [itf, setItf] = useState({
+    barMark: "",
+    member: "",
+    diaMm: "12",
+    noOfMembers: "1",
+    barsPerMember: "1",
+    cuttingLengthMm: "",
+  });
 
   const items = itemsQ.data ?? [];
   const preview =
@@ -54,14 +75,24 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
 
   // Steel summary by diameter.
   const byDia = new Map<number, number>();
-  for (const it of items) byDia.set(it.diaMm, (byDia.get(it.diaMm) ?? 0) + it.weightKg);
+  for (const it of items)
+    byDia.set(it.diaMm, (byDia.get(it.diaMm) ?? 0) + it.weightKg);
   const totalWeight = items.reduce((s, it) => s + it.weightKg, 0);
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 32,
+        }}
+      >
         <h3>Bar bending schedule</h3>
-        <Button size="sm" onClick={() => setNewOpen(true)}>New BBS</Button>
+        <Button size="sm" onClick={() => setNewOpen(true)}>
+          New BBS
+        </Button>
       </div>
 
       <TableContainer title="Schedules">
@@ -77,7 +108,11 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               <TableRow key={b.id}>
                 <TableCell>{b.title}</TableCell>
                 <TableCell>
-                  <Button kind="ghost" size="sm" onClick={() => setOpenId(openId === b.id ? null : b.id)}>
+                  <Button
+                    kind="ghost"
+                    size="sm"
+                    onClick={() => setOpenId(openId === b.id ? null : b.id)}
+                  >
                     {openId === b.id ? "Hide" : "Open"}
                   </Button>
                 </TableCell>
@@ -88,12 +123,23 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
       </TableContainer>
 
       {openId && (
-        <div style={{ marginTop: 16, borderLeft: "3px solid #0f62fe", paddingLeft: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ marginTop: 16, paddingLeft: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <h4>Bars</h4>
-            <Button size="sm" onClick={() => setItemOpen(true)}>Add bar</Button>
+            <Button size="sm" onClick={() => setItemOpen(true)}>
+              Add bar
+            </Button>
           </div>
-          <TableContainer title="Bar schedule" description="Weight = d²/162 × length × bars">
+          <TableContainer
+            title="Bar schedule"
+            description="Weight = d²/162 × length × bars"
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -118,20 +164,30 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                     <TableCell>{it.cuttingLengthMm}</TableCell>
                     <TableCell>{it.weightKg.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Button kind="ghost" size="sm" onClick={() => removeItem.mutate({ id: it.id })}>Remove</Button>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => removeItem.mutate({ id: it.id })}
+                      >
+                        Remove
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}>
-            {[...byDia.entries()].sort((a, b) => a[0] - b[0]).map(([dia, kg]) => (
-              <span key={dia} style={{ fontSize: 13 }}>
-                Ø{dia}: <strong>{kg.toFixed(1)} kg</strong>
-              </span>
-            ))}
-            <span style={{ marginLeft: "auto", fontSize: 14 }}>
+          <div
+            style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}
+          >
+            {[...byDia.entries()]
+              .sort((a, b) => a[0] - b[0])
+              .map(([dia, kg]) => (
+                <span key={dia}>
+                  Ø{dia}: <strong>{kg.toFixed(1)} kg</strong>
+                </span>
+              ))}
+            <span style={{ marginLeft: "auto" }}>
               Total steel: <strong>{totalWeight.toFixed(1)} kg</strong>
             </span>
           </div>
@@ -147,7 +203,13 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
         onRequestClose={() => setNewOpen(false)}
         onRequestSubmit={() => create.mutate({ projectId, title })}
       >
-        <TextInput id="bbs-title" labelText="Title" placeholder="e.g. Footing F1 reinforcement" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <TextInput
+          id="bbs-title"
+          labelText="Title"
+          placeholder="e.g. Footing F1 reinforcement"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </Modal>
 
       <Modal
@@ -155,7 +217,12 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
         modalHeading="Add bar"
         primaryButtonText={addItem.isPending ? "Adding…" : "Add"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!openId || !itf.barMark || itf.cuttingLengthMm === "" || addItem.isPending}
+        primaryButtonDisabled={
+          !openId ||
+          !itf.barMark ||
+          itf.cuttingLengthMm === "" ||
+          addItem.isPending
+        }
         onRequestClose={() => setItemOpen(false)}
         onRequestSubmit={() =>
           openId &&
@@ -172,20 +239,66 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
       >
         <Stack gap={5}>
           <div style={{ display: "flex", gap: 12 }}>
-            <TextInput id="bb-mark" labelText="Bar mark" value={itf.barMark} onChange={(e) => setItf((f) => ({ ...f, barMark: e.target.value }))} />
-            <TextInput id="bb-member" labelText="Member (optional)" value={itf.member} onChange={(e) => setItf((f) => ({ ...f, member: e.target.value }))} />
-            <Select id="bb-dia" labelText="Dia (mm)" value={itf.diaMm} onChange={(e) => setItf((f) => ({ ...f, diaMm: e.target.value }))}>
-              {BAR_DIAS.map((d) => <SelectItem key={d} value={String(d)} text={`${d}`} />)}
+            <TextInput
+              id="bb-mark"
+              labelText="Bar mark"
+              value={itf.barMark}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, barMark: e.target.value }))
+              }
+            />
+            <TextInput
+              id="bb-member"
+              labelText="Member (optional)"
+              value={itf.member}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, member: e.target.value }))
+              }
+            />
+            <Select
+              id="bb-dia"
+              labelText="Dia (mm)"
+              value={itf.diaMm}
+              onChange={(e) => setItf((f) => ({ ...f, diaMm: e.target.value }))}
+            >
+              {BAR_DIAS.map((d) => (
+                <SelectItem key={d} value={String(d)} text={`${d}`} />
+              ))}
             </Select>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            <TextInput id="bb-mem" labelText="No. of members" type="number" value={itf.noOfMembers} onChange={(e) => setItf((f) => ({ ...f, noOfMembers: e.target.value }))} />
-            <TextInput id="bb-bpm" labelText="Bars / member" type="number" value={itf.barsPerMember} onChange={(e) => setItf((f) => ({ ...f, barsPerMember: e.target.value }))} />
-            <TextInput id="bb-cut" labelText="Cutting length (mm)" type="number" value={itf.cuttingLengthMm} onChange={(e) => setItf((f) => ({ ...f, cuttingLengthMm: e.target.value }))} />
+            <TextInput
+              id="bb-mem"
+              labelText="No. of members"
+              type="number"
+              value={itf.noOfMembers}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, noOfMembers: e.target.value }))
+              }
+            />
+            <TextInput
+              id="bb-bpm"
+              labelText="Bars / member"
+              type="number"
+              value={itf.barsPerMember}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, barsPerMember: e.target.value }))
+              }
+            />
+            <TextInput
+              id="bb-cut"
+              labelText="Cutting length (mm)"
+              type="number"
+              value={itf.cuttingLengthMm}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, cuttingLengthMm: e.target.value }))
+              }
+            />
           </div>
           {preview && (
-            <p style={{ fontSize: 13, color: "var(--cds-text-secondary)" }}>
-              {preview.totalBars} bars · {preview.totalLengthM} m · <strong>{preview.weightKg} kg</strong>
+            <p>
+              {preview.totalBars} bars · {preview.totalLengthM} m ·{" "}
+              <strong>{preview.weightKg} kg</strong>
             </p>
           )}
         </Stack>

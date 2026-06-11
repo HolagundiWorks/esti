@@ -1,5 +1,6 @@
 import {
   Button,
+  Loading,
   Select,
   SelectItem,
   Tab,
@@ -9,7 +10,11 @@ import {
   Tabs,
   Tag,
 } from "@carbon/react";
-import { PROJECT_STATUS_LABEL, PROJECT_WORK_TYPE_LABEL, formatINR } from "@esti/contracts";
+import {
+  PROJECT_STATUS_LABEL,
+  PROJECT_WORK_TYPE_LABEL,
+  formatINR,
+} from "@esti/contracts";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
@@ -25,7 +30,10 @@ import { ContextualComments } from "../components/ContextualComments.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { trpc } from "../lib/trpc.js";
 
-const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red" | "teal"> = {
+const PROJECT_STATUS_TAG: Record<
+  string,
+  "gray" | "blue" | "purple" | "green" | "red" | "teal"
+> = {
   ENQUIRY: "gray",
   PROPOSAL: "teal",
   ACTIVE: "blue",
@@ -39,7 +47,10 @@ export function ProjectDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const hrEnabled = trpc.settings.get.useQuery().data?.hrEnabled ?? false;
-  const phasesQ = trpc.phases.listByProject.useQuery({ projectId: id }, { enabled: !!id });
+  const phasesQ = trpc.phases.listByProject.useQuery(
+    { projectId: id },
+    { enabled: !!id },
+  );
 
   const TAB_SLUGS = [
     "overview",
@@ -54,7 +65,8 @@ export function ProjectDetail() {
   const tabSlug = searchParams.get("tab") ?? "overview";
   const tabIndex = Math.max(0, TAB_SLUGS.indexOf(tabSlug));
 
-  if (project.isLoading) return <p>Loading…</p>;
+  if (project.isLoading)
+    return <Loading description="Loading project" withOverlay={false} />;
   if (!project.data)
     return (
       <p>
@@ -64,7 +76,8 @@ export function ProjectDetail() {
   const p = project.data;
   const phases = phasesQ.data ?? [];
   // Current project stage = the first stage that isn't complete (else the last).
-  const currentPhase = phases.find((ph) => ph.status !== "COMPLETE") ?? phases[phases.length - 1];
+  const currentPhase =
+    phases.find((ph) => ph.status !== "COMPLETE") ?? phases[phases.length - 1];
 
   return (
     <div>
@@ -74,39 +87,73 @@ export function ProjectDetail() {
           position: "sticky",
           top: 48,
           zIndex: 100,
-          backgroundColor: "var(--cds-background)",
-          borderBottom: "1px solid var(--cds-border-subtle)",
           paddingBottom: 8,
         }}
       >
-        <Link to="/projects" style={{ fontSize: "0.875rem" }}>← Projects</Link>
+        <Link to="/projects">← Projects</Link>
         <h1 style={{ marginTop: 4, marginBottom: 2 }}>
           {p.ref} — {p.title}
         </h1>
-        <div style={{ margin: 0, color: "var(--cds-text-secondary)", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        <div
+          style={{
+            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            flexWrap: "wrap",
+          }}
+        >
           <span>
-            {PROJECT_WORK_TYPE_LABEL[(p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ?? "ARCHITECTURE"]} · {p.projectType} · {p.jurisdiction}
+            {
+              PROJECT_WORK_TYPE_LABEL[
+                (p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL })
+                  .workType ?? "ARCHITECTURE"
+              ]
+            }{" "}
+            · {p.projectType} · {p.jurisdiction}
           </span>
           <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">
-            {PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ?? p.status}
+            {PROJECT_STATUS_LABEL[
+              p.status as keyof typeof PROJECT_STATUS_LABEL
+            ] ?? p.status}
           </Tag>
           <span>· {formatINR(p.contractValuePaise, { paise: false })}</span>
         </div>
         {phases.length > 0 && (
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 8, maxWidth: 520 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              gap: 12,
+              marginTop: 8,
+              maxWidth: 520,
+            }}
+          >
             <Select
               id="project-stage"
               labelText="Current project stage"
               size="sm"
               value={currentPhase?.id ?? ""}
-              onChange={() => setSearchParams({ tab: "settings" }, { replace: true })}
+              onChange={() =>
+                setSearchParams({ tab: "settings" }, { replace: true })
+              }
               style={{ flex: 1 }}
             >
               {phases.map((ph) => (
-                <SelectItem key={ph.id} value={ph.id} text={`${ph.label} — ${ph.status}`} />
+                <SelectItem
+                  key={ph.id}
+                  value={ph.id}
+                  text={`${ph.label} — ${ph.status}`}
+                />
               ))}
             </Select>
-            <Button kind="ghost" size="sm" onClick={() => setSearchParams({ tab: "settings" }, { replace: true })}>
+            <Button
+              kind="ghost"
+              size="sm"
+              onClick={() =>
+                setSearchParams({ tab: "settings" }, { replace: true })
+              }
+            >
               Update stages
             </Button>
           </div>
@@ -116,7 +163,10 @@ export function ProjectDetail() {
       <Tabs
         selectedIndex={tabIndex}
         onChange={({ selectedIndex }) =>
-          setSearchParams({ tab: TAB_SLUGS[selectedIndex] ?? "clientlog" }, { replace: true })
+          setSearchParams(
+            { tab: TAB_SLUGS[selectedIndex] ?? "clientlog" },
+            { replace: true },
+          )
         }
       >
         <TabList aria-label="Project sections" contained>
@@ -130,50 +180,51 @@ export function ProjectDetail() {
           <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
-        <TabPanel>
-          <ProjectOverview projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      <ProjectClientLog projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      <ProjectEstimates projectId={id} />
+          <TabPanel>
+            <ProjectOverview projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectClientLog projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectEstimates projectId={id} />
 
-      <ProjectBbs projectId={id} />
+            <ProjectBbs projectId={id} />
 
-      <ProjectPurchaseOrders projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      <ProjectDrawings projectId={id} />
+            <ProjectPurchaseOrders projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectDrawings projectId={id} />
 
-      <ProjectTransmittals projectId={id} />
+            <ProjectTransmittals projectId={id} />
 
-      <ProjectApprovals projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      <ProjectDocuments projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      {hrEnabled ? (
-        <ProjectTeam projectId={id} />
-      ) : (
-        <p style={{ marginTop: 24, color: "var(--cds-text-secondary)" }}>
-          The Team &amp; HR module is off — enable it in Company settings to assign staff.
-        </p>
-      )}
-        </TabPanel>
-        <TabPanel>
-          <ContextualComments
-            projectId={id}
-            objectType="projectoffice"
-            objectId={id}
-            heading="Project comments"
-            description="Contextual discussion linked directly to this project."
-          />
-        </TabPanel>
-        <TabPanel>
-          <ProjectSettings projectId={id} />
-        </TabPanel>
+            <ProjectApprovals projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectDocuments projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            {hrEnabled ? (
+              <ProjectTeam projectId={id} />
+            ) : (
+              <p style={{ marginTop: 24 }}>
+                The Team &amp; HR module is off — enable it in Company settings
+                to assign staff.
+              </p>
+            )}
+          </TabPanel>
+          <TabPanel>
+            <ContextualComments
+              projectId={id}
+              objectType="projectoffice"
+              objectId={id}
+              heading="Project comments"
+              description="Contextual discussion linked directly to this project."
+            />
+          </TabPanel>
+          <TabPanel>
+            <ProjectSettings projectId={id} />
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </div>

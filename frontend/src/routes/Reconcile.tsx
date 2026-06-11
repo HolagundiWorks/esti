@@ -43,14 +43,18 @@ export function Reconcile() {
   const utils = trpc.useUtils();
   const listQ = trpc.reconcile.list.useQuery(undefined, {
     refetchInterval: (q) =>
-      (q.state.data ?? []).some((r) => r.status === "PENDING" || r.status === "PROCESSING")
+      (q.state.data ?? []).some(
+        (r) => r.status === "PENDING" || r.status === "PROCESSING",
+      )
         ? 2000
         : false,
   });
   const [settleMsg, setSettleMsg] = useState<string | null>(null);
   const settle = trpc.reconcile.settle.useMutation({
     onSuccess: (res) => {
-      setSettleMsg(`Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`);
+      setSettleMsg(
+        `Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`,
+      );
       utils.reconcile.list.invalidate();
       utils.dashboard.summary.invalidate();
     },
@@ -70,8 +74,15 @@ export function Reconcile() {
       const fd = new FormData();
       fd.append("label", label);
       fd.append("file", file);
-      const res = await fetch("/upload/reconcile", { method: "POST", body: fd, credentials: "include" });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+      const res = await fetch("/upload/reconcile", {
+        method: "POST",
+        body: fd,
+        credentials: "include",
+      });
+      if (!res.ok)
+        throw new Error(
+          (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`,
+        );
       setLabel("");
       setFile(null);
       utils.reconcile.list.invalidate();
@@ -93,7 +104,14 @@ export function Reconcile() {
       <h1>Reconciliation</h1>
       <p>Match bank-statement credits against invoices (CSV / XLSX).</p>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-end", margin: "16px 0" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "flex-end",
+          margin: "16px 0",
+        }}
+      >
         <TextInput
           id="rcn-label"
           labelText="Batch label"
@@ -107,13 +125,22 @@ export function Reconcile() {
           accept={[".csv", ".xlsx", ".xls"]}
           disableLabelChanges
           buttonKind="tertiary"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFile(e.target.files?.[0] ?? null)
+          }
         />
         <Button size="md" disabled={!file || !label || busy} onClick={upload}>
           {busy ? "Uploading…" : "Upload & reconcile"}
         </Button>
       </div>
-      {error && <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast />}
+      {error && (
+        <InlineNotification
+          kind="error"
+          title="Upload failed"
+          subtitle={error}
+          lowContrast
+        />
+      )}
       {settleMsg && (
         <InlineNotification
           kind="success"
@@ -143,12 +170,12 @@ export function Reconcile() {
                 <TableCell>{r.ref}</TableCell>
                 <TableCell>
                   {r.label}
-                  <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{r.fileName}</div>
+                  <div>{r.fileName}</div>
                 </TableCell>
                 <TableCell>
                   <Tag type={STATUS_TAG[r.status] ?? "gray"}>{r.status}</Tag>
                   {r.status === "FAILED" && r.errorText && (
-                    <div style={{ fontSize: 12, color: "var(--cds-text-error)" }}>{r.errorText}</div>
+                    <div>{r.errorText}</div>
                   )}
                 </TableCell>
                 <TableCell>{r.rowCount}</TableCell>
@@ -156,7 +183,8 @@ export function Reconcile() {
                   {r.matchedCount}/{r.rowCount}
                 </TableCell>
                 <TableCell>
-                  {formatINRShort(r.matchedCreditPaise)} / {formatINRShort(r.totalCreditPaise)}
+                  {formatINRShort(r.matchedCreditPaise)} /{" "}
+                  {formatINRShort(r.totalCreditPaise)}
                 </TableCell>
                 <TableCell>
                   {r.status === "READY" && (
@@ -206,7 +234,9 @@ export function Reconcile() {
                   <TableCell>{l.description}</TableCell>
                   <TableCell>{formatINR(l.amountPaise)}</TableCell>
                   <TableCell>
-                    <Tag type={MATCH_TAG[l.matchType] ?? "gray"}>{l.matchType}</Tag>
+                    <Tag type={MATCH_TAG[l.matchType] ?? "gray"}>
+                      {l.matchType}
+                    </Tag>
                   </TableCell>
                   <TableCell>{l.matchedInvoiceRef ?? "—"}</TableCell>
                 </TableRow>

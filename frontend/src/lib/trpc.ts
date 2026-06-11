@@ -3,4 +3,5 @@ import { type CreateTRPCReact, createTRPCReact } from "@trpc/react-query";
 import type { AppRouter } from "@esti/backend/router";
 
 // Explicit annotation avoids TS2742 (non-portable inferred type under declaration mode).
-export const trpc: CreateTRPCReact<AppRouter, unknown> = createTRPCReact<AppRouter>();
+export const trpc: CreateTRPCReact<AppRouter, unknown> =
+  createTRPCReact<AppRouter>();

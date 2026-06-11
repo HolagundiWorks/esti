@@ -25,7 +25,10 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
-const TIER_TAG: Record<PermitDueTier, { type: "red" | "magenta" | "blue" | "gray"; label: string }> = {
+const TIER_TAG: Record<
+  PermitDueTier,
+  { type: "red" | "magenta" | "blue" | "gray"; label: string }
+> = {
   overdue: { type: "red", label: "Overdue" },
   due_soon: { type: "magenta", label: "Due ≤14d" },
   upcoming: { type: "blue", label: "Due ≤30d" },
@@ -34,14 +37,19 @@ const TIER_TAG: Record<PermitDueTier, { type: "red" | "magenta" | "blue" | "gray
 
 export function ProjectPermits({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const permitsQ = trpc.permits.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const permitsQ = trpc.permits.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const update = trpc.permits.update.useMutation({
     onSuccess: () => utils.permits.listByProject.invalidate({ projectId }),
   });
 
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<string>("BPAS");
-  const [authority, setAuthority] = useState<string>(PERMIT_TYPES.BPAS.authorities[0]);
+  const [authority, setAuthority] = useState<string>(
+    PERMIT_TYPES.BPAS.authorities[0],
+  );
   const [appNo, setAppNo] = useState("");
   const [dueDate, setDueDate] = useState("");
 
@@ -54,7 +62,8 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
     },
   });
 
-  const authorities = PERMIT_TYPES[type as keyof typeof PERMIT_TYPES].authorities;
+  const authorities =
+    PERMIT_TYPES[type as keyof typeof PERMIT_TYPES].authorities;
 
   return (
     <>
@@ -71,7 +80,10 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
           New permit
         </Button>
       </div>
-      <TableContainer title="Statutory approvals" description="Tracking with due-date alerts">
+      <TableContainer
+        title="Statutory approvals"
+        description="Tracking with due-date alerts"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -89,7 +101,10 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
               const tag = TIER_TAG[tier];
               return (
                 <TableRow key={p.id}>
-                  <TableCell>{PERMIT_TYPES[p.permitType as keyof typeof PERMIT_TYPES]?.label ?? p.permitType}</TableCell>
+                  <TableCell>
+                    {PERMIT_TYPES[p.permitType as keyof typeof PERMIT_TYPES]
+                      ?.label ?? p.permitType}
+                  </TableCell>
                   <TableCell>{p.authority}</TableCell>
                   <TableCell>{p.applicationNo ?? "—"}</TableCell>
                   <TableCell>
@@ -107,7 +122,8 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
                       onChange={(e) =>
                         update.mutate({
                           id: p.id,
-                          status: e.target.value as (typeof PermitStatus.options)[number],
+                          status: e.target
+                            .value as (typeof PermitStatus.options)[number],
                         })
                       }
                     >
@@ -148,7 +164,8 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
             onChange={(e) => {
               setType(e.target.value);
               setAuthority(
-                PERMIT_TYPES[e.target.value as keyof typeof PERMIT_TYPES].authorities[0],
+                PERMIT_TYPES[e.target.value as keyof typeof PERMIT_TYPES]
+                  .authorities[0],
               );
             }}
           >

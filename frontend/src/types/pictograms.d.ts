@@ -4,7 +4,10 @@
 declare module "@carbon/pictograms-react" {
   import type { FC, SVGProps } from "react";
   export type Pictogram = FC<
-    SVGProps<SVGSVGElement> & { width?: number | string; height?: number | string }
+    SVGProps<SVGSVGElement> & {
+      width?: number | string;
+      height?: number | string;
+    }
   >;
   export const Building: Pictogram;
   export const Receipt: Pictogram;

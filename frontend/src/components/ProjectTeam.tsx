@@ -24,9 +24,13 @@ import { trpc } from "../lib/trpc.js";
 
 export function ProjectTeam({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const listQ = trpc.assignments.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const listQ = trpc.assignments.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const teamQ = trpc.team.list.useQuery();
-  const invalidate = () => utils.assignments.listByProject.invalidate({ projectId });
+  const invalidate = () =>
+    utils.assignments.listByProject.invalidate({ projectId });
   const remove = trpc.assignments.remove.useMutation({ onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
@@ -54,14 +58,19 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
         }}
       >
         <h3>Project team</h3>
-        <Button size="sm" disabled={team.length === 0} onClick={() => setOpen(true)}>
+        <Button
+          size="sm"
+          disabled={team.length === 0}
+          onClick={() => setOpen(true)}
+        >
           Assign member
         </Button>
       </div>
-      {team.length === 0 && (
-        <p style={{ color: "var(--cds-text-secondary)" }}>Add staff in the Team register first.</p>
-      )}
-      <TableContainer title="Assignments" description="Site in-charge and project staff">
+      {team.length === 0 && <p>Add staff in the Team register first.</p>}
+      <TableContainer
+        title="Assignments"
+        description="Site in-charge and project staff"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -75,7 +84,9 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
             {(listQ.data ?? []).map((a) => (
               <TableRow key={a.id}>
                 <TableCell>{a.name}</TableCell>
-                <TableCell>{TEAM_ROLES[a.memberRole as TeamRoleCode] ?? a.memberRole}</TableCell>
+                <TableCell>
+                  {TEAM_ROLES[a.memberRole as TeamRoleCode] ?? a.memberRole}
+                </TableCell>
                 <TableCell>
                   <Tag type={a.role === "SITE_INCHARGE" ? "purple" : "blue"}>
                     {ASSIGNMENT_ROLES[a.role as AssignmentRoleCode] ?? a.role}
@@ -124,9 +135,11 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
             value={role}
             onChange={(e) => setRole(e.target.value as AssignmentRoleCode)}
           >
-            {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
-            ))}
+            {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map(
+              (k) => (
+                <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
+              ),
+            )}
           </Select>
         </Stack>
       </Modal>

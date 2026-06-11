@@ -1,4 +1,4 @@
-import { DataTableSkeleton } from "@carbon/react";
+import { DataTableSkeleton, Stack, Tile } from "@carbon/react";
 import type { ReactNode } from "react";
 
 /**
@@ -22,23 +22,24 @@ export function DataState({
   children: ReactNode;
 }) {
   if (loading) {
-    return <DataTableSkeleton columnCount={columnCount} rowCount={5} showHeader={false} showToolbar={false} />;
+    return (
+      <DataTableSkeleton
+        columnCount={columnCount}
+        rowCount={5}
+        showHeader={false}
+        showToolbar={false}
+      />
+    );
   }
   if (isEmpty) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "3rem 1rem",
-          border: "1px dashed var(--cds-border-subtle)",
-          borderRadius: 4,
-          color: "var(--cds-text-secondary)",
-        }}
-      >
-        <p style={{ fontSize: "1rem", fontWeight: 600, color: "var(--cds-text-primary)" }}>{empty.title}</p>
-        {empty.description && <p style={{ marginTop: 4 }}>{empty.description}</p>}
-        {empty.action && <div style={{ marginTop: 16 }}>{empty.action}</div>}
-      </div>
+      <Tile>
+        <Stack gap={5}>
+          <h3>{empty.title}</h3>
+          {empty.description && <p>{empty.description}</p>}
+          {empty.action}
+        </Stack>
+      </Tile>
     );
   }
   return <>{children}</>;

@@ -50,8 +50,14 @@ export function DrawingViewer({
 }) {
   const utils = trpc.useUtils();
   const svgQ = trpc.drawings.svg.useQuery({ id: drawingId }, { enabled: open });
-  const metaQ = trpc.drawings.byId.useQuery({ id: drawingId }, { enabled: open });
-  const measQ = trpc.measurements.listByDrawing.useQuery({ drawingId }, { enabled: open });
+  const metaQ = trpc.drawings.byId.useQuery(
+    { id: drawingId },
+    { enabled: open },
+  );
+  const measQ = trpc.measurements.listByDrawing.useQuery(
+    { drawingId },
+    { enabled: open },
+  );
 
   const overlayRef = useRef<SVGSVGElement | null>(null);
   const [mode, setMode] = useState<Mode>("measure");
@@ -127,21 +133,41 @@ export function DrawingViewer({
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "var(--cds-layer, #fff)",
         display: "flex",
         flexDirection: "column",
       }
     : {};
 
   const toolbar = (
-    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap", padding: fullscreen ? 12 : 0 }}>
-      <Button size="sm" kind={mode === "measure" ? "primary" : "tertiary"} onClick={() => switchMode("measure")}>
+    <div
+      style={{
+        display: "flex",
+        gap: 8,
+        alignItems: "center",
+        marginBottom: 12,
+        flexWrap: "wrap",
+        padding: fullscreen ? 12 : 0,
+      }}
+    >
+      <Button
+        size="sm"
+        kind={mode === "measure" ? "primary" : "tertiary"}
+        onClick={() => switchMode("measure")}
+      >
         Measure
       </Button>
-      <Button size="sm" kind={mode === "area" ? "primary" : "tertiary"} onClick={() => switchMode("area")}>
+      <Button
+        size="sm"
+        kind={mode === "area" ? "primary" : "tertiary"}
+        onClick={() => switchMode("area")}
+      >
         Area
       </Button>
-      <Button size="sm" kind={mode === "calibrate" ? "primary" : "tertiary"} onClick={() => switchMode("calibrate")}>
+      <Button
+        size="sm"
+        kind={mode === "calibrate" ? "primary" : "tertiary"}
+        onClick={() => switchMode("calibrate")}
+      >
         Calibrate scale
       </Button>
       {scale ? (
@@ -160,8 +186,10 @@ export function DrawingViewer({
         onClick={() => setFullscreen((v) => !v)}
         style={{ marginLeft: "auto" }}
       />
-      <span style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
-        {mode === "area" ? "Click vertices to outline an area." : "Click two points to draw a line."}
+      <span>
+        {mode === "area"
+          ? "Click vertices to outline an area."
+          : "Click two points to draw a line."}
       </span>
     </div>
   );
@@ -175,34 +203,54 @@ export function DrawingViewer({
           style={{
             position: "relative",
             width: "100%",
-            border: "1px solid var(--cds-border-subtle)",
-            background: "#fff",
             flex: fullscreen ? 1 : undefined,
             maxHeight: fullscreen ? "none" : "55vh",
             overflow: "auto",
           }}
         >
-          <div className="dwg-base" dangerouslySetInnerHTML={{ __html: svgQ.data.svg }} />
+          <div
+            className="dwg-base"
+            dangerouslySetInnerHTML={{ __html: svgQ.data.svg }}
+          />
           <svg
             ref={overlayRef}
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
             onClick={handleClick}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "crosshair" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              cursor: "crosshair",
+            }}
           >
             {mode !== "area" && pts.length === 2 && (
-              <line x1={pts[0]!.x} y1={pts[0]!.y} x2={pts[1]!.x} y2={pts[1]!.y} stroke="#da1e28" strokeWidth={sw} />
+              <line
+                x1={pts[0]!.x}
+                y1={pts[0]!.y}
+                x2={pts[1]!.x}
+                y2={pts[1]!.y}
+                stroke="var(--cds-support-error)"
+                strokeWidth={sw}
+              />
             )}
             {mode === "area" && pts.length >= 2 && (
               <polygon
                 points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-                fill="rgba(15,98,254,0.15)"
-                stroke="#0f62fe"
+                fill="var(--cds-highlight)"
+                stroke="var(--cds-link-primary)"
                 strokeWidth={sw}
               />
             )}
             {pts.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r={sw * 1.5} fill="#0f62fe" />
+              <circle
+                key={i}
+                cx={p.x}
+                cy={p.y}
+                r={sw * 1.5}
+                fill="var(--cds-link-primary)"
+              />
             ))}
           </svg>
         </div>
@@ -214,7 +262,15 @@ export function DrawingViewer({
   const actions = (
     <>
       {mode === "calibrate" && pts.length === 2 && (
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginTop: 12, padding: fullscreen ? 12 : 0 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "flex-end",
+            marginTop: 12,
+            padding: fullscreen ? 12 : 0,
+          }}
+        >
           <TextInput
             id="calib-len"
             labelText={`Real length of this line (vb ${vbLen.toFixed(1)})`}
@@ -223,7 +279,12 @@ export function DrawingViewer({
             onChange={(e) => setCalibLen(e.target.value)}
             style={{ maxWidth: 220 }}
           />
-          <Select id="calib-unit" labelText="Unit" value={calibUnit} onChange={(e) => setCalibUnit(e.target.value)}>
+          <Select
+            id="calib-unit"
+            labelText="Unit"
+            value={calibUnit}
+            onChange={(e) => setCalibUnit(e.target.value)}
+          >
             {["mm", "cm", "m", "ft", "in"].map((u) => (
               <SelectItem key={u} value={u} text={u} />
             ))}
@@ -232,7 +293,11 @@ export function DrawingViewer({
             size="md"
             disabled={!calibLen || vbLen === 0 || setScale.isPending}
             onClick={() =>
-              setScale.mutate({ id: drawingId, scaleUnitsPerVb: Number(calibLen) / vbLen, scaleUnit: calibUnit })
+              setScale.mutate({
+                id: drawingId,
+                scaleUnitsPerVb: Number(calibLen) / vbLen,
+                scaleUnit: calibUnit,
+              })
             }
           >
             Save calibration
@@ -270,7 +335,13 @@ export function DrawingViewer({
               </Button>
             </div>
           ) : (
-            <InlineNotification kind="warning" lowContrast hideCloseButton title="Calibrate first" subtitle="Set the scale before saving measurements." />
+            <InlineNotification
+              kind="warning"
+              lowContrast
+              hideCloseButton
+              title="Calibrate first"
+              subtitle="Set the scale before saving measurements."
+            />
           )}
         </div>
       )}
@@ -308,7 +379,13 @@ export function DrawingViewer({
               </Button>
             </div>
           ) : (
-            <InlineNotification kind="warning" lowContrast hideCloseButton title="Calibrate first" subtitle="Set the scale before saving an area." />
+            <InlineNotification
+              kind="warning"
+              lowContrast
+              hideCloseButton
+              title="Calibrate first"
+              subtitle="Set the scale before saving an area."
+            />
           )}
         </div>
       )}
@@ -335,7 +412,11 @@ export function DrawingViewer({
                 {m.realLength.toFixed(m.kind === "AREA" ? 2 : 1)} {m.unit}
               </TableCell>
               <TableCell>
-                <Button kind="ghost" size="sm" onClick={() => removeMeas.mutate({ id: m.id })}>
+                <Button
+                  kind="ghost"
+                  size="sm"
+                  onClick={() => removeMeas.mutate({ id: m.id })}
+                >
                   Remove
                 </Button>
               </TableCell>
@@ -351,7 +432,15 @@ export function DrawingViewer({
     return (
       <div style={canvasWrap}>
         {toolbar}
-        <div style={{ flex: 1, overflow: "auto", padding: "0 12px", display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            flex: 1,
+            overflow: "auto",
+            padding: "0 12px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {canvas}
         </div>
         {actions}
@@ -360,7 +449,13 @@ export function DrawingViewer({
   }
 
   return (
-    <Modal open={open} modalHeading="Drawing viewer & measurement" passiveModal size="lg" onRequestClose={onClose}>
+    <Modal
+      open={open}
+      modalHeading="Drawing viewer & measurement"
+      passiveModal
+      size="lg"
+      onRequestClose={onClose}
+    >
       {toolbar}
       {canvas}
       {actions}

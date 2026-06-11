@@ -5,17 +5,7 @@ import { dismissToast, useToasts } from "../lib/toast.js";
 export function ToastHost() {
   const toasts = useToasts();
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 16,
-        bottom: 16,
-        zIndex: 9000,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-    >
+    <div className="esti-toast-host">
       {toasts.map((t) => (
         <ToastNotification
           key={t.id}

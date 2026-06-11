@@ -1,4 +1,4 @@
-import { Button } from "@carbon/react";
+import { Button, Content, InlineNotification, Stack } from "@carbon/react";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
@@ -23,13 +23,18 @@ export class ErrorBoundary extends Component<Props, State> {
   override render(): ReactNode {
     if (this.state.error) {
       return (
-        <div style={{ padding: 48, maxWidth: 640 }}>
-          <h2>Something went wrong</h2>
-          <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 16px" }}>
-            {this.state.error.message || "An unexpected error occurred."}
-          </p>
-          <Button onClick={() => window.location.assign("/")}>Reload app</Button>
-        </div>
+        <Content>
+          <Stack gap={5}>
+            <InlineNotification
+              kind="error"
+              title="Something went wrong"
+              subtitle={this.state.error.message || "An unexpected error occurred."}
+              hideCloseButton
+              lowContrast
+            />
+            <Button onClick={() => window.location.assign("/")}>Reload app</Button>
+          </Stack>
+        </Content>
       );
     }
     return this.props.children;

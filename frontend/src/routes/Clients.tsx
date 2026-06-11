@@ -54,16 +54,26 @@ export function Clients() {
     onSuccess: () => {
       utils.clients.list.invalidate();
       setOpen(false);
-      setForm({ name: "", kind: "INDIVIDUAL", gstin: "", city: "", email: "", phone: "" });
+      setForm({
+        name: "",
+        kind: "INDIVIDUAL",
+        gstin: "",
+        city: "",
+        email: "",
+        phone: "",
+      });
     },
   });
 
   const [portalOpen, setPortalOpen] = useState(false);
-  const [portalForm, setPortalForm] = useState({ clientId: "", email: "", password: "" });
+  const [portalForm, setPortalForm] = useState({
+    clientId: "",
+    email: "",
+    password: "",
+  });
   const [portalMsg, setPortalMsg] = useState<string | null>(null);
   const setP =
-    (k: keyof typeof portalForm) =>
-    (e: { target: { value: string } }) =>
+    (k: keyof typeof portalForm) => (e: { target: { value: string } }) =>
       setPortalForm((f) => ({ ...f, [k]: e.target.value }));
   const createPortal = trpc.clients.createPortalUser.useMutation({
     onSuccess: (u) => {
@@ -104,13 +114,28 @@ export function Clients() {
         columnCount={5}
         empty={{
           title: "No clients yet",
-          description: "Add a client or lead to attach projects, invoices and a portal login.",
-          action: <Button size="sm" onClick={() => setOpen(true)}>New client</Button>,
+          description:
+            "Add a client or lead to attach projects, invoices and a portal login.",
+          action: (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New client
+            </Button>
+          ),
         }}
       >
         <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }) => {
-            const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
+          {({
+            rows,
+            headers,
+            getTableProps,
+            getHeaderProps,
+            getRowProps,
+            onInputChange,
+          }) => {
+            const pagedRows = rows.slice(
+              (page - 1) * pageSize,
+              page * pageSize,
+            );
             return (
               <TableContainer title="Clients" description="Clients and leads">
                 <TableToolbar>
@@ -118,7 +143,10 @@ export function Clients() {
                     <TableToolbarSearch
                       placeholder="Search clients…"
                       persistent
-                      onChange={(e) => { setPage(1); onInputChange(e); }}
+                      onChange={(e) => {
+                        setPage(1);
+                        onInputChange(e);
+                      }}
                     />
                     <Button kind="tertiary" onClick={() => setPortalOpen(true)}>
                       Create portal login
@@ -187,8 +215,18 @@ export function Clients() {
         }
       >
         <Stack gap={5}>
-          <TextInput id="c-name" labelText="Name" value={form.name} onChange={set("name")} />
-          <Select id="c-kind" labelText="Type" value={form.kind} onChange={set("kind")}>
+          <TextInput
+            id="c-name"
+            labelText="Name"
+            value={form.name}
+            onChange={set("name")}
+          />
+          <Select
+            id="c-kind"
+            labelText="Type"
+            value={form.kind}
+            onChange={set("kind")}
+          >
             {ClientKind.options.map((k) => (
               <SelectItem key={k} value={k} text={k} />
             ))}
@@ -199,7 +237,12 @@ export function Clients() {
             value={form.gstin}
             onChange={set("gstin")}
           />
-          <TextInput id="c-city" labelText="City" value={form.city} onChange={set("city")} />
+          <TextInput
+            id="c-city"
+            labelText="City"
+            value={form.city}
+            onChange={set("city")}
+          />
           <TextInput
             id="c-email"
             labelText="Email"
@@ -207,7 +250,12 @@ export function Clients() {
             value={form.email}
             onChange={set("email")}
           />
-          <TextInput id="c-phone" labelText="Phone" value={form.phone} onChange={set("phone")} />
+          <TextInput
+            id="c-phone"
+            labelText="Phone"
+            value={form.phone}
+            onChange={set("phone")}
+          />
           {create.error && (
             <InlineNotification
               kind="error"
@@ -223,7 +271,9 @@ export function Clients() {
       <Modal
         open={portalOpen}
         modalHeading="Create client portal login"
-        primaryButtonText={createPortal.isPending ? "Creating…" : "Create login"}
+        primaryButtonText={
+          createPortal.isPending ? "Creating…" : "Create login"
+        }
         secondaryButtonText="Cancel"
         primaryButtonDisabled={
           !portalForm.clientId ||

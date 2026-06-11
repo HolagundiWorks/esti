@@ -37,12 +37,6 @@ const BAND_ICON: Record<TaskLoadBand, CarbonIconType> = {
   balanced: CheckmarkFilled,
   heavy: ErrorFilled,
 };
-const BAND_TOKEN: Record<TaskLoadBand, string> = {
-  light: "var(--cds-support-warning)",
-  balanced: "var(--cds-support-success)",
-  heavy: "var(--cds-support-error)",
-};
-
 function toISO(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -55,22 +49,38 @@ function officeBand(total: number, headcount: number): TaskLoadBand {
 
 function BandMark({ band, size = 16 }: { band: TaskLoadBand; size?: number }) {
   const Icon = BAND_ICON[band];
-  return <Icon size={size} style={{ color: BAND_TOKEN[band] }} />;
+  return <Icon size={size} />;
 }
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function Workload() {
   const now = new Date();
   const [selectedDate, setSelectedDate] = useState(() => toISO(now));
-  const [view, setView] = useState(() => ({ year: now.getFullYear(), month: now.getMonth() }));
+  const [view, setView] = useState(() => ({
+    year: now.getFullYear(),
+    month: now.getMonth(),
+  }));
 
   const dayQ = trpc.workload.day.useQuery({ date: selectedDate });
-  const monthQ = trpc.workload.month.useQuery({ year: view.year, month: view.month });
+  const monthQ = trpc.workload.month.useQuery({
+    year: view.year,
+    month: view.month,
+  });
 
   const day = dayQ.data;
   const headcount = day?.headcount ?? 0;
@@ -98,19 +108,25 @@ export function Workload() {
     });
   }
 
-  const selectedLabel = new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const selectedLabel = new Date(`${selectedDate}T00:00:00`).toLocaleDateString(
+    "en-IN",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  );
 
   return (
     <Grid fullWidth className="esti-dash">
       {/* Header + day picker */}
       <Column lg={10} md={5} sm={4}>
         <h1>Workload</h1>
-        <p>Daily task load per person and across the office, with a month calendar.</p>
+        <p>
+          Daily task load per person and across the office, with a month
+          calendar.
+        </p>
       </Column>
       <Column lg={6} md={3} sm={4}>
         <DatePicker
@@ -120,11 +136,19 @@ export function Workload() {
           onChange={(dates: Date[]) => {
             if (dates[0]) {
               setSelectedDate(toISO(dates[0]));
-              setView({ year: dates[0].getFullYear(), month: dates[0].getMonth() });
+              setView({
+                year: dates[0].getFullYear(),
+                month: dates[0].getMonth(),
+              });
             }
           }}
         >
-          <DatePickerInput id="wl-date" labelText="Day" placeholder="yyyy-mm-dd" size="lg" />
+          <DatePickerInput
+            id="wl-date"
+            labelText="Day"
+            placeholder="yyyy-mm-dd"
+            size="lg"
+          />
         </DatePicker>
       </Column>
 
@@ -138,7 +162,9 @@ export function Workload() {
               <BandMark band={dayBand} />
               <span>{TASK_LOAD_BAND_LABEL[dayBand]}</span>
             </Stack>
-            <p>{headcount} staff · {avg} tasks/person avg</p>
+            <p>
+              {headcount} staff · {avg} tasks/person avg
+            </p>
           </Stack>
         </Tile>
       </Column>
@@ -152,7 +178,9 @@ export function Workload() {
               {(["light", "balanced", "heavy"] as const).map((band) => (
                 <Stack key={band} orientation="horizontal" gap={3}>
                   <BandMark band={band} />
-                  <span className="esti-grow">{TASK_LOAD_BAND_LABEL[band]}</span>
+                  <span className="esti-grow">
+                    {TASK_LOAD_BAND_LABEL[band]}
+                  </span>
                   <span>{TASK_LOAD_BAND_RANGE[band]}</span>
                 </Stack>
               ))}
@@ -215,7 +243,9 @@ export function Workload() {
                 iconDescription="Previous month"
                 onClick={() => shiftMonth(-1)}
               />
-              <h4 className="esti-grow">{MONTHS[view.month]} {view.year}</h4>
+              <h4 className="esti-grow">
+                {MONTHS[view.month]} {view.year}
+              </h4>
               <Button
                 kind="ghost"
                 size="sm"
@@ -228,7 +258,7 @@ export function Workload() {
 
             <div className="esti-cal">
               {WEEKDAYS.map((w) => (
-                <div key={w} style={{ textAlign: "center", color: "var(--cds-text-secondary)", padding: "4px 0" }}>
+                <div key={w} style={{ padding: "4px 0" }}>
                   {w}
                 </div>
               ))}
@@ -244,11 +274,13 @@ export function Workload() {
                     onClick={() => setSelectedDate(iso)}
                     style={{
                       minHeight: 76,
-                      outline: selected ? "2px solid var(--cds-focus)" : undefined,
+                      outline: selected
+                        ? "2px solid var(--cds-focus)"
+                        : undefined,
                     }}
                   >
                     <Stack gap={2}>
-                      <span style={{ color: "var(--cds-text-secondary)" }}>{d}</span>
+                      <span>{d}</span>
                       {cellTotal > 0 && (
                         <Stack orientation="horizontal" gap={2}>
                           <BandMark band={band} />
@@ -260,7 +292,10 @@ export function Workload() {
                 );
               })}
             </div>
-            <p>Calendar marks the total open tasks due each day, shaded by the office workload band.</p>
+            <p>
+              Calendar marks the total open tasks due each day, shaded by the
+              office workload band.
+            </p>
           </Stack>
         </Tile>
       </Column>

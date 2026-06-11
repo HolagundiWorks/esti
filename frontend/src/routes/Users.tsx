@@ -15,7 +15,11 @@ import {
   Tag,
   TextInput,
 } from "@carbon/react";
-import { ASSIGNABLE_STAFF_ROLES, STAFF_ROLE_LABEL, isStaffRole } from "@esti/contracts";
+import {
+  ASSIGNABLE_STAFF_ROLES,
+  STAFF_ROLE_LABEL,
+  isStaffRole,
+} from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -32,7 +36,9 @@ export function Users() {
   const listQ = trpc.users.list.useQuery();
   const invalidate = () => utils.users.list.invalidate();
 
-  const setDisabled = trpc.users.setDisabled.useMutation({ onSuccess: invalidate });
+  const setDisabled = trpc.users.setDisabled.useMutation({
+    onSuccess: invalidate,
+  });
   const setRole = trpc.users.setRole.useMutation({
     onSuccess: () => {
       invalidate();
@@ -41,9 +47,12 @@ export function Users() {
   });
 
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState<{ email: string; fullName: string; password: string; role: (typeof ASSIGNABLE_STAFF_ROLES)[number] }>(
-    { email: "", fullName: "", password: "", role: "ASSOCIATE" },
-  );
+  const [form, setForm] = useState<{
+    email: string;
+    fullName: string;
+    password: string;
+    role: (typeof ASSIGNABLE_STAFF_ROLES)[number];
+  }>({ email: "", fullName: "", password: "", role: "ASSOCIATE" });
   const [msg, setMsg] = useState<string | null>(null);
   const createStaff = trpc.users.createStaff.useMutation({
     onSuccess: (u) => {
@@ -54,7 +63,9 @@ export function Users() {
     },
   });
 
-  const [reset, setReset] = useState<{ id: string; email: string } | null>(null);
+  const [reset, setReset] = useState<{ id: string; email: string } | null>(
+    null,
+  );
   const [resetPw, setResetPw] = useState("");
   const resetPassword = trpc.users.resetPassword.useMutation({
     onSuccess: () => {
@@ -66,16 +77,28 @@ export function Users() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <h1>Users &amp; access</h1>
         <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
       </div>
-      <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
-        Owner / staff / portal logins. Client and consultant portal logins are created from their
-        records (Clients / Consultants).
+      <p style={{ marginBottom: 16 }}>
+        Owner / staff / portal logins. Client and consultant portal logins are
+        created from their records (Clients / Consultants).
       </p>
       {msg && (
-        <InlineNotification kind="success" title="Done" subtitle={msg} lowContrast onCloseButtonClick={() => setMsg(null)} />
+        <InlineNotification
+          kind="success"
+          title="Done"
+          subtitle={msg}
+          lowContrast
+          onCloseButtonClick={() => setMsg(null)}
+        />
       )}
 
       <TableContainer title="Logins">
@@ -93,13 +116,20 @@ export function Users() {
             {(listQ.data ?? []).map((u) => {
               const isSelf = u.id === user?.id;
               const scope =
-                u.role === "CLIENT" ? " (client portal)" : u.consultantId ? " (consultant portal)" : "";
+                u.role === "CLIENT"
+                  ? " (client portal)"
+                  : u.consultantId
+                    ? " (consultant portal)"
+                    : "";
               return (
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.fullName}</TableCell>
                   <TableCell>
-                    {!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId ? (
+                    {!isSelf &&
+                    u.role !== "OWNER" &&
+                    !u.clientId &&
+                    !u.consultantId ? (
                       <Select
                         id={`role-${u.id}`}
                         labelText="User role"
@@ -109,12 +139,17 @@ export function Users() {
                         onChange={(e) =>
                           setRole.mutate({
                             id: u.id,
-                            role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
+                            role: e.target
+                              .value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
                           })
                         }
                       >
                         {ASSIGNABLE_STAFF_ROLES.map((r) => (
-                          <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
+                          <SelectItem
+                            key={r}
+                            value={r}
+                            text={STAFF_ROLE_LABEL[r]}
+                          />
                         ))}
                       </Select>
                     ) : (
@@ -125,18 +160,29 @@ export function Users() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Tag type={u.disabled ? "red" : "green"}>{u.disabled ? "Disabled" : "Active"}</Tag>
+                    <Tag type={u.disabled ? "red" : "green"}>
+                      {u.disabled ? "Disabled" : "Active"}
+                    </Tag>
                   </TableCell>
                   <TableCell>
                     <div style={{ display: "flex", gap: 4 }}>
-                      <Button kind="ghost" size="sm" onClick={() => setReset({ id: u.id, email: u.email })}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setReset({ id: u.id, email: u.email })}
+                      >
                         Reset password
                       </Button>
                       {!isSelf && (
                         <Button
                           kind="ghost"
                           size="sm"
-                          onClick={() => setDisabled.mutate({ id: u.id, disabled: !u.disabled })}
+                          onClick={() =>
+                            setDisabled.mutate({
+                              id: u.id,
+                              disabled: !u.disabled,
+                            })
+                          }
                         >
                           {u.disabled ? "Enable" : "Disable"}
                         </Button>
@@ -155,29 +201,64 @@ export function Users() {
         modalHeading="Add staff login"
         primaryButtonText={createStaff.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.email || form.fullName.length < 2 || form.password.length < 8 || createStaff.isPending}
+        primaryButtonDisabled={
+          !form.email ||
+          form.fullName.length < 2 ||
+          form.password.length < 8 ||
+          createStaff.isPending
+        }
         onRequestClose={() => setAddOpen(false)}
         onRequestSubmit={() => createStaff.mutate(form)}
       >
         <Stack gap={5}>
-          <p style={{ color: "var(--cds-text-secondary)" }}>
-            Creates an office staff login at the chosen seniority tier.
-          </p>
-          <TextInput id="u-name" labelText="Full name" value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
-          <TextInput id="u-email" labelText="Login email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+          <p>Creates an office staff login at the chosen seniority tier.</p>
+          <TextInput
+            id="u-name"
+            labelText="Full name"
+            value={form.fullName}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, fullName: e.target.value }))
+            }
+          />
+          <TextInput
+            id="u-email"
+            labelText="Login email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+          />
           <Select
             id="u-role"
             labelText="Role (seniority tier)"
             value={form.role}
-            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number] }))}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
+              }))
+            }
           >
             {ASSIGNABLE_STAFF_ROLES.map((r) => (
               <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
             ))}
           </Select>
-          <TextInput id="u-pw" labelText="Temporary password (min 8 chars)" type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
+          <TextInput
+            id="u-pw"
+            labelText="Temporary password (min 8 chars)"
+            type="password"
+            value={form.password}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, password: e.target.value }))
+            }
+          />
           {createStaff.error && (
-            <InlineNotification kind="error" title="Could not create" subtitle={createStaff.error.message} hideCloseButton lowContrast />
+            <InlineNotification
+              kind="error"
+              title="Could not create"
+              subtitle={createStaff.error.message}
+              hideCloseButton
+              lowContrast
+            />
           )}
         </Stack>
       </Modal>
@@ -189,9 +270,17 @@ export function Users() {
         secondaryButtonText="Cancel"
         primaryButtonDisabled={resetPw.length < 8 || resetPassword.isPending}
         onRequestClose={() => setReset(null)}
-        onRequestSubmit={() => reset && resetPassword.mutate({ id: reset.id, password: resetPw })}
+        onRequestSubmit={() =>
+          reset && resetPassword.mutate({ id: reset.id, password: resetPw })
+        }
       >
-        <TextInput id="u-reset" labelText="New password (min 8 chars)" type="password" value={resetPw} onChange={(e) => setResetPw(e.target.value)} />
+        <TextInput
+          id="u-reset"
+          labelText="New password (min 8 chars)"
+          type="password"
+          value={resetPw}
+          onChange={(e) => setResetPw(e.target.value)}
+        />
       </Modal>
     </div>
   );

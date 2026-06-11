@@ -1,12 +1,24 @@
 import { ArrowLeft } from "@carbon/icons-react";
-import { Button, Form, InlineNotification, Stack, Tag, TextInput, Tile } from "@carbon/react";
+import {
+  Button,
+  Form,
+  InlineNotification,
+  Stack,
+  Tag,
+  TextInput,
+  Tile,
+} from "@carbon/react";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
 const DEMO_PASSWORD = "demo1234";
 const DEMO_PERSONAS: { label: string; role: string; email: string }[] = [
-  { label: "Principal (owner)", role: "Full access", email: "principal@demo.aorms.in" },
+  {
+    label: "Principal (owner)",
+    role: "Full access",
+    email: "principal@demo.aorms.in",
+  },
   { label: "Project Lead", role: "Partner", email: "lead@demo.aorms.in" },
   { label: "Site Supervisor", role: "Associate", email: "site@demo.aorms.in" },
   { label: "Jr Architect", role: "Viewer", email: "junior@demo.aorms.in" },
@@ -65,7 +77,13 @@ export function Login() {
                 <Button type="submit" disabled={login.isPending}>
                   {login.isPending ? "Signing in..." : "Sign in"}
                 </Button>
-                <Button as={RouterLink} to="/" kind="ghost" size="sm" renderIcon={ArrowLeft}>
+                <Button
+                  as={RouterLink}
+                  to="/"
+                  kind="ghost"
+                  size="sm"
+                  renderIcon={ArrowLeft}
+                >
                   Back to home
                 </Button>
               </Stack>
@@ -81,7 +99,10 @@ export function Login() {
                 No sign-up
               </Tag>
             </Stack>
-            <p>Explore the office from a different seat. Demo accounts can't upload files or change credentials.</p>
+            <p>
+              Explore the office from a different seat. Demo accounts can't
+              upload files or change credentials.
+            </p>
             <Stack gap={3}>
               {DEMO_PERSONAS.map((p) => (
                 <Button
@@ -89,7 +110,9 @@ export function Login() {
                   kind="tertiary"
                   size="sm"
                   disabled={login.isPending}
-                  onClick={() => login.mutate({ email: p.email, password: DEMO_PASSWORD })}
+                  onClick={() =>
+                    login.mutate({ email: p.email, password: DEMO_PASSWORD })
+                  }
                 >
                   {p.label} - {p.role}
                 </Button>

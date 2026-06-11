@@ -24,7 +24,11 @@ import { DataState } from "../components/DataState.js";
 import { ContextualComments } from "../components/ContextualComments.js";
 import { trpc } from "../lib/trpc.js";
 
-const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = { HIGH: "red", MEDIUM: "blue", LOW: "gray" };
+const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = {
+  HIGH: "red",
+  MEDIUM: "blue",
+  LOW: "gray",
+};
 
 export function Tasks() {
   const utils = trpc.useUtils();
@@ -37,8 +41,19 @@ export function Tasks() {
 
   const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [commentsTask, setCommentsTask] = useState<{ id: string; projectId: string; title: string } | null>(null);
-  const [form, setForm] = useState({ title: "", projectId: "", assignee: "", priority: "MEDIUM", dueDate: "", description: "" });
+  const [commentsTask, setCommentsTask] = useState<{
+    id: string;
+    projectId: string;
+    title: string;
+  } | null>(null);
+  const [form, setForm] = useState({
+    title: "",
+    projectId: "",
+    assignee: "",
+    priority: "MEDIUM",
+    dueDate: "",
+    description: "",
+  });
   const teamQ = trpc.assignments.listByProject.useQuery(
     { projectId: form.projectId },
     { enabled: !!form.projectId },
@@ -48,7 +63,14 @@ export function Tasks() {
     onSuccess: () => {
       invalidate();
       setOpen(false);
-      setForm({ title: "", projectId: "", assignee: "", priority: "MEDIUM", dueDate: "", description: "" });
+      setForm({
+        title: "",
+        projectId: "",
+        assignee: "",
+        priority: "MEDIUM",
+        dueDate: "",
+        description: "",
+      });
     },
   });
 
@@ -56,12 +78,23 @@ export function Tasks() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <h1>Tasks</h1>
         <Button onClick={() => setOpen(true)}>New task</Button>
       </div>
       <div style={{ margin: "12px 0" }}>
-        <Checkbox id="t-open" labelText="Open tasks only (To do)" checked={openOnly} onChange={(_e, { checked }) => setOpenOnly(checked)} />
+        <Checkbox
+          id="t-open"
+          labelText="Open tasks only (To do)"
+          checked={openOnly}
+          onChange={(_e, { checked }) => setOpenOnly(checked)}
+        />
       </div>
 
       <DataState
@@ -70,73 +103,115 @@ export function Tasks() {
         columnCount={7}
         empty={{
           title: openOnly ? "No open tasks" : "No tasks yet",
-          description: "Create a task to track work across the office and projects.",
-          action: <Button size="sm" onClick={() => setOpen(true)}>New task</Button>,
+          description:
+            "Create a task to track work across the office and projects.",
+          action: (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New task
+            </Button>
+          ),
         }}
       >
-      <TableContainer title="Task list">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Task</TableHeader>
-              <TableHeader>Project</TableHeader>
-              <TableHeader>Assignee</TableHeader>
-              <TableHeader>Priority</TableHeader>
-              <TableHeader>Due</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Comments</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data ?? []).map((t) => {
-              const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
-              return (
-                <TableRow key={t.id}>
-                  <TableCell>
-                    {t.title}
-                    {t.description && <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{t.description}</div>}
-                  </TableCell>
-                  <TableCell>
-                    {t.projectId ? <Link to={`/projects/${t.projectId}`}>{t.projectRef}</Link> : "—"}
-                  </TableCell>
-                  <TableCell>{t.assignee ?? "—"}</TableCell>
-                  <TableCell>
-                    <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>{t.priority}</Tag>
-                  </TableCell>
-                  <TableCell style={{ color: overdue ? "var(--cds-text-error)" : undefined }}>{t.dueDate ?? "—"}</TableCell>
-                  <TableCell>
-                    <Select
-                      id={`ts-${t.id}`}
-                      labelText="Task status"
-                      hideLabel
-                      size="sm"
-                      value={t.status}
-                      onChange={(e) => update.mutate({ id: t.id, status: e.target.value as (typeof TaskStatus.options)[number] })}
-                    >
-                      {TaskStatus.options.map((s) => (
-                        <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {t.projectId ? (
-                      <Button kind="ghost" size="sm" onClick={() => setCommentsTask({ id: t.id, projectId: t.projectId ?? "", title: t.title })}>
-                        Comments
+        <TableContainer title="Task list">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Task</TableHeader>
+                <TableHeader>Project</TableHeader>
+                <TableHeader>Assignee</TableHeader>
+                <TableHeader>Priority</TableHeader>
+                <TableHeader>Due</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Comments</TableHeader>
+                <TableHeader></TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(listQ.data ?? []).map((t) => {
+                const overdue =
+                  t.dueDate && t.dueDate < today && t.status !== "DONE";
+                return (
+                  <TableRow key={t.id}>
+                    <TableCell>
+                      {t.title}
+                      {t.description && <div>{t.description}</div>}
+                    </TableCell>
+                    <TableCell>
+                      {t.projectId ? (
+                        <Link to={`/projects/${t.projectId}`}>
+                          {t.projectRef}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell>{t.assignee ?? "—"}</TableCell>
+                    <TableCell>
+                      <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
+                        {t.priority}
+                      </Tag>
+                    </TableCell>
+                    <TableCell>
+                      {overdue ? <Tag type="red">Overdue · {t.dueDate}</Tag> : (t.dueDate ?? "—")}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        id={`ts-${t.id}`}
+                        labelText="Task status"
+                        hideLabel
+                        size="sm"
+                        value={t.status}
+                        onChange={(e) =>
+                          update.mutate({
+                            id: t.id,
+                            status: e.target
+                              .value as (typeof TaskStatus.options)[number],
+                          })
+                        }
+                      >
+                        {TaskStatus.options.map((s) => (
+                          <SelectItem
+                            key={s}
+                            value={s}
+                            text={TASK_STATUS_LABEL[s] ?? s}
+                          />
+                        ))}
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {t.projectId ? (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setCommentsTask({
+                              id: t.id,
+                              projectId: t.projectId ?? "",
+                              title: t.title,
+                            })
+                          }
+                        >
+                          Comments
+                        </Button>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        kind="danger--ghost"
+                        size="sm"
+                        onClick={() => setConfirmId(t.id)}
+                      >
+                        Remove
                       </Button>
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(t.id)}>Remove</Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </DataState>
 
       <ConfirmModal
@@ -157,7 +232,9 @@ export function Tasks() {
         modalHeading="New task"
         primaryButtonText={create.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.title || !form.projectId || create.isPending}
+        primaryButtonDisabled={
+          !form.title || !form.projectId || create.isPending
+        }
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() =>
           create.mutate({
@@ -171,15 +248,32 @@ export function Tasks() {
         }
       >
         <Stack gap={5}>
-          <TextInput id="nt-title" labelText="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+          <TextInput
+            id="nt-title"
+            labelText="Title"
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+          />
           <Select
             id="nt-proj"
             labelText="Project"
             value={form.projectId}
-            onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value, assignee: "" }))}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                projectId: e.target.value,
+                assignee: "",
+              }))
+            }
           >
             <SelectItem value="" text="— select a project —" />
-            {(projectsQ.data ?? []).map((p) => <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />)}
+            {(projectsQ.data ?? []).map((p) => (
+              <SelectItem
+                key={p.id}
+                value={p.id}
+                text={`${p.ref} ${p.title}`}
+              />
+            ))}
           </Select>
           <Select
             id="nt-assignee"
@@ -193,24 +287,61 @@ export function Tasks() {
                   : undefined
             }
             value={form.assignee}
-            onChange={(e) => setForm((f) => ({ ...f, assignee: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, assignee: e.target.value }))
+            }
           >
             <SelectItem value="" text="— unassigned —" />
-            {team.map((m) => <SelectItem key={m.teamMemberId} value={m.name} text={`${m.name} (${m.role})`} />)}
+            {team.map((m) => (
+              <SelectItem
+                key={m.teamMemberId}
+                value={m.name}
+                text={`${m.name} (${m.role})`}
+              />
+            ))}
           </Select>
           <div style={{ display: "flex", gap: 12 }}>
-            <Select id="nt-prio" labelText="Priority" value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
-              {TaskPriority.options.map((p) => <SelectItem key={p} value={p} text={p} />)}
+            <Select
+              id="nt-prio"
+              labelText="Priority"
+              value={form.priority}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, priority: e.target.value }))
+              }
+            >
+              {TaskPriority.options.map((p) => (
+                <SelectItem key={p} value={p} text={p} />
+              ))}
             </Select>
-            <TextInput id="nt-due" labelText="Due date" type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
+            <TextInput
+              id="nt-due"
+              labelText="Due date"
+              type="date"
+              value={form.dueDate}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, dueDate: e.target.value }))
+              }
+            />
           </div>
-          <TextArea id="nt-desc" labelText="Description (optional)" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+          <TextArea
+            id="nt-desc"
+            labelText="Description (optional)"
+            rows={2}
+            value={form.description}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, description: e.target.value }))
+            }
+          />
         </Stack>
       </Modal>
 
       <Modal
         open={commentsTask !== null}
-        modalHeading={commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}
+        modalHeading={
+          commentsTask
+            ? `Task comments — ${commentsTask.title}`
+            : "Task comments"
+        }
         primaryButtonText="Close"
         secondaryButtonText=""
         passiveModal

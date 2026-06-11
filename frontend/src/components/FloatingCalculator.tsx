@@ -1,4 +1,11 @@
-import { Button, TextInput } from "@carbon/react";
+import {
+  Button,
+  InlineNotification,
+  Modal,
+  Stack,
+  TextInput,
+  Tile,
+} from "@carbon/react";
 import { Calculator } from "@carbon/icons-react";
 import { useEffect, useState } from "react";
 
@@ -36,20 +43,14 @@ export function FloatingCalculator() {
         onClick={() => setOpen((o) => !o)}
         style={{ position: "fixed", left: 16, bottom: 16, zIndex: 8000 }}
       />
-      {open && (
-        <div
-          style={{
-            position: "fixed",
-            left: 16,
-            bottom: 56,
-            zIndex: 8000,
-            width: 280,
-            background: "var(--cds-text-primary)",
-            color: "#fff",
-            padding: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-          }}
-        >
+      <Modal
+        open={open}
+        modalHeading="Calculator"
+        passiveModal
+        size="xs"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Stack gap={5}>
           <TextInput
             id="calc-screen"
             labelText="Calculator"
@@ -60,26 +61,29 @@ export function FloatingCalculator() {
             value={expr}
             onChange={(e) => setExpr(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && result !== null) setExpr(formatNum(result));
+              if (e.key === "Enter" && result !== null)
+                setExpr(formatNum(result));
             }}
           />
-          <div
-            style={{
-              textAlign: "right",
-              fontSize: 26,
-              fontVariantNumeric: "tabular-nums",
-              marginTop: 8,
-              minHeight: 32,
-              color: result === null && expr.trim() ? "#fa4d56" : "#fff",
-            }}
-          >
-            {expr.trim() === "" ? "0" : result === null ? "—" : `= ${formatNum(result)}`}
-          </div>
-          <p style={{ fontSize: 11, color: "#8d8d8d", marginTop: 4 }}>
+          {result === null && expr.trim() ? (
+            <InlineNotification
+              kind="error"
+              lowContrast
+              hideCloseButton
+              title="Invalid expression"
+            />
+          ) : (
+            <Tile>
+              <h3>
+                {expr.trim() === "" ? "0" : `= ${formatNum(result ?? 0)}`}
+              </h3>
+            </Tile>
+          )}
+          <p>
             + − × ÷ ( ) and % (e.g. 5000+18% = 5900). Enter to reuse the result.
           </p>
-        </div>
-      )}
+        </Stack>
+      </Modal>
     </>
   );
 }
@@ -141,7 +145,9 @@ function safeEval(input: string): number | null {
       const b = st.pop();
       const a = st.pop();
       if (a === undefined || b === undefined) return null;
-      st.push(t === "+" ? a + b : t === "-" ? a - b : t === "*" ? a * b : a / b);
+      st.push(
+        t === "+" ? a + b : t === "-" ? a - b : t === "*" ? a * b : a / b,
+      );
     }
   }
   const r = st.pop();

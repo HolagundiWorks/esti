@@ -25,15 +25,26 @@ import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
 type Side = { abutsRoad: boolean; roadWidthM: string; rblFromCentreM: string };
-const emptySide = (): Side => ({ abutsRoad: false, roadWidthM: "", rblFromCentreM: "" });
+const emptySide = (): Side => ({
+  abutsRoad: false,
+  roadWidthM: "",
+  rblFromCentreM: "",
+});
 const SIDES = ["front", "rear", "left", "right"] as const;
 
 export function ProjectBylawCalc({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
-  const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId }, { enabled: !!projectId });
-  const savedQ = trpc.bylawCalc.getByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const projectQ = trpc.projectOffice.byId.useQuery(
+    { id: projectId },
+    { enabled: !!projectId },
+  );
+  const savedQ = trpc.bylawCalc.getByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
 
-  const [buildingType, setBuildingType] = useState<(typeof BuildingType.options)[number]>("RESIDENTIAL");
+  const [buildingType, setBuildingType] =
+    useState<(typeof BuildingType.options)[number]>("RESIDENTIAL");
   const [siteArea, setSiteArea] = useState("");
   const [height, setHeight] = useState("11.5");
   const [sides, setSides] = useState<Record<string, Side>>({
@@ -105,7 +116,10 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
   async function persist() {
     const input = buildInput();
     if (!input) return;
-    await updateSite.mutateAsync({ id: projectId, siteAreaSqm: input.siteAreaSqm });
+    await updateSite.mutateAsync({
+      id: projectId,
+      siteAreaSqm: input.siteAreaSqm,
+    });
     save.mutate({ projectId, input });
   }
 
@@ -119,10 +133,18 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
               id="bc-type"
               labelText="Project type"
               value={buildingType}
-              onChange={(e) => setBuildingType(e.target.value as (typeof BuildingType.options)[number])}
+              onChange={(e) =>
+                setBuildingType(
+                  e.target.value as (typeof BuildingType.options)[number],
+                )
+              }
             >
               {BuildingType.options.map((t) => (
-                <SelectItem key={t} value={t} text={BUILDING_TYPE_LABEL[t] ?? t} />
+                <SelectItem
+                  key={t}
+                  value={t}
+                  text={BUILDING_TYPE_LABEL[t] ?? t}
+                />
               ))}
             </Select>
             <TextInput
@@ -141,7 +163,10 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
             />
           </div>
 
-          <TableContainer title="Sides" description="Mark road-abutting sides; enter road width and RBL from road centre">
+          <TableContainer
+            title="Sides"
+            description="Mark road-abutting sides; enter road width and RBL from road centre"
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -154,14 +179,16 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
               <TableBody>
                 {SIDES.map((name) => (
                   <TableRow key={name}>
-                    <TableCell style={{ textTransform: "capitalize" }}>{name}</TableCell>
+                    <TableCell>{name}</TableCell>
                     <TableCell>
                       <Checkbox
                         id={`bc-${name}-road`}
                         labelText="Abuts road"
                         hideLabel
                         checked={sides[name]!.abutsRoad}
-                        onChange={(_e, { checked }) => setSide(name, { abutsRoad: checked })}
+                        onChange={(_e, { checked }) =>
+                          setSide(name, { abutsRoad: checked })
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -173,7 +200,9 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
                         type="number"
                         disabled={!sides[name]!.abutsRoad}
                         value={sides[name]!.roadWidthM}
-                        onChange={(e) => setSide(name, { roadWidthM: e.target.value })}
+                        onChange={(e) =>
+                          setSide(name, { roadWidthM: e.target.value })
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -185,7 +214,9 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
                         type="number"
                         disabled={!sides[name]!.abutsRoad}
                         value={sides[name]!.rblFromCentreM}
-                        onChange={(e) => setSide(name, { rblFromCentreM: e.target.value })}
+                        onChange={(e) =>
+                          setSide(name, { rblFromCentreM: e.target.value })
+                        }
                       />
                     </TableCell>
                   </TableRow>
@@ -203,14 +234,32 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
       {preview && (
         <Tile style={{ marginTop: 12 }}>
           <h4>Permissible envelope</h4>
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}>
+          <div
+            style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}
+          >
             <Kpi label="FAR" value={preview.far.toFixed(2)} />
             <Kpi label="FAR area" value={`${preview.maxBuiltUpSqm} sq m`} />
-            <Kpi label="Ground coverage" value={`${preview.coveragePct}% / ${preview.maxFootprintSqm} sq m`} />
-            <Kpi label="Governing road" value={`${preview.governingRoadWidthM} m`} />
+            <Kpi
+              label="Ground coverage"
+              value={`${preview.coveragePct}% / ${preview.maxFootprintSqm} sq m`}
+            />
+            <Kpi
+              label="Governing road"
+              value={`${preview.governingRoadWidthM} m`}
+            />
           </div>
-          <p><strong>Restricted building lines:</strong> applied per road-abutting side when the RBL exceeds the tabular setback.</p>
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 12 }}>
+          <p>
+            <strong>Restricted building lines:</strong> applied per
+            road-abutting side when the RBL exceeds the tabular setback.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              gap: 24,
+              flexWrap: "wrap",
+              marginTop: 12,
+            }}
+          >
             <Kpi label="Setback front" value={`${preview.setbacks.front} m`} />
             <Kpi label="Setback rear" value={`${preview.setbacks.rear} m`} />
             <Kpi label="Setback left" value={`${preview.setbacks.left} m`} />
@@ -220,14 +269,16 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
             <strong>Parking:</strong> {preview.parking}
           </p>
           {preview.notes.length > 0 && (
-            <ul style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
+            <ul style={{ marginTop: 8 }}>
               {preview.notes.map((n, i) => (
                 <li key={i}>{n}</li>
               ))}
             </ul>
           )}
-          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
-            Current calculation uses the BBMP seed rule set. It is not valid for another district or authority until a matching versioned rule set is selected.
+          <p style={{ marginTop: 8 }}>
+            Current calculation uses the BBMP seed rule set. It is not valid for
+            another district or authority until a matching versioned rule set is
+            selected.
           </p>
         </Tile>
       )}
@@ -235,7 +286,11 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
   );
 }
 
-function toSide(s: { abutsRoad: boolean; roadWidthM: number; rblFromCentreM: number }): Side {
+function toSide(s: {
+  abutsRoad: boolean;
+  roadWidthM: number;
+  rblFromCentreM: number;
+}): Side {
   return {
     abutsRoad: s.abutsRoad,
     roadWidthM: s.roadWidthM ? String(s.roadWidthM) : "",
@@ -246,8 +301,8 @@ function toSide(s: { abutsRoad: boolean; roadWidthM: number; rblFromCentreM: num
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{label}</p>
-      <p style={{ fontSize: 22, fontWeight: 600 }}>{value}</p>
+      <p>{label}</p>
+      <p>{value}</p>
     </div>
   );
 }

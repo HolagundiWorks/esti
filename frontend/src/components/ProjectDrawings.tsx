@@ -29,14 +29,19 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const [viewerId, setViewerId] = useState<string | null>(null);
-  const takeoffQ = trpc.measurements.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const takeoffQ = trpc.measurements.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const drawingsQ = trpc.drawings.listByProject.useQuery(
     { projectId },
     {
       enabled: !!projectId,
       // Poll while the worker is still chewing on any drawing.
       refetchInterval: (q) =>
-        (q.state.data ?? []).some((d) => d.status === "PENDING" || d.status === "PROCESSING")
+        (q.state.data ?? []).some(
+          (d) => d.status === "PENDING" || d.status === "PROCESSING",
+        )
           ? 2000
           : false,
     },
@@ -48,15 +53,27 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   // Revision upload + history modals.
-  const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(null);
+  const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(
+    null,
+  );
   const [revFile, setRevFile] = useState<File | null>(null);
   const [revNote, setRevNote] = useState("");
   const [histId, setHistId] = useState<string | null>(null);
-  const versionsQ = trpc.drawings.versions.useQuery({ id: histId ?? "" }, { enabled: !!histId });
+  const versionsQ = trpc.drawings.versions.useQuery(
+    { id: histId ?? "" },
+    { enabled: !!histId },
+  );
 
   async function postUpload(fd: FormData) {
-    const res = await fetch("/upload/drawing", { method: "POST", body: fd, credentials: "include" });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+    const res = await fetch("/upload/drawing", {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
+    if (!res.ok)
+      throw new Error(
+        (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`,
+      );
     utils.drawings.listByProject.invalidate({ projectId });
   }
 
@@ -104,7 +121,14 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   return (
     <>
       <h3 style={{ marginTop: 32 }}>Drawings &amp; takeoff</h3>
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-end", margin: "12px 0" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "flex-end",
+          margin: "12px 0",
+        }}
+      >
         <TextInput
           id="dwg-title"
           labelText="Drawing title"
@@ -126,10 +150,18 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </Button>
       </div>
       {error && (
-        <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast />
+        <InlineNotification
+          kind="error"
+          title="Upload failed"
+          subtitle={error}
+          lowContrast
+        />
       )}
 
-      <TableContainer title="Uploaded drawings" description="ezdxf layer/entity takeoff">
+      <TableContainer
+        title="Uploaded drawings"
+        description="ezdxf layer/entity takeoff"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -150,39 +182,54 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                   <TableCell>{d.ref}</TableCell>
                   <TableCell>
                     {d.title}
-                    <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{d.fileName}</div>
-                    {d.revisionNote && (
-                      <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>“{d.revisionNote}”</div>
-                    )}
+                    <div>{d.fileName}</div>
+                    {d.revisionNote && <div>“{d.revisionNote}”</div>}
                   </TableCell>
                   <TableCell>
-                    <Tag type={d.revNo > 1 ? "blue" : "gray"}>Rev {d.revNo}</Tag>
+                    <Tag type={d.revNo > 1 ? "blue" : "gray"}>
+                      Rev {d.revNo}
+                    </Tag>
                   </TableCell>
                   <TableCell>
                     <Tag type={STATUS_TAG[d.status] ?? "gray"}>{d.status}</Tag>
                     {d.status === "FAILED" && d.errorText && (
-                      <div style={{ fontSize: 12, color: "var(--cds-text-error)" }}>{d.errorText}</div>
+                      <div>{d.errorText}</div>
                     )}
                   </TableCell>
                   <TableCell>{d.entityCount}</TableCell>
                   <TableCell>
                     {d.status === "READY" && (
-                      <Button kind="ghost" size="sm" onClick={() => setViewerId(d.id)}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setViewerId(d.id)}
+                      >
                         View / measure
                       </Button>
                     )}
                   </TableCell>
                   <TableCell>
                     {d.status === "READY" && (
-                      <DrawingIssueCell drawingId={d.id} initialStatus={d.issuePdfStatus} />
+                      <DrawingIssueCell
+                        drawingId={d.id}
+                        initialStatus={d.issuePdfStatus}
+                      />
                     )}
                   </TableCell>
                   <TableCell>
                     <div style={{ display: "flex", gap: 4 }}>
-                      <Button kind="ghost" size="sm" onClick={() => setRevFor({ id: d.id, title: d.title })}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setRevFor({ id: d.id, title: d.title })}
+                      >
                         New rev
                       </Button>
-                      <Button kind="ghost" size="sm" onClick={() => setHistId(d.id)}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setHistId(d.id)}
+                      >
                         History
                       </Button>
                     </div>
@@ -238,21 +285,33 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         primaryButtonText={busy ? "Uploading…" : "Upload revision"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={!revFile || busy}
-        onRequestClose={() => { setRevFor(null); setRevFile(null); setRevNote(""); }}
+        onRequestClose={() => {
+          setRevFor(null);
+          setRevFile(null);
+          setRevNote("");
+        }}
         onRequestSubmit={uploadRevision}
       >
         <Stack gap={5}>
-          <p style={{ color: "var(--cds-text-secondary)" }}>
-            The new DXF supersedes the current revision; the previous version is kept in history.
+          <p>
+            The new DXF supersedes the current revision; the previous version is
+            kept in history.
           </p>
           <FileUploaderButton
             labelText={revFile ? revFile.name : "Choose DXF"}
             accept={[".dxf"]}
             disableLabelChanges
             buttonKind="tertiary"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRevFile(e.target.files?.[0] ?? null)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setRevFile(e.target.files?.[0] ?? null)
+            }
           />
-          <TextInput id="rev-note" labelText="Revision note (optional)" value={revNote} onChange={(e) => setRevNote(e.target.value)} />
+          <TextInput
+            id="rev-note"
+            labelText="Revision note (optional)"
+            value={revNote}
+            onChange={(e) => setRevNote(e.target.value)}
+          />
         </Stack>
       </Modal>
 
@@ -279,7 +338,15 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                 <TableCell>{v.ref}</TableCell>
                 <TableCell>{v.fileName}</TableCell>
                 <TableCell>{v.revisionNote ?? "—"}</TableCell>
-                <TableCell>{v.isCurrent ? <Tag type="green" size="sm">Current</Tag> : "—"}</TableCell>
+                <TableCell>
+                  {v.isCurrent ? (
+                    <Tag type="green" size="sm">
+                      Current
+                    </Tag>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

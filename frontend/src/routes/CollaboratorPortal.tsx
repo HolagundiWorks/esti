@@ -1,5 +1,9 @@
 import {
   Button,
+  ClickableTile,
+  Column,
+  Content,
+  Grid,
   Header,
   HeaderName,
   Table,
@@ -10,7 +14,7 @@ import {
   TableHeader,
   TableRow,
   Tag,
-  Tile,
+  Stack,
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
@@ -18,47 +22,58 @@ import { trpc } from "../lib/trpc.js";
 
 export function CollaboratorPortal() {
   const utils = trpc.useUtils();
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => utils.auth.me.invalidate(),
+  });
   const projectsQ = trpc.collab.myProjects.useQuery();
   const [openId, setOpenId] = useState<string | null>(null);
-  const detailQ = trpc.collab.projectDetail.useQuery({ projectId: openId ?? "" }, { enabled: !!openId });
+  const detailQ = trpc.collab.projectDetail.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
   const d = detailQ.data;
 
   return (
     <>
       <Header aria-label="ESTI consultant portal">
         <HeaderName prefix="ESTI">Consultant portal</HeaderName>
-        <Button kind="ghost" size="sm" style={{ marginLeft: "auto" }} onClick={() => logout.mutate()}>
+        <Button
+          kind="ghost"
+          size="sm"
+          style={{ marginLeft: "auto" }}
+          onClick={() => logout.mutate()}
+        >
           Sign out
         </Button>
       </Header>
-      <div style={{ padding: 32, marginTop: 48 }}>
+      <Content>
         {!openId && (
           <>
             <h2>Your engagements</h2>
-            <p style={{ color: "var(--cds-text-secondary)", marginBottom: 16 }}>
-              Projects you are engaged on — status, stages, issued drawings and your fee balance.
+            <p style={{ marginBottom: 16 }}>
+              Projects you are engaged on — status, stages, issued drawings and
+              your fee balance.
             </p>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              {(projectsQ.data ?? []).length === 0 && <p>No engagements yet.</p>}
+            <Grid>
+              {(projectsQ.data ?? []).length === 0 && (
+                <p>No engagements yet.</p>
+              )}
               {(projectsQ.data ?? []).map((p) => {
                 const balance = p.agreedFeePaise - p.paidPaise;
                 return (
-                  <Tile
-                    key={p.id}
-                    style={{ minWidth: 260, cursor: "pointer" }}
-                    onClick={() => setOpenId(p.id)}
-                  >
-                    <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>{p.ref}</p>
-                    <p style={{ fontSize: 18, fontWeight: 600 }}>{p.title}</p>
-                    <Tag type="cool-gray">{p.status}</Tag>
-                    <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
-                      Balance {formatINR(balance, { paise: false })}
-                    </p>
-                  </Tile>
+                  <Column key={p.id} sm={4} md={4} lg={4}>
+                    <ClickableTile onClick={() => setOpenId(p.id)}>
+                      <Stack gap={3}>
+                        <p>{p.ref}</p>
+                        <h3>{p.title}</h3>
+                        <Tag type="cool-gray">{p.status}</Tag>
+                        <p>Balance {formatINR(balance, { paise: false })}</p>
+                      </Stack>
+                    </ClickableTile>
+                  </Column>
                 );
               })}
-            </div>
+            </Grid>
           </>
         )}
 
@@ -68,8 +83,9 @@ export function CollaboratorPortal() {
               ← All engagements
             </Button>
             <h2 style={{ marginTop: 8 }}>{d.project.title}</h2>
-            <p style={{ color: "var(--cds-text-secondary)" }}>
-              {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·{" "}
+            <p>
+              {d.project.ref} · {d.project.projectType} ·{" "}
+              {d.project.jurisdiction} ·{" "}
               <Tag type="cool-gray">{d.project.status}</Tag>
             </p>
 
@@ -87,12 +103,19 @@ export function CollaboratorPortal() {
                 <TableBody>
                   <TableRow>
                     <TableCell>{d.engagement.scope ?? "—"}</TableCell>
-                    <TableCell>{formatINR(d.engagement.agreedFeePaise, { paise: false })}</TableCell>
-                    <TableCell>{formatINR(d.engagement.paidPaise, { paise: false })}</TableCell>
                     <TableCell>
-                      {formatINR(d.engagement.agreedFeePaise - d.engagement.paidPaise, {
-                        paise: false,
-                      })}
+                      {formatINR(d.engagement.agreedFeePaise, { paise: false })}
+                    </TableCell>
+                    <TableCell>
+                      {formatINR(d.engagement.paidPaise, { paise: false })}
+                    </TableCell>
+                    <TableCell>
+                      {formatINR(
+                        d.engagement.agreedFeePaise - d.engagement.paidPaise,
+                        {
+                          paise: false,
+                        },
+                      )}
                     </TableCell>
                     <TableCell>{d.engagement.status}</TableCell>
                   </TableRow>
@@ -141,7 +164,7 @@ export function CollaboratorPortal() {
             </TableContainer>
           </>
         )}
-      </div>
+      </Content>
     </>
   );
 }

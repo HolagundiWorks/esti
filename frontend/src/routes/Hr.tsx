@@ -43,23 +43,47 @@ export function Hr() {
 
   // Leave request modal
   const [lvOpen, setLvOpen] = useState(false);
-  const [lv, setLv] = useState({ teamMemberId: "", type: "CASUAL" as LeaveTypeCode, fromDate: "", toDate: "", days: "1", reason: "" });
+  const [lv, setLv] = useState({
+    teamMemberId: "",
+    type: "CASUAL" as LeaveTypeCode,
+    fromDate: "",
+    toDate: "",
+    days: "1",
+    reason: "",
+  });
   const createLeave = trpc.leaves.create.useMutation({
     onSuccess: () => {
       utils.leaves.list.invalidate();
       setLvOpen(false);
-      setLv({ teamMemberId: "", type: "CASUAL", fromDate: "", toDate: "", days: "1", reason: "" });
+      setLv({
+        teamMemberId: "",
+        type: "CASUAL",
+        fromDate: "",
+        toDate: "",
+        days: "1",
+        reason: "",
+      });
     },
   });
 
   // Payslip generate modal
   const [pyOpen, setPyOpen] = useState(false);
-  const [py, setPy] = useState({ teamMemberId: "", month: thisMonth(), gross: "", deductions: "" });
+  const [py, setPy] = useState({
+    teamMemberId: "",
+    month: thisMonth(),
+    gross: "",
+    deductions: "",
+  });
   const generate = trpc.payroll.generate.useMutation({
     onSuccess: () => {
       utils.payroll.list.invalidate();
       setPyOpen(false);
-      setPy({ teamMemberId: "", month: thisMonth(), gross: "", deductions: "" });
+      setPy({
+        teamMemberId: "",
+        month: thisMonth(),
+        gross: "",
+        deductions: "",
+      });
     },
   });
 
@@ -68,9 +92,20 @@ export function Hr() {
       <h1>HR</h1>
 
       {/* Leaves */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 16,
+        }}
+      >
         <h3>Leaves</h3>
-        <Button size="sm" disabled={team.length === 0} onClick={() => setLvOpen(true)}>
+        <Button
+          size="sm"
+          disabled={team.length === 0}
+          onClick={() => setLvOpen(true)}
+        >
           Request leave
         </Button>
       </div>
@@ -91,7 +126,9 @@ export function Hr() {
             {(leavesQ.data ?? []).map((l) => (
               <TableRow key={l.id}>
                 <TableCell>{l.name}</TableCell>
-                <TableCell>{LEAVE_TYPES[l.type as LeaveTypeCode] ?? l.type}</TableCell>
+                <TableCell>
+                  {LEAVE_TYPES[l.type as LeaveTypeCode] ?? l.type}
+                </TableCell>
                 <TableCell>{l.fromDate}</TableCell>
                 <TableCell>{l.toDate}</TableCell>
                 <TableCell>{l.days}</TableCell>
@@ -101,10 +138,22 @@ export function Hr() {
                 <TableCell>
                   {l.status === "REQUESTED" && (
                     <div style={{ display: "flex", gap: 4 }}>
-                      <Button kind="ghost" size="sm" onClick={() => setLeave.mutate({ id: l.id, status: "APPROVED" })}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setLeave.mutate({ id: l.id, status: "APPROVED" })
+                        }
+                      >
                         Approve
                       </Button>
-                      <Button kind="ghost" size="sm" onClick={() => setLeave.mutate({ id: l.id, status: "REJECTED" })}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setLeave.mutate({ id: l.id, status: "REJECTED" })
+                        }
+                      >
                         Reject
                       </Button>
                     </div>
@@ -117,13 +166,27 @@ export function Hr() {
       </TableContainer>
 
       {/* Payroll */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 32,
+        }}
+      >
         <h3>Payroll</h3>
-        <Button size="sm" disabled={team.length === 0} onClick={() => setPyOpen(true)}>
+        <Button
+          size="sm"
+          disabled={team.length === 0}
+          onClick={() => setPyOpen(true)}
+        >
           Generate payslip
         </Button>
       </div>
-      <TableContainer title="Payslips" description="Monthly salary — net of deductions">
+      <TableContainer
+        title="Payslips"
+        description="Monthly salary — net of deductions"
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -142,8 +205,12 @@ export function Hr() {
               <TableRow key={p.id}>
                 <TableCell>{p.name}</TableCell>
                 <TableCell>{p.month}</TableCell>
-                <TableCell>{formatINR(p.grossPaise, { paise: false })}</TableCell>
-                <TableCell>{formatINR(p.deductionsPaise, { paise: false })}</TableCell>
+                <TableCell>
+                  {formatINR(p.grossPaise, { paise: false })}
+                </TableCell>
+                <TableCell>
+                  {formatINR(p.deductionsPaise, { paise: false })}
+                </TableCell>
                 <TableCell>{formatINR(p.netPaise, { paise: false })}</TableCell>
                 <TableCell>
                   <Tag type={p.paid ? "green" : "gray"}>
@@ -152,13 +219,20 @@ export function Hr() {
                 </TableCell>
                 <TableCell>
                   {!p.paid && (
-                    <Button kind="ghost" size="sm" onClick={() => markPaid.mutate({ id: p.id })}>
+                    <Button
+                      kind="ghost"
+                      size="sm"
+                      onClick={() => markPaid.mutate({ id: p.id })}
+                    >
                       Mark paid
                     </Button>
                   )}
                 </TableCell>
                 <TableCell>
-                  <PayslipPdfCell payslipId={p.id} initialStatus={p.pdfStatus} />
+                  <PayslipPdfCell
+                    payslipId={p.id}
+                    initialStatus={p.pdfStatus}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -172,7 +246,12 @@ export function Hr() {
         modalHeading="Request leave"
         primaryButtonText={createLeave.isPending ? "Saving…" : "Submit"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!lv.teamMemberId || !lv.fromDate || !lv.toDate || createLeave.isPending}
+        primaryButtonDisabled={
+          !lv.teamMemberId ||
+          !lv.fromDate ||
+          !lv.toDate ||
+          createLeave.isPending
+        }
         onRequestClose={() => setLvOpen(false)}
         onRequestSubmit={() =>
           createLeave.mutate({
@@ -186,21 +265,58 @@ export function Hr() {
         }
       >
         <Stack gap={5}>
-          <Select id="lv-m" labelText="Member" value={lv.teamMemberId} onChange={(e) => setLv((f) => ({ ...f, teamMemberId: e.target.value }))}>
+          <Select
+            id="lv-m"
+            labelText="Member"
+            value={lv.teamMemberId}
+            onChange={(e) =>
+              setLv((f) => ({ ...f, teamMemberId: e.target.value }))
+            }
+          >
             <SelectItem value="" text="Select…" />
             {team.map((m) => (
               <SelectItem key={m.id} value={m.id} text={m.name} />
             ))}
           </Select>
-          <Select id="lv-t" labelText="Type" value={lv.type} onChange={(e) => setLv((f) => ({ ...f, type: e.target.value as LeaveTypeCode }))}>
+          <Select
+            id="lv-t"
+            labelText="Type"
+            value={lv.type}
+            onChange={(e) =>
+              setLv((f) => ({ ...f, type: e.target.value as LeaveTypeCode }))
+            }
+          >
             {(Object.keys(LEAVE_TYPES) as LeaveTypeCode[]).map((k) => (
               <SelectItem key={k} value={k} text={LEAVE_TYPES[k]} />
             ))}
           </Select>
-          <TextInput id="lv-f" labelText="From" type="date" value={lv.fromDate} onChange={(e) => setLv((f) => ({ ...f, fromDate: e.target.value }))} />
-          <TextInput id="lv-to" labelText="To" type="date" value={lv.toDate} onChange={(e) => setLv((f) => ({ ...f, toDate: e.target.value }))} />
-          <TextInput id="lv-d" labelText="Days" type="number" value={lv.days} onChange={(e) => setLv((f) => ({ ...f, days: e.target.value }))} />
-          <TextInput id="lv-r" labelText="Reason (optional)" value={lv.reason} onChange={(e) => setLv((f) => ({ ...f, reason: e.target.value }))} />
+          <TextInput
+            id="lv-f"
+            labelText="From"
+            type="date"
+            value={lv.fromDate}
+            onChange={(e) => setLv((f) => ({ ...f, fromDate: e.target.value }))}
+          />
+          <TextInput
+            id="lv-to"
+            labelText="To"
+            type="date"
+            value={lv.toDate}
+            onChange={(e) => setLv((f) => ({ ...f, toDate: e.target.value }))}
+          />
+          <TextInput
+            id="lv-d"
+            labelText="Days"
+            type="number"
+            value={lv.days}
+            onChange={(e) => setLv((f) => ({ ...f, days: e.target.value }))}
+          />
+          <TextInput
+            id="lv-r"
+            labelText="Reason (optional)"
+            value={lv.reason}
+            onChange={(e) => setLv((f) => ({ ...f, reason: e.target.value }))}
+          />
         </Stack>
       </Modal>
 
@@ -210,7 +326,11 @@ export function Hr() {
         modalHeading="Generate payslip"
         primaryButtonText={generate.isPending ? "Saving…" : "Generate"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!py.teamMemberId || !/^\d{4}-\d{2}$/.test(py.month) || generate.isPending}
+        primaryButtonDisabled={
+          !py.teamMemberId ||
+          !/^\d{4}-\d{2}$/.test(py.month) ||
+          generate.isPending
+        }
         onRequestClose={() => setPyOpen(false)}
         onRequestSubmit={() =>
           generate.mutate({
@@ -222,18 +342,42 @@ export function Hr() {
         }
       >
         <Stack gap={5}>
-          <Select id="py-m" labelText="Member" value={py.teamMemberId} onChange={(e) => setPy((f) => ({ ...f, teamMemberId: e.target.value }))}>
+          <Select
+            id="py-m"
+            labelText="Member"
+            value={py.teamMemberId}
+            onChange={(e) =>
+              setPy((f) => ({ ...f, teamMemberId: e.target.value }))
+            }
+          >
             <SelectItem value="" text="Select…" />
             {team.map((m) => (
               <SelectItem key={m.id} value={m.id} text={m.name} />
             ))}
           </Select>
-          <TextInput id="py-mo" labelText="Month (YYYY-MM)" value={py.month} onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))} />
-          <TextInput id="py-g" labelText="Gross (₹ — blank = member salary)" type="number" value={py.gross} onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))} />
-          <TextInput id="py-d" labelText="Deductions (₹)" type="number" value={py.deductions} onChange={(e) => setPy((f) => ({ ...f, deductions: e.target.value }))} />
-          {generate.error && (
-            <p style={{ color: "var(--cds-text-error)", fontSize: 12 }}>{generate.error.message}</p>
-          )}
+          <TextInput
+            id="py-mo"
+            labelText="Month (YYYY-MM)"
+            value={py.month}
+            onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
+          />
+          <TextInput
+            id="py-g"
+            labelText="Gross (₹ — blank = member salary)"
+            type="number"
+            value={py.gross}
+            onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
+          />
+          <TextInput
+            id="py-d"
+            labelText="Deductions (₹)"
+            type="number"
+            value={py.deductions}
+            onChange={(e) =>
+              setPy((f) => ({ ...f, deductions: e.target.value }))
+            }
+          />
+          {generate.error && <p>{generate.error.message}</p>}
         </Stack>
       </Modal>
     </div>

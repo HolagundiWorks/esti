@@ -21,7 +21,8 @@ export function DrawingIssueCell({
       enabled: active,
       refetchInterval: (q) =>
         q.state.data &&
-        (q.state.data.issuePdfStatus === "PENDING" || q.state.data.issuePdfStatus === "PROCESSING")
+        (q.state.data.issuePdfStatus === "PENDING" ||
+          q.state.data.issuePdfStatus === "PROCESSING")
           ? 1500
           : false,
     },
@@ -40,17 +41,28 @@ export function DrawingIssueCell({
 
   if (status === "READY" && url) {
     return (
-      <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+      <Button
+        kind="ghost"
+        size="sm"
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+      >
         Open issue
       </Button>
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {
-    return <span style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>Rendering…</span>;
+    return <span>Rendering…</span>;
   }
   return (
     <>
-      <Button kind="ghost" size="sm" disabled={issue.isPending} onClick={() => setOpen(true)}>
+      <Button
+        kind="ghost"
+        size="sm"
+        disabled={issue.isPending}
+        onClick={() => setOpen(true)}
+      >
         {status === "FAILED" ? "Retry issue" : "Issue PDF"}
       </Button>
       <Modal
@@ -60,7 +72,9 @@ export function DrawingIssueCell({
         secondaryButtonText="Cancel"
         primaryButtonDisabled={issue.isPending}
         onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => issue.mutate({ id: drawingId, watermark: watermark || undefined })}
+        onRequestSubmit={() =>
+          issue.mutate({ id: drawingId, watermark: watermark || undefined })
+        }
       >
         <TextInput
           id={`wm-${drawingId}`}

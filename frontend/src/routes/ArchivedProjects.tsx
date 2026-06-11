@@ -30,7 +30,10 @@ export function ArchivedProjects() {
     <Stack gap={7}>
       <Stack gap={3}>
         <h1>Archived projects</h1>
-        <p>Retained projects hidden from active work. Restoring preserves their full history.</p>
+        <p>
+          Retained projects hidden from active work. Restoring preserves their
+          full history.
+        </p>
       </Stack>
 
       {message && (
@@ -58,7 +61,8 @@ export function ArchivedProjects() {
         columnCount={5}
         empty={{
           title: "No archived projects",
-          description: "Projects archived from their Settings tab will appear here.",
+          description:
+            "Projects archived from their Settings tab will appear here.",
         }}
       >
         <TableContainer title="Retained project archive">
@@ -80,9 +84,10 @@ export function ArchivedProjects() {
                   <TableCell>{project.status}</TableCell>
                   <TableCell>
                     {project.archivedAt
-                      ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(
-                          new Date(project.archivedAt),
-                        )
+                      ? new Intl.DateTimeFormat("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(project.archivedAt))
                       : "—"}
                   </TableCell>
                   <TableCell>
