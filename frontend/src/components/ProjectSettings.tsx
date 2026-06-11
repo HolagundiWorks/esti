@@ -20,6 +20,7 @@ import {
 } from "@carbon/react";
 import {
   Jurisdiction,
+  PHASE_STATUS_LABEL,
   PROJECT_STATUS_LABEL,
   PROJECT_WORK_TYPE_LABEL,
   PhaseStatus,
@@ -280,7 +281,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                       }
                     >
                       {PhaseStatus.options.map((s) => (
-                        <SelectItem key={s} value={s} text={s} />
+                        <SelectItem key={s} value={s} text={PHASE_STATUS_LABEL[s]} />
                       ))}
                     </Select>
                   </TableCell>

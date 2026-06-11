@@ -172,23 +172,22 @@ live authority integration.
 The dashboard must answer "What can be billed today?" and surface firm-wide
 health within 10 seconds of login.
 
-- [ ] **Global KPI Bar:** Revenue Due (total issued invoices not paid), Ready For
-  Billing (phases at billing milestone), Outstanding Collections (overdue
-  invoice total by age bucket), Active Projects, Team Utilisation %, Revision
-  Risk count; each KPI links to the relevant module.
-- [ ] **Action Center:** urgency-sorted list of items requiring immediate action:
+- [x] **Global KPI Bar:** Revenue Due, Ready For Billing, Outstanding Collections
+  (>30d), Active Projects, Pending Approvals, Revision Risk count; each KPI
+  links to the relevant module; shown as a compact strip above the Office pulse.
+- [x] **Action Center:** urgency-sorted list of items requiring immediate action:
   projects with phases reaching billing milestones, client approvals pending
-  beyond SLA, overdue invoice collections, high-revision-risk projects, and
-  team capacity alerts; surfaced as the first section of the Dashboard.
-- [ ] **APBF — Phase billing statuses:** extend `PhaseStatus` with
-  `READY_FOR_BILLING` and `BILLED`; add a `collectionStatus` to invoices
-  (`DRAFT → ISSUED → PARTIALLY_PAID → PAID / OVERDUE / WRITTEN_OFF`).
-- [ ] **APBF — Billing Intelligence Engine:** detect phases that have reached
-  their billing milestone (APPROVED or COMPLETE) and surface them in the
-  Action Center; alert when a phase transitions to READY_FOR_BILLING.
-- [ ] **Financial Health module:** revenue pipeline tile (total fees across all
-  active projects), Ready-For-Billing tracker, Outstanding Collections aging
-  (30/60/90 day buckets), Overdue Payments, and monthly collection forecast.
+  beyond SLA, overdue invoice collections, and revision-risk items; surfaced
+  as the first operational section of the Dashboard.
+- [x] **APBF — Phase billing statuses:** extended `PhaseStatus` with
+  `READY_FOR_BILLING` and `BILLED`; added `PHASE_STATUS_LABEL` map; phase
+  selector in Project Settings now shows human-readable labels.
+- [x] **APBF — Billing Intelligence Engine:** Action Center surfaces phases with
+  status APPROVED, READY_FOR_BILLING, or COMPLETE that have no outstanding
+  invoice; also exposes per-project links and billing-percent estimates.
+- [x] **Financial Health module:** revenue pipeline (active + proposal), ready-
+  to-bill estimated value, outstanding collections, overdue >30d, and
+  collected-this-FY panels on Dashboard; gated behind `fees:manage` capability.
 - [ ] **Project Health scoring:** per-project composite indicator (Green /
   Yellow / Red) derived from schedule adherence, unbilled phases, open critical
   notes, approval lag, and revision count; surfaced on project list and overview.

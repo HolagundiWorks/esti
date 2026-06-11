@@ -213,6 +213,36 @@ function DashboardMetricTile({
   );
 }
 
+/** Compact KPI chip — label above a large value with an optional Tag. */
+function KpiChip({
+  label,
+  value,
+  tagType,
+  tagText,
+  onClick,
+  loading,
+}: {
+  label: string;
+  value: string | number;
+  tagType?: "green" | "red" | "magenta" | "blue" | "gray" | "teal";
+  tagText?: string;
+  onClick?: () => void;
+  loading?: boolean;
+}) {
+  const body = (
+    <Stack gap={2}>
+      <p>{label}</p>
+      <h3>{loading ? "…" : value}</h3>
+      {tagType && tagText && <Tag type={tagType} size="sm">{tagText}</Tag>}
+    </Stack>
+  );
+  return onClick ? (
+    <ClickableTile className="esti-fill" onClick={onClick}>{body}</ClickableTile>
+  ) : (
+    <Tile className="esti-fill">{body}</Tile>
+  );
+}
+
 /** A distribution board: one labelled Carbon ProgressBar per row. */
 function DistroBoard({
   title,
@@ -338,6 +368,7 @@ export function Dashboard() {
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
   const acQ = trpc.dashboard.actionCenter.useQuery();
+  const fhQ = trpc.dashboard.financialHealth.useQuery();
   const activityQ = trpc.activity.listOffice.useQuery({
     limit: 5,
     visibility: "STAFF",
@@ -410,6 +441,72 @@ export function Dashboard() {
         <ClockLeavesWidget />
       </Column>
 
+      {/* Global KPI Bar */}
+      <Column lg={16} md={8} sm={4}>
+        <Grid condensed>
+          <Column lg={3} md={4} sm={4}>
+            <KpiChip
+              label="Revenue due"
+              value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
+              tagType="red"
+              tagText="Outstanding"
+              onClick={() => navigate("/invoices")}
+              loading={fhQ.isLoading}
+            />
+          </Column>
+          <Column lg={3} md={4} sm={4}>
+            <KpiChip
+              label="Ready to bill"
+              value={formatINRShort(fhQ.data?.readyToBillPaise ?? 0)}
+              tagType="green"
+              tagText={`${acQ.data?.billingReadyPhases.length ?? 0} phases`}
+              onClick={() => navigate("/invoices")}
+              loading={fhQ.isLoading || acQ.isLoading}
+            />
+          </Column>
+          <Column lg={2} md={4} sm={4}>
+            <KpiChip
+              label="Overdue >30d"
+              value={formatINRShort(fhQ.data?.overdue30dPaise ?? 0)}
+              tagType={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"}
+              tagText={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "Past due" : "Clear"}
+              onClick={() => navigate("/invoices")}
+              loading={fhQ.isLoading}
+            />
+          </Column>
+          <Column lg={3} md={4} sm={4}>
+            <KpiChip
+              label="Active projects"
+              value={s?.projects.byStatus.ACTIVE ?? 0}
+              tagType="blue"
+              tagText="Live pipeline"
+              onClick={() => navigate("/projects")}
+              loading={summaryLoading}
+            />
+          </Column>
+          <Column lg={2} md={4} sm={4}>
+            <KpiChip
+              label="Pending approvals"
+              value={acQ.data?.pendingApprovals.length ?? 0}
+              tagType={(acQ.data?.pendingApprovals.length ?? 0) > 0 ? "magenta" : "gray"}
+              tagText="Awaiting response"
+              onClick={() => navigate("/projects")}
+              loading={acQ.isLoading}
+            />
+          </Column>
+          <Column lg={3} md={4} sm={4}>
+            <KpiChip
+              label="Revision risk"
+              value={acQ.data?.revisionRiskCount ?? 0}
+              tagType={(acQ.data?.revisionRiskCount ?? 0) > 0 ? "magenta" : "gray"}
+              tagText="Items needing rework"
+              onClick={() => navigate("/projects")}
+              loading={acQ.isLoading}
+            />
+          </Column>
+        </Grid>
+      </Column>
+
       <Column lg={16} md={8} sm={4}>
         <Tile className="esti-fill">
           <Stack gap={4}>
@@ -475,6 +572,70 @@ export function Dashboard() {
           </Stack>
         </Tile>
       </Column>
+
+      {/* Financial Health module */}
+      {canFees && (
+        <Column lg={16} md={8} sm={4}>
+          <Tile className="esti-fill">
+            <Stack gap={5}>
+              <Stack gap={3}>
+                <p>Firm financials</p>
+                <h2>Financial health</h2>
+              </Stack>
+              {fhQ.isLoading ? (
+                <InlineLoading description="Loading financial data…" />
+              ) : (
+                <Grid condensed>
+                  <Column lg={3} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Revenue pipeline</p>
+                      <h3>{formatINRShort(fhQ.data?.activePipelinePaise ?? 0)}</h3>
+                      <Tag type="blue" size="sm">Active projects</Tag>
+                    </Stack>
+                  </Column>
+                  <Column lg={3} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Proposal pipeline</p>
+                      <h3>{formatINRShort(fhQ.data?.proposalPipelinePaise ?? 0)}</h3>
+                      <Tag type="teal" size="sm">Proposals</Tag>
+                    </Stack>
+                  </Column>
+                  <Column lg={3} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Ready to bill</p>
+                      <h3>{formatINRShort(fhQ.data?.readyToBillPaise ?? 0)}</h3>
+                      <Tag type="green" size="sm">Unbilled approved phases</Tag>
+                    </Stack>
+                  </Column>
+                  <Column lg={3} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Outstanding</p>
+                      <h3>{formatINRShort(fhQ.data?.outstandingPaise ?? 0)}</h3>
+                      <Tag type={(fhQ.data?.outstandingPaise ?? 0) > 0 ? "red" : "gray"} size="sm">Issued &amp; unpaid</Tag>
+                    </Stack>
+                  </Column>
+                  <Column lg={2} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Overdue &gt;30d</p>
+                      <h3>{formatINRShort(fhQ.data?.overdue30dPaise ?? 0)}</h3>
+                      <Tag type={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"} size="sm">
+                        {(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "At risk" : "Clear"}
+                      </Tag>
+                    </Stack>
+                  </Column>
+                  <Column lg={2} md={4} sm={4}>
+                    <Stack gap={2}>
+                      <p>Collected this FY</p>
+                      <h3>{formatINRShort(fhQ.data?.collectedFyPaise ?? 0)}</h3>
+                      <Tag type="green" size="sm">FY {fhQ.data?.fyStart?.slice(0, 4)}-{String(Number(fhQ.data?.fyStart?.slice(0, 4) ?? 0) + 1).slice(-2)}</Tag>
+                    </Stack>
+                  </Column>
+                </Grid>
+              )}
+            </Stack>
+          </Tile>
+        </Column>
+      )}
 
       {/* Action Center — billing-ready phases, overdue collections, pending approvals */}
       <Column lg={16} md={8} sm={4}>

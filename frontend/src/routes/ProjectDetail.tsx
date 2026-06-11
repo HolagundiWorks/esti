@@ -77,7 +77,7 @@ export function ProjectDetail() {
   const phases = phasesQ.data ?? [];
   // Current project stage = the first stage that isn't complete (else the last).
   const currentPhase =
-    phases.find((ph) => ph.status !== "COMPLETE") ?? phases[phases.length - 1];
+    phases.find((ph) => ph.status !== "COMPLETE" && ph.status !== "BILLED") ?? phases[phases.length - 1];
 
   return (
     <div>

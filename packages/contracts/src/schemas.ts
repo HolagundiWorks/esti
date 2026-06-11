@@ -136,9 +136,21 @@ export const PhaseStatus = z.enum([
   "IN_PROGRESS",
   "CLIENT_REVIEW",
   "APPROVED",
+  "READY_FOR_BILLING",
+  "BILLED",
   "COMPLETE",
 ]);
 export type PhaseStatus = z.infer<typeof PhaseStatus>;
+
+export const PHASE_STATUS_LABEL: Record<PhaseStatus, string> = {
+  NOT_STARTED: "Not started",
+  IN_PROGRESS: "In progress",
+  CLIENT_REVIEW: "Client review",
+  APPROVED: "Approved",
+  READY_FOR_BILLING: "Ready for billing",
+  BILLED: "Billed",
+  COMPLETE: "Complete",
+};
 
 export const PhaseUpdate = z.object({
   id: z.string().uuid(),
