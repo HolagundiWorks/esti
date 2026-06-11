@@ -25,7 +25,7 @@ import {
   type Pictogram,
   Receipt,
 } from "@carbon/pictograms-react";
-import { can, formatINRShort } from "@esti/contracts";
+import { ACTIVITY_DOMAIN_TAG, activityDomain, can, formatINRShort } from "@esti/contracts";
 import { Link, useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
@@ -949,10 +949,11 @@ export function Dashboard() {
                     <Stack orientation="horizontal" gap={3}>
                       <Tag
                         size="sm"
-                        type={item.visibility === "ALL" ? "purple" : "blue"}
+                        type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}
                       >
-                        {item.eventType}
+                        {activityDomain(item.eventType)}
                       </Tag>
+                      <Tag size="sm" type="gray">{item.eventType}</Tag>
                       <span>
                         {new Date(
                           item.createdAt as unknown as string,

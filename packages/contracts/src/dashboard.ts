@@ -58,3 +58,51 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = [
   { i: "permits", x: 4, y: 8, w: 4, h: 2 },
   { i: "alerts", x: 8, y: 8, w: 4, h: 2 },
 ];
+
+// --- Activity domain classification -------------------------------------------
+
+/** High-level domain buckets for activity feed categorisation. */
+export type ActivityDomain = "PROJECT" | "FINANCIAL" | "CLIENT" | "TEAM" | "SYSTEM";
+
+const DOMAIN_PREFIXES: Record<string, ActivityDomain> = {
+  project: "PROJECT",
+  phase: "PROJECT",
+  drawing: "PROJECT",
+  transmittal: "PROJECT",
+  specification: "PROJECT",
+  moodboard: "PROJECT",
+  approval: "PROJECT",
+  criticalnote: "PROJECT",
+  decision: "PROJECT",
+  comment: "PROJECT",
+  inspection: "PROJECT",
+  permit: "PROJECT",
+  bylaw: "PROJECT",
+  task: "TEAM",
+  leave: "TEAM",
+  payslip: "TEAM",
+  hr: "TEAM",
+  assignment: "TEAM",
+  invoice: "FINANCIAL",
+  feeproposal: "FINANCIAL",
+  reconcile: "FINANCIAL",
+  po: "FINANCIAL",
+  receipt: "FINANCIAL",
+  client: "CLIENT",
+  clientlog: "CLIENT",
+  consultant: "CLIENT",
+};
+
+/** Derive the Activity domain category from an event-type string (e.g. "task.done" → "TEAM"). */
+export function activityDomain(eventType: string): ActivityDomain {
+  const prefix = (eventType.split(".")[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  return DOMAIN_PREFIXES[prefix] ?? "SYSTEM";
+}
+
+export const ACTIVITY_DOMAIN_TAG: Record<ActivityDomain, "blue" | "green" | "teal" | "purple" | "gray"> = {
+  PROJECT: "blue",
+  FINANCIAL: "green",
+  CLIENT: "teal",
+  TEAM: "purple",
+  SYSTEM: "gray",
+};

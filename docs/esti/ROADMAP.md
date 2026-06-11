@@ -199,9 +199,10 @@ health within 10 seconds of login.
 - [x] **Team Intelligence signals:** per-assignee open task count, overdue
   count, high-priority count, and capacity flag (Healthy/Busy/Overloaded);
   surfaced on dashboard "Team intelligence" tile; feeds Phase 5 ASPRF.
-- [ ] **Activity Feed structured types:** categorise activity events by domain
-  (client/project/team/financial) with type-specific icons; filter Activity
-  Center by category.
+- [x] **Activity Feed structured types:** `activityDomain()` function in
+  contracts classifies event types (project/financial/client/team/system)
+  by event-type prefix; Dashboard activity feed shows a domain tag alongside
+  the raw event-type tag.
 
 **Gate:** principal can identify every billable phase and every overdue collection
 from the dashboard without opening individual project or invoice screens.
