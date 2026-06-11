@@ -152,6 +152,10 @@ export const projectOffices = pgTable("esti_projectoffice", {
   createdById: uuid("created_by_id"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   archivedById: uuid("archived_by_id").references(() => users.id),
+  /** Retention deadline: project may be purged on or after this date. */
+  purgeAfter: date("purge_after"),
+  /** Set when the project data has been scheduled for deletion. */
+  purgedAt: timestamp("purged_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

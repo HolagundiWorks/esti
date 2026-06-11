@@ -11,9 +11,14 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import {
+  criticalNotes,
+  decisions,
+  drawings,
+  invoices,
   phases,
   projectLogs,
   projectOffices,
+  tasks,
   users,
 } from "../../db/schema.js";
 import { verifyPassword } from "../../auth/session.js";
@@ -52,7 +57,7 @@ export const projectOfficeRouter = router({
     return ctx.db
       .select()
       .from(projectOffices)
-      .where(isNotNull(projectOffices.archivedAt))
+      .where(and(isNotNull(projectOffices.archivedAt), isNull(projectOffices.purgedAt)))
       .orderBy(desc(projectOffices.archivedAt));
   }),
 
@@ -231,10 +236,13 @@ export const projectOfficeRouter = router({
         .where(and(eq(projectOffices.id, input.id), isNull(projectOffices.archivedAt)));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const archivedAt = new Date();
+      const purgeAfter = new Date(archivedAt);
+      purgeAfter.setDate(purgeAfter.getDate() + 90);
+      const purgeAfterStr = purgeAfter.toISOString().slice(0, 10);
       await ctx.db.transaction(async (tx) => {
         await tx
           .update(projectOffices)
-          .set({ archivedAt, archivedById: ctx.user.id })
+          .set({ archivedAt, archivedById: ctx.user.id, purgeAfter: purgeAfterStr })
           .where(eq(projectOffices.id, input.id));
         await writeActivity(tx, {
           projectId: input.id,
@@ -294,6 +302,93 @@ export const projectOfficeRouter = router({
           return updated!;
         });
       return row;
+    }),
+
+  /** Export a structured JSON bundle of all project data for archival. */
+  exportData: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      if (!can(ctx.user.role, "project:delete")) throw new TRPCError({ code: "FORBIDDEN" });
+      const [project] = await ctx.db
+        .select()
+        .from(projectOffices)
+        .where(eq(projectOffices.id, input.id));
+      if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [
+        projectPhases,
+        projectTasks,
+        projectNotes,
+        projectDecisions,
+        projectDrawings,
+        projectInvoices,
+      ] = await Promise.all([
+        ctx.db.select().from(phases).where(eq(phases.projectId, input.id)),
+        ctx.db.select().from(tasks).where(eq(tasks.projectId, input.id)).limit(200),
+        ctx.db.select().from(criticalNotes).where(eq(criticalNotes.projectId, input.id)),
+        ctx.db.select().from(decisions).where(eq(decisions.projectId, input.id)),
+        ctx.db
+          .select()
+          .from(drawings)
+          .where(and(eq(drawings.projectId, input.id), eq(drawings.isCurrent, true))),
+        ctx.db.select().from(invoices).where(eq(invoices.projectId, input.id)),
+      ]);
+
+      return {
+        exportedAt: new Date().toISOString(),
+        exportVersion: "1",
+        project,
+        phases: projectPhases,
+        tasks: projectTasks,
+        criticalNotes: projectNotes,
+        decisions: projectDecisions,
+        drawings: projectDrawings,
+        invoices: projectInvoices,
+      };
+    }),
+
+  /** Mark an archived project as purged (data scheduled for permanent deletion). */
+  purge: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), password: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!can(ctx.user.role, "project:delete"))
+        throw new TRPCError({ code: "FORBIDDEN", message: "You cannot purge projects" });
+
+      const [me] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id));
+      if (!me?.passwordHash || !(await verifyPassword(me.passwordHash, input.password))) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });
+      }
+
+      const [project] = await ctx.db
+        .select()
+        .from(projectOffices)
+        .where(and(eq(projectOffices.id, input.id), isNotNull(projectOffices.archivedAt), isNull(projectOffices.purgedAt)));
+      if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Archived project not found" });
+
+      const today = new Date().toISOString().slice(0, 10);
+      if (project.purgeAfter && project.purgeAfter > today) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Retention period has not expired. Purge allowed on or after ${project.purgeAfter}.`,
+        });
+      }
+
+      const purgedAt = new Date();
+      await ctx.db.transaction(async (tx) => {
+        await tx
+          .update(projectOffices)
+          .set({ purgedAt })
+          .where(eq(projectOffices.id, input.id));
+        await writeAudit(tx, {
+          entity: "projectoffice",
+          entityId: input.id,
+          action: "PURGE",
+          actorId: ctx.user.id,
+          before: { purgedAt: null },
+          after: { purgedAt },
+        });
+      });
+      return { ok: true };
     }),
 
   // --- Internal project log (audit notes) ---

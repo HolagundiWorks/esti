@@ -127,7 +127,10 @@ keyboard, dark-theme, and responsive browser review.
   and why the item is blocked or awaiting approval.
 - [ ] Project health engine: schedule, finance, documentation, approvals,
   resources — feeds Phase 4B signals.
-- [ ] Archive project and retention-aware purge/export workflows.
+- [x] Archive project and retention-aware purge/export workflows: archive sets
+  a 90-day purge-after date; admin can export a JSON bundle (project, phases,
+  tasks, decisions, notes, drawings, invoices) and mark the project for purge
+  after the retention period; purge gate requires admin password re-auth.
 
 **Gate:** a project's history and current risks can be understood without
 opening separate modules.
