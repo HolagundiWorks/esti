@@ -15,6 +15,7 @@ const decisionInput = z.object({
   revisionCategory: z.enum(["MINOR", "MAJOR", "CRITICAL"]).optional(),
   impact: z.enum(["LOW", "MEDIUM", "HIGH"]).default("LOW"),
   ownerName: z.string().max(120).optional(),
+  reviewDeadline: z.string().date().optional(),
   linkedObjectType: z.string().max(80).optional(),
   linkedObjectId: z.string().max(120).optional(),
 });
@@ -42,6 +43,7 @@ export const decisionRouter = router({
           revisionCategory: input.revisionCategory ?? null,
           impact: input.impact,
           ownerName: input.ownerName ?? null,
+          reviewDeadline: input.reviewDeadline ?? null,
           linkedObjectType: input.linkedObjectType ?? null,
           linkedObjectId: input.linkedObjectId ?? null,
           actorId: ctx.user.id,
@@ -92,6 +94,7 @@ export const decisionRouter = router({
             revisionCategory: input.revisionCategory ?? null,
             impact: input.impact,
             ownerName: input.ownerName ?? null,
+            reviewDeadline: input.reviewDeadline ?? null,
             linkedObjectType: input.linkedObjectType ?? null,
             linkedObjectId: input.linkedObjectId ?? null,
             updatedAt: new Date(),

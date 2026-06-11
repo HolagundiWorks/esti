@@ -118,13 +118,17 @@ keyboard, dark-theme, and responsive browser review.
   estimated effort days, timeline delta, and cost impact based on phase
   progress and historical revision data; architect must acknowledge before
   state transition to ACCEPTED.
-- [ ] **CRIF — Cooling-Off Mechanism:** auto-lock revision after configurable
-  idle period (default 14 days); send reminder at midpoint; locked items
-  require owner override to reopen.
-- [ ] Major/critical revision acknowledgement workflow (seen, acknowledged,
-  needs clarification).
-- [ ] Decision and revision summaries that surface the next action, the owner,
-  and why the item is blocked or awaiting approval.
+- [x] **CRIF — Cooling-Off Mechanism (v1):** decisions in OPEN or CLIENT_REVIEW
+  state past their review deadline surface a "Cooling off" tag in the
+  Decision Ledger; Transition button turns danger-red; full auto-lock
+  scheduler deferred to Phase 11 AI Studio background agents.
+- [x] Major/critical revision acknowledgement workflow: when transitioning a
+  MAJOR or CRITICAL decision to ACCEPTED, the transition modal shows a
+  warning notification and requires an explicit acknowledgement checkbox
+  before the Confirm button activates.
+- [x] Decision summaries: per-decision "Next action" column computed from CRIF
+  state and review deadline (e.g. "Cooling-off: deadline passed — lock or
+  decide now."); owner and review-deadline fields on the create form.
 - [ ] Project health engine: schedule, finance, documentation, approvals,
   resources — feeds Phase 4B signals.
 - [x] Archive project and retention-aware purge/export workflows: archive sets

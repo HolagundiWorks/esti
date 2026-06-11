@@ -1,8 +1,10 @@
 import {
   Button,
+  Checkbox,
   Column,
   ClickableTile,
   Grid,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -64,6 +66,35 @@ function StatCard({
   );
 }
 
+function nextActionHint(
+  state: DecisionState,
+  deadline: string | null | undefined,
+  category: string | null | undefined,
+): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = !!deadline && deadline < today;
+  switch (state) {
+    case "DRAFT":
+      return "Submit for review when ready.";
+    case "OPEN":
+      return overdue
+        ? "Cooling-off: deadline passed — lock or decide now."
+        : "Decide internally or move to client review.";
+    case "CLIENT_REVIEW":
+      return overdue
+        ? "Response overdue — follow up with client."
+        : "Awaiting client response.";
+    case "ACCEPTED":
+      return category === "MAJOR" || category === "CRITICAL"
+        ? "Major/critical — acknowledged. Lock to finalise."
+        : "Lock to finalise.";
+    case "REJECTED":
+      return "Lock to finalise the rejection.";
+    case "LOCKED":
+      return "Owner override required to reopen.";
+  }
+}
+
 function daysAgo(dateStr: string | Date): number {
   const d = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
   return Math.floor((Date.now() - d.getTime()) / 86_400_000);
@@ -109,6 +140,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const [decisionOpen, setDecisionOpen] = useState(false);
   const [transitionId, setTransitionId] = useState<string | null>(null);
   const [toState, setToState] = useState<DecisionState>("OPEN");
+  const [ackChecked, setAckChecked] = useState(false);
 
   const [note, setNote] = useState({
     title: "",
@@ -126,6 +158,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     revisionCategory: "" as RevisionCategory | "",
     impact: "LOW",
     ownerName: "",
+    reviewDeadline: "",
     linkedObjectType: "",
     linkedObjectId: "",
   });
@@ -156,6 +189,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         revisionCategory: "",
         impact: "LOW",
         ownerName: "",
+        reviewDeadline: "",
         linkedObjectType: "",
         linkedObjectId: "",
       });
@@ -386,8 +420,8 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                   <TableHeader>Decision</TableHeader>
                   <TableHeader>State</TableHeader>
                   <TableHeader>Category</TableHeader>
-                  <TableHeader>Impact</TableHeader>
                   <TableHeader>Days open</TableHeader>
+                  <TableHeader>Next action</TableHeader>
                   <TableHeader></TableHeader>
                 </TableRow>
               </TableHead>
@@ -405,13 +439,26 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                   const days = daysAgo(d.createdAt as unknown as string);
                   const canTransition =
                     (DECISION_TRANSITIONS[state] ?? []).length > 0;
+                  const today = new Date().toISOString().slice(0, 10);
+                  const coolingOff =
+                    (state === "OPEN" || state === "CLIENT_REVIEW") &&
+                    !!d.reviewDeadline &&
+                    d.reviewDeadline < today;
+                  const hint = nextActionHint(state, d.reviewDeadline, cat);
                   return (
                     <TableRow key={d.id}>
                       <TableCell>{d.title}</TableCell>
                       <TableCell>
-                        <Tag type={DECISION_STATE_TAG[state]} size="sm">
-                          {DECISION_STATE_LABEL[state]}
-                        </Tag>
+                        <Stack gap={2}>
+                          <Tag type={DECISION_STATE_TAG[state]} size="sm">
+                            {DECISION_STATE_LABEL[state]}
+                          </Tag>
+                          {coolingOff && (
+                            <Tag type="red" size="sm">
+                              Cooling off
+                            </Tag>
+                          )}
+                        </Stack>
                       </TableCell>
                       <TableCell>
                         {cat ? (
@@ -422,15 +469,18 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                           "—"
                         )}
                       </TableCell>
-                      <TableCell>{d.impact}</TableCell>
                       <TableCell>{days}d</TableCell>
+                      <TableCell>
+                        <p style={{ fontSize: "0.75rem" }}>{hint}</p>
+                      </TableCell>
                       <TableCell>
                         {canTransition && (
                           <Button
-                            kind="ghost"
+                            kind={coolingOff ? "danger--ghost" : "ghost"}
                             size="sm"
                             onClick={() => {
                               setTransitionId(d.id);
+                              setAckChecked(false);
                               setToState(
                                 (DECISION_TRANSITIONS[state] ?? [])[0] ?? "OPEN",
                               );
@@ -586,6 +636,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             revisionCategory: decision.revisionCategory || undefined,
             impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
             ownerName: decision.ownerName || undefined,
+            reviewDeadline: decision.reviewDeadline || undefined,
             linkedObjectType: decision.linkedObjectType || undefined,
             linkedObjectId: decision.linkedObjectId || undefined,
           })
@@ -662,14 +713,25 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               ))}
             </Select>
           </Stack>
-          <TextInput
-            id="dc-owner"
-            labelText="Owner (optional)"
-            value={decision.ownerName}
-            onChange={(e) =>
-              setDecision((f) => ({ ...f, ownerName: e.target.value }))
-            }
-          />
+          <Stack orientation="horizontal" gap={5}>
+            <TextInput
+              id="dc-owner"
+              labelText="Owner (optional)"
+              value={decision.ownerName}
+              onChange={(e) =>
+                setDecision((f) => ({ ...f, ownerName: e.target.value }))
+              }
+            />
+            <TextInput
+              id="dc-deadline"
+              labelText="Review deadline (optional)"
+              type="date"
+              value={decision.reviewDeadline}
+              onChange={(e) =>
+                setDecision((f) => ({ ...f, reviewDeadline: e.target.value }))
+              }
+            />
+          </Stack>
           <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="dc-linktype"
@@ -695,48 +757,79 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       </Modal>
 
       {/* CRIF state transition modal */}
-      <Modal
-        open={!!transitionId}
-        modalHeading={`Transition: ${transitionDecision?.title ?? ""}`}
-        primaryButtonText={decisionTransition.isPending ? "Transitioning…" : "Confirm transition"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={decisionTransition.isPending}
-        onRequestClose={() => setTransitionId(null)}
-        onRequestSubmit={() => {
-          if (!transitionId) return;
-          decisionTransition.mutate({ id: transitionId, toState });
-        }}
-      >
-        <Stack gap={5}>
-          <p>
-            Current state:{" "}
-            <Tag
-              type={
-                DECISION_STATE_TAG[
-                  (transitionDecision?.state ?? "OPEN") as DecisionState
-                ]
-              }
-              size="sm"
-            >
-              {
-                DECISION_STATE_LABEL[
-                  (transitionDecision?.state ?? "OPEN") as DecisionState
-                ]
-              }
-            </Tag>
-          </p>
-          <Select
-            id="tr-tostate"
-            labelText="Move to"
-            value={toState}
-            onChange={(e) => setToState(e.target.value as DecisionState)}
+      {(() => {
+        const cat = transitionDecision?.revisionCategory as RevisionCategory | null;
+        const isCriticalAccept =
+          toState === "ACCEPTED" &&
+          (cat === "MAJOR" || cat === "CRITICAL");
+        const needsAck = isCriticalAccept && !ackChecked;
+        return (
+          <Modal
+            open={!!transitionId}
+            modalHeading={`Transition: ${transitionDecision?.title ?? ""}`}
+            primaryButtonText={decisionTransition.isPending ? "Transitioning…" : "Confirm transition"}
+            secondaryButtonText="Cancel"
+            primaryButtonDisabled={decisionTransition.isPending || needsAck}
+            onRequestClose={() => { setTransitionId(null); setAckChecked(false); }}
+            onRequestSubmit={() => {
+              if (!transitionId) return;
+              decisionTransition.mutate({ id: transitionId, toState });
+            }}
           >
-            {allowedNextStates.map((s) => (
-              <SelectItem key={s} value={s} text={DECISION_STATE_LABEL[s]} />
-            ))}
-          </Select>
-        </Stack>
-      </Modal>
+            <Stack gap={5}>
+              <p>
+                Current state:{" "}
+                <Tag
+                  type={
+                    DECISION_STATE_TAG[
+                      (transitionDecision?.state ?? "OPEN") as DecisionState
+                    ]
+                  }
+                  size="sm"
+                >
+                  {
+                    DECISION_STATE_LABEL[
+                      (transitionDecision?.state ?? "OPEN") as DecisionState
+                    ]
+                  }
+                </Tag>
+              </p>
+              <Select
+                id="tr-tostate"
+                labelText="Move to"
+                value={toState}
+                onChange={(e) => {
+                  setToState(e.target.value as DecisionState);
+                  setAckChecked(false);
+                }}
+              >
+                {allowedNextStates.map((s) => (
+                  <SelectItem key={s} value={s} text={DECISION_STATE_LABEL[s]} />
+                ))}
+              </Select>
+              {isCriticalAccept && (
+                <>
+                  <InlineNotification
+                    kind="warning"
+                    title="Major/Critical revision"
+                    subtitle={`This decision is categorised as ${cat}. Accepting it may affect the project timeline, cost, or scope.`}
+                    hideCloseButton
+                    lowContrast
+                  />
+                  <Checkbox
+                    id="tr-ack"
+                    labelText="I acknowledge this major/critical design revision has been reviewed and accepted."
+                    checked={ackChecked}
+                    onChange={(_: React.ChangeEvent<HTMLInputElement>, { checked }: { checked: boolean }) =>
+                      setAckChecked(checked)
+                    }
+                  />
+                </>
+              )}
+            </Stack>
+          </Modal>
+        );
+      })()}
     </Stack>
   );
 }
