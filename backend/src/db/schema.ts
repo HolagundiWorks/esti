@@ -369,7 +369,7 @@ export const criticalNotes = pgTable("esti_critical_note", {
   updatedAt: updatedAt(),
 });
 
-/** Project decision register with rationale, approval, impact, and links. */
+/** Project decision register with CRIF state machine. */
 export const decisions = pgTable("esti_decision", {
   id: id(),
   projectId: uuid("project_id")
@@ -377,11 +377,21 @@ export const decisions = pgTable("esti_decision", {
     .references(() => projectOffices.id),
   title: text("title").notNull(),
   rationale: text("rationale").notNull(),
+  /** Legacy approval field — kept for backwards compat; use `state` going forward. */
   approval: text("approval").notNull().default("PENDING"),
   impact: text("impact").notNull().default("LOW"),
   linkedObjectType: text("linked_object_type"),
   linkedObjectId: text("linked_object_id"),
+  /** Legacy status field — kept for backwards compat; use `state` going forward. */
   status: text("status").notNull().default("OPEN"),
+  /** CRIF state: DRAFT | OPEN | CLIENT_REVIEW | ACCEPTED | REJECTED | LOCKED */
+  state: text("state").notNull().default("OPEN"),
+  /** Revision impact category: MINOR | MAJOR | CRITICAL */
+  revisionCategory: text("revision_category"),
+  ownerId: uuid("owner_id").references(() => users.id),
+  ownerName: text("owner_name"),
+  lockedAt: timestamp("locked_at", { withTimezone: true }),
+  reviewDeadline: date("review_deadline"),
   actorId: uuid("actor_id").references(() => users.id),
   actorName: text("actor_name"),
   createdAt: createdAt(),

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, or } from "drizzle-orm";
 import { z } from "zod";
 import { drawings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -111,5 +111,17 @@ export const drawingRouter = router({
         after: { scaleUnitsPerVb: row!.scaleUnitsPerVb, scaleUnit: row!.scaleUnit },
       });
       return row;
+    }),
+
+  /** All revised drawings (rev > 1) for a project — general revision feed. */
+  recentRevisions: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select()
+        .from(drawings)
+        .where(and(eq(drawings.projectId, input.projectId), gt(drawings.revNo, 1)))
+        .orderBy(desc(drawings.createdAt))
+        .limit(20);
     }),
 });

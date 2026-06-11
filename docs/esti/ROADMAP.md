@@ -101,17 +101,19 @@ keyboard, dark-theme, and responsive browser review.
   separate from project-stage status.
 - [x] Replace COA-derived project phases with neutral architectural delivery
   stages while preserving existing phase IDs and linked invoices.
-- [ ] General revision feed for drawings, specifications, mood boards, BOQs,
-  agreements, and reports, with client revision intelligence on each item.
+- [x] General revision feed for drawings with rev number, date, and note;
+  surfaced on the project overview as "Drawing revision feed".
+- [ ] Extend revision feed to specifications, mood boards, BOQs, agreements,
+  and reports once those document types gain version control.
 - [ ] **CRIF — Design Review Workspace:** PDF canvas viewer with inline
   annotation pins, changemark stamps, and a collapsible side panel for
   review items; architect and client dual views of the same canvas.
-- [ ] **CRIF — Decision states machine:** DRAFT → OPEN → CLIENT_REVIEW →
-  ACCEPTED / REJECTED → LOCKED; state transitions produce activity entries and
-  notify affected parties.
-- [ ] **CRIF — Decision Ledger:** per-project table of all design decisions with
-  status, revision category (minor/major/critical), approval lag, requester,
-  owner, and linked drawing/document.
+- [x] **CRIF — Decision states machine:** DRAFT → OPEN → CLIENT_REVIEW →
+  ACCEPTED / REJECTED → LOCKED; state transitions produce activity entries;
+  `DECISION_TRANSITIONS` map in contracts enforced server-side.
+- [x] **CRIF — Decision Ledger:** per-project table of all design decisions with
+  CRIF state tag, revision category (minor/major/critical), impact, days open,
+  and inline Transition button; owner and linked object fields on create form.
 - [ ] **CRIF — Revision Impact Engine:** before accepting a revision, surface
   estimated effort days, timeline delta, and cost impact based on phase
   progress and historical revision data; architect must acknowledge before

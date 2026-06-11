@@ -21,6 +21,15 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  DECISION_STATE_LABEL,
+  DECISION_STATE_TAG,
+  DECISION_TRANSITIONS,
+  DecisionState,
+  REVISION_CATEGORY_LABEL,
+  REVISION_CATEGORY_TAG,
+  RevisionCategory,
+} from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
 function StatCard({
@@ -55,6 +64,11 @@ function StatCard({
   );
 }
 
+function daysAgo(dateStr: string | Date): number {
+  const d = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  return Math.floor((Date.now() - d.getTime()) / 86_400_000);
+}
+
 export function ProjectOverview({ projectId }: { projectId: string }) {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
@@ -68,6 +82,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   );
   const drawingsQ = trpc.drawings.listByProject.useQuery(
     { projectId, currentOnly: true },
+    { enabled: !!projectId },
+  );
+  const revisionsQ = trpc.drawings.recentRevisions.useQuery(
+    { projectId },
     { enabled: !!projectId },
   );
   const notesQ = trpc.criticalNotes.listByProject.useQuery(
@@ -86,8 +104,12 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     { projectId },
     { enabled: !!projectId },
   );
+
   const [noteOpen, setNoteOpen] = useState(false);
   const [decisionOpen, setDecisionOpen] = useState(false);
+  const [transitionId, setTransitionId] = useState<string | null>(null);
+  const [toState, setToState] = useState<DecisionState>("OPEN");
+
   const [note, setNote] = useState({
     title: "",
     category: "Change control",
@@ -100,9 +122,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const [decision, setDecision] = useState({
     title: "",
     rationale: "",
-    approval: "PENDING",
+    state: "DRAFT" as DecisionState,
+    revisionCategory: "" as RevisionCategory | "",
     impact: "LOW",
-    status: "OPEN",
+    ownerName: "",
     linkedObjectType: "",
     linkedObjectId: "",
   });
@@ -129,12 +152,20 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       setDecision({
         title: "",
         rationale: "",
-        approval: "PENDING",
+        state: "DRAFT",
+        revisionCategory: "",
         impact: "LOW",
-        status: "OPEN",
+        ownerName: "",
         linkedObjectType: "",
         linkedObjectId: "",
       });
+      await utils.decisions.listByProject.invalidate({ projectId });
+      await utils.activity.listByProject.invalidate({ projectId });
+    },
+  });
+  const decisionTransition = trpc.decisions.transition.useMutation({
+    onSuccess: async () => {
+      setTransitionId(null);
       await utils.decisions.listByProject.invalidate({ projectId });
       await utils.activity.listByProject.invalidate({ projectId });
     },
@@ -143,8 +174,9 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const tasks = tasksQ.data ?? [];
   const approvals = approvalsQ.data ?? [];
   const drawings = drawingsQ.data ?? [];
+  const revisions = revisionsQ.data ?? [];
   const notes = notesQ.data ?? [];
-  const decisions = decisionsQ.data ?? [];
+  const allDecisions = decisionsQ.data ?? [];
   const openTasks = tasks.filter((t) => t.status !== "DONE");
   const overdueTasks = tasks.filter(
     (t) =>
@@ -157,17 +189,24 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       a.status === "DRAFT" || a.status === "SENT" || a.status === "REVISIONS",
   );
   const openNotes = notes.filter((n) => n.status !== "RESOLVED");
-  const openDecisions = decisions.filter((d) => d.status === "OPEN");
+  const activeDecisions = allDecisions.filter(
+    (d) => d.state !== "LOCKED" && d.state !== "ACCEPTED",
+  );
   const health = [
     openTasks.length > 0 ? "Tasks open" : null,
     overdueTasks.length > 0 ? "Tasks overdue" : null,
     pendingApprovals.length > 0 ? "Approvals pending" : null,
     openNotes.length > 0 ? "Critical notes open" : null,
-    openDecisions.length > 0 ? "Decisions open" : null,
+    activeDecisions.length > 0 ? "Decisions in progress" : null,
   ].filter(Boolean);
   const compliance = complianceQ.data?.result as
     | { far?: number; maxBuiltUpSqm?: number; maxFootprintSqm?: number }
     | undefined;
+
+  const transitionDecision = allDecisions.find((d) => d.id === transitionId);
+  const allowedNextStates = transitionDecision
+    ? DECISION_TRANSITIONS[(transitionDecision.state ?? "OPEN") as DecisionState] ?? []
+    : [];
 
   return (
     <Stack gap={7}>
@@ -229,6 +268,40 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
           />
         </Column>
       </Grid>
+
+      {revisions.length > 0 && (
+        <TableContainer
+          title="Drawing revision feed"
+          description="All superseded drawing versions for this project"
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Drawing</TableHeader>
+                <TableHeader>Rev</TableHeader>
+                <TableHeader>Date</TableHeader>
+                <TableHeader>Note</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {revisions.slice(0, 10).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.title}</TableCell>
+                  <TableCell>
+                    <Tag type="gray" size="sm">
+                      Rev {r.revNo}
+                    </Tag>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(r.createdAt as unknown as string).toLocaleDateString("en-IN")}
+                  </TableCell>
+                  <TableCell>{r.revisionNote ?? "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Grid condensed>
         <Column sm={4} md={8} lg={8}>
@@ -298,57 +371,78 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               alignItems: "center",
             }}
           >
-            <h3>Decision register</h3>
+            <h3>Decision ledger</h3>
             <Button size="sm" onClick={() => setDecisionOpen(true)}>
               Add decision
             </Button>
           </div>
           <TableContainer
-            title="Decision register"
-            description="Rationale, approval, impact, and link targets"
+            title="Decision ledger"
+            description="CRIF state machine: rationale, category, owner, and transitions"
           >
             <Table size="sm">
               <TableHead>
                 <TableRow>
                   <TableHeader>Decision</TableHeader>
-                  <TableHeader>Approval</TableHeader>
+                  <TableHeader>State</TableHeader>
+                  <TableHeader>Category</TableHeader>
                   <TableHeader>Impact</TableHeader>
-                  <TableHeader>Linked to</TableHeader>
+                  <TableHeader>Days open</TableHeader>
+                  <TableHeader></TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {decisions.length === 0 && (
+                {allDecisions.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4}>
+                    <TableCell colSpan={6}>
                       No decisions recorded yet.
                     </TableCell>
                   </TableRow>
                 )}
-                {decisions.slice(0, 5).map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell>{d.title}</TableCell>
-                    <TableCell>
-                      <Tag
-                        type={
-                          d.approval === "APPROVED"
-                            ? "green"
-                            : d.approval === "REJECTED"
-                              ? "red"
-                              : "gray"
-                        }
-                        size="sm"
-                      >
-                        {d.approval}
-                      </Tag>
-                    </TableCell>
-                    <TableCell>{d.impact}</TableCell>
-                    <TableCell>
-                      {d.linkedObjectType
-                        ? `${d.linkedObjectType}${d.linkedObjectId ? ` · ${d.linkedObjectId}` : ""}`
-                        : "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {allDecisions.slice(0, 8).map((d) => {
+                  const state = (d.state ?? "OPEN") as DecisionState;
+                  const cat = d.revisionCategory as RevisionCategory | null;
+                  const days = daysAgo(d.createdAt as unknown as string);
+                  const canTransition =
+                    (DECISION_TRANSITIONS[state] ?? []).length > 0;
+                  return (
+                    <TableRow key={d.id}>
+                      <TableCell>{d.title}</TableCell>
+                      <TableCell>
+                        <Tag type={DECISION_STATE_TAG[state]} size="sm">
+                          {DECISION_STATE_LABEL[state]}
+                        </Tag>
+                      </TableCell>
+                      <TableCell>
+                        {cat ? (
+                          <Tag type={REVISION_CATEGORY_TAG[cat]} size="sm">
+                            {REVISION_CATEGORY_LABEL[cat]}
+                          </Tag>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>{d.impact}</TableCell>
+                      <TableCell>{days}d</TableCell>
+                      <TableCell>
+                        {canTransition && (
+                          <Button
+                            kind="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setTransitionId(d.id);
+                              setToState(
+                                (DECISION_TRANSITIONS[state] ?? [])[0] ?? "OPEN",
+                              );
+                            }}
+                          >
+                            Transition
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
@@ -369,7 +463,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(activityQ.data ?? []).slice(0, 5).map((item) => (
+            {(activityQ.data ?? []).slice(0, 8).map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   {new Date(item.createdAt as unknown as string).toLocaleString(
@@ -385,6 +479,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         </Table>
       </TableContainer>
 
+      {/* Add critical note modal */}
       <Modal
         open={noteOpen}
         modalHeading="Add critical note"
@@ -421,7 +516,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               setNote((f) => ({ ...f, category: e.target.value }))
             }
           />
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={5}>
             <Select
               id="cn-priority"
               labelText="Priority"
@@ -446,7 +541,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                 <SelectItem key={s} value={s} text={s} />
               ))}
             </Select>
-          </div>
+          </Stack>
           <TextInput
             id="cn-owner"
             labelText="Owner (optional)"
@@ -472,6 +567,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         </Stack>
       </Modal>
 
+      {/* Add decision modal */}
       <Modal
         open={decisionOpen}
         modalHeading="Add decision"
@@ -486,13 +582,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             projectId,
             title: decision.title,
             rationale: decision.rationale,
-            approval: decision.approval as
-              | "PENDING"
-              | "APPROVED"
-              | "REJECTED"
-              | "NEEDS_REVISION",
+            state: decision.state,
+            revisionCategory: decision.revisionCategory || undefined,
             impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
-            status: decision.status as "OPEN" | "CLOSED",
+            ownerName: decision.ownerName || undefined,
             linkedObjectType: decision.linkedObjectType || undefined,
             linkedObjectId: decision.linkedObjectId || undefined,
           })
@@ -516,20 +609,45 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               setDecision((f) => ({ ...f, rationale: e.target.value }))
             }
           />
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={5}>
             <Select
-              id="dc-approval"
-              labelText="Approval"
-              value={decision.approval}
+              id="dc-state"
+              labelText="State"
+              value={decision.state}
               onChange={(e) =>
-                setDecision((f) => ({ ...f, approval: e.target.value }))
+                setDecision((f) => ({
+                  ...f,
+                  state: e.target.value as DecisionState,
+                }))
               }
             >
-              {["PENDING", "APPROVED", "REJECTED", "NEEDS_REVISION"].map(
-                (s) => (
-                  <SelectItem key={s} value={s} text={s} />
-                ),
-              )}
+              {DecisionState.options.map((s) => (
+                <SelectItem
+                  key={s}
+                  value={s}
+                  text={DECISION_STATE_LABEL[s]}
+                />
+              ))}
+            </Select>
+            <Select
+              id="dc-category"
+              labelText="Revision category"
+              value={decision.revisionCategory}
+              onChange={(e) =>
+                setDecision((f) => ({
+                  ...f,
+                  revisionCategory: e.target.value as RevisionCategory | "",
+                }))
+              }
+            >
+              <SelectItem value="" text="None" />
+              {RevisionCategory.options.map((c) => (
+                <SelectItem
+                  key={c}
+                  value={c}
+                  text={REVISION_CATEGORY_LABEL[c]}
+                />
+              ))}
             </Select>
             <Select
               id="dc-impact"
@@ -543,26 +661,25 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                 <SelectItem key={s} value={s} text={s} />
               ))}
             </Select>
-            <Select
-              id="dc-status"
-              labelText="Status"
-              value={decision.status}
-              onChange={(e) =>
-                setDecision((f) => ({ ...f, status: e.target.value }))
-              }
-            >
-              {["OPEN", "CLOSED"].map((s) => (
-                <SelectItem key={s} value={s} text={s} />
-              ))}
-            </Select>
-          </div>
-          <div style={{ display: "flex", gap: 12 }}>
+          </Stack>
+          <TextInput
+            id="dc-owner"
+            labelText="Owner (optional)"
+            value={decision.ownerName}
+            onChange={(e) =>
+              setDecision((f) => ({ ...f, ownerName: e.target.value }))
+            }
+          />
+          <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="dc-linktype"
               labelText="Linked object type (optional)"
               value={decision.linkedObjectType}
               onChange={(e) =>
-                setDecision((f) => ({ ...f, linkedObjectType: e.target.value }))
+                setDecision((f) => ({
+                  ...f,
+                  linkedObjectType: e.target.value,
+                }))
               }
             />
             <TextInput
@@ -573,7 +690,51 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                 setDecision((f) => ({ ...f, linkedObjectId: e.target.value }))
               }
             />
-          </div>
+          </Stack>
+        </Stack>
+      </Modal>
+
+      {/* CRIF state transition modal */}
+      <Modal
+        open={!!transitionId}
+        modalHeading={`Transition: ${transitionDecision?.title ?? ""}`}
+        primaryButtonText={decisionTransition.isPending ? "Transitioning…" : "Confirm transition"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={decisionTransition.isPending}
+        onRequestClose={() => setTransitionId(null)}
+        onRequestSubmit={() => {
+          if (!transitionId) return;
+          decisionTransition.mutate({ id: transitionId, toState });
+        }}
+      >
+        <Stack gap={5}>
+          <p>
+            Current state:{" "}
+            <Tag
+              type={
+                DECISION_STATE_TAG[
+                  (transitionDecision?.state ?? "OPEN") as DecisionState
+                ]
+              }
+              size="sm"
+            >
+              {
+                DECISION_STATE_LABEL[
+                  (transitionDecision?.state ?? "OPEN") as DecisionState
+                ]
+              }
+            </Tag>
+          </p>
+          <Select
+            id="tr-tostate"
+            labelText="Move to"
+            value={toState}
+            onChange={(e) => setToState(e.target.value as DecisionState)}
+          >
+            {allowedNextStates.map((s) => (
+              <SelectItem key={s} value={s} text={DECISION_STATE_LABEL[s]} />
+            ))}
+          </Select>
         </Stack>
       </Modal>
     </Stack>

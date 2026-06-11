@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { DECISION_TRANSITIONS, DecisionState } from "@esti/contracts";
 import { decisions } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -10,9 +11,10 @@ const decisionInput = z.object({
   projectId: z.string().uuid(),
   title: z.string().min(2).max(200),
   rationale: z.string().min(2).max(4000),
-  approval: z.enum(["PENDING", "APPROVED", "REJECTED", "NEEDS_REVISION"]).default("PENDING"),
+  state: DecisionState.default("DRAFT"),
+  revisionCategory: z.enum(["MINOR", "MAJOR", "CRITICAL"]).optional(),
   impact: z.enum(["LOW", "MEDIUM", "HIGH"]).default("LOW"),
-  status: z.enum(["OPEN", "CLOSED"]).default("OPEN"),
+  ownerName: z.string().max(120).optional(),
   linkedObjectType: z.string().max(80).optional(),
   linkedObjectId: z.string().max(120).optional(),
 });
@@ -36,13 +38,16 @@ export const decisionRouter = router({
           projectId: input.projectId,
           title: input.title,
           rationale: input.rationale,
-          approval: input.approval,
+          state: input.state,
+          revisionCategory: input.revisionCategory ?? null,
           impact: input.impact,
-          status: input.status,
+          ownerName: input.ownerName ?? null,
           linkedObjectType: input.linkedObjectType ?? null,
           linkedObjectId: input.linkedObjectId ?? null,
           actorId: ctx.user.id,
           actorName: ctx.user.fullName,
+          approval: "PENDING",
+          status: "OPEN",
         })
         .returning();
       await writeActivity(tx, {
@@ -77,15 +82,16 @@ export const decisionRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(decisions).where(eq(decisions.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND", message: "Decision not found" });
-    const row = await ctx.db.transaction(async (tx) => {
+      const row = await ctx.db.transaction(async (tx) => {
         const [updated] = await tx
           .update(decisions)
           .set({
             title: input.title,
             rationale: input.rationale,
-            approval: input.approval,
+            state: input.state,
+            revisionCategory: input.revisionCategory ?? null,
             impact: input.impact,
-            status: input.status,
+            ownerName: input.ownerName ?? null,
             linkedObjectType: input.linkedObjectType ?? null,
             linkedObjectId: input.linkedObjectId ?? null,
             updatedAt: new Date(),
@@ -102,6 +108,62 @@ export const decisionRouter = router({
           visibility: "STAFF",
           summary: updated!.title,
           metadata: { before, after: updated },
+        });
+        await writeAudit(tx, {
+          entity: "decision",
+          entityId: input.id,
+          action: "UPDATE",
+          actorId: ctx.user.id,
+          before,
+          after: updated,
+        });
+        return updated!;
+      });
+      return row;
+    }),
+
+  /** Perform a CRIF state transition on a decision. */
+  transition: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        toState: DecisionState,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(decisions).where(eq(decisions.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND", message: "Decision not found" });
+
+      const fromState = (before.state ?? "OPEN") as DecisionState;
+      const allowed = DECISION_TRANSITIONS[fromState] ?? [];
+      if (!allowed.includes(input.toState)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Transition from ${fromState} to ${input.toState} is not allowed`,
+        });
+      }
+
+      const isLocking = input.toState === "LOCKED";
+      const row = await ctx.db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(decisions)
+          .set({
+            state: input.toState,
+            lockedAt: isLocking ? new Date() : null,
+            updatedAt: new Date(),
+          })
+          .where(eq(decisions.id, input.id))
+          .returning();
+        await writeActivity(tx, {
+          projectId: updated!.projectId,
+          objectType: "decision",
+          objectId: updated!.id,
+          eventType: "decision.transitioned",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          visibility: "STAFF",
+          summary: `${updated!.title}: ${fromState} → ${input.toState}`,
+          metadata: { fromState, toState: input.toState },
         });
         await writeAudit(tx, {
           entity: "decision",

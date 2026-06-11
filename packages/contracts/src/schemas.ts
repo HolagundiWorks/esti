@@ -160,6 +160,69 @@ export const PhaseUpdate = z.object({
 });
 export type PhaseUpdate = z.infer<typeof PhaseUpdate>;
 
+// --- CRIF Decision state machine ---
+
+/** CRIF decision states: DRAFT → OPEN → CLIENT_REVIEW → ACCEPTED/REJECTED → LOCKED */
+export const DecisionState = z.enum([
+  "DRAFT",
+  "OPEN",
+  "CLIENT_REVIEW",
+  "ACCEPTED",
+  "REJECTED",
+  "LOCKED",
+]);
+export type DecisionState = z.infer<typeof DecisionState>;
+
+export const DECISION_STATE_LABEL: Record<DecisionState, string> = {
+  DRAFT: "Draft",
+  OPEN: "Open",
+  CLIENT_REVIEW: "Client review",
+  ACCEPTED: "Accepted",
+  REJECTED: "Rejected",
+  LOCKED: "Locked",
+};
+
+export const DECISION_STATE_TAG: Record<
+  DecisionState,
+  "gray" | "blue" | "teal" | "green" | "red" | "purple"
+> = {
+  DRAFT: "gray",
+  OPEN: "blue",
+  CLIENT_REVIEW: "teal",
+  ACCEPTED: "green",
+  REJECTED: "red",
+  LOCKED: "purple",
+};
+
+/** Valid next states from each CRIF state. */
+export const DECISION_TRANSITIONS: Record<DecisionState, DecisionState[]> = {
+  DRAFT: ["OPEN"],
+  OPEN: ["CLIENT_REVIEW", "ACCEPTED", "REJECTED"],
+  CLIENT_REVIEW: ["ACCEPTED", "REJECTED"],
+  ACCEPTED: ["LOCKED"],
+  REJECTED: ["LOCKED"],
+  LOCKED: ["OPEN"],
+};
+
+/** Revision impact category. */
+export const RevisionCategory = z.enum(["MINOR", "MAJOR", "CRITICAL"]);
+export type RevisionCategory = z.infer<typeof RevisionCategory>;
+
+export const REVISION_CATEGORY_LABEL: Record<RevisionCategory, string> = {
+  MINOR: "Minor",
+  MAJOR: "Major",
+  CRITICAL: "Critical",
+};
+
+export const REVISION_CATEGORY_TAG: Record<
+  RevisionCategory,
+  "blue" | "magenta" | "red"
+> = {
+  MINOR: "blue",
+  MAJOR: "magenta",
+  CRITICAL: "red",
+};
+
 // --- Fee proposals (esti_feeproposal) ---
 
 export const FeeProposalStatus = z.enum([
