@@ -1,120 +1,87 @@
-# ESTI — Architectural Office Resource Management System (AORMS)
+# ESTI Product Vision
 
-**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
 
-ESTI is developed by **Holagundi Consulting Works (HCW)**.
+ESTI is an **Architectural Office Resource Management System (AORMS)** for
+Indian freelance architects and small architecture practices. It is the single
+operational record for projects, communication, tasks, decisions, drawings,
+documents, statutory work, fees, invoices, consultants, tenders, and office
+resources.
 
-ESTI is an **AORMS — Architectural Office Resource Management System**: software
-purpose-built to run an Indian architecture office, **not** a general-purpose
-ERP. It is **greenfield, original software** for **Indian freelance architects
-and small architecture offices**. Construction estimating
-remains only where it supports architectural workflows — BOQ support, drawing
-takeoff, consultant scope, and client fee proposals.
+## Product Promise
 
-This document is the product-vision source of truth. The detailed engineering
-direction lives in:
+Important work should be recorded in context and remain traceable. A drawing
+revision belongs to its drawing and project; an approval belongs to the item
+being approved; an instruction, RFI, task, decision, or risk remains linked to
+the source object that created it.
 
-- [System Architecture](ARCHITECTURE.md) — greenfield hybrid: TypeScript core +
-  React SPA + Python worker (DXF/PDF/reconciliation), PostgreSQL, Podman pod.
-- [Architect Practice Profile](ARCHITECT-PROFILE.md) — phases, permits,
-  drawings, COA fees, consultants, client portal, and drawing takeoff.
-- [Product Roadmap](ROADMAP.md) — the forward build order.
+ESTI should reduce dependence on disconnected messaging groups, email chains,
+spreadsheets, and isolated file stores without attempting to replace normal
+email or messaging applications.
 
-## Ownership and Attribution
+## Target Practice
 
-- **Developer / maintainer:** Holagundi Consulting Works (HCW).
-- **Product name:** ESTI (ESTI Architect Platform).
-- **Source, issues, releases, docs:** `https://github.com/HolagundiWorks/esti`.
-- **License:** ESTI is original software owned by HCW; **HCW chooses its
-  license**. See [License and Notices](LICENSE-NOTICE.md).
+- India-based solo architects and architecture studios.
+- Architecture, interior, landscape, and limited PMC practices.
+- Teams that coordinate clients, consultants, vendors, and contractors.
+- One configurable firm per installation, INR only, FY 1 April to 31 March.
 
-Holagundi Consulting Works is both the developer of ESTI and the reference
-architecture practice whose workflows drive the product.
+## Product Boundary
 
-## Product Positioning
+ESTI is not a general ERP or contractor execution-accounting system. It does
+include the contractor-facing coordination needed by an architect:
 
-ESTI is not a general ERP, CRM, ecommerce suite, HR suite, warehouse system, or
-contractor operations system. It is an office operating system for architects:
+- contractor register and project invitations;
+- tender issue, queries, bid receipt, comparison, and award recommendation;
+- RFIs, material submittals, shop drawings, inspections, site instructions,
+  snags, and NCRs;
+- architect-side BOQ, estimation, purchase-order, and payment-certificate
+  support.
 
-- Convert enquiries into fee proposals.
-- Manage clients, projects, phases, approvals, and communication.
-- Track statutory permits, submissions, and due dates.
-- Maintain a drawing/document register with revisions and issue history.
-- Coordinate consultants and collaborators.
-- Generate phase-linked invoices with GST/TDS support.
-- Review receivables, workload, project health, and compliance risk.
-- Measure drawings and push quantities into fee/BOQ support workflows.
+Inventory, warehouses, labour gangs, attendance for contractor labour, GRNs,
+subcontractor ledgers, RA-bill accounting, and construction-company finance are
+out of scope.
 
-The first target user is an Indian freelance architect or small office that
-needs practical control over projects, clients, drawings, fees, consultants, and
-statutory work without carrying the weight of a full generic ERP.
+## Core Principles
 
-## Core Modules
+1. **Context-based communication.** Operational communication is attached to a
+   project object rather than stored in a standalone chat product.
+2. **Complete traceability.** Important mutations create activity and audit
+   records with actor, timestamp, and before/after data where applicable.
+3. **Visibility of change.** Dashboards and activity feeds surface revisions,
+   decisions, risks, approvals, leave impact, and overdue work.
+4. **Role-scoped collaboration.** Internal staff use the office workspace;
+   clients, consultants, and contractors use project-scoped portals.
+5. **India-first correctness.** Money is integer paise; GST, TDS, COA,
+   numbering, and financial-year rules are centralized.
+6. **Pure Carbon UI.** The application uses IBM Carbon components, layout, and
+   tokens without a parallel custom design system.
+7. **Human-controlled AI.** AI may draft or summarize, but output remains
+   editable and no external transmission occurs without explicit user action.
 
-- **Dashboard** — office health, receivables, active projects, upcoming permit
-  deadlines, stale approvals, and current workload.
-- **Clients & Leads** — architect-friendly client records, enquiry status,
-  communication log, and project conversion.
-- **Projects & Phases** — Concept, SD, DD, WD, Permit, Tender, Execution, and
-  Completion phases with dates, status, billing percentage, and owner.
-- **Fee Proposals** — COA benchmark support, custom scope, inclusions,
-  exclusions, deliverables, revision history, and client approval.
-- **Invoicing & Tax** — phase-linked invoices, GST, SAC, TDS u/s 194J, receipts,
-  and exports for accountant review.
-- **Permits & Compliance** — BPAS, RERA, Fire NOC, Aviation NOC, environmental
-  clearance, OC, CC, BESCOM, BWSSB, and local authority tracking.
-- **Drawings & Documents** — drawing register, file vault, revision control,
-  issue sets, watermarks, and approval log.
-- **Consultants & Collaborators** — structural, MEP, electrical, plumbing,
-  landscape, interiors, fire, survey, and legal assignments with fees and scope.
-- **Client Portal** — read-only access to issued drawings, invoices, approvals,
-  and status summaries.
-- **Drawing Viewer & Takeoff** — DXF/PDF viewer, scale calibration, two-point
-  measurement, and push-to-BOQ/fee-support lines.
-- **Reports** — project status, fee pipeline, receivables, TDS reconciliation,
-  permit aging, drawing issue register, and consultant balance.
+## Product Areas
 
-## Construction Features After The Pivot
+- Dashboard and Activity Center
+- Clients, enquiries, and project conversion
+- Projects, phases, timeline, decisions, health, critical notes, and revisions
+- Tasks, timesheets, daily updates, workload, and leave impact
+- Drawings, specifications, mood boards, site reports, transmittals, approvals
+- Consultants and project-scoped collaborator portal
+- Contractor register, tender management, and construction coordination
+- Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
+- BOQ, takeoff, estimation, BBS, DSR/SOR, and simple purchase orders
+- Office correspondence, MOM, templates, resources, and lessons learned
+- Client and contractor portals
+- Universal search, notifications, audit review, administration, and AI Studio
 
-Contractor-centric workflows are no longer the product centre. The following
-construction capabilities stay only as supporting engines for architecture
-practice needs:
+## Naming
 
-- DSR/SOR libraries for reference rates and quantity support.
-- BOQ and estimate structures for tender documents and client/internal costing.
-- Drawing takeoff to feed BOQ or scope quantities.
-- Basic project cost references where an architect offers PMC or turnkey support.
+- Product name: **ESTI** or **ESTI AORMS**.
+- Company: **Holagundi Consulting Works (HCW)**.
+- The supplied ESI-AORMS document is treated as product input; repository and
+  application naming remains ESTI.
+- PostgreSQL tables use the `esti_*` prefix.
 
-The following are not first-release goals: labour team management, site stock,
-warehouse operations, purchase orders, RA billing, contractor measurement books,
-and subcontractor payment workflows.
-
-## Architecture Direction
-
-ESTI is **greenfield**. Full detail and the architecture decision records are in
-[ARCHITECTURE](ARCHITECTURE.md).
-
-- An **ESTI TypeScript/Fastify** service is the system of record and owns the
-  domain, auth, money/tax, and business rules in its own **PostgreSQL** schema.
-- A **Carbon Design System React + TypeScript** SPA is the only UI, type-unified
-  with the backend via tRPC.
-- A **Python worker** handles DXF takeoff (ezdxf), PDF generation (WeasyPrint),
-  and reconciliation imports (pandas).
-- All services run as one Podman pod (Postgres, Redis, backend, worker,
-  frontend, object storage).
-- Single firm, INR-only, FY Apr–Mar, and the three GST systems are hardcoded —
-  see [INDIA-PROFILE](INDIA-PROFILE.md).
-
-## Naming Conventions
-
-- Product and documentation use **ESTI Architect Platform** or **ESTI**.
-- Company name is **Holagundi Consulting Works (HCW)**.
-- All new database tables use the `esti_*` prefix.
-- Domain modules are **ESTI TypeScript service modules** (`backend/src/…`).
-  DSR/SOR reference data loads into ESTI tables.
-- Module/table names disambiguate their concern. The canonical names are
-  `esti_clientlog` (client + communication/lead log) and
-  `esti_invoiceindia` (India GST/TDS invoicing) — not `esti_client` or
-  `esti_invoice`. Use these exact names in docs, directories, and REST paths.
-- HCW draft documents may contain `hcw`-prefixed examples. In this repository
-  they are implemented as `esti`-prefixed modules, tables, and endpoints.
+Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
+[Architect Practice Profile](ARCHITECT-PROFILE.md), technical decisions in
+[Architecture](ARCHITECTURE.md), and delivery order in [Roadmap](ROADMAP.md).

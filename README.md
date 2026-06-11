@@ -23,12 +23,16 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
 - Permit and compliance tracking (BPAS, RERA, Fire/Aviation/Env NOC, OC, CC).
 - Drawing and document vault: register, revision control, issue sets,
   watermarks, and approval logs.
-- Consultant/collaborator tracking; a read-only client portal.
+- Project-scoped client and consultant collaboration, with audited approvals and
+  requests expanding through the roadmap.
+- Architect-side contractor/tender coordination: invitations, bids, RFIs,
+  submittals, inspections, snags, and awards.
 - DXF/PDF drawing viewer and measurement takeoff feeding BOQ / fee quantities.
 
-DSR/SOR rate reference and BOQ/quantity structures exist only to support
-architect workflows (tender costing, drawing takeoff). General-purpose ERP, CRM,
-commerce, HR, and contractor-operations features are out of scope.
+DSR/SOR rate reference and BOQ/quantity structures exist to support architect
+workflows such as tender costing and drawing takeoff. General-purpose ERP,
+commerce, warehouse, labour, subcontractor-accounting, and contractor execution
+systems are out of scope.
 
 ## Fixed India profile
 
@@ -53,6 +57,7 @@ Full instructions, including local (non-container) dev, are in
 The documentation set is in [docs/esti](docs/esti):
 
 - [Product Vision](docs/esti/PRODUCT-VISION.md)
+- [Product Requirements](docs/esti/PRD.md)
 - [Architect Practice Profile](docs/esti/ARCHITECT-PROFILE.md)
 - [System Architecture](docs/esti/ARCHITECTURE.md)
 - [Product Roadmap](docs/esti/ROADMAP.md)

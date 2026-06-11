@@ -1,268 +1,185 @@
-# ESTI Architect Platform Roadmap
+# ESTI Implementation Roadmap
 
-**Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-07
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
 
-> _Part of the [ESTI documentation set](README.md). This is the **forward
-> product build** plan; for what the modules are, see the
-> [Module Map](ARCHITECT-PROFILE.md)._
+This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
+**P0** security/data integrity, **P1** operational core, **P2** expansion,
+**P3** optimization. Items marked delivered describe the current repository;
+all others remain required.
 
-This roadmap is the public ESTI direction — an Indian architecture office
-management system (AORMS) developed by **Holagundi Consulting Works (HCW)**.
+## Current Baseline
 
-Operational links for source, releases, updates, issues, and documentation point
-to:
+Delivered: authentication and staff ladder, client/consultant portals, clients,
+projects and COA phases, tasks and workload, firm/team/HR, fee proposals,
+invoices and filing abstracts, reconciliation, permits/bylaws, drawings and DXF
+takeoff, approvals, consultants, proposals/contracts/letters, transmittals,
+specification sheets, mood boards, inspections, DSR/BOQ/BBS, purchase orders,
+dashboard boards, notifications, PDF worker, migrations, request IDs, rate
+limits, upload content sniffing, worker retry/DLQ, and demo data.
 
-```text
-https://github.com/HolagundiWorks/esti
-```
+The baseline is a prototype, not production-complete. “Delivered” does not
+override the remediation work below.
 
-## Delivered to date (build status)
+## Phase 0 - Documentation Baseline [P0]
 
-The greenfield stack is live end-to-end in the Podman pod (TS/Fastify + tRPC
-backend, Carbon React SPA, Python worker, PostgreSQL + Redis + MinIO). Every
-module below is verified against the running system.
+- [x] Align vision, PRD, module profile, architecture, Carbon policy, roadmap.
+- [x] Remove stale audit documents after moving findings into this roadmap.
+- [x] Resolve product boundary: selective contractor coordination, no contractor ERP.
+- [x] Retain project-scoped consultant collaboration.
+- [ ] Keep roadmap status current in every implementation pull request.
 
-| Area | Module(s) | State |
-| --- | --- | --- |
-| Foundation | auth (owner/consultant/client), money/GST/TDS, per-FY numbering, audit log, Redis job bus | ✅ |
-| Office core | `esti_projectoffice`, `esti_phase` (COA 8-stage), `esti_clientlog`, `esti_feeproposal`, `esti_invoiceindia`, `esti_reconcile` | ✅ |
-| Drawing & compliance | `esti_permit`, `esti_bylaw`, `esti_drawing`, `esti_approval`, watermarked issue PDFs | ✅ |
-| Viewer & takeoff | DXF→SVG + ezdxf takeoff, drawing viewer with calibrated two-point measurement, project takeoff rollup | ✅ |
-| Collaboration & portal | consultant register + engagements, client portal, consultant collaborator login, alerts | ✅ |
-| Optional **Team & HR** | settings toggle, `esti_teammember`, site-incharge, `esti_leave`, payroll | ✅ (off by default for freelancers) |
-| Documents | invoice / payslip / fee-proposal **PDF** (WeasyPrint, one dispatch table) | ✅ |
-| Office dashboard | project/fee/invoice/permit KPIs + HR tile (gated) | ✅ |
-| Tooling | containerised dev pod, GitHub Actions CI (typecheck + tests), dev-seed | ✅ |
+**Gate:** no canonical documents contradict product scope or delivery status.
 
-## 0. Foundation — Done
+## Phase 1 - Security, Authorization, And Retention [P0]
 
-- Greenfield monorepo scaffolded: shared `contracts` (money, GST, FY, schemas),
-  TypeScript backend (Fastify + tRPC + Drizzle/PostgreSQL), Python worker, and
-  the Carbon React SPA.
-- India profile locked and hardcoded — INR, FY Apr–Mar, COA Legal ID, the three
-  GST systems, SAC table, and TDS (see [INDIA-PROFILE](INDIA-PROFILE.md)).
-- Development pod runs every service in containers (see `DEVELOPMENT.md`).
+- [ ] Apply the same role/capability checks to REST uploads as tRPC procedures.
+- [ ] Prevent client, consultant, contractor, viewer, and demo accounts from
+  unauthorized uploads or project references.
+- [ ] Verify project ownership/scope for every object upload and mutation.
+- [ ] Add Origin validation or CSRF protection for cookie-authenticated writes.
+- [ ] Add audit entries for uploads, tasks, document deletion, drawing revisions,
+  mood-board changes, and every privileged state transition.
+- [ ] Replace default hard deletion with archive/retention rules.
+- [ ] Add an owner-only audit review API and Carbon screen.
+- [ ] Add API integration tests for permission boundaries.
 
-## 1. Scope
+**Gate:** negative authorization tests cover every role and every upload route;
+audit and retained records survive archive operations.
 
-ESTI is an architecture-office system, not a general ERP. First-release focus:
-clients, projects, phases, fee proposals, invoices, permits, drawings,
-consultants, client portal, reconciliation, and the office dashboard.
+## Phase 2 - Pure Carbon And Responsive Shell [P0]
 
-A **DSR-based estimation / BOQ / Bar-Bending-Schedule module** is in scope as an
-architect's costing tool (a versioned master DSR, estimate leads, and a BBS
-calculator) — see Phase 10. It is **not** contractor execution accounting: labour
-teams, site stock, purchase orders, GRN, RA billing, and contractor measurement
-books remain out of scope.
+- [ ] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars,
+  and non-permitted visual CSS.
+- [ ] Convert layouts to `Grid`, `Column`, `Stack`, Carbon tiles and tables.
+- [ ] Keep only colourless structural CSS permitted by `AGENTS.md`.
+- [ ] Standardize loading, empty, error, validation, and destructive states.
+- [ ] Fix heading hierarchy, portal keyboard access, focus flow, and mobile tables.
+- [ ] Add automated checks for hard-coded colours and browser smoke tests at
+  desktop, tablet, and mobile breakpoints.
 
-The **firm profile is configurable** (Phase 8): solo or partnership, partner
-records, GST type, and logo replace the early hardcoded firm constant and feed
-all documents.
+**Gate:** frontend typecheck/lint/build pass and representative routes pass
+keyboard, dark-theme, and responsive browser review.
 
-## 2. Architecture Office Core — Done
+## Phase 3 - Domain Activity Foundation [P1]
 
-Stand up the ESTI TypeScript service and the Carbon React SPA shell first, then
-the backbone domain modules (all TypeScript service modules with `esti_*`
-tables — see [ARCHITECTURE](ARCHITECTURE.md)).
+- [ ] Add immutable `esti_activity` records with project, object type/id,
+  event type, actor, visibility, summary, metadata, and timestamp.
+- [ ] Add reusable contextual comments linked to supported domain objects.
+- [ ] Emit activity transactionally from significant domain operations.
+- [ ] Build project timeline and office-wide Activity Center queries with cursor
+  pagination and role/visibility filtering.
+- [ ] Backfill activity from existing audit and domain records where reliable.
 
-0. **Backend service + SPA shell** — Fastify + tRPC + ORM + auth
-   (owner / consultant / client), the money/tax utilities, per-FY numbering
-   sequences, the append-only audit log, the PostgreSQL schema, and the Redis
-   job bus to the Python worker.
-1. `esti_projectoffice` — architecture project record, project type,
-   jurisdiction, phase plan, client, owner, dates, and status.
-2. `esti_phase` — Concept, SD, DD, WD, Permit, Tender, Execution, Completion,
-   with status, planned/actual dates, billing percentage, and linked invoice.
-3. `esti_clientlog` — enquiry, meeting notes, calls, decisions, approvals, and
-   client communication timeline in ESTI-native client tables.
-4. `esti_feeproposal` — scope, deliverables, exclusions, fee calculation, COA
-   benchmark, revisions, approval state, and PDF output.
-5. `esti_invoiceindia` — phase-linked invoices under the firm's GST system, SAC
-   per [INDIA-PROFILE](INDIA-PROFILE.md), TDS u/s 194J, receipts, and exports.
-6. `esti_reconcile` — payments/receipts, TDS vs 26AS/AIS, and GST-output
-   reconciliation.
+**Gate:** every core mutation produces one authorized, queryable timeline event.
 
-This phase should produce a usable app for one architect to track active
-projects, fees, invoices, client decisions, and reconciliation. **Delivered** —
-plus fee-proposal and GST-invoice PDFs, and an invoice DRAFT→ISSUED→PAID
-lifecycle that feeds the dashboard and reconciliation settlement loop.
+## Phase 4 - Project Memory And Change Control [P1]
 
-## 3. Drawing And Compliance Core — Done (issue sets pending)
+- [ ] Project overview with open tasks, critical notes, revisions, approvals,
+  decisions, and health summary.
+- [ ] Critical notes with category, priority, status, visibility, owner, due date.
+- [ ] Decision register with rationale, approval, impact, and linked objects.
+- [ ] General revision feed for drawings, specifications, mood boards, BOQs,
+  agreements, and reports.
+- [ ] Major/critical revision acknowledgement workflow.
+- [ ] Project health engine: schedule, finance, documentation, approvals, resources.
+- [ ] Archive project and retention-aware purge/export workflows.
 
-1. `esti_permit` — statutory approval tracker for BPAS, RERA, Fire NOC,
-   Aviation NOC, environmental clearance, OC, CC, and local authority workflows.
-2. `esti_bylaw` — quick-reference library for authority, zone, FAR, setback,
-   height, parking, and document checklist rules.
-3. `esti_drawing` — drawing register with discipline, drawing number, title,
-   revision, status, issue purpose, and linked stored document (object storage).
-4. `esti_approval` — drawing/fee/submission approval log with sent date, channel,
-   recipient, status, and superseded (revision) history. **Done** — a new
-   revision auto-retires the one it supersedes.
-5. Watermarked client/authority issue sets for drawings and PDFs. **Done** — a
-   landscape drawing issue PDF embeds the rendered SVG with a title block and a
-   repeating diagonal watermark (e.g. "ISSUED FOR APPROVAL"); the render_pdf
-   worker also applies the watermark to any document type on request.
+**Gate:** a project’s history and current risks can be understood without
+opening separate modules.
 
-This phase turns ESTI into the central record for drawing versions, statutory
-submissions, and client approvals — all items delivered.
+## Phase 5 - Tasks, Timesheets, Availability, Escalations [P1]
 
-## 4. Viewer And Takeoff — Done
+- [ ] Store assignee IDs rather than display names; add reviewer and dependencies.
+- [ ] Critical priority, filters, “my tasks”, calendar, and Carbon board view.
+- [ ] Daily updates: completed, in progress, blocked; generate activity entries.
+- [ ] Timesheets and project/phase/task attribution.
+- [ ] Configurable escalation rules and digest delivery.
+- [ ] Leave-impact notifications and backup contacts with privacy filtering.
 
-- Convert DXF to SVG server-side and cache by file hash. **Done** (Python worker,
-  ezdxf; content-addressed in MinIO).
-- Extract per-layer entity counts and model bounds. **Done** (automated takeoff
-  written back to `esti_drawing`).
-- Render PDFs for drawing/document review. **Done** (WeasyPrint worker).
-- Carbon React drawing viewer with measurement overlay. **Done** — inline SVG +
-  shared-viewBox overlay; the backend proxies the SVG (same-origin, no CORS).
-- Per-drawing scale calibration + linear two-point measurement. **Done** —
-  calibrate by drawing a line of known length (`drawings.setScale`, units per
-  viewBox unit); measurements use `getScreenCTM` so they are resolution-
-  independent.
-- Push measured quantities into a takeoff list. **Done** (`esti_measurement`;
-  per-drawing list + per-project rollup surfaced under the project drawings).
+**Gate:** workload is derived from assignments, tasks, time, and availability.
 
-Area measurement, counting tools, snapping, and title-block metadata extraction
-are later enhancements.
+## Phase 6 - Client And Consultant Collaboration [P1]
 
-## 5. Collaboration And Portal — Done
+- [ ] Client approval, acknowledgement, change-request, and feedback writes.
+- [ ] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
+- [ ] Firm branding, empty states, notifications, and download authorization.
+- [ ] Portal activity feeds exposing only explicitly visible records.
 
-- Consultant register with discipline, scope, agreed fee, payments, balance.
-  **Done** (`esti_consultant` + per-project `esti_engagement` with payment →
-  balance tracking).
-- Client portal with read-only access to issued invoices, approvals, ready
-  drawings, and project status. **Done** — owner provisions a CLIENT login
-  scoped to one client; office endpoints are staff-only.
-- Project-scoped consultant collaborator login. **Done** — a CONSULTANT user
-  linked to a consultant record sees only their engaged projects; internal
-  staff (CONSULTANT without a link) keep full office access.
-- Notifications for stale client decisions / overdue items. **Done** — the
-  Alerts surface aggregates unanswered sent approvals (>7d), due client-log
-  follow-ups, and overdue statutory permits, with a nav count badge.
+**Gate:** portal writes are object-scoped, audited, and cannot expose internal data.
 
-## 5a. Team & HR — Done (optional module)
+## Phase 7 - Contractor And Tender Coordination [P2]
 
-Off by default (single configurable office setting, `orgSettings.hrEnabled`) so a
-solo freelancer never sees it; a studio owner toggles it on.
+- [ ] Contractor register, contacts, GST/PAN, categories, and performance.
+- [ ] Tender packages, invitations, controlled documents, addenda, and deadlines.
+- [ ] Sealed bid submissions, technical/commercial scoring, comparison, award.
+- [ ] Contractor portal isolated by invitation/project.
+- [ ] RFIs, material submittals, shop drawings, inspection requests, site
+  instructions, snags, and NCRs.
+- [ ] Tender and construction boards in Dashboard/Activity Center.
 
-- `esti_teammember` — staff register (role, employment type, monthly salary,
-  active).
-- `esti_assignment` — per-project staff incl. the **site in-charge**.
-- `esti_leave` — request → owner approve/reject.
-- Payroll (`esti_payslip`) — one slip per member per month, net of deductions,
-  mark-paid, and a salary-slip PDF.
-- Dashboard Team & HR tile (headcount, pending leaves, unpaid payslips) shown
-  only when enabled.
+**Gate:** one contractor cannot infer another contractor’s invitation, bid, or data.
 
-Write paths are guarded server-side: HR mutations are rejected while the module
-is off, not merely hidden.
+## Phase 8 - Documents And Numbering [P1]
 
-## 6. Carbon React UI — In Progress
+- [ ] Unified document register and configurable numbering patterns.
+- [ ] Revision impact/approval for specifications, mood boards, reports, BOQs,
+  agreements, MOM, and letters.
+- [ ] Site-report photos, actions, status, and follow-up conversion to tasks.
+- [ ] Meeting minutes with action-item conversion.
+- [ ] Office templates, scope templates, and COA templates.
+- [ ] PDF/XLSX exports for BOQ, BBS, tender comparison, and registers.
 
-- Standalone Carbon React SPA (Vite), type-unified with the backend via tRPC.
-  **Done** — full Carbon stylesheet, global side nav (role- and feature-gated),
-  Modal/Table/Tag/Toggle/FileUploader components throughout.
-- Built workflows: dashboard, projects/phases, client log, fee proposals,
-  invoices, permits, bylaws, drawings/takeoff, approvals, consultants,
-  reconcile, team/HR, settings, and the client portal.
-- Remaining: local side panel pattern, richer DataTable usage, and a drawing
-  viewer surface (see Phase 4).
+**Gate:** every issued document has a number, version, issue record, and audit trail.
 
-## 7. Release Hardening — In Progress
+## Phase 9 - Search, Resources, And Lessons [P2]
 
-- GitHub Actions CI (typecheck + **eslint** + vitest for contracts/backend,
-  ruff + pytest for the worker) on every push. **Done** — eslint runs from the
-  repo root against the flat config across all three TS workspaces.
-- Validate create/edit/delete, permissions, and multi-entity behaviour for every
-  module. **Ongoing** — each module is verified against the running pod at build
-  time; automated coverage is being broadened.
-- Unit coverage for money/GST/TDS, COA fee logic, and worker pure helpers.
-  **Partial** (contracts + tax + worker helper tests in place).
-- Publish container metadata, release notes, security policy, and operator docs.
-  **Pending.**
+- [ ] Permission-aware universal search with Postgres full-text/trigram indexes.
+- [ ] Knowledge base, templates, CAD/BIM library, vendor catalogues.
+- [ ] Project-close lessons learned and reusable recommendations.
+- [ ] Search result deep links and object-type filters.
 
-## 8. Firm Profile, Partners & User Management — In Progress
+**Gate:** search never returns unauthorized titles, snippets, or counts.
 
-Replaces the early hardcoded `FIRM_PROFILE` constant with an editable,
-single-firm profile that feeds every document and the GST engine. **Firm profile,
-partners, logo, GST type, and states/districts are delivered**; owner/partner/
-team **login & profile management** is the remaining item.
+## Phase 10 - Commercial And Estimation Expansion [P2]
 
-- **Company profile** — company name, address, **logo** (object storage), and
-  firm type **Solo | Partnership**.
-- **Solo** — one architect: name, COA registration no, PAN, email, two phones
-  (each `type` + number), address (line 1/2, city, pincode, **district**,
-  **state**).
-- **Partnership** — partner count + a record per partner: name, COA no, PAN,
-  **DIN**, email, two phones, full address.
-- **States & districts** reference data — cascading dropdowns (district list
-  filtered by selected state), seeded for India.
-- **GST configuration** — type **NA | Composition | Regular** + GSTIN; this is
-  the single source that sets invoice GST behaviour (supersedes the hardcoded
-  `ACTIVE_GST_SYSTEM`).
-- **User & login management** — owner / partner / team-member logins and
-  self-service profile management; ties partner and team records to user
-  accounts.
+- [ ] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
+- [ ] Rich accountant exports and reconciliation column mapping/remapping.
+- [ ] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
+- [ ] Expanded BBS templates and validated reinforcement layouts.
+- [ ] Visual estimation connector only after versioned estimate primitives stabilize.
 
-`esti_firm`, `esti_partner`, `esti_state`, `esti_district`; firm GST + logo on
-`esti_firm`.
+**Gate:** calculations remain deterministic, integer-paise where monetary, and tested.
 
-## 9. Bylaw Calculator (BBMP) — Done
+## Phase 11 - AI Studio [P2]
 
-A development-control calculator that turns site geometry into the governing
-setbacks, FAR, ground coverage, and parking — see
-[BYLAWS-BBMP](BYLAWS-BBMP.md) for the rule tables. **Delivered**: per-project
-calculator on the project file (site area + 4 sides with road width & RBL),
-server-authoritative `computeBylawEnvelope`, persisted in `esti_bylaw_calc`;
-project records now carry site address + area. Editable/versioned rule tables in
-the DB are a later enhancement (rules are currently seeded in `@esti/contracts`).
+- [ ] Provider-neutral AI gateway with firm-controlled enablement and secrets.
+- [ ] Draft proposals, scopes, agreements, specifications, site reports, MOM,
+  RFI responses, and document summaries.
+- [ ] Permission-filtered retrieval, source references, redaction, usage records.
+- [ ] Editable drafts only; explicit human issue/approval.
 
-- Inputs: project type (Commercial / Residential / Semi-Public / Public), site
-  area (sq m), neighbouring sides (Left / Right / Front / Back), and up to four
-  abutting roads with lengths mapped to sides.
-- **Road-centre RBL** (restricted building line) per road; the governing
-  **setback on each side = max(RBL-derived setback, table setback)**.
-- Range tables (editable, versioned) for FAR, setback, ground coverage, and
-  parking keyed by **site-area band × road width**; when several conditions
-  apply, the **least permissive value governs** (e.g. lowest FAR).
-- Outputs the buildable envelope per project and links to `esti_bylaw`
-  compliance.
+**Gate:** no unauthorized context or automatic external transmission; every AI
+output records source objects, user, model, and approval state.
 
-`esti_bylaw_rule` (range tables), `esti_bylaw_calc` (per-project inputs +
-computed result).
+## Phase 12 - Production Readiness [P0]
 
-## 10. Estimation / BOQ / BBS Module — Done
+- [ ] Tested PostgreSQL and object-store backup/restore.
+- [ ] Production secrets, TLS, public object-store/download strategy.
+- [ ] Cursor pagination/server caps across lists; remove N+1 polling hotspots.
+- [ ] Worker idempotency and documented resource/sandbox limits.
+- [ ] API integration, frontend component/browser, migration, and build smoke tests.
+- [ ] Release metadata screen, structured operational logs, readiness dashboards.
+- [ ] Dependency/license report and selected top-level license.
 
-DSR-driven estimation, bill of quantities, and bar-bending schedules; an approved
-output is attached to the project file. **Delivered**: versioned Master DSR
-(`esti_dsr_version/_item`), project estimates (`esti_estimate/_item`) with a
-whole-estimate lead + per-item leads and DSR-prefill, approve → BOQ (locks
-edits), and a Bar Bending Schedule (`esti_bbs/_item`) with d²/162 weights and a
-steel summary by diameter.
+**Gate:** restore drill, security checklist, production build, and end-to-end
+smoke suite pass before any production declaration.
 
-- **Master DSR with version control** — e.g. `2023-24`, `2026-27`; an estimate
-  pins a DSR version.
-- **Estimation** — line items from the DSR with quantities; **two lead types**:
-  a whole-estimate lead and per-item leads (carriage/lead charges).
-- **BOQ** — priced bill derived from the estimate.
-- **Bar Bending Schedule (BBS)** — reinforcement calculator (bar shapes, cutting
-  length, weight by dia) producing steel quantities.
-- Lifecycle: draft → **approved** → reflected on the project file.
+## Deferred Ideas [P3]
 
-`esti_dsr_version`, `esti_dsr_item`, `esti_estimate`, `esti_estimate_item`,
-`esti_boq`, `esti_bbs`, `esti_bbs_item`.
+- Recognition boards, Pomodoro timer, and water reminders.
+- Drawing snapping and title-block extraction.
+- External BPAS/AutoPlan polling.
+- SSE/push updates after correctness and scale justify them.
 
-## 11. Utilities — In Progress
-
-- **Floating calculator** — **Done**. A toggle pinned bottom-left of the office
-  shell opens a basic calculator (digits, + − × ÷, %, ←, C, =) on every screen.
-
-## Non-Goals For The First Architect Release
-
-- General-purpose ERP functionality.
-- Contractor RA billing, measurement-book certification, warehouse/site stock,
-  purchase orders, GRN, or supplier bill operations. (Office-staff payroll is in
-  scope via the optional Team & HR module; contractor/labour payroll is not.)
-- Global multi-country accounting or multi-currency.
-- Theme marketplace or user-defined theme customization.
-- Any general-purpose ERP, CRM, or commerce surface.
+These are optional and must not delay security, activity, project memory,
+collaboration, or production readiness.

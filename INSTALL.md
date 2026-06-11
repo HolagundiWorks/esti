@@ -103,7 +103,7 @@ ESTI runs as a small-office self-host. Before exposing it publicly:
 - [ ] Rate limiting (auth + uploads) and content-sniffing upload validation are
       built in; review limits in `backend/src/index.ts` for your traffic.
 
-See `docs/esti/AUDIT-ARCHITECTURE.md` for the remaining hardening backlog.
+See `docs/esti/ROADMAP.md` for the current hardening and implementation backlog.
 
 ---
 
