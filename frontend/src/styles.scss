@@ -46,6 +46,10 @@ body,
   max-width: 24rem;
 }
 
+.esti-chart-medium {
+  min-height: 18rem;
+}
+
 // Structural-only: Carbon's CSS Grid spaces columns with padding (horizontal
 // gutter) but emits no row-gap, so wrapped tile rows would touch vertically.
 // Add a row-gap equal to the 32px column gutter for matching vertical rhythm,

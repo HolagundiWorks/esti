@@ -8,6 +8,7 @@ import {
   Tile,
   Toggle,
 } from "@carbon/react";
+import { PieChart, type PieChartOptions } from "@carbon/charts-react";
 import { Banking, ChartLine, type Pictogram, Receipt } from "@carbon/pictograms-react";
 import { can, formatINRShort } from "@esti/contracts";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,22 @@ const TYPE_LABEL: Record<string, string> = {
   INTERIOR: "Interior",
   LANDSCAPE: "Landscape",
   OTHER: "Other",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  ENQUIRY: "Enquiry",
+  ACTIVE: "Active",
+  ON_HOLD: "On hold",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
+const STATUS_TAG: Record<string, "blue" | "gray" | "magenta" | "green" | "red"> = {
+  ENQUIRY: "gray",
+  ACTIVE: "blue",
+  ON_HOLD: "magenta",
+  COMPLETED: "green",
+  CANCELLED: "red",
 };
 
 /** Days from today (local) until an ISO yyyy-mm-dd date. */
@@ -155,6 +172,62 @@ function DistroBoard({ title, rows, max, format, emptyText }: {
   );
 }
 
+function ProjectStatusBoard({ rows, total, onOpen }: {
+  rows: { status: string; count: number }[];
+  total: number;
+  onOpen: () => void;
+}) {
+  const chartData = rows.map((r) => ({
+    group: STATUS_LABEL[r.status] ?? r.status,
+    value: r.count,
+  }));
+  const options: PieChartOptions = {
+    data: { groupMapsTo: "group" },
+    height: "18rem",
+    legend: { enabled: true, position: "right", clickable: false },
+    pie: {
+      valueMapsTo: "value",
+      labels: {
+        enabled: true,
+        formatter: (datum: { value?: number }) => String(datum.value ?? 0),
+      },
+    },
+    toolbar: { enabled: false },
+    tooltip: { valueFormatter: (value: number) => `${value} projects` },
+    accessibility: { svgAriaLabel: "Project status distribution" },
+  };
+
+  return (
+    <ClickableTile className="esti-fill" onClick={onOpen}>
+      <Stack gap={5}>
+        <Stack orientation="horizontal" gap={4}>
+          <div className="esti-grow">
+            <p>Project status</p>
+            <h2>{total}</h2>
+          </div>
+          <Tag type="blue">all projects</Tag>
+        </Stack>
+        {rows.length === 0 ? (
+          <p>No projects yet</p>
+        ) : (
+          <>
+            <div className="esti-chart-medium">
+              <PieChart data={chartData} options={options} />
+            </div>
+            <Stack orientation="horizontal" gap={3}>
+              {rows.map((r) => (
+                <Tag key={r.status} type={STATUS_TAG[r.status] ?? "gray"}>
+                  {STATUS_LABEL[r.status] ?? r.status}: {r.count}
+                </Tag>
+              ))}
+            </Stack>
+          </>
+        )}
+      </Stack>
+    </ClickableTile>
+  );
+}
+
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -165,6 +238,9 @@ export function Dashboard() {
   const s = summary.data;
   const b = boardsQ.data;
   const totalProjects = s?.projects.total ?? 0;
+  const projectStatusRows = Object.entries(s?.projects.byStatus ?? {})
+    .map(([status, count]) => ({ status, count }))
+    .filter((r) => r.count > 0);
   const byPhase = b?.byPhase ?? [];
   const byType = b?.byType ?? [];
 
@@ -259,17 +335,12 @@ export function Dashboard() {
 
       {/* KPI tiles */}
       {showProject && (
-      <Column lg={4} md={4} sm={4}>
-        <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
-          <Stack gap={3}>
-            <p>Projects</p>
-            <h2>{totalProjects || (s ? 0 : "…")}</h2>
-            <Stack orientation="horizontal" gap={3}>
-              <Tag type="blue">{s?.projects.byStatus.ACTIVE ?? 0} active</Tag>
-              <Tag type="gray">{s?.projects.byStatus.ENQUIRY ?? 0} enquiry</Tag>
-            </Stack>
-          </Stack>
-        </ClickableTile>
+      <Column lg={8} md={4} sm={4}>
+        <ProjectStatusBoard
+          rows={projectStatusRows}
+          total={totalProjects || (s ? 0 : 0)}
+          onOpen={() => navigate("/projects")}
+        />
       </Column>
       )}
       {showFinancial && (

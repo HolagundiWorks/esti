@@ -1,3 +1,4 @@
+import "@carbon/charts-react/styles.css";
 import "./styles.scss";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";

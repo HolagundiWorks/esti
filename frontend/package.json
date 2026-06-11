@@ -12,6 +12,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@carbon/charts": "^1.27.11",
+    "@carbon/charts-react": "^1.27.11",
     "@carbon/icons-react": "^11.42.0",
     "@carbon/pictograms-react": "^11.57.0",
     "@carbon/react": "^1.71.0",
