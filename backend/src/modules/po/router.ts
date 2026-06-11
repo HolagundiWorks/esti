@@ -79,18 +79,29 @@ export const poRouter = router({
   updateStatus: protectedProcedure
     .input(z.object({ id: z.string().uuid(), status: PoStatus }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(purchaseOrders).where(eq(purchaseOrders.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [row] = await ctx.db
         .update(purchaseOrders)
         .set({ status: input.status })
         .where(eq(purchaseOrders.id, input.id))
         .returning();
-      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-      return row;
+      await writeAudit(ctx.db, {
+        entity: "purchaseorder",
+        entityId: input.id,
+        action: "STATUS_UPDATE",
+        actorId: ctx.user.id,
+        before: { status: before.status },
+        after: { status: row!.status },
+      });
+      return row!;
     }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(purchaseOrders).where(eq(purchaseOrders.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.transaction(async (tx) => {
         await tx.delete(poItems).where(eq(poItems.poId, input.id));
         await tx.delete(purchaseOrders).where(eq(purchaseOrders.id, input.id));
@@ -100,6 +111,7 @@ export const poRouter = router({
         entityId: input.id,
         action: "DELETE",
         actorId: ctx.user.id,
+        before,
       });
       return { ok: true };
     }),

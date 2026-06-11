@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { drawings } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { getObjectText, presignedGet } from "../../lib/storage.js";
@@ -60,6 +61,17 @@ export const drawingRouter = router({
         firm: await firmPayload(ctx.db),
         watermark: input.watermark || "ISSUED FOR APPROVAL",
       }, ctx.requestId);
+      await writeAudit(ctx.db, {
+        entity: "drawing",
+        entityId: input.id,
+        action: "ISSUE_PDF_REQUEST",
+        actorId: ctx.user.id,
+        before: { issuePdfStatus: row.issuePdfStatus },
+        after: {
+          issuePdfStatus: "PENDING",
+          watermark: input.watermark || "ISSUED FOR APPROVAL",
+        },
+      });
       return { ok: true };
     }),
 
@@ -83,12 +95,21 @@ export const drawingRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [row] = await ctx.db
         .update(drawings)
         .set({ scaleUnitsPerVb: input.scaleUnitsPerVb, scaleUnit: input.scaleUnit })
         .where(eq(drawings.id, input.id))
         .returning();
-      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await writeAudit(ctx.db, {
+        entity: "drawing",
+        entityId: input.id,
+        action: "SCALE_UPDATE",
+        actorId: ctx.user.id,
+        before: { scaleUnitsPerVb: before.scaleUnitsPerVb, scaleUnit: before.scaleUnit },
+        after: { scaleUnitsPerVb: row!.scaleUnitsPerVb, scaleUnit: row!.scaleUnit },
+      });
       return row;
     }),
 });

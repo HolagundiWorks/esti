@@ -1,4 +1,5 @@
 import { BYLAW_PARAMETERS, BylawCreate, BylawUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { bylaws } from "../../db/schema.js";
@@ -42,6 +43,8 @@ export const bylawRouter = router({
   }),
 
   update: protectedProcedure.input(BylawUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(bylaws).where(eq(bylaws.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(bylaws)
       .set({
@@ -52,13 +55,30 @@ export const bylawRouter = router({
       })
       .where(eq(bylaws.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "bylaw",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      before,
+      after: row,
+    });
+    return row!;
   }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(bylaws).where(eq(bylaws.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(bylaws).where(eq(bylaws.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "bylaw",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });

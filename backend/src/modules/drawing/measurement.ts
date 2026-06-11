@@ -1,6 +1,8 @@
+import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { drawings, measurements } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const measurementRouter = router({
@@ -49,6 +51,14 @@ export const measurementRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const [drawing] = await ctx.db
+        .select({ projectId: drawings.projectId })
+        .from(drawings)
+        .where(eq(drawings.id, input.drawingId));
+      if (!drawing) throw new TRPCError({ code: "NOT_FOUND", message: "Drawing not found" });
+      if (drawing.projectId !== input.projectId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Drawing belongs to another project" });
+      }
       const [row] = await ctx.db
         .insert(measurements)
         .values({
@@ -61,13 +71,29 @@ export const measurementRouter = router({
           unit: input.unit,
         })
         .returning();
+      await writeAudit(ctx.db, {
+        entity: "measurement",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
       return row!;
     }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(measurements).where(eq(measurements.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(measurements).where(eq(measurements.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "measurement",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });

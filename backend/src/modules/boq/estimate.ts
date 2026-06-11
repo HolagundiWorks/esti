@@ -67,15 +67,26 @@ export const estimateRouter = router({
     .input(z.object({ id: z.string().uuid(), leadPct: z.number().min(0).max(100) }))
     .mutation(async ({ ctx, input }) => {
       await assertDraft(ctx.db, input.id);
+      const [before] = await ctx.db.select().from(estimates).where(eq(estimates.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.update(estimates).set({ leadPct: input.leadPct }).where(eq(estimates.id, input.id));
       await recompute(ctx.db, input.id);
+      const [after] = await ctx.db.select().from(estimates).where(eq(estimates.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "estimate",
+        entityId: input.id,
+        action: "LEAD_UPDATE",
+        actorId: ctx.user.id,
+        before: { leadPct: before.leadPct, totalPaise: before.totalPaise },
+        after: { leadPct: after!.leadPct, totalPaise: after!.totalPaise },
+      });
       return { ok: true };
     }),
 
   addItem: protectedProcedure.input(EstimateItemCreate).mutation(async ({ ctx, input }) => {
     await assertDraft(ctx.db, input.estimateId);
     const amountPaise = estimateItemAmount(input.qty, input.ratePaise, input.itemLeadPct);
-    await ctx.db.insert(estimateItems).values({
+    const [row] = await ctx.db.insert(estimateItems).values({
       estimateId: input.estimateId,
       dsrItemId: input.dsrItemId ?? null,
       description: input.description,
@@ -84,8 +95,9 @@ export const estimateRouter = router({
       ratePaise: input.ratePaise,
       itemLeadPct: input.itemLeadPct,
       amountPaise,
-    });
+    }).returning();
     await recompute(ctx.db, input.estimateId);
+    await writeAudit(ctx.db, { entity: "estimateitem", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return { ok: true };
   }),
 
@@ -100,6 +112,7 @@ export const estimateRouter = router({
       await assertDraft(ctx.db, item.estimateId);
       await ctx.db.delete(estimateItems).where(eq(estimateItems.id, input.id));
       await recompute(ctx.db, item.estimateId);
+      await writeAudit(ctx.db, { entity: "estimateitem", entityId: input.id, action: "DELETE", actorId: ctx.user.id, before: item });
       return { ok: true };
     }),
 

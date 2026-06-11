@@ -2,6 +2,7 @@ import { BylawCalcInput, computeBylawEnvelope } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { bylawCalcs } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const bylawCalcRouter = router({
@@ -21,7 +22,7 @@ export const bylawCalcRouter = router({
     .mutation(async ({ ctx, input }) => {
       const result = computeBylawEnvelope(input.input);
       const [existing] = await ctx.db
-        .select({ id: bylawCalcs.id })
+        .select()
         .from(bylawCalcs)
         .where(eq(bylawCalcs.projectId, input.projectId));
       if (existing) {
@@ -30,12 +31,27 @@ export const bylawCalcRouter = router({
           .set({ input: input.input, result })
           .where(eq(bylawCalcs.id, existing.id))
           .returning();
+        await writeAudit(ctx.db, {
+          entity: "bylawcalc",
+          entityId: existing.id,
+          action: "UPDATE",
+          actorId: ctx.user.id,
+          before: existing,
+          after: row,
+        });
         return row!;
       }
       const [row] = await ctx.db
         .insert(bylawCalcs)
         .values({ projectId: input.projectId, input: input.input, result })
         .returning();
+      await writeAudit(ctx.db, {
+        entity: "bylawcalc",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
       return row!;
     }),
 });

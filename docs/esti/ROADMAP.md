@@ -41,6 +41,8 @@ override the remediation work below.
 - [x] Add audit entries for binary uploads, including drawing revisions.
 - [x] Add before/after audit entries for task lifecycle writes.
 - [x] Add audit entries for document PDF requests/deletion and mood-board changes.
+- [x] Audit drawing/measurement, estimation, assignments, bylaws, client-log,
+  and purchase-order operational writes.
 - [ ] Complete audit coverage for every remaining privileged state transition.
 - [ ] Replace default hard deletion with archive/retention rules.
 - [ ] Add an owner-only audit review API and Carbon screen.

@@ -1,4 +1,5 @@
 import { AssignmentCreate, TeamMemberCreate, TeamMemberUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, teamMembers } from "../../db/schema.js";
@@ -36,6 +37,8 @@ export const teamRouter = router({
   }),
 
   update: ownerProcedure.input(TeamMemberUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(teamMembers).where(eq(teamMembers.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(teamMembers)
       .set({
@@ -47,7 +50,15 @@ export const teamRouter = router({
       })
       .where(eq(teamMembers.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "teammember",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      before,
+      after: row,
+    });
+    return row!;
   }),
 });
 
@@ -79,13 +90,29 @@ export const assignmentRouter = router({
         role: input.role,
       })
       .returning();
+    await writeAudit(ctx.db, {
+      entity: "assignment",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
     return row!;
   }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(assignments).where(eq(assignments.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(assignments).where(eq(assignments.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "assignment",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });

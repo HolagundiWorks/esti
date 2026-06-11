@@ -1,4 +1,5 @@
 import { ClientLogCreate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { clientLogs, projectOffices } from "../../db/schema.js";
@@ -49,7 +50,16 @@ export const clientLogRouter = router({
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(clientLogs).where(eq(clientLogs.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(clientLogs).where(eq(clientLogs.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "clientlog",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });
