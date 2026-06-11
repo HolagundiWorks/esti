@@ -17,13 +17,14 @@ of the delivery plan below.
 Delivered: authentication and staff ladder, client/consultant portals, clients,
 projects and general delivery stages, tasks and workload, firm/team/HR, fee proposals,
 invoices and filing abstracts, reconciliation, statutory permit records, a BBMP
-seed calculator, drawings and DXF
-takeoff, approvals, consultants, proposals/contracts/letters, transmittals,
-specification sheets, mood boards, inspections, DSR/BOQ/BBS, purchase orders,
-dashboard boards, notifications, PDF worker, migrations, request IDs, rate
-limits, upload content sniffing, worker retry/DLQ, and demo data.
+seed calculator, drawings and DXF takeoff, approvals, consultants,
+proposals/contracts/letters, transmittals, specification sheets, mood boards,
+inspections, DSR/BOQ/BBS, purchase orders, dashboard boards, notifications, PDF
+worker, migrations, request IDs, rate limits, upload content sniffing, worker
+retry/DLQ, demo data, Pure Carbon typography and responsive shell, Carbon
+productive type scale applied to all routes.
 
-The baseline is a prototype, not production-complete. “Delivered” does not
+The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
 
 ## Phase 0 - Documentation Baseline [P0]
@@ -67,9 +68,11 @@ archive/restore and administrative operational-data reset.
 - [x] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars,
   and non-permitted visual CSS.
 - [x] Convert layouts to `Grid`, `Column`, `Stack`, Carbon tiles and tables.
-- [x] Keep only colourless structural CSS permitted by `AGENTS.md`.
+- [x] Keep only colourless structural CSS permitted by `CLAUDE.md`.
 - [x] Standardize loading, empty, error, validation, and destructive states.
 - [x] Fix heading hierarchy, portal keyboard access, focus flow, and mobile tables.
+- [x] Apply Carbon productive type scale (`productive-heading-04/03/02`) to all
+  semantic headings via SCSS `type-style()` mixin scoped to `.cds--content`.
 - [x] Add automated checks for hard-coded colours and browser smoke tests at
   desktop, tablet, and mobile breakpoints.
 
@@ -88,7 +91,7 @@ keyboard, dark-theme, and responsive browser review.
 
 **Gate:** every core mutation produces one authorized, queryable timeline event.
 
-## Phase 4 - Project Memory And Change Control [P1]
+## Phase 4 - Project Memory, Change Control, And Revision Intelligence [P1]
 
 - [x] Project overview with open tasks, critical notes, revisions, approvals,
   decisions, and health summary.
@@ -100,18 +103,34 @@ keyboard, dark-theme, and responsive browser review.
   stages while preserving existing phase IDs and linked invoices.
 - [ ] General revision feed for drawings, specifications, mood boards, BOQs,
   agreements, and reports, with client revision intelligence on each item.
-- [ ] Revision intelligence: revision budget, impact preview, feedback quality,
-  closure history, and approval lag for client-facing change control.
-- [ ] Major/critical revision acknowledgement workflow.
+- [ ] **CRIF — Design Review Workspace:** PDF canvas viewer with inline
+  annotation pins, changemark stamps, and a collapsible side panel for
+  review items; architect and client dual views of the same canvas.
+- [ ] **CRIF — Decision states machine:** DRAFT → OPEN → CLIENT_REVIEW →
+  ACCEPTED / REJECTED → LOCKED; state transitions produce activity entries and
+  notify affected parties.
+- [ ] **CRIF — Decision Ledger:** per-project table of all design decisions with
+  status, revision category (minor/major/critical), approval lag, requester,
+  owner, and linked drawing/document.
+- [ ] **CRIF — Revision Impact Engine:** before accepting a revision, surface
+  estimated effort days, timeline delta, and cost impact based on phase
+  progress and historical revision data; architect must acknowledge before
+  state transition to ACCEPTED.
+- [ ] **CRIF — Cooling-Off Mechanism:** auto-lock revision after configurable
+  idle period (default 14 days); send reminder at midpoint; locked items
+  require owner override to reopen.
+- [ ] Major/critical revision acknowledgement workflow (seen, acknowledged,
+  needs clarification).
 - [ ] Decision and revision summaries that surface the next action, the owner,
   and why the item is blocked or awaiting approval.
-- [ ] Project health engine: schedule, finance, documentation, approvals, resources.
+- [ ] Project health engine: schedule, finance, documentation, approvals,
+  resources — feeds Phase 4B signals.
 - [ ] Archive project and retention-aware purge/export workflows.
 
-**Gate:** a project’s history and current risks can be understood without
+**Gate:** a project's history and current risks can be understood without
 opening separate modules.
 
-## Phase 4A - Standalone Compliance Intelligence [P1]
+## Phase 4A - Standalone Compliance Intelligence / RIE [P1]
 
 - [x] Remove compliance from project tabs and expose a standalone Carbon module.
 - [x] Link the latest calculation summary back to the project overview.
@@ -120,6 +139,23 @@ opening separate modules.
   by state, district, authority, building use, source, and effective date.
 - [ ] Build governed rule authoring, review, publication, supersession, and source
   citation workflows.
+- [ ] **RIE — Site Input Engine:** capture site dimensions, plot area, ground
+  cover, topography, and approach road width; validate inputs against
+  jurisdiction minimums before running any rule engine.
+- [ ] **RIE — Development Control Engine:** pluggable rule modules for FAR/FSI,
+  ground coverage, front/side/rear setbacks, restricted building lines,
+  parking requirements (car, two-wheeler, cycle), and height restrictions;
+  each module cites the specific bye-law clause.
+- [ ] **RIE — Basement Compliance Engine:** permitted basement depth, ventilation
+  requirements, and permissible basement uses per jurisdiction rules.
+- [ ] **RIE — Sustainability Compliance Engine:** rainwater harvesting, solar
+  panel area, EV charging provisions, and green cover requirements.
+- [ ] **RIE — Approval Readiness Engine:** checklist of documents and clearances
+  required for building plan submission; auto-scored based on project
+  attachments and permit records.
+- [ ] **RIE — Feasibility Dashboard:** single-screen summary of all constraint
+  engine outputs (FAR utilised vs permitted, setback compliance, parking
+  shortfall, approval readiness score) for a given site and jurisdiction.
 - [ ] Produce deterministic ground-cover, FAR-area, setback, and restricted-
   building-line outputs from the selected verified rule version.
 - [ ] Generate an immutable branded compliance PDF and register it against the
@@ -131,22 +167,75 @@ opening separate modules.
 calculation from cited inputs, and issue a project-linked PDF without implying a
 live authority integration.
 
-## Phase 5 - Tasks, Timesheets, Availability, Escalations [P1]
+## Phase 4B - Dashboard Intelligence And Billing Action [P1]
+
+The dashboard must answer "What can be billed today?" and surface firm-wide
+health within 10 seconds of login.
+
+- [ ] **Global KPI Bar:** Revenue Due (total issued invoices not paid), Ready For
+  Billing (phases at billing milestone), Outstanding Collections (overdue
+  invoice total by age bucket), Active Projects, Team Utilisation %, Revision
+  Risk count; each KPI links to the relevant module.
+- [ ] **Action Center:** urgency-sorted list of items requiring immediate action:
+  projects with phases reaching billing milestones, client approvals pending
+  beyond SLA, overdue invoice collections, high-revision-risk projects, and
+  team capacity alerts; surfaced as the first section of the Dashboard.
+- [ ] **APBF — Phase billing statuses:** extend `PhaseStatus` with
+  `READY_FOR_BILLING` and `BILLED`; add a `collectionStatus` to invoices
+  (`DRAFT → ISSUED → PARTIALLY_PAID → PAID / OVERDUE / WRITTEN_OFF`).
+- [ ] **APBF — Billing Intelligence Engine:** detect phases that have reached
+  their billing milestone (APPROVED or COMPLETE) and surface them in the
+  Action Center; alert when a phase transitions to READY_FOR_BILLING.
+- [ ] **Financial Health module:** revenue pipeline tile (total fees across all
+  active projects), Ready-For-Billing tracker, Outstanding Collections aging
+  (30/60/90 day buckets), Overdue Payments, and monthly collection forecast.
+- [ ] **Project Health scoring:** per-project composite indicator (Green /
+  Yellow / Red) derived from schedule adherence, unbilled phases, open critical
+  notes, approval lag, and revision count; surfaced on project list and overview.
+- [ ] **Client Intelligence signals:** per-client approval response time,
+  revision request frequency, outstanding payment age, and a derived risk score
+  (Low / Medium / High); visible on client record and dashboard tile.
+- [ ] **Team Intelligence signals:** capacity utilisation per assignee, overdue
+  task count, and a simplified wellbeing flag (Healthy / Busy / Overloaded)
+  derived from workload data; feeds Phase 5 full ASPRF scoring.
+- [ ] **Activity Feed structured types:** categorise activity events by domain
+  (client/project/team/financial) with type-specific icons; filter Activity
+  Center by category.
+
+**Gate:** principal can identify every billable phase and every overdue collection
+from the dashboard without opening individual project or invoice screens.
+
+## Phase 5 - Tasks, Timesheets, Availability, Escalations, And Performance [P1]
 
 - [ ] Store assignee IDs rather than display names; add reviewer and dependencies.
-- [ ] Critical priority, filters, “my tasks”, calendar, and Carbon board view.
-- [ ] Studio performance and rewards signals for delivery reliability, quality,
-  client impact, collaboration, learning, and wellbeing.
-- [ ] Recognition summaries and rewards governance for transparent, non-punitive
-  studio coaching.
-- [ ] Pomodoro focus sessions and water reminders as opt-in, user-controlled
-  wellbeing helpers.
+- [ ] Critical priority, filters, "my tasks", calendar, and Carbon board view.
 - [ ] Daily updates: completed, in progress, blocked; generate activity entries.
 - [ ] Timesheets and project/phase/task attribution.
 - [ ] Configurable escalation rules and digest delivery.
 - [ ] Leave-impact notifications and backup contacts with privacy filtering.
+- [ ] **ASPRF — Performance KPI dimensions:** Reliability (30% — on-time task
+  delivery), Quality (25% — revision rate, rework), Client Impact (15% —
+  approval speed, satisfaction), Collaboration (15% — review participation,
+  knowledge sharing), Learning (10% — training, new skills), Wellbeing (5% —
+  opt-in only, user-controlled).
+- [ ] **ASPRF — Task classification:** Billable / Non-billable / Training /
+  Collaboration / Personal; classification feeds dimension scores.
+- [ ] **ASPRF — Performance score engine:** weighted average of KPI dimensions
+  produces a rolling 30-day studio score per team member; firm-wide aggregate
+  on dashboard Team Intelligence tile.
+- [ ] **ASPRF — Performance bands:** Bronze / Silver / Gold / Platinum thresholds
+  with visual badge; bands are informational and non-punitive.
+- [ ] **ASPRF — Reward points engine:** points awarded for task delivery, client
+  approval, collaboration events, and learning completions.
+- [ ] **ASPRF — Recognition system:** peer-to-peer shout-out, milestone badges,
+  and monthly spotlight; no manager-only views; all recognition is visible to
+  the whole team.
+- [ ] Pomodoro focus sessions and water reminders as opt-in, user-controlled
+  wellbeing helpers.
 
-**Gate:** workload is derived from assignments, tasks, time, and availability.
+**Gate:** workload is derived from assignments, tasks, time, and availability;
+performance scores are transparent, opt-in for wellbeing dimensions, and
+non-coercive.
 
 ## Phase 6 - Client And Consultant Collaboration [P1]
 
@@ -167,7 +256,7 @@ live authority integration.
   instructions, snags, and NCRs.
 - [ ] Tender and construction boards in Dashboard/Activity Center.
 
-**Gate:** one contractor cannot infer another contractor’s invitation, bid, or data.
+**Gate:** one contractor cannot infer another contractor's invitation, bid, or data.
 
 ## Phase 8 - Documents And Numbering [P1]
 
@@ -196,6 +285,8 @@ live authority integration.
 - [ ] Rich accountant exports and reconciliation column mapping/remapping.
 - [ ] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
 - [ ] Expanded BBS templates and validated reinforcement layouts.
+- [ ] **APBF — Phase 0 (Appointment):** pre-engagement phase for site visit,
+  scope agreement, and letter of appointment; linked to fee proposal workflow.
 - [ ] Visual estimation connector only after versioned estimate primitives stabilize.
 
 **Gate:** calculations remain deterministic, integer-paise where monetary, and tested.
@@ -207,6 +298,12 @@ live authority integration.
   RFI responses, and document summaries.
 - [ ] Permission-filtered retrieval, source references, redaction, usage records.
 - [ ] Editable drafts only; explicit human issue/approval.
+- [ ] **AI Billing Assistant:** natural-language query ("what should we invoice
+  this month?") answered from phase billing status, collection status, and
+  overdue aging data; output is a suggested action list, not an auto-generated
+  invoice.
+- [ ] **CRIF AI agents:** auto-summarise revision history, draft revision impact
+  statements, and flag designs with high revision-risk patterns.
 
 **Gate:** no unauthorized context or automatic external transmission; every AI
 output records source objects, user, model, and approval state.

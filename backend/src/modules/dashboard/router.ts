@@ -126,6 +126,102 @@ export const dashboardRouter = router({
     };
   }),
 
+  /** Action Center: billable phases, overdue invoices, pending approvals. */
+  actionCenter: protectedProcedure.query(async ({ ctx }) => {
+    const billingReadyRows = (await ctx.db.execute(sql`
+      select
+        ph.id, ph.label, ph.billing_pct, ph.status,
+        po.id   as project_id,
+        po.ref  as project_ref,
+        po.title as project_title,
+        po.contract_value_paise
+      from esti_phase ph
+      join esti_project_office po on ph.project_id = po.id
+      where ph.status in ('APPROVED', 'COMPLETE')
+        and po.status = 'ACTIVE'
+        and po.archived_at is null
+        and not exists (
+          select 1 from esti_invoice i
+          where i.phase_id = ph.id
+          and i.status <> 'CANCELLED'
+        )
+      order by po.ref, ph.sort_order
+      limit 20
+    `)) as unknown as {
+      id: string; label: string; billing_pct: number; status: string;
+      project_id: string; project_ref: string; project_title: string;
+      contract_value_paise: number;
+    }[];
+
+    const overdueRows = (await ctx.db.execute(sql`
+      select
+        i.id, i.ref, i.date_invoice, i.net_receivable_paise,
+        po.id   as project_id,
+        po.ref  as project_ref,
+        po.title as project_title,
+        (current_date - i.date_invoice)::int as days_overdue
+      from esti_invoice i
+      join esti_project_office po on i.project_id = po.id
+      where i.status = 'ISSUED'
+        and i.date_invoice < current_date - 30
+      order by i.date_invoice asc
+      limit 20
+    `)) as unknown as {
+      id: string; ref: string; date_invoice: string; net_receivable_paise: number;
+      project_id: string; project_ref: string; project_title: string; days_overdue: number;
+    }[];
+
+    const pendingApprovalRows = (await ctx.db.execute(sql`
+      select
+        a.id, a.title, a.entity_type, a.sent_date,
+        po.id   as project_id,
+        po.ref  as project_ref,
+        po.title as project_title,
+        coalesce((current_date - a.sent_date)::int, 0) as days_waiting
+      from esti_approval a
+      join esti_project_office po on a.project_id = po.id
+      where a.status = 'SENT'
+      order by a.sent_date asc nulls last
+      limit 20
+    `)) as unknown as {
+      id: string; title: string; entity_type: string; sent_date: string | null;
+      project_id: string; project_ref: string; project_title: string; days_waiting: number;
+    }[];
+
+    return {
+      billingReadyPhases: billingReadyRows.map((r) => ({
+        id: r.id,
+        label: r.label,
+        billingPct: r.billing_pct,
+        status: r.status,
+        projectId: r.project_id,
+        projectRef: r.project_ref,
+        projectTitle: r.project_title,
+        contractValuePaise: Number(r.contract_value_paise),
+      })),
+      overdueInvoices: overdueRows.map((r) => ({
+        id: r.id,
+        ref: r.ref,
+        dateInvoice: r.date_invoice,
+        netReceivablePaise: Number(r.net_receivable_paise),
+        projectId: r.project_id,
+        projectRef: r.project_ref,
+        projectTitle: r.project_title,
+        daysOverdue: Number(r.days_overdue),
+      })),
+      pendingApprovals: pendingApprovalRows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        entityType: r.entity_type,
+        sentDate: r.sent_date,
+        projectId: r.project_id,
+        projectRef: r.project_ref,
+        projectTitle: r.project_title,
+        daysWaiting: Number(r.days_waiting),
+      })),
+    };
+  }),
+
   summary: protectedProcedure.query(async ({ ctx }) => {
     const projectRows = await ctx.db
       .select({

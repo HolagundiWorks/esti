@@ -295,7 +295,7 @@ export function Tasks() {
               />
             ))}
           </Select>
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={5}>
             <Select
               id="nt-prio"
               labelText="Priority"
@@ -317,7 +317,7 @@ export function Tasks() {
                 setForm((f) => ({ ...f, dueDate: e.target.value }))
               }
             />
-          </div>
+          </Stack>
           <TextArea
             id="nt-desc"
             labelText="Description (optional)"

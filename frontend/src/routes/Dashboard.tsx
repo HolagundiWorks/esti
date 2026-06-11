@@ -337,6 +337,7 @@ export function Dashboard() {
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
+  const acQ = trpc.dashboard.actionCenter.useQuery();
   const activityQ = trpc.activity.listOffice.useQuery({
     limit: 5,
     visibility: "STAFF",
@@ -471,6 +472,114 @@ export function Dashboard() {
                 />
               </Column>
             </Grid>
+          </Stack>
+        </Tile>
+      </Column>
+
+      {/* Action Center — billing-ready phases, overdue collections, pending approvals */}
+      <Column lg={16} md={8} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={5}>
+            <Stack orientation="horizontal" gap={4}>
+              <div className="esti-grow">
+                <p>What needs attention now</p>
+                <h2>Action Center</h2>
+              </div>
+              {acQ.data && (
+                <Tag type={
+                  acQ.data.billingReadyPhases.length + acQ.data.overdueInvoices.length + acQ.data.pendingApprovals.length > 0
+                    ? "red" : "green"
+                }>
+                  {acQ.data.billingReadyPhases.length + acQ.data.overdueInvoices.length + acQ.data.pendingApprovals.length} items
+                </Tag>
+              )}
+            </Stack>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading action items…" />
+            ) : (
+              <Grid condensed>
+                {/* Billing-ready phases */}
+                <Column lg={6} md={4} sm={4}>
+                  <Stack gap={4}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <h3>Ready to bill</h3>
+                      <Tag type="green" size="sm">{acQ.data?.billingReadyPhases.length ?? 0}</Tag>
+                    </Stack>
+                    {(acQ.data?.billingReadyPhases.length ?? 0) === 0 ? (
+                      <p>No phases awaiting invoice.</p>
+                    ) : (
+                      <Stack gap={3}>
+                        {acQ.data!.billingReadyPhases.map((ph) => (
+                          <Stack key={ph.id} orientation="horizontal" gap={3}>
+                            <div className="esti-grow">
+                              <Link to={`/projects/${ph.projectId}?tab=phases`}>
+                                {ph.projectRef}
+                              </Link>
+                              <p>{ph.label} · {ph.billingPct}%</p>
+                            </div>
+                            <Tag type="green" size="sm">{ph.status}</Tag>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                </Column>
+
+                {/* Overdue invoices */}
+                <Column lg={5} md={4} sm={4}>
+                  <Stack gap={4}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <h3>Overdue collections</h3>
+                      <Tag type="red" size="sm">{acQ.data?.overdueInvoices.length ?? 0}</Tag>
+                    </Stack>
+                    {(acQ.data?.overdueInvoices.length ?? 0) === 0 ? (
+                      <p>No invoices overdue beyond 30 days.</p>
+                    ) : (
+                      <Stack gap={3}>
+                        {acQ.data!.overdueInvoices.map((inv) => (
+                          <Stack key={inv.id} orientation="horizontal" gap={3}>
+                            <div className="esti-grow">
+                              <Link to={`/projects/${inv.projectId}?tab=invoices`}>
+                                {inv.ref}
+                              </Link>
+                              <p>{inv.projectRef} · {formatINRShort(inv.netReceivablePaise)}</p>
+                            </div>
+                            <Tag type="red" size="sm">{inv.daysOverdue}d overdue</Tag>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                </Column>
+
+                {/* Pending approvals */}
+                <Column lg={5} md={4} sm={4}>
+                  <Stack gap={4}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <h3>Pending approvals</h3>
+                      <Tag type="magenta" size="sm">{acQ.data?.pendingApprovals.length ?? 0}</Tag>
+                    </Stack>
+                    {(acQ.data?.pendingApprovals.length ?? 0) === 0 ? (
+                      <p>No items sent and awaiting response.</p>
+                    ) : (
+                      <Stack gap={3}>
+                        {acQ.data!.pendingApprovals.map((ap) => (
+                          <Stack key={ap.id} orientation="horizontal" gap={3}>
+                            <div className="esti-grow">
+                              <Link to={`/projects/${ap.projectId}?tab=approvals`}>
+                                {ap.projectRef}
+                              </Link>
+                              <p>{ap.title}</p>
+                            </div>
+                            <Tag type="magenta" size="sm">{ap.daysWaiting}d waiting</Tag>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                </Column>
+              </Grid>
+            )}
           </Stack>
         </Tile>
       </Column>
