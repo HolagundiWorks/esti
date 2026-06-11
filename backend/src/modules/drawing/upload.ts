@@ -61,18 +61,19 @@ export function registerDrawingUpload(app: FastifyInstance): void {
     let rootId: string | null = null;
     if (parsed.data.rootId) {
       const [seed] = await db.select().from(drawings).where(eq(drawings.id, parsed.data.rootId));
-      if (seed) {
-        const chainRoot = seed.rootId ?? seed.id;
-        const chain = await db
-          .select()
-          .from(drawings)
-          .where(or(eq(drawings.id, chainRoot), eq(drawings.rootId, chainRoot)));
-        revNo = Math.max(...chain.map((d) => d.revNo)) + 1;
-        rootId = chainRoot;
-        const currentIds = chain.filter((d) => d.isCurrent).map((d) => d.id);
-        if (currentIds.length)
-          await db.update(drawings).set({ isCurrent: false }).where(inArray(drawings.id, currentIds));
-      }
+      if (!seed) return reply.code(404).send({ error: "revision root not found" });
+      if (seed.projectId !== parsed.data.projectId)
+        return reply.code(400).send({ error: "revision root belongs to another project" });
+      const chainRoot = seed.rootId ?? seed.id;
+      const chain = await db
+        .select()
+        .from(drawings)
+        .where(or(eq(drawings.id, chainRoot), eq(drawings.rootId, chainRoot)));
+      revNo = Math.max(...chain.map((d) => d.revNo)) + 1;
+      rootId = chainRoot;
+      const currentIds = chain.filter((d) => d.isCurrent).map((d) => d.id);
+      if (currentIds.length)
+        await db.update(drawings).set({ isCurrent: false }).where(inArray(drawings.id, currentIds));
     }
 
     const { ref } = await nextRef(db, "drawing", "DRW");

@@ -35,8 +35,9 @@ override the remediation work below.
 - [x] Apply the same role/capability checks to REST uploads as tRPC procedures.
 - [x] Prevent client, consultant, contractor, viewer, and demo accounts from
   unauthorized uploads or project references.
+- [x] Reject drawing revision roots that do not exist or belong to another project.
 - [ ] Verify project ownership/scope for every object upload and mutation.
-- [ ] Add Origin validation or CSRF protection for cookie-authenticated writes.
+- [x] Add configurable Origin validation for cookie-authenticated writes.
 - [x] Add audit entries for binary uploads, including drawing revisions.
 - [ ] Add audit entries for tasks, document deletion,
   mood-board changes, and every privileged state transition.

@@ -9,6 +9,7 @@ import { db } from "./db/index.js";
 import { runMigrations } from "./db/migrate.js";
 import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
+import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
 import { BUCKET, s3 } from "./lib/storage.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
@@ -30,6 +31,17 @@ const app = Fastify({
   genReqId: () => crypto.randomUUID(),
   trustProxy: true,
   maxParamLength: 5000,
+});
+
+const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
+
+app.addHook("onRequest", (req, reply, done) => {
+  const denial = originDenial(req.method, req.headers.origin, allowedOrigins);
+  if (denial) {
+    void reply.code(403).send({ error: denial });
+    return;
+  }
+  done();
 });
 
 app.addHook("onSend", (_req, reply, _payload, done) => {
