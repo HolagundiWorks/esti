@@ -72,9 +72,14 @@ out of scope.
 - Contractor register, tender management, and construction coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
 - BOQ, takeoff, estimation, BBS, DSR/SOR, and simple purchase orders
+- Standalone district/state compliance knowledge, calculations, and project-linked PDFs
 - Office correspondence, MOM, templates, resources, and lessons learned
 - Client and contractor portals
 - Universal search, notifications, audit review, administration, and AI Studio
+
+Compliance is calculation and evidence, not live authority tracking. ESTI
+maintains versioned local-rule knowledge and produces traceable development
+control outputs; it does not imply a live BPAS/AutoPlan connection.
 
 CRIF-style revision intelligence is part of ESTI's project memory: decision
 states, revision budgets, impact previews, feedback structure, and closure

@@ -17,9 +17,10 @@ import {
   TableToolbar,
   TableToolbarContent,
   TableToolbarSearch,
+  Tag,
   TextInput,
 } from "@carbon/react";
-import { Jurisdiction, ProjectType, formatINR } from "@esti/contracts";
+import { Jurisdiction, PROJECT_STATUS_LABEL, ProjectStatus, ProjectType, formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
@@ -37,7 +38,12 @@ const PAGE_SIZES = [10, 25, 50];
 
 export function Projects() {
   const utils = trpc.useUtils();
-  const list = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const [statusFilter, setStatusFilter] = useState("");
+  const list = trpc.projectOffice.list.useQuery({
+    limit: 200,
+    offset: 0,
+    status: statusFilter ? statusFilter as (typeof ProjectStatus.options)[number] : undefined,
+  });
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -65,7 +71,7 @@ export function Projects() {
       ref: <Link to={`/projects/${p.id}`}>{p.ref}</Link>,
       title: p.title,
       projectType: p.projectType,
-      status: p.status,
+      status: <Tag type={p.status === "COMPLETED" ? "green" : p.status === "CANCELLED" ? "red" : p.status === "ACTIVE" ? "blue" : p.status === "PROPOSAL" ? "teal" : "gray"}>{PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ?? p.status}</Tag>,
       value: formatINR(p.contractValuePaise, { paise: false }),
     })) ?? [];
 
@@ -93,6 +99,19 @@ export function Projects() {
                       persistent
                       onChange={(e) => { setPage(1); onInputChange(e); }}
                     />
+                    <Select
+                      id="project-status-filter"
+                      labelText="Project status"
+                      hideLabel
+                      size="sm"
+                      value={statusFilter}
+                      onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }}
+                    >
+                      <SelectItem value="" text="All statuses" />
+                      {ProjectStatus.options.map((status) => (
+                        <SelectItem key={status} value={status} text={PROJECT_STATUS_LABEL[status]} />
+                      ))}
+                    </Select>
                     <Button onClick={() => setOpen(true)}>New project</Button>
                   </TableToolbarContent>
                 </TableToolbar>

@@ -27,6 +27,7 @@ export const projectOfficeRouter = router({
     const where = and(
       isNull(projectOffices.archivedAt),
       input.search ? ilike(projectOffices.title, `%${input.search}%`) : undefined,
+      input.status ? eq(projectOffices.status, input.status) : undefined,
     );
     return ctx.db
       .select()

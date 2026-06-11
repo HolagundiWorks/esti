@@ -17,7 +17,7 @@ incorporated into the roadmap; they must not compete with current requirements.
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
-| [BYLAWS-BBMP](BYLAWS-BBMP.md) | BBMP bylaw reference |
+| [BYLAWS-BBMP](BYLAWS-BBMP.md) | BBMP seed for the standalone compliance knowledge bank |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
 Build and runtime instructions live in [DEVELOPMENT.md](../../DEVELOPMENT.md).

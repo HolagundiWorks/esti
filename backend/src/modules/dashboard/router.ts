@@ -1,5 +1,5 @@
 import { ANNUAL_LEAVE_ALLOWANCE_DAYS, DashboardLayout } from "@esti/contracts";
-import { and, count, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, isNull, sql } from "drizzle-orm";
 import {
   feeProposals,
   invoices,
@@ -68,6 +68,7 @@ export const dashboardRouter = router({
     const byType = await ctx.db
       .select({ type: projectOffices.projectType, n: count() })
       .from(projectOffices)
+      .where(isNull(projectOffices.archivedAt))
       .groupBy(projectOffices.projectType);
 
     // A project's current phase = its lowest-ordered phase that isn't complete.
@@ -133,6 +134,7 @@ export const dashboardRouter = router({
         value: sql<string>`coalesce(sum(${projectOffices.contractValuePaise}), 0)`,
       })
       .from(projectOffices)
+      .where(isNull(projectOffices.archivedAt))
       .groupBy(projectOffices.status);
 
     const invoiceRows = await ctx.db

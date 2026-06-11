@@ -52,6 +52,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const notesQ = trpc.criticalNotes.listByProject.useQuery({ projectId }, { enabled: !!projectId });
   const decisionsQ = trpc.decisions.listByProject.useQuery({ projectId }, { enabled: !!projectId });
   const activityQ = trpc.activity.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const complianceQ = trpc.bylawCalc.getByProject.useQuery({ projectId }, { enabled: !!projectId });
   const [noteOpen, setNoteOpen] = useState(false);
   const [decisionOpen, setDecisionOpen] = useState(false);
   const [note, setNote] = useState({ title: "", category: "Change control", priority: "MEDIUM", status: "OPEN", owner: "", dueDate: "", body: "" });
@@ -91,6 +92,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     openNotes.length > 0 ? "Critical notes open" : null,
     openDecisions.length > 0 ? "Decisions open" : null,
   ].filter(Boolean);
+  const compliance = complianceQ.data?.result as { far?: number; maxBuiltUpSqm?: number; maxFootprintSqm?: number } | undefined;
 
   return (
     <Stack gap={7}>
@@ -99,6 +101,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         <Column sm={4} md={4} lg={4}><StatCard label="Pending approvals" value={pendingApprovals.length} detail="Items waiting for client or internal sign-off." tag="Approvals" onClick={() => navigate("/activity")} /></Column>
         <Column sm={4} md={4} lg={4}><StatCard label="Current drawings" value={drawings.length} detail="Latest drawing revisions in active use." tag="Revisions" onClick={() => navigate(`/projects/${projectId}?tab=drawings`)} /></Column>
         <Column sm={4} md={4} lg={4}><StatCard label="Health signals" value={health.length} detail={health.length ? health.join(" · ") : "No obvious blockers right now."} tag="Overview" /></Column>
+        <Column sm={4} md={4} lg={4}><StatCard label="Compliance output" value={compliance ? `FAR ${compliance.far?.toFixed(2) ?? "—"}` : "Not calculated"} detail={compliance ? `${compliance.maxBuiltUpSqm ?? "—"} sq m FAR area · ${compliance.maxFootprintSqm ?? "—"} sq m ground cover` : "Run the standalone compliance calculator for this project."} tag="Linked result" onClick={() => navigate(`/compliance?project=${projectId}`)} /></Column>
       </Grid>
 
       <Grid condensed>

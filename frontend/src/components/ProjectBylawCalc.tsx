@@ -111,7 +111,7 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <h3 style={{ marginTop: 32 }}>Bylaw calculator (BBMP)</h3>
+      <h3>Development controls calculator</h3>
       <Tile style={{ marginTop: 8 }}>
         <Stack gap={5}>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -205,11 +205,11 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
           <h4>Permissible envelope</h4>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 8 }}>
             <Kpi label="FAR" value={preview.far.toFixed(2)} />
-            <Kpi label="Ground coverage" value={`${preview.coveragePct}%`} />
-            <Kpi label="Max built-up" value={`${preview.maxBuiltUpSqm} sq m`} />
-            <Kpi label="Max footprint" value={`${preview.maxFootprintSqm} sq m`} />
+            <Kpi label="FAR area" value={`${preview.maxBuiltUpSqm} sq m`} />
+            <Kpi label="Ground coverage" value={`${preview.coveragePct}% / ${preview.maxFootprintSqm} sq m`} />
             <Kpi label="Governing road" value={`${preview.governingRoadWidthM} m`} />
           </div>
+          <p><strong>Restricted building lines:</strong> applied per road-abutting side when the RBL exceeds the tabular setback.</p>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 12 }}>
             <Kpi label="Setback front" value={`${preview.setbacks.front} m`} />
             <Kpi label="Setback rear" value={`${preview.setbacks.rear} m`} />
@@ -227,7 +227,7 @@ export function ProjectBylawCalc({ projectId }: { projectId: string }) {
             </ul>
           )}
           <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginTop: 8 }}>
-            Seed BBMP rules — verify against the current byelaws / RMP.
+            Current calculation uses the BBMP seed rule set. It is not valid for another district or authority until a matching versioned rule set is selected.
           </p>
         </Tile>
       )}

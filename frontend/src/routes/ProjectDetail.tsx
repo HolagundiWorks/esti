@@ -9,11 +9,9 @@ import {
   Tabs,
   Tag,
 } from "@carbon/react";
-import { PROJECT_WORK_TYPE_LABEL, formatINR } from "@esti/contracts";
+import { PROJECT_STATUS_LABEL, PROJECT_WORK_TYPE_LABEL, formatINR } from "@esti/contracts";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
-import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
-import { ProjectBylaws } from "../components/ProjectBylaws.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
@@ -23,13 +21,13 @@ import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
-import { ProjectPermits } from "../components/ProjectPermits.js";
 import { ContextualComments } from "../components/ContextualComments.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { trpc } from "../lib/trpc.js";
 
-const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red"> = {
+const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red" | "teal"> = {
   ENQUIRY: "gray",
+  PROPOSAL: "teal",
   ACTIVE: "blue",
   ON_HOLD: "purple",
   COMPLETED: "green",
@@ -46,7 +44,6 @@ export function ProjectDetail() {
   const TAB_SLUGS = [
     "overview",
     "clientlog",
-    "compliance",
     "costing",
     "drawings",
     "documents",
@@ -90,7 +87,9 @@ export function ProjectDetail() {
           <span>
             {PROJECT_WORK_TYPE_LABEL[(p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ?? "ARCHITECTURE"]} · {p.projectType} · {p.jurisdiction}
           </span>
-          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">{p.status}</Tag>
+          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">
+            {PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ?? p.status}
+          </Tag>
           <span>· {formatINR(p.contractValuePaise, { paise: false })}</span>
         </div>
         {phases.length > 0 && (
@@ -123,7 +122,6 @@ export function ProjectDetail() {
         <TabList aria-label="Project sections" contained>
           <Tab>Overview</Tab>
           <Tab>Client log</Tab>
-          <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
           <Tab>Drawings</Tab>
           <Tab>Documents</Tab>
@@ -137,13 +135,6 @@ export function ProjectDetail() {
         </TabPanel>
         <TabPanel>
       <ProjectClientLog projectId={id} />
-        </TabPanel>
-        <TabPanel>
-      <ProjectPermits projectId={id} />
-
-      <ProjectBylaws projectId={id} />
-
-      <ProjectBylawCalc projectId={id} />
         </TabPanel>
         <TabPanel>
       <ProjectEstimates projectId={id} />

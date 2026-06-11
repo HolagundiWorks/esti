@@ -35,14 +35,16 @@ const TYPE_LABEL: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, string> = {
   ENQUIRY: "Enquiry",
+  PROPOSAL: "Proposal",
   ACTIVE: "Active",
   ON_HOLD: "On hold",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
 };
 
-const STATUS_TAG: Record<string, "blue" | "gray" | "magenta" | "green" | "red"> = {
+const STATUS_TAG: Record<string, "blue" | "gray" | "magenta" | "green" | "red" | "teal"> = {
   ENQUIRY: "gray",
+  PROPOSAL: "teal",
   ACTIVE: "blue",
   ON_HOLD: "magenta",
   COMPLETED: "green",

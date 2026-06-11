@@ -24,7 +24,17 @@ export const PROJECT_WORK_TYPE_LABEL: Record<ProjectWorkType, string> = {
 
 export const Jurisdiction = z.enum(["BBMP", "BDA", "PANCHAYAT", "HMDA", "CMDA", "OTHER"]);
 
-export const ProjectStatus = z.enum(["ENQUIRY", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]);
+export const ProjectStatus = z.enum(["ENQUIRY", "PROPOSAL", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]);
+export type ProjectStatus = z.infer<typeof ProjectStatus>;
+
+export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
+  ENQUIRY: "Enquiry",
+  PROPOSAL: "Proposal",
+  ACTIVE: "Active",
+  ON_HOLD: "On hold",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
 
 // Phases follow COA's Conditions of Engagement stages (see coa.ts / INDIA-PROFILE).
 export const PhaseCode = z.enum([

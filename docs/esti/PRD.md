@@ -68,6 +68,29 @@ team, consultants, contractors, and settings.
   or needs clarification.
 - Archive is the default removal path. Permanent purge is owner-only and must
   preserve legally retained financial/audit records or produce an export.
+- Project lifecycle is Enquiry, Proposal, Active, On hold, Completed, or
+  Cancelled. It is independent from COA phase progress and is filterable across
+  project and dashboard views.
+
+### Compliance
+
+Compliance is a standalone module, not a project tab or a permit-status
+tracker. A project supplies the site and jurisdiction context; the module owns
+the knowledge and calculation workflow and links its latest issued result back
+to the project overview and document register.
+
+- Knowledge is versioned by state, district, local authority, building use,
+  rule source, effective date, and supersession date.
+- Deterministic calculation rules produce ground coverage, FAR area, setbacks,
+  and restricted building lines, with source clauses and assumptions.
+- Every issued calculation produces a branded PDF snapshot. Historical issued
+  PDFs remain immutable when rules or project inputs later change.
+- The module must show when no verified rule set exists for the selected
+  jurisdiction and must never silently substitute another district's rules.
+- Statutory permits may remain office/project records, but permit due dates and
+  approval statuses are not compliance tracking.
+- External BPAS, AutoPlan, or authority status polling is out of scope because
+  no dependable endpoint is available for incorporation.
 
 ### Tasks And Capacity
 

@@ -15,6 +15,7 @@ import {
 import {
   Asleep,
   Building,
+  Calculation,
   Catalog,
   Dashboard as DashboardIcon,
   Document,
@@ -39,6 +40,7 @@ import { AuditLog } from "./routes/AuditLog.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
+import { Compliance } from "./routes/Compliance.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
@@ -109,6 +111,7 @@ export function App() {
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     { label: "Activity", to: "/activity", icon: Document },
     { label: "Projects", to: "/projects", icon: Building },
+    { label: "Compliance", to: "/compliance", icon: Calculation },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
@@ -205,6 +208,7 @@ export function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/compliance" element={<Compliance />} />
           <Route path="/invoices" element={<Invoices />} />
           {can(user.role, "fees:manage") && <Route path="/accounting/fees" element={<FeeProposals />} />}
           {can(user.role, "fees:manage") && <Route path="/office/proposals" element={<Proposals />} />}

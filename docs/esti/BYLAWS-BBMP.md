@@ -1,7 +1,12 @@
-# BBMP Bylaw Calculator — Rules & Tables
+# BBMP Seed Rule Reference
 
-**Status:** Planned (Phase 9) · **Owner:** Holagundi Consulting Works (HCW) ·
-**Reviewed:** 2026-06-07
+**Status:** Seed knowledge source for Phase 4A · **Owner:** Holagundi Consulting Works (HCW) ·
+**Reviewed:** 2026-06-11
+
+This is one knowledge-bank seed, not the Compliance module boundary. The
+standalone module must select a versioned rule set by state, district,
+authority, building use, and effective date. BBMP rules must never be used as a
+silent fallback for another jurisdiction.
 
 > _Part of the [ESTI documentation set](README.md). Defines the development-
 > control calculator for Bengaluru (BBMP / RMP-2015 zoning regulations). The
@@ -102,7 +107,8 @@ same `esti_bylaw_rule` set, scoped by project type.
 
 ## Output
 
-A buildable-envelope summary on the project: permissible built-up area
+A buildable-envelope summary linked to the project: permissible built-up area
 (`siteArea × FAR`), max footprint (`siteArea × coverage`), the governing setback
 on each side (with which condition governed), and the parking requirement. The
-result feeds the project's `esti_bylaw` development-control compliance rows.
+result feeds the standalone Compliance calculation and its project-linked PDF.
+It is not a live authority-status tracker.

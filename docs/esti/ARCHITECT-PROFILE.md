@@ -24,6 +24,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Activity Center | alerts aggregation | immutable activity feed, escalations, announcements, wellbeing cues |
 | Clients | register, communication log, portal provisioning | requests, feedback, satisfaction, writable approvals |
 | Projects | project record, COA phases, settings, internal notes | overview, timeline, critical notes, decisions, health, revision intelligence, archive |
+| Compliance | standalone BBMP seed calculator linked to project overview | state/district knowledge bank, versioned rules, verified calculations, immutable PDF reports |
 | Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar, performance and rewards |
 | Drawings | DXF upload, versions, viewer, takeoff, issue PDF | workflow statuses, impact, acknowledgements, zoom/pan/snapping |
 | Documents | specs, mood boards, inspections, transmittals | unified register, photos/actions, revision/approval for all types |
@@ -48,7 +49,17 @@ applicable, another source object.
 
 Default COA stages are Brief, Concept, Preliminary, Statutory Approvals,
 Working/Tender, Contractor Appointment, Construction/Site Supervision, and
-Completion. Project status and phase status are separate.
+Completion. Project lifecycle status and phase status are separate. Compliance
+results are linked project documents; compliance itself is not a project tab.
+
+## Compliance Boundary
+
+The compliance module owns jurisdiction knowledge and deterministic development
+control calculations. Rule sets are selected by state, district, authority,
+building use, and effective date. Required outputs are ground coverage, FAR
+area, setbacks, and restricted building lines, followed by an immutable PDF
+snapshot linked to the project. ESTI does not claim live statutory compliance
+tracking and does not poll approval portals without a supported authority API.
 
 ## Traceability Model
 

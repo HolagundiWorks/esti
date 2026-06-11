@@ -18,7 +18,7 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Jurisdiction, PROJECT_WORK_TYPE_LABEL, PhaseStatus, ProjectStatus, ProjectType, ProjectWorkType } from "@esti/contracts";
+import { Jurisdiction, PROJECT_STATUS_LABEL, PROJECT_WORK_TYPE_LABEL, PhaseStatus, ProjectStatus, ProjectType, ProjectWorkType } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
@@ -109,7 +109,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           <TextInput id="ps-title" labelText="Title" value={f.title} onChange={(e) => setF((x) => ({ ...x, title: e.target.value }))} />
           <div style={{ display: "flex", gap: 12 }}>
             <Select id="ps-status" labelText="Status" value={f.status} onChange={(e) => setF((x) => ({ ...x, status: e.target.value }))}>
-              {ProjectStatus.options.map((s) => <SelectItem key={s} value={s} text={s} />)}
+              {ProjectStatus.options.map((s) => <SelectItem key={s} value={s} text={PROJECT_STATUS_LABEL[s]} />)}
             </Select>
             <Select id="ps-type" labelText="Building use" value={f.projectType} onChange={(e) => setF((x) => ({ ...x, projectType: e.target.value }))}>
               {ProjectType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}

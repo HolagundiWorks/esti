@@ -15,7 +15,8 @@ roadmap item and can be revised independently of the delivery plan below.
 
 Delivered: authentication and staff ladder, client/consultant portals, clients,
 projects and COA phases, tasks and workload, firm/team/HR, fee proposals,
-invoices and filing abstracts, reconciliation, permits/bylaws, drawings and DXF
+invoices and filing abstracts, reconciliation, statutory permit records, a BBMP
+seed calculator, drawings and DXF
 takeoff, approvals, consultants, proposals/contracts/letters, transmittals,
 specification sheets, mood boards, inspections, DSR/BOQ/BBS, purchase orders,
 dashboard boards, notifications, PDF worker, migrations, request IDs, rate
@@ -88,10 +89,12 @@ keyboard, dark-theme, and responsive browser review.
 
 ## Phase 4 - Project Memory And Change Control [P1]
 
-- [ ] Project overview with open tasks, critical notes, revisions, approvals,
+- [x] Project overview with open tasks, critical notes, revisions, approvals,
   decisions, and health summary.
-- [ ] Critical notes with category, priority, status, visibility, owner, due date.
-- [ ] Decision register with rationale, approval, impact, and linked objects.
+- [x] Critical notes with category, priority, status, visibility, owner, due date.
+- [x] Decision register with rationale, approval, impact, and linked objects.
+- [x] Correct project lifecycle status filtering and labels; keep lifecycle
+  separate from COA phase status.
 - [ ] General revision feed for drawings, specifications, mood boards, BOQs,
   agreements, and reports, with client revision intelligence on each item.
 - [ ] Revision intelligence: revision budget, impact preview, feedback quality,
@@ -104,6 +107,26 @@ keyboard, dark-theme, and responsive browser review.
 
 **Gate:** a project’s history and current risks can be understood without
 opening separate modules.
+
+## Phase 4A - Standalone Compliance Intelligence [P1]
+
+- [x] Remove compliance from project tabs and expose a standalone Carbon module.
+- [x] Link the latest calculation summary back to the project overview.
+- [x] Separate statutory permit records from compliance calculations.
+- [ ] Replace the BBMP-only seed assumption with a versioned knowledge bank keyed
+  by state, district, authority, building use, source, and effective date.
+- [ ] Build governed rule authoring, review, publication, supersession, and source
+  citation workflows.
+- [ ] Produce deterministic ground-cover, FAR-area, setback, and restricted-
+  building-line outputs from the selected verified rule version.
+- [ ] Generate an immutable branded compliance PDF and register it against the
+  project without adding live compliance-status tracking.
+- [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
+  and PDF worker/browser smoke coverage.
+
+**Gate:** a user can select a verified district/state rule set, reproduce every
+calculation from cited inputs, and issue a project-linked PDF without implying a
+live authority integration.
 
 ## Phase 5 - Tasks, Timesheets, Availability, Escalations [P1]
 
@@ -202,7 +225,6 @@ smoke suite pass before any production declaration.
 
 - Recognition boards.
 - Drawing snapping and title-block extraction.
-- External BPAS/AutoPlan polling.
 - SSE/push updates after correctness and scale justify them.
 
 These are optional and must not delay security, activity, project memory,
