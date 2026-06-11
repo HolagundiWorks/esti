@@ -7,9 +7,10 @@ This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P3** optimization. Items marked delivered describe the current repository;
 all others remain required.
 
-Temporary presentation note: the dashboard received a presentation-focused
-office pulse strip and recent activity panel for demo use. That polish is not a
-roadmap item and can be revised independently of the delivery plan below.
+Temporary presentation note: the dashboard now uses presentation-focused
+loading-aware metric tiles, linked recent activity, and a demo-friendly office
+pulse strip. That polish is not a roadmap item and can be revised independently
+of the delivery plan below.
 
 ## Current Baseline
 

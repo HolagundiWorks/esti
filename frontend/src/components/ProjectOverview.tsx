@@ -39,7 +39,7 @@ function StatCard({
   const body = (
     <Stack gap={3}>
       <Stack gap={2}>
-        <p>{label}</p>
+        <h4>{label}</h4>
         <h2>{value}</h2>
       </Stack>
       <Tag type="blue">{tag}</Tag>
@@ -48,7 +48,7 @@ function StatCard({
   );
   return onClick ? (
     <ClickableTile onClick={onClick}>
-      <Tile style={{ height: "100%" }}>{body}</Tile>
+      {body}
     </ClickableTile>
   ) : (
     <Tile>{body}</Tile>

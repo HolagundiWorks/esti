@@ -3,12 +3,21 @@ import {
   Column,
   Grid,
   Button,
+  InlineLoading,
   ProgressBar,
   Stack,
   Tag,
   Tile,
   Toggle,
 } from "@carbon/react";
+import {
+  Building,
+  Document,
+  Money,
+  TaskComplete,
+  UserMultiple,
+  type CarbonIconType,
+} from "@carbon/icons-react";
 import { PieChart, type PieChartOptions } from "@carbon/charts-react";
 import {
   Banking,
@@ -17,7 +26,7 @@ import {
   Receipt,
 } from "@carbon/pictograms-react";
 import { can, formatINRShort } from "@esti/contracts";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -160,6 +169,50 @@ function FilingDueBoard({
   );
 }
 
+function DashboardMetricTile({
+  title,
+  value,
+  tag,
+  detail,
+  Icon,
+  onClick,
+  loading,
+  error,
+  kind = "blue",
+}: {
+  title: string;
+  value: string | number | undefined;
+  tag: string;
+  detail?: string;
+  Icon: CarbonIconType;
+  onClick?: () => void;
+  loading?: boolean;
+  error?: boolean;
+  kind?: "blue" | "gray" | "green" | "magenta" | "purple" | "teal";
+}) {
+  const body = (
+    <Stack gap={3}>
+      <Stack orientation="horizontal" gap={4}>
+        <Icon size={20} />
+        <div className="esti-grow">
+          <h4>{title}</h4>
+          <h2>{error ? "—" : loading ? "…" : value ?? 0}</h2>
+        </div>
+      </Stack>
+      <Tag type={error ? "red" : kind}>{error ? "Data unavailable" : tag}</Tag>
+      {detail && <p>{detail}</p>}
+      {loading && <InlineLoading description="Loading dashboard data…" />}
+    </Stack>
+  );
+  return onClick ? (
+    <ClickableTile className="esti-fill" onClick={onClick}>
+      {body}
+    </ClickableTile>
+  ) : (
+    <Tile className="esti-fill">{body}</Tile>
+  );
+}
+
 /** A distribution board: one labelled Carbon ProgressBar per row. */
 function DistroBoard({
   title,
@@ -167,19 +220,27 @@ function DistroBoard({
   max,
   format,
   emptyText,
+  loading,
+  error,
 }: {
   title: string;
   rows: { label: string; value: number }[];
   max: number;
   format?: (n: number) => string;
   emptyText?: string;
+  loading?: boolean;
+  error?: boolean;
 }) {
   const fmt = format ?? ((n: number) => String(n));
   return (
     <Tile className="esti-fill">
       <Stack gap={5}>
         <h4>{title}</h4>
-        {rows.length === 0 ? (
+        {loading ? (
+          <InlineLoading description="Loading dashboard data…" />
+        ) : error ? (
+          <Tag type="red">Data unavailable</Tag>
+        ) : rows.length === 0 ? (
           <p>{emptyText ?? "No data"}</p>
         ) : (
           <Stack gap={5}>
@@ -204,10 +265,14 @@ function ProjectStatusBoard({
   rows,
   total,
   onOpen,
+  loading,
+  error,
 }: {
   rows: { status: string; count: number }[];
   total: number;
   onOpen: () => void;
+  loading?: boolean;
+  error?: boolean;
 }) {
   const chartData = rows.map((r) => ({
     group: STATUS_LABEL[r.status] ?? r.status,
@@ -232,14 +297,20 @@ function ProjectStatusBoard({
   return (
     <ClickableTile className="esti-fill" onClick={onOpen}>
       <Stack gap={5}>
-        <Stack orientation="horizontal" gap={4}>
+      <Stack orientation="horizontal" gap={4}>
           <div className="esti-grow">
-            <p>Project status</p>
-            <h2>{total}</h2>
+            <h4>Project status</h4>
+            <h2>{error ? "—" : loading ? "…" : total}</h2>
           </div>
-          <Tag type="blue">all projects</Tag>
+          <Tag type={error ? "red" : "blue"}>
+            {error ? "data unavailable" : "all projects"}
+          </Tag>
         </Stack>
-        {rows.length === 0 ? (
+        {loading ? (
+          <InlineLoading description="Loading project summary…" />
+        ) : error ? (
+          <Tag type="red">Project summary unavailable</Tag>
+        ) : rows.length === 0 ? (
           <p>No projects yet</p>
         ) : (
           <>
@@ -273,6 +344,10 @@ export function Dashboard() {
 
   const s = summary.data;
   const b = boardsQ.data;
+  const summaryLoading = summary.isLoading && !s;
+  const boardsLoading = boardsQ.isLoading && !b;
+  const summaryError = summary.isError && !s;
+  const boardsError = boardsQ.isError && !b;
   const totalProjects = s?.projects.total ?? 0;
   const projectStatusRows = Object.entries(s?.projects.byStatus ?? {})
     .map(([status, count]) => ({ status, count }))
@@ -308,6 +383,10 @@ export function Dashboard() {
     (b?.receivablesAging.d60p ?? 0);
   const workloadMax = Math.max(1, ...(b?.workload ?? []).map((w) => w.count));
   const activeProjects = s?.projects.byStatus.ACTIVE ?? 0;
+  const outstandingPaise = s?.invoices.outstandingPaise ?? 0;
+  const permitOpen = s?.permits.open ?? 0;
+  const permitTotal = s?.permits.total ?? 0;
+  const permitOverdue = s?.permits.overdue ?? 0;
 
   return (
     <Grid fullWidth className="esti-dash">
@@ -339,54 +418,57 @@ export function Dashboard() {
             </Stack>
             <Grid condensed>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile
-                  className="esti-fill"
+                <DashboardMetricTile
+                  title="Active projects"
+                  value={activeProjects}
+                  tag="Live pipeline"
+                  Icon={Building}
                   onClick={() => navigate("/projects")}
-                >
-                  <Stack gap={2}>
-                    <p>Active projects</p>
-                    <h2>{activeProjects}</h2>
-                    <Tag type="blue">live pipeline</Tag>
-                  </Stack>
-                </ClickableTile>
+                  loading={summaryLoading}
+                  error={summaryError}
+                />
               </Column>
               <Column lg={4} md={4} sm={4}>
-                <ClickableTile
-                  className="esti-fill"
-                  onClick={() => navigate("/tasks")}
-                >
-                  <Stack gap={2}>
-                    <p>Tasks due today</p>
-                    <h2>{b?.tasksDueToday ?? "…"}</h2>
-                    <Tag type="gray">workload pressure</Tag>
-                  </Stack>
-                </ClickableTile>
-              </Column>
-              <Column lg={4} md={4} sm={4}>
-                <ClickableTile
-                  className="esti-fill"
-                  onClick={() => navigate("/activity")}
-                >
-                  <Stack gap={2}>
-                    <p>Recent activity</p>
-                    <h2>{recentActivity.length}</h2>
-                    <Tag type="purple">live timeline</Tag>
-                  </Stack>
-                </ClickableTile>
-              </Column>
-              <Column lg={4} md={4} sm={4}>
-                <ClickableTile
-                  className="esti-fill"
+                <DashboardMetricTile
+                  title="Outstanding fees"
+                  value={formatINRShort(outstandingPaise)}
+                  tag="Cashflow view"
+                  Icon={Money}
                   onClick={() => navigate("/invoices")}
-                >
-                  <Stack gap={2}>
-                    <p>Outstanding fees</p>
-                    <h2>
-                      {s ? formatINRShort(s.invoices.outstandingPaise) : "…"}
-                    </h2>
-                    <Tag type="green">cashflow view</Tag>
-                  </Stack>
-                </ClickableTile>
+                  loading={summaryLoading}
+                  error={summaryError}
+                  kind="green"
+                />
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <DashboardMetricTile
+                  title="Tasks due today"
+                  value={b?.tasksDueToday}
+                  tag="Workload pressure"
+                  Icon={TaskComplete}
+                  onClick={() => navigate("/tasks")}
+                  loading={boardsLoading}
+                  error={boardsError}
+                  kind="gray"
+                />
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <DashboardMetricTile
+                  title={canHr ? "On leave today" : "Permits open"}
+                  value={canHr ? b?.onLeaveToday : permitOpen}
+                  tag={
+                    canHr
+                      ? `${s?.hr?.headcount ?? 0} on the team`
+                      : permitOverdue
+                        ? `${permitOverdue} overdue`
+                        : `of ${permitTotal} total`
+                  }
+                  Icon={canHr ? UserMultiple : Document}
+                  onClick={canHr ? () => navigate("/hr") : () => navigate("/compliance")}
+                  loading={boardsLoading}
+                  error={boardsError}
+                  kind={canHr ? "purple" : "teal"}
+                />
               </Column>
             </Grid>
           </Stack>
@@ -449,70 +531,11 @@ export function Dashboard() {
             rows={projectStatusRows}
             total={totalProjects || (s ? 0 : 0)}
             onOpen={() => navigate("/projects")}
+            loading={summaryLoading}
+            error={summaryError}
           />
         </Column>
       )}
-      {showFinancial && (
-        <Column lg={4} md={4} sm={4}>
-          <ClickableTile
-            className="esti-fill"
-            onClick={() => navigate("/invoices")}
-          >
-            <Stack gap={3}>
-              <p>Outstanding (net of TDS)</p>
-              <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
-              <Tag type="green">
-                {s
-                  ? `${formatINRShort(s.invoices.collectedPaise)} collected`
-                  : "—"}
-              </Tag>
-            </Stack>
-          </ClickableTile>
-        </Column>
-      )}
-      {showProject && (
-        <Column lg={4} md={4} sm={4}>
-          <ClickableTile
-            className="esti-fill"
-            onClick={() => navigate("/tasks")}
-          >
-            <Stack gap={3}>
-              <p>Tasks due today</p>
-              <h2>{b?.tasksDueToday ?? "…"}</h2>
-              <Tag type="gray">due today or overdue</Tag>
-            </Stack>
-          </ClickableTile>
-        </Column>
-      )}
-      {showAdmin && (
-        <Column lg={4} md={4} sm={4}>
-          {canHr ? (
-            <ClickableTile
-              className="esti-fill"
-              onClick={() => navigate("/hr")}
-            >
-              <Stack gap={3}>
-                <p>On leave today</p>
-                <h2>{b?.onLeaveToday ?? "…"}</h2>
-                <Tag type="purple">{s?.hr?.headcount ?? 0} on the team</Tag>
-              </Stack>
-            </ClickableTile>
-          ) : (
-            <Tile className="esti-fill">
-              <Stack gap={3}>
-                <p>Permits open</p>
-                <h2>{s?.permits.open ?? "…"}</h2>
-                {s?.permits.overdue ? (
-                  <Tag type="red">{s.permits.overdue} overdue</Tag>
-                ) : (
-                  <Tag type="gray">of {s?.permits.total ?? 0} total</Tag>
-                )}
-              </Stack>
-            </Tile>
-          )}
-        </Column>
-      )}
-
       <Column lg={8} md={4} sm={4}>
         <Tile className="esti-fill">
           <Stack gap={5}>
@@ -524,7 +547,7 @@ export function Dashboard() {
               <Tag type="blue">{recentActivity.length} items</Tag>
             </Stack>
             {activityQ.isLoading ? (
-              <p>Loading recent activity…</p>
+              <InlineLoading description="Loading recent activity…" />
             ) : recentActivity.length === 0 ? (
               <p>No activity yet.</p>
             ) : (
@@ -554,6 +577,11 @@ export function Dashboard() {
                       {item.projectRef ? `${item.projectRef} · ` : ""}
                       {item.actorName ?? "System"}
                     </p>
+                    {item.projectId && (
+                      <Link to={`/projects/${item.projectId}`}>
+                        Open project
+                      </Link>
+                    )}
                   </Stack>
                 ))}
               </Stack>
@@ -578,7 +606,7 @@ export function Dashboard() {
               onClick={() => navigate("/projects")}
             >
               <Stack gap={3}>
-                <p>{p.label}</p>
+                <h4>{p.label}</h4>
                 <h2>{p.count}</h2>
                 <ProgressBar
                   label={p.label}
@@ -602,7 +630,7 @@ export function Dashboard() {
               onClick={() => navigate("/projects")}
             >
               <Stack gap={3}>
-                <p>{TYPE_LABEL[t.type] ?? t.type}</p>
+                <h4>{TYPE_LABEL[t.type] ?? t.type}</h4>
                 <h2>{t.count}</h2>
                 <ProgressBar
                   label={TYPE_LABEL[t.type] ?? t.type}
@@ -654,6 +682,8 @@ export function Dashboard() {
             }))}
             max={workloadMax}
             emptyText="No assigned open tasks"
+            loading={boardsLoading}
+            error={boardsError}
           />
         </Column>
       )}
@@ -670,6 +700,8 @@ export function Dashboard() {
             ]}
             max={agingMax}
             format={(n) => formatINRShort(n)}
+            loading={boardsLoading}
+            error={boardsError}
           />
         </Column>
       )}
