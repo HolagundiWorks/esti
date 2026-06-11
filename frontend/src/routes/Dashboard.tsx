@@ -2,6 +2,7 @@ import {
   ClickableTile,
   Column,
   Grid,
+  Button,
   ProgressBar,
   Stack,
   Tag,
@@ -234,6 +235,7 @@ export function Dashboard() {
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
+  const activityQ = trpc.activity.listOffice.useQuery({ limit: 5, visibility: "STAFF" });
 
   const s = summary.data;
   const b = boardsQ.data;
@@ -243,6 +245,7 @@ export function Dashboard() {
     .filter((r) => r.count > 0);
   const byPhase = b?.byPhase ?? [];
   const byType = b?.byType ?? [];
+  const recentActivity = activityQ.data?.rows ?? [];
 
   const canFees = can(user?.role, "fees:manage");
   const canHr = can(user?.role, "hr:manage");
@@ -270,6 +273,7 @@ export function Dashboard() {
     (b?.receivablesAging.d31_60 ?? 0) +
     (b?.receivablesAging.d60p ?? 0);
   const workloadMax = Math.max(1, ...(b?.workload ?? []).map((w) => w.count));
+  const activeProjects = s?.projects.byStatus.ACTIVE ?? 0;
 
   return (
     <Grid fullWidth className="esti-dash">
@@ -288,6 +292,55 @@ export function Dashboard() {
       </Column>
       <Column lg={4} md={2} sm={4}>
         <ClockLeavesWidget />
+      </Column>
+
+      <Column lg={16} md={8} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={4}>
+            <Stack gap={2}>
+              <p>Office pulse</p>
+              <h3>Presentation summary</h3>
+            </Stack>
+            <Grid condensed>
+              <Column lg={4} md={4} sm={4}>
+                <ClickableTile className="esti-fill" onClick={() => navigate("/projects")}>
+                  <Stack gap={2}>
+                    <p>Active projects</p>
+                    <h2>{activeProjects}</h2>
+                    <Tag type="blue">live pipeline</Tag>
+                  </Stack>
+                </ClickableTile>
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <ClickableTile className="esti-fill" onClick={() => navigate("/tasks")}>
+                  <Stack gap={2}>
+                    <p>Tasks due today</p>
+                    <h2>{b?.tasksDueToday ?? "…"}</h2>
+                    <Tag type="gray">workload pressure</Tag>
+                  </Stack>
+                </ClickableTile>
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <ClickableTile className="esti-fill" onClick={() => navigate("/activity")}>
+                  <Stack gap={2}>
+                    <p>Recent activity</p>
+                    <h2>{recentActivity.length}</h2>
+                    <Tag type="purple">live timeline</Tag>
+                  </Stack>
+                </ClickableTile>
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <ClickableTile className="esti-fill" onClick={() => navigate("/invoices")}>
+                  <Stack gap={2}>
+                    <p>Outstanding fees</p>
+                    <h2>{s ? formatINRShort(s.invoices.outstandingPaise) : "…"}</h2>
+                    <Tag type="green">cashflow view</Tag>
+                  </Stack>
+                </ClickableTile>
+              </Column>
+            </Grid>
+          </Stack>
+        </Tile>
       </Column>
 
       {/* Board-group switches — owner shows/hides boards by module group */}
@@ -390,6 +443,46 @@ export function Dashboard() {
         )}
       </Column>
       )}
+
+      <Column lg={8} md={4} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={5}>
+            <Stack orientation="horizontal" gap={4}>
+              <div className="esti-grow">
+                <p>Recent activity</p>
+                <h4>Latest project movement</h4>
+              </div>
+              <Tag type="blue">{recentActivity.length} items</Tag>
+            </Stack>
+            {activityQ.isLoading ? (
+              <p>Loading recent activity…</p>
+            ) : recentActivity.length === 0 ? (
+              <p>No activity yet.</p>
+            ) : (
+              <Stack gap={3}>
+                {recentActivity.map((item) => (
+                  <Stack key={item.id} gap={2}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <Tag size="sm" type={item.visibility === "ALL" ? "purple" : "blue"}>
+                        {item.eventType}
+                      </Tag>
+                      <span>{new Date(item.createdAt as unknown as string).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+                    </Stack>
+                    <p>{item.summary}</p>
+                    <p style={{ color: "var(--cds-text-secondary)" }}>
+                      {item.projectRef ? `${item.projectRef} · ` : ""}
+                      {item.actorName ?? "System"}
+                    </p>
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+            <Button kind="ghost" size="sm" onClick={() => navigate("/activity")}>
+              Open Activity Center
+            </Button>
+          </Stack>
+        </Tile>
+      </Column>
 
       {/* One board per phase */}
       {showProject && byPhase.map((p) => (
