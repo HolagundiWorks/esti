@@ -6,6 +6,8 @@
 @use "@carbon/react" with (
   $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
 );
+// Access the forwarded Carbon type module for the type-style() mixin.
+@use "@carbon/react/scss/type" as type;
 
 // Drawing viewer: make the injected SVG scale to the container width so the
 // measurement overlay (same viewBox) lines up at any size.
@@ -91,4 +93,16 @@ body,
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
+}
+
+// Apply Carbon productive type scale to semantic headings within the app shell.
+// Uses Carbon's type-style() mixin — all values come from @carbon/type tokens.
+// Scoped to .cds--content so Carbon component internals are unaffected.
+// Hierarchy: h1=page title (28px), h2=section (20px), h3=tile/card (16px semibold),
+// h4=sub-label (14px semibold). p elements inherit body size from Carbon's reset.
+.cds--content {
+  h1 { @include type.type-style("productive-heading-04"); }
+  h2 { @include type.type-style("productive-heading-03"); }
+  h3 { @include type.type-style("productive-heading-02"); }
+  h4 { @include type.type-style("heading-compact-01"); }
 }

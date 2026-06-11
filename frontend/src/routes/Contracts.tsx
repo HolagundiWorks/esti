@@ -81,7 +81,7 @@ export function Contracts() {
   return (
     <Stack gap={6}>
       <Stack orientation="horizontal" gap={5}>
-        <Stack gap={2} className="esti-grow">
+        <Stack gap={3} className="esti-grow">
           <h1>Contracts</h1>
           <p>Agreements with clients, consultants and vendors.</p>
         </Stack>

@@ -412,7 +412,7 @@ export function Dashboard() {
       <Column lg={16} md={8} sm={4}>
         <Tile className="esti-fill">
           <Stack gap={4}>
-            <Stack gap={2}>
+            <Stack gap={3}>
               <p>Office pulse</p>
               <h2>Office summary</h2>
             </Stack>

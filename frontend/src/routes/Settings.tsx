@@ -36,7 +36,7 @@ export function Settings() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>My profile</h1>
         <p>Signed in as {user?.email}</p>
       </Stack>

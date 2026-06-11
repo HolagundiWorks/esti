@@ -38,7 +38,7 @@ export function Login() {
       <Stack gap={5} className="esti-login-panel">
         <Tile>
           <Stack gap={5}>
-            <Stack gap={2}>
+            <Stack gap={3}>
               <h3>ESTI AORMS</h3>
               <p>Architectural Office Resource Management System</p>
             </Stack>

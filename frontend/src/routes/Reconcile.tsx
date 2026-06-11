@@ -102,7 +102,7 @@ export function Reconcile() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>Reconciliation</h1>
         <p>Match bank-statement credits against invoices (CSV / XLSX).</p>
       </Stack>

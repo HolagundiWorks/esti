@@ -89,7 +89,7 @@ export function Hr() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>HR</h1>
         <p>Leave requests and payslip management for your team.</p>
       </Stack>

@@ -26,7 +26,7 @@ export function Alerts() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>Alerts</h1>
         <p>Stale client decisions, due follow-ups and overdue statutory permits.</p>
       </Stack>

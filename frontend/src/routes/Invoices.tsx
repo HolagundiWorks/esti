@@ -80,7 +80,7 @@ export function Invoices() {
   return (
     <Stack gap={6}>
       <Stack orientation="horizontal" gap={5}>
-        <Stack gap={2} className="esti-grow">
+        <Stack gap={3} className="esti-grow">
           <h1>Invoices</h1>
           <p>GST tax invoices &amp; bills of supply across all projects.</p>
         </Stack>

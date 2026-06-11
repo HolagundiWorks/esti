@@ -23,7 +23,7 @@ export function Compliance() {
 
   return (
     <Stack gap={7}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>Compliance</h1>
         <p>
           Standalone development-control knowledge, calculations, and

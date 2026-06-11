@@ -142,7 +142,7 @@ export function Company() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={2}>
+      <Stack gap={3}>
         <h1>Company profile</h1>
         {!isOwner && <p>Read-only — only the owner can edit.</p>}
       </Stack>

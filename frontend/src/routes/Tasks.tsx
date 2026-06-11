@@ -79,7 +79,7 @@ export function Tasks() {
   return (
     <Stack gap={6}>
       <Stack orientation="horizontal" gap={5}>
-        <Stack gap={2} className="esti-grow">
+        <Stack gap={3} className="esti-grow">
           <h1>Tasks</h1>
           <p>Project tasks across the office, assigned to team members.</p>
         </Stack>

@@ -78,7 +78,7 @@ export function Users() {
   return (
     <Stack gap={6}>
       <Stack orientation="horizontal" gap={5}>
-        <Stack gap={2} className="esti-grow">
+        <Stack gap={3} className="esti-grow">
           <h1>Users &amp; access</h1>
           <p>
             Owner / staff / portal logins. Client and consultant portal logins are
