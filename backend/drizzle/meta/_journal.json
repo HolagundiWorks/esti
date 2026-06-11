@@ -78,6 +78,13 @@
       "when": 1781160840074,
       "tag": "0010_project_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1781178610659,
+      "tag": "0011_activity_stream",
+      "breakpoints": true
     }
   ]
 }

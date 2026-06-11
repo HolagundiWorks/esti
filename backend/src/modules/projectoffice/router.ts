@@ -17,6 +17,7 @@ import {
   users,
 } from "../../db/schema.js";
 import { verifyPassword } from "../../auth/session.js";
+import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -87,6 +88,17 @@ export const projectOfficeRouter = router({
           sortOrder: (i + 1) * 10,
         })),
       );
+      await writeActivity(tx, {
+        projectId: p!.id,
+        objectType: "projectoffice",
+        objectId: p!.id,
+        eventType: "project.created",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "STAFF",
+        summary: `Project ${p!.ref} created`,
+        metadata: { ref, title: input.title, projectType: input.projectType, workType: input.workType },
+      });
       return p!;
     });
     await writeAudit(ctx.db, { entity: "projectoffice", entityId: row.id, action: "CREATE", actorId: ctx.user.id, after: row });
@@ -239,22 +251,35 @@ export const projectOfficeRouter = router({
   addLog: protectedProcedure
     .input(z.object({ projectId: z.string().uuid(), note: z.string().min(1).max(2000) }))
     .mutation(async ({ ctx, input }) => {
-      const [row] = await ctx.db
-        .insert(projectLogs)
-        .values({
+      return ctx.db.transaction(async (tx) => {
+        const [row] = await tx
+          .insert(projectLogs)
+          .values({
+            projectId: input.projectId,
+            note: input.note,
+            authorId: ctx.user.id,
+            authorName: ctx.user.fullName,
+          })
+          .returning();
+        await writeActivity(tx, {
           projectId: input.projectId,
-          note: input.note,
-          authorId: ctx.user.id,
-          authorName: ctx.user.fullName,
-        })
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "projectlog",
-        entityId: row!.id,
-        action: "CREATE",
-        actorId: ctx.user.id,
-        after: row,
+          objectType: "projectlog",
+          objectId: row!.id,
+          eventType: "note.created",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          visibility: "STAFF",
+          summary: input.note.slice(0, 140),
+          metadata: { note: input.note },
+        });
+        await writeAudit(tx, {
+          entity: "projectlog",
+          entityId: row!.id,
+          action: "CREATE",
+          actorId: ctx.user.id,
+          after: row,
+        });
+        return row!;
       });
-      return row!;
     }),
 });

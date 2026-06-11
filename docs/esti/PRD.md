@@ -42,6 +42,11 @@ tasks, workload, availability, approvals, drawing revisions, site activity,
 accounting, tenders, risks, recent revisions, and project health. Personal
 wellness widgets are optional and never displace operational information.
 
+The dashboard also surfaces revision-intelligence and studio-health signals in
+context: revision budget, impact previews, feedback quality, approval lag,
+workload health, and recognition cues. These are attached to work objects
+rather than exposed as detached management metrics.
+
 The Activity Center is the daily command surface: digest, recent revisions,
 critical notes, approvals, leave impact, contractor queries, client requests,
 escalations, and announcements.
@@ -53,6 +58,8 @@ critical notes, decisions, revisions, approvals, documents, commercial data,
 team, consultants, contractors, and settings.
 
 - Timeline is generated from immutable domain activity.
+- Revision intelligence is attached to review items: decision state, revision
+  budget, impact estimate, feedback quality, closure history, and approval lag.
 - Decisions record title, description, reason, approver, date, and impact.
 - Critical notes record category, priority, status, visibility, owner, due date.
 - Health scores cover schedule, finance, documentation, approvals, and resources.
@@ -69,6 +76,15 @@ status, due dates, review, dependencies, comments, daily updates, timesheets,
 calendar views, and workload. Escalations notify assignee, project lead, and
 principal according to configurable office rules. Leave impact exposes only
 availability and backup contact to portals, never HR details.
+
+Task and capacity analytics also support studio performance and rewards:
+delivery reliability, quality, client impact, collaboration, learning, and
+wellbeing. These signals are for coaching, recognition, and workload balance,
+not surveillance.
+
+Pomodoro focus sessions and water reminders are required wellbeing tools. They
+must be opt-in, gentle, and user-controlled, with no punitive ranking or
+manager-only visibility.
 
 ## Documents And Coordination
 
@@ -116,6 +132,18 @@ All money is integer paise and formatted through shared `formatINR` utilities.
   auditable, and never auto-issued.
 - Admin exposes application version, deployment date, pipeline status, release
   notes, users, capabilities, audit review, retention, backup, and restore state.
+
+## Revision Intelligence And Rewards
+
+ESTI keeps revision intelligence and studio performance separate but linked to
+the same project and task context.
+
+- CRIF-style revision intelligence reduces revision cycles, improves approval
+  clarity, and keeps decision history auditable.
+- ASPRF-style performance and rewards improve delivery predictability, quality,
+  collaboration, learning, and wellbeing while supporting recognition.
+- Reward and recognition surfaces must remain transparent and opt-in where
+  wellbeing is concerned; ESTI must not become a covert surveillance tool.
 
 ## Non-Functional Requirements
 

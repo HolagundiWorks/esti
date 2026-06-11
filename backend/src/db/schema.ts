@@ -319,6 +319,21 @@ export const projectLogs = pgTable("esti_projectlog", {
   createdAt: createdAt(),
 });
 
+/** Immutable activity stream for project timelines and the office Activity Center. */
+export const activities = pgTable("esti_activity", {
+  id: id(),
+  projectId: uuid("project_id").references(() => projectOffices.id),
+  objectType: text("object_type").notNull(),
+  objectId: text("object_id"),
+  eventType: text("event_type").notNull(),
+  actorId: uuid("actor_id").references(() => users.id),
+  actorName: text("actor_name"),
+  visibility: text("visibility").notNull().default("STAFF"),
+  summary: text("summary").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: createdAt(),
+});
+
 /** Per-project BBMP bylaw-calculator inputs + computed envelope (one per project). */
 export const bylawCalcs = pgTable("esti_bylaw_calc", {
   id: id(),

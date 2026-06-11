@@ -1,0 +1,58 @@
+import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { activities, projectOffices } from "../../db/schema.js";
+import { protectedProcedure, router } from "../../trpc/trpc.js";
+
+const activityRow = {
+  id: activities.id,
+  projectId: activities.projectId,
+  projectRef: projectOffices.ref,
+  projectTitle: projectOffices.title,
+  objectType: activities.objectType,
+  objectId: activities.objectId,
+  eventType: activities.eventType,
+  actorId: activities.actorId,
+  actorName: activities.actorName,
+  visibility: activities.visibility,
+  summary: activities.summary,
+  metadata: activities.metadata,
+  createdAt: activities.createdAt,
+} as const;
+
+export const activityRouter = router({
+  listByProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select(activityRow)
+        .from(activities)
+        .leftJoin(projectOffices, eq(projectOffices.id, activities.projectId))
+        .where(eq(activities.projectId, input.projectId))
+        .orderBy(desc(activities.createdAt))
+        .limit(input.limit)
+        .offset(input.offset);
+    }),
+
+  listOffice: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select(activityRow)
+        .from(activities)
+        .leftJoin(projectOffices, eq(projectOffices.id, activities.projectId))
+        .orderBy(desc(activities.createdAt))
+        .limit(input.limit)
+        .offset(input.offset);
+    }),
+});

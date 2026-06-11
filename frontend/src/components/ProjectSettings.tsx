@@ -33,12 +33,18 @@ const PHASE_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> =
   COMPLETE: "green",
 };
 
+const ACTIVITY_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> = {
+  "project.created": "green",
+  "note.created": "blue",
+};
+
 export function ProjectSettings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId }, { enabled: !!projectId });
   const logsQ = trpc.projectOffice.logs.useQuery({ projectId }, { enabled: !!projectId });
+  const activityQ = trpc.activity.listByProject.useQuery({ projectId }, { enabled: !!projectId });
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId }, { enabled: !!projectId });
   const updatePhase = trpc.phases.update.useMutation({
     onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
@@ -201,6 +207,30 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                 <div style={{ whiteSpace: "pre-wrap" }}>{l.note}</div>
                 <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
                   {l.authorName ?? "—"} · {new Date(l.createdAt as unknown as string).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Stack>
+      </Tile>
+
+      <Tile style={{ maxWidth: 640, marginTop: 16 }}>
+        <Stack gap={5}>
+          <h4>Activity feed</h4>
+          <p style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
+            Project timeline entries for change control, internal notes, and future revision intelligence.
+          </p>
+          <div>
+            {(activityQ.data ?? []).map((item) => (
+              <div key={item.id} style={{ borderLeft: "2px solid var(--cds-border-subtle)", padding: "4px 0 4px 12px", marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <Tag size="sm" type={ACTIVITY_TAG[item.eventType] ?? "gray"}>
+                    {item.eventType}
+                  </Tag>
+                  <span>{item.summary}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--cds-text-secondary)" }}>
+                  {item.actorName ?? "—"} · {new Date(item.createdAt as unknown as string).toLocaleString()}
                 </div>
               </div>
             ))}

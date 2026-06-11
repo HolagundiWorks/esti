@@ -89,8 +89,12 @@ keyboard, dark-theme, and responsive browser review.
 - [ ] Critical notes with category, priority, status, visibility, owner, due date.
 - [ ] Decision register with rationale, approval, impact, and linked objects.
 - [ ] General revision feed for drawings, specifications, mood boards, BOQs,
-  agreements, and reports.
+  agreements, and reports, with client revision intelligence on each item.
+- [ ] Revision intelligence: revision budget, impact preview, feedback quality,
+  closure history, and approval lag for client-facing change control.
 - [ ] Major/critical revision acknowledgement workflow.
+- [ ] Decision and revision summaries that surface the next action, the owner,
+  and why the item is blocked or awaiting approval.
 - [ ] Project health engine: schedule, finance, documentation, approvals, resources.
 - [ ] Archive project and retention-aware purge/export workflows.
 
@@ -101,6 +105,12 @@ opening separate modules.
 
 - [ ] Store assignee IDs rather than display names; add reviewer and dependencies.
 - [ ] Critical priority, filters, “my tasks”, calendar, and Carbon board view.
+- [ ] Studio performance and rewards signals for delivery reliability, quality,
+  client impact, collaboration, learning, and wellbeing.
+- [ ] Recognition summaries and rewards governance for transparent, non-punitive
+  studio coaching.
+- [ ] Pomodoro focus sessions and water reminders as opt-in, user-controlled
+  wellbeing helpers.
 - [ ] Daily updates: completed, in progress, blocked; generate activity entries.
 - [ ] Timesheets and project/phase/task attribution.
 - [ ] Configurable escalation rules and digest delivery.
@@ -186,10 +196,10 @@ smoke suite pass before any production declaration.
 
 ## Deferred Ideas [P3]
 
-- Recognition boards, Pomodoro timer, and water reminders.
+- Recognition boards.
 - Drawing snapping and title-block extraction.
 - External BPAS/AutoPlan polling.
 - SSE/push updates after correctness and scale justify them.
 
 These are optional and must not delay security, activity, project memory,
-collaboration, or production readiness.
+collaboration, wellbeing basics, or production readiness.

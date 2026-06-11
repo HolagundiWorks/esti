@@ -66,6 +66,8 @@ out of scope.
 - Projects, phases, timeline, decisions, health, critical notes, and revisions
 - Tasks, timesheets, daily updates, workload, and leave impact
 - Drawings, specifications, mood boards, site reports, transmittals, approvals
+- Client revision intelligence and studio performance analytics, delivered in a
+  transparent and non-surveillant way
 - Consultants and project-scoped collaborator portal
 - Contractor register, tender management, and construction coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
@@ -73,6 +75,16 @@ out of scope.
 - Office correspondence, MOM, templates, resources, and lessons learned
 - Client and contractor portals
 - Universal search, notifications, audit review, administration, and AI Studio
+
+CRIF-style revision intelligence is part of ESTI's project memory: decision
+states, revision budgets, impact previews, feedback structure, and closure
+signals are attached to the project instead of living in isolated comment
+threads.
+
+ASPRF-style performance and rewards are part of ESTI's studio operations:
+delivery reliability, quality, client impact, collaboration, learning, and
+wellbeing are used to support coaching, recognition, and team health. These
+signals must not become covert surveillance or punitive monitoring.
 
 ## Naming
 

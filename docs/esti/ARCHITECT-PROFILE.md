@@ -20,11 +20,11 @@ row/object scope in the backend, including REST uploads and downloads.
 
 | Product area | Current foundation | Planned expansion |
 | --- | --- | --- |
-| Dashboard | office/project/finance/workload boards | risks, revisions, tenders, health, digest |
-| Activity Center | alerts aggregation | immutable activity feed, escalations, announcements |
+| Dashboard | office/project/finance/workload boards | risks, revisions, tenders, health, digest, recognition |
+| Activity Center | alerts aggregation | immutable activity feed, escalations, announcements, wellbeing cues |
 | Clients | register, communication log, portal provisioning | requests, feedback, satisfaction, writable approvals |
-| Projects | project record, COA phases, settings, internal notes | overview, timeline, critical notes, decisions, health, archive |
-| Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar |
+| Projects | project record, COA phases, settings, internal notes | overview, timeline, critical notes, decisions, health, revision intelligence, archive |
+| Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar, performance and rewards |
 | Drawings | DXF upload, versions, viewer, takeoff, issue PDF | workflow statuses, impact, acknowledgements, zoom/pan/snapping |
 | Documents | specs, mood boards, inspections, transmittals | unified register, photos/actions, revision/approval for all types |
 | Approvals | issue/sign-off log and supersede chain | portal writes, internal/contractor approvals, acknowledgement |
@@ -37,7 +37,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Office/resources | letters, firm profile | MOM, templates, knowledge/CAD/BIM/vendor libraries, lessons |
 | Search | module-local search | permission-aware universal search |
 | AI Studio | none | editable, source-linked drafting and summarization |
-| Administration | users, roles, settings, demo/purge tools | audit review, release metadata, retention, backup status |
+| Administration | users, roles, settings, demo/purge tools | audit review, release metadata, retention, backup status, rewards governance |
 
 ## Project Object Model
 
@@ -56,8 +56,20 @@ Completion. Project status and phase status are separate.
 - `esti_activity` (planned): human-readable timeline event with project/object,
   visibility, summary, and metadata.
 - Contextual comments (planned): discussion linked to a supported source object.
-- Revision records (planned beyond drawings): change description, impact, actor,
-  affected objects, and acknowledgement requirements.
+- Revision records (planned beyond drawings): change description, impact,
+  actor, affected objects, acknowledgement requirements, feedback quality, and
+  revision budget signals.
+
+## Behavioral And Studio Intelligence
+
+CRIF-style revision intelligence lives in the project object model: feedback
+quality, revision budgets, impact previews, decision states, and approval lag
+belong to the work item, not to a separate chat thread.
+
+ASPRF-style studio performance lives in the task/capacity model: reliability,
+quality, client impact, collaboration, learning, and wellbeing are used for
+coaching, recognition, and workload balancing. Pomodoro and water reminders are
+treated as required wellbeing tools, not optional trivia.
 
 Audit, activity, comments, and notifications are related but not interchangeable.
 
