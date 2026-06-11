@@ -55,7 +55,7 @@ Completion. Project status and phase status are separate.
 - `esti_audit`: append-only compliance record with actor and before/after data.
 - `esti_activity` (planned): human-readable timeline event with project/object,
   visibility, summary, and metadata.
-- Contextual comments (planned): discussion linked to a supported source object.
+- Contextual comments: discussion linked to a supported source object.
 - Revision records (planned beyond drawings): change description, impact,
   actor, affected objects, acknowledgement requirements, feedback quality, and
   revision budget signals.

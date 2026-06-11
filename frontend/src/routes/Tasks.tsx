@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { ContextualComments } from "../components/ContextualComments.js";
 import { trpc } from "../lib/trpc.js";
 
 const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = { HIGH: "red", MEDIUM: "blue", LOW: "gray" };
@@ -36,6 +37,7 @@ export function Tasks() {
 
   const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [commentsTask, setCommentsTask] = useState<{ id: string; projectId: string; title: string } | null>(null);
   const [form, setForm] = useState({ title: "", projectId: "", assignee: "", priority: "MEDIUM", dueDate: "", description: "" });
   const teamQ = trpc.assignments.listByProject.useQuery(
     { projectId: form.projectId },
@@ -82,6 +84,7 @@ export function Tasks() {
               <TableHeader>Priority</TableHeader>
               <TableHeader>Due</TableHeader>
               <TableHeader>Status</TableHeader>
+              <TableHeader>Comments</TableHeader>
               <TableHeader></TableHeader>
             </TableRow>
           </TableHead>
@@ -115,6 +118,15 @@ export function Tasks() {
                         <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
                       ))}
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    {t.projectId ? (
+                      <Button kind="ghost" size="sm" onClick={() => setCommentsTask({ id: t.id, projectId: t.projectId ?? "", title: t.title })}>
+                        Comments
+                      </Button>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell>
                     <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(t.id)}>Remove</Button>
@@ -194,6 +206,25 @@ export function Tasks() {
           </div>
           <TextArea id="nt-desc" labelText="Description (optional)" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
         </Stack>
+      </Modal>
+
+      <Modal
+        open={commentsTask !== null}
+        modalHeading={commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}
+        primaryButtonText="Close"
+        secondaryButtonText=""
+        passiveModal
+        onRequestClose={() => setCommentsTask(null)}
+      >
+        {commentsTask && (
+          <ContextualComments
+            projectId={commentsTask.projectId}
+            objectType="task"
+            objectId={commentsTask.id}
+            heading="Task comments"
+            description="Contextual discussion linked directly to this task."
+          />
+        )}
       </Modal>
     </div>
   );

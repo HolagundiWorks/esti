@@ -72,11 +72,11 @@ keyboard, dark-theme, and responsive browser review.
 
 ## Phase 3 - Domain Activity Foundation [P1]
 
-- [ ] Add immutable `esti_activity` records with project, object type/id,
+- [x] Add immutable `esti_activity` records with project, object type/id,
   event type, actor, visibility, summary, metadata, and timestamp.
-- [ ] Add reusable contextual comments linked to supported domain objects.
-- [ ] Emit activity transactionally from significant domain operations.
-- [ ] Build project timeline and office-wide Activity Center queries with cursor
+- [x] Add reusable contextual comments linked to supported domain objects.
+- [x] Emit activity transactionally from significant domain operations.
+- [x] Build project timeline and office-wide Activity Center queries with cursor
   pagination and role/visibility filtering.
 - [ ] Backfill activity from existing audit and domain records where reliable.
 

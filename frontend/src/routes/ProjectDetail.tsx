@@ -24,6 +24,7 @@ import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
+import { ContextualComments } from "../components/ContextualComments.js";
 import { trpc } from "../lib/trpc.js";
 
 const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red"> = {
@@ -48,6 +49,7 @@ export function ProjectDetail() {
     "drawings",
     "documents",
     "team",
+    "comments",
     "settings",
   ];
   const tabSlug = searchParams.get("tab") ?? "clientlog";
@@ -123,6 +125,7 @@ export function ProjectDetail() {
           <Tab>Drawings</Tab>
           <Tab>Documents</Tab>
           <Tab>Team</Tab>
+          <Tab>Comments</Tab>
           <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
@@ -161,6 +164,15 @@ export function ProjectDetail() {
           The Team &amp; HR module is off — enable it in Company settings to assign staff.
         </p>
       )}
+        </TabPanel>
+        <TabPanel>
+          <ContextualComments
+            projectId={id}
+            objectType="projectoffice"
+            objectId={id}
+            heading="Project comments"
+            description="Contextual discussion linked directly to this project."
+          />
         </TabPanel>
         <TabPanel>
           <ProjectSettings projectId={id} />
