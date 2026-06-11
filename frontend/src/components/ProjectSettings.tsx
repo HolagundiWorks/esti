@@ -148,16 +148,16 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       </Tile>
 
       <Tile style={{ maxWidth: 760, marginTop: 16 }}>
-        <h4 style={{ marginBottom: 4 }}>COA phases — Conditions of Engagement</h4>
+        <h4 style={{ marginBottom: 4 }}>Project stages</h4>
         <p style={{ fontSize: 12, color: "var(--cds-text-secondary)", marginBottom: 8 }}>
-          Update the status of each engagement stage. The current stage shows below the project header.
+          Update each general delivery stage. The current stage appears in the project header.
         </p>
         <TableContainer title="" description="">
           <Table size="sm">
             <TableHead>
               <TableRow>
                 <TableHeader>Stage</TableHeader>
-                <TableHeader>Billing %</TableHeader>
+                <TableHeader>Fee allocation %</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Update</TableHeader>
               </TableRow>

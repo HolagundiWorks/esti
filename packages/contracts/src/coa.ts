@@ -50,32 +50,6 @@ export const COA_DOC_COMM_PCT = 10;
 /** Contractor payment-certificate verification — % of cost of works (optional). */
 export const COA_CONTRACTOR_VERIFY_PCT = 1;
 
-/**
- * COA Conditions of Engagement — stages with the cumulative % of total fee
- * payable on completion of each stage. `stagePct` is the per-stage share.
- */
-export const COA_STAGES = [
-  { code: "BRIEF", label: "Client's brief (retainer)", cumulativePct: 5 },
-  { code: "CONCEPT", label: "Concept design", cumulativePct: 10 },
-  { code: "PRELIMINARY", label: "Preliminary design & estimate", cumulativePct: 20 },
-  { code: "APPROVALS", label: "Drawings for statutory approvals", cumulativePct: 35 },
-  { code: "WORKING_TENDER", label: "Working drawings & tender documents", cumulativePct: 45 },
-  { code: "CONTRACTOR", label: "Appointment of contractors", cumulativePct: 55 },
-  { code: "CONSTRUCTION", label: "Construction / site supervision", cumulativePct: 90 },
-  { code: "COMPLETION", label: "Completion", cumulativePct: 100 },
-] as const;
-export type CoaStageCode = (typeof COA_STAGES)[number]["code"];
-
-/** Per-stage billing % derived from the cumulative schedule (sums to 100). */
-export function coaStagePlan(): { code: CoaStageCode; label: string; stagePct: number }[] {
-  let prev = 0;
-  return COA_STAGES.map((s) => {
-    const stagePct = s.cumulativePct - prev;
-    prev = s.cumulativePct;
-    return { code: s.code, label: s.label, stagePct };
-  });
-}
-
 /** COA minimum fee for a work category against the cost of works (paise). */
 export function coaMinimumFee(category: CoaWorkCategory, costOfWorksPaise: Paise): Paise {
   return roundToRupee(Math.round((costOfWorksPaise * COA_MIN_FEE_PCT[category]) / 100));

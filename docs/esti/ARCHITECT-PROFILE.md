@@ -23,7 +23,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Dashboard | office/project/finance/workload boards | risks, revisions, tenders, health, digest, recognition |
 | Activity Center | alerts aggregation | immutable activity feed, escalations, announcements, wellbeing cues |
 | Clients | register, communication log, portal provisioning | requests, feedback, satisfaction, writable approvals |
-| Projects | project record, COA phases, settings, internal notes | overview, timeline, critical notes, decisions, health, revision intelligence, archive |
+| Projects | project record, general delivery stages, settings, internal notes | overview, timeline, critical notes, decisions, health, revision intelligence, archive |
 | Compliance | standalone BBMP seed calculator linked to project overview | state/district knowledge bank, versioned rules, verified calculations, immutable PDF reports |
 | Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar, performance and rewards |
 | Drawings | DXF upload, versions, viewer, takeoff, issue PDF | workflow statuses, impact, acknowledgements, zoom/pan/snapping |
@@ -47,9 +47,10 @@ documents, approvals, decisions, risks, consultants, contractors, tenders,
 commercial records, and site coordination reference a project and, where
 applicable, another source object.
 
-Default COA stages are Brief, Concept, Preliminary, Statutory Approvals,
-Working/Tender, Contractor Appointment, Construction/Site Supervision, and
-Completion. Project lifecycle status and phase status are separate. Compliance
+Default project stages are Initiation & Brief, Concept Design, Design
+Development, Statutory Coordination, Construction Documentation, Tender &
+Appointment, Construction Administration, and Handover & Closeout. Project
+lifecycle status and stage status are separate. Compliance
 results are linked project documents; compliance itself is not a project tab.
 
 ## Compliance Boundary

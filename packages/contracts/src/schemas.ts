@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CoaWorkCategory, coaStagePlan } from "./coa.js";
+import { CoaWorkCategory } from "./coa.js";
 import { GstSystem } from "./gst.js";
 
 export const ProjectType = z.enum([
@@ -36,25 +36,30 @@ export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-// Phases follow COA's Conditions of Engagement stages (see coa.ts / INDIA-PROFILE).
+// General architectural project delivery stages. Fee-reference logic is separate.
 export const PhaseCode = z.enum([
-  "BRIEF",
-  "CONCEPT",
-  "PRELIMINARY",
-  "APPROVALS",
-  "WORKING_TENDER",
-  "CONTRACTOR",
-  "CONSTRUCTION",
-  "COMPLETION",
+  "INITIATION",
+  "CONCEPT_DESIGN",
+  "DESIGN_DEVELOPMENT",
+  "STATUTORY_COORDINATION",
+  "CONSTRUCTION_DOCUMENTATION",
+  "TENDER_APPOINTMENT",
+  "CONSTRUCTION_ADMINISTRATION",
+  "HANDOVER_CLOSEOUT",
 ]);
 export type PhaseCode = z.infer<typeof PhaseCode>;
 
-/** Default phase plan = COA stages; `billingPct` is the per-stage share (sums to 100). */
-export const DEFAULT_PHASE_PLAN = coaStagePlan().map((s) => ({
-  code: s.code,
-  label: s.label,
-  billingPct: s.stagePct,
-}));
+/** Neutral default delivery plan. Allocation percentages are editable and sum to 100. */
+export const DEFAULT_PHASE_PLAN: { code: PhaseCode; label: string; billingPct: number }[] = [
+  { code: "INITIATION", label: "Initiation & Brief", billingPct: 5 },
+  { code: "CONCEPT_DESIGN", label: "Concept Design", billingPct: 10 },
+  { code: "DESIGN_DEVELOPMENT", label: "Design Development", billingPct: 15 },
+  { code: "STATUTORY_COORDINATION", label: "Statutory Coordination", billingPct: 15 },
+  { code: "CONSTRUCTION_DOCUMENTATION", label: "Construction Documentation", billingPct: 20 },
+  { code: "TENDER_APPOINTMENT", label: "Tender & Appointment", billingPct: 10 },
+  { code: "CONSTRUCTION_ADMINISTRATION", label: "Construction Administration", billingPct: 20 },
+  { code: "HANDOVER_CLOSEOUT", label: "Handover & Closeout", billingPct: 5 },
+];
 
 export const ProjectOfficeCreate = z.object({
   title: z.string().min(2).max(200),

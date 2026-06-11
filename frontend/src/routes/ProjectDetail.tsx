@@ -63,7 +63,7 @@ export function ProjectDetail() {
     );
   const p = project.data;
   const phases = phasesQ.data ?? [];
-  // Current COA stage = the first stage that isn't complete (else the last).
+  // Current project stage = the first stage that isn't complete (else the last).
   const currentPhase = phases.find((ph) => ph.status !== "COMPLETE") ?? phases[phases.length - 1];
 
   return (
@@ -95,8 +95,8 @@ export function ProjectDetail() {
         {phases.length > 0 && (
           <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 8, maxWidth: 520 }}>
             <Select
-              id="coa-stage"
-              labelText="COA stage — Conditions of Engagement"
+              id="project-stage"
+              labelText="Current project stage"
               size="sm"
               value={currentPhase?.id ?? ""}
               onChange={() => setSearchParams({ tab: "settings" }, { replace: true })}

@@ -105,10 +105,9 @@ The fee-proposal and invoice line picks the SAC per the work type; default
 - Payment/receipt reconciliation against bank statement imports.
 - All owned by the **reconcile module**.
 
-## COA — Scale of Charges, Conditions of Engagement, Conduct
+## COA — Scale of Charges And Conduct
 
-ESTI benchmarks fees against the Council of Architecture (COA) scale and follows
-its Conditions of Engagement. The rates below are **effective-dated reference
+ESTI benchmarks fees against the Council of Architecture (COA) scale. The rates below are **effective-dated reference
 data** (encoded in `@esti/contracts` `coa.ts`); the COA scale is revised
 periodically — verify against the current official COA circular before relying on
 it for billing.
@@ -132,22 +131,10 @@ it for billing.
 - A fee **below the COA minimum** for its category is a compliance risk; ESTI
   warns and records an audited override rather than hard-blocking.
 
-### Conditions of Engagement — stages & cumulative payment schedule
-
-| # | Stage | Cumulative % |
-|---|---|---|
-| 1 | Client's brief (retainer) | 5 |
-| 2 | Concept design | 10 |
-| 3 | Preliminary design & estimate | 20 |
-| 4 | Drawings for statutory approvals | 35 |
-| 5 | Working drawings & tender documents | 45 |
-| 6 | Appointment of contractors | 55 |
-| 7 | Construction / site supervision | 90 |
-| 8 | Completion | 100 |
-
-Phase-linked invoicing uses these milestones; the default phase plan is derived
-from this schedule. Topographical survey and soil tests are client-borne, not
-part of the professional fee.
+Project stages are deliberately general and are defined in the PRD and module
+profile rather than derived from a COA payment schedule. Stage-linked invoicing
+uses the project's agreed fee allocation. Topographical survey and soil tests
+are client-borne unless the project agreement states otherwise.
 
 ### Professional Conduct (Regulations, 1989)
 

@@ -3,7 +3,6 @@ import {
   CoaWorkCategory,
   coaMinimumFee,
   coaRatio,
-  coaStagePlan,
   isBelowCoaMinimum,
 } from "./coa.js";
 
@@ -20,16 +19,5 @@ describe("COA scale of charges", () => {
     expect(coaRatio(43500000, min)).toBeCloseTo(0.87, 2);
     expect(isBelowCoaMinimum(43500000, min)).toBe(true);
     expect(isBelowCoaMinimum(50000000, min)).toBe(false);
-  });
-});
-
-describe("COA stage plan", () => {
-  it("per-stage percentages sum to 100", () => {
-    const total = coaStagePlan().reduce((a, s) => a + s.stagePct, 0);
-    expect(total).toBe(100);
-  });
-  it("construction stage is the largest single share (35%)", () => {
-    const construction = coaStagePlan().find((s) => s.code === "CONSTRUCTION");
-    expect(construction?.stagePct).toBe(35);
   });
 });

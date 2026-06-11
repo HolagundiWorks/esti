@@ -4,8 +4,8 @@ import {
   ProjectSiteUpdate,
   ProjectStatus,
   ProjectWorkType,
+  DEFAULT_PHASE_PLAN,
   can,
-  coaStagePlan,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
@@ -58,7 +58,7 @@ export const projectOfficeRouter = router({
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
     const { ref } = await nextRef(ctx.db, "projectoffice", "PRJ");
-    // Project + its COA phase plan are created atomically.
+    // Project + its general delivery stage plan are created atomically.
     const row = await ctx.db.transaction(async (tx) => {
       const [p] = await tx
         .insert(projectOffices)
@@ -81,11 +81,11 @@ export const projectOfficeRouter = router({
         })
         .returning();
       await tx.insert(phases).values(
-        coaStagePlan().map((s, i) => ({
+        DEFAULT_PHASE_PLAN.map((s, i) => ({
           projectId: p!.id,
           code: s.code,
           label: s.label,
-          billingPct: s.stagePct,
+          billingPct: s.billingPct,
           sortOrder: (i + 1) * 10,
         })),
       );

@@ -69,7 +69,7 @@ team, consultants, contractors, and settings.
 - Archive is the default removal path. Permanent purge is owner-only and must
   preserve legally retained financial/audit records or produce an export.
 - Project lifecycle is Enquiry, Proposal, Active, On hold, Completed, or
-  Cancelled. It is independent from COA phase progress and is filterable across
+  Cancelled. It is independent from project-stage progress and is filterable across
   project and dashboard views.
 
 ### Compliance

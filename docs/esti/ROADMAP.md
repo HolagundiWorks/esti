@@ -14,7 +14,7 @@ roadmap item and can be revised independently of the delivery plan below.
 ## Current Baseline
 
 Delivered: authentication and staff ladder, client/consultant portals, clients,
-projects and COA phases, tasks and workload, firm/team/HR, fee proposals,
+projects and general delivery stages, tasks and workload, firm/team/HR, fee proposals,
 invoices and filing abstracts, reconciliation, statutory permit records, a BBMP
 seed calculator, drawings and DXF
 takeoff, approvals, consultants, proposals/contracts/letters, transmittals,
@@ -94,7 +94,9 @@ keyboard, dark-theme, and responsive browser review.
 - [x] Critical notes with category, priority, status, visibility, owner, due date.
 - [x] Decision register with rationale, approval, impact, and linked objects.
 - [x] Correct project lifecycle status filtering and labels; keep lifecycle
-  separate from COA phase status.
+  separate from project-stage status.
+- [x] Replace COA-derived project phases with neutral architectural delivery
+  stages while preserving existing phase IDs and linked invoices.
 - [ ] General revision feed for drawings, specifications, mood boards, BOQs,
   agreements, and reports, with client revision intelligence on each item.
 - [ ] Revision intelligence: revision budget, impact preview, feedback quality,

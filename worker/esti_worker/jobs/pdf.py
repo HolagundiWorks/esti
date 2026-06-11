@@ -284,7 +284,7 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
       </table>
 
       {f'<h4>Scope</h4><p style="white-space:pre-wrap">{_e(f.get("scope"))}</p>' if f.get("scope") else ''}
-      <p class="muted" style="margin-top:24px">{_e(firm.get('legalName'))} · architectural services per the COA Conditions of Engagement.</p>
+      <p class="muted" style="margin-top:24px">{_e(firm.get('legalName'))} · architectural professional services.</p>
     </body></html>"""
 
 
@@ -384,13 +384,13 @@ def _proposal_html(pr: dict[str, Any], firm: dict[str, Any]) -> str:
       </table>
       <h4>Scope of work</h4>
       <p class="pre">{_e(pr.get('scope') or '—')}</p>
-      <h4>Stage-wise engagement (COA)</h4>
+      <h4>Project stages and fee allocation</h4>
       <table><thead><tr><th>Stage</th><th class="r">Billing %</th></tr></thead>
         <tbody>{stage_rows or '<tr><td colspan=2 class="muted">—</td></tr>'}</tbody></table>
       {f'<h4>Notes</h4><p class="pre">{_e(pr.get("notes"))}</p>' if pr.get('notes') else ''}
       <p class="muted" style="margin-top:28px">Accepted for and on behalf of the Client: ____________________
         &nbsp;&nbsp; Date: __________</p>
-      <p class="muted">For {_e(firm.get('legalName'))} — per the COA Conditions of Engagement.</p>
+      <p class="muted">For {_e(firm.get('legalName'))} — subject to the agreed project scope and terms.</p>
     </body></html>"""
 
 

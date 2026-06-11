@@ -1,4 +1,4 @@
-import { GstSystem, coaStagePlan, computeGst } from "@esti/contracts";
+import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -72,13 +72,13 @@ export const adminRouter = router({
         .returning();
       projectsCreated++;
 
-      // COA stage plan as phases.
+      // General project delivery stages.
       await ctx.db.insert(phases).values(
-        coaStagePlan().map((st, idx) => ({
+        DEFAULT_PHASE_PLAN.map((st, idx) => ({
           projectId: project!.id,
           code: st.code,
           label: st.label,
-          billingPct: st.stagePct,
+          billingPct: st.billingPct,
           sortOrder: idx,
           status: idx === 0 ? "COMPLETE" : idx === 1 ? "IN_PROGRESS" : "NOT_STARTED",
         })),

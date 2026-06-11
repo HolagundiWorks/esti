@@ -10,7 +10,7 @@
  * staff, assignments, tasks and client-log entries so each persona has
  * something real to explore. NOT for production use.
  */
-import { GstSystem, coaStagePlan, computeGst } from "@esti/contracts";
+import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
@@ -369,13 +369,13 @@ async function main(): Promise<void> {
       .returning();
     const projectId = project!.id;
 
-    // COA phases — progress varies per project.
+    // General project stages - progress varies per project.
     await db.insert(phases).values(
-      coaStagePlan().map((st, idx) => ({
+      DEFAULT_PHASE_PLAN.map((st, idx) => ({
         projectId,
         code: st.code,
         label: st.label,
-        billingPct: st.stagePct,
+        billingPct: st.billingPct,
         sortOrder: idx,
         status: idx < pi + 1 ? "COMPLETE" : idx === pi + 1 ? "IN_PROGRESS" : "NOT_STARTED",
       })),
