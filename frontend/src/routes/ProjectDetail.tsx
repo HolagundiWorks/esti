@@ -25,6 +25,7 @@ import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { ContextualComments } from "../components/ContextualComments.js";
+import { ProjectOverview } from "../components/ProjectOverview.js";
 import { trpc } from "../lib/trpc.js";
 
 const PROJECT_STATUS_TAG: Record<string, "gray" | "blue" | "purple" | "green" | "red"> = {
@@ -43,6 +44,7 @@ export function ProjectDetail() {
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId: id }, { enabled: !!id });
 
   const TAB_SLUGS = [
+    "overview",
     "clientlog",
     "compliance",
     "costing",
@@ -52,7 +54,7 @@ export function ProjectDetail() {
     "comments",
     "settings",
   ];
-  const tabSlug = searchParams.get("tab") ?? "clientlog";
+  const tabSlug = searchParams.get("tab") ?? "overview";
   const tabIndex = Math.max(0, TAB_SLUGS.indexOf(tabSlug));
 
   if (project.isLoading) return <p>Loading…</p>;
@@ -119,6 +121,7 @@ export function ProjectDetail() {
         }
       >
         <TabList aria-label="Project sections" contained>
+          <Tab>Overview</Tab>
           <Tab>Client log</Tab>
           <Tab>Compliance</Tab>
           <Tab>Costing</Tab>
@@ -129,6 +132,9 @@ export function ProjectDetail() {
           <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
+        <TabPanel>
+          <ProjectOverview projectId={id} />
+        </TabPanel>
         <TabPanel>
       <ProjectClientLog projectId={id} />
         </TabPanel>

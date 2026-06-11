@@ -349,6 +349,45 @@ export const comments = pgTable("esti_comment", {
   createdAt: createdAt(),
 });
 
+/** Project-critical notes that drive follow-up and change control. */
+export const criticalNotes = pgTable("esti_critical_note", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  priority: text("priority").notNull().default("MEDIUM"),
+  status: text("status").notNull().default("OPEN"),
+  visibility: text("visibility").notNull().default("STAFF"),
+  owner: text("owner"),
+  dueDate: date("due_date"),
+  body: text("body"),
+  actorId: uuid("actor_id").references(() => users.id),
+  actorName: text("actor_name"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Project decision register with rationale, approval, impact, and links. */
+export const decisions = pgTable("esti_decision", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  rationale: text("rationale").notNull(),
+  approval: text("approval").notNull().default("PENDING"),
+  impact: text("impact").notNull().default("LOW"),
+  linkedObjectType: text("linked_object_type"),
+  linkedObjectId: text("linked_object_id"),
+  status: text("status").notNull().default("OPEN"),
+  actorId: uuid("actor_id").references(() => users.id),
+  actorName: text("actor_name"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Per-project BBMP bylaw-calculator inputs + computed envelope (one per project). */
 export const bylawCalcs = pgTable("esti_bylaw_calc", {
   id: id(),

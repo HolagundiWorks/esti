@@ -3,6 +3,8 @@ import { adminRouter } from "../modules/admin/router.js";
 import { auditRouter } from "../modules/audit/router.js";
 import { activityRouter } from "../modules/activity/router.js";
 import { commentRouter } from "../modules/comment/router.js";
+import { criticalNoteRouter } from "../modules/criticalNote/router.js";
+import { decisionRouter } from "../modules/decision/router.js";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
 import { bbsRouter } from "../modules/boq/bbs.js";
@@ -57,6 +59,8 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   activity: activityRouter,
   comments: commentRouter,
+  criticalNotes: criticalNoteRouter,
+  decisions: decisionRouter,
   clients: clientRouter,
   clientLog: clientLogRouter,
   projectOffice: projectOfficeRouter,
