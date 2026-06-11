@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const withProject = {
@@ -72,10 +73,19 @@ export const taskRouter = router({
         createdById: ctx.user.id,
       })
       .returning();
+    await writeAudit(ctx.db, {
+      entity: "task",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
     return row!;
   }),
 
   update: protectedProcedure.input(TaskUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(tasks).where(eq(tasks.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const completedAt =
       input.status === "DONE" ? new Date() : input.status !== undefined ? null : undefined;
     const [row] = await ctx.db
@@ -91,13 +101,30 @@ export const taskRouter = router({
       })
       .where(eq(tasks.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "task",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      before,
+      after: row,
+    });
+    return row!;
   }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(tasks).where(eq(tasks.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(tasks).where(eq(tasks.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "task",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });

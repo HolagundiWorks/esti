@@ -44,13 +44,29 @@ export const letterRouter = router({
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     await ctx.db.update(letters).set({ pdfStatus: "PENDING" }).where(eq(letters.id, input.id));
     await enqueueJob("render_pdf", { target: "letter", id: row.id, firm: await firmPayload(ctx.db) }, ctx.requestId);
+    await writeAudit(ctx.db, {
+      entity: "letter",
+      entityId: input.id,
+      action: "PDF_REQUEST",
+      actorId: ctx.user.id,
+      before: { pdfStatus: row.pdfStatus },
+      after: { pdfStatus: "PENDING" },
+    });
     return { ok: true };
   }),
 
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(letters).where(eq(letters.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.delete(letters).where(eq(letters.id, input.id));
+    await writeAudit(ctx.db, {
+      entity: "letter",
+      entityId: input.id,
+      action: "DELETE",
+      actorId: ctx.user.id,
+      before: row,
+    });
     return { ok: true };
   }),
 });
@@ -83,17 +99,36 @@ export const contractRouter = router({
   updateStatus: protectedProcedure
     .input(z.object({ id: z.string().uuid(), status: ContractStatus }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(contracts).where(eq(contracts.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [row] = await ctx.db
         .update(contracts)
         .set({ status: input.status })
         .where(eq(contracts.id, input.id))
         .returning();
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await writeAudit(ctx.db, {
+        entity: "contract",
+        entityId: input.id,
+        action: "STATUS_UPDATE",
+        actorId: ctx.user.id,
+        before: { status: before.status },
+        after: { status: row.status },
+      });
       return row;
     }),
 
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(contracts).where(eq(contracts.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     await ctx.db.delete(contracts).where(eq(contracts.id, input.id));
+    await writeAudit(ctx.db, {
+      entity: "contract",
+      entityId: input.id,
+      action: "DELETE",
+      actorId: ctx.user.id,
+      before,
+    });
     return { ok: true };
   }),
 });

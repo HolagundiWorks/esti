@@ -54,13 +54,29 @@ export const inspectionRouter = router({
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     await ctx.db.update(inspections).set({ pdfStatus: "PENDING" }).where(eq(inspections.id, input.id));
     await enqueueJob("render_pdf", { target: "inspection", id: row.id, firm: await firmPayload(ctx.db) }, ctx.requestId);
+    await writeAudit(ctx.db, {
+      entity: "inspection",
+      entityId: input.id,
+      action: "PDF_REQUEST",
+      actorId: ctx.user.id,
+      before: { pdfStatus: row.pdfStatus },
+      after: { pdfStatus: "PENDING" },
+    });
     return { ok: true };
   }),
 
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(inspections).where(eq(inspections.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.delete(inspections).where(eq(inspections.id, input.id));
+    await writeAudit(ctx.db, {
+      entity: "inspection",
+      entityId: input.id,
+      action: "DELETE",
+      actorId: ctx.user.id,
+      before: row,
+    });
     return { ok: true };
   }),
 });

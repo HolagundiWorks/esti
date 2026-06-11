@@ -39,8 +39,9 @@ override the remediation work below.
 - [ ] Verify project ownership/scope for every object upload and mutation.
 - [x] Add configurable Origin validation for cookie-authenticated writes.
 - [x] Add audit entries for binary uploads, including drawing revisions.
-- [ ] Add audit entries for tasks, document deletion,
-  mood-board changes, and every privileged state transition.
+- [x] Add before/after audit entries for task lifecycle writes.
+- [x] Add audit entries for document PDF requests/deletion and mood-board changes.
+- [ ] Complete audit coverage for every remaining privileged state transition.
 - [ ] Replace default hard deletion with archive/retention rules.
 - [ ] Add an owner-only audit review API and Carbon screen.
 - [ ] Add API integration tests for permission boundaries.
