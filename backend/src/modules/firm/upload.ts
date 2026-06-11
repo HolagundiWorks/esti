@@ -3,7 +3,7 @@ import { extname } from "node:path";
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
-import { uploadDenial } from "../../auth/upload.js";
+import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { firm } from "../../db/schema.js";
 import { getFirm } from "../../lib/firm.js";
@@ -20,7 +20,7 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
     config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
   }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
-    const denial = uploadDenial(user, "firm:admin");
+    const denial = uploadDenial(user, UPLOAD_ROUTE_CAPABILITIES["/upload/firm-logo"]);
     if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     let buf: Buffer | null = null;

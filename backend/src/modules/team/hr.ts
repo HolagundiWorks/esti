@@ -44,16 +44,33 @@ export const leaveRouter = router({
         reason: input.reason ?? null,
       })
       .returning();
+    await writeAudit(ctx.db, {
+      entity: "leave",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
     return row!;
   }),
 
   setStatus: hrProcedure.input(LeaveStatusUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(leaves).where(eq(leaves.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(leaves)
       .set({ status: input.status })
       .where(eq(leaves.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "leave",
+      entityId: input.id,
+      action: "STATUS_UPDATE",
+      actorId: ctx.user.id,
+      before: { status: before.status },
+      after: { status: row!.status },
+    });
+    return row!;
   }),
 });
 
@@ -117,12 +134,22 @@ export const payrollRouter = router({
   }),
 
   markPaid: hrProcedure.input(PayslipMarkPaid).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(payslips).where(eq(payslips.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(payslips)
       .set({ paid: true, paidDate: new Date().toISOString().slice(0, 10) })
       .where(eq(payslips.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "payslip",
+      entityId: input.id,
+      action: "MARK_PAID",
+      actorId: ctx.user.id,
+      before: { paid: before.paid, paidDate: before.paidDate },
+      after: { paid: row!.paid, paidDate: row!.paidDate },
+    });
+    return row!;
   }),
 
   byId: protectedProcedure
@@ -146,6 +173,14 @@ export const payrollRouter = router({
         id: row.id,
         firm: await firmPayload(ctx.db),
       }, ctx.requestId);
+      await writeAudit(ctx.db, {
+        entity: "payslip",
+        entityId: input.id,
+        action: "PDF_REQUEST",
+        actorId: ctx.user.id,
+        before: { pdfStatus: row.pdfStatus },
+        after: { pdfStatus: "PENDING" },
+      });
       return { ok: true };
     }),
 });

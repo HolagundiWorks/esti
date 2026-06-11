@@ -6,6 +6,7 @@ import { moodBoards, moodImages, specItems, specSheets } from "../../db/schema.j
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -70,6 +71,7 @@ export const specRouter = router({
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(specSheets).where(eq(specSheets.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    requireUnissuedDocument(row, "Specification sheet");
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.transaction(async (tx) => {
       await tx.delete(specItems).where(eq(specItems.specSheetId, input.id));

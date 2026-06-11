@@ -3,7 +3,7 @@ import { DRAWING_MAX_BYTES, DrawingUploadFields } from "@esti/contracts";
 import { eq, inArray, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
-import { uploadDenial } from "../../auth/upload.js";
+import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { drawings, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -23,7 +23,7 @@ export function registerDrawingUpload(app: FastifyInstance): void {
   }, async (req, reply) => {
     const token = req.cookies[SESSION_COOKIE];
     const user = await userFromToken(token);
-    const denial = uploadDenial(user);
+    const denial = uploadDenial(user, UPLOAD_ROUTE_CAPABILITIES["/upload/drawing"]);
     if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     const fields: Record<string, string> = {};

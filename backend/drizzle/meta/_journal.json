@@ -71,6 +71,13 @@
       "when": 1780974819883,
       "tag": "0009_demo_users",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781160840074,
+      "tag": "0010_project_archive",
+      "breakpoints": true
     }
   ]
 }

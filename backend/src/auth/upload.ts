@@ -3,6 +3,14 @@ import type { AuthUser } from "./session.js";
 
 export type UploadDenial = { status: 401 | 403; error: string };
 
+/** Every binary upload route and the capability it must enforce. */
+export const UPLOAD_ROUTE_CAPABILITIES = {
+  "/upload/drawing": "write",
+  "/upload/mood-image": "write",
+  "/upload/reconcile": "write",
+  "/upload/firm-logo": "firm:admin",
+} as const satisfies Record<string, Capability>;
+
 /** Shared authorization policy for cookie-authenticated REST upload routes. */
 export function uploadDenial(
   user: AuthUser | null,

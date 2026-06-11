@@ -150,6 +150,8 @@ export const projectOffices = pgTable("esti_projectoffice", {
   contractValuePaise: bigint("contract_value_paise", { mode: "number" }).notNull().default(0),
   dateStart: date("date_start"),
   createdById: uuid("created_by_id"),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  archivedById: uuid("archived_by_id").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

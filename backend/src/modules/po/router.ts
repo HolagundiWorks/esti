@@ -5,6 +5,7 @@ import { z } from "zod";
 import { poItems, purchaseOrders } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireDeletableStatus } from "../../lib/retention.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const poRouter = router({
@@ -102,6 +103,7 @@ export const poRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(purchaseOrders).where(eq(purchaseOrders.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      requireDeletableStatus(before.status, ["DRAFT", "CANCELLED"], "Purchase order");
       await ctx.db.transaction(async (tx) => {
         await tx.delete(poItems).where(eq(poItems.poId, input.id));
         await tx.delete(purchaseOrders).where(eq(purchaseOrders.id, input.id));

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AuthUser } from "./session.js";
-import { uploadDenial } from "./upload.js";
+import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "./upload.js";
 
 function user(role: AuthUser["role"], overrides: Partial<AuthUser> = {}): AuthUser {
   return {
@@ -16,6 +16,22 @@ function user(role: AuthUser["role"], overrides: Partial<AuthUser> = {}): AuthUs
 }
 
 describe("uploadDenial", () => {
+  it("registers every current binary upload route", () => {
+    expect(UPLOAD_ROUTE_CAPABILITIES).toEqual({
+      "/upload/drawing": "write",
+      "/upload/mood-image": "write",
+      "/upload/reconcile": "write",
+      "/upload/firm-logo": "firm:admin",
+    });
+  });
+
+  it.each(Object.entries(UPLOAD_ROUTE_CAPABILITIES))(
+    "requires authentication for %s",
+    (_route, capability) => {
+      expect(uploadDenial(null, capability)).toEqual({ status: 401, error: "unauthenticated" });
+    },
+  );
+
   it("requires authentication", () => {
     expect(uploadDenial(null)).toEqual({ status: 401, error: "unauthenticated" });
   });

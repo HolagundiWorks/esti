@@ -6,6 +6,7 @@ import { contracts, letters } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireDeletableStatus, requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -58,6 +59,7 @@ export const letterRouter = router({
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(letters).where(eq(letters.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    requireUnissuedDocument(row, "Letter");
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.delete(letters).where(eq(letters.id, input.id));
     await writeAudit(ctx.db, {
@@ -121,6 +123,7 @@ export const contractRouter = router({
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [before] = await ctx.db.select().from(contracts).where(eq(contracts.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    requireDeletableStatus(before.status, ["DRAFT"], "Contract");
     await ctx.db.delete(contracts).where(eq(contracts.id, input.id));
     await writeAudit(ctx.db, {
       entity: "contract",

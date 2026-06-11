@@ -1,4 +1,5 @@
 import { PermitCreate, PermitUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { permits } from "../../db/schema.js";
@@ -43,6 +44,8 @@ export const permitRouter = router({
   }),
 
   update: protectedProcedure.input(PermitUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(permits).where(eq(permits.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(permits)
       .set({
@@ -60,8 +63,9 @@ export const permitRouter = router({
       entityId: input.id,
       action: "UPDATE",
       actorId: ctx.user.id,
+      before,
       after: row,
     });
-    return row ?? null;
+    return row!;
   }),
 });

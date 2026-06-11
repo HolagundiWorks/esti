@@ -8,6 +8,7 @@ import {
   verifyPassword,
 } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
 
@@ -44,6 +45,13 @@ export const authRouter = router({
       .insert(users)
       .values({ email: input.email, fullName: input.fullName, role, passwordHash })
       .returning({ id: users.id, email: users.email, role: users.role, fullName: users.fullName });
+    await writeAudit(ctx.db, {
+      entity: "user",
+      entityId: u!.id,
+      action: isFirst ? "REGISTER_OWNER" : "REGISTER_USER",
+      actorId: ctx.user?.id ?? u!.id,
+      after: { email: u!.email, role: u!.role },
+    });
     return u!;
   }),
 
@@ -65,13 +73,27 @@ export const authRouter = router({
     // Successful login clears the per-email counter so it can't lock out a
     // legitimate user who just fat-fingered the password a few times.
     await clearRateLimit("login-email", input.email.toLowerCase());
+    await writeAudit(ctx.db, {
+      entity: "user",
+      entityId: u.id,
+      action: "LOGIN",
+      actorId: u.id,
+    });
     return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
   }),
 
   me: publicProcedure.query(({ ctx }) => ctx.user),
 
-  logout: publicProcedure.mutation(({ ctx }) => {
+  logout: publicProcedure.mutation(async ({ ctx }) => {
     ctx.setCookie(SESSION_COOKIE, "");
+    if (ctx.user) {
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "LOGOUT",
+        actorId: ctx.user.id,
+      });
+    }
     return { ok: true };
   }),
 });

@@ -106,6 +106,14 @@ export const feeProposalRouter = router({
         id: row.id,
         firm: await firmPayload(ctx.db),
       }, ctx.requestId);
+      await writeAudit(ctx.db, {
+        entity: "feeproposal",
+        entityId: input.id,
+        action: "PDF_REQUEST",
+        actorId: ctx.user.id,
+        before: { pdfStatus: row.pdfStatus },
+        after: { pdfStatus: "PENDING" },
+      });
       return { ok: true };
     }),
 });

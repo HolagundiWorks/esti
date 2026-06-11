@@ -4,7 +4,7 @@ import { MOOD_IMAGE_EXTENSIONS, MOOD_IMAGE_MAX_BYTES } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
-import { uploadDenial } from "../../auth/upload.js";
+import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { moodBoards, moodImages } from "../../db/schema.js";
 import { imageMatchesExt } from "../../lib/filetype.js";
@@ -18,7 +18,7 @@ export function registerMoodImageUpload(app: FastifyInstance): void {
     { config: { rateLimit: { max: 60, timeWindow: "1 minute" } } },
     async (req, reply) => {
       const user = await userFromToken(req.cookies[SESSION_COOKIE]);
-      const denial = uploadDenial(user);
+      const denial = uploadDenial(user, UPLOAD_ROUTE_CAPABILITIES["/upload/mood-image"]);
       if (denial) return reply.code(denial.status).send({ error: denial.error });
 
       const fields: Record<string, string> = {};

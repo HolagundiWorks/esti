@@ -1,4 +1,5 @@
 import { PhaseUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { phases } from "../../db/schema.js";
@@ -17,6 +18,8 @@ export const phaseRouter = router({
     }),
 
   update: protectedProcedure.input(PhaseUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(phases).where(eq(phases.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(phases)
       .set({
@@ -31,8 +34,9 @@ export const phaseRouter = router({
       entityId: input.id,
       action: "UPDATE",
       actorId: ctx.user.id,
+      before,
       after: row,
     });
-    return row ?? null;
+    return row!;
   }),
 });

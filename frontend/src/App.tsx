@@ -34,6 +34,7 @@ import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { FloatingCalculator } from "./components/FloatingCalculator.js";
 import { Alerts } from "./routes/Alerts.js";
+import { ArchivedProjects } from "./routes/ArchivedProjects.js";
 import { AuditLog } from "./routes/AuditLog.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
@@ -150,6 +151,7 @@ export function App() {
         { label: "Company", to: "/company" },
         ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
         ...(can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
+        ...(can(user.role, "project:delete") ? [{ label: "Archived projects", to: "/archived-projects" }] : []),
         { label: "My profile", to: "/settings" },
       ],
     },
@@ -217,6 +219,7 @@ export function App() {
           <Route path="/company" element={<Company />} />
           {can(user.role, "firm:admin") && <Route path="/users" element={<Users />} />}
           {can(user.role, "firm:admin") && <Route path="/audit" element={<AuditLog />} />}
+          {can(user.role, "project:delete") && <Route path="/archived-projects" element={<ArchivedProjects />} />}
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

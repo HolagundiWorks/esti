@@ -8,37 +8,12 @@ import {
   coaStagePlan,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq, inArray, ilike } from "drizzle-orm";
+import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import {
-  approvals,
-  assignments,
-  bbsItems,
-  bbsSchedules,
-  bylawCalcs,
-  bylaws,
-  clientLogs,
-  contracts,
-  drawings,
-  engagements,
-  estimateItems,
-  estimates,
-  feeProposals,
-  inspections,
-  invoices,
-  letters,
-  measurements,
-  moodBoards,
-  moodImages,
-  permits,
   phases,
-  poItems,
   projectLogs,
   projectOffices,
-  proposals,
-  purchaseOrders,
-  specItems,
-  specSheets,
   users,
 } from "../../db/schema.js";
 import { verifyPassword } from "../../auth/session.js";
@@ -48,7 +23,10 @@ import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const projectOfficeRouter = router({
   list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => {
-    const where = input.search ? ilike(projectOffices.title, `%${input.search}%`) : undefined;
+    const where = and(
+      isNull(projectOffices.archivedAt),
+      input.search ? ilike(projectOffices.title, `%${input.search}%`) : undefined,
+    );
     return ctx.db
       .select()
       .from(projectOffices)
@@ -59,8 +37,21 @@ export const projectOfficeRouter = router({
   }),
 
   byId: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
-    const rows = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id)).limit(1);
+    const rows = await ctx.db
+      .select()
+      .from(projectOffices)
+      .where(and(eq(projectOffices.id, input.id), isNull(projectOffices.archivedAt)))
+      .limit(1);
     return rows[0] ?? null;
+  }),
+
+  listArchived: protectedProcedure.query(async ({ ctx }) => {
+    if (!can(ctx.user.role, "project:delete")) throw new TRPCError({ code: "FORBIDDEN" });
+    return ctx.db
+      .select()
+      .from(projectOffices)
+      .where(isNotNull(projectOffices.archivedAt))
+      .orderBy(desc(projectOffices.archivedAt));
   }),
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
@@ -103,6 +94,8 @@ export const projectOfficeRouter = router({
   }),
 
   updateSite: protectedProcedure.input(ProjectSiteUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(projectOffices)
       .set({
@@ -111,7 +104,15 @@ export const projectOfficeRouter = router({
       })
       .where(eq(projectOffices.id, input.id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "projectoffice",
+      entityId: input.id,
+      action: "SITE_UPDATE",
+      actorId: ctx.user.id,
+      before: { siteAddress: before.siteAddress, siteAreaSqm: before.siteAreaSqm },
+      after: { siteAddress: row!.siteAddress, siteAreaSqm: row!.siteAreaSqm },
+    });
+    return row!;
   }),
 
   /** Edit core project details (project settings). */
@@ -128,6 +129,8 @@ export const projectOfficeRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [row] = await ctx.db
         .update(projectOffices)
         .set({
@@ -140,76 +143,86 @@ export const projectOfficeRouter = router({
         })
         .where(eq(projectOffices.id, input.id))
         .returning();
-      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
       await writeAudit(ctx.db, {
         entity: "projectoffice",
         entityId: input.id,
         action: "UPDATE",
         actorId: ctx.user.id,
-        after: { title: input.title, status: input.status },
+        before: {
+          title: before.title,
+          status: before.status,
+          projectType: before.projectType,
+          workType: before.workType,
+          jurisdiction: before.jurisdiction,
+          dateStart: before.dateStart,
+        },
+        after: {
+          title: row!.title,
+          status: row!.status,
+          projectType: row!.projectType,
+          workType: row!.workType,
+          jurisdiction: row!.jurisdiction,
+          dateStart: row!.dateStart,
+        },
       });
-      return row;
+      return row!;
     }),
 
-  /** Delete a project and all of its child records (owner). */
+  /** Archive a project while retaining every child record and audit entry. */
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid(), password: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       if (!can(ctx.user.role, "project:delete"))
-        throw new TRPCError({ code: "FORBIDDEN", message: "You cannot delete projects" });
-      // Re-authenticate before this irreversible cascade delete.
+        throw new TRPCError({ code: "FORBIDDEN", message: "You cannot archive projects" });
+      // Re-authenticate before hiding an entire project from active operations.
       const [me] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id));
       if (!me?.passwordHash || !(await verifyPassword(me.passwordHash, input.password))) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });
       }
-      const pid = input.id;
-      await ctx.db.transaction(async (tx) => {
-        const estIds = (
-          await tx.select({ id: estimates.id }).from(estimates).where(eq(estimates.projectId, pid))
-        ).map((r) => r.id);
-        const bbsIds = (
-          await tx.select({ id: bbsSchedules.id }).from(bbsSchedules).where(eq(bbsSchedules.projectId, pid))
-        ).map((r) => r.id);
-        if (estIds.length) await tx.delete(estimateItems).where(inArray(estimateItems.estimateId, estIds));
-        if (bbsIds.length) await tx.delete(bbsItems).where(inArray(bbsItems.bbsId, bbsIds));
-        // Procurement, documents & office records added since the original cascade.
-        const poIds = (await tx.select({ id: purchaseOrders.id }).from(purchaseOrders).where(eq(purchaseOrders.projectId, pid))).map((r) => r.id);
-        if (poIds.length) await tx.delete(poItems).where(inArray(poItems.poId, poIds));
-        await tx.delete(purchaseOrders).where(eq(purchaseOrders.projectId, pid));
-        const specIds = (await tx.select({ id: specSheets.id }).from(specSheets).where(eq(specSheets.projectId, pid))).map((r) => r.id);
-        if (specIds.length) await tx.delete(specItems).where(inArray(specItems.specSheetId, specIds));
-        await tx.delete(specSheets).where(eq(specSheets.projectId, pid));
-        const boardIds = (await tx.select({ id: moodBoards.id }).from(moodBoards).where(eq(moodBoards.projectId, pid))).map((r) => r.id);
-        if (boardIds.length) await tx.delete(moodImages).where(inArray(moodImages.moodBoardId, boardIds));
-        await tx.delete(moodBoards).where(eq(moodBoards.projectId, pid));
-        await tx.delete(proposals).where(eq(proposals.projectId, pid));
-        await tx.delete(inspections).where(eq(inspections.projectId, pid));
-        await tx.delete(letters).where(eq(letters.projectId, pid));
-        await tx.delete(contracts).where(eq(contracts.projectId, pid));
-        await tx.delete(measurements).where(eq(measurements.projectId, pid));
-        await tx.delete(estimates).where(eq(estimates.projectId, pid));
-        await tx.delete(bbsSchedules).where(eq(bbsSchedules.projectId, pid));
-        await tx.delete(drawings).where(eq(drawings.projectId, pid));
-        await tx.delete(approvals).where(eq(approvals.projectId, pid));
-        await tx.delete(clientLogs).where(eq(clientLogs.projectId, pid));
-        await tx.delete(permits).where(eq(permits.projectId, pid));
-        await tx.delete(bylaws).where(eq(bylaws.projectId, pid));
-        await tx.delete(bylawCalcs).where(eq(bylawCalcs.projectId, pid));
-        await tx.delete(engagements).where(eq(engagements.projectId, pid));
-        await tx.delete(assignments).where(eq(assignments.projectId, pid));
-        await tx.delete(invoices).where(eq(invoices.projectId, pid));
-        await tx.delete(feeProposals).where(eq(feeProposals.projectId, pid));
-        await tx.delete(phases).where(eq(phases.projectId, pid));
-        await tx.delete(projectLogs).where(eq(projectLogs.projectId, pid));
-        await tx.delete(projectOffices).where(eq(projectOffices.id, pid));
-      });
+      const [before] = await ctx.db
+        .select()
+        .from(projectOffices)
+        .where(and(eq(projectOffices.id, input.id), isNull(projectOffices.archivedAt)));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const archivedAt = new Date();
+      await ctx.db
+        .update(projectOffices)
+        .set({ archivedAt, archivedById: ctx.user.id })
+        .where(eq(projectOffices.id, input.id));
       await writeAudit(ctx.db, {
         entity: "projectoffice",
-        entityId: pid,
-        action: "DELETE",
+        entityId: input.id,
+        action: "ARCHIVE",
         actorId: ctx.user.id,
+        before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
+        after: { archivedAt, archivedById: ctx.user.id },
       });
       return { ok: true };
+    }),
+
+  restore: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!can(ctx.user.role, "project:delete")) throw new TRPCError({ code: "FORBIDDEN" });
+      const [before] = await ctx.db
+        .select()
+        .from(projectOffices)
+        .where(and(eq(projectOffices.id, input.id), isNotNull(projectOffices.archivedAt)));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const [row] = await ctx.db
+        .update(projectOffices)
+        .set({ archivedAt: null, archivedById: null })
+        .where(eq(projectOffices.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "projectoffice",
+        entityId: input.id,
+        action: "RESTORE",
+        actorId: ctx.user.id,
+        before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
+        after: { archivedAt: null, archivedById: null },
+      });
+      return row!;
     }),
 
   // --- Internal project log (audit notes) ---
@@ -235,6 +248,13 @@ export const projectOfficeRouter = router({
           authorName: ctx.user.fullName,
         })
         .returning();
+      await writeAudit(ctx.db, {
+        entity: "projectlog",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
       return row!;
     }),
 });

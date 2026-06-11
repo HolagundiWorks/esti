@@ -30,13 +30,13 @@ override the remediation work below.
 
 **Gate:** no canonical documents contradict product scope or delivery status.
 
-## Phase 1 - Security, Authorization, And Retention [P0]
+## Phase 1 - Security, Authorization, And Retention [P0] - Complete 2026-06-11
 
 - [x] Apply the same role/capability checks to REST uploads as tRPC procedures.
 - [x] Prevent client, consultant, contractor, viewer, and demo accounts from
   unauthorized uploads or project references.
 - [x] Reject drawing revision roots that do not exist or belong to another project.
-- [ ] Verify project ownership/scope for every object upload and mutation.
+- [x] Verify project ownership/scope for every object upload and mutation.
   - [x] Reject cross-project drawing transmittals, approval supersession, and
     invoice phase/client references; validate parent projects on key creates.
 - [x] Add configurable Origin validation for cookie-authenticated writes.
@@ -45,13 +45,16 @@ override the remediation work below.
 - [x] Add audit entries for document PDF requests/deletion and mood-board changes.
 - [x] Audit drawing/measurement, estimation, assignments, bylaws, client-log,
   and purchase-order operational writes.
-- [ ] Complete audit coverage for every remaining privileged state transition.
-- [ ] Replace default hard deletion with archive/retention rules.
+- [x] Complete audit coverage for every remaining privileged state transition.
+- [x] Replace destructive project deletion with reversible archive/restore;
+  retain issued documents and non-draft commercial records.
 - [x] Add an owner-only, paginated audit review API and Carbon screen.
-- [ ] Add API integration tests for permission boundaries.
+- [x] Add API integration tests for staff tiers, portal scope, demo restrictions,
+  capability procedures, project references, retention, and every upload route.
 
-**Gate:** negative authorization tests cover every role and every upload route;
-audit and retained records survive archive operations.
+**Gate met:** negative authorization tests cover every role and upload route;
+project archive preserves child records, and the append-only audit survives both
+archive/restore and administrative operational-data reset.
 
 ## Phase 2 - Pure Carbon And Responsive Shell [P0]
 

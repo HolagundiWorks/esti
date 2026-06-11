@@ -74,11 +74,21 @@ export const engagementRouter = router({
   updateStatus: protectedProcedure
     .input(EngagementStatusUpdate)
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(engagements).where(eq(engagements.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [row] = await ctx.db
         .update(engagements)
         .set({ status: input.status })
         .where(eq(engagements.id, input.id))
         .returning();
-      return row ?? null;
+      await writeAudit(ctx.db, {
+        entity: "engagement",
+        entityId: input.id,
+        action: "STATUS_UPDATE",
+        actorId: ctx.user.id,
+        before: { status: before.status },
+        after: { status: row!.status },
+      });
+      return row!;
     }),
 });

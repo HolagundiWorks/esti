@@ -1,4 +1,5 @@
 import { ApprovalCreate, ApprovalUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { approvals } from "../../db/schema.js";
@@ -54,6 +55,8 @@ export const approvalRouter = router({
   }),
 
   update: protectedProcedure.input(ApprovalUpdate).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(approvals).where(eq(approvals.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(approvals)
       .set({
@@ -68,8 +71,9 @@ export const approvalRouter = router({
       entityId: input.id,
       action: "UPDATE",
       actorId: ctx.user.id,
+      before,
       after: row,
     });
-    return row ?? null;
+    return row!;
   }),
 });

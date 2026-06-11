@@ -12,6 +12,7 @@ import {
   users,
 } from "../../db/schema.js";
 import { getFirm } from "../../lib/firm.js";
+import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { ownerProcedure, router } from "../../trpc/trpc.js";
 
@@ -23,6 +24,7 @@ const KEEP_TABLES = new Set([
   "esti_session",
   "esti_dsr_version",
   "esti_dsr_item",
+  "esti_audit",
 ]);
 
 const DEMO_CLIENTS = [
@@ -125,7 +127,14 @@ export const adminRouter = router({
       });
     }
 
-    return { ok: true, projectsCreated, invoicesCreated, clientsCreated: DEMO_PROJECTS.length };
+    const result = { ok: true, projectsCreated, invoicesCreated, clientsCreated: DEMO_PROJECTS.length };
+    await writeAudit(ctx.db, {
+      entity: "admin",
+      action: "IMPORT_DEMO",
+      actorId: ctx.user.id,
+      after: result,
+    });
+    return result;
   }),
 
   /**
@@ -158,7 +167,13 @@ export const adminRouter = router({
         sql`delete from esti_session where user_id in (select id from esti_user where role <> 'OWNER')`,
       );
       await ctx.db.execute(sql`delete from esti_user where role <> 'OWNER'`);
-
-      return { ok: true, tablesWiped: wipe.length };
+      const result = { ok: true, tablesWiped: wipe.length };
+      await writeAudit(ctx.db, {
+        entity: "admin",
+        action: "PURGE_OPERATIONAL_DATA",
+        actorId: ctx.user.id,
+        after: { tablesWiped: wipe.length },
+      });
+      return result;
     }),
 });

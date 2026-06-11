@@ -6,6 +6,7 @@ import { inspections } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -68,6 +69,7 @@ export const inspectionRouter = router({
   remove: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(inspections).where(eq(inspections.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    requireUnissuedDocument(row, "Inspection report");
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.delete(inspections).where(eq(inspections.id, input.id));
     await writeAudit(ctx.db, {

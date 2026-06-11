@@ -80,6 +80,7 @@ export const userRouter = router({
         entityId: input.id,
         action: "SET_ROLE",
         actorId: ctx.user.id,
+        before: { role: target.role },
         after: { role: input.role },
       });
       return u ?? null;
@@ -91,12 +92,22 @@ export const userRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (input.id === ctx.user.id)
         throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot disable your own account" });
+      const [before] = await ctx.db.select().from(users).where(eq(users.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const [u] = await ctx.db
         .update(users)
         .set({ disabled: input.disabled })
         .where(eq(users.id, input.id))
         .returning(publicUser);
-      return u ?? null;
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: input.id,
+        action: input.disabled ? "DISABLE" : "ENABLE",
+        actorId: ctx.user.id,
+        before: { disabled: before.disabled },
+        after: { disabled: u!.disabled },
+      });
+      return u!;
     }),
 
   /** Owner resets another user's password. */
@@ -120,7 +131,16 @@ export const userRouter = router({
   updateProfile: protectedProcedure
     .input(z.object({ fullName: z.string().min(2).max(200) }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select({ fullName: users.fullName }).from(users).where(eq(users.id, ctx.user.id));
       await ctx.db.update(users).set({ fullName: input.fullName }).where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "PROFILE_UPDATE",
+        actorId: ctx.user.id,
+        before,
+        after: { fullName: input.fullName },
+      });
       return { ok: true };
     }),
 
@@ -136,6 +156,12 @@ export const userRouter = router({
         .update(users)
         .set({ passwordHash: await hashPassword(input.newPassword) })
         .where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "CHANGE_PASSWORD",
+        actorId: ctx.user.id,
+      });
       return { ok: true };
     }),
 });

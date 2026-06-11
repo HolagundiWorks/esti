@@ -212,11 +212,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         <Tile style={{ maxWidth: 640, marginTop: 16, borderLeft: "3px solid var(--cds-text-error)" }}>
           <h4>Danger zone</h4>
           <p style={{ color: "var(--cds-text-secondary)", margin: "8px 0 12px" }}>
-            Permanently delete this project and all its records (phases, fees, invoices, drawings,
-            estimates, etc.). This cannot be undone.
+            Archive this project from active work while retaining its phases, fees, invoices,
+            drawings, estimates, and audit history. Authorized managers can restore it later.
           </p>
           <Button kind="danger" onClick={() => setConfirmDelete(true)}>
-            Delete project
+            Archive project
           </Button>
         </Tile>
       )}
@@ -224,8 +224,8 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       <Modal
         open={confirmDelete}
         danger
-        modalHeading="Delete project?"
-        primaryButtonText={remove.isPending ? "Deleting…" : "Delete permanently"}
+        modalHeading="Archive project?"
+        primaryButtonText={remove.isPending ? "Archiving…" : "Archive project"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={remove.isPending || adminPwd.length === 0}
         onRequestClose={closeDelete}
@@ -233,8 +233,8 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       >
         <Stack gap={5}>
           <p>
-            This deletes <strong>{p?.title}</strong> and every related record. This action cannot be
-            undone.
+            This removes <strong>{p?.title}</strong> from active project lists while retaining every
+            related record for audit and later restoration.
           </p>
           <PasswordInput
             id="ps-admin-pwd"
@@ -246,7 +246,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             <InlineNotification
               kind="error"
               lowContrast
-              title="Delete failed"
+              title="Archive failed"
               subtitle={remove.error.message}
             />
           )}

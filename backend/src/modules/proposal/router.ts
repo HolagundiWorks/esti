@@ -6,6 +6,7 @@ import { projectOffices, proposals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -83,6 +84,7 @@ export const proposalRouter = router({
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(proposals).where(eq(proposals.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    requireUnissuedDocument(row, "Proposal");
     if (row?.pdfKey) await removeObject(row.pdfKey);
     await ctx.db.delete(proposals).where(eq(proposals.id, input.id));
     await writeAudit(ctx.db, {

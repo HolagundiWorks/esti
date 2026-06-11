@@ -1,4 +1,5 @@
 import { FirmUpdate, PartnerCreate, PartnerUpdate } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { firm, partners } from "../../db/schema.js";
@@ -78,11 +79,20 @@ export const firmRouter = router({
         state: blankToNull(input.state),
       })
       .returning();
+    await writeAudit(ctx.db, {
+      entity: "partner",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
     return row!;
   }),
 
   updatePartner: ownerProcedure.input(PartnerUpdate).mutation(async ({ ctx, input }) => {
     const { id, ...rest } = input;
+    const [before] = await ctx.db.select().from(partners).where(eq(partners.id, id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
       .update(partners)
       .set({
@@ -104,13 +114,30 @@ export const firmRouter = router({
       })
       .where(eq(partners.id, id))
       .returning();
-    return row ?? null;
+    await writeAudit(ctx.db, {
+      entity: "partner",
+      entityId: id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      before,
+      after: row,
+    });
+    return row!;
   }),
 
   removePartner: ownerProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(partners).where(eq(partners.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(partners).where(eq(partners.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "partner",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+        before,
+      });
       return { ok: true };
     }),
 });
