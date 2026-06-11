@@ -103,38 +103,21 @@ keyboard, dark-theme, and responsive browser review.
   stages while preserving existing phase IDs and linked invoices.
 - [x] General revision feed for drawings with rev number, date, and note;
   surfaced on the project overview as "Drawing revision feed".
-- [ ] Extend revision feed to specifications, mood boards, BOQs, agreements,
-  and reports once those document types gain version control.
-- [ ] **CRIF — Design Review Workspace:** PDF canvas viewer with inline
-  annotation pins, changemark stamps, and a collapsible side panel for
-  review items; architect and client dual views of the same canvas.
 - [x] **CRIF — Decision states machine:** DRAFT → OPEN → CLIENT_REVIEW →
   ACCEPTED / REJECTED → LOCKED; state transitions produce activity entries;
   `DECISION_TRANSITIONS` map in contracts enforced server-side.
 - [x] **CRIF — Decision Ledger:** per-project table of all design decisions with
   CRIF state tag, revision category (minor/major/critical), impact, days open,
   and inline Transition button; owner and linked object fields on create form.
-- [ ] **CRIF — Revision Impact Engine:** before accepting a revision, surface
-  estimated effort days, timeline delta, and cost impact based on phase
-  progress and historical revision data; architect must acknowledge before
-  state transition to ACCEPTED.
-- [x] **CRIF — Cooling-Off Mechanism (v1):** decisions in OPEN or CLIENT_REVIEW
-  state past their review deadline surface a "Cooling off" tag in the
-  Decision Ledger; Transition button turns danger-red; full auto-lock
-  scheduler deferred to Phase 11 AI Studio background agents.
-- [x] Major/critical revision acknowledgement workflow: when transitioning a
-  MAJOR or CRITICAL decision to ACCEPTED, the transition modal shows a
-  warning notification and requires an explicit acknowledgement checkbox
-  before the Confirm button activates.
+- [x] **CRIF — Cooling-Off Mechanism (v1):** decisions past their review
+  deadline surface a "Cooling off" tag; Transition button turns danger-red.
+- [x] Major/critical revision acknowledgement: transitioning MAJOR or CRITICAL
+  decision to ACCEPTED requires an explicit acknowledgement checkbox.
 - [x] Decision summaries: per-decision "Next action" column computed from CRIF
-  state and review deadline (e.g. "Cooling-off: deadline passed — lock or
-  decide now."); owner and review-deadline fields on the create form.
-- [ ] Project health engine: schedule, finance, documentation, approvals,
-  resources — feeds Phase 4B signals.
+  state and review deadline; owner and review-deadline fields on create form.
 - [x] Archive project and retention-aware purge/export workflows: archive sets
-  a 90-day purge-after date; admin can export a JSON bundle (project, phases,
-  tasks, decisions, notes, drawings, invoices) and mark the project for purge
-  after the retention period; purge gate requires admin password re-auth.
+  a 90-day purge-after date; admin can export a JSON bundle and mark the
+  project for purge after the retention period; purge gate requires re-auth.
 
 **Gate:** a project's history and current risks can be understood without
 opening separate modules.
@@ -236,13 +219,6 @@ from the dashboard without opening individual project or invoice screens.
   on dashboard Team Intelligence tile.
 - [ ] **ASPRF — Performance bands:** Bronze / Silver / Gold / Platinum thresholds
   with visual badge; bands are informational and non-punitive.
-- [ ] **ASPRF — Reward points engine:** points awarded for task delivery, client
-  approval, collaboration events, and learning completions.
-- [ ] **ASPRF — Recognition system:** peer-to-peer shout-out, milestone badges,
-  and monthly spotlight; no manager-only views; all recognition is visible to
-  the whole team.
-- [ ] Pomodoro focus sessions and water reminders as opt-in, user-controlled
-  wellbeing helpers.
 
 **Gate:** workload is derived from assignments, tasks, time, and availability;
 performance scores are transparent, opt-in for wellbeing dimensions, and
@@ -334,6 +310,14 @@ smoke suite pass before any production declaration.
 
 ## Deferred Ideas [P3]
 
+- CRIF Design Review Workspace: PDF canvas viewer with annotation pins and
+  changemark stamps — requires a canvas library not in the current stack.
+- CRIF Revision Impact Engine: effort/timeline/cost estimates before accepting
+  a revision — requires sufficient historical revision data; revisit in Phase 11.
+- ASPRF Reward points engine and peer recognition system — gamification layer
+  that should be validated with users before building.
+- Pomodoro focus sessions and water reminders — opt-in wellbeing helpers;
+  out of scope for the core AORMS.
 - Recognition boards.
 - Drawing snapping and title-block extraction.
 - SSE/push updates after correctness and scale justify them.
