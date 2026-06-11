@@ -43,6 +43,7 @@ import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
+import { ActivityCenter } from "./routes/ActivityCenter.js";
 import { FeeProposals } from "./routes/FeeProposals.js";
 import { Filing } from "./routes/Filing.js";
 import { Invoices } from "./routes/Invoices.js";
@@ -102,12 +103,13 @@ export function App() {
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId) return <CollaboratorPortal />;
 
-  type NavLink = { label: string; to: string };
+  type NavLink = { label: string; to: string; icon?: CarbonIconType };
   // Grouped navigation (modules → sub-modules).
   const links: NavLink[] = [
-    { label: "Dashboard", to: "/" },
-    { label: "Projects", to: "/projects" },
-    { label: "Tasks", to: "/tasks" },
+    { label: "Dashboard", to: "/", icon: DashboardIcon },
+    { label: "Activity", to: "/activity", icon: Document },
+    { label: "Projects", to: "/projects", icon: Building },
+    { label: "Tasks", to: "/tasks", icon: TaskComplete },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -180,7 +182,7 @@ export function App() {
       <SideNav aria-label="Side navigation" isRail>
         <SideNavItems>
           {links.map((n) => (
-            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.to === "/" ? DashboardIcon : n.to === "/tasks" ? TaskComplete : Building} isActive={pathname === n.to}>
+            <SideNavLink key={n.to} as={Link} to={n.to} renderIcon={n.icon ?? DashboardIcon} isActive={pathname === n.to}>
               {n.label}
             </SideNavLink>
           ))}
@@ -199,6 +201,7 @@ export function App() {
         <div style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/activity" element={<ActivityCenter />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
