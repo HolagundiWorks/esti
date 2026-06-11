@@ -7,9 +7,11 @@ import {
 } from "@esti/contracts";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
+import { uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { reconciliations } from "../../db/schema.js";
 import { tabularMatchesExt } from "../../lib/filetype.js";
+import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { BUCKET, putObject } from "../../lib/storage.js";
@@ -23,8 +25,8 @@ export function registerReconcileUpload(app: FastifyInstance): void {
     config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
   }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
-    if (!user) return reply.code(401).send({ error: "unauthenticated" });
-    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
+    const denial = uploadDenial(user);
+    if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     const fields: Record<string, string> = {};
     let fileBuf: Buffer | null = null;
@@ -76,6 +78,14 @@ export function registerReconcileUpload(app: FastifyInstance): void {
       storageKey,
       fileName,
     }, String(req.id));
+
+    await writeAudit(db, {
+      entity: "reconcile",
+      entityId: row!.id,
+      action: "UPLOAD",
+      actorId: user!.id,
+      after: { ref, label: parsed.data.label, fileName, fileHash },
+    });
 
     return reply.code(201).send(row);
   });

@@ -32,12 +32,13 @@ override the remediation work below.
 
 ## Phase 1 - Security, Authorization, And Retention [P0]
 
-- [ ] Apply the same role/capability checks to REST uploads as tRPC procedures.
-- [ ] Prevent client, consultant, contractor, viewer, and demo accounts from
+- [x] Apply the same role/capability checks to REST uploads as tRPC procedures.
+- [x] Prevent client, consultant, contractor, viewer, and demo accounts from
   unauthorized uploads or project references.
 - [ ] Verify project ownership/scope for every object upload and mutation.
 - [ ] Add Origin validation or CSRF protection for cookie-authenticated writes.
-- [ ] Add audit entries for uploads, tasks, document deletion, drawing revisions,
+- [x] Add audit entries for binary uploads, including drawing revisions.
+- [ ] Add audit entries for tasks, document deletion,
   mood-board changes, and every privileged state transition.
 - [ ] Replace default hard deletion with archive/retention rules.
 - [ ] Add an owner-only audit review API and Carbon screen.

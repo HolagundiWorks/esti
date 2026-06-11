@@ -3,8 +3,10 @@ import { DRAWING_MAX_BYTES, DrawingUploadFields } from "@esti/contracts";
 import { eq, inArray, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
+import { uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
-import { drawings } from "../../db/schema.js";
+import { drawings, projectOffices } from "../../db/schema.js";
+import { writeAudit } from "../../lib/audit.js";
 import { looksLikeDxf } from "../../lib/filetype.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -21,8 +23,8 @@ export function registerDrawingUpload(app: FastifyInstance): void {
   }, async (req, reply) => {
     const token = req.cookies[SESSION_COOKIE];
     const user = await userFromToken(token);
-    if (!user) return reply.code(401).send({ error: "unauthenticated" });
-    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
+    const denial = uploadDenial(user);
+    if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     const fields: Record<string, string> = {};
     let fileBuf: Buffer | null = null;
@@ -39,6 +41,11 @@ export function registerDrawingUpload(app: FastifyInstance): void {
 
     const parsed = DrawingUploadFields.safeParse(fields);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    const [project] = await db
+      .select({ id: projectOffices.id })
+      .from(projectOffices)
+      .where(eq(projectOffices.id, parsed.data.projectId));
+    if (!project) return reply.code(404).send({ error: "project not found" });
     if (!fileBuf || fileBuf.length === 0) return reply.code(400).send({ error: "no file" });
     if (fileBuf.length > DRAWING_MAX_BYTES) return reply.code(413).send({ error: "file too large" });
     // Content sniff: reject anything that isn't a real (ASCII or binary) DXF.
@@ -93,6 +100,14 @@ export function registerDrawingUpload(app: FastifyInstance): void {
       storageKey,
       fileHash,
     }, String(req.id));
+
+    await writeAudit(db, {
+      entity: "drawing",
+      entityId: row!.id,
+      action: rootId ? "UPLOAD_REVISION" : "UPLOAD",
+      actorId: user!.id,
+      after: { projectId: parsed.data.projectId, ref, fileHash, revNo, rootId },
+    });
 
     return reply.code(201).send(row);
   });

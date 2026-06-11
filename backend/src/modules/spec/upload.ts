@@ -4,9 +4,11 @@ import { MOOD_IMAGE_EXTENSIONS, MOOD_IMAGE_MAX_BYTES } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
+import { uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { moodBoards, moodImages } from "../../db/schema.js";
 import { imageMatchesExt } from "../../lib/filetype.js";
+import { writeAudit } from "../../lib/audit.js";
 import { putObject } from "../../lib/storage.js";
 
 /** Mood-board image upload (binary, outside tRPC). Stored content-addressed. */
@@ -16,8 +18,8 @@ export function registerMoodImageUpload(app: FastifyInstance): void {
     { config: { rateLimit: { max: 60, timeWindow: "1 minute" } } },
     async (req, reply) => {
       const user = await userFromToken(req.cookies[SESSION_COOKIE]);
-      if (!user) return reply.code(401).send({ error: "unauthenticated" });
-      if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
+      const denial = uploadDenial(user);
+      if (denial) return reply.code(denial.status).send({ error: denial.error });
 
       const fields: Record<string, string> = {};
       let buf: Buffer | null = null;
@@ -50,6 +52,13 @@ export function registerMoodImageUpload(app: FastifyInstance): void {
         .insert(moodImages)
         .values({ moodBoardId: boardId, storageKey: key, caption: fields.caption ?? null })
         .returning();
+      await writeAudit(db, {
+        entity: "moodimage",
+        entityId: row!.id,
+        action: "UPLOAD",
+        actorId: user!.id,
+        after: { boardId, projectId: board.projectId, storageKey: key, caption: fields.caption ?? null },
+      });
       return reply.code(201).send(row);
     },
   );

@@ -3,9 +3,11 @@ import { extname } from "node:path";
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
+import { uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { firm } from "../../db/schema.js";
 import { getFirm } from "../../lib/firm.js";
+import { writeAudit } from "../../lib/audit.js";
 import { imageMatchesExt } from "../../lib/filetype.js";
 import { putObject } from "../../lib/storage.js";
 
@@ -18,9 +20,8 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
     config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
   }, async (req, reply) => {
     const user = await userFromToken(req.cookies[SESSION_COOKIE]);
-    if (!user) return reply.code(401).send({ error: "unauthenticated" });
-    if (user.isDemo) return reply.code(403).send({ error: "uploads are disabled on the demo account" });
-    if (user.role !== "OWNER") return reply.code(403).send({ error: "owner only" });
+    const denial = uploadDenial(user, "firm:admin");
+    if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     let buf: Buffer | null = null;
     let fileName = "logo.png";
@@ -47,6 +48,14 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
 
     const current = await getFirm(db);
     await db.update(firm).set({ logoKey: key }).where(eq(firm.id, current.id));
+    await writeAudit(db, {
+      entity: "firm",
+      entityId: current.id,
+      action: "LOGO_UPLOAD",
+      actorId: user!.id,
+      before: { logoKey: current.logoKey },
+      after: { logoKey: key },
+    });
     return reply.code(201).send({ ok: true, logoKey: key });
   });
 }
