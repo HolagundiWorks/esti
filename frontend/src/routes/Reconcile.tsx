@@ -2,6 +2,7 @@ import {
   Button,
   FileUploaderButton,
   InlineNotification,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -100,18 +101,13 @@ export function Reconcile() {
   const lines = (detailQ.data?.lines as Line[] | null) ?? [];
 
   return (
-    <div>
-      <h1>Reconciliation</h1>
-      <p>Match bank-statement credits against invoices (CSV / XLSX).</p>
+    <Stack gap={6}>
+      <Stack gap={2}>
+        <h1>Reconciliation</h1>
+        <p>Match bank-statement credits against invoices (CSV / XLSX).</p>
+      </Stack>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "flex-end",
-          margin: "16px 0",
-        }}
-      >
+      <Stack orientation="horizontal" gap={4}>
         <TextInput
           id="rcn-label"
           labelText="Batch label"
@@ -132,7 +128,7 @@ export function Reconcile() {
         <Button size="md" disabled={!file || !label || busy} onClick={upload}>
           {busy ? "Uploading…" : "Upload & reconcile"}
         </Button>
-      </div>
+      </Stack>
       {error && (
         <InlineNotification
           kind="error"
@@ -188,7 +184,7 @@ export function Reconcile() {
                 </TableCell>
                 <TableCell>
                   {r.status === "READY" && (
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <Stack orientation="horizontal" gap={2}>
                       <Button
                         kind="ghost"
                         size="sm"
@@ -206,7 +202,7 @@ export function Reconcile() {
                           Settle matched
                         </Button>
                       )}
-                    </div>
+                    </Stack>
                   )}
                 </TableCell>
               </TableRow>
@@ -216,7 +212,7 @@ export function Reconcile() {
       </TableContainer>
 
       {openId && (
-        <TableContainer title="Statement lines" style={{ marginTop: 24 }}>
+        <TableContainer title="Statement lines">
           <Table>
             <TableHead>
               <TableRow>
@@ -245,6 +241,6 @@ export function Reconcile() {
           </Table>
         </TableContainer>
       )}
-    </div>
+    </Stack>
   );
 }

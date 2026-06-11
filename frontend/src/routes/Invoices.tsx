@@ -78,22 +78,16 @@ export function Invoices() {
   const showSac = firmGst === GstSystem.REGULAR;
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
+    <Stack gap={6}>
+      <Stack orientation="horizontal" gap={5}>
+        <Stack gap={2} className="esti-grow">
           <h1>Invoices</h1>
           <p>GST tax invoices &amp; bills of supply across all projects.</p>
-        </div>
+        </Stack>
         {canInvoice && (
           <Button onClick={() => setOpen(true)}>New invoice</Button>
         )}
-      </div>
+      </Stack>
 
       <DataState
         loading={listQ.isLoading}
@@ -170,7 +164,6 @@ export function Invoices() {
                     <Tag
                       type={STATUS_TAG[iv.status] ?? "gray"}
                       size="sm"
-                      style={{ marginLeft: 4 }}
                     >
                       {iv.status}
                     </Tag>
@@ -279,6 +272,6 @@ export function Invoices() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

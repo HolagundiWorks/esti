@@ -88,19 +88,15 @@ export function Hr() {
   });
 
   return (
-    <div>
-      <h1>HR</h1>
+    <Stack gap={6}>
+      <Stack gap={2}>
+        <h1>HR</h1>
+        <p>Leave requests and payslip management for your team.</p>
+      </Stack>
 
       {/* Leaves */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 16,
-        }}
-      >
-        <h3>Leaves</h3>
+      <Stack orientation="horizontal" gap={5}>
+        <h2 className="esti-grow">Leaves</h2>
         <Button
           size="sm"
           disabled={team.length === 0}
@@ -108,7 +104,7 @@ export function Hr() {
         >
           Request leave
         </Button>
-      </div>
+      </Stack>
       <TableContainer title="Leave register">
         <Table>
           <TableHead>
@@ -137,7 +133,7 @@ export function Hr() {
                 </TableCell>
                 <TableCell>
                   {l.status === "REQUESTED" && (
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <Stack orientation="horizontal" gap={2}>
                       <Button
                         kind="ghost"
                         size="sm"
@@ -156,7 +152,7 @@ export function Hr() {
                       >
                         Reject
                       </Button>
-                    </div>
+                    </Stack>
                   )}
                 </TableCell>
               </TableRow>
@@ -166,15 +162,8 @@ export function Hr() {
       </TableContainer>
 
       {/* Payroll */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 32,
-        }}
-      >
-        <h3>Payroll</h3>
+      <Stack orientation="horizontal" gap={5}>
+        <h2 className="esti-grow">Payroll</h2>
         <Button
           size="sm"
           disabled={team.length === 0}
@@ -182,7 +171,7 @@ export function Hr() {
         >
           Generate payslip
         </Button>
-      </div>
+      </Stack>
       <TableContainer
         title="Payslips"
         description="Monthly salary — net of deductions"
@@ -380,6 +369,6 @@ export function Hr() {
           {generate.error && <p>{generate.error.message}</p>}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

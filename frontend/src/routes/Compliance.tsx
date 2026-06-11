@@ -23,13 +23,13 @@ export function Compliance() {
 
   return (
     <Stack gap={7}>
-      <div>
+      <Stack gap={2}>
         <h1>Compliance</h1>
         <p>
           Standalone development-control knowledge, calculations, and
           project-linked reports.
         </p>
-      </div>
+      </Stack>
       <Grid>
         <Column sm={4} md={4} lg={8}>
           <Select
@@ -55,7 +55,7 @@ export function Compliance() {
         <Column sm={4} md={4} lg={8}>
           <Tile>
             <Stack gap={3}>
-              <h3>Knowledge context</h3>
+              <h2>Knowledge context</h2>
               {projectQ.data ? (
                 <>
                   <Tag type="blue">{projectQ.data.jurisdiction}</Tag>

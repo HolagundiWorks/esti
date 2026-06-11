@@ -77,25 +77,20 @@ export function Tasks() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1>Tasks</h1>
+    <Stack gap={6}>
+      <Stack orientation="horizontal" gap={5}>
+        <Stack gap={2} className="esti-grow">
+          <h1>Tasks</h1>
+          <p>Project tasks across the office, assigned to team members.</p>
+        </Stack>
         <Button onClick={() => setOpen(true)}>New task</Button>
-      </div>
-      <div style={{ margin: "12px 0" }}>
-        <Checkbox
-          id="t-open"
-          labelText="Open tasks only (To do)"
-          checked={openOnly}
-          onChange={(_e, { checked }) => setOpenOnly(checked)}
-        />
-      </div>
+      </Stack>
+      <Checkbox
+        id="t-open"
+        labelText="Open tasks only (To do)"
+        checked={openOnly}
+        onChange={(_e, { checked }) => setOpenOnly(checked)}
+      />
 
       <DataState
         loading={listQ.isLoading}
@@ -357,6 +352,6 @@ export function Tasks() {
           />
         )}
       </Modal>
-    </div>
+    </Stack>
   );
 }

@@ -148,7 +148,7 @@ function FilingDueBoard({
       <Stack gap={5}>
         <Stack orientation="horizontal" gap={4}>
           <Pictogram width={32} height={32} />
-          <h4>{title}</h4>
+          <h3>{title}</h3>
         </Stack>
         <Stack gap={4}>
           {rows.map((r) => {
@@ -195,8 +195,8 @@ function DashboardMetricTile({
       <Stack orientation="horizontal" gap={4}>
         <Icon size={20} />
         <div className="esti-grow">
-          <h4>{title}</h4>
-          <h2>{error ? "—" : loading ? "…" : value ?? 0}</h2>
+          <p>{title}</p>
+          <h3>{error ? "—" : loading ? "…" : value ?? 0}</h3>
         </div>
       </Stack>
       <Tag type={error ? "red" : kind}>{error ? "Data unavailable" : tag}</Tag>
@@ -235,7 +235,7 @@ function DistroBoard({
   return (
     <Tile className="esti-fill">
       <Stack gap={5}>
-        <h4>{title}</h4>
+        <h3>{title}</h3>
         {loading ? (
           <InlineLoading description="Loading dashboard data…" />
         ) : error ? (
@@ -299,8 +299,8 @@ function ProjectStatusBoard({
       <Stack gap={5}>
       <Stack orientation="horizontal" gap={4}>
           <div className="esti-grow">
-            <h4>Project status</h4>
-            <h2>{error ? "—" : loading ? "…" : total}</h2>
+            <p>Project status</p>
+            <h3>{error ? "—" : loading ? "…" : total}</h3>
           </div>
           <Tag type={error ? "red" : "blue"}>
             {error ? "data unavailable" : "all projects"}
@@ -414,7 +414,7 @@ export function Dashboard() {
           <Stack gap={4}>
             <Stack gap={2}>
               <p>Office pulse</p>
-              <h3>Presentation summary</h3>
+              <h2>Office summary</h2>
             </Stack>
             <Grid condensed>
               <Column lg={4} md={4} sm={4}>
@@ -542,7 +542,7 @@ export function Dashboard() {
             <Stack orientation="horizontal" gap={4}>
               <div className="esti-grow">
                 <p>Recent activity</p>
-                <h4>Latest project movement</h4>
+                <h3>Latest activity</h3>
               </div>
               <Tag type="blue">{recentActivity.length} items</Tag>
             </Stack>
@@ -606,8 +606,8 @@ export function Dashboard() {
               onClick={() => navigate("/projects")}
             >
               <Stack gap={3}>
-                <h4>{p.label}</h4>
-                <h2>{p.count}</h2>
+                <p>{p.label}</p>
+                <h3>{p.count}</h3>
                 <ProgressBar
                   label={p.label}
                   hideLabel
@@ -630,8 +630,8 @@ export function Dashboard() {
               onClick={() => navigate("/projects")}
             >
               <Stack gap={3}>
-                <h4>{TYPE_LABEL[t.type] ?? t.type}</h4>
-                <h2>{t.count}</h2>
+                <p>{TYPE_LABEL[t.type] ?? t.type}</p>
+                <h3>{t.count}</h3>
                 <ProgressBar
                   label={TYPE_LABEL[t.type] ?? t.type}
                   hideLabel

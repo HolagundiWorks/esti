@@ -141,9 +141,11 @@ export function Company() {
   const districts = districtsFor(f.state);
 
   return (
-    <div>
-      <h1>Company profile</h1>
-      {!isOwner && <p>Read-only — only the owner can edit.</p>}
+    <Stack gap={6}>
+      <Stack gap={2}>
+        <h1>Company profile</h1>
+        {!isOwner && <p>Read-only — only the owner can edit.</p>}
+      </Stack>
       {msg && (
         <InlineNotification
           kind="success"
@@ -154,7 +156,7 @@ export function Company() {
         />
       )}
 
-      <Tile style={{ maxWidth: 760, marginTop: 16 }}>
+      <Tile style={{ maxWidth: 760 }}>
         <Stack gap={5}>
           <TextInput
             id="co-name"
@@ -164,7 +166,7 @@ export function Company() {
             disabled={!isOwner}
           />
 
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <Stack orientation="horizontal" gap={5}>
             <Select
               id="co-type"
               labelText="Firm type"
@@ -189,9 +191,9 @@ export function Company() {
                 if (file) void uploadLogo(file);
               }}
             />
-          </div>
+          </Stack>
 
-          <div style={{ display: "flex", gap: 16 }}>
+          <Stack orientation="horizontal" gap={5}>
             <Select
               id="co-gst"
               labelText="GST type (sets invoice GST)"
@@ -210,7 +212,7 @@ export function Company() {
               onChange={set("gstin")}
               disabled={!isOwner}
             />
-          </div>
+          </Stack>
           <Toggle
             id="co-tds"
             labelText="TDS declaration — clients deduct TDS u/s 194J (10%)"
@@ -223,8 +225,8 @@ export function Company() {
             }
           />
 
-          <h4>{f.firmType === "SOLO" ? "Architect" : "Primary signatory"}</h4>
-          <div style={{ display: "flex", gap: 16 }}>
+          <h3>{f.firmType === "SOLO" ? "Architect" : "Primary signatory"}</h3>
+          <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="co-arch"
               labelText="Architect name"
@@ -246,8 +248,8 @@ export function Company() {
               onChange={set("pan")}
               disabled={!isOwner}
             />
-          </div>
-          <div style={{ display: "flex", gap: 16 }}>
+          </Stack>
+          <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="co-email"
               labelText="Email"
@@ -292,9 +294,9 @@ export function Company() {
               onChange={set("phone2")}
               disabled={!isOwner}
             />
-          </div>
+          </Stack>
 
-          <h4>Address</h4>
+          <h3>Address</h3>
           <TextInput
             id="co-a1"
             labelText="Address line 1"
@@ -309,7 +311,7 @@ export function Company() {
             onChange={set("addressLine2")}
             disabled={!isOwner}
           />
-          <div style={{ display: "flex", gap: 16 }}>
+          <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="co-city"
               labelText="City"
@@ -359,7 +361,7 @@ export function Company() {
                 disabled={!isOwner}
               />
             )}
-          </div>
+          </Stack>
 
           <Button
             disabled={!isOwner || !f.companyName || update.isPending}
@@ -380,28 +382,30 @@ export function Company() {
 
       {f.firmType === "PARTNERSHIP" && <Partners isOwner={isOwner} />}
 
-      <Tile style={{ maxWidth: 760, marginTop: 24 }}>
-        <h4>Team &amp; HR module</h4>
-        <p style={{ margin: "8px 0 16px" }}>
-          Staff register, site in-charge assignment, leaves and salary. Leave
-          off for a solo freelancer — the Team and HR areas stay hidden.
-        </p>
-        <Toggle
-          id="hr-toggle"
-          labelText="Enable Team &amp; HR"
-          labelA="Off (freelance)"
-          labelB="On"
-          toggled={settingsQ.data?.hrEnabled ?? false}
-          disabled={!isOwner || setHr.isPending || settingsQ.isLoading}
-          onToggle={(checked) => setHr.mutate({ hrEnabled: checked })}
-        />
-        {!isOwner && (
-          <p style={{ marginTop: 12 }}>Only the owner can change this.</p>
-        )}
+      <Tile style={{ maxWidth: 760 }}>
+        <Stack gap={5}>
+          <h2>Team &amp; HR module</h2>
+          <p>
+            Staff register, site in-charge assignment, leaves and salary. Leave
+            off for a solo freelancer — the Team and HR areas stay hidden.
+          </p>
+          <Toggle
+            id="hr-toggle"
+            labelText="Enable Team &amp; HR"
+            labelA="Off (freelance)"
+            labelB="On"
+            toggled={settingsQ.data?.hrEnabled ?? false}
+            disabled={!isOwner || setHr.isPending || settingsQ.isLoading}
+            onToggle={(checked) => setHr.mutate({ hrEnabled: checked })}
+          />
+          {!isOwner && (
+            <p>Only the owner can change this.</p>
+          )}
+        </Stack>
       </Tile>
 
       {isOwner && <DataTools />}
-    </div>
+    </Stack>
   );
 }
 
@@ -428,35 +432,37 @@ function DataTools() {
   });
 
   return (
-    <Tile style={{ maxWidth: 760, marginTop: 24 }}>
-      <h4>Data tools</h4>
-      {msg && (
-        <InlineNotification
-          kind="success"
-          title="Done"
-          subtitle={msg}
-          lowContrast
-          onCloseButtonClick={() => setMsg(null)}
-        />
-      )}
-      <p style={{ margin: "8px 0 12px" }}>
-        Load sample records to explore the system, or reset everything to a
-        clean slate. Reset keeps your firm profile, this owner login and DSR
-        reference data — all projects, clients, invoices, drawings, HR and other
-        logins are permanently removed.
-      </p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <Button
-          kind="tertiary"
-          disabled={importDemo.isPending}
-          onClick={() => importDemo.mutate()}
-        >
-          {importDemo.isPending ? "Importing…" : "Import demo data"}
-        </Button>
-        <Button kind="danger" onClick={() => setPurgeOpen(true)}>
-          Reset all data…
-        </Button>
-      </div>
+    <Tile style={{ maxWidth: 760 }}>
+      <Stack gap={5}>
+        <h2>Data tools</h2>
+        {msg && (
+          <InlineNotification
+            kind="success"
+            title="Done"
+            subtitle={msg}
+            lowContrast
+            onCloseButtonClick={() => setMsg(null)}
+          />
+        )}
+        <p>
+          Load sample records to explore the system, or reset everything to a
+          clean slate. Reset keeps your firm profile, this owner login and DSR
+          reference data — all projects, clients, invoices, drawings, HR and other
+          logins are permanently removed.
+        </p>
+        <Stack orientation="horizontal" gap={2}>
+          <Button
+            kind="tertiary"
+            disabled={importDemo.isPending}
+            onClick={() => importDemo.mutate()}
+          >
+            {importDemo.isPending ? "Importing…" : "Import demo data"}
+          </Button>
+          <Button kind="danger" onClick={() => setPurgeOpen(true)}>
+            Reset all data…
+          </Button>
+        </Stack>
+      </Stack>
 
       <Modal
         open={purgeOpen}
@@ -532,8 +538,8 @@ function Partners({ isOwner }: { isOwner: boolean }) {
   const districts = districtsFor(p.state);
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <h3>Partners</h3>
+    <Stack gap={6}>
+      <h2>Partners</h2>
       <TableContainer title="Partner register">
         <Table>
           <TableHead>
@@ -572,10 +578,10 @@ function Partners({ isOwner }: { isOwner: boolean }) {
       </TableContainer>
 
       {isOwner && (
-        <Tile style={{ maxWidth: 760, marginTop: 12 }}>
+        <Tile style={{ maxWidth: 760 }}>
           <Stack gap={5}>
-            <h4>Add partner</h4>
-            <div style={{ display: "flex", gap: 16 }}>
+            <h3>Add partner</h3>
+            <Stack orientation="horizontal" gap={5}>
               <TextInput
                 id="pt-name"
                 labelText="Name"
@@ -602,8 +608,8 @@ function Partners({ isOwner }: { isOwner: boolean }) {
                 value={p.din}
                 onChange={(e) => setP((x) => ({ ...x, din: e.target.value }))}
               />
-            </div>
-            <div style={{ display: "flex", gap: 16 }}>
+            </Stack>
+            <Stack orientation="horizontal" gap={5}>
               <TextInput
                 id="pt-email"
                 labelText="Email"
@@ -661,7 +667,7 @@ function Partners({ isOwner }: { isOwner: boolean }) {
                   }
                 />
               )}
-            </div>
+            </Stack>
             <Button
               disabled={!p.name || add.isPending}
               onClick={() =>
@@ -684,6 +690,6 @@ function Partners({ isOwner }: { isOwner: boolean }) {
           </Stack>
         </Tile>
       )}
-    </div>
+    </Stack>
   );
 }

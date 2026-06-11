@@ -33,13 +33,13 @@ export function ClockLeavesWidget() {
         <Tag type="blue" renderIcon={Time}>
           Today
         </Tag>
-        <h2>{time}</h2>
+        <h3>{time}</h3>
         <p>{date}</p>
         {leave ? (
           <Stack gap={3}>
-            <h3>
+            <h4>
               {leave.remaining} of {leave.allowance} leave days remaining
-            </h3>
+            </h4>
             <ProgressBar
               label="Annual leave used"
               value={leave.used}

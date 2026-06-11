@@ -91,7 +91,7 @@ export function ProjectDetail() {
         }}
       >
         <Link to="/projects">← Projects</Link>
-        <h1 style={{ marginTop: 4, marginBottom: 2 }}>
+        <h1>
           {p.ref} — {p.title}
         </h1>
         <div
@@ -207,7 +207,7 @@ export function ProjectDetail() {
             {hrEnabled ? (
               <ProjectTeam projectId={id} />
             ) : (
-              <p style={{ marginTop: 24 }}>
+              <p>
                 The Team &amp; HR module is off — enable it in Company settings
                 to assign staff.
               </p>

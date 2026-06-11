@@ -35,9 +35,12 @@ export function Settings() {
   });
 
   return (
-    <div>
-      <h1>My profile</h1>
-      <p style={{ marginBottom: 24 }}>Signed in as {user?.email}</p>
+    <Stack gap={6}>
+      <Stack gap={2}>
+        <h1>My profile</h1>
+        <p>Signed in as {user?.email}</p>
+      </Stack>
+
       {msg && (
         <InlineNotification
           kind="success"
@@ -50,7 +53,7 @@ export function Settings() {
 
       <Tile style={{ maxWidth: 520 }}>
         <Stack gap={5}>
-          <h4>Display name</h4>
+          <h2>Display name</h2>
           <TextInput
             id="pf-name"
             labelText="Full name"
@@ -66,9 +69,9 @@ export function Settings() {
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 520, marginTop: 16 }}>
+      <Tile style={{ maxWidth: 520 }}>
         <Stack gap={5}>
-          <h4>Change password</h4>
+          <h2>Change password</h2>
           <TextInput
             id="pf-cur"
             labelText="Current password"
@@ -120,6 +123,6 @@ export function Settings() {
           )}
         </Stack>
       </Tile>
-    </div>
+    </Stack>
   );
 }

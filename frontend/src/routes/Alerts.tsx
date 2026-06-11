@@ -1,4 +1,5 @@
 import {
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -24,11 +25,11 @@ export function Alerts() {
   const alerts = alertsQ.data ?? [];
 
   return (
-    <div>
-      <h1>Alerts</h1>
-      <p style={{ marginBottom: 16 }}>
-        Stale client decisions, due follow-ups and overdue statutory permits.
-      </p>
+    <Stack gap={6}>
+      <Stack gap={2}>
+        <h1>Alerts</h1>
+        <p>Stale client decisions, due follow-ups and overdue statutory permits.</p>
+      </Stack>
 
       <TableContainer title={`Action needed (${alerts.length})`}>
         <Table>
@@ -68,6 +69,6 @@ export function Alerts() {
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </Stack>
   );
 }

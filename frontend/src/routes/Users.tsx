@@ -76,21 +76,17 @@ export function Users() {
   });
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1>Users &amp; access</h1>
+    <Stack gap={6}>
+      <Stack orientation="horizontal" gap={5}>
+        <Stack gap={2} className="esti-grow">
+          <h1>Users &amp; access</h1>
+          <p>
+            Owner / staff / portal logins. Client and consultant portal logins are
+            created from their records (Clients / Consultants).
+          </p>
+        </Stack>
         <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
-      </div>
-      <p style={{ marginBottom: 16 }}>
-        Owner / staff / portal logins. Client and consultant portal logins are
-        created from their records (Clients / Consultants).
-      </p>
+      </Stack>
       {msg && (
         <InlineNotification
           kind="success"
@@ -165,7 +161,7 @@ export function Users() {
                     </Tag>
                   </TableCell>
                   <TableCell>
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <Stack orientation="horizontal" gap={2}>
                       <Button
                         kind="ghost"
                         size="sm"
@@ -187,7 +183,7 @@ export function Users() {
                           {u.disabled ? "Enable" : "Disable"}
                         </Button>
                       )}
-                    </div>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               );
@@ -282,6 +278,6 @@ export function Users() {
           onChange={(e) => setResetPw(e.target.value)}
         />
       </Modal>
-    </div>
+    </Stack>
   );
 }

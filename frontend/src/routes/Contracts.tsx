@@ -79,20 +79,14 @@ export function Contracts() {
   });
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
+    <Stack gap={6}>
+      <Stack orientation="horizontal" gap={5}>
+        <Stack gap={2} className="esti-grow">
           <h1>Contracts</h1>
           <p>Agreements with clients, consultants and vendors.</p>
-        </div>
+        </Stack>
         <Button onClick={() => setOpen(true)}>New contract</Button>
-      </div>
+      </Stack>
 
       <DataState
         loading={listQ.isLoading}
@@ -165,7 +159,6 @@ export function Contracts() {
                     <Tag
                       type={STATUS_TAG[c.status] ?? "gray"}
                       size="sm"
-                      style={{ marginLeft: 4 }}
                     >
                       {c.status}
                     </Tag>
@@ -228,7 +221,7 @@ export function Contracts() {
             value={f.title}
             onChange={set("title")}
           />
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={4}>
             <TextInput
               id="ct-party"
               labelText="Party"
@@ -245,8 +238,8 @@ export function Contracts() {
                 <SelectItem key={t} value={t} text={CONTRACT_TYPE_LABEL[t]} />
               ))}
             </Select>
-          </div>
-          <div style={{ display: "flex", gap: 12 }}>
+          </Stack>
+          <Stack orientation="horizontal" gap={4}>
             <TextInput
               id="ct-val"
               labelText="Value (₹)"
@@ -268,7 +261,7 @@ export function Contracts() {
               value={f.endDate}
               onChange={set("endDate")}
             />
-          </div>
+          </Stack>
           <Select
             id="ct-proj"
             labelText="Related project (optional)"
@@ -293,6 +286,6 @@ export function Contracts() {
           />
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

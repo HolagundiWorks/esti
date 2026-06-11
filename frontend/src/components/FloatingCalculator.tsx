@@ -41,7 +41,7 @@ export function FloatingCalculator() {
         hasIconOnly
         kind="secondary"
         onClick={() => setOpen((o) => !o)}
-        style={{ position: "fixed", left: 16, bottom: 16, zIndex: 8000 }}
+        style={{ position: "fixed", right: "1rem", bottom: "4.5rem", zIndex: 8000 }}
       />
       <Modal
         open={open}
