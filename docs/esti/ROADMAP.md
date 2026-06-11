@@ -45,7 +45,7 @@ override the remediation work below.
   and purchase-order operational writes.
 - [ ] Complete audit coverage for every remaining privileged state transition.
 - [ ] Replace default hard deletion with archive/retention rules.
-- [ ] Add an owner-only audit review API and Carbon screen.
+- [x] Add an owner-only, paginated audit review API and Carbon screen.
 - [ ] Add API integration tests for permission boundaries.
 
 **Gate:** negative authorization tests cover every role and every upload route;
