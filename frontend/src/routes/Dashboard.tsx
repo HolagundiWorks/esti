@@ -369,6 +369,9 @@ export function Dashboard() {
   const boardsQ = trpc.dashboard.boards.useQuery();
   const acQ = trpc.dashboard.actionCenter.useQuery();
   const fhQ = trpc.dashboard.financialHealth.useQuery();
+  const phQ = trpc.dashboard.projectHealth.useQuery();
+  const ciQ = trpc.dashboard.clientIntelligence.useQuery();
+  const tiQ = trpc.dashboard.teamIntelligence.useQuery();
   const activityQ = trpc.activity.listOffice.useQuery({
     limit: 5,
     visibility: "STAFF",
@@ -740,6 +743,125 @@ export function Dashboard() {
                   </Stack>
                 </Column>
               </Grid>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      {/* Project Health scoring */}
+      {showProject && (
+        <Column lg={16} md={8} sm={4}>
+          <Tile className="esti-fill">
+            <Stack gap={5}>
+              <Stack gap={3}>
+                <p>Project intelligence</p>
+                <h2>Project health</h2>
+              </Stack>
+              {phQ.isLoading ? (
+                <InlineLoading description="Loading project health…" />
+              ) : (phQ.data?.length ?? 0) === 0 ? (
+                <p>No active projects.</p>
+              ) : (
+                <Stack gap={3}>
+                  {phQ.data!.map((ph) => (
+                    <Stack key={ph.id} orientation="horizontal" gap={4}>
+                      <Tag
+                        type={ph.health === "RED" ? "red" : ph.health === "YELLOW" ? "magenta" : "green"}
+                        size="sm"
+                      >
+                        {ph.health}
+                      </Tag>
+                      <div className="esti-grow">
+                        <Link to={`/projects/${ph.id}`}>{ph.ref}</Link>
+                        <p>{ph.title}</p>
+                      </div>
+                      {ph.overdueInvoices > 0 && <Tag type="red" size="sm">{ph.overdueInvoices} inv overdue</Tag>}
+                      {ph.overdueTasks > 0 && <Tag type="magenta" size="sm">{ph.overdueTasks} tasks late</Tag>}
+                      {ph.unbilledPhases > 0 && <Tag type="green" size="sm">{ph.unbilledPhases} to bill</Tag>}
+                      {ph.staleApprovals > 0 && <Tag type="magenta" size="sm">{ph.staleApprovals} stale approval</Tag>}
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </Tile>
+        </Column>
+      )}
+
+      {/* Client Intelligence signals */}
+      <Column lg={8} md={8} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={5}>
+            <Stack gap={3}>
+              <p>Client signals</p>
+              <h2>Client intelligence</h2>
+            </Stack>
+            {ciQ.isLoading ? (
+              <InlineLoading description="Loading client intelligence…" />
+            ) : (ciQ.data?.length ?? 0) === 0 ? (
+              <p>No clients with active projects.</p>
+            ) : (
+              <Stack gap={3}>
+                {ciQ.data!.map((c) => (
+                  <Stack key={c.id} orientation="horizontal" gap={4}>
+                    <Tag
+                      type={c.risk === "HIGH" ? "red" : c.risk === "MEDIUM" ? "magenta" : "green"}
+                      size="sm"
+                    >
+                      {c.risk}
+                    </Tag>
+                    <div className="esti-grow">
+                      <p>{c.name}</p>
+                      <p>{c.activeProjects} project{c.activeProjects !== 1 ? "s" : ""}</p>
+                    </div>
+                    {c.outstandingPaise > 0 && (
+                      <Tag type={c.oldestInvoiceDays > 30 ? "red" : "gray"} size="sm">
+                        {formatINRShort(c.outstandingPaise)} due · {c.oldestInvoiceDays}d
+                      </Tag>
+                    )}
+                    {c.revisionRequests > 0 && (
+                      <Tag type="magenta" size="sm">{c.revisionRequests} revisions</Tag>
+                    )}
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      {/* Team Intelligence signals */}
+      <Column lg={8} md={8} sm={4}>
+        <Tile className="esti-fill">
+          <Stack gap={5}>
+            <Stack gap={3}>
+              <p>Team capacity</p>
+              <h2>Team intelligence</h2>
+            </Stack>
+            {tiQ.isLoading ? (
+              <InlineLoading description="Loading team data…" />
+            ) : (tiQ.data?.length ?? 0) === 0 ? (
+              <p>No open tasks assigned.</p>
+            ) : (
+              <Stack gap={3}>
+                {tiQ.data!.map((m) => (
+                  <Stack key={m.assignee} orientation="horizontal" gap={4}>
+                    <Tag
+                      type={m.capacity === "OVERLOADED" ? "red" : m.capacity === "BUSY" ? "magenta" : "green"}
+                      size="sm"
+                    >
+                      {m.capacity}
+                    </Tag>
+                    <div className="esti-grow">
+                      <p>{m.assignee}</p>
+                      <p>{m.totalOpen} open · {m.highPriorityCount} high priority</p>
+                    </div>
+                    {m.overdueCount > 0 && (
+                      <Tag type="red" size="sm">{m.overdueCount} overdue</Tag>
+                    )}
+                  </Stack>
+                ))}
+              </Stack>
             )}
           </Stack>
         </Tile>

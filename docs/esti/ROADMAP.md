@@ -188,15 +188,17 @@ health within 10 seconds of login.
 - [x] **Financial Health module:** revenue pipeline (active + proposal), ready-
   to-bill estimated value, outstanding collections, overdue >30d, and
   collected-this-FY panels on Dashboard; gated behind `fees:manage` capability.
-- [ ] **Project Health scoring:** per-project composite indicator (Green /
-  Yellow / Red) derived from schedule adherence, unbilled phases, open critical
-  notes, approval lag, and revision count; surfaced on project list and overview.
-- [ ] **Client Intelligence signals:** per-client approval response time,
-  revision request frequency, outstanding payment age, and a derived risk score
-  (Low / Medium / High); visible on client record and dashboard tile.
-- [ ] **Team Intelligence signals:** capacity utilisation per assignee, overdue
-  task count, and a simplified wellbeing flag (Healthy / Busy / Overloaded)
-  derived from workload data; feeds Phase 5 full ASPRF scoring.
+- [x] **Project Health scoring:** per-project Green/Yellow/Red indicator derived
+  from overdue invoices, overdue tasks, stale approvals, open critical notes,
+  and revision requests; surfaced on dashboard "Project health" board with
+  per-signal tags and project deep-links.
+- [x] **Client Intelligence signals:** per-client approval response time
+  (avg days SENT→APPROVED), revision request frequency, outstanding payment
+  age, and derived risk score (Low/Medium/High); surfaced on dashboard
+  "Client intelligence" tile.
+- [x] **Team Intelligence signals:** per-assignee open task count, overdue
+  count, high-priority count, and capacity flag (Healthy/Busy/Overloaded);
+  surfaced on dashboard "Team intelligence" tile; feeds Phase 5 ASPRF.
 - [ ] **Activity Feed structured types:** categorise activity events by domain
   (client/project/team/financial) with type-specific icons; filter Activity
   Center by category.

@@ -387,4 +387,151 @@ export const dashboardRouter = router({
       },
     };
   }),
+
+  /** Per-project health scores for all active projects. */
+  projectHealth: protectedProcedure.query(async ({ ctx }) => {
+    const rows = (await ctx.db.execute(sql`
+      select
+        po.id, po.ref, po.title, po.contract_value_paise,
+        (select count(*)::int from esti_phase ph
+          where ph.project_id = po.id
+          and ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
+          and not exists (
+            select 1 from esti_invoice i where i.phase_id = ph.id and i.status <> 'CANCELLED'
+          )) as unbilled_phases,
+        (select count(*)::int from esti_task t
+          where t.project_id = po.id
+          and t.status <> 'DONE'
+          and t.due_date < current_date) as overdue_tasks,
+        (select count(*)::int from esti_invoice i
+          where i.project_id = po.id
+          and i.status = 'ISSUED'
+          and i.date_invoice < current_date - 30) as overdue_invoices,
+        (select count(*)::int from esti_approval a
+          where a.project_id = po.id
+          and a.status = 'SENT'
+          and a.sent_date < current_date - 14) as stale_approvals,
+        (select count(*)::int from esti_approval a
+          where a.project_id = po.id
+          and a.status = 'REVISIONS') as revisions_open,
+        (select count(*)::int from esti_critical_note cn
+          where cn.project_id = po.id
+          and cn.status = 'OPEN'
+          and cn.priority = 'HIGH') as critical_notes_open
+      from esti_project_office po
+      where po.status = 'ACTIVE'
+        and po.archived_at is null
+      order by po.ref
+    `)) as unknown as {
+      id: string; ref: string; title: string; contract_value_paise: number;
+      unbilled_phases: number; overdue_tasks: number; overdue_invoices: number;
+      stale_approvals: number; revisions_open: number; critical_notes_open: number;
+    }[];
+
+    return rows.map((r) => {
+      let health: "GREEN" | "YELLOW" | "RED" = "GREEN";
+      const issues = Number(r.overdue_invoices) + Number(r.stale_approvals) + Number(r.critical_notes_open);
+      if (Number(r.overdue_invoices) > 0 || Number(r.overdue_tasks) >= 3 || issues >= 3) {
+        health = "RED";
+      } else if (Number(r.unbilled_phases) > 0 || Number(r.overdue_tasks) > 0 || Number(r.stale_approvals) > 0 || Number(r.revisions_open) > 0 || Number(r.critical_notes_open) > 0) {
+        health = "YELLOW";
+      }
+      return {
+        id: r.id,
+        ref: r.ref,
+        title: r.title,
+        contractValuePaise: Number(r.contract_value_paise),
+        health,
+        unbilledPhases: Number(r.unbilled_phases),
+        overdueTasks: Number(r.overdue_tasks),
+        overdueInvoices: Number(r.overdue_invoices),
+        staleApprovals: Number(r.stale_approvals),
+        revisionsOpen: Number(r.revisions_open),
+        criticalNotesOpen: Number(r.critical_notes_open),
+      };
+    });
+  }),
+
+  /** Per-client intelligence signals: approval lag, revision frequency, payment age. */
+  clientIntelligence: protectedProcedure.query(async ({ ctx }) => {
+    const rows = (await ctx.db.execute(sql`
+      select
+        c.id, c.name,
+        count(distinct po.id)::int as active_projects,
+        -- Outstanding invoice age (oldest ISSUED invoice in days)
+        coalesce(max(case when inv.status = 'ISSUED' then (current_date - inv.date_invoice)::int else 0 end), 0) as oldest_invoice_days,
+        coalesce(sum(case when inv.status = 'ISSUED' then inv.net_receivable_paise else 0 end), 0)::bigint as outstanding_paise,
+        -- Average approval response time (SENT→APPROVED/REJECTED)
+        coalesce(avg(case when a.status in ('APPROVED', 'REJECTED') and a.sent_date is not null and a.response_date is not null
+          then (a.response_date::date - a.sent_date::date)::int else null end)::numeric, 0)::int as avg_approval_days,
+        -- Revision requests count (REVISIONS status)
+        count(case when a.status = 'REVISIONS' then 1 end)::int as revision_requests
+      from esti_client c
+      join esti_projectoffice po on po.client_id = c.id and po.status = 'ACTIVE' and po.archived_at is null
+      left join esti_invoice inv on inv.project_id = po.id
+      left join esti_approval a on a.project_id = po.id
+      group by c.id, c.name
+      having count(distinct po.id) > 0
+      order by oldest_invoice_days desc, c.name
+      limit 20
+    `)) as unknown as {
+      id: string; name: string; active_projects: number;
+      oldest_invoice_days: number; outstanding_paise: number;
+      avg_approval_days: number; revision_requests: number;
+    }[];
+
+    return rows.map((r) => {
+      let risk: "LOW" | "MEDIUM" | "HIGH" = "LOW";
+      const oldestDays = Number(r.oldest_invoice_days);
+      const revisions = Number(r.revision_requests);
+      const approvalDays = Number(r.avg_approval_days);
+      if (oldestDays > 60 || revisions >= 4 || approvalDays > 21) risk = "HIGH";
+      else if (oldestDays > 30 || revisions >= 2 || approvalDays > 10) risk = "MEDIUM";
+      return {
+        id: r.id,
+        name: r.name,
+        activeProjects: Number(r.active_projects),
+        oldestInvoiceDays: oldestDays,
+        outstandingPaise: Number(r.outstanding_paise),
+        avgApprovalDays: approvalDays,
+        revisionRequests: revisions,
+        risk,
+      };
+    });
+  }),
+
+  /** Team capacity signals: per-assignee task load and simplified wellbeing flag. */
+  teamIntelligence: protectedProcedure.query(async ({ ctx }) => {
+    const rows = (await ctx.db.execute(sql`
+      select
+        t.assignee,
+        count(*)::int                                                                                                as total_open,
+        count(case when t.due_date < current_date then 1 end)::int                                                  as overdue_count,
+        count(case when t.priority = 'HIGH' then 1 end)::int                                                        as high_priority_count
+      from esti_task t
+      where t.status <> 'DONE'
+        and t.assignee is not null
+        and t.assignee <> ''
+      group by t.assignee
+      order by overdue_count desc, total_open desc
+      limit 20
+    `)) as unknown as {
+      assignee: string; total_open: number; overdue_count: number; high_priority_count: number;
+    }[];
+
+    return rows.map((r) => {
+      const totalOpen = Number(r.total_open);
+      const overdue = Number(r.overdue_count);
+      let capacity: "HEALTHY" | "BUSY" | "OVERLOADED" = "HEALTHY";
+      if (overdue >= 3 || totalOpen >= 10) capacity = "OVERLOADED";
+      else if (overdue >= 1 || totalOpen >= 5) capacity = "BUSY";
+      return {
+        assignee: r.assignee,
+        totalOpen,
+        overdueCount: overdue,
+        highPriorityCount: Number(r.high_priority_count),
+        capacity,
+      };
+    });
+  }),
 });
