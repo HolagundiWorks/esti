@@ -108,23 +108,36 @@ export const projectOfficeRouter = router({
   updateSite: protectedProcedure.input(ProjectSiteUpdate).mutation(async ({ ctx, input }) => {
     const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-    const [row] = await ctx.db
-      .update(projectOffices)
-      .set({
-        siteAddress: input.siteAddress ?? null,
-        siteAreaSqm: input.siteAreaSqm ?? null,
-      })
-      .where(eq(projectOffices.id, input.id))
-      .returning();
-    await writeAudit(ctx.db, {
-      entity: "projectoffice",
-      entityId: input.id,
-      action: "SITE_UPDATE",
-      actorId: ctx.user.id,
-      before: { siteAddress: before.siteAddress, siteAreaSqm: before.siteAreaSqm },
-      after: { siteAddress: row!.siteAddress, siteAreaSqm: row!.siteAreaSqm },
+    const row = await ctx.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(projectOffices)
+        .set({
+          siteAddress: input.siteAddress ?? null,
+          siteAreaSqm: input.siteAreaSqm ?? null,
+        })
+        .where(eq(projectOffices.id, input.id))
+        .returning();
+      await writeActivity(tx, {
+        projectId: input.id,
+        objectType: "projectoffice",
+        objectId: input.id,
+        eventType: "project.site_updated",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: "Project site details updated",
+        metadata: { siteAddress: updated!.siteAddress, siteAreaSqm: updated!.siteAreaSqm },
+      });
+      await writeAudit(tx, {
+        entity: "projectoffice",
+        entityId: input.id,
+        action: "SITE_UPDATE",
+        actorId: ctx.user.id,
+        before: { siteAddress: before.siteAddress, siteAreaSqm: before.siteAreaSqm },
+        after: { siteAddress: updated!.siteAddress, siteAreaSqm: updated!.siteAreaSqm },
+      });
+      return updated!;
     });
-    return row!;
+    return row;
   }),
 
   /** Edit core project details (project settings). */
@@ -143,41 +156,61 @@ export const projectOfficeRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      const [row] = await ctx.db
-        .update(projectOffices)
-        .set({
-          title: input.title,
-          status: input.status,
-          projectType: input.projectType,
-          ...(input.workType ? { workType: input.workType } : {}),
-          jurisdiction: input.jurisdiction,
-          dateStart: input.dateStart ?? null,
-        })
-        .where(eq(projectOffices.id, input.id))
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "projectoffice",
-        entityId: input.id,
-        action: "UPDATE",
-        actorId: ctx.user.id,
-        before: {
-          title: before.title,
-          status: before.status,
-          projectType: before.projectType,
-          workType: before.workType,
-          jurisdiction: before.jurisdiction,
-          dateStart: before.dateStart,
-        },
-        after: {
-          title: row!.title,
-          status: row!.status,
-          projectType: row!.projectType,
-          workType: row!.workType,
-          jurisdiction: row!.jurisdiction,
-          dateStart: row!.dateStart,
-        },
+    const row = await ctx.db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(projectOffices)
+          .set({
+            title: input.title,
+            status: input.status,
+            projectType: input.projectType,
+            ...(input.workType ? { workType: input.workType } : {}),
+            jurisdiction: input.jurisdiction,
+            dateStart: input.dateStart ?? null,
+          })
+          .where(eq(projectOffices.id, input.id))
+          .returning();
+        await writeActivity(tx, {
+          projectId: input.id,
+          objectType: "projectoffice",
+          objectId: input.id,
+          eventType: "project.updated",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          summary: `Project details updated: ${updated!.title}`,
+          metadata: {
+            title: updated!.title,
+            status: updated!.status,
+            projectType: updated!.projectType,
+            workType: updated!.workType,
+            jurisdiction: updated!.jurisdiction,
+            dateStart: updated!.dateStart,
+          },
+        });
+        await writeAudit(tx, {
+          entity: "projectoffice",
+          entityId: input.id,
+          action: "UPDATE",
+          actorId: ctx.user.id,
+          before: {
+            title: before.title,
+            status: before.status,
+            projectType: before.projectType,
+            workType: before.workType,
+            jurisdiction: before.jurisdiction,
+            dateStart: before.dateStart,
+          },
+          after: {
+            title: updated!.title,
+            status: updated!.status,
+            projectType: updated!.projectType,
+            workType: updated!.workType,
+            jurisdiction: updated!.jurisdiction,
+            dateStart: updated!.dateStart,
+          },
+        });
+        return updated!;
       });
-      return row!;
+      return row;
     }),
 
   /** Archive a project while retaining every child record and audit entry. */
@@ -197,17 +230,29 @@ export const projectOfficeRouter = router({
         .where(and(eq(projectOffices.id, input.id), isNull(projectOffices.archivedAt)));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       const archivedAt = new Date();
-      await ctx.db
-        .update(projectOffices)
-        .set({ archivedAt, archivedById: ctx.user.id })
-        .where(eq(projectOffices.id, input.id));
-      await writeAudit(ctx.db, {
-        entity: "projectoffice",
-        entityId: input.id,
-        action: "ARCHIVE",
-        actorId: ctx.user.id,
-        before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
-        after: { archivedAt, archivedById: ctx.user.id },
+      await ctx.db.transaction(async (tx) => {
+        await tx
+          .update(projectOffices)
+          .set({ archivedAt, archivedById: ctx.user.id })
+          .where(eq(projectOffices.id, input.id));
+        await writeActivity(tx, {
+          projectId: input.id,
+          objectType: "projectoffice",
+          objectId: input.id,
+          eventType: "project.archived",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          summary: `Project ${before.ref} archived`,
+          metadata: { archivedAt, archivedById: ctx.user.id },
+        });
+        await writeAudit(tx, {
+          entity: "projectoffice",
+          entityId: input.id,
+          action: "ARCHIVE",
+          actorId: ctx.user.id,
+          before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
+          after: { archivedAt, archivedById: ctx.user.id },
+        });
       });
       return { ok: true };
     }),
@@ -221,20 +266,33 @@ export const projectOfficeRouter = router({
         .from(projectOffices)
         .where(and(eq(projectOffices.id, input.id), isNotNull(projectOffices.archivedAt)));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      const [row] = await ctx.db
-        .update(projectOffices)
-        .set({ archivedAt: null, archivedById: null })
-        .where(eq(projectOffices.id, input.id))
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "projectoffice",
-        entityId: input.id,
-        action: "RESTORE",
-        actorId: ctx.user.id,
-        before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
-        after: { archivedAt: null, archivedById: null },
-      });
-      return row!;
+      const row = await ctx.db.transaction(async (tx) => {
+          const [updated] = await tx
+            .update(projectOffices)
+            .set({ archivedAt: null, archivedById: null })
+            .where(eq(projectOffices.id, input.id))
+            .returning();
+          await writeActivity(tx, {
+            projectId: input.id,
+            objectType: "projectoffice",
+            objectId: input.id,
+            eventType: "project.restored",
+            actorId: ctx.user.id,
+            actorName: ctx.user.fullName,
+            summary: `Project ${before.ref} restored`,
+            metadata: { archivedAt: null, archivedById: null },
+          });
+          await writeAudit(tx, {
+            entity: "projectoffice",
+            entityId: input.id,
+            action: "RESTORE",
+            actorId: ctx.user.id,
+            before: { archivedAt: before.archivedAt, archivedById: before.archivedById },
+            after: { archivedAt: null, archivedById: null },
+          });
+          return updated!;
+        });
+      return row;
     }),
 
   // --- Internal project log (audit notes) ---

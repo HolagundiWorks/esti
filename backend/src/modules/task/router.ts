@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
+import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -61,26 +62,39 @@ export const taskRouter = router({
         });
       }
     }
-    const [row] = await ctx.db
-      .insert(tasks)
-      .values({
-        title: input.title,
-        description: input.description ?? null,
+    const row = await ctx.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(tasks)
+        .values({
+          title: input.title,
+          description: input.description ?? null,
+          projectId: input.projectId,
+          assignee: input.assignee ?? null,
+          priority: input.priority,
+          dueDate: input.dueDate ?? null,
+          createdById: ctx.user.id,
+        })
+        .returning();
+      await writeActivity(tx, {
         projectId: input.projectId,
-        assignee: input.assignee ?? null,
-        priority: input.priority,
-        dueDate: input.dueDate ?? null,
-        createdById: ctx.user.id,
-      })
-      .returning();
-    await writeAudit(ctx.db, {
-      entity: "task",
-      entityId: row!.id,
-      action: "CREATE",
-      actorId: ctx.user.id,
-      after: row,
+        objectType: "task",
+        objectId: created!.id,
+        eventType: "task.created",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Task created: ${created!.title}`,
+        metadata: { title: created!.title, assignee: created!.assignee, priority: created!.priority, dueDate: created!.dueDate },
+      });
+      await writeAudit(tx, {
+        entity: "task",
+        entityId: created!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: created,
+      });
+      return created!;
     });
-    return row!;
+    return row;
   }),
 
   update: protectedProcedure.input(TaskUpdate).mutation(async ({ ctx, input }) => {
@@ -88,28 +102,59 @@ export const taskRouter = router({
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const completedAt =
       input.status === "DONE" ? new Date() : input.status !== undefined ? null : undefined;
-    const [row] = await ctx.db
-      .update(tasks)
-      .set({
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),
-        ...(input.status !== undefined ? { status: input.status } : {}),
-        ...(input.priority !== undefined ? { priority: input.priority } : {}),
-        ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
-        ...(completedAt !== undefined ? { completedAt } : {}),
-      })
-      .where(eq(tasks.id, input.id))
-      .returning();
-    await writeAudit(ctx.db, {
-      entity: "task",
-      entityId: input.id,
-      action: "UPDATE",
-      actorId: ctx.user.id,
-      before,
-      after: row,
+    const row = await ctx.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(tasks)
+        .set({
+          ...(input.title !== undefined ? { title: input.title } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),
+          ...(input.status !== undefined ? { status: input.status } : {}),
+          ...(input.priority !== undefined ? { priority: input.priority } : {}),
+          ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
+          ...(completedAt !== undefined ? { completedAt } : {}),
+        })
+        .where(eq(tasks.id, input.id))
+        .returning();
+      await writeActivity(tx, {
+        projectId: updated!.projectId,
+        objectType: "task",
+        objectId: updated!.id,
+        eventType: input.status ? `task.${input.status.toLowerCase()}` : "task.updated",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Task updated: ${updated!.title}`,
+        metadata: {
+          before: {
+            title: before.title,
+            description: before.description,
+            assignee: before.assignee,
+            status: before.status,
+            priority: before.priority,
+            dueDate: before.dueDate,
+          },
+          after: {
+            title: updated!.title,
+            description: updated!.description,
+            assignee: updated!.assignee,
+            status: updated!.status,
+            priority: updated!.priority,
+            dueDate: updated!.dueDate,
+            completedAt: updated!.completedAt,
+          },
+        },
+      });
+      await writeAudit(tx, {
+        entity: "task",
+        entityId: input.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before,
+        after: updated,
+      });
+      return updated!;
     });
-    return row!;
+    return row;
   }),
 
   remove: protectedProcedure
@@ -117,13 +162,31 @@ export const taskRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(tasks).where(eq(tasks.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      await ctx.db.delete(tasks).where(eq(tasks.id, input.id));
-      await writeAudit(ctx.db, {
-        entity: "task",
-        entityId: input.id,
-        action: "DELETE",
-        actorId: ctx.user.id,
-        before,
+      await ctx.db.transaction(async (tx) => {
+        await tx.delete(tasks).where(eq(tasks.id, input.id));
+        await writeActivity(tx, {
+          projectId: before.projectId,
+          objectType: "task",
+          objectId: before.id,
+          eventType: "task.deleted",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          summary: `Task deleted: ${before.title}`,
+          metadata: {
+            title: before.title,
+            assignee: before.assignee,
+            status: before.status,
+            priority: before.priority,
+            dueDate: before.dueDate,
+          },
+        });
+        await writeAudit(tx, {
+          entity: "task",
+          entityId: input.id,
+          action: "DELETE",
+          actorId: ctx.user.id,
+          before,
+        });
       });
       return { ok: true };
     }),
