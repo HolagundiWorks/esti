@@ -37,6 +37,8 @@ override the remediation work below.
   unauthorized uploads or project references.
 - [x] Reject drawing revision roots that do not exist or belong to another project.
 - [ ] Verify project ownership/scope for every object upload and mutation.
+  - [x] Reject cross-project drawing transmittals, approval supersession, and
+    invoice phase/client references; validate parent projects on key creates.
 - [x] Add configurable Origin validation for cookie-authenticated writes.
 - [x] Add audit entries for binary uploads, including drawing revisions.
 - [x] Add before/after audit entries for task lifecycle writes.

@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { approvals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireApprovalInProject } from "../../lib/projectScope.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const approvalRouter = router({
@@ -17,6 +18,7 @@ export const approvalRouter = router({
     }),
 
   create: protectedProcedure.input(ApprovalCreate).mutation(async ({ ctx, input }) => {
+    await requireApprovalInProject(ctx.db, input.projectId, input.supersedesId);
     const [row] = await ctx.db
       .insert(approvals)
       .values({

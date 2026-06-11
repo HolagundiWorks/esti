@@ -4,6 +4,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, teamMembers } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireProject } from "../../lib/projectScope.js";
 import { requireHrEnabled } from "../../lib/settings.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -82,6 +83,7 @@ export const assignmentRouter = router({
 
   create: protectedProcedure.input(AssignmentCreate).mutation(async ({ ctx, input }) => {
     await requireHrEnabled(ctx.db);
+    await requireProject(ctx.db, input.projectId);
     const [row] = await ctx.db
       .insert(assignments)
       .values({

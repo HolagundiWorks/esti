@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { consultants, engagements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireProject } from "../../lib/projectScope.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const engagementRouter = router({
@@ -28,6 +29,7 @@ export const engagementRouter = router({
     }),
 
   create: protectedProcedure.input(EngagementCreate).mutation(async ({ ctx, input }) => {
+    await requireProject(ctx.db, input.projectId);
     const [row] = await ctx.db
       .insert(engagements)
       .values({

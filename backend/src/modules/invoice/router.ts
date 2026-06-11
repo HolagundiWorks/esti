@@ -6,6 +6,7 @@ import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireInvoiceScope } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -148,6 +149,7 @@ export const invoiceRouter = router({
     }),
 
   create: manageInvoice.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
+    await requireInvoiceScope(ctx.db, input);
     const firm = await getFirm(ctx.db);
     const system = input.gstSystem ?? (firm.gstType as GstSystem);
     // SAC applies only to a regular GST tax invoice; drop it otherwise.

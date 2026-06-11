@@ -6,6 +6,7 @@ import { feeProposals, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireProject } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
 import { capabilityProcedure, router } from "../../trpc/trpc.js";
@@ -46,6 +47,7 @@ export const feeProposalRouter = router({
   ),
 
   create: feesProcedure.input(FeeProposalCreate).mutation(async ({ ctx, input }) => {
+    await requireProject(ctx.db, input.projectId);
     const coaMinimumPaise = coaMinimumFee(input.workCategory, input.costOfWorksPaise);
     const below = isBelowCoaMinimum(input.feePaise, coaMinimumPaise);
     // COA compliance guardrail: a below-minimum fee needs an audited override.

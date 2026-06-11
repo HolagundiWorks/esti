@@ -6,6 +6,7 @@ import { transmittalItems, transmittals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
+import { requireDrawingsInProject } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -36,6 +37,11 @@ export const transmittalRouter = router({
     }),
 
   create: protectedProcedure.input(TransmittalCreate).mutation(async ({ ctx, input }) => {
+    await requireDrawingsInProject(
+      ctx.db,
+      input.projectId,
+      input.items.flatMap((item) => (item.drawingId ? [item.drawingId] : [])),
+    );
     const { ref } = await nextRef(ctx.db, "transmittal", "TRN");
     const row = await ctx.db.transaction(async (tx) => {
       const [t] = await tx
