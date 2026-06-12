@@ -136,7 +136,7 @@ export const dashboardRouter = router({
         po.title as project_title,
         po.contract_value_paise
       from esti_phase ph
-      join esti_project_office po on ph.project_id = po.id
+      join esti_projectoffice po on ph.project_id = po.id
       where ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
         and po.status = 'ACTIVE'
         and po.archived_at is null
@@ -161,7 +161,7 @@ export const dashboardRouter = router({
         po.title as project_title,
         (current_date - i.date_invoice)::int as days_overdue
       from esti_invoice i
-      join esti_project_office po on i.project_id = po.id
+      join esti_projectoffice po on i.project_id = po.id
       where i.status = 'ISSUED'
         and i.date_invoice < current_date - 30
       order by i.date_invoice asc
@@ -179,7 +179,7 @@ export const dashboardRouter = router({
         po.title as project_title,
         coalesce((current_date - a.sent_date)::int, 0) as days_waiting
       from esti_approval a
-      join esti_project_office po on a.project_id = po.id
+      join esti_projectoffice po on a.project_id = po.id
       where a.status = 'SENT'
       order by a.sent_date asc nulls last
       limit 20
@@ -241,7 +241,7 @@ export const dashboardRouter = router({
         coalesce(sum(contract_value_paise), 0)::bigint             as total_paise,
         coalesce(sum(case when status = 'ACTIVE'   then contract_value_paise else 0 end), 0)::bigint as active_paise,
         coalesce(sum(case when status = 'PROPOSAL' then contract_value_paise else 0 end), 0)::bigint as proposal_paise
-      from esti_project_office
+      from esti_projectoffice
       where archived_at is null
         and status in ('ACTIVE', 'PROPOSAL')
     `)) as unknown as [{
@@ -251,7 +251,7 @@ export const dashboardRouter = router({
     const [readyToBill] = (await ctx.db.execute(sql`
       select coalesce(sum(ph.billing_pct * po.contract_value_paise / 100), 0)::bigint as ready_paise
       from esti_phase ph
-      join esti_project_office po on ph.project_id = po.id
+      join esti_projectoffice po on ph.project_id = po.id
       where ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
         and po.status = 'ACTIVE'
         and po.archived_at is null
@@ -418,7 +418,7 @@ export const dashboardRouter = router({
           where cn.project_id = po.id
           and cn.status = 'OPEN'
           and cn.priority = 'HIGH') as critical_notes_open
-      from esti_project_office po
+      from esti_projectoffice po
       where po.status = 'ACTIVE'
         and po.archived_at is null
       order by po.ref
