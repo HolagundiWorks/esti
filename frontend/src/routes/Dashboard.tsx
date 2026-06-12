@@ -9,9 +9,14 @@ import {
   Tile,
   Toggle,
 } from "@carbon/react";
-import { DonutChart, PieChart, SimpleBarChart } from "@carbon/charts-react";
+import {
+  DonutChart,
+  HeatmapChart,
+  SimpleBarChart,
+  TreemapChart,
+} from "@carbon/charts-react";
 import { ScaleTypes } from "@carbon/charts";
-import type { PieChartOptions } from "@carbon/charts-react";
+import type { HeatmapChartOptions, TreemapChartOptions } from "@carbon/charts-react";
 import {
   Banking,
   ChartLine,
@@ -19,6 +24,7 @@ import {
   Receipt,
 } from "@carbon/pictograms-react";
 import { ACTIVITY_DOMAIN_TAG, activityDomain, can, formatINRShort } from "@esti/contracts";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
@@ -26,23 +32,13 @@ import { trpc } from "../lib/trpc.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const TYPE_LABEL: Record<string, string> = {
-  RESIDENTIAL: "Residential", COMMERCIAL: "Commercial",
-  INSTITUTIONAL: "Institutional", INDUSTRIAL: "Industrial",
-  HOSPITALITY: "Hospitality", HEALTHCARE: "Healthcare",
-  RETAIL: "Retail", MIXED_USE: "Mixed use",
-  URBAN_DESIGN: "Urban design", INTERIOR: "Interior",
-  LANDSCAPE: "Landscape", OTHER: "Other",
-};
+const DOW_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// Mon–Sun order for the weekly heatmap x-axis
+const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 const STATUS_LABEL: Record<string, string> = {
   ENQUIRY: "Enquiry", PROPOSAL: "Proposal", ACTIVE: "Active",
   ON_HOLD: "On hold", COMPLETED: "Completed", CANCELLED: "Cancelled",
-};
-
-const STATUS_TAG: Record<string, "blue" | "gray" | "magenta" | "green" | "red" | "teal"> = {
-  ENQUIRY: "gray", PROPOSAL: "teal", ACTIVE: "blue",
-  ON_HOLD: "magenta", COMPLETED: "green", CANCELLED: "red",
 };
 
 // ─── date helpers ─────────────────────────────────────────────────────────────
@@ -107,8 +103,6 @@ function FilingDueBoard({ title, Pictogram, rows }: {
 }
 
 // ─── KpiChip ─────────────────────────────────────────────────────────────────
-// Carbon pattern: compact ClickableTile with label, large value, optional Tag.
-// Spacing: gap=3 (8 px) between label→value→tag per the 2x mini-unit rhythm.
 
 function KpiChip({ label, value, tagType, tagText, onClick, loading }: {
   label: string; value: string | number;
@@ -128,9 +122,6 @@ function KpiChip({ label, value, tagType, tagText, onClick, loading }: {
 }
 
 // ─── HBarBoard ───────────────────────────────────────────────────────────────
-// Horizontal SimpleBarChart wrapped in a Tile. Replaces the hand-rolled
-// ProgressBar distribution board. Uses Carbon charts data-viz-01…-14 palette
-// automatically — no custom colours needed.
 
 function HBarBoard({ title, data, loading, error, formatValue }: {
   title: string; data: { group: string; value: number }[];
@@ -164,8 +155,6 @@ function HBarBoard({ title, data, loading, error, formatValue }: {
 }
 
 // ─── FinancialDonut ──────────────────────────────────────────────────────────
-// DonutChart visualising the five financial buckets. Uses Carbon data-viz
-// sequential palette (cool blues family for financial data).
 
 type FinancialData = {
   activePipelinePaise: number; proposalPipelinePaise: number;
@@ -180,7 +169,6 @@ function FinancialDonut({ data, loading }: { data?: FinancialData; loading: bool
     { group: "Outstanding",       value: data.outstandingPaise },
     { group: "Collected FY",      value: data.collectedFyPaise },
   ].filter((d) => d.value > 0) : [];
-
   const options = {
     data: { groupMapsTo: "group" },
     donut: { center: { label: "Revenue" }, alignment: "center" },
@@ -189,51 +177,169 @@ function FinancialDonut({ data, loading }: { data?: FinancialData; loading: bool
     legend: { enabled: true, position: "bottom" as const },
     tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
   };
-
   if (loading) return <InlineLoading description="Loading financial data…" />;
   if (chartData.length === 0) return <p>No financial data yet.</p>;
   return <DonutChart data={chartData} options={options} />;
 }
 
-// ─── ProjectStatusBoard ──────────────────────────────────────────────────────
-// PieChart for project status distribution.
+// ─── ProjectStatusNumbers ────────────────────────────────────────────────────
+// Simple number display — Active / On Hold / Closed. No chart.
 
-function ProjectStatusBoard({ rows, total, onOpen, loading, error }: {
-  rows: { status: string; count: number }[]; total: number;
-  onOpen: () => void; loading?: boolean; error?: boolean;
+function ProjectStatusNumbers({ byStatus, loading, error, onOpen }: {
+  byStatus: Record<string, number>; loading?: boolean; error?: boolean; onOpen: () => void;
 }) {
-  const chartData = rows.map((r) => ({ group: STATUS_LABEL[r.status] ?? r.status, value: r.count }));
-  const options: PieChartOptions = {
-    data: { groupMapsTo: "group" },
-    height: "18rem",
-    legend: { enabled: true, position: "right", clickable: false },
-    pie: {
-      valueMapsTo: "value",
-      labels: { enabled: true, formatter: (d: { value?: number }) => String(d.value ?? 0) },
-    },
-    toolbar: { enabled: false },
-    tooltip: { valueFormatter: (v: number) => `${v} projects` },
-    accessibility: { svgAriaLabel: "Project status distribution" },
-  };
+  const active  = byStatus.ACTIVE ?? 0;
+  const onHold  = byStatus.ON_HOLD ?? 0;
+  const closed  = (byStatus.COMPLETED ?? 0) + (byStatus.CANCELLED ?? 0);
+  const cells = [
+    { label: "Active",   value: active,  tagType: "blue"    as const, tagText: "Live pipeline" },
+    { label: "On hold",  value: onHold,  tagType: "magenta" as const, tagText: "Paused"        },
+    { label: "Closed",   value: closed,  tagType: "gray"    as const, tagText: "Done / cancelled" },
+  ];
   return (
     <ClickableTile className="esti-fill" onClick={onOpen}>
       <Stack gap={5}>
-        <Stack orientation="horizontal" gap={4}>
-          <div className="esti-grow">
-            <p>Project status</p>
-            <h3>{error ? "—" : loading ? "…" : total}</h3>
-          </div>
-          <Tag type={error ? "red" : "blue"}>{error ? "unavailable" : "all projects"}</Tag>
-        </Stack>
-        {loading
-          ? <InlineLoading description="Loading…" />
-          : error
-            ? <Tag type="red">Unavailable</Tag>
-            : rows.length === 0
-              ? <p>No projects yet.</p>
-              : <PieChart data={chartData} options={options} />}
+        <Stack gap={3}><p>Projects</p><h2>Status overview</h2></Stack>
+        {loading ? <InlineLoading description="Loading…" />
+          : error ? <Tag type="red">Unavailable</Tag>
+          : (
+            <Stack orientation="horizontal" gap={6}>
+              {cells.map((c) => (
+                <Stack key={c.label} gap={3}>
+                  <p>{c.label}</p>
+                  <h2>{c.value}</h2>
+                  <Tag type={c.tagType} size="sm">{c.tagText}</Tag>
+                </Stack>
+              ))}
+            </Stack>
+          )}
       </Stack>
     </ClickableTile>
+  );
+}
+
+// ─── PhaseDonut ──────────────────────────────────────────────────────────────
+
+function PhaseDonut({ data, loading, error }: {
+  data: { label: string; count: number }[]; loading?: boolean; error?: boolean;
+}) {
+  const chartData = data.map((p) => ({ group: p.label, value: p.count }));
+  const options = {
+    data: { groupMapsTo: "group" },
+    donut: { center: { label: "Stages" }, alignment: "center" },
+    height: "280px",
+    toolbar: { enabled: false },
+    legend: { enabled: true, position: "bottom" as const },
+    tooltip: { valueFormatter: (v: number) => `${v} project${v !== 1 ? "s" : ""}` },
+    accessibility: { svgAriaLabel: "Projects by current stage" },
+  };
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <Stack gap={3}><p>Current stage distribution</p><h2>Projects by phase</h2></Stack>
+        {loading ? <InlineLoading description="Loading…" />
+          : error ? <Tag type="red">Data unavailable</Tag>
+          : chartData.length === 0 ? <p>No active projects.</p>
+          : <DonutChart data={chartData} options={options} />}
+      </Stack>
+    </Tile>
+  );
+}
+
+// ─── TypeTreemap ─────────────────────────────────────────────────────────────
+// Treemap visualising project count by architecture type.
+// Mono-colour: Carbon data-viz-01 family with pairing option 1.
+
+function TypeTreemap({ data, loading, error }: {
+  data: { type: string; count: number }[]; loading?: boolean; error?: boolean;
+}) {
+  const chartData = data.map((t) => ({ name: t.type, value: t.count }));
+  const options: TreemapChartOptions = {
+    toolbar: { enabled: false },
+    height: "320px",
+    color: { pairing: { option: 1, numberOfVariants: Math.max(data.length, 2) } } as TreemapChartOptions["color"],
+    tooltip: { valueFormatter: (v: unknown) => `${v} project${Number(v) !== 1 ? "s" : ""}` },
+    accessibility: { svgAriaLabel: "Projects by architecture type" },
+  };
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <Stack gap={3}><p>Architecture category</p><h2>Projects by type</h2></Stack>
+        {loading ? <InlineLoading description="Loading…" />
+          : error ? <Tag type="red">Data unavailable</Tag>
+          : chartData.length === 0 ? <p>No projects yet.</p>
+          : <TreemapChart data={chartData} options={options} />}
+      </Stack>
+    </Tile>
+  );
+}
+
+// ─── WorkloadHeatmap ─────────────────────────────────────────────────────────
+// HeatmapChart: person (y) × day (x) = open-task count.
+// Toggle between daily (next 14 days) and weekly (by weekday pattern).
+
+type HeatRow = { assignee: string; dow: number; count: number };
+type DayRow  = { assignee: string; day: string; count: number };
+
+function WorkloadHeatmap({ weekly, daily, loading, error }: {
+  weekly: HeatRow[]; daily: DayRow[]; loading?: boolean; error?: boolean;
+}) {
+  const [mode, setMode] = useState<"weekly" | "daily">("weekly");
+
+  const weeklyData = DOW_ORDER
+    .flatMap((dow) => {
+      const label = DOW_LABEL[dow]!;
+      const assignees = [...new Set(weekly.map((r) => r.assignee))];
+      return assignees.map((a) => ({
+        group: a,
+        day: label,
+        value: weekly.find((r) => r.assignee === a && r.dow === dow)?.count ?? 0,
+      }));
+    });
+
+  const dailyData = daily.map((r) => ({ group: r.assignee, day: r.day, value: r.count }));
+
+  const activeData = mode === "weekly" ? weeklyData : dailyData;
+
+  const opts: HeatmapChartOptions = {
+    axes: {
+      bottom: { title: mode === "weekly" ? "Weekday" : "Due date", mapsTo: "day", scaleType: ScaleTypes.LABELS },
+      left:   { title: "Person", mapsTo: "group", scaleType: ScaleTypes.LABELS },
+    },
+    heatmap: { colorLegend: { type: "linear" as const } },
+    height: `${Math.max(200, [...new Set(activeData.map((d) => d.group))].length * 40 + 80)}px`,
+    toolbar: { enabled: false },
+    legend: { enabled: false },
+    tooltip: { valueFormatter: (v: unknown) => `${v} task${Number(v) !== 1 ? "s" : ""}` },
+    accessibility: { svgAriaLabel: `Workload heatmap — ${mode} view` },
+  };
+
+  const noData = mode === "weekly" ? weekly.length === 0 : daily.length === 0;
+
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <Stack orientation="horizontal" gap={4}>
+          <div className="esti-grow">
+            <p>Open tasks per person</p>
+            <h2>Workload heatmap</h2>
+          </div>
+          <Toggle
+            id="heatmap-mode"
+            size="sm"
+            labelText=""
+            labelA="Weekly"
+            labelB="Daily"
+            toggled={mode === "daily"}
+            onToggle={(on) => setMode(on ? "daily" : "weekly")}
+          />
+        </Stack>
+        {loading ? <InlineLoading description="Loading workload…" />
+          : error ? <Tag type="red">Data unavailable</Tag>
+          : noData ? <p>No open tasks with due dates assigned.</p>
+          : <HeatmapChart data={activeData} options={opts} />}
+      </Stack>
+    </Tile>
   );
 }
 
@@ -259,10 +365,6 @@ export function Dashboard() {
   const summaryError   = summary.isError && !s;
   const boardsError    = boardsQ.isError && !b;
 
-  const totalProjects = s?.projects.total ?? 0;
-  const projectStatusRows = Object.entries(s?.projects.byStatus ?? {})
-    .map(([status, count]) => ({ status, count })).filter((r) => r.count > 0);
-
   const byPhase = b?.byPhase ?? [];
   const byType  = b?.byType ?? [];
 
@@ -287,14 +389,11 @@ export function Dashboard() {
     + (acQ.data?.pendingApprovals.length ?? 0);
 
   // Chart data ─────────────────────────────────────────────────────────────
-  const workloadData = (b?.workload ?? []).map((r) => ({ group: r.assignee, value: r.count }));
-  const agingData    = [
+  const agingData = [
     { group: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
     { group: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
     { group: "60+ days",   value: b?.receivablesAging.d60p ?? 0 },
   ];
-  const phaseData = byPhase.map((p) => ({ group: p.label, value: p.count }));
-  const typeData  = byType.map((t) => ({ group: TYPE_LABEL[t.type] ?? t.type, value: t.count }));
 
   return (
     <Grid fullWidth className="esti-dash">
@@ -314,8 +413,6 @@ export function Dashboard() {
       </Column>
 
       {/* ── Global KPI Bar ───────────────────────────────────────────────── */}
-      {/* Carbon colour anatomy: blue-60 = primary/interactive; green-50 = success;
-          red-60 = error/danger; magenta-60 = warning/pending; gray = neutral. */}
       <Column lg={16} md={8} sm={4}>
         <Grid narrow>
           <Column lg={3} md={4} sm={2}>
@@ -345,7 +442,6 @@ export function Dashboard() {
               onClick={() => navigate("/projects")} loading={acQ.isLoading} />
           </Column>
           <Column lg={3} md={4} sm={4}>
-            {/* Revision risk: count now; becomes Low/Medium/High in Phase 4C */}
             <KpiChip label="Revision risk" value={acQ.data?.revisionRiskCount ?? 0}
               tagType={(acQ.data?.revisionRiskCount ?? 0) > 0 ? "magenta" : "gray"}
               tagText="Active decisions"
@@ -355,7 +451,6 @@ export function Dashboard() {
       </Column>
 
       {/* ── Action Center ────────────────────────────────────────────────── */}
-      {/* Highest-priority section per the brief: surfaces urgency immediately. */}
       <Column lg={16} md={8} sm={4}>
         <Tile>
           <Stack gap={6}>
@@ -370,7 +465,6 @@ export function Dashboard() {
             </Stack>
             {acQ.isLoading ? <InlineLoading description="Loading action items…" /> : (
               <Grid narrow>
-                {/* Ready to bill */}
                 <Column lg={6} md={4} sm={4}>
                   <Stack gap={4}>
                     <Stack orientation="horizontal" gap={3}>
@@ -390,7 +484,6 @@ export function Dashboard() {
                         ))}</Stack>}
                   </Stack>
                 </Column>
-                {/* Overdue invoices */}
                 <Column lg={5} md={4} sm={4}>
                   <Stack gap={4}>
                     <Stack orientation="horizontal" gap={3}>
@@ -410,7 +503,6 @@ export function Dashboard() {
                         ))}</Stack>}
                   </Stack>
                 </Column>
-                {/* Pending approvals */}
                 <Column lg={5} md={4} sm={4}>
                   <Stack gap={4}>
                     <Stack orientation="horizontal" gap={3}>
@@ -437,18 +529,12 @@ export function Dashboard() {
       </Column>
 
       {/* ── Financial Health ─────────────────────────────────────────────── */}
-      {/* Left: DonutChart data-viz (revenue breakdown). Right: metric list.
-          DonutChart uses Carbon data-viz sequential palette — cool blues → greens
-          → teals — automatically via @carbon/charts theme. No manual colours.  */}
       {canFees && showFinancial && (
         <>
           <Column lg={8} md={8} sm={4}>
             <Tile className="esti-fill">
               <Stack gap={5}>
-                <Stack gap={3}>
-                  <p>Firm financials</p>
-                  <h2>Financial health</h2>
-                </Stack>
+                <Stack gap={3}><p>Firm financials</p><h2>Financial health</h2></Stack>
                 <FinancialDonut data={fhQ.data} loading={fhQ.isLoading} />
               </Stack>
             </Tile>
@@ -456,10 +542,7 @@ export function Dashboard() {
           <Column lg={8} md={8} sm={4}>
             <Tile className="esti-fill">
               <Stack gap={5}>
-                <Stack gap={3}>
-                  <p>Breakdown</p>
-                  <h2>Revenue pipeline</h2>
-                </Stack>
+                <Stack gap={3}><p>Breakdown</p><h2>Revenue pipeline</h2></Stack>
                 {fhQ.isLoading ? <InlineLoading description="Loading…" /> : (
                   <Grid narrow>
                     {[
@@ -486,14 +569,14 @@ export function Dashboard() {
         </>
       )}
 
-      {/* ── Project Status (Pie) + Project Health (list) ─────────────────── */}
+      {/* ── Project Status Numbers + Project Health ───────────────────────── */}
       {showProject && (
         <>
           <Column lg={8} md={8} sm={4}>
-            <ProjectStatusBoard
-              rows={projectStatusRows} total={totalProjects}
-              onOpen={() => navigate("/projects")}
+            <ProjectStatusNumbers
+              byStatus={s?.projects.byStatus ?? {}}
               loading={summaryLoading} error={summaryError}
+              onOpen={() => navigate("/projects")}
             />
           </Column>
           <Column lg={8} md={8} sm={4}>
@@ -574,34 +657,24 @@ export function Dashboard() {
         </Tile>
       </Column>
 
-      {/* ── Distribution charts: phases + types ───────────────────────────── */}
-      {/* SimpleBarChart horizontal; Carbon data-viz palette applied by theme.
-          Replaces the individual ClickableTile + ProgressBar tile wall.         */}
+      {/* ── Projects by phase (DonutChart) + Projects by type (Treemap) ──── */}
       {showProject && (
         <>
           <Column lg={8} md={8} sm={4}>
-            <HBarBoard
-              title="Projects by phase"
-              data={phaseData}
-              loading={boardsLoading} error={boardsError}
-            />
+            <PhaseDonut data={byPhase} loading={boardsLoading} error={boardsError} />
           </Column>
           <Column lg={8} md={8} sm={4}>
-            <HBarBoard
-              title="Projects by type"
-              data={typeData}
-              loading={boardsLoading} error={boardsError}
-            />
+            <TypeTreemap data={byType} loading={boardsLoading} error={boardsError} />
           </Column>
         </>
       )}
 
-      {/* ── Workload + Receivables aging charts ───────────────────────────── */}
+      {/* ── Workload Heatmap + Receivables aging ─────────────────────────── */}
       {showProject && (
         <Column lg={8} md={8} sm={4}>
-          <HBarBoard
-            title="Workload — open tasks per assignee"
-            data={workloadData}
+          <WorkloadHeatmap
+            weekly={b?.workloadWeekly ?? []}
+            daily={b?.workloadDaily ?? []}
             loading={boardsLoading} error={boardsError}
           />
         </Column>
@@ -629,8 +702,8 @@ export function Dashboard() {
       {showFinancial && (
         <Column lg={4} md={4} sm={4}>
           <FilingDueBoard title="TDS filing due" Pictogram={Banking} rows={[
-            { label: "TDS payment (challan)",    iso: nextMonthlyDue(7) },
-            { label: "TDS return (quarterly)",   iso: nextTdsReturnDue() },
+            { label: "TDS payment (challan)",  iso: nextMonthlyDue(7) },
+            { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
           ]} />
         </Column>
       )}
@@ -655,7 +728,6 @@ export function Dashboard() {
       )}
 
       {/* ── Activity Feed ─────────────────────────────────────────────────── */}
-      {/* Lowest dashboard priority per the brief. Full width, recent 8 events. */}
       <Column lg={16} md={8} sm={4}>
         <Tile>
           <Stack gap={5}>

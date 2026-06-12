@@ -99,6 +99,32 @@ export const dashboardRouter = router({
       .orderBy(sql`count(*) desc`)
       .limit(8);
 
+    // Workload heatmap — tasks per assignee broken down by weekday (0=Sun) and by day.
+    const wlWeekly = (await ctx.db.execute(sql`
+      select t.assignee,
+             extract(dow from t.due_date)::int as dow,
+             count(*)::int as n
+      from esti_task t
+      where t.status <> 'DONE'
+        and t.assignee is not null and t.assignee <> ''
+        and t.due_date is not null
+      group by t.assignee, dow
+      order by t.assignee, dow
+    `)) as unknown as { assignee: string; dow: number; n: number }[];
+
+    const wlDaily = (await ctx.db.execute(sql`
+      select t.assignee,
+             t.due_date::text as day,
+             count(*)::int as n
+      from esti_task t
+      where t.status <> 'DONE'
+        and t.assignee is not null and t.assignee <> ''
+        and t.due_date is not null
+        and t.due_date between current_date and current_date + 13
+      group by t.assignee, t.due_date
+      order by t.assignee, t.due_date
+    `)) as unknown as { assignee: string; day: string; n: number }[];
+
     // Receivables aging: outstanding (ISSUED) net amount bucketed by invoice age.
     const [aging] = await ctx.db
       .select({
@@ -115,6 +141,8 @@ export const dashboardRouter = router({
       onLeaveToday: Number(leaveRow?.n ?? 0),
       tasksDueToday: Number(taskTodayRow?.n ?? 0),
       workload: workload.map((r) => ({ assignee: r.assignee ?? "—", count: Number(r.n) })),
+      workloadWeekly: wlWeekly.map((r) => ({ assignee: r.assignee, dow: Number(r.dow), count: Number(r.n) })),
+      workloadDaily: wlDaily.map((r) => ({ assignee: r.assignee, day: r.day, count: Number(r.n) })),
       receivablesAging: {
         d0_30: Number(aging?.d0_30 ?? 0),
         d31_60: Number(aging?.d31_60 ?? 0),
