@@ -844,7 +844,7 @@ export function Dashboard() {
                   ))}
                 </Grid>
               )}
-            <Button kind="ghost" size="sm" onClick={() => navigate("/activity")}>
+            <Button kind="ghost" size="sm" onClick={() => navigate("/tasks?tab=activity")}>
               Open Activity Center
             </Button>
           </Stack>

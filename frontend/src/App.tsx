@@ -47,7 +47,6 @@ import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
-import { ActivityCenter } from "./routes/ActivityCenter.js";
 import { FeeProposals } from "./routes/FeeProposals.js";
 import { Filing } from "./routes/Filing.js";
 import { Invoices } from "./routes/Invoices.js";
@@ -61,8 +60,7 @@ import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
-import { Tasks } from "./routes/Tasks.js";
-import { Workload } from "./routes/Workload.js";
+import { Work } from "./routes/Work.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 
@@ -121,10 +119,9 @@ export function App() {
   // Grouped navigation (modules → sub-modules).
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
-    { label: "Activity", to: "/activity", icon: Document },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Compliance", to: "/compliance", icon: Calculation },
-    { label: "Tasks", to: "/tasks", icon: TaskComplete },
+    { label: "Work", to: "/tasks", icon: TaskComplete },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -259,7 +256,7 @@ export function App() {
           <main className="esti-grow">
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/activity" element={<ActivityCenter />} />
+              <Route path="/activity" element={<Navigate to="/tasks?tab=activity" replace />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
@@ -273,10 +270,8 @@ export function App() {
               )}
               <Route path="/office/letters" element={<Letters />} />
               <Route path="/office/contracts" element={<Contracts />} />
-              <Route path="/tasks" element={<Tasks />} />
-              {can(user.role, "write") && (
-                <Route path="/workload" element={<Workload />} />
-              )}
+              <Route path="/tasks" element={<Work />} />
+              <Route path="/workload" element={<Navigate to="/tasks?tab=workload" replace />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/consultants" element={<Consultants />} />
               <Route path="/reconcile" element={<Reconcile />} />
