@@ -483,6 +483,8 @@ export const teamMembers = pgTable("esti_teammember", {
   monthlySalaryPaise: bigint("monthly_salary_paise", { mode: "number" }).notNull().default(0),
   dateJoined: date("date_joined"),
   active: boolean("active").notNull().default(true),
+  /** Links this team member to their ESTI user account (enables "my tasks"). */
+  userId: uuid("user_id").references(() => users.id),
   createdAt: createdAt(),
 });
 
@@ -851,7 +853,16 @@ export const tasks = pgTable("esti_task", {
   title: text("title").notNull(),
   description: text("description"),
   projectId: uuid("project_id").references(() => projectOffices.id),
+  /** Legacy display-name cache — updated whenever assigneeId changes. */
   assignee: text("assignee"),
+  /** FK to the assigned team member (replaces text assignee for lookups). */
+  assigneeId: uuid("assignee_id").references(() => teamMembers.id),
+  /** FK to the reviewing team member. */
+  reviewerId: uuid("reviewer_id").references(() => teamMembers.id),
+  /** Blocking dependency: this task is blocked until the referenced task is DONE. */
+  dependsOnId: uuid("depends_on_id"),
+  /** ASPRF task classification: BILLABLE | NON_BILLABLE | TRAINING | COLLABORATION | PERSONAL */
+  classification: text("classification"),
   status: text("status").notNull().default("TODO"),
   priority: text("priority").notNull().default("MEDIUM"),
   dueDate: date("due_date"),

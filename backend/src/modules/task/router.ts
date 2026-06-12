@@ -1,6 +1,6 @@
-import { TaskCreate, TaskUpdate } from "@esti/contracts";
+import { TaskCreate, TaskListParams, TaskUpdate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
@@ -15,6 +15,10 @@ const withProject = {
   projectRef: projectOffices.ref,
   projectTitle: projectOffices.title,
   assignee: tasks.assignee,
+  assigneeId: tasks.assigneeId,
+  reviewerId: tasks.reviewerId,
+  dependsOnId: tasks.dependsOnId,
+  classification: tasks.classification,
   status: tasks.status,
   priority: tasks.priority,
   dueDate: tasks.dueDate,
@@ -22,18 +26,37 @@ const withProject = {
 };
 
 export const taskRouter = router({
-  /** All tasks (optionally only open). */
   list: protectedProcedure
-    .input(z.object({ openOnly: z.boolean().default(false) }).optional())
+    .input(TaskListParams.optional())
     .query(async ({ ctx, input }) => {
+      const filters: ReturnType<typeof eq>[] = [];
+      if (input?.openOnly) filters.push(eq(tasks.status, "TODO"));
+      if (input?.status) filters.push(eq(tasks.status, input.status));
+      if (input?.priority) filters.push(eq(tasks.priority, input.priority));
+      if (input?.projectId) filters.push(eq(tasks.projectId, input.projectId));
+
+      if (input?.myTasks) {
+        // Resolve current user's team member id.
+        const [tm] = await ctx.db
+          .select({ id: teamMembers.id })
+          .from(teamMembers)
+          .where(eq(teamMembers.userId, ctx.user.id));
+        if (tm) {
+          filters.push(eq(tasks.assigneeId, tm.id));
+        } else {
+          // User has no team member profile — return empty.
+          return [];
+        }
+      }
+
       const base = ctx.db
         .select(withProject)
         .from(tasks)
         .leftJoin(projectOffices, eq(projectOffices.id, tasks.projectId));
-      const rows = input?.openOnly
-        ? await base.where(eq(tasks.status, "TODO")).orderBy(desc(tasks.createdAt))
-        : await base.orderBy(desc(tasks.createdAt));
-      return rows;
+
+      return filters.length
+        ? base.where(and(...filters)).orderBy(desc(tasks.createdAt))
+        : base.orderBy(desc(tasks.createdAt));
     }),
 
   listByProject: protectedProcedure
@@ -48,20 +71,24 @@ export const taskRouter = router({
     }),
 
   create: protectedProcedure.input(TaskCreate).mutation(async ({ ctx, input }) => {
-    // The assignee, if set, must be a member of this project's team.
-    if (input.assignee) {
-      const team = await ctx.db
-        .select({ name: teamMembers.name })
+    if (input.assigneeId) {
+      const [check] = await ctx.db
+        .select({ id: assignments.id })
         .from(assignments)
-        .innerJoin(teamMembers, eq(teamMembers.id, assignments.teamMemberId))
-        .where(eq(assignments.projectId, input.projectId));
-      if (!team.some((m) => m.name === input.assignee)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Assignee must be a member of the project team",
-        });
-      }
+        .where(and(eq(assignments.projectId, input.projectId), eq(assignments.teamMemberId, input.assigneeId)));
+      if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Assignee must be a member of the project team" });
     }
+    if (input.reviewerId) {
+      const [check] = await ctx.db
+        .select({ id: assignments.id })
+        .from(assignments)
+        .where(and(eq(assignments.projectId, input.projectId), eq(assignments.teamMemberId, input.reviewerId)));
+      if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Reviewer must be a member of the project team" });
+    }
+    const assigneeName = input.assigneeId
+      ? await ctx.db.select({ name: teamMembers.name }).from(teamMembers).where(eq(teamMembers.id, input.assigneeId)).then((r) => r[0]?.name ?? null)
+      : null;
+
     const row = await ctx.db.transaction(async (tx) => {
       const [created] = await tx
         .insert(tasks)
@@ -69,7 +96,11 @@ export const taskRouter = router({
           title: input.title,
           description: input.description ?? null,
           projectId: input.projectId,
-          assignee: input.assignee ?? null,
+          assigneeId: input.assigneeId ?? null,
+          assignee: assigneeName,
+          reviewerId: input.reviewerId ?? null,
+          dependsOnId: input.dependsOnId ?? null,
+          classification: input.classification ?? null,
           priority: input.priority,
           dueDate: input.dueDate ?? null,
           createdById: ctx.user.id,
@@ -83,7 +114,14 @@ export const taskRouter = router({
         actorId: ctx.user.id,
         actorName: ctx.user.fullName,
         summary: `Task created: ${created!.title}`,
-        metadata: { title: created!.title, assignee: created!.assignee, priority: created!.priority, dueDate: created!.dueDate },
+        metadata: {
+          title: created!.title,
+          assignee: created!.assignee,
+          assigneeId: created!.assigneeId,
+          priority: created!.priority,
+          dueDate: created!.dueDate,
+          classification: created!.classification,
+        },
       });
       await writeAudit(tx, {
         entity: "task",
@@ -100,15 +138,42 @@ export const taskRouter = router({
   update: protectedProcedure.input(TaskUpdate).mutation(async ({ ctx, input }) => {
     const [before] = await ctx.db.select().from(tasks).where(eq(tasks.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+
+    if (input.assigneeId && before.projectId) {
+      const [check] = await ctx.db
+        .select({ id: assignments.id })
+        .from(assignments)
+        .where(and(eq(assignments.projectId, before.projectId), eq(assignments.teamMemberId, input.assigneeId)));
+      if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Assignee must be a member of the project team" });
+    }
+    if (input.reviewerId && before.projectId) {
+      const [check] = await ctx.db
+        .select({ id: assignments.id })
+        .from(assignments)
+        .where(and(eq(assignments.projectId, before.projectId), eq(assignments.teamMemberId, input.reviewerId)));
+      if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Reviewer must be a member of the project team" });
+    }
+
+    let assigneeName: string | null | undefined = undefined;
+    if (input.assigneeId !== undefined) {
+      assigneeName = input.assigneeId
+        ? await ctx.db.select({ name: teamMembers.name }).from(teamMembers).where(eq(teamMembers.id, input.assigneeId)).then((r) => r[0]?.name ?? null)
+        : null;
+    }
+
     const completedAt =
       input.status === "DONE" ? new Date() : input.status !== undefined ? null : undefined;
+
     const row = await ctx.db.transaction(async (tx) => {
       const [updated] = await tx
         .update(tasks)
         .set({
           ...(input.title !== undefined ? { title: input.title } : {}),
           ...(input.description !== undefined ? { description: input.description } : {}),
-          ...(input.assignee !== undefined ? { assignee: input.assignee } : {}),
+          ...(input.assigneeId !== undefined ? { assigneeId: input.assigneeId, assignee: assigneeName } : {}),
+          ...(input.reviewerId !== undefined ? { reviewerId: input.reviewerId } : {}),
+          ...(input.dependsOnId !== undefined ? { dependsOnId: input.dependsOnId } : {}),
+          ...(input.classification !== undefined ? { classification: input.classification } : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.priority !== undefined ? { priority: input.priority } : {}),
           ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),
@@ -127,16 +192,16 @@ export const taskRouter = router({
         metadata: {
           before: {
             title: before.title,
-            description: before.description,
             assignee: before.assignee,
+            assigneeId: before.assigneeId,
             status: before.status,
             priority: before.priority,
             dueDate: before.dueDate,
           },
           after: {
             title: updated!.title,
-            description: updated!.description,
             assignee: updated!.assignee,
+            assigneeId: updated!.assigneeId,
             status: updated!.status,
             priority: updated!.priority,
             dueDate: updated!.dueDate,

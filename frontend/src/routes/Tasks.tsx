@@ -16,7 +16,14 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { TASK_STATUS_LABEL, TaskPriority, TaskStatus } from "@esti/contracts";
+import {
+  TASK_CLASSIFICATION_LABEL,
+  TASK_PRIORITY_LABEL,
+  TASK_STATUS_LABEL,
+  TaskClassification,
+  TaskPriority,
+  TaskStatus,
+} from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
@@ -24,8 +31,9 @@ import { DataState } from "../components/DataState.js";
 import { ContextualComments } from "../components/ContextualComments.js";
 import { trpc } from "../lib/trpc.js";
 
-const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = {
-  HIGH: "red",
+const PRIORITY_TAG: Record<string, "red" | "magenta" | "blue" | "gray"> = {
+  CRITICAL: "red",
+  HIGH: "magenta",
   MEDIUM: "blue",
   LOW: "gray",
 };
@@ -33,7 +41,16 @@ const PRIORITY_TAG: Record<string, "red" | "blue" | "gray"> = {
 export function Tasks() {
   const utils = trpc.useUtils();
   const [openOnly, setOpenOnly] = useState(false);
-  const listQ = trpc.tasks.list.useQuery({ openOnly });
+  const [myTasks, setMyTasks] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+
+  const listQ = trpc.tasks.list.useQuery({
+    openOnly,
+    myTasks,
+    status: filterStatus ? (filterStatus as (typeof TaskStatus.options)[number]) : undefined,
+    priority: filterPriority ? (filterPriority as (typeof TaskPriority.options)[number]) : undefined,
+  });
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
   const invalidate = () => utils.tasks.list.invalidate();
   const update = trpc.tasks.update.useMutation({ onSuccess: invalidate });
@@ -49,7 +66,9 @@ export function Tasks() {
   const [form, setForm] = useState({
     title: "",
     projectId: "",
-    assignee: "",
+    assigneeId: "",
+    reviewerId: "",
+    classification: "",
     priority: "MEDIUM",
     dueDate: "",
     description: "",
@@ -66,7 +85,9 @@ export function Tasks() {
       setForm({
         title: "",
         projectId: "",
-        assignee: "",
+        assigneeId: "",
+        reviewerId: "",
+        classification: "",
         priority: "MEDIUM",
         dueDate: "",
         description: "",
@@ -85,19 +106,54 @@ export function Tasks() {
         </Stack>
         <Button onClick={() => setOpen(true)}>New task</Button>
       </Stack>
-      <Checkbox
-        id="t-open"
-        labelText="Open tasks only (To do)"
-        checked={openOnly}
-        onChange={(_e, { checked }) => setOpenOnly(checked)}
-      />
+
+      <Stack orientation="horizontal" gap={5}>
+        <Checkbox
+          id="t-open"
+          labelText="Open tasks only"
+          checked={openOnly}
+          onChange={(_e, { checked }) => setOpenOnly(checked)}
+        />
+        <Checkbox
+          id="t-mine"
+          labelText="My tasks"
+          checked={myTasks}
+          onChange={(_e, { checked }) => setMyTasks(checked)}
+        />
+        <Select
+          id="t-status"
+          labelText="Status"
+          hideLabel
+          size="sm"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <SelectItem value="" text="All statuses" />
+          {TaskStatus.options.map((s) => (
+            <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
+          ))}
+        </Select>
+        <Select
+          id="t-prio"
+          labelText="Priority"
+          hideLabel
+          size="sm"
+          value={filterPriority}
+          onChange={(e) => setFilterPriority(e.target.value)}
+        >
+          <SelectItem value="" text="All priorities" />
+          {TaskPriority.options.map((p) => (
+            <SelectItem key={p} value={p} text={TASK_PRIORITY_LABEL[p] ?? p} />
+          ))}
+        </Select>
+      </Stack>
 
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}
-        columnCount={7}
+        columnCount={8}
         empty={{
-          title: openOnly ? "No open tasks" : "No tasks yet",
+          title: openOnly || myTasks ? "No matching tasks" : "No tasks yet",
           description:
             "Create a task to track work across the office and projects.",
           action: (
@@ -114,6 +170,7 @@ export function Tasks() {
                 <TableHeader>Task</TableHeader>
                 <TableHeader>Project</TableHeader>
                 <TableHeader>Assignee</TableHeader>
+                <TableHeader>Reviewer</TableHeader>
                 <TableHeader>Priority</TableHeader>
                 <TableHeader>Due</TableHeader>
                 <TableHeader>Status</TableHeader>
@@ -130,6 +187,11 @@ export function Tasks() {
                     <TableCell>
                       {t.title}
                       {t.description && <div>{t.description}</div>}
+                      {t.classification && (
+                        <Tag type="cool-gray" size="sm">
+                          {TASK_CLASSIFICATION_LABEL[t.classification] ?? t.classification}
+                        </Tag>
+                      )}
                     </TableCell>
                     <TableCell>
                       {t.projectId ? (
@@ -141,13 +203,18 @@ export function Tasks() {
                       )}
                     </TableCell>
                     <TableCell>{t.assignee ?? "—"}</TableCell>
+                    <TableCell>{"—"}</TableCell>
                     <TableCell>
                       <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
-                        {t.priority}
+                        {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
                       </Tag>
                     </TableCell>
                     <TableCell>
-                      {overdue ? <Tag type="red">Overdue · {t.dueDate}</Tag> : (t.dueDate ?? "—")}
+                      {overdue ? (
+                        <Tag type="red">Overdue · {t.dueDate}</Tag>
+                      ) : (
+                        t.dueDate ?? "—"
+                      )}
                     </TableCell>
                     <TableCell>
                       <Select
@@ -235,7 +302,11 @@ export function Tasks() {
           create.mutate({
             title: form.title,
             projectId: form.projectId,
-            assignee: form.assignee || undefined,
+            assigneeId: form.assigneeId || null,
+            reviewerId: form.reviewerId || null,
+            classification: form.classification
+              ? (form.classification as (typeof TaskClassification.options)[number])
+              : undefined,
             priority: form.priority as (typeof TaskPriority.options)[number],
             dueDate: form.dueDate || null,
             description: form.description || undefined,
@@ -257,7 +328,8 @@ export function Tasks() {
               setForm((f) => ({
                 ...f,
                 projectId: e.target.value,
-                assignee: "",
+                assigneeId: "",
+                reviewerId: "",
               }))
             }
           >
@@ -270,31 +342,51 @@ export function Tasks() {
               />
             ))}
           </Select>
-          <Select
-            id="nt-assignee"
-            labelText="Assignee (project team)"
-            disabled={!form.projectId || team.length === 0}
-            helperText={
-              !form.projectId
-                ? "Select a project first"
-                : team.length === 0
-                  ? "No team members assigned to this project yet"
-                  : undefined
-            }
-            value={form.assignee}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, assignee: e.target.value }))
-            }
-          >
-            <SelectItem value="" text="— unassigned —" />
-            {team.map((m) => (
-              <SelectItem
-                key={m.teamMemberId}
-                value={m.name}
-                text={`${m.name} (${m.role})`}
-              />
-            ))}
-          </Select>
+          <Stack orientation="horizontal" gap={5}>
+            <Select
+              id="nt-assignee"
+              labelText="Assignee"
+              disabled={!form.projectId || team.length === 0}
+              helperText={
+                !form.projectId
+                  ? "Select a project first"
+                  : team.length === 0
+                    ? "No team members assigned yet"
+                    : undefined
+              }
+              value={form.assigneeId}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, assigneeId: e.target.value }))
+              }
+            >
+              <SelectItem value="" text="— unassigned —" />
+              {team.map((m) => (
+                <SelectItem
+                  key={m.teamMemberId}
+                  value={m.teamMemberId}
+                  text={`${m.name} (${m.role})`}
+                />
+              ))}
+            </Select>
+            <Select
+              id="nt-reviewer"
+              labelText="Reviewer"
+              disabled={!form.projectId || team.length === 0}
+              value={form.reviewerId}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, reviewerId: e.target.value }))
+              }
+            >
+              <SelectItem value="" text="— none —" />
+              {team.map((m) => (
+                <SelectItem
+                  key={m.teamMemberId}
+                  value={m.teamMemberId}
+                  text={`${m.name} (${m.role})`}
+                />
+              ))}
+            </Select>
+          </Stack>
           <Stack orientation="horizontal" gap={5}>
             <Select
               id="nt-prio"
@@ -305,7 +397,24 @@ export function Tasks() {
               }
             >
               {TaskPriority.options.map((p) => (
-                <SelectItem key={p} value={p} text={p} />
+                <SelectItem key={p} value={p} text={TASK_PRIORITY_LABEL[p] ?? p} />
+              ))}
+            </Select>
+            <Select
+              id="nt-class"
+              labelText="Classification"
+              value={form.classification}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, classification: e.target.value }))
+              }
+            >
+              <SelectItem value="" text="— none —" />
+              {TaskClassification.options.map((c) => (
+                <SelectItem
+                  key={c}
+                  value={c}
+                  text={TASK_CLASSIFICATION_LABEL[c] ?? c}
+                />
               ))}
             </Select>
             <TextInput
