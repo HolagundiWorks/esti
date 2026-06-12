@@ -1,12 +1,10 @@
 import { Stack, Tab, TabList, TabPanel, TabPanels, Tabs } from "@carbon/react";
 import { DataState } from "../components/DataState.js";
 import { RuleVersionManager } from "../components/RuleVersionManager.js";
-import {
-  SpecificationManager,
-  StructuralElementManager,
-} from "../components/KnowledgeCatalogManagers.js";
+import { SpecificationManager } from "../components/KnowledgeCatalogManagers.js";
 import { trpc } from "../lib/trpc.js";
 import { MasterDsr } from "./MasterDsr.js";
+import { SteelArranger } from "./SteelArranger.js";
 
 export function KnowledgeBank() {
   const rvQ = trpc.ruleVersions.list.useQuery({});
@@ -21,7 +19,7 @@ export function KnowledgeBank() {
         <h1>Knowledge Bank</h1>
         <p>
           Governed office standards used by compliance, estimation,
-          specifications, procurement, and structural quantity workflows.
+          specifications, procurement, and reinforcement detailing workflows.
         </p>
       </Stack>
 
@@ -30,7 +28,7 @@ export function KnowledgeBank() {
           <Tab>Master DSR</Tab>
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
-          <Tab>Structural Elements</Tab>
+          <Tab>SteelFlow</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -68,7 +66,7 @@ export function KnowledgeBank() {
             <SpecificationManager canManage={canManageCatalogs} />
           </TabPanel>
           <TabPanel>
-            <StructuralElementManager canManage={canManageCatalogs} />
+            <SteelArranger />
           </TabPanel>
         </TabPanels>
       </Tabs>
