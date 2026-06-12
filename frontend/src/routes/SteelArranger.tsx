@@ -1,13 +1,6 @@
 /**
  * SteelFlow AI — Interactive Steel Arranger + Automated BBS Generator.
- * Route: /steel-arranger
- *
- * Phase 2E complete features:
- *   - dnd-kit drag-and-drop bar placement from palette onto SVG canvas
- *   - Shape codes B/D/E: L-bend, Hairpin, Cranked bar with computed cutting lengths
- *   - BEAM/COLUMN cross-section, SLAB strip view, FOOTING plan view
- *   - Excel BBS export (SheetJS)
- *   - IS:456 rule-based AI review
+ * Route: /steel-arranger  (also embedded in Knowledge Bank → SteelFlow tab)
  */
 import {
   Button,
@@ -48,8 +41,6 @@ import {
 import * as XLSX from "xlsx";
 import {
   SF_BAR_DIAS,
-  SF_BAR_TYPES,
-  SF_BAR_TYPE_LABEL,
   SF_ELEMENT_TYPES,
   SF_STIRRUP_TYPES,
   SF_STIRRUP_LABEL,
@@ -62,6 +53,74 @@ import { useSteelStore } from "../store/useSteelStore.js";
 import { computeBbsRows, totalSteelKg } from "../engine/bbsEngine.js";
 import { BarPalette } from "../components/steelflow/BarPalette.js";
 import { CrossSectionDropZone } from "../components/steelflow/CrossSectionCanvas.js";
+
+// ─── Element-type config ──────────────────────────────────────────────────────
+// Each structural element type has different terminology, available bar types,
+// applicable shape codes, and whether stirrups / links apply.
+
+type ElType = "BEAM" | "COLUMN" | "SLAB" | "FOOTING";
+
+const DIM_LABELS: Record<ElType, { l: string; w: string; d: string }> = {
+  BEAM:    { l: "Span (mm)",      w: "Width b (mm)",      d: "Depth D (mm)" },
+  COLUMN:  { l: "Height H (mm)",  w: "Width b (mm)",      d: "Depth D (mm)" },
+  SLAB:    { l: "Span (mm)",      w: "Strip width (mm)",  d: "Thickness t (mm)" },
+  FOOTING: { l: "Length L (mm)",  w: "Width B (mm)",      d: "Depth D (mm)" },
+};
+
+// Bar types available per element, in logical display order
+const BAR_TYPES_FOR: Record<ElType, string[]> = {
+  BEAM:    ["BOTTOM_MAIN", "TOP_MAIN", "EXTRA_BOTTOM", "EXTRA_TOP", "SIDE_FACE"],
+  COLUMN:  ["TOP_MAIN", "BOTTOM_MAIN", "SIDE_FACE"],
+  SLAB:    ["BOTTOM_MAIN", "TOP_MAIN", "SIDE_FACE"],
+  FOOTING: ["BOTTOM_MAIN", "SIDE_FACE"],
+};
+
+// Contextual labels — each element uses different structural terminology
+const BAR_LABEL_FOR: Record<ElType, Record<string, string>> = {
+  BEAM: {
+    BOTTOM_MAIN:  "Bottom main (tension)",
+    TOP_MAIN:     "Top main (compression / hogging)",
+    EXTRA_BOTTOM: "Extra bottom",
+    EXTRA_TOP:    "Extra top",
+    SIDE_FACE:    "Side face (deep beam)",
+  },
+  COLUMN: {
+    TOP_MAIN:    "Top face bars",
+    BOTTOM_MAIN: "Bottom face bars",
+    SIDE_FACE:   "Side face bars",
+  },
+  SLAB: {
+    BOTTOM_MAIN: "Main — bottom layer (sagging)",
+    TOP_MAIN:    "Main — top layer (hogging / cantilever)",
+    SIDE_FACE:   "Distribution bars",
+  },
+  FOOTING: {
+    BOTTOM_MAIN: "Main bars — X direction",
+    SIDE_FACE:   "Distribution — Y direction",
+    TOP_MAIN:    "Top mesh",
+  },
+};
+
+// Shape codes applicable per element (IS:2502)
+const SHAPES_FOR: Record<ElType, string[]> = {
+  BEAM:    ["A", "B", "C", "D", "E"],
+  COLUMN:  ["A", "B"],
+  SLAB:    ["A", "B", "E"],   // straight + cranked/bent-up
+  FOOTING: ["A"],
+};
+
+// Whether stirrups / links are used
+const HAS_STIRRUPS: Record<ElType, boolean> = {
+  BEAM: true, COLUMN: true, SLAB: false, FOOTING: false,
+};
+
+// Default element dimensions per type
+const DEFAULTS: Record<ElType, { l: number; w: number; d: number; cover: number }> = {
+  BEAM:    { l: 5000, w: 230,  d: 450, cover: 25 },
+  COLUMN:  { l: 3000, w: 230,  d: 450, cover: 40 },
+  SLAB:    { l: 4000, w: 1000, d: 150, cover: 20 },
+  FOOTING: { l: 1500, w: 1500, d: 400, cover: 50 },
+};
 
 // ─── BBS Table ─────────────────────────────────────────────────────────────────
 
@@ -144,10 +203,11 @@ function AiReviewPanel({ elementId }: { elementId: string }) {
   );
 }
 
-// ─── Add rebar form (with shape code + bent-bar dimensions) ───────────────────
+// ─── Add rebar form ────────────────────────────────────────────────────────────
 
 function AddRebarForm({
   elementId,
+  elementType,
   elementLengthMm,
   elementCoverMm,
   elementWidthMm,
@@ -158,6 +218,7 @@ function AddRebarForm({
   onDone,
 }: {
   elementId: string;
+  elementType: ElType;
   elementLengthMm: number;
   elementCoverMm: number;
   elementWidthMm: number;
@@ -167,33 +228,24 @@ function AddRebarForm({
   initialPosY?: number;
   onDone?: () => void;
 }) {
+  const availableBarTypes = BAR_TYPES_FOR[elementType];
+  const barLabelMap = BAR_LABEL_FOR[elementType];
+  const availableShapes = SHAPES_FOR[elementType];
+
   const [dia, setDia] = useState<number>(initialDia ?? 12);
-  const [barType, setBarType] = useState<string>(
-    initialPosY != null && initialPosY < elementDepthMm * 0.4
-      ? "BOTTOM_MAIN"
-      : initialPosY != null && initialPosY > elementDepthMm * 0.6
-        ? "TOP_MAIN"
-        : "BOTTOM_MAIN",
-  );
+  const [barType, setBarType] = useState<string>(availableBarTypes[0] ?? "BOTTOM_MAIN");
   const [qty, setQty] = useState(1);
-  const [shapeCode, setShapeCode] = useState("A");
+  const [shapeCode, setShapeCode] = useState(availableShapes[0] ?? "A");
   const [mark, setMark] = useState("");
-  // Bent bar dimension inputs
   const [leg2, setLeg2] = useState(300);
   const [hairpinH, setHairpinH] = useState(300);
   const [hairpinW, setHairpinW] = useState(150);
   const [crankH, setCrankH] = useState(50);
   const utils = trpc.useUtils();
 
-  const computedCutLen =
-    shapeCode === "A"
-      ? elementLengthMm
-      : sfShapeCuttingLength(shapeCode, elementLengthMm, dia, {
-          leg2,
-          hairpinH,
-          hairpinW,
-          crankH,
-        });
+  const computedCutLen = sfShapeCuttingLength(shapeCode, elementLengthMm, dia, {
+    leg2, hairpinH, hairpinW, crankH,
+  });
 
   const createMut = trpc.steelflow.createRebar.useMutation({
     onSuccess: () => {
@@ -203,62 +255,48 @@ function AddRebarForm({
     },
   });
 
-  function handleAdd() {
-    createMut.mutate({
-      elementId,
-      barMark: mark || `${shapeCode}${dia}`,
-      diaMm: dia as (typeof SF_BAR_DIAS)[number],
-      barType: barType as (typeof SF_BAR_TYPES)[number],
-      quantity: qty,
-      cuttingLengthMm: computedCutLen,
-      shapeCode,
-      posX: initialPosX,
-      posY: initialPosY,
-    });
-  }
-
   return (
     <Stack gap={3}>
       <Stack orientation="horizontal" gap={3}>
         <TextInput
-          id="rebar-mark"
-          labelText="Mark"
-          size="sm"
+          id="rebar-mark" labelText="Mark" size="sm"
           placeholder={`${shapeCode}${dia}`}
-          value={mark}
-          onChange={(e) => setMark(e.target.value)}
+          value={mark} onChange={(e) => setMark(e.target.value)}
         />
         <Select id="rebar-dia" labelText="Dia (mm)" size="sm" value={dia}
           onChange={(e) => setDia(Number(e.target.value))}>
           {SF_BAR_DIAS.map((d) => <SelectItem key={d} value={d} text={`T${d}`} />)}
         </Select>
-        <Select id="rebar-type" labelText="Bar type" size="sm" value={barType}
-          onChange={(e) => setBarType(e.target.value)}>
-          {SF_BAR_TYPES.map((t) => <SelectItem key={t} value={t} text={SF_BAR_TYPE_LABEL[t]} />)}
-        </Select>
-      </Stack>
-      <Stack orientation="horizontal" gap={3}>
         <NumberInput id="rebar-qty" label="Qty" size="sm" min={1} max={50} value={qty}
           onChange={(_e, { value }) => setQty(Number(value))} />
+      </Stack>
+
+      <Stack orientation="horizontal" gap={3}>
+        <Select id="rebar-type" labelText="Bar position" size="sm" value={barType}
+          onChange={(e) => setBarType(e.target.value)}>
+          {availableBarTypes.map((t) => (
+            <SelectItem key={t} value={t} text={barLabelMap[t] ?? t} />
+          ))}
+        </Select>
         <Select id="rebar-shape" labelText="Shape code" size="sm" value={shapeCode}
           onChange={(e) => setShapeCode(e.target.value)}>
-          {Object.entries(SF_SHAPE_CODE_LABEL)
-            .filter(([k]) => k !== "F") // stirrups only
-            .map(([k, v]) => <SelectItem key={k} value={k} text={`${k} — ${v}`} />)}
+          {availableShapes.map((k) => (
+            <SelectItem key={k} value={k} text={`${k} — ${SF_SHAPE_CODE_LABEL[k] ?? k}`} />
+          ))}
         </Select>
       </Stack>
 
-      {/* Shape-specific extra dimension inputs */}
+      {/* Shape-specific extra dimensions */}
       {shapeCode === "B" && (
         <Stack gap={2}>
-          <Tag type="gray" size="sm">L-bend dimensions</Tag>
+          <Tag type="gray" size="sm">L-bend — side leg length</Tag>
           <NumberInput id="leg2" label="Side leg (mm)" size="sm" min={50} max={3000} step={50}
             value={leg2} onChange={(_e, { value }) => setLeg2(Number(value))} />
         </Stack>
       )}
       {shapeCode === "D" && (
         <Stack gap={2}>
-          <Tag type="gray" size="sm">Hairpin dimensions</Tag>
+          <Tag type="gray" size="sm">Hairpin / U-shape dimensions</Tag>
           <Stack orientation="horizontal" gap={3}>
             <NumberInput id="hp-h" label="Height (mm)" size="sm" min={50} max={3000} step={25}
               value={hairpinH} onChange={(_e, { value }) => setHairpinH(Number(value))} />
@@ -269,7 +307,7 @@ function AddRebarForm({
       )}
       {shapeCode === "E" && (
         <Stack gap={2}>
-          <Tag type="gray" size="sm">Cranked bar dimensions</Tag>
+          <Tag type="gray" size="sm">Cranked bar — crank height</Tag>
           <NumberInput id="crank-h" label="Crank height (mm)" size="sm" min={10} max={500} step={5}
             value={crankH} onChange={(_e, { value }) => setCrankH(Number(value))} />
         </Stack>
@@ -281,12 +319,23 @@ function AddRebarForm({
         </Tag>
         {initialPosX != null && (
           <Tag type="teal" size="sm">
-            pos ({Math.round(initialPosX)}, {Math.round(initialPosY ?? 0)}) mm
+            Drop pos ({Math.round(initialPosX)}, {Math.round(initialPosY ?? 0)}) mm
           </Tag>
         )}
       </Stack>
 
-      <Button kind="primary" size="sm" renderIcon={Add} onClick={handleAdd}
+      <Button kind="primary" size="sm" renderIcon={Add}
+        onClick={() => createMut.mutate({
+          elementId,
+          barMark: mark || `${shapeCode}${dia}`,
+          diaMm: dia as (typeof SF_BAR_DIAS)[number],
+          barType: barType as Parameters<typeof createMut.mutate>[0]["barType"],
+          quantity: qty,
+          cuttingLengthMm: computedCutLen,
+          shapeCode,
+          posX: initialPosX,
+          posY: initialPosY,
+        })}
         disabled={createMut.isPending}>
         Add rebar
       </Button>
@@ -294,9 +343,10 @@ function AddRebarForm({
   );
 }
 
-// ─── Add stirrup form ─────────────────────────────────────────────────────────
+// ─── Add stirrup / link form ───────────────────────────────────────────────────
 
-function AddStirrupForm({ elementId }: { elementId: string }) {
+function AddStirrupForm({ elementId, elementType }: { elementId: string; elementType: ElType }) {
+  const stirrupLabel = elementType === "COLUMN" ? "link / tie" : "stirrup";
   const [dia, setDia] = useState(8);
   const [spacing, setSpacing] = useState(150);
   const [stirrupType, setStirrupType] = useState("CLOSED");
@@ -311,7 +361,7 @@ function AddStirrupForm({ elementId }: { elementId: string }) {
           onChange={(e) => setDia(Number(e.target.value))}>
           {[6, 8, 10, 12].map((d) => <SelectItem key={d} value={d} text={`T${d}`} />)}
         </Select>
-        <Select id="stir-type" labelText="Type" size="sm" value={stirrupType}
+        <Select id="stir-type" labelText={`${stirrupLabel} type`} size="sm" value={stirrupType}
           onChange={(e) => setStirrupType(e.target.value)}>
           {SF_STIRRUP_TYPES.map((t) => <SelectItem key={t} value={t} text={SF_STIRRUP_LABEL[t]} />)}
         </Select>
@@ -327,7 +377,7 @@ function AddStirrupForm({ elementId }: { elementId: string }) {
           hookAngle: 135,
         })}
         disabled={createMut.isPending}>
-        Add stirrup
+        Add {stirrupLabel}
       </Button>
     </Stack>
   );
@@ -337,7 +387,6 @@ function AddStirrupForm({ elementId }: { elementId: string }) {
 
 function ElementEditor({ elementId }: { elementId: string }) {
   const [showAi, setShowAi] = useState(false);
-  // Pending drop state — when a bar is dropped from palette, we show the form
   const [pendingDrop, setPendingDrop] = useState<{
     dia: number; posX: number; posY: number;
   } | null>(null);
@@ -368,6 +417,9 @@ function ElementEditor({ elementId }: { elementId: string }) {
     { enabled: !!sessId },
   );
   const el = (allElemsQ.data ?? []).find((e) => e.id === elementId);
+  const elType = (el?.elementType ?? "BEAM") as ElType;
+  const barLabelMap = BAR_LABEL_FOR[elType];
+  const hasStirrup = HAS_STIRRUPS[elType];
 
   const bbsRows = el
     ? computeBbsRows(
@@ -387,13 +439,11 @@ function ElementEditor({ elementId }: { elementId: string }) {
     const dia = event.active.data.current?.dia as number;
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
-    // Compute final client position from activator + delta
     const ae = event.activatorEvent as MouseEvent | TouchEvent;
     const startX = "clientX" in ae ? ae.clientX : ae.touches[0]?.clientX ?? 0;
     const startY = "clientX" in ae ? ae.clientY : ae.touches[0]?.clientY ?? 0;
     const finalX = startX + event.delta.x;
     const finalY = startY + event.delta.y;
-    // Convert to SVG mm coordinates
     const scale = Math.min(320 / el.widthMm, 320 / el.depthMm);
     const posX = Math.max(0, Math.min(el.widthMm, (finalX - svgRect.left) / scale));
     const posY = Math.max(0, Math.min(el.depthMm, (finalY - svgRect.top) / scale));
@@ -421,6 +471,11 @@ function ElementEditor({ elementId }: { elementId: string }) {
 
   if (!el) return <InlineLoading description="Loading element…" />;
 
+  const canvasLabel = {
+    BEAM: "Cross-section", COLUMN: "Cross-section",
+    SLAB: "Cross-section strip", FOOTING: "Plan view",
+  }[elType];
+
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <Stack gap={5}>
@@ -428,8 +483,13 @@ function ElementEditor({ elementId }: { elementId: string }) {
         <Stack orientation="horizontal" gap={3} style={{ flexWrap: "wrap" }}>
           <Tag type="gray" size="sm">{el.elementType}</Tag>
           <strong>{el.elementCode}</strong>
-          <Tag type="blue" size="sm">{el.widthMm} × {el.depthMm} mm</Tag>
-          <Tag type="teal" size="sm">L = {el.lengthMm.toLocaleString()} mm</Tag>
+          <Tag type="blue" size="sm">
+            {DIM_LABELS[elType].w.replace(" (mm)", "")} = {el.widthMm} mm &nbsp;·&nbsp;
+            {DIM_LABELS[elType].d.replace(" (mm)", "")} = {el.depthMm} mm
+          </Tag>
+          <Tag type="teal" size="sm">
+            {DIM_LABELS[elType].l.replace(" (mm)", "")} = {el.lengthMm.toLocaleString()} mm
+          </Tag>
           <Tag type="gray" size="sm">M{el.fck} / Fe{el.fy}</Tag>
           <Tag type="gray" size="sm">Cover {el.coverMm} mm</Tag>
         </Stack>
@@ -439,23 +499,15 @@ function ElementEditor({ elementId }: { elementId: string }) {
           <Column lg={7} md={4} sm={4}>
             <Tile>
               <Stack gap={3}>
-                <Stack orientation="horizontal" gap={3}>
-                  <Tag type="gray" size="sm">
-                    {el.elementType === "SLAB"
-                      ? "Cross-section strip"
-                      : el.elementType === "FOOTING"
-                        ? "Plan view"
-                        : "Cross-section"}
-                  </Tag>
-                  {(el.elementType === "BEAM" || el.elementType === "COLUMN") && (
+                <Stack orientation="horizontal" gap={2}>
+                  <Tag type="gray" size="sm">{canvasLabel}</Tag>
+                  {(elType === "BEAM" || elType === "COLUMN") && (
                     <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>
-                      Drop a bar from the palette onto the section
+                      Drag a bar pill onto the section to place it
                     </p>
                   )}
                 </Stack>
-                {(el.elementType === "BEAM" || el.elementType === "COLUMN") && (
-                  <BarPalette />
-                )}
+                {(elType === "BEAM" || elType === "COLUMN") && <BarPalette />}
                 <CrossSectionDropZone
                   ref={svgRef}
                   elementType={el.elementType}
@@ -465,15 +517,11 @@ function ElementEditor({ elementId }: { elementId: string }) {
                   coverMm={el.coverMm}
                   rebars={rebars}
                   stirrups={stirrups}
+                  onBarClick={(id) => deleteRebarMut.mutate({ id })}
                 />
-                {el.elementType === "SLAB" && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>
-                    BOTTOM_MAIN = bottom layer · TOP_MAIN = top layer · SIDE_FACE = distribution bars
-                  </p>
-                )}
-                {el.elementType === "FOOTING" && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>
-                    BOTTOM_MAIN = bars in X-direction · SIDE_FACE / TOP_MAIN = bars in Y-direction
+                {rebars.length > 0 && (
+                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-helper)" }}>
+                    Hover a bar, then click to remove it.
                   </p>
                 )}
               </Stack>
@@ -485,7 +533,9 @@ function ElementEditor({ elementId }: { elementId: string }) {
             <Tabs>
               <TabList aria-label="Reinforcement tabs">
                 <Tab>Rebars ({rebars.length})</Tab>
-                <Tab>Stirrups ({stirrups.length})</Tab>
+                {hasStirrup && (
+                  <Tab>{elType === "COLUMN" ? "Links" : "Stirrups"} ({stirrups.length})</Tab>
+                )}
                 <Tab>BBS</Tab>
                 <Tab>Dev. Length</Tab>
               </TabList>
@@ -495,6 +545,7 @@ function ElementEditor({ elementId }: { elementId: string }) {
                   <Stack gap={4}>
                     <AddRebarForm
                       elementId={elementId}
+                      elementType={elType}
                       elementLengthMm={el.lengthMm}
                       elementCoverMm={el.coverMm}
                       elementWidthMm={el.widthMm}
@@ -503,15 +554,20 @@ function ElementEditor({ elementId }: { elementId: string }) {
                     {rebars.length > 0 && (
                       <Stack gap={2}>
                         {rebars.map((r) => (
-                          <Stack key={r.id} orientation="horizontal" gap={2} style={{ flexWrap: "wrap" }}>
+                          <Stack key={r.id} orientation="horizontal" gap={2}
+                            style={{ flexWrap: "wrap", alignItems: "center" }}>
                             <Tag type="blue" size="sm">T{r.diaMm}</Tag>
                             <Tag type="gray" size="sm">
-                              {SF_BAR_TYPE_LABEL[r.barType as (typeof SF_BAR_TYPES)[number]] ?? r.barType}
+                              {barLabelMap[r.barType] ?? r.barType}
                             </Tag>
-                            <Tag type={r.shapeCode !== "A" ? "purple" : "cool-gray"} size="sm">
-                              {r.shapeCode} — {SF_SHAPE_CODE_LABEL[r.shapeCode] ?? r.shapeCode}
-                            </Tag>
-                            <p>{r.barMark} · {r.quantity} nos · {(r.cuttingLengthMm ?? el.lengthMm).toLocaleString()} mm</p>
+                            {r.shapeCode !== "A" && (
+                              <Tag type="purple" size="sm">
+                                {r.shapeCode} — {SF_SHAPE_CODE_LABEL[r.shapeCode] ?? r.shapeCode}
+                              </Tag>
+                            )}
+                            <p style={{ flex: 1 }}>
+                              {r.barMark} · {r.quantity} nos · {(r.cuttingLengthMm ?? el.lengthMm).toLocaleString()} mm
+                            </p>
                             <Button kind="danger--ghost" size="sm" hasIconOnly
                               renderIcon={TrashCan} iconDescription="Remove"
                               onClick={() => deleteRebarMut.mutate({ id: r.id })} />
@@ -522,28 +578,30 @@ function ElementEditor({ elementId }: { elementId: string }) {
                   </Stack>
                 </TabPanel>
 
-                {/* Stirrups */}
-                <TabPanel>
-                  <Stack gap={4}>
-                    <AddStirrupForm elementId={elementId} />
-                    {stirrups.length > 0 && (
-                      <Stack gap={2}>
-                        {stirrups.map((s) => (
-                          <Stack key={s.id} orientation="horizontal" gap={2}>
-                            <Tag type="teal" size="sm">T{s.diaMm}</Tag>
-                            <Tag type="gray" size="sm">
-                              {SF_STIRRUP_LABEL[s.stirrupType as (typeof SF_STIRRUP_TYPES)[number]] ?? s.stirrupType}
-                            </Tag>
-                            <p>@ {s.spacingMm} mm c/c · {s.zone}</p>
-                            <Button kind="danger--ghost" size="sm" hasIconOnly
-                              renderIcon={TrashCan} iconDescription="Remove"
-                              onClick={() => deleteStirrupMut.mutate({ id: s.id })} />
-                          </Stack>
-                        ))}
-                      </Stack>
-                    )}
-                  </Stack>
-                </TabPanel>
+                {/* Stirrups / Links — BEAM and COLUMN only */}
+                {hasStirrup && (
+                  <TabPanel>
+                    <Stack gap={4}>
+                      <AddStirrupForm elementId={elementId} elementType={elType} />
+                      {stirrups.length > 0 && (
+                        <Stack gap={2}>
+                          {stirrups.map((s) => (
+                            <Stack key={s.id} orientation="horizontal" gap={2}>
+                              <Tag type="teal" size="sm">T{s.diaMm}</Tag>
+                              <Tag type="gray" size="sm">
+                                {SF_STIRRUP_LABEL[s.stirrupType as (typeof SF_STIRRUP_TYPES)[number]] ?? s.stirrupType}
+                              </Tag>
+                              <p>@ {s.spacingMm} mm c/c · {s.zone}</p>
+                              <Button kind="danger--ghost" size="sm" hasIconOnly
+                                renderIcon={TrashCan} iconDescription="Remove"
+                                onClick={() => deleteStirrupMut.mutate({ id: s.id })} />
+                            </Stack>
+                          ))}
+                        </Stack>
+                      )}
+                    </Stack>
+                  </TabPanel>
+                )}
 
                 {/* BBS */}
                 <TabPanel>
@@ -586,26 +644,26 @@ function ElementEditor({ elementId }: { elementId: string }) {
           </Column>
         </Grid>
 
-        {/* AI review */}
         <Stack orientation="horizontal" gap={3}>
           <Button kind={showAi ? "secondary" : "ghost"} size="sm" renderIcon={Idea}
             onClick={() => setShowAi((v) => !v)}>
-            {showAi ? "Hide AI Review" : "IS:456 AI Review"}
+            {showAi ? "Hide IS:456 Review" : "Run IS:456 AI Review"}
           </Button>
         </Stack>
         {showAi && <AiReviewPanel elementId={elementId} />}
       </Stack>
 
-      {/* Drop-to-add modal — shows rebar form pre-filled with drop position */}
+      {/* Drop-to-add modal */}
       {pendingDrop && el && (
         <Modal
           open
-          modalHeading={`Add T${pendingDrop.dia} bar at (${Math.round(pendingDrop.posX)}, ${Math.round(pendingDrop.posY)}) mm`}
+          modalHeading={`Place T${pendingDrop.dia} at (${Math.round(pendingDrop.posX)}, ${Math.round(pendingDrop.posY)}) mm`}
           passiveModal
           onRequestClose={() => setPendingDrop(null)}
         >
           <AddRebarForm
             elementId={elementId}
+            elementType={elType}
             elementLengthMm={el.lengthMm}
             elementCoverMm={el.coverMm}
             elementWidthMm={el.widthMm}
@@ -630,15 +688,23 @@ function NewElementForm({
   sessionId: string;
   onCreated: (id: string) => void;
 }) {
-  const [type, setType] = useState("BEAM");
+  const [type, setType] = useState<ElType>("BEAM");
   const [code, setCode] = useState("");
-  const [length, setLength] = useState(5000);
-  const [width, setWidth] = useState(230);
-  const [depth, setDepth] = useState(450);
-  const [cover, setCover] = useState(25);
+  const [length, setLength] = useState(DEFAULTS.BEAM.l);
+  const [width, setWidth] = useState(DEFAULTS.BEAM.w);
+  const [depth, setDepth] = useState(DEFAULTS.BEAM.d);
+  const [cover, setCover] = useState(DEFAULTS.BEAM.cover);
   const [fck, setFck] = useState(25);
   const [fy, setFy] = useState(500);
   const utils = trpc.useUtils();
+
+  const dims = DIM_LABELS[type];
+
+  function applyDefaults(t: ElType) {
+    const d = DEFAULTS[t];
+    setLength(d.l); setWidth(d.w); setDepth(d.d); setCover(d.cover);
+    setType(t);
+  }
 
   const createMut = trpc.steelflow.createElement.useMutation({
     onSuccess: (row) => {
@@ -648,35 +714,27 @@ function NewElementForm({
     },
   });
 
-  // Default dimensions per type
-  function applyDefaults(t: string) {
-    if (t === "COLUMN") { setWidth(230); setDepth(450); setCover(40); }
-    else if (t === "SLAB") { setWidth(1000); setDepth(150); setCover(20); }
-    else if (t === "FOOTING") { setWidth(1500); setDepth(400); setCover(50); }
-    else { setWidth(230); setDepth(450); setCover(25); }
-    setType(t);
-  }
-
   return (
     <Stack gap={3}>
       <Stack orientation="horizontal" gap={3}>
-        <Select id="el-type" labelText="Type" size="sm" value={type}
-          onChange={(e) => applyDefaults(e.target.value)}>
+        <Select id="el-type" labelText="Element type" size="sm" value={type}
+          onChange={(e) => applyDefaults(e.target.value as ElType)}>
           {SF_ELEMENT_TYPES.map((t) => <SelectItem key={t} value={t} text={t} />)}
         </Select>
-        <TextInput id="el-code" labelText="Code" size="sm" placeholder="B1"
+        <TextInput id="el-code" labelText="Reference code" size="sm"
+          placeholder="B1 / C1 / S1 / F1"
           value={code} onChange={(e) => setCode(e.target.value)} />
       </Stack>
       <Stack orientation="horizontal" gap={3}>
-        <NumberInput id="el-len" label="Length (mm)" size="sm" min={300} max={30000} step={100}
+        <NumberInput id="el-len" label={dims.l} size="sm" min={300} max={30000} step={100}
           value={length} onChange={(_e, { value }) => setLength(Number(value))} />
-        <NumberInput id="el-width" label="Width (mm)" size="sm" min={100} max={3000} step={25}
+        <NumberInput id="el-width" label={dims.w} size="sm" min={100} max={3000} step={25}
           value={width} onChange={(_e, { value }) => setWidth(Number(value))} />
-        <NumberInput id="el-depth" label="Depth (mm)" size="sm" min={100} max={3000} step={25}
+        <NumberInput id="el-depth" label={dims.d} size="sm" min={50} max={3000} step={25}
           value={depth} onChange={(_e, { value }) => setDepth(Number(value))} />
       </Stack>
       <Stack orientation="horizontal" gap={3}>
-        <NumberInput id="el-cover" label="Cover (mm)" size="sm" min={15} max={75} step={5}
+        <NumberInput id="el-cover" label="Clear cover (mm)" size="sm" min={15} max={75} step={5}
           value={cover} onChange={(_e, { value }) => setCover(Number(value))} />
         <Select id="el-fck" labelText="fck (MPa)" size="sm" value={fck}
           onChange={(e) => setFck(Number(e.target.value))}>
@@ -690,7 +748,7 @@ function NewElementForm({
       <Button kind="primary" size="sm" renderIcon={Add}
         onClick={() => createMut.mutate({
           sessionId,
-          elementType: type as (typeof SF_ELEMENT_TYPES)[number],
+          elementType: type,
           elementCode: code || `${type[0]}1`,
           lengthMm: length,
           widthMm: width,
@@ -749,11 +807,18 @@ export function SteelArranger() {
 
   return (
     <Stack gap={5}>
-      <Stack orientation="horizontal" gap={3}>
-        <Tag type="gray" size="sm">SteelFlow AI</Tag>
-        <h1>Steel Arranger + BBS Generator</h1>
+      <Stack gap={2}>
+        <Stack orientation="horizontal" gap={3}>
+          <Tag type="gray" size="sm">SteelFlow AI</Tag>
+          <h1>Steel Arranger + BBS Generator</h1>
+        </Stack>
+        <p>
+          Interactive reinforcement arrangement with automated BBS per IS:456 / IS:2502.
+          BEAM and COLUMN use closed stirrups / links; SLAB uses distribution bars only;
+          FOOTING uses orthogonal mat reinforcement — each with contextual bar-type labels
+          and applicable shape codes.
+        </p>
       </Stack>
-      <p>Interactive reinforcement arrangement with automated Bar Bending Schedule per IS:456 / IS:2502.</p>
 
       <Grid narrow>
         {/* Sidebar */}
@@ -810,7 +875,10 @@ export function SteelArranger() {
                           kind={activeElementId === e.id ? "secondary" : "ghost"}
                           size="sm" className="esti-grow"
                           onClick={() => setActiveElement(e.id)}>
-                          {e.elementCode} — {e.elementType}
+                          <Stack orientation="horizontal" gap={2}>
+                            <Tag type="cool-gray" size="sm">{e.elementType}</Tag>
+                            {e.elementCode}
+                          </Stack>
                         </Button>
                         <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={TrashCan}
                           iconDescription="Delete" onClick={() => deleteElementMut.mutate({ id: e.id })} />
@@ -830,8 +898,12 @@ export function SteelArranger() {
               <Stack gap={3}>
                 <ChartCustom size={32} />
                 <h3>Select or create a session to start</h3>
-                <p>A session represents one structural design — e.g. "Ground Floor Beams". Each session can contain beams, columns, slabs, and footings.</p>
-                <Button kind="primary" size="sm" renderIcon={Add} onClick={() => setShowNewSession(true)}>
+                <p>
+                  A session represents one structural design — e.g. "Ground Floor Beams".
+                  Each session can contain BEAM, COLUMN, SLAB, and FOOTING elements.
+                </p>
+                <Button kind="primary" size="sm" renderIcon={Add}
+                  onClick={() => setShowNewSession(true)}>
                   New session
                 </Button>
               </Stack>

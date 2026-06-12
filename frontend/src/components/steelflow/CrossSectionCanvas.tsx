@@ -1,7 +1,9 @@
 import { useDroppable } from "@dnd-kit/core";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
-interface RebarDisplay {
+export interface RebarDisplay {
+  id: string;
+  barMark: string;
   diaMm: number;
   barType: string;
   quantity: number;
@@ -9,11 +11,11 @@ interface RebarDisplay {
   posY?: number | null;
 }
 
-interface StirrupDisplay {
+export interface StirrupDisplay {
   diaMm: number;
 }
 
-interface CanvasProps {
+export interface CanvasProps {
   widthMm: number;
   depthMm: number;
   lengthMm: number;
@@ -21,12 +23,14 @@ interface CanvasProps {
   rebars: RebarDisplay[];
   stirrups: StirrupDisplay[];
   elementType: string;
+  onBarClick?: (id: string) => void;
 }
 
 // ─── Beam / Column cross-section ─────────────────────────────────────────────
 
 const BeamColumnSection = forwardRef<SVGSVGElement, Omit<CanvasProps, "elementType" | "lengthMm">>(
-  function BeamColumnSection({ widthMm, depthMm, coverMm, rebars, stirrups }, ref) {
+  function BeamColumnSection({ widthMm, depthMm, coverMm, rebars, stirrups, onBarClick }, ref) {
+    const [hoveredId, setHoveredId] = useState<string | null>(null);
     const MAX = 320;
     const scale = Math.min(MAX / widthMm, MAX / depthMm);
     const vw = widthMm * scale;
@@ -39,15 +43,18 @@ const BeamColumnSection = forwardRef<SVGSVGElement, Omit<CanvasProps, "elementTy
         width={vw}
         height={vh}
         style={{ display: "block", maxWidth: "100%" }}
-        aria-label="Beam/column cross-section"
+        aria-label="Cross-section"
       >
+        {/* Concrete outline */}
         <rect x={0} y={0} width={vw} height={vh}
           fill="var(--cds-layer-01)" stroke="var(--cds-border-strong-01)" strokeWidth={1.5} />
+        {/* Cover line */}
         <rect
           x={coverMm * scale} y={coverMm * scale}
           width={(widthMm - 2 * coverMm) * scale} height={(depthMm - 2 * coverMm) * scale}
           fill="none" stroke="var(--cds-border-subtle-01)" strokeWidth={0.5} strokeDasharray="4 3"
         />
+        {/* Stirrups */}
         {stirrups.map((s, i) => (
           <rect key={i}
             x={coverMm * scale} y={coverMm * scale}
@@ -56,27 +63,42 @@ const BeamColumnSection = forwardRef<SVGSVGElement, Omit<CanvasProps, "elementTy
             strokeWidth={Math.max(s.diaMm * scale, 1.5)} opacity={0.7}
           />
         ))}
+        {/* Rebars — each group is a clickable element */}
         {rebars.flatMap((r, i) => {
           const count = r.quantity;
           const dia = r.diaMm * scale;
+          const radius = Math.max(dia / 2, 3);
           const topBars = ["TOP_MAIN", "EXTRA_TOP"].includes(r.barType);
           const botBars = ["BOTTOM_MAIN", "EXTRA_BOTTOM"].includes(r.barType);
           const xs = Array.from({ length: count }, (_, k) =>
-            count === 1 ? vw / 2
+            count === 1
+              ? vw / 2
               : coverMm * scale + (k * (widthMm - 2 * coverMm) * scale) / (count - 1),
           );
           const y = topBars
-            ? coverMm * scale + dia / 2
+            ? coverMm * scale + radius
             : botBars
-              ? vh - coverMm * scale - dia / 2
+              ? vh - coverMm * scale - radius
               : vh / 2;
+          const isHovered = hoveredId === r.id;
           return xs.map((x, k) => (
-            <circle key={`${i}-${k}`}
-              cx={r.posX != null ? r.posX * scale : x}
-              cy={r.posY != null ? r.posY * scale : y}
-              r={Math.max(dia / 2, 3)}
-              fill="var(--cds-support-info)" stroke="var(--cds-background)" strokeWidth={0.8}
-            />
+            <g
+              key={`${i}-${k}`}
+              onClick={() => onBarClick?.(r.id)}
+              onMouseEnter={() => onBarClick && setHoveredId(r.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              style={{ cursor: onBarClick ? "pointer" : "default" }}
+            >
+              <title>{r.barMark} T{r.diaMm} ×{r.quantity} — click to remove</title>
+              <circle
+                cx={r.posX != null ? r.posX * scale : x}
+                cy={r.posY != null ? r.posY * scale : y}
+                r={radius}
+                fill={isHovered ? "var(--cds-support-error)" : "var(--cds-support-info)"}
+                stroke={isHovered ? "var(--cds-support-error-inverse)" : "var(--cds-background)"}
+                strokeWidth={isHovered ? 1.5 : 0.8}
+              />
+            </g>
           ));
         })}
         <text x={2} y={vh - 3} fill="var(--cds-text-secondary)" fontSize={9}>
@@ -89,13 +111,14 @@ const BeamColumnSection = forwardRef<SVGSVGElement, Omit<CanvasProps, "elementTy
 
 // ─── Slab cross-section strip ─────────────────────────────────────────────────
 
-function SlabSection({ widthMm, depthMm, coverMm, rebars, stirrups }: Omit<CanvasProps, "elementType" | "lengthMm">) {
-  // Show a cross-section strip; force a minimum viewable depth
+function SlabSection({
+  widthMm, depthMm, coverMm, rebars, onBarClick,
+}: Omit<CanvasProps, "elementType" | "lengthMm" | "stirrups">) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const CANVAS_W = 440;
   const MIN_H = 90;
   const scaleX = CANVAS_W / widthMm;
-  const rawScaleY = MIN_H / depthMm;
-  const scaleY = Math.max(rawScaleY, scaleX);
+  const scaleY = Math.max(MIN_H / depthMm, scaleX);
   const vw = CANVAS_W;
   const vh = Math.max(depthMm * scaleY, MIN_H);
 
@@ -123,14 +146,26 @@ function SlabSection({ widthMm, depthMm, coverMm, rebars, stirrups }: Omit<Canva
           : botBars
             ? vh - coverMm * scaleY - rScaled
             : vh / 2;
+        const isHovered = hoveredId === r.id;
         return xs.map((x, k) => (
-          <circle key={`${i}-${k}`} cx={x} cy={y} r={rScaled}
-            fill="var(--cds-support-info)" stroke="var(--cds-background)" strokeWidth={0.8} />
+          <g
+            key={`${i}-${k}`}
+            onClick={() => onBarClick?.(r.id)}
+            onMouseEnter={() => onBarClick && setHoveredId(r.id)}
+            onMouseLeave={() => setHoveredId(null)}
+            style={{ cursor: onBarClick ? "pointer" : "default" }}
+          >
+            <title>{r.barMark} T{r.diaMm} ×{r.quantity} — click to remove</title>
+            <circle cx={x} cy={y} r={rScaled}
+              fill={isHovered ? "var(--cds-support-error)" : "var(--cds-support-info)"}
+              stroke={isHovered ? "var(--cds-support-error-inverse)" : "var(--cds-background)"}
+              strokeWidth={isHovered ? 1.5 : 0.8}
+            />
+          </g>
         ));
       })}
-      {/* Distribution bars indicator */}
       <text x={4} y={vh - 4} fill="var(--cds-text-secondary)" fontSize={9}>
-        Slab strip (1m): w={widthMm} mm · d={depthMm} mm · cover={coverMm} mm
+        Slab strip: span={widthMm} mm · t={depthMm} mm · cover={coverMm} mm
       </text>
     </svg>
   );
@@ -138,7 +173,10 @@ function SlabSection({ widthMm, depthMm, coverMm, rebars, stirrups }: Omit<Canva
 
 // ─── Footing plan view (bird's eye) ──────────────────────────────────────────
 
-function FootingSection({ widthMm, depthMm, lengthMm, coverMm, rebars }: Omit<CanvasProps, "elementType" | "stirrups">) {
+function FootingSection({
+  widthMm, depthMm, lengthMm, coverMm, rebars, onBarClick,
+}: Omit<CanvasProps, "elementType" | "stirrups">) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const MAX = 340;
   const scale = Math.min(MAX / widthMm, (MAX * 0.7) / lengthMm);
   const vw = widthMm * scale;
@@ -147,10 +185,36 @@ function FootingSection({ widthMm, depthMm, lengthMm, coverMm, rebars }: Omit<Ca
   const mainBars = rebars.filter((r) => r.barType === "BOTTOM_MAIN");
   const distBars = rebars.filter((r) => r.barType === "SIDE_FACE" || r.barType === "TOP_MAIN");
 
+  function barLine(
+    r: RebarDisplay,
+    x1: number, y1: number, x2: number, y2: number,
+    strokeColor: string,
+  ) {
+    const isHovered = hoveredId === r.id;
+    const sw = Math.max(r.diaMm * scale * 0.35, 1.2);
+    return (
+      <g
+        key={`${r.id}-${x1}-${y1}`}
+        onClick={() => onBarClick?.(r.id)}
+        onMouseEnter={() => onBarClick && setHoveredId(r.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        style={{ cursor: onBarClick ? "pointer" : "default" }}
+      >
+        <title>{r.barMark} T{r.diaMm} ×{r.quantity} — click to remove</title>
+        {/* Transparent wider hit area */}
+        <line x1={x1} y1={y1} x2={x2} y2={y2}
+          stroke="transparent" strokeWidth={Math.max(sw * 3, 6)} />
+        <line x1={x1} y1={y1} x2={x2} y2={y2}
+          stroke={isHovered ? "var(--cds-support-error)" : strokeColor}
+          strokeWidth={sw} opacity={isHovered ? 1 : 0.85}
+        />
+      </g>
+    );
+  }
+
   return (
     <svg viewBox={`0 0 ${vw} ${vl}`} width={vw} height={vl}
       style={{ display: "block", maxWidth: "100%" }} aria-label="Footing plan view">
-      {/* Footing base */}
       <rect x={0} y={0} width={vw} height={vl}
         fill="var(--cds-layer-01)" stroke="var(--cds-border-strong-01)" strokeWidth={1.5} />
       <rect
@@ -158,44 +222,35 @@ function FootingSection({ widthMm, depthMm, lengthMm, coverMm, rebars }: Omit<Ca
         width={(widthMm - 2 * coverMm) * scale} height={(lengthMm - 2 * coverMm) * scale}
         fill="none" stroke="var(--cds-border-subtle-01)" strokeWidth={0.5} strokeDasharray="4 3"
       />
-      {/* Main bars — run across width (horizontal lines in plan) */}
-      {mainBars.flatMap((r, i) => {
+      {mainBars.flatMap((r) => {
         const n = r.quantity;
         const usable = (lengthMm - 2 * coverMm) * scale;
         return Array.from({ length: n }, (_, k) => {
           const y = coverMm * scale + (k + 1) * (usable / (n + 1));
-          return (
-            <line key={`mx${i}-${k}`}
-              x1={coverMm * scale} y1={y}
-              x2={(widthMm - coverMm) * scale} y2={y}
-              stroke="var(--cds-support-info)"
-              strokeWidth={Math.max(r.diaMm * scale * 0.35, 1.2)} opacity={0.85}
-            />
+          return barLine(r,
+            coverMm * scale, y,
+            (widthMm - coverMm) * scale, y,
+            "var(--cds-support-info)",
           );
         });
       })}
-      {/* Distribution bars — run across length (vertical lines in plan) */}
-      {distBars.flatMap((r, i) => {
+      {distBars.flatMap((r) => {
         const n = r.quantity;
         const usable = (widthMm - 2 * coverMm) * scale;
         return Array.from({ length: n }, (_, k) => {
           const x = coverMm * scale + (k + 1) * (usable / (n + 1));
-          return (
-            <line key={`dy${i}-${k}`}
-              x1={x} y1={coverMm * scale}
-              x2={x} y2={(lengthMm - coverMm) * scale}
-              stroke="var(--cds-support-warning)"
-              strokeWidth={Math.max(r.diaMm * scale * 0.35, 1.2)} opacity={0.85}
-            />
+          return barLine(r,
+            x, coverMm * scale,
+            x, (lengthMm - coverMm) * scale,
+            "var(--cds-support-warning)",
           );
         });
       })}
-      {/* Labels */}
       <text x={4} y={vl - 12} fill="var(--cds-text-secondary)" fontSize={9}>
-        Plan: {widthMm}×{lengthMm} mm · d={depthMm} mm
+        Plan: {widthMm}×{lengthMm} mm · D={depthMm} mm
       </text>
       <text x={4} y={vl - 3} fill="var(--cds-text-secondary)" fontSize={8}>
-        ── Bottom main (BOTTOM_MAIN)   ─ ─ Distribution (SIDE_FACE)
+        ── Main (X)   ─ ─ Distribution (Y)
       </text>
     </svg>
   );
