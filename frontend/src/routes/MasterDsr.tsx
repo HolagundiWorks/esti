@@ -21,7 +21,7 @@ import { trpc } from "../lib/trpc.js";
 
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
-export function MasterDsr() {
+export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const versionsQ = trpc.dsr.listVersions.useQuery();
   const [versionId, setVersionId] = useState("");
@@ -71,32 +71,24 @@ export function MasterDsr() {
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1>Master DSR</h1>
+    <Stack gap={5}>
+      <Stack orientation="horizontal" gap={4}>
+        <Stack gap={2} className="esti-grow">
+          {embedded ? <h2>Master DSR</h2> : <h1>Master DSR</h1>}
+          <p>
+            Versioned schedule-of-rates items used by estimates and purchase
+            orders.
+          </p>
+        </Stack>
         <Button onClick={() => setVOpen(true)}>New version</Button>
-      </div>
+      </Stack>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          alignItems: "flex-end",
-          margin: "16px 0",
-        }}
-      >
+      <Stack orientation="horizontal" gap={4}>
         <Select
           id="dsr-ver"
           labelText="DSR version"
           value={versionId}
           onChange={(e) => setVersionId(e.target.value)}
-          style={{ maxWidth: 280 }}
         >
           <SelectItem value="" text="Select…" />
           {(versionsQ.data ?? []).map((v) => (
@@ -118,7 +110,7 @@ export function MasterDsr() {
         <Button disabled={!versionId} onClick={() => setIOpen(true)}>
           Add item
         </Button>
-      </div>
+      </Stack>
 
       <DataState
         loading={!!versionId && itemsQ.isLoading}
@@ -274,6 +266,6 @@ export function MasterDsr() {
           />
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

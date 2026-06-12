@@ -26,3 +26,4 @@ export * from "./office.js";
 export * from "./workload.js";
 export * from "./schemas.js";
 export * from "./rie.js";
+export * from "./knowledge-bank.js";

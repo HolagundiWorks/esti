@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-KB catalogs session)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -23,6 +23,12 @@ inspections, DSR/BOQ/BBS, purchase orders, dashboard boards, notifications, PDF
 worker, migrations, request IDs, rate limits, upload content sniffing, worker
 retry/DLQ, demo data, Pure Carbon typography and responsive shell, Carbon
 productive type scale applied to all routes.
+
+Also delivered in the latest session: central Knowledge Bank hub (DSR +
+Compliance + Specification standards + Structural element templates in one module);
+dashboard chart refresh (Treemap, Donut, Heatmap, Gauge); Work module consolidating
+Tasks / Workload / Activity into a single URL-tabbed route; Carbon Charts theme
+isolation fix via ThemeContext.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -108,6 +114,36 @@ keyboard, dark-theme, and responsive browser review.
 visualisations; no `ProgressBar` used as a distribution chart; all spacing
 follows the 2x grid token scale; colour usage matches Carbon colour anatomy.
 
+## Phase 2C - Dashboard Chart Refresh And Work Module [P1] - Complete 2026-06-12
+
+- [x] Replace `SimpleBarChart` project-type board with `TreemapChart` (mono,
+  projects by type; colour `pairing.option: 1`).
+- [x] Add `DonutChart` for projects by architectural delivery phase.
+- [x] Replace the workload band display with `HeatmapChart` (weekly:
+  person × day-of-week; daily: person × ISO date) controlled by a Carbon
+  `Toggle`; respects current app theme via `options.theme`.
+- [x] Replace hand-rolled status counts with structured Active / On Hold /
+  Closed number displays using Carbon `Tag` and semantic headings.
+- [x] Add `GaugeChart` per person for daily task load (0–10 scale; arc value
+  mapped from `count / 10 × 100`; raw count shown via `numberFormatter`).
+- [x] Fix Carbon Charts theme isolation: `ThemeContext` created in
+  `frontend/src/lib/theme-context.ts`; provided in `App.tsx` alongside
+  `<Theme>`; consumed in every chart sub-component via `useAppTheme()`;
+  each chart receives `options.theme: chartTheme`.
+- [x] Consolidate Tasks, Workload, Activity into single `/tasks` **Work** module
+  (`Work.tsx`) with three URL-persisted tabs (`?tab=tasks|workload|activity`);
+  `/activity` and `/workload` redirect to the appropriate tab.
+- [x] Workload calendar uses Carbon `--cds-tag-background-*` / `--cds-tag-color-*`
+  token pairs for heatmap cell colouring: teal (1–2), blue (3–5), purple (6–8),
+  red (9+); legend tile shows all five intensity levels.
+- [x] Remove duplicate demo-account sign-in `HeaderGlobalAction` from the
+  app header; single Sign out button remains.
+- [x] Dashboard "Open Activity Center" button updated to `/tasks?tab=activity`.
+
+**Gate met:** frontend typecheck passes; all six chart instances receive explicit
+`theme`; Work module tabs persist through URL reload; workload heatmap renders
+correct Carbon token colours in both light and dark themes.
+
 ## Phase 3 - Domain Activity Foundation [P1]
 
 - [x] Add immutable `esti_activity` records with project, object type/id,
@@ -154,6 +190,8 @@ opening separate modules.
 ## Phase 4A - Standalone Compliance Intelligence / RIE [P1]
 
 - [x] Remove compliance from project tabs and expose a standalone Carbon module.
+- [x] Move compliance rule authoring into the unified Knowledge Bank; keep the
+  Compliance module focused on assessment and evidence.
 - [x] Link the latest calculation summary back to the project overview.
 - [x] Separate statutory permit records from compliance calculations.
 - [x] Replace the BBMP-only seed assumption with a versioned knowledge bank keyed
@@ -180,6 +218,25 @@ opening separate modules.
   requirements, sustainability score, approval readiness score) with overall score.
 - [x] Produce deterministic engine outputs from the selected published rule version;
   all outputs stored in `esti_site_assessment` and reproducible from saved inputs.
+- [ ] **RIE — Pre-design / post-design phase modes:** add `AssessmentPhase`
+  enum (`PRE_DESIGN | POST_DESIGN`) to contracts and DB; PRE_DESIGN returns
+  the permissible envelope only; POST_DESIGN compares actual designed values
+  against the envelope and computes per-parameter deviations.
+- [ ] **RIE — Violation / deviation engine:** `runViolations(devControl,
+  basement, inputs, relaxations)` computes `ViolationItem` per parameter
+  (FAR, ground coverage, height, front/rear/left/right setbacks, basement depth);
+  each item carries `permissible`, `actual`, `deviation`, `deviationPct`,
+  `relaxation` (manual), `effectiveLimit`, and `status` —
+  `COMPLIANT | WITHIN_RELAXATION | VIOLATION`.
+- [ ] **RIE — Relaxation inputs:** per-parameter manual relaxation amounts
+  (`RelaxationInputs` schema); stored on `esti_site_assessment` alongside
+  `violations` jsonb; a `setRelaxations` mutation re-computes and saves.
+- [ ] **RIE — Actual setback fields:** add `actualFrontSetbackM`,
+  `actualRearSetbackM`, `actualLeftSetbackM`, `actualRightSetbackM` (optional)
+  to `SiteInputs`; shown only when phase is `POST_DESIGN`.
+- [ ] **RIE — FeasibilityDashboard violations tab:** after post-design
+  assessment, show a Carbon `DataTable` of all parameters with status tags
+  (green / blue within-relaxation / red violation) and relaxation entry inline.
 - [ ] **RIE refinements (brief-aligned):** basement height validation (min 2.4 m,
   max 2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting
   trigger (plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement
@@ -349,10 +406,47 @@ non-coercive; reward points are auditable and anti-gaming controls are active.
 
 **Gate:** every issued document has a number, version, issue record, and audit trail.
 
-## Phase 9 - Search, Resources, And Lessons [P2]
+## Immediate Roadmap - Knowledge Bank Foundations [P1] - Complete 2026-06-12
+
+- [x] Rename Resources to Knowledge Bank and consolidate Master DSR and
+  compliance rule-set management in one Pure Carbon module.
+- [x] Define shared validation contracts for structural element families,
+  reinforcement arrangements, and specification/procurement standards.
+- [x] Add governed version lifecycle and database/API/UI for specification and
+  procurement standards, including project/work-package tags, reusable clauses,
+  approved material alternatives, DSR links, units, PO wording, and issue checks.
+- [x] Add governed version lifecycle and database/API/UI for beam, column, slab,
+  and footing templates, including geometry, element types, concrete cover, bar
+  roles, diameter, count/spacing, zones, laps, hooks, shape codes, and citations.
+- [x] Central **Knowledge Bank** route at `/knowledge-bank` with four tabs:
+  Master DSR | Compliance | Specification | Structural Elements; replaces the
+  old separate Resources (DSR) and Compliance (rule-set authoring) navigation.
+- [x] `esti_specification_standard` and `esti_structural_element_template` tables
+  via migration `0021_knowledge_bank_catalogs.sql`; both carry the standard
+  DRAFT → REVIEW → PUBLISHED → SUPERSEDED lifecycle.
+- [x] `KnowledgeCatalogManagers.tsx` with `SpecificationManager` and
+  `StructuralElementManager`; role-gated (`write` capability required to manage).
+- [x] `packages/contracts/src/knowledge-bank.ts` with `KnowledgeItemStatus`,
+  `StructuralElementTemplate`, `ReinforcementArrangement`, and
+  `SpecificationProcurementStandard` Zod schemas.
+- [ ] Generate editable BBS draft lines from a selected published structural
+  template and project dimensions; show every cutting-length component and
+  retain the source template version on generated rows.
+- [ ] Validate BBS calculations with engineering fixtures and explicit rounding,
+  lap, hook, bend-deduction, spacing-zone, and steel-weight tests before allowing
+  issue/export. Templates assist quantity calculation and never replace the
+  structural engineer's design or approval.
+- [ ] Connect specification standards to project tagging and simple quantity ×
+  rate purchase orders without introducing inventory or contractor accounting.
+
+**Gate:** a published knowledge item is versioned, cited, auditable, and consumed
+by Compliance, BBS, specification, or PO workflows without copying mutable text.
+
+## Phase 9 - Search, Knowledge, And Lessons [P2]
 
 - [ ] Permission-aware universal search with Postgres full-text/trigram indexes.
-- [ ] Knowledge base, templates, CAD/BIM library, vendor catalogues.
+- [ ] Extend Knowledge Bank search to office templates, CAD/BIM libraries, and
+  vendor catalogues.
 - [ ] Project-close lessons learned and reusable recommendations.
 - [ ] Search result deep links and object-type filters.
 
@@ -363,7 +457,8 @@ non-coercive; reward points are auditable and anti-gaming controls are active.
 - [ ] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
 - [ ] Rich accountant exports and reconciliation column mapping/remapping.
 - [ ] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
-- [ ] Expanded BBS templates and validated reinforcement layouts.
+- [ ] Expanded BBS templates and validated reinforcement layouts beyond the
+  immediate beam/column/slab/footing foundation.
 - [ ] **APBF — Phase 0 (Appointment):** pre-engagement phase for site visit,
   scope agreement, and letter of appointment; linked to fee proposal workflow.
 - [ ] Visual estimation connector only after versioned estimate primitives stabilize.

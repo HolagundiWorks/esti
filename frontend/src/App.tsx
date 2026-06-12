@@ -53,7 +53,7 @@ import { Invoices } from "./routes/Invoices.js";
 import { Proposals } from "./routes/Proposals.js";
 import { Landing } from "./routes/Landing.js";
 import { Login } from "./routes/Login.js";
-import { MasterDsr } from "./routes/MasterDsr.js";
+import { KnowledgeBank } from "./routes/KnowledgeBank.js";
 import { Portal } from "./routes/Portal.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
@@ -122,6 +122,7 @@ export function App() {
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Compliance", to: "/compliance", icon: Calculation },
     { label: "Work", to: "/tasks", icon: TaskComplete },
+    { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -165,11 +166,6 @@ export function App() {
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
       ],
-    },
-    {
-      label: "Resources",
-      icon: Catalog,
-      items: [{ label: "Master DSR", to: "/dsr" }],
     },
     {
       label: "Admin",
@@ -261,6 +257,7 @@ export function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
               <Route path="/compliance" element={<Compliance />} />
+              <Route path="/knowledge-bank" element={<KnowledgeBank />} />
               <Route path="/invoices" element={<Invoices />} />
               {can(user.role, "fees:manage") && (
                 <Route path="/accounting/fees" element={<FeeProposals />} />
@@ -277,7 +274,7 @@ export function App() {
               <Route path="/reconcile" element={<Reconcile />} />
               {hrEnabled && <Route path="/team" element={<Team />} />}
               {hrEnabled && <Route path="/hr" element={<Hr />} />}
-              <Route path="/dsr" element={<MasterDsr />} />
+              <Route path="/dsr" element={<Navigate to="/knowledge-bank" replace />} />
               {can(user.role, "reports:view") && (
                 <Route path="/filing" element={<Filing />} />
               )}

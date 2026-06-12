@@ -75,9 +75,10 @@ team, consultants, contractors, and settings.
 ### Compliance
 
 Compliance is a standalone module, not a project tab or a permit-status
-tracker. A project supplies the site and jurisdiction context; the module owns
-the knowledge and calculation workflow and links its latest issued result back
-to the project overview and document register.
+tracker. A project supplies the site and jurisdiction context; Compliance runs
+the calculation workflow from published rule sets owned by the Knowledge Bank
+and links its latest issued result back to the project overview and document
+register.
 
 - Knowledge is versioned by state, district, local authority, building use,
   rule source, effective date, and supersession date.
@@ -146,10 +147,19 @@ accounting systems.
 
 All money is integer paise and formatted through shared `formatINR` utilities.
 
-## Resources, AI, And Administration
+## Knowledge Bank, AI, And Administration
 
-- Searchable knowledge base, templates, CAD/BIM resources, vendor catalogues,
-  and closure lessons learned.
+- The former Resources area is named **Knowledge Bank** and is the governed,
+  versioned source for Master DSR, compliance rule sets, specification and
+  procurement standards, and structural element/reinforcement templates.
+- Specification standards carry project/work-package tags, reusable clauses,
+  approved alternatives, units, DSR references, and purchase-order wording.
+- Structural templates cover beams, columns, slabs, and footings, their types,
+  geometry, cover, bar roles, diameters, spacing/count, laps, hooks, and shape
+  codes. Published templates generate reviewable BBS lines; engineers remain
+  responsible for design approval and project-specific validation.
+- The Knowledge Bank later expands to searchable templates, CAD/BIM resources,
+  vendor catalogues, and closure lessons learned.
 - AI Studio drafts proposals, scopes, agreements, specifications, reports, MOM,
   and RFI responses. Outputs are editable, source-linked, permission-aware,
   auditable, and never auto-issued.

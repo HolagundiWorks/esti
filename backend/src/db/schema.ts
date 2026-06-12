@@ -18,7 +18,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 const id = () => uuid("id").primaryKey().defaultRandom();
-const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
+const createdAt = () =>
+  timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () =>
   timestamp("updated_at", { withTimezone: true })
     .notNull()
@@ -38,12 +39,16 @@ export const orgSettings = pgTable("esti_orgsettings", {
 /** Single-row editable firm profile (ADR-12). Solo architect details inline. */
 export const firm = pgTable("esti_firm", {
   id: id(),
-  companyName: text("company_name").notNull().default("Holagundi Consulting Works"),
+  companyName: text("company_name")
+    .notNull()
+    .default("Holagundi Consulting Works"),
   firmType: text("firm_type").notNull().default("SOLO"),
   logoKey: text("logo_key"),
   gstType: text("gst_type").notNull().default("REGULAR"),
   gstin: text("gstin"),
-  tdsApplicableDefault: boolean("tds_applicable_default").notNull().default(true),
+  tdsApplicableDefault: boolean("tds_applicable_default")
+    .notNull()
+    .default(true),
   architectName: text("architect_name"),
   coaRegNo: text("coa_reg_no"),
   pan: text("pan"),
@@ -87,7 +92,15 @@ export const users = pgTable("esti_user", {
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(),
   role: text("role", {
-    enum: ["OWNER", "PARTNER", "SENIOR", "ASSOCIATE", "VIEWER", "CONSULTANT", "CLIENT"],
+    enum: [
+      "OWNER",
+      "PARTNER",
+      "SENIOR",
+      "ASSOCIATE",
+      "VIEWER",
+      "CONSULTANT",
+      "CLIENT",
+    ],
   })
     .notNull()
     .default("ASSOCIATE"),
@@ -118,7 +131,9 @@ export const sessions = pgTable("esti_session", {
 export const clients = pgTable("esti_client", {
   id: id(),
   name: text("name").notNull(),
-  kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY"] }).notNull().default("INDIVIDUAL"),
+  kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY"] })
+    .notNull()
+    .default("INDIVIDUAL"),
   gstin: text("gstin"),
   pan: text("pan"),
   state: text("state"),
@@ -147,7 +162,9 @@ export const projectOffices = pgTable("esti_projectoffice", {
   pin: text("pin"),
   siteAddress: text("site_address"),
   siteAreaSqm: doublePrecision("site_area_sqm"),
-  contractValuePaise: bigint("contract_value_paise", { mode: "number" }).notNull().default(0),
+  contractValuePaise: bigint("contract_value_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   dateStart: date("date_start"),
   createdById: uuid("created_by_id"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
@@ -438,10 +455,14 @@ export const feeProposals = pgTable("esti_feeproposal", {
   status: text("status").notNull().default("DRAFT"),
   revisionNo: integer("revision_no").notNull().default(0),
   workCategory: text("work_category").notNull(),
-  costOfWorksPaise: bigint("cost_of_works_paise", { mode: "number" }).notNull().default(0),
+  costOfWorksPaise: bigint("cost_of_works_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   feePaise: bigint("fee_paise", { mode: "number" }).notNull().default(0),
   docCommPct: integer("doc_comm_pct").notNull().default(10),
-  coaMinimumPaise: bigint("coa_minimum_paise", { mode: "number" }).notNull().default(0),
+  coaMinimumPaise: bigint("coa_minimum_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   belowMinimum: boolean("below_minimum").notNull().default(false),
   overrideReason: text("override_reason"),
   scope: text("scope"),
@@ -479,7 +500,9 @@ export const teamMembers = pgTable("esti_teammember", {
   employmentType: text("employment_type").notNull(),
   email: text("email"),
   phone: text("phone"),
-  monthlySalaryPaise: bigint("monthly_salary_paise", { mode: "number" }).notNull().default(0),
+  monthlySalaryPaise: bigint("monthly_salary_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   dateJoined: date("date_joined"),
   active: boolean("active").notNull().default(true),
   /** Links this team member to their ESTI user account (enables "my tasks"). */
@@ -525,7 +548,9 @@ export const payslips = pgTable(
       .references(() => teamMembers.id),
     month: text("month").notNull(), // YYYY-MM
     grossPaise: bigint("gross_paise", { mode: "number" }).notNull().default(0),
-    deductionsPaise: bigint("deductions_paise", { mode: "number" }).notNull().default(0),
+    deductionsPaise: bigint("deductions_paise", { mode: "number" })
+      .notNull()
+      .default(0),
     netPaise: bigint("net_paise", { mode: "number" }).notNull().default(0),
     paid: boolean("paid").notNull().default(false),
     paidDate: date("paid_date"),
@@ -535,7 +560,9 @@ export const payslips = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => ({ uq: uniqueIndex("esti_payslip_member_month").on(t.teamMemberId, t.month) }),
+  (t) => ({
+    uq: uniqueIndex("esti_payslip_member_month").on(t.teamMemberId, t.month),
+  }),
 );
 
 /** Consultant directory — discipline specialists the office sub-engages. */
@@ -559,7 +586,9 @@ export const engagements = pgTable("esti_engagement", {
     .notNull()
     .references(() => consultants.id),
   scope: text("scope"),
-  agreedFeePaise: bigint("agreed_fee_paise", { mode: "number" }).notNull().default(0),
+  agreedFeePaise: bigint("agreed_fee_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   paidPaise: bigint("paid_paise", { mode: "number" }).notNull().default(0),
   status: text("status").notNull().default("ENGAGED"),
   createdAt: createdAt(),
@@ -715,8 +744,12 @@ export const reconciliations = pgTable("esti_reconcile", {
   rowCount: integer("row_count").notNull().default(0),
   matchedCount: integer("matched_count").notNull().default(0),
   unmatchedCount: integer("unmatched_count").notNull().default(0),
-  totalCreditPaise: bigint("total_credit_paise", { mode: "number" }).notNull().default(0),
-  matchedCreditPaise: bigint("matched_credit_paise", { mode: "number" }).notNull().default(0),
+  totalCreditPaise: bigint("total_credit_paise", { mode: "number" })
+    .notNull()
+    .default(0),
+  matchedCreditPaise: bigint("matched_credit_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   lines: jsonb("lines"),
   errorText: text("error_text"),
   createdAt: createdAt(),
@@ -738,15 +771,25 @@ export const invoices = pgTable("esti_invoice", {
   sac: text("sac"),
   interState: boolean("inter_state").notNull().default(false),
   tdsApplicable: boolean("tds_applicable").notNull().default(true),
-  taxablePaise: bigint("taxable_paise", { mode: "number" }).notNull().default(0),
+  taxablePaise: bigint("taxable_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   cgstPaise: bigint("cgst_paise", { mode: "number" }).notNull().default(0),
   sgstPaise: bigint("sgst_paise", { mode: "number" }).notNull().default(0),
   igstPaise: bigint("igst_paise", { mode: "number" }).notNull().default(0),
-  gstTotalPaise: bigint("gst_total_paise", { mode: "number" }).notNull().default(0),
-  compositionLevyPaise: bigint("composition_levy_paise", { mode: "number" }).notNull().default(0),
+  gstTotalPaise: bigint("gst_total_paise", { mode: "number" })
+    .notNull()
+    .default(0),
+  compositionLevyPaise: bigint("composition_levy_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   tdsPaise: bigint("tds_paise", { mode: "number" }).notNull().default(0),
-  grandTotalPaise: bigint("grand_total_paise", { mode: "number" }).notNull().default(0),
-  netReceivablePaise: bigint("net_receivable_paise", { mode: "number" }).notNull().default(0),
+  grandTotalPaise: bigint("grand_total_paise", { mode: "number" })
+    .notNull()
+    .default(0),
+  netReceivablePaise: bigint("net_receivable_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   dateInvoice: date("date_invoice"),
   notes: text("notes"),
   pdfKey: text("pdf_key"),
@@ -799,7 +842,9 @@ export const estimates = pgTable("esti_estimate", {
   dsrVersionId: uuid("dsr_version_id").references(() => dsrVersions.id),
   leadPct: doublePrecision("lead_pct").notNull().default(0),
   status: text("status").notNull().default("DRAFT"),
-  subtotalPaise: bigint("subtotal_paise", { mode: "number" }).notNull().default(0),
+  subtotalPaise: bigint("subtotal_paise", { mode: "number" })
+    .notNull()
+    .default(0),
   totalPaise: bigint("total_paise", { mode: "number" }).notNull().default(0),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -891,10 +936,59 @@ export const ruleVersions = pgTable("esti_rule_version", {
   updatedAt: updatedAt(),
 });
 
+/** Knowledge Bank: versioned specification and procurement standards. */
+export const specificationStandards = pgTable("esti_specification_standard", {
+  id: id(),
+  code: text("code").notNull(),
+  title: text("title").notNull(),
+  version: text("version").notNull(),
+  status: text("status").notNull().default("DRAFT"),
+  projectTags: jsonb("project_tags").notNull().default([]),
+  approvedAlternatives: jsonb("approved_alternatives").notNull().default([]),
+  issueChecks: jsonb("issue_checks").notNull().default([]),
+  specificationText: text("specification_text").notNull(),
+  purchaseOrderDescription: text("purchase_order_description").notNull(),
+  unit: text("unit").notNull(),
+  dsrItemCode: text("dsr_item_code"),
+  sourceCitation: text("source_citation"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  reviewedById: uuid("reviewed_by_id").references(() => users.id),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Knowledge Bank: versioned structural geometry and reinforcement templates. */
+export const structuralElementTemplates = pgTable(
+  "esti_structural_element_template",
+  {
+    id: id(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    family: text("family").notNull(),
+    type: text("type").notNull(),
+    version: text("version").notNull(),
+    status: text("status").notNull().default("DRAFT"),
+    description: text("description"),
+    geometry: jsonb("geometry").notNull().default({}),
+    reinforcement: jsonb("reinforcement").notNull().default([]),
+    sourceCitation: text("source_citation"),
+    createdById: uuid("created_by_id").references(() => users.id),
+    reviewedById: uuid("reviewed_by_id").references(() => users.id),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    supersededById: uuid("superseded_by_id"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+);
+
 /** RIE: Per-project site assessment (all five engine outputs). */
 export const siteAssessments = pgTable("esti_site_assessment", {
   id: id(),
-  projectId: uuid("project_id").notNull().references(() => projectOffices.id),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
   ruleVersionId: uuid("rule_version_id").references(() => ruleVersions.id),
   status: text("status").notNull().default("DRAFT"),
   siteInputs: jsonb("site_inputs").notNull().default({}),

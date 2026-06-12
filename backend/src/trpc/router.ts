@@ -42,11 +42,19 @@ import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
-import { ruleVersionRouter, siteAssessmentRouter } from "../modules/rie/router.js";
+import {
+  ruleVersionRouter,
+  siteAssessmentRouter,
+} from "../modules/rie/router.js";
+import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
-  health: publicProcedure.query(() => ({ ok: true, service: "esti-aorms-backend", ts: Date.now() })),
+  health: publicProcedure.query(() => ({
+    ok: true,
+    service: "esti-aorms-backend",
+    ts: Date.now(),
+  })),
 
   /** Fixed India profile surfaced to the SPA (read-only). */
   profile: publicProcedure.query(() => ({
@@ -104,6 +112,7 @@ export const appRouter = router({
   payroll: payrollRouter,
   ruleVersions: ruleVersionRouter,
   siteAssessments: siteAssessmentRouter,
+  knowledgeBank: knowledgeBankRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */
