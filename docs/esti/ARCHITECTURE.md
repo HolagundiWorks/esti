@@ -1,6 +1,6 @@
 # ESTI System Architecture
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
 
 ## System Shape
 

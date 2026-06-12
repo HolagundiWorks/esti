@@ -74,19 +74,27 @@ Key namespaces added beyond the baseline:
 - `criticalNotes` — project critical notes
 - `activity` — immutable activity timeline
 - `dashboard` — computed KPIs, Action Center, health modules
+- `timesheets` — per-person per-day project/task attribution with billable flag;
+  `list/create/update/remove/summary`
+- `dailyUpdates` — stand-up upsert per team member per date; `list/upsertMine/today`
+- `aspRf` — rolling 30-day ASPRF composite score; `teamScores/myScore`
+- `rewards` — reward point events with audit; `listByMember/grant` (owner-only)
 
 ## Domain conventions
 
 - **Task dimensions**: `TaskClassification` (BILLABLE/NON_BILLABLE/TRAINING/
-  COLLABORATION/PERSONAL) is financial. `TaskWorkType` (future: DESIGN_COMMUNICATION/
+  COLLABORATION/PERSONAL) is financial. `TaskWorkType` (DESIGN_COMMUNICATION/
   DESIGN_DEVELOPMENT/TECHNICAL_PRODUCTION/CONSTRUCTION_SUPPORT) is architectural
-  work category for ASPRF scoring. These are separate fields.
+  work category for ASPRF scoring. Both are now live fields on `esti_task`.
+- **Task ASPRF fields**: `difficultyCoefficient` (1–5, default 3, anti-gaming weight)
+  and `estimatedHours` (numeric, for delivery-predictability scoring) are separate
+  from classification and work type.
 - **RIE FAR**: `siteArea × FAR = maxPermissibleBuiltUp` is the **gross** limit.
   User-entered `proposedBuiltUpSqm` should be net after subtracting excluded
   areas (parking, stairs, lifts, ramps, machine rooms, open balconies, ducts,
   water tanks). The engine compares net proposed against the gross limit.
-- **Revision types**: decisions carry a `revisionCategory` (MINOR/MAJOR/CRITICAL).
-  Future expansion will add a `revisionSource` (CLIENT_DRIVEN/INTERNAL_ERROR/
-  TECHNICAL_QUERY/SCOPE_CHANGE) to enable Revision Intelligence scoring.
+- **Revision types**: decisions carry a `revisionCategory` (MINOR/MAJOR/CRITICAL)
+  and a `revisionSource` (CLIENT_DRIVEN/INTERNAL_ERROR/TECHNICAL_QUERY/SCOPE_CHANGE).
+  Both fields are live and feed the Revision Intelligence dashboard module.
 - **ASPRF performance weights**: Reliability 30%, Quality 25%, Client Impact 15%,
   Collaboration 15%, Learning 10%, Wellbeing 5%. Wellbeing is opt-in only.

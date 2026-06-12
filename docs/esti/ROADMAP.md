@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-4C Revision Intelligence + 4A RIE backlogs session)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-Phase 5 first-wave: ASPRF engine, timesheets, stand-ups, compliance PDF)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -68,6 +68,30 @@ site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in dev-control
 FAR-excluded area field so gross BUA minus excluded = net BUA compared against FAR
 limit; plinth area field for rainwater trigger. Migration `0024_rie_phase2.sql`
 applied.
+
+Also delivered: **Phase 4A compliance PDF**: `generatePdf` + `pdfUrl` mutations on
+the RIE router; Python worker `render_pdf` job with `target="compliance"` renders a
+full A4 branded HTML→PDF via WeasyPrint; stores to S3 and patches `esti_site_assessment`
+with `pdf_key` + `pdf_status` (PENDING → PROCESSING → READY); "Generate PDF" /
+"Generating…" / "Regenerate PDF" flow in `SiteAssessmentPanel`. Migration
+`0025_phase5_foundation.sql` adds `pdf_status` column.
+
+Also delivered: **Phase 5 first-wave — ASPRF engine, timesheets, stand-ups, task
+work type**: `work_type`, `difficulty_coefficient` (1–5), `estimated_hours` columns
+on `esti_task`; `esti_timesheet` (per-person per-day project/task attribution with
+billable flag); `esti_daily_update` (stand-up text per team member per date, unique
+constraint); `esti_reward_point` (audit-trailed points for on-time delivery, zero-rework,
+first-pass approval, knowledge contribution, mentorship, training, team bonus).
+New tRPC namespaces: `timesheets` (list/create/update/remove/summary), `dailyUpdates`
+(list/upsertMine/today), `aspRf` (teamScores rolling 30-day + myScore), `rewards`
+(listByMember/grant ownerProcedure). ASPRF score engine: 6 weighted KPI dimensions
+(Reliability 30%, Quality 25%, Client Impact 15%, Collaboration 15%, Learning 10%,
+Wellbeing 5% opt-in); performance bands Bronze/Silver/Gold/Platinum with Carbon-compatible
+tag types. Work module gains Stand-up tab (daily update upsert + team view by date)
+and Timesheets tab (log hours against project/task, billable toggle, summary totals).
+Task create/edit form gains Work Type, Difficulty, and Est. Hours fields. `/performance`
+route (HR-gated) shows member scorecard tiles with KPI bars, band tags, and a grant
+reward points modal; Recognition tab shows award types and point event reference.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -503,9 +527,17 @@ automatically from typed decision records with no manual data entry.
   drawings); repeat query rate; drawing clarity score (100 − query penalties);
   feeds Technical Intelligence module on dashboard.
 
-**Gate:** workload is derived from assignments, tasks, time, and availability;
-performance scores are transparent, opt-in for wellbeing dimensions, and
-non-coercive; reward points are auditable and anti-gaming controls are active.
+**Gate (partial — first-wave delivered):** task work types, timesheets, daily
+stand-ups, and the ASPRF rolling-score engine are operational. Full gate requires
+calendar/board task views, configurable escalation rules, leave-impact notifications,
+and the detailed per-dimension KPI refinements (timesheet-based delivery predictability,
+rework-rate quality scoring, collaboration/learning/wellbeing depth).
+
+**Delivered so far:** task `workType` + `difficultyCoefficient` + `estimatedHours`;
+`esti_timesheet` + `esti_daily_update` + `esti_reward_point` schemas and routers;
+ASPRF `teamScores` + `myScore` 30-day composite; performance bands Bronze → Platinum;
+recognition awards + reward point events with `rewards.grant` (owner-only, audited);
+Performance route; Work module Stand-up and Timesheets tabs.
 
 ## Phase 6 - Client And Consultant Collaboration [P1]
 
