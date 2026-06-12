@@ -11,12 +11,13 @@ import {
 } from "@carbon/react";
 import {
   DonutChart,
+  GaugeChart,
   HeatmapChart,
   SimpleBarChart,
   TreemapChart,
 } from "@carbon/charts-react";
 import { ScaleTypes } from "@carbon/charts";
-import type { HeatmapChartOptions, TreemapChartOptions } from "@carbon/charts-react";
+import type { GaugeChartOptions, HeatmapChartOptions, TreemapChartOptions } from "@carbon/charts-react";
 import {
   Banking,
   ChartLine,
@@ -269,6 +270,64 @@ function TypeTreemap({ data, loading, error }: {
           : error ? <Tag type="red">Data unavailable</Tag>
           : chartData.length === 0 ? <p>No projects yet.</p>
           : <TreemapChart data={chartData} options={options} />}
+      </Stack>
+    </Tile>
+  );
+}
+
+// ─── DailyTaskGauges ─────────────────────────────────────────────────────────
+// One GaugeChart (semi) per person showing tasks due today, scaled 0-10.
+// Gauge fills 0-100% internally (value × 10); center shows actual count.
+
+const GAUGE_MAX = 10;
+
+function DailyTaskGauges({ data, loading, error }: {
+  data: { assignee: string; count: number }[]; loading?: boolean; error?: boolean;
+}) {
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={5}>
+        <Stack gap={3}><p>Tasks due today — per person</p><h2>Daily task load</h2></Stack>
+        {loading ? <InlineLoading description="Loading daily load…" />
+          : error ? <Tag type="red">Data unavailable</Tag>
+          : data.length === 0 ? <p>No tasks due today.</p>
+          : (
+            <Grid narrow>
+              {data.map((d) => {
+                const pct = Math.min(d.count, GAUGE_MAX) / GAUGE_MAX * 100;
+                const status = d.count >= 8 ? "danger" : d.count >= 5 ? "warning" : undefined;
+                const tagType = status === "danger" ? "red" as const : status === "warning" ? "magenta" as const : "green" as const;
+                const opts: GaugeChartOptions = {
+                  gauge: {
+                    type: "semi",
+                    arcWidth: 20,
+                    showPercentageSymbol: false,
+                    numberFormatter: () => String(d.count),
+                    ...(status ? { status } : {}),
+                  },
+                  height: "160px",
+                  toolbar: { enabled: false },
+                  legend: { enabled: false },
+                  accessibility: { svgAriaLabel: `${d.assignee}: ${d.count} tasks today` },
+                };
+                return (
+                  <Column key={d.assignee} lg={4} md={4} sm={4}>
+                    <Stack gap={3}>
+                      <p>{d.assignee}</p>
+                      <GaugeChart
+                        data={[
+                          { group: "value", value: pct },
+                          { group: "remaining", value: 100 - pct },
+                        ]}
+                        options={opts}
+                      />
+                      <Tag type={tagType} size="sm">{d.count} task{d.count !== 1 ? "s" : ""} today</Tag>
+                    </Stack>
+                  </Column>
+                );
+              })}
+            </Grid>
+          )}
       </Stack>
     </Tile>
   );
@@ -667,6 +726,16 @@ export function Dashboard() {
             <TypeTreemap data={byType} loading={boardsLoading} error={boardsError} />
           </Column>
         </>
+      )}
+
+      {/* ── Daily Task Load Gauges ───────────────────────────────────────── */}
+      {showProject && (
+        <Column lg={16} md={8} sm={4}>
+          <DailyTaskGauges
+            data={b?.dailyLoad ?? []}
+            loading={boardsLoading} error={boardsError}
+          />
+        </Column>
       )}
 
       {/* ── Workload Heatmap + Receivables aging ─────────────────────────── */}

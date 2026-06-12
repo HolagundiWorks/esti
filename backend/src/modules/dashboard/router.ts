@@ -125,6 +125,17 @@ export const dashboardRouter = router({
       order by t.assignee, t.due_date
     `)) as unknown as { assignee: string; day: string; n: number }[];
 
+    // Tasks due today per assignee — for daily load gauge (0-10 scale).
+    const dailyLoad = (await ctx.db.execute(sql`
+      select t.assignee, count(*)::int as n
+      from esti_task t
+      where t.status <> 'DONE'
+        and t.assignee is not null and t.assignee <> ''
+        and t.due_date = current_date
+      group by t.assignee
+      order by n desc
+    `)) as unknown as { assignee: string; n: number }[];
+
     // Receivables aging: outstanding (ISSUED) net amount bucketed by invoice age.
     const [aging] = await ctx.db
       .select({
@@ -143,6 +154,7 @@ export const dashboardRouter = router({
       workload: workload.map((r) => ({ assignee: r.assignee ?? "—", count: Number(r.n) })),
       workloadWeekly: wlWeekly.map((r) => ({ assignee: r.assignee, dow: Number(r.dow), count: Number(r.n) })),
       workloadDaily: wlDaily.map((r) => ({ assignee: r.assignee, day: r.day, count: Number(r.n) })),
+      dailyLoad: dailyLoad.map((r) => ({ assignee: r.assignee, count: Number(r.n) })),
       receivablesAging: {
         d0_30: Number(aging?.d0_30 ?? 0),
         d31_60: Number(aging?.d31_60 ?? 0),
