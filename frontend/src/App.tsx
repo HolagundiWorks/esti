@@ -14,28 +14,34 @@ import {
   Theme,
 } from "@carbon/react";
 import {
-  Asleep,
   Building,
   Calculation,
   Catalog,
+  ChartCustom,
   Dashboard as DashboardIcon,
   Document,
   Enterprise,
-  Money,
-  Light,
   Logout,
+  Money,
   TaskComplete,
+  User,
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { can, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
-import { FloatingCalculator } from "./components/FloatingCalculator.js";
+import { PersonalPanel } from "./components/PersonalPanel.js";
+import {
+  fmtPomTime,
+  POMODORO_MODE_LABEL,
+  PomodoroProvider,
+  usePomodoro,
+} from "./contexts/PomodoroContext.js";
 import { Alerts } from "./routes/Alerts.js";
 import { ArchivedProjects } from "./routes/ArchivedProjects.js";
 import { AuditLog } from "./routes/AuditLog.js";
@@ -61,12 +67,58 @@ import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Work } from "./routes/Work.js";
+import { SteelArranger } from "./routes/SteelArranger.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 
 type ThemeName = "white" | "g100";
 
+// ─── Header clock ─────────────────────────────────────────────────────────────
+
+function HeaderClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const time = now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const date = now.toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  return <span className="esti-header-clock">{date} · {time}</span>;
+}
+
+// ─── Floating Pomodoro overlay ────────────────────────────────────────────────
+// 20% opacity non-interactive overlay shown while a session is running.
+
+function PomodoroFloat() {
+  const pom = usePomodoro();
+  if (!pom.running) return null;
+  return (
+    <div className="esti-pomodoro-float">
+      <p>{POMODORO_MODE_LABEL[pom.mode]}</p>
+      <p>{fmtPomTime(pom.timeLeft)}</p>
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
 export function App() {
+  return (
+    <PomodoroProvider>
+      <AppShell />
+    </PomodoroProvider>
+  );
+}
+
+function AppShell() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
@@ -76,6 +128,8 @@ export function App() {
   const [theme, setTheme] = useState<ThemeName>(
     () => (localStorage.getItem("esti-theme") as ThemeName) || "white",
   );
+  const [panelOpen, setPanelOpen] = useState(false);
+
   function toggleTheme() {
     setTheme((t) => {
       const next: ThemeName = t === "white" ? "g100" : "white";
@@ -123,6 +177,7 @@ export function App() {
     { label: "Compliance", to: "/compliance", icon: Calculation },
     { label: "Work", to: "/tasks", icon: TaskComplete },
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
+    { label: "SteelFlow", to: "/steel-arranger", icon: ChartCustom },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -188,124 +243,144 @@ export function App() {
 
   return (
     <ThemeContext.Provider value={theme}>
-    <Theme theme={theme}>
-      {/* Full-height themed shell so the page background fills the viewport in
-          dark theme (no white strip below the content). */}
-      <div className="esti-app-shell">
-        <Header aria-label="ESTI AORMS">
-          <HeaderName prefix="ESTI">{firmName}</HeaderName>
-          <HeaderGlobalBar>
-            <AlertsBell />
-            <HeaderGlobalAction
-              aria-label={
-                theme === "white"
-                  ? "Switch to dark theme"
-                  : "Switch to light theme"
-              }
-              onClick={toggleTheme}
-            >
-              {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
-            </HeaderGlobalAction>
-            <HeaderGlobalAction
-              aria-label="Sign out"
-              onClick={() => logout.mutate()}
-            >
-              <Logout size={20} />
-            </HeaderGlobalAction>
-          </HeaderGlobalBar>
-        </Header>
-        <SideNav aria-label="Side navigation" isRail>
-          <SideNavItems>
-            {links.map((n) => (
-              <SideNavLink
-                key={n.to}
-                as={Link}
-                to={n.to}
-                renderIcon={n.icon ?? DashboardIcon}
-                isActive={pathname === n.to}
-              >
-                {n.label}
-              </SideNavLink>
-            ))}
-            {groups.map((g) => (
-              <SideNavMenu
-                key={g.label}
-                title={g.label}
-                renderIcon={g.icon}
-                defaultExpanded={g.items.some((it) => it.to === pathname)}
-              >
-                {g.items.map((it) => (
-                  <SideNavMenuItem
-                    key={it.to}
-                    as={Link}
-                    to={it.to}
-                    isActive={pathname === it.to}
-                  >
-                    {it.label}
-                  </SideNavMenuItem>
-                ))}
-              </SideNavMenu>
-            ))}
-          </SideNavItems>
-        </SideNav>
-        <Content className="esti-app-content">
-          <main className="esti-grow">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/activity" element={<Navigate to="/tasks?tab=activity" replace />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/:id" element={<ProjectDetail />} />
-              <Route path="/compliance" element={<Compliance />} />
-              <Route path="/knowledge-bank" element={<KnowledgeBank />} />
-              <Route path="/invoices" element={<Invoices />} />
-              {can(user.role, "fees:manage") && (
-                <Route path="/accounting/fees" element={<FeeProposals />} />
-              )}
-              {can(user.role, "fees:manage") && (
-                <Route path="/office/proposals" element={<Proposals />} />
-              )}
-              <Route path="/office/letters" element={<Letters />} />
-              <Route path="/office/contracts" element={<Contracts />} />
-              <Route path="/tasks" element={<Work />} />
-              <Route path="/workload" element={<Navigate to="/tasks?tab=workload" replace />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/consultants" element={<Consultants />} />
-              <Route path="/reconcile" element={<Reconcile />} />
-              {hrEnabled && <Route path="/team" element={<Team />} />}
-              {hrEnabled && <Route path="/hr" element={<Hr />} />}
-              <Route path="/dsr" element={<Navigate to="/knowledge-bank" replace />} />
-              {can(user.role, "reports:view") && (
-                <Route path="/filing" element={<Filing />} />
-              )}
-              <Route path="/company" element={<Company />} />
-              {can(user.role, "firm:admin") && (
-                <Route path="/users" element={<Users />} />
-              )}
-              {can(user.role, "firm:admin") && (
-                <Route path="/audit" element={<AuditLog />} />
-              )}
-              {can(user.role, "project:delete") && (
+      <Theme theme={theme}>
+        <div className="esti-app-shell">
+          <Theme theme="g100">
+            <Header aria-label="ESTI AORMS">
+              <HeaderName prefix="ESTI">{firmName}</HeaderName>
+              <HeaderGlobalBar>
+                <HeaderClock />
+                <AlertsBell />
+                <HeaderGlobalAction
+                  aria-label={panelOpen ? "Close My Space" : "Open My Space"}
+                  isActive={panelOpen}
+                  onClick={() => setPanelOpen((o) => !o)}
+                >
+                  <User size={20} />
+                </HeaderGlobalAction>
+                <HeaderGlobalAction
+                  aria-label="Sign out"
+                  onClick={() => logout.mutate()}
+                >
+                  <Logout size={20} />
+                </HeaderGlobalAction>
+              </HeaderGlobalBar>
+            </Header>
+          </Theme>
+          <SideNav aria-label="Side navigation" isRail>
+            <SideNavItems>
+              {links.map((n) => (
+                <SideNavLink
+                  key={n.to}
+                  as={Link}
+                  to={n.to}
+                  renderIcon={n.icon ?? DashboardIcon}
+                  isActive={pathname === n.to}
+                >
+                  {n.label}
+                </SideNavLink>
+              ))}
+              {groups.map((g) => (
+                <SideNavMenu
+                  key={g.label}
+                  title={g.label}
+                  renderIcon={g.icon}
+                  defaultExpanded={g.items.some((it) => it.to === pathname)}
+                >
+                  {g.items.map((it) => (
+                    <SideNavMenuItem
+                      key={it.to}
+                      as={Link}
+                      to={it.to}
+                      isActive={pathname === it.to}
+                    >
+                      {it.label}
+                    </SideNavMenuItem>
+                  ))}
+                </SideNavMenu>
+              ))}
+            </SideNavItems>
+          </SideNav>
+          <Content className="esti-app-content">
+            <main className="esti-grow">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
                 <Route
-                  path="/archived-projects"
-                  element={<ArchivedProjects />}
+                  path="/activity"
+                  element={<Navigate to="/tasks?tab=activity" replace />}
                 />
-              )}
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-          <Stack as="footer" orientation="horizontal" gap={3}>
-            <span>ESTI — AORMS</span>
-            <span>·</span>
-            <a href="mailto:hi@aorms.in">hi@aorms.in</a>
-            <span>·</span>
-            <span>Developed by Holagundi Consulting Works</span>
-          </Stack>
-        </Content>
-        <FloatingCalculator />
-      </div>
-    </Theme>
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/compliance" element={<Compliance />} />
+                <Route path="/knowledge-bank" element={<KnowledgeBank />} />
+                <Route path="/invoices" element={<Invoices />} />
+                {can(user.role, "fees:manage") && (
+                  <Route path="/accounting/fees" element={<FeeProposals />} />
+                )}
+                {can(user.role, "fees:manage") && (
+                  <Route path="/office/proposals" element={<Proposals />} />
+                )}
+                <Route path="/office/letters" element={<Letters />} />
+                <Route path="/office/contracts" element={<Contracts />} />
+                <Route path="/tasks" element={<Work />} />
+                <Route
+                  path="/workload"
+                  element={<Navigate to="/tasks?tab=workload" replace />}
+                />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/consultants" element={<Consultants />} />
+                <Route path="/reconcile" element={<Reconcile />} />
+                {hrEnabled && <Route path="/team" element={<Team />} />}
+                {hrEnabled && <Route path="/hr" element={<Hr />} />}
+                <Route
+                  path="/dsr"
+                  element={<Navigate to="/knowledge-bank" replace />}
+                />
+                {can(user.role, "reports:view") && (
+                  <Route path="/filing" element={<Filing />} />
+                )}
+                <Route path="/company" element={<Company />} />
+                {can(user.role, "firm:admin") && (
+                  <Route path="/users" element={<Users />} />
+                )}
+                {can(user.role, "firm:admin") && (
+                  <Route path="/audit" element={<AuditLog />} />
+                )}
+                {can(user.role, "project:delete") && (
+                  <Route
+                    path="/archived-projects"
+                    element={<ArchivedProjects />}
+                  />
+                )}
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/steel-arranger" element={<SteelArranger />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+            <footer className="esti-footer">
+              <Stack orientation="horizontal" gap={4}>
+                <p>
+                  <strong>ESTI</strong> — Architectural Office Resource
+                  Management System
+                </p>
+                <p>·</p>
+                <a href="mailto:hi@aorms.in">hi@aorms.in</a>
+                <p>·</p>
+                <p>Holagundi Consulting Works</p>
+              </Stack>
+            </footer>
+          </Content>
+          <PersonalPanel
+            isOpen={panelOpen}
+            onClose={() => setPanelOpen(false)}
+            userName={user.fullName}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
+          <PomodoroFloat />
+        </div>
+      </Theme>
     </ThemeContext.Provider>
   );
 }

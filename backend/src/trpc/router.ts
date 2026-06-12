@@ -47,6 +47,7 @@ import {
   siteAssessmentRouter,
 } from "../modules/rie/router.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
+import { steelflowRouter } from "../modules/steelflow/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -113,6 +114,7 @@ export const appRouter = router({
   ruleVersions: ruleVersionRouter,
   siteAssessments: siteAssessmentRouter,
   knowledgeBank: knowledgeBankRouter,
+  steelflow: steelflowRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

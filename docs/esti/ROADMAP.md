@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-KB catalogs session)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-SteelFlow + Personal Workspace session)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -29,6 +29,18 @@ Compliance + Specification standards + Structural element templates in one modul
 dashboard chart refresh (Treemap, Donut, Heatmap, Gauge); Work module consolidating
 Tasks / Workload / Activity into a single URL-tabbed route; Carbon Charts theme
 isolation fix via ThemeContext.
+
+Also delivered: Personal Workspace panel (Pomodoro focus timer with global context
+so it keeps running when the panel is closed, floating 20% opacity overlay while a
+session is running; calculator tab with expression state persisted across tab switches;
+Tasks tab showing open personal tasks; Leave balance tab; theme toggle moved into
+panel; welcome note with Ar. name + formatted date); live date/time clock in the
+global header; dashboard resource-card guideline applied to all tiles (Tag category
+header, pictogram, h3 title, h2 KPI values, ghost "Open module" action buttons);
+Pomodoro timer and theme toggle removed from the header top bar.
+
+Also delivered: **SteelFlow AI — Interactive Steel Arranger + Automated BBS
+Generator** (Phase 2D, see below).
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -143,6 +155,104 @@ follows the 2x grid token scale; colour usage matches Carbon colour anatomy.
 **Gate met:** frontend typecheck passes; all six chart instances receive explicit
 `theme`; Work module tabs persist through URL reload; workload heatmap renders
 correct Carbon token colours in both light and dark themes.
+
+## Phase 2D - Personal Workspace And Dashboard Polish [P1] - Complete 2026-06-12
+
+- [x] **Personal Workspace panel** — fixed right drawer at `/personal` icon in
+  header; `width: 20rem`, `height: calc(100vh - 3rem)`, no outer scroll.
+- [x] **Pomodoro Focus tab** — Work / Short break / Long break modes; countdown
+  timer; pause / resume / reset; session counter; state lifted into
+  `PomodoroContext` (React context with interval) so the timer runs even while
+  the panel is closed.
+- [x] **Floating Pomodoro overlay** — `position: fixed; opacity: 0.2` countdown
+  shown bottom-right while any Pomodoro session is running; non-interactive.
+- [x] **Calculator tab** — arithmetic expression evaluator with `×`, `÷`, `−`,
+  `%`; expression state lifted to `PersonalPanel` so it survives tab switches;
+  Enter to reuse result.
+- [x] **Tasks tab** — live query of open personal tasks; shows priority and overdue
+  tags; limited to 3 items + "more in Work" link.
+- [x] **Leave balance tab** — pulls `dashboard.me` data; remaining / used /
+  allowance metrics + progress bar.
+- [x] **Theme toggle moved to panel** — Asleep/Light icon button in the panel
+  header replaces the header-bar `HeaderGlobalAction`; state still stored in
+  `localStorage` and propagated via `ThemeContext`.
+- [x] **Welcome note** — `Welcome, Ar. {firstName}` + formatted weekday/date/year.
+- [x] **Global header clock** — live `{weekday short}, {day} {month} · HH:MM`
+  updated every second via `HeaderClock` component + `setInterval`.
+- [x] **Dashboard resource-card guidelines** — all tiles restructured: `Tag` for
+  category, `width={32}` pictogram, `<h3>` title, `<h2>` KPI values, ghost
+  "Open module" action button at bottom; clock/leave widget removed from
+  dashboard header.
+
+**Gate met:** personal panel fits within panel height without any scroll on the
+outer container; calculator state survives tab switches; Pomodoro timer survives
+panel open/close; header clock updates every second.
+
+## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] - Complete 2026-06-12
+
+End-to-end interactive reinforcement arrangement and Bar Bending Schedule
+generation per IS:456 / IS:2502, available at `/steel-arranger`.
+
+- [x] **Contracts layer** (`packages/contracts/src/steel-arranger.ts`):
+  - `SfBarDia`, `SfElementType`, `SfBarType`, `SfStirrupType`, `SfShapeCode` enums
+    and label maps.
+  - Zod input schemas: `SfSessionCreate`, `SfElementCreate`, `SfElementUpdate`,
+    `SfRebarCreate`, `SfRebarUpdate`, `SfStirrupCreate`, `SfStirrupUpdate`.
+  - `SfBbsRow` interface (computed, not stored).
+  - `SfAiReview` interface with `warnings`, `suggestions`, and `summary`.
+  - IS:456 / IS:2502 pure calculation functions:
+    `sfUnitWeight(dia)` = D²/162 kg/m;
+    `sfSteelWeight(dia, lengthMm, qty)`;
+    `sfStirrupLength(w, d, cover, stirrupDia, hookAngle)` — inner perimeter
+    + hook allowance − bend deduction;
+    `sfStirrupCount(lengthMm, spacingMm)`;
+    `sfDevelopmentLength(dia, fy, fck)` — IS:456 cl.26.2;
+    `sfMinBarSpacing(dia, maxAggSize)` — IS:456 cl.26.3.1;
+    `sfAutoPositionBars(n, widthMm, coverMm, diaMm)`.
+- [x] **Database migration** (`backend/drizzle/0022_steel_arranger.sql`):
+  `sf_sessions`, `sf_elements`, `sf_rebars`, `sf_stirrups` tables with cascading
+  deletes; indexed on session, element, and created-by.
+- [x] **Drizzle schema** — four `pgTable` definitions appended to
+  `backend/src/db/schema.ts` using project-standard `id()` / `createdAt()` /
+  `updatedAt()` helpers.
+- [x] **Backend tRPC router** (`backend/src/modules/steelflow/router.ts`):
+  - Session CRUD: `listSessions`, `createSession`, `deleteSession`.
+  - Element CRUD: `listElements`, `createElement`, `updateElement`, `deleteElement`.
+  - Rebar CRUD: `listRebars`, `createRebar`, `updateRebar`, `deleteRebar`.
+  - Stirrup CRUD: `listStirrups`, `createStirrup`, `updateStirrup`, `deleteStirrup`.
+  - `generateBbs` query — server-side BBS row computation (used for download).
+  - `aiReview` query — rule-based IS:456 review engine: steel ratio validation,
+    cover checks, stirrup spacing checks, development-length hints; extensible to
+    OpenAI API in Phase 11.
+  - Router wired at `steelflow` namespace in `backend/src/trpc/router.ts`.
+- [x] **BBS Engine** (`frontend/src/engine/bbsEngine.ts`) — pure frontend
+  functions: `autoPositionRebars`, `computeBbsRows`, `totalSteelKg`.
+- [x] **Zustand store** (`frontend/src/store/useSteelStore.ts`) — tracks
+  active session, active element, and AI panel open state.
+- [x] **SteelArranger route** (`frontend/src/routes/SteelArranger.tsx`):
+  - Sessions sidebar with create / delete.
+  - Elements sidebar (BEAM / COLUMN / SLAB / FOOTING) with geometry form
+    (length × width × depth, cover, fck, fy).
+  - SVG cross-section canvas — concrete outline, cover zone dashed, stirrups
+    as rect borders, rebars as circles; auto-positioned by bar type.
+  - Rebar tab: add form (mark, dia, type, qty, cutting length optional);
+    live list with delete.
+  - Stirrup tab: add form (dia, type, spacing); live list with delete.
+  - BBS tab: computed `SfBbsRow` table with totals; **Export BBS (Excel)**
+    button via SheetJS/xlsx.
+  - Development Length tab: IS:456 Ld table for all standard diameters.
+  - IS:456 AI Review panel: warnings (steel ratio, cover, stirrup spacing) +
+    suggestions (development length hint, dia standardisation).
+- [x] SteelFlow nav link added to app sidebar (ChartCustom icon).
+- [x] `packages/contracts/src/index.ts` exports `steel-arranger.ts`.
+- [ ] Apply migration via `podman cp` + `psql -f` and `podman restart esti-backend`.
+- [ ] `dnd-kit` drag-and-drop bar placement on SVG canvas (Phase 2F enhancement).
+- [ ] PDF export of BBS (Phase 10 / worker).
+- [ ] Cranked bar and bent-up bar shape code support.
+
+**Gate:** a user can define a beam/column geometry, add longitudinal rebars and
+stirrups, view the live cross-section, export a complete IS:2502 BBS to Excel,
+and run an IS:456 compliance review — all without leaving the browser.
 
 ## Phase 3 - Domain Activity Foundation [P1]
 
@@ -429,9 +539,9 @@ non-coercive; reward points are auditable and anti-gaming controls are active.
 - [x] `packages/contracts/src/knowledge-bank.ts` with `KnowledgeItemStatus`,
   `StructuralElementTemplate`, `ReinforcementArrangement`, and
   `SpecificationProcurementStandard` Zod schemas.
-- [ ] Generate editable BBS draft lines from a selected published structural
-  template and project dimensions; show every cutting-length component and
-  retain the source template version on generated rows.
+- [~] Generate editable BBS draft lines from a selected published structural
+  template and project dimensions; SteelFlow (Phase 2E) provides the full
+  interactive BBS generator; template-to-BBS import bridge is a Phase 10 item.
 - [ ] Validate BBS calculations with engineering fixtures and explicit rounding,
   lap, hook, bend-deduction, spacing-zone, and steel-weight tests before allowing
   issue/export. Templates assist quantity calculation and never replace the
