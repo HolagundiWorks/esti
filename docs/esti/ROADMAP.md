@@ -158,8 +158,9 @@ correct Carbon token colours in both light and dark themes.
 
 ## Phase 2D - Personal Workspace And Dashboard Polish [P1] - Complete 2026-06-12
 
-- [x] **Personal Workspace panel** — fixed right drawer at `/personal` icon in
-  header; `width: 20rem`, `height: calc(100vh - 3rem)`, no outer scroll.
+- [x] **Personal Workspace panel** — fixed right drawer toggled by the User icon
+  in the header `HeaderGlobalBar`; `width: 20rem`, `height: calc(100vh - 3rem)`,
+  no outer scroll; implemented in `frontend/src/components/PersonalPanel.tsx`.
 - [x] **Pomodoro Focus tab** — Work / Short break / Long break modes; countdown
   timer; pause / resume / reset; session counter; state lifted into
   `PomodoroContext` (React context with interval) so the timer runs even while
@@ -245,14 +246,19 @@ generation per IS:456 / IS:2502, available at `/steel-arranger`.
     suggestions (development length hint, dia standardisation).
 - [x] SteelFlow nav link added to app sidebar (ChartCustom icon).
 - [x] `packages/contracts/src/index.ts` exports `steel-arranger.ts`.
-- [ ] Apply migration via `podman cp` + `psql -f` and `podman restart esti-backend`.
-- [ ] `dnd-kit` drag-and-drop bar placement on SVG canvas (Phase 2F enhancement).
-- [ ] PDF export of BBS (Phase 10 / worker).
-- [ ] Cranked bar and bent-up bar shape code support.
+- [x] Migration `0022_steel_arranger.sql` applied via `podman cp` + `psql -f`;
+  backend restarted; four tables and four indexes confirmed in DB.
+- [ ] `dnd-kit` drag-and-drop bar placement on SVG canvas (planned Phase 2F).
+- [ ] PDF export of BBS via worker (planned Phase 10).
+- [ ] Cranked bar, bent-up bar, and L-shape (shape codes B/C/E) cutting-length
+  support.
+- [ ] Slab and footing cross-section canvas variants (currently renders as
+  rectangular beam section; distinct slab/footing views deferred).
 
-**Gate:** a user can define a beam/column geometry, add longitudinal rebars and
-stirrups, view the live cross-section, export a complete IS:2502 BBS to Excel,
-and run an IS:456 compliance review — all without leaving the browser.
+**Gate met:** a user can define a beam/column geometry, add longitudinal rebars
+and stirrups, view the live SVG cross-section, export a complete IS:2502 BBS to
+Excel, and run an IS:456 compliance review — all within the browser, with data
+persisted to PostgreSQL via tRPC.
 
 ## Phase 3 - Domain Activity Foundation [P1]
 
