@@ -29,6 +29,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 import { useAuth } from "../lib/auth.js";
+import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -128,6 +129,7 @@ function HBarBoard({ title, data, loading, error, formatValue }: {
   title: string; data: { group: string; value: number }[];
   loading?: boolean; error?: boolean; formatValue?: (v: number) => string;
 }) {
+  const chartTheme = useAppTheme();
   const h = `${Math.max(160, data.length * 44)}px`;
   const options = {
     axes: {
@@ -135,6 +137,7 @@ function HBarBoard({ title, data, loading, error, formatValue }: {
       bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
     },
     height: h,
+    theme: chartTheme,
     toolbar: { enabled: false },
     legend: { enabled: false },
     ...(formatValue ? { tooltip: { valueFormatter: formatValue } } : {}),
@@ -163,6 +166,7 @@ type FinancialData = {
 };
 
 function FinancialDonut({ data, loading }: { data?: FinancialData; loading: boolean }) {
+  const chartTheme = useAppTheme();
   const chartData = data ? [
     { group: "Active pipeline",   value: data.activePipelinePaise },
     { group: "Proposal pipeline", value: data.proposalPipelinePaise },
@@ -174,6 +178,7 @@ function FinancialDonut({ data, loading }: { data?: FinancialData; loading: bool
     data: { groupMapsTo: "group" },
     donut: { center: { label: "Revenue" }, alignment: "center" },
     height: "260px",
+    theme: chartTheme,
     toolbar: { enabled: false },
     legend: { enabled: true, position: "bottom" as const },
     tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
@@ -224,11 +229,13 @@ function ProjectStatusNumbers({ byStatus, loading, error, onOpen }: {
 function PhaseDonut({ data, loading, error }: {
   data: { label: string; count: number }[]; loading?: boolean; error?: boolean;
 }) {
+  const chartTheme = useAppTheme();
   const chartData = data.map((p) => ({ group: p.label, value: p.count }));
   const options = {
     data: { groupMapsTo: "group" },
     donut: { center: { label: "Stages" }, alignment: "center" },
     height: "280px",
+    theme: chartTheme,
     toolbar: { enabled: false },
     legend: { enabled: true, position: "bottom" as const },
     tooltip: { valueFormatter: (v: number) => `${v} project${v !== 1 ? "s" : ""}` },
@@ -254,10 +261,12 @@ function PhaseDonut({ data, loading, error }: {
 function TypeTreemap({ data, loading, error }: {
   data: { type: string; count: number }[]; loading?: boolean; error?: boolean;
 }) {
+  const chartTheme = useAppTheme();
   const chartData = data.map((t) => ({ name: t.type, value: t.count }));
   const options: TreemapChartOptions = {
     toolbar: { enabled: false },
     height: "320px",
+    theme: chartTheme,
     color: { pairing: { option: 1, numberOfVariants: Math.max(data.length, 2) } } as TreemapChartOptions["color"],
     tooltip: { valueFormatter: (v: unknown) => `${v} project${Number(v) !== 1 ? "s" : ""}` },
     accessibility: { svgAriaLabel: "Projects by architecture type" },
@@ -284,6 +293,7 @@ const GAUGE_MAX = 10;
 function DailyTaskGauges({ data, loading, error }: {
   data: { assignee: string; count: number }[]; loading?: boolean; error?: boolean;
 }) {
+  const chartTheme = useAppTheme();
   return (
     <Tile className="esti-fill">
       <Stack gap={5}>
@@ -306,6 +316,7 @@ function DailyTaskGauges({ data, loading, error }: {
                     ...(status ? { status } : {}),
                   },
                   height: "160px",
+                  theme: chartTheme,
                   toolbar: { enabled: false },
                   legend: { enabled: false },
                   accessibility: { svgAriaLabel: `${d.assignee}: ${d.count} tasks today` },
@@ -343,6 +354,7 @@ type DayRow  = { assignee: string; day: string; count: number };
 function WorkloadHeatmap({ weekly, daily, loading, error }: {
   weekly: HeatRow[]; daily: DayRow[]; loading?: boolean; error?: boolean;
 }) {
+  const chartTheme = useAppTheme();
   const [mode, setMode] = useState<"weekly" | "daily">("weekly");
 
   const weeklyData = DOW_ORDER
@@ -367,6 +379,7 @@ function WorkloadHeatmap({ weekly, daily, loading, error }: {
     },
     heatmap: { colorLegend: { type: "linear" as const } },
     height: `${Math.max(200, [...new Set(activeData.map((d) => d.group))].length * 40 + 80)}px`,
+    theme: chartTheme,
     toolbar: { enabled: false },
     legend: { enabled: false },
     tooltip: { valueFormatter: (v: unknown) => `${v} task${Number(v) !== 1 ? "s" : ""}` },

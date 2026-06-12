@@ -32,6 +32,7 @@ import {
 import { useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { can, isStaffRole } from "@esti/contracts";
+import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
@@ -195,6 +196,7 @@ export function App() {
   ];
 
   return (
+    <ThemeContext.Provider value={theme}>
     <Theme theme={theme}>
       {/* Full-height themed shell so the page background fills the viewport in
           dark theme (no white strip below the content). */}
@@ -323,5 +325,6 @@ export function App() {
         <FloatingCalculator />
       </div>
     </Theme>
+    </ThemeContext.Provider>
   );
 }
