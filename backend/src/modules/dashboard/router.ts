@@ -167,7 +167,7 @@ export const dashboardRouter = router({
   actionCenter: protectedProcedure.query(async ({ ctx }) => {
     const billingReadyRows = (await ctx.db.execute(sql`
       select
-        ph.id, ph.label, ph.billing_pct, ph.status,
+        ph.id, ph.label, ph.billing_pct,
         po.id   as project_id,
         po.ref  as project_ref,
         po.title as project_title,
@@ -187,7 +187,7 @@ export const dashboardRouter = router({
       order by po.ref, ph.sort_order
       limit 20
     `)) as unknown as {
-      id: string; label: string; billing_pct: number; status: string;
+      id: string; label: string; billing_pct: number;
       project_id: string; project_ref: string; project_title: string;
       contract_value_paise: number;
     }[];
@@ -239,7 +239,6 @@ export const dashboardRouter = router({
         id: r.id,
         label: r.label,
         billingPct: r.billing_pct,
-        status: r.status,
         projectId: r.project_id,
         projectRef: r.project_ref,
         projectTitle: r.project_title,

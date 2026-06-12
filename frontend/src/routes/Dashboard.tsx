@@ -551,7 +551,7 @@ export function Dashboard() {
                               <Link to={`/projects/${ph.projectId}?tab=phases`}>{ph.projectRef}</Link>
                               <p>{ph.label} · {ph.billingPct}%</p>
                             </div>
-                            <Tag type="green" size="sm">{ph.status}</Tag>
+                            <Tag type="green" size="sm">Unbilled</Tag>
                           </Stack>
                         ))}</Stack>}
                   </Stack>
