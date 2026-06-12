@@ -344,10 +344,10 @@ async function main(): Promise<void> {
 
   // ── Projects with phases, fees, invoices, permits, tasks ─────────────────
   const projectDefs = [
-    { client: clientRows[0]!, title: "Sharma Villa — Whitefield", projectType: "RESIDENTIAL", value: 45_00_00_000 },
-    { client: clientRows[1]!, title: "Rao House — Mysuru", projectType: "RESIDENTIAL", value: 1_20_00_000 },
-    { client: clientRows[2]!, title: "Verde Commercial Block", projectType: "COMMERCIAL", value: 8_50_00_000 },
-    { client: kapoor, title: "Kapoor Residence — Sarjapur", projectType: "RESIDENTIAL", value: 2_10_00_000 },
+    { client: clientRows[0]!, title: "Sharma Villa — Whitefield", projectType: "Residential Architecture", value: 45_00_00_000 },
+    { client: clientRows[1]!, title: "Rao House — Mysuru", projectType: "Residential Architecture", value: 1_20_00_000 },
+    { client: clientRows[2]!, title: "Verde Commercial Block", projectType: "Commercial Architecture", value: 8_50_00_000 },
+    { client: kapoor, title: "Kapoor Residence — Sarjapur", projectType: "Residential Architecture", value: 2_10_00_000 },
   ];
 
   let pi = 0;

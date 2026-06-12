@@ -3,11 +3,26 @@ import { CoaWorkCategory } from "./coa.js";
 import { GstSystem } from "./gst.js";
 
 export const ProjectType = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "INSTITUTIONAL",
-  "SITE_LANDSCAPE",
-  "INTERIORS",
+  "Residential Architecture",
+  "Commercial Architecture",
+  "Institutional Architecture",
+  "Healthcare Architecture",
+  "Hospitality Architecture",
+  "Industrial Architecture",
+  "Educational Architecture",
+  "Landscape Architecture",
+  "Religious Architecture",
+  "Urban Design & Planning",
+  "Interior Architecture",
+  "Transportation Architecture",
+  "Cultural Architecture",
+  "Sustainable / Green Architecture",
+  "Recreational Architecture",
+  "Mixed-Use Architecture",
+  "Heritage Conservation Architecture",
+  "Public Architecture",
+  "Infrastructure Architecture",
+  "Experimental / Conceptual Architecture",
 ]);
 export type ProjectType = z.infer<typeof ProjectType>;
 

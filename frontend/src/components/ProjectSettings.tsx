@@ -78,7 +78,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const [f, setF] = useState({
     title: "",
     status: "ENQUIRY",
-    projectType: "RESIDENTIAL",
+    projectType: "Residential Architecture",
     workType: "ARCHITECTURE",
     jurisdiction: "OTHER",
     dateStart: "",

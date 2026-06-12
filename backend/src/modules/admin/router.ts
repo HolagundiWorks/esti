@@ -34,9 +34,9 @@ const DEMO_CLIENTS = [
 ] as const;
 
 const DEMO_PROJECTS = [
-  { title: "Sharma Villa — Whitefield", projectType: "RESIDENTIAL", contractValuePaise: 45_00_00_000 },
-  { title: "Rao House — Mysuru", projectType: "RESIDENTIAL", contractValuePaise: 1_20_00_000 },
-  { title: "Verde Commercial Block", projectType: "COMMERCIAL", contractValuePaise: 8_50_00_000 },
+  { title: "Sharma Villa — Whitefield", projectType: "Residential Architecture", contractValuePaise: 45_00_00_000 },
+  { title: "Rao House — Mysuru", projectType: "Residential Architecture", contractValuePaise: 1_20_00_000 },
+  { title: "Verde Commercial Block", projectType: "Commercial Architecture", contractValuePaise: 8_50_00_000 },
 ] as const;
 
 export const adminRouter = router({
