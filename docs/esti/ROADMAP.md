@@ -40,7 +40,10 @@ header, pictogram, h3 title, h2 KPI values, ghost "Open module" action buttons);
 Pomodoro timer and theme toggle removed from the header top bar.
 
 Also delivered: **SteelFlow AI — Interactive Steel Arranger + Automated BBS
-Generator** (Phase 2D, see below).
+Generator** (Phase 2E, complete): dnd-kit drag-and-drop bar placement from
+T6–T32 palette onto SVG cross-section; shape codes B/C/D/E bent-bar cutting
+lengths per IS:2502 with conditional dimension fields; SLAB cross-section strip
+and FOOTING plan-view canvas variants; Excel BBS export; IS:456 AI review.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -248,17 +251,23 @@ generation per IS:456 / IS:2502, available at `/steel-arranger`.
 - [x] `packages/contracts/src/index.ts` exports `steel-arranger.ts`.
 - [x] Migration `0022_steel_arranger.sql` applied via `podman cp` + `psql -f`;
   backend restarted; four tables and four indexes confirmed in DB.
-- [ ] `dnd-kit` drag-and-drop bar placement on SVG canvas (planned Phase 2F).
+- [x] `dnd-kit` drag-and-drop bar placement on SVG canvas: `BarPalette` with
+  T6–T32 draggable pills; `CrossSectionDropZone` drop target; `handleDragEnd`
+  computes SVG-mm position and opens a pre-filled rebar form modal.
 - [ ] PDF export of BBS via worker (planned Phase 10).
-- [ ] Cranked bar, bent-up bar, and L-shape (shape codes B/C/E) cutting-length
-  support.
-- [ ] Slab and footing cross-section canvas variants (currently renders as
-  rectangular beam section; distinct slab/footing views deferred).
+- [x] Shape codes B/C/D/E cutting-length formulas (IS:2502): `sfLShapeCuttingLength`,
+  `sfHairpinCuttingLength`, `sfCrankedBarCuttingLength`, `sfZShapeCuttingLength`,
+  `sfShapeCuttingLength` dispatcher; shape selector + conditional extra-dimension
+  fields (side leg / hairpin H+W / crank height) in rebar form with live preview.
+- [x] Slab cross-section strip view (440×90 min, forced aspect ratio) and footing
+  bird's-eye plan view (BOTTOM_MAIN as horizontal lines, SIDE_FACE as vertical
+  lines) via `CrossSectionCanvas.tsx`; canvas variant selected by `elementType`.
 
-**Gate met:** a user can define a beam/column geometry, add longitudinal rebars
-and stirrups, view the live SVG cross-section, export a complete IS:2502 BBS to
-Excel, and run an IS:456 compliance review — all within the browser, with data
-persisted to PostgreSQL via tRPC.
+**Gate met:** a user can define BEAM/COLUMN/SLAB/FOOTING geometry, drag bars
+from the palette onto the SVG canvas, add bent bars with computed IS:2502 cutting
+lengths (shape codes A–E), view the live cross-section, export a complete BBS to
+Excel, and run an IS:456 AI review — all within the browser, with data persisted
+to PostgreSQL via tRPC.
 
 ## Phase 3 - Domain Activity Foundation [P1]
 

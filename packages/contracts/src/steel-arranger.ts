@@ -229,3 +229,115 @@ export function sfAutoPositionBars(
   const gap = usable / (n - 1);
   return Array.from({ length: n }, (_, i) => coverMm + i * gap);
 }
+
+// ─── Bent-bar cutting-length formulas (IS:2502) ───────────────────────────────
+
+export const SF_SHAPE_CODE_LABEL: Record<string, string> = {
+  A: "Straight",
+  B: "L-bend (one end)",
+  C: "Z-shape / S-bend",
+  D: "Hairpin (U-shape)",
+  E: "Cranked / cog",
+  F: "Closed stirrup",
+};
+
+/**
+ * Bend deduction per 90° bend (IS:2502 Table 2).
+ * 1 bend × 2d.
+ */
+function bendDeduct(diaMm: number, bends: number = 1) {
+  return 2 * diaMm * bends;
+}
+
+/** Hook allowance: 9d for 90°, 12d for 135°. */
+function hookAllowance(diaMm: number, angle: number = 90) {
+  return angle >= 135 ? 12 * diaMm : 9 * diaMm;
+}
+
+/**
+ * Shape B — L-bend (one 90° leg at one end).
+ * cuttingLength = mainLeg + sideLeg + 1 hook − 1 bend deduction
+ */
+export function sfLShapeCuttingLength(
+  mainLegMm: number,
+  sideLegMm: number,
+  diaMm: number,
+): number {
+  return Math.ceil(mainLegMm + sideLegMm + hookAllowance(diaMm) - bendDeduct(diaMm));
+}
+
+/**
+ * Shape D — Hairpin / U-shape (two parallel legs + bottom).
+ * cuttingLength = 2×height + width + 2 hooks − 2 bend deductions
+ */
+export function sfHairpinCuttingLength(
+  heightMm: number,
+  widthMm: number,
+  diaMm: number,
+): number {
+  return Math.ceil(
+    2 * heightMm + widthMm + 2 * hookAllowance(diaMm) - bendDeduct(diaMm, 2),
+  );
+}
+
+/**
+ * Shape E — Cranked bar (one diagonal cranked portion in the middle).
+ * Additional diagonal length = crankHeight / sin(θ) − crankHeight / tan(θ)
+ * Applied twice (crank up + crank down) by default.
+ */
+export function sfCrankedBarCuttingLength(
+  totalSpanMm: number,
+  crankHeightMm: number,
+  crankAngleDeg: number = 45,
+): number {
+  const theta = (crankAngleDeg * Math.PI) / 180;
+  const diagonal = crankHeightMm / Math.sin(theta);
+  const horizontal = crankHeightMm / Math.tan(theta);
+  const extraPerCrank = diagonal - horizontal;
+  return Math.ceil(totalSpanMm + 2 * extraPerCrank);
+}
+
+/**
+ * Shape C — Z-shape / S-bend (two 90° bends, cranked between two parallel levels).
+ * cuttingLength = leg1 + offset + leg2 + 2 hooks − 2 bend deductions
+ */
+export function sfZShapeCuttingLength(
+  leg1Mm: number,
+  offsetMm: number,
+  leg2Mm: number,
+  diaMm: number,
+): number {
+  return Math.ceil(leg1Mm + offsetMm + leg2Mm + 2 * hookAllowance(diaMm) - bendDeduct(diaMm, 2));
+}
+
+/**
+ * Dispatcher: compute cutting length for any shape code given element length
+ * and optional bent-bar dimensions.
+ */
+export function sfShapeCuttingLength(
+  shapeCode: string,
+  elementLengthMm: number,
+  diaMm: number,
+  opts: {
+    leg2?: number;       // B: side leg
+    hairpinH?: number;   // D: height
+    hairpinW?: number;   // D: width
+    crankH?: number;     // E: crank height
+    crankAngle?: number; // E: crank angle (default 45)
+    leg1?: number;       // C: first leg
+    offset?: number;     // C: crank offset
+  } = {},
+): number {
+  switch (shapeCode) {
+    case "B":
+      return sfLShapeCuttingLength(elementLengthMm, opts.leg2 ?? 300, diaMm);
+    case "D":
+      return sfHairpinCuttingLength(opts.hairpinH ?? 300, opts.hairpinW ?? 150, diaMm);
+    case "E":
+      return sfCrankedBarCuttingLength(elementLengthMm, opts.crankH ?? 50, opts.crankAngle ?? 45);
+    case "C":
+      return sfZShapeCuttingLength(opts.leg1 ?? 300, opts.offset ?? 150, opts.leg2 ?? 300, diaMm);
+    default:
+      return elementLengthMm; // A: straight
+  }
+}
