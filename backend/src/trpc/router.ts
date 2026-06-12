@@ -42,6 +42,7 @@ import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
+import { ruleVersionRouter, siteAssessmentRouter } from "../modules/rie/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -101,6 +102,8 @@ export const appRouter = router({
   assignments: assignmentRouter,
   leaves: leaveRouter,
   payroll: payrollRouter,
+  ruleVersions: ruleVersionRouter,
+  siteAssessments: siteAssessmentRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

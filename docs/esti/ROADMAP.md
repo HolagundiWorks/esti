@@ -127,29 +127,30 @@ opening separate modules.
 - [x] Remove compliance from project tabs and expose a standalone Carbon module.
 - [x] Link the latest calculation summary back to the project overview.
 - [x] Separate statutory permit records from compliance calculations.
-- [ ] Replace the BBMP-only seed assumption with a versioned knowledge bank keyed
-  by state, district, authority, building use, source, and effective date.
-- [ ] Build governed rule authoring, review, publication, supersession, and source
-  citation workflows.
-- [ ] **RIE — Site Input Engine:** capture site dimensions, plot area, ground
-  cover, topography, and approach road width; validate inputs against
-  jurisdiction minimums before running any rule engine.
-- [ ] **RIE — Development Control Engine:** pluggable rule modules for FAR/FSI,
-  ground coverage, front/side/rear setbacks, restricted building lines,
-  parking requirements (car, two-wheeler, cycle), and height restrictions;
-  each module cites the specific bye-law clause.
-- [ ] **RIE — Basement Compliance Engine:** permitted basement depth, ventilation
+- [x] Replace the BBMP-only seed assumption with a versioned knowledge bank keyed
+  by state, district, authority, building use, source, and effective date; BBMP
+  Residential and Commercial seed versions seeded on first migration.
+- [x] Build governed rule authoring, review, publication, supersession, and source
+  citation workflows (DRAFT → REVIEW → PUBLISHED; supersession auto-demotes
+  the previous published version for the same jurisdiction + building use).
+- [x] **RIE — Site Input Engine:** capture site dimensions, plot area, ground
+  cover, topography, approach road width, and road-abutting sides; validate
+  against jurisdiction minimums before running any rule engine.
+- [x] **RIE — Development Control Engine:** FAR/FSI, ground coverage, front/side/
+  rear setbacks, restricted building lines, parking (car, two-wheeler, cycle),
+  and height restrictions; each module cites the specific bye-law clause.
+- [x] **RIE — Basement Compliance Engine:** permitted basement depth, ventilation
   requirements, and permissible basement uses per jurisdiction rules.
-- [ ] **RIE — Sustainability Compliance Engine:** rainwater harvesting, solar
-  panel area, EV charging provisions, and green cover requirements.
-- [ ] **RIE — Approval Readiness Engine:** checklist of documents and clearances
-  required for building plan submission; auto-scored based on project
-  attachments and permit records.
-- [ ] **RIE — Feasibility Dashboard:** single-screen summary of all constraint
+- [x] **RIE — Sustainability Compliance Engine:** rainwater harvesting pit volume,
+  solar panel area, EV charging provisions, and green cover; scored 0–100.
+- [x] **RIE — Approval Readiness Engine:** document/clearance checklist from the
+  rule version; auto-scored from project attachments and permit records; NOT_READY /
+  PARTIAL / READY readiness status.
+- [x] **RIE — Feasibility Dashboard:** tabbed single-screen summary of all five
   engine outputs (FAR utilised vs permitted, setback compliance, parking
-  shortfall, approval readiness score) for a given site and jurisdiction.
-- [ ] Produce deterministic ground-cover, FAR-area, setback, and restricted-
-  building-line outputs from the selected verified rule version.
+  requirements, sustainability score, approval readiness score) with overall score.
+- [x] Produce deterministic engine outputs from the selected published rule version;
+  all outputs stored in `esti_site_assessment` and reproducible from saved inputs.
 - [ ] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
 - [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
@@ -201,8 +202,10 @@ from the dashboard without opening individual project or invoice screens.
 
 ## Phase 5 - Tasks, Timesheets, Availability, Escalations, And Performance [P1]
 
-- [ ] Store assignee IDs rather than display names; add reviewer and dependencies.
-- [ ] Critical priority, filters, "my tasks", calendar, and Carbon board view.
+- [x] Store assignee IDs rather than display names; add reviewer and dependencies;
+  CRITICAL priority; "my tasks" checkbox; status/priority filters; ASPRF task
+  classification (BILLABLE/NON_BILLABLE/TRAINING/COLLABORATION/PERSONAL).
+- [ ] Calendar and Carbon board view for tasks.
 - [ ] Daily updates: completed, in progress, blocked; generate activity entries.
 - [ ] Timesheets and project/phase/task attribution.
 - [ ] Configurable escalation rules and digest delivery.

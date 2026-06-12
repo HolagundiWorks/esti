@@ -872,6 +872,45 @@ export const tasks = pgTable("esti_task", {
   updatedAt: updatedAt(),
 });
 
+/** RIE: Versioned jurisdiction rule sets (knowledge bank). */
+export const ruleVersions = pgTable("esti_rule_version", {
+  id: id(),
+  state: text("state").notNull(),
+  district: text("district").notNull(),
+  authority: text("authority").notNull(),
+  buildingUse: text("building_use").notNull(),
+  effectiveDate: date("effective_date").notNull(),
+  status: text("status").notNull().default("DRAFT"),
+  sourceCitation: text("source_citation"),
+  data: jsonb("data").notNull().default({}),
+  notes: text("notes"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  reviewedById: uuid("reviewed_by_id").references(() => users.id),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  supersededById: uuid("superseded_by_id"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** RIE: Per-project site assessment (all five engine outputs). */
+export const siteAssessments = pgTable("esti_site_assessment", {
+  id: id(),
+  projectId: uuid("project_id").notNull().references(() => projectOffices.id),
+  ruleVersionId: uuid("rule_version_id").references(() => ruleVersions.id),
+  status: text("status").notNull().default("DRAFT"),
+  siteInputs: jsonb("site_inputs").notNull().default({}),
+  devControl: jsonb("dev_control"),
+  basement: jsonb("basement"),
+  sustainability: jsonb("sustainability"),
+  approvalReadiness: jsonb("approval_readiness"),
+  overallScore: integer("overall_score"),
+  issuedAt: timestamp("issued_at", { withTimezone: true }),
+  pdfKey: text("pdf_key"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Append-only audit log. See ARCHITECTURE ADR-09. */
 export const audit = pgTable("esti_audit", {
   id: id(),
