@@ -21,7 +21,6 @@ import {
   Dashboard as DashboardIcon,
   Document,
   Enterprise,
-  Login as LoginIcon,
   Money,
   Light,
   Logout,
@@ -30,7 +29,7 @@ import {
   type CarbonIconType,
 } from "@carbon/icons-react";
 import { useState } from "react";
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { can, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
@@ -72,7 +71,6 @@ type ThemeName = "white" | "g100";
 export function App() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
@@ -205,15 +203,6 @@ export function App() {
           <HeaderName prefix="ESTI">{firmName}</HeaderName>
           <HeaderGlobalBar>
             <AlertsBell />
-            {user.isDemo && (
-              <HeaderGlobalAction
-                aria-label="Sign in to your account"
-                tooltipAlignment="end"
-                onClick={() => navigate("/login")}
-              >
-                <LoginIcon size={20} />
-              </HeaderGlobalAction>
-            )}
             <HeaderGlobalAction
               aria-label={
                 theme === "white"
