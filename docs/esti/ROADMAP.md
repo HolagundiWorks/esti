@@ -392,7 +392,7 @@ opening separate modules.
   (2 trees if site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in
   dev-control engine; `excludedAreaSqm` field so gross BUA minus excluded = net
   BUA compared against FAR limit; `plinthAreaSqm` field for rainwater trigger.
-- [ ] Generate an immutable branded compliance PDF and register it against the
+- [x] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
 - [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
   and PDF worker/browser smoke coverage.
@@ -469,47 +469,34 @@ automatically from typed decision records with no manual data entry.
 - [x] Store assignee IDs rather than display names; add reviewer and dependencies;
   CRITICAL priority; "my tasks" checkbox; status/priority filters; ASPRF task
   classification (BILLABLE/NON_BILLABLE/TRAINING/COLLABORATION/PERSONAL).
-- [ ] **ASPRF task work type:** add `workType` field (separate from financial
+- [x] **ASPRF task work type:** add `workType` field (separate from financial
   classification) — DESIGN_COMMUNICATION / DESIGN_DEVELOPMENT /
   TECHNICAL_PRODUCTION / CONSTRUCTION_SUPPORT; feeds dimension score routing.
+- [x] **ASPRF — Anti-gaming:** difficulty coefficient (1–5) on each task;
+  estimated hours field for delivery-predictability scoring.
 - [ ] Calendar and Carbon board view for tasks.
-- [ ] Daily updates: completed, in progress, blocked; generate activity entries.
-- [ ] Timesheets and project/phase/task attribution.
+- [x] Daily updates: completed, in progress, blocked; upsert per team member per
+  day; Stand-up tab on Work module with team view.
+- [x] Timesheets: per-person per-day attribution to project/task with billable
+  toggle; Timesheets tab on Work module; summary query for ASPRF scoring.
 - [ ] Configurable escalation rules and digest delivery.
 - [ ] Leave-impact notifications and backup contacts with privacy filtering.
-- [ ] **ASPRF — Reliability KPI:** commitment score (on-time / assigned tasks);
-  delivery predictability (estimated vs actual duration); 30% weight.
-- [ ] **ASPRF — Quality KPI:** rework rate (rework hours / total hours);
-  internal error rate (internal revisions / issued drawings); drawing accuracy
-  score; QA review score; 25% weight.
-- [ ] **ASPRF — Client Impact KPI:** first-pass approval rate; revision
-  contribution index (revisions attributable to employee, excluding client
-  preference changes); decision closure efficiency; 15% weight.
-- [ ] **ASPRF — Collaboration KPI:** review participation score; mentorship score
-  (review comments, junior support, knowledge sharing); dependency impact score
-  (blocked tasks created / dependent tasks); 15% weight.
-- [ ] **ASPRF — Learning KPI:** learning points (training, workshops,
-  certifications, presentations, standard creation); knowledge contribution index
-  (templates, BIM libraries, checklists); 10% weight.
-- [ ] **ASPRF — Wellbeing KPI (opt-in):** workload health score (active tasks,
-  utilization, deadline density); burnout risk (LOW/MEDIUM/HIGH from consecutive
-  high-load weeks, excessive utilization, increasing rework); 5% weight.
-- [ ] **ASPRF — Performance score engine:** weighted average of 6 KPI dimensions
-  produces a rolling 30-day score per team member (0–100); firm-wide aggregate
-  on dashboard Team Intelligence tile.
-- [ ] **ASPRF — Performance bands:** Bronze (70–80), Silver (81–90), Gold
-  (91–95), Platinum (96+); visual badge; informational and non-punitive.
-- [ ] **ASPRF — Anti-gaming:** task scores weighted by effort, complexity, and
-  business impact; difficulty coefficient (1–5) on each task; review
-  participation mandatory for collaboration scoring.
-- [ ] **ASPRF — Recognition system:** Reliability Champion, Quality Champion,
-  Drawing Excellence, Site Hero, Design Excellence, Mentor, Knowledge Builder
-  awards; per-month computed from score engine.
-- [ ] **ASPRF — Reward points engine:** points for on-time delivery (+10),
-  zero-rework deliverable (+15), first-pass approval (+20), knowledge
-  contribution (+25), mentorship (+15), training completion (+10); team bonus
-  pool when project delivered on time with client satisfaction > threshold and
-  revision budget maintained.
+- [x] **ASPRF — Performance score engine:** rolling 30-day composite score per
+  team member computed from tasks, timesheets, decisions, and approvals;
+  weighted across 6 KPI dimensions; `teamScores` + `myScore` tRPC queries;
+  Performance route (gated behind HR feature flag).
+- [x] **ASPRF — Performance bands:** Bronze (70–80), Silver (81–90), Gold
+  (91–95), Platinum (96+); Carbon `Tag` badge; informational and non-punitive.
+- [x] **ASPRF — Recognition awards + reward points engine:** 7 award types with
+  Carbon tag colours; 7 reward point event types (10–50 pts); `rewards.grant`
+  ownerProcedure with audit; Recognition tab on Performance page.
+- [ ] **ASPRF — Reliability KPI:** detailed delivery-predictability refinement
+  (estimated vs actual duration using timesheet hours).
+- [ ] **ASPRF — Quality KPI:** rework rate from internal decisions; QA score.
+- [ ] **ASPRF — Client Impact KPI:** first-pass approval rate refinement.
+- [ ] **ASPRF — Collaboration KPI:** reviewer participation from task reviewer field.
+- [ ] **ASPRF — Learning KPI:** training task classification ratio.
+- [ ] **ASPRF — Wellbeing KPI (opt-in):** workload health + burnout risk.
 - [ ] **Team Utilization KPI:** billable task hours / total capacity in Global
   KPI Bar; requires timesheets.
 - [ ] **Site & Drawing Intelligence:** site query rate (queries / issued
