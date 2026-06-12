@@ -1,24 +1,32 @@
 # ESTI Pure Carbon UI Policy
 
-**Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
 
 The ESTI frontend uses only IBM Carbon Design System components, icons,
 pictograms, charts, layout, typography, and design tokens. This is an
 implementation constraint, not a visual suggestion.
 
+Reference specs used in this document:
+- Components: https://carbondesignsystem.com/components/overview/components/
+- Data viz: https://carbondesignsystem.com/data-visualization/getting-started/
+- 2x Grid / spacing: https://carbondesignsystem.com/elements/2x-grid/overview/
+- Colour: https://carbondesignsystem.com/elements/color/overview/
+
+---
+
 ## Required
 
 - Build screens from `@carbon/react`, `@carbon/icons-react`,
-  `@carbon/pictograms-react`, and `@carbon/charts-react`.
+  `@carbon/pictograms-react`, `@carbon/charts-react`, and `@carbon/charts`.
 - Use Carbon `Grid` and `Column` with the 16/8/4-column 2x Grid.
-- Use `Stack` for spacing and Carbon containers for grouping.
+- Use `Stack` for all vertical and horizontal spacing — never inline margins.
 - Use `DataTable`, `Pagination`, search/filter controls, `Tabs`, `Modal`,
   `Tile`/`ClickableTile`, `Tag`, `ProgressBar`, `InlineNotification`, skeletons,
   and Carbon form controls for their intended semantics.
-- Use semantic headings and paragraphs without decorative inline typography.
+- Use semantic headings (`h1`–`h4`) and `p` without decorative inline typography.
 - Use only `--cds-*` tokens when a component API genuinely requires a colour.
 - Validate keyboard access, focus order, accessible names, loading/error states,
-  dark theme, and 320px/672px/1056px representative layouts.
+  dark theme, and 320 px / 672 px / 1056 px representative layouts.
 
 ## Prohibited
 
@@ -27,26 +35,276 @@ implementation constraint, not a visual suggestion.
   keyframe animations.
 - Decorative inline styles for font size, weight, colour, borders, or shadows.
 - Custom CSS classes that implement a second visual system.
-- Clickable non-interactive elements such as `Tile onClick`; use
-  `ClickableTile` or Carbon buttons/links.
+- Clickable non-interactive elements such as `Tile onClick`; use `ClickableTile`
+  or Carbon buttons/links.
 - User-configurable application theme colours. Firm branding applies to logos
   and generated documents, not the Carbon application chrome.
 
 ## Permitted CSS
 
 `styles.scss` contains the Carbon import, full-viewport root fix, drawing-viewer
-SVG sizing, and minimal colourless structural helpers that Carbon cannot
-express. Any helper must affect only layout mechanics and must not define visual
-identity. The exception must be documented beside the rule.
+SVG sizing, and minimal colourless structural helpers that Carbon cannot express.
+Any helper must affect only layout mechanics and must not define visual identity.
+The exception must be documented beside the rule.
 
-## Standard Patterns
+---
 
-- Page: `Grid` + `Column`, `Stack`, semantic `h1`, supporting paragraph, action.
-- List: Carbon `DataTable` with toolbar search/filter and server pagination.
-- Detail: Carbon tabs or structured grid; status represented by `Tag`.
-- Dashboard: Carbon grid, tiles, charts, progress bars, and overflow menus.
-- Empty/loading/error: shared Carbon skeleton, empty state, and notification.
-- Destructive action: shared Carbon confirmation modal.
-- Portal project selection: `ClickableTile`, never a click handler on `Tile`.
+## 1 — Carbon 2x Grid and Spacing
 
-The implementation cleanup is tracked in [ROADMAP Phase 2](ROADMAP.md).
+### Grid variants
+
+| Variant | Gutter | When to use |
+|---|---|---|
+| `<Grid>` (default) | 32 px / 16 px | Page sections, main content areas |
+| `<Grid narrow>` | 16 px / 8 px | Compact rows (KPI bars, table toolbars) |
+| `<Grid condensed>` | 2 px | Dense data grids only — avoid for card layouts |
+
+Always use `<Grid fullWidth>` at the page root to reach the shell edges.
+
+### Column widths
+
+Use the 16-column (lg), 8-column (md), 4-column (sm) breakpoints. Common
+patterns for ESTI screens:
+
+| Content | lg | md | sm |
+|---|---|---|---|
+| Full-width section | 16 | 8 | 4 |
+| Half-width tile | 8 | 8 | 4 |
+| Third-width tile | 5 or 6 | 4 | 4 |
+| KPI chip (6-across) | 2–3 | 4 | 2 |
+| Quarter tile | 4 | 4 | 4 |
+
+### Stack gap values (Carbon spacing scale)
+
+`Stack gap={n}` maps to Carbon spacing tokens. Use these values semantically:
+
+| gap | Token | px | Use |
+|---|---|---|---|
+| 2 | spacing-02 | 4 | Tightest grouping (tag + label) |
+| 3 | spacing-03 | 8 | Label → value → tag within a metric cell |
+| 4 | spacing-04 | 12 | Items within a list section |
+| 5 | spacing-05 | 16 | Elements within a tile |
+| 6 | spacing-06 | 24 | Between sub-sections within a tile |
+| 7 | spacing-07 | 32 | Between major tile sections (usually handled by `esti-dash` row-gap) |
+
+**Never** use `gap={1}` (2 px) for visible text — it is too tight to read.
+**Never** skip levels without reason (e.g., jumping from gap=3 to gap=7 inside
+a single tile).
+
+### Tile internal layout
+
+```tsx
+<Tile className="esti-fill">
+  <Stack gap={5}>               {/* 16 px — between major blocks */}
+    <Stack gap={3}>             {/* 8 px — between title elements */}
+      <p>Sub-label</p>
+      <h2>Section Title</h2>
+    </Stack>
+    <Stack gap={4}>             {/* 12 px — between list items */}
+      {rows.map(...)}
+    </Stack>
+  </Stack>
+</Tile>
+```
+
+---
+
+## 2 — Carbon Data Visualisation
+
+Use `@carbon/charts-react` for all data displays beyond plain numbers. Never
+build hand-rolled bars, progress-indicator lists, or custom SVG charts.
+
+### Chart selection guide
+
+| Data type | Carbon chart | Import |
+|---|---|---|
+| Part-to-whole (≤ 6 groups) | `DonutChart` | `@carbon/charts-react` |
+| Part-to-whole (status distribution) | `PieChart` | `@carbon/charts-react` |
+| Category comparison (horizontal) | `SimpleBarChart` with `ScaleTypes.LABELS` on the left axis | `@carbon/charts-react` + `@carbon/charts` |
+| Category comparison (vertical) | `SimpleBarChart` with `ScaleTypes.LABELS` on the bottom axis | same |
+| Time series trend | `LineChart` | `@carbon/charts-react` |
+| Cumulative over time | `StackedAreaChart` | `@carbon/charts-react` |
+| Single metric vs target | `MeterChart` | `@carbon/charts-react` |
+| Scalar metric vs range | `GaugeChart` | `@carbon/charts-react` |
+
+### Chart configuration rules
+
+- Always set `toolbar: { enabled: false }` — the default toolbar clutters tiles.
+- Set `height` in px or rem. Use the structural helpers in `styles.scss`:
+  - `.esti-chart-sm` (≥160 px) — inline/mini chart
+  - `.esti-chart-md` (≥288 px) — standard tile chart
+  - `.esti-chart-lg` (≥384 px) — hero/full-width chart
+- For horizontal bar charts set the left axis `scaleType: ScaleTypes.LABELS`
+  and bottom axis `scaleType: ScaleTypes.LINEAR`; import `ScaleTypes` from
+  `@carbon/charts`.
+- Carbon charts automatically apply the **data-viz palette** (data-viz-01 →
+  data-viz-14). Do not set `color.scale` unless you have a deliberate semantic
+  reason (e.g., mapping a specific group to `$support-error`).
+- Always pass an `accessibility.svgAriaLabel` for charts used in interactive
+  tiles.
+- For monetary values in tooltips: `tooltip: { valueFormatter: (v) => formatINRShort(v) }`.
+- Dynamic height for horizontal bar charts: `height: ${Math.max(160, rows * 44)}px`
+  (44 px per bar, minimum 160 px).
+
+### Chart data shape
+
+Carbon charts expect flat arrays of `{ group: string, value: number }` objects.
+Keep transformation logic out of JSX — derive the data array in the component
+body before rendering.
+
+```tsx
+// Correct — derived once, named clearly
+const phaseData = byPhase.map((p) => ({ group: p.label, value: p.count }));
+
+// Incorrect — inline transformation inside JSX
+<SimpleBarChart data={byPhase.map((p) => ({ group: p.label, value: p.count }))} ... />
+```
+
+---
+
+## 3 — Carbon Colour Anatomy
+
+### Core blue family — primary interactive
+
+| Token | Use |
+|---|---|
+| `--cds-interactive` (blue-60) | Focused interactive elements, links, active borders |
+| `--cds-button-primary` (blue-60) | Primary `Button` — do not override |
+| `--cds-background-selected` (blue-10) | Selected state in DataTable, lists |
+
+Never use bare hex `#0f62fe` — use `--cds-interactive` or let Carbon components
+apply it automatically.
+
+### Semantic colour mapping for Tags
+
+Carbon `Tag` accepts named types — not hex or CSS variables. Map domain states
+to Tag types as follows:
+
+| State | Tag `type` | Use |
+|---|---|---|
+| Success / complete / positive | `green` | Phase billed, invoice paid, project completed |
+| Primary / active / live | `blue` | Active project, live pipeline, KPI labels |
+| Error / critical / overdue | `red` | Overdue invoice, critical priority, error |
+| Warning / pending / at risk | `magenta` | Pending approval, revision risk, on hold |
+| Informational / secondary | `teal` | Proposal, exploratory, information |
+| Neutral / default / inactive | `gray` | Cancelled, disabled, no data |
+| Special / admin | `purple` | HR admin, owner-only capability |
+
+**Note:** Carbon Tag does not have a `gold/yellow` type. Use `magenta` for
+caution/warning states in Tags. For full-width alert banners use
+`InlineNotification kind="warning"` which applies Carbon's gold alert colour.
+
+### Alert palette — `InlineNotification` and `ToastNotification`
+
+| `kind` prop | Colour | Use |
+|---|---|---|
+| `error` | Red | Destructive failure, blocked operation |
+| `warning` | Gold | Caution — action needed but not blocking |
+| `info` | Blue | Context or guidance without urgency |
+| `success` | Green | Completed action confirmation |
+
+Use notifications for transient system feedback. Do not use them as permanent
+status chips — use `Tag` for persistent state display.
+
+### Data visualisation palette
+
+Carbon charts use the **data-viz sequential palette** automatically based on the
+active theme (white / gray-10 / gray-90 / gray-100). Do not customise chart
+colours unless you need semantic colour for a specific data group (e.g., marking
+overdue buckets in an aging chart with `$support-error`). Let the theme handle
+the rest.
+
+---
+
+## 4 — Standard Patterns
+
+### Page layout
+
+```tsx
+<Stack gap={7}>                 {/* 32 px between page-level sections */}
+  <Stack gap={3}>
+    <h1>Page title</h1>
+    <p>Supporting description</p>
+  </Stack>
+  {/* content */}
+</Stack>
+```
+
+### Dashboard section
+
+```tsx
+<Column lg={8} md={8} sm={4}>
+  <Tile className="esti-fill">
+    <Stack gap={5}>
+      <Stack gap={3}><p>Sub-label</p><h2>Section Title</h2></Stack>
+      {/* content or chart */}
+    </Stack>
+  </Tile>
+</Column>
+```
+
+### KPI chip
+
+```tsx
+<ClickableTile className="esti-fill" onClick={navigate}>
+  <Stack gap={3}>
+    <p>{label}</p>        {/* supporting-02: small label above value */}
+    <h3>{value}</h3>      {/* productive-heading-02: large KPI number */}
+    <Tag type={tagType} size="sm">{tagText}</Tag>
+  </Stack>
+</ClickableTile>
+```
+
+### List tile (intelligence signals)
+
+Each row in a list tile (Client Intelligence, Team Intelligence, Project Health):
+```tsx
+<Stack orientation="horizontal" gap={4}>
+  <Tag type={statusColor} size="sm">{statusLabel}</Tag>
+  <div className="esti-grow">   {/* flex-grow to fill available space */}
+    <p>{primaryLabel}</p>
+    <p>{secondaryLabel}</p>
+  </div>
+  <Tag type={alertColor} size="sm">{alertCount}</Tag>
+</Stack>
+```
+
+### Data list
+
+```tsx
+<DataTable rows={rows} headers={headers}>
+  {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+    <TableContainer>
+      <Table {...getTableProps()}>
+        <TableHead>
+          <TableRow>
+            {headers.map((h) => <TableHeader {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((r) => <TableRow {...getRowProps({ row: r })}>{r.cells.map((c) => <TableCell key={c.id}>{c.value}</TableCell>)}</TableRow>)}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )}
+</DataTable>
+```
+
+### Destructive action
+
+Always use the shared `ConfirmModal` wrapper — never `window.confirm`.
+
+---
+
+## 5 — What NOT to do
+
+- `ProgressBar` as a distribution chart → use `SimpleBarChart` horizontal
+- Custom hand-rolled cards with icon + value + colored background → use `ClickableTile` + `Stack` + `Tag`
+- Conditional class names for colour → use semantic `Tag type` or `InlineNotification kind`
+- `gap={1}` anywhere text is present → minimum `gap={3}` for readable text
+- `Grid condensed` for card layouts → use `Grid narrow` or `Grid` (default)
+- Multiple nested `Grid` levels for simple two-column layouts → one `Grid` + appropriate `Column` spans
+- Inline `style` for any visual property → Carbon tokens or component props only
+
+The implementation cleanup and data-viz enhancements are tracked in
+[ROADMAP Phase 2](ROADMAP.md).

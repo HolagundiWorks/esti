@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -79,6 +79,35 @@ archive/restore and administrative operational-data reset.
 **Gate met:** frontend typecheck/lint/build pass and representative routes pass
 keyboard, dark-theme, and responsive browser review.
 
+## Phase 2B - Data Visualisation, Spacing Audit, And Colour Semantics [P0] - Complete 2026-06-12
+
+- [x] Replace all hand-rolled `ProgressBar` distribution boards with Carbon
+  `SimpleBarChart` horizontal (workload, receivables aging, project phases,
+  project types); import `ScaleTypes` from `@carbon/charts` for axis typing.
+- [x] Add `DonutChart` to the Financial Health module showing the full revenue
+  breakdown (pipeline / ready-to-bill / outstanding / collected FY).
+- [x] Remove redundant "Office Pulse" section (duplicated KPI bar content);
+  replace with the full Action Center → Financial Health → Project Status flow.
+- [x] Restructure dashboard layout per the brief hierarchy: Action Center first,
+  Activity Feed last; intelligence tiles in 8/8 split.
+- [x] Audit and normalise `Stack gap` values against the Carbon 2x spacing scale:
+  `gap=3` (8 px) for label/value/tag groups; `gap=4` (12 px) for list items;
+  `gap=5` (16 px) between tile sections; `gap=6` (24 px) between sub-modules.
+- [x] Switch KPI bar from `Grid condensed` (2 px gutters) to `Grid narrow`
+  (8/16 px gutters) for correct rhythm between KPI chips.
+- [x] Activity Feed expanded to 8 events in a `Grid narrow` two-column layout.
+- [x] Establish Carbon colour anatomy rules in `CARBON-UI-DIRECTION.md`:
+  blue family for primary/interactive; green for success; red for error/danger;
+  magenta for warning/pending (Tag palette has no gold); teal for informational;
+  `InlineNotification kind="warning"` for gold alert banners.
+- [x] Add chart sizing helpers to `styles.scss` (`esti-chart-sm/md/lg`).
+- [x] Document all data-viz selection rules, chart option patterns, dynamic
+  height formula, and "what not to do" list in `CARBON-UI-DIRECTION.md`.
+
+**Gate met:** typecheck passes; dashboard uses only `@carbon/charts-react`
+visualisations; no `ProgressBar` used as a distribution chart; all spacing
+follows the 2x grid token scale; colour usage matches Carbon colour anatomy.
+
 ## Phase 3 - Domain Activity Foundation [P1]
 
 - [x] Add immutable `esti_activity` records with project, object type/id,
@@ -151,6 +180,12 @@ opening separate modules.
   requirements, sustainability score, approval readiness score) with overall score.
 - [x] Produce deterministic engine outputs from the selected published rule version;
   all outputs stored in `esti_site_assessment` and reproducible from saved inputs.
+- [ ] **RIE refinements (brief-aligned):** basement height validation (min 2.4 m,
+  max 2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting
+  trigger (plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement
+  (2 trees if site > 200 sqm) added to sustainability engine; setback mode for
+  ≤ 9.5 m buildings (site-dimension-based, not height-based); FAR excluded-area
+  fields in SiteInputs so users can enter gross BUA and net BUA separately.
 - [ ] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
 - [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
@@ -200,32 +235,86 @@ health within 10 seconds of login.
 **Gate:** principal can identify every billable phase and every overdue collection
 from the dashboard without opening individual project or invoice screens.
 
+## Phase 4C - Revision Intelligence And CRIF Enhancements [P1]
+
+Turns the existing decision ledger into a revision intelligence signal.
+
+- [ ] **Decision revision source:** add `revisionSource` field to decisions —
+  CLIENT_DRIVEN / INTERNAL_ERROR / TECHNICAL_QUERY / SCOPE_CHANGE; used to
+  compute revision health score and scope drift %.
+- [ ] **Revision Intelligence module on dashboard:** per-studio tile showing
+  client revision count, internal revision count, site query count, scope drift %
+  (SCOPE_CHANGE decisions / total), and revision health score (0–100 inverse of
+  revision rate); links to per-project breakdowns.
+- [ ] **Technical Intelligence module on dashboard:** drawing accuracy rate
+  (1 − internal errors / issued drawings), site query rate, QA review performance;
+  derived from decisions with source INTERNAL_ERROR and inspection reports.
+- [ ] **Revision Risk KPI:** replace existing "revision risk count" in the Global
+  KPI Bar with a qualitative Low / Medium / High band computed from per-project
+  revision health scores.
+- [ ] **Revision budget per phase:** add `revisionBudget` integer field to phases
+  (# revisions included in contract fee); surface remaining budget on CRIF ledger.
+- [ ] **Scope drift display:** per-project scope drift % surfaced on project
+  overview and CRIF Decision Ledger panel.
+
+**Gate:** a project's revision health score and scope drift % are computed
+automatically from typed decision records with no manual data entry.
+
 ## Phase 5 - Tasks, Timesheets, Availability, Escalations, And Performance [P1]
 
 - [x] Store assignee IDs rather than display names; add reviewer and dependencies;
   CRITICAL priority; "my tasks" checkbox; status/priority filters; ASPRF task
   classification (BILLABLE/NON_BILLABLE/TRAINING/COLLABORATION/PERSONAL).
+- [ ] **ASPRF task work type:** add `workType` field (separate from financial
+  classification) — DESIGN_COMMUNICATION / DESIGN_DEVELOPMENT /
+  TECHNICAL_PRODUCTION / CONSTRUCTION_SUPPORT; feeds dimension score routing.
 - [ ] Calendar and Carbon board view for tasks.
 - [ ] Daily updates: completed, in progress, blocked; generate activity entries.
 - [ ] Timesheets and project/phase/task attribution.
 - [ ] Configurable escalation rules and digest delivery.
 - [ ] Leave-impact notifications and backup contacts with privacy filtering.
-- [ ] **ASPRF — Performance KPI dimensions:** Reliability (30% — on-time task
-  delivery), Quality (25% — revision rate, rework), Client Impact (15% —
-  approval speed, satisfaction), Collaboration (15% — review participation,
-  knowledge sharing), Learning (10% — training, new skills), Wellbeing (5% —
-  opt-in only, user-controlled).
-- [ ] **ASPRF — Task classification:** Billable / Non-billable / Training /
-  Collaboration / Personal; classification feeds dimension scores.
-- [ ] **ASPRF — Performance score engine:** weighted average of KPI dimensions
-  produces a rolling 30-day studio score per team member; firm-wide aggregate
+- [ ] **ASPRF — Reliability KPI:** commitment score (on-time / assigned tasks);
+  delivery predictability (estimated vs actual duration); 30% weight.
+- [ ] **ASPRF — Quality KPI:** rework rate (rework hours / total hours);
+  internal error rate (internal revisions / issued drawings); drawing accuracy
+  score; QA review score; 25% weight.
+- [ ] **ASPRF — Client Impact KPI:** first-pass approval rate; revision
+  contribution index (revisions attributable to employee, excluding client
+  preference changes); decision closure efficiency; 15% weight.
+- [ ] **ASPRF — Collaboration KPI:** review participation score; mentorship score
+  (review comments, junior support, knowledge sharing); dependency impact score
+  (blocked tasks created / dependent tasks); 15% weight.
+- [ ] **ASPRF — Learning KPI:** learning points (training, workshops,
+  certifications, presentations, standard creation); knowledge contribution index
+  (templates, BIM libraries, checklists); 10% weight.
+- [ ] **ASPRF — Wellbeing KPI (opt-in):** workload health score (active tasks,
+  utilization, deadline density); burnout risk (LOW/MEDIUM/HIGH from consecutive
+  high-load weeks, excessive utilization, increasing rework); 5% weight.
+- [ ] **ASPRF — Performance score engine:** weighted average of 6 KPI dimensions
+  produces a rolling 30-day score per team member (0–100); firm-wide aggregate
   on dashboard Team Intelligence tile.
-- [ ] **ASPRF — Performance bands:** Bronze / Silver / Gold / Platinum thresholds
-  with visual badge; bands are informational and non-punitive.
+- [ ] **ASPRF — Performance bands:** Bronze (70–80), Silver (81–90), Gold
+  (91–95), Platinum (96+); visual badge; informational and non-punitive.
+- [ ] **ASPRF — Anti-gaming:** task scores weighted by effort, complexity, and
+  business impact; difficulty coefficient (1–5) on each task; review
+  participation mandatory for collaboration scoring.
+- [ ] **ASPRF — Recognition system:** Reliability Champion, Quality Champion,
+  Drawing Excellence, Site Hero, Design Excellence, Mentor, Knowledge Builder
+  awards; per-month computed from score engine.
+- [ ] **ASPRF — Reward points engine:** points for on-time delivery (+10),
+  zero-rework deliverable (+15), first-pass approval (+20), knowledge
+  contribution (+25), mentorship (+15), training completion (+10); team bonus
+  pool when project delivered on time with client satisfaction > threshold and
+  revision budget maintained.
+- [ ] **Team Utilization KPI:** billable task hours / total capacity in Global
+  KPI Bar; requires timesheets.
+- [ ] **Site & Drawing Intelligence:** site query rate (queries / issued
+  drawings); repeat query rate; drawing clarity score (100 − query penalties);
+  feeds Technical Intelligence module on dashboard.
 
 **Gate:** workload is derived from assignments, tasks, time, and availability;
 performance scores are transparent, opt-in for wellbeing dimensions, and
-non-coercive.
+non-coercive; reward points are auditable and anti-gaming controls are active.
 
 ## Phase 6 - Client And Consultant Collaboration [P1]
 
@@ -317,11 +406,14 @@ smoke suite pass before any production declaration.
   changemark stamps — requires a canvas library not in the current stack.
 - CRIF Revision Impact Engine: effort/timeline/cost estimates before accepting
   a revision — requires sufficient historical revision data; revisit in Phase 11.
-- ASPRF Reward points engine and peer recognition system — gamification layer
-  that should be validated with users before building.
+- CRIF Profit leakage analysis: rework hours × hourly rate as margin impact per
+  project — requires timesheets (Phase 5) to be complete first.
+- ASPRF Reward marketplace: redeem points for courses, conference tickets,
+  additional leave — requires HR integration and principal sign-off on rewards
+  catalogue; build only after reward points engine is validated with users.
 - Pomodoro focus sessions and water reminders — opt-in wellbeing helpers;
   out of scope for the core AORMS.
-- Recognition boards.
+- Recognition boards (public studio leaderboard).
 - Drawing snapping and title-block extraction.
 - SSE/push updates after correctness and scale justify them.
 
