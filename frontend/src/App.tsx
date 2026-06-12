@@ -15,7 +15,6 @@ import {
 } from "@carbon/react";
 import {
   Building,
-  Calculation,
   Catalog,
   ChartCustom,
   Dashboard as DashboardIcon,
@@ -48,7 +47,6 @@ import { AuditLog } from "./routes/AuditLog.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
-import { Compliance } from "./routes/Compliance.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
@@ -174,7 +172,6 @@ function AppShell() {
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
-    { label: "Compliance", to: "/compliance", icon: Calculation },
     { label: "Work", to: "/tasks", icon: TaskComplete },
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
     { label: "SteelFlow", to: "/steel-arranger", icon: ChartCustom },
@@ -186,9 +183,6 @@ function AppShell() {
       items: [
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
-        ...(can(user.role, "write")
-          ? [{ label: "Workload", to: "/workload" }]
-          : []),
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
@@ -312,7 +306,7 @@ function AppShell() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
-                <Route path="/compliance" element={<Compliance />} />
+                <Route path="/compliance" element={<KnowledgeBank />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/invoices" element={<Invoices />} />
                 {can(user.role, "fees:manage") && (

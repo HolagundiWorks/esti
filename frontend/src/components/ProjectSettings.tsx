@@ -66,6 +66,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       utils.projectOffice.byId.invalidate({ id: projectId });
     },
   });
+  const setRevisionBudget = trpc.phases.setRevisionBudget.useMutation({
+    onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
+  });
+  const [revBudgetDraft, setRevBudgetDraft] = useState<Record<string, string>>({});
 
   const [f, setF] = useState({
     title: "",
@@ -241,6 +245,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                 <TableRow>
                   <TableHeader>Stage</TableHeader>
                   <TableHeader>Fee allocation %</TableHeader>
+                  <TableHeader>Rev. budget</TableHeader>
                   <TableHeader>Status</TableHeader>
                   <TableHeader></TableHeader>
                 </TableRow>
@@ -256,6 +261,28 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                     <TableRow key={ph.id}>
                       <TableCell>{ph.label}</TableCell>
                       <TableCell>{ph.billingPct}%</TableCell>
+                      <TableCell>
+                        <TextInput
+                          id={`rev-budget-${ph.id}`}
+                          labelText=""
+                          hideLabel
+                          type="number"
+                          size="sm"
+                          placeholder="—"
+                          value={revBudgetDraft[ph.id] ?? (ph.revisionBudget != null ? String(ph.revisionBudget) : "")}
+                          onChange={(e) =>
+                            setRevBudgetDraft((prev) => ({ ...prev, [ph.id]: e.target.value }))
+                          }
+                          onBlur={() => {
+                            const raw = revBudgetDraft[ph.id];
+                            if (raw === undefined) return;
+                            const val = raw.trim() === "" ? null : parseInt(raw, 10);
+                            if (val !== null && (isNaN(val) || val < 0 || val > 99)) return;
+                            setRevisionBudget.mutate({ phaseId: ph.id, projectId, revisionBudget: val });
+                          }}
+                          style={{ width: 72 }}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Tag type={tagType} size="sm">{stageStatus}</Tag>
                       </TableCell>

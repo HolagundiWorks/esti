@@ -818,6 +818,8 @@ export function Dashboard() {
   const phQ = trpc.dashboard.projectHealth.useQuery();
   const ciQ = trpc.dashboard.clientIntelligence.useQuery();
   const tiQ = trpc.dashboard.teamIntelligence.useQuery();
+  const riQ = trpc.dashboard.revisionIntelligence.useQuery();
+  const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
   const activityQ = trpc.activity.listOffice.useQuery({ limit: 8, visibility: "STAFF" });
 
   const s = summary.data;
@@ -1032,13 +1034,15 @@ export function Dashboard() {
       <Column lg={4} md={4} sm={2}>
         <KpiChip
           label="Revision risk"
-          value={acQ.data?.revisionRiskCount ?? 0}
+          value={riQ.data?.revisionRiskBand ?? "—"}
           tagType={
-            (acQ.data?.revisionRiskCount ?? 0) > 0 ? "magenta" : "gray"
+            riQ.data?.revisionRiskBand === "HIGH" ? "red"
+              : riQ.data?.revisionRiskBand === "MEDIUM" ? "magenta"
+              : "green"
           }
-          tagText="Open decisions"
+          tagText={`Health ${riQ.data?.healthScore ?? "—"}`}
           onClick={() => navigate("/projects")}
-          loading={acQ.isLoading}
+          loading={acQ.isLoading || riQ.isLoading}
         />
       </Column>
 
@@ -1183,6 +1187,111 @@ export function Dashboard() {
               loading={boardsLoading}
               error={boardsError}
             />
+          </Column>
+
+          {/* Row D: revision intelligence (lg=8) + technical intelligence (lg=8) */}
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill">
+              <Stack gap={5}>
+                <TileHeader
+                  Pict={DataInsights}
+                  sub="Decision ledger"
+                  title="Revision intelligence"
+                />
+                {riQ.isLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
+                  <p>No decisions recorded yet.</p>
+                ) : (
+                  <Stack gap={4}>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="blue" size="sm">Client driven</Tag>
+                      <p>{riQ.data.clientDriven}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="red" size="sm">Internal error</Tag>
+                      <p>{riQ.data.internalError}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="teal" size="sm">Technical query</Tag>
+                      <p>{riQ.data.technicalQuery}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="magenta" size="sm">Scope change</Tag>
+                      <p>{riQ.data.scopeChange}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <p>Scope drift</p>
+                      <Tag
+                        type={riQ.data.scopeDriftPct > 20 ? "red" : riQ.data.scopeDriftPct > 10 ? "magenta" : "green"}
+                        size="sm"
+                      >
+                        {riQ.data.scopeDriftPct}%
+                      </Tag>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <p>Health score</p>
+                      <Tag
+                        type={riQ.data.revisionRiskBand === "HIGH" ? "red" : riQ.data.revisionRiskBand === "MEDIUM" ? "magenta" : "green"}
+                        size="sm"
+                      >
+                        {riQ.data.revisionRiskBand} · {riQ.data.healthScore}
+                      </Tag>
+                    </Stack>
+                  </Stack>
+                )}
+              </Stack>
+            </Tile>
+          </Column>
+
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill">
+              <Stack gap={5}>
+                <TileHeader
+                  Pict={Workflows}
+                  sub="Drawing & site queries"
+                  title="Technical intelligence"
+                />
+                {techIQ.isLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : !techIQ.data ? (
+                  <p>No data.</p>
+                ) : (
+                  <Stack gap={4}>
+                    <Stack orientation="horizontal" gap={4}>
+                      <p>Drawing accuracy</p>
+                      <Tag
+                        type={techIQ.data.drawingAccuracyPct >= 90 ? "green" : techIQ.data.drawingAccuracyPct >= 75 ? "magenta" : "red"}
+                        size="sm"
+                      >
+                        {techIQ.data.drawingAccuracyPct}%
+                      </Tag>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <p>Site query rate</p>
+                      <Tag
+                        type={techIQ.data.siteQueryRate <= 10 ? "green" : techIQ.data.siteQueryRate <= 25 ? "magenta" : "red"}
+                        size="sm"
+                      >
+                        {techIQ.data.siteQueryRate}%
+                      </Tag>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="red" size="sm">Internal errors</Tag>
+                      <p>{techIQ.data.internalErrors} decision{techIQ.data.internalErrors !== 1 ? "s" : ""}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="teal" size="sm">Technical queries</Tag>
+                      <p>{techIQ.data.techQueries} decision{techIQ.data.techQueries !== 1 ? "s" : ""}</p>
+                    </Stack>
+                    <Stack orientation="horizontal" gap={4}>
+                      <Tag type="blue" size="sm">Total drawings</Tag>
+                      <p>{techIQ.data.totalDrawings}</p>
+                    </Stack>
+                  </Stack>
+                )}
+              </Stack>
+            </Tile>
           </Column>
         </>
       )}

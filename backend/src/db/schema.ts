@@ -411,6 +411,8 @@ export const decisions = pgTable("esti_decision", {
   state: text("state").notNull().default("OPEN"),
   /** Revision impact category: MINOR | MAJOR | CRITICAL */
   revisionCategory: text("revision_category"),
+  /** Revision source: CLIENT_DRIVEN | INTERNAL_ERROR | TECHNICAL_QUERY | SCOPE_CHANGE */
+  revisionSource: text("revision_source"),
   ownerId: uuid("owner_id").references(() => users.id),
   ownerName: text("owner_name"),
   lockedAt: timestamp("locked_at", { withTimezone: true }),
@@ -442,6 +444,8 @@ export const phases = pgTable("esti_phase", {
   label: text("label").notNull(),
   billingPct: integer("billing_pct").notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
+  /** Number of revisions included in the contract fee for this phase. */
+  revisionBudget: integer("revision_budget"),
   createdAt: createdAt(),
 });
 
@@ -991,11 +995,14 @@ export const siteAssessments = pgTable("esti_site_assessment", {
     .references(() => projectOffices.id),
   ruleVersionId: uuid("rule_version_id").references(() => ruleVersions.id),
   status: text("status").notNull().default("DRAFT"),
+  assessmentPhase: text("assessment_phase").notNull().default("PRE_DESIGN"),
   siteInputs: jsonb("site_inputs").notNull().default({}),
   devControl: jsonb("dev_control"),
   basement: jsonb("basement"),
   sustainability: jsonb("sustainability"),
   approvalReadiness: jsonb("approval_readiness"),
+  violations: jsonb("violations"),
+  relaxations: jsonb("relaxations"),
   overallScore: integer("overall_score"),
   issuedAt: timestamp("issued_at", { withTimezone: true }),
   pdfKey: text("pdf_key"),

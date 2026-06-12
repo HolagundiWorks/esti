@@ -218,6 +218,29 @@ export const REVISION_CATEGORY_TAG: Record<
   CRITICAL: "red",
 };
 
+/** Revision source — why the revision was generated. */
+export const RevisionSource = z.enum([
+  "CLIENT_DRIVEN",
+  "INTERNAL_ERROR",
+  "TECHNICAL_QUERY",
+  "SCOPE_CHANGE",
+]);
+export type RevisionSource = z.infer<typeof RevisionSource>;
+
+export const REVISION_SOURCE_LABEL: Record<RevisionSource, string> = {
+  CLIENT_DRIVEN:    "Client driven",
+  INTERNAL_ERROR:   "Internal error",
+  TECHNICAL_QUERY:  "Technical query / RFI",
+  SCOPE_CHANGE:     "Scope change",
+};
+
+export const REVISION_SOURCE_TAG: Record<RevisionSource, "blue" | "red" | "teal" | "magenta"> = {
+  CLIENT_DRIVEN:   "blue",
+  INTERNAL_ERROR:  "red",
+  TECHNICAL_QUERY: "teal",
+  SCOPE_CHANGE:    "magenta",
+};
+
 // --- Fee proposals (esti_feeproposal) ---
 
 export const FeeProposalStatus = z.enum([

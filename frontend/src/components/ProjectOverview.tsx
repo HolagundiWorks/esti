@@ -31,6 +31,9 @@ import {
   REVISION_CATEGORY_LABEL,
   REVISION_CATEGORY_TAG,
   RevisionCategory,
+  REVISION_SOURCE_LABEL,
+  REVISION_SOURCE_TAG,
+  RevisionSource,
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
@@ -156,6 +159,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     rationale: "",
     state: "DRAFT" as DecisionState,
     revisionCategory: "" as RevisionCategory | "",
+    revisionSource: "" as RevisionSource | "",
     impact: "LOW",
     ownerName: "",
     reviewDeadline: "",
@@ -187,6 +191,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         rationale: "",
         state: "DRAFT",
         revisionCategory: "",
+        revisionSource: "",
         impact: "LOW",
         ownerName: "",
         reviewDeadline: "",
@@ -410,6 +415,20 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               Add decision
             </Button>
           </div>
+          {allDecisions.length > 0 && (() => {
+            const scopeChangeCount = allDecisions.filter(
+              (d) => d.revisionSource === "SCOPE_CHANGE",
+            ).length;
+            const scopeDriftPct = Math.round(
+              (scopeChangeCount / allDecisions.length) * 100,
+            );
+            return (
+              <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
+                Scope drift: <strong>{scopeDriftPct}%</strong> of decisions are
+                scope changes ({scopeChangeCount} of {allDecisions.length})
+              </p>
+            );
+          })()}
           <TableContainer
             title="Decision ledger"
             description="CRIF state machine: rationale, category, owner, and transitions"
@@ -420,6 +439,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                   <TableHeader>Decision</TableHeader>
                   <TableHeader>State</TableHeader>
                   <TableHeader>Category</TableHeader>
+                  <TableHeader>Source</TableHeader>
                   <TableHeader>Days open</TableHeader>
                   <TableHeader>Next action</TableHeader>
                   <TableHeader></TableHeader>
@@ -428,7 +448,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               <TableBody>
                 {allDecisions.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                       No decisions recorded yet.
                     </TableCell>
                   </TableRow>
@@ -436,6 +456,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                 {allDecisions.slice(0, 8).map((d) => {
                   const state = (d.state ?? "OPEN") as DecisionState;
                   const cat = d.revisionCategory as RevisionCategory | null;
+                  const src = d.revisionSource as RevisionSource | null;
                   const days = daysAgo(d.createdAt as unknown as string);
                   const canTransition =
                     (DECISION_TRANSITIONS[state] ?? []).length > 0;
@@ -464,6 +485,15 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                         {cat ? (
                           <Tag type={REVISION_CATEGORY_TAG[cat]} size="sm">
                             {REVISION_CATEGORY_LABEL[cat]}
+                          </Tag>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {src ? (
+                          <Tag type={REVISION_SOURCE_TAG[src]} size="sm">
+                            {REVISION_SOURCE_LABEL[src]}
                           </Tag>
                         ) : (
                           "—"
@@ -634,6 +664,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             rationale: decision.rationale,
             state: decision.state,
             revisionCategory: decision.revisionCategory || undefined,
+            revisionSource: decision.revisionSource || undefined,
             impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
             ownerName: decision.ownerName || undefined,
             reviewDeadline: decision.reviewDeadline || undefined,
@@ -697,6 +728,26 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                   key={c}
                   value={c}
                   text={REVISION_CATEGORY_LABEL[c]}
+                />
+              ))}
+            </Select>
+            <Select
+              id="dc-source"
+              labelText="Revision source"
+              value={decision.revisionSource}
+              onChange={(e) =>
+                setDecision((f) => ({
+                  ...f,
+                  revisionSource: e.target.value as RevisionSource | "",
+                }))
+              }
+            >
+              <SelectItem value="" text="None" />
+              {RevisionSource.options.map((s) => (
+                <SelectItem
+                  key={s}
+                  value={s}
+                  text={REVISION_SOURCE_LABEL[s]}
                 />
               ))}
             </Select>

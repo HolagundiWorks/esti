@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-SteelFlow + Personal Workspace session)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-4C Revision Intelligence + 4A RIE backlogs session)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -44,6 +44,30 @@ Generator** (Phase 2E, complete): dnd-kit drag-and-drop bar placement from
 T6–T32 palette onto SVG cross-section; shape codes B/C/D/E bent-bar cutting
 lengths per IS:2502 with conditional dimension fields; SLAB cross-section strip
 and FOOTING plan-view canvas variants; Excel BBS export; IS:456 AI review.
+
+Also delivered: **Phase 4C — Revision Intelligence and CRIF enhancements**:
+`revisionSource` field on decisions (CLIENT_DRIVEN/INTERNAL_ERROR/TECHNICAL_QUERY/
+SCOPE_CHANGE) with source Select in CRIF modal and Tag column in decision ledger;
+scope drift % summary above CRIF table; revision budget integer per phase with
+inline edit in Project Settings; Dashboard KPI bar "Revision risk" now shows
+LOW/MEDIUM/HIGH health band; Revision Intelligence tile (client/internal/site/scope
+counts + health score + scope drift %) and Technical Intelligence tile (drawing
+accuracy %, site query rate) both added to Zone 3 of the dashboard.
+
+Also delivered (4A backlogs): **RIE POST_DESIGN mode and violation engine**:
+`AssessmentPhase` enum (PRE_DESIGN/POST_DESIGN); actual setback inputs in form
+(POST_DESIGN only); `runViolations()` pure engine producing `ViolationItem` per
+parameter (FAR, ground coverage, height, all four setbacks, basement depth) with
+COMPLIANT/WITHIN_RELAXATION/VIOLATION status; `RelaxationInputs` schema stored per
+assessment; `setRelaxations` mutation re-runs violations with updated relaxations;
+Violations tab added to FeasibilityDashboard with inline relaxation entry and
+recompute. RIE engine refinements: basement height validation (min 2.4 m, max
+2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting trigger
+(plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement (2 trees if
+site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in dev-control engine;
+FAR-excluded area field so gross BUA minus excluded = net BUA compared against FAR
+limit; plinth area field for rainwater trigger. Migration `0024_rie_phase2.sql`
+applied.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -343,31 +367,31 @@ opening separate modules.
   requirements, sustainability score, approval readiness score) with overall score.
 - [x] Produce deterministic engine outputs from the selected published rule version;
   all outputs stored in `esti_site_assessment` and reproducible from saved inputs.
-- [ ] **RIE — Pre-design / post-design phase modes:** add `AssessmentPhase`
-  enum (`PRE_DESIGN | POST_DESIGN`) to contracts and DB; PRE_DESIGN returns
+- [x] **RIE — Pre-design / post-design phase modes:** `AssessmentPhase`
+  enum (`PRE_DESIGN | POST_DESIGN`) added to contracts and DB; PRE_DESIGN returns
   the permissible envelope only; POST_DESIGN compares actual designed values
   against the envelope and computes per-parameter deviations.
-- [ ] **RIE — Violation / deviation engine:** `runViolations(devControl,
+- [x] **RIE — Violation / deviation engine:** `runViolations(devControl,
   basement, inputs, relaxations)` computes `ViolationItem` per parameter
   (FAR, ground coverage, height, front/rear/left/right setbacks, basement depth);
   each item carries `permissible`, `actual`, `deviation`, `deviationPct`,
   `relaxation` (manual), `effectiveLimit`, and `status` —
   `COMPLIANT | WITHIN_RELAXATION | VIOLATION`.
-- [ ] **RIE — Relaxation inputs:** per-parameter manual relaxation amounts
-  (`RelaxationInputs` schema); stored on `esti_site_assessment` alongside
-  `violations` jsonb; a `setRelaxations` mutation re-computes and saves.
-- [ ] **RIE — Actual setback fields:** add `actualFrontSetbackM`,
-  `actualRearSetbackM`, `actualLeftSetbackM`, `actualRightSetbackM` (optional)
-  to `SiteInputs`; shown only when phase is `POST_DESIGN`.
-- [ ] **RIE — FeasibilityDashboard violations tab:** after post-design
-  assessment, show a Carbon `DataTable` of all parameters with status tags
-  (green / blue within-relaxation / red violation) and relaxation entry inline.
-- [ ] **RIE refinements (brief-aligned):** basement height validation (min 2.4 m,
+- [x] **RIE — Relaxation inputs:** `RelaxationInputs` schema stored on
+  `esti_site_assessment` alongside `violations` jsonb; `setRelaxations` mutation
+  re-computes violations with updated relaxation values and saves.
+- [x] **RIE — Actual setback fields:** `actualFrontSetbackM`,
+  `actualRearSetbackM`, `actualLeftSetbackM`, `actualRightSetbackM` in
+  `SiteInputs`; shown only when phase is `POST_DESIGN`.
+- [x] **RIE — FeasibilityDashboard violations tab:** POST_DESIGN assessments
+  show a violations tab with per-parameter status tags (green/blue/red),
+  deviation amounts, and inline relaxation entry with "Save and recompute" action.
+- [x] **RIE refinements (brief-aligned):** basement height validation (min 2.4 m,
   max 2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting
   trigger (plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement
-  (2 trees if site > 200 sqm) added to sustainability engine; setback mode for
-  ≤ 9.5 m buildings (site-dimension-based, not height-based); FAR excluded-area
-  fields in SiteInputs so users can enter gross BUA and net BUA separately.
+  (2 trees if site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in
+  dev-control engine; `excludedAreaSqm` field so gross BUA minus excluded = net
+  BUA compared against FAR limit; `plinthAreaSqm` field for rainwater trigger.
 - [ ] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
 - [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
@@ -421,23 +445,21 @@ from the dashboard without opening individual project or invoice screens.
 
 Turns the existing decision ledger into a revision intelligence signal.
 
-- [ ] **Decision revision source:** add `revisionSource` field to decisions —
-  CLIENT_DRIVEN / INTERNAL_ERROR / TECHNICAL_QUERY / SCOPE_CHANGE; used to
-  compute revision health score and scope drift %.
-- [ ] **Revision Intelligence module on dashboard:** per-studio tile showing
+- [x] **Decision revision source:** `revisionSource` field on decisions —
+  CLIENT_DRIVEN / INTERNAL_ERROR / TECHNICAL_QUERY / SCOPE_CHANGE; source Select
+  in CRIF create modal; source Tag column in decision ledger table.
+- [x] **Revision Intelligence module on dashboard:** per-studio tile showing
   client revision count, internal revision count, site query count, scope drift %
-  (SCOPE_CHANGE decisions / total), and revision health score (0–100 inverse of
-  revision rate); links to per-project breakdowns.
-- [ ] **Technical Intelligence module on dashboard:** drawing accuracy rate
-  (1 − internal errors / issued drawings), site query rate, QA review performance;
-  derived from decisions with source INTERNAL_ERROR and inspection reports.
-- [ ] **Revision Risk KPI:** replace existing "revision risk count" in the Global
-  KPI Bar with a qualitative Low / Medium / High band computed from per-project
-  revision health scores.
-- [ ] **Revision budget per phase:** add `revisionBudget` integer field to phases
-  (# revisions included in contract fee); surface remaining budget on CRIF ledger.
-- [ ] **Scope drift display:** per-project scope drift % surfaced on project
-  overview and CRIF Decision Ledger panel.
+  (SCOPE_CHANGE decisions / total), revision health score, and risk band.
+- [x] **Technical Intelligence module on dashboard:** drawing accuracy rate
+  (1 − internal errors / total), site query rate, error and query counts.
+- [x] **Revision Risk KPI:** replaced "revision risk count" in the Global KPI Bar
+  with qualitative LOW / MEDIUM / HIGH band and health score from
+  `revisionIntelligence` query.
+- [x] **Revision budget per phase:** `revisionBudget` integer (0–99) on phases;
+  inline editable TextInput in Project Settings phases table; auto-saves on blur.
+- [x] **Scope drift display:** scope drift % computed from `allDecisions` and
+  displayed above CRIF Decision Ledger on project overview.
 
 **Gate:** a project's revision health score and scope drift % are computed
 automatically from typed decision records with no manual data entry.

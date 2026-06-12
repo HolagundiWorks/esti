@@ -43,4 +43,30 @@ export const phaseRouter = router({
     });
     return { ok: true };
   }),
+
+  /** Set the revision budget (# revisions included in the contract fee) for a phase. */
+  setRevisionBudget: protectedProcedure
+    .input(z.object({
+      phaseId: z.string().uuid(),
+      projectId: z.string().uuid(),
+      revisionBudget: z.number().int().min(0).max(99).nullable(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [phase] = await ctx.db.select().from(phases).where(eq(phases.id, input.phaseId));
+      if (!phase || phase.projectId !== input.projectId)
+        throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db
+        .update(phases)
+        .set({ revisionBudget: input.revisionBudget })
+        .where(eq(phases.id, input.phaseId));
+      await writeAudit(ctx.db, {
+        entity: "phase",
+        entityId: input.phaseId,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { revisionBudget: phase.revisionBudget },
+        after: { revisionBudget: input.revisionBudget },
+      });
+      return { ok: true };
+    }),
 });

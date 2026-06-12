@@ -1,8 +1,12 @@
 import {
+  type BasementOutput,
+  type DevControlOutput,
+  RelaxationInputs,
   RuleVersionCreate,
   RuleVersionData,
   SiteInputs,
   runAllEngines,
+  runViolations,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
@@ -124,6 +128,7 @@ export const siteAssessmentRouter = router({
         projectId: z.string().uuid(),
         ruleVersionId: z.string().uuid(),
         siteInputs: SiteInputs,
+        relaxations: RelaxationInputs.optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -138,7 +143,7 @@ export const siteAssessmentRouter = router({
       const existingPermitIds = permitRows.map((p) => p.parameter);
 
       const data = RuleVersionData.parse(rv.data);
-      const result = runAllEngines(input.siteInputs, data, existingPermitIds);
+      const result = runAllEngines(input.siteInputs, data, existingPermitIds, input.relaxations);
 
       const [row] = await ctx.db
         .insert(siteAssessments)
@@ -146,17 +151,45 @@ export const siteAssessmentRouter = router({
           projectId: input.projectId,
           ruleVersionId: input.ruleVersionId,
           status: "DRAFT",
+          assessmentPhase: input.siteInputs.assessmentPhase ?? "PRE_DESIGN",
           siteInputs: input.siteInputs,
           devControl: result.devControl,
           basement: result.basement ?? null,
           sustainability: result.sustainability,
           approvalReadiness: result.approvalReadiness,
+          violations: result.violations,
+          relaxations: input.relaxations ?? null,
           overallScore: result.overallScore,
           createdById: ctx.user.id,
         })
         .returning();
       await writeAudit(ctx.db, { entity: "site_assessment", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
       return row!;
+    }),
+
+  /** Re-run the violation engine with updated relaxation inputs and save. */
+  setRelaxations: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), relaxations: RelaxationInputs }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(siteAssessments).where(eq(siteAssessments.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!row.ruleVersionId) throw new TRPCError({ code: "BAD_REQUEST", message: "Assessment has no rule version" });
+
+      const inputs = SiteInputs.parse(row.siteInputs);
+      const devControl = row.devControl as DevControlOutput;
+      const basement = row.basement as BasementOutput | null;
+      const violations = runViolations(devControl, basement, inputs, input.relaxations);
+
+      const [updated] = await ctx.db
+        .update(siteAssessments)
+        .set({ relaxations: input.relaxations, violations })
+        .where(eq(siteAssessments.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "site_assessment", entityId: input.id, action: "UPDATE",
+        actorId: ctx.user.id, before: { relaxations: row.relaxations }, after: { relaxations: input.relaxations },
+      });
+      return updated!;
     }),
 
   issue: protectedProcedure

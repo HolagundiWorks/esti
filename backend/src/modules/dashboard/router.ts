@@ -233,8 +233,26 @@ export const dashboardRouter = router({
       where status = 'REVISIONS'
     `)) as unknown as [{ n: number }];
 
+    // Revision risk band from CRIF decisions
+    const [decAgg] = (await ctx.db.execute(sql`
+      select
+        count(*)::int as total,
+        count(*) filter (where revision_category = 'CRITICAL' and state not in ('LOCKED','REJECTED'))::int as open_critical,
+        count(*) filter (where revision_category = 'MAJOR'    and state not in ('LOCKED','REJECTED'))::int as open_major
+      from esti_decision
+    `)) as unknown as [{ total: number; open_critical: number; open_major: number }];
+    const decTotal = Number(decAgg?.total ?? 0);
+    const openCrit = Number(decAgg?.open_critical ?? 0);
+    const openMaj  = Number(decAgg?.open_major ?? 0);
+    const revisionHealthScore = decTotal > 0
+      ? Math.max(0, Math.round(100 - ((openCrit * 2 + openMaj) / decTotal) * 50))
+      : 100;
+    const revisionRiskBand: "LOW" | "MEDIUM" | "HIGH" =
+      revisionHealthScore >= 80 ? "LOW" : revisionHealthScore >= 55 ? "MEDIUM" : "HIGH";
+
     return {
       revisionRiskCount: Number(revisionRiskRow?.n ?? 0),
+      revisionRiskBand,
       billingReadyPhases: billingReadyRows.map((r) => ({
         id: r.id,
         label: r.label,
@@ -575,5 +593,82 @@ export const dashboardRouter = router({
         capacity,
       };
     });
+  }),
+
+  /**
+   * Revision Intelligence — firm-wide breakdown of design decisions by source.
+   * Drives the Revision Intelligence dashboard tile and revision risk band.
+   */
+  revisionIntelligence: protectedProcedure.query(async ({ ctx }) => {
+    const [agg] = (await ctx.db.execute(sql`
+      select
+        count(*)::int as total,
+        count(*) filter (where revision_source = 'CLIENT_DRIVEN')::int   as client_driven,
+        count(*) filter (where revision_source = 'INTERNAL_ERROR')::int  as internal_error,
+        count(*) filter (where revision_source = 'TECHNICAL_QUERY')::int as technical_query,
+        count(*) filter (where revision_source = 'SCOPE_CHANGE')::int    as scope_change,
+        count(*) filter (where revision_category = 'CRITICAL' and state not in ('LOCKED','REJECTED'))::int as open_critical,
+        count(*) filter (where revision_category = 'MAJOR'    and state not in ('LOCKED','REJECTED'))::int as open_major
+      from esti_decision
+    `)) as unknown as [{
+      total: number; client_driven: number; internal_error: number;
+      technical_query: number; scope_change: number;
+      open_critical: number; open_major: number;
+    }];
+
+    const total         = Number(agg?.total ?? 0);
+    const clientDriven  = Number(agg?.client_driven ?? 0);
+    const internalError = Number(agg?.internal_error ?? 0);
+    const technicalQuery= Number(agg?.technical_query ?? 0);
+    const scopeChange   = Number(agg?.scope_change ?? 0);
+    const openCritical  = Number(agg?.open_critical ?? 0);
+    const openMajor     = Number(agg?.open_major ?? 0);
+
+    const scopeDriftPct = total > 0 ? Math.round((scopeChange / total) * 100) : 0;
+    const healthScore   = total > 0
+      ? Math.max(0, Math.round(100 - ((openCritical * 2 + openMajor) / total) * 50))
+      : 100;
+    const revisionRiskBand: "LOW" | "MEDIUM" | "HIGH" =
+      healthScore >= 80 ? "LOW" : healthScore >= 55 ? "MEDIUM" : "HIGH";
+
+    return {
+      totalDecisions: total,
+      clientDriven,
+      internalError,
+      technicalQuery,
+      scopeChange,
+      scopeDriftPct,
+      healthScore,
+      revisionRiskBand,
+    };
+  }),
+
+  /**
+   * Technical Intelligence — drawing accuracy and site-query rates
+   * derived from decision source types.
+   */
+  technicalIntelligence: protectedProcedure.query(async ({ ctx }) => {
+    const [agg] = (await ctx.db.execute(sql`
+      select
+        count(*)::int as total,
+        count(*) filter (where revision_source = 'INTERNAL_ERROR')::int  as internal_errors,
+        count(*) filter (where revision_source = 'TECHNICAL_QUERY')::int as technical_queries
+      from esti_decision
+    `)) as unknown as [{ total: number; internal_errors: number; technical_queries: number }];
+
+    const [drawRow] = (await ctx.db.execute(sql`
+      select count(*)::int as n from esti_drawing
+    `)) as unknown as [{ n: number }];
+
+    const total          = Number(agg?.total ?? 0);
+    const internalErrors = Number(agg?.internal_errors ?? 0);
+    const techQueries    = Number(agg?.technical_queries ?? 0);
+    const totalDrawings  = Number(drawRow?.n ?? 0);
+
+    const errorRate          = total > 0 ? internalErrors / total : 0;
+    const drawingAccuracyPct = Math.max(0, Math.round((1 - errorRate) * 100));
+    const siteQueryRate      = total > 0 ? Math.round((techQueries / total) * 100) : 0;
+
+    return { totalDrawings, internalErrors, techQueries, drawingAccuracyPct, siteQueryRate };
   }),
 });
