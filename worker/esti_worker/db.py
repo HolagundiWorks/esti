@@ -240,6 +240,31 @@ def fetch_specsheet_full(sid: str) -> dict[str, Any] | None:
         return row
 
 
+def update_site_assessment(sa_id: str, **fields: Any) -> None:
+    _patch("esti_site_assessment", sa_id, {"site_inputs", "dev_control", "basement", "sustainability", "approval_readiness", "violations", "relaxations"}, fields)
+
+
+def fetch_site_assessment_full(sa_id: str) -> dict[str, Any] | None:
+    """Site assessment joined with project, for the compliance PDF."""
+    sql = """
+        select
+          sa.id, sa.status, sa.assessment_phase, sa.overall_score,
+          sa.site_inputs, sa.dev_control, sa.basement, sa.sustainability,
+          sa.approval_readiness, sa.violations, sa.relaxations,
+          sa.issued_at, sa.created_at,
+          rv.authority, rv.district, rv.state, rv.building_use, rv.effective_date,
+          p.ref as project_ref, p.title as project_title, p.site_address,
+          c.name as client_name, c.city as client_city, c.state as client_state
+        from esti_site_assessment sa
+        join esti_projectoffice p on p.id = sa.project_id
+        left join esti_rule_version rv on rv.id = sa.rule_version_id
+        left join esti_client c on c.id = p.client_id
+        where sa.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [sa_id]).fetchone()
+
+
 def fetch_open_invoices() -> list[dict[str, Any]]:
     """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:

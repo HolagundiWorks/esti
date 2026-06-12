@@ -48,6 +48,10 @@ import {
 } from "../modules/rie/router.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { steelflowRouter } from "../modules/steelflow/router.js";
+import { timesheetRouter } from "../modules/timesheet/router.js";
+import { dailyUpdateRouter } from "../modules/dailyupdate/router.js";
+import { aspRfRouter } from "../modules/asprf/router.js";
+import { rewardRouter } from "../modules/reward/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -115,6 +119,10 @@ export const appRouter = router({
   siteAssessments: siteAssessmentRouter,
   knowledgeBank: knowledgeBankRouter,
   steelflow: steelflowRouter,
+  timesheets: timesheetRouter,
+  dailyUpdates: dailyUpdateRouter,
+  aspRf: aspRfRouter,
+  rewards: rewardRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

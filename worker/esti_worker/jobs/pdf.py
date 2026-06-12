@@ -21,6 +21,7 @@ from ..db import (
     fetch_letter_full,
     fetch_payslip_full,
     fetch_proposal_full,
+    fetch_site_assessment_full,
     fetch_specsheet_full,
     fetch_transmittal_full,
     update_drawing,
@@ -30,6 +31,7 @@ from ..db import (
     update_letter,
     update_payslip,
     update_proposal,
+    update_site_assessment,
     update_specsheet,
     update_transmittal,
 )
@@ -463,6 +465,172 @@ def _letter_html(l: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_PHASE_LABEL = {"PRE_DESIGN": "Pre-design", "POST_DESIGN": "Post-design"}
+_VIOLATION_LABEL = {"COMPLIANT": "Compliant", "WITHIN_RELAXATION": "Within relaxation", "VIOLATION": "Violation"}
+_VIOLATION_COLOR = {"COMPLIANT": "#198038", "WITHIN_RELAXATION": "#0043ce", "VIOLATION": "#da1e28"}
+
+
+def _si_val(site_inputs: dict, key: str, unit: str = "") -> str:
+    v = site_inputs.get(key)
+    if v is None:
+        return "—"
+    return f"{v}{' ' + unit if unit else ''}"
+
+
+def _compliance_pdf_html(sa: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    phase = _PHASE_LABEL.get(sa.get("assessment_phase", "PRE_DESIGN"), sa.get("assessment_phase", ""))
+    si: dict = sa.get("site_inputs") or {}
+    dc: dict = sa.get("dev_control") or {}
+    bm: dict | None = sa.get("basement")
+    sus: dict = sa.get("sustainability") or {}
+    ar: dict = sa.get("approval_readiness") or {}
+    vio: dict | None = sa.get("violations")
+
+    # Dev control table rows
+    def metric(label: str, val: Any, limit: Any = None, unit: str = "") -> str:
+        val_str = f"{val}{' ' + unit if unit and val is not None else ''}" if val is not None else "—"
+        lim_str = f"{limit}{' ' + unit if unit and limit is not None else ''}" if limit is not None else ""
+        return f"<tr><td>{label}</td><td class='r'>{val_str}</td><td class='r'>{lim_str}</td></tr>"
+
+    dc_rows = (
+        metric("Site area", _si_val(si, "siteAreaSqm"), unit="sqm")
+        + metric("Proposed built-up (net)", dc.get("netBuiltUpSqm"), dc.get("maxPermissibleBuiltUp"), "sqm")
+        + metric("FAR / FSI used", dc.get("usedFAR"), dc.get("maxFAR"))
+        + metric("Ground coverage", f"{dc.get('usedGroundCoverPct', '—')}%", f"{dc.get('maxGroundCoverPct', '—')}%")
+        + metric("Building height", _si_val(si, "proposedHeightM"), dc.get("maxHeightM"), "m")
+        + metric("Front setback", f"{dc.get('requiredFrontSetbackM', '—')} m req." if dc.get("requiredFrontSetbackM") else "—")
+        + metric("Score", dc.get("score"), 100)
+    )
+
+    # Basement row
+    bm_html = ""
+    if bm:
+        bm_html = f"""<h4>Basement</h4>
+        <table>
+          <thead><tr><th>Parameter</th><th class='r'>Value</th><th class='r'>Limit</th></tr></thead>
+          <tbody>
+            {metric("Depth", bm.get("depthM"), bm.get("maxDepthM"), "m")}
+            {metric("Height", bm.get("heightM"), None, "m")}
+            {metric("Score", bm.get("score"), 100)}
+          </tbody>
+        </table>"""
+
+    # Sustainability
+    sus_score = sus.get("score", 0)
+    sus_rows = "".join(
+        f"<tr><td>{_e(c.get('parameter', ''))}</td>"
+        f"<td class='r'>{'✓' if c.get('present') else '✗'}</td></tr>"
+        for c in sus.get("checks", [])
+    )
+
+    # Approval readiness
+    ar_rows = "".join(
+        f"<tr><td>{_e(d.get('id', ''))}</td>"
+        f"<td class='r'>{'✓' if d.get('present') else '✗'}</td></tr>"
+        for d in ar.get("documents", [])
+    )
+
+    # Violations
+    vio_html = ""
+    if vio and sa.get("assessment_phase") == "POST_DESIGN":
+        items_html = "".join(
+            f"<tr><td>{_e(it.get('parameter', ''))}</td>"
+            f"<td class='r'>{it.get('actual', '—')}</td>"
+            f"<td class='r'>{it.get('effectiveLimit', '—')}</td>"
+            f"<td style='color:{_VIOLATION_COLOR.get(it.get('status', ''), '#161616')}'>"
+            f"{_VIOLATION_LABEL.get(it.get('status', ''), it.get('status', ''))}</td></tr>"
+            for it in (vio.get("items") or [])
+        )
+        vio_html = f"""<h4>Post-design Violations</h4>
+        <table>
+          <thead><tr><th>Parameter</th><th class='r'>Actual</th><th class='r'>Limit</th><th>Status</th></tr></thead>
+          <tbody>{items_html or '<tr><td colspan=4 class="muted">No violations</td></tr>'}</tbody>
+        </table>"""
+
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
+      .score-badge {{ display:inline-block; padding:4px 10px; border-radius:3px;
+                     background:#e8f5e9; font-weight:700; font-size:13px; }}
+      .tag-pass {{ background:#deffee; color:#198038; border-radius:3px; padding:2px 6px; font-size:10px; font-weight:600; }}
+      .tag-fail {{ background:#fff1f1; color:#da1e28; border-radius:3px; padding:2px 6px; font-size:10px; font-weight:600; }}
+    </style></head><body>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start">
+        <div>{_firm_heading(firm)}<div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div></div>
+        <div class="muted" style="text-align:right">
+          <div>Ref: SA-{_e(sa.get('id', '')[:8]).upper()}</div>
+          <div>Phase: {_e(phase)}</div>
+          <div>Status: {_e(sa.get('status', ''))}</div>
+          {f"<div>Issued: {_e(str(sa['issued_at'])[:10])}</div>" if sa.get('issued_at') else ""}
+        </div>
+      </div>
+
+      <div class="title">Site Compliance Assessment</div>
+
+      <table class="kv">
+        <tr><td class="muted">Project</td><td>{_e(sa.get('project_title'))} ({_e(sa.get('project_ref'))})</td></tr>
+        {f"<tr><td class='muted'>Client</td><td>{_e(sa.get('client_name'))}</td></tr>" if sa.get('client_name') else ""}
+        {f"<tr><td class='muted'>Site</td><td>{_e(sa.get('site_address'))}</td></tr>" if sa.get('site_address') else ""}
+        <tr><td class="muted">Jurisdiction</td>
+          <td>{_e(sa.get('authority'))} · {_e(sa.get('district'))}, {_e(sa.get('state'))} · {_e(sa.get('building_use'))}</td></tr>
+        <tr><td class="muted">Rule version effective</td><td>{_e(sa.get('effective_date'))}</td></tr>
+        <tr><td class="muted">Assessment phase</td><td>{_e(phase)}</td></tr>
+        <tr><td class="muted">Overall score</td>
+          <td><span class="score-badge">{_e(str(sa.get('overall_score', '—')))}/100</span></td></tr>
+      </table>
+
+      <h4>Development Control</h4>
+      <table>
+        <thead><tr><th>Parameter</th><th class='r'>Proposed</th><th class='r'>Permitted</th></tr></thead>
+        <tbody>{dc_rows}</tbody>
+      </table>
+
+      {bm_html}
+
+      <h4>Sustainability</h4>
+      <p>Score: <b>{sus_score}/100</b></p>
+      <table>
+        <thead><tr><th>Provision</th><th class='r'>Provided</th></tr></thead>
+        <tbody>{sus_rows or '<tr><td colspan=2 class="muted">—</td></tr>'}</tbody>
+      </table>
+
+      <h4>Approval Readiness</h4>
+      <p>Status: <span class="{'tag-pass' if ar.get('readiness') == 'READY' else 'tag-fail'}">{_e(ar.get('readiness', '—'))}</span>
+         · Score: {ar.get('score', '—')}/100</p>
+      <table>
+        <thead><tr><th>Document</th><th class='r'>Available</th></tr></thead>
+        <tbody>{ar_rows or '<tr><td colspan=2 class="muted">—</td></tr>'}</tbody>
+      </table>
+
+      {vio_html}
+
+      <p class="muted" style="margin-top:24px">
+        Prepared by {_e(firm.get('legalName'))} · COA Reg {_e(firm.get('coaRegNo'))} ·
+        Deterministic analysis from published jurisdiction rule set. This report does not constitute
+        statutory approval or replace the review of a licensed structural or services engineer.
+      </p>
+    </body></html>"""
+
+
+def _render_compliance_pdf(record_id: str, firm: dict[str, Any]) -> dict:
+    update_site_assessment(record_id, pdf_status="PROCESSING")
+    try:
+        from weasyprint import HTML
+
+        sa = fetch_site_assessment_full(record_id)
+        if sa is None:
+            raise ValueError("site assessment not found")
+        html_str = _compliance_pdf_html(sa, firm)
+        pdf_key = f"pdf/compliance/{record_id}.pdf"
+        pdf_bytes = HTML(string=html_str).write_pdf()
+        put_bytes(settings.s3_bucket, pdf_key, pdf_bytes, "application/pdf")
+        update_site_assessment(record_id, pdf_key=pdf_key, pdf_status="READY")
+        return {"status": "ok", "id": record_id, "target": "compliance", "bytes": len(pdf_bytes)}
+    except Exception as exc:  # noqa: BLE001
+        log.exception("compliance pdf failed for %s", record_id)
+        update_site_assessment(record_id, pdf_status="FAILED")
+        return {"status": "error", "id": record_id, "error": str(exc)}
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -542,6 +710,8 @@ def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
 
     if target == "drawing":
         return _render_drawing_issue(record_id, firm, watermark)
+    if target == "compliance":
+        return _render_compliance_pdf(record_id, firm)
 
     fetch, render_html, update, folder = _RENDERERS.get(target, _RENDERERS["invoice"])
     update(record_id, pdf_status="PROCESSING")

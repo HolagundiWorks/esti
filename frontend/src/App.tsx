@@ -23,6 +23,7 @@ import {
   Logout,
   Money,
   TaskComplete,
+  Trophy,
   User,
   UserMultiple,
   type CarbonIconType,
@@ -65,6 +66,7 @@ import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Work } from "./routes/Work.js";
+import { Performance } from "./routes/Performance.js";
 import { SteelArranger } from "./routes/SteelArranger.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
@@ -187,6 +189,7 @@ function AppShell() {
           ? [
               { label: "Team", to: "/team" },
               { label: "HR", to: "/hr" },
+              { label: "Performance", to: "/performance" },
             ]
           : []),
       ],
@@ -348,6 +351,7 @@ function AppShell() {
                   />
                 )}
                 <Route path="/settings" element={<Settings />} />
+                {hrEnabled && <Route path="/performance" element={<Performance />} />}
                 <Route path="/steel-arranger" element={<SteelArranger />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

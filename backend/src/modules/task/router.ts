@@ -1,4 +1,4 @@
-import { TaskCreate, TaskListParams, TaskUpdate } from "@esti/contracts";
+import { TaskCreate, TaskListParams, TaskUpdate, TaskWorkType } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -19,9 +19,13 @@ const withProject = {
   reviewerId: tasks.reviewerId,
   dependsOnId: tasks.dependsOnId,
   classification: tasks.classification,
+  workType: tasks.workType,
+  difficultyCoefficient: tasks.difficultyCoefficient,
+  estimatedHours: tasks.estimatedHours,
   status: tasks.status,
   priority: tasks.priority,
   dueDate: tasks.dueDate,
+  completedAt: tasks.completedAt,
   createdAt: tasks.createdAt,
 };
 
@@ -35,6 +39,7 @@ export const taskRouter = router({
       if (input?.priority) filters.push(eq(tasks.priority, input.priority));
       if (input?.projectId) filters.push(eq(tasks.projectId, input.projectId));
 
+      if (input?.workType) filters.push(eq(tasks.workType, input.workType));
       if (input?.myTasks) {
         // Resolve current user's team member id.
         const [tm] = await ctx.db
@@ -101,6 +106,9 @@ export const taskRouter = router({
           reviewerId: input.reviewerId ?? null,
           dependsOnId: input.dependsOnId ?? null,
           classification: input.classification ?? null,
+          workType: input.workType ?? null,
+          difficultyCoefficient: input.difficultyCoefficient ?? 3,
+          estimatedHours: input.estimatedHours !== undefined ? String(input.estimatedHours) : null,
           priority: input.priority,
           dueDate: input.dueDate ?? null,
           createdById: ctx.user.id,
@@ -174,6 +182,9 @@ export const taskRouter = router({
           ...(input.reviewerId !== undefined ? { reviewerId: input.reviewerId } : {}),
           ...(input.dependsOnId !== undefined ? { dependsOnId: input.dependsOnId } : {}),
           ...(input.classification !== undefined ? { classification: input.classification } : {}),
+          ...(input.workType !== undefined ? { workType: input.workType } : {}),
+          ...(input.difficultyCoefficient !== undefined ? { difficultyCoefficient: input.difficultyCoefficient } : {}),
+          ...(input.estimatedHours !== undefined ? { estimatedHours: input.estimatedHours !== null ? String(input.estimatedHours) : null } : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.priority !== undefined ? { priority: input.priority } : {}),
           ...(input.dueDate !== undefined ? { dueDate: input.dueDate } : {}),

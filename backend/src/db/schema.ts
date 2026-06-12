@@ -10,7 +10,9 @@ import {
   doublePrecision,
   integer,
   jsonb,
+  numeric,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -911,6 +913,11 @@ export const tasks = pgTable("esti_task", {
   dependsOnId: uuid("depends_on_id"),
   /** ASPRF task classification: BILLABLE | NON_BILLABLE | TRAINING | COLLABORATION | PERSONAL */
   classification: text("classification"),
+  /** ASPRF architectural work category: DESIGN_COMMUNICATION | DESIGN_DEVELOPMENT | TECHNICAL_PRODUCTION | CONSTRUCTION_SUPPORT */
+  workType: text("work_type"),
+  /** Anti-gaming difficulty coefficient 1–5 (default 3) for ASPRF scoring weight. */
+  difficultyCoefficient: smallint("difficulty_coefficient").default(3),
+  estimatedHours: numeric("estimated_hours", { precision: 6, scale: 2 }),
   status: text("status").notNull().default("TODO"),
   priority: text("priority").notNull().default("MEDIUM"),
   dueDate: date("due_date"),
@@ -1006,6 +1013,7 @@ export const siteAssessments = pgTable("esti_site_assessment", {
   overallScore: integer("overall_score"),
   issuedAt: timestamp("issued_at", { withTimezone: true }),
   pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status"),
   createdById: uuid("created_by_id").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -1024,6 +1032,54 @@ export const audit = pgTable("esti_audit", {
 });
 
 export type ProjectOfficeRow = typeof projectOffices.$inferSelect;
+
+// ─── Phase 5: Timesheets, Daily Updates, Reward Points ────────────────────────
+
+/** Per-person per-day time attribution to project and optional task. */
+export const timesheets = pgTable("esti_timesheet", {
+  id: id(),
+  teamMemberId: uuid("team_member_id")
+    .notNull()
+    .references(() => teamMembers.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projectOffices.id, { onDelete: "set null" }),
+  taskId: uuid("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  entryDate: date("entry_date").notNull(),
+  hours: numeric("hours", { precision: 5, scale: 2 }).notNull().default("0"),
+  billable: boolean("billable").notNull().default(false),
+  description: text("description"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Daily stand-up update — one per team member per day (upsert on conflict). */
+export const dailyUpdates = pgTable("esti_daily_update", {
+  id: id(),
+  teamMemberId: uuid("team_member_id")
+    .notNull()
+    .references(() => teamMembers.id, { onDelete: "cascade" }),
+  updateDate: date("update_date").notNull(),
+  completed: text("completed"),
+  inProgress: text("in_progress"),
+  blockers: text("blockers"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Reward points ledger for ASPRF recognition. */
+export const rewardPoints = pgTable("esti_reward_point", {
+  id: id(),
+  teamMemberId: uuid("team_member_id")
+    .notNull()
+    .references(() => teamMembers.id, { onDelete: "cascade" }),
+  points: integer("points").notNull(),
+  reason: text("reason").notNull(),
+  awardType: text("award_type"),
+  referenceId: uuid("reference_id"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
 
 // ─── SteelFlow AI ─────────────────────────────────────────────────────────────
 

@@ -16,6 +16,22 @@ export const TaskClassification = z.enum([
 ]);
 export type TaskClassification = z.infer<typeof TaskClassification>;
 
+/** ASPRF architectural work category — separate from financial classification. */
+export const TaskWorkType = z.enum([
+  "DESIGN_COMMUNICATION",
+  "DESIGN_DEVELOPMENT",
+  "TECHNICAL_PRODUCTION",
+  "CONSTRUCTION_SUPPORT",
+]);
+export type TaskWorkType = z.infer<typeof TaskWorkType>;
+
+export const TASK_WORK_TYPE_LABEL: Record<string, string> = {
+  DESIGN_COMMUNICATION: "Design Communication",
+  DESIGN_DEVELOPMENT: "Design Development",
+  TECHNICAL_PRODUCTION: "Technical Production",
+  CONSTRUCTION_SUPPORT: "Construction Support",
+};
+
 export const TASK_STATUS_LABEL: Record<string, string> = {
   TODO: "To do",
   IN_PROGRESS: "In progress",
@@ -46,8 +62,11 @@ export const TaskCreate = z.object({
   reviewerId: z.string().uuid().nullable().optional(),
   dependsOnId: z.string().uuid().nullable().optional(),
   classification: TaskClassification.optional(),
+  workType: TaskWorkType.optional(),
   priority: TaskPriority.default("MEDIUM"),
   dueDate: z.string().nullable().optional(),
+  estimatedHours: z.number().min(0.25).max(999).optional(),
+  difficultyCoefficient: z.number().int().min(1).max(5).default(3),
 });
 export type TaskCreate = z.infer<typeof TaskCreate>;
 
@@ -59,9 +78,12 @@ export const TaskUpdate = z.object({
   reviewerId: z.string().uuid().nullable().optional(),
   dependsOnId: z.string().uuid().nullable().optional(),
   classification: TaskClassification.nullable().optional(),
+  workType: TaskWorkType.nullable().optional(),
   status: TaskStatus.optional(),
   priority: TaskPriority.optional(),
   dueDate: z.string().nullable().optional(),
+  estimatedHours: z.number().min(0.25).max(999).nullable().optional(),
+  difficultyCoefficient: z.number().int().min(1).max(5).optional(),
 });
 export type TaskUpdate = z.infer<typeof TaskUpdate>;
 
@@ -72,5 +94,6 @@ export const TaskListParams = z.object({
   status: TaskStatus.optional(),
   priority: TaskPriority.optional(),
   classification: TaskClassification.optional(),
+  workType: TaskWorkType.optional(),
 });
 export type TaskListParams = z.infer<typeof TaskListParams>;

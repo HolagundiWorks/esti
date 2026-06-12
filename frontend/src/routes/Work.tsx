@@ -5,6 +5,7 @@ import {
   Grid,
   InlineNotification,
   Modal,
+  NumberInput,
   Select,
   SelectItem,
   Stack,
@@ -24,6 +25,7 @@ import {
   TextArea,
   TextInput,
   Tile,
+  Toggle,
 } from "@carbon/react";
 import {
   ChevronLeft,
@@ -37,9 +39,11 @@ import {
   TASK_LOAD_BAND_RANGE,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
+  TASK_WORK_TYPE_LABEL,
   TaskClassification,
   TaskPriority,
   TaskStatus,
+  TaskWorkType,
   type TaskLoadBand,
   taskLoadBand,
 } from "@esti/contracts";
@@ -62,7 +66,7 @@ const MONTHS = [
 ];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const TAB_SLUGS = ["tasks", "workload", "activity"] as const;
+const TAB_SLUGS = ["tasks", "workload", "activity", "standup", "timesheets"] as const;
 type TabSlug = typeof TAB_SLUGS[number];
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -361,6 +365,243 @@ function ActivityTab() {
   );
 }
 
+// ─── StandupTab ───────────────────────────────────────────────────────────────
+
+function StandupTab() {
+  const today = new Date().toISOString().slice(0, 10);
+  const [form, setForm] = useState({ completed: "", inProgress: "", blockers: "" });
+  const [date, setDate] = useState(today);
+
+  const todayQ = trpc.dailyUpdates.today.useQuery({ date });
+  const listQ  = trpc.dailyUpdates.list.useQuery({ myOnly: false, dateFrom: date, dateTo: date });
+  const utils  = trpc.useUtils();
+
+  const upsert = trpc.dailyUpdates.upsertMine.useMutation({
+    onSuccess: () => {
+      utils.dailyUpdates.today.invalidate();
+      utils.dailyUpdates.list.invalidate();
+    },
+  });
+
+  const mine = todayQ.data;
+
+  return (
+    <Grid>
+      <Column sm={4} md={4} lg={6}>
+        <Tile>
+          <Stack gap={5}>
+            <Stack gap={2}>
+              <h4>My stand-up</h4>
+              <TextInput id="su-date" labelText="Date" type="date" value={date}
+                onChange={(e) => setDate(e.target.value)} />
+            </Stack>
+            {mine && (
+              <Stack gap={2}>
+                <Tag type="teal" size="sm">Saved</Tag>
+                {mine.completed && <><p><strong>Completed:</strong></p><p>{mine.completed}</p></>}
+                {mine.inProgress && <><p><strong>In progress:</strong></p><p>{mine.inProgress}</p></>}
+                {mine.blockers && <><p><strong>Blockers:</strong></p><p>{mine.blockers}</p></>}
+              </Stack>
+            )}
+            <Stack gap={4}>
+              <TextArea id="su-done" labelText="Completed yesterday" rows={2} value={form.completed}
+                onChange={(e) => setForm((f) => ({ ...f, completed: e.target.value }))} />
+              <TextArea id="su-today" labelText="In progress today" rows={2} value={form.inProgress}
+                onChange={(e) => setForm((f) => ({ ...f, inProgress: e.target.value }))} />
+              <TextArea id="su-block" labelText="Blockers" rows={2} value={form.blockers}
+                onChange={(e) => setForm((f) => ({ ...f, blockers: e.target.value }))} />
+              <Button
+                disabled={upsert.isPending}
+                onClick={() => upsert.mutate({ updateDate: date, ...form })}
+              >
+                {upsert.isPending ? "Saving…" : mine ? "Update" : "Post stand-up"}
+              </Button>
+            </Stack>
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column sm={4} md={4} lg={10}>
+        <Tile>
+          <Stack gap={4}>
+            <h4>Team stand-ups — {date}</h4>
+            <DataState
+              loading={listQ.isLoading}
+              isEmpty={(listQ.data ?? []).length === 0}
+              columnCount={2}
+              empty={{ title: "No stand-ups for this date", description: "Stand-ups posted by team members will appear here." }}
+            >
+              <Stack gap={4}>
+                {(listQ.data ?? []).map((u) => (
+                  <Tile key={u.id}>
+                    <Stack gap={3}>
+                      <Stack orientation="horizontal" gap={3}>
+                        <Tag type="blue" size="sm">{u.memberName ?? "Team member"}</Tag>
+                        <Tag type="gray" size="sm">{u.updateDate}</Tag>
+                      </Stack>
+                      {u.completed   && <p><strong>Done:</strong> {u.completed}</p>}
+                      {u.inProgress  && <p><strong>Today:</strong> {u.inProgress}</p>}
+                      {u.blockers    && <p><strong>Blockers:</strong> {u.blockers}</p>}
+                    </Stack>
+                  </Tile>
+                ))}
+              </Stack>
+            </DataState>
+          </Stack>
+        </Tile>
+      </Column>
+    </Grid>
+  );
+}
+
+// ─── TimesheetsTab ────────────────────────────────────────────────────────────
+
+function TimesheetsTab() {
+  const today = new Date().toISOString().slice(0, 10);
+  const [myOnly, setMyOnly] = useState(true);
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo]     = useState(today);
+  const [tsOpen, setTsOpen]     = useState(false);
+  const [tsForm, setTsForm]     = useState({
+    projectId: "", taskId: "", entryDate: today, hours: "8", billable: false, description: "",
+  });
+
+  const listQ     = trpc.timesheets.list.useQuery({ myOnly, dateFrom, dateTo });
+  const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const utils     = trpc.useUtils();
+
+  const tasksByProject = trpc.tasks.listByProject.useQuery(
+    { projectId: tsForm.projectId },
+    { enabled: !!tsForm.projectId },
+  );
+
+  const myScoreQ = trpc.aspRf.myScore.useQuery();
+  const selfMemberId = myScoreQ.data?.teamMemberId ?? "";
+
+  const invalidate = () => utils.timesheets.list.invalidate();
+  const createTs = trpc.timesheets.create.useMutation({
+    onSuccess: () => { invalidate(); setTsOpen(false); setTsForm({ projectId: "", taskId: "", entryDate: today, hours: "8", billable: false, description: "" }); },
+  });
+  const removeTs = trpc.timesheets.remove.useMutation({ onSuccess: invalidate });
+
+  const rows = listQ.data ?? [];
+  const totalHours = rows.reduce((s, r) => s + Number(r.hours), 0);
+
+  return (
+    <Stack gap={5}>
+      <Stack orientation="horizontal" gap={5}>
+        <Checkbox id="ts-mine" labelText="My timesheets" checked={myOnly}
+          onChange={(_e, { checked }) => setMyOnly(checked)} />
+        <TextInput id="ts-from" labelText="From" type="date" value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)} />
+        <TextInput id="ts-to" labelText="To" type="date" value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)} />
+        <div className="esti-grow" />
+        <Button size="sm" onClick={() => setTsOpen(true)}>Log hours</Button>
+      </Stack>
+
+      {rows.length > 0 && (
+        <Stack orientation="horizontal" gap={3}>
+          <Tag type="teal">{totalHours.toFixed(1)} hrs logged</Tag>
+          <Tag type="blue">{rows.filter((r) => r.billable).reduce((s, r) => s + Number(r.hours), 0).toFixed(1)} hrs billable</Tag>
+        </Stack>
+      )}
+
+      <DataState
+        loading={listQ.isLoading}
+        isEmpty={rows.length === 0}
+        columnCount={6}
+        empty={{ title: "No timesheet entries", description: "Log hours against projects and tasks." }}
+      >
+        <TableContainer>
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Date</TableHeader>
+                <TableHeader>Member</TableHeader>
+                <TableHeader>Project</TableHeader>
+                <TableHeader>Task</TableHeader>
+                <TableHeader>Hours</TableHeader>
+                <TableHeader>Billable</TableHeader>
+                <TableHeader>Note</TableHeader>
+                <TableHeader></TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.entryDate}</TableCell>
+                  <TableCell>{r.memberName ?? "—"}</TableCell>
+                  <TableCell>{r.projectRef ?? r.projectTitle ?? "—"}</TableCell>
+                  <TableCell>{r.taskTitle ?? "—"}</TableCell>
+                  <TableCell>{Number(r.hours).toFixed(1)}</TableCell>
+                  <TableCell>
+                    {r.billable ? <Tag type="teal" size="sm">Billable</Tag> : <Tag type="gray" size="sm">Non-billable</Tag>}
+                  </TableCell>
+                  <TableCell>{r.description ?? "—"}</TableCell>
+                  <TableCell>
+                    <Button kind="danger--ghost" size="sm" onClick={() => removeTs.mutate({ id: r.id })}>
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DataState>
+
+      <Modal
+        open={tsOpen} modalHeading="Log hours"
+        primaryButtonText={createTs.isPending ? "Saving…" : "Log"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!tsForm.projectId || !tsForm.hours || !selfMemberId || createTs.isPending}
+        onRequestClose={() => setTsOpen(false)}
+        onRequestSubmit={() => createTs.mutate({
+          teamMemberId: selfMemberId,
+          projectId: tsForm.projectId || undefined,
+          taskId: tsForm.taskId || undefined,
+          entryDate: tsForm.entryDate,
+          hours: parseFloat(tsForm.hours),
+          billable: tsForm.billable,
+          description: tsForm.description || undefined,
+        })}
+      >
+        <Stack gap={5}>
+          <TextInput id="ts-date" labelText="Date" type="date" value={tsForm.entryDate}
+            onChange={(e) => setTsForm((f) => ({ ...f, entryDate: e.target.value }))} />
+          <Select id="ts-proj" labelText="Project" value={tsForm.projectId}
+            onChange={(e) => setTsForm((f) => ({ ...f, projectId: e.target.value, taskId: "" }))}>
+            <SelectItem value="" text="— select a project —" />
+            {(projectsQ.data ?? []).map((p) => (
+              <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />
+            ))}
+          </Select>
+          <Select id="ts-task" labelText="Task (optional)" value={tsForm.taskId}
+            disabled={!tsForm.projectId}
+            onChange={(e) => setTsForm((f) => ({ ...f, taskId: e.target.value }))}>
+            <SelectItem value="" text="— no task —" />
+            {(tasksByProject.data ?? []).map((t) => (
+              <SelectItem key={t.id} value={t.id} text={t.title} />
+            ))}
+          </Select>
+          <TextInput id="ts-hrs-inp" labelText="Hours" type="number" value={tsForm.hours}
+            onChange={(e) => setTsForm((f) => ({ ...f, hours: e.target.value }))} />
+          <Toggle id="ts-bill" labelText="Billable" labelA="No" labelB="Yes"
+            toggled={tsForm.billable}
+            onToggle={(val) => setTsForm((f) => ({ ...f, billable: val }))} />
+          <TextArea id="ts-note" labelText="Note (optional)" rows={2} value={tsForm.description}
+            onChange={(e) => setTsForm((f) => ({ ...f, description: e.target.value }))} />
+          {!selfMemberId && (
+            <InlineNotification kind="warning" title="No team member profile found"
+              subtitle="Ask an admin to link your user account to a team member." hideCloseButton lowContrast />
+          )}
+        </Stack>
+      </Modal>
+    </Stack>
+  );
+}
+
 // ─── Work (combined module) ───────────────────────────────────────────────────
 
 export function Work() {
@@ -390,7 +631,8 @@ export function Work() {
   const [commentsTask, setCommentsTask] = useState<{ id: string; projectId: string; title: string } | null>(null);
   const [form, setForm] = useState({
     title: "", projectId: "", assigneeId: "", reviewerId: "",
-    classification: "", priority: "MEDIUM", dueDate: "", description: "",
+    classification: "", workType: "", priority: "MEDIUM",
+    dueDate: "", description: "", difficultyCoefficient: "3", estimatedHours: "",
   });
   const teamQ = trpc.assignments.listByProject.useQuery(
     { projectId: form.projectId },
@@ -401,7 +643,7 @@ export function Work() {
     onSuccess: () => {
       invalidate();
       setOpen(false);
-      setForm({ title: "", projectId: "", assigneeId: "", reviewerId: "", classification: "", priority: "MEDIUM", dueDate: "", description: "" });
+      setForm({ title: "", projectId: "", assigneeId: "", reviewerId: "", classification: "", workType: "", priority: "MEDIUM", dueDate: "", description: "", difficultyCoefficient: "3", estimatedHours: "" });
     },
   });
   const today = new Date().toISOString().slice(0, 10);
@@ -428,6 +670,8 @@ export function Work() {
           <Tab>Tasks</Tab>
           <Tab>Workload</Tab>
           <Tab>Activity</Tab>
+          <Tab>Stand-up</Tab>
+          <Tab>Timesheets</Tab>
         </TabList>
 
         <TabPanels>
@@ -552,6 +796,16 @@ export function Work() {
           <TabPanel>
             <ActivityTab />
           </TabPanel>
+
+          {/* ── Stand-up ──────────────────────────────────────────────────── */}
+          <TabPanel>
+            <StandupTab />
+          </TabPanel>
+
+          {/* ── Timesheets ────────────────────────────────────────────────── */}
+          <TabPanel>
+            <TimesheetsTab />
+          </TabPanel>
         </TabPanels>
       </Tabs>
 
@@ -574,6 +828,9 @@ export function Work() {
           assigneeId: form.assigneeId || null,
           reviewerId: form.reviewerId || null,
           classification: form.classification ? (form.classification as (typeof TaskClassification.options)[number]) : undefined,
+          workType: form.workType ? (form.workType as (typeof TaskWorkType.options)[number]) : undefined,
+          difficultyCoefficient: parseInt(form.difficultyCoefficient, 10) || 3,
+          estimatedHours: form.estimatedHours ? parseFloat(form.estimatedHours) : undefined,
           priority: form.priority as (typeof TaskPriority.options)[number],
           dueDate: form.dueDate || null,
           description: form.description || undefined,
@@ -622,6 +879,23 @@ export function Work() {
             </Select>
             <TextInput id="nt-due" labelText="Due date" type="date" value={form.dueDate}
               onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
+          </Stack>
+          <Stack orientation="horizontal" gap={5}>
+            <Select id="nt-wtype" labelText="Work type" value={form.workType}
+              onChange={(e) => setForm((f) => ({ ...f, workType: e.target.value }))}>
+              <SelectItem value="" text="— none —" />
+              {TaskWorkType.options.map((w) => (
+                <SelectItem key={w} value={w} text={TASK_WORK_TYPE_LABEL[w] ?? w} />
+              ))}
+            </Select>
+            <Select id="nt-diff" labelText="Difficulty (1–5)" value={form.difficultyCoefficient}
+              onChange={(e) => setForm((f) => ({ ...f, difficultyCoefficient: e.target.value }))}>
+              {[1,2,3,4,5].map((d) => (
+                <SelectItem key={d} value={String(d)} text={String(d)} />
+              ))}
+            </Select>
+            <TextInput id="nt-hrs" labelText="Est. hours" type="number" value={form.estimatedHours}
+              onChange={(e) => setForm((f) => ({ ...f, estimatedHours: e.target.value }))} />
           </Stack>
           <TextArea id="nt-desc" labelText="Description (optional)" rows={2} value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />

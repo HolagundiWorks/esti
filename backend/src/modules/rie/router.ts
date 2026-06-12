@@ -13,6 +13,9 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { bylaws, ruleVersions, siteAssessments } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmPayload } from "../../lib/firm.js";
+import { enqueueJob } from "../../lib/redis.js";
+import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 // ─── Rule version management ────────────────────────────────────────────────
@@ -205,5 +208,38 @@ export const siteAssessmentRouter = router({
         .returning();
       await writeAudit(ctx.db, { entity: "site_assessment", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, before: row, after: updated });
       return updated!;
+    }),
+
+  generatePdf: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(siteAssessments).where(eq(siteAssessments.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db
+        .update(siteAssessments)
+        .set({ pdfStatus: "PENDING" })
+        .where(eq(siteAssessments.id, input.id));
+      await enqueueJob("render_pdf", {
+        target: "compliance",
+        id: row.id,
+        firm: await firmPayload(ctx.db),
+      }, ctx.requestId);
+      await writeAudit(ctx.db, {
+        entity: "site_assessment", entityId: input.id, action: "PDF_REQUEST",
+        actorId: ctx.user.id, before: { pdfStatus: row.pdfStatus }, after: { pdfStatus: "PENDING" },
+      });
+      return { ok: true };
+    }),
+
+  pdfUrl: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ pdfKey: siteAssessments.pdfKey, pdfStatus: siteAssessments.pdfStatus })
+        .from(siteAssessments)
+        .where(eq(siteAssessments.id, input.id));
+      if (!row) return null;
+      const url = row.pdfKey ? await presignedGet(row.pdfKey).catch(() => null) : null;
+      return { pdfStatus: row.pdfStatus, url };
     }),
 });

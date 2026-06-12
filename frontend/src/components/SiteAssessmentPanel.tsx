@@ -74,6 +74,10 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
     onSuccess: () => utils.siteAssessments.listByProject.invalidate({ projectId }),
   });
 
+  const pdfMut = trpc.siteAssessments.generatePdf.useMutation({
+    onSuccess: () => utils.siteAssessments.listByProject.invalidate({ projectId }),
+  });
+
   const [formOpen, setFormOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
 
@@ -240,6 +244,24 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
                           onClick={() => issueMut.mutate({ id: a.id })}
                         >
                           Issue
+                        </Button>
+                      )}
+                      {(a as { pdfStatus?: string; pdfKey?: string }).pdfStatus === "READY" && (a as { pdfKey?: string }).pdfKey ? (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          onClick={() => pdfMut.mutate({ id: a.id })}
+                        >
+                          Regenerate PDF
+                        </Button>
+                      ) : (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          disabled={pdfMut.isPending || (a as { pdfStatus?: string }).pdfStatus === "PROCESSING"}
+                          onClick={() => pdfMut.mutate({ id: a.id })}
+                        >
+                          {(a as { pdfStatus?: string }).pdfStatus === "PROCESSING" ? "Generating…" : "Generate PDF"}
                         </Button>
                       )}
                     </Stack>
