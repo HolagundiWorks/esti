@@ -75,9 +75,9 @@ export function ProjectDetail() {
     );
   const p = project.data;
   const phases = phasesQ.data ?? [];
-  // Current project stage = the first stage that isn't complete (else the last).
+  // Current stage is stored on the project; fall back to the last stage.
   const currentPhase =
-    phases.find((ph) => ph.status !== "COMPLETE" && ph.status !== "BILLED") ?? phases[phases.length - 1];
+    phases.find((ph) => ph.id === p.currentPhaseId) ?? phases[phases.length - 1];
 
   return (
     <div>
@@ -143,7 +143,7 @@ export function ProjectDetail() {
                 <SelectItem
                   key={ph.id}
                   value={ph.id}
-                  text={`${ph.label} — ${ph.status}`}
+                  text={ph.label}
                 />
               ))}
             </Select>

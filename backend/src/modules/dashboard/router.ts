@@ -71,17 +71,14 @@ export const dashboardRouter = router({
       .where(isNull(projectOffices.archivedAt))
       .groupBy(projectOffices.projectType);
 
-    // A project's current phase = its lowest-ordered phase that isn't complete.
+    // Distribution by current stage across all active projects.
     const phaseRows = (await ctx.db.execute(sql`
-      select cur.code as code, cur.label as label, count(*)::int as n
-      from (
-        select distinct on (project_id) project_id, code, label, sort_order
-        from esti_phase
-        where status <> 'COMPLETE'
-        order by project_id, sort_order asc
-      ) cur
-      group by cur.code, cur.label
-      order by min(cur.sort_order)
+      select ph.code, ph.label, count(*)::int as n
+      from esti_phase ph
+      join esti_projectoffice po on ph.id = po.current_phase_id
+      where po.status = 'ACTIVE' and po.archived_at is null
+      group by ph.code, ph.label
+      order by min(ph.sort_order)
     `)) as unknown as { code: string; label: string; n: number }[];
 
     const [leaveRow] = await ctx.db
@@ -137,9 +134,11 @@ export const dashboardRouter = router({
         po.contract_value_paise
       from esti_phase ph
       join esti_projectoffice po on ph.project_id = po.id
-      where ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
-        and po.status = 'ACTIVE'
+      where po.status = 'ACTIVE'
         and po.archived_at is null
+        and ph.sort_order <= coalesce(
+          (select cp.sort_order from esti_phase cp where cp.id = po.current_phase_id), -1
+        )
         and not exists (
           select 1 from esti_invoice i
           where i.phase_id = ph.id
@@ -252,9 +251,11 @@ export const dashboardRouter = router({
       select coalesce(sum(ph.billing_pct * po.contract_value_paise / 100), 0)::bigint as ready_paise
       from esti_phase ph
       join esti_projectoffice po on ph.project_id = po.id
-      where ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
-        and po.status = 'ACTIVE'
+      where po.status = 'ACTIVE'
         and po.archived_at is null
+        and ph.sort_order <= coalesce(
+          (select cp.sort_order from esti_phase cp where cp.id = po.current_phase_id), -1
+        )
         and not exists (
           select 1 from esti_invoice i
           where i.phase_id = ph.id and i.status <> 'CANCELLED'
@@ -395,7 +396,9 @@ export const dashboardRouter = router({
         po.id, po.ref, po.title, po.contract_value_paise,
         (select count(*)::int from esti_phase ph
           where ph.project_id = po.id
-          and ph.status in ('APPROVED', 'READY_FOR_BILLING', 'COMPLETE')
+          and ph.sort_order <= coalesce(
+            (select cp.sort_order from esti_phase cp where cp.id = po.current_phase_id), -1
+          )
           and not exists (
             select 1 from esti_invoice i where i.phase_id = ph.id and i.status <> 'CANCELLED'
           )) as unbilled_phases,

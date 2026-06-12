@@ -152,6 +152,8 @@ export const projectOffices = pgTable("esti_projectoffice", {
   createdById: uuid("created_by_id"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   archivedById: uuid("archived_by_id").references(() => users.id),
+  /** The phase currently in progress; previous phases are considered complete. */
+  currentPhaseId: uuid("current_phase_id"),
   /** Retention deadline: project may be purged on or after this date. */
   purgeAfter: date("purge_after"),
   /** Set when the project data has been scheduled for deletion. */
@@ -422,9 +424,6 @@ export const phases = pgTable("esti_phase", {
   code: text("code").notNull(),
   label: text("label").notNull(),
   billingPct: integer("billing_pct").notNull().default(0),
-  status: text("status").notNull().default("NOT_STARTED"),
-  datePlanned: date("date_planned"),
-  dateActual: date("date_actual"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });

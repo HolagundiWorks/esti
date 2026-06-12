@@ -20,10 +20,8 @@ import {
 } from "@carbon/react";
 import {
   Jurisdiction,
-  PHASE_STATUS_LABEL,
   PROJECT_STATUS_LABEL,
   PROJECT_WORK_TYPE_LABEL,
-  PhaseStatus,
   ProjectStatus,
   ProjectType,
   ProjectWorkType,
@@ -33,15 +31,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
-
-const PHASE_TAG: Record<string, "gray" | "blue" | "purple" | "teal" | "green"> =
-  {
-    NOT_STARTED: "gray",
-    IN_PROGRESS: "blue",
-    CLIENT_REVIEW: "purple",
-    APPROVED: "teal",
-    COMPLETE: "green",
-  };
 
 const ACTIVITY_TAG: Record<
   string,
@@ -71,8 +60,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     { projectId },
     { enabled: !!projectId },
   );
-  const updatePhase = trpc.phases.update.useMutation({
-    onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
+  const setCurrent = trpc.phases.setCurrent.useMutation({
+    onSuccess: () => {
+      utils.phases.listByProject.invalidate({ projectId });
+      utils.projectOffice.byId.invalidate({ id: projectId });
+    },
   });
 
   const [f, setF] = useState({
@@ -240,56 +232,52 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       </Tile>
 
       <Tile style={{ maxWidth: 760, marginTop: 16 }}>
-        <h4 style={{ marginBottom: 4 }}>Project stages</h4>
-        <p style={{ marginBottom: 8 }}>
-          Update each general delivery stage. The current stage appears in the
-          project header.
-        </p>
-        <TableContainer title="" description="">
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Stage</TableHeader>
-                <TableHeader>Fee allocation %</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Update</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(phasesQ.data ?? []).map((ph) => (
-                <TableRow key={ph.id}>
-                  <TableCell>{ph.label}</TableCell>
-                  <TableCell>{ph.billingPct}%</TableCell>
-                  <TableCell>
-                    <Tag type={PHASE_TAG[ph.status] ?? "gray"} size="sm">
-                      {ph.status}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      id={`ph-${ph.id}`}
-                      labelText="Phase status"
-                      hideLabel
-                      size="sm"
-                      value={ph.status}
-                      onChange={(e) =>
-                        updatePhase.mutate({
-                          id: ph.id,
-                          status: e.target
-                            .value as (typeof PhaseStatus.options)[number],
-                        })
-                      }
-                    >
-                      {PhaseStatus.options.map((s) => (
-                        <SelectItem key={s} value={s} text={PHASE_STATUS_LABEL[s]} />
-                      ))}
-                    </Select>
-                  </TableCell>
+        <Stack gap={4}>
+          <h4>Project stages</h4>
+          <p>Mark the stage currently in progress. Earlier stages are automatically complete; later stages are pending.</p>
+          <TableContainer>
+            <Table size="sm">
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Stage</TableHeader>
+                  <TableHeader>Fee allocation %</TableHeader>
+                  <TableHeader>Status</TableHeader>
+                  <TableHeader></TableHeader>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {(phasesQ.data ?? []).map((ph, idx) => {
+                  const currentId = projectQ.data?.currentPhaseId;
+                  const currentIdx = (phasesQ.data ?? []).findIndex((p) => p.id === currentId);
+                  const isActive = ph.id === currentId;
+                  const stageStatus = isActive ? "Active" : (currentIdx >= 0 && idx < currentIdx) ? "Complete" : "Pending";
+                  const tagType = stageStatus === "Active" ? "blue" : stageStatus === "Complete" ? "green" : "gray";
+                  return (
+                    <TableRow key={ph.id}>
+                      <TableCell>{ph.label}</TableCell>
+                      <TableCell>{ph.billingPct}%</TableCell>
+                      <TableCell>
+                        <Tag type={tagType} size="sm">{stageStatus}</Tag>
+                      </TableCell>
+                      <TableCell>
+                        {!isActive && (
+                          <Button
+                            kind="ghost"
+                            size="sm"
+                            disabled={setCurrent.isPending}
+                            onClick={() => setCurrent.mutate({ projectId, phaseId: ph.id })}
+                          >
+                            Set as current
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Stack>
       </Tile>
 
       <div style={{ maxWidth: 760, marginTop: 16 }}>

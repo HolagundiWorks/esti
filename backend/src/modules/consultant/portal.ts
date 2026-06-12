@@ -49,14 +49,16 @@ export const collaboratorRouter = router({
 
       const phaseRows = await ctx.db
         .select({
+          id: phases.id,
           code: phases.code,
           label: phases.label,
           billingPct: phases.billingPct,
-          status: phases.status,
+          sortOrder: phases.sortOrder,
         })
         .from(phases)
         .where(eq(phases.projectId, input.projectId))
         .orderBy(asc(phases.sortOrder));
+      const currentSortOrder = phaseRows.find((p) => p.id === project!.currentPhaseId)?.sortOrder ?? -1;
 
       const drawingRows = await ctx.db
         .select({ ref: drawings.ref, title: drawings.title })
@@ -78,7 +80,14 @@ export const collaboratorRouter = router({
           paidPaise: engagement.paidPaise,
           status: engagement.status,
         },
-        phases: phaseRows,
+        phases: phaseRows.map((ph) => ({
+          code: ph.code,
+          label: ph.label,
+          billingPct: ph.billingPct,
+          status: ph.sortOrder < currentSortOrder ? "Complete"
+            : ph.id === project!.currentPhaseId ? "Active"
+            : "Pending",
+        })),
         drawings: drawingRows,
       };
     }),

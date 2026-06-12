@@ -146,34 +146,14 @@ export type Client = z.infer<typeof Client>;
 
 // --- Phases (esti_phase) ---
 
-export const PhaseStatus = z.enum([
-  "NOT_STARTED",
-  "IN_PROGRESS",
-  "CLIENT_REVIEW",
-  "APPROVED",
-  "READY_FOR_BILLING",
-  "BILLED",
-  "COMPLETE",
-]);
-export type PhaseStatus = z.infer<typeof PhaseStatus>;
+/** Derived status — computed from sort_order vs currentPhaseId, never stored. */
+export type PhaseStageStatus = "Complete" | "Active" | "Pending";
 
-export const PHASE_STATUS_LABEL: Record<PhaseStatus, string> = {
-  NOT_STARTED: "Not started",
-  IN_PROGRESS: "In progress",
-  CLIENT_REVIEW: "Client review",
-  APPROVED: "Approved",
-  READY_FOR_BILLING: "Ready for billing",
-  BILLED: "Billed",
-  COMPLETE: "Complete",
-};
-
-export const PhaseUpdate = z.object({
-  id: z.string().uuid(),
-  status: PhaseStatus.optional(),
-  datePlanned: z.string().date().nullish(),
-  dateActual: z.string().date().nullish(),
+export const PhaseSetCurrent = z.object({
+  projectId: z.string().uuid(),
+  phaseId: z.string().uuid(),
 });
-export type PhaseUpdate = z.infer<typeof PhaseUpdate>;
+export type PhaseSetCurrent = z.infer<typeof PhaseSetCurrent>;
 
 // --- CRIF Decision state machine ---
 

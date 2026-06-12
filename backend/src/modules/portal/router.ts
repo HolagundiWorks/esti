@@ -39,14 +39,16 @@ export const portalRouter = router({
 
       const phaseRows = await ctx.db
         .select({
+          id: phases.id,
           code: phases.code,
           label: phases.label,
           billingPct: phases.billingPct,
-          status: phases.status,
+          sortOrder: phases.sortOrder,
         })
         .from(phases)
         .where(eq(phases.projectId, input.projectId))
         .orderBy(asc(phases.sortOrder));
+      const currentSortOrder = phaseRows.find((p) => p.id === project.currentPhaseId)?.sortOrder ?? -1;
 
       // Only issued/paid invoices are visible to the client.
       const invoiceRows = await ctx.db
@@ -91,7 +93,14 @@ export const portalRouter = router({
           projectType: project.projectType,
           jurisdiction: project.jurisdiction,
         },
-        phases: phaseRows,
+        phases: phaseRows.map((ph) => ({
+          code: ph.code,
+          label: ph.label,
+          billingPct: ph.billingPct,
+          status: ph.sortOrder < currentSortOrder ? "Complete"
+            : ph.id === project.currentPhaseId ? "Active"
+            : "Pending",
+        })),
         invoices: invoiceRows,
         approvals: approvalRows,
         drawings: drawingRows,
