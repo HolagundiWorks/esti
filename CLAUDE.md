@@ -65,20 +65,94 @@ When in doubt, reach for an existing Carbon component before inventing markup.
 - Two files have ongoing parallel WIP — avoid editing `frontend/src/routes/
   Projects.tsx` and `frontend/src/routes/Clients.tsx` unless asked.
 
-## Module map (tRPC namespaces added in recent phases)
+## Module map (all tRPC namespaces — `backend/src/trpc/router.ts`)
 
-Key namespaces added beyond the baseline:
-- `ruleVersions` / `siteAssessments` — RIE knowledge bank and site assessments
-  (`backend/src/modules/rie/router.ts`; contracts in `packages/contracts/src/rie.ts`)
-- `decisions` — CRIF decision ledger with state machine
-- `criticalNotes` — project critical notes
-- `activity` — immutable activity timeline
-- `dashboard` — computed KPIs, Action Center, health modules
-- `timesheets` — per-person per-day project/task attribution with billable flag;
-  `list/create/update/remove/summary`
+Root router has 57 namespaces. Organised by domain below.
+
+**Public (no auth):** `health` (liveness), `profile` (India config: currency, FY dates,
+GST rates, SAC codes)
+
+**Auth / identity:** `auth` (login/session), `users` (user management), `firm`
+(firm profile; `firm:admin` capability required), `settings` (user/firm prefs),
+`admin` (admin utilities), `audit` (immutable audit log; `reports:view`)
+
+**Clients & projects:**
+- `clients` — client CRM; `clientLog` — interaction history
+- `projectOffice` — project-level admin data; `phases` — project phase management
+- `proposals` — project proposals; `feeProposals` — fee proposals (`fees:manage`)
+- `invoices` — GST invoicing (`invoice:manage`/`invoice:delete`); `reconcile` —
+  financial reconciliation; `purchaseOrders` — PO management
+- `permits` — building permit tracking; `approvals` — internal approval workflows
+- `transmittals` — document transmittals; `letters` / `contracts` — office
+  documents (both exported from `backend/src/modules/office/router.ts`)
+- `spec` — project specifications; `inspections` — site inspections (PDF generation)
+- `reports` — GST/TDS filing abstracts (`reports:view`)
+
+**Drawings / BOQ / Steel:**
+- `drawings` — drawing/document management; `measurements` — measurement sheets
+- `dsr` — Delhi Schedule of Rates reference; `estimates` — BOQ cost estimates;
+  `bbs` — Bar Bending Schedule (all three from `backend/src/modules/boq/`)
+- `steelflow` — Steel Arranger workflow
+
+**Team / HR / Performance:**
+- `team` / `assignments` — roster and project-staff assignments
+- `leaves` / `payroll` — HR (from `backend/src/modules/team/hr.ts`; `hr:manage`)
+- `workload` — team workload overview; `notifications` — notification system
+- `timesheets` — per-person per-day project/task time attribution with billable
+  flag; `list/create/update/remove/summary`
 - `dailyUpdates` — stand-up upsert per team member per date; `list/upsertMine/today`
 - `aspRf` — rolling 30-day ASPRF composite score; `teamScores/myScore`
 - `rewards` — reward point events with audit; `listByMember/grant` (owner-only)
+
+**Consultants / Collaborators:**
+- `consultants` — external consultant directory; `engagements` — scope/engagement
+  records; `collab` — collaborator portal sessions
+  (all three from `backend/src/modules/consultant/`)
+
+**Knowledge / RIE:**
+- `ruleVersions` / `siteAssessments` — RIE knowledge bank and site assessments
+  (`backend/src/modules/rie/router.ts`; contracts in `packages/contracts/src/rie.ts`)
+- `knowledgeBank` — knowledge catalog
+- `bylaws` — building bylaw rules; `bylawCalc` — bylaw compliance calculator
+  (both from `backend/src/modules/bylaw/`)
+
+**Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
+project critical notes; `activity` — immutable activity timeline; `dashboard` —
+computed KPIs, Action Center, health modules; `portal` — client portal access
+
+## Frontend routes (`frontend/src/routes/`)
+
+33 route files total. Key routes by area:
+
+| File | Purpose |
+|---|---|
+| `Dashboard.tsx` | KPI overview, Action Center |
+| `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
+| `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
+| `ArchivedProjects.tsx` | Archived project browser |
+| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked) |
+| `Tasks.tsx` / `Work.tsx` | Task list views (Work.tsx is the staff "my tasks" view) |
+| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hr:manage gated) |
+| `Workload.tsx` | Team workload matrix |
+| `FeeProposals.tsx` / `Invoices.tsx` | Financial documents |
+| `Proposals.tsx` | Project proposals |
+| `Reconcile.tsx` | Financial reconciliation |
+| `Consultants.tsx` | External consultants |
+| `Letters.tsx` / `Contracts.tsx` | Office documents |
+| `Filing.tsx` / `Compliance.tsx` | Regulatory filing; Compliance is an alias for KnowledgeBank |
+| `KnowledgeBank.tsx` | RIE/bylaw knowledge catalog |
+| `SteelArranger.tsx` | Steel BBS workflow tool |
+| `MasterDsr.tsx` | DSR rate reference viewer |
+| `Performance.tsx` | ASPRF performance dashboard |
+| `ActivityCenter.tsx` | Activity timeline browser |
+| `AuditLog.tsx` | Audit trail (firm:admin gated) |
+| `Alerts.tsx` | Notification/alert center |
+| `Portal.tsx` | Client portal (CLIENT role) |
+| `CollaboratorPortal.tsx` | Consultant collaborator portal |
+| `Company.tsx` | Firm profile (firm:admin) |
+| `Users.tsx` | User management (firm:admin) |
+| `Settings.tsx` | User settings |
+| `Landing.tsx` / `Login.tsx` | Unauthenticated pages |
 
 ## Domain conventions
 
