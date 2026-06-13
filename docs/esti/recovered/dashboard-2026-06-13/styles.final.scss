@@ -1,0 +1,219 @@
+// Full Carbon v11 stylesheet. Resolved via @carbon/react's package "sass"
+// entry (its root index.scss) — the bundler/Sass resolver handles the path.
+//
+// Override $font-path off Carbon's webpack-only "~@ibm/plex" default (which
+// 404s under Vite) to the IBM Plex CDN so the @font-face URLs resolve.
+@use "@carbon/react" with (
+  $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
+);
+// Access the forwarded Carbon type module for the type-style() mixin.
+@use "@carbon/react/scss/type" as type;
+
+// Drawing viewer: make the injected SVG scale to the container width so the
+// measurement overlay (same viewBox) lines up at any size.
+.dwg-base svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+// Let the themed app shell fill the viewport (no unstyled strip in dark theme).
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+// Structural-only helpers (no colour / size / decoration): let a Carbon Tile
+// fill the height of its Grid Column so rows have no background gaps, and let a
+// flex child grow within a horizontal Stack. Visuals stay 100% Carbon.
+.esti-fill {
+  height: 100%;
+}
+
+.esti-grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.esti-app-shell {
+  min-height: 100vh;
+}
+
+.esti-app-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 3rem);
+}
+
+.esti-toast-host {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cds--data-table-container {
+  overflow-x: auto;
+}
+
+.esti-login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.esti-login-panel {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.esti-chart-sm  { min-height: 10rem; }   /* ≥160 px — compact inline chart */
+.esti-chart-medium,
+.esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
+.esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
+
+// Structural-only: the dashboard uses the condensed grid (1px gutters) so
+// tiles read as a flush mosaic; match the vertical rhythm with a 1px row-gap
+// and drop the grid's extra inline padding (the app shell's Content already
+// supplies the horizontal page gutter).
+.esti-dash {
+  row-gap: 1px;
+  padding-inline: 0;
+}
+
+// Geometry-only override (no colour): square tag corners instead of pills.
+.cds--tag {
+  border-radius: 0;
+}
+
+// Structural-only: a 7-column month calendar grid (Carbon's Grid is 16 columns
+// and cannot express 7 equal day columns). Layout/spacing only — the day cells
+// themselves are Carbon Tiles.
+.esti-cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+// Personal panel: fixed right drawer — structural positioning only.
+// Carbon Theme + Tile on the inner element provides all visual treatment.
+// No scroll: content is designed to fit within the panel height.
+.esti-personal-panel {
+  position: fixed;
+  inset-inline-end: 0;
+  inset-block-start: 3rem; /* Carbon header height */
+  width: 20rem;
+  height: calc(100vh - 3rem);
+  overflow: hidden;
+  z-index: 6000;
+  display: flex;
+  flex-direction: column;
+}
+
+// Make the inner Tile fill the panel and distribute space between
+// the welcome header and the tab body using flex column layout.
+// Structural overrides: layout only, no colour or size tokens.
+.esti-personal-panel .cds--tile {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+// Header row (greeting + controls): fixed height, does not grow.
+.esti-pp-header {
+  flex: 0 0 auto;
+  padding-block-end: var(--cds-spacing-05);
+}
+
+// Tab area: fills all remaining vertical space after the header.
+.esti-pp-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+// Stretch Carbon Tabs to fill the allocated space.
+.esti-pp-tabs .cds--tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// Tab panels wrapper fills remaining height after the TabList.
+.esti-pp-tabs .cds--tabs__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// Each active tab panel is allowed to scroll internally if needed,
+// but the outer panel never scrolls.
+.esti-pp-tabs .cds--tab-content {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+// Type scale for elements outside .cds--content (e.g. the personal panel).
+// Uses only Carbon type mixins — no custom values.
+.esti-panel-shell {
+  h1 { @include type.type-style("productive-heading-04"); }
+  h2 { @include type.type-style("productive-heading-03"); }
+  h3 { @include type.type-style("productive-heading-02"); }
+  h4 { @include type.type-style("heading-compact-01"); }
+}
+
+// Header clock: flex-aligned span inside HeaderGlobalBar — structural only.
+// Color inherits from the g100 Theme wrapper around the Header.
+.esti-header-clock {
+  display: flex;
+  align-items: center;
+  padding-inline: 1rem;
+  white-space: nowrap;
+}
+
+// Floating Pomodoro timer: non-interactive, 20% opacity so it doesn't distract.
+// Opacity is an intentional UX feature (user-requested), not decorative styling.
+.esti-pomodoro-float {
+  position: fixed;
+  inset-inline-end: 1rem;
+  inset-block-end: 1rem;
+  z-index: 5000;
+  pointer-events: none;
+  opacity: 0.2;
+}
+
+// Footer: structural padding + top rule using Carbon's border-subtle token.
+// Colour comes from --cds-border-subtle (Carbon token), not a custom hex.
+.esti-footer {
+  margin-block-start: 2rem;
+  padding-block: 2rem;
+  padding-inline: 1rem;
+  border-block-start: 1px solid var(--cds-border-subtle-00);
+
+
+}
+
+// Apply Carbon productive type scale to semantic headings within the app shell.
+// Uses Carbon's type-style() mixin — all values come from @carbon/type tokens.
+// Scoped to .cds--content so Carbon component internals are unaffected.
+// Hierarchy: h1=page title (28px), h2=section (20px), h3=tile/card (16px semibold),
+// h4=sub-label (14px semibold). p elements inherit body size from Carbon's reset.
+.cds--content {
+  h1 { @include type.type-style("productive-heading-04"); }
+  h2 { @include type.type-style("productive-heading-03"); }
+  h3 { @include type.type-style("productive-heading-02"); }
+  h4 { @include type.type-style("heading-compact-01"); }
+}

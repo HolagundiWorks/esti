@@ -1,0 +1,1910 @@
+From 0e8b2b46fac59b1aa6dbf42dcf3a5d6e24d5187e Mon Sep 17 00:00:00 2001
+From: ESTI Contributors <esti@example.local>
+Date: Sat, 13 Jun 2026 07:04:08 +0530
+Subject: [PATCH 1/5] Dashboard redesign: brief-aligned hierarchy with
+ utilization + ASPRF tiles
+
+Restructures the dashboard to follow the AOMS brief's information architecture
+(Global KPI Bar -> Action Center -> Financial Health -> Project Health ->
+Client Intelligence -> Team Intelligence -> Revision/Technical Intelligence ->
+Activity Feed):
+
+- Global KPI Bar expanded to the brief's six KPIs: Ready to bill, Outstanding
+  collections, Overdue 30d+, Active projects, Team utilization (new), Revision risk
+- New dashboard.utilization query: 30-day timesheet hours vs headcount capacity
+  (~22 days x 8h) plus billable rate
+- Action Center expanded from 3 to the brief's 5 categories: overdue collections,
+  approvals pending, ready to bill (with estimated value), high-risk projects,
+  team capacity alerts
+- Project Health is now a per-project board (brief's project-card structure):
+  ref/title link, current phase, ProgressBar progress %, signal tags, health tag;
+  projectHealth query enriched with current_phase + progress_pct
+- Client Intelligence radar chart replaced with a readable signals table:
+  projects, outstanding, oldest invoice age, approval lag, revisions, risk tag
+- Team Intelligence now shows ASPRF member cards (performance score, band tag,
+  capacity tag, open/overdue/points) joining aspRf.teamScores with capacity signals
+- Removed task-minutiae charts from the dashboard (type treemap, daily task
+  gauges, workload heatmap) - workload detail lives in the Work module
+- Welcome line no longer doubles the "Ar." prefix when the name already has one
+
+Co-Authored-By: Codex Opus 4.8 <noreply@anthropic.com>
+---
+ backend/src/modules/dashboard/router.ts |   39 +
+ frontend/src/routes/Dashboard.tsx       | 1459 ++++++++++-------------
+ 2 files changed, 669 insertions(+), 829 deletions(-)
+
+diff --git a/backend/src/modules/dashboard/router.ts b/backend/src/modules/dashboard/router.ts
+index 5a1b28f1..3a8d4a9c 100644
+--- a/backend/src/modules/dashboard/router.ts
++++ b/backend/src/modules/dashboard/router.ts
+@@ -446,11 +446,45 @@ export const dashboardRouter = router({
+     };
+   }),
+ 
++  /** Team utilization over the last 30 days from timesheets. */
++  utilization: protectedProcedure.query(async ({ ctx }) => {
++    const [agg] = (await ctx.db.execute(sql`
++      select
++        coalesce(sum(hours), 0)::numeric as total_hours,
++        coalesce(sum(case when billable then hours else 0 end), 0)::numeric as billable_hours
++      from esti_timesheet
++      where entry_date >= current_date - 29
++    `)) as unknown as [{ total_hours: string; billable_hours: string }];
++    const [head] = await ctx.db
++      .select({ n: count() })
++      .from(teamMembers)
++      .where(eq(teamMembers.active, true));
++    const headcount = Number(head?.n ?? 0);
++    const total = Number(agg?.total_hours ?? 0);
++    const billable = Number(agg?.billable_hours ?? 0);
++    // Capacity baseline: ~22 working days × 8 h per active member.
++    const capacityHours = headcount * 22 * 8;
++    return {
++      headcount,
++      totalHours: Math.round(total * 10) / 10,
++      billableHours: Math.round(billable * 10) / 10,
++      utilizationPct: capacityHours > 0 ? Math.min(100, Math.round((total / capacityHours) * 100)) : 0,
++      billableRatePct: total > 0 ? Math.round((billable / total) * 100) : 0,
++    };
++  }),
++
+   /** Per-project health scores for all active projects. */
+   projectHealth: protectedProcedure.query(async ({ ctx }) => {
+     const rows = (await ctx.db.execute(sql`
+       select
+         po.id, po.ref, po.title, po.contract_value_paise,
++        (select ph2.label from esti_phase ph2 where ph2.id = po.current_phase_id) as current_phase,
++        (select count(*)::int from esti_phase pa where pa.project_id = po.id) as total_phases,
++        (select count(*)::int from esti_phase pp
++          where pp.project_id = po.id
++          and pp.sort_order <= coalesce(
++            (select cp.sort_order from esti_phase cp where cp.id = po.current_phase_id), -1
++          )) as phases_reached,
+         (select count(*)::int from esti_phase ph
+           where ph.project_id = po.id
+           and ph.sort_order <= coalesce(
+@@ -484,6 +518,7 @@ export const dashboardRouter = router({
+       order by po.ref
+     `)) as unknown as {
+       id: string; ref: string; title: string; contract_value_paise: number;
++      current_phase: string | null; total_phases: number; phases_reached: number;
+       unbilled_phases: number; overdue_tasks: number; overdue_invoices: number;
+       stale_approvals: number; revisions_open: number; critical_notes_open: number;
+     }[];
+@@ -496,11 +531,15 @@ export const dashboardRouter = router({
+       } else if (Number(r.unbilled_phases) > 0 || Number(r.overdue_tasks) > 0 || Number(r.stale_approvals) > 0 || Number(r.revisions_open) > 0 || Number(r.critical_notes_open) > 0) {
+         health = "YELLOW";
+       }
++      const totalPhases = Number(r.total_phases);
++      const reached = Number(r.phases_reached);
+       return {
+         id: r.id,
+         ref: r.ref,
+         title: r.title,
+         contractValuePaise: Number(r.contract_value_paise),
++        currentPhase: r.current_phase,
++        progressPct: totalPhases > 0 ? Math.round((reached / totalPhases) * 100) : 0,
+         health,
+         unbilledPhases: Number(r.unbilled_phases),
+         overdueTasks: Number(r.overdue_tasks),
+diff --git a/frontend/src/routes/Dashboard.tsx b/frontend/src/routes/Dashboard.tsx
+index 6ead7a52..3f3062dd 100644
+--- a/frontend/src/routes/Dashboard.tsx
++++ b/frontend/src/routes/Dashboard.tsx
+@@ -4,52 +4,49 @@ import {
+   Column,
+   Grid,
+   InlineLoading,
++  ProgressBar,
+   Stack,
+   StructuredListWrapper,
+   StructuredListBody,
+   StructuredListCell,
+   StructuredListRow,
++  Table,
++  TableBody,
++  TableCell,
++  TableContainer,
++  TableHead,
++  TableHeader,
++  TableRow,
+   Tag,
+   Tile,
+   Toggle,
+ } from "@carbon/react";
+-import {
+-  DonutChart,
+-  GaugeChart,
+-  GroupedBarChart,
+-  HeatmapChart,
+-  RadarChart,
+-  SimpleBarChart,
+-  TreemapChart,
+-} from "@carbon/charts-react";
++import { DonutChart, GroupedBarChart, SimpleBarChart } from "@carbon/charts-react";
+ import { ScaleTypes } from "@carbon/charts";
+-import type {
+-  GaugeChartOptions,
+-  HeatmapChartOptions,
+-  RadarChartOptions,
+-  TreemapChartOptions,
+-} from "@carbon/charts-react";
+ import {
+   Analytics,
+-  AuditTrail,
+   Banking,
+   Building,
+   ChartBar,
+   ChartDonut,
+   ChartLine,
+-  CollaborateWithTeams,
+   DataInsights,
+   FinanceAndOperations,
+-  Performance,
+   Receipt,
+   TeamAlignment,
+-  Time,
+   Warning_01,
+   Workflows,
+   type Pictogram,
+ } from "@carbon/pictograms-react";
+-import { ACTIVITY_DOMAIN_TAG, activityDomain, can, formatINRShort } from "@esti/contracts";
+-import { useState } from "react";
++import {
++  ACTIVITY_DOMAIN_TAG,
++  activityDomain,
++  can,
++  formatINRShort,
++  PERFORMANCE_BAND_LABEL,
++  PERFORMANCE_BAND_TAG,
++  type PerformanceBand,
++} from "@esti/contracts";
+ import { Link, useNavigate } from "react-router-dom";
+ import { useAuth } from "../lib/auth.js";
+ import { useAppTheme } from "../lib/theme-context.js";
+@@ -57,10 +54,7 @@ import { trpc } from "../lib/trpc.js";
+ 
+ // ─── constants ────────────────────────────────────────────────────────────────
+ 
+-const DOW_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+-const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+-
+-const HEALTH_LABEL: Record<string, string> = { RED: "At risk", YELLOW: "Watch", GREEN: "On track" };
++const HEALTH_LABEL: Record<string, string> = { RED: "At risk", YELLOW: "Watch", GREEN: "Healthy" };
+ const HEALTH_TAG: Record<string, "red" | "magenta" | "green"> = {
+   RED: "red",
+   YELLOW: "magenta",
+@@ -69,12 +63,17 @@ const HEALTH_TAG: Record<string, "red" | "magenta" | "green"> = {
+ const CAPACITY_LABEL: Record<string, string> = {
+   OVERLOADED: "Overloaded",
+   BUSY: "Busy",
+-  AVAILABLE: "Available",
++  HEALTHY: "Available",
+ };
+ const CAPACITY_TAG: Record<string, "red" | "magenta" | "green"> = {
+   OVERLOADED: "red",
+   BUSY: "magenta",
+-  AVAILABLE: "green",
++  HEALTHY: "green",
++};
++const RISK_TAG: Record<"LOW" | "MEDIUM" | "HIGH", "red" | "magenta" | "green"> = {
++  HIGH: "red",
++  MEDIUM: "magenta",
++  LOW: "green",
+ };
+ 
+ function formatEventType(et: string): string {
+@@ -84,7 +83,7 @@ function formatEventType(et: string): string {
+     .replace(/^\w/, (c) => c.toUpperCase());
+ }
+ 
+-// ─── date helpers ─────────────────────────────────────────────────────────────
++// ─── date helpers (statutory filing) ─────────────────────────────────────────
+ 
+ function daysUntil(iso: string): number {
+   const today = new Date();
+@@ -135,7 +134,6 @@ function dueLabel(days: number) {
+ }
+ 
+ // ─── TileHeader ───────────────────────────────────────────────────────────────
+-// Resource-card style: category Tag at top, then pictogram + h3 title.
+ 
+ function TileHeader({
+   Pict,
+@@ -168,52 +166,6 @@ function TileHeader({
+   );
+ }
+ 
+-// ─── FilingDueBoard ──────────────────────────────────────────────────────────
+-
+-function FilingDueBoard({
+-  title,
+-  Pictogram: Pict,
+-  rows,
+-  onOpen,
+-}: {
+-  title: string;
+-  Pictogram: Pictogram;
+-  rows: { label: string; iso: string }[];
+-  onOpen?: () => void;
+-}) {
+-  const fmt = (iso: string) =>
+-    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", {
+-      day: "2-digit",
+-      month: "short",
+-    });
+-  return (
+-    <Tile className="esti-fill">
+-      <Stack gap={5}>
+-        <TileHeader Pict={Pict} sub="Compliance" title={title} />
+-        <Stack gap={4}>
+-          {rows.map((r) => {
+-            const days = daysUntil(r.iso);
+-            return (
+-              <Stack key={r.label} orientation="horizontal" gap={4}>
+-                <div className="esti-grow">
+-                  <p>{r.label}</p>
+-                  <p>{fmt(r.iso)}</p>
+-                </div>
+-                <Tag type={dueTagType(days)}>{dueLabel(days)}</Tag>
+-              </Stack>
+-            );
+-          })}
+-        </Stack>
+-        {onOpen && (
+-          <Button kind="ghost" size="sm" onClick={onOpen}>
+-            Open compliance
+-          </Button>
+-        )}
+-      </Stack>
+-    </Tile>
+-  );
+-}
+-
+ // ─── KpiChip ─────────────────────────────────────────────────────────────────
+ 
+ function KpiChip({
+@@ -251,60 +203,45 @@ function KpiChip({
+   );
+ }
+ 
+-// ─── HBarBoard ───────────────────────────────────────────────────────────────
++// ─── FilingDueBoard ──────────────────────────────────────────────────────────
+ 
+-function HBarBoard({
+-  Pict,
+-  sub,
++function FilingDueBoard({
+   title,
+-  data,
+-  loading,
+-  error,
+-  formatValue,
++  Pictogram: Pict,
++  rows,
+   onOpen,
+ }: {
+-  Pict?: Pictogram;
+-  sub?: string;
+   title: string;
+-  data: { group: string; value: number }[];
+-  loading?: boolean;
+-  error?: boolean;
+-  formatValue?: (v: number) => string;
++  Pictogram: Pictogram;
++  rows: { label: string; iso: string }[];
+   onOpen?: () => void;
+ }) {
+-  const chartTheme = useAppTheme();
+-  const h = `${Math.max(160, data.length * 44)}px`;
+-  const options = {
+-    axes: {
+-      left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
+-      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+-    },
+-    height: h,
+-    theme: chartTheme,
+-    toolbar: { enabled: false },
+-    legend: { enabled: false },
+-    ...(formatValue ? { tooltip: { valueFormatter: formatValue } } : {}),
+-  };
++  const fmt = (iso: string) =>
++    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", {
++      day: "2-digit",
++      month: "short",
++    });
+   return (
+     <Tile className="esti-fill">
+       <Stack gap={5}>
+-        {Pict && sub ? (
+-          <TileHeader Pict={Pict} sub={sub} title={title} />
+-        ) : (
+-          <h3>{title}</h3>
+-        )}
+-        {loading ? (
+-          <InlineLoading description="Loading…" />
+-        ) : error ? (
+-          <Tag type="red">Data unavailable</Tag>
+-        ) : data.length === 0 ? (
+-          <p>No data available.</p>
+-        ) : (
+-          <SimpleBarChart data={data} options={options} />
+-        )}
++        <TileHeader Pict={Pict} sub="Statutory" title={title} />
++        <Stack gap={4}>
++          {rows.map((r) => {
++            const days = daysUntil(r.iso);
++            return (
++              <Stack key={r.label} orientation="horizontal" gap={4}>
++                <div className="esti-grow">
++                  <p>{r.label}</p>
++                  <p>{fmt(r.iso)}</p>
++                </div>
++                <Tag type={dueTagType(days)}>{dueLabel(days)}</Tag>
++              </Stack>
++            );
++          })}
++        </Stack>
+         {onOpen && (
+           <Button kind="ghost" size="sm" onClick={onOpen}>
+-            View details
++            Open filing
+           </Button>
+         )}
+       </Stack>
+@@ -312,7 +249,7 @@ function HBarBoard({
+   );
+ }
+ 
+-// ─── FinancialDonut ──────────────────────────────────────────────────────────
++// ─── Financial Health charts ─────────────────────────────────────────────────
+ 
+ type FinancialData = {
+   activePipelinePaise: number;
+@@ -353,7 +290,7 @@ function FinancialDonut({
+   return (
+     <Tile className="esti-fill">
+       <Stack gap={5}>
+-        <TileHeader Pict={FinanceAndOperations} sub="Firm financials" title="Financial health" />
++        <TileHeader Pict={FinanceAndOperations} sub="Cash flow" title="Revenue breakdown" />
+         {loading ? (
+           <InlineLoading description="Loading financial data…" />
+         ) : chartData.length === 0 ? (
+@@ -371,8 +308,6 @@ function FinancialDonut({
+   );
+ }
+ 
+-// ─── RevenuePipelineBar ──────────────────────────────────────────────────────
+-
+ function RevenuePipelineBar({
+   data,
+   loading,
+@@ -397,7 +332,7 @@ function RevenuePipelineBar({
+       left: { mapsTo: "key", scaleType: ScaleTypes.LABELS },
+       bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+     },
+-    height: "300px",
++    height: "260px",
+     theme: chartTheme,
+     toolbar: { enabled: false },
+     legend: { enabled: true, position: "bottom" as const },
+@@ -408,7 +343,7 @@ function RevenuePipelineBar({
+   return (
+     <Tile className="esti-fill">
+       <Stack gap={5}>
+-        <TileHeader Pict={ChartBar} sub="Breakdown by category" title="Revenue pipeline" />
++        <TileHeader Pict={ChartBar} sub="Expected → billed → collected" title="Revenue pipeline" />
+         {loading ? (
+           <InlineLoading description="Loading…" />
+         ) : (
+@@ -424,55 +359,43 @@ function RevenuePipelineBar({
+   );
+ }
+ 
+-// ─── ClientRadar ─────────────────────────────────────────────────────────────
+-
+-type ClientSignal = {
+-  id: string;
+-  name: string;
+-  activeProjects: number;
+-  outstandingPaise: number;
+-  oldestInvoiceDays: number;
+-  revisionRequests: number;
+-};
+-
+-function ClientRadar({
++function ReceivablesAging({
+   data,
+   loading,
++  error,
+   onOpen,
+ }: {
+-  data?: ClientSignal[];
+-  loading: boolean;
++  data: { group: string; value: number }[];
++  loading?: boolean;
++  error?: boolean;
+   onOpen?: () => void;
+ }) {
+   const chartTheme = useAppTheme();
+-  const chartData = (data ?? []).flatMap((c) => [
+-    { group: c.name, key: "Payment risk", value: Math.min(c.outstandingPaise / 1_00_00_000, 1) * 100 },
+-    { group: c.name, key: "Invoice age", value: Math.min(c.oldestInvoiceDays / 90, 1) * 100 },
+-    { group: c.name, key: "Revisions", value: Math.min(c.revisionRequests / 10, 1) * 100 },
+-    { group: c.name, key: "Project load", value: Math.min(c.activeProjects / 5, 1) * 100 },
+-  ]);
+-  const options: RadarChartOptions = {
+-    radar: { axes: { angle: "key", value: "value" } },
+-    height: "320px",
++  const options = {
++    axes: {
++      left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
++      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
++    },
++    height: "200px",
+     theme: chartTheme,
+     toolbar: { enabled: false },
+-    legend: { enabled: true, position: "bottom" as const },
+-    tooltip: { valueFormatter: (v: unknown) => `${Math.round(Number(v))}%` },
+-    accessibility: { svgAriaLabel: "Client risk radar" },
++    legend: { enabled: false },
++    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+   };
+-  if (!loading && (data?.length ?? 0) === 0) return null;
+   return (
+     <Tile className="esti-fill">
+       <Stack gap={5}>
+-        <TileHeader Pict={Analytics} sub="Client signals" title="Client intelligence" />
++        <TileHeader Pict={Banking} sub="Overdue breakdown" title="Receivables aging" />
+         {loading ? (
+-          <InlineLoading description="Loading client data…" />
++          <InlineLoading description="Loading…" />
++        ) : error ? (
++          <Tag type="red">Data unavailable</Tag>
+         ) : (
+-          <RadarChart data={chartData} options={options} />
++          <SimpleBarChart data={data} options={options} />
+         )}
+         {onOpen && (
+           <Button kind="ghost" size="sm" onClick={onOpen}>
+-            Open clients
++            Open invoices
+           </Button>
+         )}
+       </Stack>
+@@ -480,65 +403,16 @@ function ClientRadar({
+   );
+ }
+ 
+-// ─── ProjectStatusNumbers ────────────────────────────────────────────────────
+-
+-function ProjectStatusNumbers({
+-  byStatus,
+-  loading,
+-  error,
+-  onOpen,
+-}: {
+-  byStatus: Record<string, number>;
+-  loading?: boolean;
+-  error?: boolean;
+-  onOpen: () => void;
+-}) {
+-  const active = byStatus.ACTIVE ?? 0;
+-  const onHold = byStatus.ON_HOLD ?? 0;
+-  const closed = (byStatus.COMPLETED ?? 0) + (byStatus.CANCELLED ?? 0);
+-  const cells = [
+-    { label: "Active", value: active, tagType: "blue" as const, tagText: "Live" },
+-    { label: "On hold", value: onHold, tagType: "magenta" as const, tagText: "Paused" },
+-    { label: "Closed", value: closed, tagType: "gray" as const, tagText: "Done" },
+-  ];
+-  return (
+-    <ClickableTile className="esti-fill" onClick={onOpen}>
+-      <Stack gap={5}>
+-        <TileHeader Pict={Building} sub="Projects" title="Status overview" />
+-        {loading ? (
+-          <InlineLoading description="Loading…" />
+-        ) : error ? (
+-          <Tag type="red">Unavailable</Tag>
+-        ) : (
+-          <Stack orientation="horizontal" gap={5}>
+-            {cells.map((c) => (
+-              <Stack key={c.label} gap={2}>
+-                <p>{c.label}</p>
+-                <h2>{c.value}</h2>
+-                <Tag type={c.tagType} size="sm">
+-                  {c.tagText}
+-                </Tag>
+-              </Stack>
+-            ))}
+-          </Stack>
+-        )}
+-      </Stack>
+-    </ClickableTile>
+-  );
+-}
+-
+ // ─── PhaseDonut ──────────────────────────────────────────────────────────────
+ 
+ function PhaseDonut({
+   data,
+   loading,
+   error,
+-  onOpen,
+ }: {
+   data: { label: string; count: number }[];
+   loading?: boolean;
+   error?: boolean;
+-  onOpen?: () => void;
+ }) {
+   const chartTheme = useAppTheme();
+   const chartData = data.map((p) => ({ group: p.label, value: p.count }));
+@@ -556,11 +430,7 @@ function PhaseDonut({
+   return (
+     <Tile className="esti-fill">
+       <Stack gap={5}>
+-        <TileHeader
+-          Pict={ChartDonut}
+-          sub="Current stage distribution"
+-          title="Projects by phase"
+-        />
++        <TileHeader Pict={ChartDonut} sub="Phase tracking" title="Projects by stage" />
+         {loading ? (
+           <InlineLoading description="Loading…" />
+         ) : error ? (
+@@ -568,294 +438,77 @@ function PhaseDonut({
+         ) : (
+           <DonutChart data={chartData} options={options} />
+         )}
+-        {onOpen && (
+-          <Button kind="ghost" size="sm" onClick={onOpen}>
+-            Open projects
+-          </Button>
+-        )}
+       </Stack>
+     </Tile>
+   );
+ }
+ 
+-// ─── TypeTreemap ─────────────────────────────────────────────────────────────
++// ─── Dashboard ───────────────────────────────────────────────────────────────
+ 
+-function TypeTreemap({
+-  data,
+-  loading,
+-  error,
+-  onOpen,
+-}: {
+-  data: { type: string; count: number }[];
+-  loading?: boolean;
+-  error?: boolean;
+-  onOpen?: () => void;
+-}) {
+-  const chartTheme = useAppTheme();
+-  const chartData = data.map((t) => ({ name: t.type, value: t.count }));
+-  const options: TreemapChartOptions = {
+-    toolbar: { enabled: false },
+-    height: "280px",
+-    theme: chartTheme,
+-    color: {
+-      pairing: { option: 1, numberOfVariants: Math.max(data.length, 2) },
+-    } as TreemapChartOptions["color"],
+-    tooltip: {
+-      valueFormatter: (v: unknown) =>
+-        `${v} project${Number(v) !== 1 ? "s" : ""}`,
+-    },
+-    accessibility: { svgAriaLabel: "Projects by architecture type" },
+-  };
+-  if (!loading && !error && chartData.length === 0) return null;
+-  return (
+-    <Tile className="esti-fill">
+-      <Stack gap={5}>
+-        <TileHeader Pict={DataInsights} sub="Architecture category" title="Projects by type" />
+-        {loading ? (
+-          <InlineLoading description="Loading…" />
+-        ) : error ? (
+-          <Tag type="red">Data unavailable</Tag>
+-        ) : (
+-          <TreemapChart data={chartData} options={options} />
+-        )}
+-        {onOpen && (
+-          <Button kind="ghost" size="sm" onClick={onOpen}>
+-            Open projects
+-          </Button>
+-        )}
+-      </Stack>
+-    </Tile>
+-  );
+-}
++export function Dashboard() {
++  const { user } = useAuth();
++  const navigate = useNavigate();
+ 
+-// ─── DailyTaskGauges ─────────────────────────────────────────────────────────
++  const summary = trpc.dashboard.summary.useQuery();
++  const boardsQ = trpc.dashboard.boards.useQuery();
++  const acQ = trpc.dashboard.actionCenter.useQuery();
++  const fhQ = trpc.dashboard.financialHealth.useQuery();
++  const phQ = trpc.dashboard.projectHealth.useQuery();
++  const ciQ = trpc.dashboard.clientIntelligence.useQuery();
++  const tiQ = trpc.dashboard.teamIntelligence.useQuery();
++  const riQ = trpc.dashboard.revisionIntelligence.useQuery();
++  const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
++  const utilQ = trpc.dashboard.utilization.useQuery();
++  const aspQ = trpc.aspRf.teamScores.useQuery();
++  const activityQ = trpc.activity.listOffice.useQuery({ limit: 6, visibility: "STAFF" });
+ 
+-const GAUGE_MAX = 10;
++  const s = summary.data;
++  const b = boardsQ.data;
++  const summaryLoading = summary.isLoading && !s;
++  const boardsLoading = boardsQ.isLoading && !b;
++  const boardsError = boardsQ.isError && !b;
+ 
+-function DailyTaskGauges({
+-  data,
+-  loading,
+-  error,
+-}: {
+-  data: { assignee: string; count: number }[];
+-  loading?: boolean;
+-  error?: boolean;
+-}) {
+-  const chartTheme = useAppTheme();
+-  if (!loading && !error && data.length === 0) return null;
+-  return (
+-    <Tile className="esti-fill">
+-      <Stack gap={5}>
+-        <TileHeader Pict={Time} sub="Tasks due today — per person" title="Daily task load" />
+-        {loading ? (
+-          <InlineLoading description="Loading daily load…" />
+-        ) : error ? (
+-          <Tag type="red">Data unavailable</Tag>
+-        ) : (
+-          <Grid narrow>
+-            {data.map((d) => {
+-              const pct = (Math.min(d.count, GAUGE_MAX) / GAUGE_MAX) * 100;
+-              const status =
+-                d.count >= 8 ? "danger" : d.count >= 5 ? "warning" : undefined;
+-              const tagType =
+-                status === "danger"
+-                  ? ("red" as const)
+-                  : status === "warning"
+-                    ? ("magenta" as const)
+-                    : ("green" as const);
+-              const opts: GaugeChartOptions = {
+-                gauge: {
+-                  type: "semi",
+-                  arcWidth: 20,
+-                  showPercentageSymbol: false,
+-                  numberFormatter: () => String(d.count),
+-                  ...(status ? { status } : {}),
+-                },
+-                height: "160px",
+-                theme: chartTheme,
+-                toolbar: { enabled: false },
+-                legend: { enabled: false },
+-                accessibility: {
+-                  svgAriaLabel: `${d.assignee}: ${d.count} tasks today`,
+-                },
+-              };
+-              return (
+-                <Column key={d.assignee} lg={4} md={4} sm={4}>
+-                  <Stack gap={3}>
+-                    <p>{d.assignee}</p>
+-                    <GaugeChart
+-                      data={[
+-                        { group: "value", value: pct },
+-                        { group: "remaining", value: 100 - pct },
+-                      ]}
+-                      options={opts}
+-                    />
+-                    <Tag type={tagType} size="sm">
+-                      {d.count} task{d.count !== 1 ? "s" : ""} today
+-                    </Tag>
+-                  </Stack>
+-                </Column>
+-              );
+-            })}
+-          </Grid>
+-        )}
+-      </Stack>
+-    </Tile>
+-  );
+-}
++  const canFees = can(user?.role, "fees:manage");
++  const isAdmin = can(user?.role, "firm:admin");
+ 
+-// ─── WorkloadHeatmap ─────────────────────────────────────────────────────────
++  const utils = trpc.useUtils();
++  const settingsQ = trpc.settings.get.useQuery();
++  const showFinancial = settingsQ.data?.financialEnabled ?? true;
++  const showProject = settingsQ.data?.projectEnabled ?? true;
++  const setModule = trpc.settings.setModuleEnabled.useMutation({
++    onSuccess: () => utils.settings.get.invalidate(),
++  });
+ 
+-type HeatRow = { assignee: string; dow: number; count: number };
+-type DayRow = { assignee: string; day: string; count: number };
++  // Action Center derived data — the brief's five categories.
++  const billingReady = acQ.data?.billingReadyPhases ?? [];
++  const overdueInvoices = acQ.data?.overdueInvoices ?? [];
++  const pendingApprovals = acQ.data?.pendingApprovals ?? [];
++  const riskProjects = (phQ.data ?? []).filter((p) => p.health === "RED");
++  const overloadedMembers = (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED");
++  const acTotal =
++    billingReady.length +
++    overdueInvoices.length +
++    pendingApprovals.length +
++    riskProjects.length +
++    overloadedMembers.length;
+ 
+-function WorkloadHeatmap({
+-  weekly,
+-  daily,
+-  loading,
+-  error,
+-  onOpen,
+-}: {
+-  weekly: HeatRow[];
+-  daily: DayRow[];
+-  loading?: boolean;
+-  error?: boolean;
+-  onOpen?: () => void;
+-}) {
+-  const chartTheme = useAppTheme();
+-  const [mode, setMode] = useState<"weekly" | "daily">("weekly");
++  const agingData = [
++    { group: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
++    { group: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
++    { group: "60+ days", value: b?.receivablesAging.d60p ?? 0 },
++  ];
++  const agingEmpty = agingData.every((d) => d.value === 0);
+ 
+-  const weeklyData = DOW_ORDER.flatMap((dow) => {
+-    const label = DOW_LABEL[dow]!;
+-    const assignees = [...new Set(weekly.map((r) => r.assignee))];
+-    return assignees.map((a) => ({
+-      group: a,
+-      day: label,
+-      value: weekly.find((r) => r.assignee === a && r.dow === dow)?.count ?? 0,
+-    }));
+-  });
+-  const dailyData = daily.map((r) => ({
+-    group: r.assignee,
+-    day: r.day,
+-    value: r.count,
+-  }));
+-  const activeData = mode === "weekly" ? weeklyData : dailyData;
+-  const noData = mode === "weekly" ? weekly.length === 0 : daily.length === 0;
++  const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
+ 
+-  const opts: HeatmapChartOptions = {
+-    axes: {
+-      bottom: {
+-        title: mode === "weekly" ? "Weekday" : "Due date",
+-        mapsTo: "day",
+-        scaleType: ScaleTypes.LABELS,
+-      },
+-      left: { title: "Person", mapsTo: "group", scaleType: ScaleTypes.LABELS },
+-    },
+-    heatmap: { colorLegend: { type: "linear" as const } },
+-    height: `${Math.max(200, [...new Set(activeData.map((d) => d.group))].length * 40 + 80)}px`,
+-    theme: chartTheme,
+-    toolbar: { enabled: false },
+-    legend: { enabled: false },
+-    tooltip: {
+-      valueFormatter: (v: unknown) =>
+-        `${v} task${Number(v) !== 1 ? "s" : ""}`,
+-    },
+-    accessibility: { svgAriaLabel: `Workload heatmap — ${mode} view` },
+-  };
+-
+-  if (!loading && !error && weekly.length === 0 && daily.length === 0) return null;
++  // Team intelligence: join ASPRF scores with capacity signals (by member name).
++  const capacityByName = new Map((tiQ.data ?? []).map((m) => [m.assignee, m]));
++  const teamCards = (aspQ.data ?? []).slice(0, 8);
+ 
+-  return (
+-    <Tile className="esti-fill">
+-      <Stack gap={5}>
+-        <Stack orientation="horizontal" gap={4}>
+-          <div className="esti-grow">
+-            <TileHeader
+-              Pict={CollaborateWithTeams}
+-              sub="Open tasks per person"
+-              title="Workload heatmap"
+-            />
+-          </div>
+-          <Toggle
+-            id="heatmap-mode"
+-            size="sm"
+-            labelText="View mode"
+-            labelA="Weekly"
+-            labelB="Daily"
+-            toggled={mode === "daily"}
+-            onToggle={(on) => setMode(on ? "daily" : "weekly")}
+-          />
+-        </Stack>
+-        {loading ? (
+-          <InlineLoading description="Loading workload…" />
+-        ) : error ? (
+-          <Tag type="red">Data unavailable</Tag>
+-        ) : noData ? (
+-          <p>No open tasks with due dates assigned.</p>
+-        ) : (
+-          <HeatmapChart data={activeData} options={opts} />
+-        )}
+-        {onOpen && (
+-          <Button kind="ghost" size="sm" onClick={onOpen}>
+-            Open workload
+-          </Button>
+-        )}
+-      </Stack>
+-    </Tile>
++  const readyToBillSum = billingReady.reduce(
++    (sum, ph) => sum + Math.round((ph.billingPct * ph.contractValuePaise) / 100),
++    0,
+   );
+-}
+-
+-// ─── Dashboard ───────────────────────────────────────────────────────────────
+-
+-export function Dashboard() {
+-  const { user } = useAuth();
+-  const navigate = useNavigate();
+-
+-  const summary = trpc.dashboard.summary.useQuery();
+-  const boardsQ = trpc.dashboard.boards.useQuery();
+-  const acQ = trpc.dashboard.actionCenter.useQuery();
+-  const fhQ = trpc.dashboard.financialHealth.useQuery();
+-  const phQ = trpc.dashboard.projectHealth.useQuery();
+-  const ciQ = trpc.dashboard.clientIntelligence.useQuery();
+-  const tiQ = trpc.dashboard.teamIntelligence.useQuery();
+-  const riQ = trpc.dashboard.revisionIntelligence.useQuery();
+-  const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
+-  const activityQ = trpc.activity.listOffice.useQuery({ limit: 8, visibility: "STAFF" });
+-
+-  const s = summary.data;
+-  const b = boardsQ.data;
+-  const summaryLoading = summary.isLoading && !s;
+-  const boardsLoading = boardsQ.isLoading && !b;
+-  const summaryError = summary.isError && !s;
+-  const boardsError = boardsQ.isError && !b;
+-
+-  const byPhase = b?.byPhase ?? [];
+-  const byType = b?.byType ?? [];
+-
+-  const canFees = can(user?.role, "fees:manage");
+-  const isAdmin = can(user?.role, "firm:admin");
+-
+-  const utils = trpc.useUtils();
+-  const settingsQ = trpc.settings.get.useQuery();
+-  const showFinancial = settingsQ.data?.financialEnabled ?? true;
+-  const showProject = settingsQ.data?.projectEnabled ?? true;
+-  const setModule = trpc.settings.setModuleEnabled.useMutation({
+-    onSuccess: () => utils.settings.get.invalidate(),
+-  });
+-
+-  const acTotal =
+-    (acQ.data?.billingReadyPhases.length ?? 0) +
+-    (acQ.data?.overdueInvoices.length ?? 0) +
+-    (acQ.data?.pendingApprovals.length ?? 0);
+-
+-  const agingData = [
+-    { group: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
+-    { group: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
+-    { group: "60+ days", value: b?.receivablesAging.d60p ?? 0 },
+-  ];
+-  const agingEmpty = agingData.every((d) => d.value === 0);
+-
+-  const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
+ 
+   return (
+     <Grid fullWidth className="esti-dash">
+@@ -867,21 +520,86 @@ export function Dashboard() {
+           <div>
+             <h1>Office dashboard</h1>
+             {user?.fullName && (
+-              <p>Welcome, Ar. {user.fullName.split(" ")[0]}</p>
++              <p>Welcome, Ar. {user.fullName.replace(/^Ar\.?\s+/i, "").split(" ")[0]}</p>
+             )}
+           </div>
+         </Stack>
+       </Column>
+ 
+-      {/* ═══ Zone 1: Action Center ═════════════════════════════════════════ */}
++      {/* ═══ Zone 1: Global KPI Bar — six studio-wide signals ═════════════ */}
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Ready to bill"
++          value={formatINRShort(fhQ.data?.readyToBillPaise ?? 0)}
++          tagType="green"
++          tagText={`${billingReady.length} phase${billingReady.length !== 1 ? "s" : ""}`}
++          onClick={() => navigate("/invoices")}
++          loading={fhQ.isLoading || acQ.isLoading}
++        />
++      </Column>
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Outstanding collections"
++          value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
++          tagType="magenta"
++          tagText="Unpaid invoices"
++          onClick={() => navigate("/invoices")}
++          loading={fhQ.isLoading}
++        />
++      </Column>
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Overdue 30d+"
++          value={formatINRShort(fhQ.data?.overdue30dPaise ?? 0)}
++          tagType="red"
++          tagText={`${overdueInvoices.length} invoice${overdueInvoices.length !== 1 ? "s" : ""}`}
++          onClick={() => navigate("/invoices")}
++          loading={fhQ.isLoading || acQ.isLoading}
++        />
++      </Column>
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Active projects"
++          value={s?.projects.byStatus.ACTIVE ?? 0}
++          tagType="blue"
++          tagText={`${riskProjects.length} at risk`}
++          onClick={() => navigate("/projects")}
++          loading={summaryLoading}
++        />
++      </Column>
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Team utilization"
++          value={utilQ.data ? `${utilQ.data.utilizationPct}%` : "—"}
++          tagType="teal"
++          tagText={
++            utilQ.data && utilQ.data.totalHours > 0
++              ? `${utilQ.data.billableRatePct}% billable`
++              : "No timesheets yet"
++          }
++          onClick={() => navigate("/tasks?tab=timesheets")}
++          loading={utilQ.isLoading}
++        />
++      </Column>
++      <Column lg={4} md={4} sm={2}>
++        <KpiChip
++          label="Revision risk"
++          value={riQ.data?.revisionRiskBand ?? "—"}
++          tagType={RISK_TAG[riQ.data?.revisionRiskBand ?? "LOW"]}
++          tagText={`Health ${riQ.data?.healthScore ?? "—"}`}
++          onClick={() => navigate("/projects")}
++          loading={riQ.isLoading}
++        />
++      </Column>
++
++      {/* ═══ Zone 2: Action Center — the brief's five urgent categories ════ */}
+       <Column lg={16} md={8} sm={4}>
+         <Tile>
+           <Stack gap={6}>
+-            {/* Resource-card header: status Tag + title */}
+             <Stack gap={3}>
+               <Stack orientation="horizontal" gap={2}>
+                 <Tag type="gray" size="sm">Action Center</Tag>
+-                {acQ.data && !acQ.isLoading && (
++                {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
+                   <Tag type={acTotal > 0 ? "red" : "green"} size="sm">
+                     {acTotal > 0
+                       ? `${acTotal} item${acTotal !== 1 ? "s" : ""}`
+@@ -901,45 +619,22 @@ export function Dashboard() {
+               <p>All clear — no outstanding items.</p>
+             ) : (
+               <Grid narrow>
+-                <Column lg={4} md={4} sm={4}>
+-                  <Stack gap={4}>
+-                    <h4>Ready to bill</h4>
+-                    {(acQ.data?.billingReadyPhases.length ?? 0) === 0 ? (
+-                      <p>No phases awaiting invoice.</p>
+-                    ) : (
+-                      <Stack gap={3}>
+-                        <h2>{acQ.data!.billingReadyPhases.length}</h2>
+-                        <p>Phases awaiting invoice</p>
+-                        <Button
+-                          kind="ghost"
+-                          size="sm"
+-                          onClick={() => navigate("/invoices")}
+-                        >
+-                          Open invoices
+-                        </Button>
+-                      </Stack>
+-                    )}
+-                  </Stack>
+-                </Column>
++                {/* Overdue collections — money first */}
+                 <Column lg={6} md={4} sm={4}>
+                   <Stack gap={4}>
+                     <Stack orientation="horizontal" gap={3}>
+                       <h4>Overdue collections</h4>
+-                      <Tag type="red" size="sm">
+-                        {acQ.data?.overdueInvoices.length ?? 0}
+-                      </Tag>
++                      <Tag type="red" size="sm">{overdueInvoices.length}</Tag>
+                     </Stack>
+-                    {(acQ.data?.overdueInvoices.length ?? 0) === 0 ? (
++                    {overdueInvoices.length === 0 ? (
+                       <p>No invoices overdue beyond 30 days.</p>
+                     ) : (
+                       <StructuredListWrapper isCondensed>
+                         <StructuredListBody>
+-                          {acQ.data!.overdueInvoices.map((inv) => (
++                          {overdueInvoices.slice(0, 6).map((inv) => (
+                             <StructuredListRow key={inv.id}>
+                               <StructuredListCell>
+-                                <Link
+-                                  to={`/projects/${inv.projectId}?tab=invoices`}
+-                                >
++                                <Link to={`/projects/${inv.projectId}?tab=invoices`}>
+                                   {inv.ref}
+                                 </Link>
+                                 <p>
+@@ -959,25 +654,23 @@ export function Dashboard() {
+                     )}
+                   </Stack>
+                 </Column>
+-                <Column lg={6} md={4} sm={4}>
++
++                {/* Pending client approvals */}
++                <Column lg={5} md={4} sm={4}>
+                   <Stack gap={4}>
+                     <Stack orientation="horizontal" gap={3}>
+-                      <h4>Pending approvals</h4>
+-                      <Tag type="magenta" size="sm">
+-                        {acQ.data?.pendingApprovals.length ?? 0}
+-                      </Tag>
++                      <h4>Approvals pending</h4>
++                      <Tag type="magenta" size="sm">{pendingApprovals.length}</Tag>
+                     </Stack>
+-                    {(acQ.data?.pendingApprovals.length ?? 0) === 0 ? (
+-                      <p>No items awaiting response.</p>
++                    {pendingApprovals.length === 0 ? (
++                      <p>No items awaiting client response.</p>
+                     ) : (
+                       <StructuredListWrapper isCondensed>
+                         <StructuredListBody>
+-                          {acQ.data!.pendingApprovals.map((ap) => (
++                          {pendingApprovals.slice(0, 6).map((ap) => (
+                             <StructuredListRow key={ap.id}>
+                               <StructuredListCell>
+-                                <Link
+-                                  to={`/projects/${ap.projectId}?tab=approvals`}
+-                                >
++                                <Link to={`/projects/${ap.projectId}?tab=approvals`}>
+                                   {ap.projectRef}
+                                 </Link>
+                                 <p>{ap.title}</p>
+@@ -994,362 +687,478 @@ export function Dashboard() {
+                     )}
+                   </Stack>
+                 </Column>
++
++                {/* Ready to bill + risk + capacity — numeric trio */}
++                <Column lg={5} md={8} sm={4}>
++                  <Stack gap={6}>
++                    <Stack gap={3}>
++                      <h4>Ready to bill</h4>
++                      <Stack orientation="horizontal" gap={4}>
++                        <h2>{billingReady.length}</h2>
++                        <div>
++                          <p>Phases awaiting invoice</p>
++                          <p>{formatINRShort(readyToBillSum)} estimated</p>
++                        </div>
++                      </Stack>
++                      <Button kind="ghost" size="sm" onClick={() => navigate("/invoices")}>
++                        Open invoices
++                      </Button>
++                    </Stack>
++
++                    <Stack gap={3}>
++                      <Stack orientation="horizontal" gap={3}>
++                        <h4>High-risk projects</h4>
++                        <Tag type={riskProjects.length > 0 ? "red" : "green"} size="sm">
++                          {riskProjects.length}
++                        </Tag>
++                      </Stack>
++                      {riskProjects.length === 0 ? (
++                        <p>No projects at risk.</p>
++                      ) : (
++                        <Stack gap={2}>
++                          {riskProjects.slice(0, 3).map((p) => (
++                            <p key={p.id}>
++                              <Link to={`/projects/${p.id}`}>{p.ref}</Link> — {p.title}
++                            </p>
++                          ))}
++                        </Stack>
++                      )}
++                    </Stack>
++
++                    <Stack gap={3}>
++                      <Stack orientation="horizontal" gap={3}>
++                        <h4>Capacity alerts</h4>
++                        <Tag type={overloadedMembers.length > 0 ? "red" : "green"} size="sm">
++                          {overloadedMembers.length}
++                        </Tag>
++                      </Stack>
++                      {overloadedMembers.length === 0 ? (
++                        <p>No overloaded team members.</p>
++                      ) : (
++                        <Stack gap={2}>
++                          {overloadedMembers.slice(0, 3).map((m) => (
++                            <Stack key={m.assignee} orientation="horizontal" gap={3}>
++                              <Tag type="red" size="sm">{m.overdueCount} overdue</Tag>
++                              <p>{m.assignee} · {m.totalOpen} open</p>
++                            </Stack>
++                          ))}
++                        </Stack>
++                      )}
++                    </Stack>
++                  </Stack>
++                </Column>
+               </Grid>
+             )}
+           </Stack>
+         </Tile>
+       </Column>
+ 
+-      {/* ═══ Zone 2: Key metrics — 4 equal chips ═══════════════════════════ */}
+-      <Column lg={4} md={4} sm={2}>
+-        <KpiChip
+-          label="Revenue due"
+-          value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
+-          tagType="red"
+-          tagText="Outstanding"
+-          onClick={() => navigate("/invoices")}
+-          loading={fhQ.isLoading}
+-        />
+-      </Column>
+-      <Column lg={4} md={4} sm={2}>
+-        <KpiChip
+-          label="Ready to bill"
+-          value={formatINRShort(fhQ.data?.readyToBillPaise ?? 0)}
+-          tagType="green"
+-          tagText={`${acQ.data?.billingReadyPhases.length ?? 0} phases`}
+-          onClick={() => navigate("/invoices")}
+-          loading={fhQ.isLoading || acQ.isLoading}
+-        />
+-      </Column>
+-      <Column lg={4} md={4} sm={2}>
+-        <KpiChip
+-          label="Active projects"
+-          value={s?.projects.byStatus.ACTIVE ?? 0}
+-          tagType="blue"
+-          tagText="Live pipeline"
+-          onClick={() => navigate("/projects")}
+-          loading={summaryLoading}
+-        />
+-      </Column>
+-      <Column lg={4} md={4} sm={2}>
+-        <KpiChip
+-          label="Revision risk"
+-          value={riQ.data?.revisionRiskBand ?? "—"}
+-          tagType={
+-            riQ.data?.revisionRiskBand === "HIGH" ? "red"
+-              : riQ.data?.revisionRiskBand === "MEDIUM" ? "magenta"
+-              : "green"
+-          }
+-          tagText={`Health ${riQ.data?.healthScore ?? "—"}`}
+-          onClick={() => navigate("/projects")}
+-          loading={acQ.isLoading || riQ.isLoading}
+-        />
+-      </Column>
++      {/* ═══ Zone 3: Financial Health ══════════════════════════════════════ */}
++      {canFees && showFinancial && (
++        <>
++          <Column lg={16} md={8} sm={4}>
++            <h4>Financial health</h4>
++          </Column>
++          <Column lg={6} md={8} sm={4}>
++            <FinancialDonut
++              data={fhQ.data}
++              loading={fhQ.isLoading}
++              onOpen={() => navigate("/invoices")}
++            />
++          </Column>
++          <Column lg={6} md={8} sm={4}>
++            <RevenuePipelineBar
++              data={fhQ.data}
++              loading={fhQ.isLoading}
++              onOpen={() => navigate("/accounting/fees")}
++            />
++          </Column>
++          <Column lg={4} md={8} sm={4}>
++            {agingEmpty ? (
++              <Tile className="esti-fill">
++                <Stack gap={5}>
++                  <TileHeader Pict={Banking} sub="Overdue breakdown" title="Receivables aging" />
++                  <p>No outstanding receivables.</p>
++                </Stack>
++              </Tile>
++            ) : (
++              <ReceivablesAging
++                data={agingData}
++                loading={boardsLoading}
++                error={boardsError}
++                onOpen={() => navigate("/invoices")}
++              />
++            )}
++          </Column>
++        </>
++      )}
+ 
+-      {/* ═══ Zone 3: Portfolio & Workload ══════════════════════════════════ */}
++      {/* ═══ Zone 4: Project Health — per-project cards ════════════════════ */}
+       {showProject && (
+         <>
+           <Column lg={16} md={8} sm={4}>
+-            <h4>Portfolio &amp; workload</h4>
++            <h4>Project health</h4>
+           </Column>
+ 
+-          {/* Row A: project health (lg=4) + status overview (lg=4) + phase donut (lg=8) */}
+-          <Column lg={4} md={4} sm={4}>
++          <Column lg={10} md={8} sm={4}>
+             <Tile className="esti-fill">
+               <Stack gap={5}>
+                 <TileHeader
+-                  Pict={Performance}
+-                  sub="Project intelligence"
+-                  title="Project health"
++                  Pict={Building}
++                  sub="Active projects"
++                  title="Project health board"
++                  statusTag={
++                    phQ.data
++                      ? {
++                          text: `${riskProjects.length} at risk`,
++                          type: riskProjects.length > 0 ? "red" : "green",
++                        }
++                      : undefined
++                  }
+                 />
+                 {phQ.isLoading ? (
+-                  <InlineLoading description="Loading…" />
++                  <InlineLoading description="Loading projects…" />
+                 ) : (phQ.data?.length ?? 0) === 0 ? (
+                   <p>No active projects.</p>
+                 ) : (
+-                  <Stack gap={5}>
+-                    {(["RED", "YELLOW", "GREEN"] as const).map((k) => {
+-                      const count = phQ.data!.filter((p) => p.health === k).length;
+-                      return (
+-                        <Stack key={k} gap={2}>
+-                          <p>{HEALTH_LABEL[k]}</p>
+-                          <h2>{count}</h2>
+-                          <Tag type={HEALTH_TAG[k]} size="sm">
+-                            {count} project{count !== 1 ? "s" : ""}
+-                          </Tag>
+-                        </Stack>
+-                      );
+-                    })}
+-                  </Stack>
++                  <TableContainer>
++                    <Table size="sm">
++                      <TableHead>
++                        <TableRow>
++                          <TableHeader>Project</TableHeader>
++                          <TableHeader>Phase</TableHeader>
++                          <TableHeader>Progress</TableHeader>
++                          <TableHeader>Signals</TableHeader>
++                          <TableHeader>Health</TableHeader>
++                        </TableRow>
++                      </TableHead>
++                      <TableBody>
++                        {phQ.data!.map((p) => (
++                          <TableRow key={p.id}>
++                            <TableCell>
++                              <Link to={`/projects/${p.id}`}>{p.ref}</Link>
++                              <p>{p.title}</p>
++                            </TableCell>
++                            <TableCell>{p.currentPhase ?? "—"}</TableCell>
++                            <TableCell>
++                              <ProgressBar
++                                label={`${p.ref} progress`}
++                                hideLabel
++                                size="small"
++                                value={p.progressPct}
++                                max={100}
++                                helperText={`${p.progressPct}%`}
++                              />
++                            </TableCell>
++                            <TableCell>
++                              <Stack orientation="horizontal" gap={2}>
++                                {p.unbilledPhases > 0 && (
++                                  <Tag type="green" size="sm">{p.unbilledPhases} billable</Tag>
++                                )}
++                                {p.overdueInvoices > 0 && (
++                                  <Tag type="red" size="sm">{p.overdueInvoices} overdue inv</Tag>
++                                )}
++                                {p.overdueTasks > 0 && (
++                                  <Tag type="magenta" size="sm">{p.overdueTasks} late tasks</Tag>
++                                )}
++                                {p.staleApprovals > 0 && (
++                                  <Tag type="magenta" size="sm">{p.staleApprovals} stale appr</Tag>
++                                )}
++                                {p.revisionsOpen > 0 && (
++                                  <Tag type="purple" size="sm">{p.revisionsOpen} revisions</Tag>
++                                )}
++                                {p.criticalNotesOpen > 0 && (
++                                  <Tag type="red" size="sm">{p.criticalNotesOpen} critical</Tag>
++                                )}
++                              </Stack>
++                            </TableCell>
++                            <TableCell>
++                              <Tag type={HEALTH_TAG[p.health]} size="sm">
++                                {HEALTH_LABEL[p.health]}
++                              </Tag>
++                            </TableCell>
++                          </TableRow>
++                        ))}
++                      </TableBody>
++                    </Table>
++                  </TableContainer>
+                 )}
+-                <Button
+-                  kind="ghost"
+-                  size="sm"
+-                  onClick={() => navigate("/projects")}
+-                >
+-                  View projects
++                <Button kind="ghost" size="sm" onClick={() => navigate("/projects")}>
++                  Open projects
+                 </Button>
+               </Stack>
+             </Tile>
+           </Column>
+ 
+-          <Column lg={4} md={4} sm={4}>
+-            <ProjectStatusNumbers
+-              byStatus={s?.projects.byStatus ?? {}}
+-              loading={summaryLoading}
+-              error={summaryError}
+-              onOpen={() => navigate("/projects")}
+-            />
+-          </Column>
+-
+-          <Column lg={8} md={8} sm={4}>
++          <Column lg={6} md={8} sm={4}>
+             <PhaseDonut
+-              data={byPhase}
+-              loading={boardsLoading}
+-              error={boardsError}
+-              onOpen={() => navigate("/projects")}
+-            />
+-          </Column>
+-
+-          {/* Row B: type treemap (lg=8) + workload heatmap (lg=8) */}
+-          <Column lg={8} md={8} sm={4}>
+-            <TypeTreemap
+-              data={byType}
++              data={b?.byPhase ?? []}
+               loading={boardsLoading}
+               error={boardsError}
+-              onOpen={() => navigate("/projects")}
+             />
+           </Column>
++        </>
++      )}
+ 
+-          <Column lg={8} md={8} sm={4}>
+-            <WorkloadHeatmap
+-              weekly={b?.workloadWeekly ?? []}
+-              daily={b?.workloadDaily ?? []}
+-              loading={boardsLoading}
+-              error={boardsError}
+-              onOpen={() => navigate("/tasks?tab=workload")}
+-            />
++      {/* ═══ Zone 5: Client Intelligence — decision behaviour table ════════ */}
++      {((ciQ.data?.length ?? 0) > 0 || ciQ.isLoading) && (
++        <>
++          <Column lg={16} md={8} sm={4}>
++            <h4>Client intelligence</h4>
+           </Column>
+-
+-          {/* Row C: team intelligence (lg=8) + daily task gauges (lg=8) */}
+-          <Column lg={8} md={8} sm={4}>
+-            <Tile className="esti-fill">
++          <Column lg={16} md={8} sm={4}>
++            <Tile>
+               <Stack gap={5}>
+                 <TileHeader
+-                  Pict={TeamAlignment}
+-                  sub="Team capacity"
+-                  title="Team intelligence"
++                  Pict={Analytics}
++                  sub="Decision behaviour"
++                  title="Client signals"
+                 />
+-                {tiQ.isLoading ? (
+-                  <InlineLoading description="Loading team data…" />
+-                ) : (tiQ.data?.length ?? 0) === 0 ? (
+-                  <p>No open tasks assigned.</p>
++                {ciQ.isLoading ? (
++                  <InlineLoading description="Loading client data…" />
+                 ) : (
+-                  <Stack gap={4}>
+-                    {tiQ.data!.map((m) => (
+-                      <Stack key={m.assignee} orientation="horizontal" gap={4}>
+-                        <Tag
+-                          type={CAPACITY_TAG[m.capacity] ?? "gray"}
+-                          size="sm"
+-                        >
+-                          {CAPACITY_LABEL[m.capacity] ?? m.capacity}
+-                        </Tag>
+-                        <div className="esti-grow">
+-                          <p>{m.assignee}</p>
+-                          <p>
+-                            {m.totalOpen} open · {m.highPriorityCount} high
+-                            priority
+-                          </p>
+-                        </div>
+-                        {m.overdueCount > 0 && (
+-                          <Tag type="red" size="sm">
+-                            {m.overdueCount} overdue
+-                          </Tag>
+-                        )}
+-                      </Stack>
+-                    ))}
+-                  </Stack>
++                  <TableContainer>
++                    <Table size="sm">
++                      <TableHead>
++                        <TableRow>
++                          <TableHeader>Client</TableHeader>
++                          <TableHeader>Projects</TableHeader>
++                          <TableHeader>Outstanding</TableHeader>
++                          <TableHeader>Oldest invoice</TableHeader>
++                          <TableHeader>Approval lag</TableHeader>
++                          <TableHeader>Revisions</TableHeader>
++                          <TableHeader>Risk</TableHeader>
++                        </TableRow>
++                      </TableHead>
++                      <TableBody>
++                        {ciQ.data!.map((c) => (
++                          <TableRow key={c.id}>
++                            <TableCell>{c.name}</TableCell>
++                            <TableCell>{c.activeProjects}</TableCell>
++                            <TableCell>
++                              {c.outstandingPaise > 0
++                                ? formatINRShort(c.outstandingPaise)
++                                : "—"}
++                            </TableCell>
++                            <TableCell>
++                              {c.oldestInvoiceDays > 0 ? `${c.oldestInvoiceDays}d` : "—"}
++                            </TableCell>
++                            <TableCell>
++                              {c.avgApprovalDays > 0 ? `${c.avgApprovalDays}d avg` : "—"}
++                            </TableCell>
++                            <TableCell>{c.revisionRequests}</TableCell>
++                            <TableCell>
++                              <Tag type={RISK_TAG[c.risk]} size="sm">{c.risk}</Tag>
++                            </TableCell>
++                          </TableRow>
++                        ))}
++                      </TableBody>
++                    </Table>
++                  </TableContainer>
+                 )}
+-                <Button
+-                  kind="ghost"
+-                  size="sm"
+-                  onClick={() => navigate("/tasks?tab=workload")}
+-                >
+-                  Open workload
++                <Button kind="ghost" size="sm" onClick={() => navigate("/clients")}>
++                  Open clients
+                 </Button>
+               </Stack>
+             </Tile>
+           </Column>
++        </>
++      )}
+ 
+-          <Column lg={8} md={8} sm={4}>
+-            <DailyTaskGauges
+-              data={b?.dailyLoad ?? []}
+-              loading={boardsLoading}
+-              error={boardsError}
+-            />
+-          </Column>
++      {/* ═══ Zone 6: Team Intelligence — capacity + ASPRF performance ══════ */}
++      <Column lg={16} md={8} sm={4}>
++        <h4>Team intelligence</h4>
++      </Column>
+ 
+-          {/* Row D: revision intelligence (lg=8) + technical intelligence (lg=8) */}
+-          <Column lg={8} md={8} sm={4}>
+-            <Tile className="esti-fill">
+-              <Stack gap={5}>
+-                <TileHeader
+-                  Pict={DataInsights}
+-                  sub="Decision ledger"
+-                  title="Revision intelligence"
+-                />
+-                {riQ.isLoading ? (
+-                  <InlineLoading description="Loading…" />
+-                ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
+-                  <p>No decisions recorded yet.</p>
+-                ) : (
+-                  <Stack gap={4}>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="blue" size="sm">Client driven</Tag>
+-                      <p>{riQ.data.clientDriven}</p>
+-                    </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="red" size="sm">Internal error</Tag>
+-                      <p>{riQ.data.internalError}</p>
+-                    </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="teal" size="sm">Technical query</Tag>
+-                      <p>{riQ.data.technicalQuery}</p>
+-                    </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="magenta" size="sm">Scope change</Tag>
+-                      <p>{riQ.data.scopeChange}</p>
+-                    </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <p>Scope drift</p>
+-                      <Tag
+-                        type={riQ.data.scopeDriftPct > 20 ? "red" : riQ.data.scopeDriftPct > 10 ? "magenta" : "green"}
+-                        size="sm"
+-                      >
+-                        {riQ.data.scopeDriftPct}%
+-                      </Tag>
+-                    </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <p>Health score</p>
+-                      <Tag
+-                        type={riQ.data.revisionRiskBand === "HIGH" ? "red" : riQ.data.revisionRiskBand === "MEDIUM" ? "magenta" : "green"}
+-                        size="sm"
+-                      >
+-                        {riQ.data.revisionRiskBand} · {riQ.data.healthScore}
+-                      </Tag>
+-                    </Stack>
++      {teamCards.length > 0 ? (
++        teamCards.map((m) => {
++          const cap = capacityByName.get(m.memberName);
++          const band = m.band as PerformanceBand | null;
++          return (
++            <Column key={m.teamMemberId} lg={4} md={4} sm={4}>
++              <Tile className="esti-fill">
++                <Stack gap={4}>
++                  <Stack gap={1}>
++                    <Tag type="gray" size="sm">{m.memberRole}</Tag>
++                    <h3>{m.memberName}</h3>
+                   </Stack>
+-                )}
+-              </Stack>
+-            </Tile>
+-          </Column>
+-
+-          <Column lg={8} md={8} sm={4}>
+-            <Tile className="esti-fill">
+-              <Stack gap={5}>
+-                <TileHeader
+-                  Pict={Workflows}
+-                  sub="Drawing & site queries"
+-                  title="Technical intelligence"
+-                />
+-                {techIQ.isLoading ? (
+-                  <InlineLoading description="Loading…" />
+-                ) : !techIQ.data ? (
+-                  <p>No data.</p>
+-                ) : (
+-                  <Stack gap={4}>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <p>Drawing accuracy</p>
+-                      <Tag
+-                        type={techIQ.data.drawingAccuracyPct >= 90 ? "green" : techIQ.data.drawingAccuracyPct >= 75 ? "magenta" : "red"}
+-                        size="sm"
+-                      >
+-                        {techIQ.data.drawingAccuracyPct}%
+-                      </Tag>
++                  <Stack orientation="horizontal" gap={4}>
++                    <Stack gap={1}>
++                      <p>Performance</p>
++                      <h2>{m.score}</h2>
+                     </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <p>Site query rate</p>
+-                      <Tag
+-                        type={techIQ.data.siteQueryRate <= 10 ? "green" : techIQ.data.siteQueryRate <= 25 ? "magenta" : "red"}
+-                        size="sm"
+-                      >
+-                        {techIQ.data.siteQueryRate}%
+-                      </Tag>
++                    <Stack gap={2}>
++                      {band ? (
++                        <Tag type={PERFORMANCE_BAND_TAG[band]} size="sm">
++                          {PERFORMANCE_BAND_LABEL[band]}
++                        </Tag>
++                      ) : (
++                        <Tag type="gray" size="sm">Developing</Tag>
++                      )}
++                      {cap && (
++                        <Tag type={CAPACITY_TAG[cap.capacity] ?? "gray"} size="sm">
++                          {CAPACITY_LABEL[cap.capacity] ?? cap.capacity}
++                        </Tag>
++                      )}
+                     </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="red" size="sm">Internal errors</Tag>
+-                      <p>{techIQ.data.internalErrors} decision{techIQ.data.internalErrors !== 1 ? "s" : ""}</p>
++                  </Stack>
++                  <Stack orientation="horizontal" gap={5}>
++                    <Stack gap={1}>
++                      <p>Open</p>
++                      <p><strong>{cap?.totalOpen ?? 0}</strong></p>
+                     </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="teal" size="sm">Technical queries</Tag>
+-                      <p>{techIQ.data.techQueries} decision{techIQ.data.techQueries !== 1 ? "s" : ""}</p>
++                    <Stack gap={1}>
++                      <p>Overdue</p>
++                      <p><strong>{cap?.overdueCount ?? m.overdueCount}</strong></p>
+                     </Stack>
+-                    <Stack orientation="horizontal" gap={4}>
+-                      <Tag type="blue" size="sm">Total drawings</Tag>
+-                      <p>{techIQ.data.totalDrawings}</p>
++                    <Stack gap={1}>
++                      <p>Points</p>
++                      <p><strong>{m.totalPoints}</strong></p>
+                     </Stack>
+                   </Stack>
+-                )}
+-              </Stack>
+-            </Tile>
+-          </Column>
+-        </>
++                </Stack>
++              </Tile>
++            </Column>
++          );
++        })
++      ) : (
++        <Column lg={8} md={8} sm={4}>
++          <Tile className="esti-fill">
++            <Stack gap={5}>
++              <TileHeader Pict={TeamAlignment} sub="Team capacity" title="Team intelligence" />
++              {aspQ.isLoading ? (
++                <InlineLoading description="Loading team data…" />
++              ) : (
++                <p>No team members yet. Add members via the HR module.</p>
++              )}
++            </Stack>
++          </Tile>
++        </Column>
++      )}
++
++      {teamCards.length > 0 && (
++        <Column lg={16} md={8} sm={4}>
++          <Button kind="ghost" size="sm" onClick={() => navigate("/performance")}>
++            Open performance
++          </Button>
++        </Column>
+       )}
+ 
+-      {/* ═══ Zone 4: Clients & financials ══════════════════════════════════ */}
++      {/* ═══ Zone 7: Revision & Technical Intelligence ═════════════════════ */}
+       <Column lg={16} md={8} sm={4}>
+-        <h4>Clients{canFees && showFinancial ? " & financials" : ""}</h4>
++        <h4>Revision &amp; technical intelligence</h4>
+       </Column>
+ 
+-      {/* Row A: client radar + financial donut */}
+-      {(ciQ.data?.length ?? 0) > 0 || ciQ.isLoading ? (
+-        <Column lg={canFees && showFinancial ? 8 : 16} md={8} sm={4}>
+-          <ClientRadar
+-            data={ciQ.data}
+-            loading={ciQ.isLoading}
+-            onOpen={() => navigate("/clients")}
+-          />
+-        </Column>
+-      ) : null}
+-
+-      {canFees && showFinancial && (
+-        <Column lg={8} md={8} sm={4}>
+-          <FinancialDonut
+-            data={fhQ.data}
+-            loading={fhQ.isLoading}
+-            onOpen={() => navigate("/invoices")}
+-          />
+-        </Column>
+-      )}
++      <Column lg={8} md={8} sm={4}>
++        <Tile className="esti-fill">
++          <Stack gap={5}>
++            <TileHeader
++              Pict={DataInsights}
++              sub="Decision ledger"
++              title="Revision intelligence"
++              statusTag={
++                riQ.data
++                  ? {
++                      text: `${riQ.data.revisionRiskBand} risk`,
++                      type: RISK_TAG[riQ.data.revisionRiskBand],
++                    }
++                  : undefined
++              }
++            />
++            {riQ.isLoading ? (
++              <InlineLoading description="Loading…" />
++            ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
++              <p>No decisions recorded yet.</p>
++            ) : (
++              <Stack gap={4}>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="blue" size="sm">Client driven</Tag>
++                  <p>{riQ.data.clientDriven}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="red" size="sm">Internal error</Tag>
++                  <p>{riQ.data.internalError}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="teal" size="sm">Technical query</Tag>
++                  <p>{riQ.data.technicalQuery}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="magenta" size="sm">Scope change</Tag>
++                  <p>{riQ.data.scopeChange}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <p>Scope drift</p>
++                  <Tag
++                    type={riQ.data.scopeDriftPct > 20 ? "red" : riQ.data.scopeDriftPct > 10 ? "magenta" : "green"}
++                    size="sm"
++                  >
++                    {riQ.data.scopeDriftPct}%
++                  </Tag>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <p>Health score</p>
++                  <Tag type={RISK_TAG[riQ.data.revisionRiskBand]} size="sm">
++                    {riQ.data.healthScore} / 100
++                  </Tag>
++                </Stack>
++              </Stack>
++            )}
++          </Stack>
++        </Tile>
++      </Column>
+ 
+-      {/* Row B: revenue pipeline + receivables aging */}
+-      {canFees && showFinancial && (
+-        <>
+-          <Column lg={8} md={8} sm={4}>
+-            <RevenuePipelineBar
+-              data={fhQ.data}
+-              loading={fhQ.isLoading}
+-              onOpen={() => navigate("/accounting/fees")}
++      <Column lg={8} md={8} sm={4}>
++        <Tile className="esti-fill">
++          <Stack gap={5}>
++            <TileHeader
++              Pict={Workflows}
++              sub="Drawing & site queries"
++              title="Technical intelligence"
+             />
+-          </Column>
+-          {!agingEmpty && (
+-            <Column lg={8} md={8} sm={4}>
+-              <HBarBoard
+-                Pict={AuditTrail}
+-                sub="Overdue breakdown"
+-                title="Receivables aging"
+-                data={agingData}
+-                loading={boardsLoading}
+-                error={boardsError}
+-                formatValue={(v) => formatINRShort(v)}
+-                onOpen={() => navigate("/invoices")}
+-              />
+-            </Column>
+-          )}
+-        </>
+-      )}
++            {techIQ.isLoading ? (
++              <InlineLoading description="Loading…" />
++            ) : !techIQ.data ? (
++              <p>No data.</p>
++            ) : (
++              <Stack gap={4}>
++                <Stack orientation="horizontal" gap={4}>
++                  <p>Drawing accuracy</p>
++                  <Tag
++                    type={techIQ.data.drawingAccuracyPct >= 90 ? "green" : techIQ.data.drawingAccuracyPct >= 75 ? "magenta" : "red"}
++                    size="sm"
++                  >
++                    {techIQ.data.drawingAccuracyPct}%
++                  </Tag>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <p>Site query rate</p>
++                  <Tag
++                    type={techIQ.data.siteQueryRate <= 10 ? "green" : techIQ.data.siteQueryRate <= 25 ? "magenta" : "red"}
++                    size="sm"
++                  >
++                    {techIQ.data.siteQueryRate}%
++                  </Tag>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="red" size="sm">Internal errors</Tag>
++                  <p>{techIQ.data.internalErrors} decision{techIQ.data.internalErrors !== 1 ? "s" : ""}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="teal" size="sm">Technical queries</Tag>
++                  <p>{techIQ.data.techQueries} decision{techIQ.data.techQueries !== 1 ? "s" : ""}</p>
++                </Stack>
++                <Stack orientation="horizontal" gap={4}>
++                  <Tag type="blue" size="sm">Total drawings</Tag>
++                  <p>{techIQ.data.totalDrawings}</p>
++                </Stack>
++              </Stack>
++            )}
++          </Stack>
++        </Tile>
++      </Column>
+ 
+-      {/* ═══ Zone 5: Compliance & activity ═════════════════════════════════ */}
++      {/* ═══ Zone 8: Statutory filing + Activity Feed ══════════════════════ */}
+       <Column lg={16} md={8} sm={4}>
+         <h4>Compliance &amp; activity</h4>
+       </Column>
+@@ -1385,7 +1194,6 @@ export function Dashboard() {
+         <Column lg={showFinancial ? 8 : 16} md={8} sm={4}>
+           <Tile className="esti-fill">
+             <Stack gap={5}>
+-              {/* Resource-card header */}
+               <Stack gap={3}>
+                 <Stack orientation="horizontal" gap={2}>
+                   <Tag type="gray" size="sm">Recent activity</Tag>
+@@ -1408,9 +1216,7 @@ export function Dashboard() {
+                       <Stack orientation="horizontal" gap={3}>
+                         <Tag
+                           size="sm"
+-                          type={
+-                            ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]
+-                          }
++                          type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}
+                         >
+                           {activityDomain(item.eventType)}
+                         </Tag>
+@@ -1433,11 +1239,6 @@ export function Dashboard() {
+                         {item.projectRef ? `${item.projectRef} · ` : ""}
+                         {item.actorName ?? "System"}
+                       </p>
+-                      {item.projectId && (
+-                        <Link to={`/projects/${item.projectId}`}>
+-                          Open project
+-                        </Link>
+-                      )}
+                     </Stack>
+                   ))}
+                 </Stack>
+-- 
+2.54.0.windows.1
+

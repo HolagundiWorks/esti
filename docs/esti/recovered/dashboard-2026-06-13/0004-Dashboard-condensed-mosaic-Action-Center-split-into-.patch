@@ -1,0 +1,391 @@
+From d1e47c264499712b817baf80433b1f2288176ded Mon Sep 17 00:00:00 2001
+From: ESTI Contributors <esti@example.local>
+Date: Sat, 13 Jun 2026 07:27:10 +0530
+Subject: [PATCH 4/5] Dashboard: condensed mosaic, Action Center split into
+ tiles, square tags
+
+- Dashboard grid switched to Carbon condensed (1px gutters) with a matching
+  1px row-gap so tiles read as a flush mosaic; zone headers get breathing
+  room via the structural .esti-zone-head helper
+- Action Center split from one large tile into four equal lg=4 tiles, each
+  with its own health edge: Overdue collections (alert/ok), Approvals pending
+  (watch/ok), Ready to bill (ok/neutral, with count + estimated value), and
+  Risk & capacity (high-risk projects + overloaded members)
+- Tags render with square corners app-wide via a geometry-only colourless
+  border-radius: 0 override in styles.scss
+- CARBON-UI-DIRECTION.md documents the health-edge tokens, outline-tag rule,
+  square tag geometry, and condensed dashboard grid
+
+Co-Authored-By: Codex Opus 4.8 <noreply@anthropic.com>
+---
+ docs/esti/CARBON-UI-DIRECTION.md  |  26 ++++
+ frontend/src/routes/Dashboard.tsx | 249 ++++++++++++++++--------------
+ frontend/src/styles.scss          |  27 ++--
+ 3 files changed, 177 insertions(+), 125 deletions(-)
+
+diff --git a/docs/esti/CARBON-UI-DIRECTION.md b/docs/esti/CARBON-UI-DIRECTION.md
+index c076d31e..6e5982ff 100644
+--- a/docs/esti/CARBON-UI-DIRECTION.md
++++ b/docs/esti/CARBON-UI-DIRECTION.md
+@@ -194,6 +194,32 @@ to Tag types as follows:
+ caution/warning states in Tags. For full-width alert banners use
+ `InlineNotification kind="warning"` which applies Carbon's gold alert colour.
+ 
++**Tag geometry:** Tags render with square corners app-wide (a geometry-only,
++colourless `border-radius: 0` override in `styles.scss`) so they read as
++rectangles rather than pills.
++
++### Dashboard health edge (card-level status)
++
++On the dashboard, each card carries **one** colour signal: a 3px left border
++(Carbon notification anatomy) derived from the card's worst signal, using
++support tokens only:
++
++| Edge token | Meaning |
++|---|---|
++| `--cds-support-error` | Needs attention now |
++| `--cds-support-warning` | Watch |
++| `--cds-support-success` | Healthy |
++| `--cds-border-subtle-01` | Neutral / informational |
++
++With urgency on the edge, Tags inside dashboard cards use `type="outline"`
++(monochrome) — the text carries the meaning. Exception: per-row Health/Risk
++tags inside data tables keep their filled types because table rows have no
++edge of their own.
++
++The dashboard grid is `condensed` (1px gutters, matching 1px row-gap via
++`.esti-dash`) so tiles form a flush mosaic; zone headers get breathing room
++through the structural `.esti-zone-head` helper.
++
+ ### Alert palette — `InlineNotification` and `ToastNotification`
+ 
+ | `kind` prop | Colour | Use |
+diff --git a/frontend/src/routes/Dashboard.tsx b/frontend/src/routes/Dashboard.tsx
+index 22a9be3d..7937099f 100644
+--- a/frontend/src/routes/Dashboard.tsx
++++ b/frontend/src/routes/Dashboard.tsx
+@@ -168,10 +168,12 @@ function FilingTile({
+ 
+ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
+   return (
+-    <Stack gap={2}>
+-      <h3>{title}</h3>
+-      {sub && <p>{sub}</p>}
+-    </Stack>
++    <div className="esti-zone-head">
++      <Stack gap={2}>
++        <h3>{title}</h3>
++        {sub && <p>{sub}</p>}
++      </Stack>
++    </div>
+   );
+ }
+ 
+@@ -293,7 +295,7 @@ export function Dashboard() {
+   const hasClients = (ciQ.data?.length ?? 0) > 0;
+ 
+   return (
+-    <Grid fullWidth className="esti-dash">
++    <Grid fullWidth condensed className="esti-dash">
+ 
+       {/* ── Page header ─────────────────────────────────────────────────── */}
+       <Column lg={16} md={8} sm={4}>
+@@ -361,125 +363,146 @@ export function Dashboard() {
+ 
+       {/* ═══ 2 · Action Center — what needs attention now ══════════════════ */}
+       <Column lg={16} md={8} sm={4}>
+-        <Tile style={edge(acTotal > 0 ? "alert" : "ok")}>
+-          <Stack gap={6}>
+-            <Stack orientation="horizontal" gap={3}>
+-              <div className="esti-grow">
+-                <SectionHeader
+-                  title="Action Center"
+-                  sub="Billing, approvals, and risk items that need a decision today."
+-                />
++        <div className="esti-zone-head">
++          <Stack orientation="horizontal" gap={3}>
++            <div className="esti-grow">
++              <Stack gap={2}>
++                <h3>Action Center</h3>
++                <p>Billing, approvals, and risk items that need a decision today.</p>
++              </Stack>
++            </div>
++            {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
++              <div>
++                <Tag type="outline" size="sm">
++                  {acTotal > 0 ? `${acTotal} open` : "All clear"}
++                </Tag>
+               </div>
+-              {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
+-                <div>
+-                  <Tag type="outline" size="sm">
+-                    {acTotal > 0 ? `${acTotal} open` : "All clear"}
+-                  </Tag>
+-                </div>
+-              )}
+-            </Stack>
++            )}
++          </Stack>
++        </div>
++      </Column>
+ 
++      <Column lg={4} md={4} sm={4}>
++        <Tile className="esti-fill" style={edge(overdueInvoices.length > 0 ? "alert" : "ok")}>
++          <Stack gap={4}>
++            <h4>Overdue collections</h4>
+             {acQ.isLoading ? (
+-              <InlineLoading description="Loading action items…" />
+-            ) : acTotal === 0 ? (
+-              <p>All clear — no outstanding items.</p>
++              <InlineLoading description="Loading…" />
++            ) : overdueInvoices.length === 0 ? (
++              <p>None beyond 30 days.</p>
+             ) : (
+-              <Grid narrow>
+-                <Column lg={6} md={4} sm={4}>
+-                  <Stack gap={4}>
+-                    <h4>Overdue collections</h4>
+-                    {overdueInvoices.length === 0 ? (
+-                      <p>None beyond 30 days.</p>
+-                    ) : (
+-                      <StructuredListWrapper isCondensed>
+-                        <StructuredListBody>
+-                          {overdueInvoices.slice(0, 4).map((inv) => (
+-                            <StructuredListRow key={inv.id}>
+-                              <StructuredListCell>
+-                                <Link to={`/projects/${inv.projectId}?tab=invoices`}>
+-                                  {inv.ref}
+-                                </Link>
+-                                <p>{formatINRShort(inv.netReceivablePaise)}</p>
+-                              </StructuredListCell>
+-                              <StructuredListCell noWrap>
+-                                <Tag type="outline" size="sm">{inv.daysOverdue}d overdue</Tag>
+-                              </StructuredListCell>
+-                            </StructuredListRow>
+-                          ))}
+-                        </StructuredListBody>
+-                      </StructuredListWrapper>
+-                    )}
+-                  </Stack>
+-                </Column>
++              <StructuredListWrapper isCondensed>
++                <StructuredListBody>
++                  {overdueInvoices.slice(0, 4).map((inv) => (
++                    <StructuredListRow key={inv.id}>
++                      <StructuredListCell>
++                        <Link to={`/projects/${inv.projectId}?tab=invoices`}>
++                          {inv.ref}
++                        </Link>
++                        <p>{formatINRShort(inv.netReceivablePaise)}</p>
++                      </StructuredListCell>
++                      <StructuredListCell noWrap>
++                        <Tag type="outline" size="sm">{inv.daysOverdue}d overdue</Tag>
++                      </StructuredListCell>
++                    </StructuredListRow>
++                  ))}
++                </StructuredListBody>
++              </StructuredListWrapper>
++            )}
++          </Stack>
++        </Tile>
++      </Column>
+ 
+-                <Column lg={5} md={4} sm={4}>
+-                  <Stack gap={4}>
+-                    <h4>Approvals pending</h4>
+-                    {pendingApprovals.length === 0 ? (
+-                      <p>None awaiting client response.</p>
+-                    ) : (
+-                      <StructuredListWrapper isCondensed>
+-                        <StructuredListBody>
+-                          {pendingApprovals.slice(0, 4).map((ap) => (
+-                            <StructuredListRow key={ap.id}>
+-                              <StructuredListCell>
+-                                <Link to={`/projects/${ap.projectId}?tab=approvals`}>
+-                                  {ap.projectRef}
+-                                </Link>
+-                                <p>{ap.title}</p>
+-                              </StructuredListCell>
+-                              <StructuredListCell noWrap>
+-                                <Tag type="outline" size="sm">{ap.daysWaiting}d waiting</Tag>
+-                              </StructuredListCell>
+-                            </StructuredListRow>
+-                          ))}
+-                        </StructuredListBody>
+-                      </StructuredListWrapper>
+-                    )}
+-                  </Stack>
+-                </Column>
++      <Column lg={4} md={4} sm={4}>
++        <Tile className="esti-fill" style={edge(pendingApprovals.length > 0 ? "watch" : "ok")}>
++          <Stack gap={4}>
++            <h4>Approvals pending</h4>
++            {acQ.isLoading ? (
++              <InlineLoading description="Loading…" />
++            ) : pendingApprovals.length === 0 ? (
++              <p>None awaiting client response.</p>
++            ) : (
++              <StructuredListWrapper isCondensed>
++                <StructuredListBody>
++                  {pendingApprovals.slice(0, 4).map((ap) => (
++                    <StructuredListRow key={ap.id}>
++                      <StructuredListCell>
++                        <Link to={`/projects/${ap.projectId}?tab=approvals`}>
++                          {ap.projectRef}
++                        </Link>
++                        <p>{ap.title}</p>
++                      </StructuredListCell>
++                      <StructuredListCell noWrap>
++                        <Tag type="outline" size="sm">{ap.daysWaiting}d waiting</Tag>
++                      </StructuredListCell>
++                    </StructuredListRow>
++                  ))}
++                </StructuredListBody>
++              </StructuredListWrapper>
++            )}
++          </Stack>
++        </Tile>
++      </Column>
+ 
+-                <Column lg={5} md={8} sm={4}>
+-                  <Stack gap={5}>
+-                    <Stack gap={2}>
+-                      <h4>Ready to bill</h4>
+-                      <p>
+-                        <strong>{billingReady.length}</strong> phase{billingReady.length !== 1 ? "s" : ""} ·{" "}
+-                        {formatINRShort(readyToBillSum)} estimated
+-                      </p>
+-                    </Stack>
+-                    <Stack gap={2}>
+-                      <h4>High-risk projects</h4>
+-                      {riskProjects.length === 0 ? (
+-                        <p>None at risk.</p>
+-                      ) : (
+-                        riskProjects.slice(0, 3).map((p) => (
+-                          <p key={p.id}>
+-                            <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
+-                          </p>
+-                        ))
+-                      )}
+-                    </Stack>
+-                    <Stack gap={2}>
+-                      <h4>Capacity alerts</h4>
+-                      {overloadedMembers.length === 0 ? (
+-                        <p>No one overloaded.</p>
+-                      ) : (
+-                        overloadedMembers.slice(0, 3).map((m) => (
+-                          <p key={m.assignee}>
+-                            {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
+-                          </p>
+-                        ))
+-                      )}
+-                    </Stack>
+-                  </Stack>
+-                </Column>
+-              </Grid>
++      <Column lg={4} md={4} sm={4}>
++        <Tile className="esti-fill" style={edge(billingReady.length > 0 ? "ok" : "neutral")}>
++          <Stack gap={4}>
++            <h4>Ready to bill</h4>
++            {acQ.isLoading ? (
++              <InlineLoading description="Loading…" />
++            ) : (
++              <Stack gap={3}>
++                <h2>{billingReady.length}</h2>
++                <p>
++                  Phase{billingReady.length !== 1 ? "s" : ""} awaiting invoice ·{" "}
++                  {formatINRShort(readyToBillSum)} estimated
++                </p>
++                <Button kind="ghost" size="sm" onClick={() => navigate("/invoices")}>
++                  Open invoices
++                </Button>
++              </Stack>
+             )}
+           </Stack>
+         </Tile>
+       </Column>
+ 
++      <Column lg={4} md={4} sm={4}>
++        <Tile
++          className="esti-fill"
++          style={edge(
++            riskProjects.length > 0 || overloadedMembers.length > 0 ? "alert" : "ok",
++          )}
++        >
++          <Stack gap={4}>
++            <h4>Risk &amp; capacity</h4>
++            <Stack gap={2}>
++              <p><strong>High-risk projects</strong></p>
++              {riskProjects.length === 0 ? (
++                <p>None at risk.</p>
++              ) : (
++                riskProjects.slice(0, 2).map((p) => (
++                  <p key={p.id}>
++                    <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
++                  </p>
++                ))
++              )}
++            </Stack>
++            <Stack gap={2}>
++              <p><strong>Capacity alerts</strong></p>
++              {overloadedMembers.length === 0 ? (
++                <p>No one overloaded.</p>
++              ) : (
++                overloadedMembers.slice(0, 2).map((m) => (
++                  <p key={m.assignee}>
++                    {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
++                  </p>
++                ))
++              )}
++            </Stack>
++          </Stack>
++        </Tile>
++      </Column>
++
+       {/* ═══ 3 · Financial health ══════════════════════════════════════════ */}
+       {canFees && showFinancial && (
+         <>
+diff --git a/frontend/src/styles.scss b/frontend/src/styles.scss
+index a4e260ff..b40c35e7 100644
+--- a/frontend/src/styles.scss
++++ b/frontend/src/styles.scss
+@@ -77,21 +77,24 @@ body,
+ .esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
+ .esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
+ 
+-// Structural-only: Carbon's CSS Grid spaces columns with padding (horizontal
+-// gutter) but emits no row-gap, so wrapped tile rows would touch vertically.
+-// Add a row-gap equal to the 32px column gutter for matching vertical rhythm,
+-// and drop the grid's extra inline padding so tiles align flush with the page
+-// (the app shell's Content already supplies the horizontal page gutter).
++// Structural-only: the dashboard uses the condensed grid (1px gutters) so
++// tiles read as a flush mosaic; match the vertical rhythm with a 1px row-gap
++// and drop the grid's extra inline padding (the app shell's Content already
++// supplies the horizontal page gutter).
+ .esti-dash {
+-  row-gap: 2rem;
++  row-gap: 1px;
+   padding-inline: 0;
++}
++
++// Structural-only: zone headers between tile rows need breathing room so they
++// read as section separators in the condensed mosaic. Spacing only.
++.esti-zone-head {
++  padding-block: 1.5rem 0.75rem;
++}
+ 
+-  // Zone labels (h4 in a full-width Column) need extra top breathing room so
+-  // they read as section separators, not just another tile heading.
+-  // Uses padding-block-start only — structural, colourless.
+-  > .cds--col > h4 {
+-    padding-block-start: 0.5rem;
+-  }
++// Geometry-only override (no colour): square tag corners instead of pills.
++.cds--tag {
++  border-radius: 0;
+ }
+ 
+ // Structural-only: a 7-column month calendar grid (Carbon's Grid is 16 columns
+-- 
+2.54.0.windows.1
+
