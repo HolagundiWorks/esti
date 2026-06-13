@@ -110,8 +110,16 @@ docker compose -f compose.prod.yaml up -d backend worker
 
 # ── 8. Build frontend static files ────────────────────────────────────────────
 info "Building frontend static files..."
-# Run the build-only frontend container to produce frontend/dist/
-docker compose -f compose.prod.yaml --profile build-only run --rm frontend
+docker compose -f compose.prod.yaml --profile build-only build frontend
+# The frontend image is an nginx static server (CMD runs nginx) — do NOT `run`
+# it (that would start nginx and block). Instead create a stopped container and
+# copy its compiled /dist out to the host so the host nginx can serve it.
+docker rm -f esti-frontend-extract 2>/dev/null || true
+docker create --name esti-frontend-extract esti-frontend:prod
+rm -rf "$DEPLOY_DIR/frontend/dist"
+mkdir -p "$DEPLOY_DIR/frontend/dist"
+docker cp esti-frontend-extract:/usr/share/nginx/html/. "$DEPLOY_DIR/frontend/dist/"
+docker rm esti-frontend-extract
 chown -R www-data:www-data "$DEPLOY_DIR/frontend/dist" 2>/dev/null || true
 
 # ── 9. Configure nginx reverse proxy ─────────────────────────────────────────
