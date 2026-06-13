@@ -7,7 +7,7 @@ import { pct, roundToRupee, type Paise } from "./money.js";
 export const GstSystem = {
   /** Turnover <= 20L (10L special states); not registered; no GST on invoices. */
   NOT_APPLICABLE: "NOT_APPLICABLE",
-  /** Annual billing < 40L; flat 5% of bill; no ITC; issues a Bill of Supply. */
+  /** Annual billing < 40L; flat 6% of bill (CGST 3% + SGST 3%); no ITC; issues a Bill of Supply. */
   COMPOSITION: "COMPOSITION",
   /** Default registered service practice; 18%; issues a Tax Invoice. */
   REGULAR: "REGULAR",
@@ -15,7 +15,7 @@ export const GstSystem = {
 export type GstSystem = (typeof GstSystem)[keyof typeof GstSystem];
 
 export const GST_RATES = {
-  COMPOSITION: 5, // flat, borne by the firm, not collected from client
+  COMPOSITION: 6, // CGST 3% + SGST 3%; borne by the firm, not collected from client
   REGULAR: 18, // SAC 998321–998339
 } as const;
 

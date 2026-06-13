@@ -32,7 +32,7 @@ import { trpc } from "../lib/trpc.js";
 
 const GST_LABEL: Record<string, string> = {
   [GstSystem.NOT_APPLICABLE]: "NA (not registered)",
-  [GstSystem.COMPOSITION]: "Composition (5%, bill of supply)",
+  [GstSystem.COMPOSITION]: "Composition (6%, bill of supply)",
   [GstSystem.REGULAR]: "Regular (18% tax invoice)",
 };
 
