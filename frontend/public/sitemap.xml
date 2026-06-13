@@ -17,12 +17,20 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- New modules section -->
+  <!-- New in 2026 section -->
   <url>
     <loc>https://aorms.in/#new-2026</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- Mobile app section -->
+  <url>
+    <loc>https://aorms.in/#mobile</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <!-- Pricing section -->

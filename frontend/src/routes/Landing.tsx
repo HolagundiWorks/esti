@@ -193,8 +193,23 @@ const CORE_FEATURES: { icon: typeof Money; title: string; body: string }[] = [
   },
   {
     icon: ImageIcon,
-    title: "Consultants & portal",
-    body: "External consultant directory, engagement scopes and a read-only collaborator portal with login.",
+    title: "Consultants & portals",
+    body: "External consultant directory, engagement scopes, read-only collaborator portal and a separate client portal with project visibility.",
+  },
+  {
+    icon: Document,
+    title: "Firm catalog management",
+    body: "Company-owned, company-operated material library, specification standards and structural templates. Your firm controls every entry — not a shared SaaS database.",
+  },
+  {
+    icon: Money,
+    title: "Bank reconciliation",
+    body: "Import bank statements, 26AS and GSTR data and match entries automatically. Outstanding and collected balances stay in sync with your invoice register.",
+  },
+  {
+    icon: ChartLineData,
+    title: "Activity & audit trail",
+    body: "Immutable append-only activity stream for every project event, plus an owner-only paginated audit log covering every privileged state transition.",
   },
 ];
 
@@ -302,6 +317,11 @@ const USPS: { icon: typeof Money; title: string; body: string }[] = [
     title: "Built for how architects actually work",
     body: "The Pomodoro timer, daily stand-up, workload calendar and ASPRF score were designed with the Indian studio in mind — small team, multiple roles, tight deadlines, complex compliance.",
   },
+  {
+    icon: Document,
+    title: "Your firm's private knowledge base",
+    body: "The catalog is company-owned and company-operated — your firm adds, edits and retires every material, standard and structural template. Nothing is shared with other ESTI instances.",
+  },
 ];
 
 // ─── Pricing ─────────────────────────────────────────────────────────────────
@@ -384,9 +404,15 @@ export function Landing({
   const runDemo = () =>
     demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
 
-  const trial = () => {
+  const contactSales = () => {
     window.location.href =
-      "mailto:hi@aorms.in?subject=ESTI%20AORMS%20%E2%80%94%2014-day%20free%20trial";
+      "mailto:hi@aorms.in?subject=Sales%20enquiry%20%E2%80%94%20ESTI%20AORMS" +
+      "&body=Hi%20ESTI%20team%2C%0A%0AI%27d%20like%20to%20learn%20more%20about%20ESTI%20AORMS.%0A%0AFirm%20name%3A%20%0ACity%3A%20%0ATeam%20size%3A%20%0AMessage%3A%20";
+  };
+
+  const notifyMobile = () => {
+    window.location.href =
+      "mailto:hi@aorms.in?subject=Notify%20me%20%E2%80%94%20ESTI%20Mobile%20App";
   };
 
   const solo = annual ? "₹499" : "₹599";
@@ -400,8 +426,9 @@ export function Landing({
         <HeaderNavigation aria-label="ESTI AORMS">
           <HeaderMenuItem href="#features">Features</HeaderMenuItem>
           <HeaderMenuItem href="#new-2026">New in 2026</HeaderMenuItem>
+          <HeaderMenuItem href="#mobile">Mobile app</HeaderMenuItem>
           <HeaderMenuItem href="#pricing">Pricing</HeaderMenuItem>
-          <HeaderMenuItem href="mailto:hi@aorms.in">Contact</HeaderMenuItem>
+          <HeaderMenuItem href="mailto:hi@aorms.in?subject=Sales%20enquiry%20%E2%80%94%20ESTI%20AORMS">Contact sales</HeaderMenuItem>
         </HeaderNavigation>
         <HeaderGlobalBar>
           <HeaderGlobalAction
@@ -457,8 +484,8 @@ export function Landing({
                 </div>
 
                 <div className="esti-cta-row">
-                  <Button size="lg" renderIcon={ArrowRight} onClick={trial}>
-                    Start 14-day free trial
+                  <Button size="lg" renderIcon={ArrowRight} onClick={contactSales}>
+                    Contact sales
                   </Button>
                   <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
                     {demo.isPending ? "Opening demo…" : "Log in to live demo"}
@@ -475,7 +502,7 @@ export function Landing({
                 )}
 
                 <p className="esti-label esti-label--secondary">
-                  No credit card required · cancel anytime · your data stays in your own instance
+                  Self-hosted on your VPS · your data never leaves your server · open a PR to extend it
                 </p>
               </Stack>
             </Column>
@@ -503,6 +530,33 @@ export function Landing({
             </Grid>
           </section>
         </Layer>
+
+        {/* ── How it works ───────────────────────────────────────────────────── */}
+        <section className="esti-landing-section">
+          <Grid className="esti-dash">
+            <Column sm={4} md={8} lg={16}>
+              <Stack gap={2}>
+                <h2>Set up in an afternoon</h2>
+                <p>No data migration consultant required — ESTI is designed to be self-configured by your studio.</p>
+              </Stack>
+            </Column>
+            {([
+              { n: "01", title: "Configure your firm", body: "Add your firm profile, GST details, team members and seniority roles. Seed data populates a demo studio if you want a head start." },
+              { n: "02", title: "Add projects & clients", body: "Create your client register, open projects with phases and fee proposals. Import existing invoices or start fresh from the current FY." },
+              { n: "03", title: "ESTI runs the admin", body: "Invoicing, compliance checks, performance scores, filing abstracts and the action centre update automatically as your team works." },
+            ] as const).map((s) => (
+              <Column key={s.n} sm={4} md={4} lg={5}>
+                <Tile className="esti-fill">
+                  <Stack gap={3}>
+                    <Tag type="blue" size="sm">Step {s.n}</Tag>
+                    <h3>{s.title}</h3>
+                    <p>{s.body}</p>
+                  </Stack>
+                </Tile>
+              </Column>
+            ))}
+          </Grid>
+        </section>
 
         {/* ── Core features ──────────────────────────────────────────────────── */}
         <section id="features" className="esti-landing-section">
@@ -608,6 +662,61 @@ export function Landing({
           </Grid>
         </section>
 
+        {/* ── Mobile app coming soon ────────────────────────────────────────── */}
+        <Layer>
+          <section id="mobile" className="esti-landing-section">
+            <Grid className="esti-dash">
+              <Column sm={4} md={8} lg={16}>
+                <Stack gap={3}>
+                  <Stack orientation="horizontal" gap={3}>
+                    <Tag type="cyan" size="sm">Coming soon</Tag>
+                    <Tag type="gray" size="sm">iOS</Tag>
+                    <Tag type="gray" size="sm">Android</Tag>
+                  </Stack>
+                  <h2>ESTI Mobile — your office in your pocket</h2>
+                  <p>
+                    A native companion app for architects on site. Capture site observations,
+                    log timesheets, review decisions and check outstanding invoices from your phone —
+                    synced in real time with your ESTI instance.
+                  </p>
+                </Stack>
+              </Column>
+
+              {([
+                { title: "Site diary & inspections",  body: "Photograph, annotate and submit site inspection reports directly from the field. Linked to the project and timestamped automatically." },
+                { title: "Timesheet entry",           body: "Log hours against a project and task in seconds. Billable flag, notes and daily stand-up all in one tap." },
+                { title: "Invoice & fee snapshot",    body: "See outstanding receivables, approve draft invoices and check fee proposal status without opening a browser." },
+                { title: "CRIF decisions on the go",  body: "Review and acknowledge pending decisions, add notes and transition CRIF state from your phone during client meetings." },
+                { title: "Push notifications",        body: "Actionable alerts for overdue invoices, RIE violations, pending decisions and ASPRF band changes — direct to your lock screen." },
+                { title: "Offline-first sync",        body: "Site observations captured without signal and synced the moment connectivity returns. No lost data on poor-network sites." },
+              ] as const).map((f) => (
+                <Column key={f.title} sm={4} md={4} lg={5}>
+                  <Tile className="esti-fill">
+                    <Stack gap={3}>
+                      <h4>{f.title}</h4>
+                      <p>{f.body}</p>
+                    </Stack>
+                  </Tile>
+                </Column>
+              ))}
+
+              <Column sm={4} md={8} lg={16}>
+                <Stack gap={4}>
+                  <p>Be the first to know when ESTI Mobile launches.</p>
+                  <div className="esti-cta-row">
+                    <Button kind="tertiary" renderIcon={ArrowRight} onClick={notifyMobile}>
+                      Notify me at launch
+                    </Button>
+                    <Button kind="ghost" onClick={contactSales}>
+                      Enquire about early access
+                    </Button>
+                  </div>
+                </Stack>
+              </Column>
+            </Grid>
+          </section>
+        </Layer>
+
         {/* ── Pricing ────────────────────────────────────────────────────────── */}
         <Layer>
           <section id="pricing" className="esti-landing-section">
@@ -640,25 +749,7 @@ export function Landing({
 
               <Column sm={4} md={4} lg={5}>
                 <PricingCard
-                  name="Free trial"
-                  price="₹0"
-                  suffix="/ 14 days"
-                  note="Full access to every module. No credit card."
-                  bullets={[
-                    "All 57 modules unlocked",
-                    "1 architect",
-                    "Email support",
-                    "Upgrade anytime",
-                  ]}
-                  cta="Start free trial"
-                  onClick={trial}
-                />
-              </Column>
-
-              <Column sm={4} md={4} lg={6}>
-                <PricingCard
                   name="Solo"
-                  highlight
                   price={solo}
                   suffix="/ month"
                   note={
@@ -672,15 +763,15 @@ export function Landing({
                     "Drawings, DXF takeoff & documents",
                     "ASPRF + SteelFlow + RIE compliance",
                   ]}
-                  cta="Log in to live demo"
-                  onClick={runDemo}
-                  pending={demo.isPending}
+                  cta="Contact sales"
+                  onClick={contactSales}
                 />
               </Column>
 
-              <Column sm={4} md={4} lg={5}>
+              <Column sm={4} md={4} lg={6}>
                 <PricingCard
-                  name="Team of 5"
+                  name="Studio"
+                  highlight
                   price={team}
                   suffix="/ month"
                   note={
@@ -689,21 +780,42 @@ export function Landing({
                       : "Billed monthly. ₹999/mo if billed annually."
                   }
                   bullets={[
-                    "Up to 5 users",
-                    "Seniority roles & permissions",
-                    "Team HR — leaves, payslips",
-                    "Priority support",
+                    "Up to 5 users with seniority roles",
+                    "Team HR — leaves and payslips",
+                    "ASPRF performance & reward points",
+                    "Priority support + onboarding call",
                   ]}
-                  cta="Start free trial"
-                  onClick={trial}
+                  cta="Contact sales"
+                  onClick={contactSales}
+                />
+              </Column>
+
+              <Column sm={4} md={4} lg={5}>
+                <PricingCard
+                  name="Enterprise"
+                  price="Custom"
+                  note="For larger practices, multiple offices or custom deployment needs."
+                  bullets={[
+                    "Unlimited users",
+                    "Custom integrations & branding",
+                    "Dedicated support & SLA",
+                    "On-premise or managed hosting",
+                  ]}
+                  cta="Contact sales"
+                  onClick={contactSales}
                 />
               </Column>
 
               <Column sm={4} md={8} lg={16}>
-                <p className="esti-label esti-label--secondary">
-                  Prices in INR, exclusive of GST. Need more than 5 users?{" "}
-                  <a href="mailto:hi@aorms.in">Talk to us</a>.
-                </p>
+                <Stack gap={3}>
+                  <p className="esti-label esti-label--secondary">
+                    Prices in INR, exclusive of GST. Want to see the product before committing?{" "}
+                    <a href="#" onClick={(e) => { e.preventDefault(); runDemo(); }}>Open the live demo</a>.
+                  </p>
+                  <p className="esti-label esti-label--secondary">
+                    All plans include full source access — self-host on your own VPS with no per-seat tracking.
+                  </p>
+                </Stack>
               </Column>
             </Grid>
           </section>
@@ -723,14 +835,14 @@ export function Landing({
                   </p>
                 </Stack>
                 <div className="esti-cta-row">
-                  <Button size="lg" renderIcon={ArrowRight} onClick={runDemo} disabled={demo.isPending}>
+                  <Button size="lg" renderIcon={ArrowRight} onClick={contactSales}>
+                    Contact sales
+                  </Button>
+                  <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
                     {demo.isPending ? "Opening demo…" : "Log in to live demo"}
                   </Button>
-                  <Button size="lg" kind="tertiary" onClick={() => navigate("/login")}>
+                  <Button size="lg" kind="ghost" onClick={() => navigate("/login")}>
                     Sign in
-                  </Button>
-                  <Button size="lg" kind="ghost" onClick={trial}>
-                    Start free trial
                   </Button>
                 </div>
                 {demo.isPending && (
