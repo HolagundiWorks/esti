@@ -10,7 +10,7 @@ RUN corepack enable
 WORKDIR /app
 
 # Copy workspace manifests first for better layer caching.
-COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 
@@ -35,7 +35,7 @@ RUN corepack enable
 WORKDIR /app
 
 # Copy workspace manifests for production install.
-COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 

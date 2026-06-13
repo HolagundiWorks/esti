@@ -11,7 +11,7 @@ RUN corepack enable
 WORKDIR /app
 
 # Workspace manifests.
-COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
