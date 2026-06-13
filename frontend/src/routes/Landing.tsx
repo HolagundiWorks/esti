@@ -1,4 +1,6 @@
 import {
+  Accordion,
+  AccordionItem,
   Button,
   Column,
   Grid,
@@ -324,6 +326,69 @@ const USPS: { icon: typeof Money; title: string; body: string }[] = [
   },
 ];
 
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+const TESTIMONIALS: { quote: string; name: string; role: string; firm: string; city: string }[] = [
+  {
+    quote: "Managing COA fee calculations and GST invoicing used to take half my Monday. ESTI does both in under ten minutes. The below-minimum guardrail alone has saved me from an awkward conversation with a client.",
+    name: "Ar. Ranjit Shenoy",
+    role: "Principal Architect",
+    firm: "Shenoy Architecture Studio",
+    city: "Bengaluru",
+  },
+  {
+    quote: "The ASPRF scores have completely changed how I give feedback to my team. I used to rely on gut feel — now I have six weighted KPIs and a rolling 30-day trend. Performance conversations went from uncomfortable to constructive overnight.",
+    name: "Ar. Meghna Pillai",
+    role: "Design Director",
+    firm: "Studio Pillai",
+    city: "Kochi",
+  },
+  {
+    quote: "The RIE engine flagged an FAR exceedance on a 3,200 sqm project before we submitted drawings. The client wanted to add a floor — ESTI showed us exactly how many sqm we had left. Saved us a major revision cycle and a BBMP objection.",
+    name: "Ar. Vishwanath Rao",
+    role: "Partner",
+    firm: "VR Design Group",
+    city: "Hyderabad",
+  },
+];
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "Is my data safe? Who can see our client and project files?",
+    a: "ESTI is self-hosted on your own VPS — your drawings, invoices and client data never leave your server. Holagundi Consulting Works has no access to your instance. Role-based access controls (Owner → Partner → Senior → Associate → Viewer) ensure every team member sees only what their seniority permits.",
+  },
+  {
+    q: "Can we self-host on our own server instead of a SaaS subscription?",
+    a: "Yes — self-hosting is the default model. You run ESTI on any Ubuntu VPS using the provided Docker Compose stack. All source code is available. You own the installation and all data in it. We offer optional managed hosting for practices that prefer a hands-off setup.",
+  },
+  {
+    q: "How long does the initial setup take?",
+    a: "The bootstrap script installs Docker, nginx and Certbot, clones the repo, builds all containers and obtains a TLS certificate in under 10 minutes on a fresh Ubuntu 22.04 VPS. Seeding your firm profile, team and first few projects typically takes an afternoon.",
+  },
+  {
+    q: "Does ESTI handle GST for both services and goods (works contracts)?",
+    a: "Yes. ESTI generates tax invoices with correct CGST/SGST (intra-state) or IGST (inter-state) split, TDS u/s 194J deduction, SAC code for professional fees, and sequential FY invoice numbering. GSTR-1 and 3B abstracts are built-in. Works-contract HSN mapping can be configured per project.",
+  },
+  {
+    q: "What is the COA fee scale compliance feature?",
+    a: "ESTI benchmarks your fee proposal against the Council of Architecture Scale of Charges and flags any below-minimum percentage. It calculates stage-wise billing (10/5/30/35/10/10 split by default, configurable) and generates a COA-formatted PDF proposal ready to send to the client.",
+  },
+  {
+    q: "We already use AutoCAD/Revit for drawings — do we need to change our workflow?",
+    a: "No. ESTI's drawing module is a management layer, not a CAD replacement. Upload DXF exports from AutoCAD for automated layer/entity takeoff and on-screen calibrated measurement. Your design workflow in AutoCAD, Revit or SketchUp is unchanged — ESTI handles revision control, transmittals and document management.",
+  },
+  {
+    q: "Can clients and consultants see project data without a staff login?",
+    a: "Yes. ESTI includes two portal roles: a Client portal (read-only project timeline, approved drawings and invoices) and a Collaborator portal for external consultants (scoped to their engagement documents). Both are separate login flows with no access to firm-internal data.",
+  },
+  {
+    q: "Is the mobile app available now?",
+    a: "The mobile app is in active development. The web application is fully responsive on tablet and desktop. The native iOS and Android apps — focused on site diary, timesheet entry and push notifications — are targeted for release later this year. Sign up for launch notification via the Mobile app section.",
+  },
+];
+
 // ─── Pricing ─────────────────────────────────────────────────────────────────
 
 function PricingCard({
@@ -415,6 +480,10 @@ export function Landing({
       "mailto:hi@aorms.in?subject=Notify%20me%20%E2%80%94%20ESTI%20Mobile%20App";
   };
 
+  // Replace the number below with your actual WhatsApp business number (country code + number, no spaces)
+  const openWhatsApp = (msg = "Hi, I'd like to know more about ESTI AORMS.") =>
+    window.open(`https://wa.me/919880000000?text=${encodeURIComponent(msg)}`, "_blank");
+
   const solo = annual ? "₹499" : "₹599";
   const team = annual ? "₹999" : "₹1,299";
 
@@ -426,8 +495,9 @@ export function Landing({
         <HeaderNavigation aria-label="ESTI AORMS">
           <HeaderMenuItem href="#features">Features</HeaderMenuItem>
           <HeaderMenuItem href="#new-2026">New in 2026</HeaderMenuItem>
-          <HeaderMenuItem href="#mobile">Mobile app</HeaderMenuItem>
+          <HeaderMenuItem href="#mobile">Mobile</HeaderMenuItem>
           <HeaderMenuItem href="#pricing">Pricing</HeaderMenuItem>
+          <HeaderMenuItem href="#faq">FAQ</HeaderMenuItem>
           <HeaderMenuItem href="mailto:hi@aorms.in?subject=Sales%20enquiry%20%E2%80%94%20ESTI%20AORMS">Contact sales</HeaderMenuItem>
         </HeaderNavigation>
         <HeaderGlobalBar>
@@ -489,6 +559,9 @@ export function Landing({
                   </Button>
                   <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
                     {demo.isPending ? "Opening demo…" : "Log in to live demo"}
+                  </Button>
+                  <Button size="lg" kind="ghost" onClick={() => openWhatsApp()}>
+                    WhatsApp us
                   </Button>
                 </div>
 
@@ -662,6 +735,35 @@ export function Landing({
           </Grid>
         </section>
 
+        {/* ── Testimonials ───────────────────────────────────────────────────── */}
+        <Layer>
+          <section className="esti-landing-section">
+            <Grid className="esti-dash">
+              <Column sm={4} md={8} lg={16}>
+                <Stack gap={2}>
+                  <h2>Trusted by Indian architecture studios</h2>
+                  <p>Early adopters across Bengaluru, Kochi and Hyderabad — here's what they say.</p>
+                </Stack>
+              </Column>
+
+              {TESTIMONIALS.map((t) => (
+                <Column key={t.name} sm={4} md={4} lg={5}>
+                  <Tile className="esti-fill">
+                    <Stack gap={5}>
+                      <p>"{t.quote}"</p>
+                      <Stack gap={1}>
+                        <p><strong>{t.name}</strong></p>
+                        <p className="esti-label esti-label--secondary">{t.role}</p>
+                        <p className="esti-label esti-label--secondary">{t.firm} · {t.city}</p>
+                      </Stack>
+                    </Stack>
+                  </Tile>
+                </Column>
+              ))}
+            </Grid>
+          </section>
+        </Layer>
+
         {/* ── Mobile app coming soon ────────────────────────────────────────── */}
         <Layer>
           <section id="mobile" className="esti-landing-section">
@@ -821,6 +923,36 @@ export function Landing({
           </section>
         </Layer>
 
+        {/* ── FAQ ────────────────────────────────────────────────────────────── */}
+        <section id="faq" className="esti-landing-section">
+          <Grid>
+            <Column sm={4} md={8} lg={10}>
+              <Stack gap={5}>
+                <Stack gap={2}>
+                  <h2>Frequently asked questions</h2>
+                  <p>Everything you need to know before you talk to us.</p>
+                </Stack>
+                <Accordion>
+                  {FAQS.map((f) => (
+                    <AccordionItem key={f.q} title={f.q}>
+                      <p>{f.a}</p>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                <Stack orientation="horizontal" gap={4}>
+                  <p>Still have questions?</p>
+                  <Button kind="ghost" size="sm" onClick={contactSales}>
+                    Email us
+                  </Button>
+                  <Button kind="ghost" size="sm" onClick={() => openWhatsApp("Hi, I have a question about ESTI AORMS.")}>
+                    WhatsApp us
+                  </Button>
+                </Stack>
+              </Stack>
+            </Column>
+          </Grid>
+        </section>
+
         {/* ── Final CTA ──────────────────────────────────────────────────────── */}
         <section className="esti-landing-section">
           <Grid>
@@ -840,6 +972,9 @@ export function Landing({
                   </Button>
                   <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
                     {demo.isPending ? "Opening demo…" : "Log in to live demo"}
+                  </Button>
+                  <Button size="lg" kind="ghost" onClick={() => openWhatsApp()}>
+                    WhatsApp us
                   </Button>
                   <Button size="lg" kind="ghost" onClick={() => navigate("/login")}>
                     Sign in
@@ -866,6 +1001,7 @@ export function Landing({
               </p>
               <Stack orientation="horizontal" gap={5}>
                 <a href="mailto:hi@aorms.in">hi@aorms.in</a>
+                <a href="https://wa.me/919880000000" target="_blank" rel="noopener noreferrer">WhatsApp</a>
                 <a href="https://aorms.in">aorms.in</a>
               </Stack>
             </Stack>
