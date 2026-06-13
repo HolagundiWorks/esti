@@ -1,0 +1,45 @@
+# ESTI AORMS — robots.txt
+# https://aorms.in
+
+User-agent: *
+
+# Allow public landing page and assets
+Allow: /
+Allow: /sitemap.xml
+
+# Block authenticated app routes — these require login and must not be indexed
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /clients
+Disallow: /team
+Disallow: /invoices
+Disallow: /fee-proposals
+Disallow: /proposals
+Disallow: /reconcile
+Disallow: /drawings
+Disallow: /tasks
+Disallow: /workload
+Disallow: /performance
+Disallow: /knowledge-bank
+Disallow: /compliance
+Disallow: /filing
+Disallow: /consultants
+Disallow: /letters
+Disallow: /contracts
+Disallow: /steel-arranger
+Disallow: /master-dsr
+Disallow: /hr
+Disallow: /users
+Disallow: /company
+Disallow: /settings
+Disallow: /audit-log
+Disallow: /alerts
+Disallow: /activity
+Disallow: /portal
+Disallow: /collab
+
+# Block API and tRPC endpoints
+Disallow: /api/
+Disallow: /trpc/
+
+Sitemap: https://aorms.in/sitemap.xml

@@ -5,7 +5,9 @@ import {
   Header,
   HeaderGlobalAction,
   HeaderGlobalBar,
+  HeaderMenuItem,
   HeaderName,
+  HeaderNavigation,
   InlineLoading,
   Layer,
   ProgressBar,
@@ -395,6 +397,12 @@ export function Landing({
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <Header aria-label="ESTI AORMS">
         <HeaderName prefix="ESTI" href="#top">AORMS</HeaderName>
+        <HeaderNavigation aria-label="ESTI AORMS">
+          <HeaderMenuItem href="#features">Features</HeaderMenuItem>
+          <HeaderMenuItem href="#new-2026">New in 2026</HeaderMenuItem>
+          <HeaderMenuItem href="#pricing">Pricing</HeaderMenuItem>
+          <HeaderMenuItem href="mailto:hi@aorms.in">Contact</HeaderMenuItem>
+        </HeaderNavigation>
         <HeaderGlobalBar>
           <HeaderGlobalAction
             aria-label={theme === "white" ? "Dark theme" : "Light theme"}
@@ -497,7 +505,7 @@ export function Landing({
         </Layer>
 
         {/* ── Core features ──────────────────────────────────────────────────── */}
-        <section className="esti-landing-section">
+        <section id="features" className="esti-landing-section">
           <Grid className="esti-dash">
             <Column sm={4} md={8} lg={16}>
               <Stack gap={2}>
@@ -527,7 +535,7 @@ export function Landing({
 
         {/* ── New features spotlight ─────────────────────────────────────────── */}
         <Layer>
-          <section className="esti-landing-section">
+          <section id="new-2026" className="esti-landing-section">
             <Grid className="esti-dash">
               <Column sm={4} md={8} lg={16}>
                 <Stack gap={2}>
