@@ -446,11 +446,45 @@ export const dashboardRouter = router({
     };
   }),
 
+  /** Team utilization over the last 30 days from timesheets. */
+  utilization: protectedProcedure.query(async ({ ctx }) => {
+    const [agg] = (await ctx.db.execute(sql`
+      select
+        coalesce(sum(hours), 0)::numeric as total_hours,
+        coalesce(sum(case when billable then hours else 0 end), 0)::numeric as billable_hours
+      from esti_timesheet
+      where entry_date >= current_date - 29
+    `)) as unknown as [{ total_hours: string; billable_hours: string }];
+    const [head] = await ctx.db
+      .select({ n: count() })
+      .from(teamMembers)
+      .where(eq(teamMembers.active, true));
+    const headcount = Number(head?.n ?? 0);
+    const total = Number(agg?.total_hours ?? 0);
+    const billable = Number(agg?.billable_hours ?? 0);
+    // Capacity baseline: ~22 working days × 8 h per active member.
+    const capacityHours = headcount * 22 * 8;
+    return {
+      headcount,
+      totalHours: Math.round(total * 10) / 10,
+      billableHours: Math.round(billable * 10) / 10,
+      utilizationPct: capacityHours > 0 ? Math.min(100, Math.round((total / capacityHours) * 100)) : 0,
+      billableRatePct: total > 0 ? Math.round((billable / total) * 100) : 0,
+    };
+  }),
+
   /** Per-project health scores for all active projects. */
   projectHealth: protectedProcedure.query(async ({ ctx }) => {
     const rows = (await ctx.db.execute(sql`
       select
         po.id, po.ref, po.title, po.contract_value_paise,
+        (select ph2.label from esti_phase ph2 where ph2.id = po.current_phase_id) as current_phase,
+        (select count(*)::int from esti_phase pa where pa.project_id = po.id) as total_phases,
+        (select count(*)::int from esti_phase pp
+          where pp.project_id = po.id
+          and pp.sort_order <= coalesce(
+            (select cp.sort_order from esti_phase cp where cp.id = po.current_phase_id), -1
+          )) as phases_reached,
         (select count(*)::int from esti_phase ph
           where ph.project_id = po.id
           and ph.sort_order <= coalesce(
@@ -484,6 +518,7 @@ export const dashboardRouter = router({
       order by po.ref
     `)) as unknown as {
       id: string; ref: string; title: string; contract_value_paise: number;
+      current_phase: string | null; total_phases: number; phases_reached: number;
       unbilled_phases: number; overdue_tasks: number; overdue_invoices: number;
       stale_approvals: number; revisions_open: number; critical_notes_open: number;
     }[];
@@ -496,11 +531,15 @@ export const dashboardRouter = router({
       } else if (Number(r.unbilled_phases) > 0 || Number(r.overdue_tasks) > 0 || Number(r.stale_approvals) > 0 || Number(r.revisions_open) > 0 || Number(r.critical_notes_open) > 0) {
         health = "YELLOW";
       }
+      const totalPhases = Number(r.total_phases);
+      const reached = Number(r.phases_reached);
       return {
         id: r.id,
         ref: r.ref,
         title: r.title,
         contractValuePaise: Number(r.contract_value_paise),
+        currentPhase: r.current_phase,
+        progressPct: totalPhases > 0 ? Math.round((reached / totalPhases) * 100) : 0,
         health,
         unbilledPhases: Number(r.unbilled_phases),
         overdueTasks: Number(r.overdue_tasks),
