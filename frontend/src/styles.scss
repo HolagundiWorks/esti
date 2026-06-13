@@ -220,3 +220,57 @@ body,
   h3 { @include type.type-style("productive-heading-02"); }
   h4 { @include type.type-style("heading-compact-01"); }
 }
+
+// Helper-text scale (Carbon label-01 = 12px/0.75rem). Use instead of inline
+// font-size on <p> or <span> for hints, captions, and cell annotations.
+.esti-label {
+  @include type.type-style("label-01");
+}
+.esti-label--secondary { color: var(--cds-text-secondary); }
+.esti-label--helper    { color: var(--cds-text-helper); }
+
+// BarPalette drag-source row: flex wrap of draggable pills + caption.
+.esti-bar-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-03);
+  align-items: center;
+}
+
+// ASPRF KPI bar: fixed-height track + width-animated fill.
+// Only `width` and `background` stay as dynamic inline styles on the fill.
+.esti-kpi-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--cds-layer-accent);
+  overflow: hidden;
+}
+.esti-kpi-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+// Workload calendar: weekday column headers.
+.esti-cal-hdr {
+  padding: 4px 6px;
+  font-weight: 600;
+}
+
+// Workload calendar: day cells. backgroundColor/color/outline stay dynamic
+// because they are computed from runtime heat-map values.
+.esti-cal-cell {
+  min-height: 68px;
+  padding: 6px var(--cds-spacing-03);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 150ms;
+}
+
+// Heatmap legend colour swatch — backgroundColor stays dynamic.
+.esti-heat-swatch {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 2px;
+  border: 1px solid var(--cds-border-subtle);
+}

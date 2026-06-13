@@ -64,15 +64,8 @@ function KpiBar({
         <span>{weight}</span>
         <span>{pct.toFixed(0)}</span>
       </Stack>
-      <div
-        style={{
-          height: 6,
-          borderRadius: 3,
-          background: "var(--cds-layer-accent)",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
+      <div className="esti-kpi-track">
+        <div className="esti-kpi-fill" style={{ width: `${pct}%`, background: color }} />
       </div>
     </Stack>
   );

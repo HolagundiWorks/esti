@@ -33,6 +33,39 @@ elements.**
 
 When in doubt, reach for an existing Carbon component before inventing markup.
 
+Permitted structural helpers in `styles.scss` (colourless layout/sizing only):
+`esti-fill`, `esti-grow`, `esti-dash`, `esti-cal`, `esti-cal-hdr`, `esti-cal-cell`,
+`esti-label` / `esti-label--secondary` / `esti-label--helper` (Carbon `label-01`
+type-style for hint text — use instead of `fontSize: "0.75rem"` inline),
+`esti-kpi-track` / `esti-kpi-fill` (ASPRF bar track/fill — only `width` and
+`background` stay dynamic inline), `esti-heat-swatch` (heatmap legend swatch —
+`backgroundColor` stays dynamic), `esti-bar-palette`, `esti-personal-panel` (and
+sub-classes), `esti-chart-sm/md/lg`, `esti-login-shell/panel`, `esti-toast-host`,
+`esti-pomodoro-float`, `esti-header-clock`, `esti-footer`.
+
+## Python worker (`worker/`)
+
+The worker is a **Redis Streams consumer** that handles CPU/IO-heavy jobs
+off-loaded by the TypeScript backend. It consumes `esti:jobs`, retries up to
+3 times, and routes poison jobs to `esti:jobs:dead`.
+
+Three job handlers (`worker/esti_worker/jobs/`):
+
+| Type | Handler | Purpose |
+|---|---|---|
+| `dxf_to_svg` | `dxf.py` | Converts DXF takeoff to SVG via `ezdxf` |
+| `render_pdf` | `pdf.py` | HTML → PDF (invoices, compliance reports, drawing sets) via WeasyPrint; targets: `invoice`, `compliance`, `drawing` |
+| `reconcile_import` | `reconcile.py` | Parses bank/26AS/AIS/GSTR imports and matches entries via `pandas` |
+
+Config (`worker/esti_worker/config.py`): Pydantic Settings reading `REDIS_URL`,
+`DATABASE_URL`, `S3_*` env vars. Storage (`storage.py`): S3 `get_bytes`/`put_bytes`.
+DB (`db.py`): patches `pdf_status` (PENDING → PROCESSING → READY) and `pdf_key`
+on `esti_site_assessment` and invoice rows after PDF upload.
+
+Tests: `worker/tests/test_jobs.py` (handler unit tests) and
+`test_retry_dlq.py` (retry/dead-letter stream tests). Run with `pytest` from the
+`worker/` directory.
+
 ## Dev / verify loop
 
 - Source for `backend` is bind-mounted but `tsx watch` does not reload across

@@ -502,7 +502,7 @@ function ElementEditor({ elementId }: { elementId: string }) {
                 <Stack orientation="horizontal" gap={2}>
                   <Tag type="gray" size="sm">{canvasLabel}</Tag>
                   {(elType === "BEAM" || elType === "COLUMN") && (
-                    <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>
+                    <p className="esti-label esti-label--secondary">
                       Drag a bar pill onto the section to place it
                     </p>
                   )}
@@ -520,7 +520,7 @@ function ElementEditor({ elementId }: { elementId: string }) {
                   onBarClick={(id) => deleteRebarMut.mutate({ id })}
                 />
                 {rebars.length > 0 && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-helper)" }}>
+                  <p className="esti-label esti-label--helper">
                     Hover a bar, then click to remove it.
                   </p>
                 )}

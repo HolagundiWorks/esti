@@ -423,7 +423,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               (scopeChangeCount / allDecisions.length) * 100,
             );
             return (
-              <p style={{ fontSize: "0.75rem", marginBottom: "0.5rem" }}>
+              <p className="esti-label">
                 Scope drift: <strong>{scopeDriftPct}%</strong> of decisions are
                 scope changes ({scopeChangeCount} of {allDecisions.length})
               </p>
@@ -501,7 +501,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                       </TableCell>
                       <TableCell>{days}d</TableCell>
                       <TableCell>
-                        <p style={{ fontSize: "0.75rem" }}>{hint}</p>
+                        <p className="esti-label">{hint}</p>
                       </TableCell>
                       <TableCell>
                         {canTransition && (

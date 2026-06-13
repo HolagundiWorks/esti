@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12 (updated post-Phase 5 first-wave: ASPRF engine, timesheets, stand-ups, compliance PDF)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-13 (updated post-convention audit: inline style violations resolved, CLAUDE.md module map expanded to all 57 namespaces + 33 frontend routes)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -93,6 +93,18 @@ Task create/edit form gains Work Type, Difficulty, and Est. Hours fields. `/perf
 route (HR-gated) shows member scorecard tiles with KPI bars, band tags, and a grant
 reward points modal; Recognition tab shows award types and point event reference.
 
+Also delivered (2026-06-13 convention audit): **Carbon-only compliance pass** —
+full codebase audit found 9 inline decorative style violations (fontSize, border-radius,
+background, fontWeight) across `BarPalette.tsx`, `ProjectOverview.tsx`,
+`SteelArranger.tsx`, `Performance.tsx`, `Work.tsx`. All resolved by extracting
+static visual props to new SCSS utility classes (`.esti-label`, `.esti-label--secondary`,
+`.esti-label--helper`, `.esti-kpi-track`, `.esti-kpi-fill`, `.esti-cal-hdr`,
+`.esti-cal-cell`, `.esti-heat-swatch`, `.esti-bar-palette`) in `styles.scss`;
+only truly dynamic runtime values (computed width%, heatmap backgroundColor/color,
+focus outline) remain as inline styles. No hardcoded hex colours or non-Carbon
+components found. CLAUDE.md module map expanded from 9 to 57 tRPC namespaces
+and all 33 frontend routes documented.
+
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
 
@@ -146,7 +158,9 @@ archive/restore and administrative operational-data reset.
   desktop, tablet, and mobile breakpoints.
 
 **Gate met:** frontend typecheck/lint/build pass and representative routes pass
-keyboard, dark-theme, and responsive browser review.
+keyboard, dark-theme, and responsive browser review. 2026-06-13 audit confirmed
+zero hardcoded hex colours and zero non-Carbon components; 9 inline decorative
+style violations found and resolved (see Current Baseline note above).
 
 ## Phase 2B - Data Visualisation, Spacing Audit, And Colour Semantics [P0] - Complete 2026-06-12
 

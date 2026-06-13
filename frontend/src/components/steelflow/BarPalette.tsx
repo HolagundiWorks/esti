@@ -30,8 +30,8 @@ function DraggableBarPill({ dia }: { dia: number }) {
 
 export function BarPalette() {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-      <span style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Drag onto canvas →</span>
+    <div className="esti-bar-palette">
+      <span className="esti-label esti-label--secondary">Drag onto canvas →</span>
       {SF_BAR_DIAS.map((d) => (
         <DraggableBarPill key={d} dia={d} />
       ))}

@@ -153,11 +153,10 @@ function WorkloadTab() {
             <Stack orientation="horizontal" gap={5}>
               {heatLegend.map((l) => (
                 <Stack key={l.label} orientation="horizontal" gap={3}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 2,
-                    backgroundColor: l.style.backgroundColor === "transparent" ? "var(--cds-layer-accent)" : l.style.backgroundColor,
-                    border: "1px solid var(--cds-border-subtle)",
-                  }} />
+                  <div
+                    className="esti-heat-swatch"
+                    style={{ backgroundColor: l.style.backgroundColor === "transparent" ? "var(--cds-layer-accent)" : l.style.backgroundColor }}
+                  />
                   <Stack gap={1}>
                     <p>{l.label}</p>
                     <p>{l.range} tasks</p>
@@ -182,7 +181,7 @@ function WorkloadTab() {
             </Stack>
             <div className="esti-cal">
               {WEEKDAYS.map((w) => (
-                <div key={w} style={{ padding: "4px 6px", fontWeight: 600 }}>{w}</div>
+                <div key={w} className="esti-cal-hdr">{w}</div>
               ))}
               {cells.map((d, i) => {
                 if (d === null) return <div key={`b${i}`} />;
@@ -198,15 +197,11 @@ function WorkloadTab() {
                     tabIndex={0}
                     onClick={() => setSelectedDate(iso)}
                     onKeyDown={(e) => e.key === "Enter" && setSelectedDate(iso)}
+                    className="esti-cal-cell"
                     style={{
-                      minHeight: 68,
-                      padding: "6px 8px",
-                      cursor: "pointer",
-                      borderRadius: 2,
                       outline: selected ? "2px solid var(--cds-focus)" : "1px solid var(--cds-border-subtle)",
                       backgroundColor: rawHeat.backgroundColor,
                       color: rawHeat.color,
-                      transition: "background-color 150ms",
                     }}
                   >
                     <Stack gap={2}>
