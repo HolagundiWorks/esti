@@ -1,55 +1,37 @@
 import {
-  Button,
   ClickableTile,
   Column,
   Grid,
   InlineLoading,
+  ProgressBar,
   Stack,
   StructuredListWrapper,
   StructuredListBody,
   StructuredListCell,
   StructuredListRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
   Tag,
   Tile,
   Toggle,
 } from "@carbon/react";
-import {
-  DonutChart,
-  GaugeChart,
-  GroupedBarChart,
-  HeatmapChart,
-  RadarChart,
-  SimpleBarChart,
-  TreemapChart,
-} from "@carbon/charts-react";
+import { ArrowRight } from "@carbon/icons-react";
+import { DonutChart, SimpleBarChart } from "@carbon/charts-react";
 import { ScaleTypes } from "@carbon/charts";
-import type {
-  GaugeChartOptions,
-  HeatmapChartOptions,
-  RadarChartOptions,
-  TreemapChartOptions,
-} from "@carbon/charts-react";
 import {
-  Analytics,
-  AuditTrail,
-  Banking,
-  Building,
-  ChartBar,
-  ChartDonut,
-  ChartLine,
-  CollaborateWithTeams,
-  DataInsights,
-  FinanceAndOperations,
-  Performance,
-  Receipt,
-  TeamAlignment,
-  Time,
-  Warning_01,
-  Workflows,
-  type Pictogram,
-} from "@carbon/pictograms-react";
-import { ACTIVITY_DOMAIN_TAG, activityDomain, can, formatINRShort } from "@esti/contracts";
-import { useState } from "react";
+  ACTIVITY_DOMAIN_TAG,
+  activityDomain,
+  can,
+  formatINRShort,
+  PERFORMANCE_BAND_LABEL,
+  PERFORMANCE_BAND_TAG,
+  type PerformanceBand,
+} from "@esti/contracts";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
@@ -57,10 +39,13 @@ import { trpc } from "../lib/trpc.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const DOW_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const CHART_HEIGHT = "240px";
 
-const HEALTH_LABEL: Record<string, string> = { RED: "At risk", YELLOW: "Watch", GREEN: "On track" };
+type TagType =
+  | "red" | "magenta" | "green" | "blue" | "teal" | "gray"
+  | "purple" | "cyan" | "cool-gray" | "warm-gray" | "high-contrast" | "outline";
+
+const HEALTH_LABEL: Record<string, string> = { RED: "At risk", YELLOW: "Watch", GREEN: "Healthy" };
 const HEALTH_TAG: Record<string, "red" | "magenta" | "green"> = {
   RED: "red",
   YELLOW: "magenta",
@@ -69,12 +54,17 @@ const HEALTH_TAG: Record<string, "red" | "magenta" | "green"> = {
 const CAPACITY_LABEL: Record<string, string> = {
   OVERLOADED: "Overloaded",
   BUSY: "Busy",
-  AVAILABLE: "Available",
+  HEALTHY: "Available",
 };
 const CAPACITY_TAG: Record<string, "red" | "magenta" | "green"> = {
   OVERLOADED: "red",
   BUSY: "magenta",
-  AVAILABLE: "green",
+  HEALTHY: "green",
+};
+const RISK_TAG: Record<"LOW" | "MEDIUM" | "HIGH", "red" | "magenta" | "green"> = {
+  HIGH: "red",
+  MEDIUM: "magenta",
+  LOW: "green",
 };
 
 function formatEventType(et: string): string {
@@ -84,7 +74,7 @@ function formatEventType(et: string): string {
     .replace(/^\w/, (c) => c.toUpperCase());
 }
 
-// ─── date helpers ─────────────────────────────────────────────────────────────
+// ─── date helpers (statutory filing) ─────────────────────────────────────────
 
 function daysUntil(iso: string): number {
   const today = new Date();
@@ -134,91 +124,68 @@ function dueLabel(days: number) {
   return days === 0 ? "Due today" : days < 0 ? `${-days}d overdue` : `${days}d left`;
 }
 
-// ─── TileHeader ───────────────────────────────────────────────────────────────
-// Resource-card style: category Tag at top, then pictogram + h3 title.
+// ─── Health edge — the card's single side signal ─────────────────────────────
+// A 3px left border (Carbon notification anatomy) marks whether a card needs
+// attention. The edge is the card-level status; coloured tags carry per-item
+// meaning. Carbon support tokens only.
 
-function TileHeader({
-  Pict,
-  sub,
+type CardHealth = "alert" | "watch" | "ok" | "neutral";
+
+const EDGE_COLOR: Record<CardHealth, string> = {
+  alert: "var(--cds-support-error)",
+  watch: "var(--cds-support-warning)",
+  ok: "var(--cds-support-success)",
+  neutral: "var(--cds-border-subtle-01)",
+};
+
+function edge(health: CardHealth) {
+  return { borderLeft: `3px solid ${EDGE_COLOR[health]}` };
+}
+
+// ─── ZoneTile — full-width section header; arrow = navigates to the module ────
+
+function ZoneTile({
+  navigate,
   title,
+  sub,
+  to,
   statusTag,
 }: {
-  Pict: Pictogram;
-  sub: string;
+  navigate: (to: string) => void;
   title: string;
-  statusTag?: { text: string; type: "red" | "green" | "blue" | "magenta" | "gray" | "teal" | "cyan" | "purple" };
+  sub?: string;
+  to?: string;
+  statusTag?: { text: string; type: TagType };
 }) {
-  return (
-    <Stack gap={3}>
-      <Stack orientation="horizontal" gap={2}>
-        <Tag type="gray" size="sm">
-          {sub}
-        </Tag>
-        {statusTag && (
-          <Tag type={statusTag.type} size="sm">
-            {statusTag.text}
-          </Tag>
-        )}
-      </Stack>
-      <Stack orientation="horizontal" gap={3}>
-        <Pict width={32} height={32} />
-        <h3>{title}</h3>
-      </Stack>
-    </Stack>
-  );
-}
-
-// ─── FilingDueBoard ──────────────────────────────────────────────────────────
-
-function FilingDueBoard({
-  title,
-  Pictogram: Pict,
-  rows,
-  onOpen,
-}: {
-  title: string;
-  Pictogram: Pictogram;
-  rows: { label: string; iso: string }[];
-  onOpen?: () => void;
-}) {
-  const fmt = (iso: string) =>
-    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-    });
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={Pict} sub="Compliance" title={title} />
-        <Stack gap={4}>
-          {rows.map((r) => {
-            const days = daysUntil(r.iso);
-            return (
-              <Stack key={r.label} orientation="horizontal" gap={4}>
-                <div className="esti-grow">
-                  <p>{r.label}</p>
-                  <p>{fmt(r.iso)}</p>
-                </div>
-                <Tag type={dueTagType(days)}>{dueLabel(days)}</Tag>
-              </Stack>
-            );
-          })}
+  const inner = (
+    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="esti-grow">
+        <Stack gap={1}>
+          <h3>{title}</h3>
+          {sub && <p>{sub}</p>}
         </Stack>
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open compliance
-          </Button>
-        )}
-      </Stack>
-    </Tile>
+      </div>
+      {statusTag && (
+        <Tag type={statusTag.type} size="sm">
+          {statusTag.text}
+        </Tag>
+      )}
+      {to && <ArrowRight size={20} />}
+    </div>
+  );
+  return to ? (
+    <ClickableTile onClick={() => navigate(to)}>{inner}</ClickableTile>
+  ) : (
+    <Tile>{inner}</Tile>
   );
 }
 
-// ─── KpiChip ─────────────────────────────────────────────────────────────────
+// ─── KpiChip — label / value / context tag; arrow signals clickability ───────
 
 function KpiChip({
   label,
   value,
+  health,
   tagType,
   tagText,
   onClick,
@@ -226,16 +193,20 @@ function KpiChip({
 }: {
   label: string;
   value: string | number;
-  tagType?: "green" | "red" | "magenta" | "blue" | "gray" | "teal";
+  health: CardHealth;
+  tagType: TagType;
   tagText?: string;
   onClick?: () => void;
   loading?: boolean;
 }) {
   const body = (
     <Stack gap={3}>
-      <p>{label}</p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <p>{label}</p>
+        {onClick && <ArrowRight size={16} />}
+      </div>
       <h2>{loading ? "…" : value}</h2>
-      {tagType && tagText && (
+      {tagText && (
         <Tag type={tagType} size="sm">
           {tagText}
         </Tag>
@@ -243,565 +214,57 @@ function KpiChip({
     </Stack>
   );
   return onClick ? (
-    <ClickableTile className="esti-fill" onClick={onClick}>
+    <ClickableTile className="esti-fill" style={edge(health)} onClick={onClick}>
       {body}
     </ClickableTile>
   ) : (
-    <Tile className="esti-fill">{body}</Tile>
+    <Tile className="esti-fill" style={edge(health)}>
+      {body}
+    </Tile>
   );
 }
 
-// ─── HBarBoard ───────────────────────────────────────────────────────────────
+// ─── FilingTile — statutory due dates; arrow → filing ────────────────────────
 
-function HBarBoard({
-  Pict,
-  sub,
+function FilingTile({
+  navigate,
   title,
-  data,
-  loading,
-  error,
-  formatValue,
-  onOpen,
+  rows,
 }: {
-  Pict?: Pictogram;
-  sub?: string;
+  navigate: (to: string) => void;
   title: string;
-  data: { group: string; value: number }[];
-  loading?: boolean;
-  error?: boolean;
-  formatValue?: (v: number) => string;
-  onOpen?: () => void;
+  rows: { label: string; iso: string }[];
 }) {
-  const chartTheme = useAppTheme();
-  const h = `${Math.max(160, data.length * 44)}px`;
-  const options = {
-    axes: {
-      left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
-      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-    },
-    height: h,
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: false },
-    ...(formatValue ? { tooltip: { valueFormatter: formatValue } } : {}),
-  };
+  const worst = Math.min(...rows.map((r) => daysUntil(r.iso)));
+  const health: CardHealth = worst <= 3 ? "alert" : worst <= 7 ? "watch" : "neutral";
   return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        {Pict && sub ? (
-          <TileHeader Pict={Pict} sub={sub} title={title} />
-        ) : (
-          <h3>{title}</h3>
-        )}
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : data.length === 0 ? (
-          <p>No data available.</p>
-        ) : (
-          <SimpleBarChart data={data} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            View details
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── FinancialDonut ──────────────────────────────────────────────────────────
-
-type FinancialData = {
-  activePipelinePaise: number;
-  proposalPipelinePaise: number;
-  readyToBillPaise: number;
-  outstandingPaise: number;
-  collectedFyPaise: number;
-};
-
-function FinancialDonut({
-  data,
-  loading,
-  onOpen,
-}: {
-  data?: FinancialData;
-  loading: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data
-    ? [
-        { group: "Active pipeline", value: data.activePipelinePaise },
-        { group: "Proposal pipeline", value: data.proposalPipelinePaise },
-        { group: "Ready to bill", value: data.readyToBillPaise },
-        { group: "Outstanding", value: data.outstandingPaise },
-        { group: "Collected FY", value: data.collectedFyPaise },
-      ].filter((d) => d.value > 0)
-    : [];
-  const options = {
-    data: { groupMapsTo: "group" },
-    donut: { center: { label: "Revenue" }, alignment: "center" },
-    height: "260px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-  };
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={FinanceAndOperations} sub="Firm financials" title="Financial health" />
-        {loading ? (
-          <InlineLoading description="Loading financial data…" />
-        ) : chartData.length === 0 ? (
-          <p>No financial data yet.</p>
-        ) : (
-          <DonutChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open invoices
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── RevenuePipelineBar ──────────────────────────────────────────────────────
-
-function RevenuePipelineBar({
-  data,
-  loading,
-  onOpen,
-}: {
-  data?: FinancialData;
-  loading: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data
-    ? [
-        { group: "Active pipeline", key: "Pipeline", value: data.activePipelinePaise },
-        { group: "Proposal pipeline", key: "Pipeline", value: data.proposalPipelinePaise },
-        { group: "Ready to bill", key: "Billing", value: data.readyToBillPaise },
-        { group: "Outstanding", key: "Receivables", value: data.outstandingPaise },
-        { group: "Collected FY", key: "Collected", value: data.collectedFyPaise },
-      ].filter((d) => d.value > 0)
-    : [];
-  const options = {
-    axes: {
-      left: { mapsTo: "key", scaleType: ScaleTypes.LABELS },
-      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-    },
-    height: "300px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-    accessibility: { svgAriaLabel: "Revenue pipeline by category" },
-  };
-  if (!loading && chartData.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={ChartBar} sub="Breakdown by category" title="Revenue pipeline" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : (
-          <GroupedBarChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open accounting
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── ClientRadar ─────────────────────────────────────────────────────────────
-
-type ClientSignal = {
-  id: string;
-  name: string;
-  activeProjects: number;
-  outstandingPaise: number;
-  oldestInvoiceDays: number;
-  revisionRequests: number;
-};
-
-function ClientRadar({
-  data,
-  loading,
-  onOpen,
-}: {
-  data?: ClientSignal[];
-  loading: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = (data ?? []).flatMap((c) => [
-    { group: c.name, key: "Payment risk", value: Math.min(c.outstandingPaise / 1_00_00_000, 1) * 100 },
-    { group: c.name, key: "Invoice age", value: Math.min(c.oldestInvoiceDays / 90, 1) * 100 },
-    { group: c.name, key: "Revisions", value: Math.min(c.revisionRequests / 10, 1) * 100 },
-    { group: c.name, key: "Project load", value: Math.min(c.activeProjects / 5, 1) * 100 },
-  ]);
-  const options: RadarChartOptions = {
-    radar: { axes: { angle: "key", value: "value" } },
-    height: "320px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: unknown) => `${Math.round(Number(v))}%` },
-    accessibility: { svgAriaLabel: "Client risk radar" },
-  };
-  if (!loading && (data?.length ?? 0) === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={Analytics} sub="Client signals" title="Client intelligence" />
-        {loading ? (
-          <InlineLoading description="Loading client data…" />
-        ) : (
-          <RadarChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open clients
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── ProjectStatusNumbers ────────────────────────────────────────────────────
-
-function ProjectStatusNumbers({
-  byStatus,
-  loading,
-  error,
-  onOpen,
-}: {
-  byStatus: Record<string, number>;
-  loading?: boolean;
-  error?: boolean;
-  onOpen: () => void;
-}) {
-  const active = byStatus.ACTIVE ?? 0;
-  const onHold = byStatus.ON_HOLD ?? 0;
-  const closed = (byStatus.COMPLETED ?? 0) + (byStatus.CANCELLED ?? 0);
-  const cells = [
-    { label: "Active", value: active, tagType: "blue" as const, tagText: "Live" },
-    { label: "On hold", value: onHold, tagType: "magenta" as const, tagText: "Paused" },
-    { label: "Closed", value: closed, tagType: "gray" as const, tagText: "Done" },
-  ];
-  return (
-    <ClickableTile className="esti-fill" onClick={onOpen}>
-      <Stack gap={5}>
-        <TileHeader Pict={Building} sub="Projects" title="Status overview" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Unavailable</Tag>
-        ) : (
-          <Stack orientation="horizontal" gap={5}>
-            {cells.map((c) => (
-              <Stack key={c.label} gap={2}>
-                <p>{c.label}</p>
-                <h2>{c.value}</h2>
-                <Tag type={c.tagType} size="sm">
-                  {c.tagText}
-                </Tag>
-              </Stack>
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </ClickableTile>
-  );
-}
-
-// ─── PhaseDonut ──────────────────────────────────────────────────────────────
-
-function PhaseDonut({
-  data,
-  loading,
-  error,
-  onOpen,
-}: {
-  data: { label: string; count: number }[];
-  loading?: boolean;
-  error?: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data.map((p) => ({ group: p.label, value: p.count }));
-  const options = {
-    data: { groupMapsTo: "group" },
-    donut: { center: { label: "Stages" }, alignment: "center" },
-    height: "260px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => `${v} project${v !== 1 ? "s" : ""}` },
-    accessibility: { svgAriaLabel: "Projects by current stage" },
-  };
-  if (!loading && !error && chartData.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader
-          Pict={ChartDonut}
-          sub="Current stage distribution"
-          title="Projects by phase"
-        />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : (
-          <DonutChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open projects
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── TypeTreemap ─────────────────────────────────────────────────────────────
-
-function TypeTreemap({
-  data,
-  loading,
-  error,
-  onOpen,
-}: {
-  data: { type: string; count: number }[];
-  loading?: boolean;
-  error?: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data.map((t) => ({ name: t.type, value: t.count }));
-  const options: TreemapChartOptions = {
-    toolbar: { enabled: false },
-    height: "280px",
-    theme: chartTheme,
-    color: {
-      pairing: { option: 1, numberOfVariants: Math.max(data.length, 2) },
-    } as TreemapChartOptions["color"],
-    tooltip: {
-      valueFormatter: (v: unknown) =>
-        `${v} project${Number(v) !== 1 ? "s" : ""}`,
-    },
-    accessibility: { svgAriaLabel: "Projects by architecture type" },
-  };
-  if (!loading && !error && chartData.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={DataInsights} sub="Architecture category" title="Projects by type" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : (
-          <TreemapChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open projects
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── DailyTaskGauges ─────────────────────────────────────────────────────────
-
-const GAUGE_MAX = 10;
-
-function DailyTaskGauges({
-  data,
-  loading,
-  error,
-}: {
-  data: { assignee: string; count: number }[];
-  loading?: boolean;
-  error?: boolean;
-}) {
-  const chartTheme = useAppTheme();
-  if (!loading && !error && data.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={Time} sub="Tasks due today — per person" title="Daily task load" />
-        {loading ? (
-          <InlineLoading description="Loading daily load…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : (
-          <Grid narrow>
-            {data.map((d) => {
-              const pct = (Math.min(d.count, GAUGE_MAX) / GAUGE_MAX) * 100;
-              const status =
-                d.count >= 8 ? "danger" : d.count >= 5 ? "warning" : undefined;
-              const tagType =
-                status === "danger"
-                  ? ("red" as const)
-                  : status === "warning"
-                    ? ("magenta" as const)
-                    : ("green" as const);
-              const opts: GaugeChartOptions = {
-                gauge: {
-                  type: "semi",
-                  arcWidth: 20,
-                  showPercentageSymbol: false,
-                  numberFormatter: () => String(d.count),
-                  ...(status ? { status } : {}),
-                },
-                height: "160px",
-                theme: chartTheme,
-                toolbar: { enabled: false },
-                legend: { enabled: false },
-                accessibility: {
-                  svgAriaLabel: `${d.assignee}: ${d.count} tasks today`,
-                },
-              };
+    <Column lg={4} md={4} sm={4}>
+      <ClickableTile
+        className="esti-fill"
+        style={edge(health)}
+        onClick={() => navigate("/filing")}
+      >
+        <Stack gap={5}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h4 className="esti-grow">{title}</h4>
+            <ArrowRight size={16} />
+          </div>
+          <Stack gap={4}>
+            {rows.map((r) => {
+              const days = daysUntil(r.iso);
               return (
-                <Column key={d.assignee} lg={4} md={4} sm={4}>
-                  <Stack gap={3}>
-                    <p>{d.assignee}</p>
-                    <GaugeChart
-                      data={[
-                        { group: "value", value: pct },
-                        { group: "remaining", value: 100 - pct },
-                      ]}
-                      options={opts}
-                    />
-                    <Tag type={tagType} size="sm">
-                      {d.count} task{d.count !== 1 ? "s" : ""} today
-                    </Tag>
-                  </Stack>
-                </Column>
+                <Stack key={r.label} orientation="horizontal" gap={3}>
+                  <div className="esti-grow">
+                    <p>{r.label}</p>
+                  </div>
+                  <Tag type={dueTagType(days)} size="sm">{dueLabel(days)}</Tag>
+                </Stack>
               );
             })}
-          </Grid>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── WorkloadHeatmap ─────────────────────────────────────────────────────────
-
-type HeatRow = { assignee: string; dow: number; count: number };
-type DayRow = { assignee: string; day: string; count: number };
-
-function WorkloadHeatmap({
-  weekly,
-  daily,
-  loading,
-  error,
-  onOpen,
-}: {
-  weekly: HeatRow[];
-  daily: DayRow[];
-  loading?: boolean;
-  error?: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const [mode, setMode] = useState<"weekly" | "daily">("weekly");
-
-  const weeklyData = DOW_ORDER.flatMap((dow) => {
-    const label = DOW_LABEL[dow]!;
-    const assignees = [...new Set(weekly.map((r) => r.assignee))];
-    return assignees.map((a) => ({
-      group: a,
-      day: label,
-      value: weekly.find((r) => r.assignee === a && r.dow === dow)?.count ?? 0,
-    }));
-  });
-  const dailyData = daily.map((r) => ({
-    group: r.assignee,
-    day: r.day,
-    value: r.count,
-  }));
-  const activeData = mode === "weekly" ? weeklyData : dailyData;
-  const noData = mode === "weekly" ? weekly.length === 0 : daily.length === 0;
-
-  const opts: HeatmapChartOptions = {
-    axes: {
-      bottom: {
-        title: mode === "weekly" ? "Weekday" : "Due date",
-        mapsTo: "day",
-        scaleType: ScaleTypes.LABELS,
-      },
-      left: { title: "Person", mapsTo: "group", scaleType: ScaleTypes.LABELS },
-    },
-    heatmap: { colorLegend: { type: "linear" as const } },
-    height: `${Math.max(200, [...new Set(activeData.map((d) => d.group))].length * 40 + 80)}px`,
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: false },
-    tooltip: {
-      valueFormatter: (v: unknown) =>
-        `${v} task${Number(v) !== 1 ? "s" : ""}`,
-    },
-    accessibility: { svgAriaLabel: `Workload heatmap — ${mode} view` },
-  };
-
-  if (!loading && !error && weekly.length === 0 && daily.length === 0) return null;
-
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <Stack orientation="horizontal" gap={4}>
-          <div className="esti-grow">
-            <TileHeader
-              Pict={CollaborateWithTeams}
-              sub="Open tasks per person"
-              title="Workload heatmap"
-            />
-          </div>
-          <Toggle
-            id="heatmap-mode"
-            size="sm"
-            labelText="View mode"
-            labelA="Weekly"
-            labelB="Daily"
-            toggled={mode === "daily"}
-            onToggle={(on) => setMode(on ? "daily" : "weekly")}
-          />
+          </Stack>
         </Stack>
-        {loading ? (
-          <InlineLoading description="Loading workload…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : noData ? (
-          <p>No open tasks with due dates assigned.</p>
-        ) : (
-          <HeatmapChart data={activeData} options={opts} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open workload
-          </Button>
-        )}
-      </Stack>
-    </Tile>
+      </ClickableTile>
+    </Column>
   );
 }
 
@@ -810,6 +273,7 @@ function WorkloadHeatmap({
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const chartTheme = useAppTheme();
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
@@ -820,17 +284,14 @@ export function Dashboard() {
   const tiQ = trpc.dashboard.teamIntelligence.useQuery();
   const riQ = trpc.dashboard.revisionIntelligence.useQuery();
   const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
-  const activityQ = trpc.activity.listOffice.useQuery({ limit: 8, visibility: "STAFF" });
+  const utilQ = trpc.dashboard.utilization.useQuery();
+  const aspQ = trpc.aspRf.teamScores.useQuery();
+  const activityQ = trpc.activity.listOffice.useQuery({ limit: 4, visibility: "STAFF" });
 
   const s = summary.data;
   const b = boardsQ.data;
   const summaryLoading = summary.isLoading && !s;
   const boardsLoading = boardsQ.isLoading && !b;
-  const summaryError = summary.isError && !s;
-  const boardsError = boardsQ.isError && !b;
-
-  const byPhase = b?.byPhase ?? [];
-  const byType = b?.byType ?? [];
 
   const canFees = can(user?.role, "fees:manage");
   const isAdmin = can(user?.role, "firm:admin");
@@ -843,11 +304,34 @@ export function Dashboard() {
     onSuccess: () => utils.settings.get.invalidate(),
   });
 
+  // Action Center — five urgency categories.
+  const billingReady = acQ.data?.billingReadyPhases ?? [];
+  const overdueInvoices = acQ.data?.overdueInvoices ?? [];
+  const pendingApprovals = acQ.data?.pendingApprovals ?? [];
+  const riskProjects = (phQ.data ?? []).filter((p) => p.health === "RED");
+  const overloadedMembers = (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED");
   const acTotal =
-    (acQ.data?.billingReadyPhases.length ?? 0) +
-    (acQ.data?.overdueInvoices.length ?? 0) +
-    (acQ.data?.pendingApprovals.length ?? 0);
+    billingReady.length +
+    overdueInvoices.length +
+    pendingApprovals.length +
+    riskProjects.length +
+    overloadedMembers.length;
 
+  const readyToBillSum = billingReady.reduce(
+    (sum, ph) => sum + Math.round((ph.billingPct * ph.contractValuePaise) / 100),
+    0,
+  );
+
+  // Financial charts.
+  const revenueData = fhQ.data
+    ? [
+        { group: "Active pipeline", value: fhQ.data.activePipelinePaise },
+        { group: "Proposal pipeline", value: fhQ.data.proposalPipelinePaise },
+        { group: "Ready to bill", value: fhQ.data.readyToBillPaise },
+        { group: "Outstanding", value: fhQ.data.outstandingPaise },
+        { group: "Collected FY", value: fhQ.data.collectedFyPaise },
+      ].filter((d) => d.value > 0)
+    : [];
   const agingData = [
     { group: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
     { group: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
@@ -855,440 +339,364 @@ export function Dashboard() {
   ];
   const agingEmpty = agingData.every((d) => d.value === 0);
 
+  // Team — top four ASPRF cards only; the full board lives at /performance.
+  const capacityByName = new Map((tiQ.data ?? []).map((m) => [m.assignee, m]));
+  const teamCards = (aspQ.data ?? []).slice(0, 4);
+
   const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
+  const hasClients = (ciQ.data?.length ?? 0) > 0;
 
   return (
-    <Grid fullWidth className="esti-dash">
+    <Grid fullWidth condensed className="esti-dash">
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <Column lg={16} md={8} sm={4}>
-        <Stack orientation="horizontal" gap={5}>
-          <ChartLine width={44} height={44} />
-          <div>
-            <h1>Office dashboard</h1>
-            {user?.fullName && (
-              <p>Welcome, Ar. {user.fullName.split(" ")[0]}</p>
-            )}
-          </div>
+        <Stack gap={2}>
+          <h1>Office dashboard</h1>
+          {user?.fullName && (
+            <p>Welcome, Ar. {user.fullName.replace(/^Ar\.?\s+/i, "").split(" ")[0]}</p>
+          )}
         </Stack>
       </Column>
 
-      {/* ═══ Zone 1: Action Center ═════════════════════════════════════════ */}
-      <Column lg={16} md={8} sm={4}>
-        <Tile>
-          <Stack gap={6}>
-            {/* Resource-card header: status Tag + title */}
-            <Stack gap={3}>
-              <Stack orientation="horizontal" gap={2}>
-                <Tag type="gray" size="sm">Action Center</Tag>
-                {acQ.data && !acQ.isLoading && (
-                  <Tag type={acTotal > 0 ? "red" : "green"} size="sm">
-                    {acTotal > 0
-                      ? `${acTotal} item${acTotal !== 1 ? "s" : ""}`
-                      : "All clear"}
-                  </Tag>
-                )}
-              </Stack>
-              <Stack orientation="horizontal" gap={3}>
-                <Warning_01 width={32} height={32} />
-                <h3>What needs attention now</h3>
-              </Stack>
-            </Stack>
-
-            {acQ.isLoading ? (
-              <InlineLoading description="Loading action items…" />
-            ) : acTotal === 0 ? (
-              <p>All clear — no outstanding items.</p>
-            ) : (
-              <Grid narrow>
-                <Column lg={4} md={4} sm={4}>
-                  <Stack gap={4}>
-                    <h4>Ready to bill</h4>
-                    {(acQ.data?.billingReadyPhases.length ?? 0) === 0 ? (
-                      <p>No phases awaiting invoice.</p>
-                    ) : (
-                      <Stack gap={3}>
-                        <h2>{acQ.data!.billingReadyPhases.length}</h2>
-                        <p>Phases awaiting invoice</p>
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          onClick={() => navigate("/invoices")}
-                        >
-                          Open invoices
-                        </Button>
-                      </Stack>
-                    )}
-                  </Stack>
-                </Column>
-                <Column lg={6} md={4} sm={4}>
-                  <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={3}>
-                      <h4>Overdue collections</h4>
-                      <Tag type="red" size="sm">
-                        {acQ.data?.overdueInvoices.length ?? 0}
-                      </Tag>
-                    </Stack>
-                    {(acQ.data?.overdueInvoices.length ?? 0) === 0 ? (
-                      <p>No invoices overdue beyond 30 days.</p>
-                    ) : (
-                      <StructuredListWrapper isCondensed>
-                        <StructuredListBody>
-                          {acQ.data!.overdueInvoices.map((inv) => (
-                            <StructuredListRow key={inv.id}>
-                              <StructuredListCell>
-                                <Link
-                                  to={`/projects/${inv.projectId}?tab=invoices`}
-                                >
-                                  {inv.ref}
-                                </Link>
-                                <p>
-                                  {inv.projectRef} ·{" "}
-                                  {formatINRShort(inv.netReceivablePaise)}
-                                </p>
-                              </StructuredListCell>
-                              <StructuredListCell noWrap>
-                                <Tag type="red" size="sm">
-                                  {inv.daysOverdue}d overdue
-                                </Tag>
-                              </StructuredListCell>
-                            </StructuredListRow>
-                          ))}
-                        </StructuredListBody>
-                      </StructuredListWrapper>
-                    )}
-                  </Stack>
-                </Column>
-                <Column lg={6} md={4} sm={4}>
-                  <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={3}>
-                      <h4>Pending approvals</h4>
-                      <Tag type="magenta" size="sm">
-                        {acQ.data?.pendingApprovals.length ?? 0}
-                      </Tag>
-                    </Stack>
-                    {(acQ.data?.pendingApprovals.length ?? 0) === 0 ? (
-                      <p>No items awaiting response.</p>
-                    ) : (
-                      <StructuredListWrapper isCondensed>
-                        <StructuredListBody>
-                          {acQ.data!.pendingApprovals.map((ap) => (
-                            <StructuredListRow key={ap.id}>
-                              <StructuredListCell>
-                                <Link
-                                  to={`/projects/${ap.projectId}?tab=approvals`}
-                                >
-                                  {ap.projectRef}
-                                </Link>
-                                <p>{ap.title}</p>
-                              </StructuredListCell>
-                              <StructuredListCell noWrap>
-                                <Tag type="magenta" size="sm">
-                                  {ap.daysWaiting}d waiting
-                                </Tag>
-                              </StructuredListCell>
-                            </StructuredListRow>
-                          ))}
-                        </StructuredListBody>
-                      </StructuredListWrapper>
-                    )}
-                  </Stack>
-                </Column>
-              </Grid>
-            )}
-          </Stack>
-        </Tile>
-      </Column>
-
-      {/* ═══ Zone 2: Key metrics — 4 equal chips ═══════════════════════════ */}
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Revenue due"
-          value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
-          tagType="red"
-          tagText="Outstanding"
-          onClick={() => navigate("/invoices")}
-          loading={fhQ.isLoading}
-        />
-      </Column>
+      {/* ═══ 1 · KPI strip — four answers, one row ═════════════════════════ */}
       <Column lg={4} md={4} sm={2}>
         <KpiChip
           label="Ready to bill"
           value={formatINRShort(fhQ.data?.readyToBillPaise ?? 0)}
-          tagType="green"
-          tagText={`${acQ.data?.billingReadyPhases.length ?? 0} phases`}
+          health={billingReady.length > 0 ? "ok" : "neutral"}
+          tagType={billingReady.length > 0 ? "green" : "gray"}
+          tagText={`${billingReady.length} phase${billingReady.length !== 1 ? "s" : ""}`}
           onClick={() => navigate("/invoices")}
           loading={fhQ.isLoading || acQ.isLoading}
         />
       </Column>
       <Column lg={4} md={4} sm={2}>
         <KpiChip
-          label="Active projects"
-          value={s?.projects.byStatus.ACTIVE ?? 0}
-          tagType="blue"
-          tagText="Live pipeline"
-          onClick={() => navigate("/projects")}
-          loading={summaryLoading}
+          label="Outstanding collections"
+          value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
+          health={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "alert" : "neutral"}
+          tagType={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"}
+          tagText={
+            (fhQ.data?.overdue30dPaise ?? 0) > 0
+              ? `${formatINRShort(fhQ.data!.overdue30dPaise)} overdue 30d+`
+              : "Nothing overdue"
+          }
+          onClick={() => navigate("/invoices")}
+          loading={fhQ.isLoading}
         />
       </Column>
       <Column lg={4} md={4} sm={2}>
         <KpiChip
-          label="Revision risk"
-          value={riQ.data?.revisionRiskBand ?? "—"}
-          tagType={
-            riQ.data?.revisionRiskBand === "HIGH" ? "red"
-              : riQ.data?.revisionRiskBand === "MEDIUM" ? "magenta"
-              : "green"
+          label="Active projects"
+          value={s?.projects.byStatus.ACTIVE ?? 0}
+          health={riskProjects.length > 0 ? "alert" : "ok"}
+          tagType={riskProjects.length > 0 ? "red" : "blue"}
+          tagText={
+            riskProjects.length > 0
+              ? `${riskProjects.length} at risk`
+              : "All on track"
           }
-          tagText={`Health ${riQ.data?.healthScore ?? "—"}`}
           onClick={() => navigate("/projects")}
-          loading={acQ.isLoading || riQ.isLoading}
+          loading={summaryLoading || phQ.isLoading}
+        />
+      </Column>
+      <Column lg={4} md={4} sm={2}>
+        <KpiChip
+          label="Team utilization"
+          value={utilQ.data ? `${utilQ.data.utilizationPct}%` : "—"}
+          health="neutral"
+          tagType="teal"
+          tagText={
+            utilQ.data && utilQ.data.totalHours > 0
+              ? `${utilQ.data.billableRatePct}% billable`
+              : "No timesheets yet"
+          }
+          onClick={() => navigate("/tasks?tab=timesheets")}
+          loading={utilQ.isLoading}
         />
       </Column>
 
-      {/* ═══ Zone 3: Portfolio & Workload ══════════════════════════════════ */}
+      {/* ═══ 2 · Action Center — what needs attention now ══════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile
+          navigate={navigate}
+          title="Action Center"
+          sub="Billing, approvals, and risk items that need a decision today."
+          statusTag={
+            !acQ.isLoading && !phQ.isLoading && !tiQ.isLoading
+              ? { text: acTotal > 0 ? `${acTotal} open` : "All clear", type: acTotal > 0 ? "red" : "green" }
+              : undefined
+          }
+        />
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile className="esti-fill" style={edge(overdueInvoices.length > 0 ? "alert" : "ok")}>
+          <Stack gap={4}>
+            <h4>Overdue collections</h4>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : overdueInvoices.length === 0 ? (
+              <p>None beyond 30 days.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {overdueInvoices.slice(0, 4).map((inv) => (
+                    <StructuredListRow key={inv.id}>
+                      <StructuredListCell>
+                        <Link to={`/projects/${inv.projectId}?tab=invoices`}>
+                          {inv.ref}
+                        </Link>
+                        <p>{formatINRShort(inv.netReceivablePaise)}</p>
+                      </StructuredListCell>
+                      <StructuredListCell noWrap>
+                        <Tag type="red" size="sm">{inv.daysOverdue}d overdue</Tag>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile className="esti-fill" style={edge(pendingApprovals.length > 0 ? "watch" : "ok")}>
+          <Stack gap={4}>
+            <h4>Approvals pending</h4>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : pendingApprovals.length === 0 ? (
+              <p>None awaiting client response.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {pendingApprovals.slice(0, 4).map((ap) => (
+                    <StructuredListRow key={ap.id}>
+                      <StructuredListCell>
+                        <Link to={`/projects/${ap.projectId}?tab=approvals`}>
+                          {ap.projectRef}
+                        </Link>
+                        <p>{ap.title}</p>
+                      </StructuredListCell>
+                      <StructuredListCell noWrap>
+                        <Tag type="magenta" size="sm">{ap.daysWaiting}d waiting</Tag>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <ClickableTile
+          className="esti-fill"
+          style={edge(billingReady.length > 0 ? "ok" : "neutral")}
+          onClick={() => navigate("/invoices")}
+        >
+          <Stack gap={4}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <h4 className="esti-grow">Ready to bill</h4>
+              <ArrowRight size={16} />
+            </div>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : (
+              <Stack gap={3}>
+                <h2>{billingReady.length}</h2>
+                <p>
+                  Phase{billingReady.length !== 1 ? "s" : ""} awaiting invoice ·{" "}
+                  {formatINRShort(readyToBillSum)} estimated
+                </p>
+              </Stack>
+            )}
+          </Stack>
+        </ClickableTile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile
+          className="esti-fill"
+          style={edge(
+            riskProjects.length > 0 || overloadedMembers.length > 0 ? "alert" : "ok",
+          )}
+        >
+          <Stack gap={4}>
+            <h4>Risk &amp; capacity</h4>
+            <Stack gap={2}>
+              <p><strong>High-risk projects</strong></p>
+              {riskProjects.length === 0 ? (
+                <p>None at risk.</p>
+              ) : (
+                riskProjects.slice(0, 2).map((p) => (
+                  <p key={p.id}>
+                    <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
+                  </p>
+                ))
+              )}
+            </Stack>
+            <Stack gap={2}>
+              <p><strong>Capacity alerts</strong></p>
+              {overloadedMembers.length === 0 ? (
+                <p>No one overloaded.</p>
+              ) : (
+                overloadedMembers.slice(0, 2).map((m) => (
+                  <p key={m.assignee}>
+                    {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
+                  </p>
+                ))
+              )}
+            </Stack>
+          </Stack>
+        </Tile>
+      </Column>
+
+      {/* ═══ 3 · Financial health ══════════════════════════════════════════ */}
+      {canFees && showFinancial && (
+        <>
+          <Column lg={16} md={8} sm={4}>
+            <ZoneTile navigate={navigate} title="Financial health" to="/invoices" />
+          </Column>
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill" style={edge("neutral")}>
+              <Stack gap={5}>
+                <h4>Revenue breakdown</h4>
+                {fhQ.isLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : revenueData.length === 0 ? (
+                  <p>No financial data yet.</p>
+                ) : (
+                  <DonutChart
+                    data={revenueData}
+                    options={{
+                      data: { groupMapsTo: "group" },
+                      donut: { center: { label: "Revenue" }, alignment: "center" },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: true, position: "bottom" as const },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
+              </Stack>
+            </Tile>
+          </Column>
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill" style={edge(agingEmpty ? "neutral" : "watch")}>
+              <Stack gap={5}>
+                <h4>Receivables aging</h4>
+                {boardsLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : agingEmpty ? (
+                  <p>No outstanding receivables.</p>
+                ) : (
+                  <SimpleBarChart
+                    data={agingData}
+                    options={{
+                      axes: {
+                        left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
+                        bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+                      },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: false },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
+              </Stack>
+            </Tile>
+          </Column>
+        </>
+      )}
+
+      {/* ═══ 4 · Project health ════════════════════════════════════════════ */}
       {showProject && (
         <>
           <Column lg={16} md={8} sm={4}>
-            <h4>Portfolio &amp; workload</h4>
+            <ZoneTile navigate={navigate} title="Project health" to="/projects" />
           </Column>
-
-          {/* Row A: project health (lg=4) + status overview (lg=4) + phase donut (lg=8) */}
-          <Column lg={4} md={4} sm={4}>
-            <Tile className="esti-fill">
+          <Column lg={16} md={8} sm={4}>
+            <Tile
+              style={edge(
+                riskProjects.length > 0
+                  ? "alert"
+                  : (phQ.data ?? []).some((p) => p.health === "YELLOW")
+                    ? "watch"
+                    : "ok",
+              )}
+            >
               <Stack gap={5}>
-                <TileHeader
-                  Pict={Performance}
-                  sub="Project intelligence"
-                  title="Project health"
-                />
                 {phQ.isLoading ? (
-                  <InlineLoading description="Loading…" />
+                  <InlineLoading description="Loading projects…" />
                 ) : (phQ.data?.length ?? 0) === 0 ? (
                   <p>No active projects.</p>
                 ) : (
-                  <Stack gap={5}>
-                    {(["RED", "YELLOW", "GREEN"] as const).map((k) => {
-                      const count = phQ.data!.filter((p) => p.health === k).length;
-                      return (
-                        <Stack key={k} gap={2}>
-                          <p>{HEALTH_LABEL[k]}</p>
-                          <h2>{count}</h2>
-                          <Tag type={HEALTH_TAG[k]} size="sm">
-                            {count} project{count !== 1 ? "s" : ""}
-                          </Tag>
-                        </Stack>
-                      );
-                    })}
-                  </Stack>
-                )}
-                <Button
-                  kind="ghost"
-                  size="sm"
-                  onClick={() => navigate("/projects")}
-                >
-                  View projects
-                </Button>
-              </Stack>
-            </Tile>
-          </Column>
-
-          <Column lg={4} md={4} sm={4}>
-            <ProjectStatusNumbers
-              byStatus={s?.projects.byStatus ?? {}}
-              loading={summaryLoading}
-              error={summaryError}
-              onOpen={() => navigate("/projects")}
-            />
-          </Column>
-
-          <Column lg={8} md={8} sm={4}>
-            <PhaseDonut
-              data={byPhase}
-              loading={boardsLoading}
-              error={boardsError}
-              onOpen={() => navigate("/projects")}
-            />
-          </Column>
-
-          {/* Row B: type treemap (lg=8) + workload heatmap (lg=8) */}
-          <Column lg={8} md={8} sm={4}>
-            <TypeTreemap
-              data={byType}
-              loading={boardsLoading}
-              error={boardsError}
-              onOpen={() => navigate("/projects")}
-            />
-          </Column>
-
-          <Column lg={8} md={8} sm={4}>
-            <WorkloadHeatmap
-              weekly={b?.workloadWeekly ?? []}
-              daily={b?.workloadDaily ?? []}
-              loading={boardsLoading}
-              error={boardsError}
-              onOpen={() => navigate("/tasks?tab=workload")}
-            />
-          </Column>
-
-          {/* Row C: team intelligence (lg=8) + daily task gauges (lg=8) */}
-          <Column lg={8} md={8} sm={4}>
-            <Tile className="esti-fill">
-              <Stack gap={5}>
-                <TileHeader
-                  Pict={TeamAlignment}
-                  sub="Team capacity"
-                  title="Team intelligence"
-                />
-                {tiQ.isLoading ? (
-                  <InlineLoading description="Loading team data…" />
-                ) : (tiQ.data?.length ?? 0) === 0 ? (
-                  <p>No open tasks assigned.</p>
-                ) : (
-                  <Stack gap={4}>
-                    {tiQ.data!.map((m) => (
-                      <Stack key={m.assignee} orientation="horizontal" gap={4}>
-                        <Tag
-                          type={CAPACITY_TAG[m.capacity] ?? "gray"}
-                          size="sm"
-                        >
-                          {CAPACITY_LABEL[m.capacity] ?? m.capacity}
-                        </Tag>
-                        <div className="esti-grow">
-                          <p>{m.assignee}</p>
-                          <p>
-                            {m.totalOpen} open · {m.highPriorityCount} high
-                            priority
-                          </p>
-                        </div>
-                        {m.overdueCount > 0 && (
-                          <Tag type="red" size="sm">
-                            {m.overdueCount} overdue
-                          </Tag>
-                        )}
-                      </Stack>
-                    ))}
-                  </Stack>
-                )}
-                <Button
-                  kind="ghost"
-                  size="sm"
-                  onClick={() => navigate("/tasks?tab=workload")}
-                >
-                  Open workload
-                </Button>
-              </Stack>
-            </Tile>
-          </Column>
-
-          <Column lg={8} md={8} sm={4}>
-            <DailyTaskGauges
-              data={b?.dailyLoad ?? []}
-              loading={boardsLoading}
-              error={boardsError}
-            />
-          </Column>
-
-          {/* Row D: revision intelligence (lg=8) + technical intelligence (lg=8) */}
-          <Column lg={8} md={8} sm={4}>
-            <Tile className="esti-fill">
-              <Stack gap={5}>
-                <TileHeader
-                  Pict={DataInsights}
-                  sub="Decision ledger"
-                  title="Revision intelligence"
-                />
-                {riQ.isLoading ? (
-                  <InlineLoading description="Loading…" />
-                ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
-                  <p>No decisions recorded yet.</p>
-                ) : (
-                  <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="blue" size="sm">Client driven</Tag>
-                      <p>{riQ.data.clientDriven}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="red" size="sm">Internal error</Tag>
-                      <p>{riQ.data.internalError}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="teal" size="sm">Technical query</Tag>
-                      <p>{riQ.data.technicalQuery}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="magenta" size="sm">Scope change</Tag>
-                      <p>{riQ.data.scopeChange}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <p>Scope drift</p>
-                      <Tag
-                        type={riQ.data.scopeDriftPct > 20 ? "red" : riQ.data.scopeDriftPct > 10 ? "magenta" : "green"}
-                        size="sm"
-                      >
-                        {riQ.data.scopeDriftPct}%
-                      </Tag>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <p>Health score</p>
-                      <Tag
-                        type={riQ.data.revisionRiskBand === "HIGH" ? "red" : riQ.data.revisionRiskBand === "MEDIUM" ? "magenta" : "green"}
-                        size="sm"
-                      >
-                        {riQ.data.revisionRiskBand} · {riQ.data.healthScore}
-                      </Tag>
-                    </Stack>
-                  </Stack>
-                )}
-              </Stack>
-            </Tile>
-          </Column>
-
-          <Column lg={8} md={8} sm={4}>
-            <Tile className="esti-fill">
-              <Stack gap={5}>
-                <TileHeader
-                  Pict={Workflows}
-                  sub="Drawing & site queries"
-                  title="Technical intelligence"
-                />
-                {techIQ.isLoading ? (
-                  <InlineLoading description="Loading…" />
-                ) : !techIQ.data ? (
-                  <p>No data.</p>
-                ) : (
-                  <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={4}>
-                      <p>Drawing accuracy</p>
-                      <Tag
-                        type={techIQ.data.drawingAccuracyPct >= 90 ? "green" : techIQ.data.drawingAccuracyPct >= 75 ? "magenta" : "red"}
-                        size="sm"
-                      >
-                        {techIQ.data.drawingAccuracyPct}%
-                      </Tag>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <p>Site query rate</p>
-                      <Tag
-                        type={techIQ.data.siteQueryRate <= 10 ? "green" : techIQ.data.siteQueryRate <= 25 ? "magenta" : "red"}
-                        size="sm"
-                      >
-                        {techIQ.data.siteQueryRate}%
-                      </Tag>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="red" size="sm">Internal errors</Tag>
-                      <p>{techIQ.data.internalErrors} decision{techIQ.data.internalErrors !== 1 ? "s" : ""}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="teal" size="sm">Technical queries</Tag>
-                      <p>{techIQ.data.techQueries} decision{techIQ.data.techQueries !== 1 ? "s" : ""}</p>
-                    </Stack>
-                    <Stack orientation="horizontal" gap={4}>
-                      <Tag type="blue" size="sm">Total drawings</Tag>
-                      <p>{techIQ.data.totalDrawings}</p>
-                    </Stack>
-                  </Stack>
+                  <TableContainer>
+                    <Table size="sm">
+                      <TableHead>
+                        <TableRow>
+                          <TableHeader>Project</TableHeader>
+                          <TableHeader>Phase</TableHeader>
+                          <TableHeader>Progress</TableHeader>
+                          <TableHeader>Signals</TableHeader>
+                          <TableHeader>Health</TableHeader>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {phQ.data!.slice(0, 8).map((p) => (
+                          <TableRow key={p.id}>
+                            <TableCell>
+                              <Link to={`/projects/${p.id}`}>{p.ref}</Link>
+                              <p>{p.title}</p>
+                            </TableCell>
+                            <TableCell>{p.currentPhase ?? "—"}</TableCell>
+                            <TableCell>
+                              <ProgressBar
+                                label={`${p.ref} progress`}
+                                hideLabel
+                                size="small"
+                                value={p.progressPct}
+                                max={100}
+                                helperText={`${p.progressPct}%`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Stack orientation="horizontal" gap={2}>
+                                {p.unbilledPhases > 0 && (
+                                  <Tag type="green" size="sm">{p.unbilledPhases} billable</Tag>
+                                )}
+                                {p.overdueInvoices > 0 && (
+                                  <Tag type="red" size="sm">{p.overdueInvoices} overdue inv</Tag>
+                                )}
+                                {p.overdueTasks > 0 && (
+                                  <Tag type="magenta" size="sm">{p.overdueTasks} late tasks</Tag>
+                                )}
+                                {p.staleApprovals > 0 && (
+                                  <Tag type="magenta" size="sm">{p.staleApprovals} stale appr</Tag>
+                                )}
+                                {p.criticalNotesOpen > 0 && (
+                                  <Tag type="red" size="sm">{p.criticalNotesOpen} critical</Tag>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              <Tag type={HEALTH_TAG[p.health]} size="sm">
+                                {HEALTH_LABEL[p.health]}
+                              </Tag>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 )}
               </Stack>
             </Tile>
@@ -1296,161 +704,287 @@ export function Dashboard() {
         </>
       )}
 
-      {/* ═══ Zone 4: Clients & financials ══════════════════════════════════ */}
-      <Column lg={16} md={8} sm={4}>
-        <h4>Clients{canFees && showFinancial ? " & financials" : ""}</h4>
-      </Column>
-
-      {/* Row A: client radar + financial donut */}
-      {(ciQ.data?.length ?? 0) > 0 || ciQ.isLoading ? (
-        <Column lg={canFees && showFinancial ? 8 : 16} md={8} sm={4}>
-          <ClientRadar
-            data={ciQ.data}
-            loading={ciQ.isLoading}
-            onOpen={() => navigate("/clients")}
-          />
-        </Column>
-      ) : null}
-
-      {canFees && showFinancial && (
-        <Column lg={8} md={8} sm={4}>
-          <FinancialDonut
-            data={fhQ.data}
-            loading={fhQ.isLoading}
-            onOpen={() => navigate("/invoices")}
-          />
-        </Column>
-      )}
-
-      {/* Row B: revenue pipeline + receivables aging */}
-      {canFees && showFinancial && (
+      {/* ═══ 5 · Clients ═══════════════════════════════════════════════════ */}
+      {hasClients && (
         <>
-          <Column lg={8} md={8} sm={4}>
-            <RevenuePipelineBar
-              data={fhQ.data}
-              loading={fhQ.isLoading}
-              onOpen={() => navigate("/accounting/fees")}
-            />
+          <Column lg={16} md={8} sm={4}>
+            <ZoneTile navigate={navigate} title="Client signals" to="/clients" />
           </Column>
-          {!agingEmpty && (
-            <Column lg={8} md={8} sm={4}>
-              <HBarBoard
-                Pict={AuditTrail}
-                sub="Overdue breakdown"
-                title="Receivables aging"
-                data={agingData}
-                loading={boardsLoading}
-                error={boardsError}
-                formatValue={(v) => formatINRShort(v)}
-                onOpen={() => navigate("/invoices")}
-              />
-            </Column>
-          )}
+          <Column lg={16} md={8} sm={4}>
+            <Tile
+              style={edge(
+                (ciQ.data ?? []).some((c) => c.risk === "HIGH")
+                  ? "alert"
+                  : (ciQ.data ?? []).some((c) => c.risk === "MEDIUM")
+                    ? "watch"
+                    : "ok",
+              )}
+            >
+              <Stack gap={5}>
+                <TableContainer>
+                  <Table size="sm">
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader>Client</TableHeader>
+                        <TableHeader>Projects</TableHeader>
+                        <TableHeader>Outstanding</TableHeader>
+                        <TableHeader>Oldest invoice</TableHeader>
+                        <TableHeader>Approval lag</TableHeader>
+                        <TableHeader>Revisions</TableHeader>
+                        <TableHeader>Risk</TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ciQ.data!.slice(0, 6).map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell>{c.name}</TableCell>
+                          <TableCell>{c.activeProjects}</TableCell>
+                          <TableCell>
+                            {c.outstandingPaise > 0 ? formatINRShort(c.outstandingPaise) : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {c.oldestInvoiceDays > 0 ? `${c.oldestInvoiceDays}d` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {c.avgApprovalDays > 0 ? `${c.avgApprovalDays}d avg` : "—"}
+                          </TableCell>
+                          <TableCell>{c.revisionRequests}</TableCell>
+                          <TableCell>
+                            <Tag type={RISK_TAG[c.risk]} size="sm">{c.risk}</Tag>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Stack>
+            </Tile>
+          </Column>
         </>
       )}
 
-      {/* ═══ Zone 5: Compliance & activity ═════════════════════════════════ */}
+      {/* ═══ 6 · Team ══════════════════════════════════════════════════════ */}
+      {teamCards.length > 0 && (
+        <>
+          <Column lg={16} md={8} sm={4}>
+            <ZoneTile
+              navigate={navigate}
+              title="Team performance"
+              sub="Rolling 30-day ASPRF scores."
+              to="/performance"
+            />
+          </Column>
+          {teamCards.map((m) => {
+            const cap = capacityByName.get(m.memberName);
+            const band = m.band as PerformanceBand | null;
+            const capHealth: CardHealth =
+              cap?.capacity === "OVERLOADED" ? "alert" : cap?.capacity === "BUSY" ? "watch" : "ok";
+            return (
+              <Column key={m.teamMemberId} lg={4} md={4} sm={4}>
+                <ClickableTile
+                  className="esti-fill"
+                  style={edge(capHealth)}
+                  onClick={() => navigate("/performance")}
+                >
+                  <Stack gap={4}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                      <Stack gap={1}>
+                        <p>{m.memberRole}</p>
+                        <h4>{m.memberName}</h4>
+                      </Stack>
+                      <ArrowRight size={16} />
+                    </div>
+                    <h2>{m.score}</h2>
+                    <Stack orientation="horizontal" gap={2}>
+                      <Tag type={band ? PERFORMANCE_BAND_TAG[band] : "gray"} size="sm">
+                        {band ? PERFORMANCE_BAND_LABEL[band] : "Developing"}
+                      </Tag>
+                      {cap && (
+                        <Tag type={CAPACITY_TAG[cap.capacity] ?? "gray"} size="sm">
+                          {CAPACITY_LABEL[cap.capacity] ?? cap.capacity}
+                        </Tag>
+                      )}
+                    </Stack>
+                    <p>
+                      {cap?.totalOpen ?? 0} open · {cap?.overdueCount ?? m.overdueCount} overdue ·{" "}
+                      {m.totalPoints} pts
+                    </p>
+                  </Stack>
+                </ClickableTile>
+              </Column>
+            );
+          })}
+        </>
+      )}
+
+      {/* ═══ 7 · Quality intelligence ══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <h4>Compliance &amp; activity</h4>
+        <ZoneTile navigate={navigate} title="Quality intelligence" />
+      </Column>
+
+      <Column lg={8} md={8} sm={4}>
+        <Tile
+          className="esti-fill"
+          style={edge(
+            riQ.data?.revisionRiskBand === "HIGH"
+              ? "alert"
+              : riQ.data?.revisionRiskBand === "MEDIUM"
+                ? "watch"
+                : "ok",
+          )}
+        >
+          <Stack gap={5}>
+            <Stack orientation="horizontal" gap={3}>
+              <div className="esti-grow">
+                <h4>Revisions</h4>
+              </div>
+              {riQ.data && (
+                <Tag type={RISK_TAG[riQ.data.revisionRiskBand]} size="sm">
+                  {riQ.data.revisionRiskBand} risk · {riQ.data.healthScore}
+                </Tag>
+              )}
+            </Stack>
+            {riQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
+              <p>No decisions recorded yet.</p>
+            ) : (
+              <Stack gap={3}>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Client driven</span>
+                  <strong>{riQ.data.clientDriven}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Internal error</span>
+                  <strong>{riQ.data.internalError}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Technical query</span>
+                  <strong>{riQ.data.technicalQuery}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Scope change</span>
+                  <strong>{riQ.data.scopeChange}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Scope drift</span>
+                  <strong>{riQ.data.scopeDriftPct}%</strong>
+                </Stack>
+              </Stack>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={8} md={8} sm={4}>
+        <Tile
+          className="esti-fill"
+          style={edge(
+            !techIQ.data
+              ? "neutral"
+              : techIQ.data.drawingAccuracyPct < 75 || techIQ.data.siteQueryRate > 25
+                ? "alert"
+                : techIQ.data.drawingAccuracyPct < 90 || techIQ.data.siteQueryRate > 10
+                  ? "watch"
+                  : "ok",
+          )}
+        >
+          <Stack gap={5}>
+            <h4>Technical quality</h4>
+            {techIQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : !techIQ.data ? (
+              <p>No data.</p>
+            ) : (
+              <Stack gap={3}>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Drawing accuracy</span>
+                  <strong>{techIQ.data.drawingAccuracyPct}%</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Site query rate</span>
+                  <strong>{techIQ.data.siteQueryRate}%</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Internal errors</span>
+                  <strong>{techIQ.data.internalErrors}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Technical queries</span>
+                  <strong>{techIQ.data.techQueries}</strong>
+                </Stack>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Drawings issued</span>
+                  <strong>{techIQ.data.totalDrawings}</strong>
+                </Stack>
+              </Stack>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      {/* ═══ 8 · Statutory & activity ══════════════════════════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile navigate={navigate} title="Statutory & activity" />
       </Column>
 
       {showFinancial && (
-        <Column lg={4} md={4} sm={4}>
-          <FilingDueBoard
-            title="GST filing due"
-            Pictogram={Receipt}
-            rows={[
-              { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
-              { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
-            ]}
-            onOpen={() => navigate("/filing")}
-          />
-        </Column>
+        <FilingTile
+          navigate={navigate}
+          title="GST filing"
+          rows={[
+            { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
+            { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
+          ]}
+        />
       )}
       {showFinancial && (
-        <Column lg={4} md={4} sm={4}>
-          <FilingDueBoard
-            title="TDS filing due"
-            Pictogram={Banking}
-            rows={[
-              { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
-              { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
-            ]}
-            onOpen={() => navigate("/filing")}
-          />
-        </Column>
+        <FilingTile
+          navigate={navigate}
+          title="TDS filing"
+          rows={[
+            { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
+            { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
+          ]}
+        />
       )}
 
       {hasActivity && (
         <Column lg={showFinancial ? 8 : 16} md={8} sm={4}>
-          <Tile className="esti-fill">
+          <ClickableTile
+            className="esti-fill"
+            style={edge("neutral")}
+            onClick={() => navigate("/tasks?tab=activity")}
+          >
             <Stack gap={5}>
-              {/* Resource-card header */}
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={2}>
-                  <Tag type="gray" size="sm">Recent activity</Tag>
-                  <Tag type="blue" size="sm">
-                    {activityQ.data!.rows.length} events
-                  </Tag>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <Workflows width={32} height={32} />
-                  <h3>Activity feed</h3>
-                </Stack>
-              </Stack>
-
-              {activityQ.isLoading ? (
-                <InlineLoading description="Loading activity…" />
-              ) : (
-                <Stack gap={4}>
-                  {activityQ.data!.rows.map((item) => (
-                    <Stack key={item.id} gap={2}>
-                      <Stack orientation="horizontal" gap={3}>
-                        <Tag
-                          size="sm"
-                          type={
-                            ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]
-                          }
-                        >
-                          {activityDomain(item.eventType)}
-                        </Tag>
-                        <Tag size="sm" type="gray">
-                          {formatEventType(item.eventType)}
-                        </Tag>
-                        <p>
-                          {new Date(
-                            item.createdAt as unknown as string,
-                          ).toLocaleString("en-IN", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </Stack>
-                      <p>{item.summary}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <h4 className="esti-grow">Recent activity</h4>
+                <ArrowRight size={16} />
+              </div>
+              <Stack gap={4}>
+                {activityQ.data!.rows.map((item) => (
+                  <Stack key={item.id} gap={1}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <Tag size="sm" type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}>
+                        {formatEventType(item.eventType)}
+                      </Tag>
                       <p>
-                        {item.projectRef ? `${item.projectRef} · ` : ""}
-                        {item.actorName ?? "System"}
+                        {new Date(
+                          item.createdAt as unknown as string,
+                        ).toLocaleString("en-IN", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
                       </p>
-                      {item.projectId && (
-                        <Link to={`/projects/${item.projectId}`}>
-                          Open project
-                        </Link>
-                      )}
                     </Stack>
-                  ))}
-                </Stack>
-              )}
-              <Button
-                kind="ghost"
-                size="sm"
-                onClick={() => navigate("/tasks?tab=activity")}
-              >
-                Open Activity Center
-              </Button>
+                    <p>{item.summary}</p>
+                  </Stack>
+                ))}
+              </Stack>
             </Stack>
-          </Tile>
+          </ClickableTile>
         </Column>
       )}
 
@@ -1459,10 +993,7 @@ export function Dashboard() {
         <Column lg={16} md={8} sm={4}>
           <Tile>
             <Stack gap={4}>
-              <Stack gap={3}>
-                <Tag type="gray" size="sm">Admin</Tag>
-                <h3>Dashboard sections</h3>
-              </Stack>
+              <h4>Dashboard sections</h4>
               <Stack orientation="horizontal" gap={6}>
                 <Toggle
                   id="db-financial"
