@@ -1,0 +1,67 @@
+# ESTI AORMS backend — production image (multi-stage)
+# Build context must be the monorepo root (compose.prod.yaml does this automatically).
+#   docker build -f backend/Dockerfile.prod -t esti-backend:prod .
+
+# ── Stage 1: build ──────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+RUN corepack enable
+
+WORKDIR /app
+
+# Copy workspace manifests first for better layer caching.
+COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY packages/contracts/package.json packages/contracts/
+COPY backend/package.json backend/
+
+# Install all dependencies (including devDependencies needed for tsc).
+RUN pnpm install --frozen-lockfile
+
+# Copy source.
+COPY packages/contracts packages/contracts
+COPY backend backend
+
+# Build contracts first (backend imports from @esti/contracts at dist/).
+RUN pnpm --filter @esti/contracts build
+
+# Build backend (tsc → backend/dist/).
+RUN pnpm --filter @esti/backend build
+
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+RUN corepack enable
+
+WORKDIR /app
+
+# Copy workspace manifests for production install.
+COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY packages/contracts/package.json packages/contracts/
+COPY backend/package.json backend/
+
+# Production-only install (no devDependencies).
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy compiled output from builder.
+COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
+COPY --from=builder /app/backend/dist             backend/dist
+
+# Copy migration SQL files (runMigrations() reads them at startup).
+COPY backend/drizzle backend/drizzle
+
+# Patch @esti/contracts to resolve from its compiled dist/ rather than src/.
+# The package.json exports point to src/index.ts in dev; rewrite for prod.
+RUN node -e " \
+  const fs = require('fs'); \
+  const p = 'packages/contracts/package.json'; \
+  const pkg = JSON.parse(fs.readFileSync(p, 'utf8')); \
+  pkg.main = './dist/index.js'; \
+  pkg.types = './dist/index.d.ts'; \
+  pkg.exports = { '.': './dist/index.js' }; \
+  fs.writeFileSync(p, JSON.stringify(pkg, null, 2)); \
+"
+
+EXPOSE 4000
+
+# Fastify reads BACKEND_PORT from env (default 4000); all other config via env vars.
+CMD ["node", "backend/dist/index.js"]
