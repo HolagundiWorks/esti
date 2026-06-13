@@ -18,6 +18,8 @@
     "db:migrate": "drizzle-kit migrate",
     "seed": "tsx src/scripts/seed.ts",
     "seed:demo": "tsx src/scripts/seedDemo.ts",
+    "seed:prod": "node dist/scripts/seed.js",
+    "seed:demo:prod": "node dist/scripts/seedDemo.js",
     "backfill:activity": "tsx src/scripts/backfillActivity.ts"
   },
   "dependencies": {
