@@ -18,7 +18,7 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
 - COA-aware fee proposals with scope, deliverables, exclusions, revisions, and
   client approval.
 - Phase-linked invoicing under the firm's GST system (Not applicable /
-  Composition 5% / Regular 18%), SAC 998321–998339, TDS u/s 194J, and exports.
+  Composition 6% / Regular 18%), SAC 998321–998339, TDS u/s 194J, and exports.
 - Reconciliation of payments, TDS against 26AS/AIS, and GST output vs returns.
 - Permit and compliance tracking (BPAS, RERA, Fire/Aviation/Env NOC, OC, CC).
 - Drawing and document vault: register, revision control, issue sets,

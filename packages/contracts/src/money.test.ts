@@ -34,10 +34,10 @@ describe("gst", () => {
     expect(b.igst).toBe(180000);
     expect(b.cgst).toBe(0);
   });
-  it("composition is a 5% levy, not added to the bill", () => {
+  it("composition is a 6% levy (CGST 3%+SGST 3%), not added to the bill", () => {
     const b = computeGst(GstSystem.COMPOSITION, 1000000, false);
     expect(b.documentKind).toBe("BILL_OF_SUPPLY");
-    expect(b.compositionLevy).toBe(50000);
+    expect(b.compositionLevy).toBe(60000);
     expect(b.grandTotal).toBe(1000000);
   });
   it("not-applicable adds no tax", () => {

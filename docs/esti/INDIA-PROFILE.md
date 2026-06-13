@@ -50,14 +50,14 @@ rates below are hardcoded.
 | # | System | When it applies | Rate | Document issued | ITC |
 |---|---|---|---|---|---|
 | 1 | **GST Not Applicable** | Aggregate turnover ≤ ₹20 lakh (₹10 lakh in special-category states); firm not GST-registered | none | Plain invoice (no GST) | n/a |
-| 2 | **Composition** | Annual billing < ₹40 lakh; registered under composition | **5% flat** on billed value | **Bill of Supply** (GST not collected from client; the 5% is borne by the firm) | **No ITC** |
+| 2 | **Composition** | Annual billing < ₹40 lakh; registered under composition | **6% flat** (CGST 3% + SGST 3%) on billed value | **Bill of Supply** (GST not collected from client; the 6% is borne by the firm) | **No ITC** |
 | 3 | **Regular** | Default for registered service practice | **18%** | **Tax Invoice** | Yes |
 
 Notes:
 - **System 1** raises no GST and shows no GST lines; the firm must monitor the
   turnover threshold and switch to a registered system when crossed.
 - **System 2 (Composition)** issues a **Bill of Supply**, not a tax invoice; GST
-  is **not** charged to the client; the firm pays 5% out of its own receipts;
+  is **not** charged to the client; the firm pays 6% (CGST 3% + SGST 3%) out of its own receipts;
   no input tax credit; filing is quarterly **CMP-08** + annual **GSTR-4**.
 - **System 3 (Regular)** issues a **Tax Invoice**; 18% split as **CGST 9% +
   SGST 9%** intra-state or **IGST 18%** inter-state (place-of-supply driven);
