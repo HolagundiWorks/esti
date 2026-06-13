@@ -13,7 +13,7 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Asleep, Close, Light } from "@carbon/icons-react";
+import { Asleep, Light } from "@carbon/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TASK_PRIORITY_LABEL } from "@esti/contracts";
@@ -109,9 +109,7 @@ function CalculatorSection({
           title="Invalid expression"
         />
       ) : (
-        <Tile>
-          <h3>{expr.trim() === "" ? "0" : `= ${formatCalcNum(result ?? 0)}`}</h3>
-        </Tile>
+        <h2>{expr.trim() === "" ? "0" : `= ${formatCalcNum(result ?? 0)}`}</h2>
       )}
       <p>+ − × ÷ ( ) % · Enter to reuse result</p>
       <Button kind="ghost" size="sm" onClick={() => setExpr("")}>
@@ -279,65 +277,63 @@ export function PersonalPanel({
   const greeting = firstName ? `Welcome, Ar. ${firstName}` : "Welcome";
 
   return (
-    <div className="esti-personal-panel esti-panel-shell">
-      <Tile className="esti-fill">
-        {/* Welcome header — fixed height, does not scroll */}
-        <div className="esti-pp-header">
-          <Stack orientation="horizontal" gap={3}>
-            <div className="esti-grow">
-              <p>{greeting}</p>
-              <p>
-                {welcomeDay}, {welcomeDate}
-              </p>
-            </div>
-            <Button
-              kind="ghost"
-              size="sm"
-              hasIconOnly
-              renderIcon={theme === "white" ? Asleep : Light}
-              iconDescription={
-                theme === "white" ? "Switch to dark theme" : "Switch to light theme"
-              }
-              onClick={onToggleTheme}
-            />
-            <Button
-              kind="ghost"
-              size="sm"
-              hasIconOnly
-              renderIcon={Close}
-              iconDescription="Close panel"
-              onClick={onClose}
-            />
-          </Stack>
-        </div>
+    <>
+      {/* Click-catcher: clicking anywhere outside the panel closes it. */}
+      <div className="esti-panel-overlay" onClick={onClose} aria-hidden="true" />
+      <div className="esti-personal-panel esti-panel-shell">
+        <Tile className="esti-fill">
+          {/* Welcome header — fixed height, does not scroll */}
+          <div className="esti-pp-header">
+            <Stack orientation="horizontal" gap={3}>
+              <div className="esti-grow">
+                <p>{greeting}</p>
+                <p>
+                  {welcomeDay}, {welcomeDate}
+                </p>
+              </div>
+              <Button
+                kind="ghost"
+                size="sm"
+                hasIconOnly
+                renderIcon={theme === "white" ? Asleep : Light}
+                iconDescription={
+                  theme === "white" ? "Switch to dark theme" : "Switch to light theme"
+                }
+                onClick={onToggleTheme}
+              />
+            </Stack>
+          </div>
 
-        {/* Tab area — fills remaining panel height, scrolls internally per tab */}
-        <div className="esti-pp-tabs">
-          <Tabs>
-            <TabList aria-label="Personal panel tabs">
-              <Tab>Focus</Tab>
-              <Tab>Calc</Tab>
-              <Tab>Tasks</Tab>
-              <Tab>Leave</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel>
-                <PomodoroSection />
-              </TabPanel>
-              <TabPanel>
-                <CalculatorSection expr={calcExpr} setExpr={setCalcExpr} />
-              </TabPanel>
-              <TabPanel>
-                <MyTasksSection />
-              </TabPanel>
-              <TabPanel>
-                <LeavesSection />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </div>
-      </Tile>
-    </div>
+          {/* Tab area — fills remaining panel height, scrolls internally per tab */}
+          <div className="esti-pp-tabs">
+            <Tabs>
+              <TabList aria-label="Personal panel tabs">
+                <Tab>Focus</Tab>
+                <Tab>Calc</Tab>
+                <Tab>Tasks</Tab>
+                <Tab>Leave</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <Tile className="esti-pp-card"><PomodoroSection /></Tile>
+                </TabPanel>
+                <TabPanel>
+                  <Tile className="esti-pp-card">
+                    <CalculatorSection expr={calcExpr} setExpr={setCalcExpr} />
+                  </Tile>
+                </TabPanel>
+                <TabPanel>
+                  <Tile className="esti-pp-card"><MyTasksSection /></Tile>
+                </TabPanel>
+                <TabPanel>
+                  <Tile className="esti-pp-card"><LeavesSection /></Tile>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </div>
+        </Tile>
+      </div>
+    </>
   );
 }
 
