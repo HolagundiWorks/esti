@@ -256,15 +256,24 @@ body,
 
 // Apply Carbon productive type scale to semantic headings within the app shell.
 // Uses Carbon's type-style() mixin — all values come from @carbon/type tokens.
-// Scoped to .cds--content so Carbon component internals are unaffected.
+// Scoped to .cds--content (the app shell) plus the logged-out landing/footer,
+// which render OUTSIDE .cds--content and would otherwise show unstyled,
+// hierarchy-less browser-default headings.
 // Hierarchy: h1=page title (28px), h2=section (20px), h3=tile/card (16px semibold),
 // h4=sub-label (14px semibold). p elements inherit body size from Carbon's reset.
-.cds--content {
+.cds--content,
+.esti-landing-main,
+.esti-footer {
   h1 { @include type.type-style("productive-heading-04"); }
   h2 { @include type.type-style("productive-heading-03"); }
   h3 { @include type.type-style("productive-heading-02"); }
   h4 { @include type.type-style("heading-compact-01"); }
 }
+
+// Landing hero headline: larger expressive marketing scale (overrides the
+// productive-heading-04 inherited from .esti-landing-main above).
+.esti-landing-hero h1 { @include type.type-style("productive-heading-06"); }
+.esti-landing-section h2 { @include type.type-style("productive-heading-05"); }
 
 // Helper-text scale (Carbon label-01 = 12px/0.75rem). Use instead of inline
 // font-size on <p> or <span> for hints, captions, and cell annotations.
