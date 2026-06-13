@@ -217,6 +217,12 @@ async function main(): Promise<void> {
     { name: "Diocese of Bengaluru Education Society", kind: "COMPANY", city: "Bengaluru", state: "Karnataka", email: "projects@dioceseedu.in", phone: "+91 80471 66666" },
     { name: "Priya Reddy", kind: "INDIVIDUAL", city: "Panaji", state: "Goa", email: "priya.reddy@example.in", phone: "+91 98230 77777" },
     { name: "Nexus Cowork Pvt Ltd", kind: "COMPANY", city: "Bengaluru", state: "Karnataka", email: "design@nexuscowork.in", phone: "+91 80471 88888" },
+    { name: "Sunrise Hospitality Pvt Ltd", kind: "COMPANY", city: "Bengaluru", state: "Karnataka", email: "projects@sunrisehotels.in", phone: "+91 80471 99001" },
+    { name: "Dr. Arvind Nair", kind: "INDIVIDUAL", city: "Mangaluru", state: "Karnataka", email: "arvind.nair@example.in", phone: "+91 98860 99002" },
+    { name: "GreenField Industries Ltd", kind: "COMPANY", city: "Hosur", state: "Tamil Nadu", email: "works@greenfieldind.in", phone: "+91 90030 99003" },
+    { name: "Lakeview Realty LLP", kind: "COMPANY", city: "Hyderabad", state: "Telangana", email: "build@lakeviewrealty.in", phone: "+91 90000 99004" },
+    { name: "Meghana Foundation Trust", kind: "COMPANY", city: "Bengaluru", state: "Karnataka", email: "office@meghanatrust.in", phone: "+91 80471 99005" },
+    { name: "Tanvi Desai", kind: "INDIVIDUAL", city: "Belagavi", state: "Karnataka", email: "tanvi.desai@example.in", phone: "+91 98450 99006" },
   ]).returning();
 
   const kapoor = clientRows[3]!;
@@ -243,6 +249,13 @@ async function main(): Promise<void> {
     { client: clientRows[5]!, title: "St. Francis School Expansion", projectType: "Institutional Architecture", value: 6_80_00_000, status: "ACTIVE", phaseProgress: 1 },
     { client: clientRows[6]!, title: "Reddy Beach Retreat — Goa", projectType: "Residential Architecture", value: 3_40_00_000, status: "ON_HOLD", phaseProgress: 1 },
     { client: clientRows[7]!, title: "Nexus Co-working — Koramangala", projectType: "Interior Design", value: 1_85_00_000, status: "COMPLETE", phaseProgress: 6 },
+    // Additional demo projects (pi 8-13)
+    { client: clientRows[8]!, title: "Sunrise Boutique Hotel — Indiranagar", projectType: "Commercial Architecture", value: 12_00_00_000, status: "ACTIVE", phaseProgress: 2 },
+    { client: clientRows[9]!, title: "Nair Wellness Clinic — Mangaluru", projectType: "Institutional Architecture", value: 95_00_000, status: "ACTIVE", phaseProgress: 1 },
+    { client: clientRows[10]!, title: "GreenField Factory Shed — Hosur", projectType: "Industrial Architecture", value: 18_00_00_000, status: "ACTIVE", phaseProgress: 3 },
+    { client: clientRows[11]!, title: "Lakeview Apartments — Hyderabad", projectType: "Residential Architecture", value: 32_00_00_000, status: "PROPOSAL", phaseProgress: 0 },
+    { client: clientRows[12]!, title: "Meghana Community Centre", projectType: "Institutional Architecture", value: 4_20_00_000, status: "ACTIVE", phaseProgress: 1 },
+    { client: clientRows[13]!, title: "Desai Villa — Belagavi", projectType: "Residential Architecture", value: 1_60_00_000, status: "ON_HOLD", phaseProgress: 1 },
   ];
 
   // All task definitions with ASPRF dimensions per project
@@ -308,6 +321,48 @@ async function main(): Promise<void> {
       { title: "As-built drawings archive", assignee: "Sneha Rao", priority: "HIGH", due: dayOffset(-10), status: "DONE", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 2, hours: "8.00" },
       { title: "Final invoice and project closure", assignee: "Vihaan Sharma", priority: "HIGH", due: dayOffset(-7), status: "DONE", classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 1, hours: "2.00" },
       { title: "Client satisfaction feedback collection", assignee: "Aarav Mehta", priority: "MEDIUM", due: dayOffset(-5), status: "DONE", classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 1, hours: "1.00" },
+    ],
+    // Sunrise Boutique Hotel (pi 8)
+    [
+      { title: "Guest-room module design study", assignee: "Sneha Rao", priority: "HIGH", due: dayOffset(0), status: "IN_PROGRESS", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 4, hours: "14.00" },
+      { title: "Lobby & F&B concept presentation", assignee: "Aarav Mehta", priority: "HIGH", due: dayOffset(2), status: "TODO", classification: "BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 3, hours: "8.00" },
+      { title: "Fire & life-safety strategy with consultant", assignee: "Aarav Mehta", priority: "MEDIUM", due: dayOffset(6), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 4, hours: "6.00" },
+      { title: "MEP shaft coordination on typical floor", assignee: "Kiran Patel", priority: "MEDIUM", due: dayOffset(4), status: "TODO", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 3, hours: "10.00" },
+      { title: "Site visit — basement excavation review", assignee: "Rahul Nair", priority: "HIGH", due: dayOffset(-1), status: "TODO", classification: "BILLABLE", workType: "CONSTRUCTION_SUPPORT", difficulty: 2, hours: "4.00" },
+    ],
+    // Nair Wellness Clinic (pi 9)
+    [
+      { title: "Functional brief — consulting & diagnostics", assignee: "Sneha Rao", priority: "HIGH", due: dayOffset(1), status: "IN_PROGRESS", classification: "BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 2, hours: "5.00" },
+      { title: "Schematic plan — ground floor", assignee: "Aarav Mehta", priority: "HIGH", due: dayOffset(5), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 3, hours: "10.00" },
+      { title: "Accessibility & ramp compliance check", assignee: "Sneha Rao", priority: "MEDIUM", due: dayOffset(7), status: "TODO", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 2, hours: "4.00" },
+      { title: "Mentoring: junior on healthcare norms", assignee: "Aarav Mehta", priority: "LOW", due: dayOffset(3), status: "TODO", classification: "COLLABORATION", workType: "DESIGN_COMMUNICATION", difficulty: 1, hours: "2.00" },
+    ],
+    // GreenField Factory Shed (pi 10)
+    [
+      { title: "Pre-engineered building grid layout", assignee: "Aarav Mehta", priority: "HIGH", due: dayOffset(-2), status: "IN_PROGRESS", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 4, hours: "12.00" },
+      { title: "Crane gantry & structural coordination", assignee: "Aarav Mehta", priority: "HIGH", due: dayOffset(1), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 5, hours: "10.00" },
+      { title: "GFC roofing & cladding details", assignee: "Sneha Rao", priority: "MEDIUM", due: dayOffset(3), status: "TODO", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 4, hours: "16.00" },
+      { title: "Factory licence & pollution NOC follow-up", assignee: "Rahul Nair", priority: "MEDIUM", due: dayOffset(8), status: "TODO", classification: "BILLABLE", workType: "CONSTRUCTION_SUPPORT", difficulty: 2, hours: "3.00" },
+      { title: "Steel BBS for primary members", assignee: "Kiran Patel", priority: "LOW", due: dayOffset(6), status: "TODO", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 3, hours: "8.00" },
+    ],
+    // Lakeview Apartments (pi 11, PROPOSAL)
+    [
+      { title: "Feasibility massing study — FAR check", assignee: "Aarav Mehta", priority: "HIGH", due: dayOffset(2), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 4, hours: "8.00" },
+      { title: "Fee proposal & COA scale benchmarking", assignee: "Vihaan Sharma", priority: "HIGH", due: dayOffset(1), status: "IN_PROGRESS", classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 2, hours: "3.00" },
+      { title: "Pitch deck for client presentation", assignee: "Sneha Rao", priority: "MEDIUM", due: dayOffset(4), status: "TODO", classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 2, hours: "6.00" },
+    ],
+    // Meghana Community Centre (pi 12)
+    [
+      { title: "Multipurpose hall acoustic study", assignee: "Sneha Rao", priority: "HIGH", due: dayOffset(0), status: "IN_PROGRESS", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 3, hours: "8.00" },
+      { title: "Community needs workshop with trust", assignee: "Aarav Mehta", priority: "MEDIUM", due: dayOffset(5), status: "TODO", classification: "BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 2, hours: "4.00" },
+      { title: "Sustainable materials specification", assignee: "Kiran Patel", priority: "MEDIUM", due: dayOffset(9), status: "TODO", classification: "BILLABLE", workType: "TECHNICAL_PRODUCTION", difficulty: 3, hours: "6.00" },
+      { title: "Training: passive cooling techniques", assignee: "Kiran Patel", priority: "LOW", due: dayOffset(7), status: "TODO", classification: "TRAINING", workType: "DESIGN_DEVELOPMENT", difficulty: 2, hours: "4.00" },
+    ],
+    // Desai Villa (pi 13, ON_HOLD)
+    [
+      { title: "Concept design — courtyard villa", assignee: "Sneha Rao", priority: "HIGH", due: dayOffset(-8), status: "DONE", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 3, hours: "12.00" },
+      { title: "ON HOLD: await client site finalisation", assignee: "Vihaan Sharma", priority: "LOW", due: dayOffset(25), status: "TODO", classification: "BILLABLE", workType: "DESIGN_COMMUNICATION", difficulty: 1, hours: "1.00" },
+      { title: "Soil test coordination — geotechnical", assignee: "Rahul Nair", priority: "MEDIUM", due: dayOffset(-3), status: "DONE", classification: "BILLABLE", workType: "CONSTRUCTION_SUPPORT", difficulty: 2, hours: "3.00" },
     ],
   ];
 
