@@ -158,12 +158,29 @@ body,
 }
 
 // Each active tab panel is allowed to scroll internally if needed,
-// but the outer panel never scrolls.
+// but the outer panel never scrolls. Top padding separates the card from
+// the TabList; the card itself supplies the inner padding.
 .esti-pp-tabs .cds--tab-content {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
+  padding-block-start: var(--cds-spacing-05);
+}
+
+// Each tab body is a card filling the available width — structural only;
+// the Carbon Tile supplies its own padding and layer colour.
+.esti-pp-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// Full-viewport click-catcher behind the panel: closing it on any outside
+// click. Transparent (no scrim) — layout/interaction only, no colour.
+.esti-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5999;
 }
 
 // Type scale for elements outside .cds--content (e.g. the personal panel).
