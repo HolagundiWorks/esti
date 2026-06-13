@@ -25,6 +25,9 @@ import { SiteAssessmentPanel } from "../components/SiteAssessmentPanel.js";
 import { SpecificationManager } from "../components/KnowledgeCatalogManagers.js";
 import { trpc } from "../lib/trpc.js";
 import { MasterDsr } from "./MasterDsr.js";
+import { SteelArranger } from "./SteelArranger.js";
+
+const KB_TAB_SLUGS = ["dsr", "compliance", "specification", "steelflow"] as const;
 
 export function KnowledgeBank() {
   const rvQ = trpc.ruleVersions.list.useQuery({});
@@ -36,6 +39,17 @@ export function KnowledgeBank() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectId, setProjectId] = useState(searchParams.get("project") ?? "");
+
+  const tabIndex = Math.max(0, KB_TAB_SLUGS.indexOf(
+    (searchParams.get("tab") ?? "dsr") as (typeof KB_TAB_SLUGS)[number],
+  ));
+  const selectTab = (index: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", KB_TAB_SLUGS[index] ?? "dsr");
+      return next;
+    }, { replace: true });
+  };
 
   const publishedRv = (rvQ.data ?? []).filter((r) => r.status === "PUBLISHED");
 
@@ -49,11 +63,12 @@ export function KnowledgeBank() {
         </p>
       </Stack>
 
-      <Tabs>
+      <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections">
           <Tab>Master DSR</Tab>
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
+          <Tab>SteelFlow</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -161,6 +176,10 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <SpecificationManager canManage={canManageCatalogs} />
+          </TabPanel>
+
+          <TabPanel>
+            <SteelArranger embedded />
           </TabPanel>
         </TabPanels>
       </Tabs>

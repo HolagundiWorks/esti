@@ -16,7 +16,6 @@ import {
 import {
   Building,
   Catalog,
-  ChartCustom,
   Dashboard as DashboardIcon,
   Document,
   Enterprise,
@@ -67,7 +66,6 @@ import { Hr } from "./routes/Hr.js";
 import { Settings } from "./routes/Settings.js";
 import { Work } from "./routes/Work.js";
 import { Performance } from "./routes/Performance.js";
-import { SteelArranger } from "./routes/SteelArranger.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 
@@ -176,7 +174,6 @@ function AppShell() {
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
-    { label: "SteelFlow", to: "/steel-arranger", icon: ChartCustom },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -352,7 +349,10 @@ function AppShell() {
                 )}
                 <Route path="/settings" element={<Settings />} />
                 {hrEnabled && <Route path="/performance" element={<Performance />} />}
-                <Route path="/steel-arranger" element={<SteelArranger />} />
+                <Route
+                  path="/steel-arranger"
+                  element={<Navigate to="/knowledge-bank?tab=steelflow" replace />}
+                />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

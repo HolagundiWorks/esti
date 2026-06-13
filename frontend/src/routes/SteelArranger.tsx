@@ -766,7 +766,7 @@ function NewElementForm({
 
 // ─── Main route ───────────────────────────────────────────────────────────────
 
-export function SteelArranger() {
+export function SteelArranger({ embedded = false }: { embedded?: boolean }) {
   const { activeSessionId, activeElementId, setActiveSession, setActiveElement } =
     useSteelStore();
 
@@ -810,7 +810,7 @@ export function SteelArranger() {
       <Stack gap={2}>
         <Stack orientation="horizontal" gap={3}>
           <Tag type="gray" size="sm">SteelFlow AI</Tag>
-          <h1>Steel Arranger + BBS Generator</h1>
+          {embedded ? <h2>Steel Arranger + BBS Generator</h2> : <h1>Steel Arranger + BBS Generator</h1>}
         </Stack>
         <p>
           Interactive reinforcement arrangement with automated BBS per IS:456 / IS:2502.
