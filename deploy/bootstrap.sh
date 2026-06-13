@@ -92,9 +92,17 @@ fi
 # ── 7. Build and start containers ─────────────────────────────────────────────
 info "Building and starting production containers..."
 docker compose -f compose.prod.yaml build
-docker compose -f compose.prod.yaml up -d db redis
-info "Waiting for database to be healthy..."
-sleep 5
+# Bring up infrastructure services first and wait for health checks.
+docker compose -f compose.prod.yaml up -d esti-db esti-redis esti-minio
+info "Waiting for database and Redis to be healthy (up to 60 s)..."
+for i in $(seq 1 12); do
+  DB_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' esti-db 2>/dev/null || echo "none")
+  REDIS_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' esti-redis 2>/dev/null || echo "none")
+  if [[ "$DB_HEALTH" == "healthy" && ("$REDIS_HEALTH" == "healthy" || "$REDIS_HEALTH" == "none") ]]; then
+    break
+  fi
+  sleep 5
+done
 docker compose -f compose.prod.yaml up -d backend worker
 
 # ── 8. Build frontend static files ────────────────────────────────────────────

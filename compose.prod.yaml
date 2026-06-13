@@ -6,7 +6,9 @@ name: esti-aorms-prod
 
 services:
 
-  db:
+  # ── PostgreSQL (system of record) ─────────────────────────────────────────────
+  # Service name is esti-db so DATABASE_URL can use "esti-db" as hostname.
+  esti-db:
     image: postgres:16-alpine
     container_name: esti-db
     restart: always
@@ -16,6 +18,7 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # No host port binding — database is internal only.
     networks:
       - esti-network
     healthcheck:
@@ -23,13 +26,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
-  redis:
+  # ── Redis (job bus + sessions) ────────────────────────────────────────────────
+  # Service name is esti-redis so REDIS_URL can use "esti-redis" as hostname.
+  esti-redis:
     image: redis:7-alpine
     container_name: esti-redis
     restart: always
+    command: redis-server --save 60 1 --loglevel warning
     volumes:
       - redisdata:/data
+    # No host port binding — redis is internal only.
     networks:
       - esti-network
     healthcheck:
@@ -38,6 +46,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── MinIO (S3-compatible object storage) ──────────────────────────────────────
+  # Remove this service and set S3_ENDPOINT to your managed S3/B2 provider if
+  # you prefer not to self-host object storage.
+  esti-minio:
+    image: minio/minio:latest
+    container_name: esti-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER:     ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - miniodata:/data
+    # Neither port is exposed to the internet.  Access the console via an SSH
+    # tunnel: ssh -L 9001:localhost:9001 user@server
+    networks:
+      - esti-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ── Backend (Fastify / tRPC) ──────────────────────────────────────────────────
   backend:
     build:
       context: .
@@ -46,43 +79,54 @@ services:
     restart: always
     env_file: .env
     environment:
-      NODE_ENV:          production
-      BACKEND_PORT:      "4000"
-      DATABASE_URL:      ${DATABASE_URL}
-      REDIS_URL:         ${REDIS_URL}
-      SESSION_SECRET:    ${SESSION_SECRET}
-      COOKIE_SECURE:     "true"
-      ALLOWED_ORIGINS:   ${ALLOWED_ORIGINS}
-      S3_ENDPOINT:       ${S3_ENDPOINT}
+      NODE_ENV:           production
+      BACKEND_PORT:       "4000"
+      DATABASE_URL:       ${DATABASE_URL}
+      REDIS_URL:          ${REDIS_URL}
+      SESSION_SECRET:     ${SESSION_SECRET}
+      COOKIE_SECURE:      "true"
+      ALLOWED_ORIGINS:    ${ALLOWED_ORIGINS}
+      S3_ENDPOINT:        ${S3_ENDPOINT}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
-      S3_BUCKET:         ${S3_BUCKET}
-      S3_ACCESS_KEY:     ${S3_ACCESS_KEY}
-      S3_SECRET_KEY:     ${S3_SECRET_KEY}
-      WORKER_JOB_STREAM: ${WORKER_JOB_STREAM:-esti:jobs}
-    # Port 4000 is reachable from the host via 127.0.0.1 only (nginx proxies it).
+      S3_BUCKET:          ${S3_BUCKET}
+      S3_ACCESS_KEY:      ${S3_ACCESS_KEY}
+      S3_SECRET_KEY:      ${S3_SECRET_KEY}
+      WORKER_JOB_STREAM:  ${WORKER_JOB_STREAM:-esti:jobs}
+    # Port 4000 bound to 127.0.0.1 only — host nginx proxies /trpc and /upload.
     ports:
       - "127.0.0.1:4000:4000"
     networks:
       - esti-network
     depends_on:
-      db:
+      esti-db:
         condition: service_healthy
-      redis:
+      esti-redis:
         condition: service_healthy
 
+  # ── Frontend build container ──────────────────────────────────────────────────
+  # Under the `build-only` profile so `docker compose up -d` never starts it.
+  # deploy.sh (and bootstrap.sh) build this image, create a temporary container,
+  # use `docker cp` to copy the compiled dist out to the host filesystem, then
+  # remove the container.  The host nginx (deploy/nginx-proxy.conf) serves the
+  # static files directly from DEPLOY_DIR/frontend/dist — no nginx container
+  # needed at runtime.
+  #
+  # Usage in deploy scripts:
+  #   docker compose -f compose.prod.yaml --profile build-only build frontend
+  #   docker create --name esti-frontend-tmp esti-frontend:prod
+  #   docker cp esti-frontend-tmp:/usr/share/nginx/html/. ./frontend/dist/
+  #   docker rm esti-frontend-tmp
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile.prod
-    container_name: esti-frontend
-    restart: always
-    # The built static files are served directly by the host nginx from
-    # frontend/dist/ — this container is only used for the build artefact.
-    # If you prefer to run an nginx container instead, expose 80 here and
-    # remove the `location /` static root from nginx-proxy.conf.
+    image: esti-frontend:prod
+    # No entrypoint override needed — the runner stage nginx image is used only
+    # as a build artefact holder; the container is never started as a daemon.
     profiles:
       - build-only
 
+  # ── Python worker (ezdxf / WeasyPrint / pandas) ───────────────────────────────
   worker:
     build:
       context: .
@@ -91,23 +135,23 @@ services:
     restart: always
     env_file: .env
     environment:
-      DATABASE_URL:            ${DATABASE_URL}
-      REDIS_URL:               ${REDIS_URL}
-      WORKER_JOB_STREAM:       ${WORKER_JOB_STREAM:-esti:jobs}
-      WORKER_GROUP:            ${WORKER_GROUP:-esti-workers}
-      WORKER_MAX_RETRIES:      "3"
-      WORKER_RECLAIM_IDLE_MS:  "30000"
+      DATABASE_URL:              ${DATABASE_URL}
+      REDIS_URL:                 ${REDIS_URL}
+      WORKER_JOB_STREAM:         ${WORKER_JOB_STREAM:-esti:jobs}
+      WORKER_GROUP:              ${WORKER_GROUP:-esti-workers}
+      WORKER_MAX_RETRIES:        "3"
+      WORKER_RECLAIM_IDLE_MS:    "30000"
       WORKER_DEAD_LETTER_STREAM: "esti:jobs:dead"
-      S3_ENDPOINT:             ${S3_ENDPOINT}
-      S3_BUCKET:               ${S3_BUCKET}
-      S3_ACCESS_KEY:           ${S3_ACCESS_KEY}
-      S3_SECRET_KEY:           ${S3_SECRET_KEY}
+      S3_ENDPOINT:               ${S3_ENDPOINT}
+      S3_BUCKET:                 ${S3_BUCKET}
+      S3_ACCESS_KEY:             ${S3_ACCESS_KEY}
+      S3_SECRET_KEY:             ${S3_SECRET_KEY}
     networks:
       - esti-network
     depends_on:
-      db:
+      esti-db:
         condition: service_healthy
-      redis:
+      esti-redis:
         condition: service_healthy
 
 networks:
@@ -117,3 +161,4 @@ networks:
 volumes:
   pgdata:
   redisdata:
+  miniodata:
