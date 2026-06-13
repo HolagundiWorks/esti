@@ -21,23 +21,8 @@ import {
   Tile,
   Toggle,
 } from "@carbon/react";
-import { DonutChart, GroupedBarChart, SimpleBarChart } from "@carbon/charts-react";
+import { DonutChart, SimpleBarChart } from "@carbon/charts-react";
 import { ScaleTypes } from "@carbon/charts";
-import {
-  Analytics,
-  Banking,
-  Building,
-  ChartBar,
-  ChartDonut,
-  ChartLine,
-  DataInsights,
-  FinanceAndOperations,
-  Receipt,
-  TeamAlignment,
-  Warning_01,
-  Workflows,
-  type Pictogram,
-} from "@carbon/pictograms-react";
 import {
   ACTIVITY_DOMAIN_TAG,
   activityDomain,
@@ -53,6 +38,8 @@ import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
+
+const CHART_HEIGHT = "240px";
 
 const HEALTH_LABEL: Record<string, string> = { RED: "At risk", YELLOW: "Watch", GREEN: "Healthy" };
 const HEALTH_TAG: Record<string, "red" | "magenta" | "green"> = {
@@ -133,40 +120,18 @@ function dueLabel(days: number) {
   return days === 0 ? "Due today" : days < 0 ? `${-days}d overdue` : `${days}d left`;
 }
 
-// ─── TileHeader ───────────────────────────────────────────────────────────────
+// ─── Section header — one consistent zone divider ────────────────────────────
 
-function TileHeader({
-  Pict,
-  sub,
-  title,
-  statusTag,
-}: {
-  Pict: Pictogram;
-  sub: string;
-  title: string;
-  statusTag?: { text: string; type: "red" | "green" | "blue" | "magenta" | "gray" | "teal" | "cyan" | "purple" };
-}) {
+function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   return (
-    <Stack gap={3}>
-      <Stack orientation="horizontal" gap={2}>
-        <Tag type="gray" size="sm">
-          {sub}
-        </Tag>
-        {statusTag && (
-          <Tag type={statusTag.type} size="sm">
-            {statusTag.text}
-          </Tag>
-        )}
-      </Stack>
-      <Stack orientation="horizontal" gap={3}>
-        <Pict width={32} height={32} />
-        <h3>{title}</h3>
-      </Stack>
+    <Stack gap={2}>
+      <h3>{title}</h3>
+      {sub && <p>{sub}</p>}
     </Stack>
   );
 }
 
-// ─── KpiChip ─────────────────────────────────────────────────────────────────
+// ─── KpiChip — label / value / context tag ───────────────────────────────────
 
 function KpiChip({
   label,
@@ -203,251 +168,12 @@ function KpiChip({
   );
 }
 
-// ─── FilingDueBoard ──────────────────────────────────────────────────────────
-
-function FilingDueBoard({
-  title,
-  Pictogram: Pict,
-  rows,
-  onOpen,
-}: {
-  title: string;
-  Pictogram: Pictogram;
-  rows: { label: string; iso: string }[];
-  onOpen?: () => void;
-}) {
-  const fmt = (iso: string) =>
-    new Date(`${iso}T00:00:00`).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-    });
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={Pict} sub="Statutory" title={title} />
-        <Stack gap={4}>
-          {rows.map((r) => {
-            const days = daysUntil(r.iso);
-            return (
-              <Stack key={r.label} orientation="horizontal" gap={4}>
-                <div className="esti-grow">
-                  <p>{r.label}</p>
-                  <p>{fmt(r.iso)}</p>
-                </div>
-                <Tag type={dueTagType(days)}>{dueLabel(days)}</Tag>
-              </Stack>
-            );
-          })}
-        </Stack>
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open filing
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── Financial Health charts ─────────────────────────────────────────────────
-
-type FinancialData = {
-  activePipelinePaise: number;
-  proposalPipelinePaise: number;
-  readyToBillPaise: number;
-  outstandingPaise: number;
-  collectedFyPaise: number;
-};
-
-function FinancialDonut({
-  data,
-  loading,
-  onOpen,
-}: {
-  data?: FinancialData;
-  loading: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data
-    ? [
-        { group: "Active pipeline", value: data.activePipelinePaise },
-        { group: "Proposal pipeline", value: data.proposalPipelinePaise },
-        { group: "Ready to bill", value: data.readyToBillPaise },
-        { group: "Outstanding", value: data.outstandingPaise },
-        { group: "Collected FY", value: data.collectedFyPaise },
-      ].filter((d) => d.value > 0)
-    : [];
-  const options = {
-    data: { groupMapsTo: "group" },
-    donut: { center: { label: "Revenue" }, alignment: "center" },
-    height: "260px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-  };
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={FinanceAndOperations} sub="Cash flow" title="Revenue breakdown" />
-        {loading ? (
-          <InlineLoading description="Loading financial data…" />
-        ) : chartData.length === 0 ? (
-          <p>No financial data yet.</p>
-        ) : (
-          <DonutChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open invoices
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-function RevenuePipelineBar({
-  data,
-  loading,
-  onOpen,
-}: {
-  data?: FinancialData;
-  loading: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data
-    ? [
-        { group: "Active pipeline", key: "Pipeline", value: data.activePipelinePaise },
-        { group: "Proposal pipeline", key: "Pipeline", value: data.proposalPipelinePaise },
-        { group: "Ready to bill", key: "Billing", value: data.readyToBillPaise },
-        { group: "Outstanding", key: "Receivables", value: data.outstandingPaise },
-        { group: "Collected FY", key: "Collected", value: data.collectedFyPaise },
-      ].filter((d) => d.value > 0)
-    : [];
-  const options = {
-    axes: {
-      left: { mapsTo: "key", scaleType: ScaleTypes.LABELS },
-      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-    },
-    height: "260px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-    accessibility: { svgAriaLabel: "Revenue pipeline by category" },
-  };
-  if (!loading && chartData.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={ChartBar} sub="Expected → billed → collected" title="Revenue pipeline" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : (
-          <GroupedBarChart data={chartData} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open accounting
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-function ReceivablesAging({
-  data,
-  loading,
-  error,
-  onOpen,
-}: {
-  data: { group: string; value: number }[];
-  loading?: boolean;
-  error?: boolean;
-  onOpen?: () => void;
-}) {
-  const chartTheme = useAppTheme();
-  const options = {
-    axes: {
-      left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
-      bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-    },
-    height: "200px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: false },
-    tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-  };
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={Banking} sub="Overdue breakdown" title="Receivables aging" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : (
-          <SimpleBarChart data={data} options={options} />
-        )}
-        {onOpen && (
-          <Button kind="ghost" size="sm" onClick={onOpen}>
-            Open invoices
-          </Button>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── PhaseDonut ──────────────────────────────────────────────────────────────
-
-function PhaseDonut({
-  data,
-  loading,
-  error,
-}: {
-  data: { label: string; count: number }[];
-  loading?: boolean;
-  error?: boolean;
-}) {
-  const chartTheme = useAppTheme();
-  const chartData = data.map((p) => ({ group: p.label, value: p.count }));
-  const options = {
-    data: { groupMapsTo: "group" },
-    donut: { center: { label: "Stages" }, alignment: "center" },
-    height: "260px",
-    theme: chartTheme,
-    toolbar: { enabled: false },
-    legend: { enabled: true, position: "bottom" as const },
-    tooltip: { valueFormatter: (v: number) => `${v} project${v !== 1 ? "s" : ""}` },
-    accessibility: { svgAriaLabel: "Projects by current stage" },
-  };
-  if (!loading && !error && chartData.length === 0) return null;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <TileHeader Pict={ChartDonut} sub="Phase tracking" title="Projects by stage" />
-        {loading ? (
-          <InlineLoading description="Loading…" />
-        ) : error ? (
-          <Tag type="red">Data unavailable</Tag>
-        ) : (
-          <DonutChart data={chartData} options={options} />
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const chartTheme = useAppTheme();
 
   const summary = trpc.dashboard.summary.useQuery();
   const boardsQ = trpc.dashboard.boards.useQuery();
@@ -460,13 +186,12 @@ export function Dashboard() {
   const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
   const utilQ = trpc.dashboard.utilization.useQuery();
   const aspQ = trpc.aspRf.teamScores.useQuery();
-  const activityQ = trpc.activity.listOffice.useQuery({ limit: 6, visibility: "STAFF" });
+  const activityQ = trpc.activity.listOffice.useQuery({ limit: 4, visibility: "STAFF" });
 
   const s = summary.data;
   const b = boardsQ.data;
   const summaryLoading = summary.isLoading && !s;
   const boardsLoading = boardsQ.isLoading && !b;
-  const boardsError = boardsQ.isError && !b;
 
   const canFees = can(user?.role, "fees:manage");
   const isAdmin = can(user?.role, "firm:admin");
@@ -479,7 +204,7 @@ export function Dashboard() {
     onSuccess: () => utils.settings.get.invalidate(),
   });
 
-  // Action Center derived data — the brief's five categories.
+  // Action Center — five urgency categories.
   const billingReady = acQ.data?.billingReadyPhases ?? [];
   const overdueInvoices = acQ.data?.overdueInvoices ?? [];
   const pendingApprovals = acQ.data?.pendingApprovals ?? [];
@@ -492,6 +217,21 @@ export function Dashboard() {
     riskProjects.length +
     overloadedMembers.length;
 
+  const readyToBillSum = billingReady.reduce(
+    (sum, ph) => sum + Math.round((ph.billingPct * ph.contractValuePaise) / 100),
+    0,
+  );
+
+  // Financial charts.
+  const revenueData = fhQ.data
+    ? [
+        { group: "Active pipeline", value: fhQ.data.activePipelinePaise },
+        { group: "Proposal pipeline", value: fhQ.data.proposalPipelinePaise },
+        { group: "Ready to bill", value: fhQ.data.readyToBillPaise },
+        { group: "Outstanding", value: fhQ.data.outstandingPaise },
+        { group: "Collected FY", value: fhQ.data.collectedFyPaise },
+      ].filter((d) => d.value > 0)
+    : [];
   const agingData = [
     { group: "0–30 days", value: b?.receivablesAging.d0_30 ?? 0 },
     { group: "31–60 days", value: b?.receivablesAging.d31_60 ?? 0 },
@@ -499,34 +239,27 @@ export function Dashboard() {
   ];
   const agingEmpty = agingData.every((d) => d.value === 0);
 
-  const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
-
-  // Team intelligence: join ASPRF scores with capacity signals (by member name).
+  // Team — top four ASPRF cards only; the full board lives at /performance.
   const capacityByName = new Map((tiQ.data ?? []).map((m) => [m.assignee, m]));
-  const teamCards = (aspQ.data ?? []).slice(0, 8);
+  const teamCards = (aspQ.data ?? []).slice(0, 4);
 
-  const readyToBillSum = billingReady.reduce(
-    (sum, ph) => sum + Math.round((ph.billingPct * ph.contractValuePaise) / 100),
-    0,
-  );
+  const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
+  const hasClients = (ciQ.data?.length ?? 0) > 0;
 
   return (
     <Grid fullWidth className="esti-dash">
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <Column lg={16} md={8} sm={4}>
-        <Stack orientation="horizontal" gap={5}>
-          <ChartLine width={44} height={44} />
-          <div>
-            <h1>Office dashboard</h1>
-            {user?.fullName && (
-              <p>Welcome, Ar. {user.fullName.replace(/^Ar\.?\s+/i, "").split(" ")[0]}</p>
-            )}
-          </div>
+        <Stack gap={2}>
+          <h1>Office dashboard</h1>
+          {user?.fullName && (
+            <p>Welcome, Ar. {user.fullName.replace(/^Ar\.?\s+/i, "").split(" ")[0]}</p>
+          )}
         </Stack>
       </Column>
 
-      {/* ═══ Zone 1: Global KPI Bar — six studio-wide signals ═════════════ */}
+      {/* ═══ 1 · KPI strip — four answers, one row ═════════════════════════ */}
       <Column lg={4} md={4} sm={2}>
         <KpiChip
           label="Ready to bill"
@@ -541,30 +274,28 @@ export function Dashboard() {
         <KpiChip
           label="Outstanding collections"
           value={formatINRShort(fhQ.data?.outstandingPaise ?? 0)}
-          tagType="magenta"
-          tagText="Unpaid invoices"
+          tagType={(fhQ.data?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"}
+          tagText={
+            (fhQ.data?.overdue30dPaise ?? 0) > 0
+              ? `${formatINRShort(fhQ.data!.overdue30dPaise)} overdue 30d+`
+              : "Nothing overdue"
+          }
           onClick={() => navigate("/invoices")}
           loading={fhQ.isLoading}
         />
       </Column>
       <Column lg={4} md={4} sm={2}>
         <KpiChip
-          label="Overdue 30d+"
-          value={formatINRShort(fhQ.data?.overdue30dPaise ?? 0)}
-          tagType="red"
-          tagText={`${overdueInvoices.length} invoice${overdueInvoices.length !== 1 ? "s" : ""}`}
-          onClick={() => navigate("/invoices")}
-          loading={fhQ.isLoading || acQ.isLoading}
-        />
-      </Column>
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
           label="Active projects"
           value={s?.projects.byStatus.ACTIVE ?? 0}
-          tagType="blue"
-          tagText={`${riskProjects.length} at risk`}
+          tagType={riskProjects.length > 0 ? "red" : "blue"}
+          tagText={
+            riskProjects.length > 0
+              ? `${riskProjects.length} at risk`
+              : "All on track"
+          }
           onClick={() => navigate("/projects")}
-          loading={summaryLoading}
+          loading={summaryLoading || phQ.isLoading}
         />
       </Column>
       <Column lg={4} md={4} sm={2}>
@@ -581,36 +312,25 @@ export function Dashboard() {
           loading={utilQ.isLoading}
         />
       </Column>
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Revision risk"
-          value={riQ.data?.revisionRiskBand ?? "—"}
-          tagType={RISK_TAG[riQ.data?.revisionRiskBand ?? "LOW"]}
-          tagText={`Health ${riQ.data?.healthScore ?? "—"}`}
-          onClick={() => navigate("/projects")}
-          loading={riQ.isLoading}
-        />
-      </Column>
 
-      {/* ═══ Zone 2: Action Center — the brief's five urgent categories ════ */}
+      {/* ═══ 2 · Action Center — what needs attention now ══════════════════ */}
       <Column lg={16} md={8} sm={4}>
         <Tile>
           <Stack gap={6}>
-            <Stack gap={3}>
-              <Stack orientation="horizontal" gap={2}>
-                <Tag type="gray" size="sm">Action Center</Tag>
-                {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
+            <Stack orientation="horizontal" gap={3}>
+              <div className="esti-grow">
+                <SectionHeader
+                  title="Action Center"
+                  sub="Billing, approvals, and risk items that need a decision today."
+                />
+              </div>
+              {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
+                <div>
                   <Tag type={acTotal > 0 ? "red" : "green"} size="sm">
-                    {acTotal > 0
-                      ? `${acTotal} item${acTotal !== 1 ? "s" : ""}`
-                      : "All clear"}
+                    {acTotal > 0 ? `${acTotal} open` : "All clear"}
                   </Tag>
-                )}
-              </Stack>
-              <Stack orientation="horizontal" gap={3}>
-                <Warning_01 width={32} height={32} />
-                <h3>What needs attention now</h3>
-              </Stack>
+                </div>
+              )}
             </Stack>
 
             {acQ.isLoading ? (
@@ -619,33 +339,24 @@ export function Dashboard() {
               <p>All clear — no outstanding items.</p>
             ) : (
               <Grid narrow>
-                {/* Overdue collections — money first */}
                 <Column lg={6} md={4} sm={4}>
                   <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={3}>
-                      <h4>Overdue collections</h4>
-                      <Tag type="red" size="sm">{overdueInvoices.length}</Tag>
-                    </Stack>
+                    <h4>Overdue collections</h4>
                     {overdueInvoices.length === 0 ? (
-                      <p>No invoices overdue beyond 30 days.</p>
+                      <p>None beyond 30 days.</p>
                     ) : (
                       <StructuredListWrapper isCondensed>
                         <StructuredListBody>
-                          {overdueInvoices.slice(0, 6).map((inv) => (
+                          {overdueInvoices.slice(0, 4).map((inv) => (
                             <StructuredListRow key={inv.id}>
                               <StructuredListCell>
                                 <Link to={`/projects/${inv.projectId}?tab=invoices`}>
                                   {inv.ref}
                                 </Link>
-                                <p>
-                                  {inv.projectRef} ·{" "}
-                                  {formatINRShort(inv.netReceivablePaise)}
-                                </p>
+                                <p>{formatINRShort(inv.netReceivablePaise)}</p>
                               </StructuredListCell>
                               <StructuredListCell noWrap>
-                                <Tag type="red" size="sm">
-                                  {inv.daysOverdue}d overdue
-                                </Tag>
+                                <Tag type="red" size="sm">{inv.daysOverdue}d</Tag>
                               </StructuredListCell>
                             </StructuredListRow>
                           ))}
@@ -655,19 +366,15 @@ export function Dashboard() {
                   </Stack>
                 </Column>
 
-                {/* Pending client approvals */}
                 <Column lg={5} md={4} sm={4}>
                   <Stack gap={4}>
-                    <Stack orientation="horizontal" gap={3}>
-                      <h4>Approvals pending</h4>
-                      <Tag type="magenta" size="sm">{pendingApprovals.length}</Tag>
-                    </Stack>
+                    <h4>Approvals pending</h4>
                     {pendingApprovals.length === 0 ? (
-                      <p>No items awaiting client response.</p>
+                      <p>None awaiting client response.</p>
                     ) : (
                       <StructuredListWrapper isCondensed>
                         <StructuredListBody>
-                          {pendingApprovals.slice(0, 6).map((ap) => (
+                          {pendingApprovals.slice(0, 4).map((ap) => (
                             <StructuredListRow key={ap.id}>
                               <StructuredListCell>
                                 <Link to={`/projects/${ap.projectId}?tab=approvals`}>
@@ -676,9 +383,7 @@ export function Dashboard() {
                                 <p>{ap.title}</p>
                               </StructuredListCell>
                               <StructuredListCell noWrap>
-                                <Tag type="magenta" size="sm">
-                                  {ap.daysWaiting}d waiting
-                                </Tag>
+                                <Tag type="magenta" size="sm">{ap.daysWaiting}d</Tag>
                               </StructuredListCell>
                             </StructuredListRow>
                           ))}
@@ -688,61 +393,37 @@ export function Dashboard() {
                   </Stack>
                 </Column>
 
-                {/* Ready to bill + risk + capacity — numeric trio */}
                 <Column lg={5} md={8} sm={4}>
-                  <Stack gap={6}>
-                    <Stack gap={3}>
+                  <Stack gap={5}>
+                    <Stack gap={2}>
                       <h4>Ready to bill</h4>
-                      <Stack orientation="horizontal" gap={4}>
-                        <h2>{billingReady.length}</h2>
-                        <div>
-                          <p>Phases awaiting invoice</p>
-                          <p>{formatINRShort(readyToBillSum)} estimated</p>
-                        </div>
-                      </Stack>
-                      <Button kind="ghost" size="sm" onClick={() => navigate("/invoices")}>
-                        Open invoices
-                      </Button>
+                      <p>
+                        <strong>{billingReady.length}</strong> phase{billingReady.length !== 1 ? "s" : ""} ·{" "}
+                        {formatINRShort(readyToBillSum)} estimated
+                      </p>
                     </Stack>
-
-                    <Stack gap={3}>
-                      <Stack orientation="horizontal" gap={3}>
-                        <h4>High-risk projects</h4>
-                        <Tag type={riskProjects.length > 0 ? "red" : "green"} size="sm">
-                          {riskProjects.length}
-                        </Tag>
-                      </Stack>
+                    <Stack gap={2}>
+                      <h4>High-risk projects</h4>
                       {riskProjects.length === 0 ? (
-                        <p>No projects at risk.</p>
+                        <p>None at risk.</p>
                       ) : (
-                        <Stack gap={2}>
-                          {riskProjects.slice(0, 3).map((p) => (
-                            <p key={p.id}>
-                              <Link to={`/projects/${p.id}`}>{p.ref}</Link> — {p.title}
-                            </p>
-                          ))}
-                        </Stack>
+                        riskProjects.slice(0, 3).map((p) => (
+                          <p key={p.id}>
+                            <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
+                          </p>
+                        ))
                       )}
                     </Stack>
-
-                    <Stack gap={3}>
-                      <Stack orientation="horizontal" gap={3}>
-                        <h4>Capacity alerts</h4>
-                        <Tag type={overloadedMembers.length > 0 ? "red" : "green"} size="sm">
-                          {overloadedMembers.length}
-                        </Tag>
-                      </Stack>
+                    <Stack gap={2}>
+                      <h4>Capacity alerts</h4>
                       {overloadedMembers.length === 0 ? (
-                        <p>No overloaded team members.</p>
+                        <p>No one overloaded.</p>
                       ) : (
-                        <Stack gap={2}>
-                          {overloadedMembers.slice(0, 3).map((m) => (
-                            <Stack key={m.assignee} orientation="horizontal" gap={3}>
-                              <Tag type="red" size="sm">{m.overdueCount} overdue</Tag>
-                              <p>{m.assignee} · {m.totalOpen} open</p>
-                            </Stack>
-                          ))}
-                        </Stack>
+                        overloadedMembers.slice(0, 3).map((m) => (
+                          <p key={m.assignee}>
+                            {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
+                          </p>
+                        ))
                       )}
                     </Stack>
                   </Stack>
@@ -753,69 +434,82 @@ export function Dashboard() {
         </Tile>
       </Column>
 
-      {/* ═══ Zone 3: Financial Health ══════════════════════════════════════ */}
+      {/* ═══ 3 · Financial health ══════════════════════════════════════════ */}
       {canFees && showFinancial && (
         <>
           <Column lg={16} md={8} sm={4}>
-            <h4>Financial health</h4>
+            <SectionHeader title="Financial health" />
           </Column>
-          <Column lg={6} md={8} sm={4}>
-            <FinancialDonut
-              data={fhQ.data}
-              loading={fhQ.isLoading}
-              onOpen={() => navigate("/invoices")}
-            />
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill">
+              <Stack gap={5}>
+                <h4>Revenue breakdown</h4>
+                {fhQ.isLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : revenueData.length === 0 ? (
+                  <p>No financial data yet.</p>
+                ) : (
+                  <DonutChart
+                    data={revenueData}
+                    options={{
+                      data: { groupMapsTo: "group" },
+                      donut: { center: { label: "Revenue" }, alignment: "center" },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: true, position: "bottom" as const },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
+                <Button kind="ghost" size="sm" onClick={() => navigate("/invoices")}>
+                  Open invoices
+                </Button>
+              </Stack>
+            </Tile>
           </Column>
-          <Column lg={6} md={8} sm={4}>
-            <RevenuePipelineBar
-              data={fhQ.data}
-              loading={fhQ.isLoading}
-              onOpen={() => navigate("/accounting/fees")}
-            />
-          </Column>
-          <Column lg={4} md={8} sm={4}>
-            {agingEmpty ? (
-              <Tile className="esti-fill">
-                <Stack gap={5}>
-                  <TileHeader Pict={Banking} sub="Overdue breakdown" title="Receivables aging" />
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill">
+              <Stack gap={5}>
+                <h4>Receivables aging</h4>
+                {boardsLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : agingEmpty ? (
                   <p>No outstanding receivables.</p>
-                </Stack>
-              </Tile>
-            ) : (
-              <ReceivablesAging
-                data={agingData}
-                loading={boardsLoading}
-                error={boardsError}
-                onOpen={() => navigate("/invoices")}
-              />
-            )}
+                ) : (
+                  <SimpleBarChart
+                    data={agingData}
+                    options={{
+                      axes: {
+                        left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
+                        bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+                      },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: false },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
+                <Button kind="ghost" size="sm" onClick={() => navigate("/filing")}>
+                  Open filing
+                </Button>
+              </Stack>
+            </Tile>
           </Column>
         </>
       )}
 
-      {/* ═══ Zone 4: Project Health — per-project cards ════════════════════ */}
+      {/* ═══ 4 · Project health ════════════════════════════════════════════ */}
       {showProject && (
         <>
           <Column lg={16} md={8} sm={4}>
-            <h4>Project health</h4>
+            <SectionHeader title="Project health" />
           </Column>
-
-          <Column lg={10} md={8} sm={4}>
-            <Tile className="esti-fill">
+          <Column lg={16} md={8} sm={4}>
+            <Tile>
               <Stack gap={5}>
-                <TileHeader
-                  Pict={Building}
-                  sub="Active projects"
-                  title="Project health board"
-                  statusTag={
-                    phQ.data
-                      ? {
-                          text: `${riskProjects.length} at risk`,
-                          type: riskProjects.length > 0 ? "red" : "green",
-                        }
-                      : undefined
-                  }
-                />
                 {phQ.isLoading ? (
                   <InlineLoading description="Loading projects…" />
                 ) : (phQ.data?.length ?? 0) === 0 ? (
@@ -833,7 +527,7 @@ export function Dashboard() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {phQ.data!.map((p) => (
+                        {phQ.data!.slice(0, 8).map((p) => (
                           <TableRow key={p.id}>
                             <TableCell>
                               <Link to={`/projects/${p.id}`}>{p.ref}</Link>
@@ -864,9 +558,6 @@ export function Dashboard() {
                                 {p.staleApprovals > 0 && (
                                   <Tag type="magenta" size="sm">{p.staleApprovals} stale appr</Tag>
                                 )}
-                                {p.revisionsOpen > 0 && (
-                                  <Tag type="purple" size="sm">{p.revisionsOpen} revisions</Tag>
-                                )}
                                 {p.criticalNotesOpen > 0 && (
                                   <Tag type="red" size="sm">{p.criticalNotesOpen} critical</Tag>
                                 )}
@@ -889,73 +580,54 @@ export function Dashboard() {
               </Stack>
             </Tile>
           </Column>
-
-          <Column lg={6} md={8} sm={4}>
-            <PhaseDonut
-              data={b?.byPhase ?? []}
-              loading={boardsLoading}
-              error={boardsError}
-            />
-          </Column>
         </>
       )}
 
-      {/* ═══ Zone 5: Client Intelligence — decision behaviour table ════════ */}
-      {((ciQ.data?.length ?? 0) > 0 || ciQ.isLoading) && (
+      {/* ═══ 5 · Clients ═══════════════════════════════════════════════════ */}
+      {hasClients && (
         <>
           <Column lg={16} md={8} sm={4}>
-            <h4>Client intelligence</h4>
+            <SectionHeader title="Client signals" />
           </Column>
           <Column lg={16} md={8} sm={4}>
             <Tile>
               <Stack gap={5}>
-                <TileHeader
-                  Pict={Analytics}
-                  sub="Decision behaviour"
-                  title="Client signals"
-                />
-                {ciQ.isLoading ? (
-                  <InlineLoading description="Loading client data…" />
-                ) : (
-                  <TableContainer>
-                    <Table size="sm">
-                      <TableHead>
-                        <TableRow>
-                          <TableHeader>Client</TableHeader>
-                          <TableHeader>Projects</TableHeader>
-                          <TableHeader>Outstanding</TableHeader>
-                          <TableHeader>Oldest invoice</TableHeader>
-                          <TableHeader>Approval lag</TableHeader>
-                          <TableHeader>Revisions</TableHeader>
-                          <TableHeader>Risk</TableHeader>
+                <TableContainer>
+                  <Table size="sm">
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader>Client</TableHeader>
+                        <TableHeader>Projects</TableHeader>
+                        <TableHeader>Outstanding</TableHeader>
+                        <TableHeader>Oldest invoice</TableHeader>
+                        <TableHeader>Approval lag</TableHeader>
+                        <TableHeader>Revisions</TableHeader>
+                        <TableHeader>Risk</TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ciQ.data!.slice(0, 6).map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell>{c.name}</TableCell>
+                          <TableCell>{c.activeProjects}</TableCell>
+                          <TableCell>
+                            {c.outstandingPaise > 0 ? formatINRShort(c.outstandingPaise) : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {c.oldestInvoiceDays > 0 ? `${c.oldestInvoiceDays}d` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {c.avgApprovalDays > 0 ? `${c.avgApprovalDays}d avg` : "—"}
+                          </TableCell>
+                          <TableCell>{c.revisionRequests}</TableCell>
+                          <TableCell>
+                            <Tag type={RISK_TAG[c.risk]} size="sm">{c.risk}</Tag>
+                          </TableCell>
                         </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {ciQ.data!.map((c) => (
-                          <TableRow key={c.id}>
-                            <TableCell>{c.name}</TableCell>
-                            <TableCell>{c.activeProjects}</TableCell>
-                            <TableCell>
-                              {c.outstandingPaise > 0
-                                ? formatINRShort(c.outstandingPaise)
-                                : "—"}
-                            </TableCell>
-                            <TableCell>
-                              {c.oldestInvoiceDays > 0 ? `${c.oldestInvoiceDays}d` : "—"}
-                            </TableCell>
-                            <TableCell>
-                              {c.avgApprovalDays > 0 ? `${c.avgApprovalDays}d avg` : "—"}
-                            </TableCell>
-                            <TableCell>{c.revisionRequests}</TableCell>
-                            <TableCell>
-                              <Tag type={RISK_TAG[c.risk]} size="sm">{c.risk}</Tag>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
                 <Button kind="ghost" size="sm" onClick={() => navigate("/clients")}>
                   Open clients
                 </Button>
@@ -965,29 +637,25 @@ export function Dashboard() {
         </>
       )}
 
-      {/* ═══ Zone 6: Team Intelligence — capacity + ASPRF performance ══════ */}
-      <Column lg={16} md={8} sm={4}>
-        <h4>Team intelligence</h4>
-      </Column>
-
-      {teamCards.length > 0 ? (
-        teamCards.map((m) => {
-          const cap = capacityByName.get(m.memberName);
-          const band = m.band as PerformanceBand | null;
-          return (
-            <Column key={m.teamMemberId} lg={4} md={4} sm={4}>
-              <Tile className="esti-fill">
-                <Stack gap={4}>
-                  <Stack gap={1}>
-                    <Tag type="gray" size="sm">{m.memberRole}</Tag>
-                    <h3>{m.memberName}</h3>
-                  </Stack>
-                  <Stack orientation="horizontal" gap={4}>
+      {/* ═══ 6 · Team ══════════════════════════════════════════════════════ */}
+      {teamCards.length > 0 && (
+        <>
+          <Column lg={16} md={8} sm={4}>
+            <SectionHeader title="Team performance" sub="Rolling 30-day ASPRF scores." />
+          </Column>
+          {teamCards.map((m) => {
+            const cap = capacityByName.get(m.memberName);
+            const band = m.band as PerformanceBand | null;
+            return (
+              <Column key={m.teamMemberId} lg={4} md={4} sm={4}>
+                <ClickableTile className="esti-fill" onClick={() => navigate("/performance")}>
+                  <Stack gap={4}>
                     <Stack gap={1}>
-                      <p>Performance</p>
-                      <h2>{m.score}</h2>
+                      <p>{m.memberRole}</p>
+                      <h4>{m.memberName}</h4>
                     </Stack>
-                    <Stack gap={2}>
+                    <h2>{m.score}</h2>
+                    <Stack orientation="horizontal" gap={2}>
                       {band ? (
                         <Tag type={PERFORMANCE_BAND_TAG[band]} size="sm">
                           {PERFORMANCE_BAND_LABEL[band]}
@@ -1001,94 +669,60 @@ export function Dashboard() {
                         </Tag>
                       )}
                     </Stack>
+                    <p>
+                      {cap?.totalOpen ?? 0} open · {cap?.overdueCount ?? m.overdueCount} overdue ·{" "}
+                      {m.totalPoints} pts
+                    </p>
                   </Stack>
-                  <Stack orientation="horizontal" gap={5}>
-                    <Stack gap={1}>
-                      <p>Open</p>
-                      <p><strong>{cap?.totalOpen ?? 0}</strong></p>
-                    </Stack>
-                    <Stack gap={1}>
-                      <p>Overdue</p>
-                      <p><strong>{cap?.overdueCount ?? m.overdueCount}</strong></p>
-                    </Stack>
-                    <Stack gap={1}>
-                      <p>Points</p>
-                      <p><strong>{m.totalPoints}</strong></p>
-                    </Stack>
-                  </Stack>
-                </Stack>
-              </Tile>
-            </Column>
-          );
-        })
-      ) : (
-        <Column lg={8} md={8} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={5}>
-              <TileHeader Pict={TeamAlignment} sub="Team capacity" title="Team intelligence" />
-              {aspQ.isLoading ? (
-                <InlineLoading description="Loading team data…" />
-              ) : (
-                <p>No team members yet. Add members via the HR module.</p>
-              )}
-            </Stack>
-          </Tile>
-        </Column>
+                </ClickableTile>
+              </Column>
+            );
+          })}
+        </>
       )}
 
-      {teamCards.length > 0 && (
-        <Column lg={16} md={8} sm={4}>
-          <Button kind="ghost" size="sm" onClick={() => navigate("/performance")}>
-            Open performance
-          </Button>
-        </Column>
-      )}
-
-      {/* ═══ Zone 7: Revision & Technical Intelligence ═════════════════════ */}
+      {/* ═══ 7 · Quality intelligence ══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <h4>Revision &amp; technical intelligence</h4>
+        <SectionHeader title="Quality intelligence" />
       </Column>
 
       <Column lg={8} md={8} sm={4}>
         <Tile className="esti-fill">
           <Stack gap={5}>
-            <TileHeader
-              Pict={DataInsights}
-              sub="Decision ledger"
-              title="Revision intelligence"
-              statusTag={
-                riQ.data
-                  ? {
-                      text: `${riQ.data.revisionRiskBand} risk`,
-                      type: RISK_TAG[riQ.data.revisionRiskBand],
-                    }
-                  : undefined
-              }
-            />
+            <Stack orientation="horizontal" gap={3}>
+              <div className="esti-grow">
+                <h4>Revisions</h4>
+              </div>
+              {riQ.data && (
+                <Tag type={RISK_TAG[riQ.data.revisionRiskBand]} size="sm">
+                  {riQ.data.revisionRiskBand} risk · {riQ.data.healthScore}
+                </Tag>
+              )}
+            </Stack>
             {riQ.isLoading ? (
               <InlineLoading description="Loading…" />
             ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
               <p>No decisions recorded yet.</p>
             ) : (
-              <Stack gap={4}>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="blue" size="sm">Client driven</Tag>
-                  <p>{riQ.data.clientDriven}</p>
+              <Stack gap={3}>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Client driven</span>
+                  <strong>{riQ.data.clientDriven}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="red" size="sm">Internal error</Tag>
-                  <p>{riQ.data.internalError}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Internal error</span>
+                  <strong>{riQ.data.internalError}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="teal" size="sm">Technical query</Tag>
-                  <p>{riQ.data.technicalQuery}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Technical query</span>
+                  <strong>{riQ.data.technicalQuery}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="magenta" size="sm">Scope change</Tag>
-                  <p>{riQ.data.scopeChange}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Scope change</span>
+                  <strong>{riQ.data.scopeChange}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <p>Scope drift</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Scope drift</span>
                   <Tag
                     type={riQ.data.scopeDriftPct > 20 ? "red" : riQ.data.scopeDriftPct > 10 ? "magenta" : "green"}
                     size="sm"
@@ -1096,12 +730,6 @@ export function Dashboard() {
                     {riQ.data.scopeDriftPct}%
                   </Tag>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <p>Health score</p>
-                  <Tag type={RISK_TAG[riQ.data.revisionRiskBand]} size="sm">
-                    {riQ.data.healthScore} / 100
-                  </Tag>
-                </Stack>
               </Stack>
             )}
           </Stack>
@@ -1111,19 +739,15 @@ export function Dashboard() {
       <Column lg={8} md={8} sm={4}>
         <Tile className="esti-fill">
           <Stack gap={5}>
-            <TileHeader
-              Pict={Workflows}
-              sub="Drawing & site queries"
-              title="Technical intelligence"
-            />
+            <h4>Technical quality</h4>
             {techIQ.isLoading ? (
               <InlineLoading description="Loading…" />
             ) : !techIQ.data ? (
               <p>No data.</p>
             ) : (
-              <Stack gap={4}>
-                <Stack orientation="horizontal" gap={4}>
-                  <p>Drawing accuracy</p>
+              <Stack gap={3}>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Drawing accuracy</span>
                   <Tag
                     type={techIQ.data.drawingAccuracyPct >= 90 ? "green" : techIQ.data.drawingAccuracyPct >= 75 ? "magenta" : "red"}
                     size="sm"
@@ -1131,8 +755,8 @@ export function Dashboard() {
                     {techIQ.data.drawingAccuracyPct}%
                   </Tag>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <p>Site query rate</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Site query rate</span>
                   <Tag
                     type={techIQ.data.siteQueryRate <= 10 ? "green" : techIQ.data.siteQueryRate <= 25 ? "magenta" : "red"}
                     size="sm"
@@ -1140,17 +764,17 @@ export function Dashboard() {
                     {techIQ.data.siteQueryRate}%
                   </Tag>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="red" size="sm">Internal errors</Tag>
-                  <p>{techIQ.data.internalErrors} decision{techIQ.data.internalErrors !== 1 ? "s" : ""}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Internal errors</span>
+                  <strong>{techIQ.data.internalErrors}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="teal" size="sm">Technical queries</Tag>
-                  <p>{techIQ.data.techQueries} decision{techIQ.data.techQueries !== 1 ? "s" : ""}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Technical queries</span>
+                  <strong>{techIQ.data.techQueries}</strong>
                 </Stack>
-                <Stack orientation="horizontal" gap={4}>
-                  <Tag type="blue" size="sm">Total drawings</Tag>
-                  <p>{techIQ.data.totalDrawings}</p>
+                <Stack orientation="horizontal" gap={3}>
+                  <span className="esti-grow">Drawings issued</span>
+                  <strong>{techIQ.data.totalDrawings}</strong>
                 </Stack>
               </Stack>
             )}
@@ -1158,35 +782,65 @@ export function Dashboard() {
         </Tile>
       </Column>
 
-      {/* ═══ Zone 8: Statutory filing + Activity Feed ══════════════════════ */}
+      {/* ═══ 8 · Statutory & activity ══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <h4>Compliance &amp; activity</h4>
+        <SectionHeader title="Statutory & activity" />
       </Column>
 
       {showFinancial && (
         <Column lg={4} md={4} sm={4}>
-          <FilingDueBoard
-            title="GST filing due"
-            Pictogram={Receipt}
-            rows={[
-              { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
-              { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
-            ]}
-            onOpen={() => navigate("/filing")}
-          />
+          <Tile className="esti-fill">
+            <Stack gap={5}>
+              <h4>GST filing</h4>
+              <Stack gap={4}>
+                {[
+                  { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
+                  { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
+                ].map((r) => {
+                  const days = daysUntil(r.iso);
+                  return (
+                    <Stack key={r.label} orientation="horizontal" gap={3}>
+                      <div className="esti-grow">
+                        <p>{r.label}</p>
+                      </div>
+                      <Tag type={dueTagType(days)} size="sm">{dueLabel(days)}</Tag>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+              <Button kind="ghost" size="sm" onClick={() => navigate("/filing")}>
+                Open filing
+              </Button>
+            </Stack>
+          </Tile>
         </Column>
       )}
       {showFinancial && (
         <Column lg={4} md={4} sm={4}>
-          <FilingDueBoard
-            title="TDS filing due"
-            Pictogram={Banking}
-            rows={[
-              { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
-              { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
-            ]}
-            onOpen={() => navigate("/filing")}
-          />
+          <Tile className="esti-fill">
+            <Stack gap={5}>
+              <h4>TDS filing</h4>
+              <Stack gap={4}>
+                {[
+                  { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
+                  { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
+                ].map((r) => {
+                  const days = daysUntil(r.iso);
+                  return (
+                    <Stack key={r.label} orientation="horizontal" gap={3}>
+                      <div className="esti-grow">
+                        <p>{r.label}</p>
+                      </div>
+                      <Tag type={dueTagType(days)} size="sm">{dueLabel(days)}</Tag>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+              <Button kind="ghost" size="sm" onClick={() => navigate("/filing")}>
+                Open filing
+              </Button>
+            </Stack>
+          </Tile>
         </Column>
       )}
 
@@ -1194,55 +848,32 @@ export function Dashboard() {
         <Column lg={showFinancial ? 8 : 16} md={8} sm={4}>
           <Tile className="esti-fill">
             <Stack gap={5}>
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={2}>
-                  <Tag type="gray" size="sm">Recent activity</Tag>
-                  <Tag type="blue" size="sm">
-                    {activityQ.data!.rows.length} events
-                  </Tag>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <Workflows width={32} height={32} />
-                  <h3>Activity feed</h3>
-                </Stack>
-              </Stack>
-
-              {activityQ.isLoading ? (
-                <InlineLoading description="Loading activity…" />
-              ) : (
-                <Stack gap={4}>
-                  {activityQ.data!.rows.map((item) => (
-                    <Stack key={item.id} gap={2}>
-                      <Stack orientation="horizontal" gap={3}>
-                        <Tag
-                          size="sm"
-                          type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}
-                        >
-                          {activityDomain(item.eventType)}
-                        </Tag>
-                        <Tag size="sm" type="gray">
-                          {formatEventType(item.eventType)}
-                        </Tag>
-                        <p>
-                          {new Date(
-                            item.createdAt as unknown as string,
-                          ).toLocaleString("en-IN", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </Stack>
-                      <p>{item.summary}</p>
+              <h4>Recent activity</h4>
+              <Stack gap={4}>
+                {activityQ.data!.rows.map((item) => (
+                  <Stack key={item.id} gap={1}>
+                    <Stack orientation="horizontal" gap={3}>
+                      <Tag
+                        size="sm"
+                        type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}
+                      >
+                        {formatEventType(item.eventType)}
+                      </Tag>
                       <p>
-                        {item.projectRef ? `${item.projectRef} · ` : ""}
-                        {item.actorName ?? "System"}
+                        {new Date(
+                          item.createdAt as unknown as string,
+                        ).toLocaleString("en-IN", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </Stack>
-                  ))}
-                </Stack>
-              )}
+                    <p>{item.summary}</p>
+                  </Stack>
+                ))}
+              </Stack>
               <Button
                 kind="ghost"
                 size="sm"
@@ -1260,10 +891,7 @@ export function Dashboard() {
         <Column lg={16} md={8} sm={4}>
           <Tile>
             <Stack gap={4}>
-              <Stack gap={3}>
-                <Tag type="gray" size="sm">Admin</Tag>
-                <h3>Dashboard sections</h3>
-              </Stack>
+              <h4>Dashboard sections</h4>
               <Stack orientation="horizontal" gap={6}>
                 <Toggle
                   id="db-financial"
