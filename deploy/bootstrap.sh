@@ -84,9 +84,12 @@ if [[ ! -f .env ]]; then
   exit 0
 fi
 
-# Check for unfilled placeholders
-if grep -q "CHANGE_ME" .env; then
-  error ".env still contains CHANGE_ME placeholders. Fill them all, then re-run."
+# Check for unfilled placeholders — ignore comment lines (the template's own
+# comments mention CHANGE_ME_* while explaining the mechanism).
+if grep -vE '^[[:space:]]*#' .env | grep -q "CHANGE_ME"; then
+  warn "These .env values still need filling:"
+  grep -vE '^[[:space:]]*#' .env | grep -n "CHANGE_ME" || true
+  error "Fill the values above in $DEPLOY_DIR/.env, then re-run."
 fi
 
 # ── 7. Build and start containers ─────────────────────────────────────────────
