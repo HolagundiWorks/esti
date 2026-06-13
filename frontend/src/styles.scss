@@ -86,12 +86,6 @@ body,
   padding-inline: 0;
 }
 
-// Structural-only: zone headers between tile rows need breathing room so they
-// read as section separators in the condensed mosaic. Spacing only.
-.esti-zone-head {
-  padding-block: 1.5rem 0.75rem;
-}
-
 // Geometry-only override (no colour): square tag corners instead of pills.
 .cds--tag {
   border-radius: 0;
