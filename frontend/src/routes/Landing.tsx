@@ -115,7 +115,7 @@ function DashboardMockup() {
             <Stack gap={4}>
               <h4>Action Centre</h4>
               <Stack gap={3}>
-                {[
+                {([
                   { t: "red",     l: "Urgent",   m: "Invoice #INV-2025-033 — issue before 31 Mar" },
                   { t: "magenta", l: "Review",   m: "RIE site assessment: FAR exceedance flagged" },
                   { t: "blue",    l: "Decision", m: "2 CRIF decisions need your acknowledgement" },
