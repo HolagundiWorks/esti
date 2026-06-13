@@ -1,0 +1,119 @@
+# ESTI AORMS — production compose.
+#   docker compose -f compose.prod.yaml up -d --build
+# Requires a .env file at the repo root — copy deploy/.env.production.example to .env and fill it.
+# No host port exposure except for the nginx reverse-proxy ports (80/443 handled by the host nginx).
+name: esti-aorms-prod
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: esti-db
+    restart: always
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - esti-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-esti}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: esti-redis
+    restart: always
+    volumes:
+      - redisdata:/data
+    networks:
+      - esti-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.prod
+    container_name: esti-backend
+    restart: always
+    env_file: .env
+    environment:
+      NODE_ENV:          production
+      BACKEND_PORT:      "4000"
+      DATABASE_URL:      ${DATABASE_URL}
+      REDIS_URL:         ${REDIS_URL}
+      SESSION_SECRET:    ${SESSION_SECRET}
+      COOKIE_SECURE:     "true"
+      ALLOWED_ORIGINS:   ${ALLOWED_ORIGINS}
+      S3_ENDPOINT:       ${S3_ENDPOINT}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
+      S3_BUCKET:         ${S3_BUCKET}
+      S3_ACCESS_KEY:     ${S3_ACCESS_KEY}
+      S3_SECRET_KEY:     ${S3_SECRET_KEY}
+      WORKER_JOB_STREAM: ${WORKER_JOB_STREAM:-esti:jobs}
+    # Port 4000 is reachable from the host via 127.0.0.1 only (nginx proxies it).
+    ports:
+      - "127.0.0.1:4000:4000"
+    networks:
+      - esti-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.prod
+    container_name: esti-frontend
+    restart: always
+    # The built static files are served directly by the host nginx from
+    # frontend/dist/ — this container is only used for the build artefact.
+    # If you prefer to run an nginx container instead, expose 80 here and
+    # remove the `location /` static root from nginx-proxy.conf.
+    profiles:
+      - build-only
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    container_name: esti-worker
+    restart: always
+    env_file: .env
+    environment:
+      DATABASE_URL:            ${DATABASE_URL}
+      REDIS_URL:               ${REDIS_URL}
+      WORKER_JOB_STREAM:       ${WORKER_JOB_STREAM:-esti:jobs}
+      WORKER_GROUP:            ${WORKER_GROUP:-esti-workers}
+      WORKER_MAX_RETRIES:      "3"
+      WORKER_RECLAIM_IDLE_MS:  "30000"
+      WORKER_DEAD_LETTER_STREAM: "esti:jobs:dead"
+      S3_ENDPOINT:             ${S3_ENDPOINT}
+      S3_BUCKET:               ${S3_BUCKET}
+      S3_ACCESS_KEY:           ${S3_ACCESS_KEY}
+      S3_SECRET_KEY:           ${S3_SECRET_KEY}
+    networks:
+      - esti-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  esti-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
