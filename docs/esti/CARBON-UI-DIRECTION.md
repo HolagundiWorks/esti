@@ -194,6 +194,32 @@ to Tag types as follows:
 caution/warning states in Tags. For full-width alert banners use
 `InlineNotification kind="warning"` which applies Carbon's gold alert colour.
 
+**Tag geometry:** Tags render with square corners app-wide (a geometry-only,
+colourless `border-radius: 0` override in `styles.scss`) so they read as
+rectangles rather than pills.
+
+### Dashboard health edge (card-level status)
+
+On the dashboard, each card carries **one** colour signal: a 3px left border
+(Carbon notification anatomy) derived from the card's worst signal, using
+support tokens only:
+
+| Edge token | Meaning |
+|---|---|
+| `--cds-support-error` | Needs attention now |
+| `--cds-support-warning` | Watch |
+| `--cds-support-success` | Healthy |
+| `--cds-border-subtle-01` | Neutral / informational |
+
+With urgency on the edge, Tags inside dashboard cards use `type="outline"`
+(monochrome) — the text carries the meaning. Exception: per-row Health/Risk
+tags inside data tables keep their filled types because table rows have no
+edge of their own.
+
+The dashboard grid is `condensed` (1px gutters, matching 1px row-gap via
+`.esti-dash`) so tiles form a flush mosaic; zone headers get breathing room
+through the structural `.esti-zone-head` helper.
+
 ### Alert palette — `InlineNotification` and `ToastNotification`
 
 | `kind` prop | Colour | Use |

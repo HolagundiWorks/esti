@@ -168,10 +168,12 @@ function FilingTile({
 
 function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   return (
-    <Stack gap={2}>
-      <h3>{title}</h3>
-      {sub && <p>{sub}</p>}
-    </Stack>
+    <div className="esti-zone-head">
+      <Stack gap={2}>
+        <h3>{title}</h3>
+        {sub && <p>{sub}</p>}
+      </Stack>
+    </div>
   );
 }
 
@@ -293,7 +295,7 @@ export function Dashboard() {
   const hasClients = (ciQ.data?.length ?? 0) > 0;
 
   return (
-    <Grid fullWidth className="esti-dash">
+    <Grid fullWidth condensed className="esti-dash">
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <Column lg={16} md={8} sm={4}>
@@ -361,121 +363,142 @@ export function Dashboard() {
 
       {/* ═══ 2 · Action Center — what needs attention now ══════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <Tile style={edge(acTotal > 0 ? "alert" : "ok")}>
-          <Stack gap={6}>
-            <Stack orientation="horizontal" gap={3}>
-              <div className="esti-grow">
-                <SectionHeader
-                  title="Action Center"
-                  sub="Billing, approvals, and risk items that need a decision today."
-                />
+        <div className="esti-zone-head">
+          <Stack orientation="horizontal" gap={3}>
+            <div className="esti-grow">
+              <Stack gap={2}>
+                <h3>Action Center</h3>
+                <p>Billing, approvals, and risk items that need a decision today.</p>
+              </Stack>
+            </div>
+            {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
+              <div>
+                <Tag type="outline" size="sm">
+                  {acTotal > 0 ? `${acTotal} open` : "All clear"}
+                </Tag>
               </div>
-              {!acQ.isLoading && !phQ.isLoading && !tiQ.isLoading && (
-                <div>
-                  <Tag type="outline" size="sm">
-                    {acTotal > 0 ? `${acTotal} open` : "All clear"}
-                  </Tag>
-                </div>
+            )}
+          </Stack>
+        </div>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile className="esti-fill" style={edge(overdueInvoices.length > 0 ? "alert" : "ok")}>
+          <Stack gap={4}>
+            <h4>Overdue collections</h4>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : overdueInvoices.length === 0 ? (
+              <p>None beyond 30 days.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {overdueInvoices.slice(0, 4).map((inv) => (
+                    <StructuredListRow key={inv.id}>
+                      <StructuredListCell>
+                        <Link to={`/projects/${inv.projectId}?tab=invoices`}>
+                          {inv.ref}
+                        </Link>
+                        <p>{formatINRShort(inv.netReceivablePaise)}</p>
+                      </StructuredListCell>
+                      <StructuredListCell noWrap>
+                        <Tag type="outline" size="sm">{inv.daysOverdue}d overdue</Tag>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile className="esti-fill" style={edge(pendingApprovals.length > 0 ? "watch" : "ok")}>
+          <Stack gap={4}>
+            <h4>Approvals pending</h4>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : pendingApprovals.length === 0 ? (
+              <p>None awaiting client response.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {pendingApprovals.slice(0, 4).map((ap) => (
+                    <StructuredListRow key={ap.id}>
+                      <StructuredListCell>
+                        <Link to={`/projects/${ap.projectId}?tab=approvals`}>
+                          {ap.projectRef}
+                        </Link>
+                        <p>{ap.title}</p>
+                      </StructuredListCell>
+                      <StructuredListCell noWrap>
+                        <Tag type="outline" size="sm">{ap.daysWaiting}d waiting</Tag>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile className="esti-fill" style={edge(billingReady.length > 0 ? "ok" : "neutral")}>
+          <Stack gap={4}>
+            <h4>Ready to bill</h4>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : (
+              <Stack gap={3}>
+                <h2>{billingReady.length}</h2>
+                <p>
+                  Phase{billingReady.length !== 1 ? "s" : ""} awaiting invoice ·{" "}
+                  {formatINRShort(readyToBillSum)} estimated
+                </p>
+                <Button kind="ghost" size="sm" onClick={() => navigate("/invoices")}>
+                  Open invoices
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+        </Tile>
+      </Column>
+
+      <Column lg={4} md={4} sm={4}>
+        <Tile
+          className="esti-fill"
+          style={edge(
+            riskProjects.length > 0 || overloadedMembers.length > 0 ? "alert" : "ok",
+          )}
+        >
+          <Stack gap={4}>
+            <h4>Risk &amp; capacity</h4>
+            <Stack gap={2}>
+              <p><strong>High-risk projects</strong></p>
+              {riskProjects.length === 0 ? (
+                <p>None at risk.</p>
+              ) : (
+                riskProjects.slice(0, 2).map((p) => (
+                  <p key={p.id}>
+                    <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
+                  </p>
+                ))
               )}
             </Stack>
-
-            {acQ.isLoading ? (
-              <InlineLoading description="Loading action items…" />
-            ) : acTotal === 0 ? (
-              <p>All clear — no outstanding items.</p>
-            ) : (
-              <Grid narrow>
-                <Column lg={6} md={4} sm={4}>
-                  <Stack gap={4}>
-                    <h4>Overdue collections</h4>
-                    {overdueInvoices.length === 0 ? (
-                      <p>None beyond 30 days.</p>
-                    ) : (
-                      <StructuredListWrapper isCondensed>
-                        <StructuredListBody>
-                          {overdueInvoices.slice(0, 4).map((inv) => (
-                            <StructuredListRow key={inv.id}>
-                              <StructuredListCell>
-                                <Link to={`/projects/${inv.projectId}?tab=invoices`}>
-                                  {inv.ref}
-                                </Link>
-                                <p>{formatINRShort(inv.netReceivablePaise)}</p>
-                              </StructuredListCell>
-                              <StructuredListCell noWrap>
-                                <Tag type="outline" size="sm">{inv.daysOverdue}d overdue</Tag>
-                              </StructuredListCell>
-                            </StructuredListRow>
-                          ))}
-                        </StructuredListBody>
-                      </StructuredListWrapper>
-                    )}
-                  </Stack>
-                </Column>
-
-                <Column lg={5} md={4} sm={4}>
-                  <Stack gap={4}>
-                    <h4>Approvals pending</h4>
-                    {pendingApprovals.length === 0 ? (
-                      <p>None awaiting client response.</p>
-                    ) : (
-                      <StructuredListWrapper isCondensed>
-                        <StructuredListBody>
-                          {pendingApprovals.slice(0, 4).map((ap) => (
-                            <StructuredListRow key={ap.id}>
-                              <StructuredListCell>
-                                <Link to={`/projects/${ap.projectId}?tab=approvals`}>
-                                  {ap.projectRef}
-                                </Link>
-                                <p>{ap.title}</p>
-                              </StructuredListCell>
-                              <StructuredListCell noWrap>
-                                <Tag type="outline" size="sm">{ap.daysWaiting}d waiting</Tag>
-                              </StructuredListCell>
-                            </StructuredListRow>
-                          ))}
-                        </StructuredListBody>
-                      </StructuredListWrapper>
-                    )}
-                  </Stack>
-                </Column>
-
-                <Column lg={5} md={8} sm={4}>
-                  <Stack gap={5}>
-                    <Stack gap={2}>
-                      <h4>Ready to bill</h4>
-                      <p>
-                        <strong>{billingReady.length}</strong> phase{billingReady.length !== 1 ? "s" : ""} ·{" "}
-                        {formatINRShort(readyToBillSum)} estimated
-                      </p>
-                    </Stack>
-                    <Stack gap={2}>
-                      <h4>High-risk projects</h4>
-                      {riskProjects.length === 0 ? (
-                        <p>None at risk.</p>
-                      ) : (
-                        riskProjects.slice(0, 3).map((p) => (
-                          <p key={p.id}>
-                            <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
-                          </p>
-                        ))
-                      )}
-                    </Stack>
-                    <Stack gap={2}>
-                      <h4>Capacity alerts</h4>
-                      {overloadedMembers.length === 0 ? (
-                        <p>No one overloaded.</p>
-                      ) : (
-                        overloadedMembers.slice(0, 3).map((m) => (
-                          <p key={m.assignee}>
-                            {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
-                          </p>
-                        ))
-                      )}
-                    </Stack>
-                  </Stack>
-                </Column>
-              </Grid>
-            )}
+            <Stack gap={2}>
+              <p><strong>Capacity alerts</strong></p>
+              {overloadedMembers.length === 0 ? (
+                <p>No one overloaded.</p>
+              ) : (
+                overloadedMembers.slice(0, 2).map((m) => (
+                  <p key={m.assignee}>
+                    {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
+                  </p>
+                ))
+              )}
+            </Stack>
           </Stack>
         </Tile>
       </Column>
