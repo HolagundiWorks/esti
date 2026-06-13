@@ -7,7 +7,7 @@
 set -euo pipefail
 
 # ── CONFIGURATION — edit before running ──────────────────────────────────────
-DOMAIN="${DOMAIN:-CHANGE_ME}"          # e.g. esti.yourfirm.com
+DOMAIN="${DOMAIN:-aorms.in}"           # ESTI production domain (override with DOMAIN=)
 REPO_URL="${REPO_URL:-https://github.com/HolagundiWorks/esti.git}"
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/esti}"
 GIT_BRANCH="${GIT_BRANCH:-main}"
@@ -18,7 +18,7 @@ info()  { echo -e "${GREEN}[esti]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $*"; }
 error() { echo -e "${RED}[error]${NC} $*"; exit 1; }
 
-[[ $DOMAIN == "CHANGE_ME" ]] && error "Set DOMAIN= before running. e.g.: DOMAIN=esti.yourfirm.com bash bootstrap.sh"
+[[ -z $DOMAIN || $DOMAIN == "CHANGE_ME" ]] && error "Set a domain: DOMAIN=aorms.in bash bootstrap.sh"
 [[ $EUID -ne 0 ]] && error "Run as root (sudo -i or sudo bash bootstrap.sh)"
 
 info "=== ESTI AORMS bootstrap for $DOMAIN ==="
