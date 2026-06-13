@@ -106,6 +106,83 @@
       "when": 1781190000000,
       "tag": "0014_general_project_stages",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1781190100000,
+      "tag": "0015_crif_decision_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1781190200000,
+      "tag": "0016_project_purge_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1781190300000,
+      "tag": "0017_task_assignee_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1781190400000,
+      "tag": "0018_rie_knowledge_bank",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1781190500000,
+      "tag": "0019_project_type_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1781190600000,
+      "tag": "0020_simplify_phases",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1781190700000,
+      "tag": "0021_knowledge_bank_catalogs",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1781190800000,
+      "tag": "0022_steel_arranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1781190900000,
+      "tag": "0023_revision_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1781191000000,
+      "tag": "0024_rie_phase2",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1781191100000,
+      "tag": "0025_phase5_foundation",
+      "breakpoints": true
     }
   ]
 }
