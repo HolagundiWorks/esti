@@ -205,8 +205,39 @@ body,
   padding-block: 2rem;
   padding-inline: 1rem;
   border-block-start: 1px solid var(--cds-border-subtle-00);
+}
 
-
+// Landing page layout helpers (structural & colourless only).
+.esti-landing-main  { margin-block-start: 3rem; }  // clears fixed Carbon Header
+.esti-landing-hero  { padding-block: 5rem; }
+.esti-landing-section { padding-block: 4rem; }
+.esti-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-07);
+  align-items: baseline;
+}
+.esti-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-05);
+}
+.esti-mockup-frame {
+  border: 1px solid var(--cds-border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.esti-pricing-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+  margin-block: var(--cds-spacing-06);
+}
+.esti-new-tag {
+  display: inline-flex;
+  gap: var(--cds-spacing-03);
+  align-items: center;
+  margin-block-end: var(--cds-spacing-04);
 }
 
 // Apply Carbon productive type scale to semantic headings within the app shell.
