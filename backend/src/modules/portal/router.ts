@@ -1,8 +1,21 @@
+import {
+  PortalAcknowledgeInput,
+  PortalApprovalRespondInput,
+  PortalChangeRequestInput,
+  PortalFeedbackInput,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
-import { approvals, drawings, invoices, phases, projectOffices } from "../../db/schema.js";
+import type { DB } from "../../db/index.js";
+import { approvals, drawings, invoices, phases, portalSubmissions, projectOffices } from "../../db/schema.js";
+import { writeActivity } from "../../lib/activity.js";
 import { clientProcedure, router } from "../../trpc/trpc.js";
+
+/** Today as an ISO date string (YYYY-MM-DD). */
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 /**
  * Read-only client portal. Every procedure is scoped to the logged-in client
@@ -68,6 +81,7 @@ export const portalRouter = router({
       // Approvals that have actually been sent (no drafts).
       const approvalRows = await ctx.db
         .select({
+          id: approvals.id,
           title: approvals.title,
           entityType: approvals.entityType,
           status: approvals.status,
@@ -80,7 +94,7 @@ export const portalRouter = router({
 
       // Only drawings the worker has finished processing.
       const drawingRows = await ctx.db
-        .select({ ref: drawings.ref, title: drawings.title, status: drawings.status })
+        .select({ id: drawings.id, ref: drawings.ref, title: drawings.title, status: drawings.status })
         .from(drawings)
         .where(and(eq(drawings.projectId, input.projectId), eq(drawings.status, "READY")))
         .orderBy(desc(drawings.createdAt));
@@ -106,4 +120,165 @@ export const portalRouter = router({
         drawings: drawingRows,
       };
     }),
+
+  /** This client's own submissions for a project (read-back of their writes). */
+  mySubmissions: clientProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return ctx.db
+        .select({
+          id: portalSubmissions.id,
+          kind: portalSubmissions.kind,
+          subject: portalSubmissions.subject,
+          body: portalSubmissions.body,
+          rating: portalSubmissions.rating,
+          status: portalSubmissions.status,
+          responseNote: portalSubmissions.responseNote,
+          createdAt: portalSubmissions.createdAt,
+        })
+        .from(portalSubmissions)
+        .where(eq(portalSubmissions.projectId, input.projectId))
+        .orderBy(desc(portalSubmissions.createdAt));
+    }),
+
+  /** Record an approve / request-revisions / reject decision on a sent approval. */
+  respondApproval: clientProcedure
+    .input(PortalApprovalRespondInput)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({
+          id: approvals.id,
+          projectId: approvals.projectId,
+          title: approvals.title,
+          status: approvals.status,
+          clientId: projectOffices.clientId,
+        })
+        .from(approvals)
+        .innerJoin(projectOffices, eq(projectOffices.id, approvals.projectId))
+        .where(eq(approvals.id, input.approvalId));
+      if (!row || row.clientId !== ctx.user.clientId) throw new TRPCError({ code: "NOT_FOUND" });
+      // Only items the firm has actually sent can be responded to.
+      if (!["SENT", "REVISIONS"].includes(row.status))
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This item is not awaiting your response." });
+
+      await ctx.db
+        .update(approvals)
+        .set({ status: input.decision, responseDate: today(), remarks: input.remarks ?? null, updatedAt: new Date() })
+        .where(eq(approvals.id, input.approvalId));
+
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "approval",
+        objectId: input.approvalId,
+        eventType: "approval.client_response",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Client recorded "${input.decision}" on approval: ${row.title}`,
+        metadata: { decision: input.decision, remarks: input.remarks ?? null },
+      });
+      return { ok: true as const };
+    }),
+
+  /** Acknowledge a specific shared object (drawing, approval, phase, etc.). */
+  acknowledge: clientProcedure
+    .input(PortalAcknowledgeInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return insertSubmission(ctx, {
+        projectId: input.projectId,
+        kind: "ACKNOWLEDGEMENT",
+        objectType: input.objectType,
+        objectId: input.objectId ?? null,
+        subject: input.subject,
+        eventSummary: `Client acknowledged: ${input.subject}`,
+      });
+    }),
+
+  /** Submit a change request against the project (optionally a specific object). */
+  submitChangeRequest: clientProcedure
+    .input(PortalChangeRequestInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return insertSubmission(ctx, {
+        projectId: input.projectId,
+        kind: "CHANGE_REQUEST",
+        objectType: input.objectType ?? null,
+        objectId: input.objectId ?? null,
+        subject: input.subject,
+        body: input.body,
+        eventSummary: `Client raised a change request: ${input.subject}`,
+      });
+    }),
+
+  /** Submit general feedback (optional 1–5 rating). */
+  submitFeedback: clientProcedure
+    .input(PortalFeedbackInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return insertSubmission(ctx, {
+        projectId: input.projectId,
+        kind: "FEEDBACK",
+        subject: input.subject,
+        body: input.body ?? null,
+        rating: input.rating ?? null,
+        eventSummary: `Client left feedback: ${input.subject}`,
+      });
+    }),
 });
+
+/** Throw NOT_FOUND unless the project belongs to the logged-in client. */
+async function assertOwnedProject(
+  ctx: { db: DB; user: { clientId: string } },
+  projectId: string,
+): Promise<void> {
+  const [project] = await ctx.db
+    .select({ id: projectOffices.id })
+    .from(projectOffices)
+    .where(and(eq(projectOffices.id, projectId), eq(projectOffices.clientId, ctx.user.clientId)));
+  if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+}
+
+/** Insert a portal submission scoped to the client and log it to the activity feed. */
+async function insertSubmission(
+  ctx: { db: DB; user: { id: string; fullName: string; clientId: string } },
+  entry: {
+    projectId: string;
+    kind: "ACKNOWLEDGEMENT" | "CHANGE_REQUEST" | "FEEDBACK";
+    objectType?: string | null;
+    objectId?: string | null;
+    subject: string;
+    body?: string | null;
+    rating?: number | null;
+    eventSummary: string;
+  },
+): Promise<{ ok: true; id: string }> {
+  const [created] = await ctx.db
+    .insert(portalSubmissions)
+    .values({
+      projectId: entry.projectId,
+      clientId: ctx.user.clientId,
+      kind: entry.kind,
+      objectType: entry.objectType ?? null,
+      objectId: entry.objectId ?? null,
+      subject: entry.subject,
+      body: entry.body ?? null,
+      rating: entry.rating ?? null,
+      submittedById: ctx.user.id,
+    })
+    .returning({ id: portalSubmissions.id });
+
+  await writeActivity(ctx.db, {
+    projectId: entry.projectId,
+    objectType: "portal_submission",
+    objectId: created!.id,
+    eventType: `portal.${entry.kind.toLowerCase()}`,
+    actorId: ctx.user.id,
+    actorName: ctx.user.fullName,
+    visibility: "ALL",
+    summary: entry.eventSummary,
+    metadata: { kind: entry.kind, rating: entry.rating ?? null },
+  });
+  return { ok: true as const, id: created!.id };
+}
