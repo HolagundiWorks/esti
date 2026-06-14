@@ -569,8 +569,9 @@ automatically from typed decision records with no manual data entry.
 - [ ] **ASPRF — Collaboration KPI:** reviewer participation from task reviewer field.
 - [ ] **ASPRF — Learning KPI:** training task classification ratio.
 - [ ] **ASPRF — Wellbeing KPI (opt-in):** workload health + burnout risk.
-- [ ] **Team Utilization KPI:** billable task hours / total capacity in Global
-  KPI Bar; requires timesheets.
+- [x] **Team Utilization KPI:** `dashboard.utilization` query (30-day total +
+  billable timesheet hours vs ~22d×8h capacity per active member); "Team utilization"
+  chip in the dashboard KPI strip.
 - [ ] **Site & Drawing Intelligence:** site query rate (queries / issued
   drawings); repeat query rate; drawing clarity score (100 − query penalties);
   feeds Technical Intelligence module on dashboard.
