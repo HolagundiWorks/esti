@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { clients, portalSubmissions, projectOffices, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
+import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 /**
@@ -64,6 +65,30 @@ export const clientRequestsRouter = router({
       .where(eq(portalSubmissions.status, "OPEN"));
     return rows.length;
   }),
+
+  /** Read the firm↔client conversation thread on a submission. */
+  thread: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => listMessages(ctx.db, { portalSubmissionId: input.id })),
+
+  /** Post a firm reply on a client submission. */
+  reply: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(4000) }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ projectId: portalSubmissions.projectId, subject: portalSubmissions.subject })
+        .from(portalSubmissions)
+        .where(eq(portalSubmissions.id, input.id));
+      if (!row) throw new Error("Submission not found");
+      await addMessage(ctx.db, { portalSubmissionId: input.id },
+        { id: ctx.user.id, name: ctx.user.fullName, side: "FIRM" }, input.body);
+      await writeActivity(ctx.db, {
+        projectId: row.projectId, objectType: "portal_submission", objectId: input.id,
+        eventType: "portal.firm_reply", actorId: ctx.user.id, actorName: ctx.user.fullName,
+        visibility: "ALL", summary: `Firm replied on: ${row.subject}`,
+      });
+      return { ok: true as const };
+    }),
 
   /** Triage a submission: set status and optionally record a response note. */
   setStatus: protectedProcedure

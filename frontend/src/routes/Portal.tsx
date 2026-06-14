@@ -34,6 +34,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 const INV_TAG: Record<string, "blue" | "green"> = {
@@ -98,6 +99,16 @@ export function Portal() {
   });
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
+  });
+
+  // ── conversation thread ────────────────────────────────────────────────────
+  const [threadFor, setThreadFor] = useState<{ id: string; subject: string } | null>(null);
+  const threadQ = trpc.portal.submissionThread.useQuery(
+    { submissionId: threadFor?.id ?? "" },
+    { enabled: !!threadFor },
+  );
+  const reply = trpc.portal.replySubmission.useMutation({
+    onSuccess: () => utils.portal.submissionThread.invalidate(),
   });
 
   return (
@@ -298,6 +309,7 @@ export function Portal() {
                       <TableHeader>Subject</TableHeader>
                       <TableHeader>Status</TableHeader>
                       <TableHeader>Firm response</TableHeader>
+                      <TableHeader>Conversation</TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -311,6 +323,11 @@ export function Portal() {
                           </Tag>
                         </TableCell>
                         <TableCell>{s.responseNote ?? "—"}</TableCell>
+                        <TableCell>
+                          <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
+                            Open
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -432,6 +449,23 @@ export function Portal() {
                 onChange={(e) => setFeedback((f) => ({ ...f, body: e.target.value }))} />
             </Stack>
           </Form>
+        </Modal>
+
+        {/* ── conversation thread modal ─────────────────────────────────── */}
+        <Modal
+          open={threadFor !== null}
+          modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
+          primaryButtonText="Close" passiveModal
+          onRequestClose={() => setThreadFor(null)}
+        >
+          {threadFor && (
+            <SubmissionThread
+              messages={threadQ.data ?? []}
+              loading={threadQ.isLoading}
+              pending={reply.isPending}
+              onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
+            />
+          )}
         </Modal>
       </Content>
     </>

@@ -33,6 +33,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
@@ -67,6 +68,16 @@ export function CollaboratorPortal() {
       utils.collab.activityFeed.invalidate();
       setForm(null);
     },
+  });
+
+  // ── conversation thread ────────────────────────────────────────────────────
+  const [threadFor, setThreadFor] = useState<{ id: string; subject: string } | null>(null);
+  const threadQ = trpc.collab.submissionThread.useQuery(
+    { submissionId: threadFor?.id ?? "" },
+    { enabled: !!threadFor },
+  );
+  const reply = trpc.collab.replySubmission.useMutation({
+    onSuccess: () => utils.collab.submissionThread.invalidate(),
   });
 
   return (
@@ -229,6 +240,7 @@ export function CollaboratorPortal() {
                       <TableHeader>Subject</TableHeader>
                       <TableHeader>Status</TableHeader>
                       <TableHeader>Firm response</TableHeader>
+                      <TableHeader>Conversation</TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -245,6 +257,11 @@ export function CollaboratorPortal() {
                           </Tag>
                         </TableCell>
                         <TableCell>{s.responseNote ?? "—"}</TableCell>
+                        <TableCell>
+                          <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
+                            Open
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -315,6 +332,23 @@ export function CollaboratorPortal() {
                 )}
               </Stack>
             </Form>
+          )}
+        </Modal>
+
+        {/* ── conversation thread modal ─────────────────────────────────── */}
+        <Modal
+          open={threadFor !== null}
+          modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
+          primaryButtonText="Close" passiveModal
+          onRequestClose={() => setThreadFor(null)}
+        >
+          {threadFor && (
+            <SubmissionThread
+              messages={threadQ.data ?? []}
+              loading={threadQ.isLoading}
+              pending={reply.isPending}
+              onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
+            />
           )}
         </Modal>
       </Content>

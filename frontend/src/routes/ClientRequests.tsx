@@ -26,6 +26,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
@@ -54,6 +55,15 @@ export function ClientRequests() {
       utils.clientRequests.openCount.invalidate();
       setTriage(null);
     },
+  });
+
+  const [threadFor, setThreadFor] = useState<{ id: string; subject: string } | null>(null);
+  const threadQ = trpc.clientRequests.thread.useQuery(
+    { id: threadFor?.id ?? "" },
+    { enabled: !!threadFor },
+  );
+  const reply = trpc.clientRequests.reply.useMutation({
+    onSuccess: () => utils.clientRequests.thread.invalidate(),
   });
 
   return (
@@ -134,6 +144,9 @@ export function ClientRequests() {
                       })}>
                       Triage
                     </Button>
+                    <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: r.id, subject: r.subject })}>
+                      Reply
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -170,6 +183,22 @@ export function ClientRequests() {
                 subtitle={setStatusM.error.message} hideCloseButton lowContrast />
             )}
           </Stack>
+        )}
+      </Modal>
+
+      <Modal
+        open={threadFor !== null}
+        modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
+        primaryButtonText="Close" passiveModal
+        onRequestClose={() => setThreadFor(null)}
+      >
+        {threadFor && (
+          <SubmissionThread
+            messages={threadQ.data ?? []}
+            loading={threadQ.isLoading}
+            pending={reply.isPending}
+            onReply={(body) => reply.mutate({ id: threadFor.id, body })}
+          />
         )}
       </Modal>
     </Stack>
