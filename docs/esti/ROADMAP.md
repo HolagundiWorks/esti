@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-13 (updated post-convention audit: inline style violations resolved, CLAUDE.md module map expanded to all 57 namespaces + 33 frontend routes)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-14 (updated post-deployment + branding session: branded landing redesign, ESTI/AORMS/HCW logos + favicons + OG, Docker prod scaffolding, migration journal repair, 14-project demo seed, dashboard redesign, SteelFlow into Knowledge Bank, task board view)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -104,6 +104,39 @@ only truly dynamic runtime values (computed width%, heatmap backgroundColor/colo
 focus outline) remain as inline styles. No hardcoded hex colours or non-Carbon
 components found. CLAUDE.md module map expanded from 9 to 57 tRPC namespaces
 and all 33 frontend routes documented.
+
+Also delivered (2026-06-14 deployment + branding session):
+- **Branded marketing landing** — `Landing.tsx` rewritten as a research-oriented
+  editorial page for Indian architects (solo practitioners to 50-person firms),
+  scoped under `.esti-lp` (the single documented non-Carbon exception). Brand accent
+  is indigo (`#3e367c` family, sampled from the AORMS logo); "Sign in" buttons removed
+  (demo/contact CTAs only); the AORMS wordmark is the brand lockup in the top bar, hero,
+  and footer; "Developed by Holagundi Consulting Wurkz" + HCW logo in the footer.
+- **Brand assets + SEO** — real ESTI / AORMS / HCW logos and a full favicon set
+  (`favicon.ico`, 16/32/48, apple-touch, android-chrome 192/512, `site.webmanifest`)
+  in `frontend/public`; `index.html` carries SEO title/description/keywords, canonical,
+  `theme-color`, Open Graph (`https://aorms.in/og-image.png`, 1200×630), Twitter
+  summary_large_image, and SoftwareApplication + FAQPage JSON-LD. App header shows the
+  white ESTI mark; Login shows a brand chip; App/landing footers credit HCW (theme-aware).
+- **SteelFlow into Knowledge Bank** — Steel Arranger is now the 4th tab of the
+  Knowledge Bank route (URL-driven `?tab=dsr|compliance|specification|steelflow`),
+  rendering `<SteelArranger embedded />`.
+- **Dashboard redesign** — condensed mosaic with minimal row gap; full-width zone-header
+  tiles with an ArrowRight to the related page; 4-chip KPI strip (incl. Team utilization);
+  per-card 3px health edge; Action Center split into four tiles; square-cornered coloured tags.
+- **Personal panel UX** — X button removed; click-outside-to-close overlay; each tab
+  wrapped in a card with proper spacing.
+- **Task board (Kanban) view** — new Board tab on the Work module: To do / In progress /
+  Blocked / Done columns of task cards with inline status moves and a "My tasks" filter.
+- **Docker production scaffolding** — `compose.prod.yaml`, `deploy/` (`.env.production.example`,
+  `bootstrap.sh`, `deploy.sh`, `nginx-proxy.conf`), `*.Dockerfile.prod`, `seed:prod` /
+  `seed:demo:prod` scripts; targets a Hostinger Ubuntu + Docker VPS at **aorms.in**
+  (podman stays the dev runtime).
+- **Migration journal repair** — `backend/drizzle/meta/_journal.json` now registers
+  migrations 0015–0025 so `runMigrations()` applies them in production (root cause of the
+  prod dashboard 500s — timesheet/revision-source tables were never created).
+- **Demo seed expansion** — `seedDemo.ts` now creates 14 clients/projects with aligned
+  task arrays; owner is `principal@demo.aorms.in` / `demo1234` to match the demo login.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -512,7 +545,8 @@ automatically from typed decision records with no manual data entry.
   TECHNICAL_PRODUCTION / CONSTRUCTION_SUPPORT; feeds dimension score routing.
 - [x] **ASPRF — Anti-gaming:** difficulty coefficient (1–5) on each task;
   estimated hours field for delivery-predictability scoring.
-- [ ] Calendar and Carbon board view for tasks.
+- [x] Carbon board (Kanban) view for tasks — status columns (To do / In progress /
+  Done) on the Work module with inline status moves; calendar view still pending.
 - [x] Daily updates: completed, in progress, blocked; upsert per team member per
   day; Stand-up tab on Work module with team view.
 - [x] Timesheets: per-person per-day attribution to project/task with billable
