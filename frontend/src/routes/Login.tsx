@@ -39,7 +39,12 @@ export function Login() {
         <Tile>
           <Stack gap={5}>
             <Stack gap={3}>
-              <h3>ESTI AORMS</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <span style={{ background: "#141414", borderRadius: 4, padding: 6, display: "inline-flex" }}>
+                  <img src="/esti-mark-white.png" alt="ESTI" style={{ height: 20 }} />
+                </span>
+                <h3 style={{ margin: 0 }}>ESTI AORMS</h3>
+              </div>
               <p>Architectural Office Resource Management System</p>
             </Stack>
             <Form

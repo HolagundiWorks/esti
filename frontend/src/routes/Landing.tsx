@@ -1,7 +1,7 @@
 /**
  * ESTI AORMS — marketing landing page.
  * Audience: Indian architecture practices — solo architects and firms of 5–50.
- * Branded (ESTI blue on ink), editorial, SEO-keyworded. Styled under .esti-lp
+ * Branded (ESTI indigo on ink), editorial, SEO-keyworded. Styled under .esti-lp
  * (a documented marketing exception to the Pure Carbon app policy).
  */
 import {
@@ -23,22 +23,6 @@ import { trpc } from "../lib/trpc.js";
 
 type ThemeName = "white" | "g100";
 
-// ─── brand mark ──────────────────────────────────────────────────────────────
-
-function EstiMark({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 200 180" fill="none" aria-hidden="true">
-      <g stroke="#4589ff" strokeWidth="1.4">
-        <path d="M100 8 L192 168 L8 168 Z" />
-        <path d="M100 44 L162 152 L38 152 Z" />
-        <path d="M100 80 L132 136 L68 136 Z" />
-        <path d="M8 168 L192 168" />
-        <path d="M54 168 L100 8 M146 168 L100 8" opacity="0.5" />
-      </g>
-      <circle cx="100" cy="118" r="4" fill="#4589ff" />
-    </svg>
-  );
-}
 
 // ─── content ─────────────────────────────────────────────────────────────────
 
@@ -88,11 +72,16 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
   const solo = annual ? "₹499" : "₹599";
   const studio = annual ? "₹2,499" : "₹2,999";
 
+  // ESTI mark: white on dark backgrounds, black on light; theme-aware for the
+  // top bar / footer (which sit on the Carbon background that flips with theme).
+  const markOnDark = "/esti-mark-white.png";
+  const markAuto = theme === "white" ? "/esti-mark-black.png" : "/esti-mark-white.png";
+
   return (
     <div className="esti-lp">
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="esti-lp-bar">
-        <a href="#top" className="esti-lp-brand"><EstiMark className="esti-lp-ic" /> ESTI <b>AORMS</b></a>
+        <a href="#top" className="esti-lp-brand"><img src={markAuto} alt="ESTI" style={{ height: 26 }} /> <b>AORMS</b></a>
         <nav className="esti-lp-nav">
           <a href="#modules">Modules</a>
           <a href="#compliance">Compliance</a>
@@ -131,7 +120,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
               <p className="esti-lp-hero-note">No credit card · 14 fully populated demo projects · your data stays on your own server.</p>
               {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
             </div>
-            <EstiMark className="esti-lp-mark" />
+            <img src={markOnDark} className="esti-lp-mark" alt="ESTI AORMS" />
           </div>
         </section>
 
@@ -335,7 +324,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
       <footer className="esti-lp-foot">
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
-            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><EstiMark className="esti-lp-ic" /> ESTI <b>AORMS</b></div>
+            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={markAuto} alt="ESTI" style={{ height: 24 }} /> <b>AORMS</b></div>
             <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50. Developed by Holagundi Consulting Works.</p>
             <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
               <a href="mailto:hi@aorms.in">hi@aorms.in</a>

@@ -262,8 +262,9 @@ body,
 // unauthenticated marketing landing, intentionally branded (ESTI blue on ink).
 // Everything is scoped under .esti-lp so the authenticated app is untouched.
 .esti-lp {
-  --lp-accent: #4589ff;
-  --lp-accent-soft: rgba(69, 137, 255, 0.16);
+  --lp-accent: #6c63d6;
+  --lp-accent-soft: rgba(108, 99, 214, 0.18);
+  --lp-brand: #3e367c;
   --lp-ink: #141414;
   --lp-ink-2: #1f1f1f;
   --lp-on-ink: #f4f4f4;
@@ -306,8 +307,8 @@ body,
   border-radius: 2px; border: 1px solid transparent; text-decoration: none;
   transition: background 120ms, border-color 120ms, color 120ms;
 }
-.esti-lp-btn--gold { background: var(--lp-accent); color: #ffffff; }
-.esti-lp-btn--gold:hover { background: #2f6fe0; }
+.esti-lp-btn--gold { background: var(--lp-brand); color: #ffffff; }
+.esti-lp-btn--gold:hover { background: #4b4296; }
 .esti-lp-btn--ghost { background: transparent; border-color: currentColor; color: inherit; }
 .esti-lp-btn--ghost:hover { background: rgba(127,127,127,0.12); }
 .esti-lp-btn--lg { padding: 0.85rem 1.5rem; font-size: 1rem; }
