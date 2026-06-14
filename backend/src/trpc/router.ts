@@ -13,6 +13,7 @@ import { estimateRouter } from "../modules/boq/estimate.js";
 import { bylawCalcRouter } from "../modules/bylaw/calc.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
+import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
@@ -93,6 +94,7 @@ export const appRouter = router({
   consultants: consultantRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
+  consultantRequests: consultantRequestsRouter,
   drawings: drawingRouter,
   measurements: measurementRouter,
   reconcile: reconcileRouter,

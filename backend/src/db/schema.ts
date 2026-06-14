@@ -693,6 +693,29 @@ export const portalSubmissions = pgTable("esti_portal_submission", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * Consultant-originated collaborator-portal submissions — deliverables, RFIs and
+ * notes raised by an engaged external consultant. Scoped to a project the
+ * consultant is engaged on; audited; the firm triages via `status`.
+ */
+export const consultantSubmissions = pgTable("esti_consultant_submission", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  consultantId: uuid("consultant_id").references(() => consultants.id),
+  kind: text("kind").notNull(), // DELIVERABLE | RFI | NOTE
+  objectType: text("object_type"),
+  objectId: uuid("object_id"),
+  subject: text("subject").notNull(),
+  body: text("body"),
+  status: text("status").notNull().default("OPEN"), // OPEN | ACKNOWLEDGED | RESOLVED | DECLINED
+  responseNote: text("response_note"),
+  submittedById: uuid("submitted_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Development-control (zoning/bylaw) compliance parameters per project. */
 export const bylaws = pgTable("esti_bylaw", {
   id: id(),

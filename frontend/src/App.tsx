@@ -49,6 +49,7 @@ import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
 import { ClientRequests } from "./routes/ClientRequests.js";
 import { Consultants } from "./routes/Consultants.js";
+import { ConsultantRequests } from "./routes/ConsultantRequests.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
@@ -184,6 +185,7 @@ function AppShell() {
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
         { label: "Client requests", to: "/client-requests" },
+        { label: "Consultant requests", to: "/consultant-requests" },
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
@@ -334,6 +336,7 @@ function AppShell() {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/consultants" element={<Consultants />} />
                 <Route path="/client-requests" element={<ClientRequests />} />
+                <Route path="/consultant-requests" element={<ConsultantRequests />} />
                 <Route path="/reconcile" element={<Reconcile />} />
                 {hrEnabled && <Route path="/team" element={<Team />} />}
                 {hrEnabled && <Route path="/hr" element={<Hr />} />}
