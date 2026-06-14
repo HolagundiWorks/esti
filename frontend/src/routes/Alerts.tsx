@@ -16,6 +16,7 @@ const KIND_LABEL: Record<string, string> = {
   approval: "Client decision",
   followup: "Follow-up",
   permit: "Permit",
+  submission: "Portal request",
 };
 
 export function Alerts() {
@@ -28,7 +29,7 @@ export function Alerts() {
     <Stack gap={6}>
       <Stack gap={3}>
         <h1>Alerts</h1>
-        <p>Stale client decisions, due follow-ups and overdue statutory permits.</p>
+        <p>Open portal requests, stale client decisions, due follow-ups and overdue statutory permits.</p>
       </Stack>
 
       <TableContainer title={`Action needed (${alerts.length})`}>
