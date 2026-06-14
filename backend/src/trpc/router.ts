@@ -30,6 +30,7 @@ import { permitRouter } from "../modules/permit/router.js";
 import { poRouter } from "../modules/po/router.js";
 import { proposalRouter } from "../modules/proposal/router.js";
 import { specRouter } from "../modules/spec/router.js";
+import { clientRequestsRouter } from "../modules/portal/admin.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
 import { taskRouter } from "../modules/task/router.js";
@@ -105,6 +106,7 @@ export const appRouter = router({
   letters: letterRouter,
   contracts: contractRouter,
   portal: portalRouter,
+  clientRequests: clientRequestsRouter,
   settings: settingsRouter,
   firm: firmRouter,
   users: userRouter,

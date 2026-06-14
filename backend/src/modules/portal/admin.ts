@@ -1,0 +1,106 @@
+import { PortalSubmissionKind, PortalSubmissionStatus } from "@esti/contracts";
+import { and, desc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { clients, portalSubmissions, projectOffices, users } from "../../db/schema.js";
+import { writeActivity } from "../../lib/activity.js";
+import { protectedProcedure, router } from "../../trpc/trpc.js";
+
+/**
+ * Staff-facing inbox for client-portal submissions (acknowledgements, change
+ * requests, feedback). Lets the firm triage OPEN items to ACKNOWLEDGED /
+ * RESOLVED / DECLINED and record a response note the client can read back.
+ */
+export const clientRequestsRouter = router({
+  /** Office-wide list, newest first; optional project / status / kind filters. */
+  list: protectedProcedure
+    .input(
+      z
+        .object({
+          projectId: z.string().uuid().optional(),
+          status: PortalSubmissionStatus.optional(),
+          kind: PortalSubmissionKind.optional(),
+          openOnly: z.boolean().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const filters = [
+        input?.projectId ? eq(portalSubmissions.projectId, input.projectId) : undefined,
+        input?.status ? eq(portalSubmissions.status, input.status) : undefined,
+        input?.kind ? eq(portalSubmissions.kind, input.kind) : undefined,
+        input?.openOnly ? eq(portalSubmissions.status, "OPEN") : undefined,
+      ].filter(Boolean);
+
+      return ctx.db
+        .select({
+          id: portalSubmissions.id,
+          projectId: portalSubmissions.projectId,
+          projectRef: projectOffices.ref,
+          projectTitle: projectOffices.title,
+          clientName: clients.name,
+          kind: portalSubmissions.kind,
+          objectType: portalSubmissions.objectType,
+          subject: portalSubmissions.subject,
+          body: portalSubmissions.body,
+          rating: portalSubmissions.rating,
+          status: portalSubmissions.status,
+          responseNote: portalSubmissions.responseNote,
+          submittedBy: users.fullName,
+          createdAt: portalSubmissions.createdAt,
+        })
+        .from(portalSubmissions)
+        .innerJoin(projectOffices, eq(projectOffices.id, portalSubmissions.projectId))
+        .leftJoin(clients, eq(clients.id, portalSubmissions.clientId))
+        .leftJoin(users, eq(users.id, portalSubmissions.submittedById))
+        .where(filters.length ? and(...filters) : undefined)
+        .orderBy(desc(portalSubmissions.createdAt));
+    }),
+
+  /** Count of still-open submissions (for a dashboard / nav badge). */
+  openCount: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select({ id: portalSubmissions.id })
+      .from(portalSubmissions)
+      .where(eq(portalSubmissions.status, "OPEN"));
+    return rows.length;
+  }),
+
+  /** Triage a submission: set status and optionally record a response note. */
+  setStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: PortalSubmissionStatus,
+        responseNote: z.string().trim().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ id: portalSubmissions.id, projectId: portalSubmissions.projectId, subject: portalSubmissions.subject })
+        .from(portalSubmissions)
+        .where(eq(portalSubmissions.id, input.id));
+      if (!row) throw new Error("Submission not found");
+
+      await ctx.db
+        .update(portalSubmissions)
+        .set({
+          status: input.status,
+          responseNote: input.responseNote ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(portalSubmissions.id, input.id));
+
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "portal_submission",
+        objectId: input.id,
+        eventType: "portal.triaged",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Firm marked client submission "${row.subject}" as ${input.status}`,
+        metadata: { status: input.status, responseNote: input.responseNote ?? null },
+      });
+      return { ok: true as const };
+    }),
+});
