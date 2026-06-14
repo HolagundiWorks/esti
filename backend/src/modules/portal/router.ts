@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { approvals, drawings, invoices, phases, portalSubmissions, projectOffices } from "../../db/schema.js";
+import { activities, approvals, drawings, invoices, phases, portalSubmissions, projectOffices } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { clientProcedure, router } from "../../trpc/trpc.js";
 
@@ -140,6 +140,25 @@ export const portalRouter = router({
         .from(portalSubmissions)
         .where(eq(portalSubmissions.projectId, input.projectId))
         .orderBy(desc(portalSubmissions.createdAt));
+    }),
+
+  /** Project activity timeline — only records explicitly shared with the client. */
+  activityFeed: clientProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return ctx.db
+        .select({
+          id: activities.id,
+          eventType: activities.eventType,
+          summary: activities.summary,
+          actorName: activities.actorName,
+          createdAt: activities.createdAt,
+        })
+        .from(activities)
+        .where(and(eq(activities.projectId, input.projectId), eq(activities.visibility, "ALL")))
+        .orderBy(desc(activities.createdAt))
+        .limit(50);
     }),
 
   /** Record an approve / request-revisions / reject decision on a sent approval. */
