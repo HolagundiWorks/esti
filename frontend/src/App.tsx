@@ -241,7 +241,14 @@ function AppShell() {
         <div className="esti-app-shell">
           <Theme theme="g100">
             <Header aria-label="ESTI AORMS">
-              <HeaderName prefix="ESTI">{firmName}</HeaderName>
+              <HeaderName prefix="">
+                <img
+                  src="/esti-mark-white.png"
+                  alt="ESTI"
+                  style={{ height: 18, marginInlineEnd: 8, verticalAlign: "middle" }}
+                />
+                {firmName}
+              </HeaderName>
               <HeaderGlobalBar>
                 <HeaderClock />
                 <AlertsBell />
