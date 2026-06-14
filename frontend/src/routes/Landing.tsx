@@ -1,44 +1,21 @@
-import {
-  Accordion,
-  AccordionItem,
-  Button,
-  Column,
-  Grid,
-  Header,
-  HeaderGlobalAction,
-  HeaderGlobalBar,
-  HeaderMenuItem,
-  HeaderName,
-  HeaderNavigation,
-  InlineLoading,
-  Layer,
-  ProgressBar,
-  Stack,
-  Tag,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+/**
+ * ESTI AORMS — marketing landing page.
+ * Audience: Indian architecture practices — solo architects and firms of 5–50.
+ * Branded (ESTI gold on ink), editorial, SEO-keyworded. Styled under .esti-lp
+ * (a documented marketing exception to the Pure Carbon app policy).
+ */
 import {
   ArrowRight,
   Asleep,
   Building,
   Calculation,
-  Calculator,
-  Categories,
-  ChartCustom,
-  ChartLineData,
+  Catalog,
   Checkmark,
   Document,
-  DocumentTasks,
-  Idea,
   Light,
   Money,
-  Time,
   Trophy,
-  UserMultiple,
-  UserProfile,
-  Analytics,
-  Image as ImageIcon,
+  type CarbonIconType,
 } from "@carbon/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -46,1001 +23,348 @@ import { trpc } from "../lib/trpc.js";
 
 type ThemeName = "white" | "g100";
 
-// ─── Dashboard live mockup ────────────────────────────────────────────────────
+// ─── brand mark ──────────────────────────────────────────────────────────────
 
-function MockProgress({ label, value, band, bandType }: {
-  label: string;
-  value: number;
-  band: string;
-  bandType: "purple" | "blue" | "teal" | "gray";
-}) {
+function EstiMark({ className }: { className?: string }) {
   return (
-    <Stack gap={2}>
-      <Stack orientation="horizontal" gap={3}>
-        <span className="esti-grow">{label}</span>
-        <Tag type={bandType} size="sm">{band}</Tag>
-        <strong>{value}</strong>
-      </Stack>
-      <ProgressBar value={value} max={100} label="" hideLabel size="small" />
-    </Stack>
+    <svg className={className} viewBox="0 0 200 180" fill="none" aria-hidden="true">
+      <g stroke="#c8a951" strokeWidth="1.4">
+        <path d="M100 8 L192 168 L8 168 Z" />
+        <path d="M100 44 L162 152 L38 152 Z" />
+        <path d="M100 80 L132 136 L68 136 Z" />
+        <path d="M8 168 L192 168" />
+        <path d="M54 168 L100 8 M146 168 L100 8" opacity="0.5" />
+      </g>
+      <circle cx="100" cy="118" r="4" fill="#c8a951" />
+    </svg>
   );
 }
 
-function DashboardMockup() {
-  return (
-    <div className="esti-mockup-frame">
-      <Grid narrow className="esti-dash">
+// ─── content ─────────────────────────────────────────────────────────────────
 
-        {/* KPI chips */}
-        <Column lg={4} md={2} sm={2}>
-          <Tile>
-            <Stack gap={2}>
-              <p className="esti-label esti-label--secondary">Fee pipeline</p>
-              <h3>₹24.6L</h3>
-              <Tag type="blue" size="sm">6 proposals active</Tag>
-            </Stack>
-          </Tile>
-        </Column>
-        <Column lg={4} md={2} sm={2}>
-          <Tile>
-            <Stack gap={2}>
-              <p className="esti-label esti-label--secondary">Active projects</p>
-              <h3>12</h3>
-              <Tag type="green" size="sm">2 closing this month</Tag>
-            </Stack>
-          </Tile>
-        </Column>
-        <Column lg={4} md={2} sm={2}>
-          <Tile>
-            <Stack gap={2}>
-              <p className="esti-label esti-label--secondary">Outstanding</p>
-              <h3>₹4.2L</h3>
-              <Tag type="red" size="sm">2 invoices overdue</Tag>
-            </Stack>
-          </Tile>
-        </Column>
-        <Column lg={4} md={2} sm={2}>
-          <Tile>
-            <Stack gap={2}>
-              <p className="esti-label esti-label--secondary">Revision risk</p>
-              <h3>LOW</h3>
-              <Tag type="green" size="sm">Scope drift 12%</Tag>
-            </Stack>
-          </Tile>
-        </Column>
-
-        {/* Action Centre */}
-        <Column lg={8} md={4} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={4}>
-              <h4>Action Centre</h4>
-              <Stack gap={3}>
-                {([
-                  { t: "red",     l: "Urgent",   m: "Invoice #INV-2025-033 — issue before 31 Mar" },
-                  { t: "magenta", l: "Review",   m: "RIE site assessment: FAR exceedance flagged" },
-                  { t: "blue",    l: "Decision", m: "2 CRIF decisions need your acknowledgement" },
-                  { t: "green",   l: "Done",     m: "Phase 2 Schematic Design — client approved" },
-                ] as const).map((a) => (
-                  <Stack key={a.m} orientation="horizontal" gap={3}>
-                    <Tag type={a.t} size="sm">{a.l}</Tag>
-                    <p>{a.m}</p>
-                  </Stack>
-                ))}
-              </Stack>
-            </Stack>
-          </Tile>
-        </Column>
-
-        {/* ASPRF */}
-        <Column lg={8} md={4} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={4}>
-              <h4>Team performance — ASPRF</h4>
-              <Stack gap={4}>
-                <MockProgress label="Ar. Vishwabhiram R." value={92} band="Gold"     bandType="purple" />
-                <MockProgress label="Ar. Priya Sharma"    value={78} band="Silver"   bandType="blue"   />
-                <MockProgress label="Ar. Ravi Kumar"      value={65} band="Bronze"   bandType="teal"   />
-              </Stack>
-            </Stack>
-          </Tile>
-        </Column>
-
-      </Grid>
-    </div>
-  );
-}
-
-// ─── Features ─────────────────────────────────────────────────────────────────
-
-const CORE_FEATURES: { icon: typeof Money; title: string; body: string }[] = [
-  {
-    icon: Building,
-    title: "Project office",
-    body: "Every project with phases, status, contract value, permits and approvals in one register.",
-  },
-  {
-    icon: Money,
-    title: "GST/TDS invoicing",
-    body: "Tax invoices and bills of supply with correct CGST/SGST/IGST, TDS u/s 194J and gap-free FY numbering.",
-  },
-  {
-    icon: Calculation,
-    title: "COA fee proposals",
-    body: "Scale-of-charges benchmarking with below-minimum guardrails, stage-wise billing and PDF export.",
-  },
-  {
-    icon: Document,
-    title: "Drawings & DXF takeoff",
-    body: "Upload DXF, auto layer/entity takeoff, on-screen calibrated measurement and revision control.",
-  },
-  {
-    icon: DocumentTasks,
-    title: "Office documents",
-    body: "Proposals, spec sheets, mood boards, transmittals and site inspections as branded PDFs.",
-  },
-  {
-    icon: ChartLineData,
-    title: "Filing abstracts",
-    body: "GSTR-1/3B and TDS abstracts by month, ready for your CA and 26AS reconciliation.",
-  },
-  {
-    icon: Categories,
-    title: "DSR / BOQ / BBS",
-    body: "Delhi Schedule of Rates reference, item-wise BOQ cost estimates and bar bending schedules.",
-  },
-  {
-    icon: UserMultiple,
-    title: "Team & HR",
-    body: "Staff register, project assignments, leaves, payslips and role-based seniority access.",
-  },
-  {
-    icon: ImageIcon,
-    title: "Consultants & portals",
-    body: "External consultant directory, engagement scopes, read-only collaborator portal and a separate client portal with project visibility.",
-  },
-  {
-    icon: Document,
-    title: "Firm catalog management",
-    body: "Company-owned, company-operated material library, specification standards and structural templates. Your firm controls every entry — not a shared SaaS database.",
-  },
-  {
-    icon: Money,
-    title: "Bank reconciliation",
-    body: "Import bank statements, 26AS and GSTR data and match entries automatically. Outstanding and collected balances stay in sync with your invoice register.",
-  },
-  {
-    icon: ChartLineData,
-    title: "Activity & audit trail",
-    body: "Immutable append-only activity stream for every project event, plus an owner-only paginated audit log covering every privileged state transition.",
-  },
+const STATS: { value: string; label: string }[] = [
+  { value: "1 platform", label: "replaces Excel, Tally, email & WhatsApp" },
+  { value: "GST + TDS", label: "CGST/SGST/IGST & 194J, built in" },
+  { value: "COA", label: "Scale-of-Charges fee compliance" },
+  { value: "Self-hosted", label: "your server, your data" },
 ];
 
-const NEW_FEATURES: {
-  icon: typeof Money;
-  tag: string;
-  title: string;
-  body: string;
-  bullets: string[];
-}[] = [
-  {
-    icon: Analytics,   // confirmed in Performance.tsx
-    tag: "Phase 5",
-    title: "ASPRF Performance Engine",
-    body: "Rolling 30-day composite performance score for every architect in your studio.",
-    bullets: [
-      "6 weighted KPIs — Reliability 30%, Quality 25%, Client Impact 15%, Collaboration 15%, Learning 10%, Wellbeing 5%",
-      "Bronze / Silver / Gold / Platinum bands with Carbon-compatible tags",
-      "Reward point events with full audit trail",
-      "Daily stand-ups and timesheet attribution feed the score automatically",
-    ],
-  },
-  {
-    icon: ChartCustom,
-    tag: "Phase 4C",
-    title: "Revision Intelligence",
-    body: "CRIF state machine tracks every design decision from open through implementation.",
-    bullets: [
-      "Revision source tagging: Client-driven, Internal error, Scope change, Technical query",
-      "Scope drift % calculated live from the decision ledger",
-      "Cooling-off indicator for critical revisions within 7 days",
-      "Revision budget per project phase with inline edit",
-    ],
-  },
-  {
-    icon: Categories,
-    tag: "Phase 4A",
-    title: "RIE Compliance Engine",
-    body: "Site feasibility against local bylaws — from a quick FAR check to a full compliance PDF.",
-    bullets: [
-      "FAR, ground coverage, height, setbacks and basement depth — all validated",
-      "Pre-design quick check and post-design detailed mode with actual setback inputs",
-      "Sustainability engine: rainwater harvesting and tree planting triggers",
-      "One-click PDF compliance report generated by the Python worker",
-    ],
-  },
-  {
-    icon: Time,
-    tag: "Phase 5",
-    title: "Timesheets & Stand-ups",
-    body: "Per-person, per-day time attribution with project and task granularity.",
-    bullets: [
-      "Billable / non-billable flag per entry with summary totals",
-      "Daily stand-up notes per team member — visible to the whole studio",
-      "Feeds directly into ASPRF Reliability and Learning KPIs",
-      "Work module: Tasks + Workload calendar + Stand-ups in one URL-tab view",
-    ],
-  },
-  {
-    icon: Idea,
-    tag: "Phase 2E",
-    title: "SteelFlow AI — Steel Arranger",
-    body: "Drag-and-drop bar placement on an IS:456 cross-section, with automated BBS export.",
-    bullets: [
-      "T6–T32 bar palette, drag onto BEAM / COLUMN / SLAB / FOOTING section canvas",
-      "Shape codes B/C/D/E per IS:2502 with conditional dimension fields",
-      "Stirrup design with inner perimeter + hook allowance calculation",
-      "Excel BBS export with unit weights from D²/162 kg/m formula",
-    ],
-  },
-  {
-    icon: Calculator,
-    tag: "Phase 2D",
-    title: "Personal Workspace",
-    body: "A fixed side panel for each team member — focus, calculate and track leave without leaving the app.",
-    bullets: [
-      "Pomodoro focus timer that runs behind every route — floating 20% overlay shows countdown",
-      "Calculator with expression history, persisted across tab switches",
-      "Open personal tasks at a glance with priority and overdue tags",
-      "Leave balance, theme toggle and welcome note in one panel",
-    ],
-  },
+const CAPS: { icon: CarbonIconType; title: string; body: string }[] = [
+  { icon: Money, title: "Fees, GST & collections", body: "COA fee proposals with below-minimum guardrails, GST/TDS invoicing, GSTR & TDS abstracts, and reconciliation." },
+  { icon: Document, title: "Projects & drawings", body: "COA-stage projects with phase billing, drawing register, DXF takeoff, revisions, transmittals and inspections." },
+  { icon: Calculation, title: "Bylaw compliance", body: "RIE engine for FAR, setbacks, coverage, height and basement — pre-design check or deviation report with PDF." },
+  { icon: Catalog, title: "Estimation & BBS", body: "Master DSR rates, item-wise BOQ, and SteelFlow AI drag-and-drop bar bending schedules per IS:456 / IS:2502." },
+  { icon: Trophy, title: "Team & performance", body: "Roster, assignments, timesheets and stand-ups feeding a rolling 30-day ASPRF performance score across six KPIs." },
+  { icon: Building, title: "Portals & knowledge", body: "Client and consultant portals, a governed Knowledge Bank, plus an immutable activity and audit trail." },
 ];
 
-// ─── USPs ─────────────────────────────────────────────────────────────────────
-
-const USPS: { icon: typeof Money; title: string; body: string }[] = [
-  {
-    icon: Building,   // confirmed
-    title: "India-first by design",
-    body: "GST (CGST/SGST/IGST), TDS u/s 194J, COA scale of charges, paise-level money arithmetic, FY April–March numbering, RERA stage milestones — built-in, not bolted on.",
-  },
-  {
-    icon: UserProfile,
-    title: "Your server, your data",
-    body: "ESTI is self-hosted. Your drawings, invoices and client data never leave your own VPS. No vendor lock-in, no SaaS privacy risk — open a PR to extend it.",
-  },
-  {
-    icon: ChartLineData,
-    title: "One system, not five tools",
-    body: "Projects → Fees → Invoices → Drawings → Compliance → HR → Performance — integrated end-to-end. The action centre knows when an invoice is overdue, a bylaw is violated, or a decision needs acknowledgement.",
-  },
-  {
-    icon: Trophy,
-    title: "Built for how architects actually work",
-    body: "The Pomodoro timer, daily stand-up, workload calendar and ASPRF score were designed with the Indian studio in mind — small team, multiple roles, tight deadlines, complex compliance.",
-  },
-  {
-    icon: Document,
-    title: "Your firm's private knowledge base",
-    body: "The catalog is company-owned and company-operated — your firm adds, edits and retires every material, standard and structural template. Nothing is shared with other ESTI instances.",
-  },
+const INDIA_POINTS = [
+  "Council of Architecture Scale-of-Charges fee benchmarking",
+  "GST CGST/SGST/IGST + TDS u/s 194J, with GSTR & TDS abstracts",
+  "RIE bylaw engine — FAR, setbacks, ground coverage, height, basement",
+  "Immutable, branded compliance and invoice PDFs",
 ];
-
-// ─── Testimonials ─────────────────────────────────────────────────────────────
-
-const TESTIMONIALS: { quote: string; name: string; role: string; firm: string; city: string }[] = [
-  {
-    quote: "Managing COA fee calculations and GST invoicing used to take half my Monday. ESTI does both in under ten minutes. The below-minimum guardrail alone has saved me from an awkward conversation with a client.",
-    name: "Ar. Ranjit Shenoy",
-    role: "Principal Architect",
-    firm: "Shenoy Architecture Studio",
-    city: "Bengaluru",
-  },
-  {
-    quote: "The ASPRF scores have completely changed how I give feedback to my team. I used to rely on gut feel — now I have six weighted KPIs and a rolling 30-day trend. Performance conversations went from uncomfortable to constructive overnight.",
-    name: "Ar. Meghna Pillai",
-    role: "Design Director",
-    firm: "Studio Pillai",
-    city: "Kochi",
-  },
-  {
-    quote: "The RIE engine flagged an FAR exceedance on a 3,200 sqm project before we submitted drawings. The client wanted to add a floor — ESTI showed us exactly how many sqm we had left. Saved us a major revision cycle and a BBMP objection.",
-    name: "Ar. Vishwanath Rao",
-    role: "Partner",
-    firm: "VR Design Group",
-    city: "Hyderabad",
-  },
-];
-
-// ─── FAQ ──────────────────────────────────────────────────────────────────────
 
 const FAQS: { q: string; a: string }[] = [
-  {
-    q: "Is my data safe? Who can see our client and project files?",
-    a: "ESTI is self-hosted on your own VPS — your drawings, invoices and client data never leave your server. Holagundi Consulting Works has no access to your instance. Role-based access controls (Owner → Partner → Senior → Associate → Viewer) ensure every team member sees only what their seniority permits.",
-  },
-  {
-    q: "Can we self-host on our own server instead of a SaaS subscription?",
-    a: "Yes — self-hosting is the default model. You run ESTI on any Ubuntu VPS using the provided Docker Compose stack. All source code is available. You own the installation and all data in it. We offer optional managed hosting for practices that prefer a hands-off setup.",
-  },
-  {
-    q: "How long does the initial setup take?",
-    a: "The bootstrap script installs Docker, nginx and Certbot, clones the repo, builds all containers and obtains a TLS certificate in under 10 minutes on a fresh Ubuntu 22.04 VPS. Seeding your firm profile, team and first few projects typically takes an afternoon.",
-  },
-  {
-    q: "Does ESTI handle GST for both services and goods (works contracts)?",
-    a: "Yes. ESTI generates tax invoices with correct CGST/SGST (intra-state) or IGST (inter-state) split, TDS u/s 194J deduction, SAC code for professional fees, and sequential FY invoice numbering. GSTR-1 and 3B abstracts are built-in. Works-contract HSN mapping can be configured per project.",
-  },
-  {
-    q: "What is the COA fee scale compliance feature?",
-    a: "ESTI benchmarks your fee proposal against the Council of Architecture Scale of Charges and flags any below-minimum percentage. It calculates stage-wise billing (10/5/30/35/10/10 split by default, configurable) and generates a COA-formatted PDF proposal ready to send to the client.",
-  },
-  {
-    q: "We already use AutoCAD/Revit for drawings — do we need to change our workflow?",
-    a: "No. ESTI's drawing module is a management layer, not a CAD replacement. Upload DXF exports from AutoCAD for automated layer/entity takeoff and on-screen calibrated measurement. Your design workflow in AutoCAD, Revit or SketchUp is unchanged — ESTI handles revision control, transmittals and document management.",
-  },
-  {
-    q: "Can clients and consultants see project data without a staff login?",
-    a: "Yes. ESTI includes two portal roles: a Client portal (read-only project timeline, approved drawings and invoices) and a Collaborator portal for external consultants (scoped to their engagement documents). Both are separate login flows with no access to firm-internal data.",
-  },
-  {
-    q: "Is the mobile app available now?",
-    a: "The mobile app is in active development. The web application is fully responsive on tablet and desktop. The native iOS and Android apps — focused on site diary, timesheet entry and push notifications — are targeted for release later this year. Sign up for launch notification via the Mobile app section.",
-  },
+  { q: "What is an AORMS, and how is it different from generic project software?", a: "AORMS — Architectural Office Resource Management System — is practice-management software built for architecture firms. ESTI understands COA service stages, the Scale of Charges, Indian GST/TDS, bylaw compliance (FAR, setbacks, coverage), drawing revisions and bar bending schedules out of the box." },
+  { q: "Does it work for a solo architect as well as a 50-person firm?", a: "Yes. A solo practitioner gets every module under one login; growing studios switch on seniority roles, HR, team assignments, timesheets and ASPRF performance scoring. The same platform scales from one architect to fifty." },
+  { q: "How does ESTI handle GST and TDS?", a: "It generates tax invoices with the correct CGST/SGST or IGST split, TDS u/s 194J, the SAC code for professional fees and gap-free FY-sequential numbering. GSTR-1, GSTR-3B and TDS abstracts are built in, with bank and 26AS reconciliation." },
+  { q: "Can it check building bylaws like FAR and setbacks?", a: "The RIE engine validates FAR/FSI, ground coverage, setbacks, height, basement and sustainability against a versioned jurisdiction rule-set (e.g. BBMP), runs a pre-design quick check or post-design deviation report, and issues a branded compliance PDF." },
+  { q: "Is my data safe, and can I self-host?", a: "ESTI is self-hosted on your own server — your drawings, invoices and client data never leave your infrastructure. Role-based access and separate read-only client and consultant portals ensure outsiders see only what you share. We offer optional managed hosting too." },
 ];
 
-// ─── Pricing ─────────────────────────────────────────────────────────────────
+// ─── Landing ─────────────────────────────────────────────────────────────────
 
-function PricingCard({
-  name,
-  highlight,
-  price,
-  suffix,
-  note,
-  bullets,
-  cta,
-  onClick,
-  pending,
-}: {
-  name: string;
-  highlight?: boolean;
-  price: string;
-  suffix?: string;
-  note: string;
-  bullets: string[];
-  cta: string;
-  onClick: () => void;
-  pending?: boolean;
-}) {
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={5}>
-        <Stack gap={2}>
-          <Stack orientation="horizontal" gap={3}>
-            <h3 className="esti-grow">{name}</h3>
-            {highlight && <Tag type="blue" size="sm">Popular</Tag>}
-          </Stack>
-          <Stack orientation="horizontal" gap={2}>
-            <h2>{price}</h2>
-            {suffix && <p className="esti-label esti-label--secondary">{suffix}</p>}
-          </Stack>
-          <p className="esti-label">{note}</p>
-        </Stack>
-
-        <Stack gap={3} className="esti-grow">
-          {bullets.map((b) => (
-            <Stack key={b} orientation="horizontal" gap={3}>
-              <Checkmark size={16} />
-              <p>{b}</p>
-            </Stack>
-          ))}
-        </Stack>
-
-        <Button
-          kind={highlight ? "primary" : "tertiary"}
-          renderIcon={ArrowRight}
-          onClick={onClick}
-          disabled={pending}
-        >
-          {pending ? "Please wait…" : cta}
-        </Button>
-      </Stack>
-    </Tile>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export function Landing({
-  theme,
-  onToggleTheme,
-}: {
-  theme: ThemeName;
-  onToggleTheme: () => void;
-}) {
+export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTheme: () => void }) {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [annual, setAnnual] = useState(true);
+  const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
 
-  const demo = trpc.auth.login.useMutation({
-    onSuccess: () => utils.auth.me.invalidate(),
-  });
-
-  const runDemo = () =>
-    demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
-
-  const contactSales = () => {
-    window.location.href =
-      "mailto:hi@aorms.in?subject=Sales%20enquiry%20%E2%80%94%20ESTI%20AORMS" +
-      "&body=Hi%20ESTI%20team%2C%0A%0AI%27d%20like%20to%20learn%20more%20about%20ESTI%20AORMS.%0A%0AFirm%20name%3A%20%0ACity%3A%20%0ATeam%20size%3A%20%0AMessage%3A%20";
-  };
-
-  const notifyMobile = () => {
-    window.location.href =
-      "mailto:hi@aorms.in?subject=Notify%20me%20%E2%80%94%20ESTI%20Mobile%20App";
-  };
-
-  // Replace the number below with your actual WhatsApp business number (country code + number, no spaces)
-  const openWhatsApp = (msg = "Hi, I'd like to know more about ESTI AORMS.") =>
-    window.open(`https://wa.me/919880000000?text=${encodeURIComponent(msg)}`, "_blank");
+  const runDemo = () => demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
+  const contact = () => { window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20enquiry"; };
+  const wa = () => window.open("https://wa.me/919880000000?text=" + encodeURIComponent("Hi, I'd like to know more about ESTI AORMS."), "_blank", "noopener");
 
   const solo = annual ? "₹499" : "₹599";
-  const team = annual ? "₹999" : "₹1,299";
+  const studio = annual ? "₹2,499" : "₹2,999";
 
   return (
-    <>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <Header aria-label="ESTI AORMS">
-        <HeaderName prefix="ESTI" href="#top">AORMS</HeaderName>
-        <HeaderNavigation aria-label="ESTI AORMS">
-          <HeaderMenuItem href="#features">Features</HeaderMenuItem>
-          <HeaderMenuItem href="#new-2026">New in 2026</HeaderMenuItem>
-          <HeaderMenuItem href="#mobile">Mobile</HeaderMenuItem>
-          <HeaderMenuItem href="#pricing">Pricing</HeaderMenuItem>
-          <HeaderMenuItem href="#faq">FAQ</HeaderMenuItem>
-          <HeaderMenuItem href="mailto:hi@aorms.in?subject=Sales%20enquiry%20%E2%80%94%20ESTI%20AORMS">Contact sales</HeaderMenuItem>
-        </HeaderNavigation>
-        <HeaderGlobalBar>
-          <HeaderGlobalAction
-            aria-label={theme === "white" ? "Dark theme" : "Light theme"}
-            onClick={onToggleTheme}
-          >
+    <div className="esti-lp">
+      {/* ── Top bar ───────────────────────────────────────────────────────── */}
+      <header className="esti-lp-bar">
+        <a href="#top" className="esti-lp-brand"><EstiMark className="esti-lp-ic" /> ESTI <b>AORMS</b></a>
+        <nav className="esti-lp-nav">
+          <a href="#modules">Modules</a>
+          <a href="#compliance">Compliance</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div className="esti-lp-bar-actions">
+          <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
-          </HeaderGlobalAction>
-          <HeaderGlobalAction
-            aria-label="Sign in"
-            onClick={() => navigate("/login")}
-            tooltipAlignment="end"
-          >
-            <ArrowRight size={20} />
-          </HeaderGlobalAction>
-        </HeaderGlobalBar>
-      </Header>
+          </button>
+          <button className="esti-lp-btn esti-lp-btn--ghost" onClick={() => navigate("/login")}>Sign in</button>
+          <button className="esti-lp-btn esti-lp-btn--gold" onClick={runDemo} disabled={demo.isPending}>
+            {demo.isPending ? "Opening…" : "Live demo"}
+          </button>
+        </div>
+      </header>
 
-      <main id="top" className="esti-landing-main">
-
-        {/* ── Hero ───────────────────────────────────────────────────────────── */}
-        <section className="esti-landing-hero">
-          <Grid>
-            <Column sm={4} md={6} lg={10}>
-              <Stack gap={5}>
-                <div className="esti-new-tag">
-                  <Tag type="blue" size="sm">Built for Indian architecture practices</Tag>
-                  <Tag type="green" size="sm">New: ASPRF · SteelFlow · RIE compliance</Tag>
-                </div>
-
-                <h1>Your office runs itself.<br />You run the design.</h1>
-
-                <p>
-                  ESTI is a complete architectural office resource management system —
-                  projects, fees, GST/TDS invoicing, drawings, bylaw compliance,
-                  team performance and HR — integrated in one self-hosted platform
-                  built for Indian practices.
-                </p>
-
-                <div className="esti-stats-row">
-                  {[
-                    { n: "57",      l: "tRPC modules"       },
-                    { n: "12+",     l: "document types"     },
-                    { n: "COA",     l: "fee scale compliant"},
-                    { n: "GST",     l: "& TDS u/s 194J"    },
-                    { n: "IS:456",  l: "steel compliance"   },
-                  ].map((s) => (
-                    <Stack key={s.l} gap={1}>
-                      <h3>{s.n}</h3>
-                      <p className="esti-label esti-label--secondary">{s.l}</p>
-                    </Stack>
-                  ))}
-                </div>
-
-                <div className="esti-cta-row">
-                  <Button size="lg" renderIcon={ArrowRight} onClick={contactSales}>
-                    Contact sales
-                  </Button>
-                  <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
-                    {demo.isPending ? "Opening demo…" : "Log in to live demo"}
-                  </Button>
-                  <Button size="lg" kind="ghost" onClick={() => openWhatsApp()}>
-                    WhatsApp us
-                  </Button>
-                </div>
-
-                {demo.isPending && (
-                  <InlineLoading description="Signing in to the demo workspace…" />
-                )}
-                {demo.error && (
-                  <Tag type="red" size="sm">
-                    Could not open demo: {demo.error.message}
-                  </Tag>
-                )}
-
-                <p className="esti-label esti-label--secondary">
-                  Self-hosted on your VPS · your data never leaves your server · open a PR to extend it
-                </p>
-              </Stack>
-            </Column>
-          </Grid>
+      <main id="top">
+        {/* ── Hero ────────────────────────────────────────────────────────── */}
+        <section className="esti-lp-hero">
+          <div className="esti-lp-wrap esti-lp-hero-grid">
+            <div>
+              <span className="esti-lp-eyebrow">AORMS · Built for Indian architects</span>
+              <h1>Run your practice, <em>not the paperwork.</em></h1>
+              <p>
+                ESTI is the self-hosted office platform for Indian architecture
+                practices — COA fee proposals, GST &amp; TDS invoicing, drawings,
+                bylaw compliance, BBS and team performance, in one place.
+              </p>
+              <div className="esti-lp-hero-cta">
+                <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={runDemo} disabled={demo.isPending}>
+                  {demo.isPending ? "Opening demo…" : "Explore the live demo"} <ArrowRight size={18} />
+                </button>
+                <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
+              </div>
+              <p className="esti-lp-hero-note">No credit card · 14 fully populated demo projects · your data stays on your own server.</p>
+              {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
+            </div>
+            <EstiMark className="esti-lp-mark" />
+          </div>
         </section>
 
-        {/* ── Dashboard snapshot ─────────────────────────────────────────────── */}
-        <Layer>
-          <section className="esti-landing-section">
-            <Grid>
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={6}>
-                  <Stack gap={2}>
-                    <Tag type="teal" size="sm">Live preview</Tag>
-                    <h2>Everything your studio needs — in one screen</h2>
-                    <p>
-                      The ESTI dashboard surfaces the metrics that matter: fee pipeline,
-                      overdue invoices, team ASPRF scores, action items and revision risk —
-                      all without opening a single spreadsheet.
-                    </p>
-                  </Stack>
-                  <DashboardMockup />
-                </Stack>
-              </Column>
-            </Grid>
-          </section>
-        </Layer>
+        {/* ── Stat strip ──────────────────────────────────────────────────── */}
+        <div className="esti-lp-stats">
+          {STATS.map((s) => (
+            <div key={s.label} className="esti-lp-stat">
+              <b>{s.value}</b>
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </div>
 
-        {/* ── How it works ───────────────────────────────────────────────────── */}
-        <section className="esti-landing-section">
-          <Grid className="esti-dash">
-            <Column sm={4} md={8} lg={16}>
-              <Stack gap={2}>
-                <h2>Set up in an afternoon</h2>
-                <p>No data migration consultant required — ESTI is designed to be self-configured by your studio.</p>
-              </Stack>
-            </Column>
-            {([
-              { n: "01", title: "Configure your firm", body: "Add your firm profile, GST details, team members and seniority roles. Seed data populates a demo studio if you want a head start." },
-              { n: "02", title: "Add projects & clients", body: "Create your client register, open projects with phases and fee proposals. Import existing invoices or start fresh from the current FY." },
-              { n: "03", title: "ESTI runs the admin", body: "Invoicing, compliance checks, performance scores, filing abstracts and the action centre update automatically as your team works." },
-            ] as const).map((s) => (
-              <Column key={s.n} sm={4} md={4} lg={5}>
-                <Tile className="esti-fill">
-                  <Stack gap={3}>
-                    <Tag type="blue" size="sm">Step {s.n}</Tag>
-                    <h3>{s.title}</h3>
-                    <p>{s.body}</p>
-                  </Stack>
-                </Tile>
-              </Column>
-            ))}
-          </Grid>
+        {/* ── Product ─────────────────────────────────────────────────────── */}
+        <section className="esti-lp-section">
+          <div className="esti-lp-wrap">
+            <span className="esti-lp-eyebrow">The dashboard</span>
+            <h2>Your whole practice, on one screen</h2>
+            <p className="esti-lp-lead">What can I bill today? Who's overdue? Which project needs attention? Answered in ten seconds.</p>
+
+            <div className="esti-lp-mock">
+              <div className="esti-lp-mock-top"><span /><span /><span /></div>
+              <div className="esti-lp-mock-kpis">
+                {[
+                  { l: "Ready to bill", v: "₹24.6L" },
+                  { l: "Outstanding", v: "₹8.1L" },
+                  { l: "Active projects", v: "14" },
+                  { l: "Utilization", v: "82%" },
+                ].map((k) => (
+                  <div key={k.l} className="esti-lp-mock-kpi"><small>{k.l}</small><b>{k.v}</b></div>
+                ))}
+              </div>
+              <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
+                {[
+                  { l: "Ar. Vihaan Sharma — Gold", v: 92 },
+                  { l: "Ar. Priya Sharma — Silver", v: 78 },
+                  { l: "Ar. Ravi Kumar — Bronze", v: 65 },
+                ].map((m) => (
+                  <div key={m.l}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
+                      <span>{m.l}</span><span>{m.v}</span>
+                    </div>
+                    <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* ── Core features ──────────────────────────────────────────────────── */}
-        <section id="features" className="esti-landing-section">
-          <Grid className="esti-dash">
-            <Column sm={4} md={8} lg={16}>
-              <Stack gap={2}>
-                <h2>From enquiry to completion certificate</h2>
-                <p>Every module an Indian architecture office needs — integrated so data flows across them.</p>
-              </Stack>
-            </Column>
-
-            {CORE_FEATURES.map((f) => {
-              const Icon = f.icon;
-              return (
-                <Column key={f.title} sm={4} md={4} lg={5}>
-                  <Tile className="esti-fill">
-                    <Stack gap={3}>
-                      <Icon size={32} />
-                      <Stack gap={2}>
-                        <h4>{f.title}</h4>
-                        <p>{f.body}</p>
-                      </Stack>
-                    </Stack>
-                  </Tile>
-                </Column>
-              );
-            })}
-          </Grid>
-        </section>
-
-        {/* ── New features spotlight ─────────────────────────────────────────── */}
-        <Layer>
-          <section id="new-2026" className="esti-landing-section">
-            <Grid className="esti-dash">
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={2}>
-                  <Tag type="purple" size="sm">New in 2026</Tag>
-                  <h2>Six powerful new modules — shipped this year</h2>
-                  <p>
-                    Phase 4–5 delivered ASPRF performance scoring, RIE compliance,
-                    SteelFlow AI, Revision Intelligence, timesheets and a personal
-                    workspace — all live in your instance.
-                  </p>
-                </Stack>
-              </Column>
-
-              {NEW_FEATURES.map((f) => {
-                const Icon = f.icon;
+        {/* ── Capabilities ────────────────────────────────────────────────── */}
+        <section id="modules" className="esti-lp-section" style={{ paddingTop: 0 }}>
+          <div className="esti-lp-wrap">
+            <span className="esti-lp-eyebrow">Modules</span>
+            <h2>Everything an architecture office runs on</h2>
+            <p className="esti-lp-lead">From enquiry to completion certificate — integrated, not stitched together from five tools.</p>
+            <div className="esti-lp-grid esti-lp-grid--3">
+              {CAPS.map((c) => {
+                const Icon = c.icon;
                 return (
-                  <Column key={f.title} sm={4} md={4} lg={8}>
-                    <Tile className="esti-fill">
-                      <Stack gap={4}>
-                        <Stack orientation="horizontal" gap={4}>
-                          <Icon size={32} />
-                          <Stack gap={1} className="esti-grow">
-                            <Tag type="purple" size="sm">{f.tag}</Tag>
-                            <h3>{f.title}</h3>
-                          </Stack>
-                        </Stack>
-                        <p>{f.body}</p>
-                        <Stack gap={2}>
-                          {f.bullets.map((b) => (
-                            <Stack key={b} orientation="horizontal" gap={3}>
-                              <Checkmark size={16} />
-                              <p className="esti-label">{b}</p>
-                            </Stack>
-                          ))}
-                        </Stack>
-                      </Stack>
-                    </Tile>
-                  </Column>
+                  <div key={c.title} className="esti-lp-cell">
+                    <Icon size={28} className="esti-lp-ic" />
+                    <h3>{c.title}</h3>
+                    <p>{c.body}</p>
+                  </div>
                 );
               })}
-            </Grid>
-          </section>
-        </Layer>
-
-        {/* ── USPs ───────────────────────────────────────────────────────────── */}
-        <section className="esti-landing-section">
-          <Grid className="esti-dash">
-            <Column sm={4} md={8} lg={16}>
-              <Stack gap={2}>
-                <h2>Why ESTI is different</h2>
-                <p>Not another generic project tool adapted for architects — built from scratch for the Indian studio.</p>
-              </Stack>
-            </Column>
-            {USPS.map((u) => {
-              const Icon = u.icon;
-              return (
-                <Column key={u.title} sm={4} md={4} lg={8}>
-                  <Tile className="esti-fill">
-                    <Stack gap={4}>
-                      <Stack orientation="horizontal" gap={4}>
-                        <Icon size={32} />
-                        <h3 className="esti-grow">{u.title}</h3>
-                      </Stack>
-                      <p>{u.body}</p>
-                    </Stack>
-                  </Tile>
-                </Column>
-              );
-            })}
-          </Grid>
+            </div>
+          </div>
         </section>
 
-        {/* ── Testimonials ───────────────────────────────────────────────────── */}
-        <Layer>
-          <section className="esti-landing-section">
-            <Grid className="esti-dash">
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={2}>
-                  <h2>Trusted by Indian architecture studios</h2>
-                  <p>Early adopters across Bengaluru, Kochi and Hyderabad — here's what they say.</p>
-                </Stack>
-              </Column>
-
-              {TESTIMONIALS.map((t) => (
-                <Column key={t.name} sm={4} md={4} lg={5}>
-                  <Tile className="esti-fill">
-                    <Stack gap={5}>
-                      <p>"{t.quote}"</p>
-                      <Stack gap={1}>
-                        <p><strong>{t.name}</strong></p>
-                        <p className="esti-label esti-label--secondary">{t.role}</p>
-                        <p className="esti-label esti-label--secondary">{t.firm} · {t.city}</p>
-                      </Stack>
-                    </Stack>
-                  </Tile>
-                </Column>
-              ))}
-            </Grid>
-          </section>
-        </Layer>
-
-        {/* ── Mobile app coming soon ────────────────────────────────────────── */}
-        <Layer>
-          <section id="mobile" className="esti-landing-section">
-            <Grid className="esti-dash">
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={3}>
-                  <Stack orientation="horizontal" gap={3}>
-                    <Tag type="cyan" size="sm">Coming soon</Tag>
-                    <Tag type="gray" size="sm">iOS</Tag>
-                    <Tag type="gray" size="sm">Android</Tag>
-                  </Stack>
-                  <h2>ESTI Mobile — your office in your pocket</h2>
-                  <p>
-                    A native companion app for architects on site. Capture site observations,
-                    log timesheets, review decisions and check outstanding invoices from your phone —
-                    synced in real time with your ESTI instance.
-                  </p>
-                </Stack>
-              </Column>
-
-              {([
-                { title: "Site diary & inspections",  body: "Photograph, annotate and submit site inspection reports directly from the field. Linked to the project and timestamped automatically." },
-                { title: "Timesheet entry",           body: "Log hours against a project and task in seconds. Billable flag, notes and daily stand-up all in one tap." },
-                { title: "Invoice & fee snapshot",    body: "See outstanding receivables, approve draft invoices and check fee proposal status without opening a browser." },
-                { title: "CRIF decisions on the go",  body: "Review and acknowledge pending decisions, add notes and transition CRIF state from your phone during client meetings." },
-                { title: "Push notifications",        body: "Actionable alerts for overdue invoices, RIE violations, pending decisions and ASPRF band changes — direct to your lock screen." },
-                { title: "Offline-first sync",        body: "Site observations captured without signal and synced the moment connectivity returns. No lost data on poor-network sites." },
-              ] as const).map((f) => (
-                <Column key={f.title} sm={4} md={4} lg={5}>
-                  <Tile className="esti-fill">
-                    <Stack gap={3}>
-                      <h4>{f.title}</h4>
-                      <p>{f.body}</p>
-                    </Stack>
-                  </Tile>
-                </Column>
-              ))}
-
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={4}>
-                  <p>Be the first to know when ESTI Mobile launches.</p>
-                  <div className="esti-cta-row">
-                    <Button kind="tertiary" renderIcon={ArrowRight} onClick={notifyMobile}>
-                      Notify me at launch
-                    </Button>
-                    <Button kind="ghost" onClick={contactSales}>
-                      Enquire about early access
-                    </Button>
-                  </div>
-                </Stack>
-              </Column>
-            </Grid>
-          </section>
-        </Layer>
-
-        {/* ── Pricing ────────────────────────────────────────────────────────── */}
-        <Layer>
-          <section id="pricing" className="esti-landing-section">
-            <Grid className="esti-dash">
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={4}>
-                  <Stack gap={2}>
-                    <h2>Simple pricing for studios of every size</h2>
-                    <p>Start with a 14-day free trial — no card required.</p>
-                  </Stack>
-                  <div className="esti-pricing-toggle">
-                    <p>Monthly</p>
-                    <Toggle
-                      id="billing-toggle"
-                      size="sm"
-                      labelText=""
-                      hideLabel
-                      labelA="Monthly"
-                      labelB="Annual"
-                      toggled={annual}
-                      onToggle={(v) => setAnnual(v)}
-                    />
-                    <Stack orientation="horizontal" gap={3}>
-                      <p>Annual</p>
-                      <Tag type="green" size="sm">Save ~17%</Tag>
-                    </Stack>
-                  </div>
-                </Stack>
-              </Column>
-
-              <Column sm={4} md={4} lg={5}>
-                <PricingCard
-                  name="Solo"
-                  price={solo}
-                  suffix="/ month"
-                  note={
-                    annual
-                      ? "Billed annually (₹5,988/year). ₹599/mo monthly."
-                      : "Billed monthly. ₹499/mo if billed annually."
-                  }
-                  bullets={[
-                    "1 architect / user",
-                    "All project, fee & GST/TDS modules",
-                    "Drawings, DXF takeoff & documents",
-                    "ASPRF + SteelFlow + RIE compliance",
-                  ]}
-                  cta="Contact sales"
-                  onClick={contactSales}
-                />
-              </Column>
-
-              <Column sm={4} md={4} lg={6}>
-                <PricingCard
-                  name="Studio"
-                  highlight
-                  price={team}
-                  suffix="/ month"
-                  note={
-                    annual
-                      ? "Billed annually (₹11,988/year). ₹1,299/mo monthly."
-                      : "Billed monthly. ₹999/mo if billed annually."
-                  }
-                  bullets={[
-                    "Up to 5 users with seniority roles",
-                    "Team HR — leaves and payslips",
-                    "ASPRF performance & reward points",
-                    "Priority support + onboarding call",
-                  ]}
-                  cta="Contact sales"
-                  onClick={contactSales}
-                />
-              </Column>
-
-              <Column sm={4} md={4} lg={5}>
-                <PricingCard
-                  name="Enterprise"
-                  price="Custom"
-                  note="For larger practices, multiple offices or custom deployment needs."
-                  bullets={[
-                    "Unlimited users",
-                    "Custom integrations & branding",
-                    "Dedicated support & SLA",
-                    "On-premise or managed hosting",
-                  ]}
-                  cta="Contact sales"
-                  onClick={contactSales}
-                />
-              </Column>
-
-              <Column sm={4} md={8} lg={16}>
-                <Stack gap={3}>
-                  <p className="esti-label esti-label--secondary">
-                    Prices in INR, exclusive of GST. Want to see the product before committing?{" "}
-                    <a href="#" onClick={(e) => { e.preventDefault(); runDemo(); }}>Open the live demo</a>.
-                  </p>
-                  <p className="esti-label esti-label--secondary">
-                    All plans include full source access — self-host on your own VPS with no per-seat tracking.
-                  </p>
-                </Stack>
-              </Column>
-            </Grid>
-          </section>
-        </Layer>
-
-        {/* ── FAQ ────────────────────────────────────────────────────────────── */}
-        <section id="faq" className="esti-landing-section">
-          <Grid>
-            <Column sm={4} md={8} lg={10}>
-              <Stack gap={5}>
-                <Stack gap={2}>
-                  <h2>Frequently asked questions</h2>
-                  <p>Everything you need to know before you talk to us.</p>
-                </Stack>
-                <Accordion>
-                  {FAQS.map((f) => (
-                    <AccordionItem key={f.q} title={f.q}>
-                      <p>{f.a}</p>
-                    </AccordionItem>
+        {/* ── India-first band ────────────────────────────────────────────── */}
+        <section id="compliance" className="esti-lp-band">
+          <div className="esti-lp-wrap esti-lp-section">
+            <div className="esti-lp-grid--2" style={{ display: "grid", gap: "3rem", alignItems: "center" }}>
+              <div>
+                <span className="esti-lp-eyebrow">India-first compliance</span>
+                <h2>The only platform that speaks COA, GST and bylaws natively</h2>
+                <p>
+                  Foreign practice tools can't price a COA proposal, split an IGST
+                  invoice, or warn you that your FAR is exceeded. ESTI does all
+                  three — because it was built for the Indian context, not adapted to it.
+                </p>
+                <ul className="esti-lp-checks">
+                  {INDIA_POINTS.map((p) => (
+                    <li key={p}><Checkmark size={18} className="esti-lp-ic" /><span>{p}</span></li>
                   ))}
-                </Accordion>
-                <Stack orientation="horizontal" gap={4}>
-                  <p>Still have questions?</p>
-                  <Button kind="ghost" size="sm" onClick={contactSales}>
-                    Email us
-                  </Button>
-                  <Button kind="ghost" size="sm" onClick={() => openWhatsApp("Hi, I have a question about ESTI AORMS.")}>
-                    WhatsApp us
-                  </Button>
-                </Stack>
-              </Stack>
-            </Column>
-          </Grid>
+                </ul>
+              </div>
+              <div className="esti-lp-mock" style={{ marginTop: 0 }}>
+                <div className="esti-lp-mock-top"><span /><span /><span /></div>
+                <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
+                  <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>RIE feasibility — sample</div>
+                  {[
+                    { l: "FAR utilised", v: 96 },
+                    { l: "Ground coverage", v: 58 },
+                    { l: "Setback compliance", v: 100 },
+                    { l: "Sustainability score", v: 74 },
+                  ].map((m) => (
+                    <div key={m.l}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
+                        <span>{m.l}</span><span>{m.v}%</span>
+                      </div>
+                      <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: "0.85rem", color: "var(--cds-text-secondary)" }}>1 deviation — front setback short by 0.4 m, flagged before submission.</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* ── Final CTA ──────────────────────────────────────────────────────── */}
-        <section className="esti-landing-section">
-          <Grid>
-            <Column sm={4} md={8} lg={16}>
-              <Stack gap={5}>
-                <Stack gap={2}>
-                  <h2>Get back to the drawing board</h2>
-                  <p>
-                    Open a fully populated demo studio — 12 live projects, team data,
-                    invoices, RIE assessments, ASPRF scores — and see how little admin
-                    ESTI leaves you to do.
-                  </p>
-                </Stack>
-                <div className="esti-cta-row">
-                  <Button size="lg" renderIcon={ArrowRight} onClick={contactSales}>
-                    Contact sales
-                  </Button>
-                  <Button size="lg" kind="tertiary" onClick={runDemo} disabled={demo.isPending}>
-                    {demo.isPending ? "Opening demo…" : "Log in to live demo"}
-                  </Button>
-                  <Button size="lg" kind="ghost" onClick={() => openWhatsApp()}>
-                    WhatsApp us
-                  </Button>
-                  <Button size="lg" kind="ghost" onClick={() => navigate("/login")}>
-                    Sign in
-                  </Button>
-                </div>
-                {demo.isPending && (
-                  <InlineLoading description="Signing in to the demo workspace…" />
-                )}
-              </Stack>
-            </Column>
-          </Grid>
+        {/* ── Pricing ─────────────────────────────────────────────────────── */}
+        <section id="pricing" className="esti-lp-section">
+          <div className="esti-lp-wrap">
+            <span className="esti-lp-eyebrow">Pricing</span>
+            <h2>Simple pricing for practices of every size</h2>
+            <p className="esti-lp-lead">Self-hosted — pay for the software, run it on a ₹400-a-month VPS. Start with the live demo.</p>
+            <div className="esti-lp-pricing-toggle" style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginTop: "1.25rem" }}>
+              <button className="esti-lp-btn esti-lp-btn--ghost" style={{ opacity: annual ? 0.6 : 1 }} onClick={() => setAnnual(false)}>Monthly</button>
+              <button className="esti-lp-btn esti-lp-btn--ghost" style={{ opacity: annual ? 1 : 0.6 }} onClick={() => setAnnual(true)}>Annual · save ~17%</button>
+            </div>
+
+            <div className="esti-lp-price">
+              <div className="esti-lp-card">
+                <h3>Solo</h3>
+                <div className="esti-lp-amt">{solo}<span style={{ fontSize: "0.9rem", color: "var(--cds-text-secondary)", fontWeight: 400 }}> / mo</span></div>
+                <ul>
+                  {["1 architect, every module", "COA fees, GST/TDS & filing", "Drawings, DXF & compliance", "Client portal & email support"].map((b) => (
+                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
+                  ))}
+                </ul>
+                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={runDemo} disabled={demo.isPending}>Explore the demo</button>
+              </div>
+
+              <div className="esti-lp-card esti-lp-card--feature">
+                <h3>Studio · most popular</h3>
+                <div className="esti-lp-amt">{studio}<span style={{ fontSize: "0.9rem", color: "var(--cds-text-secondary)", fontWeight: 400 }}> / mo</span></div>
+                <ul>
+                  {["Up to 15 users, seniority roles", "Workload, timesheets & ASPRF", "Consultant coordination & HR", "SteelFlow BBS & RIE engine", "Priority support"].map((b) => (
+                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
+                  ))}
+                </ul>
+                <button className="esti-lp-btn esti-lp-btn--gold" onClick={contact}>Talk to us</button>
+              </div>
+
+              <div className="esti-lp-card">
+                <h3>Firm</h3>
+                <div className="esti-lp-amt">Custom</div>
+                <ul>
+                  {["16 – 50 users", "Managed hosting & onboarding", "Data migration assistance", "Dedicated support"].map((b) => (
+                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
+                  ))}
+                </ul>
+                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={contact}>Contact sales</button>
+              </div>
+            </div>
+            <p className="esti-lp-lead" style={{ marginTop: "1.25rem", fontSize: "0.9rem" }}>
+              Prices in INR, exclusive of GST. More than 50 architects?{" "}
+              <a href="mailto:hi@aorms.in" style={{ color: "var(--lp-gold)" }}>Talk to us</a> ·{" "}
+              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }} style={{ color: "var(--lp-gold)" }}>WhatsApp</a>.
+            </p>
+          </div>
+        </section>
+
+        {/* ── FAQ ─────────────────────────────────────────────────────────── */}
+        <section id="faq" className="esti-lp-section" style={{ paddingTop: 0 }}>
+          <div className="esti-lp-wrap" style={{ maxWidth: "60rem" }}>
+            <span className="esti-lp-eyebrow">FAQ</span>
+            <h2>Frequently asked questions</h2>
+            <div className="esti-lp-faq" style={{ marginTop: "2rem" }}>
+              {FAQS.map((f) => (
+                <details key={f.q}>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Final CTA ───────────────────────────────────────────────────── */}
+        <section className="esti-lp-final">
+          <div className="esti-lp-wrap esti-lp-section">
+            <span className="esti-lp-eyebrow">Get started</span>
+            <h2>Get back to the drawing board</h2>
+            <p>Open a fully populated demo studio — 14 live projects, fees, GST invoices, RIE assessments and ASPRF scores — and see how little admin ESTI leaves you.</p>
+            <div className="esti-lp-hero-cta">
+              <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={runDemo} disabled={demo.isPending}>
+                {demo.isPending ? "Opening demo…" : "Explore the live demo"} <ArrowRight size={18} />
+              </button>
+              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
+              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={wa}>WhatsApp</button>
+            </div>
+          </div>
         </section>
       </main>
 
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer className="esti-footer">
-        <Grid>
-          <Column sm={4} md={4} lg={6}>
-            <Stack gap={3}>
-              <h4>ESTI — AORMS</h4>
-              <p>
-                Architectural Office Resource Management System for Indian practices.
-                Developed by Holagundi Consulting Works.
-              </p>
-              <Stack orientation="horizontal" gap={5}>
-                <a href="mailto:hi@aorms.in">hi@aorms.in</a>
-                <a href="https://wa.me/919880000000" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-                <a href="https://aorms.in">aorms.in</a>
-              </Stack>
-            </Stack>
-          </Column>
-
-          <Column sm={4} md={4} lg={5}>
-            <Stack gap={3}>
-              <h4>Modules</h4>
-              <Stack gap={2}>
-                {["Project office & phases", "GST/TDS invoicing", "COA fee proposals",
-                  "Drawings & DXF takeoff", "DSR / BOQ / BBS", "RIE compliance engine",
-                  "ASPRF performance", "SteelFlow AI", "Team HR & payroll"].map((m) => (
-                  <p key={m} className="esti-label esti-label--secondary">{m}</p>
-                ))}
-              </Stack>
-            </Stack>
-          </Column>
-
-          <Column sm={4} md={4} lg={5}>
-            <Stack gap={3}>
-              <h4>New in 2026</h4>
-              <Stack gap={2}>
-                {["ASPRF 6-KPI performance engine", "Rolling 30-day scores & bands",
-                  "SteelFlow IS:456 drag-and-drop", "RIE FAR & setback engine",
-                  "Revision Intelligence & scope drift", "Timesheets & daily stand-ups",
-                  "Personal Workspace + Pomodoro"].map((m) => (
-                  <p key={m} className="esti-label esti-label--secondary">{m}</p>
-                ))}
-              </Stack>
-            </Stack>
-          </Column>
-
-          <Column sm={4} md={8} lg={16}>
-            <p className="esti-label esti-label--secondary">
-              © {new Date().getFullYear()} Holagundi Consulting Works · aorms.in · All rights reserved
-            </p>
-          </Column>
-        </Grid>
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      <footer className="esti-lp-foot">
+        <div className="esti-lp-wrap esti-lp-foot-grid">
+          <div>
+            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><EstiMark className="esti-lp-ic" /> ESTI <b>AORMS</b></div>
+            <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50. Developed by Holagundi Consulting Works.</p>
+            <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
+              <a href="mailto:hi@aorms.in">hi@aorms.in</a>
+              <a href="https://wa.me/919880000000" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+              <a href="https://aorms.in">aorms.in</a>
+            </div>
+          </div>
+          <div>
+            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Platform</h3>
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              {["COA fee proposals", "GST / TDS invoicing", "Drawings & DXF takeoff", "RIE bylaw compliance", "DSR / BOQ / SteelFlow BBS", "ASPRF performance"].map((m) => (
+                <span key={m} className="esti-lp-muted">{m}</span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Company</h3>
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              <a href="#modules">Modules</a>
+              <a href="#pricing">Pricing</a>
+              <a href="#faq">FAQ</a>
+              <a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Sign in</a>
+            </div>
+          </div>
+        </div>
+        <div className="esti-lp-wrap" style={{ marginTop: "2rem" }}>
+          <span className="esti-lp-muted">© {new Date().getFullYear()} Holagundi Consulting Works · aorms.in · All rights reserved</span>
+        </div>
       </footer>
-    </>
+    </div>
   );
 }
