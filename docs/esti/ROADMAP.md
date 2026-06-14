@@ -599,7 +599,16 @@ Performance route; Work module Stand-up and Timesheets tabs.
   and audited through `writeActivity` (`visibility: ALL`, `portal.*` event types).
   `Portal.tsx` gains approve/request-revisions/reject actions, per-drawing acknowledge,
   change-request + feedback modals, and a "My requests & feedback" table.
-- [ ] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
+- [~] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
+  **Delivered:** consultant-originated collaborator-portal writes —
+  `esti_consultant_submission` (migration 0027) + `contracts/consultant-portal.ts`
+  (DELIVERABLE/RFI/NOTE kinds, shared status lifecycle). `collab.submit` +
+  `collab.mySubmissions` (engagement-scoped via `assertEngaged`, audited as
+  `consultant.*`, visibility ALL); staff `consultantRequests` namespace
+  (list/openCount/setStatus, `/consultant-requests` route + nav). CollaboratorPortal
+  gains submit-deliverable / raise-RFI / add-note modals and a read-back table that
+  shows the firm's response. **Pending:** firm→consultant *assigned tasks* and
+  threaded contextual responses (RFI reply chains).
 - [~] Firm branding, empty states, notifications, and download authorization.
   **Delivered:** firm-side triage of portal submissions — staff `clientRequests`
   namespace (`list` with project/client/submitter joins + status/kind filters,

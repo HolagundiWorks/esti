@@ -3,9 +3,14 @@ import {
   ClickableTile,
   Column,
   Content,
+  Form,
   Grid,
   Header,
   HeaderName,
+  InlineNotification,
+  Modal,
+  Select,
+  SelectItem,
   Table,
   TableBody,
   TableCell,
@@ -14,11 +19,23 @@ import {
   TableHeader,
   TableRow,
   Tag,
+  TextArea,
+  TextInput,
   Stack,
 } from "@carbon/react";
-import { formatINR } from "@esti/contracts";
+import {
+  CONSULTANT_SUBMISSION_KIND_LABEL,
+  CONSULTANT_SUBMISSION_STATUS_LABEL,
+  CONSULTANT_SUBMISSION_STATUS_TAG,
+  ConsultantSubmissionKind,
+  formatINR,
+  type ConsultantSubmissionKind as ConsultantSubmissionKindT,
+} from "@esti/contracts";
 import { useState } from "react";
+import { DataState } from "../components/DataState.js";
 import { trpc } from "../lib/trpc.js";
+
+type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
 export function CollaboratorPortal() {
   const utils = trpc.useUtils();
@@ -31,7 +48,20 @@ export function CollaboratorPortal() {
     { projectId: openId ?? "" },
     { enabled: !!openId },
   );
+  const submissionsQ = trpc.collab.mySubmissions.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
   const d = detailQ.data;
+
+  // ── write state ──────────────────────────────────────────────────────────
+  const [form, setForm] = useState<{ kind: ConsultantSubmissionKindT; subject: string; body: string } | null>(null);
+  const submit = trpc.collab.submit.useMutation({
+    onSuccess: () => {
+      utils.collab.mySubmissions.invalidate();
+      setForm(null);
+    },
+  });
 
   return (
     <>
@@ -48,12 +78,14 @@ export function CollaboratorPortal() {
       </Header>
       <Content>
         {!openId && (
-          <>
-            <h2>Your engagements</h2>
-            <p style={{ marginBottom: 16 }}>
-              Projects you are engaged on — status, stages, issued drawings and
-              your fee balance.
-            </p>
+          <Stack gap={5}>
+            <Stack gap={2}>
+              <h2>Your engagements</h2>
+              <p>
+                Projects you are engaged on — status, stages, issued drawings,
+                your fee balance, and your deliverables, RFIs and notes.
+              </p>
+            </Stack>
             <Grid>
               {(projectsQ.data ?? []).length === 0 && (
                 <p>No engagements yet.</p>
@@ -74,22 +106,35 @@ export function CollaboratorPortal() {
                 );
               })}
             </Grid>
-          </>
+          </Stack>
         )}
 
         {openId && d && (
-          <>
-            <Button kind="ghost" size="sm" onClick={() => setOpenId(null)}>
-              ← All engagements
-            </Button>
-            <h2 style={{ marginTop: 8 }}>{d.project.title}</h2>
-            <p>
-              {d.project.ref} · {d.project.projectType} ·{" "}
-              {d.project.jurisdiction} ·{" "}
-              <Tag type="cool-gray">{d.project.status}</Tag>
-            </p>
+          <Stack gap={6}>
+            <Stack gap={3}>
+              <Button kind="ghost" size="sm" onClick={() => setOpenId(null)}>
+                ← All engagements
+              </Button>
+              <h2>{d.project.title}</h2>
+              <p>
+                {d.project.ref} · {d.project.projectType} ·{" "}
+                {d.project.jurisdiction} ·{" "}
+                <Tag type="cool-gray">{d.project.status}</Tag>
+              </p>
+              <Stack orientation="horizontal" gap={3}>
+                <Button size="sm" onClick={() => setForm({ kind: "DELIVERABLE", subject: "", body: "" })}>
+                  Submit deliverable
+                </Button>
+                <Button size="sm" kind="tertiary" onClick={() => setForm({ kind: "RFI", subject: "", body: "" })}>
+                  Raise RFI
+                </Button>
+                <Button size="sm" kind="tertiary" onClick={() => setForm({ kind: "NOTE", subject: "", body: "" })}>
+                  Add note
+                </Button>
+              </Stack>
+            </Stack>
 
-            <TableContainer title="Your engagement" style={{ marginTop: 16 }}>
+            <TableContainer title="Your engagement">
               <Table>
                 <TableHead>
                   <TableRow>
@@ -112,9 +157,7 @@ export function CollaboratorPortal() {
                     <TableCell>
                       {formatINR(
                         d.engagement.agreedFeePaise - d.engagement.paidPaise,
-                        {
-                          paise: false,
-                        },
+                        { paise: false },
                       )}
                     </TableCell>
                     <TableCell>{d.engagement.status}</TableCell>
@@ -123,7 +166,7 @@ export function CollaboratorPortal() {
               </Table>
             </TableContainer>
 
-            <TableContainer title="Stages" style={{ marginTop: 24 }}>
+            <TableContainer title="Stages">
               <Table>
                 <TableHead>
                   <TableRow>
@@ -144,7 +187,7 @@ export function CollaboratorPortal() {
               </Table>
             </TableContainer>
 
-            <TableContainer title="Issued drawings" style={{ marginTop: 24 }}>
+            <TableContainer title="Issued drawings">
               <Table>
                 <TableHead>
                   <TableRow>
@@ -162,8 +205,80 @@ export function CollaboratorPortal() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </>
+
+            <TableContainer title="My deliverables, RFIs & notes">
+              <DataState
+                loading={submissionsQ.isLoading}
+                isEmpty={(submissionsQ.data ?? []).length === 0}
+                columnCount={4}
+                empty={{ title: "Nothing submitted yet", description: "Your deliverables, RFIs and notes appear here." }}
+              >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Type</TableHeader>
+                      <TableHeader>Subject</TableHeader>
+                      <TableHeader>Status</TableHeader>
+                      <TableHeader>Firm response</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(submissionsQ.data ?? []).map((s) => (
+                      <TableRow key={s.id}>
+                        <TableCell>{CONSULTANT_SUBMISSION_KIND_LABEL[s.kind as ConsultantSubmissionKindT] ?? s.kind}</TableCell>
+                        <TableCell>
+                          {s.subject}
+                          {s.body && <div className="esti-label esti-label--secondary">{s.body}</div>}
+                        </TableCell>
+                        <TableCell>
+                          <Tag type={CONSULTANT_SUBMISSION_STATUS_TAG[s.status as SubmissionStatus] ?? "blue"}>
+                            {CONSULTANT_SUBMISSION_STATUS_LABEL[s.status as SubmissionStatus] ?? s.status}
+                          </Tag>
+                        </TableCell>
+                        <TableCell>{s.responseNote ?? "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </DataState>
+            </TableContainer>
+          </Stack>
         )}
+
+        {/* ── submission modal ──────────────────────────────────────────── */}
+        <Modal
+          open={form !== null}
+          modalHeading={form ? `${CONSULTANT_SUBMISSION_KIND_LABEL[form.kind]} — ${d?.project.ref ?? ""}` : "Submit"}
+          primaryButtonText={submit.isPending ? "Submitting…" : "Submit"}
+          secondaryButtonText="Cancel"
+          primaryButtonDisabled={!form?.subject || submit.isPending}
+          onRequestClose={() => setForm(null)}
+          onRequestSubmit={() => form && openId && submit.mutate({
+            projectId: openId, kind: form.kind, subject: form.subject,
+            body: form.body || undefined,
+          })}
+        >
+          {form && (
+            <Form onSubmit={(e) => e.preventDefault()}>
+              <Stack gap={5}>
+                <Select id="cs-kind" labelText="Type" value={form.kind}
+                  onChange={(e) => setForm({ ...form, kind: e.target.value as ConsultantSubmissionKindT })}>
+                  {ConsultantSubmissionKind.options.map((k) => (
+                    <SelectItem key={k} value={k} text={CONSULTANT_SUBMISSION_KIND_LABEL[k]} />
+                  ))}
+                </Select>
+                <TextInput id="cs-subject" labelText="Subject" value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })} />
+                <TextArea id="cs-body" labelText="Details (optional)" rows={4} value={form.body}
+                  onChange={(e) => setForm({ ...form, body: e.target.value })} />
+                {submit.error && (
+                  <InlineNotification kind="error" title="Could not submit"
+                    subtitle={submit.error.message} hideCloseButton lowContrast />
+                )}
+              </Stack>
+            </Form>
+          )}
+        </Modal>
       </Content>
     </>
   );

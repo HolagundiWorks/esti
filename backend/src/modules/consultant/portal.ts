@@ -1,7 +1,10 @@
+import { ConsultantSubmitInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { drawings, engagements, phases, projectOffices } from "../../db/schema.js";
+import { consultantSubmissions, drawings, engagements, phases, projectOffices } from "../../db/schema.js";
+import type { DB } from "../../db/index.js";
+import { writeActivity } from "../../lib/activity.js";
 import { collaboratorProcedure, router } from "../../trpc/trpc.js";
 
 /**
@@ -91,4 +94,72 @@ export const collaboratorRouter = router({
         drawings: drawingRows,
       };
     }),
+
+  /** This consultant's own submissions for a project (read-back of their writes). */
+  mySubmissions: collaboratorProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertEngaged(ctx, input.projectId);
+      return ctx.db
+        .select({
+          id: consultantSubmissions.id,
+          kind: consultantSubmissions.kind,
+          subject: consultantSubmissions.subject,
+          body: consultantSubmissions.body,
+          status: consultantSubmissions.status,
+          responseNote: consultantSubmissions.responseNote,
+          createdAt: consultantSubmissions.createdAt,
+        })
+        .from(consultantSubmissions)
+        .where(eq(consultantSubmissions.projectId, input.projectId))
+        .orderBy(desc(consultantSubmissions.createdAt));
+    }),
+
+  /** Raise a deliverable, RFI or note against an engaged project. */
+  submit: collaboratorProcedure
+    .input(ConsultantSubmitInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertEngaged(ctx, input.projectId);
+      const [created] = await ctx.db
+        .insert(consultantSubmissions)
+        .values({
+          projectId: input.projectId,
+          consultantId: ctx.user.consultantId,
+          kind: input.kind,
+          objectType: input.objectType ?? null,
+          objectId: input.objectId ?? null,
+          subject: input.subject,
+          body: input.body ?? null,
+          submittedById: ctx.user.id,
+        })
+        .returning({ id: consultantSubmissions.id });
+
+      const verb = input.kind === "RFI" ? "raised an RFI"
+        : input.kind === "DELIVERABLE" ? "submitted a deliverable"
+        : "added a note";
+      await writeActivity(ctx.db, {
+        projectId: input.projectId,
+        objectType: "consultant_submission",
+        objectId: created!.id,
+        eventType: `consultant.${input.kind.toLowerCase()}`,
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Consultant ${verb}: ${input.subject}`,
+        metadata: { kind: input.kind },
+      });
+      return { ok: true as const, id: created!.id };
+    }),
 });
+
+/** Throw NOT_FOUND unless the consultant is engaged on this project. */
+async function assertEngaged(
+  ctx: { db: DB; user: { consultantId: string } },
+  projectId: string,
+): Promise<void> {
+  const [engagement] = await ctx.db
+    .select({ id: engagements.id })
+    .from(engagements)
+    .where(and(eq(engagements.projectId, projectId), eq(engagements.consultantId, ctx.user.consultantId)));
+  if (!engagement) throw new TRPCError({ code: "NOT_FOUND" });
+}
