@@ -52,6 +52,10 @@ export function CollaboratorPortal() {
     { projectId: openId ?? "" },
     { enabled: !!openId },
   );
+  const activityQ = trpc.collab.activityFeed.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
   const d = detailQ.data;
 
   // ── write state ──────────────────────────────────────────────────────────
@@ -59,6 +63,7 @@ export function CollaboratorPortal() {
   const submit = trpc.collab.submit.useMutation({
     onSuccess: () => {
       utils.collab.mySubmissions.invalidate();
+      utils.collab.activityFeed.invalidate();
       setForm(null);
     },
   });
@@ -236,6 +241,35 @@ export function CollaboratorPortal() {
                           </Tag>
                         </TableCell>
                         <TableCell>{s.responseNote ?? "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </DataState>
+            </TableContainer>
+
+            <TableContainer title="Activity">
+              <DataState
+                loading={activityQ.isLoading}
+                isEmpty={(activityQ.data ?? []).length === 0}
+                columnCount={2}
+                empty={{ title: "No shared activity yet", description: "Updates the firm shares with you appear here." }}
+              >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>When</TableHeader>
+                      <TableHeader>Update</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(activityQ.data ?? []).map((a) => (
+                      <TableRow key={a.id}>
+                        <TableCell>{new Date(a.createdAt as unknown as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</TableCell>
+                        <TableCell>
+                          {a.summary}
+                          {a.actorName && <div className="esti-label esti-label--secondary">{a.actorName}</div>}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

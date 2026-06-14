@@ -617,12 +617,19 @@ Performance route; Work module Stand-up and Timesheets tabs.
   item under People; the firm's response note is read back by the client in their
   "My requests & feedback" table. **Pending:** portal firm branding, download
   authorization, and submission notifications.
-- [ ] Portal activity feeds exposing only explicitly visible records.
+- [x] **Portal activity feeds exposing only explicitly visible records.**
+  `portal.activityFeed` (client) and `collab.activityFeed` (consultant) return the
+  project timeline filtered to `visibility = 'ALL'`, project-scoped via
+  `assertOwnedProject` / `assertEngaged`; surfaced as an "Activity" section in each
+  portal. STAFF-visibility rows are never exposed.
 
 **Gate:** portal writes are object-scoped, audited, and cannot expose internal data.
-**Verified (client writes):** demo client round-trips feedback + change request
-(read back via `mySubmissions`); writes to a non-owned project and a non-existent
-approval both return NOT_FOUND; both writes appear in `esti_activity` with `ALL` visibility.
+**Verified (client + consultant):** demo client and a test consultant round-trip
+their submissions (read back via `mySubmissions`); writes to a non-owned/non-engaged
+project and a non-existent approval return NOT_FOUND; all writes appear in
+`esti_activity` with `ALL` visibility; firm triage flows back to the originator;
+each portal's `activityFeed` returns only `ALL` rows — an injected STAFF "INTERNAL"
+note was confirmed excluded; CLIENT/CONSULTANT roles are FORBIDDEN from the staff inboxes.
 
 ## Phase 7 - Contractor And Tender Coordination [P2]
 

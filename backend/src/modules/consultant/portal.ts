@@ -2,7 +2,7 @@ import { ConsultantSubmitInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { consultantSubmissions, drawings, engagements, phases, projectOffices } from "../../db/schema.js";
+import { activities, consultantSubmissions, drawings, engagements, phases, projectOffices } from "../../db/schema.js";
 import type { DB } from "../../db/index.js";
 import { writeActivity } from "../../lib/activity.js";
 import { collaboratorProcedure, router } from "../../trpc/trpc.js";
@@ -113,6 +113,25 @@ export const collaboratorRouter = router({
         .from(consultantSubmissions)
         .where(eq(consultantSubmissions.projectId, input.projectId))
         .orderBy(desc(consultantSubmissions.createdAt));
+    }),
+
+  /** Project activity timeline — only records explicitly shared with collaborators. */
+  activityFeed: collaboratorProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertEngaged(ctx, input.projectId);
+      return ctx.db
+        .select({
+          id: activities.id,
+          eventType: activities.eventType,
+          summary: activities.summary,
+          actorName: activities.actorName,
+          createdAt: activities.createdAt,
+        })
+        .from(activities)
+        .where(and(eq(activities.projectId, input.projectId), eq(activities.visibility, "ALL")))
+        .orderBy(desc(activities.createdAt))
+        .limit(50);
     }),
 
   /** Raise a deliverable, RFI or note against an engaged project. */
