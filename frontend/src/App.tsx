@@ -372,7 +372,14 @@ function AppShell() {
                 <p>·</p>
                 <a href="mailto:hi@aorms.in">hi@aorms.in</a>
                 <p>·</p>
-                <p>Holagundi Consulting Works</p>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  <span>Developed by</span>
+                  <img
+                    src={theme === "white" ? "/hcw-black.png" : "/hcw-white.png"}
+                    alt="Holagundi Consulting Wurkz"
+                    style={{ height: 16, verticalAlign: "middle" }}
+                  />
+                </span>
               </Stack>
             </footer>
           </Content>

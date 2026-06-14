@@ -76,6 +76,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
   // top bar / footer (which sit on the Carbon background that flips with theme).
   const markOnDark = "/esti-mark-white.png";
   const markAuto = theme === "white" ? "/esti-mark-black.png" : "/esti-mark-white.png";
+  const hcwLogo = theme === "white" ? "/hcw-black.png" : "/hcw-white.png";
 
   return (
     <div className="esti-lp">
@@ -325,11 +326,17 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
             <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={markAuto} alt="ESTI" style={{ height: 24 }} /> <b>AORMS</b></div>
-            <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50. Developed by Holagundi Consulting Works.</p>
+            <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50.</p>
             <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
               <a href="mailto:hi@aorms.in">hi@aorms.in</a>
               <a href="https://wa.me/919880000000" target="_blank" rel="noopener noreferrer">WhatsApp</a>
               <a href="https://aorms.in">aorms.in</a>
+            </div>
+            <div style={{ marginTop: "1.5rem" }}>
+              <span className="esti-lp-muted" style={{ display: "block", marginBottom: "0.4rem" }}>Developed by</span>
+              <a href="https://holagundi.works" target="_blank" rel="noopener noreferrer">
+                <img src={hcwLogo} alt="Holagundi Consulting Wurkz" style={{ height: 26, maxWidth: "100%" }} />
+              </a>
             </div>
           </div>
           <div>
