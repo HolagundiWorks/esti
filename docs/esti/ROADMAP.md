@@ -600,8 +600,14 @@ Performance route; Work module Stand-up and Timesheets tabs.
   `Portal.tsx` gains approve/request-revisions/reject actions, per-drawing acknowledge,
   change-request + feedback modals, and a "My requests & feedback" table.
 - [ ] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
-- [ ] Firm branding, empty states, notifications, and download authorization (incl.
-  firm-side triage of portal submissions: OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response note).
+- [~] Firm branding, empty states, notifications, and download authorization.
+  **Delivered:** firm-side triage of portal submissions — staff `clientRequests`
+  namespace (`list` with project/client/submitter joins + status/kind filters,
+  `openCount`, `setStatus` OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response note,
+  audited as `portal.triaged`); `/client-requests` route + "Client requests" nav
+  item under People; the firm's response note is read back by the client in their
+  "My requests & feedback" table. **Pending:** portal firm branding, download
+  authorization, and submission notifications.
 - [ ] Portal activity feeds exposing only explicitly visible records.
 
 **Gate:** portal writes are object-scoped, audited, and cannot expose internal data.

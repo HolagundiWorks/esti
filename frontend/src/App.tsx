@@ -47,6 +47,7 @@ import { AuditLog } from "./routes/AuditLog.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
+import { ClientRequests } from "./routes/ClientRequests.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
@@ -182,6 +183,7 @@ function AppShell() {
       items: [
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
+        { label: "Client requests", to: "/client-requests" },
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
@@ -331,6 +333,7 @@ function AppShell() {
                 />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/consultants" element={<Consultants />} />
+                <Route path="/client-requests" element={<ClientRequests />} />
                 <Route path="/reconcile" element={<Reconcile />} />
                 {hrEnabled && <Route path="/team" element={<Team />} />}
                 {hrEnabled && <Route path="/hr" element={<Hr />} />}
