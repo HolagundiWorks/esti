@@ -18,7 +18,6 @@ import {
   type CarbonIconType,
 } from "@carbon/icons-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
 type ThemeName = "white" | "g100";
@@ -60,7 +59,6 @@ const FAQS: { q: string; a: string }[] = [
 // ─── Landing ─────────────────────────────────────────────────────────────────
 
 export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTheme: () => void }) {
-  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [annual, setAnnual] = useState(true);
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
@@ -93,7 +91,6 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
           <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
           </button>
-          <button className="esti-lp-btn esti-lp-btn--ghost" onClick={() => navigate("/login")}>Sign in</button>
           <button className="esti-lp-btn esti-lp-btn--gold" onClick={runDemo} disabled={demo.isPending}>
             {demo.isPending ? "Opening…" : "Live demo"}
           </button>
@@ -353,7 +350,6 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
               <a href="#modules">Modules</a>
               <a href="#pricing">Pricing</a>
               <a href="#faq">FAQ</a>
-              <a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Sign in</a>
             </div>
           </div>
         </div>
