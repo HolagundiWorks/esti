@@ -669,6 +669,30 @@ export const clientLogs = pgTable("esti_clientlog", {
   createdAt: createdAt(),
 });
 
+/**
+ * Client-originated portal submissions — acknowledgements, change requests and
+ * feedback raised from the read-only client portal. Object-scoped and audited;
+ * the firm triages via `status`.
+ */
+export const portalSubmissions = pgTable("esti_portal_submission", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  clientId: uuid("client_id").references(() => clients.id),
+  kind: text("kind").notNull(), // ACKNOWLEDGEMENT | CHANGE_REQUEST | FEEDBACK
+  objectType: text("object_type"),
+  objectId: uuid("object_id"),
+  subject: text("subject").notNull(),
+  body: text("body"),
+  rating: integer("rating"), // 1–5, feedback only
+  status: text("status").notNull().default("OPEN"), // OPEN | ACKNOWLEDGED | RESOLVED | DECLINED
+  responseNote: text("response_note"),
+  submittedById: uuid("submitted_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Development-control (zoning/bylaw) compliance parameters per project. */
 export const bylaws = pgTable("esti_bylaw", {
   id: id(),

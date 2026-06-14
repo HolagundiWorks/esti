@@ -590,12 +590,24 @@ Performance route; Work module Stand-up and Timesheets tabs.
 
 ## Phase 6 - Client And Consultant Collaboration [P1]
 
-- [ ] Client approval, acknowledgement, change-request, and feedback writes.
+- [x] **Client approval, acknowledgement, change-request, and feedback writes.**
+  `esti_portal_submission` table (migration 0026) + `packages/contracts/src/portal.ts`
+  (submission kinds/status, approval-decision enum, Zod inputs). Client-portal
+  mutations on `portal`: `respondApproval` (SENT/REVISIONS → APPROVED/REVISIONS/REJECTED
+  with remarks), `acknowledge`, `submitChangeRequest`, `submitFeedback`, plus
+  `mySubmissions` read-back — all scoped to `ctx.user.clientId` via `assertOwnedProject`
+  and audited through `writeActivity` (`visibility: ALL`, `portal.*` event types).
+  `Portal.tsx` gains approve/request-revisions/reject actions, per-drawing acknowledge,
+  change-request + feedback modals, and a "My requests & feedback" table.
 - [ ] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
-- [ ] Firm branding, empty states, notifications, and download authorization.
+- [ ] Firm branding, empty states, notifications, and download authorization (incl.
+  firm-side triage of portal submissions: OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response note).
 - [ ] Portal activity feeds exposing only explicitly visible records.
 
 **Gate:** portal writes are object-scoped, audited, and cannot expose internal data.
+**Verified (client writes):** demo client round-trips feedback + change request
+(read back via `mySubmissions`); writes to a non-owned project and a non-existent
+approval both return NOT_FOUND; both writes appear in `esti_activity` with `ALL` visibility.
 
 ## Phase 7 - Contractor And Tender Coordination [P2]
 

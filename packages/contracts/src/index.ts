@@ -31,3 +31,4 @@ export * from "./steel-arranger.js";
 export * from "./asprf.js";
 export * from "./timesheet.js";
 export * from "./daily-update.js";
+export * from "./portal.js";
