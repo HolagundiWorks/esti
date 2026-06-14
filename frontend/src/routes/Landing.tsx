@@ -1,7 +1,7 @@
 /**
  * ESTI AORMS — marketing landing page.
  * Audience: Indian architecture practices — solo architects and firms of 5–50.
- * Branded (ESTI gold on ink), editorial, SEO-keyworded. Styled under .esti-lp
+ * Branded (ESTI blue on ink), editorial, SEO-keyworded. Styled under .esti-lp
  * (a documented marketing exception to the Pure Carbon app policy).
  */
 import {
@@ -28,14 +28,14 @@ type ThemeName = "white" | "g100";
 function EstiMark({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 200 180" fill="none" aria-hidden="true">
-      <g stroke="#c8a951" strokeWidth="1.4">
+      <g stroke="#4589ff" strokeWidth="1.4">
         <path d="M100 8 L192 168 L8 168 Z" />
         <path d="M100 44 L162 152 L38 152 Z" />
         <path d="M100 80 L132 136 L68 136 Z" />
         <path d="M8 168 L192 168" />
         <path d="M54 168 L100 8 M146 168 L100 8" opacity="0.5" />
       </g>
-      <circle cx="100" cy="118" r="4" fill="#c8a951" />
+      <circle cx="100" cy="118" r="4" fill="#4589ff" />
     </svg>
   );
 }
@@ -292,8 +292,8 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
             </div>
             <p className="esti-lp-lead" style={{ marginTop: "1.25rem", fontSize: "0.9rem" }}>
               Prices in INR, exclusive of GST. More than 50 architects?{" "}
-              <a href="mailto:hi@aorms.in" style={{ color: "var(--lp-gold)" }}>Talk to us</a> ·{" "}
-              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }} style={{ color: "var(--lp-gold)" }}>WhatsApp</a>.
+              <a href="mailto:hi@aorms.in" style={{ color: "var(--lp-accent)" }}>Talk to us</a> ·{" "}
+              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }} style={{ color: "var(--lp-accent)" }}>WhatsApp</a>.
             </p>
           </div>
         </section>
