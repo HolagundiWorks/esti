@@ -5,6 +5,8 @@ import { z } from "zod";
 import { activities, consultantSubmissions, drawings, engagements, phases, projectOffices } from "../../db/schema.js";
 import type { DB } from "../../db/index.js";
 import { writeActivity } from "../../lib/activity.js";
+import { getFirm } from "../../lib/firm.js";
+import { presignedGet } from "../../lib/storage.js";
 import { collaboratorProcedure, router } from "../../trpc/trpc.js";
 
 /**
@@ -12,6 +14,13 @@ import { collaboratorProcedure, router } from "../../trpc/trpc.js";
  * limited to projects the consultant is engaged on (esti_engagement).
  */
 export const collaboratorRouter = router({
+  /** Firm name + logo for portal header branding. */
+  branding: collaboratorProcedure.query(async ({ ctx }) => {
+    const f = await getFirm(ctx.db);
+    const logoUrl = f.logoKey ? await presignedGet(f.logoKey).catch(() => null) : null;
+    return { companyName: f.companyName, logoUrl };
+  }),
+
   myProjects: collaboratorProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select({

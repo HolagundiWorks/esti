@@ -10,6 +10,8 @@ import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import { activities, approvals, drawings, invoices, phases, portalSubmissions, projectOffices } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
+import { getFirm } from "../../lib/firm.js";
+import { presignedGet } from "../../lib/storage.js";
 import { clientProcedure, router } from "../../trpc/trpc.js";
 
 /** Today as an ISO date string (YYYY-MM-DD). */
@@ -22,6 +24,13 @@ function today(): string {
  * user's clientId — a portal user can only ever see their own projects.
  */
 export const portalRouter = router({
+  /** Firm name + logo for portal header branding. */
+  branding: clientProcedure.query(async ({ ctx }) => {
+    const f = await getFirm(ctx.db);
+    const logoUrl = f.logoKey ? await presignedGet(f.logoKey).catch(() => null) : null;
+    return { companyName: f.companyName, logoUrl };
+  }),
+
   myProjects: clientProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select({

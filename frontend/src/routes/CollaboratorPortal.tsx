@@ -42,6 +42,7 @@ export function CollaboratorPortal() {
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
+  const brandingQ = trpc.collab.branding.useQuery();
   const projectsQ = trpc.collab.myProjects.useQuery();
   const [openId, setOpenId] = useState<string | null>(null);
   const detailQ = trpc.collab.projectDetail.useQuery(
@@ -71,7 +72,10 @@ export function CollaboratorPortal() {
   return (
     <>
       <Header aria-label="ESTI consultant portal">
-        <HeaderName prefix="ESTI">Consultant portal</HeaderName>
+        {brandingQ.data?.logoUrl && (
+          <img src={brandingQ.data.logoUrl} alt="" className="esti-portal-logo" />
+        )}
+        <HeaderName prefix={brandingQ.data?.companyName ?? "ESTI"}>Consultant portal</HeaderName>
         <Button
           kind="ghost"
           size="sm"

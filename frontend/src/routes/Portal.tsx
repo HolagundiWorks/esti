@@ -58,6 +58,7 @@ export function Portal() {
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
+  const brandingQ = trpc.portal.branding.useQuery();
   const projectsQ = trpc.portal.myProjects.useQuery();
   const [openId, setOpenId] = useState<string | null>(null);
   const detailQ = trpc.portal.projectDetail.useQuery(
@@ -102,7 +103,10 @@ export function Portal() {
   return (
     <>
       <Header aria-label="ESTI client portal">
-        <HeaderName prefix="ESTI">Client portal</HeaderName>
+        {brandingQ.data?.logoUrl && (
+          <img src={brandingQ.data.logoUrl} alt="" className="esti-portal-logo" />
+        )}
+        <HeaderName prefix={brandingQ.data?.companyName ?? "ESTI"}>Client portal</HeaderName>
         <Button
           kind="ghost"
           size="sm"

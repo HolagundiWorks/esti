@@ -1,11 +1,18 @@
 import { and, eq, isNotNull, lt, lte, notInArray } from "drizzle-orm";
-import { approvals, clientLogs, permits, projectOffices } from "../../db/schema.js";
+import {
+  approvals,
+  clientLogs,
+  consultantSubmissions,
+  permits,
+  portalSubmissions,
+  projectOffices,
+} from "../../db/schema.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export type Severity = "high" | "medium";
 export interface Alert {
   id: string;
-  kind: "approval" | "followup" | "permit";
+  kind: "approval" | "followup" | "permit" | "submission";
   severity: Severity;
   title: string;
   detail: string;
@@ -15,6 +22,15 @@ export interface Alert {
 }
 
 const PERMIT_CLOSED = ["APPROVED", "REJECTED", "EXPIRED"];
+
+const PORTAL_KIND_LABEL: Record<string, string> = {
+  CHANGE_REQUEST: "Client change request",
+  FEEDBACK: "Client feedback",
+  ACKNOWLEDGEMENT: "Client acknowledgement",
+  DELIVERABLE: "Consultant deliverable",
+  RFI: "Consultant RFI",
+  NOTE: "Consultant note",
+};
 
 /**
  * Actionable alerts for staff — stale client approvals, due follow-ups and
@@ -66,7 +82,51 @@ export const notificationsRouter = router({
       .innerJoin(projectOffices, eq(projectOffices.id, permits.projectId))
       .where(and(lt(permits.dateDue, today), notInArray(permits.status, PERMIT_CLOSED)));
 
+    // Open client-portal submissions awaiting firm triage.
+    const openClientSubmissions = await ctx.db
+      .select({
+        id: portalSubmissions.id,
+        kind: portalSubmissions.kind,
+        subject: portalSubmissions.subject,
+        date: portalSubmissions.createdAt,
+        projectId: portalSubmissions.projectId,
+        projectRef: projectOffices.ref,
+      })
+      .from(portalSubmissions)
+      .innerJoin(projectOffices, eq(projectOffices.id, portalSubmissions.projectId))
+      .where(eq(portalSubmissions.status, "OPEN"));
+
+    // Open consultant collaborator-portal submissions awaiting firm triage.
+    const openConsultantSubmissions = await ctx.db
+      .select({
+        id: consultantSubmissions.id,
+        kind: consultantSubmissions.kind,
+        subject: consultantSubmissions.subject,
+        date: consultantSubmissions.createdAt,
+        projectId: consultantSubmissions.projectId,
+        projectRef: projectOffices.ref,
+      })
+      .from(consultantSubmissions)
+      .innerJoin(projectOffices, eq(projectOffices.id, consultantSubmissions.projectId))
+      .where(eq(consultantSubmissions.status, "OPEN"));
+
+    const submissionAlert = (s: {
+      id: string; kind: string; subject: string; date: Date; projectId: string; projectRef: string;
+    }, prefix: string): Alert => ({
+      id: `submission:${prefix}:${s.id}`,
+      kind: "submission",
+      // RFIs block design decisions — treat as high; everything else medium.
+      severity: s.kind === "RFI" ? "high" : "medium",
+      title: `${PORTAL_KIND_LABEL[s.kind] ?? "Portal submission"}: ${s.subject}`,
+      detail: "Awaiting firm response",
+      projectId: s.projectId,
+      projectRef: s.projectRef,
+      date: s.date.toISOString().slice(0, 10),
+    });
+
     const alerts: Alert[] = [
+      ...openClientSubmissions.map((s) => submissionAlert(s, "client")),
+      ...openConsultantSubmissions.map((s) => submissionAlert(s, "consultant")),
       ...staleApprovals.map((a) => ({
         id: `approval:${a.id}`,
         kind: "approval" as const,

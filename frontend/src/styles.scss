@@ -201,6 +201,12 @@ body,
   white-space: nowrap;
 }
 
+// Firm logo in the client / consultant portal header (sizing only).
+.esti-portal-logo {
+  height: 1.25rem;
+  margin-inline: 1rem 0.5rem;
+}
+
 // Floating Pomodoro timer: non-interactive, 20% opacity so it doesn't distract.
 // Opacity is an intentional UX feature (user-requested), not decorative styling.
 .esti-pomodoro-float {
