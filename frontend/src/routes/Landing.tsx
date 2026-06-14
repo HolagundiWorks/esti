@@ -72,15 +72,15 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
 
   // ESTI mark: white on dark backgrounds, black on light; theme-aware for the
   // top bar / footer (which sit on the Carbon background that flips with theme).
-  const markOnDark = "/esti-mark-white.png";
-  const markAuto = theme === "white" ? "/esti-mark-black.png" : "/esti-mark-white.png";
+  const aormsOnDark = "/aorms-logo-white.png";
+  const aormsAuto = theme === "white" ? "/aorms-logo.png" : "/aorms-logo-white.png";
   const hcwLogo = theme === "white" ? "/hcw-black.png" : "/hcw-white.png";
 
   return (
     <div className="esti-lp">
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="esti-lp-bar">
-        <a href="#top" className="esti-lp-brand"><img src={markAuto} alt="ESTI" style={{ height: 26 }} /> <b>AORMS</b></a>
+        <a href="#top" className="esti-lp-brand"><img src={aormsAuto} alt="AORMS" style={{ height: 30 }} /></a>
         <nav className="esti-lp-nav">
           <a href="#modules">Modules</a>
           <a href="#compliance">Compliance</a>
@@ -118,7 +118,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
               <p className="esti-lp-hero-note">No credit card · 14 fully populated demo projects · your data stays on your own server.</p>
               {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
             </div>
-            <img src={markOnDark} className="esti-lp-mark" alt="ESTI AORMS" />
+            <img src={aormsOnDark} className="esti-lp-mark" alt="AORMS" />
           </div>
         </section>
 
@@ -322,7 +322,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
       <footer className="esti-lp-foot">
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
-            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={markAuto} alt="ESTI" style={{ height: 24 }} /> <b>AORMS</b></div>
+            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={aormsAuto} alt="AORMS" style={{ height: 28 }} /></div>
             <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50.</p>
             <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
               <a href="mailto:hi@aorms.in">hi@aorms.in</a>
