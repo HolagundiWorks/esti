@@ -7,6 +7,7 @@ import type { DB } from "../../db/index.js";
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
 import { presignedGet } from "../../lib/storage.js";
+import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { collaboratorProcedure, router } from "../../trpc/trpc.js";
 
 /**
@@ -124,6 +125,34 @@ export const collaboratorRouter = router({
         .orderBy(desc(consultantSubmissions.createdAt));
     }),
 
+  /** Read the firm↔consultant conversation thread on one of their submissions. */
+  submissionThread: collaboratorProcedure
+    .input(z.object({ submissionId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedSubmission(ctx, input.submissionId);
+      return listMessages(ctx.db, { consultantSubmissionId: input.submissionId });
+    }),
+
+  /** Post a reply on one of the consultant's own submissions. */
+  replySubmission: collaboratorProcedure
+    .input(z.object({ submissionId: z.string().uuid(), body: z.string().trim().min(1).max(4000) }))
+    .mutation(async ({ ctx, input }) => {
+      const sub = await assertOwnedSubmission(ctx, input.submissionId);
+      await addMessage(ctx.db, { consultantSubmissionId: input.submissionId },
+        { id: ctx.user.id, name: ctx.user.fullName, side: "CONSULTANT" }, input.body);
+      await writeActivity(ctx.db, {
+        projectId: sub.projectId,
+        objectType: "consultant_submission",
+        objectId: input.submissionId,
+        eventType: "consultant.reply",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Consultant replied on: ${sub.subject}`,
+      });
+      return { ok: true as const };
+    }),
+
   /** Project activity timeline — only records explicitly shared with collaborators. */
   activityFeed: collaboratorProcedure
     .input(z.object({ projectId: z.string().uuid() }))
@@ -179,6 +208,19 @@ export const collaboratorRouter = router({
       return { ok: true as const, id: created!.id };
     }),
 });
+
+/** Load a submission and confirm it belongs to the logged-in consultant, or throw. */
+async function assertOwnedSubmission(
+  ctx: { db: DB; user: { consultantId: string } },
+  submissionId: string,
+): Promise<{ projectId: string; subject: string }> {
+  const [row] = await ctx.db
+    .select({ projectId: consultantSubmissions.projectId, subject: consultantSubmissions.subject, consultantId: consultantSubmissions.consultantId })
+    .from(consultantSubmissions)
+    .where(eq(consultantSubmissions.id, submissionId));
+  if (!row || row.consultantId !== ctx.user.consultantId) throw new TRPCError({ code: "NOT_FOUND" });
+  return { projectId: row.projectId, subject: row.subject };
+}
 
 /** Throw NOT_FOUND unless the consultant is engaged on this project. */
 async function assertEngaged(

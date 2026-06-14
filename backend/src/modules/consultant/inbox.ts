@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { consultants, consultantSubmissions, projectOffices, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
+import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 /**
@@ -61,6 +62,30 @@ export const consultantRequestsRouter = router({
       .where(eq(consultantSubmissions.status, "OPEN"));
     return rows.length;
   }),
+
+  /** Read the firm↔consultant conversation thread on a submission. */
+  thread: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => listMessages(ctx.db, { consultantSubmissionId: input.id })),
+
+  /** Post a firm reply on a consultant submission. */
+  reply: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), body: z.string().trim().min(1).max(4000) }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ projectId: consultantSubmissions.projectId, subject: consultantSubmissions.subject })
+        .from(consultantSubmissions)
+        .where(eq(consultantSubmissions.id, input.id));
+      if (!row) throw new Error("Submission not found");
+      await addMessage(ctx.db, { consultantSubmissionId: input.id },
+        { id: ctx.user.id, name: ctx.user.fullName, side: "FIRM" }, input.body);
+      await writeActivity(ctx.db, {
+        projectId: row.projectId, objectType: "consultant_submission", objectId: input.id,
+        eventType: "consultant.firm_reply", actorId: ctx.user.id, actorName: ctx.user.fullName,
+        visibility: "ALL", summary: `Firm replied on: ${row.subject}`,
+      });
+      return { ok: true as const };
+    }),
 
   setStatus: protectedProcedure
     .input(

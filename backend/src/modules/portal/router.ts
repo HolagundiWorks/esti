@@ -12,6 +12,7 @@ import { activities, approvals, drawings, invoices, phases, portalSubmissions, p
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
 import { presignedGet } from "../../lib/storage.js";
+import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { clientProcedure, router } from "../../trpc/trpc.js";
 
 /** Today as an ISO date string (YYYY-MM-DD). */
@@ -151,6 +152,34 @@ export const portalRouter = router({
         .orderBy(desc(portalSubmissions.createdAt));
     }),
 
+  /** Read the firm↔client conversation thread on one of the client's submissions. */
+  submissionThread: clientProcedure
+    .input(z.object({ submissionId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedSubmission(ctx, input.submissionId);
+      return listMessages(ctx.db, { portalSubmissionId: input.submissionId });
+    }),
+
+  /** Post a reply on one of the client's own submissions. */
+  replySubmission: clientProcedure
+    .input(z.object({ submissionId: z.string().uuid(), body: z.string().trim().min(1).max(4000) }))
+    .mutation(async ({ ctx, input }) => {
+      const sub = await assertOwnedSubmission(ctx, input.submissionId);
+      await addMessage(ctx.db, { portalSubmissionId: input.submissionId },
+        { id: ctx.user.id, name: ctx.user.fullName, side: "CLIENT" }, input.body);
+      await writeActivity(ctx.db, {
+        projectId: sub.projectId,
+        objectType: "portal_submission",
+        objectId: input.submissionId,
+        eventType: "portal.reply",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Client replied on: ${sub.subject}`,
+      });
+      return { ok: true as const };
+    }),
+
   /** Project activity timeline — only records explicitly shared with the client. */
   activityFeed: clientProcedure
     .input(z.object({ projectId: z.string().uuid() }))
@@ -266,6 +295,19 @@ async function assertOwnedProject(
     .from(projectOffices)
     .where(and(eq(projectOffices.id, projectId), eq(projectOffices.clientId, ctx.user.clientId)));
   if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+}
+
+/** Load a submission and confirm it belongs to the logged-in client, or throw. */
+async function assertOwnedSubmission(
+  ctx: { db: DB; user: { clientId: string } },
+  submissionId: string,
+): Promise<{ projectId: string; subject: string }> {
+  const [row] = await ctx.db
+    .select({ projectId: portalSubmissions.projectId, subject: portalSubmissions.subject, clientId: portalSubmissions.clientId })
+    .from(portalSubmissions)
+    .where(eq(portalSubmissions.id, submissionId));
+  if (!row || row.clientId !== ctx.user.clientId) throw new TRPCError({ code: "NOT_FOUND" });
+  return { projectId: row.projectId, subject: row.subject };
 }
 
 /** Insert a portal submission scoped to the client and log it to the activity feed. */

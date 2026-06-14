@@ -716,6 +716,22 @@ export const consultantSubmissions = pgTable("esti_consultant_submission", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * Threaded contextual responses on a portal or consultant submission. Exactly
+ * one of the two submission FKs is set. Both firm staff and the originating
+ * client/consultant post here, forming a back-and-forth conversation.
+ */
+export const submissionMessages = pgTable("esti_submission_message", {
+  id: id(),
+  portalSubmissionId: uuid("portal_submission_id").references(() => portalSubmissions.id),
+  consultantSubmissionId: uuid("consultant_submission_id").references(() => consultantSubmissions.id),
+  authorId: uuid("author_id").references(() => users.id),
+  authorName: text("author_name"),
+  authorSide: text("author_side").notNull(), // FIRM | CLIENT | CONSULTANT
+  body: text("body").notNull(),
+  createdAt: createdAt(),
+});
+
 /** Development-control (zoning/bylaw) compliance parameters per project. */
 export const bylaws = pgTable("esti_bylaw", {
   id: id(),
