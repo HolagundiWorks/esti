@@ -599,24 +599,32 @@ Performance route; Work module Stand-up and Timesheets tabs.
   and audited through `writeActivity` (`visibility: ALL`, `portal.*` event types).
   `Portal.tsx` gains approve/request-revisions/reject actions, per-drawing acknowledge,
   change-request + feedback modals, and a "My requests & feedback" table.
-- [~] Consultant deliverables, contextual responses, RFIs, and assigned tasks.
-  **Delivered:** consultant-originated collaborator-portal writes —
-  `esti_consultant_submission` (migration 0027) + `contracts/consultant-portal.ts`
-  (DELIVERABLE/RFI/NOTE kinds, shared status lifecycle). `collab.submit` +
-  `collab.mySubmissions` (engagement-scoped via `assertEngaged`, audited as
-  `consultant.*`, visibility ALL); staff `consultantRequests` namespace
-  (list/openCount/setStatus, `/consultant-requests` route + nav). CollaboratorPortal
-  gains submit-deliverable / raise-RFI / add-note modals and a read-back table that
-  shows the firm's response. **Pending:** firm→consultant *assigned tasks* and
-  threaded contextual responses (RFI reply chains).
-- [~] Firm branding, empty states, notifications, and download authorization.
-  **Delivered:** firm-side triage of portal submissions — staff `clientRequests`
-  namespace (`list` with project/client/submitter joins + status/kind filters,
-  `openCount`, `setStatus` OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response note,
-  audited as `portal.triaged`); `/client-requests` route + "Client requests" nav
-  item under People; the firm's response note is read back by the client in their
-  "My requests & feedback" table. **Pending:** portal firm branding, download
-  authorization, and submission notifications.
+- [x] **Consultant deliverables, contextual responses, RFIs, and assigned tasks.**
+  Consultant-originated collaborator-portal writes — `esti_consultant_submission`
+  (migration 0027) + `contracts/consultant-portal.ts` (DELIVERABLE/RFI/NOTE +
+  firm-assigned TASK kinds). `collab.submit` + `collab.mySubmissions`
+  (engagement-scoped via `assertEngaged`, audited `consultant.*`, visibility ALL);
+  staff `consultantRequests` namespace (list/openCount/setStatus + `assign`).
+  **Assigned tasks:** firm assigns a TASK to an engaged consultant
+  (`consultantRequests.assign`, validated against the engagement); consultant sees
+  it in a "Tasks assigned to me" table and `collab.completeTask` marks it RESOLVED.
+  **Contextual responses:** threaded `esti_submission_message` conversation (see below).
+  CollaboratorPortal has submit-deliverable / raise-RFI / add-note modals, the
+  assigned-tasks table, and a read-back table showing the firm's response.
+- [x] **Firm branding, empty states, notifications, and download authorization.**
+  Firm-side triage of submissions — `clientRequests` + `consultantRequests`
+  (`list`, `openCount`, `setStatus` OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response
+  note, audited `*.triaged`) at `/client-requests` and `/consultant-requests`
+  (nav under People); the response note is read back by the originator.
+  **Notifications:** `notifications.list` surfaces OPEN client/consultant submissions
+  as `submission` alerts (RFIs high). **Branding:** `portal.branding` + `collab.branding`
+  (firm name + presigned logo) drive each portal header. **Empty states:** Carbon
+  `DataState` empty panels on every portal table. **Download authorization:** the
+  portals expose no file-download endpoints (drawings are shown as ref/title only),
+  so no unauthorized download path exists. **Threaded contextual responses:**
+  `esti_submission_message` (migration 0028) + `lib/submissionThread.ts`;
+  `submissionThread`/`replySubmission` (client + consultant) and `thread`/`reply`
+  (both staff inboxes); reusable `SubmissionThread` component in all four surfaces.
 - [x] **Portal activity feeds exposing only explicitly visible records.**
   `portal.activityFeed` (client) and `collab.activityFeed` (consultant) return the
   project timeline filtered to `visibility = 'ALL'`, project-scoped via
@@ -630,6 +638,11 @@ project and a non-existent approval return NOT_FOUND; all writes appear in
 `esti_activity` with `ALL` visibility; firm triage flows back to the originator;
 each portal's `activityFeed` returns only `ALL` rows — an injected STAFF "INTERNAL"
 note was confirmed excluded; CLIENT/CONSULTANT roles are FORBIDDEN from the staff inboxes.
+Firm-assigned tasks round-trip (assign → consultant completes → RESOLVED; TASK kind
+excluded from `mySubmissions`; assigning to a non-engaged consultant → BAD_REQUEST);
+threaded replies round-trip (client/consultant ↔ firm, chronological, author sides).
+
+**Phase 6 complete.** All four bullets delivered and verified end-to-end.
 
 ## Phase 7 - Contractor And Tender Coordination [P2]
 
