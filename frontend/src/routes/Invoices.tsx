@@ -29,6 +29,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -79,15 +80,15 @@ export function Invoices() {
 
   return (
     <Stack gap={6}>
-      <Stack orientation="horizontal" gap={5}>
-        <Stack gap={3} className="esti-grow">
-          <h1>Invoices</h1>
-          <p>GST tax invoices &amp; bills of supply across all projects.</p>
-        </Stack>
-        {canInvoice && (
-          <Button onClick={() => setOpen(true)}>New invoice</Button>
-        )}
-      </Stack>
+      <PageHeader
+        title="Invoices"
+        description="GST tax invoices &amp; bills of supply across all projects."
+        actions={
+          canInvoice ? (
+            <Button onClick={() => setOpen(true)}>New invoice</Button>
+          ) : undefined
+        }
+      />
 
       <DataState
         loading={listQ.isLoading}

@@ -46,6 +46,7 @@ export const clientRequestsRouter = router({
           rating: portalSubmissions.rating,
           status: portalSubmissions.status,
           responseNote: portalSubmissions.responseNote,
+          revisionCategory: portalSubmissions.revisionCategory,
           submittedBy: users.fullName,
           createdAt: portalSubmissions.createdAt,
         })

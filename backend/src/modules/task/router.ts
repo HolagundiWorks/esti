@@ -5,6 +5,7 @@ import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
+import { isHrEnabled, resolveSoloTaskAssignee } from "../../lib/hrMode.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const withProject = {
@@ -76,23 +77,44 @@ export const taskRouter = router({
     }),
 
   create: protectedProcedure.input(TaskCreate).mutation(async ({ ctx, input }) => {
-    if (input.assigneeId) {
-      const [check] = await ctx.db
-        .select({ id: assignments.id })
-        .from(assignments)
-        .where(and(eq(assignments.projectId, input.projectId), eq(assignments.teamMemberId, input.assigneeId)));
-      if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Assignee must be a member of the project team" });
+    const hrOn = await isHrEnabled(ctx.db);
+    let assigneeId = input.assigneeId ?? null;
+    let assigneeName: string | null = null;
+
+    if (!hrOn) {
+      const solo = await resolveSoloTaskAssignee(ctx.db, input.projectId);
+      assigneeId = solo.assigneeId;
+      assigneeName = solo.assignee;
+    } else {
+      if (assigneeId) {
+        const [check] = await ctx.db
+          .select({ id: assignments.id })
+          .from(assignments)
+          .where(
+            and(eq(assignments.projectId, input.projectId), eq(assignments.teamMemberId, assigneeId)),
+          );
+        if (!check)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Assignee must be a member of the project team",
+          });
+      }
+      assigneeName = assigneeId
+        ? await ctx.db
+            .select({ name: teamMembers.name })
+            .from(teamMembers)
+            .where(eq(teamMembers.id, assigneeId))
+            .then((r) => r[0]?.name ?? null)
+        : null;
     }
-    if (input.reviewerId) {
+
+    if (input.reviewerId && hrOn) {
       const [check] = await ctx.db
         .select({ id: assignments.id })
         .from(assignments)
         .where(and(eq(assignments.projectId, input.projectId), eq(assignments.teamMemberId, input.reviewerId)));
       if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Reviewer must be a member of the project team" });
     }
-    const assigneeName = input.assigneeId
-      ? await ctx.db.select({ name: teamMembers.name }).from(teamMembers).where(eq(teamMembers.id, input.assigneeId)).then((r) => r[0]?.name ?? null)
-      : null;
 
     const row = await ctx.db.transaction(async (tx) => {
       const [created] = await tx
@@ -101,9 +123,9 @@ export const taskRouter = router({
           title: input.title,
           description: input.description ?? null,
           projectId: input.projectId,
-          assigneeId: input.assigneeId ?? null,
+          assigneeId,
           assignee: assigneeName,
-          reviewerId: input.reviewerId ?? null,
+          reviewerId: hrOn ? (input.reviewerId ?? null) : null,
           dependsOnId: input.dependsOnId ?? null,
           classification: input.classification ?? null,
           workType: input.workType ?? null,
@@ -147,14 +169,22 @@ export const taskRouter = router({
     const [before] = await ctx.db.select().from(tasks).where(eq(tasks.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
 
-    if (input.assigneeId && before.projectId) {
+    const hrOn = await isHrEnabled(ctx.db);
+    let assigneeId = input.assigneeId;
+    let assigneeName: string | null | undefined = undefined;
+
+    if (!hrOn && before.projectId) {
+      const solo = await resolveSoloTaskAssignee(ctx.db, before.projectId);
+      assigneeId = solo.assigneeId;
+      assigneeName = solo.assignee;
+    } else if (input.assigneeId != null && before.projectId) {
       const [check] = await ctx.db
         .select({ id: assignments.id })
         .from(assignments)
         .where(and(eq(assignments.projectId, before.projectId), eq(assignments.teamMemberId, input.assigneeId)));
       if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Assignee must be a member of the project team" });
     }
-    if (input.reviewerId && before.projectId) {
+    if (input.reviewerId && before.projectId && hrOn) {
       const [check] = await ctx.db
         .select({ id: assignments.id })
         .from(assignments)
@@ -162,8 +192,7 @@ export const taskRouter = router({
       if (!check) throw new TRPCError({ code: "BAD_REQUEST", message: "Reviewer must be a member of the project team" });
     }
 
-    let assigneeName: string | null | undefined = undefined;
-    if (input.assigneeId !== undefined) {
+    if (input.assigneeId !== undefined && hrOn) {
       assigneeName = input.assigneeId
         ? await ctx.db.select({ name: teamMembers.name }).from(teamMembers).where(eq(teamMembers.id, input.assigneeId)).then((r) => r[0]?.name ?? null)
         : null;
@@ -178,8 +207,10 @@ export const taskRouter = router({
         .set({
           ...(input.title !== undefined ? { title: input.title } : {}),
           ...(input.description !== undefined ? { description: input.description } : {}),
-          ...(input.assigneeId !== undefined ? { assigneeId: input.assigneeId, assignee: assigneeName } : {}),
-          ...(input.reviewerId !== undefined ? { reviewerId: input.reviewerId } : {}),
+          ...(assigneeId !== undefined || (!hrOn && before.projectId)
+            ? { assigneeId: assigneeId ?? null, assignee: assigneeName ?? undefined }
+            : {}),
+          ...(input.reviewerId !== undefined ? { reviewerId: hrOn ? input.reviewerId : null } : {}),
           ...(input.dependsOnId !== undefined ? { dependsOnId: input.dependsOnId } : {}),
           ...(input.classification !== undefined ? { classification: input.classification } : {}),
           ...(input.workType !== undefined ? { workType: input.workType } : {}),

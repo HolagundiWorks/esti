@@ -27,6 +27,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 export function FeeProposals() {
@@ -67,20 +68,12 @@ export function FeeProposals() {
     feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <h1>Fee proposals</h1>
-          <p>COA scale-of-charges proposals across all projects.</p>
-        </div>
-        <Button onClick={() => setOpen(true)}>New fee proposal</Button>
-      </div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Fee proposals"
+        description="COA scale-of-charges proposals across all projects."
+        actions={<Button onClick={() => setOpen(true)}>New fee proposal</Button>}
+      />
 
       <DataState
         loading={listQ.isLoading}
@@ -251,6 +244,6 @@ export function FeeProposals() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

@@ -17,6 +17,7 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
+import { MeterChart } from "@carbon/charts-react";
 import {
   Trophy,
   UserProfile,
@@ -39,33 +40,46 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
+import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 
-// ─── KPI bar inside a member tile ────────────────────────────────────────────
+const KPI_METER_HEIGHT = "24px";
 
-function KpiBar({
+// ─── KPI meter inside a member tile ──────────────────────────────────────────
+
+function KpiMeter({
   label,
   value,
   weight,
+  chartTheme,
 }: {
   label: string;
   value: number;
   weight: string;
+  chartTheme: string;
 }) {
   const pct = Math.min(100, Math.max(0, value));
-  const color =
-    pct >= 80 ? "var(--cds-support-success)" :
-    pct >= 60 ? "var(--cds-support-warning)" :
-    "var(--cds-support-error)";
   return (
-    <Stack gap={1}>
+    <Stack gap={3}>
       <Stack orientation="horizontal" gap={3}>
         <span className="esti-grow">{label}</span>
         <span>{weight}</span>
         <span>{pct.toFixed(0)}</span>
       </Stack>
-      <div className="esti-kpi-track">
-        <div className="esti-kpi-fill" style={{ width: `${pct}%`, background: color }} />
+      <div className="esti-chart-sm">
+        <MeterChart
+          data={[{ group: label, value: pct }]}
+          options={{
+            data: { groupMapsTo: "group" },
+            height: KPI_METER_HEIGHT,
+            theme: chartTheme,
+            toolbar: { enabled: false },
+            legend: { enabled: false },
+            meter: { peak: 100 },
+            accessibility: { svgAriaLabel: `${label} ${pct} out of 100` },
+          }}
+        />
       </div>
     </Stack>
   );
@@ -76,9 +90,11 @@ function KpiBar({
 function MemberScoreCard({
   member,
   onGrant,
+  chartTheme,
 }: {
   member: AspRfMemberScore;
   onGrant: (m: AspRfMemberScore) => void;
+  chartTheme: string;
 }) {
   const band = member.band as PerformanceBand | null;
   return (
@@ -103,11 +119,11 @@ function MemberScoreCard({
           </Stack>
 
           <Stack gap={3}>
-            <KpiBar label="Reliability" value={member.kpi.reliability} weight="30%" />
-            <KpiBar label="Quality" value={member.kpi.quality} weight="25%" />
-            <KpiBar label="Client Impact" value={member.kpi.clientImpact} weight="15%" />
-            <KpiBar label="Collaboration" value={member.kpi.collaboration} weight="15%" />
-            <KpiBar label="Learning" value={member.kpi.learning} weight="10%" />
+            <KpiMeter label="Reliability" value={member.kpi.reliability} weight="30%" chartTheme={chartTheme} />
+            <KpiMeter label="Quality" value={member.kpi.quality} weight="25%" chartTheme={chartTheme} />
+            <KpiMeter label="Client Impact" value={member.kpi.clientImpact} weight="15%" chartTheme={chartTheme} />
+            <KpiMeter label="Collaboration" value={member.kpi.collaboration} weight="15%" chartTheme={chartTheme} />
+            <KpiMeter label="Learning" value={member.kpi.learning} weight="10%" chartTheme={chartTheme} />
           </Stack>
 
           <Stack orientation="horizontal" gap={5}>
@@ -205,6 +221,7 @@ function RecognitionTab() {
 // ─── Performance page ─────────────────────────────────────────────────────────
 
 export function Performance() {
+  const chartTheme = useAppTheme();
   const utils = trpc.useUtils();
   const scoresQ = trpc.aspRf.teamScores.useQuery();
   const scores = scoresQ.data ?? [];
@@ -237,10 +254,10 @@ export function Performance() {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1>Performance</h1>
-        <p>ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks, timesheets, and decisions.</p>
-      </Stack>
+      <PageHeader
+        title="Performance"
+        description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
+      />
 
       {/* KPI summary */}
       <Grid narrow>
@@ -304,6 +321,7 @@ export function Performance() {
                     key={m.teamMemberId}
                     member={m}
                     onGrant={setGrantTarget}
+                    chartTheme={chartTheme}
                   />
                 ))}
               </Grid>

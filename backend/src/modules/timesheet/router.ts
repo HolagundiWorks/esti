@@ -4,6 +4,7 @@ import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 import { projectOffices, tasks, teamMembers, timesheets } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const withDetails = {
@@ -26,6 +27,7 @@ export const timesheetRouter = router({
   list: protectedProcedure
     .input(TimesheetListParams.optional())
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const filters: ReturnType<typeof eq>[] = [];
 
       if (input?.myOnly) {
@@ -56,6 +58,7 @@ export const timesheetRouter = router({
     }),
 
   create: protectedProcedure.input(TimesheetCreate).mutation(async ({ ctx, input }) => {
+    await requireHrEnabled(ctx.db);
     const [tm] = await ctx.db
       .select({ id: teamMembers.id })
       .from(teamMembers)
@@ -83,6 +86,7 @@ export const timesheetRouter = router({
   }),
 
   update: protectedProcedure.input(TimesheetUpdate).mutation(async ({ ctx, input }) => {
+    await requireHrEnabled(ctx.db);
     const [before] = await ctx.db.select().from(timesheets).where(eq(timesheets.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [updated] = await ctx.db
@@ -106,6 +110,7 @@ export const timesheetRouter = router({
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const [before] = await ctx.db.select().from(timesheets).where(eq(timesheets.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(timesheets).where(eq(timesheets.id, input.id));
@@ -120,6 +125,7 @@ export const timesheetRouter = router({
   summary: protectedProcedure
     .input(z.object({ dateFrom: z.string(), dateTo: z.string() }))
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const rows = await ctx.db
         .select(withDetails)
         .from(timesheets)

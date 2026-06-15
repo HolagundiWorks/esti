@@ -18,6 +18,7 @@ import {
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 /** Render a YYYY-MM period key as e.g. "Apr 2026". */
@@ -61,14 +62,10 @@ export function Filing() {
 
   return (
     <Stack gap={6}>
-      <div>
-        <h2>Filing abstracts</h2>
-        <p>
-          GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J,
-          aggregated by month from issued and paid invoices. Default period is
-          the current financial year.
-        </p>
-      </div>
+      <PageHeader
+        title="Filing abstracts"
+        description="GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J, aggregated by month from issued and paid invoices. Default period is the current financial year."
+      />
 
       <DatePicker datePickerType="range" dateFormat="Y-m-d" onChange={onRange}>
         <DatePickerInput

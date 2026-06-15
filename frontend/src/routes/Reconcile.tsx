@@ -15,6 +15,7 @@ import {
 } from "@carbon/react";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -102,10 +103,10 @@ export function Reconcile() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>Reconciliation</h1>
-        <p>Match bank-statement credits against invoices (CSV / XLSX).</p>
-      </Stack>
+      <PageHeader
+        title="Reconciliation"
+        description="Match bank-statement credits against invoices (CSV / XLSX)."
+      />
 
       <Stack orientation="horizontal" gap={4}>
         <TextInput

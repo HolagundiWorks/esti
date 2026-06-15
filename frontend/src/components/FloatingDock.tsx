@@ -1,30 +1,34 @@
-import { Button, ProgressBar, Stack, Tag, Tile } from "@carbon/react";
-import { Calculator, Close, Time } from "@carbon/icons-react";
-import { useEffect, useState } from "react";
-import {
-  fmtPomTime,
-  POMODORO_MODE_LABEL,
-  POMODORO_MODE_TAG,
-  usePomodoro,
-  type PomodoroMode,
-} from "../contexts/PomodoroContext.js";
+import { Button, Stack, Tile, Toggle } from "@carbon/react";
+import { Calculator, Settings } from "@carbon/icons-react";
+import { can } from "@esti/contracts";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../lib/auth.js";
+import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
+import { trpc } from "../lib/trpc.js";
+import type { AppTheme } from "../lib/theme-context.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
+import { ScrollAffordance } from "./ScrollAffordance.js";
+
+type FloatingDockProps = {
+  theme: AppTheme;
+  onToggleTheme: () => void;
+};
 
 /**
- * Floating dock pinned to the bottom of the left nav rail: a focus-timer and a
- * calculator, each opening a small floating widget. Pomodoro state is global
- * (PomodoroContext) so the timer keeps running when the widget is closed.
+ * Floating dock pinned to the bottom of the left nav rail: settings and calculator.
  */
-export function FloatingDock() {
-  const [showPom, setShowPom] = useState(false);
+export function FloatingDock({ theme, onToggleTheme }: FloatingDockProps) {
+  const [showSettings, setShowSettings] = useState(false);
   const [showCalc, setShowCalc] = useState(false);
-  const pom = usePomodoro();
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+  const calcTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Alt+T toggles the timer, Alt+C the calculator.
+  // Alt+S settings, Alt+C calculator.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey) return;
-      if (e.key === "t" || e.key === "T") { e.preventDefault(); setShowPom((o) => !o); }
+      if (e.key === "s" || e.key === "S") { e.preventDefault(); setShowSettings((o) => !o); }
       if (e.key === "c" || e.key === "C") { e.preventDefault(); setShowCalc((o) => !o); }
     };
     window.addEventListener("keydown", onKey);
@@ -35,13 +39,14 @@ export function FloatingDock() {
     <>
       <div className="esti-dock">
         <Button
-          hasIconOnly renderIcon={Time} size="sm"
-          iconDescription={`Focus timer${pom.running ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}
-          tooltipPosition="right"
-          kind={showPom || pom.running ? "primary" : "ghost"}
-          onClick={() => setShowPom((o) => !o)}
+          ref={settingsTriggerRef}
+          hasIconOnly renderIcon={Settings} size="sm"
+          iconDescription="Settings (Alt+S)" tooltipPosition="right"
+          kind={showSettings ? "primary" : "ghost"}
+          onClick={() => setShowSettings((o) => !o)}
         />
         <Button
+          ref={calcTriggerRef}
           hasIconOnly renderIcon={Calculator} size="sm"
           iconDescription="Calculator (Alt+C)" tooltipPosition="right"
           kind={showCalc ? "primary" : "ghost"}
@@ -49,41 +54,113 @@ export function FloatingDock() {
         />
       </div>
 
-      {showPom && <FloatingPomodoro onClose={() => setShowPom(false)} />}
-      <FloatingCalculator open={showCalc} onClose={() => setShowCalc(false)} />
+      <FloatingSettings
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        triggerRef={settingsTriggerRef}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+      />
+      <FloatingCalculator
+        open={showCalc}
+        onClose={() => setShowCalc(false)}
+        triggerRef={calcTriggerRef}
+      />
     </>
   );
 }
 
-function FloatingPomodoro({ onClose }: { onClose: () => void }) {
-  const pom = usePomodoro();
-  const pct = ((pom.duration - pom.timeLeft) / pom.duration) * 100;
+function FloatingSettings({
+  open,
+  onClose,
+  triggerRef,
+  theme,
+  onToggleTheme,
+}: {
+  open: boolean;
+  onClose: () => void;
+  triggerRef: RefObject<HTMLElement | null>;
+  theme: AppTheme;
+  onToggleTheme: () => void;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const isAdmin = can(user?.role, "firm:admin");
+  const settingsQ = trpc.settings.get.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const showFinancial = settingsQ.data?.financialEnabled ?? true;
+  const showProject = settingsQ.data?.projectEnabled ?? true;
+  const setModule = trpc.settings.setModuleEnabled.useMutation({
+    onSuccess: () => utils.settings.get.invalidate(),
+  });
+
+  useDismissOnOutsideClick(open, onClose, [panelRef, triggerRef]);
+
+  if (!open) return null;
 
   return (
-    <Tile className="esti-float-widget">
-      <Stack gap={4}>
-        <Stack orientation="horizontal" gap={3}>
-          <Tag type={POMODORO_MODE_TAG[pom.mode]} size="sm">{POMODORO_MODE_LABEL[pom.mode]}</Tag>
-          <div className="esti-grow" />
-          <Button hasIconOnly renderIcon={Close} size="sm" kind="ghost" iconDescription="Close" onClick={onClose} />
-        </Stack>
-        <Stack orientation="horizontal" gap={2}>
-          {(["work", "short", "long"] as PomodoroMode[]).map((m) => (
-            <Button key={m} kind={pom.mode === m ? "primary" : "ghost"} size="sm" onClick={() => pom.switchMode(m)}>
-              {POMODORO_MODE_LABEL[m]}
+    <div ref={panelRef} className="esti-float-widget esti-float-settings">
+      <Tile className="esti-glass-panel esti-float-panel-shell">
+        <ScrollAffordance>
+          <Stack gap={5}>
+            <h4>Settings</h4>
+            <Stack gap={4}>
+            <Toggle
+              id="dock-theme"
+              size="sm"
+              labelText="Theme"
+              labelA="Light"
+              labelB="Dark"
+              toggled={theme === "g100"}
+              onToggle={() => onToggleTheme()}
+            />
+            {isAdmin && (
+              <>
+                <h4>Dashboard sections</h4>
+                <Stack gap={4}>
+                  <Toggle
+                    id="dock-db-financial"
+                    size="sm"
+                    labelText="Financial"
+                    labelA="Off"
+                    labelB="On"
+                    toggled={showFinancial}
+                    disabled={setModule.isPending || settingsQ.isLoading}
+                    onToggle={(c) =>
+                      setModule.mutate({ module: "financial", enabled: c })
+                    }
+                  />
+                  <Toggle
+                    id="dock-db-project"
+                    size="sm"
+                    labelText="Project"
+                    labelA="Off"
+                    labelB="On"
+                    toggled={showProject}
+                    disabled={setModule.isPending || settingsQ.isLoading}
+                    onToggle={(c) =>
+                      setModule.mutate({ module: "project", enabled: c })
+                    }
+                  />
+                </Stack>
+              </>
+            )}
+            <p>Display name and password are on the full profile page.</p>
+            <Button
+              as={Link}
+              to="/settings"
+              kind="ghost"
+              size="sm"
+              onClick={onClose}
+            >
+              Open my profile
             </Button>
-          ))}
+          </Stack>
         </Stack>
-        <h1>{fmtPomTime(pom.timeLeft)}</h1>
-        <ProgressBar label={POMODORO_MODE_LABEL[pom.mode]} value={pct} max={100} hideLabel />
-        <Stack orientation="horizontal" gap={3}>
-          <Button kind="primary" size="sm" onClick={pom.toggle}>
-            {pom.running ? "Pause" : pom.timeLeft === pom.duration ? "Start" : "Resume"}
-          </Button>
-          <Button kind="ghost" size="sm" onClick={pom.reset}>Reset</Button>
-        </Stack>
-        {pom.sessions > 0 && <p>{pom.sessions} session{pom.sessions !== 1 ? "s" : ""} today</p>}
-      </Stack>
-    </Tile>
+        </ScrollAffordance>
+      </Tile>
+    </div>
   );
 }

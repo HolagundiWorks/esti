@@ -20,6 +20,7 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -66,10 +67,10 @@ export function AuditLog() {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1>Audit log</h1>
-        <p>Append-only record of security-sensitive and operational changes.</p>
-      </Stack>
+      <PageHeader
+        title="Audit log"
+        description="Append-only record of security-sensitive and operational changes."
+      />
 
       <Grid condensed>
         <Column sm={4} md={4} lg={6}>

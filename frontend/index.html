@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ESTI AORMS — Architecture Practice Management Software for India</title>
+    <title>ESTI AORMS — Architectural Studio Management Software for Indian Architects</title>
 
     <!-- Icons -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,56 +14,82 @@
     <meta name="theme-color" content="#141414" />
 
     <!-- SEO -->
-    <meta name="description" content="Practice-management software for Indian architects — COA fee proposals, GST & TDS invoicing, drawings & DXF takeoff, FAR/setback bylaw compliance, BBS generation and team performance. Self-hosted, for solo architects and firms of 5–50." />
-    <meta name="keywords" content="architecture office management software India, practice management software for architects India, architecture firm billing software, COA scale of charges fee calculator, GST invoicing software for architects, TDS 194J, FAR setback bylaw compliance, BBMP, BBS bar bending schedule software, DXF takeoff, AORMS, ESTI AORMS, self-hosted architecture software" />
+    <meta name="description" content="Architectural studio management software for Indian architects — COA fee proposals, GST &amp; TDS invoicing, drawings, RIE bylaw compliance, BBS and client portals. Self-hosted AORMS for solo practitioners and architecture studios." />
+    <meta name="keywords" content="architectural studio management software, architecture studio management software India, client revision management architects, Major Critical revision workflow, ASPRF performance scoring, architectural office management software, practice management software for architects India, AORMS, ESTI AORMS, COA scale of charges, GST invoicing architects, TDS 194J, FAR setback compliance, BBS software, self-hosted architecture software" />
     <meta name="author" content="Holagundi Consulting Works" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://aorms.in/" />
 
     <!-- Open Graph -->
     <meta property="og:type"        content="website" />
+    <meta property="og:locale"      content="en_IN" />
     <meta property="og:url"         content="https://aorms.in/" />
-    <meta property="og:title"       content="ESTI AORMS — Architectural Office Management for Indian Practices" />
-    <meta property="og:description" content="GST invoicing, COA fee proposals, drawings, RIE bylaw compliance, ASPRF performance scoring and SteelFlow AI — one self-hosted platform built for Indian architects." />
+    <meta property="og:title"       content="Architectural Studio Management Software for Indian Architects" />
+    <meta property="og:description" content="ESTI AORMS — self-hosted studio management for Indian architecture practices. Projects, COA fees, drawings, compliance and GST in one traceable office record." />
     <meta property="og:site_name"   content="ESTI AORMS" />
 
     <meta property="og:image"       content="https://aorms.in/og-image.png" />
     <meta property="og:image:width"  content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"   content="ESTI AORMS — architectural studio management software for Indian architects" />
 
     <!-- Twitter card -->
     <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:title"       content="ESTI AORMS — Architectural Office Management for India" />
-    <meta name="twitter:description" content="Self-hosted AORMS — projects, fees, GST, drawings, compliance and performance for Indian architecture practices." />
+    <meta name="twitter:title"       content="Architectural Studio Management Software for Indian Architects | ESTI AORMS" />
+    <meta name="twitter:description" content="Self-hosted AORMS for Indian architects and studios — fees, drawings, bylaws, BBS and GST billing in one system." />
     <meta name="twitter:image"       content="https://aorms.in/og-image.png" />
+    <meta name="twitter:image:alt"   content="ESTI AORMS — architectural studio management software for Indian architects" />
 
     <!-- Structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "ESTI AORMS",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web, iOS (coming soon), Android (coming soon)",
-      "url": "https://aorms.in",
-      "description": "Architectural Office Resource Management System for Indian practices — GST invoicing, COA fee proposals, drawings, RIE compliance and ASPRF performance scoring.",
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "INR",
-        "price": "499",
-        "priceSpecification": {
-          "@type": "UnitPriceSpecification",
-          "price": "499",
-          "priceCurrency": "INR",
-          "unitText": "MONTH"
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://aorms.in/#website",
+          "url": "https://aorms.in/",
+          "name": "ESTI AORMS",
+          "description": "Architectural studio management software for Indian architects — COA fees, drawings, compliance and GST billing.",
+          "inLanguage": "en-IN",
+          "publisher": { "@id": "https://aorms.in/#organization" }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://aorms.in/#organization",
+          "name": "Holagundi Consulting Works",
+          "url": "https://aorms.in",
+          "email": "hi@aorms.in",
+          "logo": "https://aorms.in/aorms-logo.png"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://aorms.in/#software",
+          "name": "ESTI AORMS",
+          "alternateName": ["AORMS", "ESTI", "Embedded Studio Intelligence", "Architectural Office Resource Management System"],
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "url": "https://aorms.in",
+          "description": "ESTI (Embedded Studio Intelligence) powers AORMS — architectural studio management software for Indian architects with COA fee proposals, GST/TDS invoicing, drawings, RIE bylaw compliance, BBS and client portals.",
+          "featureList": "COA fee proposals, GST and TDS invoicing, drawing register, RIE bylaw compliance, SteelFlow BBS, client portal, team workload",
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Indian architects and architecture studios"
+          },
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "INR",
+            "price": "499",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "499",
+              "priceCurrency": "INR",
+              "unitText": "MONTH"
+            }
+          },
+          "publisher": { "@id": "https://aorms.in/#organization" }
         }
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "Holagundi Consulting Works",
-        "url": "https://aorms.in",
-        "email": "hi@aorms.in"
-      }
+      ]
     }
     </script>
 
@@ -75,13 +101,28 @@
       "mainEntity": [
         {
           "@type": "Question",
+          "name": "What does ESTI stand for?",
+          "acceptedAnswer": { "@type": "Answer", "text": "ESTI stands for Embedded Studio Intelligence — the software product that powers AORMS. It embeds fee logic, compliance checks, drawing control and billing intelligence into architecture studio workflows instead of separate spreadsheets and tools." }
+        },
+        {
+          "@type": "Question",
+          "name": "What is AORMS?",
+          "acceptedAnswer": { "@type": "Answer", "text": "AORMS — Architectural Office Resource Management System — is the system an architecture office runs on: projects, fees, drawings, people, compliance and client communication in one record. ESTI is the product that delivers your AORMS." }
+        },
+        {
+          "@type": "Question",
+          "name": "What is architectural studio management software?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Architectural studio management software — an AORMS (Architectural Office Resource Management System) — connects projects, COA fees, drawings, bylaw compliance and GST billing in one office record. ESTI AORMS is built for Indian architects and studios, not adapted from generic project tools." }
+        },
+        {
+          "@type": "Question",
           "name": "What is an AORMS and how is it different from generic project management software?",
-          "acceptedAnswer": { "@type": "Answer", "text": "AORMS — Architectural Office Resource Management System — is practice-management software built for architecture firms. ESTI understands COA service stages, the Scale of Charges, Indian GST/TDS, building-bylaw compliance (FAR, setbacks, ground coverage), drawing revisions and bar bending schedules out of the box." }
+          "acceptedAnswer": { "@type": "Answer", "text": "AORMS — Architectural Office Resource Management System — is studio management software built for architecture firms. ESTI understands COA service stages, the Scale of Charges, Indian GST/TDS, building-bylaw compliance (FAR, setbacks, ground coverage), drawing revisions and bar bending schedules out of the box." }
         },
         {
           "@type": "Question",
           "name": "Is ESTI suitable for a solo architect as well as a 50-person firm?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. A solo practitioner gets every module under one login; growing studios switch on seniority roles, HR, team assignments, timesheets and ASPRF performance scoring. The same platform scales from one architect to 50." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. A solo practitioner gets every module under one login; growing studios switch on seniority roles, HR, team assignments, attendance and ASPRF performance scoring. The same platform scales from one architect to 50." }
         },
         {
           "@type": "Question",
@@ -92,6 +133,11 @@
           "@type": "Question",
           "name": "Can ESTI check building bylaws like FAR and setbacks?",
           "acceptedAnswer": { "@type": "Answer", "text": "The RIE compliance engine validates FAR/FSI, ground coverage, setbacks, height, basement and sustainability rules against a versioned jurisdiction rule-set (e.g. BBMP), runs a pre-design quick check or post-design deviation report, and issues a branded compliance PDF." }
+        },
+        {
+          "@type": "Question",
+          "name": "How does client revision management work in ESTI?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Clients submit decisions through the portal. Each is classified Minor, Major or Critical. Major and Critical items show an explicit warning — accepting may affect timeline, cost or scope — before the architect or principal signs off. Revision risk rolls up to the office dashboard." }
         },
         {
           "@type": "Question",

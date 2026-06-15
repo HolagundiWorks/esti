@@ -57,6 +57,7 @@ services:
     # Dev hot-reload: host source is mounted over the image; node_modules stays.
     volumes:
       - ./backend/src:/app/backend/src
+      - ./backend/drizzle:/app/backend/drizzle
       - ./packages/contracts/src:/app/packages/contracts/src
     ports: ["4000:4000"]
     depends_on: [db, redis]

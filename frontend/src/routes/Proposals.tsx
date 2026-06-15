@@ -24,6 +24,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 function ProposalPdf({ id, initial }: { id: string; initial: string }) {
@@ -94,20 +95,12 @@ export function Proposals() {
   const remove = trpc.proposals.remove.useMutation({ onSuccess: inv });
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <h1>Proposals &amp; agreements</h1>
-          <p>COA-based engagement proposals across all projects.</p>
-        </div>
-        <Button onClick={() => setOpen(true)}>New proposal</Button>
-      </div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Proposals & agreements"
+        description="COA-based engagement proposals across all projects."
+        actions={<Button onClick={() => setOpen(true)}>New proposal</Button>}
+      />
 
       <DataState
         loading={listQ.isLoading}
@@ -249,6 +242,6 @@ export function Proposals() {
           />
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

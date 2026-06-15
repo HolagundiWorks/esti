@@ -56,13 +56,17 @@ export type InspectionCreate = z.infer<typeof InspectionCreate>;
 // --- Specification sheet ----------------------------------------------------
 
 export const SpecItemInput = z.object({
+  catalogItemId: z.string().uuid().optional(),
   category: z.string().max(120).optional(),
-  item: z.string().min(1).max(200),
+  item: z.string().min(1).max(200).optional(),
   make: z.string().max(120).optional(),
   specification: z.string().max(500).optional(),
   finish: z.string().max(120).optional(),
   remarks: z.string().max(300).optional(),
-});
+}).refine(
+  (row) => row.catalogItemId || (row.item && row.item.trim().length > 0),
+  { message: "Provide a catalogue item or item name" },
+);
 export type SpecItemInput = z.infer<typeof SpecItemInput>;
 
 export const SpecSheetCreate = z.object({

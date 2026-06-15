@@ -10,6 +10,7 @@ import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const teamRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
+    await requireHrEnabled(ctx.db);
     return ctx.db.select().from(teamMembers).orderBy(asc(teamMembers.name));
   }),
 
@@ -38,6 +39,7 @@ export const teamRouter = router({
   }),
 
   update: ownerProcedure.input(TeamMemberUpdate).mutation(async ({ ctx, input }) => {
+    await requireHrEnabled(ctx.db);
     const [before] = await ctx.db.select().from(teamMembers).where(eq(teamMembers.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const [row] = await ctx.db
@@ -67,6 +69,7 @@ export const assignmentRouter = router({
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       return ctx.db
         .select({
           id: assignments.id,
@@ -105,6 +108,7 @@ export const assignmentRouter = router({
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const [before] = await ctx.db.select().from(assignments).where(eq(assignments.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db.delete(assignments).where(eq(assignments.id, input.id));

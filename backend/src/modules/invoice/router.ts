@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { writeActivity } from "../../lib/activity.js";
 import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireInvoiceScope } from "../../lib/projectScope.js";
@@ -83,6 +84,15 @@ export const invoiceRouter = router({
         before: { pdfStatus: row.pdfStatus },
         after: { pdfStatus: "PENDING" },
       });
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "invoice",
+        objectId: row.id,
+        eventType: "invoice.pdf_requested",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `PDF generation requested for invoice ${row.ref}`,
+      });
       return { ok: true };
     }),
 
@@ -125,6 +135,16 @@ export const invoiceRouter = router({
         before: { status: current.status },
         after: { status: input.status },
       });
+      await writeActivity(ctx.db, {
+        projectId: current.projectId,
+        objectType: "invoice",
+        objectId: input.id,
+        eventType: "invoice.status_changed",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Invoice ${current.ref} → ${input.status}`,
+        metadata: { from: current.status, to: input.status },
+      });
       return row!;
     }),
 
@@ -152,6 +172,15 @@ export const invoiceRouter = router({
         action: "DELETE",
         actorId: ctx.user.id,
         before: { ref: row.ref, status: row.status },
+      });
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "invoice",
+        objectId: input.id,
+        eventType: "invoice.deleted",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Invoice ${row.ref} deleted`,
       });
       return { ok: true };
     }),
@@ -200,6 +229,16 @@ export const invoiceRouter = router({
       action: "CREATE",
       actorId: ctx.user.id,
       after: row,
+    });
+    await writeActivity(ctx.db, {
+      projectId: row!.projectId,
+      objectType: "invoice",
+      objectId: row!.id,
+      eventType: "invoice.created",
+      actorId: ctx.user.id,
+      actorName: ctx.user.fullName,
+      summary: `Invoice ${row!.ref} created`,
+      metadata: { ref: row!.ref, status: row!.status, taxablePaise: row!.taxablePaise },
     });
     return row!;
   }),

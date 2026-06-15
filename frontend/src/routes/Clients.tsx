@@ -22,6 +22,7 @@ import {
 import { ClientKind } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const HEADERS = [
@@ -97,7 +98,12 @@ export function Clients() {
     })) ?? [];
 
   return (
-    <div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Clients"
+        description="Clients and leads — attach projects, invoices and portal logins."
+      />
+
       {portalMsg && (
         <InlineNotification
           kind="success"
@@ -137,7 +143,7 @@ export function Clients() {
               page * pageSize,
             );
             return (
-              <TableContainer title="Clients" description="Clients and leads">
+              <TableContainer>
                 <TableToolbar>
                   <TableToolbarContent>
                     <TableToolbarSearch
@@ -321,6 +327,6 @@ export function Clients() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

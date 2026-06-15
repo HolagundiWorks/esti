@@ -145,6 +145,7 @@ export const portalRouter = router({
           rating: portalSubmissions.rating,
           status: portalSubmissions.status,
           responseNote: portalSubmissions.responseNote,
+          revisionCategory: portalSubmissions.revisionCategory,
           createdAt: portalSubmissions.createdAt,
         })
         .from(portalSubmissions)
@@ -218,6 +219,11 @@ export const portalRouter = router({
       // Only items the firm has actually sent can be responded to.
       if (!["SENT", "REVISIONS"].includes(row.status))
         throw new TRPCError({ code: "BAD_REQUEST", message: "This item is not awaiting your response." });
+      if (input.decision === "REVISIONS" && !input.revisionCategory)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Select a revision category — Minor, Major or Critical.",
+        });
 
       await ctx.db
         .update(approvals)
@@ -233,7 +239,11 @@ export const portalRouter = router({
         actorName: ctx.user.fullName,
         visibility: "ALL",
         summary: `Client recorded "${input.decision}" on approval: ${row.title}`,
-        metadata: { decision: input.decision, remarks: input.remarks ?? null },
+        metadata: {
+          decision: input.decision,
+          remarks: input.remarks ?? null,
+          revisionCategory: input.revisionCategory ?? null,
+        },
       });
       return { ok: true as const };
     }),
@@ -265,7 +275,8 @@ export const portalRouter = router({
         objectId: input.objectId ?? null,
         subject: input.subject,
         body: input.body,
-        eventSummary: `Client raised a change request: ${input.subject}`,
+        revisionCategory: input.revisionCategory,
+        eventSummary: `Client raised a ${input.revisionCategory} change request: ${input.subject}`,
       });
     }),
 
@@ -321,6 +332,7 @@ async function insertSubmission(
     subject: string;
     body?: string | null;
     rating?: number | null;
+    revisionCategory?: string | null;
     eventSummary: string;
   },
 ): Promise<{ ok: true; id: string }> {
@@ -335,6 +347,7 @@ async function insertSubmission(
       subject: entry.subject,
       body: entry.body ?? null,
       rating: entry.rating ?? null,
+      revisionCategory: entry.revisionCategory ?? null,
       submittedById: ctx.user.id,
     })
     .returning({ id: portalSubmissions.id });
@@ -348,7 +361,11 @@ async function insertSubmission(
     actorName: ctx.user.fullName,
     visibility: "ALL",
     summary: entry.eventSummary,
-    metadata: { kind: entry.kind, rating: entry.rating ?? null },
+    metadata: {
+      kind: entry.kind,
+      rating: entry.rating ?? null,
+      revisionCategory: entry.revisionCategory ?? null,
+    },
   });
   return { ok: true as const, id: created!.id };
 }

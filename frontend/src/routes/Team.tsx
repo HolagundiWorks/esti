@@ -28,6 +28,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const HEADERS = [
@@ -93,7 +94,11 @@ export function Team() {
     })) ?? [];
 
   return (
-    <div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Team"
+        description="Office team members, roles, employment type and monthly salary."
+      />
       <DataState
         loading={list.isLoading}
         isEmpty={allRows.length === 0}
@@ -293,6 +298,6 @@ export function Team() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

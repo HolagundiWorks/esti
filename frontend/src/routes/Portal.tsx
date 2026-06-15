@@ -5,8 +5,6 @@ import {
   Content,
   Form,
   Grid,
-  Header,
-  HeaderName,
   InlineNotification,
   Modal,
   Select,
@@ -28,12 +26,18 @@ import {
   PORTAL_SUBMISSION_KIND_LABEL,
   PORTAL_SUBMISSION_STATUS_LABEL,
   PORTAL_SUBMISSION_STATUS_TAG,
+  REVISION_CATEGORY_LABEL,
+  REVISION_CATEGORY_TAG,
+  RevisionCategory,
   type PortalApprovalDecision,
   type PortalSubmissionKind,
   type PortalSubmissionStatus,
+  type RevisionCategory as RevisionCategoryT,
 } from "@esti/contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PortalHeader } from "../components/PortalHeader.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -55,13 +59,15 @@ const AP_TAG: Record<
 const RESPONDABLE = ["SENT", "REVISIONS"];
 
 export function Portal() {
+  const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId?: string }>();
+  const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.portal.branding.useQuery();
   const projectsQ = trpc.portal.myProjects.useQuery();
-  const [openId, setOpenId] = useState<string | null>(null);
   const detailQ = trpc.portal.projectDetail.useQuery(
     { projectId: openId ?? "" },
     { enabled: !!openId },
@@ -76,12 +82,28 @@ export function Portal() {
   );
   const d = detailQ.data;
 
+  useEffect(() => {
+    if (openId && detailQ.isError) {
+      navigate("/", { replace: true });
+    }
+  }, [openId, detailQ.isError, navigate]);
+
   // ── write state ──────────────────────────────────────────────────────────
   const [decision, setDecision] = useState<
-    { approvalId: string; title: string; decision: PortalApprovalDecision; remarks: string } | null
+    {
+      approvalId: string;
+      title: string;
+      decision: PortalApprovalDecision;
+      remarks: string;
+      revisionCategory: RevisionCategoryT | "";
+    } | null
   >(null);
   const [requestOpen, setRequestOpen] = useState(false);
-  const [request, setRequest] = useState({ subject: "", body: "" });
+  const [request, setRequest] = useState({
+    subject: "",
+    body: "",
+    revisionCategory: "MINOR" as RevisionCategoryT,
+  });
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState({ subject: "", body: "", rating: "" });
 
@@ -95,7 +117,11 @@ export function Portal() {
   });
   const acknowledge = trpc.portal.acknowledge.useMutation({ onSuccess: refresh });
   const changeRequest = trpc.portal.submitChangeRequest.useMutation({
-    onSuccess: () => { refresh(); setRequestOpen(false); setRequest({ subject: "", body: "" }); },
+    onSuccess: () => {
+      refresh();
+      setRequestOpen(false);
+      setRequest({ subject: "", body: "", revisionCategory: "MINOR" });
+    },
   });
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
@@ -113,25 +139,18 @@ export function Portal() {
 
   return (
     <>
-      <Header aria-label="ESTI client portal">
-        {brandingQ.data?.logoUrl && (
-          <img src={brandingQ.data.logoUrl} alt="" className="esti-portal-logo" />
-        )}
-        <HeaderName prefix={brandingQ.data?.companyName ?? "ESTI"}>Client portal</HeaderName>
-        <Button
-          kind="ghost"
-          size="sm"
-          style={{ marginLeft: "auto" }}
-          onClick={() => logout.mutate()}
-        >
-          Sign out
-        </Button>
-      </Header>
+      <PortalHeader
+        companyName={brandingQ.data?.companyName}
+        logoUrl={brandingQ.data?.logoUrl}
+        portalLabel="Client portal"
+        onSignOut={() => logout.mutate()}
+        signingOut={logout.isPending}
+      />
       <Content>
         {!openId && (
           <Stack gap={5}>
             <Stack gap={2}>
-              <h2>Your projects</h2>
+              <h1>Your projects</h1>
               <p>
                 Track status, invoices, approvals and issued drawings — and
                 respond to approvals, raise change requests or leave feedback.
@@ -141,7 +160,7 @@ export function Portal() {
               {(projectsQ.data ?? []).length === 0 && <p>No projects yet.</p>}
               {(projectsQ.data ?? []).map((p) => (
                 <Column key={p.id} sm={4} md={4} lg={4}>
-                  <ClickableTile onClick={() => setOpenId(p.id)}>
+                  <ClickableTile onClick={() => navigate(`/projects/${p.id}`)}>
                     <Stack gap={3}>
                       <p>{p.ref}</p>
                       <h3>{p.title}</h3>
@@ -157,7 +176,7 @@ export function Portal() {
         {openId && d && (
           <Stack gap={6}>
             <Stack gap={3}>
-              <Button kind="ghost" size="sm" onClick={() => setOpenId(null)}>
+              <Button kind="ghost" size="sm" onClick={() => navigate("/")}>
                 ← All projects
               </Button>
               <h2>{d.project.title}</h2>
@@ -170,6 +189,13 @@ export function Portal() {
                 <Button size="sm" onClick={() => setRequestOpen(true)}>Raise change request</Button>
                 <Button size="sm" kind="tertiary" onClick={() => setFeedbackOpen(true)}>Leave feedback</Button>
               </Stack>
+              <InlineNotification
+                kind="info"
+                title="Revision categories"
+                subtitle="Classify every change request and revision response as Minor (small tweak), Major (scope or fee impact), or Critical (stop-work / safety). Your architect uses the same categories in the CRIF decision ledger."
+                lowContrast
+                hideCloseButton
+              />
             </Stack>
 
             <Section title="Stages">
@@ -246,15 +272,33 @@ export function Portal() {
                         {RESPONDABLE.includes(a.status) ? (
                           <Stack orientation="horizontal" gap={2}>
                             <Button kind="ghost" size="sm"
-                              onClick={() => setDecision({ approvalId: a.id, title: a.title, decision: "APPROVED", remarks: "" })}>
+                              onClick={() => setDecision({
+                                approvalId: a.id,
+                                title: a.title,
+                                decision: "APPROVED",
+                                remarks: "",
+                                revisionCategory: "",
+                              })}>
                               Approve
                             </Button>
                             <Button kind="ghost" size="sm"
-                              onClick={() => setDecision({ approvalId: a.id, title: a.title, decision: "REVISIONS", remarks: "" })}>
+                              onClick={() => setDecision({
+                                approvalId: a.id,
+                                title: a.title,
+                                decision: "REVISIONS",
+                                remarks: "",
+                                revisionCategory: "MINOR",
+                              })}>
                               Request revisions
                             </Button>
                             <Button kind="danger--ghost" size="sm"
-                              onClick={() => setDecision({ approvalId: a.id, title: a.title, decision: "REJECTED", remarks: "" })}>
+                              onClick={() => setDecision({
+                                approvalId: a.id,
+                                title: a.title,
+                                decision: "REJECTED",
+                                remarks: "",
+                                revisionCategory: "",
+                              })}>
                               Reject
                             </Button>
                           </Stack>
@@ -299,13 +343,14 @@ export function Portal() {
               <DataState
                 loading={submissionsQ.isLoading}
                 isEmpty={(submissionsQ.data ?? []).length === 0}
-                columnCount={4}
+                columnCount={5}
                 empty={{ title: "Nothing submitted yet", description: "Your acknowledgements, change requests and feedback appear here." }}
               >
                 <Table>
                   <TableHead>
                     <TableRow>
                       <TableHeader>Type</TableHeader>
+                      <TableHeader>Revision</TableHeader>
                       <TableHeader>Subject</TableHeader>
                       <TableHeader>Status</TableHeader>
                       <TableHeader>Firm response</TableHeader>
@@ -316,6 +361,13 @@ export function Portal() {
                     {(submissionsQ.data ?? []).map((s) => (
                       <TableRow key={s.id}>
                         <TableCell>{PORTAL_SUBMISSION_KIND_LABEL[s.kind as PortalSubmissionKind] ?? s.kind}</TableCell>
+                        <TableCell>
+                          {s.revisionCategory ? (
+                            <Tag type={REVISION_CATEGORY_TAG[s.revisionCategory as RevisionCategoryT] ?? "gray"} size="sm">
+                              {REVISION_CATEGORY_LABEL[s.revisionCategory as RevisionCategoryT] ?? s.revisionCategory}
+                            </Tag>
+                          ) : "—"}
+                        </TableCell>
                         <TableCell>{s.subject}</TableCell>
                         <TableCell>
                           <Tag type={PORTAL_SUBMISSION_STATUS_TAG[s.status as PortalSubmissionStatus] ?? "blue"}>
@@ -372,21 +424,49 @@ export function Portal() {
           modalHeading={decision ? `Respond — ${decision.title}` : "Respond"}
           primaryButtonText={respond.isPending ? "Submitting…" : "Submit response"}
           secondaryButtonText="Cancel"
-          primaryButtonDisabled={respond.isPending}
+          primaryButtonDisabled={
+            respond.isPending ||
+            (decision?.decision === "REVISIONS" && !decision.revisionCategory)
+          }
           onRequestClose={() => setDecision(null)}
           onRequestSubmit={() => decision && respond.mutate({
-            approvalId: decision.approvalId, decision: decision.decision,
+            approvalId: decision.approvalId,
+            decision: decision.decision,
             remarks: decision.remarks || undefined,
+            revisionCategory:
+              decision.decision === "REVISIONS"
+                ? (decision.revisionCategory as RevisionCategoryT)
+                : undefined,
           })}
         >
           {decision && (
             <Stack gap={5}>
               <Select id="dec-kind" labelText="Decision" value={decision.decision}
-                onChange={(e) => setDecision({ ...decision, decision: e.target.value as PortalApprovalDecision })}>
+                onChange={(e) => setDecision({
+                  ...decision,
+                  decision: e.target.value as PortalApprovalDecision,
+                  revisionCategory: e.target.value === "REVISIONS" ? "MINOR" : "",
+                })}>
                 <SelectItem value="APPROVED" text="Approve" />
                 <SelectItem value="REVISIONS" text="Request revisions" />
                 <SelectItem value="REJECTED" text="Reject" />
               </Select>
+              {decision.decision === "REVISIONS" && (
+                <Select
+                  id="dec-rev-cat"
+                  labelText="Revision category"
+                  helperText="Major and Critical revisions may affect scope, fees and schedule."
+                  value={decision.revisionCategory}
+                  onChange={(e) => setDecision({
+                    ...decision,
+                    revisionCategory: e.target.value as RevisionCategoryT,
+                  })}
+                >
+                  {RevisionCategory.options.map((c) => (
+                    <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
+                  ))}
+                </Select>
+              )}
               <TextArea id="dec-remarks" labelText="Remarks (optional)" rows={3}
                 value={decision.remarks}
                 onChange={(e) => setDecision({ ...decision, remarks: e.target.value })} />
@@ -406,11 +486,28 @@ export function Portal() {
           primaryButtonDisabled={!request.subject || !request.body || changeRequest.isPending}
           onRequestClose={() => setRequestOpen(false)}
           onRequestSubmit={() => openId && changeRequest.mutate({
-            projectId: openId, subject: request.subject, body: request.body,
+            projectId: openId,
+            subject: request.subject,
+            body: request.body,
+            revisionCategory: request.revisionCategory,
           })}
         >
           <Form onSubmit={(e) => e.preventDefault()}>
             <Stack gap={5}>
+              <Select
+                id="cr-cat"
+                labelText="Revision category"
+                helperText="How significant is this change for scope, fees or schedule?"
+                value={request.revisionCategory}
+                onChange={(e) => setRequest((r) => ({
+                  ...r,
+                  revisionCategory: e.target.value as RevisionCategoryT,
+                }))}
+              >
+                {RevisionCategory.options.map((c) => (
+                  <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
+                ))}
+              </Select>
               <TextInput id="cr-subject" labelText="Subject" value={request.subject}
                 onChange={(e) => setRequest((r) => ({ ...r, subject: e.target.value }))} />
               <TextArea id="cr-body" labelText="What would you like changed?" rows={4}

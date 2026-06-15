@@ -10,6 +10,7 @@ import {
   Tag,
 } from "@carbon/react";
 import { Link } from "react-router-dom";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const KIND_LABEL: Record<string, string> = {
@@ -27,10 +28,10 @@ export function Alerts() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>Alerts</h1>
-        <p>Open portal requests, stale client decisions, due follow-ups and overdue statutory permits.</p>
-      </Stack>
+      <PageHeader
+        title="Alerts"
+        description="Open portal requests, stale client decisions, due follow-ups and overdue statutory permits."
+      />
 
       <TableContainer title={`Action needed (${alerts.length})`}>
         <Table>

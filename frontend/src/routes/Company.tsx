@@ -7,6 +7,10 @@ import {
   Select,
   SelectItem,
   Stack,
+  StructuredListBody,
+  StructuredListCell,
+  StructuredListRow,
+  StructuredListWrapper,
   Table,
   TableBody,
   TableCell,
@@ -22,12 +26,16 @@ import {
   type FirmType,
   type GstType,
   GstSystem,
+  HR_LOCK_REASON_LABEL,
+  HrArchiveConfirmPhrase,
+  ORG_MODE_LABEL,
   PhoneType,
   STATES,
   districtsFor,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const GST_LABEL: Record<string, string> = {
@@ -86,9 +94,52 @@ export function Company() {
   const utils = trpc.useUtils();
   const firmQ = trpc.firm.get.useQuery();
   const settingsQ = trpc.settings.get.useQuery();
+  const hrStatusQ = trpc.settings.hrModuleStatus.useQuery();
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archiveConfirm, setArchiveConfirm] = useState("");
+
   const setHr = trpc.settings.setHrEnabled.useMutation({
-    onSuccess: () => utils.settings.get.invalidate(),
+    onSuccess: (row) => {
+      utils.settings.get.invalidate();
+      utils.settings.hrModuleStatus.invalidate();
+      if (row.soloSummary) {
+        setMsg(
+          `Team & HR disabled. ${row.soloSummary.tasksUpdated} task(s) mapped to the principal architect across ${row.soloSummary.projectsTouched} project(s).`,
+        );
+      } else if (row.hrEnabled) {
+        const reactivated =
+          row.membersReactivated > 0
+            ? ` ${row.membersReactivated} team member(s) reactivated from the last archive. Reassign tasks manually.`
+            : "";
+        setMsg(`Team & HR enabled — studio mode active.${reactivated}`);
+      }
+    },
   });
+  const archiveHr = trpc.settings.archiveTeamModule.useMutation({
+    onSuccess: (row) => {
+      utils.settings.get.invalidate();
+      utils.settings.hrModuleStatus.invalidate();
+      setArchiveOpen(false);
+      setArchiveReason("");
+      setArchiveConfirm("");
+      setMsg(
+        `Team module archived. ${row.tasksRemapped} task(s) remapped, ${row.membersArchived} member(s) deactivated. Snapshot ${row.archiveId.slice(0, 8)}… stored for reference.`,
+      );
+    },
+  });
+
+  const handleHrToggle = (checked: boolean) => {
+    if (checked) {
+      setHr.mutate({ hrEnabled: true });
+      return;
+    }
+    if (hrStatusQ.data?.locked) {
+      setArchiveOpen(true);
+      return;
+    }
+    setHr.mutate({ hrEnabled: false });
+  };
 
   const [f, setF] = useState<Form>(EMPTY);
   const [msg, setMsg] = useState<string | null>(null);
@@ -142,10 +193,10 @@ export function Company() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>Company profile</h1>
-        {!isOwner && <p>Read-only — only the owner can edit.</p>}
-      </Stack>
+      <PageHeader
+        title="Company profile"
+        description={isOwner ? undefined : "Read-only — only the owner can edit."}
+      />
       {msg && (
         <InlineNotification
           kind="success"
@@ -386,23 +437,103 @@ export function Company() {
         <Stack gap={5}>
           <h2>Team &amp; HR module</h2>
           <p>
-            Staff register, site in-charge assignment, leaves and salary. Leave
-            off for a solo freelancer — the Team and HR areas stay hidden.
+            Operating mode for your office: <strong>{ORG_MODE_LABEL[(settingsQ.data?.orgMode as "SOLO" | "STUDIO") ?? "SOLO"]}</strong>.
+            Solo practice runs without team nav, workload, or performance modules.
+            Studio mode supports roster, assignments, attendance, and ASPRF.
           </p>
+          {hrStatusQ.data?.locked && settingsQ.data?.hrEnabled && (
+            <InlineNotification
+              kind="warning"
+              title="Archive required to switch to solo"
+              subtitle="This workspace has team records (attendance, roster, assignments, etc.). Turning Team & HR off runs an archive workflow — active tasks map to the principal; a read-only snapshot is kept."
+              lowContrast
+              hideCloseButton
+            />
+          )}
+          {hrStatusQ.data && !hrStatusQ.data.hrEnabled && hrStatusQ.data.latestArchive && (
+            <InlineNotification
+              kind="info"
+              title="Team module archived"
+              subtitle={`Last archive: ${new Date(hrStatusQ.data.latestArchive.createdAt).toLocaleString("en-IN")} · ${hrStatusQ.data.latestArchive.tasksRemapped} tasks remapped · ${hrStatusQ.data.latestArchive.membersArchived} members archived. Re-enabling restores the roster; task assignees stay on the principal until you reassign.`}
+              lowContrast
+              hideCloseButton
+            />
+          )}
           <Toggle
             id="hr-toggle"
             labelText="Enable Team &amp; HR"
-            labelA="Off (freelance)"
-            labelB="On"
+            labelA="Off (solo)"
+            labelB="On (studio)"
             toggled={settingsQ.data?.hrEnabled ?? false}
-            disabled={!isOwner || setHr.isPending || settingsQ.isLoading}
-            onToggle={(checked) => setHr.mutate({ hrEnabled: checked })}
+            disabled={!isOwner || setHr.isPending || archiveHr.isPending || settingsQ.isLoading}
+            onToggle={(checked) => handleHrToggle(checked)}
           />
-          {!isOwner && (
-            <p>Only the owner can change this.</p>
+          {!isOwner && <p>Only the owner can change this.</p>}
+          {hrStatusQ.data?.archives && hrStatusQ.data.archives.length > 0 && (
+            <Stack gap={2}>
+              <h3>Archive history</h3>
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {hrStatusQ.data.archives.map((a) => (
+                    <StructuredListRow key={a.id}>
+                      <StructuredListCell>
+                        {new Date(a.createdAt).toLocaleString("en-IN")}
+                        {a.reason ? ` — ${a.reason}` : ""}
+                      </StructuredListCell>
+                      <StructuredListCell noWrap>
+                        {a.tasksRemapped} tasks · {a.membersArchived} members
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            </Stack>
           )}
         </Stack>
       </Tile>
+
+      <Modal
+        open={archiveOpen}
+        modalHeading="Archive Team & HR module"
+        primaryButtonText={archiveHr.isPending ? "Archiving…" : "Archive and switch to solo"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={
+          archiveHr.isPending || archiveConfirm !== HrArchiveConfirmPhrase
+        }
+        onRequestClose={() => {
+          setArchiveOpen(false);
+          setArchiveConfirm("");
+        }}
+        onRequestSubmit={() =>
+          archiveHr.mutate({
+            confirmPhrase: HrArchiveConfirmPhrase,
+            reason: archiveReason.trim() || undefined,
+          })
+        }
+      >
+        <Stack gap={5}>
+          <p>
+            This preserves a read-only snapshot of roster, assignments, and task
+            attribution, then maps all open tasks to the principal architect and
+            deactivates other team members.
+          </p>
+          {hrStatusQ.data?.lockReasons.map((r) => (
+            <p key={r}>• {HR_LOCK_REASON_LABEL[r]}</p>
+          ))}
+          <TextInput
+            id="archive-reason"
+            labelText="Reason (optional)"
+            value={archiveReason}
+            onChange={(e) => setArchiveReason(e.target.value)}
+          />
+          <TextInput
+            id="archive-confirm"
+            labelText={`Type ${HrArchiveConfirmPhrase} to confirm`}
+            value={archiveConfirm}
+            onChange={(e) => setArchiveConfirm(e.target.value)}
+          />
+        </Stack>
+      </Modal>
 
       {isOwner && <DataTools />}
     </Stack>

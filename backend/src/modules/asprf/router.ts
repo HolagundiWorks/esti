@@ -1,7 +1,6 @@
 /**
  * ASPRF — Architectural Staff Performance and Recognition Framework.
- * Computes rolling 30-day KPI scores from tasks, decisions, approvals,
- * and timesheets; returns per-member scores and the firm-wide aggregate.
+ * Computes rolling 30-day KPI scores from tasks, decisions, and approvals.
  */
 import {
   type AspRfKpiScores,
@@ -10,7 +9,7 @@ import {
   computeAspRfScore,
   performanceBand,
 } from "@esti/contracts";
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   approvals,
@@ -18,8 +17,8 @@ import {
   rewardPoints,
   tasks,
   teamMembers,
-  timesheets,
 } from "../../db/schema.js";
+import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 /** ISO date string N days before today. */
@@ -99,6 +98,7 @@ export const aspRfRouter = router({
   teamScores: protectedProcedure
     .input(z.object({ days: z.number().int().min(7).max(365).default(30) }).optional())
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const days = input?.days ?? 30;
       const since = daysAgo(days);
       const today = new Date().toISOString().slice(0, 10);
@@ -129,20 +129,6 @@ export const aspRfRouter = router({
         .where(and(
           inArray(tasks.assigneeId, memberIds),
           gte(tasks.createdAt, new Date(since)),
-        ));
-
-      // Timesheets in window
-      const allTimesheets = await ctx.db
-        .select({
-          teamMemberId: timesheets.teamMemberId,
-          hours: timesheets.hours,
-          billable: timesheets.billable,
-        })
-        .from(timesheets)
-        .where(and(
-          inArray(timesheets.teamMemberId, memberIds),
-          gte(timesheets.entryDate, since),
-          lte(timesheets.entryDate, today),
         ));
 
       // Decisions in window (for revision signals)
@@ -181,7 +167,6 @@ export const aspRfRouter = router({
       const scores: AspRfMemberScore[] = members.map((m) => {
         const myTasks = allTasks.filter((t) => t.assigneeId === m.id);
         const myReviews = allTasks.filter((t) => t.reviewerId === m.id);
-        const myTimesheets = allTimesheets.filter((ts) => ts.teamMemberId === m.id);
 
         const totalTasks = myTasks.length;
         const completedTasks = myTasks.filter((t) => t.status === "DONE").length;
@@ -193,11 +178,6 @@ export const aspRfRouter = router({
         ).length;
         const trainingTasks = myTasks.filter((t) => t.classification === "TRAINING").length;
 
-        const totalHours = myTimesheets.reduce((s, r) => s + (Number(r.hours) || 0), 0);
-        const billableHours = myTimesheets
-          .filter((r) => r.billable)
-          .reduce((s, r) => s + (Number(r.hours) || 0), 0);
-
         const reviewsParticipated = myReviews.filter((t) => t.status === "DONE").length;
         const reviewsTotal = myReviews.length;
 
@@ -207,8 +187,8 @@ export const aspRfRouter = router({
           onTimeTasks,
           overdueTasks,
           trainingTasks,
-          billableHours,
-          totalHours,
+          billableHours: 0,
+          totalHours: 0,
           reviewsParticipated,
           reviewsTotal,
           internalRevisions,
@@ -242,6 +222,7 @@ export const aspRfRouter = router({
   /** 30-day score for the calling user's team member profile. */
   myScore: protectedProcedure
     .query(async ({ ctx }) => {
+      await requireHrEnabled(ctx.db);
       const [tm] = await ctx.db
         .select({ id: teamMembers.id, name: teamMembers.name, role: teamMembers.role })
         .from(teamMembers)
@@ -259,15 +240,6 @@ export const aspRfRouter = router({
         .from(tasks)
         .where(and(eq(tasks.assigneeId, tm.id), gte(tasks.createdAt, new Date(since))));
 
-      const myTimesheets = await ctx.db
-        .select({ hours: timesheets.hours, billable: timesheets.billable })
-        .from(timesheets)
-        .where(and(
-          eq(timesheets.teamMemberId, tm.id),
-          gte(timesheets.entryDate, since),
-          lte(timesheets.entryDate, today),
-        ));
-
       const [pointsRow] = await ctx.db
         .select({ total: sql<number>`cast(sum(${rewardPoints.points}) as int)` })
         .from(rewardPoints)
@@ -282,12 +254,10 @@ export const aspRfRouter = router({
         (t) => t.dueDate && t.dueDate < today && t.status !== "DONE",
       ).length;
       const trainingTasks = myTasks.filter((t) => t.classification === "TRAINING").length;
-      const totalHours = myTimesheets.reduce((s, r) => s + (Number(r.hours) || 0), 0);
-      const billableHours = myTimesheets.filter((r) => r.billable).reduce((s, r) => s + (Number(r.hours) || 0), 0);
 
       const kpi = buildKpi({
         totalTasks, completedTasks, onTimeTasks, overdueTasks, trainingTasks,
-        billableHours, totalHours, reviewsParticipated: 0, reviewsTotal: 0,
+        billableHours: 0, totalHours: 0, reviewsParticipated: 0, reviewsTotal: 0,
         internalRevisions: 0, totalRevisions: 1, firstPassApprovals: 1, totalApprovals: 1,
       });
       const score = computeAspRfScore(kpi, false);

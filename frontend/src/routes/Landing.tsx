@@ -1,383 +1,729 @@
 /**
- * ESTI AORMS — marketing landing page.
- * Audience: Indian architecture practices. The hero asks the visitor to pick a
- * path — Freelancer (a solo practice) or Studio (a full team) — and only then
- * reveals a tailored middle section: learn the features, then experience the
- * matching demo. Styled under .esti-lp (a documented marketing exception to the
- * Pure Carbon app policy).
+ * AORMS marketing landing — architect-first, India practice management.
+ * Scoped under .esti-lp (documented exception to Pure Carbon app policy).
  */
 import {
   ArrowRight,
-  Asleep,
+  Analytics,
   Building,
   Calculation,
   Catalog,
   Checkmark,
+  Close,
   Document,
-  Light,
+  Menu,
   Money,
+  Pen,
+  RulerAlt,
   Trophy,
   User,
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { applyLandingSeo, LANDING_SEO } from "../lib/landing-seo.js";
+import { RevisionTransitionPreview } from "../components/RevisionTransitionPreview.js";
+import { QualityIntelligencePreview } from "../components/QualityIntelligencePreview.js";
 
-type ThemeName = "white" | "g100";
 type Audience = "freelancer" | "studio";
 
-// ─── content ─────────────────────────────────────────────────────────────────
+const STORY = {
+  intro:
+    "Every architecture studio juggles the same tension — creative work on one side, and the office machinery that keeps it billable, compliant and deliverable on the other. We built two names for that reality.",
+  aorms: {
+    title: "AORMS",
+    expansion: "Architectural Office Resource Management System",
+    body:
+      "AORMS is the system your office runs on — not a generic project tool with an architecture skin. It is the single record for projects, fees, drawings, people, compliance and client communication: the architectural office, organised.",
+  },
+  esti: {
+    title: "ESTI",
+    expansion: "Embedded Studio Intelligence",
+    body:
+      "ESTI is your studio's AI agent — Embedded Studio Intelligence woven into how you work. Fee guardrails, bylaw checks, revision tracking and GST logic live inside the work, not in a separate spreadsheet you rebuild every month.",
+  },
+  bridge:
+    "Think of it this way: AORMS is what you need to run a modern architecture office. ESTI is how you get it — embedded, traceable and built for Indian practice from enquiry to final invoice.",
+};
 
-const CAPS: { icon: CarbonIconType; title: string; body: string }[] = [
-  { icon: Money, title: "Fees, GST & collections", body: "COA fee proposals with below-minimum guardrails, GST/TDS invoicing, GSTR & TDS abstracts, and reconciliation." },
-  { icon: Document, title: "Projects & drawings", body: "COA-stage projects with phase billing, drawing register, DXF takeoff, revisions, transmittals and inspections." },
-  { icon: Calculation, title: "Bylaw compliance", body: "RIE engine for FAR, setbacks, coverage, height and basement — pre-design check or deviation report with PDF." },
-  { icon: Catalog, title: "Estimation & BBS", body: "Master DSR rates, item-wise BOQ, and SteelFlow AI drag-and-drop bar bending schedules per IS:456 / IS:2502." },
-  { icon: Trophy, title: "Team & performance", body: "Roster, assignments, timesheets and stand-ups feeding a rolling 30-day ASPRF performance score across six KPIs." },
-  { icon: Building, title: "Portals & knowledge", body: "Client and consultant portals, a governed Knowledge Bank, plus an immutable activity and audit trail." },
+const TRUST = [
+  "Council of Architecture fee stages",
+  "GST · TDS u/s 194J · INR",
+  "Financial year Apr – Mar",
+  "Self-hosted · your data stays yours",
+];
+
+const PRACTICE_FLOW: { step: string; title: string; body: Record<Audience, string> }[] = [
+  {
+    step: "01",
+    title: "Win the work",
+    body: {
+      freelancer: "Track enquiries, send COA-aligned fee proposals and contracts — with below-minimum guardrails built in.",
+      studio: "Client enquiries, COA-aligned fee proposals, contracts and phase plans — with below-minimum guardrails built in.",
+    },
+  },
+  {
+    step: "02",
+    title: "Design & document",
+    body: {
+      freelancer: "Drawing register, DXF takeoff, and client revision control — Minor, Major and Critical decisions tracked before they affect scope or fees.",
+      studio: "Drawing register, DXF takeoff, and client revision control — every change tagged Minor, Major or Critical before it hits your timeline or fee.",
+    },
+  },
+  {
+    step: "03",
+    title: "Check & quantify",
+    body: {
+      freelancer: "RIE bylaw engine (FAR, setbacks, coverage), Master DSR, BOQ and SteelFlow BBS per IS:456 / IS:2502.",
+      studio: "RIE bylaw engine (FAR, setbacks, coverage), Master DSR, BOQ and SteelFlow BBS per IS:456 / IS:2502.",
+    },
+  },
+  {
+    step: "04",
+    title: "Bill & deliver",
+    body: {
+      freelancer: "Phase-linked GST invoices, reconciliation and GSTR/TDS abstracts — with a client portal on every project.",
+      studio: "Phase-linked GST invoices, reconciliation, GSTR/TDS abstracts, client portal and immutable audit trail.",
+    },
+  },
+];
+
+const CAPS_SOLO: { icon: CarbonIconType; title: string; body: string }[] = [
+  { icon: Document, title: "Client revision control", body: "Client portal decisions classified Minor, Major or Critical — with explicit warnings before scope, timeline or cost shift." },
+  { icon: Money, title: "Fees & collections", body: "COA proposals, GST/TDS invoicing, ready-to-bill phases and ageing — without a finance team." },
+  { icon: Calculation, title: "Bylaw intelligence", body: "Pre-design envelope or post-design deviation report — versioned rules, branded compliance PDF." },
+  { icon: Catalog, title: "Estimation & BBS", body: "Governed DSR, item-wise BOQ, drag-and-drop bar schedules with IS:2502 cutting lengths." },
+  { icon: RulerAlt, title: "Knowledge bank", body: "Compliance rules, specification standards, structural templates — versioned and cited." },
+  { icon: User, title: "Solo workspace", body: "Your tasks, leave and dashboard — HR and team modules stay out of the way until you hire." },
+];
+
+const CAPS_STUDIO: { icon: CarbonIconType; title: string; body: string }[] = [
+  { icon: Document, title: "Client revision control", body: "Every client decision tagged Minor, Major or Critical in the portal — principals see revision risk before accepting scope impact." },
+  { icon: Trophy, title: "ASPRF performance", body: "Rolling ASPRF scores across architects and teams — workload, delivery quality and studio performance in one view." },
+  { icon: Money, title: "Fees & collections", body: "COA proposals, GST/TDS invoicing, ready-to-bill phases, ageing and bank reconciliation." },
+  { icon: Calculation, title: "Bylaw intelligence", body: "Pre-design envelope or post-design deviation report — versioned rules, branded compliance PDF." },
+  { icon: Catalog, title: "Estimation & BBS", body: "Governed DSR, item-wise BOQ, drag-and-drop bar schedules with IS:2502 cutting lengths." },
+  { icon: RulerAlt, title: "Knowledge bank", body: "Compliance rules, specification standards, structural templates — versioned and cited." },
 ];
 
 const INDIA_POINTS = [
-  "Council of Architecture Scale-of-Charges fee benchmarking",
-  "GST CGST/SGST/IGST + TDS u/s 194J, with GSTR & TDS abstracts",
-  "RIE bylaw engine — FAR, setbacks, ground coverage, height, basement",
-  "Immutable, branded compliance and invoice PDFs",
+  "Scale-of-Charges benchmarking and COA service categories",
+  "CGST / SGST / IGST split, SAC 998321–998339, gap-free FY numbering",
+  "BBMP and jurisdiction rule-sets with cited bye-law clauses",
+  "Branded PDFs for compliance, invoices and transmittals",
 ];
 
-const FINANCE_POINTS = [
-  "Phase-linked billing — nothing billable slips through the cracks",
-  "Every invoice tracked to paid, outstanding or overdue",
-  "GST/TDS handled — correct tax split and gap-free numbering",
-  "Bank reconciliation — see what you've actually collected",
+const FAQS: { q: string; a: Record<Audience, string> }[] = [
+  {
+    q: "What does ESTI stand for?",
+    a: {
+      freelancer: "ESTI stands for Embedded Studio Intelligence — the software product behind AORMS. It embeds fee logic, compliance checks, drawing control and billing intelligence into your daily workflow instead of leaving them in separate tools.",
+      studio: "ESTI stands for Embedded Studio Intelligence — the engine that powers AORMS. For a studio, that means intelligence embedded across projects, team workload, fees, drawings and compliance — one traceable office record, not bolt-on modules.",
+    },
+  },
+  {
+    q: "What is AORMS?",
+    a: {
+      freelancer: "AORMS — Architectural Office Resource Management System — is the category of system your practice runs on: projects, fees, drawings, compliance and GST in one place. ESTI is the product that delivers your AORMS.",
+      studio: "AORMS — Architectural Office Resource Management System — is practice software for architecture firms: every office resource from enquiries and drawings to fees, team workload and client portals in one system. ESTI is the embedded intelligence that powers it.",
+    },
+  },
+  {
+    q: "What is architectural studio management software?",
+    a: {
+      freelancer: "Studio management software — an AORMS — connects your projects, COA fees, drawings, compliance and GST in one record. ESTI delivers that AORMS for Indian architects, not adapted from generic project tools.",
+      studio: "Architectural studio management software — an AORMS — connects projects, fees, drawings, compliance and GST billing in one traceable office record. ESTI (Embedded Studio Intelligence) powers AORMS for Indian architecture studios.",
+    },
+  },
+  {
+    q: "How are ESTI and AORMS related?",
+    a: {
+      freelancer: "AORMS names the system an architecture office needs. ESTI — Embedded Studio Intelligence — is the product that runs it. You log into ESTI; your practice runs as an AORMS.",
+      studio: "AORMS is the architectural office system — resources, records and workflows in one place. ESTI embeds the intelligence: COA fees, RIE compliance, drawing revisions, team signals and GST, wired together for a studio.",
+    },
+  },
+  {
+    q: "I'm a solo architect — is this overkill?",
+    a: {
+      freelancer: "No. You get every module under one login without HR or team overhead. When you hire, seniority roles and attendance switch on without changing systems.",
+      studio: "Solo practitioners use the same platform without HR overhead. Studios add roster, workload, attendance and ASPRF on top — one system as you grow.",
+    },
+  },
+  {
+    q: "How is ESTI different from Excel and WhatsApp?",
+    a: {
+      freelancer: "Every drawing revision, approval and invoice stays linked to its project. Clients get a scoped portal instead of scattered files on WhatsApp.",
+      studio: "Every drawing revision, approval, decision and invoice stays linked to its project. Clients and consultants get scoped portals instead of scattered files. You stop rebuilding the same spreadsheet every month.",
+    },
+  },
+  {
+    q: "Does it handle Indian tax and bylaws?",
+    a: {
+      freelancer: "Yes — GST (including composition), TDS u/s 194J, GSTR/TDS filing abstracts, and the RIE engine for FAR, setbacks, ground coverage and height.",
+      studio: "Yes — GST systems (including composition), TDS u/s 194J, GSTR/TDS filing abstracts, and the RIE engine for FAR, setbacks, ground coverage, height and basement against published rule versions.",
+    },
+  },
+  {
+    q: "How does client revision management work?",
+    a: {
+      freelancer: "Clients submit decisions through the portal. Each is classified Minor, Major or Critical. Major and Critical items show an explicit warning — accepting may affect timeline, cost or scope — before you sign off.",
+      studio: "Clients submit decisions through the portal. Each is classified Minor, Major or Critical. Major and Critical items show an explicit warning before principals accept — revision risk feeds your office dashboard alongside ASPRF and billing signals.",
+    },
+  },
+  {
+    q: "What is the Quality intelligence dashboard?",
+    a: {
+      freelancer: "Quality intelligence is a studio dashboard zone — revision risk, scope drift and drawing accuracy rolled up firm-wide. Solo practitioners see revision control on each project; the full quality tile set activates when you run a team.",
+      studio: "On the office dashboard, Quality intelligence pairs two live tiles: Revisions (client-driven vs internal error, scope drift, Major/Critical risk band) and Technical quality (drawing accuracy, site query rate). Principals see studio health alongside ASPRF team scores every morning.",
+    },
+  },
+  {
+    q: "Can I self-host?",
+    a: {
+      freelancer: "ESTI is designed for self-hosting on your VPS or office server. Role-based access and audit log keep your project data under your control.",
+      studio: "ESTI is designed for self-hosting on your VPS or office server. Role-based access, audit log, and separate client/consultant portals keep outsiders on a need-to-know basis.",
+    },
+  },
 ];
 
-// Money snapshot tiles for the Freelancer finance section (illustrative).
-const MONEY_SNAPSHOT = [
-  { l: "Ready to bill", v: "₹4.2L" },
-  { l: "Outstanding", v: "₹2.8L" },
-  { l: "Overdue", v: "₹0.9L" },
-  { l: "Collected · FY", v: "₹38L" },
-];
-
-const FAQS: { q: string; a: string }[] = [
-  { q: "What is an AORMS, and how is it different from generic project software?", a: "AORMS — Architectural Office Resource Management System — is practice-management software built for architecture firms. ESTI understands COA service stages, the Scale of Charges, Indian GST/TDS, bylaw compliance (FAR, setbacks, coverage), drawing revisions and bar bending schedules out of the box." },
-  { q: "Does it work for a solo architect as well as a 50-person firm?", a: "Yes. A solo practitioner gets every module under one login; growing studios switch on seniority roles, HR, team assignments, timesheets and ASPRF performance scoring. The same platform scales from one architect to fifty." },
-  { q: "How does ESTI handle GST and TDS?", a: "It generates tax invoices with the correct CGST/SGST or IGST split, TDS u/s 194J, the SAC code for professional fees and gap-free FY-sequential numbering. GSTR-1, GSTR-3B and TDS abstracts are built in, with bank and 26AS reconciliation." },
-  { q: "Can it check building bylaws like FAR and setbacks?", a: "The RIE engine validates FAR/FSI, ground coverage, setbacks, height, basement and sustainability against a versioned jurisdiction rule-set (e.g. BBMP), runs a pre-design quick check or post-design deviation report, and issues a branded compliance PDF." },
-  { q: "Is my data safe, and can I self-host?", a: "ESTI is self-hosted on your own server — your drawings, invoices and client data never leave your infrastructure. Role-based access and separate read-only client and consultant portals ensure outsiders see only what you share. We offer optional managed hosting too." },
-];
-
-// Per-audience tailored content. caps = indices into CAPS.
 const PERSONA: Record<Audience, {
-  icon: CarbonIconType; tag: string; sub: string; pitch: string;
-  eyebrow: string; heading: string; lead: string;
-  caps: number[];
-  plan: { name: string; points: string[] };
+  icon: CarbonIconType;
+  pickLabel: string;
+  tag: string;
+  sub: string;
+  headlineEm: string;
+  heroLead: string;
+  panelTitle: string;
+  metrics: { label: string; value: string; tone?: "ok" | "warn" }[];
+  panelFoot: string;
   demoLabel: string;
+  points: string[];
+  practiceLead: string;
+  modulesLead: string;
+  finalLine: string;
 }> = {
   freelancer: {
     icon: User,
-    tag: "Freelancer",
-    sub: "For a solo practice",
-    pitch: "Heads-down in design and on site all day? ESTI quietly keeps the business side straight — what to bill, what's pending, and what's overdue.",
-    eyebrow: "For the solo architect",
-    heading: "Run the business side without thinking about it",
-    lead: "Most architects live in design and site work — and lose track of what was meant to be billed, what's still to collect, and what's gone overdue. ESTI keeps that financial picture current in the background, so your practice stays healthy while you stay on the drawing board.",
-    caps: [0, 1, 2, 3, 5],
-    plan: { name: "Solo", points: ["Every billable phase, tracked", "GST/TDS invoices & filing, done right", "Outstanding & overdue, always visible", "Drawings, compliance & BBS in one place"] },
-    demoLabel: "Experience the Freelancer demo",
+    pickLabel: "Solo / Freelancer",
+    tag: "Solo practice",
+    sub: "One architect, full studio",
+    headlineEm: "solo practice",
+    heroLead: "Every module you need — fees, drawings, RIE, BBS and GST invoicing — without HR clutter or team dashboards in your way.",
+    panelTitle: "Your desk · today",
+    metrics: [
+      { label: "Ready to bill", value: "₹2.1L" },
+      { label: "Active projects", value: "4" },
+      { label: "Approvals pending", value: "1" },
+      { label: "Revision risk", value: "Low", tone: "ok" },
+    ],
+    panelFoot: "The dashboard a solo principal sees after login — billing and delivery without team noise.",
+    demoLabel: "Open demo (solo view)",
+    points: ["Client revisions — Minor / Major / Critical", "RIE + SteelFlow on real data", "Client portal with scope warnings", "Dedicated solo demo workspace — no team module"],
+    practiceLead: "ESTI follows how you run a one-person architecture practice — from enquiry to final invoice, without generic ERP steps.",
+    modulesLead: "Same depth as a fifty-person studio, tuned for a single login — COA stages, drawing issues and lakh-formatted receivables out of the box.",
+    finalLine: "Self-hosted AORMS for the solo architect who still runs a serious practice.",
   },
   studio: {
     icon: UserMultiple,
-    tag: "Studio",
-    sub: "Full studio with teams",
-    pitch: "Everything a solo gets, plus team roster, workload, timesheets, HR and the ASPRF performance engine.",
-    eyebrow: "For studios with teams",
-    heading: "Run a studio of 5–50 without the chaos",
-    lead: "Everything in the Freelancer plan, plus a team roster and assignments, workload calendar, timesheets and stand-ups, HR & payroll, consultant coordination, and a rolling 30-day ASPRF performance score across six KPIs.",
-    caps: [0, 1, 2, 3, 4, 5],
-    plan: { name: "Studio", points: ["Up to 15 users, seniority roles", "Workload, timesheets & ASPRF", "Consultant coordination & HR", "SteelFlow BBS & RIE engine"] },
-    demoLabel: "Experience the Studio demo",
+    pickLabel: "Team / Studio",
+    tag: "Architecture studio",
+    sub: "Teams of 5–50",
+    headlineEm: "design studio",
+    heroLead: "Self-hosted studio management built around what hurts most — uncontrolled client revisions — plus ASPRF team scores, COA fees, drawings, bylaws, BBS and GST from enquiry to final bill.",
+    panelTitle: "Office pulse · today",
+    metrics: [
+      { label: "Ready to bill", value: "₹8.4L" },
+      { label: "Open Major revisions", value: "2" },
+      { label: "ASPRF · studio avg", value: "78" },
+      { label: "Revision risk", value: "Medium", tone: "warn" },
+    ],
+    panelFoot: "Revision risk, quality intelligence and ASPRF on the dashboard principals use every morning.",
+    demoLabel: "Open demo (studio view)",
+    points: ["Major / Critical revision workflow in demo", "Quality intelligence on office dashboard", "Rolling ASPRF scores by role", "14 projects · multi-role team"],
+    practiceLead: "ESTI follows the arc of an architecture studio — client revisions classified before they erode scope, then fees, delivery and team performance in one record.",
+    modulesLead: "Revision control and ASPRF lead the module set — then COA stages, RIE deviations, drawing issues and lakh-formatted receivables out of the box.",
+    finalLine: "Self-hosted AORMS for Indian architecture — from growing studio to fifty-person office.",
   },
 };
 
-// ─── Landing ─────────────────────────────────────────────────────────────────
-
-export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTheme: () => void }) {
+export function Landing() {
   const utils = trpc.useUtils();
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
   const [audience, setAudience] = useState<Audience | null>(null);
-  const midRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Two demo experiences. Each can either live on THIS instance (log in directly)
-  // or on a SEPARATE instance (redirect via a build-time VITE_*_DEMO_URL var).
+  useEffect(() => { applyLandingSeo(); }, []);
+  useEffect(() => { setMenuOpen(false); }, [audience]);
+
   const fullDemoUrl = import.meta.env.VITE_FULL_DEMO_URL ?? "";
   const soloDemoUrl = import.meta.env.VITE_SOLO_DEMO_URL ?? "";
 
-  const exploreFull = () => {
-    if (fullDemoUrl) { window.location.href = fullDemoUrl; return; }
-    demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
+  const exploreDemo = () => {
+    if (audience === "freelancer" && soloDemoUrl) {
+      window.location.href = soloDemoUrl;
+      return;
+    }
+    if (audience === "studio" && fullDemoUrl) {
+      window.location.href = fullDemoUrl;
+      return;
+    }
+    const email =
+      audience === "freelancer" ? "solo@demo.aorms.in" : "principal@demo.aorms.in";
+    demo.mutate({ email, password: "demo1234" });
   };
-  const exploreSolo = () => {
-    if (soloDemoUrl) { window.location.href = soloDemoUrl; return; }
-    demo.mutate({ email: "solo@demo.aorms.in", password: "demo1234" });
-  };
-  const exploreDemo = (a: Audience) => (a === "studio" ? exploreFull() : exploreSolo());
   const contact = () => { window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20enquiry"; };
-  const wa = () => window.open("https://wa.me/919880000000?text=" + encodeURIComponent("Hi, I'd like to know more about ESTI AORMS."), "_blank", "noopener");
 
-  const choose = (a: Audience) => {
-    setAudience(a);
-    // Let the section mount, then bring it into view.
-    setTimeout(() => midRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
-  };
-
-  // Header, hero and footer are all dark, so the white logo marks are used throughout.
-  const aormsOnDark = "/aorms-logo-white.png";
-  const hcwLogo = "/hcw-white.png";
-
+  const estiLogo = "/esti-mark-white.png";
+  const aormsLogo = "/aorms-logo.png";
+  const hcwLogo = "/hcw-black.png";
   const p = audience ? PERSONA[audience] : null;
+  const caps = audience === "studio" ? CAPS_STUDIO : CAPS_SOLO;
+
+  const sectionNav = (
+    <>
+      {audience && (
+        <>
+          <a href="#usp" onClick={() => setMenuOpen(false)}>Why ESTI</a>
+          <a href="#practice" onClick={() => setMenuOpen(false)}>Practice flow</a>
+          <a href="#modules" onClick={() => setMenuOpen(false)}>Modules</a>
+          <a href="#india" onClick={() => setMenuOpen(false)}>India-first</a>
+          <a href="#demo" onClick={() => setMenuOpen(false)}>Demo</a>
+          <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+        </>
+      )}
+      <a href="#story" onClick={() => setMenuOpen(false)}>Our story</a>
+    </>
+  );
 
   return (
     <div className="esti-lp">
-      {/* ── Top bar (login / demo links already here) ─────────────────────── */}
       <header className="esti-lp-bar">
-        <a href="#top" className="esti-lp-brand"><img src={aormsOnDark} alt="AORMS" style={{ height: 30 }} /></a>
+        <a href="#top" className="esti-lp-brand">
+          <img src={aormsLogo} alt="AORMS" className="esti-lp-logo esti-lp-logo-aorms" />
+        </a>
+        <button
+          type="button"
+          className="esti-lp-menu-btn"
+          aria-expanded={menuOpen}
+          aria-controls="esti-lp-nav-mobile"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <Close size={20} aria-hidden /> : <Menu size={20} aria-hidden />}
+          <span className="cds--assistive-text">{menuOpen ? "Close menu" : "Open menu"}</span>
+        </button>
+        <nav className="esti-lp-nav" aria-label="Page sections">
+          {sectionNav}
+        </nav>
+        <nav
+          id="esti-lp-nav-mobile"
+          className={`esti-lp-nav-mobile${menuOpen ? " esti-lp-nav-mobile--open" : ""}`}
+          aria-label="Page sections (mobile)"
+        >
+          {sectionNav}
+        </nav>
         <div className="esti-lp-bar-actions">
-          <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
-            {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
-          </button>
-          <button className="esti-lp-btn esti-lp-btn--ghost" onClick={exploreSolo} disabled={demo.isPending}>
-            Freelancer demo
-          </button>
-          <button className="esti-lp-btn esti-lp-btn--gold" onClick={exploreFull} disabled={demo.isPending}>
-            {demo.isPending ? "Opening…" : "Studio demo"}
-          </button>
+          {audience ? (
+            <button
+              type="button"
+              className="esti-lp-btn esti-lp-btn--gold"
+              onClick={() => exploreDemo()}
+              disabled={demo.isPending}
+            >
+              {demo.isPending ? "Opening…" : p?.demoLabel}
+            </button>
+          ) : (
+            <button type="button" className="esti-lp-btn esti-lp-btn--ghost" onClick={contact}>
+              Contact
+            </button>
+          )}
         </div>
       </header>
 
       <main id="top">
-        {/* ── Hero + path picker ──────────────────────────────────────────── */}
-        <section className="esti-lp-hero">
-          <div className="esti-lp-wrap">
-            <span className="esti-lp-eyebrow">AORMS · Built for Indian architects</span>
-            <h1>Run your practice, <em>not the paperwork.</em></h1>
-            <p style={{ maxWidth: "44rem" }}>
-              ESTI is the self-hosted office platform for Indian architecture
-              practices — COA fee proposals, GST &amp; TDS invoicing, drawings,
-              bylaw compliance, BBS and team performance, in one place.
-            </p>
+        <section className={`esti-lp-hero${audience ? " esti-lp-hero--revealed" : ""}`}>
+          <div className="esti-lp-hero-grid esti-lp-wrap">
+            <div className="esti-lp-hero-copy">
+              <span className="esti-lp-eyebrow">Powered by ESTI · Embedded Studio Intelligence</span>
+              <h1>
+                {audience ? (
+                  <>One office for your <em>{p!.headlineEm}</em> — not ten spreadsheets.</>
+                ) : (
+                  <>Architectural Studio Management Software for <em>Indian Architects</em></>
+                )}
+              </h1>
+              <p className="esti-lp-hero-lead">
+                {audience
+                  ? p!.heroLead
+                  : "AORMS — Architectural Office Resource Management System — is how a modern studio stays organised. ESTI embeds the intelligence: fees, drawings, bylaws and GST in one self-hosted record."}
+              </p>
 
-            <p className="esti-lp-eyebrow" style={{ marginTop: "2.5rem" }}>Which one are you?</p>
-            <div className="esti-lp-grid esti-lp-grid--2" style={{ marginTop: "0.75rem" }}>
-              {(["freelancer", "studio"] as const).map((a) => {
-                const cfg = PERSONA[a];
-                const Icon = cfg.icon;
-                const active = audience === a;
-                return (
-                  <button
-                    key={a}
-                    className={`esti-lp-card${active ? " esti-lp-card--feature" : ""}`}
-                    style={{ cursor: "pointer", textAlign: "left", outline: active ? "2px solid var(--lp-accent)" : undefined }}
-                    aria-pressed={active}
-                    onClick={() => choose(a)}
-                  >
-                    <Icon size={28} className="esti-lp-ic" />
-                    <h3>{cfg.tag} <span className="esti-lp-muted" style={{ fontWeight: 400 }}>· {cfg.sub}</span></h3>
-                    <p>{cfg.pitch}</p>
-                    <span className="esti-lp-btn esti-lp-btn--ghost" style={{ marginTop: "0.5rem" }}>
-                      {active ? "Selected — see below" : "Explore this path"} <ArrowRight size={16} />
-                    </span>
+              {!audience ? (
+                <>
+                  <p className="esti-lp-hero-prompt">How do you practice?</p>
+                  <div className="esti-lp-hero-pick" role="group" aria-label="Choose your practice type">
+                    {(["freelancer", "studio"] as const).map((a) => {
+                      const cfg = PERSONA[a];
+                      const Icon = cfg.icon;
+                      return (
+                        <button
+                          key={a}
+                          type="button"
+                          className="esti-lp-hero-pick-btn"
+                          onClick={() => setAudience(a)}
+                        >
+                          <Icon size={22} />
+                          <span className="esti-lp-hero-pick-label">{cfg.pickLabel}</span>
+                          <span className="esti-lp-hero-pick-sub">{cfg.sub}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <ul className="esti-lp-hero-checks">
+                    {p!.points.slice(0, 3).map((pt) => (
+                      <li key={pt}><Checkmark size={16} /><span>{pt}</span></li>
+                    ))}
+                  </ul>
+                  <div className="esti-lp-hero-cta">
+                    <button
+                      type="button"
+                      className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg"
+                      onClick={() => exploreDemo()}
+                      disabled={demo.isPending}
+                    >
+                      {demo.isPending ? "Opening…" : p!.demoLabel} <ArrowRight size={18} />
+                    </button>
+                    <button type="button" className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>
+                      Talk to us
+                    </button>
+                  </div>
+                  <button type="button" className="esti-lp-hero-switch" onClick={() => setAudience(null)}>
+                    ← Choose a different practice type
                   </button>
-                );
-              })}
+                  {demo.error && <p className="esti-lp-hero-note">Could not open demo: {demo.error.message}</p>}
+                </>
+              )}
             </div>
-            {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
+
+            {audience && p && (
+              <aside className="esti-lp-hero-panel" aria-label="Example office dashboard">
+                <div className="esti-lp-hero-panel-hdr">
+                  <Pen size={18} />
+                  <span>{p.panelTitle}</span>
+                </div>
+                <ul className="esti-lp-hero-metrics">
+                  {p.metrics.map((m) => (
+                    <li key={m.label}>
+                      <span>{m.label}</span>
+                      <strong className={m.tone === "ok" ? "esti-lp-tag-ok" : m.tone === "warn" ? "esti-lp-tag-warn" : undefined}>
+                        {m.value}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+                <p className="esti-lp-hero-panel-foot">{p.panelFoot}</p>
+              </aside>
+            )}
+          </div>
+          <div className="esti-lp-hero-agent esti-lp-hero-agent--float" role="complementary" aria-label="ESTI AI agent">
+            <div className="esti-lp-hero-agent-bubble">
+              <p>
+                <strong>ESTI</strong> — your AI agent for architecture studio work.
+              </p>
+              <p className="esti-lp-hero-agent-bubble-note">In active development — more capability shipping soon.</p>
+              <span className="esti-lp-hero-agent-bubble-arrow" aria-hidden />
+            </div>
+            <div className="esti-lp-hero-agent-orb">
+              <span className="esti-lp-hero-agent-ring" aria-hidden />
+              <span className="esti-lp-hero-agent-dot">
+                <img src={estiLogo} alt="" className="esti-lp-hero-agent-mark" />
+              </span>
+            </div>
+            <span className="esti-lp-hero-agent-label">ESTI</span>
           </div>
         </section>
 
-        {/* ── Tailored middle (opens after a path is chosen) ──────────────── */}
-        {p && audience && (
-          <div ref={midRef}>
-            {/* Intro for the chosen path */}
-            <section className="esti-lp-section">
-              <div className="esti-lp-wrap">
-                <span className="esti-lp-eyebrow">{p.eyebrow}</span>
-                <h2>{p.heading}</h2>
-                <p className="esti-lp-lead">{p.lead}</p>
+        {audience && p && (
+          <div className="esti-lp-main">
+            <div className="esti-lp-trust">
+              <div className="esti-lp-wrap esti-lp-trust-grid">
+                {TRUST.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
+            </div>
 
-                <div className="esti-lp-grid esti-lp-grid--3" style={{ marginTop: "2rem" }}>
-                  {p.caps.map((i) => {
-                    const c = CAPS[i]!;
+            <section id="usp" className="esti-lp-section esti-lp-usp">
+              <div className="esti-lp-wrap esti-lp-usp-revision">
+                <span className="esti-lp-eyebrow">Primary capability</span>
+                <h2>Client revision management — before scope slips away</h2>
+                <p className="esti-lp-lead">
+                  {audience === "studio"
+                    ? "The workflow studios ask for first: every client decision in the portal is classified Minor, Major or Critical — so principals accept scope impact knowingly, not by accident."
+                    : "Every client decision in your portal is classified Minor, Major or Critical — so you accept timeline, cost and scope impact knowingly, not over WhatsApp."}
+                </p>
+                <div className="esti-lp-usp-grid">
+                  <ul className="esti-lp-checks">
+                    <li><Checkmark size={18} className="esti-lp-ic" /><span>Client portal submissions tagged Minor, Major or Critical</span></li>
+                    <li><Checkmark size={18} className="esti-lp-ic" /><span>Major and Critical decisions surface explicit scope warnings before sign-off</span></li>
+                    <li><Checkmark size={18} className="esti-lp-ic" /><span>Revision risk rolls up to your dashboard — open Major and Critical counts at a glance</span></li>
+                    <li><Checkmark size={18} className="esti-lp-ic" /><span>Immutable audit trail from client request to principal acceptance</span></li>
+                  </ul>
+                  <RevisionTransitionPreview />
+                </div>
+              </div>
+
+              {audience === "studio" && (
+                <>
+                  <div className="esti-lp-wrap esti-lp-usp-asprf">
+                    <div className="esti-lp-usp-asprf-inner">
+                      <Trophy size={28} className="esti-lp-ic" />
+                      <div>
+                        <span className="esti-lp-eyebrow">Studio teams</span>
+                        <h3>ASPRF performance scores</h3>
+                        <p>
+                          Rolling ASPRF scores across architects and teams — tie workload, delivery quality
+                          and task signals to measurable studio performance, not gut feel.
+                        </p>
+                        <ul className="esti-lp-checks esti-lp-checks--inline">
+                          <li><Checkmark size={16} className="esti-lp-ic" /><span>Per-role and studio-wide ASPRF roll-ups</span></li>
+                          <li><Checkmark size={16} className="esti-lp-ic" /><span>Linked to attendance, tasks and revision load</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="esti-lp-wrap esti-lp-usp-quality">
+                    <div className="esti-lp-usp-quality-head">
+                      <Analytics size={28} className="esti-lp-ic" />
+                      <div>
+                        <span className="esti-lp-eyebrow">Office dashboard</span>
+                        <h3>Quality intelligence</h3>
+                        <p className="esti-lp-usp-quality-lead">
+                          Studio-wide design health on one screen — a normalized quality radar,
+                          revision source breakdown, and technical metrics alongside ASPRF.
+                        </p>
+                      </div>
+                    </div>
+                    <QualityIntelligencePreview />
+                    <ul className="esti-lp-checks esti-lp-checks--inline esti-lp-checks--qi">
+                      <li><Checkmark size={16} className="esti-lp-ic" /><span>Radar profile — revision health, scope control, drawing accuracy on one chart</span></li>
+                      <li><Checkmark size={16} className="esti-lp-ic" /><span>Revisions tile — proportional meter by source, scope drift, risk band</span></li>
+                      <li><Checkmark size={16} className="esti-lp-ic" /><span>Technical quality — drawing accuracy, site query rate, internal errors</span></li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </section>
+
+            <section id="practice" className="esti-lp-section">
+              <div className="esti-lp-wrap">
+                <span className="esti-lp-eyebrow">How architects work</span>
+                <h2>From first meeting to final invoice</h2>
+                <p className="esti-lp-lead">{p.practiceLead}</p>
+                <ol className="esti-lp-flow">
+                  {PRACTICE_FLOW.map((f) => (
+                    <li key={f.step} className="esti-lp-flow-step">
+                      <span className="esti-lp-flow-num">{f.step}</span>
+                      <div>
+                        <h3>{f.title}</h3>
+                        <p>{f.body[audience]}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </section>
+
+            <section id="modules" className="esti-lp-section esti-lp-section--muted">
+              <div className="esti-lp-wrap">
+                <span className="esti-lp-eyebrow">What&apos;s inside</span>
+                <h2>Built for {audience === "freelancer" ? "your solo practice" : "how studios actually run"}</h2>
+                <p className="esti-lp-lead">{p.modulesLead}</p>
+                <div className="esti-lp-grid esti-lp-grid--3">
+                  {caps.map((c) => {
                     const Icon = c.icon;
                     return (
-                      <div key={c.title} className="esti-lp-cell">
+                      <article key={c.title} className="esti-lp-cell">
                         <Icon size={28} className="esti-lp-ic" />
                         <h3>{c.title}</h3>
                         <p>{c.body}</p>
-                      </div>
+                      </article>
                     );
                   })}
                 </div>
               </div>
             </section>
 
-            {/* Audience band: Freelancer = financial clarity · Studio = compliance + team */}
-            <section className="esti-lp-band">
-              <div className="esti-lp-wrap esti-lp-section">
-                <div className="esti-lp-grid--2" style={{ display: "grid", gap: "3rem", alignItems: "center" }}>
-                  {audience === "freelancer" ? (
-                    <>
-                      <div>
-                        <span className="esti-lp-eyebrow">Financial clarity</span>
-                        <h2>Always know what to bill, what's due, and what's in</h2>
-                        <p>
-                          When you're deep in drawings and site visits, the money side
-                          is the first thing to slip. ESTI keeps it current for you:
-                          every completed phase becomes a billable line, every invoice
-                          is tracked to paid or overdue, and bank reconciliation shows
-                          what's actually been collected — so the practice stays healthy
-                          without you chasing spreadsheets.
-                        </p>
-                        <ul className="esti-lp-checks">
-                          {FINANCE_POINTS.map((pt) => (
-                            <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="esti-lp-mock" style={{ marginTop: 0 }}>
-                        <div className="esti-lp-mock-top"><span /><span /><span /></div>
-                        <div style={{ padding: "1.25rem" }}>
-                          <div style={{ fontWeight: 500, color: "var(--cds-text-primary)", marginBottom: "1rem" }}>Money at a glance</div>
-                          <div className="esti-lp-mock-kpis">
-                            {MONEY_SNAPSHOT.map((k) => (
-                              <div key={k.l} className="esti-lp-mock-kpi"><small>{k.l}</small><b>{k.v}</b></div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <span className="esti-lp-eyebrow">India-first compliance</span>
-                        <h2>Speaks COA, GST and bylaws natively</h2>
-                        <p>
-                          Foreign tools can't price a COA proposal, split an IGST invoice,
-                          or warn you that your FAR is exceeded. ESTI does all three —
-                          because it was built for the Indian context, not adapted to it.
-                        </p>
-                        <ul className="esti-lp-checks">
-                          {INDIA_POINTS.map((pt) => (
-                            <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="esti-lp-mock" style={{ marginTop: 0 }}>
-                        <div className="esti-lp-mock-top"><span /><span /><span /></div>
-                        <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
-                          <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>Team performance — ASPRF</div>
-                          {[
-                            { l: "Ar. Vihaan Sharma — Gold", v: 92 },
-                            { l: "Ar. Priya Sharma — Silver", v: 78 },
-                            { l: "Ar. Ravi Kumar — Bronze", v: 65 },
-                          ].map((m) => (
-                            <div key={m.l}>
-                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
-                                <span>{m.l}</span><span>{m.v}</span>
-                              </div>
-                              <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
+            <section id="india" className="esti-lp-band">
+              <div className="esti-lp-wrap esti-lp-band-grid">
+                <div>
+                  <span className="esti-lp-eyebrow">India-first</span>
+                  <h2>Foreign tools don&apos;t speak COA, GST or BBMP</h2>
+                  <p className="esti-lp-lead">
+                    ESTI was written for Indian architecture practices — INR only, FY April to March,
+                    lakh/crore formatting, and compliance rule-sets you can cite in a sanction submission.
+                  </p>
+                  <ul className="esti-lp-checks">
+                    {INDIA_POINTS.map((pt) => (
+                      <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="esti-lp-mock">
+                  <div className="esti-lp-mock-top"><span /><span /><span /></div>
+                  <div className="esti-lp-mock-body">
+                    <p className="esti-lp-mock-title">RIE · BBMP Residential</p>
+                    <dl className="esti-lp-mock-dl">
+                      <div><dt>FAR utilised</dt><dd>1.42 / 1.50</dd></div>
+                      <div><dt>Ground coverage</dt><dd>58% · compliant</dd></div>
+                      <div><dt>Front setback</dt><dd>3.2 m · compliant</dd></div>
+                      <div><dt>Readiness</dt><dd className="esti-lp-tag-warn">Partial</dd></div>
+                    </dl>
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* FAQ (shared) */}
-            <section className="esti-lp-section" style={{ paddingTop: 0 }}>
-              <div className="esti-lp-wrap" style={{ maxWidth: "60rem" }}>
+            <section id="demo" className="esti-lp-section">
+              <div className="esti-lp-wrap">
+                <span className="esti-lp-eyebrow">Live demo</span>
+                <h2>Explore the {p.tag.toLowerCase()} workspace</h2>
+                <p className="esti-lp-lead">
+                  Fully populated demo — real projects, fees, GST invoices, drawings and compliance.
+                  No signup; explore as {audience === "freelancer" ? "a solo principal" : "a principal architect"} would.
+                </p>
+                <div className="esti-lp-demo-detail">
+                  <ul className="esti-lp-checks">
+                    {p.points.map((pt) => (
+                      <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
+                    ))}
+                  </ul>
+                  <div className="esti-lp-hero-cta">
+                    <button
+                      type="button"
+                      className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg"
+                      onClick={() => exploreDemo()}
+                      disabled={demo.isPending}
+                    >
+                      {demo.isPending ? "Opening…" : p.demoLabel} <ArrowRight size={18} />
+                    </button>
+                    <button type="button" className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>
+                      Talk to us
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="faq" className="esti-lp-section esti-lp-section--muted">
+              <div className="esti-lp-wrap esti-lp-faq-wrap">
                 <span className="esti-lp-eyebrow">FAQ</span>
-                <h2>Frequently asked questions</h2>
-                <div className="esti-lp-faq" style={{ marginTop: "2rem" }}>
+                <h2>Questions architects ask</h2>
+                <div className="esti-lp-faq">
                   {FAQS.map((f) => (
                     <details key={f.q}>
                       <summary>{f.q}</summary>
-                      <p>{f.a}</p>
+                      <p>{f.a[audience]}</p>
                     </details>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* Closing CTA — experience the matching demo (login link) */}
             <section className="esti-lp-final">
               <div className="esti-lp-wrap esti-lp-section">
-                <span className="esti-lp-eyebrow">{p.tag} · {p.sub}</span>
-                <h2>Now try it for yourself</h2>
-                <p>Open the {p.tag} demo — a fully populated workspace ({p.plan.name} plan) with real projects, fees, GST invoices and compliance — and see how little admin ESTI leaves you.</p>
-                <ul className="esti-lp-checks" style={{ margin: "1.25rem 0" }}>
-                  {p.plan.points.map((pt) => (
-                    <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
-                  ))}
-                </ul>
+                <Building size={32} className="esti-lp-ic" />
+                <h2>Your drawings stay yours. Your practice stays organised.</h2>
+                <p>{p.finalLine}</p>
                 <div className="esti-lp-hero-cta">
-                  <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={() => exploreDemo(audience)} disabled={demo.isPending}>
-                    {demo.isPending ? "Opening demo…" : p.demoLabel} <ArrowRight size={18} />
+                  <button
+                    type="button"
+                    className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg"
+                    onClick={() => exploreDemo()}
+                    disabled={demo.isPending}
+                  >
+                    {p.demoLabel}
                   </button>
-                  <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={() => choose(audience === "studio" ? "freelancer" : "studio")}>
-                    I'm a {audience === "studio" ? "freelancer" : "studio"} instead
+                  <button type="button" className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>
+                    hi@aorms.in
                   </button>
-                  <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
                 </div>
-                {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
               </div>
             </section>
           </div>
         )}
+
+        <section id="story" className="esti-lp-section esti-lp-story">
+          <div className="esti-lp-wrap">
+            <span className="esti-lp-eyebrow">Our story</span>
+            <h2>Two names. One purpose.</h2>
+            <p className="esti-lp-lead">{STORY.intro}</p>
+            <div className="esti-lp-story-grid">
+              <article className="esti-lp-story-card">
+                <div className="esti-lp-story-logo-wrap">
+                  <img src={aormsLogo} alt="AORMS" className="esti-lp-story-logo" />
+                </div>
+                <h3>{STORY.aorms.title}</h3>
+                <p className="esti-lp-story-expansion">{STORY.aorms.expansion}</p>
+                <p>{STORY.aorms.body}</p>
+              </article>
+              <article className="esti-lp-story-card esti-lp-story-card--esti">
+                <div className="esti-lp-hero-agent esti-lp-hero-agent--story" aria-hidden>
+                  <span className="esti-lp-hero-agent-ring" />
+                  <span className="esti-lp-hero-agent-dot">
+                    <img src={estiLogo} alt="" className="esti-lp-hero-agent-mark" />
+                  </span>
+                </div>
+                <h3>{STORY.esti.title}</h3>
+                <p className="esti-lp-story-expansion">{STORY.esti.expansion}</p>
+                <p>{STORY.esti.body}</p>
+              </article>
+            </div>
+            <p className="esti-lp-story-bridge">{STORY.bridge}</p>
+          </div>
+        </section>
       </main>
 
-      {/* ── Footer (always visible) ───────────────────────────────────────── */}
       <footer className="esti-lp-foot">
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
-            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={aormsOnDark} alt="AORMS" style={{ height: 28 }} /></div>
-            <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50.</p>
-            <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
+            <div className="esti-lp-brand esti-lp-foot-brand">
+              <img src={aormsLogo} alt="AORMS" className="esti-lp-logo esti-lp-logo-aorms" />
+            </div>
+            <p className="esti-lp-muted">{LANDING_SEO.footerBlurb}</p>
+            <div className="esti-lp-foot-links">
               <a href="mailto:hi@aorms.in">hi@aorms.in</a>
-              <a href="https://wa.me/919880000000" target="_blank" rel="noopener noreferrer">WhatsApp</a>
               <a href="https://aorms.in">aorms.in</a>
             </div>
-            <div style={{ marginTop: "1.5rem" }}>
-              <span className="esti-lp-muted" style={{ display: "block", marginBottom: "0.4rem" }}>Developed by</span>
+            <div className="esti-lp-foot-dev">
+              <span className="esti-lp-muted">Developed by</span>
               <a href="https://holagundi.works" target="_blank" rel="noopener noreferrer">
-                <img src={hcwLogo} alt="Holagundi Consulting Wurkz" style={{ height: 26, maxWidth: "100%" }} />
+                <img src={hcwLogo} alt="Holagundi Consulting Wurkz" className="esti-lp-hcw" />
               </a>
             </div>
           </div>
           <div>
-            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Platform</h3>
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              {["COA fee proposals", "GST / TDS invoicing", "Drawings & DXF takeoff", "RIE bylaw compliance", "DSR / BOQ / SteelFlow BBS", "ASPRF performance"].map((m) => (
-                <span key={m} className="esti-lp-muted">{m}</span>
+            <h3>Platform</h3>
+            <ul className="esti-lp-foot-list">
+              {["Client revision control", "Quality intelligence", "ASPRF performance", "COA fee proposals", "Drawing register & DXF", "RIE compliance"].map((m) => (
+                <li key={m}>{m}</li>
               ))}
-            </div>
+            </ul>
           </div>
           <div>
-            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Try a demo</h3>
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              <a href="#top" onClick={() => choose("freelancer")}>Freelancer demo</a>
-              <a href="#top" onClick={() => choose("studio")}>Studio demo</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }}>WhatsApp us</a>
-            </div>
+            <h3>Demos</h3>
+            <ul className="esti-lp-foot-list esti-lp-foot-list--links">
+              <li><button type="button" className="esti-lp-foot-link" onClick={() => exploreDemo()}>Open demo workspace</button></li>
+              {audience && <li><a href="#demo">Your selected demo</a></li>}
+            </ul>
           </div>
         </div>
-        <div className="esti-lp-wrap" style={{ marginTop: "2rem" }}>
-          <span className="esti-lp-muted">© {new Date().getFullYear()} Holagundi Consulting Works · aorms.in · All rights reserved</span>
+        <div className="esti-lp-wrap esti-lp-foot-copy">
+          <span className="esti-lp-muted">© {new Date().getFullYear()} Holagundi Consulting Works · All rights reserved</span>
         </div>
       </footer>
     </div>

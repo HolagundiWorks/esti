@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 type FormState = {
@@ -82,13 +83,11 @@ export function Contractors() {
 
   return (
     <Stack gap={6}>
-      <Stack orientation="horizontal" gap={5}>
-        <Stack gap={3} className="esti-grow">
-          <h1>Contractors</h1>
-          <p>Construction contractor register — trades, statutory ids and on-site performance.</p>
-        </Stack>
-        <Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
-      </Stack>
+      <PageHeader
+        title="Contractors"
+        description="Construction contractor register — trades, statutory ids and on-site performance."
+        actions={<Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
+      />
 
       <Stack orientation="horizontal" gap={5}>
         <Select id="ct-cat" labelText="Category" hideLabel size="sm" value={category} onChange={(e) => setCategory(e.target.value)}>

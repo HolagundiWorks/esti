@@ -11,6 +11,7 @@ import { bbsRouter } from "../modules/boq/bbs.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
 import { estimateRouter } from "../modules/boq/estimate.js";
 import { bylawCalcRouter } from "../modules/bylaw/calc.js";
+import { bbmpRulesRouter } from "../modules/bylaw/bbmpRules.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
@@ -51,9 +52,9 @@ import {
   siteAssessmentRouter,
 } from "../modules/rie/router.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
+import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { steelflowRouter } from "../modules/steelflow/router.js";
-import { timesheetRouter } from "../modules/timesheet/router.js";
-import { dailyUpdateRouter } from "../modules/dailyupdate/router.js";
+import { attendanceRouter } from "../modules/attendance/router.js";
 import { aspRfRouter } from "../modules/asprf/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
 import { publicProcedure, router } from "./trpc.js";
@@ -88,6 +89,7 @@ export const appRouter = router({
   permits: permitRouter,
   bylaws: bylawRouter,
   bylawCalc: bylawCalcRouter,
+  bbmpRules: bbmpRulesRouter,
   dsr: dsrRouter,
   estimates: estimateRouter,
   bbs: bbsRouter,
@@ -126,9 +128,9 @@ export const appRouter = router({
   ruleVersions: ruleVersionRouter,
   siteAssessments: siteAssessmentRouter,
   knowledgeBank: knowledgeBankRouter,
+  specCatalog: specCatalogRouter,
   steelflow: steelflowRouter,
-  timesheets: timesheetRouter,
-  dailyUpdates: dailyUpdateRouter,
+  attendance: attendanceRouter,
   aspRf: aspRfRouter,
   rewards: rewardRouter,
 });

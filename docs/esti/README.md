@@ -15,9 +15,11 @@ incorporated into the roadmap; they must not compete with current requirements.
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
+| [WORKFLOW-ARCHITECTURE-AUDIT](WORKFLOW-ARCHITECTURE-AUDIT.md) | Workflow, component hierarchy, and architecture audit snapshot (execution in ROADMAP Phase 2G) |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
 | [BYLAWS-BBMP](BYLAWS-BBMP.md) | BBMP seed for the standalone compliance knowledge bank |
+| [STEELFLOW-BOUNDED-CONTEXT](STEELFLOW-BOUNDED-CONTEXT.md) | `sf_*` vs `esti_*` naming and SteelFlow module boundaries |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
 Build and runtime instructions live in [DEVELOPMENT.md](../../DEVELOPMENT.md).

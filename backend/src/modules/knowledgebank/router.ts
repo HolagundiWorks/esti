@@ -1,6 +1,9 @@
 import {
   SpecificationProcurementStandardCreate,
+  SteelFlowCatalogEntryCreate,
   StructuralElementTemplateCreate,
+  parseSteelFlowCatalogRow,
+  steelFlowCatalogToPersisted,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
@@ -120,6 +123,49 @@ export const knowledgeBankRouter = router({
         action: "PUBLISH",
         actorId: ctx.user.id,
         before,
+        after: row,
+      });
+      return row!;
+    }),
+
+  listPublishedSteelFlowCatalog: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select()
+      .from(structuralElementTemplates)
+      .where(eq(structuralElementTemplates.status, "PUBLISHED"))
+      .orderBy(desc(structuralElementTemplates.createdAt));
+    return rows
+      .map((row) => {
+        const entry = parseSteelFlowCatalogRow(row);
+        return entry ? { id: row.id, ...entry } : null;
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+  }),
+
+  createSteelFlowCatalog: protectedProcedure
+    .input(SteelFlowCatalogEntryCreate)
+    .mutation(async ({ ctx, input }) => {
+      const persisted = steelFlowCatalogToPersisted(input);
+      const [row] = await ctx.db
+        .insert(structuralElementTemplates)
+        .values({
+          code: input.code,
+          name: input.name,
+          family: input.elementType,
+          type: `${input.widthMm}x${input.depthMm}`,
+          version: input.version,
+          description: input.description ?? null,
+          geometry: persisted.geometry,
+          reinforcement: persisted.reinforcement,
+          sourceCitation: input.sourceCitation ?? null,
+          createdById: ctx.user.id,
+        })
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "steelflow_catalog",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
         after: row,
       });
       return row!;

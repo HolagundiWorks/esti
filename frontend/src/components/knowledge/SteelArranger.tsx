@@ -48,11 +48,12 @@ import {
   sfDevelopmentLength,
   sfShapeCuttingLength,
 } from "@esti/contracts";
-import { trpc } from "../lib/trpc.js";
-import { useSteelStore } from "../store/useSteelStore.js";
-import { computeBbsRows, totalSteelKg } from "../engine/bbsEngine.js";
-import { BarPalette } from "../components/steelflow/BarPalette.js";
-import { CrossSectionDropZone } from "../components/steelflow/CrossSectionCanvas.js";
+import { trpc } from "../../lib/trpc.js";
+import { useSteelStore } from "../../store/useSteelStore.js";
+import { computeBbsRows, totalSteelKg } from "../../engine/bbsEngine.js";
+import { BarPalette } from "../steelflow/BarPalette.js";
+import { CrossSectionDropZone } from "../steelflow/CrossSectionCanvas.js";
+import { SteelFlowCatalogManager } from "./SteelFlowCatalogManager.js";
 
 // ─── Element-type config ──────────────────────────────────────────────────────
 // Each structural element type has different terminology, available bar types,
@@ -688,6 +689,9 @@ function NewElementForm({
   sessionId: string;
   onCreated: (id: string) => void;
 }) {
+  const catalogQ = trpc.knowledgeBank.listPublishedSteelFlowCatalog.useQuery();
+  const [mode, setMode] = useState<"catalog" | "manual">("catalog");
+  const [templateId, setTemplateId] = useState("");
   const [type, setType] = useState<ElType>("BEAM");
   const [code, setCode] = useState("");
   const [length, setLength] = useState(DEFAULTS.BEAM.l);
@@ -697,6 +701,8 @@ function NewElementForm({
   const [fck, setFck] = useState(25);
   const [fy, setFy] = useState(500);
   const utils = trpc.useUtils();
+  const catalog = catalogQ.data ?? [];
+  const selected = catalog.find((c) => c.id === templateId);
 
   const dims = DIM_LABELS[type];
 
@@ -714,8 +720,105 @@ function NewElementForm({
     },
   });
 
+  const applyCatalogMut = trpc.steelflow.applyCatalog.useMutation({
+    onSuccess: (row) => {
+      utils.steelflow.listElements.invalidate({ sessionId });
+      onCreated(row.id);
+      setCode("");
+      setTemplateId("");
+    },
+  });
+
   return (
-    <Stack gap={3}>
+    <Stack gap={4}>
+      <Select
+        id="el-mode"
+        labelText="Add method"
+        size="sm"
+        value={mode}
+        onChange={(e) => setMode(e.target.value as "catalog" | "manual")}
+      >
+        <SelectItem value="catalog" text="From Knowledge Bank catalogue" />
+        <SelectItem value="manual" text="Manual geometry (add bars yourself)" />
+      </Select>
+
+      {mode === "catalog" ? (
+        <Stack gap={3}>
+          {catalog.length === 0 ? (
+            <InlineNotification
+              kind="info"
+              title="No published catalogue entries"
+              subtitle="Create and publish a configuration under the Catalogue tab (e.g. beam 230×600 M25)."
+              lowContrast
+            />
+          ) : (
+            <>
+              <Select
+                id="el-catalog"
+                labelText="Catalogue configuration"
+                size="sm"
+                value={templateId}
+                onChange={(e) => setTemplateId(e.target.value)}
+              >
+                <SelectItem value="" text="Select…" />
+                {catalog.map((c) => (
+                  <SelectItem
+                    key={c.id}
+                    value={c.id}
+                    text={`${c.code} — ${c.name}`}
+                  />
+                ))}
+              </Select>
+              {selected && (
+                <p>
+                  Section {selected.widthMm}×{selected.depthMm} mm · M{selected.fck}
+                  · {selected.rebars.length} bar groups · {selected.stirrups.length}{" "}
+                  stirrup zones. Extra bars use span-based rules (e.g. L/4).
+                </p>
+              )}
+              <Stack orientation="horizontal" gap={3}>
+                <TextInput
+                  id="el-code-cat"
+                  labelText="Reference code"
+                  size="sm"
+                  placeholder="B1"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <NumberInput
+                  id="el-span"
+                  label="Span / length (mm)"
+                  size="sm"
+                  min={300}
+                  max={30000}
+                  step={100}
+                  value={length}
+                  onChange={(_e, { value }) => setLength(Number(value))}
+                />
+              </Stack>
+              <Button
+                kind="primary"
+                size="sm"
+                renderIcon={Add}
+                disabled={
+                  !templateId || !length || applyCatalogMut.isPending
+                }
+                onClick={() =>
+                  applyCatalogMut.mutate({
+                    sessionId,
+                    templateId,
+                    elementCode: code || "B1",
+                    spanMm: length,
+                  })
+                }
+              >
+                Add from catalogue
+              </Button>
+            </>
+          )}
+        </Stack>
+      ) : (
+        <Stack gap={3}>
       <Stack orientation="horizontal" gap={3}>
         <Select id="el-type" labelText="Element type" size="sm" value={type}
           onChange={(e) => applyDefaults(e.target.value as ElType)}>
@@ -760,6 +863,8 @@ function NewElementForm({
         disabled={createMut.isPending}>
         Add element
       </Button>
+        </Stack>
+      )}
     </Stack>
   );
 }
@@ -767,6 +872,35 @@ function NewElementForm({
 // ─── Main route ───────────────────────────────────────────────────────────────
 
 export function SteelArranger({ embedded = false }: { embedded?: boolean }) {
+  const meQ = trpc.auth.me.useQuery();
+  const canManage =
+    !!meQ.data && !["VIEWER", "CLIENT"].includes(meQ.data.role);
+  const [panelIndex, setPanelIndex] = useState(embedded ? 0 : 1);
+
+  return (
+    <Stack gap={5}>
+      <Tabs
+        selectedIndex={panelIndex}
+        onChange={({ selectedIndex }) => setPanelIndex(selectedIndex)}
+      >
+        <TabList aria-label="SteelFlow sections">
+          <Tab>Catalogue</Tab>
+          <Tab>BBS Workshop</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <SteelFlowCatalogManager canManage={canManage} />
+          </TabPanel>
+          <TabPanel>
+            <SteelArrangerWorkshop embedded={embedded} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Stack>
+  );
+}
+
+function SteelArrangerWorkshop({ embedded = false }: { embedded?: boolean }) {
   const { activeSessionId, activeElementId, setActiveSession, setActiveElement } =
     useSteelStore();
 
@@ -813,10 +947,9 @@ export function SteelArranger({ embedded = false }: { embedded?: boolean }) {
           {embedded ? <h2>Steel Arranger + BBS Generator</h2> : <h1>Steel Arranger + BBS Generator</h1>}
         </Stack>
         <p>
-          Interactive reinforcement arrangement with automated BBS per IS:456 / IS:2502.
-          BEAM and COLUMN use closed stirrups / links; SLAB uses distribution bars only;
-          FOOTING uses orthogonal mat reinforcement — each with contextual bar-type labels
-          and applicable shape codes.
+          BBS workshop: create a session, add elements from the catalogue (span
+          drives cutting lengths — e.g. extra top bars at L/4) or manually,
+          then generate BBS per IS:456 / IS:2502.
         </p>
       </Stack>
 

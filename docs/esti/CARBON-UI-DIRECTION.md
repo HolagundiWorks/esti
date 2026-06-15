@@ -1,6 +1,6 @@
 # ESTI Pure Carbon UI Policy
 
-**Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
+**Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15
 
 The ESTI frontend uses only IBM Carbon Design System components, icons,
 pictograms, charts, layout, typography, and design tokens. This is an
@@ -46,6 +46,30 @@ Reference specs used in this document:
 SVG sizing, and minimal colourless structural helpers that Carbon cannot express.
 Any helper must affect only layout mechanics and must not define visual identity.
 The exception must be documented beside the rule.
+
+### Documented exceptions
+
+These areas intentionally diverge from strict Pure Carbon. Each is scoped and
+must not spread to staff workspace routes without an explicit policy update.
+
+| Exception | Location | Rationale |
+|---|---|---|
+| Marketing landing (`.esti-lp`) | `Landing.tsx`, `styles.scss` | Editorial marketing page with indigo brand accent (`--lp-*` tokens); not part of the productive app chrome. Light theme only. |
+| Dashboard mosaic grid | `.esti-dash` | Condensed `Grid` with 1 px row-gap so zone tiles read as a flush mosaic; vertical rhythm matches horizontal gutters. |
+| Square-corner tags | `.cds--tag { border-radius: 0 }` | Deliberate brand choice on dashboard and intelligence tiles; do not apply globally to form controls. |
+| ASPRF / Performance KPI track bars | `.esti-kpi-track`, `.esti-kpi-fill` | Legacy CSS retained for any remaining scalar bars; Performance member tiles now use `MeterChart` (Phase 2F). |
+| Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. |
+| Drawing / SteelFlow canvas geometry | Drawing viewer, `SteelArranger.tsx`, `CrossSectionCanvas.tsx` | SVG sizing, drop zones, and palette positioning require structural inline styles; no decorative hex or shadows. |
+| Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
+| Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope (not under `.esti-lp` only). |
+| Login brand mark | `.esti-login-mark` | Inverse background chip for the white ESTI mark on the login tile; uses `--cds-background-inverse`, not hard-coded hex. |
+| Portal logo sizing | `.esti-portal-logo` | Structural max-height for firm logo in external portal headers. |
+
+Staff routes (`src/routes` excluding `Landing.tsx`) must not add new entries to
+this table without updating both this document and `ROADMAP.md` Phase 2F.
+
+Automated enforcement lives in `frontend/scripts/carbon-policy-rules.mjs`
+(consumed by `check-carbon.mjs` and `carbon-policy.test.ts`).
 
 ---
 
@@ -307,4 +331,4 @@ Always use the shared `ConfirmModal` wrapper — never `window.confirm`.
 - Inline `style` for any visual property → Carbon tokens or component props only
 
 The implementation cleanup and data-viz enhancements are tracked in
-[ROADMAP Phase 2](ROADMAP.md).
+[ROADMAP Phase 2F](ROADMAP.md) (UI audit, page hierarchy, policy alignment).

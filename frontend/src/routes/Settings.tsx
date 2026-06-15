@@ -7,6 +7,7 @@ import {
 } from "@carbon/react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 export function Settings() {
@@ -36,10 +37,10 @@ export function Settings() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>My profile</h1>
-        <p>Signed in as {user?.email}</p>
-      </Stack>
+      <PageHeader
+        title="My profile"
+        description={`Signed in as ${user?.email ?? ""}`}
+      />
 
       {msg && (
         <InlineNotification
@@ -50,6 +51,17 @@ export function Settings() {
           onCloseButtonClick={() => setMsg(null)}
         />
       )}
+
+      <Tile style={{ maxWidth: 520 }}>
+        <Stack gap={3}>
+          <h2>Workspace preferences</h2>
+          <p>
+            Theme (light or dark) and dashboard section toggles are in the
+            floating dock at the bottom of the side nav — click the settings
+            icon or press Alt+S.
+          </p>
+        </Stack>
+      </Tile>
 
       <Tile style={{ maxWidth: 520 }}>
         <Stack gap={5}>

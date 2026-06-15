@@ -15,9 +15,9 @@ import {
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useEffect, useState } from "react";
-import { ConfirmModal } from "../components/ConfirmModal.js";
-import { DataState } from "../components/DataState.js";
-import { trpc } from "../lib/trpc.js";
+import { ConfirmModal } from "../ConfirmModal.js";
+import { DataState } from "../DataState.js";
+import { trpc } from "../../lib/trpc.js";
 
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 

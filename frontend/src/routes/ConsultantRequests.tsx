@@ -28,12 +28,13 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
-export function ConsultantRequests() {
+export function ConsultantRequests({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const [status, setStatus] = useState("");
   const [kind, setKind] = useState("");
@@ -83,13 +84,13 @@ export function ConsultantRequests() {
 
   return (
     <Stack gap={6}>
-      <Stack orientation="horizontal" gap={5}>
-        <Stack gap={3} className="esti-grow">
-          <h1>Consultant requests</h1>
-          <p>Deliverables, RFIs and notes raised by engaged consultants — and tasks you assign to them.</p>
-        </Stack>
-        <Button size="sm" onClick={() => setAssignOpen(true)}>Assign task</Button>
-      </Stack>
+      {!embedded && (
+        <PageHeader
+          title="Consultant requests"
+          description="Deliverables, RFIs and notes raised by engaged consultants — and tasks you assign to them."
+          actions={<Button size="sm" onClick={() => setAssignOpen(true)}>Assign task</Button>}
+        />
+      )}
 
       <Stack orientation="horizontal" gap={5}>
         <Select id="cnr-status" labelText="Status" hideLabel size="sm"
@@ -106,6 +107,9 @@ export function ConsultantRequests() {
             <SelectItem key={k} value={k} text={CONSULTANT_SUBMISSION_KIND_LABEL[k]} />
           ))}
         </Select>
+        {embedded && (
+          <Button size="sm" onClick={() => setAssignOpen(true)}>Assign task</Button>
+        )}
       </Stack>
 
       {listQ.error && (

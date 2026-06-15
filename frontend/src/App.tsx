@@ -17,12 +17,11 @@ import {
   Building,
   Catalog,
   Dashboard as DashboardIcon,
-  Asleep,
   Document,
   Enterprise,
-  Light,
   Logout,
   Money,
+  Notification,
   TaskComplete,
   UserMultiple,
   type CarbonIconType,
@@ -35,11 +34,9 @@ import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { FloatingDock } from "./components/FloatingDock.js";
+import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import {
-  fmtPomTime,
-  POMODORO_MODE_LABEL,
   PomodoroProvider,
-  usePomodoro,
 } from "./contexts/PomodoroContext.js";
 import { Alerts } from "./routes/Alerts.js";
 import { ArchivedProjects } from "./routes/ArchivedProjects.js";
@@ -47,9 +44,7 @@ import { AuditLog } from "./routes/AuditLog.js";
 import { Clients } from "./routes/Clients.js";
 import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
-import { ClientRequests } from "./routes/ClientRequests.js";
 import { Consultants } from "./routes/Consultants.js";
-import { ConsultantRequests } from "./routes/ConsultantRequests.js";
 import { Contractors } from "./routes/Contractors.js";
 import { Tenders } from "./routes/Tenders.js";
 import { Contracts } from "./routes/Contracts.js";
@@ -75,6 +70,28 @@ import { Users } from "./routes/Users.js";
 
 type ThemeName = "white" | "g100";
 
+/** Side nav highlight — prefix match for nested routes (projects, tasks, KB). */
+function navPathActive(pathname: string, to: string): boolean {
+  if (to === "/") return pathname === "/";
+  if (to === "/projects") {
+    return pathname === "/projects" || pathname.startsWith("/projects/");
+  }
+  if (to === "/tasks") return pathname === "/tasks" || pathname.startsWith("/tasks");
+  if (to === "/knowledge-bank") {
+    return pathname === "/knowledge-bank" || pathname.startsWith("/knowledge-bank");
+  }
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+/** Legacy `/compliance` bookmarks → Knowledge Bank compliance tab. */
+function ComplianceRedirect() {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  params.set("tab", "compliance");
+  const qs = params.toString();
+  return <Navigate to={`/knowledge-bank?${qs}`} replace />;
+}
+
 // ─── Header clock ─────────────────────────────────────────────────────────────
 
 function HeaderClock() {
@@ -93,20 +110,10 @@ function HeaderClock() {
     day: "numeric",
     month: "short",
   });
-  return <span className="esti-header-clock">{date} · {time}</span>;
-}
-
-// ─── Floating Pomodoro overlay ────────────────────────────────────────────────
-// 20% opacity non-interactive overlay shown while a session is running.
-
-function PomodoroFloat() {
-  const pom = usePomodoro();
-  if (!pom.running) return null;
   return (
-    <div className="esti-pomodoro-float">
-      <p>{POMODORO_MODE_LABEL[pom.mode]}</p>
-      <p>{fmtPomTime(pom.timeLeft)}</p>
-    </div>
+    <span className="esti-header-clock">
+      {date} · {time}
+    </span>
   );
 }
 
@@ -159,16 +166,33 @@ function AppShell() {
           <Route path="/login" element={<Login />} />
           <Route
             path="*"
-            element={<Landing theme={theme} onToggleTheme={toggleTheme} />}
+            element={<Landing />}
           />
         </Routes>
       </Theme>
     );
   // Client-role users get the read-only portal, not the office workspace.
-  if (user.role === "CLIENT") return <Portal />;
+  if (user.role === "CLIENT")
+    return (
+      <Theme theme="white">
+        <Routes>
+          <Route path="/" element={<Portal />} />
+          <Route path="/projects/:projectId" element={<Portal />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Theme>
+    );
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId)
-    return <CollaboratorPortal />;
+    return (
+      <Theme theme="white">
+        <Routes>
+          <Route path="/" element={<CollaboratorPortal />} />
+          <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Theme>
+    );
 
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
   // Grouped navigation (modules → sub-modules).
@@ -177,6 +201,7 @@ function AppShell() {
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
+    { label: "Alerts", to: "/alerts", icon: Notification },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
@@ -186,8 +211,6 @@ function AppShell() {
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
         { label: "Contractors", to: "/contractors" },
-        { label: "Client requests", to: "/client-requests" },
-        { label: "Consultant requests", to: "/consultant-requests" },
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
@@ -258,13 +281,8 @@ function AppShell() {
               </HeaderName>
               <HeaderGlobalBar>
                 <HeaderClock />
+                <HeaderPomodoro />
                 <AlertsBell />
-                <HeaderGlobalAction
-                  aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
-                  onClick={toggleTheme}
-                >
-                  {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
-                </HeaderGlobalAction>
                 <HeaderGlobalAction
                   aria-label="Sign out"
                   onClick={() => logout.mutate()}
@@ -282,7 +300,7 @@ function AppShell() {
                   as={Link}
                   to={n.to}
                   renderIcon={n.icon ?? DashboardIcon}
-                  isActive={pathname === n.to}
+                  isActive={navPathActive(pathname, n.to)}
                 >
                   {n.label}
                 </SideNavLink>
@@ -292,14 +310,14 @@ function AppShell() {
                   key={g.label}
                   title={g.label}
                   renderIcon={g.icon}
-                  defaultExpanded={g.items.some((it) => it.to === pathname)}
+                  defaultExpanded={g.items.some((it) => navPathActive(pathname, it.to))}
                 >
                   {g.items.map((it) => (
                     <SideNavMenuItem
                       key={it.to}
                       as={Link}
                       to={it.to}
-                      isActive={pathname === it.to}
+                      isActive={navPathActive(pathname, it.to)}
                     >
                       {it.label}
                     </SideNavMenuItem>
@@ -319,7 +337,7 @@ function AppShell() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
-                <Route path="/compliance" element={<KnowledgeBank />} />
+                <Route path="/compliance" element={<ComplianceRedirect />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/invoices" element={<Invoices />} />
                 {can(user.role, "fees:manage") && (
@@ -332,6 +350,7 @@ function AppShell() {
                 <Route path="/office/contracts" element={<Contracts />} />
                 <Route path="/office/tenders" element={<Tenders />} />
                 <Route path="/tasks" element={<Work />} />
+                <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 <Route
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
@@ -339,8 +358,14 @@ function AppShell() {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/consultants" element={<Consultants />} />
                 <Route path="/contractors" element={<Contractors />} />
-                <Route path="/client-requests" element={<ClientRequests />} />
-                <Route path="/consultant-requests" element={<ConsultantRequests />} />
+                <Route
+                  path="/client-requests"
+                  element={<Navigate to="/tasks?tab=client-requests" replace />}
+                />
+                <Route
+                  path="/consultant-requests"
+                  element={<Navigate to="/tasks?tab=consultant-requests" replace />}
+                />
                 <Route path="/reconcile" element={<Reconcile />} />
                 {hrEnabled && <Route path="/team" element={<Team />} />}
                 {hrEnabled && <Route path="/hr" element={<Hr />} />}
@@ -393,8 +418,7 @@ function AppShell() {
               </Stack>
             </footer>
           </Content>
-          <FloatingDock />
-          <PomodoroFloat />
+          <FloatingDock theme={theme} onToggleTheme={toggleTheme} />
         </div>
       </Theme>
     </ThemeContext.Provider>

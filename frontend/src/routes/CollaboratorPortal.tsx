@@ -5,8 +5,6 @@ import {
   Content,
   Form,
   Grid,
-  Header,
-  HeaderName,
   InlineNotification,
   Modal,
   Select,
@@ -32,21 +30,25 @@ import {
   type ConsultantOriginKind as ConsultantOriginKindT,
   type ConsultantSubmissionKind as ConsultantSubmissionKindT,
 } from "@esti/contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PortalHeader } from "../components/PortalHeader.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
 export function CollaboratorPortal() {
+  const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId?: string }>();
+  const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.collab.branding.useQuery();
   const projectsQ = trpc.collab.myProjects.useQuery();
-  const [openId, setOpenId] = useState<string | null>(null);
   const detailQ = trpc.collab.projectDetail.useQuery(
     { projectId: openId ?? "" },
     { enabled: !!openId },
@@ -71,6 +73,12 @@ export function CollaboratorPortal() {
   });
   const d = detailQ.data;
 
+  useEffect(() => {
+    if (openId && detailQ.isError) {
+      navigate("/", { replace: true });
+    }
+  }, [openId, detailQ.isError, navigate]);
+
   // ── write state ──────────────────────────────────────────────────────────
   const [form, setForm] = useState<{ kind: ConsultantOriginKindT; subject: string; body: string } | null>(null);
   const submit = trpc.collab.submit.useMutation({
@@ -93,25 +101,18 @@ export function CollaboratorPortal() {
 
   return (
     <>
-      <Header aria-label="ESTI consultant portal">
-        {brandingQ.data?.logoUrl && (
-          <img src={brandingQ.data.logoUrl} alt="" className="esti-portal-logo" />
-        )}
-        <HeaderName prefix={brandingQ.data?.companyName ?? "ESTI"}>Consultant portal</HeaderName>
-        <Button
-          kind="ghost"
-          size="sm"
-          style={{ marginLeft: "auto" }}
-          onClick={() => logout.mutate()}
-        >
-          Sign out
-        </Button>
-      </Header>
+      <PortalHeader
+        companyName={brandingQ.data?.companyName}
+        logoUrl={brandingQ.data?.logoUrl}
+        portalLabel="Consultant portal"
+        onSignOut={() => logout.mutate()}
+        signingOut={logout.isPending}
+      />
       <Content>
         {!openId && (
           <Stack gap={5}>
             <Stack gap={2}>
-              <h2>Your engagements</h2>
+              <h1>Your engagements</h1>
               <p>
                 Projects you are engaged on — status, stages, issued drawings,
                 your fee balance, and your deliverables, RFIs and notes.
@@ -125,7 +126,7 @@ export function CollaboratorPortal() {
                 const balance = p.agreedFeePaise - p.paidPaise;
                 return (
                   <Column key={p.id} sm={4} md={4} lg={4}>
-                    <ClickableTile onClick={() => setOpenId(p.id)}>
+                    <ClickableTile onClick={() => navigate(`/projects/${p.id}`)}>
                       <Stack gap={3}>
                         <p>{p.ref}</p>
                         <h3>{p.title}</h3>
@@ -143,7 +144,7 @@ export function CollaboratorPortal() {
         {openId && d && (
           <Stack gap={6}>
             <Stack gap={3}>
-              <Button kind="ghost" size="sm" onClick={() => setOpenId(null)}>
+              <Button kind="ghost" size="sm" onClick={() => navigate("/")}>
                 ← All engagements
               </Button>
               <h2>{d.project.title}</h2>
