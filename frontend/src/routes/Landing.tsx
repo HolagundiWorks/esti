@@ -63,7 +63,14 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
   const [annual, setAnnual] = useState(true);
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
 
-  const runDemo = () => demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
+  // The demo login this instance opens (override per-instance, e.g. the solo
+  // instance sets VITE_DEMO_EMAIL=solo@demo.aorms.in) and an optional link to a
+  // separate solo-firm demo instance (e.g. https://solo.aorms.in).
+  const demoEmail = import.meta.env.VITE_DEMO_EMAIL ?? "principal@demo.aorms.in";
+  const soloDemoUrl = import.meta.env.VITE_SOLO_DEMO_URL ?? "";
+
+  const runDemo = () => demo.mutate({ email: demoEmail, password: "demo1234" });
+  const openSoloDemo = () => { if (soloDemoUrl) window.location.href = soloDemoUrl; };
   const contact = () => { window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20enquiry"; };
   const wa = () => window.open("https://wa.me/919880000000?text=" + encodeURIComponent("Hi, I'd like to know more about ESTI AORMS."), "_blank", "noopener");
 
@@ -91,8 +98,11 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
           <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
           </button>
+          {soloDemoUrl && (
+            <button className="esti-lp-btn esti-lp-btn--ghost" onClick={openSoloDemo}>Solo demo</button>
+          )}
           <button className="esti-lp-btn esti-lp-btn--gold" onClick={runDemo} disabled={demo.isPending}>
-            {demo.isPending ? "Opening…" : "Live demo"}
+            {demo.isPending ? "Opening…" : soloDemoUrl ? "Studio demo" : "Live demo"}
           </button>
         </div>
       </header>
@@ -111,11 +121,13 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
               </p>
               <div className="esti-lp-hero-cta">
                 <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={runDemo} disabled={demo.isPending}>
-                  {demo.isPending ? "Opening demo…" : "Explore the live demo"} <ArrowRight size={18} />
+                  {demo.isPending ? "Opening demo…" : "Explore the studio demo"} <ArrowRight size={18} />
                 </button>
-                <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
+                {soloDemoUrl
+                  ? <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={openSoloDemo}>Solo architect? Try the solo demo</button>
+                  : <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>}
               </div>
-              <p className="esti-lp-hero-note">No credit card · 14 fully populated demo projects · your data stays on your own server.</p>
+              <p className="esti-lp-hero-note">No credit card · a full studio demo (team + HR) and a solo-practice demo · your data stays on your own server.</p>
               {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
             </div>
             <img src={aormsOnDark} className="esti-lp-mark" alt="AORMS" />
