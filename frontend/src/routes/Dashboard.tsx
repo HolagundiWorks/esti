@@ -1,4 +1,5 @@
 import {
+  Button,
   ClickableTile,
   Column,
   Grid,
@@ -36,6 +37,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
+import {
+  fmtPomTime,
+  POMODORO_DURATIONS,
+  POMODORO_MODE_LABEL,
+  usePomodoro,
+  type PomodoroMode,
+} from "../contexts/PomodoroContext.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -270,6 +278,135 @@ function FilingTile({
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
+// ─── My space (relocated from the old right panel) ──────────────────────────
+
+const POM_TAG: Record<PomodoroMode, "blue" | "green" | "teal"> = { work: "blue", short: "green", long: "teal" };
+
+/** Animated circular Pomodoro ring driven by the global timer. */
+function PomodoroRing() {
+  const pom = usePomodoro();
+  const total = POMODORO_DURATIONS[pom.mode];
+  const pct = (total - pom.timeLeft) / total;
+  const R = 52;
+  const C = 2 * Math.PI * R;
+
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={4}>
+        <Stack orientation="horizontal" gap={3}>
+          <h3 className="esti-grow">Focus timer</h3>
+          <Tag type={POM_TAG[pom.mode]} size="sm">{POMODORO_MODE_LABEL[pom.mode]}</Tag>
+        </Stack>
+        <div className="esti-pom-ring">
+          <svg viewBox="0 0 120 120" width="160" height="160" role="img" aria-label="Pomodoro timer">
+            <circle cx="60" cy="60" r={R} fill="none" stroke="var(--cds-layer-accent)" strokeWidth="8" />
+            <circle
+              cx="60" cy="60" r={R} fill="none" stroke="var(--cds-interactive)" strokeWidth="8"
+              strokeLinecap="round" strokeDasharray={C}
+              strokeDashoffset={C * (1 - pct)}
+              transform="rotate(-90 60 60)"
+              style={{ transition: "stroke-dashoffset 1s linear" }}
+              className={pom.running ? "esti-pom-ring--run" : undefined}
+            />
+            <text x="60" y="64" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--cds-text-primary)">
+              {fmtPomTime(pom.timeLeft)}
+            </text>
+          </svg>
+        </div>
+        <Stack orientation="horizontal" gap={2}>
+          {(["work", "short", "long"] as PomodoroMode[]).map((m) => (
+            <Button key={m} kind={pom.mode === m ? "primary" : "ghost"} size="sm" onClick={() => pom.switchMode(m)}>
+              {POMODORO_MODE_LABEL[m]}
+            </Button>
+          ))}
+        </Stack>
+        <Stack orientation="horizontal" gap={3}>
+          <Button kind="primary" size="sm" onClick={pom.toggle}>
+            {pom.running ? "Pause" : pom.timeLeft === total ? "Start" : "Resume"}
+          </Button>
+          <Button kind="ghost" size="sm" onClick={pom.reset}>Reset</Button>
+          {pom.sessions > 0 && <span className="esti-label esti-label--secondary">{pom.sessions} today</span>}
+        </Stack>
+      </Stack>
+    </Tile>
+  );
+}
+
+const MY_PRIORITY_TAG: Record<string, "red" | "magenta" | "blue" | "gray"> = {
+  CRITICAL: "red", HIGH: "magenta", MEDIUM: "blue", LOW: "gray",
+};
+
+function MyTasksTile() {
+  const navigate = useNavigate();
+  const tasksQ = trpc.tasks.list.useQuery({ myTasks: true });
+  const today = new Date().toISOString().slice(0, 10);
+  const open = (tasksQ.data ?? []).filter((t) => t.status !== "DONE");
+  const overdue = open.filter((t) => t.dueDate && t.dueDate < today);
+
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={4}>
+        <Stack orientation="horizontal" gap={3}>
+          <h3 className="esti-grow">My tasks</h3>
+          {!tasksQ.isLoading && <Tag type={overdue.length ? "red" : "blue"} size="sm">{open.length} open</Tag>}
+        </Stack>
+        {tasksQ.isLoading ? (
+          <InlineLoading description="Loading…" />
+        ) : open.length === 0 ? (
+          <p>No open tasks assigned to you.</p>
+        ) : (
+          <Stack gap={3}>
+            {open.slice(0, 4).map((t) => {
+              const isOverdue = t.dueDate ? t.dueDate < today : false;
+              return (
+                <Stack key={t.id} orientation="horizontal" gap={2}>
+                  <div className="esti-grow">
+                    <p>{t.title}</p>
+                    {t.projectRef && <span className="esti-label esti-label--helper">{t.projectRef}</span>}
+                  </div>
+                  <Tag type={isOverdue ? "red" : MY_PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
+                    {isOverdue ? "Overdue" : t.priority}
+                  </Tag>
+                </Stack>
+              );
+            })}
+            {open.length > 4 && <span className="esti-label esti-label--helper">+{open.length - 4} more</span>}
+          </Stack>
+        )}
+        <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/tasks?tab=tasks")}>Open Work</Button>
+      </Stack>
+    </Tile>
+  );
+}
+
+function MyLeaveTile() {
+  const navigate = useNavigate();
+  const meQ = trpc.dashboard.me.useQuery();
+  const leave = meQ.data?.leave;
+  return (
+    <Tile className="esti-fill">
+      <Stack gap={4}>
+        <h3>Leave balance</h3>
+        {meQ.isLoading ? (
+          <InlineLoading description="Loading…" />
+        ) : !leave ? (
+          <p>No leave record linked to your login.</p>
+        ) : (
+          <Stack gap={4}>
+            <Stack orientation="horizontal" gap={5}>
+              <Stack gap={1}><span className="esti-label esti-label--secondary">Remaining</span><h2>{leave.remaining}</h2></Stack>
+              <Stack gap={1}><span className="esti-label esti-label--secondary">Used</span><h2>{leave.used}</h2></Stack>
+              <Stack gap={1}><span className="esti-label esti-label--secondary">Allowance</span><h2>{leave.allowance}</h2></Stack>
+            </Stack>
+            <ProgressBar label="Leave used" hideLabel value={leave.used} max={leave.allowance} helperText={`${leave.used} of ${leave.allowance} days taken`} />
+          </Stack>
+        )}
+        <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/hr")}>Open HR</Button>
+      </Stack>
+    </Tile>
+  );
+}
+
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -358,6 +495,11 @@ export function Dashboard() {
           )}
         </Stack>
       </Column>
+
+      {/* ═══ 0 · My space — focus timer, my tasks, leave ══════════════════ */}
+      <Column lg={6} md={4} sm={4}><PomodoroRing /></Column>
+      <Column lg={5} md={4} sm={4}><MyTasksTile /></Column>
+      <Column lg={5} md={8} sm={4}><MyLeaveTile /></Column>
 
       {/* ═══ 1 · KPI strip — four answers, one row ═════════════════════════ */}
       <Column lg={4} md={4} sm={2}>

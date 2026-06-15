@@ -17,13 +17,13 @@ import {
   Building,
   Catalog,
   Dashboard as DashboardIcon,
+  Asleep,
   Document,
   Enterprise,
+  Light,
   Logout,
   Money,
   TaskComplete,
-  Trophy,
-  User,
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
@@ -34,7 +34,7 @@ import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
-import { PersonalPanel } from "./components/PersonalPanel.js";
+import { FloatingDock } from "./components/FloatingDock.js";
 import {
   fmtPomTime,
   POMODORO_MODE_LABEL,
@@ -130,7 +130,6 @@ function AppShell() {
   const [theme, setTheme] = useState<ThemeName>(
     () => (localStorage.getItem("esti-theme") as ThemeName) || "white",
   );
-  const [panelOpen, setPanelOpen] = useState(false);
 
   function toggleTheme() {
     setTheme((t) => {
@@ -261,11 +260,10 @@ function AppShell() {
                 <HeaderClock />
                 <AlertsBell />
                 <HeaderGlobalAction
-                  aria-label={panelOpen ? "Close My Space" : "Open My Space"}
-                  isActive={panelOpen}
-                  onClick={() => setPanelOpen((o) => !o)}
+                  aria-label={theme === "white" ? "Switch to dark theme" : "Switch to light theme"}
+                  onClick={toggleTheme}
                 >
-                  <User size={20} />
+                  {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
                 </HeaderGlobalAction>
                 <HeaderGlobalAction
                   aria-label="Sign out"
@@ -395,13 +393,7 @@ function AppShell() {
               </Stack>
             </footer>
           </Content>
-          <PersonalPanel
-            isOpen={panelOpen}
-            onClose={() => setPanelOpen(false)}
-            userName={user.fullName}
-            theme={theme}
-            onToggleTheme={toggleTheme}
-          />
+          <FloatingDock />
           <PomodoroFloat />
         </div>
       </Theme>
