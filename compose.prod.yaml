@@ -120,6 +120,12 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile.prod
+      args:
+        # Baked into the SPA at build time. On the studio site set
+        # VITE_SOLO_DEMO_URL; on the solo site set VITE_FULL_DEMO_URL. Empty = the
+        # demo buttons log in on this instance instead of redirecting.
+        VITE_SOLO_DEMO_URL: ${VITE_SOLO_DEMO_URL:-}
+        VITE_FULL_DEMO_URL: ${VITE_FULL_DEMO_URL:-}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.
