@@ -1,8 +1,10 @@
 /**
  * ESTI AORMS — marketing landing page.
- * Audience: Indian architecture practices — solo architects and firms of 5–50.
- * Branded (ESTI indigo on ink), editorial, SEO-keyworded. Styled under .esti-lp
- * (a documented marketing exception to the Pure Carbon app policy).
+ * Audience: Indian architecture practices. The hero asks the visitor to pick a
+ * path — Freelancer (a solo practice) or Studio (a full team) — and only then
+ * reveals a tailored middle section: learn the features, then experience the
+ * matching demo. Styled under .esti-lp (a documented marketing exception to the
+ * Pure Carbon app policy).
  */
 import {
   ArrowRight,
@@ -15,22 +17,17 @@ import {
   Light,
   Money,
   Trophy,
+  User,
+  UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
 type ThemeName = "white" | "g100";
-
+type Audience = "freelancer" | "studio";
 
 // ─── content ─────────────────────────────────────────────────────────────────
-
-const STATS: { value: string; label: string }[] = [
-  { value: "1 platform", label: "replaces Excel, Tally, email & WhatsApp" },
-  { value: "GST + TDS", label: "CGST/SGST/IGST & 194J, built in" },
-  { value: "COA", label: "Scale-of-Charges fee compliance" },
-  { value: "Self-hosted", label: "your server, your data" },
-];
 
 const CAPS: { icon: CarbonIconType; title: string; body: string }[] = [
   { icon: Money, title: "Fees, GST & collections", body: "COA fee proposals with below-minimum guardrails, GST/TDS invoicing, GSTR & TDS abstracts, and reconciliation." },
@@ -56,16 +53,50 @@ const FAQS: { q: string; a: string }[] = [
   { q: "Is my data safe, and can I self-host?", a: "ESTI is self-hosted on your own server — your drawings, invoices and client data never leave your infrastructure. Role-based access and separate read-only client and consultant portals ensure outsiders see only what you share. We offer optional managed hosting too." },
 ];
 
+// Per-audience tailored content. caps = indices into CAPS.
+const PERSONA: Record<Audience, {
+  icon: CarbonIconType; tag: string; sub: string; pitch: string;
+  eyebrow: string; heading: string; lead: string;
+  caps: number[];
+  plan: { name: string; points: string[] };
+  demoLabel: string;
+}> = {
+  freelancer: {
+    icon: User,
+    tag: "Freelancer",
+    sub: "For a solo practice",
+    pitch: "One architect, every module — fees, GST, drawings, compliance and BBS, with no team admin to manage.",
+    eyebrow: "For the solo architect",
+    heading: "Everything you bill for — none of the team overhead",
+    lead: "Run your whole solo practice from a single login. COA fee proposals, GST/TDS invoices, drawings & DXF takeoff, bylaw checks and bar bending schedules — without HR, rosters or seniority roles getting in the way.",
+    caps: [0, 1, 2, 3, 5],
+    plan: { name: "Solo", points: ["1 architect, every module", "COA fees, GST/TDS & filing", "Drawings, DXF & compliance", "Client & consultant portals"] },
+    demoLabel: "Experience the Freelancer demo",
+  },
+  studio: {
+    icon: UserMultiple,
+    tag: "Studio",
+    sub: "Full studio with teams",
+    pitch: "Everything a solo gets, plus team roster, workload, timesheets, HR and the ASPRF performance engine.",
+    eyebrow: "For studios with teams",
+    heading: "Run a studio of 5–50 without the chaos",
+    lead: "Everything in the Freelancer plan, plus a team roster and assignments, workload calendar, timesheets and stand-ups, HR & payroll, consultant coordination, and a rolling 30-day ASPRF performance score across six KPIs.",
+    caps: [0, 1, 2, 3, 4, 5],
+    plan: { name: "Studio", points: ["Up to 15 users, seniority roles", "Workload, timesheets & ASPRF", "Consultant coordination & HR", "SteelFlow BBS & RIE engine"] },
+    demoLabel: "Experience the Studio demo",
+  },
+};
+
 // ─── Landing ─────────────────────────────────────────────────────────────────
 
 export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTheme: () => void }) {
   const utils = trpc.useUtils();
-  const [annual, setAnnual] = useState(true);
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const midRef = useRef<HTMLDivElement>(null);
 
   // Two demo experiences. Each can either live on THIS instance (log in directly)
-  // or on a SEPARATE instance (redirect via a build-time VITE_*_DEMO_URL var, e.g.
-  // VITE_SOLO_DEMO_URL=https://solo.aorms.in on the studio site).
+  // or on a SEPARATE instance (redirect via a build-time VITE_*_DEMO_URL var).
   const fullDemoUrl = import.meta.env.VITE_FULL_DEMO_URL ?? "";
   const soloDemoUrl = import.meta.env.VITE_SOLO_DEMO_URL ?? "";
 
@@ -77,268 +108,200 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
     if (soloDemoUrl) { window.location.href = soloDemoUrl; return; }
     demo.mutate({ email: "solo@demo.aorms.in", password: "demo1234" });
   };
+  const exploreDemo = (a: Audience) => (a === "studio" ? exploreFull() : exploreSolo());
   const contact = () => { window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20enquiry"; };
   const wa = () => window.open("https://wa.me/919880000000?text=" + encodeURIComponent("Hi, I'd like to know more about ESTI AORMS."), "_blank", "noopener");
 
-  const solo = annual ? "₹499" : "₹599";
-  const studio = annual ? "₹2,499" : "₹2,999";
+  const choose = (a: Audience) => {
+    setAudience(a);
+    // Let the section mount, then bring it into view.
+    setTimeout(() => midRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  };
 
-  // ESTI mark: white on dark backgrounds, black on light; theme-aware for the
-  // top bar / footer (which sit on the Carbon background that flips with theme).
   const aormsOnDark = "/aorms-logo-white.png";
   const aormsAuto = theme === "white" ? "/aorms-logo.png" : "/aorms-logo-white.png";
   const hcwLogo = theme === "white" ? "/hcw-black.png" : "/hcw-white.png";
 
+  const p = audience ? PERSONA[audience] : null;
+
   return (
     <div className="esti-lp">
-      {/* ── Top bar ───────────────────────────────────────────────────────── */}
+      {/* ── Top bar (login / demo links already here) ─────────────────────── */}
       <header className="esti-lp-bar">
         <a href="#top" className="esti-lp-brand"><img src={aormsAuto} alt="AORMS" style={{ height: 30 }} /></a>
-        <nav className="esti-lp-nav">
-          <a href="#modules">Modules</a>
-          <a href="#compliance">Compliance</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#faq">FAQ</a>
-        </nav>
         <div className="esti-lp-bar-actions">
           <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
           </button>
           <button className="esti-lp-btn esti-lp-btn--ghost" onClick={exploreSolo} disabled={demo.isPending}>
-            Solo demo
+            Freelancer demo
           </button>
           <button className="esti-lp-btn esti-lp-btn--gold" onClick={exploreFull} disabled={demo.isPending}>
-            {demo.isPending ? "Opening…" : "Full demo"}
+            {demo.isPending ? "Opening…" : "Studio demo"}
           </button>
         </div>
       </header>
 
       <main id="top">
-        {/* ── Hero ────────────────────────────────────────────────────────── */}
+        {/* ── Hero + path picker ──────────────────────────────────────────── */}
         <section className="esti-lp-hero">
-          <div className="esti-lp-wrap esti-lp-hero-grid">
-            <div>
-              <span className="esti-lp-eyebrow">AORMS · Built for Indian architects</span>
-              <h1>Run your practice, <em>not the paperwork.</em></h1>
-              <p>
-                ESTI is the self-hosted office platform for Indian architecture
-                practices — COA fee proposals, GST &amp; TDS invoicing, drawings,
-                bylaw compliance, BBS and team performance, in one place.
-              </p>
-              <div className="esti-lp-hero-cta">
-                <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={exploreFull} disabled={demo.isPending}>
-                  {demo.isPending ? "Opening demo…" : "Explore the full demo"} <ArrowRight size={18} />
-                </button>
-                <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={exploreSolo} disabled={demo.isPending}>
-                  Explore the solo demo <ArrowRight size={18} />
-                </button>
-              </div>
-              <p className="esti-lp-hero-note">Full demo = a studio with team &amp; HR · solo demo = a single-architect practice · no credit card, your data stays on your own server.</p>
-              {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
-            </div>
-            <img src={aormsOnDark} className="esti-lp-mark" alt="AORMS" />
-          </div>
-        </section>
-
-        {/* ── Stat strip ──────────────────────────────────────────────────── */}
-        <div className="esti-lp-stats">
-          {STATS.map((s) => (
-            <div key={s.label} className="esti-lp-stat">
-              <b>{s.value}</b>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Product ─────────────────────────────────────────────────────── */}
-        <section className="esti-lp-section">
           <div className="esti-lp-wrap">
-            <span className="esti-lp-eyebrow">The dashboard</span>
-            <h2>Your whole practice, on one screen</h2>
-            <p className="esti-lp-lead">What can I bill today? Who's overdue? Which project needs attention? Answered in ten seconds.</p>
+            <span className="esti-lp-eyebrow">AORMS · Built for Indian architects</span>
+            <h1>Run your practice, <em>not the paperwork.</em></h1>
+            <p style={{ maxWidth: "44rem" }}>
+              ESTI is the self-hosted office platform for Indian architecture
+              practices — COA fee proposals, GST &amp; TDS invoicing, drawings,
+              bylaw compliance, BBS and team performance, in one place.
+            </p>
 
-            <div className="esti-lp-mock">
-              <div className="esti-lp-mock-top"><span /><span /><span /></div>
-              <div className="esti-lp-mock-kpis">
-                {[
-                  { l: "Ready to bill", v: "₹24.6L" },
-                  { l: "Outstanding", v: "₹8.1L" },
-                  { l: "Active projects", v: "14" },
-                  { l: "Utilization", v: "82%" },
-                ].map((k) => (
-                  <div key={k.l} className="esti-lp-mock-kpi"><small>{k.l}</small><b>{k.v}</b></div>
-                ))}
-              </div>
-              <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
-                {[
-                  { l: "Ar. Vihaan Sharma — Gold", v: 92 },
-                  { l: "Ar. Priya Sharma — Silver", v: 78 },
-                  { l: "Ar. Ravi Kumar — Bronze", v: 65 },
-                ].map((m) => (
-                  <div key={m.l}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
-                      <span>{m.l}</span><span>{m.v}</span>
-                    </div>
-                    <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Capabilities ────────────────────────────────────────────────── */}
-        <section id="modules" className="esti-lp-section" style={{ paddingTop: 0 }}>
-          <div className="esti-lp-wrap">
-            <span className="esti-lp-eyebrow">Modules</span>
-            <h2>Everything an architecture office runs on</h2>
-            <p className="esti-lp-lead">From enquiry to completion certificate — integrated, not stitched together from five tools.</p>
-            <div className="esti-lp-grid esti-lp-grid--3">
-              {CAPS.map((c) => {
-                const Icon = c.icon;
+            <p className="esti-lp-eyebrow" style={{ marginTop: "2.5rem" }}>Which one are you?</p>
+            <div className="esti-lp-grid esti-lp-grid--2" style={{ marginTop: "0.75rem" }}>
+              {(["freelancer", "studio"] as const).map((a) => {
+                const cfg = PERSONA[a];
+                const Icon = cfg.icon;
+                const active = audience === a;
                 return (
-                  <div key={c.title} className="esti-lp-cell">
+                  <button
+                    key={a}
+                    className={`esti-lp-card${active ? " esti-lp-card--feature" : ""}`}
+                    style={{ cursor: "pointer", textAlign: "left", outline: active ? "2px solid var(--lp-accent)" : undefined }}
+                    aria-pressed={active}
+                    onClick={() => choose(a)}
+                  >
                     <Icon size={28} className="esti-lp-ic" />
-                    <h3>{c.title}</h3>
-                    <p>{c.body}</p>
-                  </div>
+                    <h3>{cfg.tag} <span className="esti-lp-muted" style={{ fontWeight: 400 }}>· {cfg.sub}</span></h3>
+                    <p>{cfg.pitch}</p>
+                    <span className="esti-lp-btn esti-lp-btn--ghost" style={{ marginTop: "0.5rem" }}>
+                      {active ? "Selected — see below" : "Explore this path"} <ArrowRight size={16} />
+                    </span>
+                  </button>
                 );
               })}
             </div>
+            {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
           </div>
         </section>
 
-        {/* ── India-first band ────────────────────────────────────────────── */}
-        <section id="compliance" className="esti-lp-band">
-          <div className="esti-lp-wrap esti-lp-section">
-            <div className="esti-lp-grid--2" style={{ display: "grid", gap: "3rem", alignItems: "center" }}>
-              <div>
-                <span className="esti-lp-eyebrow">India-first compliance</span>
-                <h2>The only platform that speaks COA, GST and bylaws natively</h2>
-                <p>
-                  Foreign practice tools can't price a COA proposal, split an IGST
-                  invoice, or warn you that your FAR is exceeded. ESTI does all
-                  three — because it was built for the Indian context, not adapted to it.
-                </p>
-                <ul className="esti-lp-checks">
-                  {INDIA_POINTS.map((p) => (
-                    <li key={p}><Checkmark size={18} className="esti-lp-ic" /><span>{p}</span></li>
-                  ))}
-                </ul>
-              </div>
-              <div className="esti-lp-mock" style={{ marginTop: 0 }}>
-                <div className="esti-lp-mock-top"><span /><span /><span /></div>
-                <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
-                  <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>RIE feasibility — sample</div>
-                  {[
-                    { l: "FAR utilised", v: 96 },
-                    { l: "Ground coverage", v: 58 },
-                    { l: "Setback compliance", v: 100 },
-                    { l: "Sustainability score", v: 74 },
-                  ].map((m) => (
-                    <div key={m.l}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
-                        <span>{m.l}</span><span>{m.v}%</span>
+        {/* ── Tailored middle (opens after a path is chosen) ──────────────── */}
+        {p && audience && (
+          <div ref={midRef}>
+            {/* Intro for the chosen path */}
+            <section className="esti-lp-section">
+              <div className="esti-lp-wrap">
+                <span className="esti-lp-eyebrow">{p.eyebrow}</span>
+                <h2>{p.heading}</h2>
+                <p className="esti-lp-lead">{p.lead}</p>
+
+                <div className="esti-lp-grid esti-lp-grid--3" style={{ marginTop: "2rem" }}>
+                  {p.caps.map((i) => {
+                    const c = CAPS[i]!;
+                    const Icon = c.icon;
+                    return (
+                      <div key={c.title} className="esti-lp-cell">
+                        <Icon size={28} className="esti-lp-ic" />
+                        <h3>{c.title}</h3>
+                        <p>{c.body}</p>
                       </div>
-                      <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: "0.85rem", color: "var(--cds-text-secondary)" }}>1 deviation — front setback short by 0.4 m, flagged before submission.</div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        {/* ── Pricing ─────────────────────────────────────────────────────── */}
-        <section id="pricing" className="esti-lp-section">
-          <div className="esti-lp-wrap">
-            <span className="esti-lp-eyebrow">Pricing</span>
-            <h2>Simple pricing for practices of every size</h2>
-            <p className="esti-lp-lead">Self-hosted — pay for the software, run it on a ₹400-a-month VPS. Start with the live demo.</p>
-            <div className="esti-lp-pricing-toggle" style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginTop: "1.25rem" }}>
-              <button className="esti-lp-btn esti-lp-btn--ghost" style={{ opacity: annual ? 0.6 : 1 }} onClick={() => setAnnual(false)}>Monthly</button>
-              <button className="esti-lp-btn esti-lp-btn--ghost" style={{ opacity: annual ? 1 : 0.6 }} onClick={() => setAnnual(true)}>Annual · save ~17%</button>
-            </div>
+            {/* India-first compliance (shared) */}
+            <section className="esti-lp-band">
+              <div className="esti-lp-wrap esti-lp-section">
+                <div className="esti-lp-grid--2" style={{ display: "grid", gap: "3rem", alignItems: "center" }}>
+                  <div>
+                    <span className="esti-lp-eyebrow">India-first compliance</span>
+                    <h2>Speaks COA, GST and bylaws natively</h2>
+                    <p>
+                      Foreign tools can't price a COA proposal, split an IGST invoice,
+                      or warn you that your FAR is exceeded. ESTI does all three —
+                      because it was built for the Indian context, not adapted to it.
+                    </p>
+                    <ul className="esti-lp-checks">
+                      {INDIA_POINTS.map((pt) => (
+                        <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="esti-lp-mock" style={{ marginTop: 0 }}>
+                    <div className="esti-lp-mock-top"><span /><span /><span /></div>
+                    <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
+                      <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>
+                        {audience === "studio" ? "Team performance — ASPRF" : "RIE feasibility — sample"}
+                      </div>
+                      {(audience === "studio"
+                        ? [
+                            { l: "Ar. Vihaan Sharma — Gold", v: 92 },
+                            { l: "Ar. Priya Sharma — Silver", v: 78 },
+                            { l: "Ar. Ravi Kumar — Bronze", v: 65 },
+                          ]
+                        : [
+                            { l: "FAR utilised", v: 96 },
+                            { l: "Ground coverage", v: 58 },
+                            { l: "Setback compliance", v: 100 },
+                            { l: "Sustainability score", v: 74 },
+                          ]
+                      ).map((m) => (
+                        <div key={m.l}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
+                            <span>{m.l}</span><span>{m.v}{audience === "studio" ? "" : "%"}</span>
+                          </div>
+                          <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-            <div className="esti-lp-price">
-              <div className="esti-lp-card">
-                <h3>Solo</h3>
-                <div className="esti-lp-amt">{solo}<span style={{ fontSize: "0.9rem", color: "var(--cds-text-secondary)", fontWeight: 400 }}> / mo</span></div>
-                <ul>
-                  {["1 architect, every module", "COA fees, GST/TDS & filing", "Drawings, DXF & compliance", "Client portal & email support"].map((b) => (
-                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
+            {/* FAQ (shared) */}
+            <section className="esti-lp-section" style={{ paddingTop: 0 }}>
+              <div className="esti-lp-wrap" style={{ maxWidth: "60rem" }}>
+                <span className="esti-lp-eyebrow">FAQ</span>
+                <h2>Frequently asked questions</h2>
+                <div className="esti-lp-faq" style={{ marginTop: "2rem" }}>
+                  {FAQS.map((f) => (
+                    <details key={f.q}>
+                      <summary>{f.q}</summary>
+                      <p>{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Closing CTA — experience the matching demo (login link) */}
+            <section className="esti-lp-final">
+              <div className="esti-lp-wrap esti-lp-section">
+                <span className="esti-lp-eyebrow">{p.tag} · {p.sub}</span>
+                <h2>Now try it for yourself</h2>
+                <p>Open the {p.tag} demo — a fully populated workspace ({p.plan.name} plan) with real projects, fees, GST invoices and compliance — and see how little admin ESTI leaves you.</p>
+                <ul className="esti-lp-checks" style={{ margin: "1.25rem 0" }}>
+                  {p.plan.points.map((pt) => (
+                    <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
                   ))}
                 </ul>
-                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={exploreSolo} disabled={demo.isPending}>Explore the solo demo</button>
+                <div className="esti-lp-hero-cta">
+                  <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={() => exploreDemo(audience)} disabled={demo.isPending}>
+                    {demo.isPending ? "Opening demo…" : p.demoLabel} <ArrowRight size={18} />
+                  </button>
+                  <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={() => choose(audience === "studio" ? "freelancer" : "studio")}>
+                    I'm a {audience === "studio" ? "freelancer" : "studio"} instead
+                  </button>
+                  <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
+                </div>
+                {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
               </div>
-
-              <div className="esti-lp-card esti-lp-card--feature">
-                <h3>Studio · most popular</h3>
-                <div className="esti-lp-amt">{studio}<span style={{ fontSize: "0.9rem", color: "var(--cds-text-secondary)", fontWeight: 400 }}> / mo</span></div>
-                <ul>
-                  {["Up to 15 users, seniority roles", "Workload, timesheets & ASPRF", "Consultant coordination & HR", "SteelFlow BBS & RIE engine", "Priority support"].map((b) => (
-                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
-                  ))}
-                </ul>
-                <button className="esti-lp-btn esti-lp-btn--gold" onClick={exploreFull} disabled={demo.isPending}>Explore the full demo</button>
-              </div>
-
-              <div className="esti-lp-card">
-                <h3>Firm</h3>
-                <div className="esti-lp-amt">Custom</div>
-                <ul>
-                  {["16 – 50 users", "Managed hosting & onboarding", "Data migration assistance", "Dedicated support"].map((b) => (
-                    <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
-                  ))}
-                </ul>
-                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={contact}>Contact sales</button>
-              </div>
-            </div>
-            <p className="esti-lp-lead" style={{ marginTop: "1.25rem", fontSize: "0.9rem" }}>
-              Prices in INR, exclusive of GST. More than 50 architects?{" "}
-              <a href="mailto:hi@aorms.in" style={{ color: "var(--lp-accent)" }}>Talk to us</a> ·{" "}
-              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }} style={{ color: "var(--lp-accent)" }}>WhatsApp</a>.
-            </p>
+            </section>
           </div>
-        </section>
-
-        {/* ── FAQ ─────────────────────────────────────────────────────────── */}
-        <section id="faq" className="esti-lp-section" style={{ paddingTop: 0 }}>
-          <div className="esti-lp-wrap" style={{ maxWidth: "60rem" }}>
-            <span className="esti-lp-eyebrow">FAQ</span>
-            <h2>Frequently asked questions</h2>
-            <div className="esti-lp-faq" style={{ marginTop: "2rem" }}>
-              {FAQS.map((f) => (
-                <details key={f.q}>
-                  <summary>{f.q}</summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Final CTA ───────────────────────────────────────────────────── */}
-        <section className="esti-lp-final">
-          <div className="esti-lp-wrap esti-lp-section">
-            <span className="esti-lp-eyebrow">Get started</span>
-            <h2>Get back to the drawing board</h2>
-            <p>Open a fully populated demo — fees, GST invoices, RIE assessments and ASPRF scores — and see how little admin ESTI leaves you. Pick the studio (team &amp; HR) or the solo practice.</p>
-            <div className="esti-lp-hero-cta">
-              <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={exploreFull} disabled={demo.isPending}>
-                {demo.isPending ? "Opening demo…" : "Explore the full demo"} <ArrowRight size={18} />
-              </button>
-              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={exploreSolo} disabled={demo.isPending}>
-                Explore the solo demo <ArrowRight size={18} />
-              </button>
-              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={wa}>WhatsApp</button>
-            </div>
-          </div>
-        </section>
+        )}
       </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      {/* ── Footer (always visible) ───────────────────────────────────────── */}
       <footer className="esti-lp-foot">
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
@@ -365,11 +328,11 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
             </div>
           </div>
           <div>
-            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Company</h3>
+            <h3 style={{ fontSize: "0.95rem", marginBottom: "0.75rem" }}>Try a demo</h3>
             <div style={{ display: "grid", gap: "0.5rem" }}>
-              <a href="#modules">Modules</a>
-              <a href="#pricing">Pricing</a>
-              <a href="#faq">FAQ</a>
+              <a href="#top" onClick={() => choose("freelancer")}>Freelancer demo</a>
+              <a href="#top" onClick={() => choose("studio")}>Studio demo</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); wa(); }}>WhatsApp us</a>
             </div>
           </div>
         </div>
