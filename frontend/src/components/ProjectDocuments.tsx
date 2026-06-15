@@ -1,7 +1,10 @@
 import {
   Button,
   FileUploaderButton,
+  InlineNotification,
   Modal,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -281,6 +284,7 @@ function Inspections({ projectId }: { projectId: string }) {
 
 // --- Spec sheets ------------------------------------------------------------
 type Row = {
+  catalogItemId?: string;
   category: string;
   item: string;
   make: string;
@@ -297,14 +301,40 @@ const blankRow = (): Row => ({
   remarks: "",
 });
 
+function rowFromCatalog(item: {
+  id: string;
+  category: string | null;
+  item: string;
+  make: string | null;
+  specification: string | null;
+  finish: string | null;
+  remarks: string | null;
+}): Row {
+  return {
+    catalogItemId: item.id,
+    category: item.category ?? "",
+    item: item.item,
+    make: item.make ?? "",
+    specification: item.specification ?? "",
+    finish: item.finish ?? "",
+    remarks: item.remarks ?? "",
+  };
+}
+
 function SpecSheets({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const listQ = trpc.spec.listByProject.useQuery({ projectId });
+  const catalogQ = trpc.specCatalog.activeCatalog.useQuery();
   const inv = () => utils.spec.listByProject.invalidate({ projectId });
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState<Row[]>([blankRow()]);
+  const [pickId, setPickId] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const catalogItems = catalogQ.data?.items ?? [];
+  const hasValidRow = rows.some(
+    (r) => r.catalogItemId || r.item.trim().length > 0,
+  );
   const create = trpc.spec.create.useMutation({
     onSuccess: () => {
       inv();
@@ -391,7 +421,7 @@ function SpecSheets({ projectId }: { projectId: string }) {
         primaryButtonText={create.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={
-          !title || !rows.some((r) => r.item.trim()) || create.isPending
+          !title || !hasValidRow || create.isPending
         }
         size="lg"
         onRequestClose={() => setOpen(false)}
@@ -400,10 +430,11 @@ function SpecSheets({ projectId }: { projectId: string }) {
             projectId,
             title,
             items: rows
-              .filter((r) => r.item.trim())
+              .filter((r) => r.catalogItemId || r.item.trim())
               .map((r) => ({
+                catalogItemId: r.catalogItemId,
                 category: r.category || undefined,
-                item: r.item,
+                item: r.item.trim() || undefined,
                 make: r.make || undefined,
                 specification: r.specification || undefined,
                 finish: r.finish || undefined,
@@ -419,6 +450,45 @@ function SpecSheets({ projectId }: { projectId: string }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+          {!catalogQ.isLoading && catalogItems.length === 0 && (
+            <InlineNotification
+              kind="info"
+              title="No active specification catalogue"
+              subtitle="Add and activate a catalogue version in Knowledge Bank → Specification."
+              lowContrast
+            />
+          )}
+          {catalogItems.length > 0 && (
+            <Stack orientation="horizontal" gap={4}>
+              <Select
+                id="ss-catalog-pick"
+                labelText="Add from catalogue"
+                value={pickId}
+                onChange={(e) => setPickId(e.target.value)}
+              >
+                <SelectItem value="" text="Select catalogue item…" />
+                {catalogItems.map((item) => (
+                  <SelectItem
+                    key={item.id}
+                    value={item.id}
+                    text={`${item.category ? `${item.category} · ` : ""}${item.item}`}
+                  />
+                ))}
+              </Select>
+              <Button
+                kind="tertiary"
+                disabled={!pickId}
+                onClick={() => {
+                  const picked = catalogItems.find((item) => item.id === pickId);
+                  if (!picked) return;
+                  setRows((rs) => [...rs.filter((r) => r.item.trim() || r.catalogItemId), rowFromCatalog(picked)]);
+                  setPickId("");
+                }}
+              >
+                Add row
+              </Button>
+            </Stack>
+          )}
           <Table size="sm">
             <TableHead>
               <TableRow>

@@ -222,8 +222,57 @@
     {
       "idx": 31,
       "version": "7",
-      "when": 1781191700000,
+      "when": 1781191650000,
       "tag": "0031_tender_bids",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1781191800000,
+      "tag": "0032_portal_revision_category",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1781191950000,
+      "tag": "0033_bbmp_rule_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1781192100000,
+      "tag": "0034_org_mode_hr_archive",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1781192200000,
+      "tag": "0035_attendance",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1781192300000,
+      "tag": "0036_bbmp_extended_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1781192400000,
+      "tag": "0037_bylaw_postconstruction",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1781192500000,
+      "tag": "0038_spec_catalog",
       "breakpoints": true
     }
   ]

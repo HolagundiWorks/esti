@@ -9,6 +9,7 @@ import { nextRef } from "../../lib/numbering.js";
 import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
+import { resolveSpecSheetItems } from "../../lib/specCatalogResolve.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const specRouter = router({
@@ -28,6 +29,7 @@ export const specRouter = router({
   }),
 
   create: protectedProcedure.input(SpecSheetCreate).mutation(async ({ ctx, input }) => {
+    const resolved = await resolveSpecSheetItems(ctx.db, input.items);
     const { ref } = await nextRef(ctx.db, "specsheet", "SPC");
     const row = await ctx.db.transaction(async (tx) => {
       const [s] = await tx
@@ -35,15 +37,16 @@ export const specRouter = router({
         .values({ ref, projectId: input.projectId, title: input.title })
         .returning();
       await tx.insert(specItems).values(
-        input.items.map((it, i) => ({
+        resolved.map((it) => ({
           specSheetId: s!.id,
-          category: it.category ?? null,
+          catalogItemId: it.catalogItemId,
+          category: it.category,
           item: it.item,
-          make: it.make ?? null,
-          specification: it.specification ?? null,
-          finish: it.finish ?? null,
-          remarks: it.remarks ?? null,
-          sortOrder: (i + 1) * 10,
+          make: it.make,
+          specification: it.specification,
+          finish: it.finish,
+          remarks: it.remarks,
+          sortOrder: it.sortOrder,
         })),
       );
       return s!;

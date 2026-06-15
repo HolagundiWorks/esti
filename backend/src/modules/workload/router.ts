@@ -1,6 +1,7 @@
 import { and, count, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { tasks, teamMembers } from "../../db/schema.js";
+import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const DateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -9,6 +10,7 @@ const DateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const workloadRouter = router({
   /** Per-person open-task counts due on a given day, plus the office cumulative. */
   day: protectedProcedure.input(z.object({ date: DateStr })).query(async ({ ctx, input }) => {
+    await requireHrEnabled(ctx.db);
     const rows = await ctx.db
       .select({ assignee: tasks.assignee, n: count() })
       .from(tasks)
@@ -44,6 +46,7 @@ export const workloadRouter = router({
   month: protectedProcedure
     .input(z.object({ year: z.number().int().min(1970).max(9999), month: z.number().int().min(0).max(11) }))
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const pad = (n: number) => String(n).padStart(2, "0");
       const start = `${input.year}-${pad(input.month + 1)}-01`;
       const ny = input.month === 11 ? input.year + 1 : input.year;

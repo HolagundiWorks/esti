@@ -1,10 +1,12 @@
-import { ProgressBar, Stack, Tag, Tile } from "@carbon/react";
-import { Time } from "@carbon/icons-react";
+import { Button, ProgressBar, Stack, Tag, Tile } from "@carbon/react";
+import { ArrowRight, Time } from "@carbon/icons-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
-/** Live clock + today's date + this user's remaining leave balance. */
-export function ClockLeavesWidget() {
+/** Live clock + today's date; leave balance when Team & HR is enabled. */
+export function ClockLeavesWidget({ hrEnabled = false }: { hrEnabled?: boolean }) {
+  const navigate = useNavigate();
   const meQ = trpc.dashboard.me.useQuery();
   const [now, setNow] = useState(() => new Date());
 
@@ -25,7 +27,7 @@ export function ClockLeavesWidget() {
     month: "long",
     year: "numeric",
   });
-  const leave = meQ.data?.leave ?? null;
+  const leave = hrEnabled ? meQ.data?.leave ?? null : null;
 
   return (
     <Tile className="esti-fill">
@@ -35,20 +37,27 @@ export function ClockLeavesWidget() {
         </Tag>
         <h3>{time}</h3>
         <p>{date}</p>
-        {leave ? (
-          <Stack gap={3}>
-            <h4>
-              {leave.remaining} of {leave.allowance} leave days remaining
-            </h4>
-            <ProgressBar
-              label="Annual leave used"
-              value={leave.used}
-              max={leave.allowance}
-              helperText={`${leave.used} day(s) taken`}
-            />
-          </Stack>
-        ) : (
-          <p>No leave record linked to your login.</p>
+        {hrEnabled && (
+          leave ? (
+            <Stack gap={3}>
+              <h4>
+                {leave.remaining} of {leave.allowance} leave days remaining
+              </h4>
+              <ProgressBar
+                label="Annual leave used"
+                value={leave.used}
+                max={leave.allowance}
+                helperText={`${leave.used} day(s) taken`}
+              />
+            </Stack>
+          ) : (
+            <p>No leave record linked to your login.</p>
+          )
+        )}
+        {hrEnabled && (
+          <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/hr")}>
+            Open HR
+          </Button>
         )}
       </Stack>
     </Tile>

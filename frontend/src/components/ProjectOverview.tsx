@@ -265,7 +265,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             value={pendingApprovals.length}
             detail="Items waiting for client or internal sign-off."
             tag="Approvals"
-            onClick={() => navigate("/activity")}
+            onClick={() => navigate("/tasks?tab=activity")}
           />
         </Column>
         <Column sm={4} md={4} lg={4}>
@@ -300,10 +300,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             detail={
               compliance
                 ? `${compliance.maxBuiltUpSqm ?? "—"} sq m FAR area · ${compliance.maxFootprintSqm ?? "—"} sq m ground cover`
-                : "Run the standalone compliance calculator for this project."
+                : "Open the Compliance tab to compute development potential."
             }
             tag="Linked result"
-            onClick={() => navigate(`/compliance?project=${projectId}`)}
+            onClick={() => navigate(`/projects/${projectId}?tab=compliance`)}
           />
         </Column>
       </Grid>

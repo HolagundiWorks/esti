@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const HEADERS = [
@@ -102,7 +103,12 @@ export function Projects() {
     })) ?? [];
 
   return (
-    <div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Projects"
+        description="Architecture project offices — phases, fees, drawings and delivery."
+      />
+
       <DataState
         loading={list.isLoading}
         isEmpty={allRows.length === 0}
@@ -132,10 +138,7 @@ export function Projects() {
               page * pageSize,
             );
             return (
-              <TableContainer
-                title="Architecture projects"
-                description="All office projects"
-              >
+              <TableContainer>
                 <TableToolbar>
                   <TableToolbarContent>
                     <TableToolbarSearch
@@ -284,6 +287,6 @@ export function Projects() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

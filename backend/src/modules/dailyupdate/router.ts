@@ -3,12 +3,14 @@ import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 import { dailyUpdates, teamMembers } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const dailyUpdateRouter = router({
   list: protectedProcedure
     .input(DailyUpdateListParams.optional())
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const filters: ReturnType<typeof eq>[] = [];
 
       if (input?.myOnly) {
@@ -48,6 +50,7 @@ export const dailyUpdateRouter = router({
 
   /** Upsert today's update for the calling user's team member profile. */
   upsertMine: protectedProcedure.input(DailyUpdateUpsert).mutation(async ({ ctx, input }) => {
+    await requireHrEnabled(ctx.db);
     const [tm] = await ctx.db
       .select({ id: teamMembers.id })
       .from(teamMembers)
@@ -106,6 +109,7 @@ export const dailyUpdateRouter = router({
   today: protectedProcedure
     .input(z.object({ date: z.string() }))
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const [tm] = await ctx.db
         .select({ id: teamMembers.id })
         .from(teamMembers)

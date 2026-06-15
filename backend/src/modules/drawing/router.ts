@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gt, or } from "drizzle-orm";
 import { z } from "zod";
 import { drawings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { writeActivity } from "../../lib/activity.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { getObjectText, presignedGet } from "../../lib/storage.js";
@@ -72,6 +73,15 @@ export const drawingRouter = router({
           watermark: input.watermark || "ISSUED FOR APPROVAL",
         },
       });
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "drawing",
+        objectId: row.id,
+        eventType: "drawing.issue_pdf_requested",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Issue PDF requested for drawing ${row.ref}`,
+      });
       return { ok: true };
     }),
 
@@ -109,6 +119,15 @@ export const drawingRouter = router({
         actorId: ctx.user.id,
         before: { scaleUnitsPerVb: before.scaleUnitsPerVb, scaleUnit: before.scaleUnit },
         after: { scaleUnitsPerVb: row!.scaleUnitsPerVb, scaleUnit: row!.scaleUnit },
+      });
+      await writeActivity(ctx.db, {
+        projectId: before.projectId,
+        objectType: "drawing",
+        objectId: input.id,
+        eventType: "drawing.scale_updated",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Drawing ${before.ref} scale calibrated`,
       });
       return row;
     }),

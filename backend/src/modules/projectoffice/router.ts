@@ -8,7 +8,7 @@ import {
   can,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import {
   criticalNotes,
@@ -26,40 +26,21 @@ import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
+import {
+  getProjectById,
+  listArchivedProjects,
+  listProjectLogs,
+  listProjects,
+  projectByIdInput,
+  projectLogsInput,
+} from "./queries.js";
 
 export const projectOfficeRouter = router({
-  list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => {
-    const where = and(
-      isNull(projectOffices.archivedAt),
-      input.search ? ilike(projectOffices.title, `%${input.search}%`) : undefined,
-      input.status ? eq(projectOffices.status, input.status) : undefined,
-    );
-    return ctx.db
-      .select()
-      .from(projectOffices)
-      .where(where)
-      .orderBy(desc(projectOffices.createdAt))
-      .limit(input.limit)
-      .offset(input.offset);
-  }),
+  list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => listProjects(ctx.db, input)),
 
-  byId: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
-    const rows = await ctx.db
-      .select()
-      .from(projectOffices)
-      .where(and(eq(projectOffices.id, input.id), isNull(projectOffices.archivedAt)))
-      .limit(1);
-    return rows[0] ?? null;
-  }),
+  byId: protectedProcedure.input(projectByIdInput).query(async ({ ctx, input }) => getProjectById(ctx.db, input.id)),
 
-  listArchived: protectedProcedure.query(async ({ ctx }) => {
-    if (!can(ctx.user.role, "project:delete")) throw new TRPCError({ code: "FORBIDDEN" });
-    return ctx.db
-      .select()
-      .from(projectOffices)
-      .where(and(isNotNull(projectOffices.archivedAt), isNull(projectOffices.purgedAt)))
-      .orderBy(desc(projectOffices.archivedAt));
-  }),
+  listArchived: protectedProcedure.query(async ({ ctx }) => listArchivedProjects(ctx.db, ctx.user)),
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
     const { ref } = await nextRef(ctx.db, "projectoffice", "PRJ");
@@ -392,15 +373,7 @@ export const projectOfficeRouter = router({
     }),
 
   // --- Internal project log (audit notes) ---
-  logs: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select()
-        .from(projectLogs)
-        .where(eq(projectLogs.projectId, input.projectId))
-        .orderBy(desc(projectLogs.createdAt));
-    }),
+  logs: protectedProcedure.input(projectLogsInput).query(async ({ ctx, input }) => listProjectLogs(ctx.db, input.projectId)),
 
   addLog: protectedProcedure
     .input(z.object({ projectId: z.string().uuid(), note: z.string().min(1).max(2000) }))

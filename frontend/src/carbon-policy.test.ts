@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { extname, join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { checkLine } from "../scripts/carbon-policy-rules.mjs";
 
 const root = new URL("./", import.meta.url);
 
@@ -12,17 +13,15 @@ function files(dir: URL | string): string[] {
 }
 
 describe("Pure Carbon frontend policy", () => {
-  it("contains no hard-coded visual values, decorative inline styles, or raw controls", () => {
+  it("contains no hard-coded visual values, decorative inline styles, or raw controls in staff scope", () => {
     const violations: string[] = [];
-    const rules = [
-      /(?:#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\(|linear-gradient|box-shadow)/i,
-      /\b(?:color|background(?:Color)?|fontSize|fontWeight|border(?:Top|Right|Bottom|Left|Radius)?|boxShadow|letterSpacing|textTransform)\s*:/,
-      /<(?:button|input|select|textarea)\b/,
-    ];
     for (const path of files(root.pathname)) {
-      if (![".ts", ".tsx", ".scss"].includes(extname(path)) || path.endsWith("carbon-policy.test.ts")) continue;
+      if (![".ts", ".tsx", ".scss"].includes(extname(path))) continue;
       const source = readFileSync(path, "utf8");
-      if (rules.some((rule) => rule.test(source))) violations.push(path);
+      source.split(/\r?\n/).forEach((line, index) => {
+        const reason = checkLine(path, line, index + 1);
+        if (reason) violations.push(`${path}:${index + 1}: ${reason}`);
+      });
     }
     expect(violations).toEqual([]);
   });

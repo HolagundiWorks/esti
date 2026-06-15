@@ -24,6 +24,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const HEADERS = [
@@ -97,7 +98,12 @@ export function Consultants() {
     })) ?? [];
 
   return (
-    <div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Consultants"
+        description="Discipline specialists the office engages on projects."
+      />
+
       {loginMsg && (
         <InlineNotification
           kind="success"
@@ -132,10 +138,7 @@ export function Consultants() {
             getRowProps,
             onInputChange,
           }) => (
-            <TableContainer
-              title="Consultant register"
-              description="Discipline specialists the office engages"
-            >
+            <TableContainer>
               <TableToolbar>
                 <TableToolbarContent>
                   <TableToolbarSearch
@@ -293,6 +296,6 @@ export function Consultants() {
           )}
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

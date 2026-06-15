@@ -4,6 +4,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { poItems, purchaseOrders } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { writeActivity } from "../../lib/activity.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireDeletableStatus } from "../../lib/retention.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -74,6 +75,16 @@ export const poRouter = router({
       actorId: ctx.user.id,
       after: { ref, totalPaise },
     });
+    await writeActivity(ctx.db, {
+      projectId: row.projectId,
+      objectType: "po",
+      objectId: row.id,
+      eventType: "po.created",
+      actorId: ctx.user.id,
+      actorName: ctx.user.fullName,
+      summary: `Purchase order ${ref} created`,
+      metadata: { ref, totalPaise },
+    });
     return row;
   }),
 
@@ -95,6 +106,16 @@ export const poRouter = router({
         before: { status: before.status },
         after: { status: row!.status },
       });
+      await writeActivity(ctx.db, {
+        projectId: before.projectId,
+        objectType: "po",
+        objectId: input.id,
+        eventType: "po.status_changed",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `PO ${before.ref} → ${input.status}`,
+        metadata: { from: before.status, to: input.status },
+      });
       return row!;
     }),
 
@@ -114,6 +135,15 @@ export const poRouter = router({
         action: "DELETE",
         actorId: ctx.user.id,
         before,
+      });
+      await writeActivity(ctx.db, {
+        projectId: before.projectId,
+        objectType: "po",
+        objectId: input.id,
+        eventType: "po.deleted",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `PO ${before.ref} deleted`,
       });
       return { ok: true };
     }),

@@ -155,7 +155,7 @@ computed KPIs, Action Center, health modules; `portal` — client portal access
 
 ## Frontend routes (`frontend/src/routes/`)
 
-33 route files total. Key routes by area:
+29 route files total. Key routes by area:
 
 | File | Purpose |
 |---|---|
@@ -164,27 +164,25 @@ computed KPIs, Action Center, health modules; `portal` — client portal access
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |
 | `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked) |
-| `Tasks.tsx` / `Work.tsx` | Task list views (Work.tsx is the staff "my tasks" view) |
-| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hr:manage gated) |
-| `Workload.tsx` | Team workload matrix |
+| `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias) |
+| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated) |
 | `FeeProposals.tsx` / `Invoices.tsx` | Financial documents |
 | `Proposals.tsx` | Project proposals |
 | `Reconcile.tsx` | Financial reconciliation |
 | `Consultants.tsx` | External consultants |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
-| `Filing.tsx` / `Compliance.tsx` | Regulatory filing; Compliance is an alias for KnowledgeBank |
-| `KnowledgeBank.tsx` | RIE/bylaw knowledge catalog |
-| `SteelArranger.tsx` | Steel BBS workflow tool |
-| `MasterDsr.tsx` | DSR rate reference viewer |
+| `Filing.tsx` | GST/TDS filing abstracts |
+| `KnowledgeBank.tsx` | DSR, compliance/RIE, specification, SteelFlow tabs (`/compliance` redirects here) |
+| `components/knowledge/SteelArranger.tsx` | Steel BBS panel (embedded in Knowledge Bank) |
+| `components/knowledge/MasterDsr.tsx` | DSR panel (embedded in Knowledge Bank) |
 | `Performance.tsx` | ASPRF performance dashboard |
-| `ActivityCenter.tsx` | Activity timeline browser |
 | `AuditLog.tsx` | Audit trail (firm:admin gated) |
 | `Alerts.tsx` | Notification/alert center |
-| `Portal.tsx` | Client portal (CLIENT role) |
-| `CollaboratorPortal.tsx` | Consultant collaborator portal |
+| `Portal.tsx` | Client portal — `/` and `/projects/:projectId` |
+| `CollaboratorPortal.tsx` | Consultant portal — `/` and `/projects/:projectId` |
 | `Company.tsx` | Firm profile (firm:admin) |
 | `Users.tsx` | User management (firm:admin) |
-| `Settings.tsx` | User settings |
+| `Settings.tsx` | User profile and password |
 | `Landing.tsx` / `Login.tsx` | Unauthenticated pages |
 
 ## Domain conventions

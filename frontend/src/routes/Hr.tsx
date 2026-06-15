@@ -16,7 +16,9 @@ import {
 } from "@carbon/react";
 import { LEAVE_TYPES, type LeaveTypeCode, formatINR } from "@esti/contracts";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
@@ -28,10 +30,14 @@ const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
 export function Hr() {
+  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const teamQ = trpc.team.list.useQuery();
   const leavesQ = trpc.leaves.list.useQuery();
   const payrollQ = trpc.payroll.list.useQuery();
+  const attTodayQ = trpc.attendance.dayRegister.useQuery({
+    date: new Date().toISOString().slice(0, 10),
+  });
   const team = (teamQ.data ?? []).filter((m) => m.active);
 
   const setLeave = trpc.leaves.setStatus.useMutation({
@@ -89,10 +95,21 @@ export function Hr() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>HR</h1>
-        <p>Leave requests and payslip management for your team.</p>
+      <PageHeader
+        title="HR"
+        description="Leave, attendance, and payslip management for your team."
+      />
+
+      <Stack orientation="horizontal" gap={5}>
+        <h2 className="esti-grow">Today&apos;s attendance</h2>
+        <Button kind="ghost" size="sm" onClick={() => navigate("/tasks?tab=attendance")}>
+          Open register
+        </Button>
       </Stack>
+      <p>
+        {(attTodayQ.data?.rows ?? []).filter((r) => r.status === "PRESENT" || r.status === "HALF_DAY").length} present /{" "}
+        {(attTodayQ.data?.rows ?? []).length} staff · mark daily status in Work → Attendance.
+      </p>
 
       {/* Leaves */}
       <Stack orientation="horizontal" gap={5}>

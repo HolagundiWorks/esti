@@ -1,129 +1,161 @@
 import { z } from "zod";
+import { computeBbmpCompliance } from "./bbmp/engine.js";
+import type { BbmpRuleCatalog } from "./bbmp/catalog.js";
+import { DEFAULT_BBMP_RULE_CATALOG } from "./bbmp/catalog.js";
+import type { BbmpCalculationTrace, BbmpComplianceFlags } from "./bbmp/types.js";
+import {
+  BBMP_PROJECT_TYPE_LABEL,
+  BbmpProjectType,
+  DevelopmentArea,
+  DEVELOPMENT_AREA_LABEL,
+  RoadClass,
+  ROAD_CLASS_LABEL,
+} from "./bbmp/types.js";
 
 /**
- * BBMP development-control calculator (Phase 9). See docs/esti/BYLAWS-BBMP.md.
- * Turns site geometry into the governing FAR, ground coverage, setbacks and
- * parking. The rule tables below are editable seed defaults — verify against the
- * current BBMP byelaws / RMP before relying on a result.
+ * BBMP development-control calculator. See docs/esti/BYLAWS-BBMP.md.
+ * Delegates to the modular BBMP compliance engine (zones, Table 4/5 setbacks, RBL, parking).
  */
-export const BuildingType = z.enum(["RESIDENTIAL", "COMMERCIAL", "SEMI_PUBLIC", "PUBLIC"]);
-export type BuildingType = z.infer<typeof BuildingType>;
-
-export const BUILDING_TYPE_LABEL: Record<string, string> = {
-  RESIDENTIAL: "Residential",
-  COMMERCIAL: "Commercial",
-  SEMI_PUBLIC: "Semi-public",
-  PUBLIC: "Public building",
-};
+export const BuildingType = BbmpProjectType;
+export type BuildingType = BbmpProjectType;
+export { BBMP_PROJECT_TYPE_LABEL as BUILDING_TYPE_LABEL };
+export { DevelopmentArea, DEVELOPMENT_AREA_LABEL, RoadClass, ROAD_CLASS_LABEL };
 
 const sideInput = z.object({
   abutsRoad: z.boolean().default(false),
   roadWidthM: z.number().nonnegative().default(0),
-  /** Restricted building line measured from the centre of the road (m). */
-  rblFromCentreM: z.number().nonnegative().default(0),
+  roadClass: RoadClass.default("LOCAL"),
+  distanceCentreToBoundaryM: z.number().nonnegative().default(0),
+  /** @deprecated Use distanceCentreToBoundaryM */
+  rblFromCentreM: z.number().nonnegative().optional(),
 });
 
 export const BylawCalcInput = z.object({
   buildingType: BuildingType,
+  developmentArea: DevelopmentArea.default("A"),
   siteAreaSqm: z.number().positive(),
-  proposedHeightM: z.number().positive().default(11.5),
+  plotWidthM: z.number().positive().optional(),
+  plotDepthM: z.number().positive().optional(),
+  proposedHeightM: z.number().positive().default(9.0),
+  floorCount: z.number().int().positive().default(2),
+  plinthAreaSqm: z.number().nonnegative().optional(),
+  dwellingUnits: z.number().int().nonnegative().default(1),
+  unitAreaSqm: z.number().nonnegative().default(120),
   front: sideInput,
   rear: sideInput,
   left: sideInput,
   right: sideInput,
+  hasBasement: z.boolean().default(false),
+  basementHeightM: z.number().nonnegative().default(0),
+  basementMechanicalParking: z.boolean().default(false),
 });
 export type BylawCalcInput = z.infer<typeof BylawCalcInput>;
 
+export interface SetbackSideResult {
+  value: number;
+  governedBy: "Bylaw" | "RBL";
+}
+
 export interface BylawEnvelope {
-  far: number;
-  coveragePct: number;
-  maxBuiltUpSqm: number;
-  maxFootprintSqm: number;
-  setbacks: { front: number; rear: number; left: number; right: number };
+  farAllowed: number;
+  coverageAllowed: number;
+  permissibleBuiltup: number;
+  maxFootprint: number;
+  setbacks: {
+    front: SetbackSideResult;
+    rear: SetbackSideResult;
+    left: SetbackSideResult;
+    right: SetbackSideResult;
+  };
+  parking: {
+    requiredECS: number;
+    visitorECS: number;
+    total: number;
+  };
+  basementAllowed: boolean;
+  secondaryCompliance: {
+    rainwaterHarvesting: boolean;
+    solarWaterHeating: boolean;
+    treePlanting: boolean;
+    earthquakeDesign: boolean;
+  };
   governingRoadWidthM: number;
-  parking: string;
   notes: string[];
+  /** @deprecated Use farAllowed */
+  far: number;
+  /** @deprecated Use coverageAllowed */
+  coveragePct: number;
+  /** @deprecated Use permissibleBuiltup */
+  maxBuiltUpSqm: number;
+  /** @deprecated Use maxFootprint */
+  maxFootprintSqm: number;
+  /** @deprecated Use parking.total */
+  parkingLabel: string;
+  compliance: BbmpComplianceFlags;
+  calculationTrace: BbmpCalculationTrace;
 }
 
-/** FAR + coverage by abutting road width (residential RMP-2015-style seed). */
-const FAR_BY_ROAD = [
-  { maxRoadW: 12, far: 1.75, coverage: 60 },
-  { maxRoadW: 18, far: 2.25, coverage: 60 },
-  { maxRoadW: 24, far: 2.5, coverage: 60 },
-  { maxRoadW: 30, far: 3.0, coverage: 60 },
-  { maxRoadW: Infinity, far: 3.25, coverage: 60 },
-];
-
-/** Setbacks (m) by building height tier — front/rear/side. */
-const SETBACK_BY_HEIGHT = [
-  { maxHeight: 11.5, front: 3.0, rear: 1.5, side: 1.5 },
-  { maxHeight: 15, front: 5.0, rear: 3.0, side: 3.0 },
-  { maxHeight: 18, front: 6.0, rear: 3.0, side: 3.0 },
-  { maxHeight: 24, front: 7.0, rear: 5.0, side: 5.0 },
-  { maxHeight: Infinity, front: 10.0, rear: 7.0, side: 7.0 },
-];
-
-/** Commercial uses a higher coverage/FAR floor (seed); others reuse residential. */
-function farRow(buildingType: BuildingType, roadWidth: number) {
-  const row = FAR_BY_ROAD.find((r) => roadWidth < r.maxRoadW) ?? FAR_BY_ROAD[FAR_BY_ROAD.length - 1]!;
-  if (buildingType === "COMMERCIAL") return { far: row.far + 0.25, coverage: 65 };
-  return { far: row.far, coverage: row.coverage };
-}
-
-function setbackRow(heightM: number) {
-  return SETBACK_BY_HEIGHT.find((r) => heightM <= r.maxHeight) ?? SETBACK_BY_HEIGHT[0]!;
-}
-
-function parkingFor(buildingType: BuildingType, builtUpSqm: number): string {
-  if (buildingType === "RESIDENTIAL") {
-    const ecs = Math.ceil(builtUpSqm / 100);
-    return `~${ecs} ECS (1 per 100 sq m built-up)`;
-  }
-  const ecs = Math.ceil(builtUpSqm / 50);
-  return `~${ecs} ECS (1 per 50 sq m built-up)`;
+function estimatePlotDims(siteAreaSqm: number, width?: number, depth?: number) {
+  if (width && depth) return { plotWidthM: width, plotDepthM: depth };
+  const side = Math.sqrt(siteAreaSqm);
+  return { plotWidthM: side, plotDepthM: side };
 }
 
 /** Pure, deterministic envelope computation (shared by backend + SPA). */
-export function computeBylawEnvelope(input: BylawCalcInput): BylawEnvelope {
-  const sides = { front: input.front, rear: input.rear, left: input.left, right: input.right };
-  const roadWidths = Object.values(sides)
-    .filter((s) => s.abutsRoad && s.roadWidthM > 0)
-    .map((s) => s.roadWidthM);
-  const governingRoadWidthM = roadWidths.length ? Math.max(...roadWidths) : 0;
+export function computeBylawEnvelope(
+  input: BylawCalcInput,
+  catalog: BbmpRuleCatalog = DEFAULT_BBMP_RULE_CATALOG,
+): BylawEnvelope {
+  const { plotWidthM, plotDepthM } = estimatePlotDims(
+    input.siteAreaSqm,
+    input.plotWidthM,
+    input.plotDepthM,
+  );
+  const result = computeBbmpCompliance({
+    projectType: input.buildingType,
+    developmentArea: input.developmentArea,
+    siteAreaSqm: input.siteAreaSqm,
+    plotWidthM,
+    plotDepthM,
+    buildingHeightM: input.proposedHeightM,
+    floorCount: input.floorCount,
+    plinthAreaSqm: input.plinthAreaSqm,
+    dwellingUnits: input.dwellingUnits,
+    unitAreaSqm: input.unitAreaSqm,
+    exemptAreaSqm: 0,
+    treesPlanted: 0,
+    front: input.front,
+    rear: input.rear,
+    left: input.left,
+    right: input.right,
+    hasBasement: input.hasBasement,
+    basementHeightM: input.basementHeightM,
+    basementMechanicalParking: input.basementMechanicalParking,
+    basementProjectionAboveGroundM: 0,
+  }, catalog);
 
-  const { far, coverage } = farRow(input.buildingType, governingRoadWidthM);
-  const maxBuiltUpSqm = Math.round(input.siteAreaSqm * far);
-  const maxFootprintSqm = Math.round((input.siteAreaSqm * coverage) / 100);
-
-  const sb = setbackRow(input.proposedHeightM);
-  const tableSetback = (side: "front" | "rear" | "left" | "right") =>
-    side === "front" ? sb.front : side === "rear" ? sb.rear : sb.side;
-
-  const notes: string[] = [];
-  const setbackForSide = (side: "front" | "rear" | "left" | "right") => {
-    const s = sides[side];
-    const table = tableSetback(side);
-    const roadSetback = s.abutsRoad ? Math.max(0, s.rblFromCentreM - s.roadWidthM / 2) : 0;
-    const governing = Math.max(table, roadSetback);
-    if (s.abutsRoad && roadSetback > table) {
-      notes.push(`${side}: RBL governs (${roadSetback.toFixed(2)} m > table ${table} m)`);
-    }
-    return Number(governing.toFixed(2));
-  };
+  const parkingLabel =
+    input.buildingType === "RESIDENTIAL"
+      ? `${result.parking.total} ECS (${result.parking.requiredECS} + ${result.parking.visitorECS} visitor)`
+      : `${result.parking.total} ECS (incl. ${result.parking.visitorECS} visitor)`;
 
   return {
-    far,
-    coveragePct: coverage,
-    maxBuiltUpSqm,
-    maxFootprintSqm,
-    setbacks: {
-      front: setbackForSide("front"),
-      rear: setbackForSide("rear"),
-      left: setbackForSide("left"),
-      right: setbackForSide("right"),
-    },
-    governingRoadWidthM,
-    parking: parkingFor(input.buildingType, maxBuiltUpSqm),
-    notes,
+    farAllowed: result.farAllowed,
+    coverageAllowed: result.coverageAllowed,
+    permissibleBuiltup: result.permissibleBuiltup,
+    maxFootprint: result.maxFootprint,
+    setbacks: result.setbacks,
+    parking: result.parking,
+    basementAllowed: result.basementAllowed,
+    secondaryCompliance: result.secondaryCompliance,
+    governingRoadWidthM: result.governingRoadWidthM,
+    notes: result.notes,
+    far: result.farAllowed,
+    coveragePct: result.coverageAllowed,
+    maxBuiltUpSqm: result.permissibleBuiltup,
+    maxFootprintSqm: result.maxFootprint,
+    parkingLabel,
+    compliance: result.compliance,
+    calculationTrace: result.calculationTrace,
   };
 }

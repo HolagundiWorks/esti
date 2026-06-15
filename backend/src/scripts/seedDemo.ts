@@ -6,7 +6,7 @@
  *
  * Idempotent — if the demo principal already exists it does nothing. Creates
  * read-mostly demo logins for several office roles plus clients, projects,
- * phases, fees, invoices, permits, tasks, timesheets, daily updates, ASPRF
+ * phases, fees, invoices, permits, tasks, attendance, ASPRF
  * reward events, decisions (CRIF), critical notes, bylaw calculations,
  * consultant engagements and client-log entries so each persona has something
  * real to explore. NOT for production use.
@@ -18,13 +18,12 @@ import { db } from "../db/index.js";
 import {
   approvals,
   assignments,
-  bylawCalcs,
+  attendance,
   clientLogs,
   clients,
   comments,
   consultants,
   criticalNotes,
-  dailyUpdates,
   decisions,
   engagements,
   feeProposals,
@@ -42,7 +41,6 @@ import {
   specSheets,
   tasks,
   teamMembers,
-  timesheets,
   transmittalItems,
   transmittals,
   users,
@@ -50,6 +48,9 @@ import {
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
+import { backfillDemoBylawCalcs, upsertDemoBylawCalc } from "./seedDemoBylaw.js";
+import { catalogSnapshot, ensureDemoSpecCatalog } from "./seedSpecCatalog.js";
+import { ensureDemoSteelFlowCatalog } from "./seedSteelFlowCatalog.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
@@ -99,6 +100,7 @@ async function ensureDemoConsultants() {
 async function backfillProjectDemoRecords(
   projectId: string, projectRef: string, projectTitle: string,
   principalId: string, pi: number,
+  catalog: Awaited<ReturnType<typeof ensureDemoSpecCatalog>>,
 ) {
   const consultantRows = await ensureDemoConsultants();
 
@@ -114,9 +116,11 @@ async function backfillProjectDemoRecords(
   if (!specExists) {
     const { ref: specRef } = await nextRef(db, "specsheet", "SPEC");
     const [spec] = await db.insert(specSheets).values({ ref: specRef, projectId, title: "Interior material schedule" }).returning();
+    const row1 = catalogSnapshot(catalog, pi === 7 ? "officeFlooring" : "flooring");
+    const row2 = catalogSnapshot(catalog, "joinery");
     await db.insert(specItems).values([
-      { specSheetId: spec!.id, category: "Flooring", item: "Living / dining flooring", make: "Kajaria / equivalent", specification: "1200 x 600 vitrified tile, rectified edges", finish: "Warm grey matte", remarks: "Confirm final shade with client sample board", sortOrder: 1 },
-      { specSheetId: spec!.id, category: "Joinery", item: "Wardrobe shutters", make: "Greenlam / Merino", specification: "BWR ply carcass with laminate finish", finish: "Oak texture with black recessed handle", remarks: "Mock-up in master bedroom before bulk execution", sortOrder: 2 },
+      { specSheetId: spec!.id, ...row1, sortOrder: 10 },
+      { specSheetId: spec!.id, ...row2, sortOrder: 20 },
     ]);
   }
 
@@ -152,8 +156,36 @@ async function backfillProjectDemoRecords(
   }
 }
 
+async function linkDemoTeamAndTasks(): Promise<void> {
+  const userRows = await db.select({ id: users.id, email: users.email }).from(users).where(
+    eq(users.isDemo, true),
+  );
+  const userByEmail = new Map(userRows.map((u) => [u.email, u.id]));
+
+  const members = await db.select().from(teamMembers);
+  for (const m of members) {
+    if (m.email && userByEmail.has(m.email) && m.userId !== userByEmail.get(m.email)) {
+      await db.update(teamMembers).set({ userId: userByEmail.get(m.email)! }).where(eq(teamMembers.id, m.id));
+    }
+  }
+
+  const memberByName = new Map(members.map((m) => [m.name, m.id]));
+  const allTasks = await db.select({ id: tasks.id, assignee: tasks.assignee, assigneeId: tasks.assigneeId }).from(tasks);
+  for (const t of allTasks) {
+    if (!t.assignee || t.assigneeId) continue;
+    const memberId = memberByName.get(t.assignee);
+    if (memberId) {
+      await db.update(tasks).set({ assigneeId: memberId }).where(eq(tasks.id, t.id));
+    }
+  }
+}
+
 async function backfillExistingDemo(principalId: string): Promise<void> {
+  await linkDemoTeamAndTasks();
   await ensureDemoConsultants();
+  const catalog = await ensureDemoSpecCatalog(db);
+  await ensureDemoSteelFlowCatalog(db);
+  const bylawCount = await backfillDemoBylawCalcs(db);
   const allTitles = [
     "Sharma Villa — Whitefield", "Rao House — Mysuru", "Verde Commercial Block",
     "Kapoor Residence — Sarjapur", "Patel Corp HQ — Pune", "St. Francis School Expansion",
@@ -161,8 +193,9 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   ];
   for (const [pi, title] of allTitles.entries()) {
     const [project] = await db.select({ id: projectOffices.id, ref: projectOffices.ref, title: projectOffices.title }).from(projectOffices).where(eq(projectOffices.title, title)).limit(1);
-    if (project) await backfillProjectDemoRecords(project.id, project.ref, project.title, principalId, pi);
+    if (project) await backfillProjectDemoRecords(project.id, project.ref, project.title, principalId, pi, catalog);
   }
+  console.log(`    refreshed ${bylawCount} bylaw compliance records (pre + post audit)`);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -181,24 +214,112 @@ async function main(): Promise<void> {
   const pwHash = await hashPassword(DEMO_PASSWORD);
 
   const settings = await getOrgSettings(db);
-  await db.update(orgSettings).set({ hrEnabled: true }).where(eq(orgSettings.id, settings.id));
+  await db.update(orgSettings).set({ hrEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
 
   // ── Staff personas ────────────────────────────────────────────────────────
-  const [principal] = await db.insert(users).values({ email: principalEmail, fullName: "Ar. Vihaan Sharma (Principal)", role: "OWNER", passwordHash: pwHash, isDemo: true }).returning();
-  await db.insert(users).values([
-    { email: "lead@demo.aorms.in", fullName: "Ar. Aarav Mehta (Project Lead)", role: "PARTNER", passwordHash: pwHash, isDemo: true },
-    { email: "site@demo.aorms.in", fullName: "Rahul Nair (Site Supervisor)", role: "ASSOCIATE", passwordHash: pwHash, isDemo: true },
-    { email: "junior@demo.aorms.in", fullName: "Sneha Rao (Jr Architect)", role: "VIEWER", passwordHash: pwHash, isDemo: true },
-    { email: "intern@demo.aorms.in", fullName: "Kiran Patel (Intern)", role: "VIEWER", passwordHash: pwHash, isDemo: true },
+  const [principal] = await db
+    .insert(users)
+    .values({
+      email: principalEmail,
+      fullName: "Ar. Vihaan Sharma (Principal)",
+      role: "OWNER",
+      passwordHash: pwHash,
+      isDemo: true,
+    })
+    .returning();
+  const staffUsers = await db
+    .insert(users)
+    .values([
+      {
+        email: "lead@demo.aorms.in",
+        fullName: "Ar. Aarav Mehta (Project Lead)",
+        role: "PARTNER",
+        passwordHash: pwHash,
+        isDemo: true,
+      },
+      {
+        email: "site@demo.aorms.in",
+        fullName: "Rahul Nair (Site Supervisor)",
+        role: "ASSOCIATE",
+        passwordHash: pwHash,
+        isDemo: true,
+      },
+      {
+        email: "junior@demo.aorms.in",
+        fullName: "Sneha Rao (Jr Architect)",
+        role: "VIEWER",
+        passwordHash: pwHash,
+        isDemo: true,
+      },
+      {
+        email: "intern@demo.aorms.in",
+        fullName: "Kiran Patel (Intern)",
+        role: "VIEWER",
+        passwordHash: pwHash,
+        isDemo: true,
+      },
+    ])
+    .returning();
+  const userByEmail = new Map([
+    [principalEmail, principal!.id],
+    ...staffUsers.map((u) => [u.email, u.id] as const),
   ]);
 
-  const staff = await db.insert(teamMembers).values([
-    { name: "Aarav Mehta", role: "Project Lead", employmentType: "FULL_TIME", email: "lead@demo.aorms.in", monthlySalaryPaise: 1_20_000_00, dateJoined: dayOffset(-900), active: true },
-    { name: "Rahul Nair", role: "Site Supervisor", employmentType: "FULL_TIME", email: "site@demo.aorms.in", monthlySalaryPaise: 70_000_00, dateJoined: dayOffset(-500), active: true },
-    { name: "Sneha Rao", role: "Jr Architect", employmentType: "FULL_TIME", email: "junior@demo.aorms.in", monthlySalaryPaise: 45_000_00, dateJoined: dayOffset(-200), active: true },
-    { name: "Vihaan Sharma", role: "Principal Architect", employmentType: "FULL_TIME", email: principalEmail, monthlySalaryPaise: 2_50_000_00, dateJoined: dayOffset(-1500), active: true },
-    { name: "Kiran Patel", role: "Intern", employmentType: "INTERN", email: "intern@demo.aorms.in", monthlySalaryPaise: 15_000_00, dateJoined: dayOffset(-60), active: true },
-  ]).returning();
+  const staff = await db
+    .insert(teamMembers)
+    .values([
+      {
+        name: "Aarav Mehta",
+        role: "Project Lead",
+        employmentType: "FULL_TIME",
+        email: "lead@demo.aorms.in",
+        userId: userByEmail.get("lead@demo.aorms.in"),
+        monthlySalaryPaise: 1_20_000_00,
+        dateJoined: dayOffset(-900),
+        active: true,
+      },
+      {
+        name: "Rahul Nair",
+        role: "Site Supervisor",
+        employmentType: "FULL_TIME",
+        email: "site@demo.aorms.in",
+        userId: userByEmail.get("site@demo.aorms.in"),
+        monthlySalaryPaise: 70_000_00,
+        dateJoined: dayOffset(-500),
+        active: true,
+      },
+      {
+        name: "Sneha Rao",
+        role: "Jr Architect",
+        employmentType: "FULL_TIME",
+        email: "junior@demo.aorms.in",
+        userId: userByEmail.get("junior@demo.aorms.in"),
+        monthlySalaryPaise: 45_000_00,
+        dateJoined: dayOffset(-200),
+        active: true,
+      },
+      {
+        name: "Vihaan Sharma",
+        role: "Principal Architect",
+        employmentType: "FULL_TIME",
+        email: principalEmail,
+        userId: userByEmail.get(principalEmail),
+        monthlySalaryPaise: 2_50_000_00,
+        dateJoined: dayOffset(-1500),
+        active: true,
+      },
+      {
+        name: "Kiran Patel",
+        role: "Intern",
+        employmentType: "INTERN",
+        email: "intern@demo.aorms.in",
+        userId: userByEmail.get("intern@demo.aorms.in"),
+        monthlySalaryPaise: 15_000_00,
+        dateJoined: dayOffset(-60),
+        active: true,
+      },
+    ])
+    .returning();
   const memberByName = new Map(staff.map((m) => [m.name, m.id]));
 
   await db.insert(leaves).values([
@@ -369,6 +490,9 @@ async function main(): Promise<void> {
   const allProjectIds: string[] = [];
   const allProjectRefs: string[] = [];
 
+  const catalog = await ensureDemoSpecCatalog(db);
+  await ensureDemoSteelFlowCatalog(db);
+
   let pi = 0;
   for (const def of projectDefs) {
     const { ref } = await nextRef(db, "projectoffice", "PRJ");
@@ -485,12 +609,17 @@ async function main(): Promise<void> {
       ...(pi === 7 ? [{ projectId, consultantId: consultantRows[4]!.id, scope: "Interior design coordination and material specifications", agreedFeePaise: Math.round(def.value * 0.05), paidPaise: Math.round(def.value * 0.05), status: "CLOSED" as const }] : []),
     ]);
 
-    // Spec sheets
+    // Spec sheets (from Knowledge Bank catalogue)
     const { ref: specRef } = await nextRef(db, "specsheet", "SPEC");
     const [spec] = await db.insert(specSheets).values({ ref: specRef, projectId, title: pi < 4 ? "Interior material schedule" : pi === 4 ? "Facade & structure material schedule" : "Building material schedule" }).returning();
+    const row1 = catalogSnapshot(
+      catalog,
+      pi === 7 ? "officeFlooring" : "flooring",
+    );
+    const row2 = catalogSnapshot(catalog, pi === 4 ? "facade" : "joinery");
     await db.insert(specItems).values([
-      { specSheetId: spec!.id, category: "Flooring", item: pi === 7 ? "Office area flooring" : "Living / dining flooring", make: pi === 7 ? "Porcelano / equivalent" : "Kajaria / equivalent", specification: pi === 7 ? "900 x 900 polished concrete look tile" : "1200 x 600 vitrified tile, rectified edges", finish: pi === 7 ? "Light grey, semi-polished" : "Warm grey matte", remarks: "Confirm final shade with client sample board", sortOrder: 1 },
-      { specSheetId: spec!.id, category: pi === 4 ? "Facade" : "Joinery", item: pi === 4 ? "Curtain wall glazing" : "Wardrobe shutters", make: pi === 4 ? "Schüco / AIS equivalent" : "Greenlam / Merino", specification: pi === 4 ? "Double-glazed IGU, 6+12+6mm, low-E coating" : "BWR ply carcass with laminate finish", finish: pi === 4 ? "Mill-finish aluminium, clear anodised" : "Oak texture with black recessed handle", remarks: pi === 4 ? "Thermal performance certificate required before procurement" : "Mock-up in master bedroom before bulk execution", sortOrder: 2 },
+      { specSheetId: spec!.id, ...row1, sortOrder: 10 },
+      { specSheetId: spec!.id, ...row2, sortOrder: 20 },
     ]);
 
     // Purchase order
@@ -523,6 +652,7 @@ async function main(): Promise<void> {
         title: `${t.title} (${ref})`,
         projectId,
         assignee: t.assignee,
+        assigneeId: memberByName.get(t.assignee) ?? null,
         priority: t.priority,
         status: t.status,
         dueDate: t.due,
@@ -581,30 +711,9 @@ async function main(): Promise<void> {
       },
     ]);
 
-    // Bylaw calc (one per project, unique constraint)
-    await db.insert(bylawCalcs).values({
-      projectId,
-      input: {
-        siteAreaSqm: 300 + pi * 80,
-        far: pi < 4 ? 1.75 : 2.5,
-        groundCoveragePct: 50,
-        proposedBuiltUpSqm: Math.round((300 + pi * 80) * (pi < 4 ? 1.75 : 2.5) * 0.85),
-        heightM: pi < 4 ? 12 : 30,
-        setbackFront: 3.0,
-        setbackRear: 3.0,
-        setbackSide: 1.5,
-        parkingArea: pi < 4 ? 45 : 120,
-      },
-      result: {
-        maxPermissibleBuiltUp: Math.round((300 + pi * 80) * (pi < 4 ? 1.75 : 2.5)),
-        proposedNetBuiltUp: Math.round((300 + pi * 80) * (pi < 4 ? 1.75 : 2.5) * 0.85),
-        compliance: true,
-        violations: [],
-        setbackViolations: [],
-        parkingRequired: pi < 4 ? 2 : 8,
-        parkingProvided: pi < 4 ? 2 : 8,
-      },
-    });
+    // Bylaw calc — shared BBMP engine (Compliance tab on project detail)
+    const siteAreaSqm = 300 + pi * 80;
+    await upsertDemoBylawCalc(db, projectId, pi, siteAreaSqm);
 
     // Client log entries
     await db.insert(clientLogs).values([
@@ -616,17 +725,8 @@ async function main(): Promise<void> {
     pi++;
   }
 
-  // ── Timesheets: past 20 weekdays across all staff ─────────────────────────
+  // ── Attendance: past 20 weekdays (office register) ────────────────────────
   const weekdays = recentWeekdays(20);
-  const project0 = allProjectIds[0]!;
-  const project1 = allProjectIds[1]!;
-  const project2 = allProjectIds[2]!;
-  const project3 = allProjectIds[3]!;
-  const project4 = allProjectIds[4]!;
-  const project5 = allProjectIds[5]!;
-
-  const timesheetEntries: { teamMemberId: string; projectId: string; entryDate: string; hours: string; billable: boolean; description: string; createdById: string }[] = [];
-
   const memberId = {
     vihaan: memberByName.get("Vihaan Sharma")!,
     aarav: memberByName.get("Aarav Mehta")!,
@@ -635,88 +735,33 @@ async function main(): Promise<void> {
     kiran: memberByName.get("Kiran Patel")!,
   };
 
+  const attendanceRows: {
+    teamMemberId: string;
+    attendanceDate: string;
+    status: string;
+    markedById: string;
+  }[] = [];
+
   for (let i = 0; i < weekdays.length; i++) {
     const d = dayOffset(weekdays[i]!);
-    const isRecent = i < 5;
-
-    // Vihaan — principal splits between admin, Sharma Villa, and Patel HQ
-    timesheetEntries.push(
-      { teamMemberId: memberId.vihaan, projectId: project0, entryDate: d, hours: "3.00", billable: true, description: "Design review and client coordination", createdById: principal!.id },
-      { teamMemberId: memberId.vihaan, projectId: project4, entryDate: d, hours: "2.00", billable: true, description: "Board presentation preparation", createdById: principal!.id },
+    attendanceRows.push(
+      { teamMemberId: memberId.vihaan, attendanceDate: d, status: "PRESENT", markedById: principal!.id },
+      { teamMemberId: memberId.aarav, attendanceDate: d, status: i % 7 === 0 ? "WFH" : "PRESENT", markedById: principal!.id },
+      { teamMemberId: memberId.rahul, attendanceDate: d, status: i % 9 === 0 ? "ABSENT" : "PRESENT", markedById: principal!.id },
+      { teamMemberId: memberId.sneha, attendanceDate: d, status: i % 11 === 0 ? "HALF_DAY" : "PRESENT", markedById: principal!.id },
     );
-
-    // Aarav — spread across active projects
-    timesheetEntries.push(
-      { teamMemberId: memberId.aarav, projectId: i % 3 === 0 ? project0 : i % 3 === 1 ? project2 : project4, entryDate: d, hours: "4.00", billable: true, description: "Drawing coordination and consultant interface", createdById: principal!.id },
-      { teamMemberId: memberId.aarav, projectId: i % 2 === 0 ? project1 : project5, entryDate: d, hours: "3.50", billable: true, description: "Schematic development and client brief response", createdById: principal!.id },
-    );
-
-    // Rahul — site supervision, projects 0, 2, 3
-    timesheetEntries.push(
-      { teamMemberId: memberId.rahul, projectId: i % 2 === 0 ? project0 : project2, entryDate: d, hours: "5.00", billable: true, description: "Site supervision and contractor coordination", createdById: principal!.id },
-      { teamMemberId: memberId.rahul, projectId: project3, entryDate: d, hours: isRecent ? "2.00" : "0.00", billable: true, description: "Site measurement and survey", createdById: principal!.id },
-    );
-
-    // Sneha — design work, rotating across projects
-    timesheetEntries.push(
-      { teamMemberId: memberId.sneha, projectId: i % 4 === 0 ? project0 : i % 4 === 1 ? project2 : i % 4 === 2 ? project4 : project5, entryDate: d, hours: "5.50", billable: true, description: "Working drawing production and detailing", createdById: principal!.id },
-      { teamMemberId: memberId.sneha, projectId: i % 2 === 0 ? project1 : project3, entryDate: d, hours: "2.00", billable: true, description: "Schematic design development", createdById: principal!.id },
-    );
-
-    // Kiran — support tasks, newer projects
     if (i < 15) {
-      timesheetEntries.push(
-        { teamMemberId: memberId.kiran, projectId: i % 2 === 0 ? project2 : project4, entryDate: d, hours: "6.00", billable: true, description: "Drawing production, BOQ support and CAD drafting", createdById: principal!.id },
-      );
-    }
-  }
-
-  // Insert timesheets in batches to avoid statement size limits
-  for (let i = 0; i < timesheetEntries.length; i += 50) {
-    const batch = timesheetEntries.slice(i, i + 50).filter((e) => e.hours !== "0.00");
-    if (batch.length) await db.insert(timesheets).values(batch);
-  }
-
-  // ── Daily updates: past 14 weekdays ───────────────────────────────────────
-  const updateDays = recentWeekdays(14);
-  const standupData: { memberId: string; completedFn: (d: number) => string; inProgressFn: (d: number) => string; blockerFn: (d: number) => string | null }[] = [
-    {
-      memberId: memberId.aarav,
-      completedFn: (i) => i % 3 === 0 ? "Completed coordination meeting with structural consultant; sent revised column schedule." : i % 3 === 1 ? "Finished board presentation deck for Patel HQ; reviewed St. Francis brief with client." : "Reviewed GFC drawings for Verde; sent comments to Sneha.",
-      inProgressFn: (i) => i % 2 === 0 ? "Coordinating MEP drawings for Verde — waiting on consultant input." : "Reviewing schematic options for Rao House with Sneha.",
-      blockerFn: (i) => i % 5 === 0 ? "Waiting on structural calculations from Prakash Iyer before releasing GFC drawings." : null,
-    },
-    {
-      memberId: memberId.sneha,
-      completedFn: (i) => i % 3 === 0 ? "Finished ground floor working drawings for Sharma Villa." : i % 3 === 1 ? "Completed interior material schedule for Kapoor Residence." : "Issued revised parking layout to Verde Developers.",
-      inProgressFn: (i) => i % 2 === 0 ? "Working on typical floor GFC drawings for Verde Commercial Block." : "Developing schematic options A and B for Rao House.",
-      blockerFn: (i) => i % 6 === 0 ? "Need client confirmation on Kapoor Residence brief before proceeding with design development." : null,
-    },
-    {
-      memberId: memberId.rahul,
-      completedFn: (i) => i % 3 === 0 ? "Site visit for Sharma Villa — RCC slab checked, no issues, poured." : i % 3 === 1 ? "Reviewed contractor's BBS for Verde Block B; approved with comments." : "Conducted inspection at Kapoor site for setting-out verification.",
-      inProgressFn: (i) => i % 2 === 0 ? "Monitoring Verde Block A masonry progress; reporting weekly." : "Preparing next site inspection report for Sharma Villa.",
-      blockerFn: () => null,
-    },
-    {
-      memberId: memberId.vihaan,
-      completedFn: (i) => i % 3 === 0 ? "Reviewed and approved fee proposal for Patel HQ; sent to client." : i % 3 === 1 ? "Principal sign-off on Sharma Villa invoice batch." : "Board review meeting for St. Francis School design presentation.",
-      inProgressFn: (i) => i % 2 === 0 ? "Reviewing overall project pipeline and resource loading for Q3." : "Following up on geotechnical report for Patel HQ.",
-      blockerFn: () => null,
-    },
-  ];
-
-  for (const du of standupData) {
-    for (let i = 0; i < updateDays.length; i++) {
-      await db.insert(dailyUpdates).values({
-        teamMemberId: du.memberId,
-        updateDate: dayOffset(updateDays[i]!),
-        completed: du.completedFn(i),
-        inProgress: du.inProgressFn(i),
-        blockers: du.blockerFn(i),
-        createdById: principal!.id,
+      attendanceRows.push({
+        teamMemberId: memberId.kiran,
+        attendanceDate: d,
+        status: "PRESENT",
+        markedById: principal!.id,
       });
     }
+  }
+
+  for (let i = 0; i < attendanceRows.length; i += 50) {
+    await db.insert(attendance).values(attendanceRows.slice(i, i + 50));
   }
 
   // ── Reward points ─────────────────────────────────────────────────────────
@@ -735,15 +780,16 @@ async function main(): Promise<void> {
 
   // ── Comments on project decisions ────────────────────────────────────────
   await db.insert(comments).values([
-    { projectId: project0, objectType: "decision", objectId: allProjectRefs[0]!, body: "Structural team has reviewed the ACM anchor loads — within slab capacity. Proceeding to facade contractor shortlist.", actorName: "Aarav Mehta", visibility: "STAFF" },
-    { projectId: project2, objectType: "decision", objectId: allProjectRefs[2]!, body: "Verde client confirmed the additional 150mm floor height — cost impact accepted. Updating drawings.", actorName: "Sneha Rao", visibility: "STAFF" },
-    { projectId: project4, objectType: "decision", objectId: allProjectRefs[4]!, body: "Unitised facade supplier shortlisted to three vendors. Requesting mock-up proposals from all three.", actorName: "Aarav Mehta", visibility: "STAFF" },
+    { projectId: allProjectIds[0]!, objectType: "decision", objectId: allProjectRefs[0]!, body: "Structural team has reviewed the ACM anchor loads — within slab capacity. Proceeding to facade contractor shortlist.", actorName: "Aarav Mehta", visibility: "STAFF" },
+    { projectId: allProjectIds[2]!, objectType: "decision", objectId: allProjectRefs[2]!, body: "Verde client confirmed the additional 150mm floor height — cost impact accepted. Updating drawings.", actorName: "Sneha Rao", visibility: "STAFF" },
+    { projectId: allProjectIds[4]!, objectType: "decision", objectId: allProjectRefs[4]!, body: "Unitised facade supplier shortlisted to three vendors. Requesting mock-up proposals from all three.", actorName: "Aarav Mehta", visibility: "STAFF" },
   ]);
 
   console.log("✓ seeded demo workspace");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
   console.log("    lead@ / site@ / junior@ / intern@ / client@demo.aorms.in (same password)");
-  console.log(`    ${projectDefs.length} projects, ${timesheetEntries.filter((e) => e.hours !== "0.00").length} timesheet entries, ${updateDays.length * 4} daily updates`);
+  console.log("    Solo demo: solo@demo.aorms.in (pnpm seed:demo:solo)");
+  console.log(`    ${projectDefs.length} projects, ${attendanceRows.length} attendance entries`);
 }
 
 main()

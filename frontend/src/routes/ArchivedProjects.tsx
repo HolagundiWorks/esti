@@ -15,6 +15,7 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 function downloadJson(data: unknown, filename: string) {
@@ -61,15 +62,10 @@ export function ArchivedProjects() {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1>Archived projects</h1>
-        <p>
-          Retained projects hidden from active work. Restore preserves full
-          history. Export downloads a JSON bundle before permanent purge.
-          Purge is irreversible and requires the retention period to have
-          expired (default 90 days after archive).
-        </p>
-      </Stack>
+      <PageHeader
+        title="Archived projects"
+        description="Retained projects hidden from active work. Restore preserves full history. Export downloads a JSON bundle before permanent purge. Purge is irreversible and requires the retention period to have expired (default 90 days after archive)."
+      />
 
       {message && (
         <InlineNotification

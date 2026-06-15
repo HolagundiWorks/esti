@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { computeBbmpCompliance } from "./bbmp/engine.js";
+import type { BbmpRuleCatalog } from "./bbmp/catalog.js";
+import { DEFAULT_BBMP_RULE_CATALOG } from "./bbmp/catalog.js";
+import { DevelopmentArea, RoadClass } from "./bbmp/types.js";
 
 // ─── Rule version (knowledge bank) ─────────────────────────────────────────
 
@@ -101,14 +105,22 @@ export type Topography = z.infer<typeof Topography>;
 const SideInput = z.object({
   abutsRoad: z.boolean().default(false),
   roadWidthM: z.number().nonnegative().default(0),
-  rblFromCentreM: z.number().nonnegative().default(0),
+  roadClass: RoadClass.default("LOCAL"),
+  distanceCentreToBoundaryM: z.number().nonnegative().default(0),
+  rblFromCentreM: z.number().nonnegative().optional(),
 });
 
 export const SiteInputs = z.object({
   buildingUse: z.string().min(1),
+  developmentArea: DevelopmentArea.default("A"),
   assessmentPhase: AssessmentPhase.default("PRE_DESIGN"),
   siteAreaSqm: z.number().positive(),
+  plotWidthM: z.number().positive().optional(),
+  plotDepthM: z.number().positive().optional(),
   proposedHeightM: z.number().positive(),
+  floorCount: z.number().int().positive().default(2),
+  dwellingUnits: z.number().int().nonnegative().default(1),
+  unitAreaSqm: z.number().nonnegative().default(120),
   proposedBuiltUpSqm: z.number().nonnegative().optional(),
   /** FAR-excluded areas (parking, stairs, lifts, etc.); subtract from gross BUA to get net. */
   excludedAreaSqm: z.number().nonnegative().default(0),
@@ -256,80 +268,102 @@ export interface AssessmentResult {
 
 // ─── Pure engine functions ───────────────────────────────────────────────────
 
-export function runDevControl(inputs: SiteInputs, data: RuleVersionData): DevControlOutput {
-  const sides = { front: inputs.front, rear: inputs.rear, left: inputs.left, right: inputs.right };
-  const roadWidths = Object.values(sides)
-    .filter((s) => s.abutsRoad && s.roadWidthM > 0)
-    .map((s) => s.roadWidthM);
-  const governingRoadWidthM = roadWidths.length ? Math.max(...roadWidths) : inputs.approachRoadWidthM;
+function mapBuildingUse(use: string): "RESIDENTIAL" | "COMMERCIAL" | "SEMI_PUBLIC" | "PUBLIC" {
+  const u = use.toUpperCase();
+  if (u.includes("COMMERCIAL")) return "COMMERCIAL";
+  if (u.includes("SEMI")) return "SEMI_PUBLIC";
+  if (u.includes("PUBLIC")) return "PUBLIC";
+  return "RESIDENTIAL";
+}
 
-  const farRow = data.far.find((r) => governingRoadWidthM < r.maxRoadWidthM) ?? data.far[data.far.length - 1]!;
-  const maxBuiltUpSqm = Math.round(inputs.siteAreaSqm * farRow.far);
-  const maxFootprintSqm = Math.round((inputs.siteAreaSqm * farRow.coveragePct) / 100);
+function plotDims(siteAreaSqm: number, width?: number, depth?: number) {
+  if (width && depth) return { plotWidthM: width, plotDepthM: depth };
+  const side = Math.sqrt(siteAreaSqm);
+  return { plotWidthM: side, plotDepthM: side };
+}
 
-  // For ≤ 9.5 m buildings, setbacks are typically site-dimension-based; the table may not have a matching row.
-  const setbackRow = data.setbacks.find((r) => inputs.proposedHeightM <= r.maxHeightM) ?? data.setbacks[0]!;
+export function runDevControl(
+  inputs: SiteInputs,
+  data: RuleVersionData,
+  bbmpCatalog: BbmpRuleCatalog = DEFAULT_BBMP_RULE_CATALOG,
+): DevControlOutput {
+  const { plotWidthM, plotDepthM } = plotDims(
+    inputs.siteAreaSqm,
+    inputs.plotWidthM,
+    inputs.plotDepthM,
+  );
+  const bbmp = computeBbmpCompliance({
+    projectType: mapBuildingUse(inputs.buildingUse),
+    developmentArea: inputs.developmentArea,
+    siteAreaSqm: inputs.siteAreaSqm,
+    plotWidthM,
+    plotDepthM,
+    buildingHeightM: inputs.proposedHeightM,
+    floorCount: inputs.floorCount,
+    plinthAreaSqm: inputs.plinthAreaSqm,
+    totalFloorAreaSqm: inputs.proposedBuiltUpSqm,
+    exemptAreaSqm: inputs.excludedAreaSqm ?? 0,
+    dwellingUnits: inputs.dwellingUnits,
+    unitAreaSqm: inputs.unitAreaSqm,
+    commercialFloorAreaSqm: inputs.proposedBuiltUpSqm,
+    front: inputs.front,
+    rear: inputs.rear,
+    left: inputs.left,
+    right: inputs.right,
+    hasBasement: inputs.hasBasement,
+    basementHeightM: inputs.basementHeightM,
+    basementMechanicalParking: inputs.basementUses.includes("MECHANICAL_PARKING"),
+    basementProjectionAboveGroundM: 0,
+    treesPlanted: inputs.treesPlanted,
+  }, bbmpCatalog);
 
-  const notes: string[] = [];
-
-  // Note when low-rise setback mode applies.
-  if (inputs.proposedHeightM <= 9.5) {
-    notes.push(`Building ≤ 9.5 m: setbacks may be site-dimension-based; verify with authority [${setbackRow.clause}]`);
-  }
-
-  const setbackForSide = (side: "front" | "rear" | "left" | "right") => {
-    const s = sides[side];
-    const table = side === "front" ? setbackRow.frontM : side === "rear" ? setbackRow.rearM : setbackRow.sideM;
-    const roadSetback = s.abutsRoad ? Math.max(0, s.rblFromCentreM - s.roadWidthM / 2) : 0;
-    const governing = Math.max(table, roadSetback);
-    if (s.abutsRoad && roadSetback > table) {
-      notes.push(`${side}: RBL governs (${roadSetback.toFixed(2)} m > table ${table} m) [${setbackRow.clause}]`);
-    }
-    return Number(governing.toFixed(2));
-  };
-
-  const carECS = Math.ceil(maxBuiltUpSqm / data.parking.car.sqmPerECS);
-  const twoWheelerSlots = Math.ceil(carECS * data.parking.twoWheeler.ratioOfCar);
-  const cycleSlots = Math.ceil(maxBuiltUpSqm / data.parking.cycle.sqmPerSlot);
-
-  // Net BUA = gross proposed minus FAR-excluded areas
+  const notes = [...bbmp.notes];
   const grossBuiltUp = inputs.proposedBuiltUpSqm ?? 0;
   const netBuiltUpSqm = Math.max(0, grossBuiltUp - (inputs.excludedAreaSqm ?? 0));
-
   const proposedGroundCover = inputs.proposedGroundCoverPct ?? 0;
-  const farUsed = inputs.siteAreaSqm > 0 ? netBuiltUpSqm / inputs.siteAreaSqm : 0;
-  const farUtilisedPct = farRow.far > 0 ? Math.round((farUsed / farRow.far) * 100) : 0;
+  const farUsed =
+    bbmp.actualFar ?? (inputs.siteAreaSqm > 0 ? netBuiltUpSqm / inputs.siteAreaSqm : 0);
+  const farUtilisedPct =
+    bbmp.farAllowed > 0 ? Math.round((farUsed / bbmp.farAllowed) * 100) : 0;
 
   const compliant =
     inputs.proposedHeightM <= data.heightLimits.absoluteMaxM &&
-    (netBuiltUpSqm === 0 || netBuiltUpSqm <= maxBuiltUpSqm) &&
-    (proposedGroundCover === 0 || proposedGroundCover <= farRow.coveragePct);
+    (netBuiltUpSqm === 0 || netBuiltUpSqm <= bbmp.permissibleBuiltup) &&
+    (proposedGroundCover === 0 || proposedGroundCover <= bbmp.coverageAllowed);
 
   if (inputs.proposedHeightM > data.heightLimits.absoluteMaxM) {
-    notes.push(`Height ${inputs.proposedHeightM} m exceeds absolute max ${data.heightLimits.absoluteMaxM} m [${data.heightLimits.clause}]`);
+    notes.push(
+      `Height ${inputs.proposedHeightM} m exceeds absolute max ${data.heightLimits.absoluteMaxM} m [${data.heightLimits.clause}]`,
+    );
   }
   if (grossBuiltUp > 0 && inputs.excludedAreaSqm > 0) {
-    notes.push(`Gross BUA ${grossBuiltUp} sqm − excluded ${inputs.excludedAreaSqm} sqm = net ${netBuiltUpSqm} sqm compared against FAR limit`);
+    notes.push(
+      `Gross BUA ${grossBuiltUp} sqm − excluded ${inputs.excludedAreaSqm} sqm = net ${netBuiltUpSqm} sqm compared against FAR limit`,
+    );
   }
 
   return {
     far: farUsed,
-    maxFar: farRow.far,
+    maxFar: bbmp.farAllowed,
     farUtilisedPct,
     netBuiltUpSqm,
     coveragePct: proposedGroundCover,
-    maxCoveragePct: farRow.coveragePct,
-    maxBuiltUpSqm,
-    maxFootprintSqm,
+    maxCoveragePct: bbmp.coverageAllowed,
+    maxBuiltUpSqm: bbmp.permissibleBuiltup,
+    maxFootprintSqm: bbmp.maxFootprint,
     setbacks: {
-      front: setbackForSide("front"),
-      rear: setbackForSide("rear"),
-      left: setbackForSide("left"),
-      right: setbackForSide("right"),
+      front: bbmp.setbacks.front.value,
+      rear: bbmp.setbacks.rear.value,
+      left: bbmp.setbacks.left.value,
+      right: bbmp.setbacks.right.value,
     },
     maxHeightM: data.heightLimits.absoluteMaxM,
-    governingRoadWidthM,
-    parking: { carECS, twoWheelerSlots, cycleSlots },
+    governingRoadWidthM: bbmp.governingRoadWidthM,
+    parking: {
+      carECS: bbmp.parking.total,
+      twoWheelerSlots: Math.ceil(bbmp.parking.total * data.parking.twoWheeler.ratioOfCar),
+      cycleSlots: Math.ceil(bbmp.permissibleBuiltup / data.parking.cycle.sqmPerSlot),
+    },
     notes,
     compliant,
   };
@@ -554,8 +588,9 @@ export function runAllEngines(
   data: RuleVersionData,
   existingPermitIds: string[] = [],
   relaxations?: RelaxationInputs,
+  bbmpCatalog: BbmpRuleCatalog = DEFAULT_BBMP_RULE_CATALOG,
 ): AssessmentResult {
-  const devControl = runDevControl(inputs, data);
+  const devControl = runDevControl(inputs, data, bbmpCatalog);
   const basement = runBasement(inputs, data);
   const sustainability = runSustainability(inputs, devControl.maxBuiltUpSqm, data);
   const approvalReadiness = runApprovalReadiness(inputs, data.approvalDocs, existingPermitIds);

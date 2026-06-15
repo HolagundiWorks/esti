@@ -1,7 +1,7 @@
 {
-  "name": "ESTI AORMS",
-  "short_name": "ESTI",
-  "description": "Architecture practice management for Indian practices — fees, GST, drawings, compliance and performance.",
+  "name": "ESTI AORMS — Architectural Studio Management Software",
+  "short_name": "ESTI AORMS",
+  "description": "Architectural studio management software for Indian architects — COA fees, GST, drawings, compliance and studio operations.",
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
@@ -9,5 +9,6 @@
   "theme_color": "#141414",
   "background_color": "#141414",
   "display": "standalone",
-  "start_url": "/"
+  "start_url": "/",
+  "lang": "en-IN"
 }

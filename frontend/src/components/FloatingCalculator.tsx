@@ -1,31 +1,34 @@
-import {
-  InlineNotification,
-  Modal,
-  Stack,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { useState } from "react";
+import { InlineNotification, Stack, TextInput, Tile } from "@carbon/react";
+import { useRef, useState, type RefObject } from "react";
+import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
+import { ScrollAffordance } from "./ScrollAffordance.js";
+
+type FloatingCalculatorProps = {
+  open: boolean;
+  onClose: () => void;
+  /** Dock trigger — excluded from outside-dismiss. */
+  triggerRef: RefObject<HTMLElement | null>;
+};
 
 /**
- * Office-wide floating calculator — a single "screen": type an arithmetic
- * expression and the result is shown live (no keypad). Enter chains the result.
- * Controlled by the floating dock (open / onClose props).
+ * Office-wide floating calculator — anchored beside the dock (no modal backdrop).
+ * Closes on pointer-down outside the panel and its trigger.
  */
-export function FloatingCalculator({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function FloatingCalculator({ open, onClose, triggerRef }: FloatingCalculatorProps) {
   const [expr, setExpr] = useState("");
+  const panelRef = useRef<HTMLDivElement>(null);
   const result = safeEval(expr);
 
+  useDismissOnOutsideClick(open, onClose, [panelRef, triggerRef]);
+
+  if (!open) return null;
+
   return (
-    <>
-      <Modal
-        open={open}
-        modalHeading="Calculator"
-        passiveModal
-        size="xs"
-        onRequestClose={onClose}
-      >
-        <Stack gap={5}>
+    <div ref={panelRef} className="esti-float-widget esti-float-calc">
+      <Tile className="esti-glass-panel esti-float-panel-shell">
+        <ScrollAffordance>
+          <Stack gap={4}>
+          <h4>Calculator</h4>
           <TextInput
             id="calc-screen"
             labelText="Calculator"
@@ -57,9 +60,10 @@ export function FloatingCalculator({ open, onClose }: { open: boolean; onClose: 
           <p>
             + − × ÷ ( ) and % (e.g. 5000+18% = 5900). Enter to reuse the result.
           </p>
-        </Stack>
-      </Modal>
-    </>
+          </Stack>
+        </ScrollAffordance>
+      </Tile>
+    </div>
   );
 }
 
@@ -70,7 +74,6 @@ export function FloatingCalculator({ open, onClose }: { open: boolean; onClose: 
 function safeEval(input: string): number | null {
   const expr = input.trim();
   if (!expr) return null;
-  // Normalise unicode operators.
   const s = expr.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
   const tokens = s.match(/(\d+\.?\d*|\.\d+|[+\-*/()%])/g);
   if (!tokens || tokens.join("") !== s.replace(/\s+/g, "")) return null;
@@ -84,7 +87,6 @@ function safeEval(input: string): number | null {
       if (!Number.isFinite(n)) return null;
       out.push(n);
     } else if (t === "%") {
-      // percent of the value to its left: x % => x/100
       out.push("%");
     } else if (t === "(") {
       ops.push(t);

@@ -4,12 +4,14 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { rewardPoints, teamMembers } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { requireHrEnabled } from "../../lib/settings.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const rewardRouter = router({
   listByMember: protectedProcedure
     .input(z.object({ teamMemberId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       return ctx.db
         .select()
         .from(rewardPoints)
@@ -20,6 +22,7 @@ export const rewardRouter = router({
   grant: ownerProcedure
     .input(RewardPointCreate)
     .mutation(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
       const [tm] = await ctx.db
         .select({ id: teamMembers.id })
         .from(teamMembers)

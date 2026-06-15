@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RevisionCategory } from "./schemas.js";
 
 /** Client-originated portal submission kinds. */
 export const PortalSubmissionKind = z.enum([
@@ -50,6 +51,7 @@ export const PortalApprovalRespondInput = z.object({
   approvalId: z.string().uuid(),
   decision: PortalApprovalDecision,
   remarks: z.string().trim().max(2000).optional(),
+  revisionCategory: RevisionCategory.optional(),
 });
 export type PortalApprovalRespondInput = z.infer<typeof PortalApprovalRespondInput>;
 
@@ -65,6 +67,7 @@ export const PortalChangeRequestInput = z.object({
   projectId: z.string().uuid(),
   subject: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1).max(4000),
+  revisionCategory: RevisionCategory,
   objectType: z.string().trim().max(40).optional(),
   objectId: z.string().uuid().optional(),
 });

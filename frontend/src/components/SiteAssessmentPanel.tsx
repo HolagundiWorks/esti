@@ -25,6 +25,10 @@ import {
   ASSESSMENT_PHASE_LABEL,
   VIOLATION_STATUS_TAG,
   Topography,
+  DevelopmentArea,
+  DEVELOPMENT_AREA_LABEL,
+  RoadClass,
+  ROAD_CLASS_LABEL,
   type ApprovalReadinessOutput,
   type AssessmentResult,
   type BasementOutput,
@@ -85,7 +89,10 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
   const [ruleVersionId, setRuleVersionId] = useState(publishedVersions[0]?.id ?? "");
   const [assessmentPhase, setAssessmentPhase] = useState<AssessmentPhase>("PRE_DESIGN");
   const [siteArea, setSiteArea] = useState("");
-  const [height, setHeight] = useState("11.5");
+  const [developmentArea, setDevelopmentArea] = useState<(typeof DevelopmentArea.options)[number]>("A");
+  const [plotWidth, setPlotWidth] = useState("");
+  const [plotDepth, setPlotDepth] = useState("");
+  const [height, setHeight] = useState("9");
   const [builtUp, setBuiltUp] = useState("");
   const [excludedArea, setExcludedArea] = useState("0");
   const [plinthArea, setPlinthArea] = useState("");
@@ -93,10 +100,10 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
   const [topography, setTopography] = useState<string>("FLAT");
   const [approachRoad, setApproachRoad] = useState("0");
   const [sideForm, setSideForm] = useState({
-    front: { abutsRoad: false, roadWidthM: "0", rblFromCentreM: "0" },
-    rear: { abutsRoad: false, roadWidthM: "0", rblFromCentreM: "0" },
-    left: { abutsRoad: false, roadWidthM: "0", rblFromCentreM: "0" },
-    right: { abutsRoad: false, roadWidthM: "0", rblFromCentreM: "0" },
+    front: { abutsRoad: false, roadWidthM: "0", roadClass: "LOCAL" as const, distanceCentreToBoundaryM: "0" },
+    rear: { abutsRoad: false, roadWidthM: "0", roadClass: "LOCAL" as const, distanceCentreToBoundaryM: "0" },
+    left: { abutsRoad: false, roadWidthM: "0", roadClass: "LOCAL" as const, distanceCentreToBoundaryM: "0" },
+    right: { abutsRoad: false, roadWidthM: "0", roadClass: "LOCAL" as const, distanceCentreToBoundaryM: "0" },
   });
   const [hasBasement, setHasBasement] = useState(false);
   const [basementDepth, setBasementDepth] = useState("0");
@@ -143,12 +150,17 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
     const side = (name: string) => ({
       abutsRoad: sideForm[name as keyof typeof sideForm].abutsRoad,
       roadWidthM: Number(sideForm[name as keyof typeof sideForm].roadWidthM) || 0,
-      rblFromCentreM: Number(sideForm[name as keyof typeof sideForm].rblFromCentreM) || 0,
+      roadClass: sideForm[name as keyof typeof sideForm].roadClass,
+      distanceCentreToBoundaryM:
+        Number(sideForm[name as keyof typeof sideForm].distanceCentreToBoundaryM) || 0,
     });
     return {
       buildingUse: publishedVersions.find((rv) => rv.id === ruleVersionId)?.buildingUse ?? "RESIDENTIAL",
+      developmentArea,
       assessmentPhase,
       siteAreaSqm: Number(siteArea),
+      plotWidthM: plotWidth ? Number(plotWidth) : undefined,
+      plotDepthM: plotDepth ? Number(plotDepth) : undefined,
       proposedHeightM: Number(height),
       proposedBuiltUpSqm: builtUp ? Number(builtUp) : undefined,
       excludedAreaSqm: Number(excludedArea) || 0,
@@ -317,11 +329,37 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
 
           <h4>Site inputs</h4>
           <Stack orientation="horizontal" gap={5}>
+            <Select
+              id="sa-zone"
+              labelText="Development zone"
+              value={developmentArea}
+              onChange={(e) =>
+                setDevelopmentArea(e.target.value as (typeof DevelopmentArea.options)[number])
+              }
+            >
+              {DevelopmentArea.options.map((z) => (
+                <SelectItem key={z} value={z} text={DEVELOPMENT_AREA_LABEL[z] ?? z} />
+              ))}
+            </Select>
             <NumberInput
               id="sa-area"
               label="Site area (sq m)"
               value={siteArea}
               onChange={(_e, { value }) => setSiteArea(String(value))}
+              min={1}
+            />
+            <NumberInput
+              id="sa-pw"
+              label="Plot width (m)"
+              value={plotWidth}
+              onChange={(_e, { value }) => setPlotWidth(String(value))}
+              min={1}
+            />
+            <NumberInput
+              id="sa-pd"
+              label="Plot depth (m)"
+              value={plotDepth}
+              onChange={(_e, { value }) => setPlotDepth(String(value))}
               min={1}
             />
             <NumberInput
@@ -404,11 +442,26 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
                     onChange={(_e, { value }) => updateSide(s, "roadWidthM", String(value))}
                     min={0}
                   />
+                  <Select
+                    id={`sa-${s}-class`}
+                    labelText="Road class"
+                    size="sm"
+                    value={sideForm[s].roadClass}
+                    onChange={(e) =>
+                      updateSide(s, "roadClass", e.target.value)
+                    }
+                  >
+                    {RoadClass.options.map((c) => (
+                      <SelectItem key={c} value={c} text={ROAD_CLASS_LABEL[c] ?? c} />
+                    ))}
+                  </Select>
                   <NumberInput
-                    id={`sa-${s}-rbl`}
-                    label="RBL from centre (m)"
-                    value={sideForm[s].rblFromCentreM}
-                    onChange={(_e, { value }) => updateSide(s, "rblFromCentreM", String(value))}
+                    id={`sa-${s}-dist`}
+                    label="Centre to boundary (m)"
+                    value={sideForm[s].distanceCentreToBoundaryM}
+                    onChange={(_e, { value }) =>
+                      updateSide(s, "distanceCentreToBoundaryM", String(value))
+                    }
                     min={0}
                   />
                 </>

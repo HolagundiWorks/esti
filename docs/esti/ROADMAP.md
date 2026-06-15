@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-14 (updated post-deployment + branding session: branded landing redesign, ESTI/AORMS/HCW logos + favicons + OG, Docker prod scaffolding, migration journal repair, 14-project demo seed, dashboard redesign, SteelFlow into Knowledge Bank, task board view)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15 (updated post workflow/architecture audit: Phase 2G IA remediation started)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -138,13 +138,38 @@ Also delivered (2026-06-14 deployment + branding session):
 - **Demo seed expansion** — `seedDemo.ts` now creates 14 clients/projects with aligned
   task arrays; owner is `principal@demo.aorms.in` / `demo1234` to match the demo login.
 
-Also delivered (Phase 6 + solo demo): full client & consultant collaboration
-(see Phase 6 below — all four bullets) and a **solo-firm demo** — `seedDemoSolo.ts`
-(`seed:demo:solo` / `:prod`) seeds a single-architect practice with HR/teams OFF
-(`Studio Aanya`, one OWNER `solo@demo.aorms.in`, 4 projects, fees/GST invoices,
-a client portal login and one consultant engagement; no team members). The landing
-demo login is configurable via `VITE_DEMO_EMAIL`, and `VITE_SOLO_DEMO_URL` adds a
-"Solo demo" link pointing at a separate solo instance.
+Also delivered (Phase 6 + demo): full client & consultant collaboration
+(see Phase 6 below — all four bullets) and **separate demo workspaces** —
+`seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemoSolo.ts` (solo,
+`solo@demo.aorms.in`). Production studio → solo uses the HR archive workflow;
+see `docs/esti/ORG-MODE-AND-HR-ARCHIVE.md` and `DEMO-AND-HR-MODE.md`.
+
+Also delivered (2026-06-15 landing USP + quality intelligence session):
+- **Landing USP refresh** — persona-gated content; `#usp` leads with client revision
+  management (Minor/Major/Critical) using the real Carbon CRIF transition modal via
+  `RevisionTransitionPreview.tsx`; studio blocks for **ASPRF** and **Quality
+  intelligence** (radar profile + revision source meter + technical metrics).
+- **Quality intelligence shared tiles** — `QualityIntelligenceTiles.tsx` +
+  `quality-intelligence.ts` power both Dashboard zone 7 and landing preview;
+  revision source viz uses `MeterChart` with `meter.proportional` (not
+  `ProportionalMeterChart`, which is not exported); global `.esti-qi-*` styles.
+- **Landing narrative order** — "Our story" moved to page end (before footer);
+  nav link order updated to match.
+- **Phase 2F UI audit (in progress)** — shared `PageHeader` on list routes;
+  `PortalHeader` + white theme on client/consultant portals; Login rebuilt with
+  Carbon layout (`.esti-login-*` helpers, no hard-coded hex); documented UI
+  exceptions added to `CARBON-UI-DIRECTION.md`.
+
+Also delivered (Phase 2F complete): **UI audit closure** — `PageHeader` on all
+staff list routes; Performance ASPRF dimension bars migrated to `MeterChart`;
+`carbon-policy-rules.mjs` aligns CI with documented exceptions; landing mobile
+hamburger nav; client portal Minor/Major/Critical revision categories on change
+requests and approval revision responses (migration `0032_portal_revision_category.sql`).
+
+Also delivered (2026-06-15 workflow/architecture audit): canonical snapshot in
+`WORKFLOW-ARCHITECTURE-AUDIT.md`; Phase 2G P0+P1 complete (migration journal
+0031, compliance routing, portal deep links `/projects/:id`, settings cross-link,
+/work alias, deprecated route files removed).
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -372,6 +397,122 @@ lengths (shape codes A–E), view the live cross-section, export a complete BBS 
 Excel, and run an IS:456 AI review — all within the browser, with data persisted
 to PostgreSQL via tRPC.
 
+## Phase 2F - UI Audit, Page Hierarchy, And Policy Alignment [P0] - Complete 2026-06-15
+
+Full frontend UI audit (landing, login, staff workspace, client/consultant
+portals). Goal: align every screen to the Dashboard reference pattern and close
+the gap between `CARBON-UI-DIRECTION.md` and implementation via an explicit
+exception list — not silent drift.
+
+- [x] **Document UI exceptions** — add "Documented exceptions" section to
+  `CARBON-UI-DIRECTION.md` (`.esti-lp`, glass panels, KPI track bars, square
+  tags, drawing canvas, dashboard mosaic, workload heatmap cell colours).
+- [x] **Shared `PageHeader`** — standard `h1` + optional description + optional
+  actions slot (`frontend/src/components/PageHeader.tsx`).
+- [x] **PageHeader on core list routes** — Clients, Projects, Consultants,
+  Filing, Alerts, Contractors (table `title` retained for section context only).
+- [x] **Login Carbon alignment** — remove hard-coded `#141414` and decorative
+  inline styles; `.esti-login-shell` / `.esti-login-brand` / `.esti-login-mark`
+  structural helpers in `styles.scss`.
+- [x] **Shared `PortalHeader`** — Carbon `Header` + `HeaderGlobalAction` logout
+  on client (`Portal.tsx`) and consultant (`CollaboratorPortal.tsx`) portals;
+  wrapped in `<Theme theme="white">` in `App.tsx`.
+- [x] **Landing USP previews** — real Carbon CRIF transition modal, ASPRF block,
+  Quality intelligence tiles (radar + proportional meter + technical row) shared
+  with Dashboard via `QualityIntelligenceTiles.tsx`.
+- [x] **Revision source meter fix** — use `MeterChart` + `meter.proportional`
+  options (not `ProportionalMeterChart`, which is not exported from
+  `@carbon/charts-react`).
+- [x] **Chart accessibility** — `accessibility.svgAriaLabel` on quality
+  intelligence radar and revision-source meter charts.
+- [x] **PageHeader on remaining staff routes** — Invoices, Proposals, Contracts,
+  Letters, Users, Hr, Tenders, Reconcile, Work, Performance, FeeProposals,
+  ArchivedProjects, AuditLog, ClientRequests, ConsultantRequests, KnowledgeBank,
+  Settings, Company, Team (Dashboard keeps mosaic header column).
+- [x] **Performance ASPRF KPI bars → Carbon charts** — member dimension scores
+  use `MeterChart` with `meter.peak: 100` instead of `.esti-kpi-track/fill`.
+- [x] **Orphan route deprecation** — `@deprecated` JSDoc on unwired
+  `Tasks.tsx`, `Workload.tsx`, `ActivityCenter.tsx`, `Compliance.tsx` pointing
+  to Work / Knowledge Bank redirects.
+- [x] **Dashboard quality zone deep link** — zone header links to `/projects`
+  (decision ledger lives on project overview).
+- [x] **Align `scripts/check-carbon.mjs`** — shared `carbon-policy-rules.mjs` scopes staff
+  workspace; excludes documented exceptions (`.esti-lp` SCSS block, Landing, deprecated
+  orphans, HeaderPomodoro); allows Carbon-token inline colours; vitest aligned.
+- [x] **Landing mobile nav** — hamburger + slide-down section menu below 760 px with
+  the same anchors as desktop nav.
+- [x] **Client portal revision visibility** — Minor/Major/Critical category on change
+  requests and approval revision responses; staff inbox column; migration
+  `0032_portal_revision_category.sql`.
+
+**Gate:** every staff list route has a single page-level `h1`; login and both
+external portals share one Carbon shell pattern; `CARBON-UI-DIRECTION.md`
+exceptions match what CI and contributors can rely on; no new undocumented
+visual inline styles in staff routes.
+
+## Phase 2G - Workflow, IA & Architecture Remediation [P0–P3] - Complete 2026-06-15
+
+Findings from `WORKFLOW-ARCHITECTURE-AUDIT.md`. Closes navigation defects,
+aligns deep links with consolidated tab hubs, and repairs migration drift before
+production deploys.
+
+### P0 — Data integrity & broken navigation
+
+- [x] **Migration journal 0031** — register `0031_tender_bids` in
+  `drizzle/meta/_journal.json` so fresh installs create `esti_tender_bid`.
+- [x] **`/compliance` redirect** — `/compliance` → `/knowledge-bank?tab=compliance`
+  preserving query params (`project`, etc.).
+- [x] **ProjectOverview deep links** — pending approvals → `/tasks?tab=activity`;
+  compliance stat → `/knowledge-bank?tab=compliance&project=:id`.
+- [x] **Knowledge Bank project param** — sync `?project=` from URL; preserve `?tab=`
+  when changing project on compliance tab.
+
+### P1 — Workflow & information architecture
+
+- [x] **Side nav active state** — prefix match for `/projects/*`, `/tasks`,
+  `/knowledge-bank`; menu groups expand when a child route is active.
+- [x] **Alerts in side nav** — `/alerts` linked from top rail (header bell remains).
+- [x] **Portal deep links** — client and consultant portals use React Router:
+  `/` (list) and `/projects/:projectId` (detail); invalid IDs redirect home.
+- [x] **Settings IA** — FloatingDock links to `/settings`; profile page documents
+  theme and dashboard toggles in the dock (Alt+S).
+- [x] **Work URL alias** — `/work` redirects to `/tasks`.
+
+### P2 — Code hygiene & structure
+
+- [x] **Remove deprecated route files** — deleted unwired `Tasks.tsx`, `Workload.tsx`,
+  `ActivityCenter.tsx`, `Compliance.tsx` (redirects remain in `App.tsx`).
+- [x] **Orphan project components** — `ProjectPermits`, `ProjectBylaws`, and
+  `ProjectBylawCalc` wired into Knowledge Bank compliance tab when a project is
+  selected; `ClockLeavesWidget` on dashboard Personal zone (replaces inline leave tile).
+- [x] **KB embed extraction** — `MasterDsr` / `SteelArranger` moved to
+  `components/knowledge/`.
+- [x] **Work module split** — tab panels extracted to `components/work/`.
+- [x] **Activity emission gap** — `writeActivity` on invoice, PO, and drawing
+  mutations (create/status/delete, upload, scale, issue PDF).
+
+### P3 — Architecture evolution
+
+- [x] **Slice `schema.ts` by domain file** — `backend/src/db/schema/` with org-auth,
+  project, financial, delivery, knowledge-compliance, collaboration, hr-work,
+  memory-activity, and steelflow modules; root `schema.ts` is a barrel.
+- [x] **Extract read-model services** — `dashboard/readModels.ts` and
+  `projectoffice/queries.ts`; routers delegate to query layer.
+- [x] **Document `sf_*` SteelFlow naming** — `STEELFLOW-BOUNDED-CONTEXT.md`.
+- [ ] **Optional ASPRF / notification snapshot tables** — deferred to Phase 5 ASPRF
+  KPI work (live scores computed from domain tables today).
+
+**Gate (P3 met):** schema split without migration drift; dashboard and project
+list queries isolated from mutation routers; SteelFlow bounded context documented.
+
+**Gate (P0+P1 met):** fresh migration run creates tender bids table; every
+`ProjectOverview` stat tile and legacy `/compliance` bookmark lands on the correct
+tab with project context; side nav reflects nested routes; alerts page discoverable;
+client/consultant project URLs are bookmarkable (`/projects/:id`).
+
+**Gate (P2 met):** orphan components wired or removed; KB/Work structure split;
+activity emission on invoice, PO, and drawing writes.
+
 ## Phase 3 - Domain Activity Foundation [P1]
 
 - [x] Add immutable `esti_activity` records with project, object type/id,
@@ -471,6 +612,22 @@ opening separate modules.
   (2 trees if site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in
   dev-control engine; `excludedAreaSqm` field so gross BUA minus excluded = net
   BUA compared against FAR limit; `plinthAreaSqm` field for rainwater trigger.
+- [x] **Bylaw two-system model:** shared BBMP engine; pre-construction (`computePreConstructionPotential`)
+  and post-construction audit (`computePostConstructionAudit`); project Compliance tab;
+  see `BYLAW-SYSTEMS.md`.
+- [x] **BBMP modular rule engine:** FAR, low-rise/high-rise setback, road-margin,
+  parking, solar reference, secondary compliance, and engine-constant rules in
+  `esti_bbmp_*` tables (migrations `0033`, `0036`); pure engine in
+  `@esti/contracts/bbmp` with `calculationTrace` + compliance flags; see
+  `BBMP-IMPLEMENTATION.md`.
+- [x] **Org mode + HR archive (production):** `orgMode` SOLO/STUDIO, `esti_hr_archive`
+  snapshots, lock assessment, `archiveTeamModule` workflow, Company archive modal;
+  separate demo seeds (`seedDemo` / `seedDemoSolo`). See `ORG-MODE-AND-HR-ARCHIVE.md`.
+- [x] **Attendance register (replaces timesheets / stand-up):** `esti_attendance` +
+  `attendance` tRPC router; Work → Attendance tab; dashboard **Attendance today** KPI;
+  ASPRF no longer uses timesheet hours.
+- [x] **Unified demo + HR gating:** dashboard and API guards when HR off; studio demo
+  at `principal@demo.aorms.in`; solo demo at `solo@demo.aorms.in`.
 - [x] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
 - [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
@@ -622,7 +779,7 @@ Performance route; Work module Stand-up and Timesheets tabs.
 - [x] **Firm branding, empty states, notifications, and download authorization.**
   Firm-side triage of submissions — `clientRequests` + `consultantRequests`
   (`list`, `openCount`, `setStatus` OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response
-  note, audited `*.triaged`) at `/client-requests` and `/consultant-requests`
+  note, audited `*.triaged`) on Work → Client requests / Consultant requests tabs
   (nav under People); the response note is read back by the originator.
   **Notifications:** `notifications.list` surfaces OPEN client/consultant submissions
   as `submission` alerts (RFIs high). **Branding:** `portal.branding` + `collab.branding`

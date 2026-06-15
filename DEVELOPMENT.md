@@ -39,12 +39,21 @@ podman compose up -d --build
 ## First run (schema + owner)
 
 ```sh
-# create tables from the Drizzle schema (dev: push, no migration files)
-podman exec esti-backend sh -c "cd /app/backend && pnpm exec drizzle-kit push --force"
+# apply pending SQL migrations (preferred — matches CI/production)
+podman exec esti-backend sh -c "cd /app/backend && pnpm db:migrate"
 
 # seed a known OWNER login (idempotent — safe to re-run)
 podman exec esti-backend sh -c "cd /app/backend && pnpm seed"
 ```
+
+After adding new migration files under `backend/drizzle/`, re-run `pnpm db:migrate`
+inside `esti-backend` (the dev compose file bind-mounts that folder). If the
+container predates a migration, copy it in or restart compose so the mount is
+active, then migrate again.
+
+> **Dev-only escape hatch:** `drizzle-kit push --force` can sync schema without
+> migration history — use only for throwaway local DBs, not shared or production
+> databases.
 
 This gives a fresh pod a known login:
 

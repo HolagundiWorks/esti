@@ -6,6 +6,8 @@ import {
   SfSessionCreate,
   SfStirrupCreate,
   SfStirrupUpdate,
+  applySteelFlowCatalogEntry,
+  parseSteelFlowCatalogRow,
   sfDevelopmentLength,
   sfSteelWeight,
   sfStirrupCount,
@@ -15,13 +17,14 @@ import {
   type SfBbsRow,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   sfElements,
   sfRebars,
   sfSessions,
   sfStirrups,
+  structuralElementTemplates,
 } from "../../db/schema.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -263,6 +266,92 @@ export const steelflowRouter = router({
     .input(IdInput)
     .mutation(async ({ ctx, input }) => {
       await ctx.db.delete(sfElements).where(eq(sfElements.id, input.id));
+    }),
+
+  /** Instantiate a published SteelFlow catalogue entry into a session element. */
+  applyCatalog: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string().uuid(),
+        templateId: z.string().uuid(),
+        elementCode: z.string().min(1).max(20),
+        spanMm: z.number().int().min(300).max(30000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [session] = await ctx.db
+        .select()
+        .from(sfSessions)
+        .where(eq(sfSessions.id, input.sessionId));
+      if (!session) throw new TRPCError({ code: "NOT_FOUND" });
+      if (session.createdById !== ctx.user.id)
+        throw new TRPCError({ code: "FORBIDDEN" });
+
+      const [template] = await ctx.db
+        .select()
+        .from(structuralElementTemplates)
+        .where(
+          and(
+            eq(structuralElementTemplates.id, input.templateId),
+            eq(structuralElementTemplates.status, "PUBLISHED"),
+          ),
+        );
+      if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Catalogue entry not found or not published" });
+
+      const entry = parseSteelFlowCatalogRow(template);
+      if (!entry)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Template is not a valid SteelFlow catalogue entry",
+        });
+
+      const applied = applySteelFlowCatalogEntry(entry, input.spanMm);
+
+      return ctx.db.transaction(async (tx) => {
+        const [element] = await tx
+          .insert(sfElements)
+          .values({
+            sessionId: input.sessionId,
+            elementType: applied.elementType,
+            elementCode: input.elementCode,
+            lengthMm: applied.lengthMm,
+            widthMm: applied.widthMm,
+            depthMm: applied.depthMm,
+            coverMm: applied.coverMm,
+            fck: applied.fck,
+            fy: applied.fy,
+          })
+          .returning();
+
+        if (applied.rebars.length) {
+          await tx.insert(sfRebars).values(
+            applied.rebars.map((rebar) => ({
+              elementId: element!.id,
+              barMark: rebar.barMark,
+              diaMm: rebar.diaMm,
+              barType: rebar.barType,
+              quantity: rebar.quantity,
+              cuttingLengthMm: rebar.cuttingLengthMm,
+              shapeCode: rebar.shapeCode,
+            })),
+          );
+        }
+
+        if (applied.stirrups.length) {
+          await tx.insert(sfStirrups).values(
+            applied.stirrups.map((stirrup) => ({
+              elementId: element!.id,
+              diaMm: stirrup.diaMm,
+              stirrupType: stirrup.stirrupType,
+              spacingMm: stirrup.spacingMm,
+              hookAngle: stirrup.hookAngle,
+              zone: stirrup.zone,
+            })),
+          );
+        }
+
+        return element!;
+      });
     }),
 
   // Rebars

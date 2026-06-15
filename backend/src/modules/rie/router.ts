@@ -13,6 +13,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { bylaws, ruleVersions, siteAssessments } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { loadActiveBbmpRuleCatalog } from "../../lib/bbmpRules.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -146,13 +147,23 @@ export const siteAssessmentRouter = router({
       const existingPermitIds = permitRows.map((p) => p.parameter);
 
       const data = RuleVersionData.parse(rv.data);
-      const result = runAllEngines(input.siteInputs, data, existingPermitIds, input.relaxations);
+      const bbmpCatalog =
+        rv.authority === "BBMP" ? await loadActiveBbmpRuleCatalog(ctx.db) : undefined;
+      const result = runAllEngines(
+        input.siteInputs,
+        data,
+        existingPermitIds,
+        input.relaxations,
+        bbmpCatalog,
+      );
+      const bbmpRuleSetId = bbmpCatalog?.ruleSetId ?? null;
 
       const [row] = await ctx.db
         .insert(siteAssessments)
         .values({
           projectId: input.projectId,
           ruleVersionId: input.ruleVersionId,
+          bbmpRuleSetId,
           status: "DRAFT",
           assessmentPhase: input.siteInputs.assessmentPhase ?? "PRE_DESIGN",
           siteInputs: input.siteInputs,

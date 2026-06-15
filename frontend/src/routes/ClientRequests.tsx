@@ -19,13 +19,17 @@ import {
   PORTAL_SUBMISSION_KIND_LABEL,
   PORTAL_SUBMISSION_STATUS_LABEL,
   PORTAL_SUBMISSION_STATUS_TAG,
+  REVISION_CATEGORY_LABEL,
+  REVISION_CATEGORY_TAG,
   PortalSubmissionKind,
   PortalSubmissionStatus,
   type PortalSubmissionStatus as PortalSubmissionStatusT,
+  type RevisionCategory as RevisionCategoryT,
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -35,7 +39,7 @@ const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
   FEEDBACK: "blue",
 };
 
-export function ClientRequests() {
+export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const [status, setStatus] = useState("");
   const [kind, setKind] = useState("");
@@ -68,10 +72,12 @@ export function ClientRequests() {
 
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>Client requests</h1>
-        <p>Acknowledgements, change requests and feedback raised from the client portal.</p>
-      </Stack>
+      {!embedded && (
+        <PageHeader
+          title="Client requests"
+          description="Acknowledgements, change requests and feedback raised from the client portal."
+        />
+      )}
 
       <Stack orientation="horizontal" gap={5}>
         <Select id="cr-status" labelText="Status" hideLabel size="sm"
@@ -98,7 +104,7 @@ export function ClientRequests() {
       <DataState
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
-        columnCount={6}
+        columnCount={7}
         empty={{ title: "No client requests", description: "Items raised from the client portal appear here." }}
       >
         <TableContainer title="Submissions">
@@ -106,6 +112,7 @@ export function ClientRequests() {
             <TableHead>
               <TableRow>
                 <TableHeader>Type</TableHeader>
+                <TableHeader>Revision</TableHeader>
                 <TableHeader>Subject</TableHeader>
                 <TableHeader>Project</TableHeader>
                 <TableHeader>Client</TableHeader>
@@ -120,6 +127,13 @@ export function ClientRequests() {
                     <Tag type={KIND_TAG[r.kind] ?? "gray"} size="sm">
                       {PORTAL_SUBMISSION_KIND_LABEL[r.kind as keyof typeof PORTAL_SUBMISSION_KIND_LABEL] ?? r.kind}
                     </Tag>
+                  </TableCell>
+                  <TableCell>
+                    {r.revisionCategory ? (
+                      <Tag type={REVISION_CATEGORY_TAG[r.revisionCategory as RevisionCategoryT] ?? "gray"} size="sm">
+                        {REVISION_CATEGORY_LABEL[r.revisionCategory as RevisionCategoryT] ?? r.revisionCategory}
+                      </Tag>
+                    ) : "—"}
                   </TableCell>
                   <TableCell>
                     {r.subject}

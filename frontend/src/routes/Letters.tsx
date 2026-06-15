@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 function LetterPdf({ id, initial }: { id: string; initial: string }) {
@@ -97,20 +98,12 @@ export function Letters() {
   const remove = trpc.letters.remove.useMutation({ onSuccess: inv });
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <h1>Letters</h1>
-          <p>Office correspondence on firm letterhead.</p>
-        </div>
-        <Button onClick={() => setOpen(true)}>New letter</Button>
-      </div>
+    <Stack gap={6}>
+      <PageHeader
+        title="Letters"
+        description="Office correspondence on firm letterhead."
+        actions={<Button onClick={() => setOpen(true)}>New letter</Button>}
+      />
 
       <DataState
         loading={listQ.isLoading}
@@ -241,6 +234,6 @@ export function Letters() {
           />
         </Stack>
       </Modal>
-    </div>
+    </Stack>
   );
 }

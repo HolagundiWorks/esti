@@ -19,7 +19,6 @@ import {
   TableRow,
   Tag,
   Tile,
-  Toggle,
 } from "@carbon/react";
 import { ArrowRight } from "@carbon/icons-react";
 import { DonutChart, SimpleBarChart } from "@carbon/charts-react";
@@ -33,16 +32,13 @@ import {
   PERFORMANCE_BAND_TAG,
   type PerformanceBand,
 } from "@esti/contracts";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
-import {
-  fmtPomTime,
-  POMODORO_MODE_LABEL,
-  usePomodoro,
-} from "../contexts/PomodoroContext.js";
+import { QualityIntelligenceTiles } from "../components/QualityIntelligenceTiles.js";
+import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -181,9 +177,9 @@ function ZoneTile({
     </div>
   );
   return to ? (
-    <ClickableTile onClick={() => navigate(to)}>{inner}</ClickableTile>
+    <ClickableTile className="esti-fill" onClick={() => navigate(to)}>{inner}</ClickableTile>
   ) : (
-    <Tile>{inner}</Tile>
+    <Tile className="esti-fill">{inner}</Tile>
   );
 }
 
@@ -277,112 +273,7 @@ function FilingTile({
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
-// ─── My space (relocated from the old right panel) ──────────────────────────
-
-// Dial geometry: full ring = 60 minutes, 12 o'clock = 0, clockwise.
-const DIAL = { cx: 110, cy: 110, r: 86, vb: 220 };
-const FOCUS = "var(--cds-support-success)";
-const BREAK = "var(--cds-support-error)";
-
-function dialPoint(frac: number): [number, number] {
-  const a = (-90 + frac * 360) * (Math.PI / 180);
-  return [DIAL.cx + DIAL.r * Math.cos(a), DIAL.cy + DIAL.r * Math.sin(a)];
-}
-function dialArc(frac: number): string {
-  const f = Math.min(frac, 0.9999);
-  const [sx, sy] = dialPoint(0);
-  const [ex, ey] = dialPoint(f);
-  return `M ${sx} ${sy} A ${DIAL.r} ${DIAL.r} 0 ${f > 0.5 ? 1 : 0} 1 ${ex} ${ey}`;
-}
-
-/**
- * Interactive Pomodoro dial: drag the knob around the ring to set the minutes
- * (green = focus, red = break). Top half starts/stops focus, bottom half break,
- * centre toggles the active timer.
- */
-function PomodoroRing() {
-  const pom = usePomodoro();
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const isBreak = pom.mode !== "work";
-  const color = isBreak ? BREAK : FOCUS;
-
-  // Ring shows remaining while running, otherwise the set duration (capped at 60m).
-  const shownSecs = pom.running ? pom.timeLeft : pom.duration;
-  const frac = Math.min(shownSecs / 3600, 1);
-  const [hx, hy] = dialPoint(frac);
-
-  function setFromPointer(e: { clientX: number; clientY: number }) {
-    const el = svgRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const sx = ((e.clientX - rect.left) / rect.width) * DIAL.vb;
-    const sy = ((e.clientY - rect.top) / rect.height) * DIAL.vb;
-    let deg = Math.atan2(sy - DIAL.cy, sx - DIAL.cx) * (180 / Math.PI);
-    let fromTop = (deg + 90) % 360;
-    if (fromTop < 0) fromTop += 360;
-    const minutes = Math.max(1, Math.min(60, Math.round((fromTop / 360) * 60)));
-    pom.setDuration(pom.mode, minutes * 60);
-  }
-
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={4}>
-        <Stack orientation="horizontal" gap={3}>
-          <h3 className="esti-grow">Focus timer</h3>
-          <Tag type={isBreak ? "red" : "green"} size="sm">{POMODORO_MODE_LABEL[pom.mode]}</Tag>
-        </Stack>
-
-        <div className="esti-pom-ring">
-          <svg
-            ref={svgRef} viewBox="0 0 220 220" width="200" height="200"
-            role="img" aria-label="Pomodoro dial"
-            style={{ touchAction: "none" }}
-            onPointerMove={(e) => { if (dragging && !pom.running) setFromPointer(e); }}
-            onPointerUp={(e) => { if (dragging) { (e.target as Element).releasePointerCapture?.(e.pointerId); setDragging(false); } }}
-          >
-            {/* mode-select halves: top = focus (green), bottom = break (red) */}
-            <path d={`M 24 110 A 86 86 0 0 1 196 110 Z`} fill={FOCUS}
-              opacity={isBreak ? 0.06 : 0.16} style={{ cursor: "pointer" }}
-              onClick={() => (pom.running && !isBreak ? pom.toggle() : pom.start("work"))} />
-            <path d={`M 24 110 A 86 86 0 0 0 196 110 Z`} fill={BREAK}
-              opacity={isBreak ? 0.16 : 0.06} style={{ cursor: "pointer" }}
-              onClick={() => (pom.running && isBreak ? pom.toggle() : pom.start("short"))} />
-
-            {/* track + coloured duration/remaining arc */}
-            <circle cx={DIAL.cx} cy={DIAL.cy} r={DIAL.r} fill="none" stroke="var(--cds-layer-accent)" strokeWidth="10" />
-            <path d={dialArc(frac)} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
-              className={pom.running ? "esti-pom-ring--run" : undefined} />
-
-            {/* draggable knob (the rotatable line) */}
-            <line x1={DIAL.cx} y1={DIAL.cy} x2={hx} y2={hy} stroke={color} strokeWidth="3" opacity={0.5} />
-            <circle
-              cx={hx} cy={hy} r="11" fill={color}
-              style={{ cursor: pom.running ? "not-allowed" : "grab" }}
-              onPointerDown={(e) => { if (!pom.running) { (e.target as Element).setPointerCapture?.(e.pointerId); setDragging(true); } }}
-            />
-
-            {/* centre start/stop */}
-            <circle cx={DIAL.cx} cy={DIAL.cy} r="46" fill="var(--cds-layer)" stroke="var(--cds-border-subtle)" />
-            <text x={DIAL.cx} y={DIAL.cy - 4} textAnchor="middle" fontSize="26" fontWeight="600" fill="var(--cds-text-primary)">
-              {fmtPomTime(pom.timeLeft)}
-            </text>
-            <text x={DIAL.cx} y={DIAL.cy + 22} textAnchor="middle" fontSize="13" fill={color}
-              style={{ cursor: "pointer" }} onClick={pom.toggle}>
-              {pom.running ? "❚❚ Pause" : "▶ Start"}
-            </text>
-          </svg>
-        </div>
-
-        <Stack orientation="horizontal" gap={3}>
-          <Button kind="ghost" size="sm" onClick={pom.reset}>Reset</Button>
-          {!pom.running && <span className="esti-label esti-label--helper">Drag the knob to set minutes</span>}
-          {pom.sessions > 0 && <span className="esti-label esti-label--secondary">{pom.sessions} today</span>}
-        </Stack>
-      </Stack>
-    </Tile>
-  );
-}
+// ─── My space — my tasks and leave ───────────────────────────────────────────
 
 const MY_PRIORITY_TAG: Record<string, "red" | "magenta" | "blue" | "gray"> = {
   CRITICAL: "red", HIGH: "magenta", MEDIUM: "blue", LOW: "gray",
@@ -431,34 +322,6 @@ function MyTasksTile() {
   );
 }
 
-function MyLeaveTile() {
-  const navigate = useNavigate();
-  const meQ = trpc.dashboard.me.useQuery();
-  const leave = meQ.data?.leave;
-  return (
-    <Tile className="esti-fill">
-      <Stack gap={4}>
-        <h3>Leave balance</h3>
-        {meQ.isLoading ? (
-          <InlineLoading description="Loading…" />
-        ) : !leave ? (
-          <p>No leave record linked to your login.</p>
-        ) : (
-          <Stack gap={4}>
-            <Stack orientation="horizontal" gap={5}>
-              <Stack gap={1}><span className="esti-label esti-label--secondary">Remaining</span><h2>{leave.remaining}</h2></Stack>
-              <Stack gap={1}><span className="esti-label esti-label--secondary">Used</span><h2>{leave.used}</h2></Stack>
-              <Stack gap={1}><span className="esti-label esti-label--secondary">Allowance</span><h2>{leave.allowance}</h2></Stack>
-            </Stack>
-            <ProgressBar label="Leave used" hideLabel value={leave.used} max={leave.allowance} helperText={`${leave.used} of ${leave.allowance} days taken`} />
-          </Stack>
-        )}
-        <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/hr")}>Open HR</Button>
-      </Stack>
-    </Tile>
-  );
-}
-
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -470,12 +333,18 @@ export function Dashboard() {
   const fhQ = trpc.dashboard.financialHealth.useQuery();
   const phQ = trpc.dashboard.projectHealth.useQuery();
   const ciQ = trpc.dashboard.clientIntelligence.useQuery();
-  const tiQ = trpc.dashboard.teamIntelligence.useQuery();
   const riQ = trpc.dashboard.revisionIntelligence.useQuery();
   const techIQ = trpc.dashboard.technicalIntelligence.useQuery();
-  const utilQ = trpc.dashboard.utilization.useQuery();
-  const aspQ = trpc.aspRf.teamScores.useQuery();
   const activityQ = trpc.activity.listOffice.useQuery({ limit: 4, visibility: "STAFF" });
+
+  const settingsQ = trpc.settings.get.useQuery();
+  const showFinancial = settingsQ.data?.financialEnabled ?? true;
+  const showProject = settingsQ.data?.projectEnabled ?? true;
+  const hrEnabled = settingsQ.data?.hrEnabled ?? false;
+
+  const tiQ = trpc.dashboard.teamIntelligence.useQuery(undefined, { enabled: hrEnabled });
+  const attQ = trpc.dashboard.attendanceToday.useQuery(undefined, { enabled: hrEnabled });
+  const aspQ = trpc.aspRf.teamScores.useQuery(undefined, { enabled: hrEnabled });
 
   const s = summary.data;
   const b = boardsQ.data;
@@ -483,22 +352,15 @@ export function Dashboard() {
   const boardsLoading = boardsQ.isLoading && !b;
 
   const canFees = can(user?.role, "fees:manage");
-  const isAdmin = can(user?.role, "firm:admin");
 
-  const utils = trpc.useUtils();
-  const settingsQ = trpc.settings.get.useQuery();
-  const showFinancial = settingsQ.data?.financialEnabled ?? true;
-  const showProject = settingsQ.data?.projectEnabled ?? true;
-  const setModule = trpc.settings.setModuleEnabled.useMutation({
-    onSuccess: () => utils.settings.get.invalidate(),
-  });
-
-  // Action Center — five urgency categories.
+  // Action Center — five urgency categories (capacity alerts only when HR is on).
   const billingReady = acQ.data?.billingReadyPhases ?? [];
   const overdueInvoices = acQ.data?.overdueInvoices ?? [];
   const pendingApprovals = acQ.data?.pendingApprovals ?? [];
   const riskProjects = (phQ.data ?? []).filter((p) => p.health === "RED");
-  const overloadedMembers = (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED");
+  const overloadedMembers = hrEnabled
+    ? (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED")
+    : [];
   const acTotal =
     billingReady.length +
     overdueInvoices.length +
@@ -528,9 +390,9 @@ export function Dashboard() {
   ];
   const agingEmpty = agingData.every((d) => d.value === 0);
 
-  // Team — top four ASPRF cards only; the full board lives at /performance.
+  // Team ASPRF cards — only when HR module is on.
   const capacityByName = new Map((tiQ.data ?? []).map((m) => [m.assignee, m]));
-  const teamCards = (aspQ.data ?? []).slice(0, 4);
+  const teamCards = hrEnabled ? (aspQ.data ?? []).slice(0, 4) : [];
 
   const hasActivity = (activityQ.data?.rows.length ?? 0) > 0;
   const hasClients = (ciQ.data?.length ?? 0) > 0;
@@ -548,12 +410,16 @@ export function Dashboard() {
         </Stack>
       </Column>
 
-      {/* ═══ 0 · My space — focus timer, my tasks, leave ══════════════════ */}
-      <Column lg={6} md={4} sm={4}><PomodoroRing /></Column>
-      <Column lg={5} md={4} sm={4}><MyTasksTile /></Column>
-      <Column lg={5} md={8} sm={4}><MyLeaveTile /></Column>
+      {/* ═══ Overall · office pulse ═══════════════════════════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile
+          navigate={navigate}
+          title="Office overview"
+          sub={hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
+        />
+      </Column>
 
-      {/* ═══ 1 · KPI strip — four answers, one row ═════════════════════════ */}
+      {/* KPI strip — four answers, one row ═════════════════════════ */}
       <Column lg={4} md={4} sm={2}>
         <KpiChip
           label="Ready to bill"
@@ -596,29 +462,70 @@ export function Dashboard() {
         />
       </Column>
       <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Team utilization"
-          value={utilQ.data ? `${utilQ.data.utilizationPct}%` : "—"}
-          health="neutral"
-          tagType="teal"
-          tagText={
-            utilQ.data && utilQ.data.totalHours > 0
-              ? `${utilQ.data.billableRatePct}% billable`
-              : "No timesheets yet"
-          }
-          onClick={() => navigate("/tasks?tab=timesheets")}
-          loading={utilQ.isLoading}
-        />
+        {hrEnabled ? (
+          <KpiChip
+            label="Attendance today"
+            value={
+              attQ.data
+                ? `${attQ.data.present + attQ.data.wfh}/${attQ.data.headcount}`
+                : "—"
+            }
+            health={
+              attQ.data && attQ.data.absent > 0
+                ? "watch"
+                : attQ.data && attQ.data.marked >= attQ.data.headcount
+                  ? "ok"
+                  : "neutral"
+            }
+            tagType={
+              attQ.data && attQ.data.absent > 0
+                ? "magenta"
+                : attQ.data && attQ.data.marked > 0
+                  ? "green"
+                  : "gray"
+            }
+            tagText={
+              attQ.data
+                ? attQ.data.marked === 0
+                  ? "Register not marked"
+                  : `${attQ.data.absent} absent · ${attQ.data.wfh} WFH`
+                : "No team data"
+            }
+            onClick={() => navigate("/tasks?tab=attendance")}
+            loading={attQ.isLoading}
+          />
+        ) : (
+          <KpiChip
+            label="Tasks due today"
+            value={b?.tasksDueToday ?? 0}
+            health={(b?.tasksDueToday ?? 0) > 0 ? "watch" : "neutral"}
+            tagType={(b?.tasksDueToday ?? 0) > 0 ? "magenta" : "gray"}
+            tagText={(b?.tasksDueToday ?? 0) > 0 ? "Open or overdue" : "Nothing due"}
+            onClick={() => navigate("/tasks?tab=tasks")}
+            loading={boardsLoading}
+          />
+        )}
       </Column>
 
-      {/* ═══ 2 · Action Center — what needs attention now ══════════════════ */}
+      {/* ═══ Personal · your workload ═════════════════════════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile
+          navigate={navigate}
+          title="Personal"
+          sub={hrEnabled ? "Tasks assigned to you and leave balance." : "Tasks assigned to you."}
+        />
+      </Column>
+      <Column lg={8} md={4} sm={4}><MyTasksTile /></Column>
+      <Column lg={8} md={4} sm={4}><ClockLeavesWidget hrEnabled={hrEnabled} /></Column>
+
+      {/* ═══ Action Center — what needs attention now ═════════════════════ */}
       <Column lg={16} md={8} sm={4}>
         <ZoneTile
           navigate={navigate}
           title="Action Center"
           sub="Billing, approvals, and risk items that need a decision today."
           statusTag={
-            !acQ.isLoading && !phQ.isLoading && !tiQ.isLoading
+            !acQ.isLoading && !phQ.isLoading && (!hrEnabled || !tiQ.isLoading)
               ? { text: acTotal > 0 ? `${acTotal} open` : "All clear", type: acTotal > 0 ? "red" : "green" }
               : undefined
           }
@@ -717,11 +624,11 @@ export function Dashboard() {
         <Tile
           className="esti-fill"
           style={edge(
-            riskProjects.length > 0 || overloadedMembers.length > 0 ? "alert" : "ok",
+            riskProjects.length > 0 || (hrEnabled && overloadedMembers.length > 0) ? "alert" : "ok",
           )}
         >
           <Stack gap={4}>
-            <h4>Risk &amp; capacity</h4>
+            <h4>{hrEnabled ? "Risk & capacity" : "Project risk"}</h4>
             <Stack gap={2}>
               <p><strong>High-risk projects</strong></p>
               {riskProjects.length === 0 ? (
@@ -734,82 +641,36 @@ export function Dashboard() {
                 ))
               )}
             </Stack>
-            <Stack gap={2}>
-              <p><strong>Capacity alerts</strong></p>
-              {overloadedMembers.length === 0 ? (
-                <p>No one overloaded.</p>
-              ) : (
-                overloadedMembers.slice(0, 2).map((m) => (
-                  <p key={m.assignee}>
-                    {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
-                  </p>
-                ))
-              )}
-            </Stack>
+            {hrEnabled && (
+              <Stack gap={2}>
+                <p><strong>Capacity alerts</strong></p>
+                {overloadedMembers.length === 0 ? (
+                  <p>No one overloaded.</p>
+                ) : (
+                  overloadedMembers.slice(0, 2).map((m) => (
+                    <p key={m.assignee}>
+                      {m.assignee} — {m.totalOpen} open, {m.overdueCount} overdue
+                    </p>
+                  ))
+                )}
+              </Stack>
+            )}
           </Stack>
         </Tile>
       </Column>
 
-      {/* ═══ 3 · Financial health ══════════════════════════════════════════ */}
-      {canFees && showFinancial && (
-        <>
-          <Column lg={16} md={8} sm={4}>
-            <ZoneTile navigate={navigate} title="Financial health" to="/invoices" />
-          </Column>
-          <Column lg={8} md={8} sm={4}>
-            <Tile className="esti-fill" style={edge("neutral")}>
-              <Stack gap={5}>
-                <h4>Revenue breakdown</h4>
-                {fhQ.isLoading ? (
-                  <InlineLoading description="Loading…" />
-                ) : revenueData.length === 0 ? (
-                  <p>No financial data yet.</p>
-                ) : (
-                  <DonutChart
-                    data={revenueData}
-                    options={{
-                      data: { groupMapsTo: "group" },
-                      donut: { center: { label: "Revenue" }, alignment: "center" },
-                      height: CHART_HEIGHT,
-                      theme: chartTheme,
-                      toolbar: { enabled: false },
-                      legend: { enabled: true, position: "bottom" as const },
-                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-                    }}
-                  />
-                )}
-              </Stack>
-            </Tile>
-          </Column>
-          <Column lg={8} md={8} sm={4}>
-            <Tile className="esti-fill" style={edge(agingEmpty ? "neutral" : "watch")}>
-              <Stack gap={5}>
-                <h4>Receivables aging</h4>
-                {boardsLoading ? (
-                  <InlineLoading description="Loading…" />
-                ) : agingEmpty ? (
-                  <p>No outstanding receivables.</p>
-                ) : (
-                  <SimpleBarChart
-                    data={agingData}
-                    options={{
-                      axes: {
-                        left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
-                        bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-                      },
-                      height: CHART_HEIGHT,
-                      theme: chartTheme,
-                      toolbar: { enabled: false },
-                      legend: { enabled: false },
-                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-                    }}
-                  />
-                )}
-              </Stack>
-            </Tile>
-          </Column>
-        </>
-      )}
+      {/* ═══ Company · delivery & people ══════════════════════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile
+          navigate={navigate}
+          title="Company"
+          sub={
+            hrEnabled
+              ? "Projects, clients, team performance, and delivery quality."
+              : "Projects, clients, and delivery quality."
+          }
+        />
+      </Column>
 
       {/* ═══ 4 · Project health ════════════════════════════════════════════ */}
       {showProject && (
@@ -1013,138 +874,26 @@ export function Dashboard() {
 
       {/* ═══ 7 · Quality intelligence ══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile navigate={navigate} title="Quality intelligence" />
+        <ZoneTile
+          navigate={navigate}
+          title="Quality intelligence"
+          sub="Studio quality profile, revision sources, and drawing accuracy from the CRIF ledger."
+          to="/projects"
+        />
       </Column>
 
-      <Column lg={8} md={8} sm={4}>
-        <Tile
-          className="esti-fill"
-          style={edge(
-            riQ.data?.revisionRiskBand === "HIGH"
-              ? "alert"
-              : riQ.data?.revisionRiskBand === "MEDIUM"
-                ? "watch"
-                : "ok",
-          )}
-        >
-          <Stack gap={5}>
-            <Stack orientation="horizontal" gap={3}>
-              <div className="esti-grow">
-                <h4>Revisions</h4>
-              </div>
-              {riQ.data && (
-                <Tag type={RISK_TAG[riQ.data.revisionRiskBand]} size="sm">
-                  {riQ.data.revisionRiskBand} risk · {riQ.data.healthScore}
-                </Tag>
-              )}
-            </Stack>
-            {riQ.isLoading ? (
-              <InlineLoading description="Loading…" />
-            ) : !riQ.data || riQ.data.totalDecisions === 0 ? (
-              <p>No decisions recorded yet.</p>
-            ) : (
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Client driven</span>
-                  <strong>{riQ.data.clientDriven}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Internal error</span>
-                  <strong>{riQ.data.internalError}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Technical query</span>
-                  <strong>{riQ.data.technicalQuery}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Scope change</span>
-                  <strong>{riQ.data.scopeChange}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Scope drift</span>
-                  <strong>{riQ.data.scopeDriftPct}%</strong>
-                </Stack>
-              </Stack>
-            )}
-          </Stack>
-        </Tile>
-      </Column>
-
-      <Column lg={8} md={8} sm={4}>
-        <Tile
-          className="esti-fill"
-          style={edge(
-            !techIQ.data
-              ? "neutral"
-              : techIQ.data.drawingAccuracyPct < 75 || techIQ.data.siteQueryRate > 25
-                ? "alert"
-                : techIQ.data.drawingAccuracyPct < 90 || techIQ.data.siteQueryRate > 10
-                  ? "watch"
-                  : "ok",
-          )}
-        >
-          <Stack gap={5}>
-            <h4>Technical quality</h4>
-            {techIQ.isLoading ? (
-              <InlineLoading description="Loading…" />
-            ) : !techIQ.data ? (
-              <p>No data.</p>
-            ) : (
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Drawing accuracy</span>
-                  <strong>{techIQ.data.drawingAccuracyPct}%</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Site query rate</span>
-                  <strong>{techIQ.data.siteQueryRate}%</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Internal errors</span>
-                  <strong>{techIQ.data.internalErrors}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Technical queries</span>
-                  <strong>{techIQ.data.techQueries}</strong>
-                </Stack>
-                <Stack orientation="horizontal" gap={3}>
-                  <span className="esti-grow">Drawings issued</span>
-                  <strong>{techIQ.data.totalDrawings}</strong>
-                </Stack>
-              </Stack>
-            )}
-          </Stack>
-        </Tile>
-      </Column>
-
-      {/* ═══ 8 · Statutory & activity ══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile navigate={navigate} title="Statutory & activity" />
+        <QualityIntelligenceTiles
+          revision={riQ.data ?? null}
+          technical={techIQ.data ?? null}
+          revisionLoading={riQ.isLoading}
+          technicalLoading={techIQ.isLoading}
+          chartTheme={chartTheme}
+        />
       </Column>
-
-      {showFinancial && (
-        <FilingTile
-          navigate={navigate}
-          title="GST filing"
-          rows={[
-            { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
-            { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
-          ]}
-        />
-      )}
-      {showFinancial && (
-        <FilingTile
-          navigate={navigate}
-          title="TDS filing"
-          rows={[
-            { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
-            { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
-          ]}
-        />
-      )}
 
       {hasActivity && (
-        <Column lg={showFinancial ? 8 : 16} md={8} sm={4}>
+        <Column lg={16} md={8} sm={4}>
           <ClickableTile
             className="esti-fill"
             style={edge("neutral")}
@@ -1182,42 +931,96 @@ export function Dashboard() {
         </Column>
       )}
 
-      {/* Admin module toggles */}
-      {isAdmin && (
-        <Column lg={16} md={8} sm={4}>
-          <Tile>
-            <Stack gap={4}>
-              <h4>Dashboard sections</h4>
-              <Stack orientation="horizontal" gap={6}>
-                <Toggle
-                  id="db-financial"
-                  size="sm"
-                  labelText="Financial"
-                  labelA="Off"
-                  labelB="On"
-                  toggled={showFinancial}
-                  disabled={setModule.isPending || settingsQ.isLoading}
-                  onToggle={(c) =>
-                    setModule.mutate({ module: "financial", enabled: c })
-                  }
-                />
-                <Toggle
-                  id="db-project"
-                  size="sm"
-                  labelText="Project"
-                  labelA="Off"
-                  labelB="On"
-                  toggled={showProject}
-                  disabled={setModule.isPending || settingsQ.isLoading}
-                  onToggle={(c) =>
-                    setModule.mutate({ module: "project", enabled: c })
-                  }
-                />
+      {/* ═══ Financial · revenue & filing ═══════════════════════════════════ */}
+      <Column lg={16} md={8} sm={4}>
+        <ZoneTile
+          navigate={navigate}
+          title="Financial"
+          sub="Revenue, receivables, and GST/TDS filing."
+        />
+      </Column>
+
+      {canFees && showFinancial && (
+        <>
+          <Column lg={16} md={8} sm={4}>
+            <ZoneTile navigate={navigate} title="Financial health" to="/invoices" />
+          </Column>
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill" style={edge("neutral")}>
+              <Stack gap={5}>
+                <h4>Revenue breakdown</h4>
+                {fhQ.isLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : revenueData.length === 0 ? (
+                  <p>No financial data yet.</p>
+                ) : (
+                  <DonutChart
+                    data={revenueData}
+                    options={{
+                      data: { groupMapsTo: "group" },
+                      donut: { center: { label: "Revenue" }, alignment: "center" },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: true, position: "bottom" as const },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
               </Stack>
-            </Stack>
-          </Tile>
-        </Column>
+            </Tile>
+          </Column>
+          <Column lg={8} md={8} sm={4}>
+            <Tile className="esti-fill" style={edge(agingEmpty ? "neutral" : "watch")}>
+              <Stack gap={5}>
+                <h4>Receivables aging</h4>
+                {boardsLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : agingEmpty ? (
+                  <p>No outstanding receivables.</p>
+                ) : (
+                  <SimpleBarChart
+                    data={agingData}
+                    options={{
+                      axes: {
+                        left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
+                        bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+                      },
+                      height: CHART_HEIGHT,
+                      theme: chartTheme,
+                      toolbar: { enabled: false },
+                      legend: { enabled: false },
+                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                    }}
+                  />
+                )}
+              </Stack>
+            </Tile>
+          </Column>
+        </>
       )}
+
+      {showFinancial && (
+        <>
+          <FilingTile
+            navigate={navigate}
+            title="GST filing"
+            rows={[
+              { label: "GSTR-1 (outward)", iso: nextMonthlyDue(11) },
+              { label: "GSTR-3B (summary)", iso: nextMonthlyDue(20) },
+            ]}
+          />
+          <FilingTile
+            navigate={navigate}
+            title="TDS filing"
+            rows={[
+              { label: "TDS payment (challan)", iso: nextMonthlyDue(7) },
+              { label: "TDS return (quarterly)", iso: nextTdsReturnDue() },
+            ]}
+          />
+        </>
+      )}
+
     </Grid>
   );
 }

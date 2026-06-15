@@ -33,6 +33,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 export function Tenders() {
@@ -75,13 +76,11 @@ export function Tenders() {
 
   return (
     <Stack gap={6}>
-      <Stack orientation="horizontal" gap={5}>
-        <Stack gap={3} className="esti-grow">
-          <h1>Tenders</h1>
-          <p>Tender packages and contractor invitations for project trades.</p>
-        </Stack>
-        <Button onClick={() => setOpen(true)}>New tender</Button>
-      </Stack>
+      <PageHeader
+        title="Tenders"
+        description="Tender packages and contractor invitations for project trades."
+        actions={<Button onClick={() => setOpen(true)}>New tender</Button>}
+      />
 
       <Stack orientation="horizontal" gap={5}>
         <Select id="td-status" labelText="Status" hideLabel size="sm" value={status} onChange={(e) => setStatus(e.target.value)}>

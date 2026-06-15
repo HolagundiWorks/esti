@@ -22,6 +22,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
+import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -77,16 +78,11 @@ export function Users() {
 
   return (
     <Stack gap={6}>
-      <Stack orientation="horizontal" gap={5}>
-        <Stack gap={3} className="esti-grow">
-          <h1>Users &amp; access</h1>
-          <p>
-            Owner / staff / portal logins. Client and consultant portal logins are
-            created from their records (Clients / Consultants).
-          </p>
-        </Stack>
-        <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
-      </Stack>
+      <PageHeader
+        title="Users & access"
+        description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
+        actions={<Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
+      />
       {msg && (
         <InlineNotification
           kind="success"

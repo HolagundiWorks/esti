@@ -7,6 +7,7 @@ import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { drawings, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { writeActivity } from "../../lib/activity.js";
 import { looksLikeDxf } from "../../lib/filetype.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -108,6 +109,19 @@ export function registerDrawingUpload(app: FastifyInstance): void {
       action: rootId ? "UPLOAD_REVISION" : "UPLOAD",
       actorId: user!.id,
       after: { projectId: parsed.data.projectId, ref, fileHash, revNo, rootId },
+    });
+
+    await writeActivity(db, {
+      projectId: parsed.data.projectId,
+      objectType: "drawing",
+      objectId: row!.id,
+      eventType: rootId ? "drawing.revision_uploaded" : "drawing.uploaded",
+      actorId: user!.id,
+      actorName: user!.fullName,
+      summary: rootId
+        ? `Drawing revision ${ref} (rev ${revNo}) uploaded`
+        : `Drawing ${ref} uploaded`,
+      metadata: { ref, revNo, fileName, title: parsed.data.title },
     });
 
     return reply.code(201).send(row);

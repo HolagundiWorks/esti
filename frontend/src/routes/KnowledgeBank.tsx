@@ -17,28 +17,36 @@ import {
   RULE_VERSION_STATUS_TAG,
   type RuleVersionStatus,
 } from "@esti/contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PageHeader } from "../components/PageHeader.js";
+import { ProjectBylawCalc } from "../components/ProjectBylawCalc.js";
+import { ProjectBylaws } from "../components/ProjectBylaws.js";
+import { ProjectPermits } from "../components/ProjectPermits.js";
 import { RuleVersionManager } from "../components/RuleVersionManager.js";
+import { BbmpFarRuleTable } from "../components/knowledge/BbmpFarRuleTable.js";
 import { SiteAssessmentPanel } from "../components/SiteAssessmentPanel.js";
-import { SpecificationManager } from "../components/KnowledgeCatalogManagers.js";
+import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
+import { MasterDsr } from "../components/knowledge/MasterDsr.js";
+import { SteelArranger } from "../components/knowledge/SteelArranger.js";
 import { trpc } from "../lib/trpc.js";
-import { MasterDsr } from "./MasterDsr.js";
-import { SteelArranger } from "./SteelArranger.js";
 
 const KB_TAB_SLUGS = ["dsr", "compliance", "specification", "steelflow"] as const;
 
 export function KnowledgeBank() {
   const rvQ = trpc.ruleVersions.list.useQuery({});
+  const bbmpRulesQ = trpc.bbmpRules.activeCatalog.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
   const meQ = trpc.auth.me.useQuery();
   const canManage = meQ.data?.role === "OWNER" || meQ.data?.role === "SENIOR";
-  const canManageCatalogs =
-    !!meQ.data && !["VIEWER", "CLIENT"].includes(meQ.data.role);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectId, setProjectId] = useState(searchParams.get("project") ?? "");
+
+  useEffect(() => {
+    setProjectId(searchParams.get("project") ?? "");
+  }, [searchParams]);
 
   const tabIndex = Math.max(0, KB_TAB_SLUGS.indexOf(
     (searchParams.get("tab") ?? "dsr") as (typeof KB_TAB_SLUGS)[number],
@@ -55,13 +63,10 @@ export function KnowledgeBank() {
 
   return (
     <Stack gap={7}>
-      <Stack gap={3}>
-        <h1>Knowledge Bank</h1>
-        <p>
-          Governed office standards used by compliance, estimation,
-          specifications, procurement, and reinforcement detailing workflows.
-        </p>
-      </Stack>
+      <PageHeader
+        title="Knowledge Bank"
+        description="Governed office standards used by compliance, estimation, specifications, procurement, and reinforcement detailing workflows."
+      />
 
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections">
@@ -104,6 +109,28 @@ export function KnowledgeBank() {
                 </DataState>
               </Stack>
 
+              <Stack gap={3}>
+                <Stack gap={2}>
+                  <h3>BBMP FAR &amp; ground cover</h3>
+                  <p>
+                    Modular rule table from the active published BBMP rule set. When
+                    site area qualifies for a higher band but the governing road width
+                    is lower, the lesser road-width band applies for FAR and coverage.
+                  </p>
+                </Stack>
+                {bbmpRulesQ.data?.catalog ? (
+                  <BbmpFarRuleTable
+                    catalog={bbmpRulesQ.data.catalog}
+                    title={bbmpRulesQ.data.ruleSet.label}
+                    description={`Effective ${bbmpRulesQ.data.ruleSet.effectiveDate} · ${bbmpRulesQ.data.ruleSet.sourceCitation ?? "BBMP bye-laws"}`}
+                  />
+                ) : (
+                  <Tile>
+                    <p>No active BBMP rule set in the database — using code defaults after migration.</p>
+                  </Tile>
+                )}
+              </Stack>
+
               <Stack gap={5}>
                 <Stack gap={2}>
                   <h2>Site assessments</h2>
@@ -121,7 +148,12 @@ export function KnowledgeBank() {
                       onChange={(e) => {
                         const id = e.target.value;
                         setProjectId(id);
-                        setSearchParams(id ? { project: id } : {}, { replace: true });
+                        setSearchParams((prev) => {
+                          const next = new URLSearchParams(prev);
+                          if (id) next.set("project", id);
+                          else next.delete("project");
+                          return next;
+                        }, { replace: true });
                       }}
                     >
                       <SelectItem value="" text="Select a project" />
@@ -161,10 +193,24 @@ export function KnowledgeBank() {
                   </Column>
                 </Grid>
                 {projectId ? (
-                  <SiteAssessmentPanel
-                    projectId={projectId}
-                    publishedVersions={publishedRv}
-                  />
+                  <Stack gap={7}>
+                    <SiteAssessmentPanel
+                      projectId={projectId}
+                      publishedVersions={publishedRv}
+                    />
+                    <Stack gap={5}>
+                      <Stack gap={2}>
+                        <h2>Permits &amp; development control</h2>
+                        <p>
+                          Envelope calculator, bylaw parameters, and statutory
+                          permits for the selected project.
+                        </p>
+                      </Stack>
+                      <ProjectBylawCalc projectId={projectId} />
+                      <ProjectBylaws projectId={projectId} />
+                      <ProjectPermits projectId={projectId} />
+                    </Stack>
+                  </Stack>
                 ) : (
                   <Tile>
                     <p>Select a project above to run an assessment.</p>
@@ -175,7 +221,7 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <SpecificationManager canManage={canManageCatalogs} />
+            <SpecCatalogManager embedded />
           </TabPanel>
 
           <TabPanel>

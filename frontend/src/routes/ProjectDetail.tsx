@@ -28,6 +28,7 @@ import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ContextualComments } from "../components/ContextualComments.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
+import { ProjectBylawData } from "../components/ProjectBylawData.js";
 import { trpc } from "../lib/trpc.js";
 
 const PROJECT_STATUS_TAG: Record<
@@ -54,6 +55,7 @@ export function ProjectDetail() {
 
   const TAB_SLUGS = [
     "overview",
+    "compliance",
     "clientlog",
     "costing",
     "drawings",
@@ -171,6 +173,7 @@ export function ProjectDetail() {
       >
         <TabList aria-label="Project sections" contained>
           <Tab>Overview</Tab>
+          <Tab>Compliance</Tab>
           <Tab>Client log</Tab>
           <Tab>Costing</Tab>
           <Tab>Drawings</Tab>
@@ -182,6 +185,9 @@ export function ProjectDetail() {
         <TabPanels>
           <TabPanel>
             <ProjectOverview projectId={id} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectBylawData projectId={id} />
           </TabPanel>
           <TabPanel>
             <ProjectClientLog projectId={id} />
