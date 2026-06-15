@@ -33,16 +33,15 @@ import {
   PERFORMANCE_BAND_TAG,
   type PerformanceBand,
 } from "@esti/contracts";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 import {
   fmtPomTime,
-  POMODORO_DURATIONS,
   POMODORO_MODE_LABEL,
   usePomodoro,
-  type PomodoroMode,
 } from "../contexts/PomodoroContext.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -280,51 +279,104 @@ function FilingTile({
 
 // ─── My space (relocated from the old right panel) ──────────────────────────
 
-const POM_TAG: Record<PomodoroMode, "blue" | "green" | "teal"> = { work: "blue", short: "green", long: "teal" };
+// Dial geometry: full ring = 60 minutes, 12 o'clock = 0, clockwise.
+const DIAL = { cx: 110, cy: 110, r: 86, vb: 220 };
+const FOCUS = "var(--cds-support-success)";
+const BREAK = "var(--cds-support-error)";
 
-/** Animated circular Pomodoro ring driven by the global timer. */
+function dialPoint(frac: number): [number, number] {
+  const a = (-90 + frac * 360) * (Math.PI / 180);
+  return [DIAL.cx + DIAL.r * Math.cos(a), DIAL.cy + DIAL.r * Math.sin(a)];
+}
+function dialArc(frac: number): string {
+  const f = Math.min(frac, 0.9999);
+  const [sx, sy] = dialPoint(0);
+  const [ex, ey] = dialPoint(f);
+  return `M ${sx} ${sy} A ${DIAL.r} ${DIAL.r} 0 ${f > 0.5 ? 1 : 0} 1 ${ex} ${ey}`;
+}
+
+/**
+ * Interactive Pomodoro dial: drag the knob around the ring to set the minutes
+ * (green = focus, red = break). Top half starts/stops focus, bottom half break,
+ * centre toggles the active timer.
+ */
 function PomodoroRing() {
   const pom = usePomodoro();
-  const total = POMODORO_DURATIONS[pom.mode];
-  const pct = (total - pom.timeLeft) / total;
-  const R = 52;
-  const C = 2 * Math.PI * R;
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const isBreak = pom.mode !== "work";
+  const color = isBreak ? BREAK : FOCUS;
+
+  // Ring shows remaining while running, otherwise the set duration (capped at 60m).
+  const shownSecs = pom.running ? pom.timeLeft : pom.duration;
+  const frac = Math.min(shownSecs / 3600, 1);
+  const [hx, hy] = dialPoint(frac);
+
+  function setFromPointer(e: { clientX: number; clientY: number }) {
+    const el = svgRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const sx = ((e.clientX - rect.left) / rect.width) * DIAL.vb;
+    const sy = ((e.clientY - rect.top) / rect.height) * DIAL.vb;
+    let deg = Math.atan2(sy - DIAL.cy, sx - DIAL.cx) * (180 / Math.PI);
+    let fromTop = (deg + 90) % 360;
+    if (fromTop < 0) fromTop += 360;
+    const minutes = Math.max(1, Math.min(60, Math.round((fromTop / 360) * 60)));
+    pom.setDuration(pom.mode, minutes * 60);
+  }
 
   return (
     <Tile className="esti-fill">
       <Stack gap={4}>
         <Stack orientation="horizontal" gap={3}>
           <h3 className="esti-grow">Focus timer</h3>
-          <Tag type={POM_TAG[pom.mode]} size="sm">{POMODORO_MODE_LABEL[pom.mode]}</Tag>
+          <Tag type={isBreak ? "red" : "green"} size="sm">{POMODORO_MODE_LABEL[pom.mode]}</Tag>
         </Stack>
+
         <div className="esti-pom-ring">
-          <svg viewBox="0 0 120 120" width="160" height="160" role="img" aria-label="Pomodoro timer">
-            <circle cx="60" cy="60" r={R} fill="none" stroke="var(--cds-layer-accent)" strokeWidth="8" />
+          <svg
+            ref={svgRef} viewBox="0 0 220 220" width="200" height="200"
+            role="img" aria-label="Pomodoro dial"
+            style={{ touchAction: "none" }}
+            onPointerMove={(e) => { if (dragging && !pom.running) setFromPointer(e); }}
+            onPointerUp={(e) => { if (dragging) { (e.target as Element).releasePointerCapture?.(e.pointerId); setDragging(false); } }}
+          >
+            {/* mode-select halves: top = focus (green), bottom = break (red) */}
+            <path d={`M 24 110 A 86 86 0 0 1 196 110 Z`} fill={FOCUS}
+              opacity={isBreak ? 0.06 : 0.16} style={{ cursor: "pointer" }}
+              onClick={() => (pom.running && !isBreak ? pom.toggle() : pom.start("work"))} />
+            <path d={`M 24 110 A 86 86 0 0 0 196 110 Z`} fill={BREAK}
+              opacity={isBreak ? 0.16 : 0.06} style={{ cursor: "pointer" }}
+              onClick={() => (pom.running && isBreak ? pom.toggle() : pom.start("short"))} />
+
+            {/* track + coloured duration/remaining arc */}
+            <circle cx={DIAL.cx} cy={DIAL.cy} r={DIAL.r} fill="none" stroke="var(--cds-layer-accent)" strokeWidth="10" />
+            <path d={dialArc(frac)} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
+              className={pom.running ? "esti-pom-ring--run" : undefined} />
+
+            {/* draggable knob (the rotatable line) */}
+            <line x1={DIAL.cx} y1={DIAL.cy} x2={hx} y2={hy} stroke={color} strokeWidth="3" opacity={0.5} />
             <circle
-              cx="60" cy="60" r={R} fill="none" stroke="var(--cds-interactive)" strokeWidth="8"
-              strokeLinecap="round" strokeDasharray={C}
-              strokeDashoffset={C * (1 - pct)}
-              transform="rotate(-90 60 60)"
-              style={{ transition: "stroke-dashoffset 1s linear" }}
-              className={pom.running ? "esti-pom-ring--run" : undefined}
+              cx={hx} cy={hy} r="11" fill={color}
+              style={{ cursor: pom.running ? "not-allowed" : "grab" }}
+              onPointerDown={(e) => { if (!pom.running) { (e.target as Element).setPointerCapture?.(e.pointerId); setDragging(true); } }}
             />
-            <text x="60" y="64" textAnchor="middle" fontSize="22" fontWeight="600" fill="var(--cds-text-primary)">
+
+            {/* centre start/stop */}
+            <circle cx={DIAL.cx} cy={DIAL.cy} r="46" fill="var(--cds-layer)" stroke="var(--cds-border-subtle)" />
+            <text x={DIAL.cx} y={DIAL.cy - 4} textAnchor="middle" fontSize="26" fontWeight="600" fill="var(--cds-text-primary)">
               {fmtPomTime(pom.timeLeft)}
+            </text>
+            <text x={DIAL.cx} y={DIAL.cy + 22} textAnchor="middle" fontSize="13" fill={color}
+              style={{ cursor: "pointer" }} onClick={pom.toggle}>
+              {pom.running ? "❚❚ Pause" : "▶ Start"}
             </text>
           </svg>
         </div>
-        <Stack orientation="horizontal" gap={2}>
-          {(["work", "short", "long"] as PomodoroMode[]).map((m) => (
-            <Button key={m} kind={pom.mode === m ? "primary" : "ghost"} size="sm" onClick={() => pom.switchMode(m)}>
-              {POMODORO_MODE_LABEL[m]}
-            </Button>
-          ))}
-        </Stack>
+
         <Stack orientation="horizontal" gap={3}>
-          <Button kind="primary" size="sm" onClick={pom.toggle}>
-            {pom.running ? "Pause" : pom.timeLeft === total ? "Start" : "Resume"}
-          </Button>
           <Button kind="ghost" size="sm" onClick={pom.reset}>Reset</Button>
+          {!pom.running && <span className="esti-label esti-label--helper">Drag the knob to set minutes</span>}
           {pom.sessions > 0 && <span className="esti-label esti-label--secondary">{pom.sessions} today</span>}
         </Stack>
       </Stack>

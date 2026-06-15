@@ -3,7 +3,6 @@ import { Calculator, Close, Time } from "@carbon/icons-react";
 import { useEffect, useState } from "react";
 import {
   fmtPomTime,
-  POMODORO_DURATIONS,
   POMODORO_MODE_LABEL,
   POMODORO_MODE_TAG,
   usePomodoro,
@@ -58,7 +57,7 @@ export function FloatingDock() {
 
 function FloatingPomodoro({ onClose }: { onClose: () => void }) {
   const pom = usePomodoro();
-  const pct = ((POMODORO_DURATIONS[pom.mode] - pom.timeLeft) / POMODORO_DURATIONS[pom.mode]) * 100;
+  const pct = ((pom.duration - pom.timeLeft) / pom.duration) * 100;
 
   return (
     <Tile className="esti-float-widget">
@@ -79,7 +78,7 @@ function FloatingPomodoro({ onClose }: { onClose: () => void }) {
         <ProgressBar label={POMODORO_MODE_LABEL[pom.mode]} value={pct} max={100} hideLabel />
         <Stack orientation="horizontal" gap={3}>
           <Button kind="primary" size="sm" onClick={pom.toggle}>
-            {pom.running ? "Pause" : pom.timeLeft === POMODORO_DURATIONS[pom.mode] ? "Start" : "Resume"}
+            {pom.running ? "Pause" : pom.timeLeft === pom.duration ? "Start" : "Resume"}
           </Button>
           <Button kind="ghost" size="sm" onClick={pom.reset}>Reset</Button>
         </Stack>
