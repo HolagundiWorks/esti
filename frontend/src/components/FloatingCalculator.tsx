@@ -1,54 +1,29 @@
 import {
-  Button,
   InlineNotification,
   Modal,
   Stack,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Calculator } from "@carbon/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * Office-wide floating calculator — a single "screen": type an arithmetic
  * expression and the result is shown live (no keypad). Enter chains the result.
+ * Controlled by the floating dock (open / onClose props).
  */
-export function FloatingCalculator() {
-  const [open, setOpen] = useState(false);
+export function FloatingCalculator({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [expr, setExpr] = useState("");
   const result = safeEval(expr);
 
-  // Alt+C toggles the calculator from anywhere; Esc closes it.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.altKey && (e.key === "c" || e.key === "C")) {
-        e.preventDefault();
-        setOpen((o) => !o);
-      } else if (e.key === "Escape") {
-        setOpen(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   return (
     <>
-      <Button
-        size="sm"
-        renderIcon={Calculator}
-        iconDescription="Calculator (Alt+C)"
-        hasIconOnly
-        kind="secondary"
-        onClick={() => setOpen((o) => !o)}
-        style={{ position: "fixed", right: "1rem", bottom: "4.5rem", zIndex: 8000 }}
-      />
       <Modal
         open={open}
         modalHeading="Calculator"
         passiveModal
         size="xs"
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={onClose}
       >
         <Stack gap={5}>
           <TextInput
