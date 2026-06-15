@@ -138,6 +138,14 @@ Also delivered (2026-06-14 deployment + branding session):
 - **Demo seed expansion** — `seedDemo.ts` now creates 14 clients/projects with aligned
   task arrays; owner is `principal@demo.aorms.in` / `demo1234` to match the demo login.
 
+Also delivered (Phase 6 + solo demo): full client & consultant collaboration
+(see Phase 6 below — all four bullets) and a **solo-firm demo** — `seedDemoSolo.ts`
+(`seed:demo:solo` / `:prod`) seeds a single-architect practice with HR/teams OFF
+(`Studio Aanya`, one OWNER `solo@demo.aorms.in`, 4 projects, fees/GST invoices,
+a client portal login and one consultant engagement; no team members). The landing
+demo login is configurable via `VITE_DEMO_EMAIL`, and `VITE_SOLO_DEMO_URL` adds a
+"Solo demo" link pointing at a separate solo instance.
+
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
 
