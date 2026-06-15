@@ -211,6 +211,13 @@
       "when": 1781191500000,
       "tag": "0029_contractors",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1781191600000,
+      "tag": "0030_tenders",
+      "breakpoints": true
     }
   ]
 }

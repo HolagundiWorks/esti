@@ -51,6 +51,7 @@ import { ClientRequests } from "./routes/ClientRequests.js";
 import { Consultants } from "./routes/Consultants.js";
 import { ConsultantRequests } from "./routes/ConsultantRequests.js";
 import { Contractors } from "./routes/Contractors.js";
+import { Tenders } from "./routes/Tenders.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
@@ -220,6 +221,7 @@ function AppShell() {
           : []),
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
+        { label: "Tenders", to: "/office/tenders" },
       ],
     },
     {
@@ -330,6 +332,7 @@ function AppShell() {
                 )}
                 <Route path="/office/letters" element={<Letters />} />
                 <Route path="/office/contracts" element={<Contracts />} />
+                <Route path="/office/tenders" element={<Tenders />} />
                 <Route path="/tasks" element={<Work />} />
                 <Route
                   path="/workload"

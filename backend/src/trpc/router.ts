@@ -17,6 +17,7 @@ import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
+import { tenderRouter } from "../modules/contractor/tender.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { dashboardRouter } from "../modules/dashboard/router.js";
@@ -94,6 +95,7 @@ export const appRouter = router({
   transmittals: transmittalRouter,
   consultants: consultantRouter,
   contractors: contractorRouter,
+  tenders: tenderRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,
