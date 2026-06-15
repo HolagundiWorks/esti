@@ -63,14 +63,20 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
   const [annual, setAnnual] = useState(true);
   const demo = trpc.auth.login.useMutation({ onSuccess: () => utils.auth.me.invalidate() });
 
-  // The demo login this instance opens (override per-instance, e.g. the solo
-  // instance sets VITE_DEMO_EMAIL=solo@demo.aorms.in) and an optional link to a
-  // separate solo-firm demo instance (e.g. https://solo.aorms.in).
-  const demoEmail = import.meta.env.VITE_DEMO_EMAIL ?? "principal@demo.aorms.in";
+  // Two demo experiences. Each can either live on THIS instance (log in directly)
+  // or on a SEPARATE instance (redirect via a build-time VITE_*_DEMO_URL var, e.g.
+  // VITE_SOLO_DEMO_URL=https://solo.aorms.in on the studio site).
+  const fullDemoUrl = import.meta.env.VITE_FULL_DEMO_URL ?? "";
   const soloDemoUrl = import.meta.env.VITE_SOLO_DEMO_URL ?? "";
 
-  const runDemo = () => demo.mutate({ email: demoEmail, password: "demo1234" });
-  const openSoloDemo = () => { if (soloDemoUrl) window.location.href = soloDemoUrl; };
+  const exploreFull = () => {
+    if (fullDemoUrl) { window.location.href = fullDemoUrl; return; }
+    demo.mutate({ email: "principal@demo.aorms.in", password: "demo1234" });
+  };
+  const exploreSolo = () => {
+    if (soloDemoUrl) { window.location.href = soloDemoUrl; return; }
+    demo.mutate({ email: "solo@demo.aorms.in", password: "demo1234" });
+  };
   const contact = () => { window.location.href = "mailto:hi@aorms.in?subject=ESTI%20AORMS%20enquiry"; };
   const wa = () => window.open("https://wa.me/919880000000?text=" + encodeURIComponent("Hi, I'd like to know more about ESTI AORMS."), "_blank", "noopener");
 
@@ -98,11 +104,11 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
           <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
           </button>
-          {soloDemoUrl && (
-            <button className="esti-lp-btn esti-lp-btn--ghost" onClick={openSoloDemo}>Solo demo</button>
-          )}
-          <button className="esti-lp-btn esti-lp-btn--gold" onClick={runDemo} disabled={demo.isPending}>
-            {demo.isPending ? "Opening…" : soloDemoUrl ? "Studio demo" : "Live demo"}
+          <button className="esti-lp-btn esti-lp-btn--ghost" onClick={exploreSolo} disabled={demo.isPending}>
+            Solo demo
+          </button>
+          <button className="esti-lp-btn esti-lp-btn--gold" onClick={exploreFull} disabled={demo.isPending}>
+            {demo.isPending ? "Opening…" : "Full demo"}
           </button>
         </div>
       </header>
@@ -120,14 +126,14 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
                 bylaw compliance, BBS and team performance, in one place.
               </p>
               <div className="esti-lp-hero-cta">
-                <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={runDemo} disabled={demo.isPending}>
-                  {demo.isPending ? "Opening demo…" : "Explore the studio demo"} <ArrowRight size={18} />
+                <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={exploreFull} disabled={demo.isPending}>
+                  {demo.isPending ? "Opening demo…" : "Explore the full demo"} <ArrowRight size={18} />
                 </button>
-                {soloDemoUrl
-                  ? <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={openSoloDemo}>Solo architect? Try the solo demo</button>
-                  : <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>}
+                <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={exploreSolo} disabled={demo.isPending}>
+                  Explore the solo demo <ArrowRight size={18} />
+                </button>
               </div>
-              <p className="esti-lp-hero-note">No credit card · a full studio demo (team + HR) and a solo-practice demo · your data stays on your own server.</p>
+              <p className="esti-lp-hero-note">Full demo = a studio with team &amp; HR · solo demo = a single-architect practice · no credit card, your data stays on your own server.</p>
               {demo.error && <p className="esti-lp-hero-note">Could not open the demo: {demo.error.message}</p>}
             </div>
             <img src={aormsOnDark} className="esti-lp-mark" alt="AORMS" />
@@ -264,7 +270,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
                     <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
                   ))}
                 </ul>
-                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={runDemo} disabled={demo.isPending}>Explore the demo</button>
+                <button className="esti-lp-btn esti-lp-btn--ghost" onClick={exploreSolo} disabled={demo.isPending}>Explore the solo demo</button>
               </div>
 
               <div className="esti-lp-card esti-lp-card--feature">
@@ -275,7 +281,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
                     <li key={b}><Checkmark size={16} className="esti-lp-ic" />{b}</li>
                   ))}
                 </ul>
-                <button className="esti-lp-btn esti-lp-btn--gold" onClick={contact}>Talk to us</button>
+                <button className="esti-lp-btn esti-lp-btn--gold" onClick={exploreFull} disabled={demo.isPending}>Explore the full demo</button>
               </div>
 
               <div className="esti-lp-card">
@@ -318,12 +324,14 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
           <div className="esti-lp-wrap esti-lp-section">
             <span className="esti-lp-eyebrow">Get started</span>
             <h2>Get back to the drawing board</h2>
-            <p>Open a fully populated demo studio — 14 live projects, fees, GST invoices, RIE assessments and ASPRF scores — and see how little admin ESTI leaves you.</p>
+            <p>Open a fully populated demo — fees, GST invoices, RIE assessments and ASPRF scores — and see how little admin ESTI leaves you. Pick the studio (team &amp; HR) or the solo practice.</p>
             <div className="esti-lp-hero-cta">
-              <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={runDemo} disabled={demo.isPending}>
-                {demo.isPending ? "Opening demo…" : "Explore the live demo"} <ArrowRight size={18} />
+              <button className="esti-lp-btn esti-lp-btn--gold esti-lp-btn--lg" onClick={exploreFull} disabled={demo.isPending}>
+                {demo.isPending ? "Opening demo…" : "Explore the full demo"} <ArrowRight size={18} />
               </button>
-              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={contact}>Talk to us</button>
+              <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={exploreSolo} disabled={demo.isPending}>
+                Explore the solo demo <ArrowRight size={18} />
+              </button>
               <button className="esti-lp-btn esti-lp-btn--ghost esti-lp-btn--lg" onClick={wa}>WhatsApp</button>
             </div>
           </div>
