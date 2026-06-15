@@ -7,6 +7,11 @@ import {
 import { computeRblSetback, lookupFarRule, lookupFarRuleResult, computeParkingEcs } from "./bbmp/rules.js";
 import { computeBylawEnvelope } from "./bylawcalc.js";
 
+const bbmpSecondaryDefaults = {
+  exemptAreaSqm: 0,
+  treesPlanted: 0,
+} as const;
+
 describe("BBMP compliance engine", () => {
   it("applies Zone A FAR from doc example (240 sqm, 6 m road, residential)", () => {
     const row = lookupFarRule("A", 200, 5);
@@ -29,6 +34,7 @@ describe("BBMP compliance engine", () => {
       basementHeightM: 0,
       basementMechanicalParking: false,
       basementProjectionAboveGroundM: 0,
+      ...bbmpSecondaryDefaults,
     });
     expect(result.farAllowed).toBe(0.75);
     expect(result.permissibleBuiltup).toBe(150);
@@ -58,6 +64,7 @@ describe("BBMP compliance engine", () => {
       basementHeightM: 0,
       basementMechanicalParking: false,
       basementProjectionAboveGroundM: 0,
+      ...bbmpSecondaryDefaults,
     });
     expect(result.farAllowed).toBe(0.75);
     expect(result.coverageAllowed).toBe(50);
@@ -90,6 +97,7 @@ describe("BBMP compliance engine", () => {
       basementHeightM: 0,
       basementMechanicalParking: false,
       basementProjectionAboveGroundM: 0,
+      ...bbmpSecondaryDefaults,
     });
     expect(result.setbacks.front.value).toBe(3);
     expect(result.setbacks.rear.value).toBe(1.5);
@@ -116,6 +124,7 @@ describe("BBMP compliance engine", () => {
       basementHeightM: 0,
       basementMechanicalParking: false,
       basementProjectionAboveGroundM: 0,
+      ...bbmpSecondaryDefaults,
     });
     expect(result.setbacks.front.value).toBe(6);
     expect(result.setbacks.left.value).toBe(6);
@@ -150,13 +159,14 @@ describe("BBMP compliance engine", () => {
       basementHeightM: 0,
       basementMechanicalParking: false,
       basementProjectionAboveGroundM: 0,
+      ...bbmpSecondaryDefaults,
     });
     expect(result.setbacks.front.governedBy).toBe("RBL");
     expect(result.setbacks.front.value).toBe(5);
   });
 
   it("residential parking: 1 ECS per unit when unit ≤ 150 sqm", () => {
-    const p = computeParkingEcs("RESIDENTIAL", 500, 4, 120);
+    const p = computeParkingEcs("RESIDENTIAL", 500, 4, 120, undefined);
     expect(p.requiredECS).toBe(4);
     expect(p.visitorECS).toBe(1);
     expect(p.total).toBe(5);
@@ -179,6 +189,9 @@ describe("BBMP compliance engine", () => {
     floorCount: 2,
     dwellingUnits: 1,
     unitAreaSqm: 120,
+    hasBasement: false,
+    basementHeightM: 0,
+    basementMechanicalParking: false,
     front: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL" as const, distanceCentreToBoundaryM: 0 },
     rear: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL" as const, distanceCentreToBoundaryM: 0 },
     left: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL" as const, distanceCentreToBoundaryM: 0 },
@@ -196,6 +209,11 @@ describe("BBMP compliance engine", () => {
     const audit = computePostConstructionAudit(samplePreInput, {
       totalFloorAreaSqm: 200,
       exemptAreaSqm: 0,
+      hasBasement: false,
+      basementHeightM: 0,
+      basementMechanicalParking: false,
+      basementProjectionAboveGroundM: 0,
+      treesPlanted: 0,
       actualFrontSetbackM: 3,
       actualRearSetbackM: 1.5,
       actualLeftSetbackM: 1.5,
@@ -216,8 +234,12 @@ describe("BBMP compliance engine", () => {
       plotWidthM: 14,
       plotDepthM: 14,
       proposedHeightM: 9,
+      floorCount: 2,
       dwellingUnits: 2,
       unitAreaSqm: 100,
+      hasBasement: false,
+      basementHeightM: 0,
+      basementMechanicalParking: false,
       front: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL", distanceCentreToBoundaryM: 0 },
       rear: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL", distanceCentreToBoundaryM: 0 },
       left: { abutsRoad: false, roadWidthM: 0, roadClass: "LOCAL", distanceCentreToBoundaryM: 0 },

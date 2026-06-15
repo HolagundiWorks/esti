@@ -16,6 +16,8 @@ export * from "./consultant.js";
 export * from "./team.js";
 export * from "./hr.js";
 export * from "./attendance.js";
+export * from "./timesheet.js";
+export * from "./daily-update.js";
 export * from "./drawing.js";
 export * from "./reconcile.js";
 export * from "./firm.js";

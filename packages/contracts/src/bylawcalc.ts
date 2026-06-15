@@ -2,7 +2,11 @@ import { z } from "zod";
 import { computeBbmpCompliance } from "./bbmp/engine.js";
 import type { BbmpRuleCatalog } from "./bbmp/catalog.js";
 import { DEFAULT_BBMP_RULE_CATALOG } from "./bbmp/catalog.js";
-import type { BbmpCalculationTrace, BbmpComplianceFlags } from "./bbmp/types.js";
+import type {
+  BbmpCalculationTrace,
+  BbmpComplianceFlags,
+  SetbackSideResult,
+} from "./bbmp/types.js";
 import {
   BBMP_PROJECT_TYPE_LABEL,
   BbmpProjectType,
@@ -50,11 +54,6 @@ export const BylawCalcInput = z.object({
   basementMechanicalParking: z.boolean().default(false),
 });
 export type BylawCalcInput = z.infer<typeof BylawCalcInput>;
-
-export interface SetbackSideResult {
-  value: number;
-  governedBy: "Bylaw" | "RBL";
-}
 
 export interface BylawEnvelope {
   farAllowed: number;
