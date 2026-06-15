@@ -143,7 +143,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
     <div className="esti-lp">
       {/* ── Top bar (login / demo links already here) ─────────────────────── */}
       <header className="esti-lp-bar">
-        <a href="#top" className="esti-lp-brand"><img src={aormsAuto} alt="AORMS" style={{ height: 30 }} /></a>
+        <a href="#top" className="esti-lp-brand"><img src={aormsOnDark} alt="AORMS" style={{ height: 30 }} /></a>
         <div className="esti-lp-bar-actions">
           <button className="esti-lp-iconbtn" aria-label="Toggle theme" onClick={onToggleTheme}>
             {theme === "white" ? <Asleep size={20} /> : <Light size={20} />}
