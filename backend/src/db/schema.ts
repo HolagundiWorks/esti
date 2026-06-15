@@ -582,6 +582,33 @@ export const consultants = pgTable("esti_consultant", {
   createdAt: createdAt(),
 });
 
+/**
+ * Contractor register (Phase 7) — construction contractors invited to tenders
+ * and tracked on site. Trade category, statutory ids, and a simple performance
+ * record (quality / timeliness / safety, 1–5).
+ */
+export const contractors = pgTable("esti_contractor", {
+  id: id(),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  companyName: text("company_name"),
+  contactPerson: text("contact_person"),
+  gstin: text("gstin"),
+  pan: text("pan"),
+  email: text("email"),
+  phone: text("phone"),
+  city: text("city"),
+  state: text("state"),
+  active: boolean("active").notNull().default(true),
+  qualityRating: integer("quality_rating"),
+  timelinessRating: integer("timeliness_rating"),
+  safetyRating: integer("safety_rating"),
+  notes: text("notes"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Per-project consultant engagement — agreed fee, payments, balance, status. */
 export const engagements = pgTable("esti_engagement", {
   id: id(),
