@@ -76,8 +76,9 @@ async function main(): Promise<void> {
     { name: "Rao Hospitality LLP", kind: "COMPANY", city: "Bengaluru", state: "Karnataka", email: "build@raohospitality.in", phone: "+91 99000 10004" },
   ]).returning();
 
-  // One client portal login (attached to the first client).
-  await db.insert(users).values({ email: "client@demo.aorms.in", fullName: "Lakshmi Iyer (Client)", role: "CLIENT", passwordHash: pwHash, isDemo: true, clientId: clientRows[0]!.id });
+  // One client portal login (attached to the first client). Skip if a demo client
+  // login already exists (e.g. when previewing alongside the studio seed in dev).
+  await db.insert(users).values({ email: "client@demo.aorms.in", fullName: "Lakshmi Iyer (Client)", role: "CLIENT", passwordHash: pwHash, isDemo: true, clientId: clientRows[0]!.id }).onConflictDoNothing();
 
   // ── One external consultant (consultants are not "team") ───────────────────
   const [structural] = await db.insert(consultants).values(
