@@ -30,15 +30,23 @@ export type PomodoroState = {
   timeLeft: number;
   running: boolean;
   sessions: number;
+  /** Configured length (seconds) of the current mode — adjustable via the dial. */
+  duration: number;
+  durations: Record<PomodoroMode, number>;
   switchMode: (m: PomodoroMode) => void;
   toggle: () => void;
   reset: () => void;
+  /** Set a mode's length (seconds); applies live when idle on that mode. */
+  setDuration: (m: PomodoroMode, seconds: number) => void;
+  /** Switch to a mode (resetting its clock if changing) and start running. */
+  start: (m?: PomodoroMode) => void;
 };
 
 const PomodoroCtx = createContext<PomodoroState | null>(null);
 
 export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<PomodoroMode>("work");
+  const [durations, setDurations] = useState<Record<PomodoroMode, number>>({ ...POMODORO_DURATIONS });
   const [timeLeft, setTimeLeft] = useState(POMODORO_DURATIONS.work);
   const [running, setRunning] = useState(false);
   const [sessions, setSessions] = useState(0);
@@ -66,7 +74,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   function switchMode(m: PomodoroMode) {
     if (tickRef.current) clearInterval(tickRef.current);
     setMode(m);
-    setTimeLeft(POMODORO_DURATIONS[m]);
+    setTimeLeft(durations[m]);
     setRunning(false);
   }
 
@@ -76,12 +84,29 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
 
   function reset() {
     if (tickRef.current) clearInterval(tickRef.current);
-    setTimeLeft(POMODORO_DURATIONS[mode]);
+    setTimeLeft(durations[mode]);
     setRunning(false);
   }
 
+  function setDuration(m: PomodoroMode, seconds: number) {
+    const secs = Math.max(60, Math.min(60 * 60, Math.round(seconds)));
+    setDurations((d) => ({ ...d, [m]: secs }));
+    // Live-apply only when idle on that mode (don't disrupt a running countdown).
+    if (m === mode && !running) setTimeLeft(secs);
+  }
+
+  function start(m?: PomodoroMode) {
+    if (m && m !== mode) {
+      setMode(m);
+      setTimeLeft(durations[m]);
+    }
+    setRunning(true);
+  }
+
   return (
-    <PomodoroCtx.Provider value={{ mode, timeLeft, running, sessions, switchMode, toggle, reset }}>
+    <PomodoroCtx.Provider
+      value={{ mode, timeLeft, running, sessions, duration: durations[mode], durations, switchMode, toggle, reset, setDuration, start }}
+    >
       {children}
     </PomodoroCtx.Provider>
   );
