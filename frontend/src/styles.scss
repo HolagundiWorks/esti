@@ -296,9 +296,12 @@ body,
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; gap: 1.25rem;
   padding: 0.85rem 1.5rem;
-  background: var(--cds-background);
-  border-block-end: 1px solid var(--cds-border-subtle);
+  background: #000000;
+  color: var(--lp-on-ink);
+  border-block-end: 1px solid rgba(255, 255, 255, 0.08);
 }
+.esti-lp-bar .esti-lp-iconbtn { color: var(--lp-on-ink-dim); }
+.esti-lp-bar .esti-lp-iconbtn:hover { color: var(--lp-on-ink); }
 .esti-lp-brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; letter-spacing: 0.02em; }
 .esti-lp-brand b { color: var(--lp-accent); }
 .esti-lp-nav { display: flex; gap: 1.25rem; margin-inline-start: 1rem; }
@@ -320,8 +323,48 @@ body,
 .esti-lp-btn--lg { padding: 0.85rem 1.5rem; font-size: 1rem; }
 .esti-lp-iconbtn { background: none; border: none; cursor: pointer; color: var(--cds-text-secondary); display: inline-flex; padding: 0.4rem; }
 
-// Hero (always dark, brand)
-.esti-lp-hero { background: var(--lp-ink); color: var(--lp-on-ink); }
+// Hero (animated indigo gradient, ≥70% viewport, soothing drift)
+.esti-lp-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: 70vh; display: flex; align-items: center;
+  padding-block: 4rem;
+  color: var(--lp-on-ink);
+  background: linear-gradient(125deg, #0c0a18 0%, #161335 30%, #241a5e 55%, #161335 80%, #0c0a18 100%);
+  background-size: 220% 220%;
+  animation: esti-lp-hero-pan 22s ease-in-out infinite;
+}
+.esti-lp-hero > .esti-lp-wrap { position: relative; z-index: 1; width: 100%; }
+.esti-lp-hero::before, .esti-lp-hero::after {
+  content: ""; position: absolute; z-index: 0; border-radius: 50%;
+  filter: blur(90px); pointer-events: none;
+}
+.esti-lp-hero::before {
+  width: 46vw; height: 46vw; top: -12%; inset-inline-start: -10%;
+  background: radial-gradient(circle, rgba(108, 99, 214, 0.55), transparent 70%);
+  animation: esti-lp-float-a 18s ease-in-out infinite;
+}
+.esti-lp-hero::after {
+  width: 40vw; height: 40vw; bottom: -18%; inset-inline-end: -12%;
+  background: radial-gradient(circle, rgba(62, 54, 124, 0.6), transparent 70%);
+  animation: esti-lp-float-b 26s ease-in-out infinite;
+}
+@keyframes esti-lp-hero-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes esti-lp-float-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(7vw, 5vh) scale(1.1); }
+}
+@keyframes esti-lp-float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-6vw, -4vh) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .esti-lp-hero,
+  .esti-lp-hero::before,
+  .esti-lp-hero::after { animation: none; }
+}
 .esti-lp-hero-grid {
   display: grid; grid-template-columns: 1.4fr 1fr; gap: 3rem; align-items: center;
   padding-block: 5.5rem;
