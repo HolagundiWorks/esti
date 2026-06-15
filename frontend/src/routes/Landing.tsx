@@ -45,6 +45,21 @@ const INDIA_POINTS = [
   "Immutable, branded compliance and invoice PDFs",
 ];
 
+const FINANCE_POINTS = [
+  "Phase-linked billing — nothing billable slips through the cracks",
+  "Every invoice tracked to paid, outstanding or overdue",
+  "GST/TDS handled — correct tax split and gap-free numbering",
+  "Bank reconciliation — see what you've actually collected",
+];
+
+// Money snapshot tiles for the Freelancer finance section (illustrative).
+const MONEY_SNAPSHOT = [
+  { l: "Ready to bill", v: "₹4.2L" },
+  { l: "Outstanding", v: "₹2.8L" },
+  { l: "Overdue", v: "₹0.9L" },
+  { l: "Collected · FY", v: "₹38L" },
+];
+
 const FAQS: { q: string; a: string }[] = [
   { q: "What is an AORMS, and how is it different from generic project software?", a: "AORMS — Architectural Office Resource Management System — is practice-management software built for architecture firms. ESTI understands COA service stages, the Scale of Charges, Indian GST/TDS, bylaw compliance (FAR, setbacks, coverage), drawing revisions and bar bending schedules out of the box." },
   { q: "Does it work for a solo architect as well as a 50-person firm?", a: "Yes. A solo practitioner gets every module under one login; growing studios switch on seniority roles, HR, team assignments, timesheets and ASPRF performance scoring. The same platform scales from one architect to fifty." },
@@ -65,12 +80,12 @@ const PERSONA: Record<Audience, {
     icon: User,
     tag: "Freelancer",
     sub: "For a solo practice",
-    pitch: "One architect, every module — fees, GST, drawings, compliance and BBS, with no team admin to manage.",
+    pitch: "Heads-down in design and on site all day? ESTI quietly keeps the business side straight — what to bill, what's pending, and what's overdue.",
     eyebrow: "For the solo architect",
-    heading: "Everything you bill for — none of the team overhead",
-    lead: "Run your whole solo practice from a single login. COA fee proposals, GST/TDS invoices, drawings & DXF takeoff, bylaw checks and bar bending schedules — without HR, rosters or seniority roles getting in the way.",
+    heading: "Run the business side without thinking about it",
+    lead: "Most architects live in design and site work — and lose track of what was meant to be billed, what's still to collect, and what's gone overdue. ESTI keeps that financial picture current in the background, so your practice stays healthy while you stay on the drawing board.",
     caps: [0, 1, 2, 3, 5],
-    plan: { name: "Solo", points: ["1 architect, every module", "COA fees, GST/TDS & filing", "Drawings, DXF & compliance", "Client & consultant portals"] },
+    plan: { name: "Solo", points: ["Every billable phase, tracked", "GST/TDS invoices & filing, done right", "Outstanding & overdue, always visible", "Drawings, compliance & BBS in one place"] },
     demoLabel: "Experience the Freelancer demo",
   },
   studio: {
@@ -208,52 +223,77 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
               </div>
             </section>
 
-            {/* India-first compliance (shared) */}
+            {/* Audience band: Freelancer = financial clarity · Studio = compliance + team */}
             <section className="esti-lp-band">
               <div className="esti-lp-wrap esti-lp-section">
                 <div className="esti-lp-grid--2" style={{ display: "grid", gap: "3rem", alignItems: "center" }}>
-                  <div>
-                    <span className="esti-lp-eyebrow">India-first compliance</span>
-                    <h2>Speaks COA, GST and bylaws natively</h2>
-                    <p>
-                      Foreign tools can't price a COA proposal, split an IGST invoice,
-                      or warn you that your FAR is exceeded. ESTI does all three —
-                      because it was built for the Indian context, not adapted to it.
-                    </p>
-                    <ul className="esti-lp-checks">
-                      {INDIA_POINTS.map((pt) => (
-                        <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="esti-lp-mock" style={{ marginTop: 0 }}>
-                    <div className="esti-lp-mock-top"><span /><span /><span /></div>
-                    <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
-                      <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>
-                        {audience === "studio" ? "Team performance — ASPRF" : "RIE feasibility — sample"}
+                  {audience === "freelancer" ? (
+                    <>
+                      <div>
+                        <span className="esti-lp-eyebrow">Financial clarity</span>
+                        <h2>Always know what to bill, what's due, and what's in</h2>
+                        <p>
+                          When you're deep in drawings and site visits, the money side
+                          is the first thing to slip. ESTI keeps it current for you:
+                          every completed phase becomes a billable line, every invoice
+                          is tracked to paid or overdue, and bank reconciliation shows
+                          what's actually been collected — so the practice stays healthy
+                          without you chasing spreadsheets.
+                        </p>
+                        <ul className="esti-lp-checks">
+                          {FINANCE_POINTS.map((pt) => (
+                            <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
+                          ))}
+                        </ul>
                       </div>
-                      {(audience === "studio"
-                        ? [
+                      <div className="esti-lp-mock" style={{ marginTop: 0 }}>
+                        <div className="esti-lp-mock-top"><span /><span /><span /></div>
+                        <div style={{ padding: "1.25rem" }}>
+                          <div style={{ fontWeight: 500, color: "var(--cds-text-primary)", marginBottom: "1rem" }}>Money at a glance</div>
+                          <div className="esti-lp-mock-kpis">
+                            {MONEY_SNAPSHOT.map((k) => (
+                              <div key={k.l} className="esti-lp-mock-kpi"><small>{k.l}</small><b>{k.v}</b></div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="esti-lp-eyebrow">India-first compliance</span>
+                        <h2>Speaks COA, GST and bylaws natively</h2>
+                        <p>
+                          Foreign tools can't price a COA proposal, split an IGST invoice,
+                          or warn you that your FAR is exceeded. ESTI does all three —
+                          because it was built for the Indian context, not adapted to it.
+                        </p>
+                        <ul className="esti-lp-checks">
+                          {INDIA_POINTS.map((pt) => (
+                            <li key={pt}><Checkmark size={18} className="esti-lp-ic" /><span>{pt}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="esti-lp-mock" style={{ marginTop: 0 }}>
+                        <div className="esti-lp-mock-top"><span /><span /><span /></div>
+                        <div style={{ padding: "1.25rem", display: "grid", gap: "0.9rem" }}>
+                          <div style={{ fontWeight: 500, color: "var(--cds-text-primary)" }}>Team performance — ASPRF</div>
+                          {[
                             { l: "Ar. Vihaan Sharma — Gold", v: 92 },
                             { l: "Ar. Priya Sharma — Silver", v: 78 },
                             { l: "Ar. Ravi Kumar — Bronze", v: 65 },
-                          ]
-                        : [
-                            { l: "FAR utilised", v: 96 },
-                            { l: "Ground coverage", v: 58 },
-                            { l: "Setback compliance", v: 100 },
-                            { l: "Sustainability score", v: 74 },
-                          ]
-                      ).map((m) => (
-                        <div key={m.l}>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
-                            <span>{m.l}</span><span>{m.v}{audience === "studio" ? "" : "%"}</span>
-                          </div>
-                          <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
+                          ].map((m) => (
+                            <div key={m.l}>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem", color: "var(--cds-text-secondary)" }}>
+                                <span>{m.l}</span><span>{m.v}</span>
+                              </div>
+                              <div className="esti-lp-mock-bar"><i style={{ width: `${m.v}%` }} /></div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </section>
