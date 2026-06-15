@@ -33,3 +33,4 @@ export * from "./timesheet.js";
 export * from "./daily-update.js";
 export * from "./portal.js";
 export * from "./consultant-portal.js";
+export * from "./contractor.js";

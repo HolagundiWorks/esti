@@ -654,7 +654,13 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
 
 ## Phase 7 - Contractor And Tender Coordination [P2]
 
-- [ ] Contractor register, contacts, GST/PAN, categories, and performance.
+- [~] Contractor register, contacts, GST/PAN, categories, and performance.
+  **Delivered:** `esti_contractor` (migration 0029) + `contracts/contractor.ts`
+  (14 trade categories, GSTIN/PAN regex validation, `contractorScore` helper).
+  `contractors` router (list with category filter, create/update/setRating/remove,
+  audited via `writeAudit`). `Contractors.tsx` at `/contractors` (People nav) — table
+  with category filter, create/edit modal, a quality/timeliness/safety rating modal
+  and an averaged performance tag. **Pending:** tendering, bids, contractor portal.
 - [ ] Tender packages, invitations, controlled documents, addenda, and deadlines.
 - [ ] Sealed bid submissions, technical/commercial scoring, comparison, award.
 - [ ] Contractor portal isolated by invitation/project.

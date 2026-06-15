@@ -50,6 +50,7 @@ import { Company } from "./routes/Company.js";
 import { ClientRequests } from "./routes/ClientRequests.js";
 import { Consultants } from "./routes/Consultants.js";
 import { ConsultantRequests } from "./routes/ConsultantRequests.js";
+import { Contractors } from "./routes/Contractors.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
@@ -184,6 +185,7 @@ function AppShell() {
       items: [
         { label: "Clients", to: "/clients" },
         { label: "Consultants", to: "/consultants" },
+        { label: "Contractors", to: "/contractors" },
         { label: "Client requests", to: "/client-requests" },
         { label: "Consultant requests", to: "/consultant-requests" },
         ...(hrEnabled
@@ -335,6 +337,7 @@ function AppShell() {
                 />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/consultants" element={<Consultants />} />
+                <Route path="/contractors" element={<Contractors />} />
                 <Route path="/client-requests" element={<ClientRequests />} />
                 <Route path="/consultant-requests" element={<ConsultantRequests />} />
                 <Route path="/reconcile" element={<Reconcile />} />
