@@ -19,6 +19,7 @@ import {
 import {
   CONTRACTOR_CATEGORIES,
   ContractorCategory,
+  formatINR,
   TENDER_INVITATION_STATUS_LABEL,
   TENDER_INVITATION_STATUS_TAG,
   TENDER_STATUS_LABEL,
@@ -59,10 +60,18 @@ export function Tenders() {
   const contractorsQ = trpc.contractors.list.useQuery({ activeOnly: true }, { enabled: !!detailId });
   const [inviteId, setInviteId] = useState("");
 
-  const refreshDetail = () => { utils.tenders.byId.invalidate(); invalidate(); };
+  const bidsQ = trpc.tenders.bids.useQuery({ tenderId: detailId ?? "" }, { enabled: !!detailId });
+  const refreshDetail = () => { utils.tenders.byId.invalidate(); utils.tenders.bids.invalidate(); invalidate(); };
   const update = trpc.tenders.update.useMutation({ onSuccess: refreshDetail });
   const invite = trpc.tenders.invite.useMutation({ onSuccess: () => { refreshDetail(); setInviteId(""); } });
   const removeInvite = trpc.tenders.removeInvitation.useMutation({ onSuccess: refreshDetail });
+
+  // bid entry
+  const [bidFor, setBidFor] = useState<{ invitationId: string; contractorName: string; rupees: string; weeks: string; technical: string; notes: string } | null>(null);
+  const recordBid = trpc.tenders.recordBid.useMutation({ onSuccess: () => { refreshDetail(); setBidFor(null); } });
+  const removeBid = trpc.tenders.removeBid.useMutation({ onSuccess: refreshDetail });
+  const bids = bidsQ.data ?? [];
+  const bestAmount = bids.length ? Math.min(...bids.map((b) => b.amountPaise)) : 0;
 
   return (
     <Stack gap={6}>
@@ -198,6 +207,10 @@ export function Tenders() {
                         </TableCell>
                         <TableCell><Tag type={TENDER_INVITATION_STATUS_TAG[iv.status as TenderInvitationStatus] ?? "gray"} size="sm">{TENDER_INVITATION_STATUS_LABEL[iv.status as TenderInvitationStatus] ?? iv.status}</Tag></TableCell>
                         <TableCell>
+                          <Button kind="ghost" size="sm"
+                            onClick={() => setBidFor({ invitationId: iv.id, contractorName: iv.contractorName, rupees: "", weeks: "", technical: "", notes: "" })}>
+                            {iv.status === "SUBMITTED" ? "Edit bid" : "Record bid"}
+                          </Button>
                           <Button kind="ghost" size="sm" disabled={update.isPending}
                             onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: iv.contractorId })}>
                             Award
@@ -220,7 +233,78 @@ export function Tenders() {
               {invite.error && <InlineNotification kind="error" title="Could not invite" subtitle={invite.error.message} hideCloseButton lowContrast />}
             </Stack>
 
+            {bids.length > 0 && (
+              <Stack gap={3}>
+                <h4>Bid comparison</h4>
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Contractor</TableHeader>
+                      <TableHeader>Bid</TableHeader>
+                      <TableHeader>Weeks</TableHeader>
+                      <TableHeader>Technical</TableHeader>
+                      <TableHeader></TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {bids.map((b) => (
+                      <TableRow key={b.id}>
+                        <TableCell>
+                          {b.contractorName}
+                          {b.amountPaise === bestAmount && <Tag type="green" size="sm">Lowest</Tag>}
+                          {b.notes && <div className="esti-label esti-label--helper">{b.notes}</div>}
+                        </TableCell>
+                        <TableCell>{formatINR(b.amountPaise, { paise: false })}</TableCell>
+                        <TableCell>{b.completionWeeks ?? "—"}</TableCell>
+                        <TableCell>{b.technicalScore != null ? `${b.technicalScore}/100` : "—"}</TableCell>
+                        <TableCell>
+                          <Button kind="ghost" size="sm" disabled={update.isPending}
+                            onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: b.contractorId })}>
+                            Award
+                          </Button>
+                          <Button kind="danger--ghost" size="sm" onClick={() => removeBid.mutate({ invitationId: b.invitationId })}>Clear</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Stack>
+            )}
+
             <Button kind="danger--tertiary" size="sm" onClick={() => setConfirmDelete(true)}>Delete tender</Button>
+          </Stack>
+        )}
+      </Modal>
+
+      {/* record bid */}
+      <Modal
+        open={bidFor !== null}
+        modalHeading={bidFor ? `Record bid — ${bidFor.contractorName}` : "Record bid"}
+        primaryButtonText={recordBid.isPending ? "Saving…" : "Save bid"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!bidFor?.rupees || recordBid.isPending}
+        onRequestClose={() => setBidFor(null)}
+        onRequestSubmit={() => bidFor && recordBid.mutate({
+          invitationId: bidFor.invitationId,
+          amountPaise: Math.round(Number(bidFor.rupees) * 100),
+          completionWeeks: bidFor.weeks ? Number(bidFor.weeks) : undefined,
+          technicalScore: bidFor.technical ? Number(bidFor.technical) : undefined,
+          notes: bidFor.notes || undefined,
+        })}
+      >
+        {bidFor && (
+          <Stack gap={5}>
+            <TextInput id="bid-amt" labelText="Bid amount (₹)" type="number" value={bidFor.rupees}
+              onChange={(e) => setBidFor({ ...bidFor, rupees: e.target.value })} />
+            <Stack orientation="horizontal" gap={5}>
+              <TextInput id="bid-weeks" labelText="Completion (weeks)" type="number" value={bidFor.weeks}
+                onChange={(e) => setBidFor({ ...bidFor, weeks: e.target.value })} />
+              <TextInput id="bid-tech" labelText="Technical score (0–100)" type="number" value={bidFor.technical}
+                onChange={(e) => setBidFor({ ...bidFor, technical: e.target.value })} />
+            </Stack>
+            <TextArea id="bid-notes" labelText="Notes (optional)" rows={2} value={bidFor.notes}
+              onChange={(e) => setBidFor({ ...bidFor, notes: e.target.value })} />
+            {recordBid.error && <InlineNotification kind="error" title="Could not save bid" subtitle={recordBid.error.message} hideCloseButton lowContrast />}
           </Stack>
         )}
       </Modal>

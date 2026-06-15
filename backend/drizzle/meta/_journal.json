@@ -218,6 +218,13 @@
       "when": 1781191600000,
       "tag": "0030_tenders",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1781191700000,
+      "tag": "0031_tender_bids",
+      "breakpoints": true
     }
   ]
 }

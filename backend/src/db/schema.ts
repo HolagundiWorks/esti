@@ -641,6 +641,21 @@ export const tenderInvitations = pgTable("esti_tender_invitation", {
   invitedAt: timestamp("invited_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** A contractor's sealed bid against a tender invitation (one per invitation). */
+export const tenderBids = pgTable("esti_tender_bid", {
+  id: id(),
+  invitationId: uuid("invitation_id")
+    .notNull()
+    .references(() => tenderInvitations.id),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  completionWeeks: integer("completion_weeks"),
+  technicalScore: integer("technical_score"), // 0–100, optional
+  notes: text("notes"),
+  submittedById: uuid("submitted_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Per-project consultant engagement — agreed fee, payments, balance, status. */
 export const engagements = pgTable("esti_engagement", {
   id: id(),

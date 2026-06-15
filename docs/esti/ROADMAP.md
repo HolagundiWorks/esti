@@ -670,7 +670,13 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
   `Tenders.tsx` at `/office/tenders` (Office nav) — tender list, create modal, and a
   detail modal with status control, invite-from-register, remove and award.
   **Pending:** controlled documents + addenda on the tender.
-- [ ] Sealed bid submissions, technical/commercial scoring, comparison, award.
+- [~] Sealed bid submissions, technical/commercial scoring, comparison, award.
+  **Delivered:** `esti_tender_bid` (migration 0031; one bid per invitation, unique) +
+  `TenderBidInput`. `tenders.recordBid` (upsert by invitation, marks it SUBMITTED),
+  `tenders.bids` (comparison list joined to contractor, cheapest first), `removeBid`,
+  award via `update`. Tender detail UI: per-invitation Record/Edit bid, a bid-comparison
+  table (lowest highlighted, weeks + technical score) and award from the comparison.
+  **Pending:** contractor-submitted (sealed) bids via the portal — staff record bids for now.
 - [ ] Contractor portal isolated by invitation/project.
 - [ ] RFIs, material submittals, shop drawings, inspection requests, site
   instructions, snags, and NCRs.

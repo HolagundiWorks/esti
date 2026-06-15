@@ -71,3 +71,13 @@ export const TenderInvite = z.object({
   contractorId: z.string().uuid(),
 });
 export type TenderInvite = z.infer<typeof TenderInvite>;
+
+/** A sealed bid recorded against an invitation (commercial + technical). */
+export const TenderBidInput = z.object({
+  invitationId: z.string().uuid(),
+  amountPaise: z.number().int().nonnegative(),
+  completionWeeks: z.number().int().min(0).max(520).optional(),
+  technicalScore: z.number().int().min(0).max(100).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+export type TenderBidInput = z.infer<typeof TenderBidInput>;
