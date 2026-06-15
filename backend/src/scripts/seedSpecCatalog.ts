@@ -71,7 +71,7 @@ export async function ensureDemoSpecCatalog(database: Db): Promise<DemoSpecCatal
       })
       .returning();
     versionId = created!.id;
-  } else if (!existingVersion.active) {
+  } else if (existingVersion && !existingVersion.active) {
     await database.update(specCatalogVersions).set({ active: false });
     await database
       .update(specCatalogVersions)
