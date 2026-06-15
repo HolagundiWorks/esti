@@ -1,7 +1,8 @@
-import { ConsultantSubmissionKind, ConsultantSubmissionStatus } from "@esti/contracts";
+import { ConsultantAssignInput, ConsultantSubmissionKind, ConsultantSubmissionStatus } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { consultants, consultantSubmissions, projectOffices, users } from "../../db/schema.js";
+import { consultants, consultantSubmissions, engagements, projectOffices, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -62,6 +63,42 @@ export const consultantRequestsRouter = router({
       .where(eq(consultantSubmissions.status, "OPEN"));
     return rows.length;
   }),
+
+  /** Assign a task to a consultant engaged on the project. */
+  assign: protectedProcedure
+    .input(ConsultantAssignInput)
+    .mutation(async ({ ctx, input }) => {
+      // The consultant must be engaged on the project before a task can be assigned.
+      const [eng] = await ctx.db
+        .select({ id: engagements.id })
+        .from(engagements)
+        .where(and(eq(engagements.projectId, input.projectId), eq(engagements.consultantId, input.consultantId)));
+      if (!eng) throw new TRPCError({ code: "BAD_REQUEST", message: "That consultant is not engaged on this project." });
+
+      const [created] = await ctx.db
+        .insert(consultantSubmissions)
+        .values({
+          projectId: input.projectId,
+          consultantId: input.consultantId,
+          kind: "TASK",
+          subject: input.subject,
+          body: input.body ?? null,
+          submittedById: ctx.user.id,
+        })
+        .returning({ id: consultantSubmissions.id });
+
+      await writeActivity(ctx.db, {
+        projectId: input.projectId,
+        objectType: "consultant_submission",
+        objectId: created!.id,
+        eventType: "consultant.task_assigned",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Firm assigned a task to the consultant: ${input.subject}`,
+      });
+      return { ok: true as const, id: created!.id };
+    }),
 
   /** Read the firm↔consultant conversation thread on a submission. */
   thread: protectedProcedure

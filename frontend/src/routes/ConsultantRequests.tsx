@@ -14,6 +14,7 @@ import {
   TableRow,
   Tag,
   TextArea,
+  TextInput,
 } from "@carbon/react";
 import {
   CONSULTANT_SUBMISSION_KIND_LABEL,
@@ -63,11 +64,31 @@ export function ConsultantRequests() {
     onSuccess: () => utils.consultantRequests.thread.invalidate(),
   });
 
+  // ── assign a task to a consultant ──────────────────────────────────────────
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assign, setAssign] = useState({ projectId: "", consultantId: "", subject: "", body: "" });
+  const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const engagementsQ = trpc.engagements.listByProject.useQuery(
+    { projectId: assign.projectId },
+    { enabled: !!assign.projectId },
+  );
+  const assignM = trpc.consultantRequests.assign.useMutation({
+    onSuccess: () => {
+      utils.consultantRequests.list.invalidate();
+      utils.consultantRequests.openCount.invalidate();
+      setAssignOpen(false);
+      setAssign({ projectId: "", consultantId: "", subject: "", body: "" });
+    },
+  });
+
   return (
     <Stack gap={6}>
-      <Stack gap={3}>
-        <h1>Consultant requests</h1>
-        <p>Deliverables, RFIs and notes raised by engaged consultants on the collaborator portal.</p>
+      <Stack orientation="horizontal" gap={5}>
+        <Stack gap={3} className="esti-grow">
+          <h1>Consultant requests</h1>
+          <p>Deliverables, RFIs and notes raised by engaged consultants — and tasks you assign to them.</p>
+        </Stack>
+        <Button size="sm" onClick={() => setAssignOpen(true)}>Assign task</Button>
       </Stack>
 
       <Stack orientation="horizontal" gap={5}>
@@ -196,6 +217,46 @@ export function ConsultantRequests() {
             onReply={(body) => reply.mutate({ id: threadFor.id, body })}
           />
         )}
+      </Modal>
+
+      <Modal
+        open={assignOpen} modalHeading="Assign a task to a consultant"
+        primaryButtonText={assignM.isPending ? "Assigning…" : "Assign"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!assign.projectId || !assign.consultantId || !assign.subject || assignM.isPending}
+        onRequestClose={() => setAssignOpen(false)}
+        onRequestSubmit={() => assignM.mutate({
+          projectId: assign.projectId, consultantId: assign.consultantId,
+          subject: assign.subject, body: assign.body || undefined,
+        })}
+      >
+        <Stack gap={5}>
+          <Select id="as-proj" labelText="Project" value={assign.projectId}
+            onChange={(e) => setAssign((a) => ({ ...a, projectId: e.target.value, consultantId: "" }))}>
+            <SelectItem value="" text="— select a project —" />
+            {(projectsQ.data ?? []).map((p) => (
+              <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />
+            ))}
+          </Select>
+          <Select id="as-cons" labelText="Consultant"
+            disabled={!assign.projectId || (engagementsQ.data ?? []).length === 0}
+            helperText={assign.projectId && (engagementsQ.data ?? []).length === 0 ? "No consultants engaged on this project" : undefined}
+            value={assign.consultantId}
+            onChange={(e) => setAssign((a) => ({ ...a, consultantId: e.target.value }))}>
+            <SelectItem value="" text="— select a consultant —" />
+            {(engagementsQ.data ?? []).map((en) => (
+              <SelectItem key={en.consultantId} value={en.consultantId} text={en.consultantName ?? en.consultantId} />
+            ))}
+          </Select>
+          <TextInput id="as-subject" labelText="Task" value={assign.subject}
+            onChange={(e) => setAssign((a) => ({ ...a, subject: e.target.value }))} />
+          <TextArea id="as-body" labelText="Details (optional)" rows={3} value={assign.body}
+            onChange={(e) => setAssign((a) => ({ ...a, body: e.target.value }))} />
+          {assignM.error && (
+            <InlineNotification kind="error" title="Could not assign"
+              subtitle={assignM.error.message} hideCloseButton lowContrast />
+          )}
+        </Stack>
       </Modal>
     </Stack>
   );

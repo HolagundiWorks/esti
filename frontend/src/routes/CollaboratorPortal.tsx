@@ -27,8 +27,9 @@ import {
   CONSULTANT_SUBMISSION_KIND_LABEL,
   CONSULTANT_SUBMISSION_STATUS_LABEL,
   CONSULTANT_SUBMISSION_STATUS_TAG,
-  ConsultantSubmissionKind,
+  ConsultantOriginKind,
   formatINR,
+  type ConsultantOriginKind as ConsultantOriginKindT,
   type ConsultantSubmissionKind as ConsultantSubmissionKindT,
 } from "@esti/contracts";
 import { useState } from "react";
@@ -58,10 +59,20 @@ export function CollaboratorPortal() {
     { projectId: openId ?? "" },
     { enabled: !!openId },
   );
+  const assignedQ = trpc.collab.assignedTasks.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
+  const completeTask = trpc.collab.completeTask.useMutation({
+    onSuccess: () => {
+      utils.collab.assignedTasks.invalidate();
+      utils.collab.activityFeed.invalidate();
+    },
+  });
   const d = detailQ.data;
 
   // ── write state ──────────────────────────────────────────────────────────
-  const [form, setForm] = useState<{ kind: ConsultantSubmissionKindT; subject: string; body: string } | null>(null);
+  const [form, setForm] = useState<{ kind: ConsultantOriginKindT; subject: string; body: string } | null>(null);
   const submit = trpc.collab.submit.useMutation({
     onSuccess: () => {
       utils.collab.mySubmissions.invalidate();
@@ -226,6 +237,48 @@ export function CollaboratorPortal() {
               </Table>
             </TableContainer>
 
+            <TableContainer title="Tasks assigned to me">
+              <DataState
+                loading={assignedQ.isLoading}
+                isEmpty={(assignedQ.data ?? []).length === 0}
+                columnCount={3}
+                empty={{ title: "No assigned tasks", description: "Tasks the firm assigns to you appear here." }}
+              >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Task</TableHeader>
+                      <TableHeader>Status</TableHeader>
+                      <TableHeader>Action</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(assignedQ.data ?? []).map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell>
+                          {t.subject}
+                          {t.body && <div className="esti-label esti-label--secondary">{t.body}</div>}
+                        </TableCell>
+                        <TableCell>
+                          <Tag type={t.status === "RESOLVED" ? "green" : "blue"}>
+                            {t.status === "RESOLVED" ? "Done" : "Open"}
+                          </Tag>
+                        </TableCell>
+                        <TableCell>
+                          {t.status !== "RESOLVED" && (
+                            <Button kind="ghost" size="sm" disabled={completeTask.isPending}
+                              onClick={() => completeTask.mutate({ submissionId: t.id })}>
+                              Mark done
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </DataState>
+            </TableContainer>
+
             <TableContainer title="My deliverables, RFIs & notes">
               <DataState
                 loading={submissionsQ.isLoading}
@@ -317,8 +370,8 @@ export function CollaboratorPortal() {
             <Form onSubmit={(e) => e.preventDefault()}>
               <Stack gap={5}>
                 <Select id="cs-kind" labelText="Type" value={form.kind}
-                  onChange={(e) => setForm({ ...form, kind: e.target.value as ConsultantSubmissionKindT })}>
-                  {ConsultantSubmissionKind.options.map((k) => (
+                  onChange={(e) => setForm({ ...form, kind: e.target.value as ConsultantOriginKindT })}>
+                  {ConsultantOriginKind.options.map((k) => (
                     <SelectItem key={k} value={k} text={CONSULTANT_SUBMISSION_KIND_LABEL[k]} />
                   ))}
                 </Select>

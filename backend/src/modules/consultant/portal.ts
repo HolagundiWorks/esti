@@ -1,6 +1,6 @@
 import { ConsultantSubmitInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { activities, consultantSubmissions, drawings, engagements, phases, projectOffices } from "../../db/schema.js";
 import type { DB } from "../../db/index.js";
@@ -121,8 +121,54 @@ export const collaboratorRouter = router({
           createdAt: consultantSubmissions.createdAt,
         })
         .from(consultantSubmissions)
-        .where(eq(consultantSubmissions.projectId, input.projectId))
+        // Firm-assigned TASKs are shown separately via assignedTasks.
+        .where(and(eq(consultantSubmissions.projectId, input.projectId), ne(consultantSubmissions.kind, "TASK")))
         .orderBy(desc(consultantSubmissions.createdAt));
+    }),
+
+  /** Tasks the firm has assigned to this consultant on a project. */
+  assignedTasks: collaboratorProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertEngaged(ctx, input.projectId);
+      return ctx.db
+        .select({
+          id: consultantSubmissions.id,
+          subject: consultantSubmissions.subject,
+          body: consultantSubmissions.body,
+          status: consultantSubmissions.status,
+          responseNote: consultantSubmissions.responseNote,
+          createdAt: consultantSubmissions.createdAt,
+        })
+        .from(consultantSubmissions)
+        .where(and(
+          eq(consultantSubmissions.projectId, input.projectId),
+          eq(consultantSubmissions.consultantId, ctx.user.consultantId),
+          eq(consultantSubmissions.kind, "TASK"),
+        ))
+        .orderBy(desc(consultantSubmissions.createdAt));
+    }),
+
+  /** Mark a firm-assigned task complete. */
+  completeTask: collaboratorProcedure
+    .input(z.object({ submissionId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const sub = await assertOwnedSubmission(ctx, input.submissionId);
+      await ctx.db
+        .update(consultantSubmissions)
+        .set({ status: "RESOLVED", updatedAt: new Date() })
+        .where(eq(consultantSubmissions.id, input.submissionId));
+      await writeActivity(ctx.db, {
+        projectId: sub.projectId,
+        objectType: "consultant_submission",
+        objectId: input.submissionId,
+        eventType: "consultant.task_done",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Consultant completed task: ${sub.subject}`,
+      });
+      return { ok: true as const };
     }),
 
   /** Read the firm↔consultant conversation thread on one of their submissions. */
