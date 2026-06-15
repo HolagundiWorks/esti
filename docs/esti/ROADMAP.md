@@ -661,7 +661,15 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
   audited via `writeAudit`). `Contractors.tsx` at `/contractors` (People nav) — table
   with category filter, create/edit modal, a quality/timeliness/safety rating modal
   and an averaged performance tag. **Pending:** tendering, bids, contractor portal.
-- [ ] Tender packages, invitations, controlled documents, addenda, and deadlines.
+- [~] Tender packages, invitations, controlled documents, addenda, and deadlines.
+  **Delivered:** `esti_tender` + `esti_tender_invitation` (migration 0030; per-invitation
+  `accessToken` for later portal isolation; unique tender+contractor) + `contracts/tender.ts`
+  (tender + invitation status enums, create/update/invite inputs). `tenders` router
+  (list with invite counts, byId with joined invitations, create/update/remove, invite
+  with duplicate guard, removeInvitation, award via status+awardedContractorId), audited.
+  `Tenders.tsx` at `/office/tenders` (Office nav) — tender list, create modal, and a
+  detail modal with status control, invite-from-register, remove and award.
+  **Pending:** controlled documents + addenda on the tender.
 - [ ] Sealed bid submissions, technical/commercial scoring, comparison, award.
 - [ ] Contractor portal isolated by invitation/project.
 - [ ] RFIs, material submittals, shop drawings, inspection requests, site

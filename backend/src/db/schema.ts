@@ -609,6 +609,38 @@ export const contractors = pgTable("esti_contractor", {
   updatedAt: updatedAt(),
 });
 
+/** Tender package raised on a project for a trade scope (Phase 7). */
+export const tenders = pgTable("esti_tender", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  title: text("title").notNull(),
+  category: text("category"),
+  scope: text("scope"),
+  status: text("status").notNull().default("DRAFT"), // DRAFT | OPEN | CLOSED | AWARDED | CANCELLED
+  dueDate: date("due_date"),
+  instructions: text("instructions"),
+  awardedContractorId: uuid("awarded_contractor_id").references(() => contractors.id),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** A contractor invited to a tender; accessToken isolates the contractor portal. */
+export const tenderInvitations = pgTable("esti_tender_invitation", {
+  id: id(),
+  tenderId: uuid("tender_id")
+    .notNull()
+    .references(() => tenders.id),
+  contractorId: uuid("contractor_id")
+    .notNull()
+    .references(() => contractors.id),
+  status: text("status").notNull().default("INVITED"), // INVITED | VIEWED | SUBMITTED | DECLINED | WITHDRAWN
+  accessToken: text("access_token").notNull(),
+  invitedAt: timestamp("invited_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 /** Per-project consultant engagement — agreed fee, payments, balance, status. */
 export const engagements = pgTable("esti_engagement", {
   id: id(),
