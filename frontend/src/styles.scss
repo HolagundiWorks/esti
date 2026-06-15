@@ -329,11 +329,15 @@ body,
   min-height: 70vh; display: flex; align-items: center;
   padding-block: 4rem;
   color: var(--lp-on-ink);
-  background: linear-gradient(125deg, #0c0a18 0%, #161335 30%, #241a5e 55%, #161335 80%, #0c0a18 100%);
+  // Indigo brand gradient (not black — black is reserved for the header/footer).
+  background: linear-gradient(125deg, #332a73 0%, #4a3fa0 30%, #6c63d6 55%, #4a3fa0 80%, #332a73 100%);
   background-size: 220% 220%;
   animation: esti-lp-hero-pan 22s ease-in-out infinite;
 }
 .esti-lp-hero > .esti-lp-wrap { position: relative; z-index: 1; width: 100%; }
+.esti-lp-hero .esti-lp-eyebrow { color: #c9c4f5; }
+.esti-lp-hero h1 em { color: #e2deff; }
+.esti-lp-hero p { color: rgba(255, 255, 255, 0.82); }
 .esti-lp-hero::before, .esti-lp-hero::after {
   content: ""; position: absolute; z-index: 0; border-radius: 50%;
   filter: blur(90px); pointer-events: none;
@@ -394,11 +398,11 @@ body,
 .esti-lp-cell h3 { font-size: 1.0625rem; font-weight: 600; margin: 0.85rem 0 0.4rem; }
 .esti-lp-cell p { color: var(--cds-text-secondary); font-size: 0.95rem; line-height: 1.55; margin: 0; }
 
-// India-first band (dark)
-.esti-lp-band { background: var(--lp-ink-2); color: var(--lp-on-ink); }
-.esti-lp-band .esti-lp-eyebrow { color: var(--lp-accent); }
-.esti-lp-band h2 { color: var(--lp-on-ink); }
-.esti-lp-band p { color: var(--lp-on-ink-dim); }
+// Band — soft indigo tint (NOT black; black is reserved for header/footer)
+.esti-lp-band { background: var(--lp-accent-soft); color: var(--cds-text-primary); }
+.esti-lp-band .esti-lp-eyebrow { color: var(--lp-brand); }
+.esti-lp-band h2 { color: var(--cds-text-primary); }
+.esti-lp-band p { color: var(--cds-text-secondary); }
 .esti-lp-checks { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 0.75rem; }
 .esti-lp-checks li { display: flex; gap: 0.6rem; align-items: flex-start; }
 .esti-lp-checks .esti-lp-ic { color: var(--lp-accent); flex: none; margin-top: 2px; }
@@ -421,18 +425,20 @@ body,
 .esti-lp-faq details[open] summary::after { content: "–"; }
 .esti-lp-faq p { color: var(--cds-text-secondary); line-height: 1.6; margin: 0.85rem 0 0; max-width: 52rem; }
 
-// Final CTA (dark)
-.esti-lp-final { background: var(--lp-ink); color: var(--lp-on-ink); text-align: center; }
+// Final CTA — indigo brand band (NOT black)
+.esti-lp-final { background: linear-gradient(120deg, #3e367c, #6c63d6); color: var(--lp-on-ink); text-align: center; }
+.esti-lp-final .esti-lp-eyebrow { color: #d9d5ff; }
 .esti-lp-final h2 { color: var(--lp-on-ink); }
-.esti-lp-final p { color: var(--lp-on-ink-dim); max-width: 40rem; margin-inline: auto; }
+.esti-lp-final p { color: rgba(255, 255, 255, 0.85); max-width: 40rem; margin-inline: auto; }
 .esti-lp-final .esti-lp-hero-cta { justify-content: center; }
 
 // Footer
-.esti-lp-foot { border-block-start: 1px solid var(--cds-border-subtle); padding-block: 3rem; }
+.esti-lp-foot { background: #000000; color: var(--lp-on-ink); padding-block: 3rem; }
 .esti-lp-foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem; }
-.esti-lp-foot a { color: var(--cds-text-secondary); text-decoration: none; }
-.esti-lp-foot a:hover { color: var(--cds-text-primary); }
-.esti-lp-foot .esti-lp-muted { color: var(--cds-text-secondary); font-size: 0.85rem; line-height: 1.6; }
+.esti-lp-foot h3 { color: var(--lp-on-ink); }
+.esti-lp-foot a { color: var(--lp-on-ink-dim); text-decoration: none; }
+.esti-lp-foot a:hover { color: var(--lp-on-ink); }
+.esti-lp-foot .esti-lp-muted { color: var(--lp-on-ink-dim); font-size: 0.85rem; line-height: 1.6; }
 
 // Mini dashboard mock (brand-styled, lightweight)
 .esti-lp-mock { border: 1px solid var(--cds-border-subtle); border-radius: 6px; overflow: hidden; margin-top: 2.5rem; background: var(--cds-layer); }

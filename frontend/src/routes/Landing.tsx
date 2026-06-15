@@ -133,9 +133,9 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
     setTimeout(() => midRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   };
 
+  // Header, hero and footer are all dark, so the white logo marks are used throughout.
   const aormsOnDark = "/aorms-logo-white.png";
-  const aormsAuto = theme === "white" ? "/aorms-logo.png" : "/aorms-logo-white.png";
-  const hcwLogo = theme === "white" ? "/hcw-black.png" : "/hcw-white.png";
+  const hcwLogo = "/hcw-white.png";
 
   const p = audience ? PERSONA[audience] : null;
 
@@ -345,7 +345,7 @@ export function Landing({ theme, onToggleTheme }: { theme: ThemeName; onToggleTh
       <footer className="esti-lp-foot">
         <div className="esti-lp-wrap esti-lp-foot-grid">
           <div>
-            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={aormsAuto} alt="AORMS" style={{ height: 28 }} /></div>
+            <div className="esti-lp-brand" style={{ marginBottom: "0.75rem" }}><img src={aormsOnDark} alt="AORMS" style={{ height: 28 }} /></div>
             <p className="esti-lp-muted">Architectural Office Resource Management System for Indian practices — practice management for solo architects and firms of 5–50.</p>
             <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.75rem" }}>
               <a href="mailto:hi@aorms.in">hi@aorms.in</a>
