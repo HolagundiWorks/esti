@@ -31,6 +31,10 @@ docker compose -f compose.prod.yaml build backend worker
 
 # ── 3. Rebuild frontend static files ─────────────────────────────────────────
 info "Rebuilding frontend..."
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
 docker compose -f compose.prod.yaml --profile build-only build frontend
 # Extract the compiled /dist from the nginx image (do NOT `run` it — its CMD is
 # nginx and would block). Create a stopped container, docker cp out, remove it.

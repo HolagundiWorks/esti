@@ -129,8 +129,10 @@ services:
       context: .
       dockerfile: frontend/Dockerfile.prod
       args:
-        # Optional external demo URL (baked into SPA). Solo vs studio = HR toggle in-app.
+        # Baked into SPA at build time — set in .env before `deploy.sh` / bootstrap frontend build.
         VITE_FULL_DEMO_URL: ${VITE_FULL_DEMO_URL:-}
+        VITE_SOLO_DEMO_URL: ${VITE_SOLO_DEMO_URL:-}
+        VITE_FEEDBACK_FORM_URL: ${VITE_FEEDBACK_FORM_URL:-}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.

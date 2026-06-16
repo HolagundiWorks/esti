@@ -176,7 +176,7 @@ function AppShell() {
       <Routes>
         {/* Login follows the saved theme; the marketing landing is always white. */}
         <Route path="/login" element={<Theme theme={theme}><Login /></Theme>} />
-        <Route path="*" element={<Theme theme="white"><Landing /></Theme>} />
+        <Route path="*" element={<Landing />} />
       </Routes>
     );
   // Client-role users get the read-only portal, not the office workspace.
@@ -283,7 +283,7 @@ function AppShell() {
                 <img
                   src="/esti-mark-white.png"
                   alt="ESTI"
-                  style={{ height: 18, marginInlineEnd: 8, verticalAlign: "middle" }}
+                  className="esti-app-mark"
                 />
                 {firmName}
               </HeaderName>

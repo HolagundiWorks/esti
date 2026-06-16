@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src --max-warnings 0 && node scripts/check-carbon.mjs",
+    "sync:brand": "python scripts/sync-brand-assets.py",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
