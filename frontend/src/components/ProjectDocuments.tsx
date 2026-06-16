@@ -19,6 +19,7 @@ import {
 import { Add, TrashCan } from "@carbon/icons-react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
 
@@ -27,12 +28,7 @@ function pdfPollOpts(initial: string) {
   return {
     refetchInterval: (q: {
       state: { data?: { pdfStatus?: string } | null };
-    }) =>
-      q.state.data &&
-      (q.state.data.pdfStatus === "PENDING" ||
-        q.state.data.pdfStatus === "PROCESSING")
-        ? 1500
-        : (false as const),
+    }) => pdfPollInterval(q.state.data?.pdfStatus, initial !== "NONE"),
     enabled: initial !== "NONE",
   };
 }

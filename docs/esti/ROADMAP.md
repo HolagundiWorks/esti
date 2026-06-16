@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (PDF bucket fix, spec/SteelFlow catalogues, landing trim)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (Phase 4A test gate complete)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -650,15 +650,19 @@ opening separate modules.
   at `principal@demo.aorms.in`; solo demo at `solo@demo.aorms.in`.
 - [x] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
-- [~] Add jurisdiction fixtures, calculation unit tests, authorization tests,
+- [x] Add jurisdiction fixtures, calculation unit tests, authorization tests,
   and PDF worker/browser smoke coverage.
-  - **Fixtures:** `packages/contracts/src/fixtures/bbmp-jurisdictions.ts` +
-    `bbmp-fixtures.test.ts` (2026-06-16).
-  - **PDF worker:** bucket auto-provision + `worker/tests/test_storage.py`.
-  - **Pending:** RIE/BBMP authorization integration tests; browser smoke for
-    Generate PDF → Open PDF on spec sheet and compliance assessment.
+  - **BBMP fixtures:** `packages/contracts/src/fixtures/bbmp-jurisdictions.ts` +
+    `bbmp-fixtures.test.ts`.
+  - **RIE fixtures:** `packages/contracts/src/fixtures/rie-jurisdictions.ts` +
+    `rie-fixtures.test.ts` (`runAllEngines` PRE_DESIGN + POST_DESIGN violations).
+  - **Authorization:** `backend/src/modules/compliance/compliance-auth.test.ts`
+    (portal isolation, Viewer read-only, owner-only rule admin).
+  - **PDF pipeline:** `compliance-pdf.test.ts` (enqueue smoke),
+    `worker/tests/test_pdf_compliance.py` (WeasyPrint render smoke),
+    `frontend/src/lib/pdfUi.test.ts` (poll + button state logic used by document PDF cells).
 
-**Gate:** a user can select a verified district/state rule set, reproduce every
+**Gate met:** a user can select a verified district/state rule set, reproduce every
 calculation from cited inputs, and issue a project-linked PDF without implying a
 live authority integration.
 
