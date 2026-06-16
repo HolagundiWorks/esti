@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15 (updated post workflow/architecture audit: Phase 2G IA remediation started)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (PDF bucket fix, spec/SteelFlow catalogues, landing trim)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -170,6 +170,26 @@ Also delivered (2026-06-15 workflow/architecture audit): canonical snapshot in
 `WORKFLOW-ARCHITECTURE-AUDIT.md`; Phase 2G P0+P1 complete (migration journal
 0031, compliance routing, portal deep links `/projects/:id`, settings cross-link,
 /work alias, deprecated route files removed).
+
+Also delivered (2026-06-15–16 knowledge catalogues + production build session):
+- **Specification material catalogue** — migration `0038_spec_catalog.sql`;
+  `esti_spec_catalog_version` / `esti_spec_catalog_item`; `specCatalog` tRPC router;
+  `SpecCatalogManager` in Knowledge Bank **Specification** tab; project spec sheets
+  resolve rows from the active catalogue (`specCatalogResolve`, optional
+  `catalogItemId` on `esti_specitem`); demo seed via `seedSpecCatalog.ts`.
+- **SteelFlow structural catalogue** — `packages/contracts/src/steelflow-catalog.ts`
+  with `applySteelFlowCatalogEntry()` (span rules: FULL_SPAN, SPAN_FRACTION, FIXED_MM,
+  DEVELOPMENT_LENGTH); `SteelFlowCatalogManager` + **Apply catalogue** picker in the
+  SteelFlow workshop; demo beam 230×600 M25 template in seed. See
+  `STEELFLOW-BOUNDED-CONTEXT.md`.
+- **Production Docker builds** — contracts/backend/frontend prod images build cleanly
+  (test files excluded from app tsconfigs; contract export fixes; basement fields on
+  `BylawCalcInput`; optional geometry/reinforcement in catalogue parser).
+- **PDF worker reliability** — MinIO bucket `esti-documents` is provisioned at backend
+  startup (`ensureBucket`) and before worker uploads (`ensure_bucket`); fixes
+  `NoSuchBucket` on fresh compose stacks when PDF is requested before any file upload.
+- **Landing trim** — removed the persona-gated **How architects work** / practice-flow
+  section and nav link; USP → Modules flow unchanged.
 
 The baseline is a prototype, not production-complete. "Delivered" does not
 override the remediation work below.
@@ -630,8 +650,13 @@ opening separate modules.
   at `principal@demo.aorms.in`; solo demo at `solo@demo.aorms.in`.
 - [x] Generate an immutable branded compliance PDF and register it against the
   project without adding live compliance-status tracking.
-- [ ] Add jurisdiction fixtures, calculation unit tests, authorization tests,
+- [~] Add jurisdiction fixtures, calculation unit tests, authorization tests,
   and PDF worker/browser smoke coverage.
+  - **Fixtures:** `packages/contracts/src/fixtures/bbmp-jurisdictions.ts` +
+    `bbmp-fixtures.test.ts` (2026-06-16).
+  - **PDF worker:** bucket auto-provision + `worker/tests/test_storage.py`.
+  - **Pending:** RIE/BBMP authorization integration tests; browser smoke for
+    Generate PDF → Open PDF on spec sheet and compliance assessment.
 
 **Gate:** a user can select a verified district/state rule set, reproduce every
 calculation from cited inputs, and issue a project-linked PDF without implying a
@@ -876,6 +901,12 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
 - [x] `packages/contracts/src/knowledge-bank.ts` with `KnowledgeItemStatus`,
   `StructuralElementTemplate`, `ReinforcementArrangement`, and
   `SpecificationProcurementStandard` Zod schemas.
+- [x] **Specification material catalogue** — `esti_spec_catalog_*` (migration `0038`);
+  versioned rows (category, item, make, specification, finish); active version;
+  project spec sheets pull from catalogue; PDF via existing specsheet worker target.
+- [x] **SteelFlow catalogue apply** — published structural templates applied to
+  workshop sessions with span-derived cutting lengths (`steelflow-catalog.ts`,
+  `steelflow.applyCatalog`); see `STEELFLOW-BOUNDED-CONTEXT.md`.
 - [~] Generate editable BBS draft lines from a selected published structural
   template and project dimensions; SteelFlow (Phase 2E) provides the full
   interactive BBS generator; template-to-BBS import bridge is a Phase 10 item.
@@ -885,6 +916,8 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
   structural engineer's design or approval.
 - [ ] Connect specification standards to project tagging and simple quantity ×
   rate purchase orders without introducing inventory or contractor accounting.
+  *(Material spec catalogue → project spec sheets is delivered; procurement PO
+  linkage remains open.)*
 
 **Gate:** a published knowledge item is versioned, cited, auditable, and consumed
 by Compliance, BBS, specification, or PO workflows without copying mutable text.
@@ -932,6 +965,8 @@ output records source objects, user, model, and approval state.
 ## Phase 12 - Production Readiness [P0]
 
 - [ ] Tested PostgreSQL and object-store backup/restore.
+- [x] Object-store bucket auto-provision on backend startup and worker upload
+  (MinIO `esti-documents`; prevents PDF/DXF upload failures on fresh stacks).
 - [ ] Production secrets, TLS, public object-store/download strategy.
 - [ ] Cursor pagination/server caps across lists; remove N+1 polling hotspots.
 - [ ] Worker idempotency and documented resource/sandbox limits.
