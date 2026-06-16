@@ -1,4 +1,4 @@
-import { ArchiveTeamModuleInput } from "@esti/contracts";
+import { ArchiveTeamModuleInput, EscalationSettings } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { orgSettings } from "../../db/schema.js";
@@ -102,6 +102,27 @@ export const settingsRouter = router({
         actorId: ctx.user.id,
         before: { [column]: current[column] },
         after: { [column]: input.enabled },
+      });
+      return row!;
+    }),
+
+  /** Owner-configured alert escalation thresholds and digest behaviour. */
+  setEscalationSettings: ownerProcedure
+    .input(EscalationSettings)
+    .mutation(async ({ ctx, input }) => {
+      const current = await getOrgSettings(ctx.db);
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({ escalationSettings: input })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { escalationSettings: current.escalationSettings },
+        after: { escalationSettings: input },
       });
       return row!;
     }),

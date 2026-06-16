@@ -36,6 +36,19 @@ body,
   min-width: 0;
 }
 
+// Horizontal tile headers (title + tag/arrow) — layout only; spacing-05 (16px).
+.esti-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.esti-row-between {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .esti-app-shell {
   min-height: 100vh;
 }

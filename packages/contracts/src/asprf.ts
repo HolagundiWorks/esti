@@ -57,6 +57,152 @@ export function computeAspRfScore(
   return Math.round((base * scale + wb) * 10) / 10;
 }
 
+/** Compare estimated vs logged hours — 100 when actual matches estimate. */
+export function computeDeliveryPredictability(
+  pairs: { estimatedHours: number; actualHours: number }[],
+): number {
+  if (pairs.length === 0) return 100;
+  const scores = pairs.map(({ estimatedHours, actualHours }) => {
+    if (estimatedHours <= 0) return 100;
+    const ratio = actualHours / estimatedHours;
+    const accuracy = ratio <= 1 ? ratio : 1 / ratio;
+    return Math.max(0, Math.min(100, accuracy * 100));
+  });
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+  return Math.round(avg * 10) / 10;
+}
+
+/** Blend on-time commitment with timesheet-based delivery predictability. */
+export function computeReliabilityKpi(
+  onTimeTasks: number,
+  totalTasks: number,
+  deliveryPredictability: number,
+): number {
+  const commitment = totalTasks > 0 ? (onTimeTasks / totalTasks) * 100 : 100;
+  return Math.round((commitment * 0.5 + deliveryPredictability * 0.5) * 10) / 10;
+}
+
+function clampKpi(v: number): number {
+  return Math.max(0, Math.min(100, Math.round(v * 10) / 10));
+}
+
+/** Quality — rework rate from internal-error decisions + task completion QA score. */
+export function computeQualityKpi(
+  internalRevisions: number,
+  totalRevisions: number,
+  completedTasks: number,
+  totalTasks: number,
+): number {
+  const reworkRate = totalRevisions > 0 ? internalRevisions / totalRevisions : 0;
+  const reworkScore = (1 - reworkRate) * 100;
+  const qaScore = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 100;
+  return clampKpi(reworkScore * 0.6 + qaScore * 0.4);
+}
+
+/** Client impact — first-pass approval rate on submissions the member issued. */
+export function computeClientImpactKpi(
+  firstPassApproved: number,
+  decidedSubmissions: number,
+  clientDrivenDecisions: number,
+  totalDecisions: number,
+): number {
+  const fpRate =
+    decidedSubmissions > 0 ? (firstPassApproved / decidedSubmissions) * 100 : 100;
+  const clientDrag =
+    totalDecisions > 0 ? (clientDrivenDecisions / totalDecisions) * 100 : 0;
+  return clampKpi(fpRate * 0.7 + (100 - clientDrag) * 0.3);
+}
+
+/** Collaboration — reviewer participation and on-time review completion. */
+export function computeCollaborationKpi(
+  reviewsCompleted: number,
+  reviewsAssigned: number,
+  reviewsOnTime: number,
+): number {
+  if (reviewsAssigned === 0) return 100;
+  const participation = (reviewsCompleted / reviewsAssigned) * 100;
+  const timeliness =
+    reviewsCompleted > 0 ? (reviewsOnTime / reviewsCompleted) * 100 : 100;
+  return clampKpi(participation * 0.7 + timeliness * 0.3);
+}
+
+/** Learning — share of tasks classified TRAINING (target ≈10% for full score). */
+export function computeLearningKpi(trainingTasks: number, totalTasks: number): number {
+  if (totalTasks === 0) return 50;
+  const ratio = trainingTasks / totalTasks;
+  const target = 0.1;
+  return clampKpi(ratio >= target ? 100 : (ratio / target) * 100);
+}
+
+/** Wellbeing (opt-in) — overdue load and sustained heavy due-day pressure. */
+export function computeWellbeingKpi(input: {
+  overdueTasks: number;
+  openTasks: number;
+  heavyDueDays: number;
+  windowDays: number;
+}): number {
+  const { overdueTasks, openTasks, heavyDueDays, windowDays } = input;
+  const overduePenalty = openTasks > 0 ? (overdueTasks / openTasks) * 40 : 0;
+  const loadPenalty = windowDays > 0 ? (heavyDueDays / windowDays) * 35 : 0;
+  return clampKpi(100 - overduePenalty - loadPenalty);
+}
+
+/** Build all ASPRF dimension scores from member signals. */
+export function buildAspRfKpiScores(signals: {
+  totalTasks: number;
+  completedTasks: number;
+  onTimeTasks: number;
+  deliveryPredictability: number;
+  trainingTasks: number;
+  reviewsCompleted: number;
+  reviewsAssigned: number;
+  reviewsOnTime: number;
+  internalRevisions: number;
+  totalRevisions: number;
+  clientDrivenDecisions: number;
+  firstPassApproved: number;
+  decidedSubmissions: number;
+  overdueTasks: number;
+  openTasks: number;
+  heavyDueDays: number;
+  windowDays: number;
+  wellbeingOptIn: boolean;
+}): AspRfKpiScores {
+  return {
+    reliability: computeReliabilityKpi(
+      signals.onTimeTasks,
+      signals.totalTasks,
+      signals.deliveryPredictability,
+    ),
+    quality: computeQualityKpi(
+      signals.internalRevisions,
+      signals.totalRevisions,
+      signals.completedTasks,
+      signals.totalTasks,
+    ),
+    clientImpact: computeClientImpactKpi(
+      signals.firstPassApproved,
+      signals.decidedSubmissions,
+      signals.clientDrivenDecisions,
+      signals.totalRevisions,
+    ),
+    collaboration: computeCollaborationKpi(
+      signals.reviewsCompleted,
+      signals.reviewsAssigned,
+      signals.reviewsOnTime,
+    ),
+    learning: computeLearningKpi(signals.trainingTasks, signals.totalTasks),
+    wellbeing: signals.wellbeingOptIn
+      ? computeWellbeingKpi({
+          overdueTasks: signals.overdueTasks,
+          openTasks: signals.openTasks,
+          heavyDueDays: signals.heavyDueDays,
+          windowDays: signals.windowDays,
+        })
+      : null,
+  };
+}
+
 // ─── Recognition awards ───────────────────────────────────────────────────────
 
 export type RecognitionAward =

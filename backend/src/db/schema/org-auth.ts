@@ -18,6 +18,16 @@ export const orgSettings = pgTable("esti_orgsettings", {
   /** SOLO = one-person practice; STUDIO = multi-person team module. */
   orgMode: text("org_mode").notNull().default("SOLO"),
   hrEnabled: boolean("hr_enabled").notNull().default(false),
+  /** Owner-configured alert thresholds — see EscalationSettings in @esti/contracts. */
+  escalationSettings: jsonb("escalation_settings")
+    .notNull()
+    .default({
+      staleApprovalDays: 7,
+      followUpLeadDays: 0,
+      taskOverdueDays: 3,
+      digestEnabled: true,
+      leaveHorizonDays: 7,
+    }),
   // Module-group switches (default on) controlling whole nav areas.
   financialEnabled: boolean("financial_enabled").notNull().default(true),
   projectEnabled: boolean("project_enabled").notNull().default(true),
@@ -115,6 +125,8 @@ export const users = pgTable("esti_user", {
   dashboardLayout: jsonb("dashboard_layout"),
   // Read-mostly demo accounts: blocked from uploads and credential changes.
   isDemo: boolean("is_demo").notNull().default(false),
+  /** Secret token for iCal/Google Calendar workload subscription (rotate to revoke). */
+  calendarFeedToken: text("calendar_feed_token"),
   createdAt: createdAt(),
 });
 

@@ -161,9 +161,9 @@ function ZoneTile({
   statusTag?: { text: string; type: TagType };
 }) {
   const inner = (
-    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+    <div className="esti-row">
       <div className="esti-grow">
-        <Stack gap={1}>
+        <Stack gap={3}>
           <h3>{title}</h3>
           {sub && <p>{sub}</p>}
         </Stack>
@@ -204,11 +204,11 @@ function KpiChip({
 }) {
   const body = (
     <Stack gap={3}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+      <div className="esti-row-between">
         <p>{label}</p>
         {onClick && <ArrowRight size={16} />}
       </div>
-      <h2>{loading ? "…" : value}</h2>
+      <h3>{loading ? "…" : value}</h3>
       {tagText && (
         <Tag type={tagType} size="sm">
           {tagText}
@@ -248,7 +248,7 @@ function FilingTile({
         onClick={() => navigate("/filing")}
       >
         <Stack gap={5}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div className="esti-row">
             <h4 className="esti-grow">{title}</h4>
             <ArrowRight size={16} />
           </div>
@@ -402,7 +402,7 @@ export function Dashboard() {
 
       {/* ── Page header ─────────────────────────────────────────────────── */}
       <Column lg={16} md={8} sm={4}>
-        <Stack gap={2}>
+        <Stack gap={3}>
           <h1>Office dashboard</h1>
           {user?.fullName && (
             <p>Welcome, Ar. {user.fullName.replace(/^Ar\.?\s+/i, "").split(" ")[0]}</p>
@@ -601,7 +601,7 @@ export function Dashboard() {
           onClick={() => navigate("/invoices")}
         >
           <Stack gap={4}>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div className="esti-row">
               <h4 className="esti-grow">Ready to bill</h4>
               <ArrowRight size={16} />
             </div>
@@ -609,7 +609,7 @@ export function Dashboard() {
               <InlineLoading description="Loading…" />
             ) : (
               <Stack gap={3}>
-                <h2>{billingReady.length}</h2>
+                <h3>{billingReady.length}</h3>
                 <p>
                   Phase{billingReady.length !== 1 ? "s" : ""} awaiting invoice ·{" "}
                   {formatINRShort(readyToBillSum)} estimated
@@ -630,7 +630,7 @@ export function Dashboard() {
           <Stack gap={4}>
             <h4>{hrEnabled ? "Risk & capacity" : "Project risk"}</h4>
             <Stack gap={2}>
-              <p><strong>High-risk projects</strong></p>
+              <p className="esti-label">High-risk projects</p>
               {riskProjects.length === 0 ? (
                 <p>None at risk.</p>
               ) : (
@@ -643,7 +643,7 @@ export function Dashboard() {
             </Stack>
             {hrEnabled && (
               <Stack gap={2}>
-                <p><strong>Capacity alerts</strong></p>
+                <p className="esti-label">Capacity alerts</p>
                 {overloadedMembers.length === 0 ? (
                   <p>No one overloaded.</p>
                 ) : (
@@ -680,6 +680,7 @@ export function Dashboard() {
           </Column>
           <Column lg={16} md={8} sm={4}>
             <Tile
+              className="esti-fill"
               style={edge(
                 riskProjects.length > 0
                   ? "alert"
@@ -767,6 +768,7 @@ export function Dashboard() {
           </Column>
           <Column lg={16} md={8} sm={4}>
             <Tile
+              className="esti-fill"
               style={edge(
                 (ciQ.data ?? []).some((c) => c.risk === "HIGH")
                   ? "alert"
@@ -842,14 +844,14 @@ export function Dashboard() {
                   onClick={() => navigate("/performance")}
                 >
                   <Stack gap={4}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                      <Stack gap={1}>
+                    <div className="esti-row-between">
+                      <Stack gap={3}>
                         <p>{m.memberRole}</p>
                         <h4>{m.memberName}</h4>
                       </Stack>
                       <ArrowRight size={16} />
                     </div>
-                    <h2>{m.score}</h2>
+                    <h3>{m.score}</h3>
                     <Stack orientation="horizontal" gap={2}>
                       <Tag type={band ? PERFORMANCE_BAND_TAG[band] : "gray"} size="sm">
                         {band ? PERFORMANCE_BAND_LABEL[band] : "Developing"}
@@ -900,13 +902,13 @@ export function Dashboard() {
             onClick={() => navigate("/tasks?tab=activity")}
           >
             <Stack gap={5}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div className="esti-row">
                 <h4 className="esti-grow">Recent activity</h4>
                 <ArrowRight size={16} />
               </div>
               <Stack gap={4}>
                 {activityQ.data!.rows.map((item) => (
-                  <Stack key={item.id} gap={1}>
+                  <Stack key={item.id} gap={2}>
                     <Stack orientation="horizontal" gap={3}>
                       <Tag size="sm" type={ACTIVITY_DOMAIN_TAG[activityDomain(item.eventType)]}>
                         {formatEventType(item.eventType)}
@@ -954,18 +956,20 @@ export function Dashboard() {
                 ) : revenueData.length === 0 ? (
                   <p>No financial data yet.</p>
                 ) : (
-                  <DonutChart
-                    data={revenueData}
-                    options={{
-                      data: { groupMapsTo: "group" },
-                      donut: { center: { label: "Revenue" }, alignment: "center" },
-                      height: CHART_HEIGHT,
-                      theme: chartTheme,
-                      toolbar: { enabled: false },
-                      legend: { enabled: true, position: "bottom" as const },
-                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-                    }}
-                  />
+                  <div className="esti-chart-md">
+                    <DonutChart
+                      data={revenueData}
+                      options={{
+                        data: { groupMapsTo: "group" },
+                        donut: { center: { label: "Revenue" }, alignment: "center" },
+                        height: CHART_HEIGHT,
+                        theme: chartTheme,
+                        toolbar: { enabled: false },
+                        legend: { enabled: true, position: "bottom" as const },
+                        tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                      }}
+                    />
+                  </div>
                 )}
               </Stack>
             </Tile>
@@ -979,20 +983,22 @@ export function Dashboard() {
                 ) : agingEmpty ? (
                   <p>No outstanding receivables.</p>
                 ) : (
-                  <SimpleBarChart
-                    data={agingData}
-                    options={{
-                      axes: {
-                        left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
-                        bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
-                      },
-                      height: CHART_HEIGHT,
-                      theme: chartTheme,
-                      toolbar: { enabled: false },
-                      legend: { enabled: false },
-                      tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
-                    }}
-                  />
+                  <div className="esti-chart-md">
+                    <SimpleBarChart
+                      data={agingData}
+                      options={{
+                        axes: {
+                          left: { mapsTo: "group", scaleType: ScaleTypes.LABELS },
+                          bottom: { mapsTo: "value", scaleType: ScaleTypes.LINEAR },
+                        },
+                        height: CHART_HEIGHT,
+                        theme: chartTheme,
+                        toolbar: { enabled: false },
+                        legend: { enabled: false },
+                        tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
+                      }}
+                    />
+                  </div>
                 )}
               </Stack>
             </Tile>

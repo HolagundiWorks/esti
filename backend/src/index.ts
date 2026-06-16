@@ -15,6 +15,7 @@ import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { registerMoodImageUpload } from "./modules/spec/upload.js";
+import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 
@@ -79,6 +80,7 @@ registerDrawingUpload(app);
 registerReconcileUpload(app);
 registerFirmLogoUpload(app);
 registerMoodImageUpload(app);
+registerCalendarFeed(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",

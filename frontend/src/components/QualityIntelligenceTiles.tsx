@@ -50,8 +50,8 @@ export function technicalHealth(
   data: TechnicalIntelligenceSnapshot | null | undefined,
 ): QiCardHealth {
   if (!data) return "neutral";
-  if (data.drawingAccuracyPct < 75 || data.siteQueryRate > 25) return "alert";
-  if (data.drawingAccuracyPct < 90 || data.siteQueryRate > 10) return "watch";
+  if (data.drawingClarityScore < 75 || data.siteQueryRate > 25) return "alert";
+  if (data.drawingClarityScore < 90 || data.siteQueryRate > 10) return "watch";
   return "ok";
 }
 
@@ -220,11 +220,13 @@ export function TechnicalQualityTile({
           <p className="esti-qi-empty">No data.</p>
         ) : (
           <div className="esti-qi-metrics esti-qi-metrics--wide">
-            <MetricRow label="Drawing accuracy" value={`${data.drawingAccuracyPct}%`} />
+            <MetricRow label="Drawing clarity" value={`${data.drawingClarityScore}%`} />
             <MetricRow label="Site query rate" value={`${data.siteQueryRate}%`} />
+            <MetricRow label="Repeat query rate" value={`${data.repeatQueryRate}%`} />
+            <MetricRow label="Drawing accuracy" value={`${data.drawingAccuracyPct}%`} />
+            <MetricRow label="Issued drawings" value={data.issuedDrawings} />
             <MetricRow label="Internal errors" value={data.internalErrors} />
             <MetricRow label="Technical queries" value={data.techQueries} />
-            <MetricRow label="Drawings issued" value={data.totalDrawings} />
           </div>
         )}
       </Stack>
@@ -289,6 +291,9 @@ export const QUALITY_INTELLIGENCE_DEMO: {
   technical: {
     drawingAccuracyPct: 92,
     siteQueryRate: 8,
+    repeatQueryRate: 12,
+    drawingClarityScore: 88,
+    issuedDrawings: 186,
     internalErrors: 3,
     techQueries: 5,
     totalDrawings: 186,

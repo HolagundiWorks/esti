@@ -16,6 +16,7 @@ import {
   TextArea,
   TextInput,
   Tile,
+  Toggle,
 } from "@carbon/react";
 import { MeterChart } from "@carbon/charts-react";
 import {
@@ -124,6 +125,14 @@ function MemberScoreCard({
             <KpiMeter label="Client Impact" value={member.kpi.clientImpact} weight="15%" chartTheme={chartTheme} />
             <KpiMeter label="Collaboration" value={member.kpi.collaboration} weight="15%" chartTheme={chartTheme} />
             <KpiMeter label="Learning" value={member.kpi.learning} weight="10%" chartTheme={chartTheme} />
+            {member.wellbeingOptIn && member.kpi.wellbeing !== null && (
+              <KpiMeter
+                label="Wellbeing"
+                value={member.kpi.wellbeing}
+                weight="5%"
+                chartTheme={chartTheme}
+              />
+            )}
           </Stack>
 
           <Stack orientation="horizontal" gap={5}>
@@ -224,7 +233,15 @@ export function Performance() {
   const chartTheme = useAppTheme();
   const utils = trpc.useUtils();
   const scoresQ = trpc.aspRf.teamScores.useQuery();
+  const myScoreQ = trpc.aspRf.myScore.useQuery();
   const scores = scoresQ.data ?? [];
+
+  const setWellbeing = trpc.aspRf.setWellbeingOptIn.useMutation({
+    onSuccess: () => {
+      utils.aspRf.teamScores.invalidate();
+      utils.aspRf.myScore.invalidate();
+    },
+  });
 
   // Reward grant modal
   const [grantTarget, setGrantTarget] = useState<AspRfMemberScore | null>(null);
@@ -258,6 +275,26 @@ export function Performance() {
         title="Performance"
         description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
       />
+
+      {myScoreQ.data && (
+        <Tile style={{ maxWidth: 640 }}>
+          <Stack gap={4}>
+            <h3>Wellbeing dimension (optional)</h3>
+            <p>
+              When enabled, your ASPRF score includes a wellbeing KPI based on
+              overdue tasks and sustained heavy due-day load. Informational only
+              — not used for discipline.
+            </p>
+            <Toggle
+              id="wellbeing-opt-in"
+              labelText="Include wellbeing in my ASPRF score"
+              toggled={myScoreQ.data.wellbeingOptIn}
+              disabled={setWellbeing.isPending}
+              onToggle={(checked) => setWellbeing.mutate({ optIn: checked })}
+            />
+          </Stack>
+        </Tile>
+      )}
 
       {/* KPI summary */}
       <Grid narrow>

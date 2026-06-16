@@ -1,6 +1,13 @@
+import { toWebcalUrl, type WorkloadCalendarScope } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { and, count, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { tasks, teamMembers } from "../../db/schema.js";
+import {
+  calendarFeedPath,
+  ensureCalendarFeedToken,
+  rotateCalendarFeedToken,
+} from "../../lib/workloadCalendar.js";
 import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -76,4 +83,56 @@ export const workloadRouter = router({
           .map((r) => ({ date: String(r.d), total: Number(r.n) })),
       };
     }),
+
+  /**
+   * Subscription URL for Google Calendar / Apple Calendar (iCal over HTTPS).
+   * Google: Other calendars → Add by URL → paste the https link.
+   */
+  calendarSubscription: protectedProcedure
+    .input(
+      z
+        .object({
+          scope: z.enum(["mine", "office"]).default("mine"),
+          origin: z.string().url().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      await requireHrEnabled(ctx.db);
+      if (ctx.user.role === "CLIENT" || ctx.user.role === "CONSULTANT") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Staff account required." });
+      }
+
+      const scope: WorkloadCalendarScope = input?.scope ?? "mine";
+      if (scope === "office" && !["OWNER", "PARTNER", "SENIOR"].includes(ctx.user.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Office workload feed requires Partner or above.",
+        });
+      }
+
+      const token = await ensureCalendarFeedToken(ctx.db, ctx.user.id);
+      const path = calendarFeedPath(token, scope);
+      const origin = input?.origin?.replace(/\/$/, "") ?? "";
+      const httpsUrl = origin ? `${origin}${path}` : path;
+      const webcalUrl = origin ? toWebcalUrl(httpsUrl) : toWebcalUrl(`https://example.com${path}`);
+
+      return {
+        scope,
+        path,
+        httpsUrl,
+        webcalUrl,
+        canOfficeScope: ["OWNER", "PARTNER", "SENIOR"].includes(ctx.user.role),
+      };
+    }),
+
+  /** Invalidate the old subscription link and issue a new secret token. */
+  regenerateCalendarToken: protectedProcedure.mutation(async ({ ctx }) => {
+    await requireHrEnabled(ctx.db);
+    if (ctx.user.role === "CLIENT" || ctx.user.role === "CONSULTANT") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Staff account required." });
+    }
+    await rotateCalendarFeedToken(ctx.db, ctx.user.id);
+    return { ok: true as const };
+  }),
 });

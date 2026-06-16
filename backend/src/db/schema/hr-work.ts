@@ -33,6 +33,11 @@ export const teamMembers = pgTable("esti_teammember", {
   active: boolean("active").notNull().default(true),
   /** Links this team member to their ESTI user account (enables "my tasks"). */
   userId: uuid("user_id").references(() => users.id),
+  /** Shown on leave-impact alerts only — not full HR/payroll data. */
+  backupContactName: text("backup_contact_name"),
+  backupContactPhone: text("backup_contact_phone"),
+  /** When true, ASPRF composite includes the wellbeing dimension (opt-in). */
+  wellbeingOptIn: boolean("wellbeing_opt_in").notNull().default(false),
   createdAt: createdAt(),
 });
 
