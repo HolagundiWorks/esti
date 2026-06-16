@@ -79,6 +79,11 @@ The schema is managed with **Drizzle migrations** committed under
 on startup**, so a fresh database is provisioned on first boot and upgrades
 apply when you deploy a newer image. No manual step is needed.
 
+On first boot the backend also **creates the MinIO documents bucket**
+(`S3_BUCKET`, default `esti-documents`) if it does not exist. The Python worker
+creates the bucket on first upload as a fallback. PDF generation and drawing
+uploads therefore work on a fresh stack without a separate MinIO init step.
+
 To generate a new migration after changing `backend/src/db/schema.ts`:
 
 ```bash

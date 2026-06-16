@@ -136,7 +136,8 @@ Optional input fields for POST-design validation:
 | Rule-set admin UI | Version lifecycle | Seed + read API only; no publish/edit screen |
 | Normalized project I/O tables | `esti_project_bylaw_input` | Deferred — JSONB documented above |
 | Hospital LPD solar lookup | `esti_solar_rule` | Table seeded; engine uses site-area trigger via secondary rules |
-| Compliance PDF | ROADMAP Phase 2G gate | RIE has PDF hooks; branded envelope PDF open |
+| Compliance PDF | RIE site assessment | Delivered via worker `target="compliance"` |
+| Document PDFs (invoice, spec sheet, …) | Worker `render_pdf` | Requires object-store bucket — auto-provisioned at backend startup (2026-06-16) |
 | Recalculate-all on rule publish | Recalculation rules | No background job |
 | Multi-jurisdiction | Knowledge bank | BBMP-only modular engine; other authorities use RIE rule JSON |
 
