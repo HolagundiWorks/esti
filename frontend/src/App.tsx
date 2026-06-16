@@ -161,15 +161,11 @@ function AppShell() {
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
     return (
-      <Theme theme={theme}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="*"
-            element={<Landing />}
-          />
-        </Routes>
-      </Theme>
+      <Routes>
+        {/* Login follows the saved theme; the marketing landing is always white. */}
+        <Route path="/login" element={<Theme theme={theme}><Login /></Theme>} />
+        <Route path="*" element={<Theme theme="white"><Landing /></Theme>} />
+      </Routes>
     );
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT")
