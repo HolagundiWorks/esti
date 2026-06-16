@@ -29,8 +29,9 @@ export function PortalHeader({
         <HeaderGlobalAction
           aria-label="Sign out"
           tooltipAlignment="end"
-          onClick={onSignOut}
-          disabled={signingOut}
+          onClick={() => {
+            if (!signingOut) onSignOut();
+          }}
         >
           <Logout size={20} />
         </HeaderGlobalAction>

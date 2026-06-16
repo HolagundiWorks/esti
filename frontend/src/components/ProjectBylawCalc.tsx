@@ -147,6 +147,9 @@ export function ProjectBylawCalc({
       rear: side(sides.rear!),
       left: side(sides.left!),
       right: side(sides.right!),
+      hasBasement: false,
+      basementHeightM: 0,
+      basementMechanicalParking: false,
     };
   }
 
