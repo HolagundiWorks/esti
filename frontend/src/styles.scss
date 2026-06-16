@@ -138,9 +138,22 @@ html:has(.esti-app-shell) body {
 // and drop the grid's extra inline padding (the app shell's Content already
 // supplies the horizontal page gutter).
 .esti-dash {
-  row-gap: 1px;
+  // Gentle vertical rhythm to match the condensed 16px column gutters (was 1px,
+  // which made rows nearly touch while columns had clear gaps).
+  row-gap: 0.5rem;
   padding-inline: 0;
 }
+
+// Top-level zone header (parent of the section tiles below it). Lightweight —
+// no tile/box — and set apart from the previous zone so the page reads in tiers
+// instead of one flat stack of identical headers. Layout + token colour only.
+.esti-zone-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-block-start: 1.25rem;
+}
+.esti-zone-head p { color: var(--cds-text-secondary); }
 
 // Quality intelligence tiles — shared by dashboard and landing preview
 .esti-qi-tiles {

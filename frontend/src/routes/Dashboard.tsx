@@ -173,13 +173,40 @@ function ZoneTile({
           {statusTag.text}
         </Tag>
       )}
-      {to && <ArrowRight size={20} />}
+      {to && <ArrowRight size={16} />}
     </div>
   );
   return to ? (
     <ClickableTile className="esti-fill" onClick={() => navigate(to)}>{inner}</ClickableTile>
   ) : (
     <Tile className="esti-fill">{inner}</Tile>
+  );
+}
+
+// ─── ZoneHead — top-level zone label (parent of the section tiles below) ──────
+// Lightweight h2 header, not a tile, so the page reads in tiers: zone → sections.
+
+function ZoneHead({
+  title,
+  sub,
+  statusTag,
+}: {
+  title: string;
+  sub?: string;
+  statusTag?: { text: string; type: TagType };
+}) {
+  return (
+    <div className="esti-zone-head">
+      <div className="esti-grow">
+        <h2>{title}</h2>
+        {sub && <p>{sub}</p>}
+      </div>
+      {statusTag && (
+        <Tag type={statusTag.type} size="sm">
+          {statusTag.text}
+        </Tag>
+      )}
+    </div>
   );
 }
 
@@ -412,8 +439,7 @@ export function Dashboard() {
 
       {/* ═══ Overall · office pulse ═══════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
+        <ZoneHead
           title="Office overview"
           sub={hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
         />
@@ -509,8 +535,7 @@ export function Dashboard() {
 
       {/* ═══ Personal · your workload ═════════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
+        <ZoneHead
           title="Personal"
           sub={hrEnabled ? "Tasks assigned to you and leave balance." : "Tasks assigned to you."}
         />
@@ -520,8 +545,7 @@ export function Dashboard() {
 
       {/* ═══ Action Center — what needs attention now ═════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
+        <ZoneHead
           title="Action Center"
           sub="Billing, approvals, and risk items that need a decision today."
           statusTag={
@@ -661,8 +685,7 @@ export function Dashboard() {
 
       {/* ═══ Company · delivery & people ══════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
+        <ZoneHead
           title="Company"
           sub={
             hrEnabled
@@ -935,8 +958,7 @@ export function Dashboard() {
 
       {/* ═══ Financial · revenue & filing ═══════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
+        <ZoneHead
           title="Financial"
           sub="Revenue, receivables, and GST/TDS filing."
         />
