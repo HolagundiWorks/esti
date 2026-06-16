@@ -24,6 +24,8 @@ export const teamRouter = router({
         employmentType: input.employmentType,
         email: input.email || null,
         phone: input.phone ?? null,
+        backupContactName: input.backupContactName ?? null,
+        backupContactPhone: input.backupContactPhone ?? null,
         monthlySalaryPaise: input.monthlySalaryPaise,
         dateJoined: input.dateJoined ?? null,
       })
@@ -50,6 +52,12 @@ export const teamRouter = router({
           : {}),
         ...(input.role !== undefined ? { role: input.role } : {}),
         ...(input.active !== undefined ? { active: input.active } : {}),
+        ...(input.backupContactName !== undefined
+          ? { backupContactName: input.backupContactName }
+          : {}),
+        ...(input.backupContactPhone !== undefined
+          ? { backupContactPhone: input.backupContactPhone }
+          : {}),
       })
       .where(eq(teamMembers.id, input.id))
       .returning();

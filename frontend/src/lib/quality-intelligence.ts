@@ -1,3 +1,5 @@
+import type { TechnicalIntelligenceSnapshot } from "@esti/contracts";
+
 export type RevisionIntelligenceSnapshot = {
   revisionRiskBand: "LOW" | "MEDIUM" | "HIGH";
   healthScore: number;
@@ -9,13 +11,7 @@ export type RevisionIntelligenceSnapshot = {
   totalDecisions: number;
 };
 
-export type TechnicalIntelligenceSnapshot = {
-  drawingAccuracyPct: number;
-  siteQueryRate: number;
-  internalErrors: number;
-  techQueries: number;
-  totalDrawings: number;
-};
+export type { TechnicalIntelligenceSnapshot };
 
 export const STUDIO_QUALITY_GROUP = "Studio quality";
 
@@ -53,7 +49,7 @@ export function computeStudioQualityAxes(
 
   return [
     { feature: "Revision health", score: clampScore(revision.healthScore) },
-    { feature: "Drawing accuracy", score: clampScore(technical.drawingAccuracyPct) },
+    { feature: "Drawing accuracy", score: clampScore(technical.drawingClarityScore) },
     { feature: "Scope control", score: clampScore(100 - revision.scopeDriftPct) },
     { feature: "Internal quality", score: clampScore(100 - internalErrorRate) },
     { feature: "Site coordination", score: clampScore(100 - technical.siteQueryRate) },

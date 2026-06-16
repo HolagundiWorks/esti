@@ -18,6 +18,7 @@ import { TASK_LOAD_BAND_LABEL, TASK_LOAD_BAND_RANGE, taskLoadBand } from "@esti/
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
 import { heatStyle, MONTHS, officeBand, toISO, WEEKDAYS } from "./workHelpers.js";
+import { WorkloadCalendarSync } from "./WorkloadCalendarSync.js";
 
 export function WorkloadTab() {
   const now = new Date();
@@ -87,6 +88,10 @@ export function WorkloadTab() {
             </Stack>
           </Stack>
         </Tile>
+      </Column>
+
+      <Column lg={16} md={8} sm={4}>
+        <WorkloadCalendarSync />
       </Column>
 
       <Column lg={10} md={8} sm={4}>

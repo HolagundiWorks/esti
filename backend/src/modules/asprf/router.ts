@@ -1,15 +1,14 @@
 /**
  * ASPRF — Architectural Staff Performance and Recognition Framework.
- * Computes rolling 30-day KPI scores from tasks, decisions, and approvals.
  */
 import {
-  type AspRfKpiScores,
   type AspRfMemberScore,
   type PerformanceBand,
   computeAspRfScore,
   performanceBand,
 } from "@esti/contracts";
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   approvals,
@@ -17,84 +16,19 @@ import {
   rewardPoints,
   tasks,
   teamMembers,
+  timesheets,
 } from "../../db/schema.js";
+import { scoreMemberAspRf } from "../../lib/asprfSignals.js";
 import { requireHrEnabled } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
-/** ISO date string N days before today. */
 function daysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
 }
 
-/** Clamp a 0–100 score. */
-function clamp(v: number): number {
-  return Math.max(0, Math.min(100, Math.round(v * 10) / 10));
-}
-
-/** Compute ASPRF KPI scores from raw signal counts. */
-function buildKpi(signals: {
-  totalTasks: number;
-  completedTasks: number;
-  onTimeTasks: number;
-  overdueTasks: number;
-  trainingTasks: number;
-  billableHours: number;
-  totalHours: number;
-  reviewsParticipated: number;
-  reviewsTotal: number;
-  internalRevisions: number;
-  totalRevisions: number;
-  firstPassApprovals: number;
-  totalApprovals: number;
-}): AspRfKpiScores {
-  const {
-    totalTasks,
-    completedTasks,
-    onTimeTasks,
-    trainingTasks,
-    reviewsParticipated,
-    reviewsTotal,
-    internalRevisions,
-    totalRevisions,
-    firstPassApprovals,
-    totalApprovals,
-  } = signals;
-
-  // Reliability: commitment (on-time / assigned) + delivery predictability
-  const commitmentRate = totalTasks > 0 ? onTimeTasks / totalTasks : 1;
-  const reliability = clamp(commitmentRate * 100);
-
-  // Quality: drawing accuracy (1 - internal error rate) weighted with task completion
-  const errorRate = totalRevisions > 0 ? internalRevisions / totalRevisions : 0;
-  const completionRate = totalTasks > 0 ? completedTasks / totalTasks : 1;
-  const quality = clamp((1 - errorRate) * 60 + completionRate * 40);
-
-  // Client Impact: first-pass approval rate
-  const fpRate = totalApprovals > 0 ? firstPassApprovals / totalApprovals : 1;
-  const clientImpact = clamp(fpRate * 100);
-
-  // Collaboration: review participation rate
-  const reviewRate = reviewsTotal > 0 ? reviewsParticipated / reviewsTotal : 1;
-  const collaboration = clamp(reviewRate * 100);
-
-  // Learning: training task ratio (TRAINING classification)
-  const trainingRate = totalTasks > 0 ? trainingTasks / Math.max(totalTasks, 10) : 0;
-  const learning = clamp(Math.min(trainingRate * 5, 1) * 100);
-
-  return {
-    reliability,
-    quality,
-    clientImpact,
-    collaboration,
-    learning,
-    wellbeing: null,
-  };
-}
-
 export const aspRfRouter = router({
-  /** 30-day rolling score for all active team members. */
   teamScores: protectedProcedure
     .input(z.object({ days: z.number().int().min(7).max(365).default(30) }).optional())
     .query(async ({ ctx, input }) => {
@@ -103,9 +37,14 @@ export const aspRfRouter = router({
       const since = daysAgo(days);
       const today = new Date().toISOString().slice(0, 10);
 
-      // All active team members
       const members = await ctx.db
-        .select({ id: teamMembers.id, name: teamMembers.name, role: teamMembers.role })
+        .select({
+          id: teamMembers.id,
+          name: teamMembers.name,
+          role: teamMembers.role,
+          userId: teamMembers.userId,
+          wellbeingOptIn: teamMembers.wellbeingOptIn,
+        })
         .from(teamMembers)
         .where(eq(teamMembers.active, true));
 
@@ -113,7 +52,6 @@ export const aspRfRouter = router({
 
       const memberIds = members.map((m) => m.id);
 
-      // Tasks assigned to each member (created in window)
       const allTasks = await ctx.db
         .select({
           id: tasks.id,
@@ -123,37 +61,74 @@ export const aspRfRouter = router({
           classification: tasks.classification,
           dueDate: tasks.dueDate,
           completedAt: tasks.completedAt,
-          createdAt: tasks.createdAt,
+          estimatedHours: tasks.estimatedHours,
         })
         .from(tasks)
-        .where(and(
-          inArray(tasks.assigneeId, memberIds),
-          gte(tasks.createdAt, new Date(since)),
-        ));
+        .where(
+          and(
+            inArray(tasks.assigneeId, memberIds),
+            gte(tasks.createdAt, new Date(since)),
+          ),
+        );
 
-      // Decisions in window (for revision signals)
+      const reviewTasks = await ctx.db
+        .select({
+          id: tasks.id,
+          assigneeId: tasks.assigneeId,
+          reviewerId: tasks.reviewerId,
+          status: tasks.status,
+          classification: tasks.classification,
+          dueDate: tasks.dueDate,
+          completedAt: tasks.completedAt,
+          estimatedHours: tasks.estimatedHours,
+        })
+        .from(tasks)
+        .where(
+          and(
+            inArray(tasks.reviewerId, memberIds),
+            gte(tasks.createdAt, new Date(since)),
+          ),
+        );
+
+      const taskMap = new Map<string, (typeof allTasks)[number]>();
+      for (const t of [...allTasks, ...reviewTasks]) taskMap.set(t.id, t);
+      const mergedTasks = [...taskMap.values()];
+
       const allDecisions = await ctx.db
         .select({
           revisionSource: decisions.revisionSource,
+          ownerId: decisions.ownerId,
         })
         .from(decisions)
         .where(gte(decisions.createdAt, new Date(since)));
 
-      const totalRevisions = allDecisions.length;
-      const internalRevisions = allDecisions.filter(
-        (d) => d.revisionSource === "INTERNAL_ERROR",
-      ).length;
-
-      // Approvals (first-pass: approved without prior rejection)
       const allApprovals = await ctx.db
-        .select({ status: approvals.status })
+        .select({
+          status: approvals.status,
+          createdById: approvals.createdById,
+          supersedesId: approvals.supersedesId,
+          sentDate: approvals.sentDate,
+        })
         .from(approvals)
-        .where(and(
-          eq(approvals.status, "APPROVED"),
-          gte(approvals.createdAt, new Date(since)),
-        ));
+        .where(gte(approvals.createdAt, new Date(since)));
 
-      // Reward points total per member
+      const taskIds = mergedTasks.map((t) => t.id);
+      const hoursRows =
+        taskIds.length === 0
+          ? []
+          : await ctx.db
+              .select({
+                taskId: timesheets.taskId,
+                total: sql<string>`coalesce(sum(${timesheets.hours}), 0)`,
+              })
+              .from(timesheets)
+              .where(inArray(timesheets.taskId, taskIds))
+              .groupBy(timesheets.taskId);
+
+      const hoursByTask = new Map(
+        hoursRows.filter((r) => r.taskId).map((r) => [r.taskId!, Number(r.total)]),
+      );
+
       const pointsRows = await ctx.db
         .select({
           teamMemberId: rewardPoints.teamMemberId,
@@ -165,39 +140,21 @@ export const aspRfRouter = router({
       const pointsByMember = new Map(pointsRows.map((r) => [r.teamMemberId, r.totalPoints]));
 
       const scores: AspRfMemberScore[] = members.map((m) => {
-        const myTasks = allTasks.filter((t) => t.assigneeId === m.id);
-        const myReviews = allTasks.filter((t) => t.reviewerId === m.id);
-
-        const totalTasks = myTasks.length;
-        const completedTasks = myTasks.filter((t) => t.status === "DONE").length;
-        const onTimeTasks = myTasks.filter(
-          (t) => t.status === "DONE" && (!t.dueDate || (t.completedAt && new Date(t.completedAt) <= new Date(t.dueDate + "T23:59:59Z"))),
-        ).length;
-        const overdueTasks = myTasks.filter(
-          (t) => t.dueDate && t.dueDate < today && t.status !== "DONE",
-        ).length;
-        const trainingTasks = myTasks.filter((t) => t.classification === "TRAINING").length;
-
-        const reviewsParticipated = myReviews.filter((t) => t.status === "DONE").length;
-        const reviewsTotal = myReviews.length;
-
-        const kpi = buildKpi({
-          totalTasks,
-          completedTasks,
-          onTimeTasks,
-          overdueTasks,
-          trainingTasks,
-          billableHours: 0,
-          totalHours: 0,
-          reviewsParticipated,
-          reviewsTotal,
-          internalRevisions,
-          totalRevisions,
-          firstPassApprovals: allApprovals.length,
-          totalApprovals: allApprovals.length || 1,
+        const scored = scoreMemberAspRf({
+          ctx: {
+            memberId: m.id,
+            userId: m.userId,
+            wellbeingOptIn: m.wellbeingOptIn,
+          },
+          today,
+          windowDays: days,
+          tasks: mergedTasks,
+          decisions: allDecisions,
+          approvals: allApprovals,
+          hoursByTask,
         });
 
-        const score = computeAspRfScore(kpi, false);
+        const score = computeAspRfScore(scored.kpi, m.wellbeingOptIn);
         const band: PerformanceBand | null = performanceBand(score);
 
         return {
@@ -206,75 +163,161 @@ export const aspRfRouter = router({
           memberRole: m.role,
           score,
           band,
-          kpi,
-          totalTasks,
-          completedOnTime: onTimeTasks,
-          overdueCount: overdueTasks,
-          trainingCount: trainingTasks,
+          kpi: scored.kpi,
+          totalTasks: scored.totalTasks,
+          completedOnTime: scored.completedOnTime,
+          overdueCount: scored.overdueCount,
+          trainingCount: scored.trainingCount,
           totalPoints: pointsByMember.get(m.id) ?? 0,
-          wellbeingOptIn: false,
+          wellbeingOptIn: m.wellbeingOptIn,
         };
       });
 
       return scores.sort((a, b) => b.score - a.score);
     }),
 
-  /** 30-day score for the calling user's team member profile. */
-  myScore: protectedProcedure
-    .query(async ({ ctx }) => {
+  myScore: protectedProcedure.query(async ({ ctx }) => {
+    await requireHrEnabled(ctx.db);
+    const [tm] = await ctx.db
+      .select({
+        id: teamMembers.id,
+        name: teamMembers.name,
+        role: teamMembers.role,
+        userId: teamMembers.userId,
+        wellbeingOptIn: teamMembers.wellbeingOptIn,
+      })
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, ctx.user.id));
+    if (!tm) return null;
+
+    const since = daysAgo(30);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const assigneeTasks = await ctx.db
+      .select({
+        id: tasks.id,
+        assigneeId: tasks.assigneeId,
+        reviewerId: tasks.reviewerId,
+        status: tasks.status,
+        classification: tasks.classification,
+        dueDate: tasks.dueDate,
+        completedAt: tasks.completedAt,
+        estimatedHours: tasks.estimatedHours,
+      })
+      .from(tasks)
+      .where(and(eq(tasks.assigneeId, tm.id), gte(tasks.createdAt, new Date(since))));
+
+    const reviewTasks = await ctx.db
+      .select({
+        id: tasks.id,
+        assigneeId: tasks.assigneeId,
+        reviewerId: tasks.reviewerId,
+        status: tasks.status,
+        classification: tasks.classification,
+        dueDate: tasks.dueDate,
+        completedAt: tasks.completedAt,
+        estimatedHours: tasks.estimatedHours,
+      })
+      .from(tasks)
+      .where(and(eq(tasks.reviewerId, tm.id), gte(tasks.createdAt, new Date(since))));
+
+    const taskMap = new Map<string, (typeof assigneeTasks)[number]>();
+    for (const t of [...assigneeTasks, ...reviewTasks]) taskMap.set(t.id, t);
+    const mergedTasks = [...taskMap.values()];
+
+    const myDecisions = await ctx.db
+      .select({
+        revisionSource: decisions.revisionSource,
+        ownerId: decisions.ownerId,
+      })
+      .from(decisions)
+      .where(and(eq(decisions.ownerId, ctx.user.id), gte(decisions.createdAt, new Date(since))));
+
+    const myApprovals = await ctx.db
+      .select({
+        status: approvals.status,
+        createdById: approvals.createdById,
+        supersedesId: approvals.supersedesId,
+        sentDate: approvals.sentDate,
+      })
+      .from(approvals)
+      .where(
+        and(eq(approvals.createdById, ctx.user.id), gte(approvals.createdAt, new Date(since))),
+      );
+
+    const taskIds = mergedTasks.map((t) => t.id);
+    const hoursRows =
+      taskIds.length === 0
+        ? []
+        : await ctx.db
+            .select({
+              taskId: timesheets.taskId,
+              total: sql<string>`coalesce(sum(${timesheets.hours}), 0)`,
+            })
+            .from(timesheets)
+            .where(inArray(timesheets.taskId, taskIds))
+            .groupBy(timesheets.taskId);
+
+    const hoursByTask = new Map(
+      hoursRows.filter((r) => r.taskId).map((r) => [r.taskId!, Number(r.total)]),
+    );
+
+    const [pointsRow] = await ctx.db
+      .select({ total: sql<number>`cast(sum(${rewardPoints.points}) as int)` })
+      .from(rewardPoints)
+      .where(eq(rewardPoints.teamMemberId, tm.id));
+
+    const scored = scoreMemberAspRf({
+      ctx: {
+        memberId: tm.id,
+        userId: tm.userId,
+        wellbeingOptIn: tm.wellbeingOptIn,
+      },
+      today,
+      windowDays: 30,
+      tasks: mergedTasks,
+      decisions: myDecisions,
+      approvals: myApprovals,
+      hoursByTask,
+    });
+
+    const score = computeAspRfScore(scored.kpi, tm.wellbeingOptIn);
+
+    return {
+      teamMemberId: tm.id,
+      memberName: tm.name,
+      memberRole: tm.role,
+      score,
+      band: performanceBand(score),
+      kpi: scored.kpi,
+      totalTasks: scored.totalTasks,
+      completedOnTime: scored.completedOnTime,
+      overdueCount: scored.overdueCount,
+      trainingCount: scored.trainingCount,
+      totalPoints: pointsRow?.total ?? 0,
+      wellbeingOptIn: tm.wellbeingOptIn,
+    } as AspRfMemberScore;
+  }),
+
+  /** Opt in/out of the wellbeing KPI dimension (updates composite weighting). */
+  setWellbeingOptIn: protectedProcedure
+    .input(z.object({ optIn: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
       await requireHrEnabled(ctx.db);
       const [tm] = await ctx.db
-        .select({ id: teamMembers.id, name: teamMembers.name, role: teamMembers.role })
+        .select({ id: teamMembers.id })
         .from(teamMembers)
         .where(eq(teamMembers.userId, ctx.user.id));
-      if (!tm) return null;
-
-      const since = daysAgo(30);
-      const today = new Date().toISOString().slice(0, 10);
-
-      const myTasks = await ctx.db
-        .select({
-          status: tasks.status, classification: tasks.classification,
-          dueDate: tasks.dueDate, completedAt: tasks.completedAt,
-        })
-        .from(tasks)
-        .where(and(eq(tasks.assigneeId, tm.id), gte(tasks.createdAt, new Date(since))));
-
-      const [pointsRow] = await ctx.db
-        .select({ total: sql<number>`cast(sum(${rewardPoints.points}) as int)` })
-        .from(rewardPoints)
-        .where(eq(rewardPoints.teamMemberId, tm.id));
-
-      const totalTasks = myTasks.length;
-      const completedTasks = myTasks.filter((t) => t.status === "DONE").length;
-      const onTimeTasks = myTasks.filter(
-        (t) => t.status === "DONE" && (!t.dueDate || (t.completedAt && new Date(t.completedAt) <= new Date(t.dueDate + "T23:59:59Z"))),
-      ).length;
-      const overdueTasks = myTasks.filter(
-        (t) => t.dueDate && t.dueDate < today && t.status !== "DONE",
-      ).length;
-      const trainingTasks = myTasks.filter((t) => t.classification === "TRAINING").length;
-
-      const kpi = buildKpi({
-        totalTasks, completedTasks, onTimeTasks, overdueTasks, trainingTasks,
-        billableHours: 0, totalHours: 0, reviewsParticipated: 0, reviewsTotal: 0,
-        internalRevisions: 0, totalRevisions: 1, firstPassApprovals: 1, totalApprovals: 1,
-      });
-      const score = computeAspRfScore(kpi, false);
-
-      return {
-        teamMemberId: tm.id,
-        memberName: tm.name,
-        memberRole: tm.role,
-        score,
-        band: performanceBand(score),
-        kpi,
-        totalTasks,
-        completedOnTime: onTimeTasks,
-        overdueCount: overdueTasks,
-        trainingCount: trainingTasks,
-        totalPoints: pointsRow?.total ?? 0,
-        wellbeingOptIn: false,
-      } as AspRfMemberScore;
+      if (!tm) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Link your user account to a team member profile first.",
+        });
+      }
+      await ctx.db
+        .update(teamMembers)
+        .set({ wellbeingOptIn: input.optIn })
+        .where(eq(teamMembers.id, tm.id));
+      return { wellbeingOptIn: input.optIn };
     }),
 });

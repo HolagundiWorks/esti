@@ -37,6 +37,8 @@ export const TeamMemberCreate = z.object({
   employmentType: EmploymentType,
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().max(40).optional(),
+  backupContactName: z.string().max(120).optional(),
+  backupContactPhone: z.string().max(40).optional(),
   monthlySalaryPaise: z.number().int().nonnegative().default(0),
   dateJoined: z.string().nullable().optional(),
 });
@@ -47,6 +49,8 @@ export const TeamMemberUpdate = z.object({
   monthlySalaryPaise: z.number().int().nonnegative().optional(),
   role: TeamRole.optional(),
   active: z.boolean().optional(),
+  backupContactName: z.string().max(120).nullable().optional(),
+  backupContactPhone: z.string().max(40).nullable().optional(),
 });
 export type TeamMemberUpdate = z.infer<typeof TeamMemberUpdate>;
 

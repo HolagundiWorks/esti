@@ -274,6 +274,27 @@
       "when": 1781192500000,
       "tag": "0038_spec_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1781192600000,
+      "tag": "0039_escalation_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1781192700000,
+      "tag": "0040_calendar_feed",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1781192800000,
+      "tag": "0041_wellbeing_opt_in",
+      "breakpoints": true
     }
   ]
 }

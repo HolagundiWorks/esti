@@ -21,6 +21,7 @@ export default defineConfig({
       "/trpc": { target: proxyTarget, changeOrigin: true },
       // Binary upload endpoints (logo, drawings, reconcile) live outside tRPC.
       "/upload": { target: proxyTarget, changeOrigin: true },
+      "/calendar": { target: proxyTarget, changeOrigin: true },
       "/health": { target: proxyTarget, changeOrigin: true },
     },
   },

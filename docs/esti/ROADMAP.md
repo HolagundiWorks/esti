@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (Phase 4A test gate complete)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (Phase 5 ASPRF KPIs complete)
 
 This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
 **P0** security/data integrity, **P1** operational core, **P2** expansion,
@@ -740,13 +740,23 @@ automatically from typed decision records with no manual data entry.
 - [x] **ASPRF — Anti-gaming:** difficulty coefficient (1–5) on each task;
   estimated hours field for delivery-predictability scoring.
 - [x] Carbon board (Kanban) view for tasks — status columns (To do / In progress /
-  Done) on the Work module with inline status moves; calendar view still pending.
+  Done) on the Work module with inline status moves; month heatmap calendar on
+  Workload tab; **Google Calendar sync** via per-user iCal subscription URL
+  (`/calendar/workload/{token}.ics`, migration `0040`); full task calendar
+  grid view still pending.
 - [x] Daily updates: completed, in progress, blocked; upsert per team member per
   day; Stand-up tab on Work module with team view.
 - [x] Timesheets: per-person per-day attribution to project/task with billable
   toggle; Timesheets tab on Work module; summary query for ASPRF scoring.
-- [ ] Configurable escalation rules and digest delivery.
-- [ ] Leave-impact notifications and backup contacts with privacy filtering.
+- [x] Configurable escalation rules and digest delivery.
+  - `esti_orgsettings.escalation_settings` jsonb (migration `0039`); owner UI on
+    Company → Alert escalation; `notifications.list` (immediate) +
+    `notifications.digest` (daily medium-priority items); thresholds for stale
+    approvals, follow-up lead time, overdue tasks, and leave horizon.
+- [x] Leave-impact notifications and backup contacts with privacy filtering.
+  - Approved leave within horizon surfaces on alerts with project assignments;
+    optional `backupContactName` / `backupContactPhone` on team members (staff
+    alerts only — no HR/payroll fields exposed to portals).
 - [x] **ASPRF — Performance score engine:** rolling 30-day composite score per
   team member computed from tasks, timesheets, decisions, and approvals;
   weighted across 6 KPI dimensions; `teamScores` + `myScore` tRPC queries;
@@ -756,25 +766,37 @@ automatically from typed decision records with no manual data entry.
 - [x] **ASPRF — Recognition awards + reward points engine:** 7 award types with
   Carbon tag colours; 7 reward point event types (10–50 pts); `rewards.grant`
   ownerProcedure with audit; Recognition tab on Performance page.
-- [ ] **ASPRF — Reliability KPI:** detailed delivery-predictability refinement
-  (estimated vs actual duration using timesheet hours).
-- [ ] **ASPRF — Quality KPI:** rework rate from internal decisions; QA score.
-- [ ] **ASPRF — Client Impact KPI:** first-pass approval rate refinement.
-- [ ] **ASPRF — Collaboration KPI:** reviewer participation from task reviewer field.
-- [ ] **ASPRF — Learning KPI:** training task classification ratio.
-- [ ] **ASPRF — Wellbeing KPI (opt-in):** workload health + burnout risk.
+- [x] **ASPRF — Reliability KPI:** detailed delivery-predictability refinement
+  (estimated vs actual duration using timesheet hours); blended 50/50 with
+  on-time commitment in `computeReliabilityKpi`.
+- [x] **ASPRF — Quality KPI:** rework rate from internal decisions; QA score.
+  - `computeQualityKpi` — 60% inverse internal-error rework rate + 40% task
+    completion rate; per-member decisions scoped by `ownerId`.
+- [x] **ASPRF — Client Impact KPI:** first-pass approval rate refinement.
+  - `computeClientImpactKpi` — root approvals the member issued that reached
+    APPROVED vs decided submissions, blended with inverse client-driven decision
+    share.
+- [x] **ASPRF — Collaboration KPI:** reviewer participation from task reviewer field.
+  - `computeCollaborationKpi` — 70% review completion rate + 30% on-time review
+    completion before task due date.
+- [x] **ASPRF — Learning KPI:** training task classification ratio.
+  - `computeLearningKpi` — TRAINING task share with ~10% target for full score.
+- [x] **ASPRF — Wellbeing KPI (opt-in):** workload health + burnout risk.
+  - `computeWellbeingKpi` — overdue-open ratio + heavy due-day pressure;
+    `wellbeing_opt_in` on team member (migration `0041`); toggle on Performance
+    page; 5% weight when opted in via `buildAspRfKpiScores`.
 - [x] **Team Utilization KPI:** `dashboard.utilization` query (30-day total +
   billable timesheet hours vs ~22d×8h capacity per active member); "Team utilization"
   chip in the dashboard KPI strip.
-- [ ] **Site & Drawing Intelligence:** site query rate (queries / issued
-  drawings); repeat query rate; drawing clarity score (100 − query penalties);
-  feeds Technical Intelligence module on dashboard.
+- [x] **Site & Drawing Intelligence:** site query rate (queries ÷ issued
+  drawings); repeat query rate (drawings with 2+ queries); drawing clarity score
+  (100 − query/repeat/error penalties); feeds Technical Intelligence module on
+  dashboard and studio quality radar.
 
-**Gate (partial — first-wave delivered):** task work types, timesheets, daily
-stand-ups, and the ASPRF rolling-score engine are operational. Full gate requires
-calendar/board task views, configurable escalation rules, leave-impact notifications,
-and the detailed per-dimension KPI refinements (timesheet-based delivery predictability,
-rework-rate quality scoring, collaboration/learning/wellbeing depth).
+**Gate (partial — ASPRF dimension refinements delivered):** task work types, timesheets,
+daily stand-ups, escalation/digest, leave-impact alerts, Google Calendar workload
+sync, and all six ASPRF KPI dimensions (including opt-in wellbeing) are operational.
+Full gate still requires a dedicated task calendar grid view in Work.
 
 **Delivered so far:** task `workType` + `difficultyCoefficient` + `estimatedHours`;
 `esti_timesheet` + `esti_daily_update` + `esti_reward_point` schemas and routers;
@@ -971,6 +993,8 @@ output records source objects, user, model, and approval state.
 - [ ] Tested PostgreSQL and object-store backup/restore.
 - [x] Object-store bucket auto-provision on backend startup and worker upload
   (MinIO `esti-documents`; prevents PDF/DXF upload failures on fresh stacks).
+- [x] Prod startup hardening — `ensureBucketWithRetry`, MinIO `depends_on`,
+  deploy `/health` gate, bootstrap bucket pre-create (`891fe64`).
 - [ ] Production secrets, TLS, public object-store/download strategy.
 - [ ] Cursor pagination/server caps across lists; remove N+1 polling hotspots.
 - [ ] Worker idempotency and documented resource/sandbox limits.
