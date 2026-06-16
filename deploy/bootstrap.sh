@@ -112,7 +112,16 @@ for i in $(seq 1 12); do
   fi
   sleep 5
 done
+
+# Load S3 creds for MinIO bucket bootstrap.
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
+ensure_minio_bucket "$DEPLOY_DIR" || warn "MinIO bucket setup failed — backend will retry on startup."
+
 docker compose -f compose.prod.yaml up -d backend worker
+wait_for_backend_health 30 2 || warn "Backend not healthy yet — check: docker logs esti-backend --tail 80"
 
 # ── 8. Build frontend static files ────────────────────────────────────────────
 info "Building frontend static files..."

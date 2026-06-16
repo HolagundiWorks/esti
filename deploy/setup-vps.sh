@@ -179,27 +179,21 @@ for i in $(seq 1 24); do
 done
 info "Database healthy."
 
-# Create MinIO bucket
+set -a
+# shellcheck disable=SC1091
+source "$DEPLOY_DIR/.env"
+set +a
 info "Creating MinIO bucket '${S3_BUCKET}'..."
-sleep 3
-docker run --rm --network esti-aorms-prod_esti-network \
-  minio/mc:latest sh -c "
-    mc alias set local http://esti-minio:9000 '${MINIO_USER}' '${MINIO_PASSWORD}' --quiet &&
-    mc mb --ignore-existing local/${S3_BUCKET} &&
-    mc anonymous set download local/${S3_BUCKET}
-  " 2>/dev/null && info "MinIO bucket ready." || warn "MinIO bucket creation skipped — run manually if needed."
+ensure_minio_bucket "$DEPLOY_DIR" && info "MinIO bucket ready." || warn "MinIO bucket creation skipped — backend will retry."
 
 # ── 9. Start backend + worker ─────────────────────────────────────────────────
 section "Starting backend and worker"
 docker compose -f compose.prod.yaml up -d backend worker
-echo -n "  Waiting for backend to start"
-for i in $(seq 1 12); do
-  sleep 5
-  echo -n "."
-  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4000/health 2>/dev/null || echo "000")
-  [[ "$CODE" == "200" ]] && echo "" && break
-done
-info "Backend running."
+if wait_for_backend_health 30 2; then
+  info "Backend running."
+else
+  warn "Backend /health failed — check: docker logs esti-backend --tail 80"
+fi
 
 # ── 10. Build frontend static files ──────────────────────────────────────────
 section "Building frontend"
