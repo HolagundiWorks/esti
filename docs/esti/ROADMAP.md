@@ -885,7 +885,13 @@ threaded replies round-trip (client/consultant ↔ firm, chronological, author s
   award via `update`. Tender detail UI: per-invitation Record/Edit bid, a bid-comparison
   table (lowest highlighted, weeks + technical score) and award from the comparison.
   **Pending:** contractor-submitted (sealed) bids via the portal — staff record bids for now.
-- [ ] Contractor portal isolated by invitation/project.
+- [x] **Contractor portal isolated by invitation/project.** Token-scoped bid
+  portal at `/bid/:token` (publicProcedure `contractorPortal.byToken` / `submitBid`,
+  keyed on the per-invitation 48-char `accessToken`). A contractor sees only their
+  own tender + their own bid (firm name for branding) and submits a sealed bid while
+  the tender is OPEN; first open marks the invitation VIEWED, submit marks SUBMITTED.
+  A bogus token returns NOT_FOUND — no cross-contractor data. Staff copy the link
+  per invitation from the tender detail ("Copy bid link"). **Satisfies the Phase 7 gate.**
 - [ ] RFIs, material submittals, shop drawings, inspection requests, site
   instructions, snags, and NCRs.
 - [ ] Tender and construction boards in Dashboard/Activity Center.
