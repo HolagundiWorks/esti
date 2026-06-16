@@ -62,13 +62,16 @@ try {
   process.exit(1);
 }
 
-try {
-  await ensureBucketWithRetry();
-  app.log.info({ bucket: BUCKET }, "object storage bucket ready");
-} catch (err) {
-  app.log.error(err, "object storage bucket setup failed after retries");
-  process.exit(1);
-}
+// Object storage backs file features (PDFs, drawings, uploads), but it must NOT
+// gate the whole API: if MinIO/S3 is briefly unreachable we still want auth,
+// dashboards and tRPC to serve. Provision the bucket in the background and retry;
+// per-request upload code calls ensureBucket() again before writing, so files
+// start working as soon as storage is reachable — no restart needed.
+void ensureBucketWithRetry()
+  .then(() => app.log.info({ bucket: BUCKET }, "object storage bucket ready"))
+  .catch((err) =>
+    app.log.error(err, "object storage not ready — file features will retry on use"),
+  );
 
 await app.register(cookie, { secret: env.SESSION_SECRET });
 await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 } });
