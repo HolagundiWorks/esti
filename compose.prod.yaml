@@ -63,12 +63,8 @@ services:
     # tunnel: ssh -L 9001:localhost:9001 user@server
     networks:
       - esti-network
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+    # No in-container healthcheck — the server image is distroless (no shell/curl/mc).
+    # bootstrap/setup scripts probe MinIO with an mc sidecar; backend retries bucket setup.
 
   # ── Backend (Fastify / tRPC) ──────────────────────────────────────────────────
   backend:
@@ -102,6 +98,18 @@ services:
         condition: service_healthy
       esti-redis:
         condition: service_healthy
+      esti-minio:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   # ── Frontend build container ──────────────────────────────────────────────────
   # Under the `build-only` profile so `docker compose up -d` never starts it.
@@ -156,6 +164,8 @@ services:
         condition: service_healthy
       esti-redis:
         condition: service_healthy
+      esti-minio:
+        condition: service_started
 
 networks:
   esti-network:

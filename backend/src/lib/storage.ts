@@ -31,6 +31,24 @@ export async function ensureBucket(): Promise<void> {
   ensured = true;
 }
 
+/** Retry bucket setup while MinIO (or managed S3) is still coming up. */
+export async function ensureBucketWithRetry(
+  attempts = 30,
+  delayMs = 2000,
+): Promise<void> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await ensureBucket();
+      return;
+    } catch (err) {
+      last = err;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw last;
+}
+
 export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
   await ensureBucket();
   await s3.putObject(BUCKET, key, body, body.length, { "Content-Type": contentType });

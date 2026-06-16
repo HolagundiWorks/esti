@@ -9,6 +9,9 @@ set -euo pipefail
 
 DEPLOY_DIR="${DEPLOY_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 GIT_BRANCH="${GIT_BRANCH:-main}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 info() { echo -e "${GREEN}[deploy]${NC} $*"; }
@@ -43,14 +46,12 @@ nginx -s reload 2>/dev/null || true
 # ── 4. Rolling restart — backend first, then worker ──────────────────────────
 info "Restarting backend (migrations run on startup)..."
 docker compose -f compose.prod.yaml up -d --no-deps --force-recreate backend
-info "Waiting for backend to become healthy..."
-for i in $(seq 1 20); do
-  STATUS=$(docker inspect --format='{{.State.Health.Status}}' esti-backend 2>/dev/null || echo "none")
-  if [[ "$STATUS" == "healthy" || "$STATUS" == "none" ]]; then
-    break
-  fi
-  sleep 3
-done
+info "Waiting for backend /health..."
+if ! wait_for_backend_health 30 2; then
+  warn "Backend did not pass /health — last logs:"
+  docker logs esti-backend --tail 40 2>/dev/null || true
+  exit 1
+fi
 
 info "Restarting worker..."
 docker compose -f compose.prod.yaml up -d --no-deps --force-recreate worker
