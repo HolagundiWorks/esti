@@ -112,12 +112,12 @@ export function parseSteelFlowCatalogRow(row: {
   version: string;
   family: string;
   description?: string | null;
-  geometry: unknown;
-  reinforcement: unknown;
+  geometry?: unknown;
+  reinforcement?: unknown;
   sourceCitation?: string | null;
 }): SteelFlowCatalogEntry | null {
-  const geo = row.geometry as Record<string, unknown>;
-  const reinf = row.reinforcement as Record<string, unknown>;
+  const geo = (row.geometry ?? {}) as Record<string, unknown>;
+  const reinf = (row.reinforcement ?? {}) as Record<string, unknown>;
   if (!Array.isArray(reinf.rebars)) return null;
   const elementType = (geo.elementType ?? row.family) as SfElementType;
   const parsed = SteelFlowCatalogEntry.safeParse({
