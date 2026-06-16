@@ -59,6 +59,7 @@ export const tenderRouter = router({
           contractorName: contractors.name,
           contractorCategory: contractors.category,
           status: tenderInvitations.status,
+          accessToken: tenderInvitations.accessToken,
           invitedAt: tenderInvitations.invitedAt,
         })
         .from(tenderInvitations)

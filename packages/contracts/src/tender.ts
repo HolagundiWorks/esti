@@ -72,6 +72,16 @@ export const TenderInvite = z.object({
 });
 export type TenderInvite = z.infer<typeof TenderInvite>;
 
+/** A contractor's bid submitted via their magic-link invitation token. */
+export const ContractorBidByToken = z.object({
+  token: z.string().min(10).max(96),
+  amountPaise: z.number().int().nonnegative(),
+  completionWeeks: z.number().int().min(0).max(520).optional(),
+  technicalScore: z.number().int().min(0).max(100).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+export type ContractorBidByToken = z.infer<typeof ContractorBidByToken>;
+
 /** A sealed bid recorded against an invitation (commercial + technical). */
 export const TenderBidInput = z.object({
   invitationId: z.string().uuid(),

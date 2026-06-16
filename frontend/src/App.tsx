@@ -46,6 +46,7 @@ import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
 import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Contractors } from "./routes/Contractors.js";
+import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
 import { Tenders } from "./routes/Tenders.js";
 import { Contracts } from "./routes/Contracts.js";
 import { Letters } from "./routes/Letters.js";
@@ -157,6 +158,17 @@ function AppShell() {
       (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
+
+  // Public contractor bid portal — a magic-link page reachable with or without a
+  // session (always white-themed, no app chrome).
+  if (pathname.startsWith("/bid/"))
+    return (
+      <Theme theme="white">
+        <Routes>
+          <Route path="/bid/:token" element={<ContractorBidPortal />} />
+        </Routes>
+      </Theme>
+    );
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
