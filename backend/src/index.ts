@@ -10,7 +10,7 @@ import { runMigrations } from "./db/migrate.js";
 import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
 import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
-import { BUCKET, s3 } from "./lib/storage.js";
+import { BUCKET, ensureBucket, s3 } from "./lib/storage.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
@@ -59,6 +59,14 @@ try {
   app.log.info("migrations applied");
 } catch (err) {
   app.log.error(err, "migration failed");
+  process.exit(1);
+}
+
+try {
+  await ensureBucket();
+  app.log.info({ bucket: BUCKET }, "object storage bucket ready");
+} catch (err) {
+  app.log.error(err, "object storage bucket setup failed");
   process.exit(1);
 }
 

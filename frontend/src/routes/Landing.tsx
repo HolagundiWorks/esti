@@ -54,41 +54,6 @@ const TRUST = [
   "Self-hosted · your data stays yours",
 ];
 
-const PRACTICE_FLOW: { step: string; title: string; body: Record<Audience, string> }[] = [
-  {
-    step: "01",
-    title: "Win the work",
-    body: {
-      freelancer: "Track enquiries, send COA-aligned fee proposals and contracts — with below-minimum guardrails built in.",
-      studio: "Client enquiries, COA-aligned fee proposals, contracts and phase plans — with below-minimum guardrails built in.",
-    },
-  },
-  {
-    step: "02",
-    title: "Design & document",
-    body: {
-      freelancer: "Drawing register, DXF takeoff, and client revision control — Minor, Major and Critical decisions tracked before they affect scope or fees.",
-      studio: "Drawing register, DXF takeoff, and client revision control — every change tagged Minor, Major or Critical before it hits your timeline or fee.",
-    },
-  },
-  {
-    step: "03",
-    title: "Check & quantify",
-    body: {
-      freelancer: "RIE bylaw engine (FAR, setbacks, coverage), Master DSR, BOQ and SteelFlow BBS per IS:456 / IS:2502.",
-      studio: "RIE bylaw engine (FAR, setbacks, coverage), Master DSR, BOQ and SteelFlow BBS per IS:456 / IS:2502.",
-    },
-  },
-  {
-    step: "04",
-    title: "Bill & deliver",
-    body: {
-      freelancer: "Phase-linked GST invoices, reconciliation and GSTR/TDS abstracts — with a client portal on every project.",
-      studio: "Phase-linked GST invoices, reconciliation, GSTR/TDS abstracts, client portal and immutable audit trail.",
-    },
-  },
-];
-
 const CAPS_SOLO: { icon: CarbonIconType; title: string; body: string }[] = [
   { icon: Document, title: "Client revision control", body: "Client portal decisions classified Minor, Major or Critical — with explicit warnings before scope, timeline or cost shift." },
   { icon: Money, title: "Fees & collections", body: "COA proposals, GST/TDS invoicing, ready-to-bill phases and ageing — without a finance team." },
@@ -199,7 +164,6 @@ const PERSONA: Record<Audience, {
   panelFoot: string;
   demoLabel: string;
   points: string[];
-  practiceLead: string;
   modulesLead: string;
   finalLine: string;
 }> = {
@@ -220,7 +184,6 @@ const PERSONA: Record<Audience, {
     panelFoot: "The dashboard a solo principal sees after login — billing and delivery without team noise.",
     demoLabel: "Open demo (solo view)",
     points: ["Client revisions — Minor / Major / Critical", "RIE + SteelFlow on real data", "Client portal with scope warnings", "Dedicated solo demo workspace — no team module"],
-    practiceLead: "ESTI follows how you run a one-person architecture practice — from enquiry to final invoice, without generic ERP steps.",
     modulesLead: "Same depth as a fifty-person studio, tuned for a single login — COA stages, drawing issues and lakh-formatted receivables out of the box.",
     finalLine: "Self-hosted AORMS for the solo architect who still runs a serious practice.",
   },
@@ -241,7 +204,6 @@ const PERSONA: Record<Audience, {
     panelFoot: "Revision risk, quality intelligence and ASPRF on the dashboard principals use every morning.",
     demoLabel: "Open demo (studio view)",
     points: ["Major / Critical revision workflow in demo", "Quality intelligence on office dashboard", "Rolling ASPRF scores by role", "14 projects · multi-role team"],
-    practiceLead: "ESTI follows the arc of an architecture studio — client revisions classified before they erode scope, then fees, delivery and team performance in one record.",
     modulesLead: "Revision control and ASPRF lead the module set — then COA stages, RIE deviations, drawing issues and lakh-formatted receivables out of the box.",
     finalLine: "Self-hosted AORMS for Indian architecture — from growing studio to fifty-person office.",
   },
@@ -285,7 +247,6 @@ export function Landing() {
       {audience && (
         <>
           <a href="#usp" onClick={() => setMenuOpen(false)}>Why ESTI</a>
-          <a href="#practice" onClick={() => setMenuOpen(false)}>Practice flow</a>
           <a href="#modules" onClick={() => setMenuOpen(false)}>Modules</a>
           <a href="#india" onClick={() => setMenuOpen(false)}>India-first</a>
           <a href="#demo" onClick={() => setMenuOpen(false)}>Demo</a>
@@ -517,25 +478,6 @@ export function Landing() {
                   </div>
                 </>
               )}
-            </section>
-
-            <section id="practice" className="esti-lp-section">
-              <div className="esti-lp-wrap">
-                <span className="esti-lp-eyebrow">How architects work</span>
-                <h2>From first meeting to final invoice</h2>
-                <p className="esti-lp-lead">{p.practiceLead}</p>
-                <ol className="esti-lp-flow">
-                  {PRACTICE_FLOW.map((f) => (
-                    <li key={f.step} className="esti-lp-flow-step">
-                      <span className="esti-lp-flow-num">{f.step}</span>
-                      <div>
-                        <h3>{f.title}</h3>
-                        <p>{f.body[audience]}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
             </section>
 
             <section id="modules" className="esti-lp-section esti-lp-section--muted">

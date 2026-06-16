@@ -7,6 +7,7 @@ from botocore.client import Config
 from .config import settings
 
 _client = None
+_ensured_buckets: set[str] = set()
 
 
 def s3():
@@ -23,9 +24,25 @@ def s3():
     return _client
 
 
+def ensure_bucket(bucket: str) -> None:
+    """Idempotently create the documents bucket (MinIO does not auto-provision)."""
+    if bucket in _ensured_buckets:
+        return
+    client = s3()
+    try:
+        client.head_bucket(Bucket=bucket)
+    except client.exceptions.ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code", "")
+        if code not in ("404", "NoSuchBucket", "NotFound"):
+            raise
+        client.create_bucket(Bucket=bucket)
+    _ensured_buckets.add(bucket)
+
+
 def get_bytes(bucket: str, key: str) -> bytes:
     return s3().get_object(Bucket=bucket, Key=key)["Body"].read()
 
 
 def put_bytes(bucket: str, key: str, data: bytes, content_type: str) -> None:
+    ensure_bucket(bucket)
     s3().put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type)
