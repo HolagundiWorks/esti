@@ -18,7 +18,13 @@ info()  { echo -e "${GREEN}[esti]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $*"; }
 error() { echo -e "${RED}[error]${NC} $*"; exit 1; }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
+DOMAIN="$(normalize_domain "${DOMAIN:-aorms.in}")"
 [[ -z $DOMAIN || $DOMAIN == "CHANGE_ME" ]] && error "Set a domain: DOMAIN=aorms.in bash bootstrap.sh"
+validate_domain "$DOMAIN" || error "Invalid DOMAIN (use hostname only, e.g. aorms.in)."
 [[ $EUID -ne 0 ]] && error "Run as root (sudo -i or sudo bash bootstrap.sh)"
 
 info "=== ESTI AORMS bootstrap for $DOMAIN ==="
@@ -124,14 +130,7 @@ chown -R www-data:www-data "$DEPLOY_DIR/frontend/dist" 2>/dev/null || true
 
 # ── 9. Configure nginx reverse proxy ─────────────────────────────────────────
 info "Installing nginx site config..."
-NGINX_CONF="/etc/nginx/sites-available/esti"
-cp deploy/nginx-proxy.conf "$NGINX_CONF"
-sed -i "s|DOMAIN_PLACEHOLDER|$DOMAIN|g" "$NGINX_CONF"
-sed -i "s|DEPLOY_DIR_PLACEHOLDER|$DEPLOY_DIR|g" "$NGINX_CONF"
-ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/esti
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl reload nginx
+install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || error "nginx configuration failed — check server_name / domain."
 
 # ── 10. TLS via Certbot ────────────────────────────────────────────────────────
 info "Obtaining Let's Encrypt certificate for $DOMAIN..."
