@@ -18,6 +18,10 @@ askpass() { echo -en "${BOLD}$1${NC} "; read -rs "$2"; echo; }
 
 [[ $EUID -ne 0 ]] && error "Run as root: sudo bash setup-vps.sh"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
 clear
 echo -e "${CYAN}${BOLD}"
 echo "  ███████╗███████╗████████╗██╗"
@@ -35,7 +39,10 @@ section "Configuration"
 echo "Please enter the following details. Press Enter to use the default where shown."
 echo ""
 
-ask  "Domain name (e.g. aorms.in):"                         DOMAIN
+ask  "Domain name (e.g. aorms.in) [aorms.in]:"                  DOMAIN
+DOMAIN="${DOMAIN:-aorms.in}"
+DOMAIN="$(normalize_domain "$DOMAIN")"
+validate_domain "$DOMAIN" || error "Enter a valid domain (hostname only, e.g. aorms.in)."
 ask  "Your email (for TLS certificate):"                    ADMIN_EMAIL
 ask  "Git branch [main]:"                                   GIT_BRANCH
 GIT_BRANCH="${GIT_BRANCH:-main}"
@@ -206,14 +213,7 @@ info "Frontend built and copied to $DEPLOY_DIR/frontend/dist"
 
 # ── 11. nginx reverse proxy ───────────────────────────────────────────────────
 section "nginx configuration"
-NGINX_CONF="/etc/nginx/sites-available/esti"
-cp "$DEPLOY_DIR/deploy/nginx-proxy.conf" "$NGINX_CONF"
-sed -i "s|DOMAIN_PLACEHOLDER|${DOMAIN}|g"       "$NGINX_CONF"
-sed -i "s|DEPLOY_DIR_PLACEHOLDER|${DEPLOY_DIR}|g" "$NGINX_CONF"
-ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/esti
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl reload nginx
+install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || error "nginx configuration failed — check server_name / domain."
 info "nginx configured for ${DOMAIN}."
 
 # ── 12. TLS certificate ───────────────────────────────────────────────────────
