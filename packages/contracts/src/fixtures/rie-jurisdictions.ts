@@ -67,6 +67,7 @@ export const RIE_BBMP_RESIDENTIAL_SITE: SiteInputs = {
   floorCount: 2,
   dwellingUnits: 1,
   unitAreaSqm: 120,
+  excludedAreaSqm: 0,
   topography: "FLAT",
   approachRoadWidthM: 6,
   front: { abutsRoad: true, roadWidthM: 6, roadClass: "LOCAL", distanceCentreToBoundaryM: 3 },
