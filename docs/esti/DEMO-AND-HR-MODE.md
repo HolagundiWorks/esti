@@ -20,7 +20,18 @@ After seed, open any studio project → **Compliance** tab for pre-construction 
 ```bash
 podman compose up -d --build
 podman exec esti-backend sh -c "cd /app/backend && pnpm db:migrate && pnpm seed:demo"
+podman exec esti-backend sh -c "cd /app/backend && pnpm seed:demo:solo"
 ```
+
+**Production (VPS / Docker):**
+
+```bash
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:prod
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod
+```
+
+Solo seed source: `backend/src/scripts/seedDemoSolo.ts` — login `solo@demo.aorms.in`, password `demo1234` (or `SEED_DEMO_PASSWORD`).
 
 Staff personas on studio demo: `lead@`, `site@`, `junior@`, `intern@`, `client@demo.aorms.in`.
 

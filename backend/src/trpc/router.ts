@@ -58,13 +58,27 @@ import { steelflowRouter } from "../modules/steelflow/router.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { aspRfRouter } from "../modules/asprf/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
+import {
+  getLandingVisitCount,
+  incrementLandingVisitCount,
+  tryGetLandingVisitCount,
+} from "../modules/landing/readModels.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
-  health: publicProcedure.query(() => ({
-    ok: true,
-    service: "esti-aorms-backend",
-    ts: Date.now(),
+  health: publicProcedure.query(async ({ ctx }) => {
+    const landingVisits = await tryGetLandingVisitCount(ctx.db);
+    return {
+      ok: true,
+      service: "esti-aorms-backend",
+      ts: Date.now(),
+      ...(landingVisits !== null ? { landingVisits } : {}),
+    };
+  }),
+
+  /** Increment landing-page visit counter (once per browser session from the SPA). */
+  recordLandingVisit: publicProcedure.mutation(async ({ ctx }) => ({
+    visits: await incrementLandingVisitCount(ctx.db),
   })),
 
   /** Fixed India profile surfaced to the SPA (read-only). */

@@ -125,6 +125,10 @@ wait_for_backend_health 30 2 || warn "Backend not healthy yet — check: docker 
 
 # ── 8. Build frontend static files ────────────────────────────────────────────
 info "Building frontend static files..."
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
 docker compose -f compose.prod.yaml --profile build-only build frontend
 # The frontend image is an nginx static server (CMD runs nginx) — do NOT `run`
 # it (that would start nginx and block). Instead create a stopped container and
@@ -171,4 +175,10 @@ systemctl enable esti
 info "=================================================="
 info "  ESTI AORMS is live at https://$DOMAIN"
 info "  Containers: $(docker compose -f compose.prod.yaml ps --format 'table {{.Name}}\t{{.Status}}' 2>/dev/null | tail -n +2 | tr '\n' ' ')"
+info ""
+info "  Optional demo seeds (public demo site):"
+info "    docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod"
+info "    docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod"
+info "  Studio: principal@demo.aorms.in / demo1234"
+info "  Solo:   solo@demo.aorms.in / demo1234"
 info "=================================================="

@@ -9,6 +9,7 @@ import {
   buildRevisionSourceMeterData,
   computeStudioQualityAxes,
   studioQualityAverage,
+  zeroStudioQualityAxes,
   type RevisionIntelligenceSnapshot,
   type TechnicalIntelligenceSnapshot,
 } from "../lib/quality-intelligence.js";
@@ -69,7 +70,7 @@ export function studioProfileHealth(
 
 function MetricRow({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="esti-qi-metric">
+    <div className="esti-qi-metric esti-lp-qi-metric">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -81,18 +82,25 @@ export function StudioQualityRadarTile({
   technical,
   loading,
   chartTheme = "white",
+  hasData,
+  chartAnimations = true,
 }: {
   revision: RevisionIntelligenceSnapshot | null | undefined;
   technical: TechnicalIntelligenceSnapshot | null | undefined;
   loading?: boolean;
   chartTheme?: string;
+  hasData?: boolean;
+  chartAnimations?: boolean;
 }) {
-  const axes = computeStudioQualityAxes(revision, technical);
+  const rawAxes = computeStudioQualityAxes(revision, technical);
+  const axes =
+    rawAxes ?? (hasData && revision && technical ? zeroStudioQualityAxes() : null);
   const health = studioProfileHealth(revision, technical);
   const avg = axes ? studioQualityAverage(axes) : null;
+  const showChart = hasData ?? !!rawAxes;
 
   return (
-    <Tile className="esti-fill esti-qi-tile" style={qiEdge(health)}>
+    <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--radar" style={qiEdge(health)}>
       <Stack gap={5}>
         <div className="esti-qi-header">
           <h4>Studio quality profile</h4>
@@ -104,12 +112,12 @@ export function StudioQualityRadarTile({
         </div>
         {loading ? (
           <InlineLoading description="Loading…" />
-        ) : !axes ? (
+        ) : !showChart ? (
           <p className="esti-qi-empty">Record CRIF decisions to build a quality profile.</p>
         ) : (
-          <div className="esti-qi-chart esti-qi-chart--radar">
+          <div className="esti-qi-chart esti-qi-chart--radar esti-lp-qi-chart">
             <RadarChart
-              data={buildRadarChartData(axes)}
+              data={buildRadarChartData(axes!)}
               options={{
                 data: { groupMapsTo: "group" },
                 radar: { axes: { angle: "feature", value: "score" }, alignment: "center" },
@@ -118,6 +126,7 @@ export function StudioQualityRadarTile({
                 toolbar: { enabled: false },
                 legend: { enabled: false },
                 tooltip: { valueFormatter: (v: number) => `${v}` },
+                animations: chartAnimations,
                 accessibility: { svgAriaLabel: "Studio quality profile by dimension" },
               }}
             />
@@ -132,21 +141,26 @@ export function RevisionIntelligenceTile({
   data,
   loading,
   chartTheme = "white",
+  hasData,
+  chartAnimations = true,
 }: {
   data: RevisionIntelligenceSnapshot | null | undefined;
   loading?: boolean;
   chartTheme?: string;
+  hasData?: boolean;
+  chartAnimations?: boolean;
 }) {
   const health = revisionHealth(data);
   const empty = !data || data.totalDecisions === 0;
-  const sourceData = data && !empty ? buildRevisionSourceMeterData(data) : [];
+  const showContent = hasData ?? !empty;
+  const sourceData = data && showContent ? buildRevisionSourceMeterData(data, !!hasData) : [];
 
   return (
-    <Tile className="esti-fill esti-qi-tile" style={qiEdge(health)}>
+    <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--revision" style={qiEdge(health)}>
       <Stack gap={5}>
         <div className="esti-qi-header">
           <h4>Revisions</h4>
-          {data && !empty && (
+          {data && showContent && (
             <Tag type={RISK_TAG[data.revisionRiskBand]} size="sm">
               {data.revisionRiskBand} risk · {data.healthScore}
             </Tag>
@@ -154,19 +168,19 @@ export function RevisionIntelligenceTile({
         </div>
         {loading ? (
           <InlineLoading description="Loading…" />
-        ) : empty ? (
+        ) : !showContent ? (
           <p className="esti-qi-empty">No decisions recorded yet.</p>
         ) : (
           <>
-            <div className="esti-qi-metrics">
-              <MetricRow label="Client driven" value={data.clientDriven} />
-              <MetricRow label="Internal error" value={data.internalError} />
-              <MetricRow label="Technical query" value={data.technicalQuery} />
-              <MetricRow label="Scope change" value={data.scopeChange} />
-              <MetricRow label="Scope drift" value={`${data.scopeDriftPct}%`} />
+            <div className="esti-qi-metrics esti-lp-qi-metrics">
+              <MetricRow label="Client driven" value={data!.clientDriven} />
+              <MetricRow label="Internal error" value={data!.internalError} />
+              <MetricRow label="Technical query" value={data!.technicalQuery} />
+              <MetricRow label="Scope change" value={data!.scopeChange} />
+              <MetricRow label="Scope drift" value={`${data!.scopeDriftPct}%`} />
             </div>
-            {sourceData.length > 0 && (
-              <div className="esti-qi-chart esti-qi-chart--meter">
+            {showContent && (
+              <div className="esti-qi-chart esti-qi-chart--meter esti-lp-qi-chart">
                 <p className="esti-qi-chart-label">Decision sources</p>
                 <MeterChart
                   data={sourceData}
@@ -176,10 +190,11 @@ export function RevisionIntelligenceTile({
                     theme: chartTheme,
                     toolbar: { enabled: false },
                     legend: { enabled: true, position: "bottom" as const },
+                    animations: chartAnimations,
                     accessibility: { svgAriaLabel: "Revision decision sources" },
                     meter: {
                       proportional: {
-                        total: data.totalDecisions,
+                        total: Math.max(1, data!.totalDecisions),
                         unit: "decisions",
                       },
                     },
@@ -198,15 +213,18 @@ export function TechnicalQualityTile({
   data,
   loading,
   className,
+  hasData,
 }: {
   data: TechnicalIntelligenceSnapshot | null | undefined;
   loading?: boolean;
   className?: string;
+  hasData?: boolean;
 }) {
   const health = technicalHealth(data);
   const tileClass = className
-    ? `esti-fill esti-qi-tile ${className}`
-    : "esti-fill esti-qi-tile";
+    ? `esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--technical ${className}`
+    : "esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--technical";
+  const showContent = hasData ?? !!data;
 
   return (
     <Tile className={tileClass} style={qiEdge(health)}>
@@ -216,17 +234,17 @@ export function TechnicalQualityTile({
         </div>
         {loading ? (
           <InlineLoading description="Loading…" />
-        ) : !data ? (
+        ) : !showContent ? (
           <p className="esti-qi-empty">No data.</p>
         ) : (
-          <div className="esti-qi-metrics esti-qi-metrics--wide">
-            <MetricRow label="Drawing clarity" value={`${data.drawingClarityScore}%`} />
-            <MetricRow label="Site query rate" value={`${data.siteQueryRate}%`} />
-            <MetricRow label="Repeat query rate" value={`${data.repeatQueryRate}%`} />
-            <MetricRow label="Drawing accuracy" value={`${data.drawingAccuracyPct}%`} />
-            <MetricRow label="Issued drawings" value={data.issuedDrawings} />
-            <MetricRow label="Internal errors" value={data.internalErrors} />
-            <MetricRow label="Technical queries" value={data.techQueries} />
+          <div className="esti-qi-metrics esti-qi-metrics--wide esti-lp-qi-metrics">
+            <MetricRow label="Drawing clarity" value={`${data!.drawingClarityScore}%`} />
+            <MetricRow label="Site query rate" value={`${data!.siteQueryRate}%`} />
+            <MetricRow label="Repeat query rate" value={`${data!.repeatQueryRate}%`} />
+            <MetricRow label="Drawing accuracy" value={`${data!.drawingAccuracyPct}%`} />
+            <MetricRow label="Issued drawings" value={data!.issuedDrawings} />
+            <MetricRow label="Internal errors" value={data!.internalErrors} />
+            <MetricRow label="Technical queries" value={data!.techQueries} />
           </div>
         )}
       </Stack>
@@ -241,6 +259,8 @@ export function QualityIntelligenceTiles({
   technicalLoading,
   className,
   chartTheme = "white",
+  animSource,
+  chartAnimations = true,
 }: {
   revision: RevisionIntelligenceSnapshot | null | undefined;
   technical: TechnicalIntelligenceSnapshot | null | undefined;
@@ -248,8 +268,16 @@ export function QualityIntelligenceTiles({
   technicalLoading?: boolean;
   className?: string;
   chartTheme?: string;
+  chartAnimations?: boolean;
+  /** When set, tiles treat source snapshots as “has data” while values animate from zero. */
+  animSource?: {
+    revision: RevisionIntelligenceSnapshot;
+    technical: TechnicalIntelligenceSnapshot;
+  };
 }) {
   const rootClass = className ? `esti-qi-layout ${className}` : "esti-qi-layout";
+  const revisionReady = animSource?.revision ?? revision;
+  const technicalReady = animSource?.technical ?? technical;
 
   return (
     <div className={rootClass}>
@@ -258,16 +286,21 @@ export function QualityIntelligenceTiles({
         technical={technical}
         loading={revisionLoading || technicalLoading}
         chartTheme={chartTheme}
+        chartAnimations={chartAnimations}
+        hasData={!!(revisionReady && revisionReady.totalDecisions > 0 && technicalReady)}
       />
       <RevisionIntelligenceTile
         data={revision}
         loading={revisionLoading}
         chartTheme={chartTheme}
+        chartAnimations={chartAnimations}
+        hasData={!!(revisionReady && revisionReady.totalDecisions > 0)}
       />
       <TechnicalQualityTile
         data={technical}
         loading={technicalLoading}
         className="esti-qi-tile--wide"
+        hasData={!!technicalReady}
       />
     </div>
   );

@@ -54,7 +54,7 @@ must not spread to staff workspace routes without an explicit policy update.
 
 | Exception | Location | Rationale |
 |---|---|---|
-| Marketing landing (`.esti-lp`) | `Landing.tsx`, `styles.scss` | Editorial marketing page with indigo brand accent (`--lp-*` tokens); not part of the productive app chrome. Light theme only. |
+| Marketing landing (`.esti-lp`) | `Landing.tsx`, `styles.scss`, `LandingCarbonZone.tsx` | Custom editorial design system (`--lp-*` tokens, native HTML). Carbon components isolated to `.esti-lp-carbon` for dashboard-faithful previews only (`LandingDashboardPreview`, `QualityIntelligencePreview`). Product mocks (revision flow) use custom HTML. |
 | Dashboard mosaic grid | `.esti-dash` | Condensed `Grid` with 1 px row-gap so zone tiles read as a flush mosaic; vertical rhythm matches horizontal gutters. |
 | Square-corner tags | `.cds--tag { border-radius: 0 }` | Deliberate brand choice on dashboard and intelligence tiles; do not apply globally to form controls. |
 | ASPRF / Performance KPI track bars | `.esti-kpi-track`, `.esti-kpi-fill` | Legacy CSS retained for any remaining scalar bars; Performance member tiles now use `MeterChart` (Phase 2F). |

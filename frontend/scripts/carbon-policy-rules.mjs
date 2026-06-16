@@ -6,13 +6,16 @@
 /** Files skipped entirely (marketing landing, special widgets). */
 export const EXCLUDED_FILES = [
   /[/\\]routes[/\\]Landing\.tsx$/,
+  /[/\\]components[/\\]LandingCarbonZone\.tsx$/,
+  /[/\\]components[/\\]LandingDashboardPreview\.tsx$/,
+  /[/\\]components[/\\]LandingRevisionMock\.tsx$/,
   /[/\\]components[/\\]HeaderPomodoro\.tsx$/,
 ];
 
 /** First line (1-based) of the documented .esti-lp marketing block in styles.scss. */
-export const LANDING_SCSS_START = 633;
+export const LANDING_SCSS_START = 662;
 /** Last line of .esti-lp-related rules before app-shell type scale. */
-export const LANDING_SCSS_END = 1215;
+export const LANDING_SCSS_END = 1845;
 
 const HEX_OR_GRADIENT =
   /(?:#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\(|linear-gradient|box-shadow)/i;
