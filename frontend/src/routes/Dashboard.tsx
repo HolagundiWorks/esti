@@ -38,7 +38,6 @@ import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 import { QualityIntelligenceTiles } from "../components/QualityIntelligenceTiles.js";
-import { ClockLeavesWidget } from "../components/ClockLeavesWidget.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -349,6 +348,59 @@ function MyTasksTile() {
   );
 }
 
+// Pending leave requests awaiting approval (HR module). Anything not yet
+// approved/rejected counts as pending (covers both REQUESTED and legacy PENDING).
+function PendingLeavesTile({ canManage }: { canManage: boolean }) {
+  const navigate = useNavigate();
+  const utils = trpc.useUtils();
+  const leavesQ = trpc.leaves.list.useQuery();
+  const setStatus = trpc.leaves.setStatus.useMutation({ onSuccess: () => utils.leaves.list.invalidate() });
+  const pending = (leavesQ.data ?? []).filter((l) => l.status !== "APPROVED" && l.status !== "REJECTED");
+
+  return (
+    <Tile className="esti-fill" style={edge(pending.length ? "watch" : "ok")}>
+      <Stack gap={4}>
+        <Stack orientation="horizontal" gap={3}>
+          <h3 className="esti-grow">Pending leaves</h3>
+          {!leavesQ.isLoading && (
+            <Tag type={pending.length ? "magenta" : "green"} size="sm">{pending.length} pending</Tag>
+          )}
+        </Stack>
+        {leavesQ.isLoading ? (
+          <InlineLoading description="Loading…" />
+        ) : pending.length === 0 ? (
+          <p>No leave requests awaiting approval.</p>
+        ) : (
+          <Stack gap={3}>
+            {pending.slice(0, 4).map((l) => (
+              <Stack key={l.id} orientation="horizontal" gap={3}>
+                <div className="esti-grow">
+                  <p>{l.name}</p>
+                  <span className="esti-label esti-label--helper">
+                    {l.type} · {l.fromDate} → {l.toDate} · {l.days}d
+                  </span>
+                </div>
+                {canManage ? (
+                  <Stack orientation="horizontal" gap={2}>
+                    <Button kind="ghost" size="sm" disabled={setStatus.isPending}
+                      onClick={() => setStatus.mutate({ id: l.id, status: "APPROVED" })}>Approve</Button>
+                    <Button kind="danger--ghost" size="sm" disabled={setStatus.isPending}
+                      onClick={() => setStatus.mutate({ id: l.id, status: "REJECTED" })}>Reject</Button>
+                  </Stack>
+                ) : (
+                  <Tag type="magenta" size="sm">Pending</Tag>
+                )}
+              </Stack>
+            ))}
+            {pending.length > 4 && <span className="esti-label esti-label--helper">+{pending.length - 4} more</span>}
+          </Stack>
+        )}
+        <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/hr")}>Open HR</Button>
+      </Stack>
+    </Tile>
+  );
+}
+
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -537,11 +589,15 @@ export function Dashboard() {
       <Column lg={16} md={8} sm={4}>
         <ZoneHead
           title="Personal"
-          sub={hrEnabled ? "Tasks assigned to you and leave balance." : "Tasks assigned to you."}
+          sub={hrEnabled ? "Tasks assigned to you and leave requests to approve." : "Tasks assigned to you."}
         />
       </Column>
-      <Column lg={8} md={4} sm={4}><MyTasksTile /></Column>
-      <Column lg={8} md={4} sm={4}><ClockLeavesWidget hrEnabled={hrEnabled} /></Column>
+      <Column lg={hrEnabled ? 8 : 16} md={hrEnabled ? 4 : 8} sm={4}><MyTasksTile /></Column>
+      {hrEnabled && (
+        <Column lg={8} md={4} sm={4}>
+          <PendingLeavesTile canManage={can(user?.role, "hr:manage")} />
+        </Column>
+      )}
 
       {/* ═══ Action Center — what needs attention now ═════════════════════ */}
       <Column lg={16} md={8} sm={4}>
