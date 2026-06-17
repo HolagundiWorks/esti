@@ -114,10 +114,7 @@ for i in $(seq 1 12); do
 done
 
 # Load S3 creds for MinIO bucket bootstrap.
-set -a
-# shellcheck disable=SC1091
-source .env
-set +a
+load_dotenv "$DEPLOY_DIR/.env"
 ensure_minio_bucket "$DEPLOY_DIR" || warn "MinIO bucket setup failed — backend will retry on startup."
 
 docker compose -f compose.prod.yaml up -d backend worker
@@ -125,10 +122,7 @@ wait_for_backend_health 30 2 || warn "Backend not healthy yet — check: docker 
 
 # ── 8. Build frontend static files ────────────────────────────────────────────
 info "Building frontend static files..."
-set -a
-# shellcheck disable=SC1091
-source .env
-set +a
+# compose.prod.yaml reads VITE_* from .env — do not `source .env` (breaks on spaces).
 docker compose -f compose.prod.yaml --profile build-only build frontend
 # The frontend image is an nginx static server (CMD runs nginx) — do NOT `run`
 # it (that would start nginx and block). Instead create a stopped container and

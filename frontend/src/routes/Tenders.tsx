@@ -35,6 +35,7 @@ import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
+import { downloadXlsx } from "../lib/exportXlsx.js";
 
 export function Tenders() {
   const utils = trpc.useUtils();
@@ -238,7 +239,20 @@ export function Tenders() {
 
             {bids.length > 0 && (
               <Stack gap={3}>
-                <h4>Bid comparison</h4>
+                <Stack orientation="horizontal" gap={3}>
+                  <h4>Bid comparison</h4>
+                  <Button
+                    size="sm"
+                    kind="ghost"
+                    onClick={() => {
+                      void utils.tenders.exportComparison.fetch({ tenderId: d.id }).then((data) => {
+                        if (data.rows.length) downloadXlsx(data.rows, "Bids", `${data.title}-bids`);
+                      });
+                    }}
+                  >
+                    Export XLSX
+                  </Button>
+                </Stack>
                 <Table size="sm">
                   <TableHead>
                     <TableRow>

@@ -25,11 +25,13 @@ import {
   computeTds194j,
   formatINR,
 } from "@esti/contracts";
+import type { PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { PeriodFilter } from "../components/PeriodFilter.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -44,7 +46,8 @@ export function Invoices() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const canInvoice = can(user?.role, "invoice:manage");
-  const listQ = trpc.invoices.listAll.useQuery(undefined);
+  const [period, setPeriod] = useState<PeriodFilterInput>({ preset: "CURRENT_FY" });
+  const listQ = trpc.invoices.listAll.useQuery({ period });
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
   const firmQ = trpc.firm.get.useQuery();
   const firmGst = (firmQ.data?.gstType ?? GstSystem.REGULAR) as GstSystem;
@@ -89,6 +92,8 @@ export function Invoices() {
           ) : undefined
         }
       />
+
+      <PeriodFilter value={period} onChange={setPeriod} />
 
       <DataState
         loading={listQ.isLoading}

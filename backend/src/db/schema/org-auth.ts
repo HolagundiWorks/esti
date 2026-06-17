@@ -28,6 +28,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
       digestEnabled: true,
       leaveHorizonDays: 7,
     }),
+  /** Per-scope document numbering overrides — see NumberingPatterns in @esti/contracts. */
+  numberingPatterns: jsonb("numbering_patterns").notNull().default({}),
   // Module-group switches (default on) controlling whole nav areas.
   financialEnabled: boolean("financial_enabled").notNull().default(true),
   projectEnabled: boolean("project_enabled").notNull().default(true),

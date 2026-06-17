@@ -33,16 +33,18 @@ ARG VITE_API_URL=""
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Optional external demo URLs (baked into the bundle at build time).
-# Leave empty for single-instance deploy; demo logs in locally via landing CTAs.
 ARG VITE_FULL_DEMO_URL=""
 ENV VITE_FULL_DEMO_URL=${VITE_FULL_DEMO_URL}
 
 ARG VITE_SOLO_DEMO_URL=""
 ENV VITE_SOLO_DEMO_URL=${VITE_SOLO_DEMO_URL}
 
-# Google Form — "Register interest" on the marketing landing page.
 ARG VITE_FEEDBACK_FORM_URL=""
 ENV VITE_FEEDBACK_FORM_URL=${VITE_FEEDBACK_FORM_URL}
+
+# Busts Docker layer cache on every deploy (pass git SHA from deploy.sh).
+ARG BUILD_REVISION=dev
+RUN echo "ESTI frontend build revision: ${BUILD_REVISION}"
 
 # tsc type-check + Vite bundle → frontend/dist/
 RUN pnpm --filter @esti/frontend build

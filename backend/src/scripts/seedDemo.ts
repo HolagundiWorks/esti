@@ -51,6 +51,7 @@ import { nextRef } from "../lib/numbering.js";
 import { backfillDemoBylawCalcs, upsertDemoBylawCalc } from "./seedDemoBylaw.js";
 import { catalogSnapshot, ensureDemoSpecCatalog } from "./seedSpecCatalog.js";
 import { ensureDemoSteelFlowCatalog } from "./seedSteelFlowCatalog.js";
+import { ensureBuildingDsrCatalog } from "./seedBuildingDsr.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
@@ -185,6 +186,7 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   await ensureDemoConsultants();
   const catalog = await ensureDemoSpecCatalog(db);
   await ensureDemoSteelFlowCatalog(db);
+  await ensureBuildingDsrCatalog(db);
   const bylawCount = await backfillDemoBylawCalcs(db);
   const allTitles = [
     "Sharma Villa — Whitefield", "Rao House — Mysuru", "Verde Commercial Block",
@@ -492,6 +494,7 @@ async function main(): Promise<void> {
 
   const catalog = await ensureDemoSpecCatalog(db);
   await ensureDemoSteelFlowCatalog(db);
+  await ensureBuildingDsrCatalog(db);
 
   let pi = 0;
   for (const def of projectDefs) {

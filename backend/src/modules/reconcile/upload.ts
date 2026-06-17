@@ -1,10 +1,6 @@
 import { createHash } from "node:crypto";
 import { extname } from "node:path";
-import {
-  RECONCILE_EXTENSIONS,
-  RECONCILE_MAX_BYTES,
-  ReconcileUploadFields,
-} from "@esti/contracts";
+import { ReconcileColumnMapping, ReconcileUploadFields } from "@esti/contracts";
 import type { FastifyInstance } from "fastify";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
@@ -43,6 +39,17 @@ export function registerReconcileUpload(app: FastifyInstance): void {
 
     const parsed = ReconcileUploadFields.safeParse(fields);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+    let columnMapping: Record<string, string> | null = null;
+    if (fields.columnMapping) {
+      try {
+        const m = ReconcileColumnMapping.parse(JSON.parse(fields.columnMapping));
+        columnMapping = Object.fromEntries(
+          Object.entries(m).filter(([, v]) => v) as [string, string][],
+        );
+      } catch {
+        return reply.code(400).send({ error: "invalid columnMapping JSON" });
+      }
+    }
     if (!fileBuf || fileBuf.length === 0) return reply.code(400).send({ error: "no file" });
     if (fileBuf.length > RECONCILE_MAX_BYTES)
       return reply.code(413).send({ error: "file too large" });
@@ -69,6 +76,7 @@ export function registerReconcileUpload(app: FastifyInstance): void {
         storageKey,
         sizeBytes: fileBuf.length,
         status: "PENDING",
+        columnMapping,
       })
       .returning();
 
@@ -77,6 +85,7 @@ export function registerReconcileUpload(app: FastifyInstance): void {
       bucket: BUCKET,
       storageKey,
       fileName,
+      columnMapping,
     }, String(req.id));
 
     await writeAudit(db, {

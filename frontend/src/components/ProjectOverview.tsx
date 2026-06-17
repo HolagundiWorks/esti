@@ -36,6 +36,7 @@ import {
   RevisionSource,
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
+import { ProjectAppointment } from "./ProjectAppointment.js";
 
 function StatCard({
   label,
@@ -249,6 +250,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={7}>
+      <ProjectAppointment projectId={projectId} />
       <Grid condensed>
         <Column sm={4} md={4} lg={4}>
           <StatCard

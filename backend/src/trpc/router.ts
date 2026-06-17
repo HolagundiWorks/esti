@@ -22,7 +22,8 @@ import { contractorPortalRouter } from "../modules/contractor/portal.js";
 import { tenderRouter } from "../modules/contractor/tender.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
-import { dashboardRouter } from "../modules/dashboard/router.js";
+import { documentRouter } from "../modules/document/router.js";
+import { momRouter } from "../modules/mom/router.js";
 import { measurementRouter } from "../modules/drawing/measurement.js";
 import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
@@ -56,13 +57,16 @@ import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { steelflowRouter } from "../modules/steelflow/router.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
-import { aspRfRouter } from "../modules/asprf/router.js";
+import { appointmentRouter } from "../modules/appointment/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
+import { aspRfRouter } from "../modules/asprf/router.js";
 import {
-  getLandingVisitCount,
   incrementLandingVisitCount,
   tryGetLandingVisitCount,
 } from "../modules/landing/readModels.js";
+import { dashboardRouter } from "../modules/dashboard/router.js";
+import { lessonRouter } from "../modules/lesson/router.js";
+import { searchRouter } from "../modules/search/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -129,6 +133,11 @@ export const appRouter = router({
   spec: specRouter,
   letters: letterRouter,
   contracts: contractRouter,
+  documents: documentRouter,
+  moms: momRouter,
+  search: searchRouter,
+  lessons: lessonRouter,
+  appointments: appointmentRouter,
   portal: portalRouter,
   clientRequests: clientRequestsRouter,
   settings: settingsRouter,

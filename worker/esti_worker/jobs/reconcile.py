@@ -23,6 +23,16 @@ _DESC_ALIASES = ("description", "narration", "particulars", "details", "remarks"
 _AMOUNT_ALIASES = ("amount", "credit", "deposit", "cr", "credit amount")
 
 
+def _resolve_column(columns: list[str], aliases: tuple[str, ...], override: str | None) -> str | None:
+    if override:
+        for col in columns:
+            if col.strip().lower() == override.strip().lower():
+                return col
+        if override in columns:
+            return override
+    return _pick(columns, aliases)
+
+
 def _pick(columns: list[str], aliases: tuple[str, ...]) -> str | None:
     norm = {c: c.strip().lower() for c in columns}
     for col, low in norm.items():
@@ -66,9 +76,10 @@ def reconcile_import(payload: dict[str, Any]) -> dict[str, Any]:
             df = pd.read_csv(io.BytesIO(raw))
 
         cols = list(df.columns.astype(str))
-        date_col = _pick(cols, _DATE_ALIASES)
-        desc_col = _pick(cols, _DESC_ALIASES)
-        amount_col = _pick(cols, _AMOUNT_ALIASES)
+        mapping = payload.get("columnMapping") or {}
+        date_col = _resolve_column(cols, _DATE_ALIASES, mapping.get("date"))
+        desc_col = _resolve_column(cols, _DESC_ALIASES, mapping.get("description"))
+        amount_col = _resolve_column(cols, _AMOUNT_ALIASES, mapping.get("amount"))
         if amount_col is None:
             raise ValueError(f"no amount/credit column found in {cols}")
 

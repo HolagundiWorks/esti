@@ -19,6 +19,7 @@
     "seed": "tsx src/scripts/seed.ts",
     "seed:demo": "tsx src/scripts/seedDemo.ts",
     "seed:demo:solo": "tsx src/scripts/seedDemoSolo.ts",
+    "seed:dsr": "tsx src/scripts/seedBuildingDsrCli.ts",
     "seed:prod": "node dist/scripts/seed.js",
     "seed:demo:prod": "node dist/scripts/seedDemo.js",
     "seed:demo:solo:prod": "node dist/scripts/seedDemoSolo.js",

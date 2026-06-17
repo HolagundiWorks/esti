@@ -34,3 +34,11 @@ export type ReconcileUploadFields = z.infer<typeof ReconcileUploadFields>;
 
 export const RECONCILE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB statement cap
 export const RECONCILE_EXTENSIONS = [".csv", ".xlsx", ".xls"] as const;
+
+/** User-overridable column mapping for bank statement imports. */
+export const ReconcileColumnMapping = z.object({
+  date: z.string().min(1).max(80).optional(),
+  description: z.string().min(1).max(80).optional(),
+  amount: z.string().min(1).max(80).optional(),
+});
+export type ReconcileColumnMapping = z.infer<typeof ReconcileColumnMapping>;

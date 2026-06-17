@@ -154,7 +154,7 @@ WORKER_JOB_STREAM=esti:jobs
 WORKER_GROUP=esti-workers
 
 SEED_OWNER_EMAIL=${OWNER_EMAIL}
-SEED_OWNER_NAME=Firm Owner
+SEED_OWNER_NAME="Firm Owner"
 SEED_OWNER_PASSWORD=${OWNER_PASSWORD}
 SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
 EOF
@@ -180,8 +180,7 @@ done
 info "Database healthy."
 
 set -a
-# shellcheck disable=SC1091
-source "$DEPLOY_DIR/.env"
+load_dotenv "$DEPLOY_DIR/.env"
 set +a
 info "Creating MinIO bucket '${S3_BUCKET}'..."
 ensure_minio_bucket "$DEPLOY_DIR" && info "MinIO bucket ready." || warn "MinIO bucket creation skipped — backend will retry."

@@ -1,8 +1,14 @@
+import {
+  TakeoffMeasurementCreate,
+  computeTakeoffBoq,
+  takeoffElement,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { drawings, measurements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { importTakeoffToEstimate, previewTakeoffForDsr } from "../boq/takeoffImport.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const measurementRouter = router({
@@ -16,7 +22,6 @@ export const measurementRouter = router({
         .orderBy(desc(measurements.createdAt));
     }),
 
-  /** Project takeoff rollup — all measured quantities across the drawings. */
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -27,6 +32,12 @@ export const measurementRouter = router({
           kind: measurements.kind,
           realLength: measurements.realLength,
           unit: measurements.unit,
+          elementTypeId: measurements.elementTypeId,
+          elementCategory: measurements.elementCategory,
+          boqQty: measurements.boqQty,
+          boqUnit: measurements.boqUnit,
+          boqDescription: measurements.boqDescription,
+          itemCount: measurements.itemCount,
           drawingTitle: drawings.title,
           drawingRef: drawings.ref,
         })
@@ -36,50 +47,66 @@ export const measurementRouter = router({
         .orderBy(desc(measurements.createdAt));
     }),
 
-  create: protectedProcedure
+  /** Preview takeoff quantities with DSR rates for a chosen master schedule. */
+  takeoffPreview: protectedProcedure
     .input(
       z.object({
-        drawingId: z.string().uuid(),
         projectId: z.string().uuid(),
-        label: z.string().min(1).max(120),
-        // LINEAR stores length; AREA stores the polygon's area magnitude in the
-        // same vb/real columns (unit then carries the squared label, e.g. m²).
-        kind: z.enum(["LINEAR", "AREA"]).default("LINEAR"),
-        vbLength: z.number().nonnegative(),
-        realLength: z.number().nonnegative(),
-        unit: z.string().min(1).max(8),
+        dsrVersionId: z.string().uuid(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const [drawing] = await ctx.db
-        .select({ projectId: drawings.projectId })
-        .from(drawings)
-        .where(eq(drawings.id, input.drawingId));
-      if (!drawing) throw new TRPCError({ code: "NOT_FOUND", message: "Drawing not found" });
-      if (drawing.projectId !== input.projectId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Drawing belongs to another project" });
-      }
-      const [row] = await ctx.db
-        .insert(measurements)
-        .values({
-          drawingId: input.drawingId,
-          projectId: input.projectId,
-          label: input.label,
-          kind: input.kind,
-          vbLength: input.vbLength,
-          realLength: input.realLength,
-          unit: input.unit,
-        })
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "measurement",
-        entityId: row!.id,
-        action: "CREATE",
-        actorId: ctx.user.id,
-        after: row,
-      });
-      return row!;
-    }),
+    .query(async ({ ctx, input }) => previewTakeoffForDsr(ctx.db, input)),
+
+  create: protectedProcedure.input(TakeoffMeasurementCreate).mutation(async ({ ctx, input }) => {
+    const [drawing] = await ctx.db
+      .select({ projectId: drawings.projectId })
+      .from(drawings)
+      .where(eq(drawings.id, input.drawingId));
+    if (!drawing) throw new TRPCError({ code: "NOT_FOUND", message: "Drawing not found" });
+    if (drawing.projectId !== input.projectId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Drawing belongs to another project" });
+    }
+
+    const el = takeoffElement(input.elementTypeId);
+    if (!el) throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown takeoff element type" });
+
+    const boq = computeTakeoffBoq({
+      elementTypeId: input.elementTypeId,
+      measureKind: input.kind,
+      realLength: input.realLength,
+      unit: input.unit,
+      heightMm: input.heightMm,
+      itemCount: input.itemCount,
+    });
+
+    const [row] = await ctx.db
+      .insert(measurements)
+      .values({
+        drawingId: input.drawingId,
+        projectId: input.projectId,
+        label: input.label,
+        kind: input.kind,
+        vbLength: input.vbLength,
+        realLength: input.realLength,
+        unit: input.unit,
+        elementTypeId: input.elementTypeId,
+        elementCategory: el.category,
+        heightMm: input.heightMm ?? el.defaultHeightMm ?? null,
+        itemCount: input.itemCount ?? 1,
+        boqQty: boq.boqQty,
+        boqUnit: boq.boqUnit,
+        boqDescription: boq.boqDescription,
+      })
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "measurement",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
+    return row!;
+  }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -96,4 +123,17 @@ export const measurementRouter = router({
       });
       return { ok: true };
     }),
+
+  /** Push tagged takeoff rows into a draft estimate (DSR rates applied when matched). */
+  applyToEstimate: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+        estimateId: z.string().uuid(),
+        measurementIds: z.array(z.string().uuid()).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) =>
+      importTakeoffToEstimate(ctx.db, { ...input, actorId: ctx.user.id }),
+    ),
 });

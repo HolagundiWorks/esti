@@ -15,6 +15,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -69,6 +70,7 @@ export function Letters() {
   const utils = trpc.useUtils();
   const listQ = trpc.letters.list.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const templatesQ = trpc.documents.listTemplates.useQuery({ kind: "LETTER" });
   const inv = () => utils.letters.list.invalidate();
 
   const [open, setOpen] = useState(false);
@@ -102,7 +104,14 @@ export function Letters() {
       <PageHeader
         title="Letters"
         description="Office correspondence on firm letterhead."
-        actions={<Button onClick={() => setOpen(true)}>New letter</Button>}
+        actions={
+          <Stack orientation="horizontal" gap={3}>
+            <Link to="/office/documents">
+              <Button kind="ghost" size="sm">Document register</Button>
+            </Link>
+            <Button onClick={() => setOpen(true)}>New letter</Button>
+          </Stack>
+        }
       />
 
       <DataState
@@ -189,6 +198,20 @@ export function Letters() {
         }
       >
         <Stack gap={5}>
+          <Select
+            id="l-tpl"
+            labelText="Start from template (optional)"
+            value=""
+            onChange={(e) => {
+              const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
+              if (t) setF((x) => ({ ...x, subject: t.title, body: t.body }));
+            }}
+          >
+            <SelectItem value="" text="— blank letter —" />
+            {(templatesQ.data ?? []).map((t) => (
+              <SelectItem key={t.id} value={t.id} text={t.title} />
+            ))}
+          </Select>
           <div style={{ display: "flex", gap: 12 }}>
             <TextInput
               id="l-to"

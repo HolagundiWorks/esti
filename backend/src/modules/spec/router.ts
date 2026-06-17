@@ -4,6 +4,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { moodBoards, moodImages, specItems, specSheets } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { recordDocumentIssue } from "../../lib/documentIssue.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireUnissuedDocument } from "../../lib/retention.js";
@@ -58,8 +59,16 @@ export const specRouter = router({
   generatePdf: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(specSheets).where(eq(specSheets.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-    await ctx.db.update(specSheets).set({ pdfStatus: "PENDING" }).where(eq(specSheets.id, input.id));
+    await ctx.db.update(specSheets).set({ pdfStatus: "PENDING", status: "ISSUED" }).where(eq(specSheets.id, input.id));
     await enqueueJob("render_pdf", { target: "specsheet", id: row.id, firm: await firmPayload(ctx.db) }, ctx.requestId);
+    await recordDocumentIssue(ctx.db, {
+      entityType: "SPEC_SHEET",
+      entityId: row.id,
+      projectId: row.projectId,
+      ref: row.ref,
+      versionNo: row.versionNo ?? 1,
+      issuedById: ctx.user.id,
+    });
     await writeAudit(ctx.db, {
       entity: "specsheet",
       entityId: input.id,
@@ -105,7 +114,11 @@ export const specRouter = router({
   }),
 
   createBoard: protectedProcedure.input(MoodBoardCreate).mutation(async ({ ctx, input }) => {
-    const [row] = await ctx.db.insert(moodBoards).values({ projectId: input.projectId, title: input.title }).returning();
+    const { ref } = await nextRef(ctx.db, "moodboard", "MOOD");
+    const [row] = await ctx.db
+      .insert(moodBoards)
+      .values({ ref, projectId: input.projectId, title: input.title })
+      .returning();
     await writeAudit(ctx.db, {
       entity: "moodboard",
       entityId: row!.id,
@@ -152,9 +165,39 @@ export const specRouter = router({
     return { ok: true };
   }),
 
+  issueBoard: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(moodBoards).where(eq(moodBoards.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    const [updated] = await ctx.db
+      .update(moodBoards)
+      .set({ status: "ISSUED" })
+      .where(eq(moodBoards.id, input.id))
+      .returning();
+    await recordDocumentIssue(ctx.db, {
+      entityType: "MOOD_BOARD",
+      entityId: row.id,
+      projectId: row.projectId,
+      ref: row.ref ?? row.id.slice(0, 8),
+      versionNo: row.versionNo ?? 1,
+      issuedById: ctx.user.id,
+    });
+    await writeAudit(ctx.db, {
+      entity: "moodboard",
+      entityId: input.id,
+      action: "ISSUE",
+      actorId: ctx.user.id,
+      before: { status: row.status },
+      after: { status: updated!.status },
+    });
+    return updated!;
+  }),
+
   removeBoard: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [board] = await ctx.db.select().from(moodBoards).where(eq(moodBoards.id, input.id));
     if (!board) throw new TRPCError({ code: "NOT_FOUND" });
+    if (board.status === "ISSUED") {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Issued mood board cannot be deleted" });
+    }
     const imgs = await ctx.db.select().from(moodImages).where(eq(moodImages.moodBoardId, input.id));
     for (const im of imgs) if (im.storageKey) await removeObject(im.storageKey);
     await ctx.db.transaction(async (tx) => {

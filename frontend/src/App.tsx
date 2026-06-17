@@ -22,6 +22,7 @@ import {
   Logout,
   Money,
   Notification,
+  Search as SearchIcon,
   TaskComplete,
   UserMultiple,
   type CarbonIconType,
@@ -49,6 +50,7 @@ import { Contractors } from "./routes/Contractors.js";
 import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
 import { Tenders } from "./routes/Tenders.js";
 import { Contracts } from "./routes/Contracts.js";
+import { DocumentsRegister } from "./routes/DocumentsRegister.js";
 import { Letters } from "./routes/Letters.js";
 import { Dashboard } from "./routes/Dashboard.js";
 import { FeeProposals } from "./routes/FeeProposals.js";
@@ -63,6 +65,7 @@ import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
+import { SearchPage } from "./routes/Search.js";
 import { Settings } from "./routes/Settings.js";
 import { Work } from "./routes/Work.js";
 import { Performance } from "./routes/Performance.js";
@@ -81,6 +84,7 @@ function navPathActive(pathname: string, to: string): boolean {
   if (to === "/knowledge-bank") {
     return pathname === "/knowledge-bank" || pathname.startsWith("/knowledge-bank");
   }
+  if (to === "/search") return pathname === "/search";
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
@@ -209,6 +213,7 @@ function AppShell() {
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
+    { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
   ];
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
@@ -249,6 +254,7 @@ function AppShell() {
         ...(can(user.role, "fees:manage")
           ? [{ label: "Proposals", to: "/office/proposals" }]
           : []),
+        { label: "Document register", to: "/office/documents" },
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
         { label: "Tenders", to: "/office/tenders" },
@@ -347,6 +353,7 @@ function AppShell() {
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/compliance" element={<ComplianceRedirect />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
+                <Route path="/search" element={<SearchPage />} />
                 <Route path="/invoices" element={<Invoices />} />
                 {can(user.role, "fees:manage") && (
                   <Route path="/accounting/fees" element={<FeeProposals />} />
@@ -354,6 +361,7 @@ function AppShell() {
                 {can(user.role, "fees:manage") && (
                   <Route path="/office/proposals" element={<Proposals />} />
                 )}
+                <Route path="/office/documents" element={<DocumentsRegister />} />
                 <Route path="/office/letters" element={<Letters />} />
                 <Route path="/office/contracts" element={<Contracts />} />
                 <Route path="/office/tenders" element={<Tenders />} />

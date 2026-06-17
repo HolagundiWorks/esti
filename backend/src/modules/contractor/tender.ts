@@ -211,4 +211,36 @@ export const tenderRouter = router({
     await writeAudit(ctx.db, { entity: "tender_bid", entityId: input.invitationId, action: "DELETE", actorId: ctx.user.id });
     return { ok: true as const };
   }),
+
+  exportComparison: protectedProcedure
+    .input(z.object({ tenderId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [tender] = await ctx.db.select().from(tenders).where(eq(tenders.id, input.tenderId));
+      if (!tender) throw new TRPCError({ code: "NOT_FOUND" });
+      const bids = await ctx.db
+        .select({
+          contractorName: contractors.name,
+          amountPaise: tenderBids.amountPaise,
+          completionWeeks: tenderBids.completionWeeks,
+          technicalScore: tenderBids.technicalScore,
+          notes: tenderBids.notes,
+        })
+        .from(tenderBids)
+        .innerJoin(tenderInvitations, eq(tenderInvitations.id, tenderBids.invitationId))
+        .innerJoin(contractors, eq(contractors.id, tenderInvitations.contractorId))
+        .where(eq(tenderInvitations.tenderId, input.tenderId))
+        .orderBy(asc(tenderBids.amountPaise));
+      return {
+        title: tender.title,
+        ref: tender.id.slice(0, 8),
+        rows: bids.map((b, i) => ({
+          Rank: i + 1,
+          Contractor: b.contractorName,
+          "Amount (₹)": (b.amountPaise / 100).toFixed(2),
+          "Weeks": b.completionWeeks ?? "",
+          "Technical": b.technicalScore ?? "",
+          Notes: b.notes ?? "",
+        })),
+      };
+    }),
 });
