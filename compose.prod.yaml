@@ -133,6 +133,7 @@ services:
         VITE_FULL_DEMO_URL: ${VITE_FULL_DEMO_URL:-}
         VITE_SOLO_DEMO_URL: ${VITE_SOLO_DEMO_URL:-}
         VITE_FEEDBACK_FORM_URL: ${VITE_FEEDBACK_FORM_URL:-}
+        BUILD_REVISION: ${BUILD_REVISION:-dev}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.

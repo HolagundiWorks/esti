@@ -30,6 +30,8 @@ import {
   formatINRShort,
   PERFORMANCE_BAND_LABEL,
   PERFORMANCE_BAND_TAG,
+  TASK_PRIORITY_LABEL,
+  TASK_STATUS_LABEL,
   type PerformanceBand,
 } from "@esti/contracts";
 import { useState } from "react";
@@ -324,23 +326,54 @@ function MyTasksTile() {
         ) : open.length === 0 ? (
           <p>No open tasks assigned to you.</p>
         ) : (
-          <Stack gap={3}>
-            {open.slice(0, 4).map((t) => {
-              const isOverdue = t.dueDate ? t.dueDate < today : false;
-              return (
-                <Stack key={t.id} orientation="horizontal" gap={2}>
-                  <div className="esti-grow">
-                    <p>{t.title}</p>
-                    {t.projectRef && <span className="esti-label esti-label--helper">{t.projectRef}</span>}
-                  </div>
-                  <Tag type={isOverdue ? "red" : MY_PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
-                    {isOverdue ? "Overdue" : t.priority}
-                  </Tag>
-                </Stack>
-              );
-            })}
-            {open.length > 4 && <span className="esti-label esti-label--helper">+{open.length - 4} more</span>}
-          </Stack>
+          <>
+            <TableContainer>
+              <Table size="sm">
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Task</TableHeader>
+                    <TableHeader>Project</TableHeader>
+                    <TableHeader>Due</TableHeader>
+                    <TableHeader>Priority</TableHeader>
+                    <TableHeader>Status</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {open.slice(0, 6).map((t) => {
+                    const isOverdue = t.dueDate ? t.dueDate < today : false;
+                    return (
+                      <TableRow key={t.id}>
+                        <TableCell>{t.title}</TableCell>
+                        <TableCell>
+                          {t.projectId
+                            ? <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "—"}</Link>
+                            : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {isOverdue
+                            ? <Tag type="red" size="sm">Overdue · {t.dueDate}</Tag>
+                            : (t.dueDate ?? "—")}
+                        </TableCell>
+                        <TableCell>
+                          <Tag type={MY_PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
+                            {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
+                          </Tag>
+                        </TableCell>
+                        <TableCell>
+                          <Tag type="gray" size="sm">
+                            {TASK_STATUS_LABEL[t.status] ?? t.status}
+                          </Tag>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {open.length > 6 && (
+              <span className="esti-label esti-label--helper">+{open.length - 6} more</span>
+            )}
+          </>
         )}
         <Button kind="ghost" size="sm" renderIcon={ArrowRight} onClick={() => navigate("/tasks?tab=tasks")}>Open Work</Button>
       </Stack>
@@ -1039,11 +1072,23 @@ export function Dashboard() {
                       data={revenueData}
                       options={{
                         data: { groupMapsTo: "group" },
-                        donut: { center: { label: "Revenue" }, alignment: "center" },
+                        donut: {
+                          alignment: "center",
+                          center: {
+                            label: "Revenue",
+                            numberFormatter: (v: number) => formatINRShort(v),
+                          },
+                        },
                         height: CHART_HEIGHT,
                         theme: chartTheme,
                         toolbar: { enabled: false },
                         legend: { enabled: true, position: "bottom" as const },
+                        pie: {
+                          labels: {
+                            enabled: true,
+                            formatter: (d: { value: number }) => formatINRShort(d.value),
+                          },
+                        },
                         tooltip: { valueFormatter: (v: number) => formatINRShort(v) },
                       }}
                     />

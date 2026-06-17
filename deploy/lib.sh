@@ -1,6 +1,32 @@
 #!/bin/bash
 # Shared helpers for ESTI deploy scripts (source from setup-vps.sh / bootstrap.sh).
 
+# Load KEY=VALUE pairs from a dotenv file without executing shell (unlike `source`).
+# Handles unquoted values with spaces, e.g. SEED_OWNER_NAME=HCW Owner
+load_dotenv() {
+  local env_file="${1:-.env}"
+  [[ -f "$env_file" ]] || return 0
+  local line key val
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    line="${line#export }"
+    [[ "$line" == *"="* ]] || continue
+    key="${line%%=*}"
+    val="${line#*=}"
+    key="${key%"${key##*[![:space:]]}"}"
+    key="${key#"${key%%[![:space:]]*}"}"
+    if (( ${#val} >= 2 )); then
+      if [[ "${val:0:1}" == '"' && "${val: -1}" == '"' ]]; then
+        val="${val:1:${#val}-2}"
+      elif [[ "${val:0:1}" == "'" && "${val: -1}" == "'" ]]; then
+        val="${val:1:${#val}-2}"
+      fi
+    fi
+    export "${key}=${val}"
+  done < "$env_file"
+}
+
 # Strip scheme, path, commas, whitespace — nginx server_name wants a bare hostname.
 normalize_domain() {
   local d="${1:-}"

@@ -240,6 +240,54 @@ def fetch_specsheet_full(sid: str) -> dict[str, Any] | None:
         return row
 
 
+def update_estimate(eid: str, **fields: Any) -> None:
+    _patch("esti_estimate", eid, set(), fields)
+
+
+def fetch_estimate_full(eid: str) -> dict[str, Any] | None:
+    sql = """
+        select e.ref, e.title, e.lead_pct, e.subtotal_paise, e.total_paise, e.version_no,
+               p.ref as project_ref, p.title as project_title
+        from esti_estimate e
+        join esti_projectoffice p on p.id = e.project_id
+        where e.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [eid]).fetchone()
+        if row is None:
+            return None
+        row["items"] = conn.execute(
+            "select description, unit, qty, rate_paise, item_lead_pct, amount_paise "
+            "from esti_estimate_item where estimate_id = %s order by sort_order, created_at",
+            [eid],
+        ).fetchall()
+        return row
+
+
+def update_bbs(bid: str, **fields: Any) -> None:
+    _patch("esti_bbs", bid, set(), fields)
+
+
+def fetch_bbs_full(bid: str) -> dict[str, Any] | None:
+    sql = """
+        select b.ref, b.title, b.version_no,
+               p.ref as project_ref, p.title as project_title
+        from esti_bbs b
+        join esti_projectoffice p on p.id = b.project_id
+        where b.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [bid]).fetchone()
+        if row is None:
+            return None
+        row["items"] = conn.execute(
+            "select bar_mark, member, dia_mm, no_of_members, bars_per_member, cutting_length_mm, weight_kg "
+            "from esti_bbs_item where bbs_id = %s order by created_at",
+            [bid],
+        ).fetchall()
+        return row
+
+
 def update_site_assessment(sa_id: str, **fields: Any) -> None:
     _patch("esti_site_assessment", sa_id, {"site_inputs", "dev_control", "basement", "sustainability", "approval_readiness", "violations", "relaxations"}, fields)
 

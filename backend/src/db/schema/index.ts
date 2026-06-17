@@ -15,5 +15,8 @@ export * from "./hr-work.js";
 export * from "./memory-activity.js";
 export * from "./steelflow.js";
 export * from "./marketing.js";
+export * from "./documents.js";
+export * from "./search.js";
+export * from "./commercial.js";
 
 export type { ProjectOfficeRow } from "./project.js";

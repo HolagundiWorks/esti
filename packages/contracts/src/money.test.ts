@@ -8,9 +8,11 @@ describe("money", () => {
     expect(formatINR(12345678050)).toBe("₹12,34,56,780.50");
     expect(formatINR(100000, { paise: false })).toBe("₹1,000");
   });
-  it("short form uses crore/lakh", () => {
+  it("short form uses crore/lakh/thousand", () => {
     expect(formatINRShort(1500000000)).toBe("₹1.50 Cr"); // ₹1.5 crore = 150,00,00,000 paise
     expect(formatINRShort(123400000)).toBe("₹12.34 L"); // ₹12.34 lakh = 12,34,00,000 paise
+    expect(formatINRShort(4500000)).toBe("₹45k"); // ₹45,000
+    expect(formatINRShort(550000)).toBe("₹5.5k"); // ₹5,500
   });
   it("round-trips parse", () => {
     expect(parseINR("₹1,23,456.50")).toBe(12345650);

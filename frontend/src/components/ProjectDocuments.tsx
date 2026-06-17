@@ -13,6 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
@@ -22,6 +23,9 @@ import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
+import { ProjectMom } from "./ProjectMom.js";
+import { ProjectInspectionDetail } from "./ProjectInspectionDetail.js";
+import { DocumentReviseButton } from "./DocumentReviseButton.js";
 
 /** Generic PDF action cell: generate via worker, poll, then open. */
 function pdfPollOpts(initial: string) {
@@ -99,6 +103,7 @@ export function ProjectDocuments({ projectId }: { projectId: string }) {
   return (
     <Stack gap={7} style={{ marginTop: 16 }}>
       <Inspections projectId={projectId} />
+      <ProjectMom projectId={projectId} />
       <SpecSheets projectId={projectId} />
       <MoodBoards projectId={projectId} />
     </Stack>
@@ -123,6 +128,7 @@ function Inspections({ projectId }: { projectId: string }) {
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) =>
     setF((x) => ({ ...x, [k]: e.target.value }));
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const create = trpc.inspections.create.useMutation({
     onSuccess: () => {
       inv();
@@ -161,6 +167,7 @@ function Inspections({ projectId }: { projectId: string }) {
               <TableRow>
                 <TableHeader>Ref</TableHeader>
                 <TableHeader>Date</TableHeader>
+                <TableHeader>Status</TableHeader>
                 <TableHeader>Inspector</TableHeader>
                 <TableHeader>Document</TableHeader>
                 <TableHeader></TableHeader>
@@ -171,18 +178,26 @@ function Inspections({ projectId }: { projectId: string }) {
                 <TableRow key={s.id}>
                   <TableCell>{s.ref}</TableCell>
                   <TableCell>{s.dateVisit ?? "—"}</TableCell>
+                  <TableCell>
+                    <Tag type={s.status === "ISSUED" || s.pdfStatus === "READY" ? "green" : "gray"} size="sm">
+                      {s.status ?? "DRAFT"}
+                    </Tag>
+                  </TableCell>
                   <TableCell>{s.inspectorName ?? "—"}</TableCell>
                   <TableCell>
                     <InspectionPdf id={s.id} initial={s.pdfStatus} />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(s.id)}
-                    >
-                      Delete
-                    </Button>
+                    <Stack orientation="horizontal" gap={2}>
+                      <Button kind="ghost" size="sm" onClick={() => setDetailId(s.id)}>Open</Button>
+                      <Button
+                        kind="danger--ghost"
+                        size="sm"
+                        onClick={() => setConfirmId(s.id)}
+                      >
+                        Delete
+                      </Button>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -201,6 +216,11 @@ function Inspections({ projectId }: { projectId: string }) {
           setConfirmId(null);
         }}
         onClose={() => setConfirmId(null)}
+      />
+      <ProjectInspectionDetail
+        inspectionId={detailId}
+        open={!!detailId}
+        onClose={() => setDetailId(null)}
       />
       <Modal
         open={open}
@@ -372,6 +392,7 @@ function SpecSheets({ projectId }: { projectId: string }) {
               <TableRow>
                 <TableHeader>Ref</TableHeader>
                 <TableHeader>Title</TableHeader>
+                <TableHeader>Ver</TableHeader>
                 <TableHeader>Document</TableHeader>
                 <TableHeader></TableHeader>
               </TableRow>
@@ -381,8 +402,18 @@ function SpecSheets({ projectId }: { projectId: string }) {
                 <TableRow key={s.id}>
                   <TableCell>{s.ref}</TableCell>
                   <TableCell>{s.title}</TableCell>
+                  <TableCell>{s.versionNo ?? 1}</TableCell>
                   <TableCell>
-                    <SpecPdf id={s.id} initial={s.pdfStatus} />
+                    <Stack orientation="horizontal" gap={2}>
+                      <SpecPdf id={s.id} initial={s.pdfStatus} />
+                      {(s.status === "ISSUED" || s.pdfStatus === "READY") && (
+                        <DocumentReviseButton
+                          entityType="SPEC_SHEET"
+                          entityId={s.id}
+                          onDone={inv}
+                        />
+                      )}
+                    </Stack>
                   </TableCell>
                   <TableCell>
                     <Button
@@ -566,6 +597,7 @@ function MoodBoards({ projectId }: { projectId: string }) {
     },
   });
   const removeBoard = trpc.spec.removeBoard.useMutation({ onSuccess: inv });
+  const issueBoard = trpc.spec.issueBoard.useMutation({ onSuccess: inv });
 
   return (
     <div>
@@ -596,6 +628,9 @@ function MoodBoards({ projectId }: { projectId: string }) {
               key={b.id}
               board={b}
               onDelete={() => setConfirmId(b.id)}
+              onIssue={() => issueBoard.mutate({ id: b.id })}
+              issuePending={issueBoard.isPending}
+              onRevise={inv}
             />
           ))}
         </Stack>
@@ -635,9 +670,21 @@ function MoodBoards({ projectId }: { projectId: string }) {
 function MoodBoardCard({
   board,
   onDelete,
+  onIssue,
+  issuePending,
+  onRevise,
 }: {
-  board: { id: string; title: string };
+  board: {
+    id: string;
+    title: string;
+    ref: string | null;
+    versionNo: number;
+    status: string;
+  };
   onDelete: () => void;
+  onIssue: () => void;
+  issuePending: boolean;
+  onRevise: () => void;
 }) {
   const utils = trpc.useUtils();
   const imgsQ = trpc.spec.boardImages.useQuery({ boardId: board.id });
@@ -664,15 +711,27 @@ function MoodBoardCard({
   }
 
   return (
-    <TableContainer title={board.title}>
+    <TableContainer title={`${board.ref ?? "—"} · ${board.title}`}>
       <div
         style={{
           padding: "8px 0",
           display: "flex",
           gap: 8,
           alignItems: "center",
+          flexWrap: "wrap",
         }}
       >
+        <Tag type={board.status === "ISSUED" ? "green" : "gray"} size="sm">
+          {board.status} · v{board.versionNo ?? 1}
+        </Tag>
+        {board.status === "DRAFT" && (
+          <Button kind="tertiary" size="sm" disabled={issuePending} onClick={onIssue}>
+            Issue
+          </Button>
+        )}
+        {board.status === "ISSUED" && (
+          <DocumentReviseButton entityType="MOOD_BOARD" entityId={board.id} onDone={onRevise} />
+        )}
         <FileUploaderButton
           labelText={busy ? "Uploading…" : "Add image"}
           accept={[".png", ".jpg", ".jpeg", ".webp"]}
@@ -683,7 +742,12 @@ function MoodBoardCard({
             if (f) uploadImage(f);
           }}
         />
-        <Button kind="danger--ghost" size="sm" onClick={onDelete}>
+        <Button
+          kind="danger--ghost"
+          size="sm"
+          disabled={board.status === "ISSUED"}
+          onClick={onDelete}
+        >
           Delete board
         </Button>
       </div>

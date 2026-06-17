@@ -53,6 +53,10 @@ export const estimates = pgTable("esti_estimate", {
     .notNull()
     .default(0),
   totalPaise: bigint("total_paise", { mode: "number" }).notNull().default(0),
+  versionNo: integer("version_no").notNull().default(1),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  revisionNote: text("revision_note"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -76,10 +80,14 @@ export const estimateItems = pgTable("esti_estimate_item", {
 /** Bar Bending Schedule — Phase 10. */
 export const bbsSchedules = pgTable("esti_bbs", {
   id: id(),
+  ref: text("ref").unique(),
   projectId: uuid("project_id")
     .notNull()
     .references(() => projectOffices.id),
   title: text("title").notNull(),
+  versionNo: integer("version_no").notNull().default(1),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
 });
 

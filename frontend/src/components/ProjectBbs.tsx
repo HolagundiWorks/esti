@@ -11,11 +11,68 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TextArea,
   TextInput,
 } from "@carbon/react";
-import { BAR_DIAS, bbsItemTotals } from "@esti/contracts";
+import { BAR_DIAS, bbsItemTotals, applySteelFlowCatalogEntry, DEMO_BEAM_230x600_M25 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { downloadXlsx } from "../lib/exportXlsx.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+
+function BbsPdf({ id, initial }: { id: string; initial: string }) {
+  const utils = trpc.useUtils();
+  const q = trpc.bbs.byId.useQuery(
+    { id },
+    {
+      refetchInterval: (query) =>
+        pdfPollInterval(query.state.data?.pdfStatus, initial !== "NONE"),
+      enabled: initial !== "NONE" || !!id,
+    },
+  );
+  const gen = trpc.bbs.generatePdf.useMutation({
+    onSuccess: () => utils.bbs.byId.invalidate({ id }),
+  });
+  const status = q.data?.pdfStatus ?? initial;
+  const url = q.data?.pdfUrl ?? null;
+  if (status === "READY" && url) {
+    return (
+      <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+        Open PDF
+      </Button>
+    );
+  }
+  if (status === "PENDING" || status === "PROCESSING") {
+    return <span style={{ fontSize: "0.875rem" }}>Generating…</span>;
+  }
+  return (
+    <Button kind="ghost" size="sm" disabled={gen.isPending} onClick={() => gen.mutate({ id })}>
+      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
+    </Button>
+  );
+}
+
+/** Parse bulk BBS lines: barMark, member, diaMm, noOfMembers, barsPerMember, cuttingLengthMm */
+function parseBbsBulk(text: string) {
+  return text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const cols = line.split(/[\t,;]/).map((c) => c.trim());
+      const [barMark, member = "", diaMm, noOfMembers = "1", barsPerMember = "1", cuttingLengthMm] = cols;
+      if (!barMark || !diaMm || !cuttingLengthMm) return null;
+      return {
+        barMark,
+        member: member || undefined,
+        diaMm: Number(diaMm),
+        noOfMembers: Number(noOfMembers) || 1,
+        barsPerMember: Number(barsPerMember) || 1,
+        cuttingLengthMm: Number(cuttingLengthMm) || 0,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null && r.cuttingLengthMm > 0);
+}
 
 export function ProjectBbs({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -48,11 +105,22 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
       setItemOpen(false);
     },
   });
+  const bulkImport = trpc.bbs.bulkImport.useMutation({
+    onSuccess: () => {
+      invalidateItems();
+      setBulkOpen(false);
+      setBulkText("");
+    },
+  });
   const removeItem = trpc.bbs.removeItem.useMutation({
     onSuccess: invalidateItems,
   });
 
   const [itemOpen, setItemOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [spanMm, setSpanMm] = useState("6000");
   const [itf, setItf] = useState({
     barMark: "",
     member: "",
@@ -73,11 +141,12 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
         })
       : null;
 
-  // Steel summary by diameter.
   const byDia = new Map<number, number>();
   for (const it of items)
     byDia.set(it.diaMm, (byDia.get(it.diaMm) ?? 0) + it.weightKg);
   const totalWeight = items.reduce((s, it) => s + it.weightKg, 0);
+
+  const open = (listQ.data ?? []).find((b) => b.id === openId) ?? null;
 
   return (
     <>
@@ -99,14 +168,18 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
         <Table>
           <TableHead>
             <TableRow>
+              <TableHeader>Ref</TableHeader>
               <TableHeader>Title</TableHeader>
+              <TableHeader>Ver</TableHeader>
               <TableHeader></TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {(listQ.data ?? []).map((b) => (
               <TableRow key={b.id}>
+                <TableCell>{b.ref}</TableCell>
                 <TableCell>{b.title}</TableCell>
+                <TableCell>v{b.versionNo ?? 1}</TableCell>
                 <TableCell>
                   <Button
                     kind="ghost"
@@ -131,10 +204,34 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               alignItems: "center",
             }}
           >
-            <h4>Bars</h4>
-            <Button size="sm" onClick={() => setItemOpen(true)}>
-              Add bar
-            </Button>
+            <h4>{open?.ref ?? "Bars"} · {open?.title}</h4>
+            <Stack orientation="horizontal" gap={3}>
+              {open && (
+                <>
+                  <Button
+                    size="sm"
+                    kind="ghost"
+                    onClick={() => {
+                      void utils.bbs.exportRows.fetch({ bbsId: open.id }).then((data) => {
+                        if (data.rows.length) downloadXlsx(data.rows, "BBS", `${data.ref ?? open.title}-bbs`);
+                      });
+                    }}
+                  >
+                    Export XLSX
+                  </Button>
+                  <BbsPdf id={open.id} initial={open.pdfStatus ?? "NONE"} />
+                </>
+              )}
+              <Button size="sm" kind="tertiary" onClick={() => setTemplateOpen(true)}>
+                From template
+              </Button>
+              <Button size="sm" kind="tertiary" onClick={() => setBulkOpen(true)}>
+                Bulk import
+              </Button>
+              <Button size="sm" onClick={() => setItemOpen(true)}>
+                Add bar
+              </Button>
+            </Stack>
           </div>
           <TableContainer
             title="Bar schedule"
@@ -301,6 +398,70 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               <strong>{preview.weightKg} kg</strong>
             </p>
           )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={bulkOpen}
+        modalHeading="Bulk import bars"
+        primaryButtonText={bulkImport.isPending ? "Importing…" : "Import"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!openId || !bulkText.trim() || bulkImport.isPending}
+        onRequestClose={() => setBulkOpen(false)}
+        onRequestSubmit={() => {
+          if (!openId) return;
+          const rows = parseBbsBulk(bulkText);
+          if (rows.length) bulkImport.mutate({ bbsId: openId, rows });
+        }}
+      >
+        <Stack gap={4}>
+          <p style={{ margin: 0, opacity: 0.85 }}>
+            One line per bar: mark, member (optional), dia (mm), members, bars/member, cutting length (mm).
+          </p>
+          <TextArea
+            id="bulk-bbs"
+            labelText="Paste rows"
+            rows={10}
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder={"A1, Column C1, 16, 4, 2, 3200\nB2, Beam B1, 12, 2, 4, 5400"}
+          />
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={templateOpen}
+        modalHeading="Apply SteelFlow template"
+        primaryButtonText={bulkImport.isPending ? "Applying…" : "Apply"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!openId || !spanMm || bulkImport.isPending}
+        onRequestClose={() => setTemplateOpen(false)}
+        onRequestSubmit={() => {
+          if (!openId) return;
+          const applied = applySteelFlowCatalogEntry(DEMO_BEAM_230x600_M25, Number(spanMm) || 6000);
+          const rows = applied.rebars.map((r) => ({
+            barMark: r.barMark,
+            member: `${applied.elementType} · ${r.barType}`,
+            diaMm: r.diaMm,
+            noOfMembers: 1,
+            barsPerMember: r.quantity,
+            cuttingLengthMm: r.cuttingLengthMm,
+          }));
+          if (rows.length) bulkImport.mutate({ bbsId: openId, rows });
+          setTemplateOpen(false);
+        }}
+      >
+        <Stack gap={4}>
+          <p style={{ margin: 0, opacity: 0.85 }}>
+            {DEMO_BEAM_230x600_M25.name} — validated IS:456 / IS:2502 layout with main, extra, and skin bars.
+          </p>
+          <TextInput
+            id="tpl-span"
+            labelText="Span / member length (mm)"
+            type="number"
+            value={spanMm}
+            onChange={(e) => setSpanMm(e.target.value)}
+          />
         </Stack>
       </Modal>
     </>

@@ -45,6 +45,48 @@ export const EstimateItemCreate = z.object({
 });
 export type EstimateItemCreate = z.infer<typeof EstimateItemCreate>;
 
+export const EstimateItemUpdate = z.object({
+  id: z.string().uuid(),
+  description: z.string().min(1).max(400).optional(),
+  unit: z.string().min(1).max(20).optional(),
+  qty: z.number().nonnegative().optional(),
+  ratePaise: z.number().int().nonnegative().optional(),
+  itemLeadPct: z.number().min(0).max(100).optional(),
+});
+export type EstimateItemUpdate = z.infer<typeof EstimateItemUpdate>;
+
+export const EstimateBulkImportRow = z.object({
+  description: z.string().min(1).max(400),
+  unit: z.string().min(1).max(20),
+  qty: z.number().nonnegative(),
+  ratePaise: z.number().int().nonnegative(),
+  itemLeadPct: z.number().min(0).max(100).default(0),
+  dsrItemId: z.string().uuid().nullable().optional(),
+});
+export type EstimateBulkImportRow = z.infer<typeof EstimateBulkImportRow>;
+
+export const EstimateBulkImport = z.object({
+  estimateId: z.string().uuid(),
+  rows: z.array(EstimateBulkImportRow).min(1).max(500),
+});
+export type EstimateBulkImport = z.infer<typeof EstimateBulkImport>;
+
+export const BbsImportRow = z.object({
+  barMark: z.string().min(1).max(40),
+  member: z.string().max(80).optional(),
+  diaMm: z.number().int().positive(),
+  noOfMembers: z.number().int().positive().default(1),
+  barsPerMember: z.number().int().positive().default(1),
+  cuttingLengthMm: z.number().positive(),
+});
+export type BbsImportRow = z.infer<typeof BbsImportRow>;
+
+export const BbsBulkImport = z.object({
+  bbsId: z.string().uuid(),
+  rows: z.array(BbsImportRow).min(1).max(500),
+});
+export type BbsBulkImport = z.infer<typeof BbsBulkImport>;
+
 /** Line amount in paise = qty × rate × (1 + item lead%). */
 export function estimateItemAmount(qty: number, ratePaise: number, itemLeadPct: number): number {
   return Math.round(qty * ratePaise * (1 + itemLeadPct / 100));

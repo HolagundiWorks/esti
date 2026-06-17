@@ -1,1006 +1,415 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16 (Phase 5 ASPRF KPIs complete)
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-16
 
-This is the authoritative delivery plan for [PRD](PRD.md). Priority meanings:
-**P0** security/data integrity, **P1** operational core, **P2** expansion,
-**P3** optimization. Items marked delivered describe the current repository;
-all others remain required.
+Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
 
-Temporary presentation note: the dashboard now uses presentation-focused
-loading-aware metric tiles, linked recent activity, and a demo-friendly office
-pulse strip. That polish is not a roadmap item and can be revised independently
-of the delivery plan below.
+---
 
-## Current Baseline
+## How to read this document
 
-Delivered: authentication and staff ladder, client/consultant portals, clients,
-projects and general delivery stages, tasks and workload, firm/team/HR, fee proposals,
-invoices and filing abstracts, reconciliation, statutory permit records, a BBMP
-seed calculator, drawings and DXF takeoff, approvals, consultants,
-proposals/contracts/letters, transmittals, specification sheets, mood boards,
-inspections, DSR/BOQ/BBS, purchase orders, dashboard boards, notifications, PDF
-worker, migrations, request IDs, rate limits, upload content sniffing, worker
-retry/DLQ, demo data, Pure Carbon typography and responsive shell, Carbon
-productive type scale applied to all routes.
+| Priority | Meaning |
+|----------|---------|
+| **P0** | Security, data integrity, production gates |
+| **P1** | Operational core — firm runs on this daily |
+| **P2** | Expansion — tenders, search, commercial depth |
+| **P3** | Optimization and optional polish |
 
-Also delivered in the latest session: central Knowledge Bank hub (DSR +
-Compliance + Specification standards + Structural element templates in one module);
-dashboard chart refresh (Treemap, Donut, Heatmap, Gauge); Work module consolidating
-Tasks / Workload / Activity into a single URL-tabbed route; Carbon Charts theme
-isolation fix via ThemeContext.
+**Status markers:** ✅ Complete · 🔄 Partial · ⬜ Planned
 
-Also delivered: Personal Workspace panel (Pomodoro focus timer with global context
-so it keeps running when the panel is closed, floating 20% opacity overlay while a
-session is running; calculator tab with expression state persisted across tab switches;
-Tasks tab showing open personal tasks; Leave balance tab; theme toggle moved into
-panel; welcome note with Ar. name + formatted date); live date/time clock in the
-global header; dashboard resource-card guideline applied to all tiles (Tag category
-header, pictogram, h3 title, h2 KPI values, ghost "Open module" action buttons);
-Pomodoro timer and theme toggle removed from the header top bar.
+- **Delivered** items describe the current repository.
+- **Gates** are acceptance criteria — a phase is not closed until its gate is met.
+- Presentation-only dashboard polish (demo tiles, landing layout) is **not** tracked here unless it affects delivery scope.
 
-Also delivered: **SteelFlow AI — Interactive Steel Arranger + Automated BBS
-Generator** (Phase 2E, complete): dnd-kit drag-and-drop bar placement from
-T6–T32 palette onto SVG cross-section; shape codes B/C/D/E bent-bar cutting
-lengths per IS:2502 with conditional dimension fields; SLAB cross-section strip
-and FOOTING plan-view canvas variants; Excel BBS export; IS:456 AI review.
+---
 
-Also delivered: **Phase 4C — Revision Intelligence and CRIF enhancements**:
-`revisionSource` field on decisions (CLIENT_DRIVEN/INTERNAL_ERROR/TECHNICAL_QUERY/
-SCOPE_CHANGE) with source Select in CRIF modal and Tag column in decision ledger;
-scope drift % summary above CRIF table; revision budget integer per phase with
-inline edit in Project Settings; Dashboard KPI bar "Revision risk" now shows
-LOW/MEDIUM/HIGH health band; Revision Intelligence tile (client/internal/site/scope
-counts + health score + scope drift %) and Technical Intelligence tile (drawing
-accuracy %, site query rate) both added to Zone 3 of the dashboard.
+## Status at a glance
 
-Also delivered (4A backlogs): **RIE POST_DESIGN mode and violation engine**:
-`AssessmentPhase` enum (PRE_DESIGN/POST_DESIGN); actual setback inputs in form
-(POST_DESIGN only); `runViolations()` pure engine producing `ViolationItem` per
-parameter (FAR, ground coverage, height, all four setbacks, basement depth) with
-COMPLIANT/WITHIN_RELAXATION/VIOLATION status; `RelaxationInputs` schema stored per
-assessment; `setRelaxations` mutation re-runs violations with updated relaxations;
-Violations tab added to FeasibilityDashboard with inline relaxation entry and
-recompute. RIE engine refinements: basement height validation (min 2.4 m, max
-2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting trigger
-(plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement (2 trees if
-site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in dev-control engine;
-FAR-excluded area field so gross BUA minus excluded = net BUA compared against FAR
-limit; plinth area field for rainwater trigger. Migration `0024_rie_phase2.sql`
-applied.
+| Phase | Focus | Pri. | Status |
+|-------|--------|------|--------|
+| [0](#phase-0---documentation-baseline-p0) | Documentation baseline | P0 | 🔄 |
+| [1](#phase-1---security-authorization-and-retention-p0) | Security & retention | P0 | ✅ |
+| [2](#phase-2---pure-carbon-and-responsive-shell-p0) | Pure Carbon shell | P0 | ✅ |
+| [2B](#phase-2b---data-visualisation-spacing-and-colour-semantics-p0) | Charts & spacing | P0 | ✅ |
+| [2C](#phase-2c---dashboard-chart-refresh-and-work-module-p1) | Dashboard charts & Work module | P1 | ✅ |
+| [2D](#phase-2d---personal-workspace-and-dashboard-polish-p1) | Personal workspace | P1 | ✅ |
+| [2E](#phase-2e---steelflow-ai-steel-arranger--automated-bbs-p1) | SteelFlow AI | P1 | ✅ |
+| [2F](#phase-2f---ui-audit-page-hierarchy-and-policy-alignment-p0) | UI audit & PageHeader | P0 | ✅ |
+| [2G](#phase-2g---workflow-ia--architecture-remediation-p0p3) | Workflow & IA remediation | P0–P3 | ✅ |
+| [3](#phase-3---domain-activity-foundation-p1) | Activity foundation | P1 | ✅ |
+| [4](#phase-4---project-memory-change-control-and-revision-intelligence-p1) | Project memory & CRIF | P1 | ✅ |
+| [4A](#phase-4a---standalone-compliance-intelligence--rie-p1) | RIE / compliance | P1 | ✅ |
+| [4B](#phase-4b---dashboard-intelligence-and-billing-action-p1) | Dashboard intelligence | P1 | ✅ |
+| [4C](#phase-4c---revision-intelligence-and-crif-enhancements-p1) | Revision intelligence | P1 | ✅ |
+| [4D](#phase-4d---knowledge-bank-foundations-p1) | Knowledge Bank catalogues | P1 | ✅ |
+| [5](#phase-5---tasks-availability-escalations-and-performance-p1) | Tasks, ASPRF, escalations | P1 | 🔄 |
+| [6](#phase-6---client-and-consultant-collaboration-p1) | Client & consultant portals | P1 | ✅ |
+| [7](#phase-7---contractor-and-tender-coordination-p2) | Contractors & tenders | P2 | 🔄 |
+| [8](#phase-8---documents-and-numbering-p1) | Documents & numbering | P1 | ✅ |
+| [9](#phase-9---search-knowledge-and-lessons-p2) | Search & lessons | P2 | ✅ |
+| [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ⬜ |
+| [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ⬜ |
+| [12](#phase-12---production-readiness-p0) | Production readiness | P0 | 🔄 |
 
-Also delivered: **Phase 4A compliance PDF**: `generatePdf` + `pdfUrl` mutations on
-the RIE router; Python worker `render_pdf` job with `target="compliance"` renders a
-full A4 branded HTML→PDF via WeasyPrint; stores to S3 and patches `esti_site_assessment`
-with `pdf_key` + `pdf_status` (PENDING → PROCESSING → READY); "Generate PDF" /
-"Generating…" / "Regenerate PDF" flow in `SiteAssessmentPanel`. Migration
-`0025_phase5_foundation.sql` adds `pdf_status` column.
+---
 
-Also delivered: **Phase 5 first-wave — ASPRF engine, timesheets, stand-ups, task
-work type**: `work_type`, `difficulty_coefficient` (1–5), `estimated_hours` columns
-on `esti_task`; `esti_timesheet` (per-person per-day project/task attribution with
-billable flag); `esti_daily_update` (stand-up text per team member per date, unique
-constraint); `esti_reward_point` (audit-trailed points for on-time delivery, zero-rework,
-first-pass approval, knowledge contribution, mentorship, training, team bonus).
-New tRPC namespaces: `timesheets` (list/create/update/remove/summary), `dailyUpdates`
-(list/upsertMine/today), `aspRf` (teamScores rolling 30-day + myScore), `rewards`
-(listByMember/grant ownerProcedure). ASPRF score engine: 6 weighted KPI dimensions
-(Reliability 30%, Quality 25%, Client Impact 15%, Collaboration 15%, Learning 10%,
-Wellbeing 5% opt-in); performance bands Bronze/Silver/Gold/Platinum with Carbon-compatible
-tag types. Work module gains Stand-up tab (daily update upsert + team view by date)
-and Timesheets tab (log hours against project/task, billable toggle, summary totals).
-Task create/edit form gains Work Type, Difficulty, and Est. Hours fields. `/performance`
-route (HR-gated) shows member scorecard tiles with KPI bars, band tags, and a grant
-reward points modal; Recognition tab shows award types and point event reference.
+## Product snapshot
 
-Also delivered (2026-06-13 convention audit): **Carbon-only compliance pass** —
-full codebase audit found 9 inline decorative style violations (fontSize, border-radius,
-background, fontWeight) across `BarPalette.tsx`, `ProjectOverview.tsx`,
-`SteelArranger.tsx`, `Performance.tsx`, `Work.tsx`. All resolved by extracting
-static visual props to new SCSS utility classes (`.esti-label`, `.esti-label--secondary`,
-`.esti-label--helper`, `.esti-kpi-track`, `.esti-kpi-fill`, `.esti-cal-hdr`,
-`.esti-cal-cell`, `.esti-heat-swatch`, `.esti-bar-palette`) in `styles.scss`;
-only truly dynamic runtime values (computed width%, heatmap backgroundColor/color,
-focus outline) remain as inline styles. No hardcoded hex colours or non-Carbon
-components found. CLAUDE.md module map expanded from 9 to 57 tRPC namespaces
-and all 33 frontend routes documented.
+ESTI (AORMS) is a **working prototype** deployed at [aorms.in](https://aorms.in) — not yet production-complete.
 
-Also delivered (2026-06-14 deployment + branding session):
-- **Branded marketing landing** — `Landing.tsx` rewritten as a research-oriented
-  editorial page for Indian architects (solo practitioners to 50-person firms),
-  scoped under `.esti-lp` (the single documented non-Carbon exception). Brand accent
-  is indigo (`#3e367c` family, sampled from the AORMS logo); "Sign in" buttons removed
-  (demo/contact CTAs only); the AORMS wordmark is the brand lockup in the top bar, hero,
-  and footer; "Developed by Holagundi Consulting Wurkz" + HCW logo in the footer.
-- **Brand assets + SEO** — real ESTI / AORMS / HCW logos and a full favicon set
-  (`favicon.ico`, 16/32/48, apple-touch, android-chrome 192/512, `site.webmanifest`)
-  in `frontend/public`; `index.html` carries SEO title/description/keywords, canonical,
-  `theme-color`, Open Graph (`https://aorms.in/og-image.png`, 1200×630), Twitter
-  summary_large_image, and SoftwareApplication + FAQPage JSON-LD. App header shows the
-  white ESTI mark; Login shows a brand chip; App/landing footers credit HCW (theme-aware).
-- **SteelFlow into Knowledge Bank** — Steel Arranger is now the 4th tab of the
-  Knowledge Bank route (URL-driven `?tab=dsr|compliance|specification|steelflow`),
-  rendering `<SteelArranger embedded />`.
-- **Dashboard redesign** — condensed mosaic with minimal row gap; full-width zone-header
-  tiles with an ArrowRight to the related page; 4-chip KPI strip (incl. Team utilization);
-  per-card 3px health edge; Action Center split into four tiles; square-cornered coloured tags.
-- **Personal panel UX** — X button removed; click-outside-to-close overlay; each tab
-  wrapped in a card with proper spacing.
-- **Task board (Kanban) view** — new Board tab on the Work module: To do / In progress /
-  Blocked / Done columns of task cards with inline status moves and a "My tasks" filter.
-- **Docker production scaffolding** — `compose.prod.yaml`, `deploy/` (`.env.production.example`,
-  `bootstrap.sh`, `deploy.sh`, `nginx-proxy.conf`), `*.Dockerfile.prod`, `seed:prod` /
-  `seed:demo:prod` scripts; targets a Hostinger Ubuntu + Docker VPS at **aorms.in**
-  (podman stays the dev runtime).
-- **Migration journal repair** — `backend/drizzle/meta/_journal.json` now registers
-  migrations 0015–0025 so `runMigrations()` applies them in production (root cause of the
-  prod dashboard 500s — timesheet/revision-source tables were never created).
-- **Demo seed expansion** — `seedDemo.ts` now creates 14 clients/projects with aligned
-  task arrays; owner is `principal@demo.aorms.in` / `demo1234` to match the demo login.
+**Live today**
 
-Also delivered (Phase 6 + demo): full client & consultant collaboration
-(see Phase 6 below — all four bullets) and **separate demo workspaces** —
-`seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemoSolo.ts` (solo,
-`solo@demo.aorms.in`). Production studio → solo uses the HR archive workflow;
-see `docs/esti/ORG-MODE-AND-HR-ARCHIVE.md` and `DEMO-AND-HR-MODE.md`.
+- Staff auth ladder, firm/team/HR, clients, projects, tasks & Work module (Kanban, workload heatmap, attendance, activity)
+- Fee proposals, invoices, reconciliation, filing abstracts, dashboard boards & intelligence tiles
+- Project memory: CRIF decision ledger, revision source, scope drift, archive/retention
+- Knowledge Bank: Master DSR, compliance/RIE, specification catalogue, SteelFlow workshop
+- Client & consultant portals with threaded submissions and activity feeds
+- ASPRF performance scoring, escalations, leave-impact alerts
+- Contractor register, tender packages, token-scoped contractor bid portal
+- **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
+- **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
+- Pure Carbon UI, marketing landing, VPS Docker deploy scaffolding
 
-Also delivered (2026-06-15 landing USP + quality intelligence session):
-- **Landing USP refresh** — persona-gated content; `#usp` leads with client revision
-  management (Minor/Major/Critical) using the real Carbon CRIF transition modal via
-  `RevisionTransitionPreview.tsx`; studio blocks for **ASPRF** and **Quality
-  intelligence** (radar profile + revision source meter + technical metrics).
-- **Quality intelligence shared tiles** — `QualityIntelligenceTiles.tsx` +
-  `quality-intelligence.ts` power both Dashboard zone 7 and landing preview;
-  revision source viz uses `MeterChart` with `meter.proportional` (not
-  `ProportionalMeterChart`, which is not exported); global `.esti-qi-*` styles.
-- **Landing narrative order** — "Our story" moved to page end (before footer);
-  nav link order updated to match.
-- **Phase 2F UI audit (in progress)** — shared `PageHeader` on list routes;
-  `PortalHeader` + white theme on client/consultant portals; Login rebuilt with
-  Carbon layout (`.esti-login-*` helpers, no hard-coded hex); documented UI
-  exceptions added to `CARBON-UI-DIRECTION.md`.
+**Open before production declaration**
 
-Also delivered (Phase 2F complete): **UI audit closure** — `PageHeader` on all
-staff list routes; Performance ASPRF dimension bars migrated to `MeterChart`;
-`carbon-policy-rules.mjs` aligns CI with documented exceptions; landing mobile
-hamburger nav; client portal Minor/Major/Critical revision categories on change
-requests and approval revision responses (migration `0032_portal_revision_category.sql`).
+- Phase 12 backup/restore, TLS/secrets hardening, full smoke suite
+- Phase 5 task calendar grid view (ASPRF gate remainder)
+- Phase 7 tender documents/addenda, contractor RFIs/NCRs, construction boards
 
-Also delivered (2026-06-15 workflow/architecture audit): canonical snapshot in
-`WORKFLOW-ARCHITECTURE-AUDIT.md`; Phase 2G P0+P1 complete (migration journal
-0031, compliance routing, portal deep links `/projects/:id`, settings cross-link,
-/work alias, deprecated route files removed).
+---
 
-Also delivered (2026-06-15–16 knowledge catalogues + production build session):
-- **Specification material catalogue** — migration `0038_spec_catalog.sql`;
-  `esti_spec_catalog_version` / `esti_spec_catalog_item`; `specCatalog` tRPC router;
-  `SpecCatalogManager` in Knowledge Bank **Specification** tab; project spec sheets
-  resolve rows from the active catalogue (`specCatalogResolve`, optional
-  `catalogItemId` on `esti_specitem`); demo seed via `seedSpecCatalog.ts`.
-- **SteelFlow structural catalogue** — `packages/contracts/src/steelflow-catalog.ts`
-  with `applySteelFlowCatalogEntry()` (span rules: FULL_SPAN, SPAN_FRACTION, FIXED_MM,
-  DEVELOPMENT_LENGTH); `SteelFlowCatalogManager` + **Apply catalogue** picker in the
-  SteelFlow workshop; demo beam 230×600 M25 template in seed. See
-  `STEELFLOW-BOUNDED-CONTEXT.md`.
-- **Production Docker builds** — contracts/backend/frontend prod images build cleanly
-  (test files excluded from app tsconfigs; contract export fixes; basement fields on
-  `BylawCalcInput`; optional geometry/reinforcement in catalogue parser).
-- **PDF worker reliability** — MinIO bucket `esti-documents` is provisioned at backend
-  startup (`ensureBucket`) and before worker uploads (`ensure_bucket`); fixes
-  `NoSuchBucket` on fresh compose stacks when PDF is requested before any file upload.
-- **Landing trim** — removed the persona-gated **How architects work** / practice-flow
-  section and nav link; USP → Modules flow unchanged.
+## Remaining work (priority order)
 
-The baseline is a prototype, not production-complete. "Delivered" does not
-override the remediation work below.
+1. **P0 — Production readiness (Phase 12)** — backup/restore drill, secrets/TLS, pagination caps, worker idempotency, CI smoke suite
+2. **P1 — Tasks (Phase 5 gate)** — dedicated task calendar grid in Work
+3. **P2 — Tenders (Phase 7)** — controlled tender documents, sealed contractor bids, RFIs/NCRs, dashboard boards
+4. **P2 — Commercial & AI (Phases 10–11)** — FY filters, estimate grid, AI gateway with human approval gates
+
+---
+
+# Completed & active phases
 
 ## Phase 0 - Documentation Baseline [P0]
 
 - [x] Align vision, PRD, module profile, architecture, Carbon policy, roadmap.
 - [x] Remove stale audit documents after moving findings into this roadmap.
 - [x] Resolve product boundary: selective contractor coordination, no contractor ERP.
-- [x] Retain project-scoped consultant collaboration.
 - [ ] Keep roadmap status current in every implementation pull request.
 
 **Gate:** no canonical documents contradict product scope or delivery status.
 
-## Phase 1 - Security, Authorization, And Retention [P0] - Complete 2026-06-11
+---
+
+## Phase 1 - Security, Authorization, And Retention [P0] — Complete 2026-06-11
 
 - [x] Apply the same role/capability checks to REST uploads as tRPC procedures.
-- [x] Prevent client, consultant, contractor, viewer, and demo accounts from
-  unauthorized uploads or project references.
+- [x] Prevent client, consultant, contractor, viewer, and demo accounts from unauthorized uploads or project references.
 - [x] Reject drawing revision roots that do not exist or belong to another project.
 - [x] Verify project ownership/scope for every object upload and mutation.
-  - [x] Reject cross-project drawing transmittals, approval supersession, and
-    invoice phase/client references; validate parent projects on key creates.
+  - [x] Reject cross-project drawing transmittals, approval supersession, and invoice phase/client references.
 - [x] Add configurable Origin validation for cookie-authenticated writes.
-- [x] Add audit entries for binary uploads, including drawing revisions.
-- [x] Add before/after audit entries for task lifecycle writes.
-- [x] Add audit entries for document PDF requests/deletion and mood-board changes.
-- [x] Audit drawing/measurement, estimation, assignments, bylaws, client-log,
-  and purchase-order operational writes.
+- [x] Add audit entries for binary uploads, drawing revisions, task lifecycle, PDF requests, mood-board changes.
+- [x] Audit drawing/measurement, estimation, assignments, bylaws, client-log, and purchase-order writes.
 - [x] Complete audit coverage for every remaining privileged state transition.
-- [x] Replace destructive project deletion with reversible archive/restore;
-  retain issued documents and non-draft commercial records.
+- [x] Replace destructive project deletion with reversible archive/restore.
 - [x] Add an owner-only, paginated audit review API and Carbon screen.
-- [x] Add API integration tests for staff tiers, portal scope, demo restrictions,
-  capability procedures, project references, retention, and every upload route.
+- [x] Add API integration tests for staff tiers, portal scope, demo restrictions, capability procedures, retention, and every upload route.
 
-**Gate met:** negative authorization tests cover every role and upload route;
-project archive preserves child records, and the append-only audit survives both
-archive/restore and administrative operational-data reset.
+**Gate met:** negative authorization tests cover every role and upload route; archive preserves child records; append-only audit survives archive/restore and operational-data reset.
 
-## Phase 2 - Pure Carbon And Responsive Shell [P0] - Complete 2026-06-11
+---
 
-- [x] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars,
-  and non-permitted visual CSS.
+## Phase 2 - Pure Carbon And Responsive Shell [P0] — Complete 2026-06-11
+
+- [x] Remove decorative inline styles, raw hex colours, hand-rolled cards/bars, and non-permitted visual CSS.
 - [x] Convert layouts to `Grid`, `Column`, `Stack`, Carbon tiles and tables.
-- [x] Keep only colourless structural CSS permitted by `CLAUDE.md`.
 - [x] Standardize loading, empty, error, validation, and destructive states.
 - [x] Fix heading hierarchy, portal keyboard access, focus flow, and mobile tables.
-- [x] Apply Carbon productive type scale (`productive-heading-04/03/02`) to all
-  semantic headings via SCSS `type-style()` mixin scoped to `.cds--content`.
-- [x] Add automated checks for hard-coded colours and browser smoke tests at
-  desktop, tablet, and mobile breakpoints.
+- [x] Apply Carbon productive type scale to all semantic headings via SCSS `type-style()` mixin.
+- [x] Add automated checks for hard-coded colours and browser smoke tests at desktop, tablet, and mobile breakpoints.
 
-**Gate met:** frontend typecheck/lint/build pass and representative routes pass
-keyboard, dark-theme, and responsive browser review. 2026-06-13 audit confirmed
-zero hardcoded hex colours and zero non-Carbon components; 9 inline decorative
-style violations found and resolved (see Current Baseline note above).
+**Gate met:** frontend typecheck/lint/build pass; representative routes pass keyboard, dark-theme, and responsive review. 2026-06-13 audit resolved nine inline decorative violations (see Phase 2F).
 
-## Phase 2B - Data Visualisation, Spacing Audit, And Colour Semantics [P0] - Complete 2026-06-12
+---
 
-- [x] Replace all hand-rolled `ProgressBar` distribution boards with Carbon
-  `SimpleBarChart` horizontal (workload, receivables aging, project phases,
-  project types); import `ScaleTypes` from `@carbon/charts` for axis typing.
-- [x] Add `DonutChart` to the Financial Health module showing the full revenue
-  breakdown (pipeline / ready-to-bill / outstanding / collected FY).
-- [x] Remove redundant "Office Pulse" section (duplicated KPI bar content);
-  replace with the full Action Center → Financial Health → Project Status flow.
-- [x] Restructure dashboard layout per the brief hierarchy: Action Center first,
-  Activity Feed last; intelligence tiles in 8/8 split.
-- [x] Audit and normalise `Stack gap` values against the Carbon 2x spacing scale:
-  `gap=3` (8 px) for label/value/tag groups; `gap=4` (12 px) for list items;
-  `gap=5` (16 px) between tile sections; `gap=6` (24 px) between sub-modules.
-- [x] Switch KPI bar from `Grid condensed` (2 px gutters) to `Grid narrow`
-  (8/16 px gutters) for correct rhythm between KPI chips.
-- [x] Activity Feed expanded to 8 events in a `Grid narrow` two-column layout.
-- [x] Establish Carbon colour anatomy rules in `CARBON-UI-DIRECTION.md`:
-  blue family for primary/interactive; green for success; red for error/danger;
-  magenta for warning/pending (Tag palette has no gold); teal for informational;
-  `InlineNotification kind="warning"` for gold alert banners.
-- [x] Add chart sizing helpers to `styles.scss` (`esti-chart-sm/md/lg`).
-- [x] Document all data-viz selection rules, chart option patterns, dynamic
-  height formula, and "what not to do" list in `CARBON-UI-DIRECTION.md`.
+## Phase 2B - Data Visualisation, Spacing Audit, And Colour Semantics [P0] — Complete 2026-06-12
 
-**Gate met:** typecheck passes; dashboard uses only `@carbon/charts-react`
-visualisations; no `ProgressBar` used as a distribution chart; all spacing
-follows the 2x grid token scale; colour usage matches Carbon colour anatomy.
+- [x] Replace hand-rolled `ProgressBar` distribution boards with Carbon `SimpleBarChart`.
+- [x] Add `DonutChart` to Financial Health (revenue breakdown).
+- [x] Restructure dashboard per brief hierarchy: Action Center first, Activity Feed last.
+- [x] Normalise `Stack gap` values against Carbon 2× spacing scale.
+- [x] Switch KPI bar from `Grid condensed` to `Grid narrow`.
+- [x] Establish Carbon colour anatomy rules in `CARBON-UI-DIRECTION.md`.
+- [x] Add chart sizing helpers (`esti-chart-sm/md/lg`) and document data-viz rules.
 
-## Phase 2C - Dashboard Chart Refresh And Work Module [P1] - Complete 2026-06-12
+**Gate met:** dashboard uses only `@carbon/charts-react`; spacing follows 2× grid tokens.
 
-- [x] Replace `SimpleBarChart` project-type board with `TreemapChart` (mono,
-  projects by type; colour `pairing.option: 1`).
-- [x] Add `DonutChart` for projects by architectural delivery phase.
-- [x] Replace the workload band display with `HeatmapChart` (weekly:
-  person × day-of-week; daily: person × ISO date) controlled by a Carbon
-  `Toggle`; respects current app theme via `options.theme`.
-- [x] Replace hand-rolled status counts with structured Active / On Hold /
-  Closed number displays using Carbon `Tag` and semantic headings.
-- [x] Add `GaugeChart` per person for daily task load (0–10 scale; arc value
-  mapped from `count / 10 × 100`; raw count shown via `numberFormatter`).
-- [x] Fix Carbon Charts theme isolation: `ThemeContext` created in
-  `frontend/src/lib/theme-context.ts`; provided in `App.tsx` alongside
-  `<Theme>`; consumed in every chart sub-component via `useAppTheme()`;
-  each chart receives `options.theme: chartTheme`.
-- [x] Consolidate Tasks, Workload, Activity into single `/tasks` **Work** module
-  (`Work.tsx`) with three URL-persisted tabs (`?tab=tasks|workload|activity`);
-  `/activity` and `/workload` redirect to the appropriate tab.
-- [x] Workload calendar uses Carbon `--cds-tag-background-*` / `--cds-tag-color-*`
-  token pairs for heatmap cell colouring: teal (1–2), blue (3–5), purple (6–8),
-  red (9+); legend tile shows all five intensity levels.
-- [x] Remove duplicate demo-account sign-in `HeaderGlobalAction` from the
-  app header; single Sign out button remains.
-- [x] Dashboard "Open Activity Center" button updated to `/tasks?tab=activity`.
+---
 
-**Gate met:** frontend typecheck passes; all six chart instances receive explicit
-`theme`; Work module tabs persist through URL reload; workload heatmap renders
-correct Carbon token colours in both light and dark themes.
+## Phase 2C - Dashboard Chart Refresh And Work Module [P1] — Complete 2026-06-12
 
-## Phase 2D - Personal Workspace And Dashboard Polish [P1] - Complete 2026-06-12
+- [x] Replace project-type board with `TreemapChart`; add phase `DonutChart`.
+- [x] Replace workload band with `HeatmapChart` (weekly/daily toggle).
+- [x] Add `GaugeChart` per person for daily task load.
+- [x] Fix Carbon Charts theme isolation via `ThemeContext` + `useAppTheme()`.
+- [x] Consolidate Tasks, Workload, Activity into `/tasks` Work module with URL tabs.
+- [x] Workload heatmap uses Carbon tag token pairs; `/activity` and `/workload` redirect.
 
-- [x] **Personal Workspace panel** — fixed right drawer toggled by the User icon
-  in the header `HeaderGlobalBar`; `width: 20rem`, `height: calc(100vh - 3rem)`,
-  no outer scroll; implemented in `frontend/src/components/PersonalPanel.tsx`.
-- [x] **Pomodoro Focus tab** — Work / Short break / Long break modes; countdown
-  timer; pause / resume / reset; session counter; state lifted into
-  `PomodoroContext` (React context with interval) so the timer runs even while
-  the panel is closed.
-- [x] **Floating Pomodoro overlay** — `position: fixed; opacity: 0.2` countdown
-  shown bottom-right while any Pomodoro session is running; non-interactive.
-- [x] **Calculator tab** — arithmetic expression evaluator with `×`, `÷`, `−`,
-  `%`; expression state lifted to `PersonalPanel` so it survives tab switches;
-  Enter to reuse result.
-- [x] **Tasks tab** — live query of open personal tasks; shows priority and overdue
-  tags; limited to 3 items + "more in Work" link.
-- [x] **Leave balance tab** — pulls `dashboard.me` data; remaining / used /
-  allowance metrics + progress bar.
-- [x] **Theme toggle moved to panel** — Asleep/Light icon button in the panel
-  header replaces the header-bar `HeaderGlobalAction`; state still stored in
-  `localStorage` and propagated via `ThemeContext`.
-- [x] **Welcome note** — `Welcome, Ar. {firstName}` + formatted weekday/date/year.
-- [x] **Global header clock** — live `{weekday short}, {day} {month} · HH:MM`
-  updated every second via `HeaderClock` component + `setInterval`.
-- [x] **Dashboard resource-card guidelines** — all tiles restructured: `Tag` for
-  category, `width={32}` pictogram, `<h3>` title, `<h2>` KPI values, ghost
-  "Open module" action button at bottom; clock/leave widget removed from
-  dashboard header.
+**Gate met:** all chart instances receive explicit `theme`; Work tabs persist through URL reload.
 
-**Gate met:** personal panel fits within panel height without any scroll on the
-outer container; calculator state survives tab switches; Pomodoro timer survives
-panel open/close; header clock updates every second.
+---
 
-## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] - Complete 2026-06-12
+## Phase 2D - Personal Workspace And Dashboard Polish [P1] — Complete 2026-06-12
 
-End-to-end interactive reinforcement arrangement and Bar Bending Schedule
-generation per IS:456 / IS:2502, available at `/steel-arranger`.
+- [x] Personal Workspace panel (`PersonalPanel.tsx`) — Pomodoro, calculator, tasks, leave, theme toggle.
+- [x] Pomodoro context + floating overlay; calculator state survives tab switches.
+- [x] Global header clock; dashboard resource-card guidelines (Tag, pictogram, h3/h2, ghost actions).
+- [x] Pomodoro and theme toggle removed from header top bar.
 
-- [x] **Contracts layer** (`packages/contracts/src/steel-arranger.ts`):
-  - `SfBarDia`, `SfElementType`, `SfBarType`, `SfStirrupType`, `SfShapeCode` enums
-    and label maps.
-  - Zod input schemas: `SfSessionCreate`, `SfElementCreate`, `SfElementUpdate`,
-    `SfRebarCreate`, `SfRebarUpdate`, `SfStirrupCreate`, `SfStirrupUpdate`.
-  - `SfBbsRow` interface (computed, not stored).
-  - `SfAiReview` interface with `warnings`, `suggestions`, and `summary`.
-  - IS:456 / IS:2502 pure calculation functions:
-    `sfUnitWeight(dia)` = D²/162 kg/m;
-    `sfSteelWeight(dia, lengthMm, qty)`;
-    `sfStirrupLength(w, d, cover, stirrupDia, hookAngle)` — inner perimeter
-    + hook allowance − bend deduction;
-    `sfStirrupCount(lengthMm, spacingMm)`;
-    `sfDevelopmentLength(dia, fy, fck)` — IS:456 cl.26.2;
-    `sfMinBarSpacing(dia, maxAggSize)` — IS:456 cl.26.3.1;
-    `sfAutoPositionBars(n, widthMm, coverMm, diaMm)`.
-- [x] **Database migration** (`backend/drizzle/0022_steel_arranger.sql`):
-  `sf_sessions`, `sf_elements`, `sf_rebars`, `sf_stirrups` tables with cascading
-  deletes; indexed on session, element, and created-by.
-- [x] **Drizzle schema** — four `pgTable` definitions appended to
-  `backend/src/db/schema.ts` using project-standard `id()` / `createdAt()` /
-  `updatedAt()` helpers.
-- [x] **Backend tRPC router** (`backend/src/modules/steelflow/router.ts`):
-  - Session CRUD: `listSessions`, `createSession`, `deleteSession`.
-  - Element CRUD: `listElements`, `createElement`, `updateElement`, `deleteElement`.
-  - Rebar CRUD: `listRebars`, `createRebar`, `updateRebar`, `deleteRebar`.
-  - Stirrup CRUD: `listStirrups`, `createStirrup`, `updateStirrup`, `deleteStirrup`.
-  - `generateBbs` query — server-side BBS row computation (used for download).
-  - `aiReview` query — rule-based IS:456 review engine: steel ratio validation,
-    cover checks, stirrup spacing checks, development-length hints; extensible to
-    OpenAI API in Phase 11.
-  - Router wired at `steelflow` namespace in `backend/src/trpc/router.ts`.
-- [x] **BBS Engine** (`frontend/src/engine/bbsEngine.ts`) — pure frontend
-  functions: `autoPositionRebars`, `computeBbsRows`, `totalSteelKg`.
-- [x] **Zustand store** (`frontend/src/store/useSteelStore.ts`) — tracks
-  active session, active element, and AI panel open state.
-- [x] **SteelArranger route** (`frontend/src/routes/SteelArranger.tsx`):
-  - Sessions sidebar with create / delete.
-  - Elements sidebar (BEAM / COLUMN / SLAB / FOOTING) with geometry form
-    (length × width × depth, cover, fck, fy).
-  - SVG cross-section canvas — concrete outline, cover zone dashed, stirrups
-    as rect borders, rebars as circles; auto-positioned by bar type.
-  - Rebar tab: add form (mark, dia, type, qty, cutting length optional);
-    live list with delete.
-  - Stirrup tab: add form (dia, type, spacing); live list with delete.
-  - BBS tab: computed `SfBbsRow` table with totals; **Export BBS (Excel)**
-    button via SheetJS/xlsx.
-  - Development Length tab: IS:456 Ld table for all standard diameters.
-  - IS:456 AI Review panel: warnings (steel ratio, cover, stirrup spacing) +
-    suggestions (development length hint, dia standardisation).
-- [x] SteelFlow nav link added to app sidebar (ChartCustom icon).
-- [x] `packages/contracts/src/index.ts` exports `steel-arranger.ts`.
-- [x] Migration `0022_steel_arranger.sql` applied via `podman cp` + `psql -f`;
-  backend restarted; four tables and four indexes confirmed in DB.
-- [x] `dnd-kit` drag-and-drop bar placement on SVG canvas: `BarPalette` with
-  T6–T32 draggable pills; `CrossSectionDropZone` drop target; `handleDragEnd`
-  computes SVG-mm position and opens a pre-filled rebar form modal.
+**Gate met:** panel fits without outer scroll; Pomodoro survives panel open/close.
+
+---
+
+## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] — Complete 2026-06-12
+
+End-to-end interactive reinforcement arrangement and BBS generation per IS:456 / IS:2502.
+
+- [x] Contracts layer (`steel-arranger.ts`): enums, Zod schemas, IS:456/IS:2502 pure functions.
+- [x] Database migration `0022_steel_arranger.sql`; Drizzle schema; `steelflow` tRPC router.
+- [x] BBS engine, Zustand store, `SteelArranger` route with SVG canvas, Excel export, AI review.
+- [x] `dnd-kit` drag-and-drop bar placement; shape codes B/C/D/E; SLAB strip and FOOTING plan views.
+- [x] SteelFlow nav link; migration applied.
 - [ ] PDF export of BBS via worker (planned Phase 10).
-- [x] Shape codes B/C/D/E cutting-length formulas (IS:2502): `sfLShapeCuttingLength`,
-  `sfHairpinCuttingLength`, `sfCrankedBarCuttingLength`, `sfZShapeCuttingLength`,
-  `sfShapeCuttingLength` dispatcher; shape selector + conditional extra-dimension
-  fields (side leg / hairpin H+W / crank height) in rebar form with live preview.
-- [x] Slab cross-section strip view (440×90 min, forced aspect ratio) and footing
-  bird's-eye plan view (BOTTOM_MAIN as horizontal lines, SIDE_FACE as vertical
-  lines) via `CrossSectionCanvas.tsx`; canvas variant selected by `elementType`.
 
-**Gate met:** a user can define BEAM/COLUMN/SLAB/FOOTING geometry, drag bars
-from the palette onto the SVG canvas, add bent bars with computed IS:2502 cutting
-lengths (shape codes A–E), view the live cross-section, export a complete BBS to
-Excel, and run an IS:456 AI review — all within the browser, with data persisted
-to PostgreSQL via tRPC.
+**Gate met:** user can define geometry, drag bars, export BBS to Excel, run IS:456 review — persisted via tRPC.
 
-## Phase 2F - UI Audit, Page Hierarchy, And Policy Alignment [P0] - Complete 2026-06-15
+See also [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md).
 
-Full frontend UI audit (landing, login, staff workspace, client/consultant
-portals). Goal: align every screen to the Dashboard reference pattern and close
-the gap between `CARBON-UI-DIRECTION.md` and implementation via an explicit
-exception list — not silent drift.
+---
 
-- [x] **Document UI exceptions** — add "Documented exceptions" section to
-  `CARBON-UI-DIRECTION.md` (`.esti-lp`, glass panels, KPI track bars, square
-  tags, drawing canvas, dashboard mosaic, workload heatmap cell colours).
-- [x] **Shared `PageHeader`** — standard `h1` + optional description + optional
-  actions slot (`frontend/src/components/PageHeader.tsx`).
-- [x] **PageHeader on core list routes** — Clients, Projects, Consultants,
-  Filing, Alerts, Contractors (table `title` retained for section context only).
-- [x] **Login Carbon alignment** — remove hard-coded `#141414` and decorative
-  inline styles; `.esti-login-shell` / `.esti-login-brand` / `.esti-login-mark`
-  structural helpers in `styles.scss`.
-- [x] **Shared `PortalHeader`** — Carbon `Header` + `HeaderGlobalAction` logout
-  on client (`Portal.tsx`) and consultant (`CollaboratorPortal.tsx`) portals;
-  wrapped in `<Theme theme="white">` in `App.tsx`.
-- [x] **Landing USP previews** — real Carbon CRIF transition modal, ASPRF block,
-  Quality intelligence tiles (radar + proportional meter + technical row) shared
-  with Dashboard via `QualityIntelligenceTiles.tsx`.
-- [x] **Revision source meter fix** — use `MeterChart` + `meter.proportional`
-  options (not `ProportionalMeterChart`, which is not exported from
-  `@carbon/charts-react`).
-- [x] **Chart accessibility** — `accessibility.svgAriaLabel` on quality
-  intelligence radar and revision-source meter charts.
-- [x] **PageHeader on remaining staff routes** — Invoices, Proposals, Contracts,
-  Letters, Users, Hr, Tenders, Reconcile, Work, Performance, FeeProposals,
-  ArchivedProjects, AuditLog, ClientRequests, ConsultantRequests, KnowledgeBank,
-  Settings, Company, Team (Dashboard keeps mosaic header column).
-- [x] **Performance ASPRF KPI bars → Carbon charts** — member dimension scores
-  use `MeterChart` with `meter.peak: 100` instead of `.esti-kpi-track/fill`.
-- [x] **Orphan route deprecation** — `@deprecated` JSDoc on unwired
-  `Tasks.tsx`, `Workload.tsx`, `ActivityCenter.tsx`, `Compliance.tsx` pointing
-  to Work / Knowledge Bank redirects.
-- [x] **Dashboard quality zone deep link** — zone header links to `/projects`
-  (decision ledger lives on project overview).
-- [x] **Align `scripts/check-carbon.mjs`** — shared `carbon-policy-rules.mjs` scopes staff
-  workspace; excludes documented exceptions (`.esti-lp` SCSS block, Landing, deprecated
-  orphans, HeaderPomodoro); allows Carbon-token inline colours; vitest aligned.
-- [x] **Landing mobile nav** — hamburger + slide-down section menu below 760 px with
-  the same anchors as desktop nav.
-- [x] **Client portal revision visibility** — Minor/Major/Critical category on change
-  requests and approval revision responses; staff inbox column; migration
-  `0032_portal_revision_category.sql`.
+## Phase 2F - UI Audit, Page Hierarchy, And Policy Alignment [P0] — Complete 2026-06-15
 
-**Gate:** every staff list route has a single page-level `h1`; login and both
-external portals share one Carbon shell pattern; `CARBON-UI-DIRECTION.md`
-exceptions match what CI and contributors can rely on; no new undocumented
-visual inline styles in staff routes.
+Full frontend UI audit — align every screen to Dashboard reference pattern; close gap between `CARBON-UI-DIRECTION.md` and code via explicit exception list.
 
-## Phase 2G - Workflow, IA & Architecture Remediation [P0–P3] - Complete 2026-06-15
+- [x] Document UI exceptions in `CARBON-UI-DIRECTION.md` (`.esti-lp`, glass panels, KPI tracks, etc.).
+- [x] Shared `PageHeader` on all staff list routes; Login Carbon alignment; `PortalHeader` on external portals.
+- [x] Landing USP previews — CRIF modal, ASPRF block, `QualityIntelligenceTiles.tsx`.
+- [x] Revision source meter via `MeterChart` + `meter.proportional` (not `ProportionalMeterChart`).
+- [x] Performance ASPRF bars → `MeterChart`; `carbon-policy-rules.mjs` aligned with CI.
+- [x] Landing mobile nav; client portal Minor/Major/Critical revision categories (`0032_portal_revision_category.sql`).
+- [x] Remove deprecated orphan route files (`Tasks.tsx`, `Workload.tsx`, etc.).
 
-Findings from `WORKFLOW-ARCHITECTURE-AUDIT.md`. Closes navigation defects,
-aligns deep links with consolidated tab hubs, and repairs migration drift before
-production deploys.
+**Gate met:** every staff list route has a single page-level `h1`; login and portals share one Carbon shell; CI exceptions match documented list.
+
+---
+
+## Phase 2G - Workflow, IA & Architecture Remediation [P0–P3] — Complete 2026-06-15
+
+Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](WORKFLOW-ARCHITECTURE-AUDIT.md).
 
 ### P0 — Data integrity & broken navigation
 
-- [x] **Migration journal 0031** — register `0031_tender_bids` in
-  `drizzle/meta/_journal.json` so fresh installs create `esti_tender_bid`.
-- [x] **`/compliance` redirect** — `/compliance` → `/knowledge-bank?tab=compliance`
-  preserving query params (`project`, etc.).
-- [x] **ProjectOverview deep links** — pending approvals → `/tasks?tab=activity`;
-  compliance stat → `/knowledge-bank?tab=compliance&project=:id`.
-- [x] **Knowledge Bank project param** — sync `?project=` from URL; preserve `?tab=`
-  when changing project on compliance tab.
+- [x] Migration journal `0031_tender_bids`; `/compliance` → `/knowledge-bank?tab=compliance`.
+- [x] ProjectOverview deep links; Knowledge Bank `?project=` sync.
 
 ### P1 — Workflow & information architecture
 
-- [x] **Side nav active state** — prefix match for `/projects/*`, `/tasks`,
-  `/knowledge-bank`; menu groups expand when a child route is active.
-- [x] **Alerts in side nav** — `/alerts` linked from top rail (header bell remains).
-- [x] **Portal deep links** — client and consultant portals use React Router:
-  `/` (list) and `/projects/:projectId` (detail); invalid IDs redirect home.
-- [x] **Settings IA** — FloatingDock links to `/settings`; profile page documents
-  theme and dashboard toggles in the dock (Alt+S).
-- [x] **Work URL alias** — `/work` redirects to `/tasks`.
+- [x] Side nav prefix match; Alerts in side nav; portal deep links `/projects/:projectId`.
+- [x] Settings IA; `/work` → `/tasks` alias.
 
 ### P2 — Code hygiene & structure
 
-- [x] **Remove deprecated route files** — deleted unwired `Tasks.tsx`, `Workload.tsx`,
-  `ActivityCenter.tsx`, `Compliance.tsx` (redirects remain in `App.tsx`).
-- [x] **Orphan project components** — `ProjectPermits`, `ProjectBylaws`, and
-  `ProjectBylawCalc` wired into Knowledge Bank compliance tab when a project is
-  selected; `ClockLeavesWidget` on dashboard Personal zone (replaces inline leave tile).
-- [x] **KB embed extraction** — `MasterDsr` / `SteelArranger` moved to
-  `components/knowledge/`.
-- [x] **Work module split** — tab panels extracted to `components/work/`.
-- [x] **Activity emission gap** — `writeActivity` on invoice, PO, and drawing
-  mutations (create/status/delete, upload, scale, issue PDF).
+- [x] Remove deprecated route files; wire orphan project components.
+- [x] KB embed extraction; Work module split; `writeActivity` on invoice, PO, drawing mutations.
 
 ### P3 — Architecture evolution
 
-- [x] **Slice `schema.ts` by domain file** — `backend/src/db/schema/` with org-auth,
-  project, financial, delivery, knowledge-compliance, collaboration, hr-work,
-  memory-activity, and steelflow modules; root `schema.ts` is a barrel.
-- [x] **Extract read-model services** — `dashboard/readModels.ts` and
-  `projectoffice/queries.ts`; routers delegate to query layer.
-- [x] **Document `sf_*` SteelFlow naming** — `STEELFLOW-BOUNDED-CONTEXT.md`.
-- [ ] **Optional ASPRF / notification snapshot tables** — deferred to Phase 5 ASPRF
-  KPI work (live scores computed from domain tables today).
+- [x] Slice `schema.ts` by domain file; extract dashboard/project read models.
+- [x] Document `sf_*` SteelFlow naming.
+- [ ] Optional ASPRF / notification snapshot tables — deferred (live scores from domain tables).
 
-**Gate (P3 met):** schema split without migration drift; dashboard and project
-list queries isolated from mutation routers; SteelFlow bounded context documented.
+**Gate met:** fresh migration creates tender bids; bookmarks land on correct tabs; schema split without drift.
 
-**Gate (P0+P1 met):** fresh migration run creates tender bids table; every
-`ProjectOverview` stat tile and legacy `/compliance` bookmark lands on the correct
-tab with project context; side nav reflects nested routes; alerts page discoverable;
-client/consultant project URLs are bookmarkable (`/projects/:id`).
+---
 
-**Gate (P2 met):** orphan components wired or removed; KB/Work structure split;
-activity emission on invoice, PO, and drawing writes.
+## Phase 3 - Domain Activity Foundation [P1] — Complete
 
-## Phase 3 - Domain Activity Foundation [P1]
-
-- [x] Add immutable `esti_activity` records with project, object type/id,
-  event type, actor, visibility, summary, metadata, and timestamp.
-- [x] Add reusable contextual comments linked to supported domain objects.
+- [x] Immutable `esti_activity` records with visibility, metadata, timestamp.
+- [x] Reusable contextual comments linked to domain objects.
 - [x] Emit activity transactionally from significant domain operations.
-- [x] Build project timeline and office-wide Activity Center queries with cursor
-  pagination and role/visibility filtering.
+- [x] Project timeline and office-wide Activity Center with cursor pagination and role filtering.
 - [x] Backfill activity from existing audit and domain records where reliable.
 
-**Gate:** every core mutation produces one authorized, queryable timeline event.
+**Gate met:** every core mutation produces one authorized, queryable timeline event.
 
-## Phase 4 - Project Memory, Change Control, And Revision Intelligence [P1]
+---
 
-- [x] Project overview with open tasks, critical notes, revisions, approvals,
-  decisions, and health summary.
-- [x] Critical notes with category, priority, status, visibility, owner, due date.
-- [x] Decision register with rationale, approval, impact, and linked objects.
-- [x] Correct project lifecycle status filtering and labels; keep lifecycle
-  separate from project-stage status.
-- [x] Replace COA-derived project phases with neutral architectural delivery
-  stages while preserving existing phase IDs and linked invoices.
-- [x] General revision feed for drawings with rev number, date, and note;
-  surfaced on the project overview as "Drawing revision feed".
-- [x] **CRIF — Decision states machine:** DRAFT → OPEN → CLIENT_REVIEW →
-  ACCEPTED / REJECTED → LOCKED; state transitions produce activity entries;
-  `DECISION_TRANSITIONS` map in contracts enforced server-side.
-- [x] **CRIF — Decision Ledger:** per-project table of all design decisions with
-  CRIF state tag, revision category (minor/major/critical), impact, days open,
-  and inline Transition button; owner and linked object fields on create form.
-- [x] **CRIF — Cooling-Off Mechanism (v1):** decisions past their review
-  deadline surface a "Cooling off" tag; Transition button turns danger-red.
-- [x] Major/critical revision acknowledgement: transitioning MAJOR or CRITICAL
-  decision to ACCEPTED requires an explicit acknowledgement checkbox.
-- [x] Decision summaries: per-decision "Next action" column computed from CRIF
-  state and review deadline; owner and review-deadline fields on create form.
-- [x] Archive project and retention-aware purge/export workflows: archive sets
-  a 90-day purge-after date; admin can export a JSON bundle and mark the
-  project for purge after the retention period; purge gate requires re-auth.
+## Phase 4 - Project Memory, Change Control, And Revision Intelligence [P1] — Complete
 
-**Gate:** a project's history and current risks can be understood without
-opening separate modules.
+- [x] Project overview with tasks, notes, revisions, approvals, decisions, health summary.
+- [x] Critical notes; decision register; lifecycle status separate from delivery stage.
+- [x] Neutral architectural delivery stages (preserving phase IDs and linked invoices).
+- [x] Drawing revision feed on project overview.
+- [x] **CRIF** — DRAFT → OPEN → CLIENT_REVIEW → ACCEPTED/REJECTED → LOCKED; decision ledger; cooling-off; major/critical acknowledgement.
+- [x] Archive project and retention-aware purge/export workflows.
 
-## Phase 4A - Standalone Compliance Intelligence / RIE [P1]
+**Gate met:** project history and risks understandable without opening separate modules.
 
-- [x] Remove compliance from project tabs and expose a standalone Carbon module.
-- [x] Move compliance rule authoring into the unified Knowledge Bank; keep the
-  Compliance module focused on assessment and evidence.
-- [x] Link the latest calculation summary back to the project overview.
-- [x] Separate statutory permit records from compliance calculations.
-- [x] Replace the BBMP-only seed assumption with a versioned knowledge bank keyed
-  by state, district, authority, building use, source, and effective date; BBMP
-  Residential and Commercial seed versions seeded on first migration.
-- [x] Build governed rule authoring, review, publication, supersession, and source
-  citation workflows (DRAFT → REVIEW → PUBLISHED; supersession auto-demotes
-  the previous published version for the same jurisdiction + building use).
-- [x] **RIE — Site Input Engine:** capture site dimensions, plot area, ground
-  cover, topography, approach road width, and road-abutting sides; validate
-  against jurisdiction minimums before running any rule engine.
-- [x] **RIE — Development Control Engine:** FAR/FSI, ground coverage, front/side/
-  rear setbacks, restricted building lines, parking (car, two-wheeler, cycle),
-  and height restrictions; each module cites the specific bye-law clause.
-- [x] **RIE — Basement Compliance Engine:** permitted basement depth, ventilation
-  requirements, and permissible basement uses per jurisdiction rules.
-- [x] **RIE — Sustainability Compliance Engine:** rainwater harvesting pit volume,
-  solar panel area, EV charging provisions, and green cover; scored 0–100.
-- [x] **RIE — Approval Readiness Engine:** document/clearance checklist from the
-  rule version; auto-scored from project attachments and permit records; NOT_READY /
-  PARTIAL / READY readiness status.
-- [x] **RIE — Feasibility Dashboard:** tabbed single-screen summary of all five
-  engine outputs (FAR utilised vs permitted, setback compliance, parking
-  requirements, sustainability score, approval readiness score) with overall score.
-- [x] Produce deterministic engine outputs from the selected published rule version;
-  all outputs stored in `esti_site_assessment` and reproducible from saved inputs.
-- [x] **RIE — Pre-design / post-design phase modes:** `AssessmentPhase`
-  enum (`PRE_DESIGN | POST_DESIGN`) added to contracts and DB; PRE_DESIGN returns
-  the permissible envelope only; POST_DESIGN compares actual designed values
-  against the envelope and computes per-parameter deviations.
-- [x] **RIE — Violation / deviation engine:** `runViolations(devControl,
-  basement, inputs, relaxations)` computes `ViolationItem` per parameter
-  (FAR, ground coverage, height, front/rear/left/right setbacks, basement depth);
-  each item carries `permissible`, `actual`, `deviation`, `deviationPct`,
-  `relaxation` (manual), `effectiveLimit`, and `status` —
-  `COMPLIANT | WITHIN_RELAXATION | VIOLATION`.
-- [x] **RIE — Relaxation inputs:** `RelaxationInputs` schema stored on
-  `esti_site_assessment` alongside `violations` jsonb; `setRelaxations` mutation
-  re-computes violations with updated relaxation values and saves.
-- [x] **RIE — Actual setback fields:** `actualFrontSetbackM`,
-  `actualRearSetbackM`, `actualLeftSetbackM`, `actualRightSetbackM` in
-  `SiteInputs`; shown only when phase is `POST_DESIGN`.
-- [x] **RIE — FeasibilityDashboard violations tab:** POST_DESIGN assessments
-  show a violations tab with per-parameter status tags (green/blue/red),
-  deviation amounts, and inline relaxation entry with "Save and recompute" action.
-- [x] **RIE refinements (brief-aligned):** basement height validation (min 2.4 m,
-  max 2.75 m, exception 3.6 m for mechanical parking); rainwater harvesting
-  trigger (plinth > 100 sqm AND site ≥ 200 sqm); tree planting requirement
-  (2 trees if site ≥ 200 sqm) in sustainability engine; ≤9.5 m setback note in
-  dev-control engine; `excludedAreaSqm` field so gross BUA minus excluded = net
-  BUA compared against FAR limit; `plinthAreaSqm` field for rainwater trigger.
-- [x] **Bylaw two-system model:** shared BBMP engine; pre-construction (`computePreConstructionPotential`)
-  and post-construction audit (`computePostConstructionAudit`); project Compliance tab;
-  see `BYLAW-SYSTEMS.md`.
-- [x] **BBMP modular rule engine:** FAR, low-rise/high-rise setback, road-margin,
-  parking, solar reference, secondary compliance, and engine-constant rules in
-  `esti_bbmp_*` tables (migrations `0033`, `0036`); pure engine in
-  `@esti/contracts/bbmp` with `calculationTrace` + compliance flags; see
-  `BBMP-IMPLEMENTATION.md`.
-- [x] **Org mode + HR archive (production):** `orgMode` SOLO/STUDIO, `esti_hr_archive`
-  snapshots, lock assessment, `archiveTeamModule` workflow, Company archive modal;
-  separate demo seeds (`seedDemo` / `seedDemoSolo`). See `ORG-MODE-AND-HR-ARCHIVE.md`.
-- [x] **Attendance register (replaces timesheets / stand-up):** `esti_attendance` +
-  `attendance` tRPC router; Work → Attendance tab; dashboard **Attendance today** KPI;
-  ASPRF no longer uses timesheet hours.
-- [x] **Unified demo + HR gating:** dashboard and API guards when HR off; studio demo
-  at `principal@demo.aorms.in`; solo demo at `solo@demo.aorms.in`.
-- [x] Generate an immutable branded compliance PDF and register it against the
-  project without adding live compliance-status tracking.
-- [x] Add jurisdiction fixtures, calculation unit tests, authorization tests,
-  and PDF worker/browser smoke coverage.
-  - **BBMP fixtures:** `packages/contracts/src/fixtures/bbmp-jurisdictions.ts` +
-    `bbmp-fixtures.test.ts`.
-  - **RIE fixtures:** `packages/contracts/src/fixtures/rie-jurisdictions.ts` +
-    `rie-fixtures.test.ts` (`runAllEngines` PRE_DESIGN + POST_DESIGN violations).
-  - **Authorization:** `backend/src/modules/compliance/compliance-auth.test.ts`
-    (portal isolation, Viewer read-only, owner-only rule admin).
-  - **PDF pipeline:** `compliance-pdf.test.ts` (enqueue smoke),
-    `worker/tests/test_pdf_compliance.py` (WeasyPrint render smoke),
-    `frontend/src/lib/pdfUi.test.ts` (poll + button state logic used by document PDF cells).
+---
 
-**Gate met:** a user can select a verified district/state rule set, reproduce every
-calculation from cited inputs, and issue a project-linked PDF without implying a
-live authority integration.
+## Phase 4A - Standalone Compliance Intelligence / RIE [P1] — Complete
 
-## Phase 4B - Dashboard Intelligence And Billing Action [P1]
+- [x] Standalone compliance module; rule authoring in Knowledge Bank; BBMP seed → versioned knowledge bank.
+- [x] **RIE engines:** site input, development control, basement, sustainability, approval readiness.
+- [x] PRE_DESIGN / POST_DESIGN modes; violation engine; relaxation inputs; violations tab.
+- [x] RIE refinements (basement height, rainwater, trees, FAR-excluded area, plinth area).
+- [x] Bylaw two-system model; BBMP modular rule engine (`0033`, `0036`); see `BYLAW-SYSTEMS.md`, `BBMP-IMPLEMENTATION.md`.
+- [x] Org mode + HR archive; attendance register (replaces timesheets for ASPRF); unified demo + HR gating.
+- [x] Branded compliance PDF via worker; jurisdiction fixtures, auth tests, PDF smoke coverage.
 
-The dashboard must answer "What can be billed today?" and surface firm-wide
-health within 10 seconds of login.
+**Gate met:** user can select a verified rule set, reproduce calculations from cited inputs, and issue a project-linked PDF.
 
-- [x] **Global KPI Bar:** Revenue Due, Ready For Billing, Outstanding Collections
-  (>30d), Active Projects, Pending Approvals, Revision Risk count; each KPI
-  links to the relevant module; shown as a compact strip above the Office pulse.
-- [x] **Action Center:** urgency-sorted list of items requiring immediate action:
-  projects with phases reaching billing milestones, client approvals pending
-  beyond SLA, overdue invoice collections, and revision-risk items; surfaced
-  as the first operational section of the Dashboard.
-- [x] **APBF — Phase billing statuses:** extended `PhaseStatus` with
-  `READY_FOR_BILLING` and `BILLED`; added `PHASE_STATUS_LABEL` map; phase
-  selector in Project Settings now shows human-readable labels.
-- [x] **APBF — Billing Intelligence Engine:** Action Center surfaces phases with
-  status APPROVED, READY_FOR_BILLING, or COMPLETE that have no outstanding
-  invoice; also exposes per-project links and billing-percent estimates.
-- [x] **Financial Health module:** revenue pipeline (active + proposal), ready-
-  to-bill estimated value, outstanding collections, overdue >30d, and
-  collected-this-FY panels on Dashboard; gated behind `fees:manage` capability.
-- [x] **Project Health scoring:** per-project Green/Yellow/Red indicator derived
-  from overdue invoices, overdue tasks, stale approvals, open critical notes,
-  and revision requests; surfaced on dashboard "Project health" board with
-  per-signal tags and project deep-links.
-- [x] **Client Intelligence signals:** per-client approval response time
-  (avg days SENT→APPROVED), revision request frequency, outstanding payment
-  age, and derived risk score (Low/Medium/High); surfaced on dashboard
-  "Client intelligence" tile.
-- [x] **Team Intelligence signals:** per-assignee open task count, overdue
-  count, high-priority count, and capacity flag (Healthy/Busy/Overloaded);
-  surfaced on dashboard "Team intelligence" tile; feeds Phase 5 ASPRF.
-- [x] **Activity Feed structured types:** `activityDomain()` function in
-  contracts classifies event types (project/financial/client/team/system)
-  by event-type prefix; Dashboard activity feed shows a domain tag alongside
-  the raw event-type tag.
+---
 
-**Gate:** principal can identify every billable phase and every overdue collection
-from the dashboard without opening individual project or invoice screens.
+## Phase 4B - Dashboard Intelligence And Billing Action [P1] — Complete
 
-## Phase 4C - Revision Intelligence And CRIF Enhancements [P1]
+- [x] Global KPI bar; Action Center; APBF phase billing statuses and billing intelligence engine.
+- [x] Financial Health module; Project Health scoring; Client Intelligence; Team Intelligence.
+- [x] Activity Feed structured domain tags via `activityDomain()`.
 
-Turns the existing decision ledger into a revision intelligence signal.
+**Gate met:** principal identifies every billable phase and overdue collection from the dashboard.
 
-- [x] **Decision revision source:** `revisionSource` field on decisions —
-  CLIENT_DRIVEN / INTERNAL_ERROR / TECHNICAL_QUERY / SCOPE_CHANGE; source Select
-  in CRIF create modal; source Tag column in decision ledger table.
-- [x] **Revision Intelligence module on dashboard:** per-studio tile showing
-  client revision count, internal revision count, site query count, scope drift %
-  (SCOPE_CHANGE decisions / total), revision health score, and risk band.
-- [x] **Technical Intelligence module on dashboard:** drawing accuracy rate
-  (1 − internal errors / total), site query rate, error and query counts.
-- [x] **Revision Risk KPI:** replaced "revision risk count" in the Global KPI Bar
-  with qualitative LOW / MEDIUM / HIGH band and health score from
-  `revisionIntelligence` query.
-- [x] **Revision budget per phase:** `revisionBudget` integer (0–99) on phases;
-  inline editable TextInput in Project Settings phases table; auto-saves on blur.
-- [x] **Scope drift display:** scope drift % computed from `allDecisions` and
-  displayed above CRIF Decision Ledger on project overview.
+---
 
-**Gate:** a project's revision health score and scope drift % are computed
-automatically from typed decision records with no manual data entry.
+## Phase 4C - Revision Intelligence And CRIF Enhancements [P1] — Complete
 
-## Phase 5 - Tasks, Timesheets, Availability, Escalations, And Performance [P1]
+- [x] `revisionSource` on decisions (CLIENT_DRIVEN / INTERNAL_ERROR / TECHNICAL_QUERY / SCOPE_CHANGE).
+- [x] Revision Intelligence and Technical Intelligence dashboard tiles.
+- [x] Revision Risk KPI band (LOW/MEDIUM/HIGH); revision budget per phase; scope drift % on project overview.
 
-- [x] Store assignee IDs rather than display names; add reviewer and dependencies;
-  CRITICAL priority; "my tasks" checkbox; status/priority filters; ASPRF task
-  classification (BILLABLE/NON_BILLABLE/TRAINING/COLLABORATION/PERSONAL).
-- [x] **ASPRF task work type:** add `workType` field (separate from financial
-  classification) — DESIGN_COMMUNICATION / DESIGN_DEVELOPMENT /
-  TECHNICAL_PRODUCTION / CONSTRUCTION_SUPPORT; feeds dimension score routing.
-- [x] **ASPRF — Anti-gaming:** difficulty coefficient (1–5) on each task;
-  estimated hours field for delivery-predictability scoring.
-- [x] Carbon board (Kanban) view for tasks — status columns (To do / In progress /
-  Done) on the Work module with inline status moves; month heatmap calendar on
-  Workload tab; **Google Calendar sync** via per-user iCal subscription URL
-  (`/calendar/workload/{token}.ics`, migration `0040`); full task calendar
-  grid view still pending.
-- [x] Daily updates: completed, in progress, blocked; upsert per team member per
-  day; Stand-up tab on Work module with team view.
-- [x] Timesheets: per-person per-day attribution to project/task with billable
-  toggle; Timesheets tab on Work module; summary query for ASPRF scoring.
-- [x] Configurable escalation rules and digest delivery.
-  - `esti_orgsettings.escalation_settings` jsonb (migration `0039`); owner UI on
-    Company → Alert escalation; `notifications.list` (immediate) +
-    `notifications.digest` (daily medium-priority items); thresholds for stale
-    approvals, follow-up lead time, overdue tasks, and leave horizon.
-- [x] Leave-impact notifications and backup contacts with privacy filtering.
-  - Approved leave within horizon surfaces on alerts with project assignments;
-    optional `backupContactName` / `backupContactPhone` on team members (staff
-    alerts only — no HR/payroll fields exposed to portals).
-- [x] **ASPRF — Performance score engine:** rolling 30-day composite score per
-  team member computed from tasks, timesheets, decisions, and approvals;
-  weighted across 6 KPI dimensions; `teamScores` + `myScore` tRPC queries;
-  Performance route (gated behind HR feature flag).
-- [x] **ASPRF — Performance bands:** Bronze (70–80), Silver (81–90), Gold
-  (91–95), Platinum (96+); Carbon `Tag` badge; informational and non-punitive.
-- [x] **ASPRF — Recognition awards + reward points engine:** 7 award types with
-  Carbon tag colours; 7 reward point event types (10–50 pts); `rewards.grant`
-  ownerProcedure with audit; Recognition tab on Performance page.
-- [x] **ASPRF — Reliability KPI:** detailed delivery-predictability refinement
-  (estimated vs actual duration using timesheet hours); blended 50/50 with
-  on-time commitment in `computeReliabilityKpi`.
-- [x] **ASPRF — Quality KPI:** rework rate from internal decisions; QA score.
-  - `computeQualityKpi` — 60% inverse internal-error rework rate + 40% task
-    completion rate; per-member decisions scoped by `ownerId`.
-- [x] **ASPRF — Client Impact KPI:** first-pass approval rate refinement.
-  - `computeClientImpactKpi` — root approvals the member issued that reached
-    APPROVED vs decided submissions, blended with inverse client-driven decision
-    share.
-- [x] **ASPRF — Collaboration KPI:** reviewer participation from task reviewer field.
-  - `computeCollaborationKpi` — 70% review completion rate + 30% on-time review
-    completion before task due date.
-- [x] **ASPRF — Learning KPI:** training task classification ratio.
-  - `computeLearningKpi` — TRAINING task share with ~10% target for full score.
-- [x] **ASPRF — Wellbeing KPI (opt-in):** workload health + burnout risk.
-  - `computeWellbeingKpi` — overdue-open ratio + heavy due-day pressure;
-    `wellbeing_opt_in` on team member (migration `0041`); toggle on Performance
-    page; 5% weight when opted in via `buildAspRfKpiScores`.
-- [x] **Team Utilization KPI:** `dashboard.utilization` query (30-day total +
-  billable timesheet hours vs ~22d×8h capacity per active member); "Team utilization"
-  chip in the dashboard KPI strip.
-- [x] **Site & Drawing Intelligence:** site query rate (queries ÷ issued
-  drawings); repeat query rate (drawings with 2+ queries); drawing clarity score
-  (100 − query/repeat/error penalties); feeds Technical Intelligence module on
-  dashboard and studio quality radar.
+**Gate met:** revision health and scope drift computed automatically from typed decision records.
 
-**Gate (partial — ASPRF dimension refinements delivered):** task work types, timesheets,
-daily stand-ups, escalation/digest, leave-impact alerts, Google Calendar workload
-sync, and all six ASPRF KPI dimensions (including opt-in wellbeing) are operational.
-Full gate still requires a dedicated task calendar grid view in Work.
+---
 
-**Delivered so far:** task `workType` + `difficultyCoefficient` + `estimatedHours`;
-`esti_timesheet` + `esti_daily_update` + `esti_reward_point` schemas and routers;
-ASPRF `teamScores` + `myScore` 30-day composite; performance bands Bronze → Platinum;
-recognition awards + reward point events with `rewards.grant` (owner-only, audited);
-Performance route; Work module Stand-up and Timesheets tabs.
+## Phase 4D - Knowledge Bank Foundations [P1] — Complete 2026-06-12
 
-## Phase 6 - Client And Consultant Collaboration [P1]
+Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolidated here for phase order.
 
-- [x] **Client approval, acknowledgement, change-request, and feedback writes.**
-  `esti_portal_submission` table (migration 0026) + `packages/contracts/src/portal.ts`
-  (submission kinds/status, approval-decision enum, Zod inputs). Client-portal
-  mutations on `portal`: `respondApproval` (SENT/REVISIONS → APPROVED/REVISIONS/REJECTED
-  with remarks), `acknowledge`, `submitChangeRequest`, `submitFeedback`, plus
-  `mySubmissions` read-back — all scoped to `ctx.user.clientId` via `assertOwnedProject`
-  and audited through `writeActivity` (`visibility: ALL`, `portal.*` event types).
-  `Portal.tsx` gains approve/request-revisions/reject actions, per-drawing acknowledge,
-  change-request + feedback modals, and a "My requests & feedback" table.
-- [x] **Consultant deliverables, contextual responses, RFIs, and assigned tasks.**
-  Consultant-originated collaborator-portal writes — `esti_consultant_submission`
-  (migration 0027) + `contracts/consultant-portal.ts` (DELIVERABLE/RFI/NOTE +
-  firm-assigned TASK kinds). `collab.submit` + `collab.mySubmissions`
-  (engagement-scoped via `assertEngaged`, audited `consultant.*`, visibility ALL);
-  staff `consultantRequests` namespace (list/openCount/setStatus + `assign`).
-  **Assigned tasks:** firm assigns a TASK to an engaged consultant
-  (`consultantRequests.assign`, validated against the engagement); consultant sees
-  it in a "Tasks assigned to me" table and `collab.completeTask` marks it RESOLVED.
-  **Contextual responses:** threaded `esti_submission_message` conversation (see below).
-  CollaboratorPortal has submit-deliverable / raise-RFI / add-note modals, the
-  assigned-tasks table, and a read-back table showing the firm's response.
-- [x] **Firm branding, empty states, notifications, and download authorization.**
-  Firm-side triage of submissions — `clientRequests` + `consultantRequests`
-  (`list`, `openCount`, `setStatus` OPEN → ACKNOWLEDGED/RESOLVED/DECLINED + response
-  note, audited `*.triaged`) on Work → Client requests / Consultant requests tabs
-  (nav under People); the response note is read back by the originator.
-  **Notifications:** `notifications.list` surfaces OPEN client/consultant submissions
-  as `submission` alerts (RFIs high). **Branding:** `portal.branding` + `collab.branding`
-  (firm name + presigned logo) drive each portal header. **Empty states:** Carbon
-  `DataState` empty panels on every portal table. **Download authorization:** the
-  portals expose no file-download endpoints (drawings are shown as ref/title only),
-  so no unauthorized download path exists. **Threaded contextual responses:**
-  `esti_submission_message` (migration 0028) + `lib/submissionThread.ts`;
-  `submissionThread`/`replySubmission` (client + consultant) and `thread`/`reply`
-  (both staff inboxes); reusable `SubmissionThread` component in all four surfaces.
-- [x] **Portal activity feeds exposing only explicitly visible records.**
-  `portal.activityFeed` (client) and `collab.activityFeed` (consultant) return the
-  project timeline filtered to `visibility = 'ALL'`, project-scoped via
-  `assertOwnedProject` / `assertEngaged`; surfaced as an "Activity" section in each
-  portal. STAFF-visibility rows are never exposed.
+- [x] Rename Resources → Knowledge Bank; central route `/knowledge-bank` with DSR | Compliance | Specification | Structural Elements tabs.
+- [x] Shared validation contracts; governed version lifecycle for specification and structural templates (`0021_knowledge_bank_catalogs.sql`).
+- [x] `KnowledgeCatalogManagers.tsx`; `packages/contracts/src/knowledge-bank.ts`.
+- [x] **Specification material catalogue** — `0038_spec_catalog.sql`; `SpecCatalogManager`; project spec sheets resolve from active catalogue.
+- [x] **SteelFlow structural catalogue** — `steelflow-catalog.ts`; span rules; Apply catalogue in workshop; see [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md).
+- [~] Generate editable BBS draft lines from published structural template — SteelFlow (Phase 2E) covers interactive BBS; template import bridge → Phase 10.
+- [ ] Validate BBS calculations with engineering fixtures before issue/export.
+- [ ] Connect specification standards to procurement POs (catalogue → spec sheets delivered; PO linkage open).
 
-**Gate:** portal writes are object-scoped, audited, and cannot expose internal data.
-**Verified (client + consultant):** demo client and a test consultant round-trip
-their submissions (read back via `mySubmissions`); writes to a non-owned/non-engaged
-project and a non-existent approval return NOT_FOUND; all writes appear in
-`esti_activity` with `ALL` visibility; firm triage flows back to the originator;
-each portal's `activityFeed` returns only `ALL` rows — an injected STAFF "INTERNAL"
-note was confirmed excluded; CLIENT/CONSULTANT roles are FORBIDDEN from the staff inboxes.
-Firm-assigned tasks round-trip (assign → consultant completes → RESOLVED; TASK kind
-excluded from `mySubmissions`; assigning to a non-engaged consultant → BAD_REQUEST);
-threaded replies round-trip (client/consultant ↔ firm, chronological, author sides).
+**Gate met:** published knowledge items are versioned, cited, auditable, and consumed without copying mutable text.
 
-**Phase 6 complete.** All four bullets delivered and verified end-to-end.
+---
 
-## Phase 7 - Contractor And Tender Coordination [P2]
+## Phase 5 - Tasks, Availability, Escalations, And Performance [P1] — 🔄 Partial
 
-- [~] Contractor register, contacts, GST/PAN, categories, and performance.
-  **Delivered:** `esti_contractor` (migration 0029) + `contracts/contractor.ts`
-  (14 trade categories, GSTIN/PAN regex validation, `contractorScore` helper).
-  `contractors` router (list with category filter, create/update/setRating/remove,
-  audited via `writeAudit`). `Contractors.tsx` at `/contractors` (People nav) — table
-  with category filter, create/edit modal, a quality/timeliness/safety rating modal
-  and an averaged performance tag. **Pending:** tendering, bids, contractor portal.
-- [~] Tender packages, invitations, controlled documents, addenda, and deadlines.
-  **Delivered:** `esti_tender` + `esti_tender_invitation` (migration 0030; per-invitation
-  `accessToken` for later portal isolation; unique tender+contractor) + `contracts/tender.ts`
-  (tender + invitation status enums, create/update/invite inputs). `tenders` router
-  (list with invite counts, byId with joined invitations, create/update/remove, invite
-  with duplicate guard, removeInvitation, award via status+awardedContractorId), audited.
-  `Tenders.tsx` at `/office/tenders` (Office nav) — tender list, create modal, and a
-  detail modal with status control, invite-from-register, remove and award.
-  **Pending:** controlled documents + addenda on the tender.
-- [~] Sealed bid submissions, technical/commercial scoring, comparison, award.
-  **Delivered:** `esti_tender_bid` (migration 0031; one bid per invitation, unique) +
-  `TenderBidInput`. `tenders.recordBid` (upsert by invitation, marks it SUBMITTED),
-  `tenders.bids` (comparison list joined to contractor, cheapest first), `removeBid`,
-  award via `update`. Tender detail UI: per-invitation Record/Edit bid, a bid-comparison
-  table (lowest highlighted, weeks + technical score) and award from the comparison.
-  **Pending:** contractor-submitted (sealed) bids via the portal — staff record bids for now.
-- [x] **Contractor portal isolated by invitation/project.** Token-scoped bid
-  portal at `/bid/:token` (publicProcedure `contractorPortal.byToken` / `submitBid`,
-  keyed on the per-invitation 48-char `accessToken`). A contractor sees only their
-  own tender + their own bid (firm name for branding) and submits a sealed bid while
-  the tender is OPEN; first open marks the invitation VIEWED, submit marks SUBMITTED.
-  A bogus token returns NOT_FOUND — no cross-contractor data. Staff copy the link
-  per invitation from the tender detail ("Copy bid link"). **Satisfies the Phase 7 gate.**
-- [ ] RFIs, material submittals, shop drawings, inspection requests, site
-  instructions, snags, and NCRs.
-- [ ] Tender and construction boards in Dashboard/Activity Center.
+- [x] Assignee IDs, reviewer, dependencies, CRITICAL priority, filters, ASPRF classification.
+- [x] `workType`, difficulty coefficient, estimated hours.
+- [x] Kanban board on Work module; Google Calendar iCal sync (`0040`); month heatmap on Workload tab.
+- [ ] **Task calendar grid view** in Work (gate remainder).
+- [x] Daily stand-ups (`esti_daily_update`); timesheets (`esti_timesheet`) — superseded for ASPRF by attendance (Phase 4A) but tabs remain.
+- [x] Escalation settings (`0039`); digest delivery; leave-impact notifications with backup contacts.
+- [x] **ASPRF engine** — six KPI dimensions, performance bands, recognition awards, reward points, `/performance` route.
+- [x] Reliability, Quality, Client Impact, Collaboration, Learning, Wellbeing (opt-in) KPI refinements.
+- [x] Team Utilization KPI; Site & Drawing Intelligence feeding Technical Intelligence tile.
 
-**Gate:** one contractor cannot infer another contractor's invitation, bid, or data.
+**Gate (partial):** ASPRF dimensions, escalations, and calendar sync operational. Full gate requires dedicated task calendar grid view.
 
-## Phase 8 - Documents And Numbering [P1]
+---
 
-- [ ] Unified document register and configurable numbering patterns.
-- [ ] Revision impact/approval for specifications, mood boards, reports, BOQs,
-  agreements, MOM, and letters.
-- [ ] Site-report photos, actions, status, and follow-up conversion to tasks.
-- [ ] Meeting minutes with action-item conversion.
-- [ ] Office templates, scope templates, and COA templates.
-- [ ] PDF/XLSX exports for BOQ, BBS, tender comparison, and registers.
+## Phase 6 - Client And Consultant Collaboration [P1] — Complete
 
-**Gate:** every issued document has a number, version, issue record, and audit trail.
+- [x] Client approval, acknowledgement, change-request, feedback writes (`portal` mutations, `0026`).
+- [x] Consultant deliverables, RFIs, notes, firm-assigned tasks (`collab`, `0027`).
+- [x] Firm branding, empty states, notifications, download authorization; staff triage inboxes.
+- [x] Threaded contextual responses (`esti_submission_message`, `0028`).
+- [x] Portal activity feeds — `ALL` visibility only.
 
-## Immediate Roadmap - Knowledge Bank Foundations [P1] - Complete 2026-06-12
+**Gate met:** portal writes object-scoped, audited, cannot expose internal data. Verified end-to-end (client + consultant round-trips, STAFF rows excluded).
 
-- [x] Rename Resources to Knowledge Bank and consolidate Master DSR and
-  compliance rule-set management in one Pure Carbon module.
-- [x] Define shared validation contracts for structural element families,
-  reinforcement arrangements, and specification/procurement standards.
-- [x] Add governed version lifecycle and database/API/UI for specification and
-  procurement standards, including project/work-package tags, reusable clauses,
-  approved material alternatives, DSR links, units, PO wording, and issue checks.
-- [x] Add governed version lifecycle and database/API/UI for beam, column, slab,
-  and footing templates, including geometry, element types, concrete cover, bar
-  roles, diameter, count/spacing, zones, laps, hooks, shape codes, and citations.
-- [x] Central **Knowledge Bank** route at `/knowledge-bank` with four tabs:
-  Master DSR | Compliance | Specification | Structural Elements; replaces the
-  old separate Resources (DSR) and Compliance (rule-set authoring) navigation.
-- [x] `esti_specification_standard` and `esti_structural_element_template` tables
-  via migration `0021_knowledge_bank_catalogs.sql`; both carry the standard
-  DRAFT → REVIEW → PUBLISHED → SUPERSEDED lifecycle.
-- [x] `KnowledgeCatalogManagers.tsx` with `SpecificationManager` and
-  `StructuralElementManager`; role-gated (`write` capability required to manage).
-- [x] `packages/contracts/src/knowledge-bank.ts` with `KnowledgeItemStatus`,
-  `StructuralElementTemplate`, `ReinforcementArrangement`, and
-  `SpecificationProcurementStandard` Zod schemas.
-- [x] **Specification material catalogue** — `esti_spec_catalog_*` (migration `0038`);
-  versioned rows (category, item, make, specification, finish); active version;
-  project spec sheets pull from catalogue; PDF via existing specsheet worker target.
-- [x] **SteelFlow catalogue apply** — published structural templates applied to
-  workshop sessions with span-derived cutting lengths (`steelflow-catalog.ts`,
-  `steelflow.applyCatalog`); see `STEELFLOW-BOUNDED-CONTEXT.md`.
-- [~] Generate editable BBS draft lines from a selected published structural
-  template and project dimensions; SteelFlow (Phase 2E) provides the full
-  interactive BBS generator; template-to-BBS import bridge is a Phase 10 item.
-- [ ] Validate BBS calculations with engineering fixtures and explicit rounding,
-  lap, hook, bend-deduction, spacing-zone, and steel-weight tests before allowing
-  issue/export. Templates assist quantity calculation and never replace the
-  structural engineer's design or approval.
-- [ ] Connect specification standards to project tagging and simple quantity ×
-  rate purchase orders without introducing inventory or contractor accounting.
-  *(Material spec catalogue → project spec sheets is delivered; procurement PO
-  linkage remains open.)*
+Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemoSolo.ts` (solo, `solo@demo.aorms.in`). See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md), [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md).
 
-**Gate:** a published knowledge item is versioned, cited, auditable, and consumed
-by Compliance, BBS, specification, or PO workflows without copying mutable text.
+---
 
-## Phase 9 - Search, Knowledge, And Lessons [P2]
+## Phase 7 - Contractor And Tender Coordination [P2] — 🔄 Partial
 
-- [ ] Permission-aware universal search with Postgres full-text/trigram indexes.
-- [ ] Extend Knowledge Bank search to office templates, CAD/BIM libraries, and
-  vendor catalogues.
-- [ ] Project-close lessons learned and reusable recommendations.
-- [ ] Search result deep links and object-type filters.
+- [~] **Contractor register** — `esti_contractor` (`0029`); `/contractors` CRUD + ratings. **Pending:** tendering integration, contractor portal beyond bids.
+- [~] **Tender packages** — `esti_tender` + invitations (`0030`); `/office/tenders`. **Pending:** controlled documents + addenda.
+- [~] **Bid comparison** — `esti_tender_bid` (`0031`); staff record bids; award from comparison. **Pending:** contractor-submitted sealed bids (staff entry today).
+- [x] **Contractor bid portal** — `/bid/:token`; token-scoped; satisfies isolation gate.
+- [ ] RFIs, material submittals, shop drawings, inspection requests, site instructions, snags, NCRs.
+- [ ] Tender and construction boards in Dashboard / Activity Center.
 
-**Gate:** search never returns unauthorized titles, snippets, or counts.
+**Gate (partial):** one contractor cannot infer another's invitation or bid. RFIs/NCRs and dashboard boards remain open.
 
-## Phase 10 - Commercial And Estimation Expansion [P2]
+---
 
-- [ ] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
-- [ ] Rich accountant exports and reconciliation column mapping/remapping.
-- [ ] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
-- [ ] Expanded BBS templates and validated reinforcement layouts beyond the
-  immediate beam/column/slab/footing foundation.
-- [ ] **APBF — Phase 0 (Appointment):** pre-engagement phase for site visit,
-  scope agreement, and letter of appointment; linked to fee proposal workflow.
-- [ ] Visual estimation connector only after versioned estimate primitives stabilize.
+## Phase 8 - Documents And Numbering [P1] — Complete 2026-06-16
 
-**Gate:** calculations remain deterministic, integer-paise where monetary, and tested.
+- [x] **Unified document register** — `/office/documents`; filter + XLSX export.
+- [x] **Configurable numbering patterns** — `numberingPatterns` on org settings (migration `0043`).
+- [x] **Document issue log** — `esti_document_issue` on issue/approve/PDF.
+- [x] **Revision workflow** — `documents.revise` for inspections, specs, mood boards.
+- [x] **Site reports** — photos, actions, convert action to task.
+- [x] **Meeting minutes** — MOM + action items to tasks.
+- [x] **Office templates** — LETTER / SCOPE / COA / MOM library.
+- [x] **Exports** — BOQ, BBS, tender comparison, register XLSX.
 
-## Phase 11 - AI Studio [P2]
+**Gate met:** issued documents record number, version, issue row, and audit entry.
+
+---
+
+## Phase 9 - Search, Knowledge, And Lessons [P2] — Complete 2026-06-16
+
+- [x] **Permission-aware universal search** — `/search`; Postgres `pg_trgm` indexes; role gates for invoices/fees/archived projects.
+- [x] **Knowledge Bank search** — templates, DSR, spec catalogue, structural templates, drawings, contractors, published lessons.
+- [x] **Lessons learned** — project tab + Knowledge Bank; draft → publish workflow (`esti_lesson_learned`, migration `0044`).
+- [x] **Deep links + type filters** — `searchResultHref()` per entity; MultiSelect type filter on search page.
+
+**Gate met:** search queries skip unauthorized entity classes; viewers/associates never receive invoice or fee proposal hits.
+
+---
+
+## Phase 10 - Commercial And Estimation Expansion [P2] — ✅ Complete (2026-06-16)
+
+- [x] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
+- [x] Rich accountant exports and reconciliation column mapping/remapping.
+- [x] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
+- [x] Expanded BBS templates and validated reinforcement layouts (SteelFlow catalog → BBS bridge).
+- [x] **APBF Phase 0 (Appointment)** — pre-engagement site visit, scope, letter of appointment.
+- [~] Visual estimation connector after versioned estimate primitives stabilize — deferred to Phase 11.
+- [x] BBS PDF export via worker (from Phase 2E backlog).
+
+**Gate met:** calculations remain deterministic, integer-paise where monetary, and tested (`fy.test.ts`, phase plan sum).
+
+---
+
+## Phase 11 - AI Studio [P2] — ⬜ Planned
 
 - [ ] Provider-neutral AI gateway with firm-controlled enablement and secrets.
-- [ ] Draft proposals, scopes, agreements, specifications, site reports, MOM,
-  RFI responses, and document summaries.
+- [ ] Draft proposals, scopes, agreements, specifications, site reports, MOM, RFI responses, summaries.
 - [ ] Permission-filtered retrieval, source references, redaction, usage records.
 - [ ] Editable drafts only; explicit human issue/approval.
-- [ ] **AI Billing Assistant:** natural-language query ("what should we invoice
-  this month?") answered from phase billing status, collection status, and
-  overdue aging data; output is a suggested action list, not an auto-generated
-  invoice.
-- [ ] **CRIF AI agents:** auto-summarise revision history, draft revision impact
-  statements, and flag designs with high revision-risk patterns.
+- [ ] **AI Billing Assistant** — natural-language billing suggestions from phase/collection data.
+- [ ] **CRIF AI agents** — summarise revision history, draft impact statements, flag high-risk patterns.
 
-**Gate:** no unauthorized context or automatic external transmission; every AI
-output records source objects, user, model, and approval state.
+**Gate:** no unauthorized context or automatic external transmission; every AI output records source, user, model, approval state.
 
-## Phase 12 - Production Readiness [P0]
+---
+
+## Phase 12 - Production Readiness [P0] — 🔄 Partial
 
 - [ ] Tested PostgreSQL and object-store backup/restore.
-- [x] Object-store bucket auto-provision on backend startup and worker upload
-  (MinIO `esti-documents`; prevents PDF/DXF upload failures on fresh stacks).
-- [x] Prod startup hardening — `ensureBucketWithRetry`, MinIO `depends_on`,
-  deploy `/health` gate, bootstrap bucket pre-create (`891fe64`).
+- [x] Object-store bucket auto-provision on backend startup and worker upload (MinIO `esti-documents`).
+- [x] Prod startup hardening — `ensureBucketWithRetry`, MinIO `depends_on`, deploy `/health` gate, bootstrap bucket pre-create.
+- [x] VPS deploy scaffolding — `compose.prod.yaml`, `deploy/` scripts, nginx proxy, prod seeds, migration journal repair.
 - [ ] Production secrets, TLS, public object-store/download strategy.
 - [ ] Cursor pagination/server caps across lists; remove N+1 polling hotspots.
 - [ ] Worker idempotency and documented resource/sandbox limits.
@@ -1008,25 +417,37 @@ output records source objects, user, model, and approval state.
 - [ ] Release metadata screen, structured operational logs, readiness dashboards.
 - [ ] Dependency/license report and selected top-level license.
 
-**Gate:** restore drill, security checklist, production build, and end-to-end
-smoke suite pass before any production declaration.
+**Gate:** restore drill, security checklist, production build, and end-to-end smoke suite pass before production declaration.
 
-## Deferred Ideas [P3]
+---
 
-- CRIF Design Review Workspace: PDF canvas viewer with annotation pins and
-  changemark stamps — requires a canvas library not in the current stack.
-- CRIF Revision Impact Engine: effort/timeline/cost estimates before accepting
-  a revision — requires sufficient historical revision data; revisit in Phase 11.
-- CRIF Profit leakage analysis: rework hours × hourly rate as margin impact per
-  project — requires timesheets (Phase 5) to be complete first.
-- ASPRF Reward marketplace: redeem points for courses, conference tickets,
-  additional leave — requires HR integration and principal sign-off on rewards
-  catalogue; build only after reward points engine is validated with users.
-- Pomodoro focus sessions and water reminders — opt-in wellbeing helpers;
-  out of scope for the core AORMS.
-- Recognition boards (public studio leaderboard).
-- Drawing snapping and title-block extraction.
-- SSE/push updates after correctness and scale justify them.
+## Deferred ideas [P3]
 
-These are optional and must not delay security, activity, project memory,
-collaboration, wellbeing basics, or production readiness.
+Optional — must not delay security, activity, project memory, collaboration, wellbeing basics, or production readiness.
+
+- CRIF Design Review Workspace (PDF canvas + annotation pins)
+- CRIF Revision Impact Engine (effort/timeline/cost estimates)
+- CRIF Profit leakage analysis (rework hours × rate)
+- ASPRF Reward marketplace (redeem points for courses, leave)
+- Pomodoro focus sessions and water reminders (out of core AORMS scope)
+- Recognition boards (public studio leaderboard)
+- Drawing snapping and title-block extraction
+- SSE/push updates after correctness and scale justify them
+
+---
+
+## Recent delivery log
+
+Condensed session notes — detail lives in phase sections above.
+
+| Date | Highlights |
+|------|------------|
+| 2026-06-11 | Phases 1–2 gates; security audit coverage; Pure Carbon shell |
+| 2026-06-12 | Dashboard charts (Treemap, Donut, Heatmap, Gauge); Work module; SteelFlow Phase 2E; Knowledge Bank hub |
+| 2026-06-13 | Carbon compliance audit; CLAUDE.md module map expansion |
+| 2026-06-14 | Marketing landing (`.esti-lp`); brand assets + SEO; dashboard mosaic; Kanban; Docker prod scaffolding; demo seed expansion |
+| 2026-06-15 | Landing USP + quality intelligence tiles; Phase 2F UI audit complete; workflow audit → Phase 2G |
+| 2026-06-15–16 | Spec catalogue (`0038`); SteelFlow catalogue apply; prod Docker build fixes; MinIO bucket reliability; landing trim |
+| 2026-06-16 | Phase 5 ASPRF KPI refinements; site & drawing intelligence; deploy hardening |
+
+**Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

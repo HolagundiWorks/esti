@@ -76,6 +76,10 @@ export function Proposals() {
   const utils = trpc.useUtils();
   const listQ = trpc.proposals.listAll.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const templatesQ = trpc.documents.listTemplates.useQuery();
+  const scopeTemplates = (templatesQ.data ?? []).filter(
+    (t) => t.kind === "SCOPE" || t.kind === "COA",
+  );
   const inv = () => utils.proposals.listAll.invalidate();
 
   const [open, setOpen] = useState(false);
@@ -99,7 +103,14 @@ export function Proposals() {
       <PageHeader
         title="Proposals & agreements"
         description="COA-based engagement proposals across all projects."
-        actions={<Button onClick={() => setOpen(true)}>New proposal</Button>}
+        actions={
+          <Stack orientation="horizontal" gap={3}>
+            <Link to="/office/documents">
+              <Button kind="ghost" size="sm">Document register</Button>
+            </Link>
+            <Button onClick={() => setOpen(true)}>New proposal</Button>
+          </Stack>
+        }
       />
 
       <DataState
@@ -194,6 +205,20 @@ export function Proposals() {
         }
       >
         <Stack gap={5}>
+          <Select
+            id="pr-tpl"
+            labelText="Start from office template (optional)"
+            value=""
+            onChange={(e) => {
+              const t = scopeTemplates.find((x) => x.id === e.target.value);
+              if (t) setScope(t.body);
+            }}
+          >
+            <SelectItem value="" text="— COA discipline default —" />
+            {scopeTemplates.map((t) => (
+              <SelectItem key={t.id} value={t.id} text={`${t.kind === "COA" ? "COA" : "Scope"} · ${t.title}`} />
+            ))}
+          </Select>
           <Select
             id="pr-proj"
             labelText="Project"

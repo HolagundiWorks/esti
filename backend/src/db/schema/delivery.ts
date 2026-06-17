@@ -190,5 +190,12 @@ export const measurements = pgTable("esti_measurement", {
   vbLength: doublePrecision("vb_length").notNull().default(0),
   realLength: doublePrecision("real_length").notNull().default(0),
   unit: text("unit").notNull(),
+  elementTypeId: text("element_type_id"),
+  elementCategory: text("element_category"),
+  heightMm: integer("height_mm"),
+  itemCount: integer("item_count").notNull().default(1),
+  boqQty: doublePrecision("boq_qty"),
+  boqUnit: text("boq_unit"),
+  boqDescription: text("boq_description"),
   createdAt: createdAt(),
 });

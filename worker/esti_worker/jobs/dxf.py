@@ -7,6 +7,7 @@ to object storage + PostgreSQL, and returns a summary for the log.
 from __future__ import annotations
 
 import logging
+import re
 import tempfile
 from collections import Counter
 from typing import Any
@@ -50,6 +51,22 @@ def _render_svg(doc, msp) -> str | None:
         return None
 
 
+def _inject_viewbox(svg_str: str, bounds: dict[str, float]) -> str:
+    """Ensure the SVG viewBox matches model-space extents so the SPA can fit/zoom."""
+    w = bounds["maxX"] - bounds["minX"]
+    h = bounds["maxY"] - bounds["minY"]
+    if w <= 0 or h <= 0:
+        return svg_str
+    pad_x, pad_y = w * 0.02, h * 0.02
+    vb = (
+        f'{bounds["minX"] - pad_x} {bounds["minY"] - pad_y} '
+        f"{w + pad_x * 2} {h + pad_y * 2}"
+    )
+    if re.search(r'viewBox="', svg_str):
+        return re.sub(r'viewBox="[^"]*"', f'viewBox="{vb}"', svg_str, count=1)
+    return svg_str.replace("<svg", f'<svg viewBox="{vb}"', 1)
+
+
 def dxf_to_svg(payload: dict[str, Any]) -> dict[str, Any]:
     drawing_id: str = payload["drawingId"]
     bucket: str = payload["bucket"]
@@ -80,6 +97,8 @@ def dxf_to_svg(payload: dict[str, Any]) -> dict[str, Any]:
         bounds = _bounds(msp)
 
         svg_str = _render_svg(doc, msp)
+        if svg_str and bounds:
+            svg_str = _inject_viewbox(svg_str, bounds)
         svg_key = None
         if svg_str:
             svg_key = f"svg/{file_hash}.svg"

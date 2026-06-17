@@ -14,6 +14,7 @@ import { BUCKET, ensureBucketWithRetry, s3 } from "./lib/storage.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
+import { registerInspectionPhotoUpload } from "./modules/inspection/upload.js";
 import { registerMoodImageUpload } from "./modules/spec/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { createContext } from "./trpc/context.js";
@@ -80,6 +81,7 @@ registerDrawingUpload(app);
 registerReconcileUpload(app);
 registerFirmLogoUpload(app);
 registerMoodImageUpload(app);
+registerInspectionPhotoUpload(app);
 registerCalendarFeed(app);
 
 await app.register(fastifyTRPCPlugin, {

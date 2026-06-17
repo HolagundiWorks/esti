@@ -34,12 +34,16 @@ export function formatINR(paise: Paise, opts: { paise?: boolean } = {}): string 
   return opts.paise === false ? main : `${main}.${String(p).padStart(2, "0")}`;
 }
 
-/** Short Indian form: ₹1.23 Cr / ₹45.60 L / ₹12,345. */
+/** Short Indian form: ₹1.23 Cr / ₹45.60 L / ₹12.3k / ₹999. */
 export function formatINRShort(paise: Paise): string {
   const rupees = paise / 100;
   const abs = Math.abs(rupees);
   if (abs >= 1e7) return `₹${(rupees / 1e7).toFixed(2)} Cr`;
   if (abs >= 1e5) return `₹${(rupees / 1e5).toFixed(2)} L`;
+  if (abs >= 1e3) {
+    const k = rupees / 1e3;
+    return `₹${Number.isInteger(k) ? k.toFixed(0) : k.toFixed(1)}k`;
+  }
   return formatINR(paise, { paise: false });
 }
 

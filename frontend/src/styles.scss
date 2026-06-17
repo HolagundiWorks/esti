@@ -9,12 +9,59 @@
 // Access the forwarded Carbon type module for the type-style() mixin.
 @use "@carbon/react/scss/type" as type;
 
-// Drawing viewer: make the injected SVG scale to the container width so the
-// measurement overlay (same viewBox) lines up at any size.
+// Drawing viewer: single SVG viewport with pan/zoom + measurement overlay.
 .dwg-base svg {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.dwg-viewport {
+  width: 100%;
+  border: 1px solid var(--cds-border-subtle);
+  background: var(--cds-layer-01);
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.dwg-viewport__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+}
+
+.dwg-viewport-fs {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  grid-template-rows: auto 1fr;
+  background: var(--cds-background);
+}
+
+.dwg-viewport-fs__bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.dwg-viewport-fs__main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 12px 12px;
+  overflow: hidden;
+}
+
+.dwg-viewport-fs__side {
+  border-left: 1px solid var(--cds-border-subtle);
+  padding: 12px;
+  overflow: auto;
 }
 
 // Let the themed app shell fill the viewport (no unstyled strip in dark theme).

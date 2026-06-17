@@ -23,6 +23,8 @@ from ..db import (
     fetch_proposal_full,
     fetch_site_assessment_full,
     fetch_specsheet_full,
+    fetch_estimate_full,
+    fetch_bbs_full,
     fetch_transmittal_full,
     update_drawing,
     update_feeproposal,
@@ -33,6 +35,8 @@ from ..db import (
     update_proposal,
     update_site_assessment,
     update_specsheet,
+    update_estimate,
+    update_bbs,
     update_transmittal,
 )
 from ..storage import get_bytes, put_bytes
@@ -441,6 +445,50 @@ def _specsheet_html(s: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _estimate_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = "".join(
+        f"<tr><td>{_e(it['description'])}</td><td>{_e(it['unit'])}</td>"
+        f"<td>{it['qty']}</td><td>{_inr(int(it['rate_paise']))}</td>"
+        f"<td>{it.get('item_lead_pct', 0)}%</td><td>{_inr(int(it['amount_paise']))}</td></tr>"
+        for it in e.get("items", [])
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+      <div class="title">Estimate / BOQ — {_e(e['title'])}</div>
+      <div class="muted">{_e(e['project_title'])} ({_e(e['project_ref'])}) · {_e(e['ref'])} · v{e.get('version_no', 1)}</div>
+      <table>
+        <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Lead</th><th>Amount</th></tr></thead>
+        <tbody>{rows or '<tr><td colspan=6 class="muted">No items</td></tr>'}</tbody>
+      </table>
+      <p style="margin-top:12px"><b>Subtotal:</b> {_inr(int(e.get('subtotal_paise') or 0))} ·
+      <b>Lead {e.get('lead_pct', 0)}%:</b> <b>Total {_inr(int(e.get('total_paise') or 0))}</b></p>
+    </body></html>"""
+
+
+def _bbs_html(b: dict[str, Any], firm: dict[str, Any]) -> str:
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = "".join(
+        f"<tr><td>{_e(it['bar_mark'])}</td><td>{_e(it.get('member'))}</td>"
+        f"<td>{it['dia_mm']}</td><td>{it['no_of_members']}</td><td>{it['bars_per_member']}</td>"
+        f"<td>{it['cutting_length_mm']}</td><td>{it.get('weight_kg', 0)}</td></tr>"
+        for it in b.get("items", [])
+    )
+    total_kg = sum(float(it.get("weight_kg") or 0) for it in b.get("items", []))
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+      <div class="title">Bar Bending Schedule — {_e(b['title'])}</div>
+      <div class="muted">{_e(b['project_title'])} ({_e(b['project_ref'])}) · {_e(b['ref'])}</div>
+      <table>
+        <thead><tr><th>Mark</th><th>Member</th><th>Dia mm</th><th>Members</th><th>Bars</th><th>Cut mm</th><th>kg</th></tr></thead>
+        <tbody>{rows or '<tr><td colspan=7 class="muted">No bars</td></tr>'}</tbody>
+      </table>
+      <p style="margin-top:12px"><b>Total steel:</b> {total_kg:.2f} kg</p>
+    </body></html>"""
+
+
 def _letter_html(l: dict[str, Any], firm: dict[str, Any]) -> str:
     addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
     proj = (
@@ -639,6 +687,8 @@ _RENDERERS = {
     "proposal": (fetch_proposal_full, _proposal_html, update_proposal, "proposal"),
     "inspection": (fetch_inspection_full, _inspection_html, update_inspection, "inspection"),
     "specsheet": (fetch_specsheet_full, _specsheet_html, update_specsheet, "specsheet"),
+    "estimate": (fetch_estimate_full, _estimate_html, update_estimate, "estimate"),
+    "bbs": (fetch_bbs_full, _bbs_html, update_bbs, "bbs"),
     "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
 }
 

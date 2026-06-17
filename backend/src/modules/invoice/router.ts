@@ -1,6 +1,7 @@
+import { PeriodFilterInput } from "@esti/contracts";
 import { GstSystem, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -11,6 +12,7 @@ import { requireInvoiceScope } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import { invoicePeriodWhere } from "../../lib/periodFilter.js";
 
 const manageInvoice = capabilityProcedure("invoice:manage");
 
@@ -27,8 +29,16 @@ export const invoiceRouter = router({
 
   /** All invoices across projects (office-wide Accounting view). */
   listAll: protectedProcedure
-    .input(z.object({ limit: z.number().int().min(1).max(500).default(200) }).optional())
+    .input(
+      z
+        .object({
+          limit: z.number().int().min(1).max(500).default(200),
+          period: PeriodFilterInput.optional(),
+        })
+        .optional(),
+    )
     .query(async ({ ctx, input }) => {
+      const periodWhere = invoicePeriodWhere(input?.period);
       return ctx.db
         .select({
           id: invoices.id,
@@ -47,6 +57,7 @@ export const invoiceRouter = router({
         })
         .from(invoices)
         .innerJoin(projectOffices, eq(projectOffices.id, invoices.projectId))
+        .where(periodWhere)
         .orderBy(desc(invoices.createdAt))
         .limit(input?.limit ?? 200);
     }),

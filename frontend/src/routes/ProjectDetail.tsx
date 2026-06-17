@@ -27,6 +27,7 @@ import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ContextualComments } from "../components/ContextualComments.js";
+import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectBylawData } from "../components/ProjectBylawData.js";
 import { trpc } from "../lib/trpc.js";
@@ -62,6 +63,7 @@ export function ProjectDetail() {
     "documents",
     "team",
     "comments",
+    "lessons",
     "settings",
   ];
   const tabSlug = searchParams.get("tab") ?? "overview";
@@ -180,6 +182,7 @@ export function ProjectDetail() {
           <Tab>Documents</Tab>
           <Tab>Team</Tab>
           <Tab>Comments</Tab>
+          <Tab>Lessons</Tab>
           <Tab>Settings</Tab>
         </TabList>
         <TabPanels>
@@ -227,6 +230,9 @@ export function ProjectDetail() {
               heading="Project comments"
               description="Contextual discussion linked directly to this project."
             />
+          </TabPanel>
+          <TabPanel>
+            <ProjectLessons projectId={id} />
           </TabPanel>
           <TabPanel>
             <ProjectSettings projectId={id} />

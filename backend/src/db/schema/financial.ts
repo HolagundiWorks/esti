@@ -108,6 +108,7 @@ export const reconciliations = pgTable("esti_reconcile", {
     .notNull()
     .default(0),
   lines: jsonb("lines"),
+  columnMapping: jsonb("column_mapping"),
   errorText: text("error_text"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

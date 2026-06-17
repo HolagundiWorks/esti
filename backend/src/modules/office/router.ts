@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { contracts, letters } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { recordDocumentIssue } from "../../lib/documentIssue.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireDeletableStatus, requireUnissuedDocument } from "../../lib/retention.js";
@@ -45,6 +46,14 @@ export const letterRouter = router({
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     await ctx.db.update(letters).set({ pdfStatus: "PENDING" }).where(eq(letters.id, input.id));
     await enqueueJob("render_pdf", { target: "letter", id: row.id, firm: await firmPayload(ctx.db) }, ctx.requestId);
+    await recordDocumentIssue(ctx.db, {
+      entityType: "LETTER",
+      entityId: row.id,
+      projectId: row.projectId,
+      ref: row.ref,
+      versionNo: 1,
+      issuedById: ctx.user.id,
+    });
     await writeAudit(ctx.db, {
       entity: "letter",
       entityId: input.id,

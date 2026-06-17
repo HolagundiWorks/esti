@@ -132,10 +132,37 @@ export const inspections = pgTable("esti_inspection", {
   instructions: text("instructions"),
   nextVisit: date("next_visit"),
   inspectorName: text("inspector_name"),
+  status: text("status").notNull().default("DRAFT"),
+  versionNo: integer("version_no").notNull().default(1),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+export const inspectionPhotos = pgTable("esti_inspection_photo", {
+  id: id(),
+  inspectionId: uuid("inspection_id")
+    .notNull()
+    .references(() => inspections.id),
+  storageKey: text("storage_key").notNull(),
+  caption: text("caption"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+export const inspectionActions = pgTable("esti_inspection_action", {
+  id: id(),
+  inspectionId: uuid("inspection_id")
+    .notNull()
+    .references(() => inspections.id),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("OPEN"),
+  assigneeName: text("assignee_name"),
+  dueDate: date("due_date"),
+  taskId: uuid("task_id"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
 });
 
 /** Material specification sheet — structured rows, rendered to PDF. */
@@ -146,6 +173,9 @@ export const specSheets = pgTable("esti_specsheet", {
     .notNull()
     .references(() => projectOffices.id),
   title: text("title").notNull(),
+  versionNo: integer("version_no").notNull().default(1),
+  status: text("status").notNull().default("DRAFT"),
+  revisionNote: text("revision_note"),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
@@ -170,11 +200,17 @@ export const specItems = pgTable("esti_specitem", {
 /** Mood board — a captioned collection of uploaded reference images. */
 export const moodBoards = pgTable("esti_moodboard", {
   id: id(),
+  ref: text("ref").unique(),
   projectId: uuid("project_id")
     .notNull()
     .references(() => projectOffices.id),
   title: text("title").notNull(),
+  versionNo: integer("version_no").notNull().default(1),
+  status: text("status").notNull().default("DRAFT"),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });
 
 export const moodImages = pgTable("esti_moodimage", {

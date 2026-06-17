@@ -7,16 +7,28 @@
 const startsWith = (buf: Buffer, sig: number[], offset = 0): boolean =>
   buf.length >= offset + sig.length && sig.every((b, i) => buf[offset + i] === b);
 
+const DXF_HEAD_BYTES = 8192;
+
+/** AutoCAD DWG — common magic at file start (users often pick .dwg by mistake). */
+export function looksLikeDwg(buf: Buffer): boolean {
+  if (buf.length < 6) return false;
+  const sig = buf.subarray(0, 6).toString("ascii");
+  return sig.startsWith("AC10") || sig.startsWith("AC1.");
+}
+
 /** AutoCAD DXF — ASCII (group-code text) or the binary DXF sentinel. */
 export function looksLikeDxf(buf: Buffer): boolean {
+  if (buf.length < 8) return false;
   // Binary DXF: "AutoCAD Binary DXF\r\n\x1a\x00"
   const binarySentinel = "AutoCAD Binary DXF";
-  const head = buf.subarray(0, 1024).toString("latin1");
+  const head = buf.subarray(0, Math.min(buf.length, DXF_HEAD_BYTES)).toString("latin1");
   if (head.startsWith(binarySentinel)) return true;
-  // ASCII DXF: a leading "0" group code followed by SECTION, and the HEADER or
-  // ENTITIES/TABLES blocks. Tolerate a leading UTF-8 BOM (U+FEFF).
-  const text = head.charCodeAt(0) === 0xfeff ? head.slice(1) : head;
-  return /\bSECTION\b/.test(text) && /(^|\n)\s*0\s*[\r\n]/.test(text);
+  // ASCII DXF: group code 0 + SECTION (case-insensitive). Tolerate BOM, leading
+  // comments (999 groups), and preamble before the first SECTION block.
+  let text = head;
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  if (!/\bsection\b/i.test(text)) return false;
+  return /(?:^|\r?\n)\s*0\s*(?:\r?\n|$)/m.test(text);
 }
 
 const IMAGE_SIGNATURES: Record<string, (buf: Buffer) => boolean> = {

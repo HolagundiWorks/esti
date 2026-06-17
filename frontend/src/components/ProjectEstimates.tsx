@@ -1,5 +1,6 @@
 import {
   Button,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -12,13 +13,69 @@ import {
   TableHeader,
   TableRow,
   Tag,
+  TextArea,
   TextInput,
 } from "@carbon/react";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { downloadXlsx } from "../lib/exportXlsx.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
 
 const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
+
+function EstimatePdf({ id, initial }: { id: string; initial: string }) {
+  const utils = trpc.useUtils();
+  const q = trpc.estimates.byId.useQuery(
+    { id },
+    {
+      refetchInterval: (query) =>
+        pdfPollInterval(query.state.data?.pdfStatus, initial !== "NONE"),
+      enabled: initial !== "NONE" || !!id,
+    },
+  );
+  const gen = trpc.estimates.generatePdf.useMutation({
+    onSuccess: () => utils.estimates.byId.invalidate({ id }),
+  });
+  const status = q.data?.pdfStatus ?? initial;
+  const url = q.data?.pdfUrl ?? null;
+  if (status === "READY" && url) {
+    return (
+      <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+        Open PDF
+      </Button>
+    );
+  }
+  if (status === "PENDING" || status === "PROCESSING") {
+    return <span style={{ fontSize: "0.875rem" }}>Generating…</span>;
+  }
+  return (
+    <Button kind="ghost" size="sm" disabled={gen.isPending} onClick={() => gen.mutate({ id })}>
+      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
+    </Button>
+  );
+}
+
+/** Parse CSV/TSV bulk lines: description, unit, qty, rate (₹), itemLeadPct */
+function parseEstimateBulk(text: string) {
+  return text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const cols = line.split(/[\t,;]/).map((c) => c.trim());
+      const [description, unit, qty, rate, lead = "0"] = cols;
+      if (!description || !unit) return null;
+      return {
+        description,
+        unit,
+        qty: Number(qty) || 0,
+        ratePaise: rupeesToPaise(rate ?? "0"),
+        itemLeadPct: Number(lead) || 0,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+}
 
 export function ProjectEstimates({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -55,6 +112,27 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
   const approve = trpc.estimates.approve.useMutation({
     onSuccess: invalidateList,
   });
+  const updateItem = trpc.estimates.updateItem.useMutation({
+    onSuccess: () => {
+      invalidateItems();
+      invalidateList();
+    },
+  });
+  const bulkImport = trpc.estimates.bulkImport.useMutation({
+    onSuccess: () => {
+      invalidateItems();
+      invalidateList();
+      setBulkOpen(false);
+      setBulkText("");
+    },
+  });
+  const revise = trpc.estimates.revise.useMutation({
+    onSuccess: () => {
+      invalidateList();
+      setReviseOpen(false);
+      setReviseNote("");
+    },
+  });
   const addItem = trpc.estimates.addItem.useMutation({
     onSuccess: () => {
       invalidateItems();
@@ -68,14 +146,51 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
       invalidateList();
     },
   });
+  const importTakeoff = trpc.measurements.applyToEstimate.useMutation({
+    onSuccess: () => {
+      invalidateItems();
+      invalidateList();
+    },
+  });
+  const setDsrVersion = trpc.estimates.setDsrVersion.useMutation({
+    onSuccess: () => invalidateList(),
+  });
+  const createFromTakeoff = trpc.estimates.createFromTakeoff.useMutation({
+    onSuccess: (res) => {
+      invalidateList();
+      setTakeoffOpen(false);
+      setTakeoffForm({ title: "Takeoff estimate", dsrVersionId: "", leadPct: "0" });
+      setOpenId(res.estimate.id);
+    },
+  });
 
   const open = (estimatesQ.data ?? []).find((e) => e.id === openId) ?? null;
+  const dsrLabel =
+    (versionsQ.data ?? []).find((v) => v.id === open?.dsrVersionId)?.label ?? null;
+  const takeoffPreviewQ = trpc.measurements.takeoffPreview.useQuery(
+    { projectId, dsrVersionId: open?.dsrVersionId ?? "" },
+    { enabled: !!projectId && !!open?.dsrVersionId && open.status === "DRAFT" },
+  );
+  const takeoffMeasQ = trpc.measurements.listByProject.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const dsrItemsQ = trpc.dsr.listItems.useQuery(
     { versionId: open?.dsrVersionId ?? "" },
     { enabled: !!open?.dsrVersionId },
   );
 
   const [itemOpen, setItemOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [reviseOpen, setReviseOpen] = useState(false);
+  const [reviseNote, setReviseNote] = useState("");
+  const [takeoffOpen, setTakeoffOpen] = useState(false);
+  const [takeoffForm, setTakeoffForm] = useState({
+    title: "Takeoff estimate",
+    dsrVersionId: "",
+    leadPct: "0",
+  });
   const [itf, setItf] = useState({
     dsrItemId: "",
     description: "",
@@ -106,9 +221,16 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
         }}
       >
         <h3>Estimation / BOQ</h3>
-        <Button size="sm" onClick={() => setNewOpen(true)}>
-          New estimate
-        </Button>
+        <Stack orientation="horizontal" gap={3}>
+          {(takeoffMeasQ.data ?? []).length > 0 && (
+            <Button size="sm" kind="tertiary" onClick={() => setTakeoffOpen(true)}>
+              Prepare from takeoff
+            </Button>
+          )}
+          <Button size="sm" onClick={() => setNewOpen(true)}>
+            New estimate
+          </Button>
+        </Stack>
       </div>
 
       <TableContainer
@@ -120,6 +242,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             <TableRow>
               <TableHeader>Ref</TableHeader>
               <TableHeader>Title</TableHeader>
+              <TableHeader>Ver</TableHeader>
               <TableHeader>Lead %</TableHeader>
               <TableHeader>Total</TableHeader>
               <TableHeader>Status</TableHeader>
@@ -131,6 +254,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               <TableRow key={e.id}>
                 <TableCell>{e.ref}</TableCell>
                 <TableCell>{e.title}</TableCell>
+                <TableCell>v{e.versionNo ?? 1}</TableCell>
                 <TableCell>{e.leadPct}%</TableCell>
                 <TableCell>{formatINR(e.totalPaise)}</TableCell>
                 <TableCell>
@@ -165,7 +289,31 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           >
             <h4 style={{ marginRight: "auto" }}>
               {open.ref} · {open.title}
+              {(open.versionNo ?? 1) > 1 && (
+                <span style={{ fontWeight: 400, opacity: 0.8 }}> · v{open.versionNo}</span>
+              )}
             </h4>
+            {open.dsrVersionId ? (
+              <Tag type="blue">DSR: {dsrLabel ?? open.dsrVersionId}</Tag>
+            ) : (
+              open.status === "DRAFT" && (
+                <Select
+                  id="est-dsr"
+                  labelText="Link DSR version"
+                  size="sm"
+                  value=""
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    if (id) setDsrVersion.mutate({ id: open.id, dsrVersionId: id });
+                  }}
+                >
+                  <SelectItem value="" text="Select DSR…" />
+                  {(versionsQ.data ?? []).map((v) => (
+                    <SelectItem key={v.id} value={v.id} text={v.label} />
+                  ))}
+                </Select>
+              )
+            )}
             {open.status === "DRAFT" && (
               <>
                 <TextInput
@@ -184,6 +332,21 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                 <Button size="sm" onClick={() => setItemOpen(true)}>
                   Add item
                 </Button>
+                <Button size="sm" kind="tertiary" onClick={() => setBulkOpen(true)}>
+                  Bulk import
+                </Button>
+                <Button
+                  size="sm"
+                  kind="tertiary"
+                  disabled={
+                    importTakeoff.isPending || !open.dsrVersionId || !(takeoffMeasQ.data ?? []).length
+                  }
+                  onClick={() =>
+                    importTakeoff.mutate({ projectId, estimateId: open.id })
+                  }
+                >
+                  Import takeoff quantities
+                </Button>
                 <Button
                   size="sm"
                   kind="tertiary"
@@ -193,9 +356,103 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                 </Button>
               </>
             )}
+            {open.status === "APPROVED" && (
+              <Button size="sm" kind="tertiary" onClick={() => setReviseOpen(true)}>
+                Revise
+              </Button>
+            )}
+            <Button
+              size="sm"
+              kind="ghost"
+              onClick={() => {
+                void utils.estimates.exportRows.fetch({ estimateId: open.id }).then((data) => {
+                  if (data.rows.length) downloadXlsx(data.rows, "BOQ", `${open.ref}-boq`);
+                });
+              }}
+            >
+              Export XLSX
+            </Button>
+            <EstimatePdf id={open.id} initial={open.pdfStatus ?? "NONE"} />
           </div>
+          {open.revisionNote && (
+            <p style={{ marginTop: 8, opacity: 0.85 }}>
+              Revision note: {open.revisionNote}
+            </p>
+          )}
 
-          <TableContainer title="Line items">
+          {open.status === "DRAFT" && !open.dsrVersionId && (
+            <InlineNotification
+              kind="warning"
+              lowContrast
+              hideCloseButton
+              title="DSR version required"
+              subtitle="Link a DSR version to apply schedule rates to takeoff quantities."
+              style={{ marginTop: 12 }}
+            />
+          )}
+
+          {open.status === "DRAFT" &&
+            open.dsrVersionId &&
+            (takeoffPreviewQ.data?.lines.length ?? 0) > 0 && (
+              <TableContainer
+                title="Takeoff → costing preview (draft)"
+                description="Measured quantities mapped to DSR items. Import to add as estimate lines."
+                style={{ marginTop: 16 }}
+              >
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Type</TableHeader>
+                      <TableHeader>DSR</TableHeader>
+                      <TableHeader>Description</TableHeader>
+                      <TableHeader>Qty</TableHeader>
+                      <TableHeader>Rate</TableHeader>
+                      <TableHeader>Amount</TableHeader>
+                      <TableHeader>Takeoff names</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(takeoffPreviewQ.data?.lines ?? []).map((line) => (
+                      <TableRow key={line.elementTypeId}>
+                        <TableCell>{line.elementLabel}</TableCell>
+                        <TableCell>
+                          {line.dsrMatched ? (
+                            <Tag type="green" size="sm">
+                              {line.dsrItemCode}
+                            </Tag>
+                          ) : (
+                            <Tag type="red" size="sm">
+                              No match
+                            </Tag>
+                          )}
+                        </TableCell>
+                        <TableCell>{line.description}</TableCell>
+                        <TableCell>
+                          {line.qty.toFixed(3)} {line.unit}
+                        </TableCell>
+                        <TableCell>{formatINR(line.ratePaise)}</TableCell>
+                        <TableCell>{formatINR(line.amountPaise)}</TableCell>
+                        <TableCell style={{ fontSize: "0.8125rem", opacity: 0.85 }}>
+                          {line.takeoffNames.join(", ")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <p style={{ marginTop: 8 }}>
+                  Preview subtotal {formatINR(takeoffPreviewQ.data?.subtotalPaise ?? 0)}
+                  {(takeoffPreviewQ.data?.unmatchedDsrCount ?? 0) > 0 && (
+                    <span style={{ color: "var(--cds-support-warning)" }}>
+                      {" "}
+                      · {(takeoffPreviewQ.data?.unmatchedDsrCount ?? 0)} line(s) without DSR
+                      match (rate ₹0 until mapped in master DSR)
+                    </span>
+                  )}
+                </p>
+              </TableContainer>
+            )}
+
+          <TableContainer title="Line items" style={{ marginTop: 16 }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -211,11 +468,98 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               <TableBody>
                 {(itemsQ.data ?? []).map((it) => (
                   <TableRow key={it.id}>
-                    <TableCell>{it.description}</TableCell>
-                    <TableCell>{it.unit}</TableCell>
-                    <TableCell>{it.qty}</TableCell>
-                    <TableCell>{formatINR(it.ratePaise)}</TableCell>
-                    <TableCell>{it.itemLeadPct}%</TableCell>
+                    <TableCell>
+                      {open.status === "DRAFT" ? (
+                        <TextInput
+                          id={`desc-${it.id}`}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          defaultValue={it.description}
+                          onBlur={(e) =>
+                            updateItem.mutate({ id: it.id, description: e.target.value })
+                          }
+                        />
+                      ) : (
+                        it.description
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {open.status === "DRAFT" ? (
+                        <TextInput
+                          id={`unit-${it.id}`}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          defaultValue={it.unit}
+                          onBlur={(e) =>
+                            updateItem.mutate({ id: it.id, unit: e.target.value })
+                          }
+                        />
+                      ) : (
+                        it.unit
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {open.status === "DRAFT" ? (
+                        <TextInput
+                          id={`qty-${it.id}`}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          type="number"
+                          defaultValue={String(it.qty)}
+                          onBlur={(e) =>
+                            updateItem.mutate({
+                              id: it.id,
+                              qty: Number(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      ) : (
+                        it.qty
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {open.status === "DRAFT" ? (
+                        <TextInput
+                          id={`rate-${it.id}`}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          type="number"
+                          defaultValue={String(it.ratePaise / 100)}
+                          onBlur={(e) =>
+                            updateItem.mutate({
+                              id: it.id,
+                              ratePaise: rupeesToPaise(e.target.value),
+                            })
+                          }
+                        />
+                      ) : (
+                        formatINR(it.ratePaise)
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {open.status === "DRAFT" ? (
+                        <TextInput
+                          id={`lead-${it.id}`}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          type="number"
+                          defaultValue={String(it.itemLeadPct)}
+                          onBlur={(e) =>
+                            updateItem.mutate({
+                              id: it.id,
+                              itemLeadPct: Number(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      ) : (
+                        `${it.itemLeadPct}%`
+                      )}
+                    </TableCell>
                     <TableCell>{formatINR(it.amountPaise)}</TableCell>
                     <TableCell>
                       {open.status === "DRAFT" && (
@@ -282,6 +626,59 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             type="number"
             value={nf.leadPct}
             onChange={(e) => setNf((f) => ({ ...f, leadPct: e.target.value }))}
+          />
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={takeoffOpen}
+        modalHeading="Prepare draft estimate from takeoff"
+        primaryButtonText={createFromTakeoff.isPending ? "Preparing…" : "Create draft estimate"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={
+          !takeoffForm.title || !takeoffForm.dsrVersionId || createFromTakeoff.isPending
+        }
+        onRequestClose={() => setTakeoffOpen(false)}
+        onRequestSubmit={() =>
+          createFromTakeoff.mutate({
+            projectId,
+            title: takeoffForm.title,
+            dsrVersionId: takeoffForm.dsrVersionId,
+            leadPct: Number(takeoffForm.leadPct) || 0,
+          })
+        }
+      >
+        <Stack gap={5}>
+          <p style={{ margin: 0, opacity: 0.9 }}>
+            Creates a draft estimate from all measured quantities on this project&apos;s
+            drawings. Each element type is linked to the matching DSR item code and
+            schedule rate.
+          </p>
+          <TextInput
+            id="to-title"
+            labelText="Estimate title"
+            value={takeoffForm.title}
+            onChange={(e) => setTakeoffForm((f) => ({ ...f, title: e.target.value }))}
+          />
+          <Select
+            id="to-dsr"
+            labelText="DSR version (rates)"
+            value={takeoffForm.dsrVersionId}
+            onChange={(e) =>
+              setTakeoffForm((f) => ({ ...f, dsrVersionId: e.target.value }))
+            }
+          >
+            <SelectItem value="" text="Select DSR version…" />
+            {(versionsQ.data ?? []).map((v) => (
+              <SelectItem key={v.id} value={v.id} text={v.label} />
+            ))}
+          </Select>
+          <TextInput
+            id="to-lead"
+            labelText="Whole-estimate lead %"
+            type="number"
+            value={takeoffForm.leadPct}
+            onChange={(e) => setTakeoffForm((f) => ({ ...f, leadPct: e.target.value }))}
           />
         </Stack>
       </Modal>
@@ -370,6 +767,56 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             />
           </div>
         </Stack>
+      </Modal>
+
+      <Modal
+        open={bulkOpen}
+        modalHeading="Bulk import line items"
+        primaryButtonText={bulkImport.isPending ? "Importing…" : "Import"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!open || !bulkText.trim() || bulkImport.isPending}
+        onRequestClose={() => setBulkOpen(false)}
+        onRequestSubmit={() => {
+          if (!open) return;
+          const rows = parseEstimateBulk(bulkText);
+          if (rows.length) bulkImport.mutate({ estimateId: open.id, rows });
+        }}
+      >
+        <Stack gap={4}>
+          <p style={{ margin: 0, opacity: 0.85 }}>
+            One line per item: description, unit, qty, rate (₹), item lead % (optional).
+            Comma, tab, or semicolon separated.
+          </p>
+          <TextArea
+            id="bulk-est"
+            labelText="Paste rows"
+            rows={10}
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder={"Excavation, cum, 120, 450, 0\nPCC 1:4:8, cum, 45, 5200, 5"}
+          />
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={reviseOpen}
+        modalHeading="Revise approved estimate"
+        primaryButtonText={revise.isPending ? "Revising…" : "Create revision"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!reviseNote.trim() || revise.isPending}
+        onRequestClose={() => setReviseOpen(false)}
+        onRequestSubmit={() =>
+          open && revise.mutate({ id: open.id, revisionNote: reviseNote.trim() })
+        }
+      >
+        <TextArea
+          id="rev-note"
+          labelText="Revision note"
+          rows={4}
+          value={reviseNote}
+          onChange={(e) => setReviseNote(e.target.value)}
+          placeholder="Describe what changed and why…"
+        />
       </Modal>
     </>
   );

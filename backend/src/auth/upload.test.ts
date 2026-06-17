@@ -20,6 +20,7 @@ describe("uploadDenial", () => {
     expect(UPLOAD_ROUTE_CAPABILITIES).toEqual({
       "/upload/drawing": "write",
       "/upload/mood-image": "write",
+      "/upload/inspection-photo": "write",
       "/upload/reconcile": "write",
       "/upload/firm-logo": "firm:admin",
     });
@@ -58,6 +59,10 @@ describe("uploadDenial", () => {
       status: 403,
       error: "uploads are disabled on the demo account",
     });
+  });
+
+  it("allows demo users to upload drawings when allowDemo is set", () => {
+    expect(uploadDenial(user("OWNER", { isDemo: true }), "write", { allowDemo: true })).toBeNull();
   });
 
   it.each(["OWNER", "PARTNER", "SENIOR", "ASSOCIATE"] as const)(
