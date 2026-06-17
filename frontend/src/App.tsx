@@ -35,6 +35,7 @@ import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { FloatingDock } from "./components/FloatingDock.js";
+import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import {
   PomodoroProvider,
@@ -66,6 +67,7 @@ import { Projects } from "./routes/Projects.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { SearchPage } from "./routes/Search.js";
+import { AiStudioPage } from "./components/AiStudio.js";
 import { Settings } from "./routes/Settings.js";
 import { Work } from "./routes/Work.js";
 import { Performance } from "./routes/Performance.js";
@@ -258,6 +260,7 @@ function AppShell() {
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
         { label: "Tenders", to: "/office/tenders" },
+        { label: "AI Studio", to: "/office/ai-studio" },
       ],
     },
     {
@@ -362,6 +365,7 @@ function AppShell() {
                   <Route path="/office/proposals" element={<Proposals />} />
                 )}
                 <Route path="/office/documents" element={<DocumentsRegister />} />
+                <Route path="/office/ai-studio" element={<AiStudioPage />} />
                 <Route path="/office/letters" element={<Letters />} />
                 <Route path="/office/contracts" element={<Contracts />} />
                 <Route path="/office/tenders" element={<Tenders />} />
@@ -435,6 +439,7 @@ function AppShell() {
             </footer>
           </Content>
           <FloatingDock theme={theme} onToggleTheme={toggleTheme} />
+          <AiAgentCommand theme={theme} />
         </div>
       </Theme>
     </ThemeContext.Provider>

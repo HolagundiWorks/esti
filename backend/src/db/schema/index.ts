@@ -18,5 +18,6 @@ export * from "./marketing.js";
 export * from "./documents.js";
 export * from "./search.js";
 export * from "./commercial.js";
+export * from "./ai.js";
 
 export type { ProjectOfficeRow } from "./project.js";

@@ -34,6 +34,15 @@ export const orgSettings = pgTable("esti_orgsettings", {
   financialEnabled: boolean("financial_enabled").notNull().default(true),
   projectEnabled: boolean("project_enabled").notNull().default(true),
   adminEnabled: boolean("admin_enabled").notNull().default(true),
+  /** AI Studio enablement — see AiSettings in @esti/contracts. Secrets stay in env. */
+  aiSettings: jsonb("ai_settings")
+    .notNull()
+    .default({
+      enabled: false,
+      provider: "ollama",
+      model: "llama3.2",
+      redactPii: true,
+    }),
   updatedAt: updatedAt(),
 });
 
@@ -129,6 +138,10 @@ export const users = pgTable("esti_user", {
   isDemo: boolean("is_demo").notNull().default(false),
   /** Secret token for iCal/Google Calendar workload subscription (rotate to revoke). */
   calendarFeedToken: text("calendar_feed_token"),
+  /** Optional personal cloud API key for AI Studio (OpenAI-compatible). Never expose in list APIs. */
+  aiApiKey: text("ai_api_key"),
+  /** When true and aiApiKey is set, generation uses the user's cloud key instead of firm Ollama. */
+  usePersonalAiKey: boolean("use_personal_ai_key").notNull().default(false),
   createdAt: createdAt(),
 });
 

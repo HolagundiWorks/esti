@@ -1,4 +1,11 @@
-import { TaskCreate, TaskListParams, TaskUpdate, TaskWorkType } from "@esti/contracts";
+import {
+  ProjectListParams,
+  TaskCreate,
+  TaskListParams,
+  TaskUpdate,
+  TaskWorkType,
+  clampListLimit,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -61,19 +68,20 @@ export const taskRouter = router({
         .leftJoin(projectOffices, eq(projectOffices.id, tasks.projectId));
 
       return filters.length
-        ? base.where(and(...filters)).orderBy(desc(tasks.createdAt))
-        : base.orderBy(desc(tasks.createdAt));
+        ? base.where(and(...filters)).orderBy(desc(tasks.createdAt)).limit(clampListLimit(input?.limit))
+        : base.orderBy(desc(tasks.createdAt)).limit(clampListLimit(input?.limit));
     }),
 
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectListParams)
     .query(async ({ ctx, input }) => {
       return ctx.db
         .select(withProject)
         .from(tasks)
         .leftJoin(projectOffices, eq(projectOffices.id, tasks.projectId))
         .where(eq(tasks.projectId, input.projectId))
-        .orderBy(desc(tasks.createdAt));
+        .orderBy(desc(tasks.createdAt))
+        .limit(clampListLimit(input.limit));
     }),
 
   create: protectedProcedure.input(TaskCreate).mutation(async ({ ctx, input }) => {

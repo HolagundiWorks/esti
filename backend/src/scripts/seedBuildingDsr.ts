@@ -5,7 +5,7 @@ import {
 } from "@esti/contracts";
 import { and, eq } from "drizzle-orm";
 import type { db } from "../db/index.js";
-import { dsrItems, dsrVersions } from "../db/schema.js";
+import { dsrItems, dsrVersions, orgSettings } from "../db/schema.js";
 
 type Db = typeof db;
 
@@ -58,4 +58,22 @@ export async function ensureBuildingDsrCatalog(
   }
 
   return { versionId: version!.id, itemsSeeded, itemsTotal: catalog.length };
+}
+
+/** Enable AI Studio with template provider for demo/dev. */
+export async function ensureAiStudioEnabled(database: Db): Promise<void> {
+  const [row] = await database.select().from(orgSettings).limit(1);
+  if (!row) return;
+  await database
+    .update(orgSettings)
+    .set({
+      aiSettings: {
+        enabled: true,
+        provider: "ollama",
+        model: "llama3.2",
+        ollamaBaseUrl: process.env.OLLAMA_BASE_URL?.trim() || "http://ollama:11434",
+        redactPii: true,
+      },
+    })
+    .where(eq(orgSettings.id, row.id));
 }

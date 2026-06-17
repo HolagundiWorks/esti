@@ -1,4 +1,4 @@
-import { ListParams, can } from "@esti/contracts";
+import { ListParams, can, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -18,7 +18,7 @@ export async function listProjects(db: DB, input: ListParams) {
     .from(projectOffices)
     .where(where)
     .orderBy(desc(projectOffices.createdAt))
-    .limit(input.limit)
+    .limit(clampListLimit(input.limit))
     .offset(input.offset);
 }
 
@@ -37,16 +37,21 @@ export async function listArchivedProjects(db: DB, user: AuthUser) {
     .select()
     .from(projectOffices)
     .where(and(isNotNull(projectOffices.archivedAt), isNull(projectOffices.purgedAt)))
-    .orderBy(desc(projectOffices.archivedAt));
+    .orderBy(desc(projectOffices.archivedAt))
+    .limit(clampListLimit());
 }
 
-export async function listProjectLogs(db: DB, projectId: string) {
+export async function listProjectLogs(db: DB, projectId: string, limit?: number | null) {
   return db
     .select()
     .from(projectLogs)
     .where(eq(projectLogs.projectId, projectId))
-    .orderBy(desc(projectLogs.createdAt));
+    .orderBy(desc(projectLogs.createdAt))
+    .limit(clampListLimit(limit));
 }
 
 export const projectByIdInput = z.object({ id: z.string().uuid() });
-export const projectLogsInput = z.object({ projectId: z.string().uuid() });
+export const projectLogsInput = z.object({
+  projectId: z.string().uuid(),
+  limit: z.number().int().min(1).max(500).optional(),
+});

@@ -12,7 +12,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
-import { ensureBuildingDsrCatalog } from "./seedBuildingDsr.js";
+import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
 
 const email = process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in";
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
@@ -20,6 +20,7 @@ const fullName = process.env.SEED_OWNER_NAME ?? "HCW Owner";
 
 async function main(): Promise<void> {
   const dsr = await ensureBuildingDsrCatalog(db);
+  await ensureAiStudioEnabled(db);
   console.log(`✓ building DSR: ${dsr.itemsTotal} items (${dsr.itemsSeeded} new)`);
 
   const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));

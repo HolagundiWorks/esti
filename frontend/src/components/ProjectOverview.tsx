@@ -37,6 +37,7 @@ import {
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 import { ProjectAppointment } from "./ProjectAppointment.js";
+import { AiDraftPanel } from "./AiStudio.js";
 
 function StatCard({
   label,
@@ -416,6 +417,9 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             <Button size="sm" onClick={() => setDecisionOpen(true)}>
               Add decision
             </Button>
+          </div>
+          <div style={{ margin: "12px 0" }}>
+            <AiDraftPanel projectId={projectId} defaultKind="CRIF_SUMMARY" compact />
           </div>
           {allDecisions.length > 0 && (() => {
             const scopeChangeCount = allDecisions.filter(
@@ -830,8 +834,8 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             }}
           >
             <Stack gap={5}>
-              <p>
-                Current state:{" "}
+              <div className="esti-inline-with-tag">
+                <span>Current state:</span>
                 <Tag
                   type={
                     DECISION_STATE_TAG[
@@ -846,7 +850,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                     ]
                   }
                 </Tag>
-              </p>
+              </div>
               <Select
                 id="tr-tostate"
                 labelText="Move to"

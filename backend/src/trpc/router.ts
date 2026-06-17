@@ -67,6 +67,8 @@ import {
 import { dashboardRouter } from "../modules/dashboard/router.js";
 import { lessonRouter } from "../modules/lesson/router.js";
 import { searchRouter } from "../modules/search/router.js";
+import { aiRouter } from "../modules/ai/router.js";
+import { systemRouter } from "../modules/system/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -158,6 +160,8 @@ export const appRouter = router({
   attendance: attendanceRouter,
   aspRf: aspRfRouter,
   rewards: rewardRouter,
+  ai: aiRouter,
+  system: systemRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

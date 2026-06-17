@@ -95,5 +95,6 @@ export const TaskListParams = z.object({
   priority: TaskPriority.optional(),
   classification: TaskClassification.optional(),
   workType: TaskWorkType.optional(),
+  limit: z.number().int().min(1).max(500).optional(),
 });
 export type TaskListParams = z.infer<typeof TaskListParams>;

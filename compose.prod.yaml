@@ -66,6 +66,16 @@ services:
     # No in-container healthcheck — the server image is distroless (no shell/curl/mc).
     # bootstrap/setup scripts probe MinIO with an mc sidecar; backend retries bucket setup.
 
+  # ── Ollama (local LLM for AI Studio — internal only) ─────────────────────────
+  esti-ollama:
+    image: ollama/ollama:latest
+    container_name: esti-ollama
+    restart: always
+    volumes:
+      - ollamadata:/root/.ollama
+    networks:
+      - esti-network
+
   # ── Backend (Fastify / tRPC) ──────────────────────────────────────────────────
   backend:
     build:
@@ -88,6 +98,9 @@ services:
       S3_ACCESS_KEY:      ${S3_ACCESS_KEY}
       S3_SECRET_KEY:      ${S3_SECRET_KEY}
       WORKER_JOB_STREAM:  ${WORKER_JOB_STREAM:-esti:jobs}
+      BUILD_REVISION:     ${BUILD_REVISION:-dev}
+      OLLAMA_BASE_URL:      ${OLLAMA_BASE_URL:-http://esti-ollama:11434}
+      OLLAMA_MODEL:         ${OLLAMA_MODEL:-llama3.2}
     # Port 4000 bound to 127.0.0.1 only — host nginx proxies /trpc and /upload.
     ports:
       - "127.0.0.1:4000:4000"
@@ -99,6 +112,8 @@ services:
       esti-redis:
         condition: service_healthy
       esti-minio:
+        condition: service_started
+      esti-ollama:
         condition: service_started
     healthcheck:
       test:
@@ -178,3 +193,4 @@ volumes:
   pgdata:
   redisdata:
   miniodata:
+  ollamadata:

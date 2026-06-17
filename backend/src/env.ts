@@ -9,6 +9,8 @@ const Env = z.object({
   DATABASE_URL: z.string().default("postgres://esti:esti@localhost:5432/esti"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   WORKER_JOB_STREAM: z.string().default("esti:jobs"),
+  BUILD_REVISION: z.string().default("dev"),
+  BUILD_TIME: z.string().optional(),
   S3_ENDPOINT: z.string().default("http://minio:9000"),
   // Browser-reachable endpoint used only to sign GET URLs (presign is host-bound).
   S3_PUBLIC_ENDPOINT: z.string().default("http://localhost:9000"),

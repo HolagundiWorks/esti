@@ -40,6 +40,7 @@ import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 import { QualityIntelligenceTiles } from "../components/QualityIntelligenceTiles.js";
+import { AiDraftPanel } from "../components/AiStudio.js";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -643,6 +644,11 @@ export function Dashboard() {
               : undefined
           }
         />
+        {can(user?.role, "fees:manage") && (
+          <div style={{ marginTop: 12 }}>
+            <AiDraftPanel defaultKind="BILLING_ASSISTANT" compact />
+          </div>
+        )}
       </Column>
 
       <Column lg={4} md={4} sm={4}>

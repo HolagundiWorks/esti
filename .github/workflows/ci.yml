@@ -19,6 +19,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      - run: pnpm --filter @esti/backend build
+      - run: pnpm --filter @esti/frontend build
 
   python:
     name: Python worker

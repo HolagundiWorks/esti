@@ -1,4 +1,4 @@
-import { ASSIGNABLE_STAFF_ROLES } from "@esti/contracts";
+import { ASSIGNABLE_STAFF_ROLES, OfficeListParams, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -19,8 +19,12 @@ const publicUser = {
 
 export const userRouter = router({
   /** All logins (owner) — staff and portal users. */
-  list: ownerProcedure.query(async ({ ctx }) => {
-    return ctx.db.select(publicUser).from(users).orderBy(asc(users.email));
+  list: ownerProcedure.input(OfficeListParams.optional()).query(async ({ ctx, input }) => {
+    return ctx.db
+      .select(publicUser)
+      .from(users)
+      .orderBy(asc(users.email))
+      .limit(clampListLimit(input?.limit));
   }),
 
   /** Owner creates an internal staff login at a seniority tier (not OWNER). */

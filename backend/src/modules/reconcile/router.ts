@@ -1,4 +1,4 @@
-import { ReconcileColumnMapping, ReconcileLine } from "@esti/contracts";
+import { OfficeListParams, ReconcileColumnMapping, ReconcileLine, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -9,8 +9,12 @@ import { BUCKET } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const reconcileRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.select().from(reconciliations).orderBy(desc(reconciliations.createdAt));
+  list: protectedProcedure.input(OfficeListParams.optional()).query(async ({ ctx, input }) => {
+    return ctx.db
+      .select()
+      .from(reconciliations)
+      .orderBy(desc(reconciliations.createdAt))
+      .limit(clampListLimit(input?.limit));
   }),
 
   byId: protectedProcedure

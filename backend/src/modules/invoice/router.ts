@@ -1,4 +1,4 @@
-import { PeriodFilterInput } from "@esti/contracts";
+import { PeriodFilterInput, ProjectListParams, clampListLimit } from "@esti/contracts";
 import { GstSystem, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
@@ -18,13 +18,14 @@ const manageInvoice = capabilityProcedure("invoice:manage");
 
 export const invoiceRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectListParams)
     .query(async ({ ctx, input }) => {
       return ctx.db
         .select()
         .from(invoices)
         .where(eq(invoices.projectId, input.projectId))
-        .orderBy(desc(invoices.createdAt));
+        .orderBy(desc(invoices.createdAt))
+        .limit(clampListLimit(input.limit));
     }),
 
   /** All invoices across projects (office-wide Accounting view). */

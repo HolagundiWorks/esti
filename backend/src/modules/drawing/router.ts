@@ -1,3 +1,4 @@
+import { ProjectListParams, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, gt, or } from "drizzle-orm";
 import { z } from "zod";
@@ -11,12 +12,17 @@ import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const drawingRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid(), currentOnly: z.boolean().default(true) }))
+    .input(ProjectListParams.extend({ currentOnly: z.boolean().default(true) }))
     .query(async ({ ctx, input }) => {
       const where = input.currentOnly
         ? and(eq(drawings.projectId, input.projectId), eq(drawings.isCurrent, true))
         : eq(drawings.projectId, input.projectId);
-      return ctx.db.select().from(drawings).where(where).orderBy(desc(drawings.createdAt));
+      return ctx.db
+        .select()
+        .from(drawings)
+        .where(where)
+        .orderBy(desc(drawings.createdAt))
+        .limit(clampListLimit(input.limit));
     }),
 
   /** All revisions of a drawing (pass any revision's id), oldest first. */
