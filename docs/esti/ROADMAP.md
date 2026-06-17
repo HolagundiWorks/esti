@@ -42,13 +42,13 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [4B](#phase-4b---dashboard-intelligence-and-billing-action-p1) | Dashboard intelligence | P1 | ✅ |
 | [4C](#phase-4c---revision-intelligence-and-crif-enhancements-p1) | Revision intelligence | P1 | ✅ |
 | [4D](#phase-4d---knowledge-bank-foundations-p1) | Knowledge Bank catalogues | P1 | ✅ |
-| [5](#phase-5---tasks-availability-escalations-and-performance-p1) | Tasks, ASPRF, escalations | P1 | 🔄 |
+| [5](#phase-5---tasks-availability-escalations-and-performance-p1) | Tasks, ASPRF, escalations | P1 | ✅ |
 | [6](#phase-6---client-and-consultant-collaboration-p1) | Client & consultant portals | P1 | ✅ |
 | [7](#phase-7---contractor-and-tender-coordination-p2) | Contractors & tenders | P2 | 🔄 |
 | [8](#phase-8---documents-and-numbering-p1) | Documents & numbering | P1 | ✅ |
 | [9](#phase-9---search-knowledge-and-lessons-p2) | Search & lessons | P2 | ✅ |
-| [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ⬜ |
-| [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ⬜ |
+| [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ✅ |
+| [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ✅ |
 | [12](#phase-12---production-readiness-p0) | Production readiness | P0 | 🔄 |
 
 ---
@@ -68,22 +68,19 @@ ESTI (AORMS) is a **working prototype** deployed at [aorms.in](https://aorms.in)
 - Contractor register, tender packages, token-scoped contractor bid portal
 - **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
 - **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
-- Pure Carbon UI, marketing landing, VPS Docker deploy scaffolding
+- **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
 
 **Open before production declaration**
 
-- Phase 12 backup/restore, TLS/secrets hardening, full smoke suite
-- Phase 5 task calendar grid view (ASPRF gate remainder)
+- Phase 12 — run `deploy/restore-drill.sh` on staging VPS; cursor pagination on remaining project lists
 - Phase 7 tender documents/addenda, contractor RFIs/NCRs, construction boards
 
 ---
 
 ## Remaining work (priority order)
 
-1. **P0 — Production readiness (Phase 12)** — backup/restore drill, secrets/TLS, pagination caps, worker idempotency, CI smoke suite
-2. **P1 — Tasks (Phase 5 gate)** — dedicated task calendar grid in Work
-3. **P2 — Tenders (Phase 7)** — controlled tender documents, sealed contractor bids, RFIs/NCRs, dashboard boards
-4. **P2 — Commercial & AI (Phases 10–11)** — FY filters, estimate grid, AI gateway with human approval gates
+1. **P0 — Production readiness (Phase 12)** — staging restore drill sign-off, cursor pagination on project lists
+2. **P2 — Tenders (Phase 7)** — controlled tender documents, sealed contractor bids, RFIs/NCRs, dashboard boards
 
 ---
 
@@ -308,19 +305,19 @@ Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolid
 
 ---
 
-## Phase 5 - Tasks, Availability, Escalations, And Performance [P1] — 🔄 Partial
+## Phase 5 - Tasks, Availability, Escalations, And Performance [P1] — ✅ Complete
 
 - [x] Assignee IDs, reviewer, dependencies, CRITICAL priority, filters, ASPRF classification.
 - [x] `workType`, difficulty coefficient, estimated hours.
 - [x] Kanban board on Work module; Google Calendar iCal sync (`0040`); month heatmap on Workload tab.
-- [ ] **Task calendar grid view** in Work (gate remainder).
+- [x] **Task calendar grid view** in Work — month grid by due date, day detail panel, unscheduled list (`/tasks?tab=calendar`).
 - [x] Daily stand-ups (`esti_daily_update`); timesheets (`esti_timesheet`) — superseded for ASPRF by attendance (Phase 4A) but tabs remain.
 - [x] Escalation settings (`0039`); digest delivery; leave-impact notifications with backup contacts.
 - [x] **ASPRF engine** — six KPI dimensions, performance bands, recognition awards, reward points, `/performance` route.
 - [x] Reliability, Quality, Client Impact, Collaboration, Learning, Wellbeing (opt-in) KPI refinements.
 - [x] Team Utilization KPI; Site & Drawing Intelligence feeding Technical Intelligence tile.
 
-**Gate (partial):** ASPRF dimensions, escalations, and calendar sync operational. Full gate requires dedicated task calendar grid view.
+**Gate met:** ASPRF dimensions, escalations, calendar sync, and task calendar grid operational.
 
 ---
 
@@ -391,33 +388,38 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 
 ---
 
-## Phase 11 - AI Studio [P2] — ⬜ Planned
+## Phase 11 - AI Studio [P2] — ✅ Complete (2026-06-16)
 
-- [ ] Provider-neutral AI gateway with firm-controlled enablement and secrets.
-- [ ] Draft proposals, scopes, agreements, specifications, site reports, MOM, RFI responses, summaries.
-- [ ] Permission-filtered retrieval, source references, redaction, usage records.
-- [ ] Editable drafts only; explicit human issue/approval.
-- [ ] **AI Billing Assistant** — natural-language billing suggestions from phase/collection data.
-- [ ] **CRIF AI agents** — summarise revision history, draft impact statements, flag high-risk patterns.
+- [x] Ollama on-server gateway — no cloud API keys or external transmit required.
+- [x] Draft kinds: proposal, scope, agreement, spec, site report, MOM, RFI response, summary.
+- [x] **AI Billing Assistant** — billing-ready phases and overdue collections from Action Center data.
+- [x] **CRIF AI agents** — revision summary, impact statement, and risk-flag drafts from decision ledger.
+- [x] Permission-filtered context assembly, source references on each run, PII redaction toggle.
+- [x] `esti_ai_run` usage/provenance table; editable drafts; explicit review/approve states — no auto-issue.
+- [x] `/office/ai-studio` route; inline panels on Dashboard (billing), MOM, CRIF overview; Company AI settings.
+- [x] **AORMS Agent** — horizontal command bar (logo FAB, Alt+A) for quick Ollama prompts office-wide.
 
-**Gate:** no unauthorized context or automatic external transmission; every AI output records source, user, model, approval state.
+**Gate met:** all generation via Ollama (template fallback for demo); every run audited with sources, user, model, approval state.
 
 ---
 
 ## Phase 12 - Production Readiness [P0] — 🔄 Partial
 
-- [ ] Tested PostgreSQL and object-store backup/restore.
+- [x] Backup/restore scripts — `deploy/backup.sh` (`--clean`), `deploy/restore.sh`, `deploy/restore-drill.sh`.
 - [x] Object-store bucket auto-provision on backend startup and worker upload (MinIO `esti-documents`).
 - [x] Prod startup hardening — `ensureBucketWithRetry`, MinIO `depends_on`, deploy `/health` gate, bootstrap bucket pre-create.
 - [x] VPS deploy scaffolding — `compose.prod.yaml`, `deploy/` scripts, nginx proxy, prod seeds, migration journal repair.
-- [ ] Production secrets, TLS, public object-store/download strategy.
-- [ ] Cursor pagination/server caps across lists; remove N+1 polling hotspots.
-- [ ] Worker idempotency and documented resource/sandbox limits.
-- [ ] API integration, frontend component/browser, migration, and build smoke tests.
-- [ ] Release metadata screen, structured operational logs, readiness dashboards.
-- [ ] Dependency/license report and selected top-level license.
+- [x] List caps — `clampListLimit()` on task/invoice/drawing/reconcile/users lists + project logs/archived; shared `ProjectListParams` / `OfficeListParams`.
+- [x] Release metadata — `/health` returns revision + checks; owner **Company → Release & readiness** panel; `system.release` tRPC.
+- [x] Worker PDF idempotency — skip re-render when `pdf_status=READY`; documented in `WORKER-LIMITS.md`.
+- [x] CI smoke — backend + frontend production builds in GitHub Actions; `scripts/licenses.mjs` for dependency audit.
+- [x] Production ops checklist — `docs/esti/PRODUCTION-OPS.md` (secrets, TLS, object-store, health probes).
+- [x] API smoke tests — `backend/src/smoke/production.test.ts`; `scripts/smoke-health.sh` for live `/health` + `/readyz`.
+- [ ] Tested restore drill on staging VPS (script ready — run `deploy/restore-drill.sh` and sign off).
+- [ ] Cursor pagination on remaining project-scoped lists (decisions, comments, transmittals, etc.).
+- [ ] Extended API integration smoke (authenticated tRPC happy paths against test DB).
 
-**Gate:** restore drill, security checklist, production build, and end-to-end smoke suite pass before production declaration.
+**Gate:** restore drill sign-off, security checklist applied on VPS, production build, and smoke suite pass before production declaration.
 
 ---
 
@@ -448,6 +450,8 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-14 | Marketing landing (`.esti-lp`); brand assets + SEO; dashboard mosaic; Kanban; Docker prod scaffolding; demo seed expansion |
 | 2026-06-15 | Landing USP + quality intelligence tiles; Phase 2F UI audit complete; workflow audit → Phase 2G |
 | 2026-06-15–16 | Spec catalogue (`0038`); SteelFlow catalogue apply; prod Docker build fixes; MinIO bucket reliability; landing trim |
-| 2026-06-16 | Phase 5 ASPRF KPI refinements; site & drawing intelligence; deploy hardening |
+| 2026-06-16 | Phase 11 AI Studio — Ollama gateway, AORMS Agent bar, billing/CRIF drafts |
+| 2026-06-17 | Phase 12 partial — list caps, release metadata, backup scripts, worker idempotency, CI builds |
+| 2026-06-17 | Phase 12 continued — PRODUCTION-OPS checklist, restore drill script, list caps on key routers, smoke tests |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

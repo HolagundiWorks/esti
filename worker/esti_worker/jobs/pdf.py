@@ -729,12 +729,18 @@ def _drawing_issue_html(rec: dict[str, Any], firm: dict[str, Any], svg: str) -> 
     </body></html>"""
 
 
+def _already_ready(rec: dict[str, Any] | None, *, key: str = "pdf_key", status: str = "pdf_status") -> bool:
+    return bool(rec and rec.get(status) == "READY" and rec.get(key))
+
+
 def _render_drawing_issue(record_id: str, firm: dict[str, Any], watermark: str | None) -> dict:
+    rec = fetch_drawing_full(record_id)
+    if _already_ready(rec, key="issue_pdf_key", status="issue_pdf_status"):
+        return {"status": "skipped", "reason": "already_ready", "id": record_id, "target": "drawing"}
     update_drawing(record_id, issue_pdf_status="PROCESSING")
     try:
         from weasyprint import HTML
 
-        rec = fetch_drawing_full(record_id)
         if rec is None or not rec.get("svg_key"):
             raise ValueError("drawing/svg not found")
         svg = get_bytes(settings.s3_bucket, rec["svg_key"]).decode("utf-8")
@@ -764,15 +770,18 @@ def render_pdf(payload: dict[str, Any]) -> dict[str, Any]:
         return _render_compliance_pdf(record_id, firm)
 
     fetch, render_html, update, folder = _RENDERERS.get(target, _RENDERERS["invoice"])
+    rec = fetch(record_id)
+    if rec is None:
+        return {"status": "error", "id": record_id, "error": f"{target} not found"}
+    if _already_ready(rec):
+        return {"status": "skipped", "reason": "already_ready", "id": record_id, "target": target}
+
     update(record_id, pdf_status="PROCESSING")
     try:
         # Heavy import (pango/cairo) kept local so the module imports without
         # system libs (e.g. in CI / unit tests).
         from weasyprint import HTML
 
-        rec = fetch(record_id)
-        if rec is None:
-            raise ValueError(f"{target} not found")
         pdf_key = f"pdf/{folder}/{record_id}.pdf"
         html_str = render_html(rec, firm)
         if watermark:

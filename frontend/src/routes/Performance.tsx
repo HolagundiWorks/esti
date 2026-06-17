@@ -146,7 +146,7 @@ function MemberScoreCard({
             </Stack>
             <Stack gap={1}>
               <p>Overdue</p>
-              <p><strong>{member.overdueCount > 0 ? <Tag type="red" size="sm">{member.overdueCount}</Tag> : 0}</strong></p>
+              <div><strong>{member.overdueCount > 0 ? <Tag type="red" size="sm">{member.overdueCount}</Tag> : 0}</strong></div>
             </Stack>
             <Stack gap={1}>
               <p>Training</p>

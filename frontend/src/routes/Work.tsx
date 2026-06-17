@@ -13,6 +13,7 @@ import { PageHeader } from "../components/PageHeader.js";
 import { ActivityTab } from "../components/work/ActivityTab.js";
 import { AttendanceTab } from "../components/work/AttendanceTab.js";
 import { TaskBoardTab } from "../components/work/TaskBoardTab.js";
+import { TaskCalendarTab } from "../components/work/TaskCalendarTab.js";
 import { TasksTab, type TasksTabHandle } from "../components/work/TasksTab.js";
 import { WorkloadTab } from "../components/work/WorkloadTab.js";
 import { type WorkTabSlug, workTabsForNav } from "../components/work/workHelpers.js";
@@ -62,6 +63,7 @@ export function Work() {
         <TabList aria-label="Work sections" contained>
           <Tab>Tasks</Tab>
           <Tab>Board</Tab>
+          <Tab>Calendar</Tab>
           {hrEnabled && <Tab>Workload</Tab>}
           <Tab>Activity</Tab>
           <Tab>Client requests</Tab>
@@ -75,6 +77,9 @@ export function Work() {
           </TabPanel>
           <TabPanel>
             <TaskBoardTab />
+          </TabPanel>
+          <TabPanel>
+            <TaskCalendarTab />
           </TabPanel>
           {hrEnabled && (
             <TabPanel>

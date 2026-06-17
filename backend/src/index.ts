@@ -11,6 +11,7 @@ import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
 import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
 import { BUCKET, ensureBucketWithRetry, s3 } from "./lib/storage.js";
+import { buildReleaseInfo, releaseSummary } from "./lib/releaseInfo.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
@@ -89,7 +90,10 @@ await app.register(fastifyTRPCPlugin, {
   trpcOptions: { router: appRouter, createContext },
 });
 
-app.get("/health", async () => ({ ok: true }));
+app.get("/health", async () => {
+  const info = await buildReleaseInfo(db);
+  return releaseSummary(info);
+});
 
 // Liveness probe: checks all backing services are reachable.
 app.get("/readyz", async (_req, reply) => {

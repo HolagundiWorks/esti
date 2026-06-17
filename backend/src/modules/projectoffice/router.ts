@@ -373,7 +373,9 @@ export const projectOfficeRouter = router({
     }),
 
   // --- Internal project log (audit notes) ---
-  logs: protectedProcedure.input(projectLogsInput).query(async ({ ctx, input }) => listProjectLogs(ctx.db, input.projectId)),
+  logs: protectedProcedure
+    .input(projectLogsInput)
+    .query(async ({ ctx, input }) => listProjectLogs(ctx.db, input.projectId, input.limit)),
 
   addLog: protectedProcedure
     .input(z.object({ projectId: z.string().uuid(), note: z.string().min(1).max(2000) }))

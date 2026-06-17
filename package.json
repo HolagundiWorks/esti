@@ -15,7 +15,8 @@
     "db:generate": "pnpm --filter @esti/backend db:generate",
     "db:migrate": "pnpm --filter @esti/backend db:migrate",
     "seed:demo": "pnpm --filter @esti/backend seed:demo",
-    "seed:demo:solo": "pnpm --filter @esti/backend seed:demo:solo"
+    "seed:demo:solo": "pnpm --filter @esti/backend seed:demo:solo",
+    "licenses": "node scripts/licenses.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

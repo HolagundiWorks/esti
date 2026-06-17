@@ -19,6 +19,7 @@ import { Add } from "@carbon/icons-react";
 import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { DataState } from "./DataState.js";
+import { AiDraftPanel } from "./AiStudio.js";
 
 export function ProjectMom({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -51,6 +52,9 @@ export function ProjectMom({ projectId }: { projectId: string }) {
         <h3>Meeting minutes</h3>
         <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>New MOM</Button>
       </Stack>
+      <div style={{ marginBottom: 16 }}>
+        <AiDraftPanel projectId={projectId} defaultKind="MOM" compact />
+      </div>
       <DataState loading={listQ.isLoading} isEmpty={(listQ.data ?? []).length === 0} columnCount={4} empty={{ title: "No meeting minutes", description: "Record decisions and convert action items to tasks." }}>
         <TableContainer>
           <Table size="sm">

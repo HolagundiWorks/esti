@@ -16,6 +16,7 @@ export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export const WORK_TAB_SLUGS = [
   "tasks",
   "board",
+  "calendar",
   "workload",
   "activity",
   "client-requests",
@@ -28,6 +29,7 @@ export type WorkTabSlug = (typeof WORK_TAB_SLUGS)[number];
 export const WORK_TABS_BASE = [
   "tasks",
   "board",
+  "calendar",
   "activity",
   "client-requests",
   "consultant-requests",
@@ -41,6 +43,7 @@ export function workTabsForNav(hrEnabled: boolean): WorkTabSlug[] {
   return [
     "tasks",
     "board",
+    "calendar",
     "workload",
     "activity",
     "client-requests",

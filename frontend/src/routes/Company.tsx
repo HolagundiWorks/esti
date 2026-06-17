@@ -18,6 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextInput,
   Tile,
   Toggle,
@@ -25,17 +26,21 @@ import {
 import {
   type FirmType,
   type GstType,
+  DEFAULT_AI_SETTINGS,
   DEFAULT_ESCALATION_SETTINGS,
+  type AiSettings,
   type EscalationSettings,
   GstSystem,
   HR_LOCK_REASON_LABEL,
   HrArchiveConfirmPhrase,
   ORG_MODE_LABEL,
+  parseAiSettings,
   parseEscalationSettings,
   PhoneType,
   STATES,
   districtsFor,
 } from "@esti/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -539,6 +544,8 @@ export function Company() {
       </Modal>
 
       {isOwner && <EscalationSettingsPanel />}
+      {isOwner && <AiStudioSettingsPanel />}
+      {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}
     </Stack>
   );
@@ -630,6 +637,173 @@ function EscalationSettingsPanel() {
         <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
           {save.isPending ? "Saving…" : "Save escalation rules"}
         </Button>
+      </Stack>
+    </Tile>
+  );
+}
+
+function AiStudioSettingsPanel() {
+  const utils = trpc.useUtils();
+  const settingsQ = trpc.ai.settings.useQuery();
+  const [form, setForm] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (settingsQ.data) {
+      const { ollamaDefaultUrl: _, ...rest } = settingsQ.data;
+      setForm(rest);
+    }
+  }, [settingsQ.data]);
+
+  const save = trpc.ai.setSettings.useMutation({
+    onSuccess: () => {
+      utils.ai.settings.invalidate();
+      setMsg("AI Studio settings saved");
+    },
+  });
+
+  return (
+    <Tile style={{ maxWidth: 760 }}>
+      <Stack gap={5}>
+        <h2>AI Studio</h2>
+        <p>
+          Drafts run on <strong>Ollama</strong> on your server — no cloud API keys or external
+          integrations. Pull the model once: <code>ollama pull llama3.2</code>
+        </p>
+        <InlineNotification
+          kind="info"
+          lowContrast
+          hideCloseButton
+          title="Ollama endpoint"
+          subtitle={settingsQ.data?.ollamaDefaultUrl ?? "http://127.0.0.1:11434"}
+        />
+        {msg && (
+          <InlineNotification kind="success" title="Saved" subtitle={msg} lowContrast onClose={() => setMsg(null)} />
+        )}
+        <Toggle
+          id="ai-enabled"
+          labelText="Enable AI Studio"
+          labelB="On"
+          labelA="Off"
+          toggled={form.enabled}
+          onToggle={(checked) => setForm((f) => ({ ...f, enabled: checked }))}
+        />
+        <Select
+          id="ai-provider"
+          labelText="Provider"
+          value={form.provider}
+          onChange={(e) => setForm((f) => ({ ...f, provider: e.target.value as AiSettings["provider"] }))}
+        >
+          <SelectItem value="ollama" text="Ollama (on-server)" />
+          <SelectItem value="mock" text="Template only (offline / demo)" />
+        </Select>
+        <TextInput
+          id="ai-ollama-url"
+          labelText="Ollama base URL"
+          helperText="Docker service name, e.g. http://ollama:11434"
+          value={form.ollamaBaseUrl ?? ""}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, ollamaBaseUrl: e.target.value.trim() || undefined }))
+          }
+        />
+        <TextInput
+          id="ai-model"
+          labelText="Ollama model name"
+          helperText="Must match a model pulled on the server, e.g. llama3.2"
+          value={form.model}
+          onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+        />
+        <Toggle
+          id="ai-redact"
+          labelText="Redact PII in stored output"
+          labelB="On"
+          labelA="Off"
+          toggled={form.redactPii}
+          onToggle={(checked) => setForm((f) => ({ ...f, redactPii: checked }))}
+        />
+        <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
+          {save.isPending ? "Saving…" : "Save AI settings"}
+        </Button>
+      </Stack>
+    </Tile>
+  );
+}
+
+function ReleaseMetadataPanel() {
+  // Same payload as GET /health — avoids a separate tRPC route and matches deploy probes.
+  const releaseQ = useQuery({
+    queryKey: ["release-health"],
+    queryFn: async () => {
+      const res = await fetch("/health");
+      if (!res.ok) throw new Error(`Health check failed (${res.status})`);
+      return res.json() as Promise<{
+        ok: boolean;
+        app: string;
+        version: string;
+        revision: string;
+        nodeEnv: string;
+        builtAt: string | null;
+        checks: { db: boolean; redis: boolean; storage: boolean };
+      }>;
+    },
+    staleTime: 30_000,
+  });
+
+  return (
+    <Tile style={{ maxWidth: 760 }}>
+      <Stack gap={4}>
+        <h2>Release &amp; readiness</h2>
+        <p>Build revision and backing-service checks for production operations.</p>
+        {releaseQ.isLoading && <p className="esti-label">Loading…</p>}
+        {releaseQ.isError && (
+          <InlineNotification
+            kind="error"
+            lowContrast
+            title="Could not load release metadata"
+            subtitle={releaseQ.error instanceof Error ? releaseQ.error.message : "Unknown error"}
+            hideCloseButton
+          />
+        )}
+        {releaseQ.data && (
+          <>
+            <StructuredListWrapper isCondensed>
+              <StructuredListBody>
+                <StructuredListRow>
+                  <StructuredListCell>Application</StructuredListCell>
+                  <StructuredListCell noWrap>{releaseQ.data.app}</StructuredListCell>
+                </StructuredListRow>
+                <StructuredListRow>
+                  <StructuredListCell>Version</StructuredListCell>
+                  <StructuredListCell noWrap>{releaseQ.data.version}</StructuredListCell>
+                </StructuredListRow>
+                <StructuredListRow>
+                  <StructuredListCell>Revision</StructuredListCell>
+                  <StructuredListCell noWrap>
+                    <code>{releaseQ.data.revision}</code>
+                  </StructuredListCell>
+                </StructuredListRow>
+                <StructuredListRow>
+                  <StructuredListCell>Environment</StructuredListCell>
+                  <StructuredListCell noWrap>{releaseQ.data.nodeEnv}</StructuredListCell>
+                </StructuredListRow>
+              </StructuredListBody>
+            </StructuredListWrapper>
+            <Stack orientation="horizontal" gap={3}>
+              <Tag type={releaseQ.data.checks.db ? "green" : "red"} size="sm">
+                Database {releaseQ.data.checks.db ? "OK" : "down"}
+              </Tag>
+              <Tag type={releaseQ.data.checks.redis ? "green" : "red"} size="sm">
+                Redis {releaseQ.data.checks.redis ? "OK" : "down"}
+              </Tag>
+              <Tag type={releaseQ.data.checks.storage ? "green" : "red"} size="sm">
+                Storage {releaseQ.data.checks.storage ? "OK" : "down"}
+              </Tag>
+            </Stack>
+            <p className="esti-label esti-label--helper">
+              Public liveness: <code>/health</code> · dependency probe: <code>/readyz</code>
+            </p>
+          </>
+        )}
       </Stack>
     </Tile>
   );
