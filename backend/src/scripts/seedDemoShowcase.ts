@@ -2,7 +2,7 @@
  * Idempotent demo showcase records — drawings, ESTICAD takeoff, draft estimates.
  * Called from seedDemo / backfill on every run so VPS demos stay current.
  */
-import { computeTakeoffBoq } from "@esti/contracts";
+import { computeTakeoffBoq, takeoffElement } from "@esti/contracts";
 import { createHash } from "node:crypto";
 import { and, eq, inArray, isNull, like, or } from "drizzle-orm";
 import type { db } from "../db/index.js";
@@ -17,6 +17,7 @@ import {
   users,
 } from "../db/schema.js";
 import { nextRef } from "../lib/numbering.js";
+import { companionMeasurementSchemaReady } from "./seedBootstrap.js";
 import { ensureBuildingDsrCatalog } from "./seedBuildingDsr.js";
 
 type Db = typeof db;
@@ -30,6 +31,11 @@ const SOLO_SHOWCASE_TITLE = "Desai Residence — Indiranagar";
 
 /** Remove legacy browser takeoff rows — charter: ESTICAD-only capture. */
 export async function purgeLegacyWebMeasurements(database: Db): Promise<number> {
+  if (!(await companionMeasurementSchemaReady(database))) {
+    console.warn("    skip purge: esti_measurement.source not migrated yet");
+    return 0;
+  }
+
   const demoProjects = await database
     .select({ id: projectOffices.id })
     .from(projectOffices)
@@ -102,6 +108,11 @@ async function ensureEsticadMeasurements(
     }>;
   },
 ): Promise<number> {
+  if (!(await companionMeasurementSchemaReady(database))) {
+    console.warn("    skip ESTICAD takeoff rows: run migrations (0055) first");
+    return 0;
+  }
+
   let added = 0;
   for (const item of input.items) {
     const [exists] = await database
@@ -125,6 +136,8 @@ async function ensureEsticadMeasurements(
       itemCount: item.itemCount,
     });
 
+    const el = takeoffElement(item.elementTypeId);
+
     await database.insert(measurements).values({
       drawingId: input.drawingId,
       projectId: input.projectId,
@@ -134,7 +147,7 @@ async function ensureEsticadMeasurements(
       realLength: item.realLength,
       unit: "mm",
       elementTypeId: item.elementTypeId,
-      elementCategory: item.elementTypeId.startsWith("WALL") ? "WALL" : "SLAB",
+      elementCategory: el?.category ?? null,
       itemCount: item.itemCount ?? 1,
       boqQty: boq.boqQty,
       boqUnit: boq.boqUnit,
