@@ -1,6 +1,6 @@
 # ESTI Product Vision
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 ESTI is an **Architectural Office Resource Management System (AORMS)** for
 Indian freelance architects and small architecture practices. It is the single
@@ -104,5 +104,9 @@ signals must not become covert surveillance or punitive monitoring.
 
 Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
 [Architect Practice Profile](ARCHITECT-PROFILE.md), technical decisions in
-[Architecture](ARCHITECTURE.md), delivery order in [Roadmap](ROADMAP.md), and
-long-term scope discipline in [Stability Charter](STABILITY-CHARTER.md).
+[Architecture](ARCHITECTURE.md), delivery order in [Roadmap](ROADMAP.md),
+production operations in [PRODUCTION-OPS](PRODUCTION-OPS.md), and long-term
+scope discipline in [Stability Charter](STABILITY-CHARTER.md).
+
+Phases **0–12** are engineering-complete; Phase **13** (ESTICAD companion) is
+in progress — see roadmap status table.

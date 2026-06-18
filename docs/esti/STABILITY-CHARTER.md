@@ -1,6 +1,6 @@
 # AORMS Stability Charter
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-18
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 Long-term product discipline for ESTI AORMS. Architects use CAD, BIM, modeling,
 and rendering tools as their **primary** workspace. AORMS is the **secondary**
@@ -59,7 +59,7 @@ Deferred P3 ideas in [ROADMAP](ROADMAP.md) remain **charter-rejected by default*
 
 ## What we implement instead
 
-1. **Production ops** — backup/restore drill, pagination, smoke tests (Phase 12).
+1. **Production ops** — backup/restore drill, pagination, smoke tests — **Phase 12 engineering complete**; operator restore sign-off remains ([PRODUCTION-OPS](PRODUCTION-OPS.md)).
 2. **ESTICAD bridge** — cloud measurements, drawing link, device admin (Phase 13B/C/E before 13D).
 3. **Incremental record-keeping** — exports, search, deep links, lessons learned, spec catalogue consumption.
 4. **Documentation accuracy** — PRD, module profile, and roadmap stay aligned with code.

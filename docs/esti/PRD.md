@@ -1,6 +1,6 @@
 # ESTI Product Requirements
 
-**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
+**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 This PRD aligns the supplied ESI-AORMS requirements with ESTI's agreed product
 boundary. It distinguishes existing capabilities from work still required. The
@@ -201,6 +201,18 @@ the same project and task context.
 - Tested backup/restore, production secrets, TLS, readiness, request IDs, and
   structured logs.
 - Unit, API integration, worker, and browser smoke coverage in CI.
+
+## Production readiness (Phase 12)
+
+Engineering delivery for self-hosted production is complete per [ROADMAP Phase 12](ROADMAP.md#phase-12---production-readiness-p0):
+
+- Backup/restore scripts and staging restore-drill checklist ([PRODUCTION-OPS](PRODUCTION-OPS.md))
+- Host nginx + Let's Encrypt TLS; secrets and `ALLOWED_ORIGINS` over HTTPS
+- List caps and cursor pagination on growing project/office queries
+- `/health` and `/readyz` probes; release metadata in Company settings
+- CI production builds; API smoke tests; worker PDF idempotency
+
+Declaring a **live firm instance** production-ready additionally requires operator sign-off on a staging restore drill — not automated in code.
 
 ## Completion Definition
 

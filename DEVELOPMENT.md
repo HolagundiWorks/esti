@@ -94,7 +94,14 @@ pip install -r requirements.txt && python -m esti_worker.main
 ```bash
 pnpm typecheck && pnpm lint && pnpm test     # TypeScript
 cd worker && ruff check . && pytest          # Python
+pnpm --filter @esti/backend test:api-smoke   # Production API smoke (Phase 12)
 ```
+
+## Production VPS
+
+Self-host deploy scripts live under `deploy/`. Operator checklist:
+[docs/esti/PRODUCTION-OPS.md](docs/esti/PRODUCTION-OPS.md). Delivery status:
+[docs/esti/ROADMAP.md](docs/esti/ROADMAP.md) (Phases 0–12 complete).
 
 ## Conventions
 
