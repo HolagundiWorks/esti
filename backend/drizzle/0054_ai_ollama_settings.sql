@@ -1,4 +1,8 @@
 -- Normalize AI Studio settings for Ollama-only gateway (Phase 11 fix-up).
+-- Belt-and-suspenders: 0048 was missing from the migration journal on some VPS DBs.
+ALTER TABLE esti_orgsettings
+  ADD COLUMN IF NOT EXISTS ai_settings jsonb NOT NULL DEFAULT '{"enabled":false,"provider":"mock","model":"gpt-4o-mini","allowExternalTransmit":false,"redactPii":true}';
+
 UPDATE esti_orgsettings
 SET ai_settings = jsonb_strip_nulls(
   jsonb_build_object(
