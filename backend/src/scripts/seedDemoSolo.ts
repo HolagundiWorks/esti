@@ -21,6 +21,7 @@ import {
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
+import { ensureDemoSchema } from "./seedBootstrap.js";
 import { ensureSoloDemoShowcase } from "./seedDemoShowcase.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
@@ -33,6 +34,9 @@ function dayOffset(n: number): string {
 }
 
 async function main(): Promise<void> {
+  await ensureDemoSchema();
+  console.log("✓ migrations applied");
+
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, SOLO_EMAIL));
   if (exists) {
     const settings = await getOrgSettings(db);

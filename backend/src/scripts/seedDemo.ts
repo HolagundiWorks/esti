@@ -15,6 +15,7 @@ import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
+import { ensureDemoSchema } from "./seedBootstrap.js";
 import {
   approvals,
   assignments,
@@ -206,6 +207,9 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
+  await ensureDemoSchema();
+  console.log("✓ migrations applied");
+
   const principalEmail = "principal@demo.aorms.in";
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, principalEmail));
   if (exists) {
