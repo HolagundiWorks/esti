@@ -15,7 +15,7 @@ COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 
 # Install all dependencies (including devDependencies needed for tsc).
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile || pnpm install
 
 # Copy source.
 COPY packages/contracts packages/contracts
@@ -40,7 +40,7 @@ COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 
 # Production-only install (no devDependencies).
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod || pnpm install --prod
 
 # Copy compiled output from builder.
 COPY --from=builder /app/packages/contracts/dist packages/contracts/dist

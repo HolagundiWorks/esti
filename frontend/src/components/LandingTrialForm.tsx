@@ -83,9 +83,9 @@ const PAIN_OPTIONS: { value: TrialPainPoint; label: string }[] = [
 ];
 
 const PREFERENCE_OPTIONS: { value: TrialPreference; label: string }[] = [
-  { value: "TRIAL_ACCESS", label: "Trial workspace access" },
+  { value: "BETA_ACCESS", label: "Beta testing workspace access" },
   { value: "LIVE_DEMO", label: "Live product walkthrough" },
-  { value: "TRIAL_AND_DEMO", label: "Trial + guided demo" },
+  { value: "BETA_AND_DEMO", label: "Beta access + guided walkthrough" },
 ];
 
 const TIMELINE_OPTIONS: { value: TrialTimeline; label: string }[] = [
@@ -226,11 +226,12 @@ export function LandingTrialForm() {
         <h3>Request received</h3>
         <p>
           Thank you — our team will review your practice profile and email{" "}
-          <strong>{form.workEmail}</strong> with trial access or a demo slot, usually within one
-          business day.
+          <strong>{form.workEmail}</strong> about <strong>beta testing access</strong> or a walkthrough,
+          usually within one business day.
         </p>
         <p className="esti-lp-meta">
-          Meanwhile, try the live demo on this page or write to{" "}
+          This is not automatic trial provisioning — we onboard beta studios manually. Meanwhile, explore
+          the live demo on this page or write to{" "}
           <a href="mailto:hi@aorms.in">hi@aorms.in</a>.
         </p>
       </div>
@@ -413,7 +414,7 @@ export function LandingTrialForm() {
       </div>
 
       <div className="esti-lp-trial__section">
-        <h3 className="esti-lp-trial__heading">Trial preference</h3>
+        <h3 className="esti-lp-trial__heading">Beta preference</h3>
         <div className="esti-lp-trial__grid esti-lp-trial__grid--2">
           <div className="esti-lp-field">
             <FieldLabel htmlFor="trial-pref" required>
@@ -468,7 +469,7 @@ export function LandingTrialForm() {
         className="esti-lp-btn esti-lp-btn--primary esti-lp-btn--lg"
         disabled={submit.isPending}
       >
-        {submit.isPending ? "Submitting…" : "Get my AORMS trial access"}
+        {submit.isPending ? "Submitting…" : "Request beta testing access"}
       </button>
     </form>
   );

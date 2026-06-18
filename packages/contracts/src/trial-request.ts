@@ -57,7 +57,7 @@ export const TrialPainPoint = z.enum([
   "MANUAL_BOQ",
 ]);
 
-export const TrialPreference = z.enum(["TRIAL_ACCESS", "LIVE_DEMO", "TRIAL_AND_DEMO"]);
+export const TrialPreference = z.enum(["BETA_ACCESS", "LIVE_DEMO", "BETA_AND_DEMO"]);
 
 export const TrialTimeline = z.enum(["IMMEDIATE", "30_DAYS", "3_MONTHS", "EXPLORING"]);
 
