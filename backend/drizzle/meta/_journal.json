@@ -290,6 +290,13 @@
       "breakpoints": true
     },
     {
+      "idx": 41,
+      "version": "7",
+      "when": 1781192800000,
+      "tag": "0041_wellbeing_opt_in",
+      "breakpoints": true
+    },
+    {
       "idx": 42,
       "version": "7",
       "when": 1781192900000,
@@ -385,6 +392,13 @@
       "version": "7",
       "when": 1781194200000,
       "tag": "0055_companion_measurements",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1781194300000,
+      "tag": "0056_schema_repair",
       "breakpoints": true
     }
   ]
