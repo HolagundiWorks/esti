@@ -20,6 +20,8 @@ describe("ai contracts", () => {
     expect(s.model).toBe("llama3.2");
     expect(s.provider).toBe("ollama");
   });
+
+  it("labels every draft kind", () => {
     for (const k of AiDraftKind.options) {
       expect(AI_DRAFT_KIND_LABEL[k].length).toBeGreaterThan(3);
     }
