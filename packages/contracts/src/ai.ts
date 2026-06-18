@@ -64,20 +64,44 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   redactPii: true,
 };
 
-export function parseAiSettings(raw: unknown): AiSettings {
-  let normalized = raw;
-  if (raw && typeof raw === "object") {
-    const o = { ...(raw as Record<string, unknown>) };
-    const p = o.provider;
-    if (p === "openai" || p === "openai_compatible") o.provider = "ollama";
-    normalized = o;
+/** Legacy OpenAI-style model IDs stored before Ollama-only gateway. */
+const LEGACY_CLOUD_MODELS = new Set([
+  "gpt-4o-mini",
+  "gpt-4o",
+  "gpt-4",
+  "gpt-4-turbo",
+  "gpt-3.5-turbo",
+  "claude-3-sonnet",
+]);
+
+export function normalizeAiSettingsRaw(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const o = { ...(raw as Record<string, unknown>) };
+  const p = o.provider;
+  if (p === "openai" || p === "openai_compatible") o.provider = "ollama";
+  // Migration 0048 defaulted to mock — live installs use on-server Ollama when enabled.
+  if (p === "mock" && o.enabled === true) o.provider = "ollama";
+  const model = o.model;
+  if (typeof model === "string" && LEGACY_CLOUD_MODELS.has(model)) {
+    o.model = DEFAULT_AI_SETTINGS.model;
   }
-  const parsed = AiSettings.safeParse(normalized);
+  delete o.allowExternalTransmit;
+  delete o.allowPersonalApiKeys;
+  return o;
+}
+
+export function parseAiSettings(raw: unknown): AiSettings {
+  const parsed = AiSettings.safeParse(normalizeAiSettingsRaw(raw));
   return parsed.success ? parsed.data : DEFAULT_AI_SETTINGS;
 }
 
+export const AiGenerateMode = z.enum(["draft", "agent"]);
+export type AiGenerateMode = z.infer<typeof AiGenerateMode>;
+
 export const AiGenerateInput = z.object({
   kind: AiDraftKind,
+  /** draft = document template; agent = ESTI command-bar Q&A (live AORMS context). */
+  mode: AiGenerateMode.default("draft"),
   projectId: z.string().uuid().optional(),
   prompt: z.string().max(4000).optional(),
   contextQuery: z.string().max(200).optional(),

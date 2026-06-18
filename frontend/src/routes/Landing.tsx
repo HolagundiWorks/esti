@@ -10,6 +10,7 @@ import {
   Document,
   Menu,
   Money,
+  Pen,
   RulerAlt,
   Trophy,
 } from "@carbon/icons-react";
@@ -17,6 +18,7 @@ import { useEffect, useState, type ElementType, type ReactNode } from "react";
 import { trpc } from "../lib/trpc.js";
 import { applyLandingSeo, LANDING_SEO } from "../lib/landing-seo.js";
 import { formatVisitCount, useLandingVisitCounter } from "../lib/landing-visit.js";
+import { LandingEsticadPreview } from "../components/LandingEsticadPreview.js";
 import { LandingCarbonZone } from "../components/LandingCarbonZone.js";
 import { LandingDashboardPreview } from "../components/LandingDashboardPreview.js";
 import { LandingReveal } from "../components/LandingReveal.js";
@@ -78,6 +80,11 @@ const MODULES: { icon: ElementType; title: string; body: string }[] = [
     title: "Knowledge bank",
     body: "Versioned bye-law rule-sets, specifications and structural templates.",
   },
+  {
+    icon: Pen,
+    title: "ESTICAD drawing app",
+    body: "Free Windows CAD for plans and quantity takeoff — measurements feed the project BOQ in AORMS. Draw offline; quantify when connected to your studio.",
+  },
 ];
 
 const INDIA_POINTS = [
@@ -111,6 +118,10 @@ const FAQS: { q: string; a: string }[] = [
   {
     q: "Can I self-host?",
     a: "Your VPS or office server — role-based access, audit trail, and scoped client and consultant portals.",
+  },
+  {
+    q: "What is ESTICAD?",
+    a: "ESTICAD is free Windows drawing software from Holagundi — for floor plans, sections and quantity measurement at your desk. It is not a separate practice-management system. When your studio uses AORMS, ESTICAD links to the same project so wall areas, slab quantities and counts flow into your BOQ and estimate instead of a loose Excel on the laptop. You can draft without internet; saving measured quantities needs an active studio connection.",
   },
 ];
 
@@ -287,8 +298,10 @@ export function Landing() {
                   </h1>
                   <p className="esti-lp-lead">
                     AORMS holds projects, drawing issues, COA fee stages and GST billing in one
-                    practice file. ESTI classifies revisions and checks RIE envelopes — self-hosted
-                    on infrastructure you control.
+                    practice file. ESTI flags revision risk and checks RIE envelopes.{" "}
+                    <strong>ESTICAD</strong> is optional free drawing software for Windows — measure
+                    on your PC, keep the BOQ on your server. Self-hosted, on infrastructure you
+                    control.
                   </p>
                   <div className="esti-lp-hero__actions">
                     <a href="#demo" className="esti-lp-btn esti-lp-btn--primary esti-lp-btn--lg">
@@ -375,6 +388,17 @@ export function Landing() {
                 </article>
               </LandingReveal>
             </div>
+
+            <LandingReveal delay={60}>
+              <article id="esticad" className="esti-lp-panel esti-lp-panel--wide">
+                <PanelHead
+                  eyebrow="Free drawing software · connects to AORMS"
+                  title="ESTICAD — draw on your PC, quantify in your practice file"
+                  lead="Most architects know AutoCAD or similar for linework. ESTICAD fills that role for studios on AORMS: fast 2D drafting at your desk, with measured quantities written back to the project BOQ — not a second spreadsheet on someone's laptop."
+                />
+                <LandingEsticadPreview />
+              </article>
+            </LandingReveal>
 
             <LandingReveal delay={40}>
               <article id="modules" className="esti-lp-panel">

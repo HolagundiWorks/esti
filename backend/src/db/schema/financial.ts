@@ -1,5 +1,6 @@
 import { clients } from "./org-auth.js";
-import { phases, projectOffices } from "./project.js";
+import { phases, projectOffices, specItems } from "./project.js";
+import { specCatalogItems } from "./spec-catalog.js";
 import {
   bigint,
   boolean,
@@ -44,6 +45,10 @@ export const poItems = pgTable("esti_po_item", {
   ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
   amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
+  /** Project spec sheet row this PO line procures. */
+  specItemId: uuid("spec_item_id").references(() => specItems.id),
+  /** Knowledge Bank catalogue item (via spec sheet or direct). */
+  catalogItemId: uuid("catalog_item_id").references(() => specCatalogItems.id),
 });
 
 /** India GST/TDS invoices — phase-linked; stores the computed tax snapshot. */

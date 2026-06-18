@@ -26,7 +26,10 @@ export function AlertsBell() {
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState<string[]>(loadDismissed);
   const alertsQ = trpc.notifications.list.useQuery(undefined, {
-    refetchInterval: 60000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+    meta: { silent: true },
   });
 
   const persist = (next: string[]) => {

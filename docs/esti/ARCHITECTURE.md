@@ -1,6 +1,6 @@
 # ESTI System Architecture
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
 
 ## System Shape
 
@@ -16,11 +16,19 @@ Fastify/TypeScript backend ---- PostgreSQL (system of record)
        |        +---- MinIO/S3 (content-addressed binaries)
        |
        +---- Redis Streams ---- Python worker (DXF, PDF, imports)
+
+ESTICAD (native Windows CAD, companion client)
+       |
+       | HTTPS device tokens + companion REST/tRPC adapter
+       v
+       (same Fastify backend — takeoff measurements, AI gateway)
 ```
 
 The TypeScript backend owns domain rules, authorization, state transitions,
 money/tax, numbering, audit, and activity. The Python worker owns no
-authoritative business state.
+authoritative business state. ESTICAD owns local geometry only; takeoff
+measurements and CAD AI runs are authoritative in PostgreSQL via the companion
+API ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)).
 
 ## Repository
 
@@ -95,6 +103,18 @@ notification rules as internal writes.
 AI providers are accessed through a backend gateway. Retrieval is permission
 filtered; prompts and outputs are auditable; secrets stay server-side; sensitive
 data transmission is explicit; output remains a draft until a human issues it.
+
+ESTICAD uses the same gateway for all CAD AI scenarios ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)); it does not call Ollama locally.
+
+### Companion Clients (ESTICAD)
+
+ESTICAD is a native desktop companion — not a second product database.
+
+- Authentication uses device tokens (bearer), not browser cookies.
+- Takeoff requires an active paying firm and staff `write` capability.
+- Measurements are stored only in `esti_measurement` with `source: ESTICAD` and world-coordinate geometry; no local measurement persistence in `.esti` files.
+- Takeoff catalog is server-published JSON aligned with `packages/contracts/src/takeoff.ts`.
+- CAD AI draft kinds extend `AiDraftKind`; runs are recorded in `esti_ai_run` with companion provenance.
 
 ## Operational Requirements
 

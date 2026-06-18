@@ -1,10 +1,12 @@
-import { desc, eq } from "drizzle-orm";
+import { ProjectCursorListParams, clampListLimit } from "@esti/contracts";
+import { and, desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { DECISION_TRANSITIONS, DecisionState } from "@esti/contracts";
 import { decisions } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const decisionInput = z.object({
@@ -23,13 +25,21 @@ const decisionInput = z.object({
 
 export const decisionRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const limit = input.limit;
+      const rows = await ctx.db
         .select()
         .from(decisions)
-        .where(eq(decisions.projectId, input.projectId))
-        .orderBy(desc(decisions.createdAt));
+        .where(
+          and(
+            eq(decisions.projectId, input.projectId),
+            cursorWhere(input.cursor, decisions.createdAt, decisions.id),
+          ),
+        )
+        .orderBy(desc(decisions.createdAt), desc(decisions.id))
+        .limit(clampListLimit(limit) + 1);
+      return buildCursorPage(rows, limit);
     }),
 
   create: protectedProcedure.input(decisionInput).mutation(async ({ ctx, input }) => {

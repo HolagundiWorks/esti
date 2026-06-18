@@ -1,9 +1,10 @@
-import { TransmittalCreate } from "@esti/contracts";
+import { ProjectCursorListParams, TransmittalCreate, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { transmittalItems, transmittals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireDrawingsInProject } from "../../lib/projectScope.js";
@@ -13,13 +14,20 @@ import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const transmittalRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(transmittals)
-        .where(eq(transmittals.projectId, input.projectId))
-        .orderBy(desc(transmittals.createdAt));
+        .where(
+          and(
+            eq(transmittals.projectId, input.projectId),
+            cursorWhere(input.cursor, transmittals.createdAt, transmittals.id),
+          ),
+        )
+        .orderBy(desc(transmittals.createdAt), desc(transmittals.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   byId: protectedProcedure

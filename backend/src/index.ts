@@ -17,9 +17,13 @@ import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { registerInspectionPhotoUpload } from "./modules/inspection/upload.js";
 import { registerMoodImageUpload } from "./modules/spec/upload.js";
+import { registerTenderDocumentUpload } from "./modules/contractor/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
+import { userFromDeviceToken } from "./auth/device.js";
+import { SESSION_COOKIE, userFromToken } from "./auth/session.js";
+import { takeoffCatalogPayload } from "./modules/companion/router.js";
 
 // trustProxy lets req.ip reflect X-Forwarded-For behind the dev/prod proxy so
 // per-IP rate limits key on the real client, not the proxy.
@@ -83,11 +87,30 @@ registerReconcileUpload(app);
 registerFirmLogoUpload(app);
 registerMoodImageUpload(app);
 registerInspectionPhotoUpload(app);
+registerTenderDocumentUpload(app);
 registerCalendarFeed(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
   trpcOptions: { router: appRouter, createContext },
+});
+
+/** ESTICAD REST surface — bearer or session cookie auth. */
+app.get("/api/companion/takeoff-catalog", async (req, reply) => {
+  const cookieToken = (req as { cookies?: Record<string, string> }).cookies?.[SESSION_COOKIE];
+  let user = await userFromToken(cookieToken);
+  if (!user) {
+    const header = req.headers.authorization;
+    const bearer = header?.startsWith("Bearer ") ? header.slice(7).trim() : undefined;
+    user = await userFromDeviceToken(db, bearer);
+  }
+  if (!user) {
+    return reply.code(401).send({ error: "Unauthorized" });
+  }
+  if (user.role === "CLIENT" || (user.role === "CONSULTANT" && user.consultantId)) {
+    return reply.code(403).send({ error: "Forbidden" });
+  }
+  return takeoffCatalogPayload();
 });
 
 app.get("/health", async () => {

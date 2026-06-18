@@ -23,6 +23,7 @@ describe("uploadDenial", () => {
       "/upload/inspection-photo": "write",
       "/upload/reconcile": "write",
       "/upload/firm-logo": "firm:admin",
+      "/upload/tender-document": "write",
     });
   });
 
@@ -54,21 +55,17 @@ describe("uploadDenial", () => {
     expect(uploadDenial(user("CONSULTANT"))).toBeNull();
   });
 
-  it("blocks demo users even when their role can write", () => {
-    expect(uploadDenial(user("OWNER", { isDemo: true }))).toEqual({
-      status: 403,
-      error: "uploads are disabled on the demo account",
-    });
-  });
-
-  it("allows demo users to upload drawings when allowDemo is set", () => {
-    expect(uploadDenial(user("OWNER", { isDemo: true }), "write", { allowDemo: true })).toBeNull();
-  });
-
   it.each(["OWNER", "PARTNER", "SENIOR", "ASSOCIATE"] as const)(
     "allows %s to perform operational uploads",
     (role) => expect(uploadDenial(user(role))).toBeNull(),
   );
+
+  it("blocks demo staff from uploads", () => {
+    expect(uploadDenial(user("OWNER", { isDemo: true }))).toEqual({
+      status: 403,
+      error: "Uploads are disabled on the demo account.",
+    });
+  });
 
   it("requires owner capability for firm assets", () => {
     expect(uploadDenial(user("PARTNER"), "firm:admin")).toEqual({

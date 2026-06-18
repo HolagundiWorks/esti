@@ -4,12 +4,14 @@ import { z } from "zod";
 export const PoStatus = z.enum(["DRAFT", "ISSUED", "RECEIVED", "CANCELLED"]);
 export type PoStatus = z.infer<typeof PoStatus>;
 
-/** A single PO line: quantity × rate. */
+/** A single PO line: quantity × rate. Optional link to project spec / catalogue. */
 export const PoItemInput = z.object({
   description: z.string().min(1).max(300),
   unit: z.string().max(20).optional(),
   qty: z.number().nonnegative(),
   ratePaise: z.number().int().nonnegative(),
+  specItemId: z.string().uuid().optional(),
+  catalogItemId: z.string().uuid().optional(),
 });
 export type PoItemInput = z.infer<typeof PoItemInput>;
 

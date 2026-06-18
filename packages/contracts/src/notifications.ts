@@ -24,9 +24,11 @@ export const DEFAULT_ESCALATION_SETTINGS: EscalationSettings = {
   leaveHorizonDays: 7,
 };
 
-/** Parse stored JSON — fall back to defaults for missing keys. */
+/** Parse stored JSON — fall back to defaults; never merge unvalidated keys. */
 export function parseEscalationSettings(raw: unknown): EscalationSettings {
   const parsed = EscalationSettings.safeParse(raw);
   if (parsed.success) return parsed.data;
-  return { ...DEFAULT_ESCALATION_SETTINGS, ...(typeof raw === "object" && raw ? raw : {}) };
+  const partial = EscalationSettings.partial().safeParse(raw);
+  if (partial.success) return { ...DEFAULT_ESCALATION_SETTINGS, ...partial.data };
+  return DEFAULT_ESCALATION_SETTINGS;
 }

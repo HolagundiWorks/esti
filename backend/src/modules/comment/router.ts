@@ -1,9 +1,11 @@
+import { ProjectCursorListParams, clampListLimit } from "@esti/contracts";
 import { and, desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { comments, projectOffices, tasks } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const commentObjectType = z.enum(["projectoffice", "task"]);
@@ -15,14 +17,13 @@ function commentVisibilityFromObjectType(objectType: z.infer<typeof commentObjec
 export const commentRouter = router({
   listByObject: protectedProcedure
     .input(
-      z.object({
-        projectId: z.string().uuid(),
+      ProjectCursorListParams.extend({
         objectType: commentObjectType,
         objectId: z.string().min(1),
       }),
     )
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(comments)
         .where(
@@ -30,9 +31,12 @@ export const commentRouter = router({
             eq(comments.projectId, input.projectId),
             eq(comments.objectType, input.objectType),
             eq(comments.objectId, input.objectId),
+            cursorWhere(input.cursor, comments.createdAt, comments.id),
           ),
         )
-        .orderBy(desc(comments.createdAt));
+        .orderBy(desc(comments.createdAt), desc(comments.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   create: protectedProcedure

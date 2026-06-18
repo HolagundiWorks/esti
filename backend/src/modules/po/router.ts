@@ -1,11 +1,12 @@
-import { PoStatus, PurchaseOrderCreate, poLineAmountPaise } from "@esti/contracts";
+import { PoStatus, PurchaseOrderCreate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { poItems, purchaseOrders } from "../../db/schema.js";
+import { poItems, purchaseOrders, specItems, specSheets } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
 import { nextRef } from "../../lib/numbering.js";
+import { poItemsWithSpec, resolvePoLines } from "../../lib/poSpecResolve.js";
 import { requireDeletableStatus } from "../../lib/retention.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -25,20 +26,46 @@ export const poRouter = router({
     .query(async ({ ctx, input }) => {
       const [po] = await ctx.db.select().from(purchaseOrders).where(eq(purchaseOrders.id, input.id));
       if (!po) return null;
-      const items = await ctx.db
-        .select()
-        .from(poItems)
-        .where(eq(poItems.poId, input.id))
-        .orderBy(asc(poItems.sortOrder));
+      const items = await poItemsWithSpec(ctx.db, input.id);
       return { ...po, items };
     }),
 
+  /** Project specification rows available for PO line linkage. */
+  listSpecLineOptions: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select({
+          specItemId: specItems.id,
+          catalogItemId: specItems.catalogItemId,
+          category: specItems.category,
+          item: specItems.item,
+          make: specItems.make,
+          specification: specItems.specification,
+          finish: specItems.finish,
+          specRef: specSheets.ref,
+          specTitle: specSheets.title,
+        })
+        .from(specItems)
+        .innerJoin(specSheets, eq(specItems.specSheetId, specSheets.id))
+        .where(eq(specSheets.projectId, input.projectId))
+        .orderBy(asc(specSheets.ref), asc(specItems.sortOrder));
+      return rows.map((r) => ({
+        specItemId: r.specItemId,
+        catalogItemId: r.catalogItemId,
+        label: [r.specRef, r.item, r.make].filter(Boolean).join(" · "),
+        category: r.category,
+        item: r.item,
+        make: r.make,
+        specification: r.specification,
+        finish: r.finish,
+        specRef: r.specRef,
+        specTitle: r.specTitle,
+      }));
+    }),
+
   create: protectedProcedure.input(PurchaseOrderCreate).mutation(async ({ ctx, input }) => {
-    const lines = input.items.map((it, i) => ({
-      ...it,
-      amountPaise: poLineAmountPaise(it.qty, it.ratePaise),
-      sortOrder: (i + 1) * 10,
-    }));
+    const lines = await resolvePoLines(ctx.db, input.projectId, input.items);
     const totalPaise = lines.reduce((s, l) => s + l.amountPaise, 0);
     const { ref } = await nextRef(ctx.db, "purchaseorder", "PO");
 
@@ -64,6 +91,8 @@ export const poRouter = router({
           ratePaise: l.ratePaise,
           amountPaise: l.amountPaise,
           sortOrder: l.sortOrder,
+          specItemId: l.specItemId,
+          catalogItemId: l.catalogItemId,
         })),
       );
       return po!;

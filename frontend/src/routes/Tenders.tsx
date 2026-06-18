@@ -24,6 +24,8 @@ import {
   TENDER_INVITATION_STATUS_TAG,
   TENDER_STATUS_LABEL,
   TENDER_STATUS_TAG,
+  TENDER_DOCUMENT_KIND_LABEL,
+  TenderDocumentKind,
   TenderStatus,
   type ContractorCategoryCode,
   type TenderInvitationStatus,
@@ -72,8 +74,38 @@ export function Tenders() {
   const [bidFor, setBidFor] = useState<{ invitationId: string; contractorName: string; rupees: string; weeks: string; technical: string; notes: string } | null>(null);
   const recordBid = trpc.tenders.recordBid.useMutation({ onSuccess: () => { refreshDetail(); setBidFor(null); } });
   const removeBid = trpc.tenders.removeBid.useMutation({ onSuccess: refreshDetail });
+  const removeDoc = trpc.tenders.removeDocument.useMutation({ onSuccess: refreshDetail });
+  const docsQ = trpc.tenders.listDocuments.useQuery({ tenderId: detailId ?? "" }, { enabled: !!detailId });
   const bids = bidsQ.data ?? [];
-  const bestAmount = bids.length ? Math.min(...bids.map((b) => b.amountPaise)) : 0;
+  const sealed = bids.length > 0 && bids[0]?.sealed === true;
+  const bestAmount =
+    !sealed && bids.length ? Math.min(...bids.map((b) => b.amountPaise ?? Number.MAX_SAFE_INTEGER)) : 0;
+  const [docUpload, setDocUpload] = useState({ title: "", kind: "OTHER", addendumNo: "", file: null as File | null });
+  const [docUploading, setDocUploading] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
+
+  async function uploadDocument() {
+    if (!detailId || !docUpload.file || !docUpload.title.trim()) return;
+    setDocUploading(true);
+    setDocError(null);
+    try {
+      const fd = new FormData();
+      fd.append("tenderId", detailId);
+      fd.append("title", docUpload.title.trim());
+      fd.append("kind", docUpload.kind);
+      if (docUpload.addendumNo) fd.append("addendumNo", docUpload.addendumNo);
+      fd.append("file", docUpload.file);
+      const res = await fetch("/upload/tender-document", { method: "POST", body: fd, credentials: "include" });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? res.statusText);
+      setDocUpload({ title: "", kind: "OTHER", addendumNo: "", file: null });
+      await refreshDetail();
+      await utils.tenders.listDocuments.invalidate({ tenderId: detailId });
+    } catch (e) {
+      setDocError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setDocUploading(false);
+    }
+  }
 
   return (
     <Stack gap={6}>
@@ -173,6 +205,38 @@ export function Tenders() {
             <Stack gap={2}>
               <p>{d.projectRef} · {d.projectTitle}{d.category ? ` · ${CONTRACTOR_CATEGORIES[d.category as ContractorCategoryCode] ?? d.category}` : ""}{d.dueDate ? ` · due ${d.dueDate}` : ""}</p>
               {d.scope && <p className="esti-label esti-label--secondary">{d.scope}</p>}
+              {d.instructions && <p className="esti-label esti-label--secondary">{d.instructions}</p>}
+            </Stack>
+
+            <Stack gap={3}>
+              <h4>Tender documents</h4>
+              {(docsQ.data ?? d.documents ?? []).length === 0 && (
+                <p className="esti-label">No documents yet — upload drawings, BOQ, or addenda.</p>
+              )}
+              {(docsQ.data ?? d.documents ?? []).map((doc) => (
+                <Stack key={doc.id} orientation="horizontal" gap={3}>
+                  <span>
+                    {doc.title}
+                    {doc.addendumNo != null && <Tag type="purple" size="sm">Addendum {doc.addendumNo}</Tag>}
+                    {" · "}
+                    {TENDER_DOCUMENT_KIND_LABEL[doc.kind as keyof typeof TENDER_DOCUMENT_KIND_LABEL] ?? doc.kind}
+                  </span>
+                  {"downloadUrl" in doc && doc.downloadUrl ? (
+                    <a href={doc.downloadUrl as string} target="_blank" rel="noreferrer">Download</a>
+                  ) : null}
+                  <Button kind="danger--ghost" size="sm" onClick={() => removeDoc.mutate({ id: doc.id })}>Remove</Button>
+                </Stack>
+              ))}
+              <Stack orientation="horizontal" gap={3}>
+                <TextInput id="doc-title" labelText="Document title" hideLabel placeholder="Title" value={docUpload.title} onChange={(e) => setDocUpload((f) => ({ ...f, title: e.target.value }))} />
+                <Select id="doc-kind" labelText="Kind" hideLabel size="sm" value={docUpload.kind} onChange={(e) => setDocUpload((f) => ({ ...f, kind: e.target.value }))}>
+                  {TenderDocumentKind.options.map((k) => <SelectItem key={k} value={k} text={TENDER_DOCUMENT_KIND_LABEL[k]} />)}
+                </Select>
+                <TextInput id="doc-add" labelText="Addendum #" hideLabel placeholder="Addendum #" value={docUpload.addendumNo} onChange={(e) => setDocUpload((f) => ({ ...f, addendumNo: e.target.value }))} />
+                <input type="file" onChange={(e) => setDocUpload((f) => ({ ...f, file: e.target.files?.[0] ?? null }))} />
+                <Button size="sm" disabled={docUploading || !docUpload.file || !docUpload.title} onClick={() => void uploadDocument()}>{docUploading ? "Uploading…" : "Upload"}</Button>
+              </Stack>
+              {docError && <InlineNotification kind="error" title="Upload failed" subtitle={docError} hideCloseButton lowContrast />}
             </Stack>
 
             <Stack gap={3}>
@@ -241,17 +305,21 @@ export function Tenders() {
               <Stack gap={3}>
                 <Stack orientation="horizontal" gap={3}>
                   <h4>Bid comparison</h4>
-                  <Button
-                    size="sm"
-                    kind="ghost"
-                    onClick={() => {
-                      void utils.tenders.exportComparison.fetch({ tenderId: d.id }).then((data) => {
-                        if (data.rows.length) downloadXlsx(data.rows, "Bids", `${data.title}-bids`);
-                      });
-                    }}
-                  >
-                    Export XLSX
-                  </Button>
+                  {sealed ? (
+                    <Tag type="blue" size="sm">Sealed — close tender to reveal amounts</Tag>
+                  ) : (
+                    <Button
+                      size="sm"
+                      kind="ghost"
+                      onClick={() => {
+                        void utils.tenders.exportComparison.fetch({ tenderId: d.id }).then((data) => {
+                          if (data.rows.length) downloadXlsx(data.rows, "Bids", `${data.title}-bids`);
+                        });
+                      }}
+                    >
+                      Export XLSX
+                    </Button>
+                  )}
                 </Stack>
                 <Table size="sm">
                   <TableHead>
@@ -268,18 +336,29 @@ export function Tenders() {
                       <TableRow key={b.id}>
                         <TableCell>
                           {b.contractorName}
-                          {b.amountPaise === bestAmount && <Tag type="green" size="sm">Lowest</Tag>}
-                          {b.notes && <div className="esti-label esti-label--helper">{b.notes}</div>}
+                          {!sealed && b.amountPaise === bestAmount && b.amountPaise != null && (
+                            <Tag type="green" size="sm">Lowest</Tag>
+                          )}
+                          {b.notes && !sealed && <div className="esti-label esti-label--helper">{b.notes}</div>}
+                          {sealed && (
+                            <Tag type={b.invitationStatus === "SUBMITTED" ? "green" : "gray"} size="sm">
+                              {b.invitationStatus === "SUBMITTED" ? "Bid received" : "Pending"}
+                            </Tag>
+                          )}
                         </TableCell>
-                        <TableCell>{formatINR(b.amountPaise, { paise: false })}</TableCell>
-                        <TableCell>{b.completionWeeks ?? "—"}</TableCell>
-                        <TableCell>{b.technicalScore != null ? `${b.technicalScore}/100` : "—"}</TableCell>
+                        <TableCell>{sealed || b.amountPaise == null ? "Sealed" : formatINR(b.amountPaise, { paise: false })}</TableCell>
+                        <TableCell>{sealed ? "—" : (b.completionWeeks ?? "—")}</TableCell>
+                        <TableCell>{sealed ? "—" : (b.technicalScore != null ? `${b.technicalScore}/100` : "—")}</TableCell>
                         <TableCell>
-                          <Button kind="ghost" size="sm" disabled={update.isPending}
-                            onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: b.contractorId })}>
-                            Award
-                          </Button>
-                          <Button kind="danger--ghost" size="sm" onClick={() => removeBid.mutate({ invitationId: b.invitationId })}>Clear</Button>
+                          {!sealed && (
+                            <>
+                              <Button kind="ghost" size="sm" disabled={update.isPending}
+                                onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: b.contractorId })}>
+                                Award
+                              </Button>
+                              <Button kind="danger--ghost" size="sm" onClick={() => removeBid.mutate({ invitationId: b.invitationId })}>Clear</Button>
+                            </>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

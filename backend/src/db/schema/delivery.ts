@@ -90,6 +90,55 @@ export const tenderBids = pgTable("esti_tender_bid", {
   updatedAt: updatedAt(),
 });
 
+/** Controlled tender document or addendum (Phase 7). */
+export const tenderDocuments = pgTable("esti_tender_document", {
+  id: id(),
+  tenderId: uuid("tender_id")
+    .notNull()
+    .references(() => tenders.id),
+  title: text("title").notNull(),
+  kind: text("kind").notNull().default("OTHER"),
+  fileName: text("file_name").notNull(),
+  storageKey: text("storage_key").notNull(),
+  addendumNo: integer("addendum_no"),
+  issuedAt: date("issued_at"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+});
+
+/** Contractor acknowledgement of an addendum before bidding. */
+export const tenderDocumentAcks = pgTable("esti_tender_document_ack", {
+  id: id(),
+  invitationId: uuid("invitation_id")
+    .notNull()
+    .references(() => tenderInvitations.id),
+  documentId: uuid("document_id")
+    .notNull()
+    .references(() => tenderDocuments.id),
+  acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Contractor construction coordination item (RFI, submittal, NCR, etc.). */
+export const contractorSubmissions = pgTable("esti_contractor_submission", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id),
+  contractorId: uuid("contractor_id")
+    .notNull()
+    .references(() => contractors.id),
+  kind: text("kind").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body"),
+  status: text("status").notNull().default("OPEN"),
+  responseNote: text("response_note"),
+  storageKey: text("storage_key"),
+  fileName: text("file_name"),
+  submittedById: uuid("submitted_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Drawing transmittals — a recorded issue of a drawing set, with a cover PDF. */
 export const transmittals = pgTable("esti_transmittal", {
   id: id(),

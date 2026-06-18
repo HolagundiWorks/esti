@@ -1,9 +1,10 @@
-import { BbsBulkImport, BbsCreate, BbsItemCreate, bbsItemTotals } from "@esti/contracts";
+import { BbsBulkImport, BbsCreate, BbsItemCreate, bbsItemTotals, validateBbsSchedule } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { bbsItems, bbsSchedules } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { loadBbsItems, requireValidBbsSchedule } from "../../lib/bbsValidate.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -101,6 +102,7 @@ export const bbsRouter = router({
   generatePdf: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.select().from(bbsSchedules).where(eq(bbsSchedules.id, input.id));
     if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await requireValidBbsSchedule(ctx.db, input.id);
     await ctx.db.update(bbsSchedules).set({ pdfStatus: "PENDING" }).where(eq(bbsSchedules.id, input.id));
     await enqueueJob(
       "render_pdf",
@@ -125,6 +127,7 @@ export const bbsRouter = router({
     .query(async ({ ctx, input }) => {
       const [sched] = await ctx.db.select().from(bbsSchedules).where(eq(bbsSchedules.id, input.bbsId));
       if (!sched) throw new TRPCError({ code: "NOT_FOUND" });
+      await requireValidBbsSchedule(ctx.db, input.bbsId);
       const items = await ctx.db
         .select()
         .from(bbsItems)
@@ -143,5 +146,14 @@ export const bbsRouter = router({
           "Weight kg": i.weightKg,
         })),
       };
+    }),
+
+  validate: protectedProcedure
+    .input(z.object({ bbsId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [sched] = await ctx.db.select().from(bbsSchedules).where(eq(bbsSchedules.id, input.bbsId));
+      if (!sched) throw new TRPCError({ code: "NOT_FOUND" });
+      const items = await loadBbsItems(ctx.db, input.bbsId);
+      return validateBbsSchedule(items);
     }),
 });

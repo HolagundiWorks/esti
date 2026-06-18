@@ -27,7 +27,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Knowledge Bank | Master DSR and versioned compliance rules | specification/procurement standards, structural element and reinforcement templates, CAD/BIM/vendor libraries |
 | Compliance | standalone assessment linked to project overview | verified calculations and immutable PDF reports from published Knowledge Bank rules |
 | Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar, performance and rewards |
-| Drawings | DXF upload, versions, viewer, takeoff, issue PDF | workflow statuses, impact, acknowledgements, zoom/pan/snapping |
+| Drawings | DXF upload, versions, issue PDF, Open in ESTICAD | workflow statuses, impact, acknowledgements |
 | Documents | specs, mood boards, inspections, transmittals | unified register, photos/actions, revision/approval for all types |
 | Approvals | issue/sign-off log and supersede chain | portal writes, internal/contractor approvals, acknowledgement |
 | Consultants | register, engagements, scoped portal | deliverables, assigned tasks, contextual responses and RFIs |
@@ -35,7 +35,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Site coordination | inspection reports | RFI, submittal, shop drawing, IR, instruction, snag, NCR |
 | Fees/contracts | proposals, COA fee proposals, contracts | richer versions/templates and connected activity |
 | Accounting | invoices, GST/TDS, filing, reconciliation | enhanced exports, mapping, retention, accountant workflow |
-| Estimation | DSR, estimate/BOQ, takeoff, BBS, simple PO | import/export, versioning, inline entry, visual connector |
+| Estimation | DSR, estimate/BOQ, takeoff (ESTICAD capture + web read), BBS, simple PO | import/export, versioning, inline entry |
 | Office/knowledge | letters, firm profile, Knowledge Bank shell | MOM, templates, CAD/BIM/vendor libraries, lessons |
 | Search | module-local search | permission-aware universal search |
 | AI Studio | none | editable, source-linked drafting and summarization |

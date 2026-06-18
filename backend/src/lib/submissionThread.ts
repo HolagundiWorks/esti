@@ -4,14 +4,19 @@ import { submissionMessages } from "../db/schema.js";
 
 type ThreadRef =
   | { portalSubmissionId: string }
-  | { consultantSubmissionId: string };
+  | { consultantSubmissionId: string }
+  | { contractorSubmissionId: string };
 
-/** List the message thread for a portal or consultant submission, oldest first. */
+type AuthorSide = "FIRM" | "CLIENT" | "CONSULTANT" | "CONTRACTOR";
+
+/** List the message thread for a portal, consultant, or contractor submission. */
 export async function listMessages(db: DB, ref: ThreadRef) {
   const where =
     "portalSubmissionId" in ref
       ? eq(submissionMessages.portalSubmissionId, ref.portalSubmissionId)
-      : eq(submissionMessages.consultantSubmissionId, ref.consultantSubmissionId);
+      : "consultantSubmissionId" in ref
+        ? eq(submissionMessages.consultantSubmissionId, ref.consultantSubmissionId)
+        : eq(submissionMessages.contractorSubmissionId, ref.contractorSubmissionId);
   return db
     .select({
       id: submissionMessages.id,
@@ -29,12 +34,13 @@ export async function listMessages(db: DB, ref: ThreadRef) {
 export async function addMessage(
   db: DB,
   ref: ThreadRef,
-  author: { id: string; name: string; side: "FIRM" | "CLIENT" | "CONSULTANT" },
+  author: { id: string; name: string; side: AuthorSide },
   body: string,
 ): Promise<void> {
   await db.insert(submissionMessages).values({
     portalSubmissionId: "portalSubmissionId" in ref ? ref.portalSubmissionId : null,
     consultantSubmissionId: "consultantSubmissionId" in ref ? ref.consultantSubmissionId : null,
+    contractorSubmissionId: "contractorSubmissionId" in ref ? ref.contractorSubmissionId : null,
     authorId: author.id,
     authorName: author.name,
     authorSide: author.side,

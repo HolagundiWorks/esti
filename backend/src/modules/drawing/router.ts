@@ -101,42 +101,14 @@ export const drawingRouter = router({
       return svg ? { svg } : null;
     }),
 
-  /** Persist viewer calibration (real units per SVG viewBox unit). */
-  setScale: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-        scaleUnitsPerVb: z.number().positive(),
-        scaleUnit: z.string().min(1).max(8),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
-      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      const [row] = await ctx.db
-        .update(drawings)
-        .set({ scaleUnitsPerVb: input.scaleUnitsPerVb, scaleUnit: input.scaleUnit })
-        .where(eq(drawings.id, input.id))
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "drawing",
-        entityId: input.id,
-        action: "SCALE_UPDATE",
-        actorId: ctx.user.id,
-        before: { scaleUnitsPerVb: before.scaleUnitsPerVb, scaleUnit: before.scaleUnit },
-        after: { scaleUnitsPerVb: row!.scaleUnitsPerVb, scaleUnit: row!.scaleUnit },
-      });
-      await writeActivity(ctx.db, {
-        projectId: before.projectId,
-        objectType: "drawing",
-        objectId: input.id,
-        eventType: "drawing.scale_updated",
-        actorId: ctx.user.id,
-        actorName: ctx.user.fullName,
-        summary: `Drawing ${before.ref} scale calibrated`,
-      });
-      return row;
-    }),
+  /** Drawing scale calibration — ESTICAD companion only (TOSCALE). */
+  setScale: protectedProcedure.mutation(() => {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Drawing scale calibration is only available in ESTICAD. Open the drawing with Open in ESTICAD.",
+    });
+  }),
 
   /** All revised drawings (rev > 1) for a project — general revision feed. */
   recentRevisions: protectedProcedure

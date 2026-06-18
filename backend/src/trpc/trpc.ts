@@ -31,6 +31,9 @@ const authedProcedure = t.procedure.use(({ ctx, next, type, path }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+// Mutations read-only staff may perform (ESTI agent is advisory — no writes/uploads).
+const READ_STAFF_MUTATIONS = new Set(["ai.generate"]);
+
 // Mutations a read-only (Viewer) staff member may still perform on themselves.
 const SELF_SERVICE_MUTATIONS = new Set([
   "auth.logout",
@@ -51,7 +54,9 @@ export const protectedProcedure = authedProcedure.use(({ ctx, next, type, path }
   if (ctx.user.role === "CONSULTANT" && ctx.user.consultantId)
     throw new TRPCError({ code: "FORBIDDEN" });
   if (type === "mutation" && !SELF_SERVICE_MUTATIONS.has(path) && !can(ctx.user.role, "write")) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
+    if (!READ_STAFF_MUTATIONS.has(path)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
+    }
   }
   return next({ ctx });
 });

@@ -16,11 +16,12 @@ import {
   Tag,
   TextInput,
 } from "@carbon/react";
+import { Launch } from "@carbon/icons-react";
 import { can, takeoffElement } from "@esti/contracts";
 import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
-import { DrawingViewer } from "./DrawingViewer.js";
 import { useAuth } from "../lib/auth.js";
+import { ESTICAD_DOWNLOAD_URL, esticadDrawingUrl, openEsticadDrawing } from "../lib/esticadLink.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -33,8 +34,9 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
   const canUpload = !!user && can(user.role, "write");
+  const canTakeoff = canUpload;
   const utils = trpc.useUtils();
-  const [viewerId, setViewerId] = useState<string | null>(null);
+  const [esticadHint, setEsticadHint] = useState<string | null>(null);
   const takeoffQ = trpc.measurements.listByProject.useQuery(
     { projectId },
     { enabled: !!projectId },
@@ -43,7 +45,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     { projectId },
     {
       enabled: !!projectId,
-      // Poll while the worker is still chewing on any drawing.
       refetchInterval: (q) =>
         (q.state.data ?? []).some(
           (d) => d.status === "PENDING" || d.status === "PROCESSING",
@@ -58,10 +59,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Revision upload + history modals.
-  const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(
-    null,
-  );
+  const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(null);
   const [revFile, setRevFile] = useState<File | null>(null);
   const [revNote, setRevNote] = useState("");
   const [histId, setHistId] = useState<string | null>(null);
@@ -84,6 +82,16 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     { id: histId ?? "" },
     { enabled: !!histId },
   );
+
+  function launchEsticad(drawingId: string) {
+    setEsticadHint(null);
+    openEsticadDrawing(projectId, drawingId);
+    const link = esticadDrawingUrl(projectId, drawingId);
+    void navigator.clipboard?.writeText(link).catch(() => undefined);
+    setEsticadHint(
+      `Opening ESTICAD… If nothing happens, install ESTICAD and ensure you are signed in with your AORMS account. Link copied: ${link}`,
+    );
+  }
 
   async function postUpload(fd: FormData) {
     const res = await fetch("/upload/drawing", {
@@ -139,9 +147,32 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     }
   }
 
+  const readyDrawings = (drawingsQ.data ?? []).filter((d) => d.status === "READY");
+
   return (
     <>
-      <h3 style={{ marginTop: 32 }}>Drawings &amp; takeoff</h3>
+      <h3 style={{ marginTop: 32 }}>Drawings</h3>
+      <InlineNotification
+        kind="info"
+        title="Quantity takeoff in ESTICAD"
+        subtitle={
+          canTakeoff
+            ? "Upload DXF drawings here for the project register. Measure walls, slabs, and structural elements in the free ESTICAD desktop app — quantities sync to this project automatically."
+            : "Drawings are listed here for issue control. Quantity takeoff is performed in ESTICAD by staff with write access."
+        }
+        lowContrast
+        hideCloseButton
+        style={{ marginBottom: 12 }}
+      />
+      {canTakeoff && (
+        <p style={{ margin: "0 0 12px", fontSize: "0.875rem" }}>
+          <a href={ESTICAD_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
+            Download ESTICAD
+          </a>
+          {" · "}
+          Sign in with your AORMS account, run <code>ESTILINK</code>, then open a drawing from the Takeoff column below.
+        </p>
+      )}
       {!canUpload && (
         <InlineNotification
           kind="info"
@@ -181,7 +212,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           disabled={!canUpload || !file || !title || busy}
           onClick={upload}
         >
-          {busy ? "Uploading…" : "Upload & take off"}
+          {busy ? "Uploading…" : "Upload drawing"}
         </Button>
       </div>
       {canUpload && (
@@ -198,10 +229,19 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           lowContrast
         />
       )}
+      {esticadHint && (
+        <InlineNotification
+          kind="info"
+          title="ESTICAD"
+          subtitle={esticadHint}
+          lowContrast
+          onCloseButtonClick={() => setEsticadHint(null)}
+        />
+      )}
 
       <TableContainer
         title="Uploaded drawings"
-        description="ezdxf layer/entity takeoff"
+        description="DXF register — open ESTICAD to measure quantities"
       >
         <Table>
           <TableHead>
@@ -211,7 +251,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
               <TableHeader>Rev</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Entities</TableHeader>
-              <TableHeader>View</TableHeader>
+              <TableHeader>Takeoff</TableHeader>
               <TableHeader>Issue</TableHeader>
               <TableHeader>Versions</TableHeader>
             </TableRow>
@@ -239,15 +279,17 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                   </TableCell>
                   <TableCell>{d.entityCount}</TableCell>
                   <TableCell>
-                    {d.status === "READY" && (
+                    {d.status === "READY" && canTakeoff && (
                       <Button
-                        kind="ghost"
+                        kind="primary"
                         size="sm"
-                        onClick={() => setViewerId(d.id)}
+                        renderIcon={Launch}
+                        onClick={() => launchEsticad(d.id)}
                       >
-                        View / measure
+                        Open in ESTICAD
                       </Button>
                     )}
+                    {d.status === "READY" && !canTakeoff && "—"}
                   </TableCell>
                   <TableCell>
                     {d.status === "READY" && (
@@ -282,10 +324,21 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </Table>
       </TableContainer>
 
-      {(takeoffQ.data ?? []).length > 0 && (
+      {canTakeoff && readyDrawings.length > 0 && (takeoffQ.data?.rows ?? []).length === 0 && (
+        <InlineNotification
+          kind="info"
+          title="No measurements yet"
+          subtitle="Use Open in ESTICAD on a ready drawing to capture quantity takeoff. Results appear here when synced from the desktop app."
+          lowContrast
+          hideCloseButton
+          style={{ marginTop: 16 }}
+        />
+      )}
+
+      {(takeoffQ.data?.rows ?? []).length > 0 && (
         <TableContainer
-          title="Measured quantities (takeoff)"
-          description="Calibrated measurements across this project's drawings"
+          title="Measured quantities (from ESTICAD)"
+          description="Read-only — captured in ESTICAD desktop; used for BOQ and estimates in AORMS"
           style={{ marginTop: 16 }}
         >
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
@@ -304,7 +357,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(takeoffQ.data ?? []).map((m) => {
+              {(takeoffQ.data?.rows ?? []).map((m) => {
                 const el = m.elementTypeId ? takeoffElement(m.elementTypeId) : undefined;
                 return (
                   <TableRow key={m.id}>
@@ -383,15 +436,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           />
         </Stack>
       </Modal>
-
-      {viewerId && (
-        <DrawingViewer
-          drawingId={viewerId}
-          projectId={projectId}
-          open={!!viewerId}
-          onClose={() => setViewerId(null)}
-        />
-      )}
 
       <Modal
         open={!!revFor}

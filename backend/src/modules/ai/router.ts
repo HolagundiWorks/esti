@@ -4,6 +4,7 @@ import {
   AiSettings,
   parseAiSettings,
 } from "@esti/contracts";
+import { can } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -12,6 +13,7 @@ import { writeAudit } from "../../lib/audit.js";
 import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
+import { demoBlocksAiDraft, demoBlocksAiSettings, DEMO_AI_DRAFT_MESSAGE, DEMO_AI_SETTINGS_MESSAGE } from "../../lib/demo-policy.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 function canEditAi(role: string): boolean {
@@ -24,6 +26,10 @@ export const aiRouter = router({
     const parsed = parseAiSettings(org.aiSettings);
     return {
       ...parsed,
+      /** ESTI agent (Alt+A) — read-only Q&A from live AORMS data. */
+      agentEnabled: parsed.enabled,
+      /** AI Studio document drafts — off on demo. */
+      draftsEnabled: parsed.enabled && !ctx.user.isDemo,
       ollamaDefaultUrl:
         parsed.ollamaBaseUrl?.trim() ||
         process.env.OLLAMA_BASE_URL?.trim() ||
@@ -32,6 +38,9 @@ export const aiRouter = router({
   }),
 
   setSettings: ownerProcedure.input(AiSettings).mutation(async ({ ctx, input }) => {
+    if (demoBlocksAiSettings(ctx.user)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_SETTINGS_MESSAGE });
+    }
     const org = await getOrgSettings(ctx.db);
     const [row] = await ctx.db
       .update(orgSettings)
@@ -77,6 +86,15 @@ export const aiRouter = router({
   }),
 
   generate: protectedProcedure.input(AiGenerateInput).mutation(async ({ ctx, input }) => {
+    if (demoBlocksAiDraft(ctx.user, input.mode)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_DRAFT_MESSAGE });
+    }
+    if (!can(ctx.user.role, "write") && input.mode !== "agent") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Document drafts require write access — use the ESTI agent for questions.",
+      });
+    }
     const org = await getOrgSettings(ctx.db);
     const settings = parseAiSettings(org.aiSettings);
     if (!settings.enabled) {
@@ -142,6 +160,9 @@ export const aiRouter = router({
   }),
 
   updateRun: protectedProcedure.input(AiRunUpdate).mutation(async ({ ctx, input }) => {
+    if (ctx.user.isDemo) {
+      throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_DRAFT_MESSAGE });
+    }
     const [before] = await ctx.db.select().from(aiRuns).where(eq(aiRuns.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     if (before.userId !== ctx.user.id && !canEditAi(ctx.user.role)) {

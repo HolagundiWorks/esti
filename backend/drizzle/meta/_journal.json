@@ -337,6 +337,41 @@
       "when": 1781193600000,
       "tag": "0049_user_ai_key",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1781193700000,
+      "tag": "0050_tender_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1781193800000,
+      "tag": "0051_construction_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1781193900000,
+      "tag": "0052_po_spec_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1781194000000,
+      "tag": "0053_device_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1781194100000,
+      "tag": "0054_ai_ollama_settings",
+      "breakpoints": true
     }
   ]
 }

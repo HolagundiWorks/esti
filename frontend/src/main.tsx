@@ -16,7 +16,8 @@ import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { trpc } from "./lib/trpc.js";
 
-function toErrorToast(error: unknown) {
+function toErrorToast(error: unknown, meta?: { silent?: boolean }) {
+  if (meta?.silent) return;
   const message = error instanceof Error ? error.message : "Unexpected error";
   pushToast({
     kind: "error",
@@ -26,10 +27,12 @@ function toErrorToast(error: unknown) {
 }
 
 // App-wide error surfacing: every failed query/mutation raises a toast — no
-// per-call wiring needed.
+// per-call wiring needed. Background polls (e.g. alerts bell) set meta.silent.
 const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: toErrorToast }),
-  mutationCache: new MutationCache({ onError: toErrorToast }),
+  queryCache: new QueryCache({
+    onError: (error, query) => toErrorToast(error, query.meta as { silent?: boolean }),
+  }),
+  mutationCache: new MutationCache({ onError: (error) => toErrorToast(error) }),
 });
 const trpcClient = trpc.createClient({
   links: [

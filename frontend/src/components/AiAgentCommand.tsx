@@ -1,36 +1,32 @@
-import { Button } from "@carbon/react";
 import { Close } from "@carbon/icons-react";
-import { AI_DRAFT_KIND_LABEL, AiDraftKind, can } from "@esti/contracts";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
-import type { AppTheme } from "../lib/theme-context.js";
 
-type Props = {
-  theme: AppTheme;
-};
-
-/** Floating AORMS agent — logo FAB opens a horizontal command bar (Alt+A). */
-export function AiAgentCommand({ theme }: Props) {
+/** Floating ESTI agent — logo FAB opens a horizontal command bar (Alt+A). */
+export function AiAgentCommand() {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const canWrite = !!user && can(user.role, "write");
+  const canUseAgent =
+    !!user &&
+    user.role !== "CLIENT" &&
+    !(user.role === "CONSULTANT" && user.consultantId);
+
+  const settingsQ = trpc.ai.settings.useQuery(undefined, { enabled: canUseAgent });
+  const aiEnabled = settingsQ.data?.agentEnabled ?? settingsQ.data?.enabled ?? false;
   const projectId = pathname.match(/^\/projects\/([^/]+)/)?.[1];
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [kind, setKind] = useState<AiDraftKind>("SUMMARY");
   const [reply, setReply] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const settingsQ = trpc.ai.settings.useQuery(undefined, { enabled: canWrite });
-  const aiEnabled = settingsQ.data?.enabled ?? false;
+  const aiLoading = settingsQ.isLoading;
 
   const generate = trpc.ai.generate.useMutation({
     onSuccess: (res) => {
@@ -67,21 +63,23 @@ export function AiAgentCommand({ theme }: Props) {
     }
   }, [open]);
 
-  if (!canWrite) return null;
-
-  const logoSrc = theme === "white" ? "/aorms-logo.png" : "/aorms-logo-white.png";
+  if (!canUseAgent) return null;
 
   function submitCommand() {
     const cmd = input.trim();
     if (!cmd || generate.isPending) return;
     if (!aiEnabled) {
-      setError("AI Studio is disabled — enable in Company settings.");
+      setError(
+        settingsQ.isError ?
+          "Could not load AI settings — try refreshing the page."
+        : "ESTI is unavailable — AI is not enabled for this firm.",
+      );
       setInput("");
       return;
     }
     setError(null);
     setInput("");
-    generate.mutate({ kind, projectId, prompt: cmd });
+    generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt: cmd });
   }
 
   function onInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -114,20 +112,6 @@ export function AiAgentCommand({ theme }: Props) {
 
       <div className="esti-ai-agent__row">
         <div className={`esti-ai-agent__bar${open ? " esti-ai-agent__bar--open" : ""}`}>
-          <select
-            id="ai-agent-kind"
-            className="esti-ai-agent__kind"
-            value={kind}
-            aria-label="Draft type"
-            onChange={(e) => setKind(e.target.value as AiDraftKind)}
-          >
-            {AiDraftKind.options.map((k) => (
-              <option key={k} value={k}>
-                {AI_DRAFT_KIND_LABEL[k]}
-              </option>
-            ))}
-          </select>
-
           <span className="esti-ai-agent__prompt" aria-hidden>
             &gt;
           </span>
@@ -137,25 +121,17 @@ export function AiAgentCommand({ theme }: Props) {
             type="text"
             className="esti-ai-agent__input"
             placeholder={
-              projectId ? "Ask about this project…" : "Ask AORMS agent…"
+              projectId ?
+                "Ask ESTI about this project (read-only)…"
+              : "Ask ESTI about your office data (read-only)…"
             }
             value={input}
-            disabled={generate.isPending}
+            disabled={generate.isPending || aiLoading}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onInputKeyDown}
             aria-label="AI command"
             tabIndex={open ? 0 : -1}
           />
-
-          <Button
-            size="sm"
-            className="esti-ai-agent__run"
-            disabled={!input.trim() || generate.isPending}
-            onClick={submitCommand}
-            tabIndex={open ? 0 : -1}
-          >
-            Run
-          </Button>
 
           <button
             type="button"
@@ -172,11 +148,11 @@ export function AiAgentCommand({ theme }: Props) {
           ref={fabRef}
           type="button"
           className="esti-ai-agent__fab"
-          aria-label="AORMS AI agent (Alt+A)"
+          aria-label="ESTI assistant (Alt+A)"
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >
-          <img src={logoSrc} alt="" className="esti-ai-agent__logo" />
+          <span className="esti-ai-agent__logo" aria-hidden />
         </button>
       </div>
     </div>
