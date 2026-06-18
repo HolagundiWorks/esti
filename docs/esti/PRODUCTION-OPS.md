@@ -118,6 +118,45 @@ See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
 ---
 
+## Beta request mailbox (landing form)
+
+Each **Request beta testing access** submission is stored in `esti_trial_request` and emailed to **`hi@aorms.in`** when SMTP is configured. This is a **manual beta programme** — not automatic workspace provisioning.
+
+Add to `.env` on the VPS (Google Workspace example):
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=hi@aorms.in
+SMTP_PASS=your_16_char_app_password
+SMTP_FROM="AORMS Beta <hi@aorms.in>"
+BETA_REQUEST_NOTIFY_TO=hi@aorms.in
+```
+
+**Google Workspace setup**
+
+1. Sign in to the `hi@aorms.in` Google account (or admin creates the mailbox).
+2. Enable **2-Step Verification** on the account.
+3. Create an **App password**: Google Account → Security → App passwords → Mail → Other (ESTI AORMS).
+4. Paste the 16-character password into `SMTP_PASS` in `/opt/esti/.env` (no spaces).
+5. Restart backend: `docker compose -f compose.prod.yaml up -d backend`
+
+**Verify**
+
+```bash
+# After submitting the landing form, check backend logs:
+docker compose -f compose.prod.yaml logs backend --tail 30 | grep -i mail
+
+# Or list stored requests:
+docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
+  "SELECT full_name, work_email, company_name, created_at FROM esti_trial_request ORDER BY created_at DESC LIMIT 5;"
+```
+
+If SMTP is missing, requests are still saved but a warning is logged: `beta request … saved but email not sent`.
+
+---
+
 ## Object storage (downloads)
 
 MinIO runs **internal-only** in `compose.prod.yaml`. Presigned URLs need a browser-reachable host:

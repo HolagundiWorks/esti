@@ -11,6 +11,7 @@ import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
 import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
 import { BUCKET, ensureBucketWithRetry, s3 } from "./lib/storage.js";
+import { isSmtpConfigured } from "./lib/mail/transport.js";
 import { buildReleaseInfo, releaseSummary } from "./lib/releaseInfo.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
@@ -67,6 +68,12 @@ try {
 } catch (err) {
   app.log.error(err, "migration failed");
   process.exit(1);
+}
+
+if (isSmtpConfigured()) {
+  app.log.info({ to: env.BETA_REQUEST_NOTIFY_TO }, "beta request mail enabled");
+} else if (env.NODE_ENV === "production") {
+  app.log.warn("SMTP not configured — beta request emails will not send (requests still saved)");
 }
 
 // Object storage backs file features (PDFs, drawings, uploads), but it must NOT

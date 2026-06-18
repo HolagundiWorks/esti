@@ -150,7 +150,7 @@ const NAV = [
   { href: "#overview", label: "Overview" },
   { href: "#product", label: "Product" },
   { href: "#demo", label: "Demo" },
-  { href: "#trial", label: "Trial" },
+  { href: "#beta", label: "Beta" },
 ];
 
 function PanelHead({
@@ -309,8 +309,8 @@ export function Landing() {
                     <a href="#demo" className="esti-lp-btn esti-lp-btn--primary esti-lp-btn--lg">
                       Try the demo
                     </a>
-                    <a href="#trial" className="esti-lp-text-link">
-                      Request trial workspace
+                    <a href="#beta" className="esti-lp-text-link">
+                      Request beta access
                       <ArrowRight size={16} aria-hidden />
                     </a>
                   </div>
@@ -425,11 +425,11 @@ export function Landing() {
             </LandingReveal>
 
             <LandingReveal delay={80}>
-              <article id="trial" className="esti-lp-panel esti-lp-panel--wide esti-lp-panel--trial">
+              <article id="beta" className="esti-lp-panel esti-lp-panel--wide esti-lp-panel--trial">
                 <PanelHead
                   eyebrow="For Indian architecture practices"
-                  title="Request your AORMS trial workspace"
-                  lead="Thank you for your interest. AORMS is practice management for architects — projects, drawing issues, COA fees, GST billing, revision control and RIE compliance in one self-hosted record. Fill in your studio details and we will provision a trial or schedule a walkthrough."
+                  title="Request AORMS beta testing access"
+                  lead="Thank you for your interest. AORMS is practice management for architects — projects, drawing issues, COA fees, GST billing, revision control and RIE compliance in one self-hosted record. This is a manual beta programme, not instant trial signup. Tell us about your studio and we will email you about beta access or a walkthrough."
                 />
                 <LandingTrialForm />
               </article>
@@ -477,8 +477,8 @@ export function Landing() {
                     <a href="#demo" className="esti-lp-btn esti-lp-btn--primary">
                       Try the demo
                     </a>
-                    <a href="#trial" className="esti-lp-text-link">
-                      Request trial
+                    <a href="#beta" className="esti-lp-text-link">
+                      Request beta access
                       <ArrowRight size={16} aria-hidden />
                     </a>
                     {feedbackUrl ? (
@@ -526,7 +526,7 @@ export function Landing() {
               <h4>Contact</h4>
               <ul className="esti-lp-footer__links">
                 <li>
-                  <a href="#trial">Request trial workspace</a>
+                  <a href="#beta">Request beta access</a>
                 </li>
                 <li>
                   <a href="mailto:hi@aorms.in">hi@aorms.in</a>

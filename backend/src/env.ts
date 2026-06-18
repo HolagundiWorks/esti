@@ -17,6 +17,14 @@ const Env = z.object({
   S3_BUCKET: z.string().default("esti-documents"),
   S3_ACCESS_KEY: z.string().default("esti"),
   S3_SECRET_KEY: z.string().default("esti-secret"),
+  /** Outbound mail for beta-request notifications (Google Workspace / SMTP). */
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default("AORMS Beta <hi@aorms.in>"),
+  BETA_REQUEST_NOTIFY_TO: z.string().default("hi@aorms.in"),
 });
 
 export const env = Env.parse(process.env);
