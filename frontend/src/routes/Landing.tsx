@@ -21,6 +21,7 @@ import { formatVisitCount, useLandingVisitCounter } from "../lib/landing-visit.j
 import { LandingEsticadPreview } from "../components/LandingEsticadPreview.js";
 import { LandingCarbonZone } from "../components/LandingCarbonZone.js";
 import { LandingDashboardPreview } from "../components/LandingDashboardPreview.js";
+import { LandingTrialForm } from "../components/LandingTrialForm.js";
 import { LandingReveal } from "../components/LandingReveal.js";
 import { LandingRevisionMock } from "../components/LandingRevisionMock.js";
 import { QualityIntelligencePreview } from "../components/QualityIntelligencePreview.js";
@@ -149,6 +150,7 @@ const NAV = [
   { href: "#overview", label: "Overview" },
   { href: "#product", label: "Product" },
   { href: "#demo", label: "Demo" },
+  { href: "#trial", label: "Trial" },
 ];
 
 function PanelHead({
@@ -307,8 +309,8 @@ export function Landing() {
                     <a href="#demo" className="esti-lp-btn esti-lp-btn--primary esti-lp-btn--lg">
                       Try the demo
                     </a>
-                    <a href="#product" className="esti-lp-text-link">
-                      See the product
+                    <a href="#trial" className="esti-lp-text-link">
+                      Request trial workspace
                       <ArrowRight size={16} aria-hidden />
                     </a>
                   </div>
@@ -422,6 +424,17 @@ export function Landing() {
               </article>
             </LandingReveal>
 
+            <LandingReveal delay={80}>
+              <article id="trial" className="esti-lp-panel esti-lp-panel--wide esti-lp-panel--trial">
+                <PanelHead
+                  eyebrow="For Indian architecture practices"
+                  title="Request your AORMS trial workspace"
+                  lead="Thank you for your interest. AORMS is practice management for architects — projects, drawing issues, COA fees, GST billing, revision control and RIE compliance in one self-hosted record. Fill in your studio details and we will provision a trial or schedule a walkthrough."
+                />
+                <LandingTrialForm />
+              </article>
+            </LandingReveal>
+
             <div id="demo" className="esti-lp-board__row esti-lp-board__row--bottom">
               {DEMOS.map((d, i) => {
                 const loading = demo.isPending && demoKind === d.kind;
@@ -463,6 +476,10 @@ export function Landing() {
                   <div className="esti-lp-hero__actions">
                     <a href="#demo" className="esti-lp-btn esti-lp-btn--primary">
                       Try the demo
+                    </a>
+                    <a href="#trial" className="esti-lp-text-link">
+                      Request trial
+                      <ArrowRight size={16} aria-hidden />
                     </a>
                     {feedbackUrl ? (
                       <a
@@ -508,6 +525,9 @@ export function Landing() {
             <div>
               <h4>Contact</h4>
               <ul className="esti-lp-footer__links">
+                <li>
+                  <a href="#trial">Request trial workspace</a>
+                </li>
                 <li>
                   <a href="mailto:hi@aorms.in">hi@aorms.in</a>
                 </li>

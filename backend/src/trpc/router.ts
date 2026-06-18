@@ -70,6 +70,7 @@ import { lessonRouter } from "../modules/lesson/router.js";
 import { searchRouter } from "../modules/search/router.js";
 import { aiRouter } from "../modules/ai/router.js";
 import { companionRouter } from "../modules/companion/router.js";
+import { marketingRouter } from "../modules/marketing/router.js";
 import { systemRouter } from "../modules/system/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
@@ -165,6 +166,7 @@ export const appRouter = router({
   rewards: rewardRouter,
   ai: aiRouter,
   companion: companionRouter,
+  marketing: marketingRouter,
   system: systemRouter,
 });
 
