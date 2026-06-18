@@ -218,6 +218,7 @@ async function main(): Promise<void> {
 
   const settings = await getOrgSettings(db);
   await db.update(orgSettings).set({ hrEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
+  await ensureAiStudioEnabled(db);
 
   // ── Staff personas ────────────────────────────────────────────────────────
   const [principal] = await db

@@ -470,6 +470,8 @@ export function Dashboard() {
   const billingReady = acQ.data?.billingReadyPhases ?? [];
   const overdueInvoices = acQ.data?.overdueInvoices ?? [];
   const pendingApprovals = acQ.data?.pendingApprovals ?? [];
+  const openTenders = acQ.data?.openTenders ?? [];
+  const openConstruction = acQ.data?.openConstruction ?? [];
   const riskProjects = (phQ.data ?? []).filter((p) => p.health === "RED");
   const overloadedMembers = hrEnabled
     ? (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED")
@@ -478,6 +480,8 @@ export function Dashboard() {
     billingReady.length +
     overdueInvoices.length +
     pendingApprovals.length +
+    openTenders.length +
+    openConstruction.length +
     riskProjects.length +
     overloadedMembers.length;
 
@@ -637,7 +641,7 @@ export function Dashboard() {
       <Column lg={16} md={8} sm={4}>
         <ZoneHead
           title="Action Center"
-          sub="Billing, approvals, and risk items that need a decision today."
+          sub="Billing, approvals, tenders, site coordination, and risk items that need a decision today."
           statusTag={
             !acQ.isLoading && !phQ.isLoading && (!hrEnabled || !tiQ.isLoading)
               ? { text: acTotal > 0 ? `${acTotal} open` : "All clear", type: acTotal > 0 ? "red" : "green" }
@@ -778,6 +782,77 @@ export function Dashboard() {
         </Tile>
       </Column>
 
+      <Column lg={8} md={4} sm={4}>
+        <ClickableTile
+          className="esti-fill"
+          style={edge(openTenders.length > 0 ? "watch" : "ok")}
+          onClick={() => navigate("/office/tenders")}
+        >
+          <Stack gap={4}>
+            <div className="esti-row">
+              <h4 className="esti-grow">Open tenders</h4>
+              <ArrowRight size={16} />
+            </div>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : openTenders.length === 0 ? (
+              <p>No tenders awaiting bids.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {openTenders.slice(0, 4).map((t) => (
+                    <StructuredListRow key={t.id}>
+                      <StructuredListCell>
+                        <Link to={`/office/tenders?tender=${t.id}`}>{t.title}</Link>
+                        <p>
+                          {t.projectRef} · {t.projectTitle}
+                          {t.dueDate ? ` · due ${t.dueDate}` : ""}
+                        </p>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </ClickableTile>
+      </Column>
+
+      <Column lg={8} md={4} sm={4}>
+        <ClickableTile
+          className="esti-fill"
+          style={edge(openConstruction.length > 0 ? "watch" : "ok")}
+          onClick={() => navigate("/office/construction")}
+        >
+          <Stack gap={4}>
+            <div className="esti-row">
+              <h4 className="esti-grow">Site coordination</h4>
+              <ArrowRight size={16} />
+            </div>
+            {acQ.isLoading ? (
+              <InlineLoading description="Loading…" />
+            ) : openConstruction.length === 0 ? (
+              <p>No RFIs, submittals, or NCRs awaiting response.</p>
+            ) : (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  {openConstruction.slice(0, 4).map((c) => (
+                    <StructuredListRow key={c.id}>
+                      <StructuredListCell>
+                        <Link to="/office/construction">{c.subject}</Link>
+                        <p>
+                          {c.kind} · {c.contractorName} · {c.projectRef}
+                        </p>
+                      </StructuredListCell>
+                    </StructuredListRow>
+                  ))}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            )}
+          </Stack>
+        </ClickableTile>
+      </Column>
+
       {/* ═══ Company · delivery & people ══════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
         <ZoneHead
@@ -789,6 +864,51 @@ export function Dashboard() {
           }
         />
       </Column>
+
+      <Column lg={4} md={4} sm={2}>
+        <KpiChip
+          label="Open tenders"
+          value={b?.openTenders ?? 0}
+          health={(b?.openTenders ?? 0) > 0 ? "watch" : "ok"}
+          tagType={(b?.openTenders ?? 0) > 0 ? "blue" : "gray"}
+          tagText={
+            (b?.tenderDueSoon?.length ?? 0) > 0
+              ? `${b!.tenderDueSoon!.length} due within 7 days`
+              : "None closing soon"
+          }
+          onClick={() => navigate("/office/tenders")}
+          loading={boardsLoading}
+        />
+      </Column>
+      <Column lg={4} md={4} sm={2}>
+        <KpiChip
+          label="Site coordination"
+          value={b?.constructionOpen ?? 0}
+          health={(b?.constructionOpen ?? 0) > 0 ? "watch" : "ok"}
+          tagType={(b?.constructionOpen ?? 0) > 0 ? "magenta" : "gray"}
+          tagText={
+            (b?.constructionOpen ?? 0) > 0 ? "Awaiting firm response" : "Inbox clear"
+          }
+          onClick={() => navigate("/office/construction")}
+          loading={boardsLoading}
+        />
+      </Column>
+      {(b?.tenderDueSoon?.length ?? 0) > 0 && (
+        <Column lg={8} md={8} sm={4}>
+          <Tile className="esti-fill" style={edge("watch")}>
+            <Stack gap={3}>
+              <h4>Tenders closing soon</h4>
+              {b!.tenderDueSoon!.slice(0, 4).map((t) => (
+                <p key={t.id}>
+                  <Link to={`/office/tenders?tender=${t.id}`}>{t.title}</Link>
+                  {" · "}
+                  {t.projectRef} · due {t.dueDate}
+                </p>
+              ))}
+            </Stack>
+          </Tile>
+        </Column>
+      )}
 
       {/* ═══ 4 · Project health ════════════════════════════════════════════ */}
       {showProject && (

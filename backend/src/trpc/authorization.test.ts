@@ -38,6 +38,7 @@ function caller(authUser: AuthUser | null) {
   return authorizationRouter.createCaller({
     db: {} as Context["db"],
     user: authUser,
+    deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-request",
     setCookie: () => undefined,

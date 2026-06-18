@@ -156,7 +156,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(listQ.data ?? []).map((t) => (
+            {(listQ.data?.rows ?? []).map((t) => (
               <TableRow key={t.id}>
                 <TableCell>{t.ref}</TableCell>
                 <TableCell>{t.recipient}</TableCell>

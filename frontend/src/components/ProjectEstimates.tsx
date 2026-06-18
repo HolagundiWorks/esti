@@ -222,7 +222,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
       >
         <h3>Estimation / BOQ</h3>
         <Stack orientation="horizontal" gap={3}>
-          {(takeoffMeasQ.data ?? []).length > 0 && (
+          {(takeoffMeasQ.data?.rows ?? []).length > 0 && (
             <Button size="sm" kind="tertiary" onClick={() => setTakeoffOpen(true)}>
               Prepare from takeoff
             </Button>
@@ -339,7 +339,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                   size="sm"
                   kind="tertiary"
                   disabled={
-                    importTakeoff.isPending || !open.dsrVersionId || !(takeoffMeasQ.data ?? []).length
+                    importTakeoff.isPending || !open.dsrVersionId || !(takeoffMeasQ.data?.rows ?? []).length
                   }
                   onClick={() =>
                     importTakeoff.mutate({ projectId, estimateId: open.id })

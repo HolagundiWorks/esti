@@ -21,6 +21,8 @@ const KIND_LABEL: Record<string, string> = {
   submission: "Portal request",
   task: "Overdue task",
   leave: "Leave impact",
+  tender: "Tender closing",
+  construction: "Site coordination",
 };
 
 function AlertTable({
@@ -87,10 +89,16 @@ function AlertTable({
 
 export function Alerts() {
   const alertsQ = trpc.notifications.list.useQuery(undefined, {
-    refetchInterval: 60000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+    meta: { silent: true },
   });
   const digestQ = trpc.notifications.digest.useQuery(undefined, {
-    refetchInterval: 300000,
+    refetchInterval: 300_000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+    meta: { silent: true },
   });
   const alerts = alertsQ.data ?? [];
   const digest = digestQ.data;

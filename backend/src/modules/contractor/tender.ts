@@ -3,8 +3,9 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes } from "node:crypto";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { contractors, projectOffices, tenderBids, tenderInvitations, tenders } from "../../db/schema.js";
+import { contractors, projectOffices, tenderBids, tenderDocumentAcks, tenderDocuments, tenderInvitations, tenders } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const blank = (v: string | undefined) => (v && v.length > 0 ? v : null);
@@ -67,7 +68,13 @@ export const tenderRouter = router({
         .where(eq(tenderInvitations.tenderId, input.id))
         .orderBy(desc(tenderInvitations.invitedAt));
 
-      return { ...tender, invitations };
+      const documents = await ctx.db
+        .select()
+        .from(tenderDocuments)
+        .where(eq(tenderDocuments.tenderId, input.id))
+        .orderBy(desc(tenderDocuments.createdAt));
+
+      return { ...tender, invitations, documents };
     }),
 
   create: manage.input(TenderCreate).mutation(async ({ ctx, input }) => {
@@ -185,14 +192,22 @@ export const tenderRouter = router({
     return { ok: true as const };
   }),
 
-  /** All bids for a tender, joined to the contractor — ordered cheapest first. */
+  /** All bids for a tender — amounts hidden while tender is OPEN (sealed bids). */
   bids: protectedProcedure.input(z.object({ tenderId: z.string().uuid() })).query(async ({ ctx, input }) => {
-    return ctx.db
+    const [tender] = await ctx.db
+      .select({ status: tenders.status })
+      .from(tenders)
+      .where(eq(tenders.id, input.tenderId));
+    if (!tender) throw new TRPCError({ code: "NOT_FOUND" });
+    const sealed = tender.status === "OPEN" || tender.status === "DRAFT";
+
+    const rows = await ctx.db
       .select({
         id: tenderBids.id,
         invitationId: tenderBids.invitationId,
         contractorId: tenderInvitations.contractorId,
         contractorName: contractors.name,
+        invitationStatus: tenderInvitations.status,
         amountPaise: tenderBids.amountPaise,
         completionWeeks: tenderBids.completionWeeks,
         technicalScore: tenderBids.technicalScore,
@@ -203,6 +218,22 @@ export const tenderRouter = router({
       .innerJoin(contractors, eq(contractors.id, tenderInvitations.contractorId))
       .where(eq(tenderInvitations.tenderId, input.tenderId))
       .orderBy(asc(tenderBids.amountPaise));
+
+    if (sealed) {
+      return rows.map((r) => ({
+        id: r.id,
+        invitationId: r.invitationId,
+        contractorId: r.contractorId,
+        contractorName: r.contractorName,
+        invitationStatus: r.invitationStatus,
+        sealed: true as const,
+        amountPaise: null,
+        completionWeeks: null,
+        technicalScore: null,
+        notes: null,
+      }));
+    }
+    return rows.map((r) => ({ ...r, sealed: false as const }));
   }),
 
   removeBid: manage.input(z.object({ invitationId: z.string().uuid() })).mutation(async ({ ctx, input }) => {
@@ -217,6 +248,12 @@ export const tenderRouter = router({
     .query(async ({ ctx, input }) => {
       const [tender] = await ctx.db.select().from(tenders).where(eq(tenders.id, input.tenderId));
       if (!tender) throw new TRPCError({ code: "NOT_FOUND" });
+      if (tender.status === "OPEN" || tender.status === "DRAFT") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Close the tender before exporting bid comparison.",
+        });
+      }
       const bids = await ctx.db
         .select({
           contractorName: contractors.name,
@@ -243,4 +280,30 @@ export const tenderRouter = router({
         })),
       };
     }),
+
+  listDocuments: protectedProcedure
+    .input(z.object({ tenderId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select()
+        .from(tenderDocuments)
+        .where(eq(tenderDocuments.tenderId, input.tenderId))
+        .orderBy(desc(tenderDocuments.createdAt));
+      return Promise.all(
+        rows.map(async (d) => ({
+          ...d,
+          downloadUrl: await presignedGet(d.storageKey).catch(() => null),
+        })),
+      );
+    }),
+
+  removeDocument: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [doc] = await ctx.db.select().from(tenderDocuments).where(eq(tenderDocuments.id, input.id));
+    if (!doc) throw new TRPCError({ code: "NOT_FOUND" });
+    await ctx.db.delete(tenderDocumentAcks).where(eq(tenderDocumentAcks.documentId, input.id));
+    await ctx.db.delete(tenderDocuments).where(eq(tenderDocuments.id, input.id));
+    await removeObject(doc.storageKey).catch(() => undefined);
+    await writeAudit(ctx.db, { entity: "tender_document", entityId: input.id, action: "DELETE", actorId: ctx.user.id, before: doc });
+    return { ok: true as const };
+  }),
 });

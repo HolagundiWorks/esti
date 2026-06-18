@@ -18,6 +18,7 @@ import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
+import { constructionRouter } from "../modules/contractor/construction.js";
 import { contractorPortalRouter } from "../modules/contractor/portal.js";
 import { tenderRouter } from "../modules/contractor/tender.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
@@ -68,6 +69,7 @@ import { dashboardRouter } from "../modules/dashboard/router.js";
 import { lessonRouter } from "../modules/lesson/router.js";
 import { searchRouter } from "../modules/search/router.js";
 import { aiRouter } from "../modules/ai/router.js";
+import { companionRouter } from "../modules/companion/router.js";
 import { systemRouter } from "../modules/system/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
@@ -120,6 +122,7 @@ export const appRouter = router({
   contractors: contractorRouter,
   tenders: tenderRouter,
   contractorPortal: contractorPortalRouter,
+  construction: constructionRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,
@@ -161,6 +164,7 @@ export const appRouter = router({
   aspRf: aspRfRouter,
   rewards: rewardRouter,
   ai: aiRouter,
+  companion: companionRouter,
   system: systemRouter,
 });
 

@@ -98,9 +98,10 @@ export const submissionMessages = pgTable("esti_submission_message", {
   id: id(),
   portalSubmissionId: uuid("portal_submission_id").references(() => portalSubmissions.id),
   consultantSubmissionId: uuid("consultant_submission_id").references(() => consultantSubmissions.id),
+  contractorSubmissionId: uuid("contractor_submission_id"),
   authorId: uuid("author_id").references(() => users.id),
   authorName: text("author_name"),
-  authorSide: text("author_side").notNull(), // FIRM | CLIENT | CONSULTANT
+  authorSide: text("author_side").notNull(), // FIRM | CLIENT | CONSULTANT | CONTRACTOR
   body: text("body").notNull(),
   createdAt: createdAt(),
 });

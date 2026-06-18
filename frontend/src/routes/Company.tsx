@@ -544,7 +544,7 @@ export function Company() {
       </Modal>
 
       {isOwner && <EscalationSettingsPanel />}
-      {isOwner && <AiStudioSettingsPanel />}
+      {isOwner && !user?.isDemo && <AiStudioSettingsPanel />}
       {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}
     </Stack>

@@ -57,7 +57,7 @@ export function ContextualComments({
           {create.isPending ? "Adding…" : "Add comment"}
         </Button>
         <Stack gap={4}>
-          {(commentsQ.data ?? []).map((comment) => (
+          {(commentsQ.data?.rows ?? []).map((comment) => (
             <Stack key={comment.id} gap={2}>
               <Stack orientation="horizontal" gap={3}>
                 <Tag type="blue" size="sm">

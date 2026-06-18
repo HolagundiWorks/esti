@@ -15,6 +15,7 @@ incorporated into the roadmap; they must not compete with current requirements.
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
+| [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [WORKFLOW-ARCHITECTURE-AUDIT](WORKFLOW-ARCHITECTURE-AUDIT.md) | Workflow, component hierarchy, and architecture audit snapshot (execution in ROADMAP Phase 2G) |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |

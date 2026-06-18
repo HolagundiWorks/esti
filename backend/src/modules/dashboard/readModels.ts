@@ -11,6 +11,8 @@ import {
   projectOffices,
   tasks,
   teamMembers,
+  tenders,
+  contractorSubmissions,
 } from "../../db/schema.js";
 import { getOrgSettings } from "../../lib/settings.js";
 
@@ -88,6 +90,33 @@ export async function getDashboardBoards(db: DB) {
     .from(tasks)
     .where(and(sql`${tasks.status} <> 'DONE'`, sql`${tasks.dueDate} is not null and ${tasks.dueDate} <= ${today}`));
 
+  const [openTendersRow] = await db
+    .select({ n: count() })
+    .from(tenders)
+    .where(eq(tenders.status, "OPEN"));
+
+  const [constructionOpenRow] = await db
+    .select({ n: count() })
+    .from(contractorSubmissions)
+    .where(eq(contractorSubmissions.status, "OPEN"));
+
+  const tenderDueSoon = (await db.execute(sql`
+    select t.id, t.title, t.due_date, po.ref as project_ref, po.id as project_id
+    from esti_tender t
+    join esti_projectoffice po on po.id = t.project_id
+    where t.status = 'OPEN'
+      and t.due_date is not null
+      and t.due_date <= current_date + 7
+    order by t.due_date asc
+    limit 8
+  `)) as unknown as {
+    id: string;
+    title: string;
+    due_date: string;
+    project_ref: string;
+    project_id: string;
+  }[];
+
   const workload = hrEnabled
     ? await db
         .select({ assignee: tasks.assignee, n: count() })
@@ -163,6 +192,15 @@ export async function getDashboardBoards(db: DB) {
       d31_60: Number(aging?.d31_60 ?? 0),
       d60p: Number(aging?.d60p ?? 0),
     },
+    openTenders: Number(openTendersRow?.n ?? 0),
+    constructionOpen: Number(constructionOpenRow?.n ?? 0),
+    tenderDueSoon: tenderDueSoon.map((r) => ({
+      id: r.id,
+      title: r.title,
+      dueDate: r.due_date,
+      projectRef: r.project_ref,
+      projectId: r.project_id,
+    })),
   };
 }
 
@@ -253,6 +291,44 @@ export async function getActionCenter(db: DB) {
   const revisionRiskBand: "LOW" | "MEDIUM" | "HIGH" =
     revisionHealthScore >= 80 ? "LOW" : revisionHealthScore >= 55 ? "MEDIUM" : "HIGH";
 
+  const openConstructionRows = (await db.execute(sql`
+    select cs.id, cs.kind, cs.subject, cs.created_at,
+           po.id as project_id, po.ref as project_ref, po.title as project_title,
+           c.name as contractor_name
+    from esti_contractor_submission cs
+    join esti_projectoffice po on po.id = cs.project_id
+    join esti_contractor c on c.id = cs.contractor_id
+    where cs.status = 'OPEN'
+    order by cs.created_at asc
+    limit 12
+  `)) as unknown as {
+    id: string;
+    kind: string;
+    subject: string;
+    created_at: string;
+    project_id: string;
+    project_ref: string;
+    project_title: string;
+    contractor_name: string;
+  }[];
+
+  const openTenderRows = (await db.execute(sql`
+    select t.id, t.title, t.due_date,
+           po.id as project_id, po.ref as project_ref, po.title as project_title
+    from esti_tender t
+    join esti_projectoffice po on po.id = t.project_id
+    where t.status = 'OPEN'
+    order by t.due_date asc nulls last
+    limit 12
+  `)) as unknown as {
+    id: string;
+    title: string;
+    due_date: string | null;
+    project_id: string;
+    project_ref: string;
+    project_title: string;
+  }[];
+
   return {
     revisionRiskCount: Number(revisionRiskRow?.n ?? 0),
     revisionRiskBand,
@@ -284,6 +360,24 @@ export async function getActionCenter(db: DB) {
       projectRef: r.project_ref,
       projectTitle: r.project_title,
       daysWaiting: Number(r.days_waiting),
+    })),
+    openConstruction: openConstructionRows.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      subject: r.subject,
+      contractorName: r.contractor_name,
+      projectId: r.project_id,
+      projectRef: r.project_ref,
+      projectTitle: r.project_title,
+      createdAt: r.created_at,
+    })),
+    openTenders: openTenderRows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      dueDate: r.due_date,
+      projectId: r.project_id,
+      projectRef: r.project_ref,
+      projectTitle: r.project_title,
     })),
   };
 }

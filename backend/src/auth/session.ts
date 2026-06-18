@@ -40,7 +40,7 @@ export interface AuthUser {
   role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT";
   clientId: string | null;
   consultantId: string | null;
-  /** Demo accounts: blocked from uploads and credential changes. */
+  /** Seeded demo workspace — uploads blocked; ESTI agent read-only; credential admin blocked. */
   isDemo: boolean;
 }
 

@@ -35,6 +35,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   const { user } = useAuth();
   const canWrite = !!user && can(user.role, "write");
   const settingsQ = trpc.ai.settings.useQuery(undefined, { enabled: canWrite });
+  const draftsEnabled = settingsQ.data?.draftsEnabled ?? settingsQ.data?.enabled ?? false;
   const utils = trpc.useUtils();
 
   const [kind, setKind] = useState<AiDraftKind>(defaultKind);
@@ -56,7 +57,19 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   });
 
   if (!canWrite) return null;
-  if (settingsQ.data && !settingsQ.data.enabled) {
+  if (user?.isDemo) {
+    if (compact) return null;
+    return (
+      <InlineNotification
+        kind="info"
+        lowContrast
+        hideCloseButton
+        title="Document drafts unavailable on demo"
+        subtitle="Press Alt+A to open ESTI — read-only answers from live AORMS data."
+      />
+    );
+  }
+  if (settingsQ.data && !draftsEnabled) {
     return (
       <InlineNotification
         kind="info"
@@ -168,8 +181,24 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
 }
 
 export function AiStudioPage() {
+  const { user } = useAuth();
   const runsQ = trpc.ai.listRuns.useQuery({ limit: 25 });
   const settingsQ = trpc.ai.settings.useQuery();
+
+  if (user?.isDemo) {
+    return (
+      <>
+        <PageHeader title="AI Studio" subtitle="Permission-filtered drafts with source tracking and human approval" />
+        <InlineNotification
+          kind="info"
+          lowContrast
+          hideCloseButton
+          title="Document drafts unavailable on demo"
+          subtitle="Press Alt+A anywhere in AORMS to open ESTI — it reads live data and suggests next steps (no uploads or auto-actions)."
+        />
+      </>
+    );
+  }
 
   return (
     <>

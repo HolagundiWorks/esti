@@ -1,29 +1,42 @@
-import { ContractorBidByToken, TENDER_STATUS_LABEL } from "@esti/contracts";
+import {
+  ConstructionSubmitByToken,
+  ContractorBidByToken,
+  TENDER_STATUS_LABEL,
+  TenderAckDocument,
+  TenderDeclineByToken,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { contractors, projectOffices, tenderBids, tenderInvitations, tenders } from "../../db/schema.js";
+import {
+  contractorSubmissions,
+  contractors,
+  projectOffices,
+  tenderBids,
+  tenderDocumentAcks,
+  tenderDocuments,
+  tenderInvitations,
+  tenders,
+} from "../../db/schema.js";
+import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
+import { presignedGet } from "../../lib/storage.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
-
-/**
- * Token-scoped contractor bid portal (Phase 7 gate). A contractor opens their
- * unguessable per-invitation magic link (`/bid/:token`) and sees ONLY their own
- * tender and bid — never another contractor's invitation, bid, or the firm's
- * internal data. No login: the 48-char accessToken is the capability.
- */
 
 async function loadByToken(db: DB, token: string) {
   const [row] = await db
     .select({
       invitationId: tenderInvitations.id,
       invitationStatus: tenderInvitations.status,
+      contractorId: tenderInvitations.contractorId,
       contractorName: contractors.name,
       tenderId: tenders.id,
+      projectId: tenders.projectId,
       tenderTitle: tenders.title,
       tenderStatus: tenders.status,
       scope: tenders.scope,
+      instructions: tenders.instructions,
       dueDate: tenders.dueDate,
       projectRef: projectOffices.ref,
       projectTitle: projectOffices.title,
@@ -36,15 +49,39 @@ async function loadByToken(db: DB, token: string) {
   return row;
 }
 
+async function tenderDocumentsForPortal(db: DB, tenderId: string, invitationId: string) {
+  const docs = await db
+    .select()
+    .from(tenderDocuments)
+    .where(eq(tenderDocuments.tenderId, tenderId))
+    .orderBy(desc(tenderDocuments.createdAt));
+  const acks = await db
+    .select({ documentId: tenderDocumentAcks.documentId })
+    .from(tenderDocumentAcks)
+    .where(eq(tenderDocumentAcks.invitationId, invitationId));
+  const ackSet = new Set(acks.map((a) => a.documentId));
+  return Promise.all(
+    docs.map(async (d) => ({
+      id: d.id,
+      title: d.title,
+      kind: d.kind,
+      fileName: d.fileName,
+      addendumNo: d.addendumNo,
+      issuedAt: d.issuedAt,
+      downloadUrl: await presignedGet(d.storageKey).catch(() => null),
+      acknowledged: ackSet.has(d.id),
+      requiresAck: d.addendumNo != null,
+    })),
+  );
+}
+
 export const contractorPortalRouter = router({
-  /** Open an invitation by token: returns only this invitation's tender + own bid. */
   byToken: publicProcedure
     .input(z.object({ token: z.string().min(10).max(96) }))
     .query(async ({ ctx, input }) => {
       const inv = await loadByToken(ctx.db, input.token);
       if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "This bid link is invalid or has expired." });
 
-      // First open marks the invitation as viewed (don't downgrade later states).
       if (inv.invitationStatus === "INVITED") {
         await ctx.db.update(tenderInvitations).set({ status: "VIEWED" }).where(eq(tenderInvitations.id, inv.invitationId));
       }
@@ -60,12 +97,17 @@ export const contractorPortalRouter = router({
         .where(eq(tenderBids.invitationId, inv.invitationId));
 
       const firm = await getFirm(ctx.db);
+      const documents = await tenderDocumentsForPortal(ctx.db, inv.tenderId, inv.invitationId);
+      const pendingAddenda = documents.filter((d) => d.requiresAck && !d.acknowledged);
+
       return {
         firmName: firm.companyName,
         contractorName: inv.contractorName,
+        token: input.token,
         tender: {
           title: inv.tenderTitle,
           scope: inv.scope,
+          instructions: inv.instructions,
           dueDate: inv.dueDate,
           status: inv.tenderStatus,
           statusLabel: TENDER_STATUS_LABEL[inv.tenderStatus as keyof typeof TENDER_STATUS_LABEL] ?? inv.tenderStatus,
@@ -75,15 +117,21 @@ export const contractorPortalRouter = router({
         },
         invitationStatus: inv.invitationStatus === "INVITED" ? "VIEWED" : inv.invitationStatus,
         bid: bid ?? null,
+        documents,
+        pendingAddendaCount: pendingAddenda.length,
       };
     }),
 
-  /** Submit (or update) this contractor's sealed bid — only while the tender is OPEN. */
   submitBid: publicProcedure.input(ContractorBidByToken).mutation(async ({ ctx, input }) => {
     const inv = await loadByToken(ctx.db, input.token);
     if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "This bid link is invalid or has expired." });
     if (inv.tenderStatus !== "OPEN")
       throw new TRPCError({ code: "BAD_REQUEST", message: "This tender is not open for bids." });
+
+    const docs = await tenderDocumentsForPortal(ctx.db, inv.tenderId, inv.invitationId);
+    if (docs.some((d) => d.requiresAck && !d.acknowledged)) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Acknowledge all addenda before submitting your bid." });
+    }
 
     const [existing] = await ctx.db
       .select({ id: tenderBids.id })
@@ -111,5 +159,80 @@ export const contractorPortalRouter = router({
     }
     await ctx.db.update(tenderInvitations).set({ status: "SUBMITTED" }).where(eq(tenderInvitations.id, inv.invitationId));
     return { ok: true as const };
+  }),
+
+  decline: publicProcedure.input(TenderDeclineByToken).mutation(async ({ ctx, input }) => {
+    const inv = await loadByToken(ctx.db, input.token);
+    if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+    if (inv.tenderStatus !== "OPEN")
+      throw new TRPCError({ code: "BAD_REQUEST", message: "This tender is not open." });
+    await ctx.db.update(tenderInvitations).set({ status: "DECLINED" }).where(eq(tenderInvitations.id, inv.invitationId));
+    return { ok: true as const };
+  }),
+
+  ackDocument: publicProcedure.input(TenderAckDocument).mutation(async ({ ctx, input }) => {
+    const inv = await loadByToken(ctx.db, input.token);
+    if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+    const [doc] = await ctx.db
+      .select()
+      .from(tenderDocuments)
+      .where(and(eq(tenderDocuments.id, input.documentId), eq(tenderDocuments.tenderId, inv.tenderId)));
+    if (!doc) throw new TRPCError({ code: "NOT_FOUND", message: "Document not found" });
+    await ctx.db
+      .insert(tenderDocumentAcks)
+      .values({ invitationId: inv.invitationId, documentId: input.documentId })
+      .onConflictDoNothing();
+    return { ok: true as const };
+  }),
+
+  listCoordination: publicProcedure
+    .input(z.object({ token: z.string().min(10).max(96) }))
+    .query(async ({ ctx, input }) => {
+      const inv = await loadByToken(ctx.db, input.token);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db
+        .select({
+          id: contractorSubmissions.id,
+          kind: contractorSubmissions.kind,
+          subject: contractorSubmissions.subject,
+          body: contractorSubmissions.body,
+          status: contractorSubmissions.status,
+          responseNote: contractorSubmissions.responseNote,
+          createdAt: contractorSubmissions.createdAt,
+        })
+        .from(contractorSubmissions)
+        .where(
+          and(
+            eq(contractorSubmissions.projectId, inv.projectId),
+            eq(contractorSubmissions.contractorId, inv.contractorId),
+          ),
+        )
+        .orderBy(desc(contractorSubmissions.createdAt));
+    }),
+
+  submitCoordination: publicProcedure.input(ConstructionSubmitByToken).mutation(async ({ ctx, input }) => {
+    const inv = await loadByToken(ctx.db, input.token);
+    if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+    const [row] = await ctx.db
+      .insert(contractorSubmissions)
+      .values({
+        projectId: inv.projectId,
+        contractorId: inv.contractorId,
+        kind: input.kind,
+        subject: input.subject,
+        body: input.body ?? null,
+      })
+      .returning({ id: contractorSubmissions.id });
+    await writeActivity(ctx.db, {
+      projectId: inv.projectId,
+      objectType: "contractor_submission",
+      objectId: row!.id,
+      eventType: "construction.submitted",
+      actorName: inv.contractorName,
+      visibility: "STAFF",
+      summary: `${input.kind}: ${input.subject}`,
+      metadata: { contractorId: inv.contractorId },
+    });
+    return { ok: true as const, id: row!.id };
   }),
 });

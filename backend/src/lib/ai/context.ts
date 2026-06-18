@@ -9,6 +9,12 @@ import {
 } from "../../db/schema.js";
 import { getActionCenter } from "../../modules/dashboard/readModels.js";
 import { getFirm } from "../firm.js";
+import { AGENT_ANSWER_RULES, AORMS_OPERATOR_SYSTEM } from "./aorms-operator.js";
+import { buildAgentMockAnswer } from "./agent-response.js";
+import {
+  formatOperatorSnapshot,
+  loadOperatorSnapshot,
+} from "./operator-context.js";
 import type { AiContextBundle } from "./templates.js";
 import {
   buildTemplateDraft,
@@ -17,7 +23,11 @@ import {
   type ProjectCtx,
 } from "./templates.js";
 
-type UserCtx = { id: string; role: string };
+type UserCtx = { id: string; role: string; email?: string; fullName?: string };
+
+function isAgentQuery(input: { mode?: "draft" | "agent"; prompt?: string }): boolean {
+  return input.mode === "agent" && !!input.prompt?.trim();
+}
 
 async function loadProject(
   db: DB,
@@ -29,7 +39,7 @@ async function loadProject(
       id: projectOffices.id,
       ref: projectOffices.ref,
       title: projectOffices.title,
-      stage: projectOffices.stage,
+      status: projectOffices.status,
       clientId: projectOffices.clientId,
       archivedAt: projectOffices.archivedAt,
     })
@@ -52,7 +62,7 @@ async function loadProject(
       ref: row.ref,
       title: row.title,
       clientName,
-      stage: row.stage,
+      stage: row.status,
     },
     sources: [
       {
@@ -76,18 +86,18 @@ async function loadDecisions(
     .limit(25);
   return {
     decisions: rows.map((d) => ({
-      ref: d.ref,
+      ref: d.id.slice(0, 8),
       title: d.title,
       state: d.state,
       category: d.revisionCategory,
       source: d.revisionSource,
-      description: d.description,
+      description: d.rationale,
     })),
     sources: rows.slice(0, 8).map((d) => ({
       entityType: "DECISION",
       entityId: d.id,
       label: `${d.ref} ${d.title}`,
-      excerpt: d.description?.slice(0, 200) ?? undefined,
+      excerpt: d.rationale?.slice(0, 200) ?? undefined,
     })),
   };
 }
@@ -120,11 +130,38 @@ async function loadBillingContext(db: DB, user: UserCtx): Promise<BillingCtx & {
   return { billingReady, overdue, sources };
 }
 
+async function assembleAgentContext(
+  db: DB,
+  user: UserCtx,
+  input: { projectId?: string; prompt?: string },
+): Promise<AiContextBundle> {
+  const { snapshot, sources } = await loadOperatorSnapshot(db, user, input.projectId);
+  const liveBlock = formatOperatorSnapshot(snapshot);
+  const question = input.prompt!.trim();
+
+  return {
+    systemPrompt: `${AORMS_OPERATOR_SYSTEM}\n\n${AGENT_ANSWER_RULES}`,
+    userPrompt: `## Live context (permission-filtered)\n${liveBlock}\n\n## User question\n${question}\n\nAnswer using the live context above. Name AORMS screens when pointing the user to more detail.`,
+    sources,
+    promptSummary: `AGENT${snapshot.project ? ` · ${snapshot.project.ref}` : ""} · ${question.slice(0, 80)}`,
+  };
+}
+
 export async function assembleAiContext(
   db: DB,
   user: UserCtx,
-  input: { kind: AiDraftKind; projectId?: string; prompt?: string; contextQuery?: string },
+  input: {
+    kind: AiDraftKind;
+    mode?: "draft" | "agent";
+    projectId?: string;
+    prompt?: string;
+    contextQuery?: string;
+  },
 ): Promise<AiContextBundle> {
+  if (isAgentQuery(input)) {
+    return assembleAgentContext(db, user, input);
+  }
+
   const sources: AiSourceRef[] = [];
   let project: ProjectCtx | undefined;
   let decisionRows: DecisionCtx[] | undefined;
@@ -132,6 +169,7 @@ export async function assembleAiContext(
 
   const billingKinds = new Set(["BILLING_ASSISTANT"]);
   const crifKinds = new Set(["CRIF_SUMMARY", "CRIF_IMPACT", "CRIF_RISK", "SUMMARY"]);
+  const projectRequiredKinds = new Set(["CRIF_SUMMARY", "CRIF_IMPACT", "CRIF_RISK"]);
 
   if (billingKinds.has(input.kind)) {
     const b = await loadBillingContext(db, user);
@@ -148,7 +186,7 @@ export async function assembleAiContext(
       decisionRows = d.decisions;
       sources.push(...d.sources);
     }
-  } else if (crifKinds.has(input.kind) && input.kind !== "BILLING_ASSISTANT") {
+  } else if (projectRequiredKinds.has(input.kind)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Project required for this draft kind" });
   }
 
@@ -172,7 +210,7 @@ export async function assembleAiContext(
 
   return {
     systemPrompt:
-      "You are an assistant for an architecture firm (AORMS). Produce editable draft text only. Never auto-issue documents. Cite provided context. Do not invent fees or legal commitments.",
+      "You are ESTI, assistant for an architecture practice using AORMS. Produce editable draft text only. Never auto-issue documents. Cite provided context. Do not invent fees or legal commitments. Refer to AORMS modules (Dashboard, Projects, CRIF, Invoices) when guiding staff.",
     userPrompt: `${contextBlock}\n\n---\n\nReference draft:\n${templateOutput}`,
     sources,
     promptSummary: `${input.kind}${project ? ` · ${project.ref}` : ""}`.slice(0, 200),
@@ -182,8 +220,18 @@ export async function assembleAiContext(
 export async function generateMockOutput(
   db: DB,
   user: UserCtx,
-  input: { kind: AiDraftKind; projectId?: string; prompt?: string },
+  input: { kind: AiDraftKind; mode?: "draft" | "agent"; projectId?: string; prompt?: string },
 ): Promise<{ output: string; sources: AiSourceRef[]; promptSummary: string }> {
+  if (isAgentQuery(input)) {
+    const bundle = await assembleAgentContext(db, user, input);
+    const { snapshot } = await loadOperatorSnapshot(db, user, input.projectId);
+    return {
+      output: buildAgentMockAnswer(snapshot, input.prompt!),
+      sources: bundle.sources,
+      promptSummary: bundle.promptSummary,
+    };
+  }
+
   const bundle = await assembleAiContext(db, user, input);
   const firm = await getFirm(db);
   let project: ProjectCtx | undefined;

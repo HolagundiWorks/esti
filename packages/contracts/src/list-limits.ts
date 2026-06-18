@@ -23,3 +23,27 @@ export const OfficeListParams = z.object({
   limit: z.number().int().min(1).max(LIST_LIMIT_MAX).optional(),
 });
 export type OfficeListParams = z.infer<typeof OfficeListParams>;
+
+/** Keyset cursor — stable ordering by (createdAt desc, id desc). */
+export const CursorParams = z.object({
+  createdAt: z.string().datetime(),
+  id: z.string().uuid(),
+});
+export type CursorParams = z.infer<typeof CursorParams>;
+
+export const CursorListParams = z.object({
+  limit: z.number().int().min(1).max(LIST_LIMIT_MAX).optional(),
+  cursor: CursorParams.nullish(),
+});
+export type CursorListParams = z.infer<typeof CursorListParams>;
+
+export type CursorPage<T> = {
+  rows: T[];
+  nextCursor: CursorParams | null;
+};
+
+/** Project-scoped lists with keyset cursor pagination. */
+export const ProjectCursorListParams = ProjectListParams.extend({
+  cursor: CursorParams.nullish(),
+});
+export type ProjectCursorListParams = z.infer<typeof ProjectCursorListParams>;

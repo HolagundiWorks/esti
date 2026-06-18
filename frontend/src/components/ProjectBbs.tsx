@@ -1,5 +1,6 @@
 import {
   Button,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -85,6 +86,10 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
     { bbsId: openId ?? "" },
     { enabled: !!openId },
   );
+  const validateQ = trpc.bbs.validate.useQuery(
+    { bbsId: openId ?? "" },
+    { enabled: !!openId },
+  );
 
   const [newOpen, setNewOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -97,8 +102,12 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
     },
   });
 
-  const invalidateItems = () =>
-    openId && utils.bbs.items.invalidate({ bbsId: openId });
+  const invalidateItems = () => {
+    if (openId) {
+      void utils.bbs.items.invalidate({ bbsId: openId });
+      void utils.bbs.validate.invalidate({ bbsId: openId });
+    }
+  };
   const addItem = trpc.bbs.addItem.useMutation({
     onSuccess: () => {
       invalidateItems();
@@ -147,6 +156,8 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
   const totalWeight = items.reduce((s, it) => s + it.weightKg, 0);
 
   const open = (listQ.data ?? []).find((b) => b.id === openId) ?? null;
+  const validation = validateQ.data;
+  const exportBlocked = validation ? !validation.ok : false;
 
   return (
     <>
@@ -211,6 +222,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                   <Button
                     size="sm"
                     kind="ghost"
+                    disabled={exportBlocked}
                     onClick={() => {
                       void utils.bbs.exportRows.fetch({ bbsId: open.id }).then((data) => {
                         if (data.rows.length) downloadXlsx(data.rows, "BBS", `${data.ref ?? open.title}-bbs`);
@@ -219,7 +231,13 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                   >
                     Export XLSX
                   </Button>
-                  <BbsPdf id={open.id} initial={open.pdfStatus ?? "NONE"} />
+                  {!exportBlocked ? (
+                    <BbsPdf id={open.id} initial={open.pdfStatus ?? "NONE"} />
+                  ) : (
+                    <Button size="sm" kind="ghost" disabled>
+                      Issue PDF
+                    </Button>
+                  )}
                 </>
               )}
               <Button size="sm" kind="tertiary" onClick={() => setTemplateOpen(true)}>
@@ -233,6 +251,19 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               </Button>
             </Stack>
           </div>
+          {validation && validation.issues.length > 0 && (
+            <InlineNotification
+              kind={validation.ok ? "warning" : "error"}
+              lowContrast
+              hideCloseButton
+              title={validation.ok ? "Review before issue" : "Fix validation errors before export"}
+              subtitle={validation.issues
+                .slice(0, 4)
+                .map((issue) => issue.message)
+                .join(" · ")}
+              style={{ marginBottom: 12 }}
+            />
+          )}
           <TableContainer
             title="Bar schedule"
             description="Weight = d²/162 × length × bars"

@@ -134,7 +134,7 @@ export const users = pgTable("esti_user", {
   consultantId: uuid("consultant_id"),
   // Per-user dashboard layout (react-grid-layout items); null = default layout.
   dashboardLayout: jsonb("dashboard_layout"),
-  // Read-mostly demo accounts: blocked from uploads and credential changes.
+  // Seeded demo workspace — uploads/AI blocked; credential admin blocked in tRPC.
   isDemo: boolean("is_demo").notNull().default(false),
   /** Secret token for iCal/Google Calendar workload subscription (rotate to revoke). */
   calendarFeedToken: text("calendar_feed_token"),
@@ -152,6 +152,23 @@ export const sessions = pgTable("esti_session", {
     .references(() => users.id),
   tokenHash: text("token_hash").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+});
+
+/** ESTICAD / companion bearer tokens — refresh + short-lived access pairs. */
+export const deviceSessions = pgTable("esti_device_session", {
+  id: id(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  clientId: text("client_id").notNull().default("esticad"),
+  deviceName: text("device_name").notNull(),
+  refreshTokenHash: text("refresh_token_hash").notNull(),
+  accessTokenHash: text("access_token_hash").notNull(),
+  accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }).notNull(),
+  refreshExpiresAt: timestamp("refresh_expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 

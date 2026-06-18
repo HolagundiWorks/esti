@@ -24,9 +24,7 @@ export function registerDrawingUpload(app: FastifyInstance): void {
   }, async (req, reply) => {
     const token = req.cookies[SESSION_COOKIE];
     const user = await userFromToken(token);
-    const denial = uploadDenial(user, UPLOAD_ROUTE_CAPABILITIES["/upload/drawing"], {
-      allowDemo: true,
-    });
+    const denial = uploadDenial(user, UPLOAD_ROUTE_CAPABILITIES["/upload/drawing"]);
     if (denial) return reply.code(denial.status).send({ error: denial.error });
 
     const fields: Record<string, string> = {};

@@ -1,6 +1,6 @@
 # ESTI Product Requirements
 
-**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-12
+**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
 
 This PRD aligns the supplied ESI-AORMS requirements with ESTI's agreed product
 boundary. It distinguishes existing capabilities from work still required. The
@@ -141,7 +141,12 @@ accounting systems.
 - COA-aware fee proposals, scope, deliverables, exclusions, versions, approval.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
-- DSR/SOR, BOQ, drawing takeoff, BBS, and exports.
+- DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports.
+- **ESTICAD companion** (planned Phase 13): native desktop CAD links to AORMS for
+  cloud-only takeoff (world-coordinate measurements, server-published catalog,
+  no local measurement storage) and proxied Ollama AI for the full CAD use-case
+  set. Requires a paying firm account and staff write access; offline drafting
+  without takeoff is supported. See [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
 - A visual estimation connector may propagate quantities through reusable
   assemblies after the core estimate model and tests are mature.
 
@@ -163,6 +168,10 @@ All money is integer paise and formatted through shared `formatINR` utilities.
 - AI Studio drafts proposals, scopes, agreements, specifications, reports, MOM,
   and RFI responses. Outputs are editable, source-linked, permission-aware,
   auditable, and never auto-issued.
+- **CAD AI** (ESTICAD companion, planned): dimensioning, naming, documentation,
+  quantity extraction, layer audit, revision summary, plot assist, and BOQ
+  narrative — proxied through the same Ollama gateway with CAD-specific draft
+  kinds and ESTICAD-side reconciliation before commit.
 - Admin exposes application version, deployment date, pipeline status, release
   notes, users, capabilities, audit review, retention, backup, and restore state.
 

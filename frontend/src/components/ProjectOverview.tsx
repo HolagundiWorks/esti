@@ -217,7 +217,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const drawings = drawingsQ.data ?? [];
   const revisions = revisionsQ.data ?? [];
   const notes = notesQ.data ?? [];
-  const allDecisions = decisionsQ.data ?? [];
+  const allDecisions = decisionsQ.data?.rows ?? [];
   const openTasks = tasks.filter((t) => t.status !== "DONE");
   const overdueTasks = tasks.filter(
     (t) =>

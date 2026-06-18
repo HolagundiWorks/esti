@@ -1,31 +1,43 @@
-import {
-  TakeoffMeasurementCreate,
-  computeTakeoffBoq,
-  takeoffElement,
-} from "@esti/contracts";
+import { ProjectCursorListParams, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { drawings, measurements } from "../../db/schema.js";
-import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { importTakeoffToEstimate, previewTakeoffForDsr } from "../boq/takeoffImport.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
+const ESTICAD_ONLY =
+  "Quantity takeoff is only available in ESTICAD. Open the drawing from AORMS with Open in ESTICAD.";
+
 export const measurementRouter = router({
   listByDrawing: protectedProcedure
-    .input(z.object({ drawingId: z.string().uuid() }))
+    .input(
+      z.object({
+        drawingId: z.string().uuid(),
+        limit: z.number().int().min(1).max(500).optional(),
+        cursor: ProjectCursorListParams.shape.cursor,
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(measurements)
-        .where(eq(measurements.drawingId, input.drawingId))
-        .orderBy(desc(measurements.createdAt));
+        .where(
+          and(
+            eq(measurements.drawingId, input.drawingId),
+            cursorWhere(input.cursor, measurements.createdAt, measurements.id),
+          ),
+        )
+        .orderBy(desc(measurements.createdAt), desc(measurements.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select({
           id: measurements.id,
           label: measurements.label,
@@ -40,11 +52,19 @@ export const measurementRouter = router({
           itemCount: measurements.itemCount,
           drawingTitle: drawings.title,
           drawingRef: drawings.ref,
+          createdAt: measurements.createdAt,
         })
         .from(measurements)
         .innerJoin(drawings, eq(drawings.id, measurements.drawingId))
-        .where(eq(measurements.projectId, input.projectId))
-        .orderBy(desc(measurements.createdAt));
+        .where(
+          and(
+            eq(measurements.projectId, input.projectId),
+            cursorWhere(input.cursor, measurements.createdAt, measurements.id),
+          ),
+        )
+        .orderBy(desc(measurements.createdAt), desc(measurements.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   /** Preview takeoff quantities with DSR rates for a chosen master schedule. */
@@ -57,72 +77,13 @@ export const measurementRouter = router({
     )
     .query(async ({ ctx, input }) => previewTakeoffForDsr(ctx.db, input)),
 
-  create: protectedProcedure.input(TakeoffMeasurementCreate).mutation(async ({ ctx, input }) => {
-    const [drawing] = await ctx.db
-      .select({ projectId: drawings.projectId })
-      .from(drawings)
-      .where(eq(drawings.id, input.drawingId));
-    if (!drawing) throw new TRPCError({ code: "NOT_FOUND", message: "Drawing not found" });
-    if (drawing.projectId !== input.projectId) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Drawing belongs to another project" });
-    }
-
-    const el = takeoffElement(input.elementTypeId);
-    if (!el) throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown takeoff element type" });
-
-    const boq = computeTakeoffBoq({
-      elementTypeId: input.elementTypeId,
-      measureKind: input.kind,
-      realLength: input.realLength,
-      unit: input.unit,
-      heightMm: input.heightMm,
-      itemCount: input.itemCount,
-    });
-
-    const [row] = await ctx.db
-      .insert(measurements)
-      .values({
-        drawingId: input.drawingId,
-        projectId: input.projectId,
-        label: input.label,
-        kind: input.kind,
-        vbLength: input.vbLength,
-        realLength: input.realLength,
-        unit: input.unit,
-        elementTypeId: input.elementTypeId,
-        elementCategory: el.category,
-        heightMm: input.heightMm ?? el.defaultHeightMm ?? null,
-        itemCount: input.itemCount ?? 1,
-        boqQty: boq.boqQty,
-        boqUnit: boq.boqUnit,
-        boqDescription: boq.boqDescription,
-      })
-      .returning();
-    await writeAudit(ctx.db, {
-      entity: "measurement",
-      entityId: row!.id,
-      action: "CREATE",
-      actorId: ctx.user.id,
-      after: row,
-    });
-    return row!;
+  create: protectedProcedure.mutation(() => {
+    throw new TRPCError({ code: "FORBIDDEN", message: ESTICAD_ONLY });
   }),
 
-  remove: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db.select().from(measurements).where(eq(measurements.id, input.id));
-      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      await ctx.db.delete(measurements).where(eq(measurements.id, input.id));
-      await writeAudit(ctx.db, {
-        entity: "measurement",
-        entityId: input.id,
-        action: "DELETE",
-        actorId: ctx.user.id,
-        before,
-      });
-      return { ok: true };
-    }),
+  remove: protectedProcedure.mutation(() => {
+    throw new TRPCError({ code: "FORBIDDEN", message: ESTICAD_ONLY });
+  }),
 
   /** Push tagged takeoff rows into a draft estimate (DSR rates applied when matched). */
   applyToEstimate: protectedProcedure

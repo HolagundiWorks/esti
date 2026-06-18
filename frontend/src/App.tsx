@@ -50,6 +50,7 @@ import { Consultants } from "./routes/Consultants.js";
 import { Contractors } from "./routes/Contractors.js";
 import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
 import { Tenders } from "./routes/Tenders.js";
+import { Construction } from "./routes/Construction.js";
 import { Contracts } from "./routes/Contracts.js";
 import { DocumentsRegister } from "./routes/DocumentsRegister.js";
 import { Letters } from "./routes/Letters.js";
@@ -260,6 +261,7 @@ function AppShell() {
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
         { label: "Tenders", to: "/office/tenders" },
+        { label: "Construction", to: "/office/construction" },
         { label: "AI Studio", to: "/office/ai-studio" },
       ],
     },
@@ -369,6 +371,7 @@ function AppShell() {
                 <Route path="/office/letters" element={<Letters />} />
                 <Route path="/office/contracts" element={<Contracts />} />
                 <Route path="/office/tenders" element={<Tenders />} />
+                <Route path="/office/construction" element={<Construction />} />
                 <Route path="/tasks" element={<Work />} />
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 <Route
@@ -439,7 +442,7 @@ function AppShell() {
             </footer>
           </Content>
           <FloatingDock theme={theme} onToggleTheme={toggleTheme} />
-          <AiAgentCommand theme={theme} />
+          <AiAgentCommand />
         </div>
       </Theme>
     </ThemeContext.Provider>

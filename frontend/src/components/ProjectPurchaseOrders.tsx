@@ -1,5 +1,6 @@
 import {
   Button,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -28,17 +29,28 @@ const PO_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   CANCELLED: "red",
 };
 
-type Line = { description: string; unit: string; qty: string; rate: string };
+type Line = {
+  description: string;
+  unit: string;
+  qty: string;
+  rate: string;
+  specItemId: string;
+};
 const blankLine = (): Line => ({
   description: "",
   unit: "",
   qty: "1",
   rate: "",
+  specItemId: "",
 });
 
 export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const listQ = trpc.purchaseOrders.listByProject.useQuery({ projectId });
+  const specOptsQ = trpc.purchaseOrders.listSpecLineOptions.useQuery(
+    { projectId },
+    { enabled: !!projectId },
+  );
   const invalidate = () =>
     utils.purchaseOrders.listByProject.invalidate({ projectId });
   const updateStatus = trpc.purchaseOrders.updateStatus.useMutation({
@@ -66,6 +78,23 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
 
   const setLine = (i: number, k: keyof Line, v: string) =>
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, [k]: v } : l)));
+
+  const linkSpecLine = (i: number, specItemId: string) => {
+    const opt = specOptsQ.data?.find((o) => o.specItemId === specItemId);
+    setLines((ls) =>
+      ls.map((l, idx) =>
+        idx === i
+          ? {
+              ...l,
+              specItemId,
+              description: opt
+                ? [opt.item, opt.make].filter(Boolean).join(" — ")
+                : l.description,
+            }
+          : l,
+      ),
+    );
+  };
   const previewTotal = lines.reduce(
     (s, l) =>
       s +
@@ -76,7 +105,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
     0,
   );
   const canSubmit =
-    lines.some((l) => l.description.trim()) && !create.isPending;
+    lines.some((l) => l.description.trim() || l.specItemId) && !create.isPending;
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -99,7 +128,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
         columnCount={5}
         empty={{
           title: "No purchase orders",
-          description: "Raise a PO with quantity × rate line items.",
+          description: "Raise a PO from project specifications or ad-hoc line items.",
         }}
       >
         <TableContainer title="Purchase orders">
@@ -194,13 +223,18 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
             vendor: vendor || undefined,
             title: title || undefined,
             items: lines
-              .filter((l) => l.description.trim())
-              .map((l) => ({
-                description: l.description,
-                unit: l.unit || undefined,
-                qty: Number(l.qty || "0"),
-                ratePaise: Math.round(Number(l.rate || "0") * 100),
-              })),
+              .filter((l) => l.description.trim() || l.specItemId)
+              .map((l) => {
+                const opt = specOptsQ.data?.find((o) => o.specItemId === l.specItemId);
+                return {
+                  description: l.description,
+                  unit: l.unit || undefined,
+                  qty: Number(l.qty || "0"),
+                  ratePaise: Math.round(Number(l.rate || "0") * 100),
+                  specItemId: l.specItemId || undefined,
+                  catalogItemId: opt?.catalogItemId ?? undefined,
+                };
+              }),
           })
         }
       >
@@ -220,9 +254,20 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
             />
           </div>
 
+          {(specOptsQ.data?.length ?? 0) > 0 && (
+            <InlineNotification
+              kind="info"
+              lowContrast
+              hideCloseButton
+              subtitle="Link lines to specification sheet rows from the Knowledge Bank catalogue."
+              title="Procurement from specifications"
+            />
+          )}
+
           <Table size="sm">
             <TableHead>
               <TableRow>
+                <TableHeader>Specification</TableHeader>
                 <TableHeader>Description</TableHeader>
                 <TableHeader>Unit</TableHeader>
                 <TableHeader>Qty</TableHeader>
@@ -234,6 +279,21 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
             <TableBody>
               {lines.map((l, i) => (
                 <TableRow key={i}>
+                  <TableCell style={{ minWidth: 220 }}>
+                    <Select
+                      id={`l-spec-${i}`}
+                      labelText=""
+                      hideLabel
+                      size="sm"
+                      value={l.specItemId}
+                      onChange={(e) => linkSpecLine(i, e.target.value)}
+                    >
+                      <SelectItem value="" text="— Ad hoc —" />
+                      {(specOptsQ.data ?? []).map((o) => (
+                        <SelectItem key={o.specItemId} value={o.specItemId} text={o.label} />
+                      ))}
+                    </Select>
+                  </TableCell>
                   <TableCell>
                     <TextInput
                       id={`l-d-${i}`}

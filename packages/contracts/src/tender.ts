@@ -91,3 +91,39 @@ export const TenderBidInput = z.object({
   notes: z.string().trim().max(2000).optional(),
 });
 export type TenderBidInput = z.infer<typeof TenderBidInput>;
+
+export const TenderDocumentKind = z.enum(["DRAWING", "SPEC", "BOQ", "ADDENDUM", "OTHER"]);
+export type TenderDocumentKind = z.infer<typeof TenderDocumentKind>;
+
+export const TENDER_DOCUMENT_KIND_LABEL: Record<TenderDocumentKind, string> = {
+  DRAWING: "Drawing",
+  SPEC: "Specification",
+  BOQ: "BOQ",
+  ADDENDUM: "Addendum",
+  OTHER: "Other",
+};
+
+export const TENDER_DOC_EXTENSIONS = [".pdf", ".xlsx", ".xls", ".dwg", ".zip", ".docx"] as const;
+export const TENDER_DOC_MAX_BYTES = 25 * 1024 * 1024;
+
+export const TenderDocumentRegister = z.object({
+  tenderId: z.string().uuid(),
+  title: z.string().trim().min(1).max(200),
+  kind: TenderDocumentKind.default("OTHER"),
+  fileName: z.string().min(1).max(260),
+  storageKey: z.string().min(1).max(500),
+  addendumNo: z.number().int().min(1).max(99).optional(),
+  issuedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+export type TenderDocumentRegister = z.infer<typeof TenderDocumentRegister>;
+
+export const TenderDeclineByToken = z.object({
+  token: z.string().min(10).max(96),
+});
+export type TenderDeclineByToken = z.infer<typeof TenderDeclineByToken>;
+
+export const TenderAckDocument = z.object({
+  token: z.string().min(10).max(96),
+  documentId: z.string().uuid(),
+});
+export type TenderAckDocument = z.infer<typeof TenderAckDocument>;

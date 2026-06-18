@@ -1,10 +1,12 @@
 import type { AiSettings } from "@esti/contracts";
 import { assembleAiContext, generateMockOutput } from "./context.js";
+import { ollamaBaseUrlFromEnv, ollamaModelFromEnv } from "./ollama-config.js";
 import type { DB } from "../../db/index.js";
 import type { AiDraftKind, AiSourceRef } from "@esti/contracts";
 
 export type GatewayInput = {
   kind: AiDraftKind;
+  mode?: "draft" | "agent";
   projectId?: string;
   prompt?: string;
   contextQuery?: string;
@@ -25,17 +27,13 @@ type RuntimeMode =
   | { mode: "mock"; provider: "mock"; model: "template"; usedExternalApi: false };
 
 function ollamaBaseUrl(settings: AiSettings): string {
-  return (
-    settings.ollamaBaseUrl?.trim() ||
-    process.env.OLLAMA_BASE_URL?.trim() ||
-    "http://127.0.0.1:11434"
-  );
+  return settings.ollamaBaseUrl?.trim() || ollamaBaseUrlFromEnv();
 }
 
-function resolveRuntime(settings: AiSettings, isDemo: boolean): RuntimeMode {
-  const model = settings.model || process.env.OLLAMA_MODEL || "llama3.2";
+function resolveRuntime(settings: AiSettings): RuntimeMode {
+  const model = settings.model || ollamaModelFromEnv();
 
-  if (isDemo || settings.provider === "mock") {
+  if (settings.provider === "mock") {
     return { mode: "mock", provider: "mock", model: "template", usedExternalApi: false };
   }
 
@@ -82,7 +80,7 @@ async function callOllamaChat(input: {
 
 export async function runAiGateway(
   db: DB,
-  user: { id: string; role: string; isDemo?: boolean },
+  user: { id: string; role: string; email?: string; fullName?: string; isDemo?: boolean },
   settings: AiSettings,
   input: GatewayInput,
 ): Promise<GatewayResult> {
@@ -90,7 +88,7 @@ export async function runAiGateway(
     throw new Error("AI Studio is disabled for this firm");
   }
 
-  const runtime = resolveRuntime(settings, !!user.isDemo);
+  const runtime = resolveRuntime(settings);
   const bundle = await assembleAiContext(db, user, input);
 
   if (runtime.mode === "ollama") {
@@ -111,8 +109,18 @@ export async function runAiGateway(
         tokenEstimate: tokens,
       };
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Ollama call failed";
-      throw new Error(`${msg} — check Ollama is running and the model is pulled`);
+      const mock = await generateMockOutput(db, user, input);
+      const hint =
+        err instanceof Error ? err.message : "Ollama unavailable";
+      return {
+        output: `${mock.output}\n\n---\n*Ollama fallback (${hint.slice(0, 120)})*`,
+        sources: mock.sources,
+        promptSummary: mock.promptSummary,
+        provider: "mock",
+        model: "template-fallback",
+        usedExternalApi: false,
+        tokenEstimate: null,
+      };
     }
   }
 

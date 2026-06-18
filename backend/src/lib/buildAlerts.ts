@@ -1,5 +1,5 @@
 import type { EscalationSettings } from "@esti/contracts";
-import { and, eq, gte, isNotNull, lt, lte, notInArray } from "drizzle-orm";
+import { and, eq, gte, isNotNull, lt, lte, notInArray, sql } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import {
   approvals,
@@ -9,9 +9,11 @@ import {
   leaves,
   permits,
   portalSubmissions,
+  contractorSubmissions,
   projectOffices,
   tasks,
   teamMembers,
+  tenders,
 } from "../db/schema.js";
 
 export type Severity = "high" | "medium" | "low";
@@ -21,7 +23,9 @@ export type AlertKind =
   | "permit"
   | "submission"
   | "task"
-  | "leave";
+  | "leave"
+  | "tender"
+  | "construction";
 
 export interface Alert {
   id: string;
@@ -47,6 +51,22 @@ const PORTAL_KIND_LABEL: Record<string, string> = {
   NOTE: "Consultant note",
 };
 
+/** All alert kinds emitted by {@link buildAlerts}. */
+export const ALERT_KINDS: readonly AlertKind[] = [
+  "approval",
+  "followup",
+  "permit",
+  "submission",
+  "task",
+  "leave",
+  "tender",
+  "construction",
+];
+
+export function isAlertKind(value: string): value is AlertKind {
+  return (ALERT_KINDS as readonly string[]).includes(value);
+}
+
 function daysAgoIso(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
@@ -59,12 +79,73 @@ function daysAheadIso(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+function toDateIso(value: Date | string | null | undefined): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.slice(0, 10);
+  return value.toISOString().slice(0, 10);
+}
+
 function sortAlerts(alerts: Alert[]): Alert[] {
   return [...alerts].sort((a, b) => {
     const rank = (s: Severity) => (s === "high" ? 0 : s === "medium" ? 1 : 2);
     if (rank(a.severity) !== rank(b.severity)) return rank(a.severity) - rank(b.severity);
     return (a.date ?? "").localeCompare(b.date ?? "");
   });
+}
+
+export function mapTenderAlert(
+  t: {
+    id: string;
+    title: string;
+    dueDate: string | null;
+    projectId: string;
+    projectRef: string;
+  },
+  today: string,
+): Alert {
+  return {
+    id: `tender:${t.id}`,
+    kind: "tender",
+    severity: "medium",
+    title: `Tender closing: ${t.title}`,
+    detail: `Bids due ${t.dueDate}`,
+    projectId: t.projectId,
+    projectRef: t.projectRef,
+    date: t.dueDate,
+    immediate: t.dueDate != null && t.dueDate <= today,
+  };
+}
+
+export function mapConstructionAlert(c: {
+  id: string;
+  kind: string;
+  subject: string;
+  createdAt: Date | string;
+  projectId: string;
+  projectRef: string;
+}): Alert {
+  return {
+    id: `construction:${c.id}`,
+    kind: "construction",
+    severity: c.kind === "NCR" || c.kind === "RFI" ? "high" : "medium",
+    title: `${c.kind}: ${c.subject}`,
+    detail: "Awaiting firm response",
+    projectId: c.projectId,
+    projectRef: c.projectRef,
+    date: toDateIso(c.createdAt),
+    immediate: c.kind === "NCR" || c.kind === "RFI",
+  };
+}
+
+/** Validate alert shape returned from {@link buildAlerts}. */
+export function assertValidAlert(alert: Alert): void {
+  if (!alert.id || typeof alert.id !== "string") throw new Error("alert.id required");
+  if (!isAlertKind(alert.kind)) throw new Error(`invalid alert kind: ${alert.kind}`);
+  if (alert.severity !== "high" && alert.severity !== "medium" && alert.severity !== "low") {
+    throw new Error(`invalid severity: ${alert.severity}`);
+  }
+  if (!alert.title || !alert.detail) throw new Error("alert title and detail required");
+  if (typeof alert.immediate !== "boolean") throw new Error("alert.immediate must be boolean");
 }
 
 /** Aggregate actionable alerts using owner-configured escalation thresholds. */
@@ -162,6 +243,37 @@ export async function buildAlerts(db: DB, rules: EscalationSettings): Promise<Al
       ),
     );
 
+  const openTendersDue = await db
+    .select({
+      id: tenders.id,
+      title: tenders.title,
+      dueDate: tenders.dueDate,
+      projectId: tenders.projectId,
+      projectRef: projectOffices.ref,
+    })
+    .from(tenders)
+    .innerJoin(projectOffices, eq(projectOffices.id, tenders.projectId))
+    .where(
+      and(
+        eq(tenders.status, "OPEN"),
+        isNotNull(tenders.dueDate),
+        lte(tenders.dueDate, daysAheadIso(7)),
+      ),
+    );
+
+  const openConstruction = await db
+    .select({
+      id: contractorSubmissions.id,
+      kind: contractorSubmissions.kind,
+      subject: contractorSubmissions.subject,
+      createdAt: contractorSubmissions.createdAt,
+      projectId: contractorSubmissions.projectId,
+      projectRef: projectOffices.ref,
+    })
+    .from(contractorSubmissions)
+    .innerJoin(projectOffices, eq(projectOffices.id, contractorSubmissions.projectId))
+    .where(eq(contractorSubmissions.status, "OPEN"));
+
   const upcomingLeave = await db
     .select({
       id: leaves.id,
@@ -200,7 +312,7 @@ export async function buildAlerts(db: DB, rules: EscalationSettings): Promise<Al
     detail: "Awaiting firm response",
     projectId: s.projectId,
     projectRef: s.projectRef,
-    date: s.date.toISOString().slice(0, 10),
+    date: toDateIso(s.date),
     immediate: s.kind === "RFI",
   });
 
@@ -251,6 +363,8 @@ export async function buildAlerts(db: DB, rules: EscalationSettings): Promise<Al
       date: t.dueDate,
       immediate: true,
     })),
+    ...openTendersDue.map((t) => mapTenderAlert(t, today)),
+    ...openConstruction.map((c) => mapConstructionAlert(c)),
   ];
 
   for (const lv of upcomingLeave) {
