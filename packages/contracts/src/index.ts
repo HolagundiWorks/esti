@@ -52,3 +52,4 @@ export * from "./tender.js";
 export * from "./construction.js";
 export * from "./list-limits.js";
 export * from "./companion.js";
+export * from "./trial-request.js";
