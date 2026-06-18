@@ -1,6 +1,6 @@
 # Production operations checklist
 
-Use this before declaring a VPS instance production-ready. Pair with [Phase 12 in ROADMAP](ROADMAP.md#phase-12---production-readiness-p0--partial).
+Use this before declaring a VPS instance production-ready. Engineering delivery through [Phase 12](ROADMAP.md#phase-12---production-readiness-p0) is complete; this checklist is the **operator gate** for a live firm instance.
 
 ---
 
@@ -20,10 +20,101 @@ Use this before declaring a VPS instance production-ready. Pair with [Phase 12 i
 
 ## TLS and nginx
 
-1. Point DNS A/AAAA records at the VPS.
-2. Run `deploy/bootstrap.sh` or install `deploy/nginx-proxy.conf` with your domain.
-3. Obtain TLS (Certbot / Let's Encrypt) — nginx terminates HTTPS and proxies to backend `:4000`.
-4. Confirm `curl -I https://your-domain` returns `200` and HSTS if configured.
+ESTI terminates TLS on **host nginx** (not inside Docker). Docker runs the API on `127.0.0.1:4000` only.
+
+### Prerequisites
+
+- DNS **A** record for your domain → VPS public IP
+- Ports **80** and **443** open (`ufw allow 80/tcp`, `ufw allow 443/tcp`)
+- HTTP site working first (nginx serves SPA from `/opt/esti/frontend/dist`)
+
+### Fresh VPS (SSL included)
+
+```bash
+cd /opt/esti
+bash deploy/setup-vps.sh
+# prompts for domain + admin email; runs certbot at the end
+```
+
+Or one-shot bootstrap:
+
+```bash
+DOMAIN=aorms.in bash deploy/bootstrap.sh
+```
+
+### Enable SSL on an existing HTTP-only VPS
+
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+
+cd /opt/esti
+DOMAIN=aorms.in   # hostname only — no https://
+
+sudo cp deploy/nginx-proxy.conf /etc/nginx/sites-available/esti
+sudo sed -i "s|DOMAIN_PLACEHOLDER|${DOMAIN}|g" /etc/nginx/sites-available/esti
+sudo sed -i "s|DEPLOY_DIR_PLACEHOLDER|/opt/esti|g" /etc/nginx/sites-available/esti
+sudo ln -sf /etc/nginx/sites-available/esti /etc/nginx/sites-enabled/esti
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+
+sudo certbot --nginx -d "$DOMAIN" --agree-tos -m you@example.com --redirect
+sudo systemctl reload nginx
+```
+
+Then update `.env`:
+
+```env
+COOKIE_SECURE=true
+ALLOWED_ORIGINS=https://aorms.in
+```
+
+Restart backend: `docker compose -f compose.prod.yaml up -d backend`
+
+### Verify
+
+```bash
+curl -I https://your-domain
+curl -s -o /dev/null -w "health %{http_code}\n" https://your-domain/health
+sudo certbot certificates
+sudo certbot renew --dry-run
+```
+
+Certbot installs a systemd timer for renewal.
+
+---
+
+## Database migrations
+
+Schema is managed by committed SQL under `backend/drizzle/`. The backend applies pending migrations on startup; demo seeds also call `ensureDemoSchema()` before mutating data.
+
+**Journal discipline:** every `backend/drizzle/NNNN_*.sql` file must appear in `backend/drizzle/meta/_journal.json`. Missing entries (historically `0041_wellbeing_opt_in`, `0048_ai_studio`) caused VPS columns to be absent while Drizzle ORM expected them. Repair migration `0056_schema_repair.sql` adds belt-and-suspenders `ADD COLUMN IF NOT EXISTS` for known drift.
+
+After deploy, confirm migrations applied:
+
+```bash
+docker compose -f compose.prod.yaml logs backend --tail 30
+docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
+  "SELECT id, hash FROM drizzle.__drizzle_migrations ORDER BY id DESC LIMIT 5;"
+```
+
+---
+
+## Demo seeds (public demo hosts only)
+
+Run after deploy on **demo** instances — not production firm data:
+
+```bash
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod
+```
+
+| Account | Email | Password |
+|---------|-------|----------|
+| Studio demo | `principal@demo.aorms.in` | `demo1234` (or `SEED_DEMO_PASSWORD`) |
+| Solo demo | `solo@demo.aorms.in` | same |
+
+See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
 ---
 
@@ -98,10 +189,23 @@ Owner UI: **Company → Release & readiness** mirrors `system.release` tRPC.
 
 - GitHub Actions: typecheck, lint, unit tests, backend + frontend production builds.
 - Dependency licenses: `node scripts/licenses.mjs`
+- Backend API smoke: `pnpm --filter @esti/backend test:api-smoke`
 - Worker limits / idempotency: [WORKER-LIMITS.md](WORKER-LIMITS.md)
 
 ---
 
 ## List caps
 
-Office-wide queries use `clampListLimit()` (default 100, max 500). Activity feed uses cursor pagination. Raise caps only after profiling — prefer filters and pagination over unbounded scans.
+Office-wide queries use `clampListLimit()` (default 100, max 500). Activity feed and project-scoped lists use cursor pagination. Raise caps only after profiling — prefer filters and pagination over unbounded scans.
+
+---
+
+## Deploy cadence
+
+```bash
+cd /opt/esti
+git pull
+bash deploy/deploy.sh
+```
+
+`deploy.sh` rebuilds images, extracts frontend `dist/` for host nginx, refreshes nginx config, and waits for `/health`.

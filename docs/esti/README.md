@@ -1,6 +1,6 @@
 # ESTI Documentation
 
-**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 This directory is the single source of truth for ESTI product and engineering
 direction. Historical audits were removed after their unresolved findings were
@@ -16,6 +16,9 @@ incorporated into the roadmap; they must not compete with current requirements.
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
+| [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes (Phase 12 operator gate) |
+| [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Studio vs solo demo accounts, HR toggle, seed commands |
+| [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [WORKFLOW-ARCHITECTURE-AUDIT](WORKFLOW-ARCHITECTURE-AUDIT.md) | Workflow, component hierarchy, and architecture audit snapshot (execution in ROADMAP Phase 2G) |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |

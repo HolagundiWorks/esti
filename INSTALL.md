@@ -77,7 +77,12 @@ Key variables (full list in `.env.example`):
 The schema is managed with **Drizzle migrations** committed under
 `backend/drizzle/`. The backend **applies any pending migrations automatically
 on startup**, so a fresh database is provisioned on first boot and upgrades
-apply when you deploy a newer image. No manual step is needed.
+apply when you deploy a newer image.
+
+**Important:** every new `.sql` file must be registered in
+`backend/drizzle/meta/_journal.json`. Missing journal entries skip migrations on
+VPS while the ORM schema still expects new columns — see
+[PRODUCTION-OPS](docs/esti/PRODUCTION-OPS.md#database-migrations).
 
 On first boot the backend also **creates the MinIO documents bucket**
 (`S3_BUCKET`, default `esti-documents`) if it does not exist. The Python worker
@@ -95,20 +100,20 @@ podman exec esti-backend sh -lc "cd /app/backend && pnpm db:generate"
 
 ## 5. Production checklist
 
-ESTI runs as a small-office self-host. Before exposing it publicly:
+Full VPS operator checklist: **[docs/esti/PRODUCTION-OPS.md](docs/esti/PRODUCTION-OPS.md)** (Phase 12).
+
+Summary before exposing a live firm instance:
 
 - [ ] Set a strong `SESSION_SECRET`, DB and object-store passwords in `.env`.
-- [ ] `COOKIE_SECURE=true` and terminate TLS in front of the SPA + API
-      (reverse proxy / load balancer).
+- [ ] Enable TLS — host nginx + Certbot; `COOKIE_SECURE=true`; `ALLOWED_ORIGINS=https://your-domain`.
 - [ ] Point `S3_PUBLIC_ENDPOINT` at a real, TLS-served object-store host.
-- [ ] Put the API and SPA behind your domain; restrict Postgres/Redis/MinIO
-      ports to the internal network (don't publish 5432/6379/9000 publicly).
-- [ ] Schedule **backups** of the `esti-db-data` and `esti-minio-data` volumes
-      (Postgres `pg_dump` + MinIO mirror). Restore-test them.
-- [ ] Rate limiting (auth + uploads) and content-sniffing upload validation are
-      built in; review limits in `backend/src/index.ts` for your traffic.
+- [ ] Put the API and SPA behind your domain; restrict Postgres/Redis/MinIO to internal network.
+- [ ] Run `deploy/restore-drill.sh` on a staging clone and record sign-off.
+- [ ] Rate limiting and upload validation are built in; review limits in `backend/src/index.ts`.
 
-See `docs/esti/ROADMAP.md` for the current hardening and implementation backlog.
+VPS deploy: `bash deploy/deploy.sh` after `git pull`. Fresh host: `bash deploy/setup-vps.sh`.
+
+See [ROADMAP Phase 12](docs/esti/ROADMAP.md#phase-12---production-readiness-p0) for delivered engineering scope.
 
 ---
 

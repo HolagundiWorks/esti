@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
 
@@ -27,7 +27,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 
 | Phase | Focus | Pri. | Status |
 |-------|--------|------|--------|
-| [0](#phase-0---documentation-baseline-p0) | Documentation baseline | P0 | 🔄 |
+| [0](#phase-0---documentation-baseline-p0) | Documentation baseline | P0 | ✅ |
 | [1](#phase-1---security-authorization-and-retention-p0) | Security & retention | P0 | ✅ |
 | [2](#phase-2---pure-carbon-and-responsive-shell-p0) | Pure Carbon shell | P0 | ✅ |
 | [2B](#phase-2b---data-visualisation-spacing-and-colour-semantics-p0) | Charts & spacing | P0 | ✅ |
@@ -56,7 +56,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 
 ## Product snapshot
 
-ESTI (AORMS) is a **working prototype** deployed at [aorms.in](https://aorms.in) — not yet production-complete.
+ESTI (AORMS) is **production-engineered through Phase 12** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -71,30 +71,36 @@ ESTI (AORMS) is a **working prototype** deployed at [aorms.in](https://aorms.in)
 - **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
 
-**Open before production declaration**
+**Before declaring a live firm instance production-ready**
 
-- Staging operator sign-off — run `deploy/restore-drill.sh` on the VPS clone and record in [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)
-- Phase 13D — CAD AI gateway (`ai.generateCad`) — deferred until 13B/C/E gates met ✅
+- **Operator only** — run `deploy/restore-drill.sh` on a staging VPS clone and record sign-off in [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)
+- **Phase 13D** — CAD AI gateway (`ai.generateCad`) — deferred; 13B/C/E complete
+
+**Post–Phase 12 engineering (active delivery)**
+
+- Phase 13D — ESTICAD CAD AI gateway — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
 
 ---
 
 ## Remaining work (priority order)
 
-1. **Staging ops** — operator runs restore drill on VPS clone and records sign-off ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
+1. **Staging ops (operator)** — restore drill sign-off on VPS clone ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
 2. **P2 — ESTICAD 13D** — CAD AI gateway (`ai.generateCad`) — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
 
 ---
 
 # Completed & active phases
 
-## Phase 0 - Documentation Baseline [P0]
+## Phase 0 - Documentation Baseline [P0] — ✅ Complete
 
 - [x] Align vision, PRD, module profile, architecture, Carbon policy, roadmap.
 - [x] Remove stale audit documents after moving findings into this roadmap.
 - [x] Resolve product boundary: selective contractor coordination, no contractor ERP.
-- [ ] Keep roadmap status current in every implementation pull request.
+- [x] Canonical index ([README](README.md)), ops checklist ([PRODUCTION-OPS](PRODUCTION-OPS.md)), and Phase 0–12 status aligned with code (2026-06-19).
 
-**Gate:** no canonical documents contradict product scope or delivery status.
+**Gate met:** no canonical documents contradict product scope or delivery status.
+
+**Standing rule:** every material feature PR updates PRD + roadmap in the same change set ([STABILITY-CHARTER](STABILITY-CHARTER.md)).
 
 ---
 
@@ -177,7 +183,7 @@ End-to-end interactive reinforcement arrangement and BBS generation per IS:456 /
 - [x] BBS engine, Zustand store, `SteelArranger` route with SVG canvas, Excel export, AI review.
 - [x] `dnd-kit` drag-and-drop bar placement; shape codes B/C/D/E; SLAB strip and FOOTING plan views.
 - [x] SteelFlow nav link; migration applied.
-- [ ] PDF export of BBS via worker (planned Phase 10).
+- [x] PDF export of BBS via worker — delivered in [Phase 10](#phase-10---commercial-and-estimation-expansion-p2).
 
 **Gate met:** user can define geometry, drag bars, export BBS to Excel, run IS:456 review — persisted via tRPC.
 
@@ -224,7 +230,7 @@ Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](WORKFLOW-ARCHITECTURE-AUDIT.md).
 
 - [x] Slice `schema.ts` by domain file; extract dashboard/project read models.
 - [x] Document `sf_*` SteelFlow naming.
-- [ ] Optional ASPRF / notification snapshot tables — deferred (live scores from domain tables).
+- [x] Optional ASPRF / notification snapshot tables — **deferred post–Phase 12** (live scores from domain tables; see [Deferred ideas](#deferred-ideas-p3)).
 
 **Gate met:** fresh migration creates tender bids; bookmarks land on correct tabs; schema split without drift.
 
@@ -404,24 +410,27 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 
 ---
 
-## Phase 12 - Production Readiness [P0] — ✅ Complete (2026-06-18)
+## Phase 12 - Production Readiness [P0] — ✅ Complete (2026-06-19)
 
 - [x] Backup/restore scripts — `deploy/backup.sh` (`--clean`), `deploy/restore.sh`, `deploy/restore-drill.sh`.
 - [x] Object-store bucket auto-provision on backend startup and worker upload (MinIO `esti-documents`).
 - [x] Prod startup hardening — `ensureBucketWithRetry`, MinIO `depends_on`, deploy `/health` gate, bootstrap bucket pre-create.
-- [x] VPS deploy scaffolding — `compose.prod.yaml`, `deploy/` scripts, nginx proxy, prod seeds, migration journal repair.
+- [x] VPS deploy scaffolding — `compose.prod.yaml`, `deploy/` scripts, nginx proxy, prod seeds, TLS via Certbot ([PRODUCTION-OPS](PRODUCTION-OPS.md#tls-and-nginx)).
 - [x] List caps — `clampListLimit()` on task/invoice/drawing/reconcile/users lists + project logs/archived; shared `ProjectListParams` / `OfficeListParams`.
-- [x] **Cursor pagination** — keyset pages on project decisions, comments, transmittals, and takeoff measurements (`ProjectCursorListParams`).
+- [x] **Cursor pagination** — keyset pages on project decisions, comments, transmittals, takeoff measurements, approvals, critical notes, engagements (`ProjectCursorListParams`).
 - [x] Release metadata — `/health` returns revision + checks; owner **Company → Release & readiness** panel; `system.release` tRPC.
-- [x] Worker PDF idempotency — skip re-render when `pdf_status=READY`; documented in `WORKER-LIMITS.md`.
+- [x] Worker PDF idempotency — skip re-render when `pdf_status=READY`; documented in [WORKER-LIMITS.md](WORKER-LIMITS.md).
 - [x] CI smoke — backend + frontend production builds in GitHub Actions; `scripts/licenses.mjs` for dependency audit.
-- [x] Production ops checklist — `docs/esti/PRODUCTION-OPS.md` (secrets, TLS, object-store, health probes).
-- [x] API smoke tests — `backend/src/smoke/production.test.ts`; `scripts/smoke-health.sh` for live `/health` + `/readyz`; `pnpm --filter @esti/backend test:api-smoke` for cursor lists.
+- [x] Production ops checklist — [PRODUCTION-OPS.md](PRODUCTION-OPS.md) (secrets, TLS, object-store, health probes, demo seeds).
+- [x] API smoke tests — `backend/src/smoke/production.test.ts`; `scripts/smoke-health.sh` for live `/health` + `/readyz`; `pnpm --filter @esti/backend test:api-smoke`.
 - [x] Restore drill sign-off checklist — [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record) (operator runs `deploy/restore-drill.sh` on staging VPS).
-- [x] Cursor pagination on remaining project-scoped lists — approvals, critical notes, engagements.
 - [x] Extended API integration smoke — `test:api-smoke` + extended `test:companion` (13B/C/E paths).
+- [x] Migration journal repair — register skipped entries (`0041_wellbeing_opt_in`, `0048_ai_studio`); `0056_schema_repair.sql` belt-and-suspenders for VPS drift.
+- [x] Demo seed bootstrap — `seedBootstrap.ts` runs migrations before `seed:demo:prod` / `seed:demo:solo:prod`; showcase guards on companion schema.
 
-**Gate:** restore drill sign-off, security checklist applied on VPS, production build, and smoke suite pass before production declaration.
+**Engineering gate met:** production build, smoke suite, backup/restore scripts, pagination caps, ops documentation, and migration repair delivered.
+
+**Operator gate (declaring production):** restore drill sign-off recorded per [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record); TLS live; secrets rotated; demo seeds only on public demo hosts.
 
 ---
 
@@ -496,6 +505,7 @@ Optional — must not delay security, activity, project memory, collaboration, w
 | Drawing snapping and title-block extraction in web | **Rejected** — primary CAD tools |
 | Web takeoff / browser scale / `DrawingViewer` | **Rejected** — removed 2026-06-17; ESTICAD only |
 | CAD/BIM vendor libraries in Knowledge Bank | **Rejected** — see STABILITY-CHARTER |
+| Optional ASPRF / notification snapshot tables | Defer — post–Phase 12; live scores from domain tables |
 | SSE/push updates | Defer until scale justifies |
 | Optional DXF revision push from ESTICAD | Defer — explicit user action only; not takeoff baseline |
 
@@ -523,5 +533,7 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-18 | Stability charter + doc drift alignment ([STABILITY-CHARTER](STABILITY-CHARTER.md)) |
 | 2026-06-18 | Phase 12 complete — cursor pagination on approvals/critical notes/engagements; `test:api-smoke`; restore drill sign-off checklist |
 | 2026-06-18 | Phase 13B/C/E — companion measurements (`0055`), linkDrawing, setScale, connected devices admin |
+| 2026-06-19 | Phase 12 closed — migration journal repair (`0041`, `0048`, `0056`); demo seed bootstrap; PRODUCTION-OPS TLS + ops docs |
+| 2026-06-19 | Documentation sweep — Phase 0–12 backlog reconciled; canonical index + PRD production readiness aligned |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.
