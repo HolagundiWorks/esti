@@ -43,7 +43,6 @@
     "fastify": "^4.28.1",
     "ioredis": "^5.4.1",
     "minio": "^8.0.1",
-    "nodemailer": "^6.9.16",
     "postgres": "^3.4.4",
     "zod": "^3.23.8"
   },
