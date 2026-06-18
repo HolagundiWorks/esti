@@ -14,8 +14,6 @@ export const LANDING_SEO = {
   headline: "Practice Management Software for Indian Architects",
   footerBlurb:
     "ESTI — Embedded Studio Intelligence — powers AORMS, the practice management system for Indian architects and architecture studios.",
-  /** Google Form for interested architects — set VITE_FEEDBACK_FORM_URL at build time. */
-  feedbackFormUrl: import.meta.env.VITE_FEEDBACK_FORM_URL ?? "",
   canonical: "https://aorms.in/",
   siteName: "ESTI AORMS",
 } as const;

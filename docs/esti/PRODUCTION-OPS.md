@@ -118,42 +118,60 @@ See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
 ---
 
-## Beta request mailbox (landing form)
+## Beta request form (internal landing form + SMTP)
 
-Each **Request beta testing access** submission is stored in `esti_trial_request` and emailed to **`hi@aorms.in`** when SMTP is configured. This is a **manual beta programme** — not automatic workspace provisioning.
+The **Request beta testing access** form on the landing page (`#beta`) is built into AORMS — **not** Google Forms. Each submission is:
 
-Add to `.env` on the VPS (Google Workspace example):
+1. Saved in PostgreSQL (`esti_trial_request`)
+2. Emailed to **`BETA_REQUEST_NOTIFY_TO`** (default `hi@aorms.in`) when SMTP is configured
+
+Configure your **mailbox SMTP** in `/opt/esti/.env` using credentials from your mail host panel (Hostinger, cPanel, Zoho Mail, Postfix on the same VPS, etc.):
 
 ```env
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=mail.aorms.in
 SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=hi@aorms.in
-SMTP_PASS=your_16_char_app_password
+SMTP_PASS=your_mailbox_password
 SMTP_FROM="AORMS Beta <hi@aorms.in>"
 BETA_REQUEST_NOTIFY_TO=hi@aorms.in
 ```
 
-**Google Workspace setup**
+| Port | `SMTP_SECURE` | Typical use |
+|------|---------------|-------------|
+| 587 | `false` | STARTTLS (most hosts) |
+| 465 | `true` | Implicit SSL |
 
-1. Sign in to the `hi@aorms.in` Google account (or admin creates the mailbox).
-2. Enable **2-Step Verification** on the account.
-3. Create an **App password**: Google Account → Security → App passwords → Mail → Other (ESTI AORMS).
-4. Paste the 16-character password into `SMTP_PASS` in `/opt/esti/.env` (no spaces).
-5. Restart backend: `docker compose -f compose.prod.yaml up -d backend`
+**Where to find settings**
 
-**Verify**
+- **Hostinger / similar:** hPanel → Emails → your mailbox → Connect apps / SMTP settings
+- **cPanel:** Email Accounts → Connect Devices → outgoing server `mail.yourdomain.com`
+- **Zoho Mail:** Mail → Settings → Mail accounts → SMTP
+
+Restart backend after editing `.env`:
 
 ```bash
-# After submitting the landing form, check backend logs:
-docker compose -f compose.prod.yaml logs backend --tail 30 | grep -i mail
+docker compose -f compose.prod.yaml up -d backend
+```
 
-# Or list stored requests:
+**Test SMTP before going live**
+
+```bash
+docker compose -f compose.prod.yaml exec backend node backend/dist/scripts/testSmtp.js
+```
+
+Expect `✓ test message sent to hi@aorms.in` and the message in your inbox.
+
+**Verify a real form submission**
+
+```bash
+docker compose -f compose.prod.yaml logs backend --tail 30
+
 docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
   "SELECT full_name, work_email, company_name, created_at FROM esti_trial_request ORDER BY created_at DESC LIMIT 5;"
 ```
 
-If SMTP is missing, requests are still saved but a warning is logged: `beta request … saved but email not sent`.
+If SMTP is missing, submissions are **still saved**; backend logs: `beta request … saved but email not sent`.
 
 ---
 

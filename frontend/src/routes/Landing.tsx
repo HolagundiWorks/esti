@@ -226,7 +226,6 @@ export function Landing() {
   const estiLogoDark = "/esti-mark-black.png";
   const hcwLogo = "/hcw-white.png";
   const visitCount = useLandingVisitCounter();
-  const feedbackUrl = LANDING_SEO.feedbackFormUrl;
 
   return (
     <div className="esti-lp">
@@ -481,22 +480,10 @@ export function Landing() {
                       Request beta access
                       <ArrowRight size={16} aria-hidden />
                     </a>
-                    {feedbackUrl ? (
-                      <a
-                        href={feedbackUrl}
-                        className="esti-lp-text-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Register interest
-                        <ArrowRight size={16} aria-hidden />
-                      </a>
-                    ) : (
-                      <a href="mailto:hi@aorms.in" className="esti-lp-text-link">
-                        hi@aorms.in
-                        <ArrowRight size={16} aria-hidden />
-                      </a>
-                    )}
+                    <a href="mailto:hi@aorms.in" className="esti-lp-text-link">
+                      hi@aorms.in
+                      <ArrowRight size={16} aria-hidden />
+                    </a>
                   </div>
                 </article>
               </LandingReveal>
@@ -531,13 +518,6 @@ export function Landing() {
                 <li>
                   <a href="mailto:hi@aorms.in">hi@aorms.in</a>
                 </li>
-                {feedbackUrl && (
-                  <li>
-                    <a href={feedbackUrl} target="_blank" rel="noopener noreferrer">
-                      Register interest
-                    </a>
-                  </li>
-                )}
                 <li>
                   <a href="https://aorms.in">aorms.in</a>
                 </li>
@@ -555,17 +535,6 @@ export function Landing() {
                 <span className="esti-lp-footer__visits-val">{formatVisitCount(visitCount)}</span>
                 {" site visits"}
               </p>
-            )}
-            {feedbackUrl && (
-              <a
-                href={feedbackUrl}
-                className="esti-lp-footer__feedback"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Share feedback &amp; register interest
-                <ArrowRight size={14} aria-hidden />
-              </a>
             )}
           </div>
           <p className="esti-lp-footer__copy">
