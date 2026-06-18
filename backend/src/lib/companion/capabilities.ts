@@ -1,6 +1,6 @@
 import { can, parseAiSettings, type CompanionCapabilities } from "@esti/contracts";
-import type { AuthUser } from "../auth/session.js";
-import type { DB } from "../db/index.js";
+import type { AuthUser } from "../../auth/session.js";
+import type { DB } from "../../db/index.js";
 import { getFirm } from "../firm.js";
 import { getOrgSettings } from "../settings.js";
 

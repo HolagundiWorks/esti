@@ -4,7 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import { poItems, specItems, specSheets } from "../db/schema.js";
 
-export type ResolvedPoLine = PoItemInput & {
+export type ResolvedPoLine = Omit<PoItemInput, "specItemId" | "catalogItemId"> & {
   amountPaise: number;
   sortOrder: number;
   description: string;

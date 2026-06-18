@@ -1,4 +1,4 @@
-import type { AiDraftKind } from "@esti/contracts";
+import type { AiDraftKind, AiSourceRef } from "@esti/contracts";
 
 export type AiContextBundle = {
   systemPrompt: string;

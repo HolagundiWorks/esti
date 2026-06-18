@@ -46,7 +46,7 @@ async function loadProject(
     .from(projectOffices)
     .where(eq(projectOffices.id, projectId));
   if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
-  if (row.archivedAt && !can(user.role as never, "projects:archive")) {
+  if (row.archivedAt && !can(user.role as never, "project:delete")) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Archived project" });
   }
   let clientName: string | null = null;
@@ -96,7 +96,7 @@ async function loadDecisions(
     sources: rows.slice(0, 8).map((d) => ({
       entityType: "DECISION",
       entityId: d.id,
-      label: `${d.ref} ${d.title}`,
+      label: `${d.id.slice(0, 8)} ${d.title}`,
       excerpt: d.rationale?.slice(0, 200) ?? undefined,
     })),
   };
