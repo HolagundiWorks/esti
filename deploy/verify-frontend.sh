@@ -24,6 +24,14 @@ else
   exit 1
 fi
 
+# Guard against stale bundles that call crypto.randomUUID() on plain HTTP (breaks all tRPC).
+if grep -rq 'crypto\.randomUUID' "$DIST/assets" 2>/dev/null; then
+  echo "FAIL: built JS still references crypto.randomUUID — pull latest code and redeploy:" >&2
+  echo "  cd $DEPLOY_DIR && git pull && bash deploy/deploy.sh" >&2
+  exit 1
+fi
+echo "OK: frontend bundle does not reference crypto.randomUUID"
+
 if curl -fsS "http://127.0.0.1/health" >/dev/null 2>&1 || curl -fsS "http://127.0.0.1:4000/health" >/dev/null 2>&1; then
   LIVE=$(curl -fsS "http://127.0.0.1/" 2>/dev/null | head -c 8000 || true)
   if echo "$LIVE" | grep -q 'esti-lp\|/assets/'; then

@@ -1,8 +1,9 @@
 import "@fastify/cookie"; // loads the FastifyReply.setCookie type augmentation
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { db } from "../db/index.js";
 import { userFromDeviceToken } from "../auth/device.js";
 import { SESSION_COOKIE, userFromToken, type AuthUser } from "../auth/session.js";
+import { db } from "../db/index.js";
+import { env } from "../env.js";
 
 export interface Context {
   db: typeof db;
@@ -41,6 +42,12 @@ export async function createContext({ req, res }: CreateFastifyContextOptions): 
     deviceSessionId,
     ip: req.ip,
     requestId: String(req.id),
-    setCookie: (name, value) => void res.setCookie(name, value, { httpOnly: true, sameSite: "strict", path: "/" }),
+    setCookie: (name, value) =>
+      void res.setCookie(name, value, {
+        httpOnly: true,
+        sameSite: "strict",
+        path: "/",
+        secure: env.COOKIE_SECURE,
+      }),
   };
 }
