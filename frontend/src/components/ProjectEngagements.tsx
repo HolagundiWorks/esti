@@ -103,7 +103,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(listQ.data ?? []).map((e) => {
+            {(listQ.data?.rows ?? []).map((e) => {
               const balance = e.agreedFeePaise - e.paidPaise;
               return (
                 <TableRow key={e.id}>

@@ -68,17 +68,24 @@ Browser clients use the `esti_session` cookie. ESTICAD uses **device tokens**:
 3. ESTICAD stores secrets in **Windows Credential Manager** — not in `.esti` project files.
 4. `companion.capabilities` returns `{ takeoff, ai, firmName, subscriptionActive }` on each session start and before takeoff commands.
 
-**Access rules**
+**Access rules (ESTICAD device sessions)**
 
 | Role | ESTICAD takeoff | ESTICAD AI |
 |------|-----------------|------------|
-| OWNER, PARTNER, SENIOR, ASSOCIATE (`write`) | Yes | Yes (if firm AI enabled) |
+| OWNER, PARTNER, SENIOR, ASSOCIATE (`write`, paying firm) | Yes | Yes (if firm AI enabled) |
+| Demo staff (`write`) | Yes | No |
 | VIEWER | No | No |
 | CLIENT, CONSULTANT | No | No |
 | Unauthenticated / expired | Drafting only | No |
-| Demo account | Policy TBD at implementation | Template fallback only |
 
-Origin checks for companion writes use device-token auth, not browser Origin headers.
+**AORMS web (browser) — separate from companion**
+
+| Account | ESTI agent (Alt+A) | AI Studio drafts | Uploads |
+|---------|-------------------|------------------|---------|
+| Demo | Yes (read-only) | No | No |
+| Paying staff | Yes | Yes (if enabled) | Yes (by role) |
+
+Demo web policy: `backend/src/lib/demo-policy.ts`. Companion writes use device-token auth, not browser Origin headers.
 
 ---
 
@@ -212,7 +219,11 @@ AI cannot mutate drawings or BOQ without reconciliation — unchanged from ESTIC
 | `companion.takeoffCatalog` | Device | Published catalog JSON |
 | `companion.linkDrawing` | Device + write | Create/link `esti_drawing` without file upload |
 | `measurements.createCompanion` | Device + write | World-geometry measurements |
+| `measurements.removeCompanion` | Device + write | Delete ESTICAD measurement |
 | `measurements.listByDrawing` | Device + project scope | Overlay sync |
+| `companion.listDevices` | Owner | Active ESTICAD sessions |
+| `companion.revokeDevice` | Owner | Revoke device session |
+| `drawings.setScale` | Device + write | TOSCALE calibration |
 | `ai.generateCad` | Device + write + AI enabled | CAD-specific Ollama drafts |
 
 Implementation may expose a thin REST layer (`/api/companion/*`) for the C++ HTTP client while keeping tRPC as the internal implementation.
@@ -236,7 +247,7 @@ No local measurement queue — aligns with “no local takeoff data”.
 - Every companion measurement create/delete → `writeAudit` + optional `writeActivity`.
 - AI runs → existing `esti_ai_run` provenance (`source: esticad`).
 - Rate limits on device login and measurement create.
-- Device tokens revocable from AORMS **Company → Connected devices** (planned UI).
+- Device tokens revocable from AORMS **Company → Connected devices** (owner-only panel).
 
 ---
 

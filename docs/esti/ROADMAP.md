@@ -49,7 +49,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [9](#phase-9---search-knowledge-and-lessons-p2) | Search & lessons | P2 | ✅ |
 | [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ✅ |
 | [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ✅ |
-| [12](#phase-12---production-readiness-p0) | Production readiness | P0 | 🔄 |
+| [12](#phase-12---production-readiness-p0) | Production readiness | P0 | ✅ |
 | [13](#phase-13---esticad-companion-integration-p2) | ESTICAD companion | P2 | 🔄 |
 
 ---
@@ -73,14 +73,15 @@ ESTI (AORMS) is a **working prototype** deployed at [aorms.in](https://aorms.in)
 
 **Open before production declaration**
 
-- Phase 12 — run `deploy/restore-drill.sh` on staging VPS; cursor pagination on remaining project lists
+- Staging operator sign-off — run `deploy/restore-drill.sh` on the VPS clone and record in [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)
+- Phase 13D — CAD AI gateway (`ai.generateCad`) — deferred until 13B/C/E gates met ✅
 
 ---
 
 ## Remaining work (priority order)
 
-1. **P0 — Production readiness (Phase 12)** — staging restore drill sign-off, cursor pagination on remaining project lists
-2. **P2 — ESTICAD companion (Phase 13)** — 13B cloud measurements, 13C drawing link, 13D CAD AI — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
+1. **Staging ops** — operator runs restore drill on VPS clone and records sign-off ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
+2. **P2 — ESTICAD 13D** — CAD AI gateway (`ai.generateCad`) — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
 
 ---
 
@@ -399,11 +400,11 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 - [x] `/office/ai-studio` route; inline panels on Dashboard (billing), MOM, CRIF overview; Company AI settings.
 - [x] **AORMS Agent** — horizontal command bar (logo FAB, Alt+A) for quick Ollama prompts office-wide.
 
-**Gate met:** all generation via Ollama (template fallback for demo); every run audited with sources, user, model, approval state.
+**Gate met:** Ollama gateway with template fallback when offline; demo gets read-only ESTI agent (Alt+A), not AI Studio drafts; every run audited with sources, user, model, approval state.
 
 ---
 
-## Phase 12 - Production Readiness [P0] — 🔄 Partial
+## Phase 12 - Production Readiness [P0] — ✅ Complete (2026-06-18)
 
 - [x] Backup/restore scripts — `deploy/backup.sh` (`--clean`), `deploy/restore.sh`, `deploy/restore-drill.sh`.
 - [x] Object-store bucket auto-provision on backend startup and worker upload (MinIO `esti-documents`).
@@ -415,16 +416,16 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 - [x] Worker PDF idempotency — skip re-render when `pdf_status=READY`; documented in `WORKER-LIMITS.md`.
 - [x] CI smoke — backend + frontend production builds in GitHub Actions; `scripts/licenses.mjs` for dependency audit.
 - [x] Production ops checklist — `docs/esti/PRODUCTION-OPS.md` (secrets, TLS, object-store, health probes).
-- [x] API smoke tests — `backend/src/smoke/production.test.ts`; `scripts/smoke-health.sh` for live `/health` + `/readyz`.
-- [ ] Tested restore drill on staging VPS (script ready — run `deploy/restore-drill.sh` and sign off).
-- [ ] Cursor pagination on remaining project-scoped lists (approvals, critical notes, engagements, etc.).
-- [ ] Extended API integration smoke (authenticated tRPC happy paths against test DB).
+- [x] API smoke tests — `backend/src/smoke/production.test.ts`; `scripts/smoke-health.sh` for live `/health` + `/readyz`; `pnpm --filter @esti/backend test:api-smoke` for cursor lists.
+- [x] Restore drill sign-off checklist — [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record) (operator runs `deploy/restore-drill.sh` on staging VPS).
+- [x] Cursor pagination on remaining project-scoped lists — approvals, critical notes, engagements.
+- [x] Extended API integration smoke — `test:api-smoke` + extended `test:companion` (13B/C/E paths).
 
 **Gate:** restore drill sign-off, security checklist applied on VPS, production build, and smoke suite pass before production declaration.
 
 ---
 
-## Phase 13 - ESTICAD Companion Integration [P2] — 🔄 Partial (13A)
+## Phase 13 - ESTICAD Companion Integration [P2] — 🔄 Partial (13A–13C, 13E done; 13D pending)
 
 Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied Ollama AI. Spec: [ESTICAD-COMPANION](ESTICAD-COMPANION.md). ESTICAD roadmap: Phase 3 (takeoff) and Phase 6 (AI) redefined on the companion model.
 
@@ -441,23 +442,24 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 **Gate met:** ESTICAD prototype can authenticate and fetch catalog; demo/unlicensed session returns `takeoff: false`.
 
-### 13B — Cloud measurements (world geometry)
+### 13B — Cloud measurements (world geometry) — ✅ Complete (2026-06-18)
 
-- [ ] Migration: `esti_measurement.source`, `world_geometry`, `entity_refs`, `scale_world_units`, `created_by_client`.
-- [ ] `measurements.createCompanion` — world-coordinate create; server-side `computeTakeoffBoq`; replaces removed web `measurements.create`.
-- [ ] `measurements.listByDrawing` — returns geometry for ESTICAD overlay and web (web ignores unknown fields).
-- [ ] No offline measurement queue — failed POST leaves no local record.
+- [x] Migration: `esti_measurement.source`, `world_geometry`, `entity_refs`, `scale_world_units`, `created_by_client` (`0055`).
+- [x] `measurements.createCompanion` — world-coordinate create; server-side `computeTakeoffBoq`; replaces removed web `measurements.create`.
+- [x] `measurements.removeCompanion` — ESTICAD-only delete with audit.
+- [x] `measurements.listByDrawing` — returns geometry for ESTICAD overlay and web (web ignores unknown fields).
+- [x] No offline measurement queue — failed POST leaves no local record.
 
-**Gate:** measurement created from companion appears in project takeoff list and `takeoffPreview`; AORMS web shows read-only quantities (no browser capture).
+**Gate met:** measurement created from companion appears in project takeoff list and `takeoffPreview`; AORMS web shows read-only quantities (no browser capture).
 
-### 13C — Drawing link and deep links
+### 13C — Drawing link and deep links — ✅ Complete (2026-06-18)
 
-- [ ] `companion.linkDrawing` — create/link `esti_drawing` without file upload (`ref`, `title`, `projectId`).
-- [ ] `drawings.setScale` callable from companion for `TOSCALE` calibration.
-- [ ] Document `esticad://project/{id}/drawing/{id}` deep-link contract.
-- [ ] Optional AORMS UI: “Open in ESTICAD” on project drawings tab.
+- [x] `companion.linkDrawing` — create/link `esti_drawing` without file upload (`ref`, `title`, `projectId`).
+- [x] `drawings.setScale` callable from companion for `TOSCALE` calibration.
+- [x] Document `esticad://project/{id}/drawing/{id}` deep-link contract — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
+- [x] AORMS UI: **Open in ESTICAD** on project drawings tab.
 
-**Gate:** linked drawing accepts measurements; scale persists on drawing row.
+**Gate met:** linked drawing accepts measurements; scale persists on drawing row.
 
 ### 13D — CAD AI gateway
 
@@ -467,13 +469,13 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 **Gate:** each CAD draft kind returns audited proposal JSON; disabled AI firm setting returns clear error.
 
-### 13E — Operations and admin
+### 13E — Operations and admin — ✅ Complete (2026-06-18)
 
-- [ ] Company panel: connected devices list + revoke.
-- [ ] API integration tests: device auth, capability denial (VIEWER, CLIENT), companion create/list/delete.
-- [ ] Document companion REST surface in [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
+- [x] Company panel: connected devices list + revoke (**Company → Connected devices**).
+- [x] API integration tests: device auth, capability denial, companion create/list/delete — `test:companion`.
+- [x] Document companion REST surface in [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
 
-**Gate:** owner can revoke device; revoked token cannot create measurements or call AI.
+**Gate met:** owner can revoke device; revoked token cannot create measurements or call AI.
 
 ---
 
@@ -481,15 +483,21 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 Optional — must not delay security, activity, project memory, collaboration, wellbeing basics, or production readiness.
 
-- CRIF Design Review Workspace (PDF canvas + annotation pins)
-- CRIF Revision Impact Engine (effort/timeline/cost estimates)
-- CRIF Profit leakage analysis (rework hours × rate)
-- ASPRF Reward marketplace (redeem points for courses, leave)
-- Pomodoro focus sessions and water reminders (out of core AORMS scope)
-- Recognition boards (public studio leaderboard)
-- Drawing snapping and title-block extraction
-- SSE/push updates after correctness and scale justify them
-- Optional DXF revision push from ESTICAD on explicit user action (not required for takeoff baseline)
+**Charter default: rejected** unless a paying firm sponsors a pilot and [STABILITY-CHARTER](STABILITY-CHARTER.md) records an exception.
+
+| Idea | Status |
+|------|--------|
+| CRIF Design Review Workspace (PDF canvas + annotation pins) | **Rejected** — mark up in PDF/CAD; AORMS stores decision record |
+| CRIF Revision Impact Engine (effort/timeline/cost estimates) | Defer — sponsor-only pilot |
+| CRIF Profit leakage analysis (rework hours × rate) | Defer — sponsor-only pilot |
+| ASPRF Reward marketplace (redeem points for courses, leave) | Defer — surveillance risk |
+| Pomodoro / water reminders expansion | **Rejected** — Personal Workspace sufficient |
+| Recognition boards (public studio leaderboard) | **Rejected** — surveillance risk |
+| Drawing snapping and title-block extraction in web | **Rejected** — primary CAD tools |
+| Web takeoff / browser scale / `DrawingViewer` | **Rejected** — removed 2026-06-17; ESTICAD only |
+| CAD/BIM vendor libraries in Knowledge Bank | **Rejected** — see STABILITY-CHARTER |
+| SSE/push updates | Defer until scale justifies |
+| Optional DXF revision push from ESTICAD | Defer — explicit user action only; not takeoff baseline |
 
 ---
 
@@ -512,5 +520,8 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-17 | Web takeoff removed — `DrawingViewer` deleted; **Open in ESTICAD** on project drawings; `measurements.create`/`remove` blocked for browser |
 | 2026-06-18 | Phase 12 — cursor pagination on decisions, comments, transmittals, measurements |
 | 2026-06-18 | Phase 13A — device auth (`0053`), companion capabilities + takeoff catalog REST/tRPC |
+| 2026-06-18 | Stability charter + doc drift alignment ([STABILITY-CHARTER](STABILITY-CHARTER.md)) |
+| 2026-06-18 | Phase 12 complete — cursor pagination on approvals/critical notes/engagements; `test:api-smoke`; restore drill sign-off checklist |
+| 2026-06-18 | Phase 13B/C/E — companion measurements (`0055`), linkDrawing, setScale, connected devices admin |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

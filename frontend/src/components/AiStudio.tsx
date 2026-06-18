@@ -188,7 +188,7 @@ export function AiStudioPage() {
   if (user?.isDemo) {
     return (
       <>
-        <PageHeader title="AI Studio" subtitle="Permission-filtered drafts with source tracking and human approval" />
+        <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
         <InlineNotification
           kind="info"
           lowContrast
@@ -202,7 +202,7 @@ export function AiStudioPage() {
 
   return (
     <>
-      <PageHeader title="AI Studio" subtitle="Permission-filtered drafts with source tracking and human approval" />
+      <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
       {!settingsQ.data?.enabled && (
         <InlineNotification
           kind="warning"

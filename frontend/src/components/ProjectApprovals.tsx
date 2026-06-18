@@ -96,7 +96,7 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(listQ.data ?? []).map((a) => (
+            {(listQ.data?.rows ?? []).map((a) => (
               <TableRow key={a.id}>
                 <TableCell>{a.title}</TableCell>
                 <TableCell>

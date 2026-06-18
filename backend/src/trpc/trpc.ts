@@ -84,3 +84,17 @@ export const collaboratorProcedure = authedProcedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx: { ...ctx, user: { ...ctx.user, consultantId: ctx.user.consultantId } } });
 });
+
+/** ESTICAD device bearer writes — takeoff, drawing link, scale calibration. */
+export const companionWriteProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!ctx.deviceSessionId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Companion write requires ESTICAD device authentication.",
+    });
+  }
+  if (!can(ctx.user.role, "write")) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Companion write requires staff write access" });
+  }
+  return next({ ctx });
+});

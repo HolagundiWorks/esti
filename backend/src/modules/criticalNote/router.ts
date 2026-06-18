@@ -1,9 +1,11 @@
-import { desc, eq } from "drizzle-orm";
+import { ProjectCursorListParams, clampListLimit } from "@esti/contracts";
+import { desc, eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { criticalNotes } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 const criticalNoteInput = z.object({
@@ -20,13 +22,20 @@ const criticalNoteInput = z.object({
 
 export const criticalNoteRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(criticalNotes)
-        .where(eq(criticalNotes.projectId, input.projectId))
-        .orderBy(desc(criticalNotes.createdAt));
+        .where(
+          and(
+            eq(criticalNotes.projectId, input.projectId),
+            cursorWhere(input.cursor, criticalNotes.createdAt, criticalNotes.id),
+          ),
+        )
+        .orderBy(desc(criticalNotes.createdAt), desc(criticalNotes.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   create: protectedProcedure.input(criticalNoteInput).mutation(async ({ ctx, input }) => {

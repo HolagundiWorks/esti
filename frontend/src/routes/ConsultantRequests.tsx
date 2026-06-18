@@ -243,12 +243,12 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
             ))}
           </Select>
           <Select id="as-cons" labelText="Consultant"
-            disabled={!assign.projectId || (engagementsQ.data ?? []).length === 0}
-            helperText={assign.projectId && (engagementsQ.data ?? []).length === 0 ? "No consultants engaged on this project" : undefined}
+            disabled={!assign.projectId || (engagementsQ.data?.rows ?? []).length === 0}
+            helperText={assign.projectId && (engagementsQ.data?.rows ?? []).length === 0 ? "No consultants engaged on this project" : undefined}
             value={assign.consultantId}
             onChange={(e) => setAssign((a) => ({ ...a, consultantId: e.target.value }))}>
             <SelectItem value="" text="— select a consultant —" />
-            {(engagementsQ.data ?? []).map((en) => (
+            {(engagementsQ.data?.rows ?? []).map((en) => (
               <SelectItem key={en.consultantId} value={en.consultantId} text={en.consultantName ?? en.consultantId} />
             ))}
           </Select>

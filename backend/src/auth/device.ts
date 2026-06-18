@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import { deviceSessions, users } from "../db/schema.js";
 import type { AuthUser } from "./session.js";
@@ -141,4 +141,34 @@ export async function revokeDeviceSession(db: DB, sessionId: string): Promise<vo
     .update(deviceSessions)
     .set({ revokedAt: new Date() })
     .where(eq(deviceSessions.id, sessionId));
+}
+
+export type DeviceSessionListRow = {
+  id: string;
+  deviceName: string;
+  clientId: string;
+  userId: string;
+  userEmail: string;
+  userFullName: string;
+  lastUsedAt: Date | null;
+  createdAt: Date;
+};
+
+/** Active companion sessions for owner admin (Company → Connected devices). */
+export async function listActiveDeviceSessions(db: DB): Promise<DeviceSessionListRow[]> {
+  return db
+    .select({
+      id: deviceSessions.id,
+      deviceName: deviceSessions.deviceName,
+      clientId: deviceSessions.clientId,
+      userId: deviceSessions.userId,
+      userEmail: users.email,
+      userFullName: users.fullName,
+      lastUsedAt: deviceSessions.lastUsedAt,
+      createdAt: deviceSessions.createdAt,
+    })
+    .from(deviceSessions)
+    .innerJoin(users, eq(users.id, deviceSessions.userId))
+    .where(isNull(deviceSessions.revokedAt))
+    .orderBy(desc(deviceSessions.lastUsedAt));
 }

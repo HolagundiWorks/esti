@@ -327,6 +327,27 @@ export function takeoffEstimateUnit(boqUnit: string): string {
   }
 }
 
+export const CompanionMeasurementCreate = z.object({
+  drawingId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  label: z.string().min(1).max(120),
+  kind: TakeoffMeasureKind,
+  elementTypeId: z.string().min(1).max(40),
+  realLength: z.number().nonnegative(),
+  scaleWorldUnits: z.string().min(1).max(8),
+  worldGeometry: z
+    .object({
+      type: z.enum(["LINE", "POLYLINE", "POLYGON", "POINT"]),
+      points: z.array(z.object({ x: z.number(), y: z.number() })).min(1),
+    })
+    .optional(),
+  entityRefs: z.array(z.string().min(1).max(120)).optional(),
+  createdByClient: z.string().min(1).max(80).default("esticad/unknown"),
+  heightMm: z.number().int().positive().optional(),
+  itemCount: z.number().int().positive().default(1),
+});
+export type CompanionMeasurementCreate = z.infer<typeof CompanionMeasurementCreate>;
+
 export const TakeoffMeasurementCreate = z.object({
   drawingId: z.string().uuid(),
   projectId: z.string().uuid(),

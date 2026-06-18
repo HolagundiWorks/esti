@@ -6,7 +6,7 @@
 import { eq } from "drizzle-orm";
 import { userFromDeviceToken } from "../auth/device.js";
 import { db } from "../db/index.js";
-import { users } from "../db/schema.js";
+import { projectOffices, users } from "../db/schema.js";
 import { resolveCompanionCapabilities } from "../lib/companion/capabilities.js";
 import { appRouter } from "../trpc/router.js";
 import { takeoffCatalogPayload } from "../modules/companion/router.js";
@@ -94,6 +94,64 @@ async function main(): Promise<void> {
     isDemo: false,
   });
   check(ownerCaps.subscriptionActive === true, "non-demo staff is subscription-active");
+
+  const [project] = await db.select().from(projectOffices).limit(1);
+  check(!!project, "project exists for companion bridge tests");
+
+  const linked = await deviceCaller.companion.linkDrawing({
+    projectId: project!.id,
+    title: "Smoke linked drawing",
+  });
+  check(!!linked.id, "linkDrawing creates drawing row");
+
+  await deviceCaller.drawings.setScale({
+    drawingId: linked.id,
+    scaleUnit: "mm",
+    scaleFactor: 1,
+  });
+  check(true, "setScale persists from companion");
+
+  const created = await deviceCaller.measurements.createCompanion({
+    drawingId: linked.id,
+    projectId: project!.id,
+    label: "Smoke wall A1",
+    kind: "LINEAR",
+    elementTypeId: "WALL_230",
+    realLength: 6000,
+    scaleWorldUnits: "mm",
+    worldGeometry: { type: "LINE", points: [{ x: 0, y: 0 }, { x: 6000, y: 0 }] },
+    entityRefs: ["smoke-entity-1"],
+    createdByClient: "esticad/smoke",
+  });
+  check(created.source === "ESTICAD", "createCompanion sets ESTICAD source");
+  check(created.boqQty === 6, "createCompanion computes BOQ qty");
+
+  const listed = await deviceCaller.measurements.listByDrawing({
+    drawingId: linked.id,
+    limit: 20,
+  });
+  check(
+    listed.rows.some((row) => row.id === created.id),
+    "listByDrawing returns companion measurement",
+  );
+
+  await deviceCaller.measurements.removeCompanion({ id: created.id });
+  check(true, "removeCompanion deletes measurement");
+
+  const ownerCaller = appRouter.createCaller({
+    db,
+    user: owner!,
+    deviceSessionId: null,
+    ip: "127.0.0.1",
+    requestId: "test-companion-owner",
+    setCookie: () => undefined,
+  });
+  const devices = await ownerCaller.companion.listDevices();
+  check(devices.some((row) => row.id === deviceUser!.deviceSessionId), "listDevices includes active session");
+
+  await ownerCaller.companion.revokeDevice({ sessionId: deviceUser!.deviceSessionId });
+  const revokedUser = await userFromDeviceToken(db, login.accessToken);
+  check(revokedUser === null, "revoked token cannot authenticate");
 
   console.log(`\nAll ${passed} checks passed.`);
 }

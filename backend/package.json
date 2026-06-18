@@ -17,6 +17,7 @@
     "test:alerts": "tsx src/scripts/testBuildAlerts.ts",
     "test:ai": "tsx src/scripts/testAiAgent.ts",
     "test:companion": "tsx src/scripts/testCompanion.ts",
+    "test:api-smoke": "tsx src/scripts/testApiSmoke.ts",
     "setup:ollama": "tsx src/scripts/setupOllama.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

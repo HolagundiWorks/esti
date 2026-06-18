@@ -104,4 +104,5 @@ signals must not become covert surveillance or punitive monitoring.
 
 Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
 [Architect Practice Profile](ARCHITECT-PROFILE.md), technical decisions in
-[Architecture](ARCHITECTURE.md), and delivery order in [Roadmap](ROADMAP.md).
+[Architecture](ARCHITECTURE.md), delivery order in [Roadmap](ROADMAP.md), and
+long-term scope discipline in [Stability Charter](STABILITY-CHARTER.md).

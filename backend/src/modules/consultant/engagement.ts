@@ -1,17 +1,18 @@
-import { EngagementCreate, EngagementPayment, EngagementStatusUpdate } from "@esti/contracts";
+import { EngagementCreate, EngagementPayment, EngagementStatusUpdate, ProjectCursorListParams, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { consultants, engagements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { requireProject } from "../../lib/projectScope.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const engagementRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select({
           id: engagements.id,
           consultantId: engagements.consultantId,
@@ -21,11 +22,19 @@ export const engagementRouter = router({
           agreedFeePaise: engagements.agreedFeePaise,
           paidPaise: engagements.paidPaise,
           status: engagements.status,
+          createdAt: engagements.createdAt,
         })
         .from(engagements)
         .innerJoin(consultants, eq(consultants.id, engagements.consultantId))
-        .where(eq(engagements.projectId, input.projectId))
-        .orderBy(desc(engagements.createdAt));
+        .where(
+          and(
+            eq(engagements.projectId, input.projectId),
+            cursorWhere(input.cursor, engagements.createdAt, engagements.id),
+          ),
+        )
+        .orderBy(desc(engagements.createdAt), desc(engagements.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   create: protectedProcedure.input(EngagementCreate).mutation(async ({ ctx, input }) => {
