@@ -21,7 +21,6 @@ import {
   attendance,
   clientLogs,
   clients,
-  comments,
   consultants,
   criticalNotes,
   decisions,
@@ -49,6 +48,10 @@ import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
 import { backfillDemoBylawCalcs, upsertDemoBylawCalc } from "./seedDemoBylaw.js";
+import {
+  ensureDemoShowcase,
+  STUDIO_DEMO_PROJECT_TITLES,
+} from "./seedDemoShowcase.js";
 import { catalogSnapshot, ensureDemoSpecCatalog } from "./seedSpecCatalog.js";
 import { ensureDemoSteelFlowCatalog } from "./seedSteelFlowCatalog.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
@@ -189,16 +192,15 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   await ensureBuildingDsrCatalog(db);
   await ensureAiStudioEnabled(db);
   const bylawCount = await backfillDemoBylawCalcs(db);
-  const allTitles = [
-    "Sharma Villa — Whitefield", "Rao House — Mysuru", "Verde Commercial Block",
-    "Kapoor Residence — Sarjapur", "Patel Corp HQ — Pune", "St. Francis School Expansion",
-    "Reddy Beach Retreat — Goa", "Nexus Co-working — Koramangala",
-  ];
-  for (const [pi, title] of allTitles.entries()) {
+  for (const [pi, title] of STUDIO_DEMO_PROJECT_TITLES.entries()) {
     const [project] = await db.select({ id: projectOffices.id, ref: projectOffices.ref, title: projectOffices.title }).from(projectOffices).where(eq(projectOffices.title, title)).limit(1);
     if (project) await backfillProjectDemoRecords(project.id, project.ref, project.title, principalId, pi, catalog);
   }
+  const showcase = await ensureDemoShowcase(db);
   console.log(`    refreshed ${bylawCount} bylaw compliance records (pre + post audit)`);
+  console.log(
+    `    showcase: ${showcase.drawings} drawing(s), ${showcase.measurements} takeoff row(s), purged ${showcase.purgedWebMeasurements} legacy WEB measurement(s)`,
+  );
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -491,9 +493,6 @@ async function main(): Promise<void> {
     ],
   ];
 
-  const allProjectIds: string[] = [];
-  const allProjectRefs: string[] = [];
-
   const catalog = await ensureDemoSpecCatalog(db);
   await ensureDemoSteelFlowCatalog(db);
   await ensureBuildingDsrCatalog(db);
@@ -514,8 +513,6 @@ async function main(): Promise<void> {
       createdById: principal!.id,
     }).returning();
     const projectId = project!.id;
-    allProjectIds.push(projectId);
-    allProjectRefs.push(ref);
 
     const phaseProgress = def.phaseProgress;
     await db.insert(phases).values(
@@ -784,12 +781,8 @@ async function main(): Promise<void> {
     { teamMemberId: memberId.sneha, points: 15, reason: "Took initiative on St. Francis site survey outside scheduled hours.", awardType: "RELIABILITY", createdById: principal!.id },
   ]);
 
-  // ── Comments on project decisions ────────────────────────────────────────
-  await db.insert(comments).values([
-    { projectId: allProjectIds[0]!, objectType: "decision", objectId: allProjectRefs[0]!, body: "Structural team has reviewed the ACM anchor loads — within slab capacity. Proceeding to facade contractor shortlist.", actorName: "Aarav Mehta", visibility: "STAFF" },
-    { projectId: allProjectIds[2]!, objectType: "decision", objectId: allProjectRefs[2]!, body: "Verde client confirmed the additional 150mm floor height — cost impact accepted. Updating drawings.", actorName: "Sneha Rao", visibility: "STAFF" },
-    { projectId: allProjectIds[4]!, objectType: "decision", objectId: allProjectRefs[4]!, body: "Unitised facade supplier shortlisted to three vendors. Requesting mock-up proposals from all three.", actorName: "Aarav Mehta", visibility: "STAFF" },
-  ]);
+  // ── Comments on project decisions (valid decision IDs — see seedDemoShowcase) ─
+  await ensureDemoShowcase(db);
 
   console.log("✓ seeded demo workspace");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
