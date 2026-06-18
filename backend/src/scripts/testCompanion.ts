@@ -1,5 +1,5 @@
 /**
- * Live-database smoke test for ESTICAD companion auth (Phase 13A).
+ * Live-database smoke test for ESTICAD companion auth (Phase 13A–13D).
  *
  *   pnpm --filter @esti/backend test:companion
  */
@@ -137,6 +137,19 @@ async function main(): Promise<void> {
 
   await deviceCaller.measurements.removeCompanion({ id: created.id });
   check(true, "removeCompanion deletes measurement");
+
+  let cadBlocked = false;
+  try {
+    await deviceCaller.ai.generateCad({
+      kind: "CAD_NAMING",
+      projectId: project!.id,
+      drawingId: linked.id,
+      prompt: "Suggest layer names",
+    });
+  } catch {
+    cadBlocked = true;
+  }
+  check(cadBlocked, "demo companion generateCad blocked");
 
   const ownerCaller = appRouter.createCaller({
     db,

@@ -4,7 +4,8 @@
  *   pnpm --filter @esti/backend seed:demo
  *   (or: podman exec esti-backend sh -c "cd /app/backend && pnpm seed:demo")
  *
- * Idempotent — if the demo principal already exists it does nothing. Creates
+ * Idempotent — if the demo principal already exists it backfills data and
+ * re-syncs demo passwords to SEED_DEMO_PASSWORD. Creates
  * read-mostly demo logins for several office roles plus clients, projects,
  * phases, fees, invoices, permits, tasks, attendance, ASPRF
  * reward events, decisions (CRIF), critical notes, bylaw calculations,
@@ -12,7 +13,7 @@
  * real to explore. NOT for production use.
  */
 import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
-import { eq } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { ensureDemoSchema } from "./seedBootstrap.js";
@@ -185,7 +186,21 @@ async function linkDemoTeamAndTasks(): Promise<void> {
   }
 }
 
+/** Align demo login passwords after seed:prod created principal with a different hash. */
+async function syncDemoPasswords(): Promise<void> {
+  const pwHash = await hashPassword(DEMO_PASSWORD);
+  const updated = await db
+    .update(users)
+    .set({ passwordHash: pwHash, isDemo: true })
+    .where(or(eq(users.isDemo, true), like(users.email, "%@demo.aorms.in")))
+    .returning({ id: users.id });
+  if (updated.length) {
+    console.log(`    synced ${updated.length} demo account password(s) → ${DEMO_PASSWORD}`);
+  }
+}
+
 async function backfillExistingDemo(principalId: string): Promise<void> {
+  await syncDemoPasswords();
   await linkDemoTeamAndTasks();
   await ensureDemoConsultants();
   const catalog = await ensureDemoSpecCatalog(db);

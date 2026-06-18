@@ -1,7 +1,9 @@
 import {
   AiGenerateInput,
+  AiGenerateCadInput,
   AiRunUpdate,
   AiSettings,
+  isCadAiDraftKind,
   parseAiSettings,
 } from "@esti/contracts";
 import { can } from "@esti/contracts";
@@ -14,7 +16,8 @@ import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { demoBlocksAiDraft, demoBlocksAiSettings, DEMO_AI_DRAFT_MESSAGE, DEMO_AI_SETTINGS_MESSAGE } from "../../lib/demo-policy.js";
-import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import { resolveCompanionCapabilities } from "../../lib/companion/capabilities.js";
+import { companionWriteProcedure, ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 function canEditAi(role: string): boolean {
   return role === "OWNER" || role === "PARTNER";
@@ -86,6 +89,12 @@ export const aiRouter = router({
   }),
 
   generate: protectedProcedure.input(AiGenerateInput).mutation(async ({ ctx, input }) => {
+    if (isCadAiDraftKind(input.kind)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "CAD AI drafts are available from ESTICAD only (ai.generateCad).",
+      });
+    }
     if (demoBlocksAiDraft(ctx.user, input.mode)) {
       throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_DRAFT_MESSAGE });
     }
@@ -130,6 +139,7 @@ export const aiRouter = router({
         approvalState: "DRAFT",
         usedExternalApi: result.usedExternalApi ? "true" : "false",
         tokenEstimate: result.tokenEstimate != null ? String(result.tokenEstimate) : null,
+        source: "aorms",
       })
       .returning();
 
@@ -144,6 +154,90 @@ export const aiRouter = router({
         model: result.model,
         usedExternalApi: result.usedExternalApi,
         sourceCount: result.sources.length,
+      },
+    });
+
+    return {
+      runId: row!.id,
+      kind: row!.kind,
+      provider: row!.provider,
+      model: row!.model,
+      output: row!.outputText,
+      sources: result.sources,
+      approvalState: row!.approvalState,
+      usedExternalApi: result.usedExternalApi,
+    };
+  }),
+
+  /** ESTICAD companion — CAD-specific Ollama drafts with JSON proposals (Phase 13D). */
+  generateCad: companionWriteProcedure.input(AiGenerateCadInput).mutation(async ({ ctx, input }) => {
+    const caps = await resolveCompanionCapabilities(ctx.db, ctx.user);
+    if (!caps.ai) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          ctx.user.isDemo ?
+            "ESTICAD AI is disabled on demo accounts."
+          : "ESTICAD AI is disabled — enable AI Studio in Company settings.",
+      });
+    }
+
+    const org = await getOrgSettings(ctx.db);
+    const settings = parseAiSettings(org.aiSettings);
+    if (!settings.enabled) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "AI Studio is disabled — enable in Company settings",
+      });
+    }
+
+    let result;
+    try {
+      result = await runAiGateway(ctx.db, ctx.user, settings, {
+        kind: input.kind,
+        projectId: input.projectId,
+        drawingId: input.drawingId,
+        prompt: input.prompt,
+        cadContext: input.context,
+      });
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: e instanceof Error ? e.message : "CAD AI generation failed",
+      });
+    }
+
+    const outputText = settings.redactPii ? redactPii(result.output) : result.output;
+
+    const [row] = await ctx.db
+      .insert(aiRuns)
+      .values({
+        userId: ctx.user.id,
+        projectId: input.projectId ?? null,
+        kind: input.kind,
+        provider: result.provider,
+        model: result.model,
+        promptSummary: result.promptSummary,
+        sources: result.sources,
+        outputText,
+        approvalState: "DRAFT",
+        usedExternalApi: result.usedExternalApi ? "true" : "false",
+        tokenEstimate: result.tokenEstimate != null ? String(result.tokenEstimate) : null,
+        source: "esticad",
+      })
+      .returning();
+
+    await writeAudit(ctx.db, {
+      entity: "ai_run",
+      entityId: row!.id,
+      action: "GENERATE_CAD",
+      actorId: ctx.user.id,
+      after: {
+        kind: input.kind,
+        provider: result.provider,
+        model: result.model,
+        source: "esticad",
+        deviceSessionId: ctx.deviceSessionId,
       },
     });
 

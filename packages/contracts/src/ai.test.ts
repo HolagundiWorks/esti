@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AI_DRAFT_KIND_LABEL, parseAiSettings, AiDraftKind } from "./ai.js";
+import { AI_DRAFT_KIND_LABEL, isCadAiDraftKind, parseAiSettings, AiDraftKind } from "./ai.js";
 
 describe("ai contracts", () => {
   it("parses ai settings with defaults", () => {
@@ -25,5 +25,10 @@ describe("ai contracts", () => {
     for (const k of AiDraftKind.options) {
       expect(AI_DRAFT_KIND_LABEL[k].length).toBeGreaterThan(3);
     }
+  });
+
+  it("identifies CAD draft kinds", () => {
+    expect(isCadAiDraftKind("CAD_NAMING")).toBe(true);
+    expect(isCadAiDraftKind("PROPOSAL")).toBe(false);
   });
 });

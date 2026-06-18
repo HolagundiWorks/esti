@@ -50,7 +50,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ✅ |
 | [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ✅ |
 | [12](#phase-12---production-readiness-p0) | Production readiness | P0 | ✅ |
-| [13](#phase-13---esticad-companion-integration-p2) | ESTICAD companion | P2 | 🔄 |
+| [13](#phase-13---esticad-companion-integration-p2) | ESTICAD companion | P2 | ✅ |
 
 ---
 
@@ -74,18 +74,17 @@ ESTI (AORMS) is **production-engineered through Phase 12** and deployed at [aorm
 **Before declaring a live firm instance production-ready**
 
 - **Operator only** — run `deploy/restore-drill.sh` on a staging VPS clone and record sign-off in [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)
-- **Phase 13D** — CAD AI gateway (`ai.generateCad`) — deferred; 13B/C/E complete
+- **Phase 13D** — CAD AI gateway (`ai.generateCad`) — complete; ESTICAD `AI_USE_CASES` proxied via Ollama
 
-**Post–Phase 12 engineering (active delivery)**
+**Post–Phase 12 engineering**
 
-- Phase 13D — ESTICAD CAD AI gateway — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
+- Operator restore drill sign-off ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
 
 ---
 
 ## Remaining work (priority order)
 
 1. **Staging ops (operator)** — restore drill sign-off on VPS clone ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
-2. **P2 — ESTICAD 13D** — CAD AI gateway (`ai.generateCad`) — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md)
 
 ---
 
@@ -434,7 +433,7 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 
 ---
 
-## Phase 13 - ESTICAD Companion Integration [P2] — 🔄 Partial (13A–13C, 13E done; 13D pending)
+## Phase 13 - ESTICAD Companion Integration [P2] — ✅ Complete (2026-06-19)
 
 Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied Ollama AI. Spec: [ESTICAD-COMPANION](ESTICAD-COMPANION.md). ESTICAD roadmap: Phase 3 (takeoff) and Phase 6 (AI) redefined on the companion model.
 
@@ -470,13 +469,13 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 **Gate met:** linked drawing accepts measurements; scale persists on drawing row.
 
-### 13D — CAD AI gateway
+### 13D — CAD AI gateway — ✅ Complete (2026-06-19)
 
-- [ ] Extend `AiDraftKind`: `CAD_DIMENSION_SUGGEST`, `CAD_NAMING`, `CAD_DOCUMENTATION`, `CAD_QUANTITY_EXTRACT`, `CAD_LAYER_AUDIT`, `CAD_REVISION_SUMMARY`, `CAD_PLOT_ASSIST`, `CAD_BOQ_DRAFT`.
-- [ ] `ai.generateCad` — permission-filtered context bundle; `esti_ai_run` with `source: esticad`.
-- [ ] PII redaction and firm `aiSettings` gate unchanged from Phase 11.
+- [x] Extend `AiDraftKind`: `CAD_DIMENSION_SUGGEST`, `CAD_NAMING`, `CAD_DOCUMENTATION`, `CAD_QUANTITY_EXTRACT`, `CAD_LAYER_AUDIT`, `CAD_REVISION_SUMMARY`, `CAD_PLOT_ASSIST`, `CAD_BOQ_DRAFT`.
+- [x] `ai.generateCad` — permission-filtered context bundle; `esti_ai_run` with `source: esticad`.
+- [x] PII redaction and firm `aiSettings` gate unchanged from Phase 11.
 
-**Gate:** each CAD draft kind returns audited proposal JSON; disabled AI firm setting returns clear error.
+**Gate met:** CAD draft kinds return audited proposal JSON; disabled AI firm setting returns clear error; demo companion AI blocked.
 
 ### 13E — Operations and admin — ✅ Complete (2026-06-18)
 
@@ -534,6 +533,7 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-18 | Phase 12 complete — cursor pagination on approvals/critical notes/engagements; `test:api-smoke`; restore drill sign-off checklist |
 | 2026-06-18 | Phase 13B/C/E — companion measurements (`0055`), linkDrawing, setScale, connected devices admin |
 | 2026-06-19 | Phase 12 closed — migration journal repair (`0041`, `0048`, `0056`); demo seed bootstrap; PRODUCTION-OPS TLS + ops docs |
+| 2026-06-19 | Phase 13D — `ai.generateCad`, CAD draft kinds, `esti_ai_run.source`; Phase 13 complete |
 | 2026-06-19 | Documentation sweep — Phase 0–12 backlog reconciled; canonical index + PRD production readiness aligned |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

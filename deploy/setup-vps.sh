@@ -63,8 +63,13 @@ echo ""
 warn "First owner account for ESTI"
 ask     "Owner email:"     OWNER_EMAIL
 askpass "Owner password:"  OWNER_PASSWORD
-askpass "Demo account password [demo-password]:" DEMO_PASSWORD
-DEMO_PASSWORD="${DEMO_PASSWORD:-demo-password}"
+askpass "Demo account password [demo1234]:" DEMO_PASSWORD
+DEMO_PASSWORD="${DEMO_PASSWORD:-demo1234}"
+# Public demo login page always shows demo1234 — keep owner in sync when using demo principal.
+if [[ "${OWNER_EMAIL}" == "principal@demo.aorms.in" ]]; then
+  OWNER_PASSWORD="$DEMO_PASSWORD"
+  info "Demo principal: owner password set to match demo password."
+fi
 
 echo ""
 info "Configuration collected. Starting setup..."

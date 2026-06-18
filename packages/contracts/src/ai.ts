@@ -14,8 +14,36 @@ export const AiDraftKind = z.enum([
   "CRIF_SUMMARY",
   "CRIF_IMPACT",
   "CRIF_RISK",
+  // ESTICAD companion (Phase 13D) — use ai.generateCad, not browser AI Studio.
+  "CAD_DIMENSION_SUGGEST",
+  "CAD_NAMING",
+  "CAD_DOCUMENTATION",
+  "CAD_QUANTITY_EXTRACT",
+  "CAD_LAYER_AUDIT",
+  "CAD_REVISION_SUMMARY",
+  "CAD_PLOT_ASSIST",
+  "CAD_BOQ_DRAFT",
 ]);
 export type AiDraftKind = z.infer<typeof AiDraftKind>;
+
+/** ESTICAD-only draft kinds (subset of AiDraftKind). */
+export const CadAiDraftKind = z.enum([
+  "CAD_DIMENSION_SUGGEST",
+  "CAD_NAMING",
+  "CAD_DOCUMENTATION",
+  "CAD_QUANTITY_EXTRACT",
+  "CAD_LAYER_AUDIT",
+  "CAD_REVISION_SUMMARY",
+  "CAD_PLOT_ASSIST",
+  "CAD_BOQ_DRAFT",
+]);
+export type CadAiDraftKind = z.infer<typeof CadAiDraftKind>;
+
+const CAD_KIND_SET = new Set<string>(CadAiDraftKind.options);
+
+export function isCadAiDraftKind(kind: string): kind is CadAiDraftKind {
+  return CAD_KIND_SET.has(kind);
+}
 
 export const AI_DRAFT_KIND_LABEL: Record<AiDraftKind, string> = {
   PROPOSAL: "Fee proposal narrative",
@@ -30,6 +58,14 @@ export const AI_DRAFT_KIND_LABEL: Record<AiDraftKind, string> = {
   CRIF_SUMMARY: "CRIF revision summary",
   CRIF_IMPACT: "CRIF impact statement",
   CRIF_RISK: "CRIF risk flags",
+  CAD_DIMENSION_SUGGEST: "CAD dimension suggestions (AIDIM)",
+  CAD_NAMING: "CAD naming assistant (AINAME)",
+  CAD_DOCUMENTATION: "CAD documentation (AINOTE)",
+  CAD_QUANTITY_EXTRACT: "CAD quantity extraction (AIQTY)",
+  CAD_LAYER_AUDIT: "CAD layer audit (AICLEAN)",
+  CAD_REVISION_SUMMARY: "CAD revision summary (AIREV)",
+  CAD_PLOT_ASSIST: "CAD plot assist (AIPLOT)",
+  CAD_BOQ_DRAFT: "CAD BOQ narrative (AIBOQ)",
 };
 
 export const AiProvider = z.enum(["mock", "ollama"]);
@@ -126,3 +162,46 @@ export const AiRunUpdate = z.object({
   approvalState: AiApprovalState.optional(),
 });
 export type AiRunUpdate = z.infer<typeof AiRunUpdate>;
+
+/** Structured context bundle sent by ESTICAD context_builder (Phase 13D). */
+export const AiCadLayerRef = z.object({
+  name: z.string().min(1).max(120),
+  entityCount: z.number().int().min(0).optional(),
+  color: z.string().max(40).optional(),
+});
+
+export const AiCadContext = z.object({
+  selectionSummary: z.string().max(8000).optional(),
+  layers: z.array(AiCadLayerRef).max(200).optional(),
+  blocks: z.array(z.string().min(1).max(120)).max(100).optional(),
+  quantitiesSummary: z.string().max(4000).optional(),
+  revisionLabel: z.string().max(120).optional(),
+  plotSheetSize: z.string().max(80).optional(),
+  clientVersion: z.string().max(40).optional(),
+});
+export type AiCadContext = z.infer<typeof AiCadContext>;
+
+export const AiGenerateCadInput = z.object({
+  kind: CadAiDraftKind,
+  projectId: z.string().uuid().optional(),
+  drawingId: z.string().uuid().optional(),
+  prompt: z.string().max(4000).optional(),
+  context: AiCadContext.optional(),
+});
+export type AiGenerateCadInput = z.infer<typeof AiGenerateCadInput>;
+
+/** Proposal item returned inside generateCad JSON output for ESTICAD reconciliation. */
+export const AiCadProposalItem = z.object({
+  id: z.string().min(1).max(80),
+  label: z.string().min(1).max(200),
+  detail: z.string().max(4000),
+  confidence: z.number().min(0).max(1).optional(),
+});
+export type AiCadProposalItem = z.infer<typeof AiCadProposalItem>;
+
+export const AiCadProposalPayload = z.object({
+  kind: CadAiDraftKind,
+  summary: z.string(),
+  proposals: z.array(AiCadProposalItem),
+});
+export type AiCadProposalPayload = z.infer<typeof AiCadProposalPayload>;
