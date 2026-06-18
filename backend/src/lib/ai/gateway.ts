@@ -1,4 +1,6 @@
-import type { AiSettings } from "@esti/contracts";
+import type { AiCadContext, AiSettings } from "@esti/contracts";
+import { isCadAiDraftKind } from "@esti/contracts";
+import { assembleCadAiContext } from "./cad-context.js";
 import { assembleAiContext, generateMockOutput } from "./context.js";
 import { ollamaBaseUrlFromEnv, ollamaModelFromEnv } from "./ollama-config.js";
 import type { DB } from "../../db/index.js";
@@ -8,8 +10,11 @@ export type GatewayInput = {
   kind: AiDraftKind;
   mode?: "draft" | "agent";
   projectId?: string;
+  drawingId?: string;
   prompt?: string;
   contextQuery?: string;
+  /** ESTICAD context bundle (Phase 13D). */
+  cadContext?: AiCadContext;
 };
 
 export type GatewayResult = {
@@ -78,6 +83,18 @@ async function callOllamaChat(input: {
   return { text, tokens: data.eval_count ?? null };
 }
 
+function normalizeCadJsonOutput(text: string, fallbackJson: string): string {
+  try {
+    const parsed = JSON.parse(text) as { proposals?: unknown };
+    if (parsed && Array.isArray(parsed.proposals)) {
+      return JSON.stringify(parsed, null, 2);
+    }
+  } catch {
+    /* use fallback */
+  }
+  return fallbackJson;
+}
+
 export async function runAiGateway(
   db: DB,
   user: { id: string; role: string; email?: string; fullName?: string; isDemo?: boolean },
@@ -89,7 +106,20 @@ export async function runAiGateway(
   }
 
   const runtime = resolveRuntime(settings);
-  const bundle = await assembleAiContext(db, user, input);
+  const bundle =
+    isCadAiDraftKind(input.kind) ?
+      await assembleCadAiContext(db, user, {
+        kind: input.kind,
+        projectId: input.projectId,
+        drawingId: input.drawingId,
+        prompt: input.prompt,
+        context: input.cadContext,
+      })
+    : await assembleAiContext(db, user, input);
+
+  const cadFallback = isCadAiDraftKind(input.kind) ?
+    (bundle as Awaited<ReturnType<typeof assembleCadAiContext>>).templateJson
+  : undefined;
 
   if (runtime.mode === "ollama") {
     try {
@@ -100,7 +130,7 @@ export async function runAiGateway(
         user: bundle.userPrompt,
       });
       return {
-        output: text,
+        output: cadFallback ? normalizeCadJsonOutput(text, cadFallback) : text,
         sources: bundle.sources,
         promptSummary: bundle.promptSummary,
         provider: runtime.provider,
@@ -112,8 +142,12 @@ export async function runAiGateway(
       const mock = await generateMockOutput(db, user, input);
       const hint =
         err instanceof Error ? err.message : "Ollama unavailable";
+      const output =
+        cadFallback ?
+          normalizeCadJsonOutput(mock.output, cadFallback)
+        : `${mock.output}\n\n---\n*Ollama fallback (${hint.slice(0, 120)})*`;
       return {
-        output: `${mock.output}\n\n---\n*Ollama fallback (${hint.slice(0, 120)})*`,
+        output,
         sources: mock.sources,
         promptSummary: mock.promptSummary,
         provider: "mock",
@@ -126,7 +160,7 @@ export async function runAiGateway(
 
   const mock = await generateMockOutput(db, user, input);
   return {
-    output: mock.output,
+    output: cadFallback ? normalizeCadJsonOutput(mock.output, cadFallback) : mock.output,
     sources: mock.sources,
     promptSummary: mock.promptSummary,
     provider: "mock",
