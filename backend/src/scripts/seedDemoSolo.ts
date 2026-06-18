@@ -21,6 +21,7 @@ import {
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
+import { ensureSoloDemoShowcase } from "./seedDemoShowcase.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 const SOLO_EMAIL = "solo@demo.aorms.in";
@@ -39,7 +40,8 @@ async function main(): Promise<void> {
       .update(orgSettings)
       .set({ hrEnabled: false, orgMode: "SOLO" })
       .where(eq(orgSettings.id, settings.id));
-    console.log("✓ solo demo workspace already present (org mode refreshed)");
+    await ensureSoloDemoShowcase(db);
+    console.log("✓ solo demo workspace already present (org mode + showcase refreshed)");
     return;
   }
 
@@ -173,6 +175,8 @@ async function main(): Promise<void> {
       },
     ]);
   }
+
+  await ensureSoloDemoShowcase(db);
 
   console.log("✓ seeded solo demo workspace");
   console.log(`    login: ${SOLO_EMAIL} / ${DEMO_PASSWORD}`);
