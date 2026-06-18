@@ -14,6 +14,7 @@ import { App } from "./App.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
+import { newRequestId } from "./lib/request-id.js";
 import { trpc } from "./lib/trpc.js";
 
 function toErrorToast(error: unknown, meta?: { silent?: boolean }) {
@@ -38,9 +39,12 @@ const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
       url: "/trpc",
+      fetch(url, options) {
+        return fetch(url, { ...options, credentials: "include" });
+      },
       // Attach a per-batch request ID so backend and worker logs can be
       // correlated to the originating SPA interaction (audit O3).
-      headers: () => ({ "x-request-id": crypto.randomUUID() }),
+      headers: () => ({ "x-request-id": newRequestId() }),
     }),
   ],
 });

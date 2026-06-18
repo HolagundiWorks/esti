@@ -9,7 +9,7 @@ import {
   Tile,
 } from "@carbon/react";
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
 const DEMO_PASSWORD = "demo1234";
@@ -26,11 +26,15 @@ const DEMO_PERSONAS: { label: string; role: string; email: string }[] = [
 ];
 
 export function Login() {
+  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = trpc.auth.login.useMutation({
-    onSuccess: () => utils.auth.me.invalidate(),
+    onSuccess: async () => {
+      await utils.auth.me.invalidate();
+      navigate("/", { replace: true });
+    },
   });
 
   return (

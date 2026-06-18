@@ -90,7 +90,7 @@ services:
       DATABASE_URL:       ${DATABASE_URL}
       REDIS_URL:          ${REDIS_URL}
       SESSION_SECRET:     ${SESSION_SECRET}
-      COOKIE_SECURE:      "true"
+      COOKIE_SECURE:      ${COOKIE_SECURE:-true}
       ALLOWED_ORIGINS:    ${ALLOWED_ORIGINS}
       S3_ENDPOINT:        ${S3_ENDPOINT}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
