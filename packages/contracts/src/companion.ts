@@ -36,3 +36,39 @@ export const CompanionCapabilities = z.object({
   subscriptionActive: z.boolean(),
 });
 export type CompanionCapabilities = z.infer<typeof CompanionCapabilities>;
+
+export const WorldGeometryPoint = z.object({ x: z.number(), y: z.number() });
+
+export const WorldGeometry = z.object({
+  type: z.enum(["LINE", "POLYLINE", "POLYGON", "POINT"]),
+  points: z.array(WorldGeometryPoint).min(1),
+});
+export type WorldGeometry = z.infer<typeof WorldGeometry>;
+
+export const CompanionLinkDrawing = z.object({
+  projectId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  /** When set, return the existing drawing instead of creating a new row. */
+  drawingId: z.string().uuid().optional(),
+});
+export type CompanionLinkDrawing = z.infer<typeof CompanionLinkDrawing>;
+
+export const CompanionDrawingSetScale = z.object({
+  drawingId: z.string().uuid(),
+  scaleUnit: z.string().min(1).max(8),
+  /** Real-world units per one drawing unit (ESTICAD TOSCALE calibration). */
+  scaleFactor: z.number().positive(),
+});
+export type CompanionDrawingSetScale = z.infer<typeof CompanionDrawingSetScale>;
+
+export const DeviceSessionRow = z.object({
+  id: z.string().uuid(),
+  deviceName: z.string(),
+  clientId: z.string(),
+  userId: z.string().uuid(),
+  userEmail: z.string().email(),
+  userFullName: z.string(),
+  lastUsedAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+});
+export type DeviceSessionRow = z.infer<typeof DeviceSessionRow>;

@@ -64,6 +64,21 @@ curl -s http://127.0.0.1:4000/readyz | jq .
 
 Sign-off: owner can log in, open a project, and download an existing PDF after restore.
 
+### Staging sign-off record
+
+Run on the **staging VPS clone** before production cutover. Record in your ops log (not in git):
+
+| Field | Value |
+|-------|-------|
+| Date | YYYY-MM-DD |
+| Operator | Name |
+| Backup path | e.g. `/opt/esti/backups/esti-pg-…` |
+| `restore-drill.sh` exit code | 0 |
+| `/health` after drill | `ok: true` |
+| Spot check | Login, project open, PDF download |
+
+If the drill fails, do not declare production-ready — fix backup/restore paths first.
+
 ---
 
 ## Health probes

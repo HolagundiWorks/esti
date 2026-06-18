@@ -246,5 +246,13 @@ export const measurements = pgTable("esti_measurement", {
   boqQty: doublePrecision("boq_qty"),
   boqUnit: text("boq_unit"),
   boqDescription: text("boq_description"),
+  /** Origin client — legacy web rows use WEB; ESTICAD rows use ESTICAD. */
+  source: text("source").notNull().default("WEB"),
+  /** Points, polylines, polygons in drawing world units (ESTICAD). */
+  worldGeometry: jsonb("world_geometry"),
+  /** Stable ESTICAD entity IDs tied to the measurement. */
+  entityRefs: jsonb("entity_refs"),
+  scaleWorldUnits: text("scale_world_units"),
+  createdByClient: text("created_by_client"),
   createdAt: createdAt(),
 });

@@ -58,7 +58,7 @@ export function TaskCalendarTab() {
   const [myTasks, setMyTasks] = useState(false);
   const [openOnly, setOpenOnly] = useState(true);
 
-  const listParams: TaskListParams = { myTasks, openOnly: openOnly ? true : undefined };
+  const listParams: TaskListParams = { myTasks, openOnly };
   const listQ = trpc.tasks.list.useQuery(listParams);
 
   const tasks = listQ.data ?? [];

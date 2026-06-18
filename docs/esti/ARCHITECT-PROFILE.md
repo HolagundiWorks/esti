@@ -1,9 +1,10 @@
 # ESTI Architect Practice Profile
 
-**Status:** Canonical module registry · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-11
+**Status:** Canonical module registry · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-18
 
 This document maps ESTI requirements to modules. Delivery status and sequence
-are authoritative only in [ROADMAP](ROADMAP.md).
+are authoritative only in [ROADMAP](ROADMAP.md). Long-term scope discipline is in
+[STABILITY-CHARTER](STABILITY-CHARTER.md).
 
 ## Access Model
 
@@ -11,35 +12,37 @@ are authoritative only in [ROADMAP](ROADMAP.md).
   access for administration, finance, HR, reports, and destructive operations.
 - **Client portal:** one client record; own projects and explicitly client-visible objects.
 - **Consultant portal:** one consultant record; engaged projects and assigned objects.
-- **Contractor portal (planned):** invited tenders and awarded projects only.
+- **Contractor portal:** invited tenders and awarded projects only (token-scoped bid portal + site coordination).
 
 Portal identities are not internal staff. Every query and mutation must apply
 row/object scope in the backend, including REST uploads and downloads.
 
-## Module Registry
+## Module registry
 
-| Product area | Current foundation | Planned expansion |
+**Stable (frozen IA)** — extend with additive fields and exports; avoid navigation or workflow reshuffles.
+
+| Product area | Delivered foundation | Expansion (charter-safe only) |
 | --- | --- | --- |
-| Dashboard | office/project/finance/workload boards | risks, revisions, tenders, health, digest, recognition |
-| Activity Center | alerts aggregation | immutable activity feed, escalations, announcements, wellbeing cues |
-| Clients | register, communication log, portal provisioning | requests, feedback, satisfaction, writable approvals |
-| Projects | project record, general delivery stages, settings, internal notes | overview, timeline, critical notes, decisions, health, revision intelligence, archive |
-| Knowledge Bank | Master DSR and versioned compliance rules | specification/procurement standards, structural element and reinforcement templates, CAD/BIM/vendor libraries |
-| Compliance | standalone assessment linked to project overview | verified calculations and immutable PDF reports from published Knowledge Bank rules |
-| Tasks | project tasks, status, priority, workload | IDs, review, dependencies, daily updates, timesheets, calendar, performance and rewards |
-| Drawings | DXF upload, versions, issue PDF, Open in ESTICAD | workflow statuses, impact, acknowledgements |
-| Documents | specs, mood boards, inspections, transmittals | unified register, photos/actions, revision/approval for all types |
-| Approvals | issue/sign-off log and supersede chain | portal writes, internal/contractor approvals, acknowledgement |
-| Consultants | register, engagements, scoped portal | deliverables, assigned tasks, contextual responses and RFIs |
-| Contractors/tenders | none | register, tender, bids, evaluation, award, isolated portal |
-| Site coordination | inspection reports | RFI, submittal, shop drawing, IR, instruction, snag, NCR |
-| Fees/contracts | proposals, COA fee proposals, contracts | richer versions/templates and connected activity |
-| Accounting | invoices, GST/TDS, filing, reconciliation | enhanced exports, mapping, retention, accountant workflow |
-| Estimation | DSR, estimate/BOQ, takeoff (ESTICAD capture + web read), BBS, simple PO | import/export, versioning, inline entry |
-| Office/knowledge | letters, firm profile, Knowledge Bank shell | MOM, templates, CAD/BIM/vendor libraries, lessons |
-| Search | module-local search | permission-aware universal search |
-| AI Studio | none | editable, source-linked drafting and summarization |
-| Administration | users, roles, settings, demo/purge tools | audit review, release metadata, retention, backup status, rewards governance |
+| Dashboard | Action Center, KPI boards, intelligence tiles, activity feed | Performance/pagination only — no major relayout |
+| Activity Center | alerts, digest, escalations | Same surfaces — no new top-level nav |
+| Clients | register, communication log, portal provisioning | Deep links, exports |
+| Projects | overview, timeline, CRIF, health, archive, tabs | Additive fields on existing tabs |
+| Knowledge Bank | DSR, compliance/RIE, spec catalogue, SteelFlow templates, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
+| Compliance | standalone assessment + immutable PDF | Rule versions only |
+| Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
+| Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
+| Documents | register, specs, mood boards, inspections, transmittals, MOM | Revision/approval on existing types |
+| Approvals | issue/sign-off log and supersede chain | Portal acknowledgement only |
+| Consultants | register, engagements, scoped portal, RFIs | Contextual responses |
+| Contractors / tenders | register, tender packages, bids, award, bid portal | Site coordination inbox |
+| Site coordination | RFI, submittal, shop drawing, IR, instruction, snag, NCR | Same object model |
+| Fees / contracts | proposals, COA scale, contracts | Templates and activity links |
+| Accounting | invoices, GST/TDS, filing, reconciliation | Exports and mapping |
+| Estimation | DSR, BOQ, takeoff (ESTICAD capture + web read), BBS, PO with spec link | Import/export — **no web visual connector** |
+| Search | permission-aware universal search | New entity types quietly |
+| AI Studio | Ollama drafts, provenance, `/office/ai-studio` | **No new web draft kinds** — CAD kinds in ESTICAD only (Phase 13D) |
+| ESTI agent | Alt+A read-only advisor (live AORMS context) | Prompt/rules only — no execute/upload |
+| Administration | users, roles, audit review, release metadata, demo tools | Device admin (Phase 13E) |
 
 ## Project Object Model
 
@@ -67,12 +70,11 @@ approval portals without a supported authority API.
 ## Traceability Model
 
 - `esti_audit`: append-only compliance record with actor and before/after data.
-- `esti_activity` (planned): human-readable timeline event with project/object,
-  visibility, summary, and metadata.
+- `esti_activity`: human-readable timeline event with project/object, visibility,
+  summary, and metadata.
 - Contextual comments: discussion linked to a supported source object.
-- Revision records (planned beyond drawings): change description, impact,
-  actor, affected objects, acknowledgement requirements, feedback quality, and
-  revision budget signals.
+- CRIF decisions and drawing revisions: change description, impact, actor,
+  acknowledgement requirements, feedback quality, and revision budget signals.
 
 ## Behavioral And Studio Intelligence
 
@@ -83,7 +85,7 @@ belong to the work item, not to a separate chat thread.
 ASPRF-style studio performance lives in the task/capacity model: reliability,
 quality, client impact, collaboration, learning, and wellbeing are used for
 coaching, recognition, and workload balancing. Pomodoro and water reminders are
-treated as required wellbeing tools, not optional trivia.
+opt-in wellbeing tools in Personal Workspace — not expanded into a wellness product.
 
 Audit, activity, comments, and notifications are related but not interchangeable.
 

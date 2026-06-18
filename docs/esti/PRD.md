@@ -142,13 +142,13 @@ accounting systems.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
 - DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports.
-- **ESTICAD companion** (planned Phase 13): native desktop CAD links to AORMS for
+- **ESTICAD companion** (Phase 13, partial): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
   set. Requires a paying firm account and staff write access; offline drafting
   without takeoff is supported. See [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
-- A visual estimation connector may propagate quantities through reusable
-  assemblies after the core estimate model and tests are mature.
+- ~~Visual estimation connector in the web app~~ — **superseded** by the ESTICAD
+  companion (Phase 13). Do not add a second quantity pipeline in AORMS web.
 
 All money is integer paise and formatted through shared `formatINR` utilities.
 
@@ -163,11 +163,13 @@ All money is integer paise and formatted through shared `formatINR` utilities.
   geometry, cover, bar roles, diameters, spacing/count, laps, hooks, and shape
   codes. Published templates generate reviewable BBS lines; engineers remain
   responsible for design approval and project-specific validation.
-- The Knowledge Bank later expands to searchable templates, CAD/BIM resources,
-  vendor catalogues, and closure lessons learned.
+- The Knowledge Bank expands to searchable templates and closure lessons learned.
+  CAD/BIM vendor asset libraries remain **out of scope** ([STABILITY-CHARTER](STABILITY-CHARTER.md)).
 - AI Studio drafts proposals, scopes, agreements, specifications, reports, MOM,
   and RFI responses. Outputs are editable, source-linked, permission-aware,
   auditable, and never auto-issued.
+- **ESTI agent (Alt+A)** reads live AORMS data and suggests next steps — read-only;
+  no auto-issue, upload, or mutation on behalf of the user.
 - **CAD AI** (ESTICAD companion, planned): dimensioning, naming, documentation,
   quantity extraction, layer audit, revision summary, plot assist, and BOQ
   narrative — proxied through the same Ollama gateway with CAD-specific draft

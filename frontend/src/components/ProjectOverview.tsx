@@ -213,10 +213,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   });
 
   const tasks = tasksQ.data ?? [];
-  const approvals = approvalsQ.data ?? [];
+  const approvals = approvalsQ.data?.rows ?? [];
   const drawings = drawingsQ.data ?? [];
   const revisions = revisionsQ.data ?? [];
-  const notes = notesQ.data ?? [];
+  const notes = notesQ.data?.rows ?? [];
   const allDecisions = decisionsQ.data?.rows ?? [];
   const openTasks = tasks.filter((t) => t.status !== "DONE");
   const overdueTasks = tasks.filter(

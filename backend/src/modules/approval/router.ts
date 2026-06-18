@@ -1,21 +1,29 @@
-import { ApprovalCreate, ApprovalUpdate } from "@esti/contracts";
+import { ApprovalCreate, ApprovalUpdate, ProjectCursorListParams, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { approvals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { requireApprovalInProject } from "../../lib/projectScope.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const approvalRouter = router({
   listByProject: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(ProjectCursorListParams)
     .query(async ({ ctx, input }) => {
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(approvals)
-        .where(eq(approvals.projectId, input.projectId))
-        .orderBy(desc(approvals.createdAt));
+        .where(
+          and(
+            eq(approvals.projectId, input.projectId),
+            cursorWhere(input.cursor, approvals.createdAt, approvals.id),
+          ),
+        )
+        .orderBy(desc(approvals.createdAt), desc(approvals.id))
+        .limit(clampListLimit(input.limit) + 1);
+      return buildCursorPage(rows, input.limit);
     }),
 
   create: protectedProcedure.input(ApprovalCreate).mutation(async ({ ctx, input }) => {
