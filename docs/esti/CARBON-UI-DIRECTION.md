@@ -2,6 +2,11 @@
 
 **Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15
 
+**Carbon agent kit:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after `pnpm install`) — design-intelligence, pattern-library, knowledge index. This document is the **ESTI-specific** enforcement layer only.
+
+**Theme rules 1–8:** `.carbon-kit/knowledge/theme_implementation.md`  
+**Search / refresh:** `pnpm carbon:search` · `pnpm carbon:index`
+
 The ESTI frontend uses only IBM Carbon Design System components, icons,
 pictograms, charts, layout, typography, and design tokens. This is an
 implementation constraint, not a visual suggestion.
@@ -10,6 +15,7 @@ Reference specs used in this document:
 - Components: https://carbondesignsystem.com/components/overview/components/
 - Data viz: https://carbondesignsystem.com/data-visualization/getting-started/
 - 2x Grid / spacing: https://carbondesignsystem.com/elements/2x-grid/overview/
+- Typography: https://carbondesignsystem.com/elements/typography/overview/
 - Colour: https://carbondesignsystem.com/elements/color/overview/
 
 ---
@@ -32,7 +38,7 @@ Reference specs used in this document:
 
 - Custom cards, status pills, progress bars, tabs, modals, tables, or buttons.
 - Hard-coded hex/RGB colours, gradients, shadows, bespoke palettes, and custom
-  keyframe animations.
+  keyframe animations (except documented landing case-study border below).
 - Decorative inline styles for font size, weight, colour, borders, or shadows.
 - Custom CSS classes that implement a second visual system.
 - Clickable non-interactive elements such as `Tile onClick`; use `ClickableTile`
@@ -54,21 +60,23 @@ must not spread to staff workspace routes without an explicit policy update.
 
 | Exception | Location | Rationale |
 |---|---|---|
-| Marketing landing (`.esti-lp`) | `Landing.tsx`, `styles.scss`, `LandingCarbonZone.tsx` | Custom editorial design system (`--lp-*` tokens, native HTML). Carbon components isolated to `.esti-lp-carbon` for dashboard-faithful previews only (`LandingDashboardPreview`, `QualityIntelligencePreview`). Product mocks (revision flow) use custom HTML. |
 | Dashboard mosaic grid | `.esti-dash` | Condensed `Grid` with 1 px row-gap so zone tiles read as a flush mosaic; vertical rhythm matches horizontal gutters. |
 | Square-corner tags | `.cds--tag { border-radius: 0 }` | Deliberate brand choice on dashboard and intelligence tiles; do not apply globally to form controls. |
 | ASPRF / Performance KPI track bars | `.esti-kpi-track`, `.esti-kpi-fill` | Legacy CSS retained for any remaining scalar bars; Performance member tiles now use `MeterChart` (Phase 2F). |
 | Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. |
 | SteelFlow canvas geometry | `SteelArranger.tsx`, `CrossSectionCanvas.tsx` | SVG sizing, drop zones, and palette positioning require structural inline styles; no decorative hex or shadows. Browser drawing takeoff was removed 2026-06-17 — ESTICAD only. |
 | Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
-| Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope (not under `.esti-lp` only). |
+| Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope. |
 | Login brand mark | `.esti-login-mark` | Inverse background chip for the white ESTI mark on the login tile; uses `--cds-background-inverse`, not hard-coded hex. |
+| Landing layout | `.esti-landing-content`, `.esti-landing-*` | UI Shell chrome plus expressive editorial typography and 2x Grid tile layout. Marketing sections use Carbon `Grid`, `Column`, `Stack`, and `Tile`. |
+| Landing case-study border | `.esti-case-study-card`, `@property --esti-case-study-angle` | Landing-only IBM-style rotating conic border using `--cds-*` tokens only; `prefers-reduced-motion: reduce` disables animation. |
+| Landing ESTI AI | `.esti-landing-ai` | Fixed corner FAB + panel positioning for public marketing AI; Carbon controls only. |
 | Portal logo sizing | `.esti-portal-logo` | Structural max-height for firm logo in external portal headers. |
 
 Staff routes (`src/routes` excluding `Landing.tsx`) must not add new entries to
 this table without updating both this document and `ROADMAP.md` Phase 2F.
 
-Automated enforcement lives in `frontend/scripts/carbon-policy-rules.mjs`
+Automated enforcement lives in `@hcw/carbon-agent-kit/policy`
 (consumed by `check-carbon.mjs` and `carbon-policy.test.ts`).
 
 ---
@@ -114,6 +122,39 @@ patterns for ESTI screens:
 **Never** use `gap={1}` (2 px) for visible text — it is too tight to read.
 **Never** skip levels without reason (e.g., jumping from gap=3 to gap=7 inside
 a single tile).
+
+### Marketing landing (`Landing.tsx`)
+
+The public landing page uses **fixed layout headings** (`heading-03`–`heading-06`) and
+`body-02` — not the productive app shell scale, and not fluid expressive tokens
+(which are for full-bleed pages outside fixed containers).
+
+| Element | Carbon type token | Notes |
+|---|---|---|
+| Hero `h1` | `heading-06` | Largest fixed layout heading |
+| Section `h2` | `heading-04` | Band titles via `MarketingSectionHead` |
+| Tile `h3` | `heading-03` | Feature / case-study titles |
+| Hero deck | `heading-03` | Secondary colour via `--cds-text-secondary` |
+| Section lead | `body-02` | Secondary colour via `--cds-text-secondary` |
+| Eyebrow | `label-02` | Uppercase kicker above section titles |
+| Impact metric | `heading-05` | Large numeral in impact tiles |
+
+Spacing rhythm (see [Carbon spacing](https://carbondesignsystem.com/elements/spacing/overview/)):
+
+| Context | `Stack gap` | Token | px |
+|---|---|---|---|
+| Band vertical padding | — | `spacing-10` | 64 |
+| Section head → tile grid | `10` | `spacing-10` | 64 |
+| Section head internal (eyebrow → title → lead) | `5` | `spacing-05` | 16 |
+| Hero major blocks (copy → CTAs) | `7` | `spacing-07` | 32 |
+| Hero copy internal | `5` | `spacing-05` | 16 |
+| Tile internal blocks | `5` | `spacing-05` | 16 |
+| Grid row gap | — | `spacing-07` | 32 (matches default column gutter) |
+| Tile padding | — | `spacing-05` | 16 |
+
+Productive heading overrides in `styles.scss` are scoped to
+`.cds--content:not(.esti-landing-content)` so they do not clash with landing
+layout heading styles.
 
 ### Tile internal layout
 

@@ -1,8 +1,9 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { extname, join } from "node:path";
-import { checkLine } from "./carbon-policy-rules.mjs";
+import { fileURLToPath } from "node:url";
+import { checkLine } from "@hcw/carbon-agent-kit/policy";
 
-const root = process.argv[2] ?? new URL("../src/", import.meta.url);
+const root = process.argv[2] ?? fileURLToPath(new URL("../src/", import.meta.url));
 
 function files(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

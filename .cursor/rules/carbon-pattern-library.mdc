@@ -1,0 +1,16 @@
+---
+description: Carbon pattern library — select screen pattern before code
+alwaysApply: true
+---
+
+# Carbon Pattern Library (before code)
+
+**Playbook:** [`.carbon-kit/pattern-library/AGENT-RULES.md`](../../.carbon-kit/pattern-library/AGENT-RULES.md)
+
+1. Identify screen type → `.carbon-kit/pattern-library/`
+2. State pattern name + layout zones + actions
+3. Map zones → `.carbon-kit/pattern-library/carbon-component-mapping.md`
+4. Apply `.carbon-kit/knowledge/theme_implementation.md` rules 1–8
+5. **Then** implement in `frontend/`
+
+No matching pattern → add doc in pattern-library first. Never improvise layouts in code.

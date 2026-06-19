@@ -2,3 +2,5 @@ packages:
   - packages/*
   - backend
   - frontend
+  - ../hcw-carbon-agent-kit
+  - ../hcw-aorms-ai-kit

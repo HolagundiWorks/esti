@@ -123,6 +123,29 @@ See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
 ---
 
+## Landing page ESTI AI (Ollama required)
+
+Prompts and Ollama client live in **`@hcw/aorms-ai-kit`** (sibling repo `hcw-aorms-ai-kit`). Rebuild backend after bumping that package version. See [KITS.md](../KITS.md).
+
+The public marketing site exposes **Ask ESTI** (`marketing.askEsti`) — product FAQ powered by on-server Ollama. There is **no mock fallback** on the landing page; if Ollama is down, visitors see a friendly unavailable message.
+
+**Prerequisites**
+
+1. `esti-ollama` service running in `compose.prod.yaml` (or `OLLAMA_BASE_URL` pointing to a reachable host).
+2. Model pulled: `docker compose -f compose.prod.yaml exec esti-ollama ollama pull llama3.2` (or your `OLLAMA_MODEL`).
+3. Rebuild backend after deploy so `landing-gateway` is in the image.
+
+**Verify**
+
+```bash
+docker compose -f compose.prod.yaml exec esti-ollama ollama list
+curl -s http://127.0.0.1:11434/api/tags | head
+```
+
+Open the site → corner **Ask ESTI** → ask “What is CRIF?” — expect an answer about the project change register.
+
+---
+
 ## Beta request form (internal landing form + SMTP)
 
 The **Request beta testing access** form on the landing page (`#beta`) is built into AORMS — **not** Google Forms. Each submission is:

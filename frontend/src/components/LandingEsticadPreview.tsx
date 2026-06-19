@@ -1,60 +1,156 @@
+import { Download } from "@carbon/icons-react";
+import {
+  Button,
+  Column,
+  Grid,
+  InlineNotification,
+  Stack,
+  StructuredListBody,
+  StructuredListCell,
+  StructuredListRow,
+  StructuredListWrapper,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tag,
+} from "@carbon/react";
+import { ESTICAD_DOWNLOAD_URL } from "../lib/esticadLink.js";
+
+type Props = {
+  logoSrc?: string;
+  /** When true, only tabs and download content (brand lives in parent feature band). */
+  hideBrandColumn?: boolean;
+};
+
+const DESK_FEATURES = [
+  "Built-in revision time log — save a state, restore onto the main drawing later",
+  "Pick up wall lengths, slab areas and counts with snaps and ortho",
+  "Naming and dimension suggestions — you approve before anything changes",
+];
+
+const CLOUD_FEATURES = [
+  "Measured quantities flow into the project estimate",
+  "Same drawing register, fee stages and GST trail as the web office",
+  "Open in ESTICAD from any project drawing in AORMS",
+];
+
 /**
- * ESTICAD companion — explained for architects on the marketing page.
+ * ESTICAD — Tabs for desk vs practice file, StructuredList for features.
  */
-export function LandingEsticadPreview() {
+export function LandingEsticadPreview({
+  logoSrc = "/esticad-logo.png",
+  hideBrandColumn = false,
+}: Props) {
+  const content = (
+    <Stack gap={5}>
+      <InlineNotification
+        kind="info"
+        title="One drawing file — not a folder of copies"
+        subtitle="Save at each revision, keep working on the main board, and restore an earlier layout when the client changes their mind."
+        hideCloseButton
+        lowContrast
+      />
+
+      <Tabs>
+        <TabList aria-label="ESTICAD capabilities">
+          <Tab>At your drawing desk</Tab>
+          <Tab>Linked to AORMS</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <StructuredListWrapper aria-label="Drawing desk features">
+              <StructuredListBody>
+                {DESK_FEATURES.map((f) => (
+                  <StructuredListRow key={f}>
+                    <StructuredListCell>{f}</StructuredListCell>
+                  </StructuredListRow>
+                ))}
+              </StructuredListBody>
+            </StructuredListWrapper>
+          </TabPanel>
+          <TabPanel>
+            <StructuredListWrapper aria-label="Practice file integration">
+              <StructuredListBody>
+                {CLOUD_FEATURES.map((f) => (
+                  <StructuredListRow key={f}>
+                    <StructuredListCell>{f}</StructuredListCell>
+                  </StructuredListRow>
+                ))}
+              </StructuredListBody>
+            </StructuredListWrapper>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+
+      {hideBrandColumn && (
+        <Stack orientation="horizontal" gap={3}>
+          <Tag type="green" size="sm">
+            Free
+          </Tag>
+          <Tag type="gray" size="sm">
+            Windows
+          </Tag>
+          <Tag type="blue" size="sm">
+            Links to AORMS
+          </Tag>
+          <Button
+            kind="primary"
+            renderIcon={Download}
+            href={ESTICAD_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Download ESTICAD
+          </Button>
+        </Stack>
+      )}
+    </Stack>
+  );
+
+  if (hideBrandColumn) {
+    return content;
+  }
+
   return (
-    <div className="esti-lp-esticad">
-      <p className="esti-lp-esticad__intro">
-        <strong>ESTICAD</strong> is free drawing software for Windows — made for Indian
-        architecture practices. You use it like any CAD seat at your desk: plans, sections,
-        dimensions, quantity checks. It does not replace AORMS; it connects to it so measured
-        quantities and drawing context stay in the same project file as your fees, BOQ and issue
-        register.
-      </p>
+    <Grid>
+      <Column lg={5} md={8} sm={4}>
+        <Stack gap={5}>
+          <img src={logoSrc} alt="ESTICAD" className="esti-landing-esticad-logo" />
+          <Stack gap={3}>
+            <Stack orientation="horizontal" gap={3}>
+              <Tag type="green" size="sm">
+                Free
+              </Tag>
+              <Tag type="gray" size="sm">
+                Windows
+              </Tag>
+              <Tag type="blue" size="sm">
+                Links to AORMS
+              </Tag>
+            </Stack>
+            <h3>Drawing software built for architects</h3>
+            <p>
+              Draw at your desk, measure quantities, and keep every revision in one project file
+              — without duplicate copies on your drive.
+            </p>
+          </Stack>
+          <Button
+            kind="primary"
+            renderIcon={Download}
+            href={ESTICAD_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Download ESTICAD
+          </Button>
+        </Stack>
+      </Column>
 
-      <div className="esti-lp-esticad__split">
-        <div className="esti-lp-esticad__client">
-          <p className="esti-lp-esticad__label">At your drawing desk · Windows PC</p>
-          <h4>Draw and measure on canvas</h4>
-          <ul className="esti-lp-esticad__list">
-            <li>Work on plans offline — lines, layers and revisions on your machine</li>
-            <li>Pick up wall lengths, slab areas and counts with snaps and ortho</li>
-            <li>Get naming, dimension and note suggestions — you approve before they apply</li>
-          </ul>
-          <p className="esti-lp-esticad__note">Free to install · built for architects, not contractors</p>
-        </div>
-
-        <div className="esti-lp-esticad__bridge" aria-hidden>
-          <span className="esti-lp-esticad__arrow">→</span>
-          <span className="esti-lp-esticad__bridge-label">Linked to your studio</span>
-        </div>
-
-        <div className="esti-lp-esticad__cloud">
-          <p className="esti-lp-esticad__label">In AORMS · your office record</p>
-          <h4>One project file for the whole practice</h4>
-          <ul className="esti-lp-esticad__list">
-            <li>Measured quantities roll into the project BOQ and estimate</li>
-            <li>Same drawing register, fee stages and GST trail as the web office</li>
-            <li>AI assists run on your server — nothing leaves without your review</li>
-          </ul>
-          <p className="esti-lp-esticad__badge">Active AORMS studio · authorised staff only</p>
-        </div>
-      </div>
-
-      <div className="esti-lp-esticad__policy">
-        <span>
-          <strong>Quantities when online</strong> — measured areas and lengths save to the project
-          BOQ when you are signed in; they are not kept in a separate file on the laptop.
-        </span>
-        <span>
-          <strong>Same component library</strong> — walls, slabs and structural items use the
-          server catalogue shared with AORMS estimates.
-        </span>
-        <span>
-          <strong>Jump from a project</strong> — use <strong>Open in ESTICAD</strong> on a drawing
-          in AORMS and continue takeoff on your PC.
-        </span>
-      </div>
-    </div>
+      <Column lg={11} md={8} sm={4}>
+        {content}
+      </Column>
+    </Grid>
   );
 }

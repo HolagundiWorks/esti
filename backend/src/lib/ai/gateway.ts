@@ -1,3 +1,4 @@
+import { callOllamaChat } from "@hcw/aorms-ai-kit/ollama";
 import type { AiCadContext, AiSettings } from "@esti/contracts";
 import { isCadAiDraftKind } from "@esti/contracts";
 import { assembleCadAiContext } from "./cad-context.js";
@@ -49,38 +50,6 @@ function resolveRuntime(settings: AiSettings): RuntimeMode {
     baseUrl: ollamaBaseUrl(settings),
     usedExternalApi: false,
   };
-}
-
-async function callOllamaChat(input: {
-  baseUrl: string;
-  model: string;
-  system: string;
-  user: string;
-}): Promise<{ text: string; tokens: number | null }> {
-  const url = `${input.baseUrl.replace(/\/$/, "")}/api/chat`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: input.model,
-      stream: false,
-      messages: [
-        { role: "system", content: input.system },
-        { role: "user", content: input.user },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Ollama HTTP ${res.status}: ${body.slice(0, 200)}`);
-  }
-  const data = (await res.json()) as {
-    message?: { content?: string };
-    eval_count?: number;
-  };
-  const text = data.message?.content?.trim() ?? "";
-  if (!text) throw new Error("Ollama returned empty content — pull the model with `ollama pull`");
-  return { text, tokens: data.eval_count ?? null };
 }
 
 function normalizeCadJsonOutput(text: string, fallbackJson: string): string {

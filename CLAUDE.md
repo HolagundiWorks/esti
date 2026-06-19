@@ -9,6 +9,25 @@ podman (`compose.yaml`).
 
 ## UI / design system — PURE CARBON ONLY
 
+**External packages (workspace):** `@hcw/carbon-agent-kit` → linked at `.carbon-kit/` after `pnpm install`.
+
+**Design thinking (first):** `.carbon-kit/design-intelligence/` — senior product designer playbook.  
+**Screen patterns (before code):** `.carbon-kit/pattern-library/`  
+**Carbon implementation:** `.carbon-kit/knowledge/` — rules, index, theme rules 1–8.  
+**ESTI exceptions:** [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md)
+
+### UI task order
+
+1. `.carbon-kit/design-intelligence/design_decision_engine.md`
+2. `.carbon-kit/pattern-library/` — select screen pattern, zones, Carbon map
+3. `.carbon-kit/knowledge/theme_implementation.md` — theme rules 1–8
+4. `.carbon-kit/knowledge/` — index search, implementation rules
+5. `docs/esti/CARBON-UI-DIRECTION.md` — ESTI exceptions
+
+Refresh Carbon index: `pnpm carbon:index` · Search: `pnpm carbon:search <terms>`
+
+**AORMS AI:** `@hcw/aorms-ai-kit` (prompts + Ollama SDK) — backend dependency; product docs stay in `docs/esti/`.
+
 **The frontend must use ONLY the IBM Carbon Design System. No custom UI
 elements.**
 
