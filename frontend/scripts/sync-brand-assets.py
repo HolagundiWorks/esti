@@ -121,6 +121,7 @@ def main() -> None:
     )
     aorms_light_wordmark(LR / "aorms black.png", PUB / "aorms-logo.png")
     aorms_white_wordmark(LR / "aorms white.png", PUB / "aorms-logo-white.png")
+    trim_alpha(Image.open(LR / "esticad logo.png")).save(PUB / "esticad-logo.png")
     shutil.copy2(LR / "hcw black.png", PUB / "hcw-black.png")
     shutil.copy2(LR / "HCW white.png", PUB / "hcw-white.png")
     favicon_sizes()

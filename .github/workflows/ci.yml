@@ -7,15 +7,28 @@ on:
 
 jobs:
   node:
-    name: TypeScript (contracts · backend · frontend)
+    name: TypeScript (contracts · backend · frontend · kits)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: esti
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: esti
+      - uses: actions/checkout@v4
+        with:
+          repository: HolagundiWorks/hcw-carbon-agent-kit
+          path: hcw-carbon-agent-kit
+      - uses: actions/checkout@v4
+        with:
+          repository: HolagundiWorks/hcw-aorms-ai-kit
+          path: hcw-aorms-ai-kit
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
+        with: { node-version: 20, cache: pnpm, cache-dependency-path: esti/pnpm-lock.yaml }
+      - run: pnpm install
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test

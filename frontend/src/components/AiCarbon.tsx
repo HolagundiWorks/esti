@@ -4,7 +4,7 @@
  */
 import { AILabel, Stack } from "@carbon/react";
 
-export type EstiAiScope = "agent" | "draft";
+export type EstiAiScope = "agent" | "draft" | "landing";
 
 const EXPLAIN: Record<
   EstiAiScope,
@@ -26,6 +26,15 @@ const EXPLAIN: Record<
       "Edit the draft before use; mark reviewed when satisfied.",
       "Copy into the target document and issue manually.",
       "Source tags show which records informed the draft.",
+    ],
+  },
+  landing: {
+    textLabel: "ESTI guide",
+    summary: "Product answers about AORMS — no access to your firm data on this page.",
+    details: [
+      "Powered by on-server Ollama when available.",
+      "Read-only guidance about modules, workflows, and demos.",
+      "For firm-specific questions, sign in or request beta access.",
     ],
   },
 };

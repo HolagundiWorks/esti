@@ -1,0 +1,17 @@
+---
+description: ESTI — bootstrap Carbon UI from @hcw/carbon-agent-kit (never start from zero)
+alwaysApply: true
+---
+
+# Carbon UI — session bootstrap
+
+When the task involves **ESTI frontend UI**, follow [`.carbon-kit/knowledge/AGENT-RULES.md`](../../.carbon-kit/knowledge/AGENT-RULES.md) and [`.carbon-kit/design-intelligence/AGENT-RULES.md`](../../.carbon-kit/design-intelligence/AGENT-RULES.md) before writing code.
+
+## Required first steps
+
+1. Read `.carbon-kit/knowledge/implementation_rules.md`
+2. `pnpm carbon:search <terms>`
+3. Open `localRef` + URLs from `.carbon-kit/knowledge/index.json`
+4. ESTI policy: `docs/esti/CARBON-UI-DIRECTION.md`
+
+Full workflow: `.carbon-kit/knowledge/AGENT-RULES.md`

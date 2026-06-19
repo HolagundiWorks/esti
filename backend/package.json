@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@esti/contracts": "workspace:*",
+    "@hcw/aorms-ai-kit": "workspace:*",
     "@fastify/cookie": "^9.4.0",
     "@fastify/multipart": "^8.3.0",
     "@fastify/rate-limit": "^9.1.0",

@@ -1,5 +1,9 @@
 # ESTI — agent instructions
 
-**Canonical agent guide:** [CLAUDE.md](CLAUDE.md) — Carbon UI rules, dev loop, tRPC module map, and conventions.
+**Canonical agent guide:** [CLAUDE.md](CLAUDE.md)
 
-This file exists so tools that look for `AGENTS.md` resolve to the same instructions. Do not duplicate content here; edit `CLAUDE.md` only.
+**Carbon UI:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after install) — design-intelligence → pattern-library → knowledge.
+
+**AORMS AI:** `@hcw/aorms-ai-kit` — prompts + Ollama SDK in backend.
+
+Do not duplicate content here; edit `CLAUDE.md` only.

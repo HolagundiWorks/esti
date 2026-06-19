@@ -54,6 +54,7 @@ export * from "./construction.js";
 export * from "./list-limits.js";
 export * from "./companion.js";
 export * from "./trial-request.js";
+export * from "./marketing-ai.js";
 export * from "./programme.js";
 export * from "./construction-schedule.js";
 export * from "./construction-schedule-templates.js";

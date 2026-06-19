@@ -1,19 +1,19 @@
 /** Landing-page SEO copy — keep in sync with index.html meta tags. */
 export const LANDING_SEO = {
-  title: "ESTI AORMS — Architectural Studio Management Software for Indian Architects",
+  title: "ESTI AORMS — Architectural Office Record for Indian Practices",
   description:
-    "Practice management for Indian architects — COA fee proposals, drawing issue registers, client revision control, RIE bylaw compliance, GST & TDS invoicing, BBS, ESTICAD desktop companion for cloud takeoff, and consultant portals. Self-hosted AORMS from solo consultancy to design studio.",
+    "Self-hosted AORMS for Indian architects — traceable projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD desktop companion, client portals, and Knowledge Bank compliance. Solo to studio.",
   keywords:
-    "architectural practice management software, architecture studio software India, ESTICAD, desktop CAD companion, cloud takeoff, client instruction register, Major Critical revision workflow, drawing issue control, ASPRF performance scoring, COA scale of charges, GST invoicing architects, TDS 194J, RIE FAR setback compliance, BBS software, self-hosted architecture software, AORMS, ESTI AORMS",
-  ogTitle: "Practice Management Software for Indian Architects",
+    "AORMS, architectural office record, architecture practice management India, CRIF revision intelligence, COA scale of charges, GST invoicing architects, ESTICAD companion, client portal, self-hosted architecture software, ESTI AORMS",
+  ogTitle: "One traceable office record for Indian architecture practices",
   ogDescription:
-    "ESTI AORMS — self-hosted practice management from briefing to final bill. Projects, COA fees, drawing issues, RIE compliance, ESTICAD cloud takeoff and GST in one office record.",
-  twitterTitle: "Practice Management for Indian Architects | ESTI AORMS",
+    "ESTI AORMS — projects, drawings, revisions, fees, and portals in one self-hosted system. Explore the live studio demo or ask ESTI on the landing page.",
+  twitterTitle: "ESTI AORMS — Architecture Office Record",
   twitterDescription:
-    "Self-hosted AORMS for Indian architecture practices — staged fees, drawing registers, bylaws, ESTICAD companion, BBS and GST billing in one system.",
-  headline: "Practice Management Software for Indian Architects",
+    "Traceable AORMS for Indian studios — CRIF, commercial, ESTICAD takeoff, and scoped portals. Self-hosted from solo to mid-size practice.",
+  headline: "One traceable office record for Indian architecture practices",
   footerBlurb:
-    "ESTI — Embedded Studio Intelligence — powers AORMS, the practice management system for Indian architects and architecture studios.",
+    "AORMS for Indian architecture practices — projects, fees, drawings, and accounts in one place, powered by ESTI.",
   canonical: "https://aorms.in/",
   siteName: "ESTI AORMS",
 } as const;

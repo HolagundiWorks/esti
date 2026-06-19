@@ -60,6 +60,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [20](#phase-20---production-audit-remediation-p1) | Audit remediation | P1 | ✅ |
 | [21](#phase-21---unified-compliance-module-ia-p1) | Unified compliance IA | P1 | ✅ |
 | [22](#phase-22---access-level-documentation-p1) | Access level documentation | P1 | ✅ |
+| [23](#phase-23---marketing-landing-refresh-p2) | Marketing landing refresh | P2 | ✅ |
 
 ---
 
@@ -605,6 +606,17 @@ Separate **site construction scheduling** (PMC-gated) from the **office delivery
 
 ---
 
+## Phase 23 — Marketing landing refresh [P2] — ✅ Complete (2026-06-19)
+
+- [x] Fresh IBM-inspired landing IA — hero, recommended paths, platform pillars, impact case-study cards
+- [x] Animated case-study borders (`.esti-case-study-card`) — documented Carbon exception
+- [x] Public corner ESTI AI — `marketing.askEsti` + `landing-operator.ts` (full AORMS ecosystem knowledge, Ollama required)
+- [x] Retired legacy `.esti-lp` preview sections from the landing route
+
+**Acceptance (manual):** 320/672/1056 px layouts; case-study border respects `prefers-reduced-motion`; corner AI returns charter-safe answers (CRIF, portals, no auto-issue); demo login and beta form unchanged.
+
+---
+
 ## Phase 18 — Office & project expenses [P1] — ✅ Complete (2026-06-15)
 
 ### 18A — Schema & API
@@ -740,5 +752,6 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-15 | Phase 17 — project Info tab, access hierarchy, Layer 3 tab gating; Phase 18 — office/project expenses |
 | 2026-06-15 | Phase 19 — Master DSR copy/draft/CSV import; compliance BUA sync to project brief |
 | 2026-06-19 | Phase 22 — ACCESS-MODEL (L1–L5), contracts access helpers, Users level column, audit L5 policy |
+| 2026-06-19 | Phase 23 — IBM-inspired landing refresh, case-study cards, public corner ESTI AI (`marketing.askEsti`) |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

@@ -105,7 +105,9 @@ body,
 html:has(.esti-app-shell),
 html:has(.esti-app-shell) body,
 html:has(.esti-lp),
-html:has(.esti-lp) body {
+html:has(.esti-lp) body,
+html:has(.esti-landing-shell),
+html:has(.esti-landing-shell) body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 
@@ -997,8 +999,10 @@ html:has(.esti-lp) body {
   --lp-ink-invert: #f4f4f4;
   --lp-accent: #0f62fe;
   --lp-accent-hover: #0353e9;
+  --lp-accent-glow: rgba(15, 98, 254, 0.35);
   --lp-border: #e0e0e0;
   --lp-border-dark: #393939;
+  --lp-bg-soft: #f4f4f4;
   --lp-max: min(80vw, 100rem);
   --lp-radius: 2px;
   --lp-font: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
@@ -1080,6 +1084,19 @@ html:has(.esti-lp) body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.esti-lp-bar__signin {
+  display: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: color-mix(in srgb, var(--lp-ink-invert) 85%, transparent);
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--lp-ink-invert);
+  }
 }
 
 .esti-lp-bar__cta {
@@ -1179,8 +1196,30 @@ html:has(.esti-lp) body {
 }
 
 .esti-lp-block--hero {
+  position: relative;
   padding: 3rem 0 2rem;
-  background: linear-gradient(180deg, #fff 0%, var(--lp-bg) 100%);
+  background: linear-gradient(165deg, #fff 0%, #f8f9fc 42%, var(--lp-bg) 100%);
+  overflow: hidden;
+}
+
+.esti-lp-hero__mesh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--lp-accent) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--lp-accent) 6%, transparent) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 20%, transparent 75%);
+  opacity: 0.9;
+}
+
+.esti-lp-hero__accent {
+  color: var(--lp-accent);
+}
+
+.esti-lp-kicker--invert {
+  color: color-mix(in srgb, var(--lp-ink-invert) 58%, transparent);
 }
 
 .esti-lp-block--cta {
@@ -1306,11 +1345,6 @@ html:has(.esti-lp) body {
   min-width: 0;
 }
 
-.esti-lp-trust__list--hero {
-  justify-content: flex-start;
-  margin-top: 1.5rem;
-}
-
 // ── Buttons & links
 .esti-lp-btn {
   display: inline-flex;
@@ -1349,6 +1383,16 @@ html:has(.esti-lp) body {
   border: 1px solid var(--lp-border);
 }
 
+.esti-lp-btn--on-dark {
+  color: var(--lp-ink-invert);
+  border-color: var(--lp-border-dark);
+  background: transparent;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--lp-ink-invert) 8%, transparent);
+  }
+}
+
 .esti-lp-btn--lg {
   padding: 0.9375rem 1.5rem;
   font-size: 0.9375rem;
@@ -1370,34 +1414,6 @@ html:has(.esti-lp) body {
 
 .esti-lp-text-link--invert {
   color: #78a9ff;
-}
-
-// ── Trust
-.esti-lp-trust {
-  padding: 1.25rem 0;
-  border-block: 1px solid var(--lp-border);
-  background: #fff;
-}
-
-.esti-lp-trust__list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.625rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  li {
-    padding: 0.375rem 0.875rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--lp-ink-muted);
-    background: var(--lp-bg);
-    border: 1px solid var(--lp-border);
-    border-radius: 999px;
-  }
 }
 
 // ── Card board (bento layout)
@@ -1447,6 +1463,87 @@ html:has(.esti-lp) body {
   .esti-lp-kicker {
     margin-bottom: 0.5rem;
   }
+
+  &--with-icon {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  &--with-logo {
+    .esti-lp-esticad-wordmark {
+      margin-bottom: 0.75rem;
+    }
+  }
+}
+
+.esti-lp-panel__head-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+// ── Pictograms (shared icon tiles)
+.esti-lp-picto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--lp-radius);
+  color: var(--lp-accent);
+  background: color-mix(in srgb, var(--lp-accent) 10%, #fff);
+
+  &--on-dark {
+    color: #78a9ff;
+    background: color-mix(in srgb, var(--lp-accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lp-accent) 35%, var(--lp-border-dark));
+  }
+
+  &--hero {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  &--demo {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  &--panel {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  &--module {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  &--card {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &--esticad {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  &--logo {
+    padding: 0.3rem 0.5rem;
+    width: auto;
+    min-width: 2.5rem;
+    max-width: 100%;
+    background: #fff;
+
+    img {
+      display: block;
+      height: 1.375rem;
+      width: auto;
+      max-width: 5.5rem;
+      object-fit: contain;
+    }
+  }
 }
 
 .esti-lp-panel__lead {
@@ -1458,6 +1555,60 @@ html:has(.esti-lp) body {
 
 .esti-lp-panel--trial {
   margin-top: 1.5rem;
+}
+
+.esti-lp-beta-disclosure {
+  &[open] .esti-lp-beta-disclosure__chevron {
+    transform: rotate(180deg);
+  }
+}
+
+.esti-lp-beta-disclosure__summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  list-style: none;
+  cursor: pointer;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::marker {
+    content: "";
+  }
+}
+
+.esti-lp-beta-disclosure__head {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+
+  h2 {
+    margin: 0;
+  }
+
+  .esti-lp-panel__lead {
+    margin: 0.75rem 0 0;
+  }
+}
+
+.esti-lp-beta-disclosure__chevron {
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+  color: var(--lp-ink-muted);
+  transition: transform 0.2s ease;
+}
+
+.esti-lp-beta-disclosure__body {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--lp-border);
+
+  .esti-lp-trial {
+    margin-top: 0;
+  }
 }
 
 .esti-lp-trial {
@@ -1718,7 +1869,7 @@ html:has(.esti-lp) body {
   border-radius: var(--lp-radius);
 
   h3 {
-    margin: 0.625rem 0 0.25rem;
+    margin: 0.75rem 0 0.25rem;
     font-size: 0.9375rem;
     font-weight: 600;
   }
@@ -1733,6 +1884,263 @@ html:has(.esti-lp) body {
 
 .esti-lp-module__icon {
   color: var(--lp-accent);
+}
+
+// ── Live demo showcase
+.esti-lp-block--demo {
+  padding: 3rem 0 3.5rem;
+  background: var(--lp-bg-dark);
+  color: var(--lp-ink-invert);
+  border-block: 1px solid var(--lp-border-dark);
+}
+
+.esti-lp-demo-showcase__head {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+
+  .esti-lp-picto--hero {
+    margin: 0 auto 1rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+    color: var(--lp-ink-invert);
+  }
+}
+
+.esti-lp-demo-showcase__lead {
+  margin: 1rem auto 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--lp-ink-invert) 72%, transparent);
+}
+
+.esti-lp-demo-showcase__grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+.esti-lp-demo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.75rem;
+  height: 100%;
+  background: color-mix(in srgb, var(--lp-ink-invert) 4%, var(--lp-bg-dark));
+  border: 1px solid var(--lp-border-dark);
+  border-radius: var(--lp-radius);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--lp-ink-invert);
+  }
+
+  &--featured {
+    border-color: color-mix(in srgb, var(--lp-accent) 55%, var(--lp-border-dark));
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--lp-accent) 25%, transparent),
+      0 20px 48px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.esti-lp-demo-card__head {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.esti-lp-demo-card__badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.2rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lp-accent) 22%, transparent);
+  color: #78a9ff;
+}
+
+.esti-lp-demo-card__sub {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--lp-ink-invert) 68%, transparent);
+}
+
+.esti-lp-demo-card__highlights {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--lp-ink-invert) 75%, transparent);
+
+  li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  li + li {
+    margin-top: 0.5rem;
+  }
+}
+
+.esti-lp-demo-card__tick {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: #78a9ff;
+}
+
+.esti-lp-demo-card__tour {
+  padding: 0.875rem 1rem;
+  border-radius: var(--lp-radius);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--lp-border-dark);
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    gap: 0.125rem;
+    padding: 0.5rem 0;
+    font-size: 0.8125rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--lp-border-dark) 80%, transparent);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    strong {
+      color: var(--lp-ink-invert);
+      font-weight: 600;
+    }
+
+    span {
+      color: color-mix(in srgb, var(--lp-ink-invert) 62%, transparent);
+    }
+  }
+}
+
+.esti-lp-demo-card__tour-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--lp-ink-invert) 55%, transparent);
+}
+
+.esti-lp-demo-card__cta {
+  width: 100%;
+  margin-top: auto;
+}
+
+.esti-lp-demo-showcase__error {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #ff8389;
+}
+
+.esti-lp-demo-showcase__foot {
+  margin: 2rem auto 0;
+  max-width: 42rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--lp-ink-invert) 55%, transparent);
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--lp-ink-invert) 75%, transparent);
+  }
+}
+
+// ── Workflow steps
+.esti-lp-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.esti-lp-flow__step {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 1rem 1.25rem;
+  align-items: start;
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius);
+
+  h3 {
+    margin: 0 0 0.375rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--lp-ink-muted);
+  }
+
+  .esti-lp-text-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+  }
+}
+
+.esti-lp-flow__num {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--lp-accent);
+  padding-top: 0.35rem;
+}
+
+.esti-lp-flow__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--lp-radius);
+  background: color-mix(in srgb, var(--lp-accent) 10%, #fff);
+  color: var(--lp-accent);
+}
+
+.esti-lp-panel--cta-span {
+  grid-column: 1 / -1;
 }
 
 .esti-lp-demo {
@@ -1912,7 +2320,7 @@ html:has(.esti-lp) body {
 }
 
 .esti-lp-esticad__intro {
-  margin: 0 0 1.375rem;
+  margin: 0 0 1rem;
   padding: 1rem 1.125rem;
   border-left: 3px solid var(--lp-accent);
   font-size: 0.9375rem;
@@ -1924,6 +2332,49 @@ html:has(.esti-lp) body {
   strong {
     color: var(--lp-ink);
     font-weight: 600;
+  }
+}
+
+.esti-lp-esticad__highlight {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin: 0 0 1.375rem;
+  padding: 1.25rem 1.375rem;
+  background: color-mix(in srgb, var(--lp-accent) 7%, #fff);
+  border: 1px solid color-mix(in srgb, var(--lp-accent) 22%, var(--lp-border));
+  border-radius: var(--lp-radius);
+
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--lp-ink);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--lp-ink-muted);
+
+    em {
+      font-style: normal;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.8125rem;
+      color: color-mix(in srgb, var(--lp-ink) 75%, var(--lp-ink-muted));
+    }
+  }
+}
+
+.esti-lp-esticad__tile-head {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+
+  h4 {
+    margin: 0;
   }
 }
 
@@ -1958,20 +2409,33 @@ html:has(.esti-lp) body {
 
 .esti-lp-esticad__client h4,
 .esti-lp-esticad__cloud h4 {
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-size: 1.0625rem;
   font-weight: 600;
 }
 
 .esti-lp-esticad__list {
   margin: 0 0 0.875rem;
-  padding-left: 1.125rem;
+  padding: 0;
+  list-style: none;
   font-size: 0.875rem;
   line-height: 1.55;
   color: var(--lp-ink-muted);
 
+  li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+      color: var(--lp-accent);
+    }
+  }
+
   li + li {
-    margin-top: 0.375rem;
+    margin-top: 0.5rem;
   }
 }
 
@@ -2009,6 +2473,9 @@ html:has(.esti-lp) body {
 }
 
 .esti-lp-esticad__bridge-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2017,7 +2484,7 @@ html:has(.esti-lp) body {
 .esti-lp-esticad__policy {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.75rem;
   padding: 1rem 1.125rem;
   border-radius: var(--lp-radius);
   background: var(--lp-bg-soft);
@@ -2025,10 +2492,22 @@ html:has(.esti-lp) body {
   line-height: 1.55;
   color: var(--lp-ink-muted);
 
+  > span {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+  }
+
   strong {
     color: var(--lp-ink);
     font-weight: 600;
   }
+}
+
+.esti-lp-esticad__policy-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--lp-accent);
 }
 
 @media (min-width: 48rem) {
@@ -2073,10 +2552,19 @@ html:has(.esti-lp) body {
   }
 }
 
+.esti-lp-faq__icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--lp-accent);
+}
+
 .esti-lp-faq__item {
   border-bottom: 1px solid var(--lp-border);
 
   summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
     padding: 1.125rem 0;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -2214,6 +2702,18 @@ html:has(.esti-lp) body {
   width: auto;
   max-width: 10rem;
   display: block;
+}
+
+.esti-lp-esticad-wordmark,
+.esti-lp-esticad__logo {
+  height: 2rem;
+  width: auto;
+  max-width: 11rem;
+  display: block;
+}
+
+.esti-lp-esticad__logo {
+  margin-bottom: 1rem;
 }
 
 .esti-lp-hcw {
@@ -2414,6 +2914,11 @@ html:has(.esti-lp) body {
     display: flex;
   }
 
+  .esti-lp-bar__signin {
+    display: inline-flex;
+    align-items: center;
+  }
+
   .esti-lp-bar__menu {
     display: none;
   }
@@ -2425,6 +2930,15 @@ html:has(.esti-lp) body {
   .esti-lp-hero-split {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
     gap: 2.5rem;
+  }
+
+  .esti-lp-demo-showcase__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .esti-lp-flow {
+    gap: 1.25rem;
   }
 
   .esti-lp-board__row--product {
@@ -2467,7 +2981,8 @@ html:has(.esti-lp) body {
 // Scoped to .cds--content (the app shell). Landing (.esti-lp) uses its own type scale.
 // Hierarchy: h1=page title (28px), h2=section (20px), h3=tile/card (16px semibold),
 // h4=sub-label (14px semibold). p elements inherit body size from Carbon's reset.
-.cds--content,
+// Scoped to staff app shell — landing uses expressive editorial type (see .esti-landing-content).
+.cds--content:not(.esti-landing-content),
 .esti-footer {
   h1 { @include type.type-style("productive-heading-04"); }
   h2 { @include type.type-style("productive-heading-03"); }
@@ -2604,4 +3119,372 @@ html:has(.esti-lp) body {
   height: 24px;
   border-radius: 2px;
   border: 1px solid var(--cds-border-subtle);
+}
+
+// Landing page — IBM.com editorial layout (Carbon UI Shell + bands).
+.esti-landing-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .esti-landing-content.cds--content {
+    flex: 1;
+    margin-block-start: 3rem;
+    max-width: 100%;
+    padding-inline: 0;
+  }
+}
+
+// UI Shell header — keep brand marks visible; nav must not compress logos to zero width.
+.esti-landing-header.cds--header {
+  .cds--header__name {
+    flex: 0 0 auto;
+    min-inline-size: 0;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+  }
+
+  .cds--header__nav {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  .esti-landing-visit-count {
+    @include type.type-style("label-01");
+    align-self: center;
+    color: var(--cds-text-secondary);
+    margin-inline-end: var(--cds-spacing-05);
+    white-space: nowrap;
+  }
+}
+
+.esti-landing-content {
+  padding: 0;
+
+  // Fixed layout headings inside the editorial max-width container.
+  // Fluid expressive tokens are for full-bleed pages — not nested in .esti-landing-editorial.
+  // https://carbondesignsystem.com/elements/typography/type-sets/
+  h1.esti-landing-lead-title {
+    @include type.type-style("heading-06");
+    max-width: min(36rem, 100%);
+  }
+
+  h2.esti-landing-section-title {
+    @include type.type-style("heading-04");
+  }
+
+  h3.esti-landing-section-title {
+    @include type.type-style("heading-03");
+  }
+}
+
+.esti-landing-eyebrow {
+  @include type.type-style("label-02");
+  color: var(--cds-text-secondary);
+  text-transform: uppercase;
+}
+
+.esti-landing-section-title {
+  // Fallback when heading level is not specialised above.
+  @include type.type-style("heading-03");
+}
+
+.esti-landing-section-lead {
+  @include type.type-style("body-02");
+  color: var(--cds-text-secondary);
+  max-width: 42rem;
+}
+
+.esti-landing-lead-subtitle {
+  @include type.type-style("heading-03");
+  color: var(--cds-text-secondary);
+  max-width: 42rem;
+}
+
+.esti-landing-alert {
+  padding-block-start: var(--cds-spacing-05);
+}
+
+.esti-landing-editorial {
+  max-width: 99rem;
+  margin-inline: auto;
+  padding-inline: var(--cds-grid-margin, 1rem);
+  width: 100%;
+}
+
+.esti-landing-band {
+  padding-block: var(--cds-spacing-10);
+
+  &--lead {
+    padding-block: var(--cds-spacing-10);
+    min-height: min(40rem, 100svh);
+    display: flex;
+    align-items: center;
+    background: var(--cds-layer-01);
+    border-block-end: 1px solid var(--cds-border-subtle-01);
+
+    @media (max-width: 672px) {
+      min-height: auto;
+      padding-block: var(--cds-spacing-09);
+    }
+  }
+
+  &--muted {
+    background: var(--cds-layer-01);
+  }
+
+  &--contrast {
+    background: var(--cds-layer-02);
+  }
+}
+
+.esti-landing-section {
+  // Prefer <Stack gap={10}> in components; this backs legacy wrappers.
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-10);
+}
+
+.esti-landing-hero-grid {
+  row-gap: var(--cds-spacing-07);
+}
+
+// Carbon 2x Grid + spacing-07 row rhythm (32px — matches default column gutter).
+// https://carbondesignsystem.com/elements/2x-grid/overview/
+// https://carbondesignsystem.com/elements/spacing/overview/
+.esti-landing-grid {
+  row-gap: var(--cds-spacing-07);
+  padding-inline: 0;
+
+  > .cds--css-grid-column {
+    min-width: 0;
+  }
+}
+
+.esti-landing-hero-grid {
+  row-gap: var(--cds-spacing-07);
+}
+
+.esti-landing-feature-tile.cds--tile {
+  min-block-size: 100%;
+  padding: var(--cds-spacing-05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-05);
+  background: var(--cds-layer-02);
+  border: 1px solid var(--cds-border-subtle-01);
+
+  .esti-landing-band--contrast & {
+    background: var(--cds-layer-01);
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-05); // spacing-05 (16px) within tiles
+  }
+
+  &__footer {
+    margin-block-start: auto;
+    padding-block-start: var(--cds-spacing-05);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-03);
+    align-items: flex-start;
+  }
+
+  &__icon {
+    color: var(--cds-interactive);
+  }
+
+  &__metric {
+    @include type.type-style("heading-05");
+    line-height: 1;
+  }
+
+  &__metric-label {
+    @include type.type-style("label-01");
+    color: var(--cds-text-secondary);
+  }
+
+  .esti-row {
+    flex-wrap: wrap;
+    gap: var(--cds-spacing-03);
+    align-items: flex-start;
+  }
+
+  &--centered &__content {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-block-size: 8rem;
+  }
+}
+
+.esti-landing-feature-aside {
+  position: sticky;
+  top: var(--cds-spacing-09);
+}
+
+.esti-landing-cta-strip {
+  padding-block: var(--cds-spacing-05);
+}
+
+.esti-landing-footer {
+  padding-block: var(--cds-spacing-09);
+}
+
+.esti-landing-header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cds-spacing-05);
+}
+
+.esti-landing-brand-logo {
+  height: 1.5rem;
+  width: auto;
+  max-width: 10rem;
+  display: block;
+}
+
+.esti-landing-mark {
+  height: 1.125rem;
+  width: auto;
+  display: block;
+}
+
+.esti-landing-hcw {
+  height: 1.25rem;
+  width: auto;
+  display: block;
+}
+
+.esti-landing-esticad-logo {
+  height: 2rem;
+  width: auto;
+  max-width: 11rem;
+  display: block;
+}
+
+// Case study cards — rotating conic border (IBM.com editorial pattern).
+@property --esti-case-study-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes esti-case-study-border-spin {
+  to {
+    --esti-case-study-angle: 360deg;
+  }
+}
+
+.esti-case-study-card {
+  position: relative;
+  height: 100%;
+  border-radius: 0;
+  isolation: isolate;
+
+  &__glow {
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--esti-case-study-angle),
+      var(--cds-interactive),
+      var(--cds-link-primary-hover),
+      var(--cds-support-info),
+      var(--cds-interactive)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: esti-case-study-border-spin 5s linear infinite;
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity var(--esti-motion-standard);
+  }
+
+  &:hover &__glow,
+  &:focus-within &__glow {
+    opacity: 1;
+    animation-duration: 2.75s;
+  }
+
+  &__inner {
+    position: relative;
+    height: 100%;
+    background: var(--cds-layer-02);
+    padding: var(--cds-spacing-06);
+    border: 1px solid var(--cds-border-subtle-01);
+  }
+
+  &__hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--cds-spacing-05);
+    padding-block-end: var(--cds-spacing-05);
+    border-block-end: 1px solid var(--cds-border-subtle-01);
+  }
+
+  &__icon {
+    color: var(--cds-interactive);
+    flex-shrink: 0;
+  }
+
+  &__metric {
+    @include type.type-style("heading-05");
+    line-height: 1;
+    text-align: end;
+  }
+
+  &__metric-label {
+    @include type.type-style("label-01");
+    color: var(--cds-text-secondary);
+    text-align: end;
+    max-width: 14rem;
+  }
+
+  &__title {
+    @include type.type-style("heading-03");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esti-case-study-card__glow {
+    animation: none;
+    opacity: 1;
+    background: var(--cds-interactive);
+  }
+}
+
+.esti-landing-ai {
+  position: fixed;
+  inset-inline-end: var(--cds-spacing-05);
+  inset-block-end: var(--cds-spacing-05);
+  z-index: 8900;
+
+  &__fab {
+    border-radius: 50%;
+  }
+
+  &__thread {
+    max-height: 20rem;
+    overflow-y: auto;
+  }
+
+  &__turn {
+    max-width: 100%;
+  }
 }
