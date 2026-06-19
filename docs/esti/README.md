@@ -10,6 +10,7 @@ direction. Point-in-time audits and superseded specs live in
 
 | Document | Authority |
 | --- | --- |
+| [ACCESS-MODEL](ACCESS-MODEL.md) | L1–L5 access ladder, external tier, capability and information matrices |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline — what we implement and reject |
 | [PRD](PRD.md) | Functional and non-functional requirements |

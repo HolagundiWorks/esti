@@ -76,3 +76,69 @@ export function can(role: string | null | undefined, cap: Capability): boolean {
 export function isStaffRole(role: string | null | undefined): boolean {
   return !!role && (STAFF_ROLES as readonly string[]).includes(role);
 }
+
+/** Human-facing access level (L5 = highest). Portal users return null. */
+export type AccessLevel = 1 | 2 | 3 | 4 | 5;
+
+export type ExternalAccessClass = "CLIENT" | "CONSULTANT" | "CONTRACTOR";
+
+export const ACCESS_LEVEL_LABEL: Record<AccessLevel, string> = {
+  1: "L1 — Read-only",
+  2: "L2 — Operations",
+  3: "L3 — Project leadership",
+  4: "L4 — Commercial",
+  5: "L5 — Firm governance",
+};
+
+const RANK_TO_LEVEL: Record<number, AccessLevel> = {
+  20: 1,
+  40: 2,
+  60: 3,
+  80: 4,
+  100: 5,
+};
+
+/** Map staff role rank to L1–L5. Portal roles and unknown roles return null. */
+export function accessLevelForRole(
+  role: string | null | undefined,
+  scope?: { consultantId?: string | null; clientId?: string | null },
+): AccessLevel | null {
+  if (!role) return null;
+  if (role === "CLIENT") return null;
+  if (role === "CONSULTANT" && scope?.consultantId) return null;
+  const rank = ROLE_RANK[role];
+  if (rank == null) return null;
+  return RANK_TO_LEVEL[rank] ?? null;
+}
+
+/** External portal class for non-staff logins. Contractors have no user row — pass role CONTRACTOR explicitly if needed. */
+export function externalClassForUser(user: {
+  role: string;
+  clientId?: string | null;
+  consultantId?: string | null;
+}): ExternalAccessClass | null {
+  if (user.role === "CLIENT" && user.clientId) return "CLIENT";
+  if (user.role === "CONSULTANT" && user.consultantId) return "CONSULTANT";
+  return null;
+}
+
+/** Minimum internal access level required for a capability. */
+export function minLevelForCapability(cap: Capability): AccessLevel {
+  const rank = MIN_RANK[cap];
+  return RANK_TO_LEVEL[rank] ?? 1;
+}
+
+/** Display label for Users admin — e.g. "L4 — Commercial" or "External — Client". */
+export function accessLabelForUser(user: {
+  role: string;
+  clientId?: string | null;
+  consultantId?: string | null;
+}): string {
+  const external = externalClassForUser(user);
+  if (external === "CLIENT") return "External — Client";
+  if (external === "CONSULTANT") return "External — Consultant";
+  const level = accessLevelForRole(user.role, user);
+  if (level) return ACCESS_LEVEL_LABEL[level];
+  if (user.role === "CONSULTANT") return ACCESS_LEVEL_LABEL[2];
+  return user.role;
+}

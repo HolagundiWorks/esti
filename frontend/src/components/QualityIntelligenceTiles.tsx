@@ -79,18 +79,25 @@ function MetricRow({ label, value }: { label: string; value: string | number }) 
 export function StudioQualityRadarTile({
   revision,
   technical,
+  chartRevision,
+  chartTechnical,
   loading,
   chartTheme = "white",
   chartAnimations = true,
 }: {
   revision: RevisionIntelligenceSnapshot | null | undefined;
   technical: TechnicalIntelligenceSnapshot | null | undefined;
+  /** Stable snapshot for chart rendering (landing preview — avoids Carbon Charts update errors). */
+  chartRevision?: RevisionIntelligenceSnapshot | null;
+  chartTechnical?: TechnicalIntelligenceSnapshot | null;
   loading?: boolean;
   chartTheme?: string;
   chartAnimations?: boolean;
 }) {
-  const rawAxes = computeStudioQualityAxes(revision, technical);
-  const axes = rawAxes;
+  const axes = computeStudioQualityAxes(
+    chartRevision ?? revision,
+    chartTechnical ?? technical,
+  );
   const health = studioProfileHealth(revision, technical);
   const avg = axes ? studioQualityAverage(axes) : null;
   const showChart = !!axes;
@@ -113,6 +120,7 @@ export function StudioQualityRadarTile({
         ) : (
           <div className="esti-qi-chart esti-qi-chart--radar esti-lp-qi-chart">
             <RadarChart
+              key={axes!.map((a) => `${a.feature}:${a.score}`).join("|")}
               data={buildRadarChartData(axes!)}
               options={{
                 data: { groupMapsTo: "group" },
@@ -135,12 +143,15 @@ export function StudioQualityRadarTile({
 
 export function RevisionIntelligenceTile({
   data,
+  chartData,
   loading,
   chartTheme = "white",
   hasData,
   chartAnimations = true,
 }: {
   data: RevisionIntelligenceSnapshot | null | undefined;
+  /** Stable snapshot for meter chart (landing preview). */
+  chartData?: RevisionIntelligenceSnapshot | null;
   loading?: boolean;
   chartTheme?: string;
   hasData?: boolean;
@@ -149,7 +160,9 @@ export function RevisionIntelligenceTile({
   const health = revisionHealth(data);
   const empty = !data || data.totalDecisions === 0;
   const showContent = hasData ?? !empty;
-  const sourceData = data && showContent ? buildRevisionSourceMeterData(data, !!hasData) : [];
+  const meterRevision = chartData ?? data;
+  const sourceData =
+    meterRevision && showContent ? buildRevisionSourceMeterData(meterRevision, !!hasData) : [];
 
   return (
     <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--revision" style={qiEdge(health)}>
@@ -179,6 +192,7 @@ export function RevisionIntelligenceTile({
               <div className="esti-qi-chart esti-qi-chart--meter esti-lp-qi-chart">
                 <p className="esti-qi-chart-label">Decision sources</p>
                 <MeterChart
+                  key={sourceData.map((d) => `${d.group}:${d.value}`).join("|")}
                   data={sourceData}
                   options={{
                     data: { groupMapsTo: "group" },
@@ -190,7 +204,7 @@ export function RevisionIntelligenceTile({
                     accessibility: { svgAriaLabel: "Revision decision sources" },
                     meter: {
                       proportional: {
-                        total: Math.max(1, data!.totalDecisions),
+                        total: Math.max(1, meterRevision!.totalDecisions),
                         unit: "decisions",
                       },
                     },
@@ -274,18 +288,22 @@ export function QualityIntelligenceTiles({
   const rootClass = className ? `esti-qi-layout ${className}` : "esti-qi-layout";
   const revisionReady = animSource?.revision ?? revision;
   const technicalReady = animSource?.technical ?? technical;
+  const freezeCharts = !chartAnimations && !!animSource;
 
   return (
     <div className={rootClass}>
       <StudioQualityRadarTile
         revision={revision}
         technical={technical}
+        chartRevision={freezeCharts ? animSource!.revision : undefined}
+        chartTechnical={freezeCharts ? animSource!.technical : undefined}
         loading={revisionLoading || technicalLoading}
         chartTheme={chartTheme}
         chartAnimations={chartAnimations}
       />
       <RevisionIntelligenceTile
         data={revision}
+        chartData={freezeCharts ? animSource!.revision : undefined}
         loading={revisionLoading}
         chartTheme={chartTheme}
         chartAnimations={chartAnimations}
