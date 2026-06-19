@@ -19,5 +19,10 @@ export * from "./documents.js";
 export * from "./search.js";
 export * from "./commercial.js";
 export * from "./ai.js";
+export * from "./programme.js";
+export * from "./pmc.js";
+export * from "./construction-schedule.js";
+export * from "./project-brief.js";
+export * from "./expense.js";
 
 export type { ProjectOfficeRow } from "./project.js";

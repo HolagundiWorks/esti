@@ -18,6 +18,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
   /** SOLO = one-person practice; STUDIO = multi-person team module. */
   orgMode: text("org_mode").notNull().default("SOLO"),
   hrEnabled: boolean("hr_enabled").notNull().default(false),
+  /** PMC module — construction coordination, site registers, progress reports. */
+  pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Owner-configured alert thresholds — see EscalationSettings in @esti/contracts. */
   escalationSettings: jsonb("escalation_settings")
     .notNull()

@@ -30,5 +30,30 @@ const Env = z.object({
   BETA_REQUEST_NOTIFY_TO: z.string().default("hi@aorms.in"),
 });
 
-export const env = Env.parse(process.env);
 export type Env = z.infer<typeof Env>;
+
+const DEV_SESSION_SECRET = "dev-session-secret-change-me";
+const DEV_S3_SECRET = "esti-secret";
+const DEV_DATABASE_PREFIX = "postgres://esti:esti@";
+
+/** Reject known dev defaults when running in production. */
+export function assertProductionSecrets(config: Env): void {
+  if (config.NODE_ENV !== "production") return;
+
+  if (config.SESSION_SECRET === DEV_SESSION_SECRET || config.SESSION_SECRET.includes("change-me")) {
+    throw new Error("SESSION_SECRET must be set to a strong unique value in production");
+  }
+  if (config.S3_SECRET_KEY === DEV_S3_SECRET) {
+    throw new Error("S3_SECRET_KEY must not use the default dev value in production");
+  }
+  if (config.DATABASE_URL.startsWith(DEV_DATABASE_PREFIX)) {
+    throw new Error("DATABASE_URL must not use default dev credentials in production");
+  }
+  if (!config.COOKIE_SECURE) {
+    throw new Error("COOKIE_SECURE must be true in production");
+  }
+}
+
+const parsed = Env.parse(process.env);
+assertProductionSecrets(parsed);
+export const env = parsed;

@@ -17,18 +17,11 @@ import {
   TextArea,
   TextInput,
   Tile,
+  Toggle,
 } from "@carbon/react";
-import {
-  Jurisdiction,
-  PROJECT_STATUS_LABEL,
-  PROJECT_WORK_TYPE_LABEL,
-  ProjectStatus,
-  ProjectType,
-  ProjectWorkType,
-} from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/auth.js";
+import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
 
@@ -41,13 +34,15 @@ const ACTIVITY_TAG: Record<
 };
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
-  const { user } = useAuth();
+  const { canProjectDelete } = useCapabilities();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const projectQ = trpc.projectOffice.byId.useQuery(
     { id: projectId },
     { enabled: !!projectId },
   );
+  const settingsQ = trpc.settings.get.useQuery();
+  const firmPmcEnabled = settingsQ.data?.pmcEnabled ?? false;
   const logsQ = trpc.projectOffice.logs.useQuery(
     { projectId },
     { enabled: !!projectId },
@@ -71,27 +66,12 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   });
   const [revBudgetDraft, setRevBudgetDraft] = useState<Record<string, string>>({});
 
-  const [f, setF] = useState({
-    title: "",
-    status: "ENQUIRY",
-    projectType: "Residential Architecture",
-    workType: "ARCHITECTURE",
-    jurisdiction: "OTHER",
-    dateStart: "",
-  });
+  const [pmcEnabled, setPmcEnabled] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const p = projectQ.data;
-    if (p)
-      setF({
-        title: p.title,
-        status: p.status,
-        projectType: p.projectType,
-        workType: (p as { workType?: string }).workType ?? "ARCHITECTURE",
-        jurisdiction: p.jurisdiction,
-        dateStart: p.dateStart ?? "",
-      });
+    if (p) setPmcEnabled((p as { pmcEnabled?: boolean }).pmcEnabled ?? false);
   }, [projectQ.data]);
 
   const update = trpc.projectOffice.update.useMutation({
@@ -125,7 +105,6 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }
 
   const p = projectQ.data;
-  const isOwner = user?.role === "OWNER";
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -139,106 +118,48 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         />
       )}
 
+      {firmPmcEnabled && (
       <Tile style={{ maxWidth: 640 }}>
         <Stack gap={5}>
-          <h4>Project details</h4>
-          <TextInput
-            id="ps-title"
-            labelText="Title"
-            value={f.title}
-            onChange={(e) => setF((x) => ({ ...x, title: e.target.value }))}
-          />
-          <div style={{ display: "flex", gap: 12 }}>
-            <Select
-              id="ps-status"
-              labelText="Status"
-              value={f.status}
-              onChange={(e) => setF((x) => ({ ...x, status: e.target.value }))}
-            >
-              {ProjectStatus.options.map((s) => (
-                <SelectItem key={s} value={s} text={PROJECT_STATUS_LABEL[s]} />
-              ))}
-            </Select>
-            <Select
-              id="ps-type"
-              labelText="Building use"
-              value={f.projectType}
-              onChange={(e) =>
-                setF((x) => ({ ...x, projectType: e.target.value }))
-              }
-            >
-              {ProjectType.options.map((t) => (
-                <SelectItem key={t} value={t} text={t} />
-              ))}
-            </Select>
-            <Select
-              id="ps-worktype"
-              labelText="Work type"
-              value={f.workType}
-              onChange={(e) =>
-                setF((x) => ({ ...x, workType: e.target.value }))
-              }
-            >
-              {ProjectWorkType.options.map((t) => (
-                <SelectItem
-                  key={t}
-                  value={t}
-                  text={PROJECT_WORK_TYPE_LABEL[t]}
-                />
-              ))}
-            </Select>
-            <Select
-              id="ps-jur"
-              labelText="Jurisdiction"
-              value={f.jurisdiction}
-              onChange={(e) =>
-                setF((x) => ({ ...x, jurisdiction: e.target.value }))
-              }
-            >
-              {Jurisdiction.options.map((j) => (
-                <SelectItem key={j} value={j} text={j} />
-              ))}
-            </Select>
-          </div>
-          <TextInput
-            id="ps-date"
-            labelText="Start date"
-            type="date"
-            value={f.dateStart}
-            onChange={(e) => setF((x) => ({ ...x, dateStart: e.target.value }))}
+          <h4>PMC</h4>
+          <Toggle
+            id="ps-pmc"
+            labelText="PMC on this project"
+            labelA="Off"
+            labelB="On"
+            toggled={pmcEnabled}
+            onToggle={setPmcEnabled}
           />
           <Button
-            disabled={f.title.length < 2 || update.isPending}
-            onClick={() =>
+            disabled={update.isPending || !projectQ.data}
+            onClick={() => {
+              const p = projectQ.data;
+              if (!p) return;
               update.mutate({
                 id: projectId,
-                title: f.title,
-                status: f.status as (typeof ProjectStatus.options)[number],
-                projectType: f.projectType,
-                workType:
-                  f.workType as (typeof ProjectWorkType.options)[number],
-                jurisdiction: f.jurisdiction,
-                dateStart: f.dateStart || null,
-              })
-            }
+                title: p.title,
+                status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
+                projectType: p.projectType,
+                workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
+                jurisdiction: p.jurisdiction,
+                dateStart: p.dateStart ?? null,
+                pmcEnabled,
+              });
+            }}
           >
-            {update.isPending ? "Saving…" : "Save details"}
+            Save PMC setting
           </Button>
-          {p && (
-            <p>
-              Ref {p.ref} · created{" "}
-              {new Date(p.createdAt as unknown as string).toLocaleDateString()}{" "}
-              · last updated{" "}
-              {new Date(p.updatedAt as unknown as string).toLocaleDateString()}
-            </p>
-          )}
         </Stack>
       </Tile>
+      )}
 
       <Tile style={{ maxWidth: 760, marginTop: 16 }}>
         <Stack gap={4}>
           <h4>Project stages</h4>
-          <p>Mark the stage currently in progress. Earlier stages are automatically complete; later stages are pending.</p>
+          <p>
+            Mark the stage currently in progress. Earlier stages are automatically complete;
+            later stages are pending. The current stage is also shown on the Project Info tab.
+          </p>
           <TableContainer>
             <Table size="sm">
               <TableHead>
@@ -384,7 +305,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         </Stack>
       </Tile>
 
-      {isOwner && (
+      {canProjectDelete && (
         <Tile style={{ maxWidth: 640, marginTop: 16 }}>
           <h4>Danger zone</h4>
           <p style={{ margin: "8px 0 12px" }}>

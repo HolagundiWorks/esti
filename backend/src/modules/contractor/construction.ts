@@ -1,6 +1,7 @@
 import {
   ConstructionKind,
   ConstructionRespond,
+  ConstructionReview,
   ConstructionStatus,
   clampListLimit,
 } from "@esti/contracts";
@@ -15,6 +16,7 @@ import {
 } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { addMessage, listMessages } from "../../lib/submissionThread.js";
+import { getOrgSettings, requirePmcEnabled } from "../../lib/settings.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
@@ -34,8 +36,10 @@ export const constructionRouter = router({
         .optional(),
     )
     .query(async ({ ctx, input }) => {
+      const settings = await getOrgSettings(ctx.db);
       const filters = [
         input?.projectId ? eq(contractorSubmissions.projectId, input.projectId) : undefined,
+        settings.pmcEnabled ? eq(projectOffices.pmcEnabled, true) : undefined,
         input?.status ? eq(contractorSubmissions.status, input.status) : undefined,
         input?.kind ? eq(contractorSubmissions.kind, input.kind) : undefined,
         input?.openOnly ? eq(contractorSubmissions.status, "OPEN") : undefined,
@@ -53,6 +57,8 @@ export const constructionRouter = router({
           body: contractorSubmissions.body,
           status: contractorSubmissions.status,
           responseNote: contractorSubmissions.responseNote,
+          reviewCode: contractorSubmissions.reviewCode,
+          reviewNote: contractorSubmissions.reviewNote,
           fileName: contractorSubmissions.fileName,
           submittedBy: users.fullName,
           createdAt: contractorSubmissions.createdAt,
@@ -113,6 +119,31 @@ export const constructionRouter = router({
       visibility: "STAFF",
       summary: `Construction ${row.kind} ${input.status.toLowerCase()}: ${row.subject}`,
     });
+
+    return { ok: true as const };
+  }),
+
+  review: manage.input(ConstructionReview).mutation(async ({ ctx, input }) => {
+    await requirePmcEnabled(ctx.db);
+    const [row] = await ctx.db
+      .select()
+      .from(contractorSubmissions)
+      .where(eq(contractorSubmissions.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!["MATERIAL_SUBMITTAL", "SHOP_DRAWING"].includes(row.kind)) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Review applies to submittals and shop drawings only" });
+    }
+
+    await ctx.db
+      .update(contractorSubmissions)
+      .set({
+        reviewCode: input.reviewCode,
+        reviewNote: input.reviewNote ?? row.reviewNote,
+        reviewedAt: new Date(),
+        ...(input.status ? { status: input.status } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(contractorSubmissions.id, input.id));
 
     return { ok: true as const };
   }),

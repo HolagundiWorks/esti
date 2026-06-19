@@ -9,7 +9,6 @@ export const EXCLUDED_FILES = [
   /[/\\]components[/\\]LandingCarbonZone\.tsx$/,
   /[/\\]components[/\\]LandingDashboardPreview\.tsx$/,
   /[/\\]components[/\\]LandingRevisionMock\.tsx$/,
-  /[/\\]components[/\\]HeaderPomodoro\.tsx$/,
 ];
 
 /** First line (1-based) of the documented .esti-lp marketing block in styles.scss. */

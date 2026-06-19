@@ -51,12 +51,19 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ✅ |
 | [12](#phase-12---production-readiness-p0) | Production readiness | P0 | ✅ |
 | [13](#phase-13---esticad-companion-integration-p2) | ESTICAD companion | P2 | ✅ |
+| [14](#phase-14---project-programme--milestones-p1) | Project programme | P1 | ✅ |
+| [15](#phase-15---architect-as-pmc-module-p1) | Architect-as-PMC | P1 | ✅ |
+| [16](#phase-16---construction-schedule--cpm-p1) | Construction schedule & CPM | P1 | ✅ |
+| [17](#phase-17---project-info--access-p1) | Project Info & access | P1 | ✅ |
+| [18](#phase-18---office--project-expenses-p1) | Office & project expenses | P1 | ✅ |
+| [19](#phase-19---master-dsr-workflow-polish-p2) | Master DSR polish | P2 | ✅ |
+| [20](#phase-20---production-audit-remediation-p1) | Audit remediation | P1 | ✅ |
 
 ---
 
 ## Product snapshot
 
-ESTI (AORMS) is **production-engineered through Phase 12** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
+ESTI (AORMS) is **production-engineered through Phase 20** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -70,15 +77,15 @@ ESTI (AORMS) is **production-engineered through Phase 12** and deployed at [aorm
 - **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
 - **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
+- **Project programme** — per-project milestones, schedule progress, office portfolio (`/programme`); complements Work module tasks
+- **PMC module** (optional) — firm + per-project toggles; site coordination hub, construction schedule (CPM/Gantt), snags, progress reports (`/pmc`)
+- **Project Info** — structured project brief questionnaire + compliance calculator on one tab
+- **Office & project expenses** — cash book and billable project expenses (Accounting nav)
+- **Dashboard home bundle** — single `dashboard.home` round-trip for the office dashboard
 
 **Before declaring a live firm instance production-ready**
 
 - **Operator only** — run `deploy/restore-drill.sh` on a staging VPS clone and record sign-off in [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)
-- **Phase 13D** — CAD AI gateway (`ai.generateCad`) — complete; ESTICAD `AI_USE_CASES` proxied via Ollama
-
-**Post–Phase 12 engineering**
-
-- Operator restore drill sign-off ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
 
 ---
 
@@ -95,7 +102,7 @@ ESTI (AORMS) is **production-engineered through Phase 12** and deployed at [aorm
 - [x] Align vision, PRD, module profile, architecture, Carbon policy, roadmap.
 - [x] Remove stale audit documents after moving findings into this roadmap.
 - [x] Resolve product boundary: selective contractor coordination, no contractor ERP.
-- [x] Canonical index ([README](README.md)), ops checklist ([PRODUCTION-OPS](PRODUCTION-OPS.md)), and Phase 0–12 status aligned with code (2026-06-19).
+- [x] Canonical index ([README](README.md)), ops checklist ([PRODUCTION-OPS](PRODUCTION-OPS.md)), and Phase 0–20 status aligned with code (2026-06-19).
 
 **Gate met:** no canonical documents contradict product scope or delivery status.
 
@@ -208,7 +215,7 @@ Full frontend UI audit — align every screen to Dashboard reference pattern; cl
 
 ## Phase 2G - Workflow, IA & Architecture Remediation [P0–P3] — Complete 2026-06-15
 
-Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](WORKFLOW-ARCHITECTURE-AUDIT.md).
+Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](archive/WORKFLOW-ARCHITECTURE-AUDIT.md) (archived snapshot).
 
 ### P0 — Data integrity & broken navigation
 
@@ -300,7 +307,7 @@ Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolid
 
 - [x] Rename Resources → Knowledge Bank; central route `/knowledge-bank` with DSR | Compliance | Specification | Structural Elements tabs.
 - [x] Shared validation contracts; governed version lifecycle for specification and structural templates (`0021_knowledge_bank_catalogs.sql`).
-- [x] `KnowledgeCatalogManagers.tsx`; `packages/contracts/src/knowledge-bank.ts`.
+- [x] `SpecCatalogManager` (+ `SteelFlowCatalogManager`); `packages/contracts/src/knowledge-bank.ts`.
 - [x] **Specification material catalogue** — `0038_spec_catalog.sql`; `SpecCatalogManager`; project spec sheets resolve from active catalogue.
 - [x] **SteelFlow structural catalogue** — `steelflow-catalog.ts`; span rules; Apply catalogue in workshop; see [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md).
 - [x] Generate editable BBS draft lines from published structural template — SteelFlow workshop + project BBS template apply (`ProjectBbs.tsx`).
@@ -487,6 +494,173 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 ---
 
+## Phase 14 - Project Programme & Milestones [P1] — ✅ Complete (2026-06-15)
+
+Unified delivery schedule per [archived Additional Brief](archive/ESTI-Additional-Brief-RIE.md): milestones and progress alongside APBF phases and Work-module tasks.
+
+- [x] `esti_project_milestone` table (migration `0059`) — title, target date, status, optional phase link
+- [x] Contracts — `MilestoneStatus`, create/update schemas
+- [x] `programme.portfolio` — active projects with schedule progress % and overdue counts
+- [x] `programme.summary` — phases strip, milestone/task stats, upcoming schedule
+- [x] Milestone CRUD with audit and activity events
+- [x] Project **Programme** tab; office **Programme** route (`/programme`)
+- [x] Demo seed — sample milestones on first three active projects
+
+**Gate met:** staff can add milestones on a project, see blended schedule progress, and review office portfolio health; Work module remains the task execution surface.
+
+---
+
+## Phase 15 - Architect-as-PMC Module [P1] — ✅ Complete (2026-06-15)
+
+Optional PMC for firms that also act as project management consultants — charter-compliant (no contractor RA bills or construction ERP).
+
+### 15A — Toggles & PMC hub
+- [x] `pmc_enabled` on org settings and project office (migration `0060`)
+- [x] `settings.setPmcEnabled` + project Settings toggle
+- [x] `pmc.summary`, `pmc.portfolio`, `pmc.status`; project **PMC** tab; office `/pmc`
+
+### 15B — Gantt programme
+- [x] `task.start_date` (migration `0061`); `programme.gantt` API
+- [x] **Timeline** sub-tab on Programme (Carbon CSS Gantt)
+
+### 15C — Site operations
+- [x] Snag register (`esti_snag`), site instruction log (`esti_site_instruction`)
+- [x] Submittal review codes A/B/C/D on contractor submissions (migration `0062`)
+- [x] `construction.review` mutation
+
+### 15D — Progress reports & APBF Layer 2
+- [x] `esti_progress_report` with PDF worker target
+- [x] `esti_phase_progress` live stages for Construction Administration & Handover
+- [x] Demo seed: PMC on studio org + first three active projects
+
+**Gate met:** owner can enable PMC firm-wide; staff enable PMC per project; PMC tab shows hub, snags, coordination, and progress report drafts; office Programme Gantt available for all projects.
+
+---
+
+## Phase 16 — Construction Schedule & CPM [P1] — ✅ Complete (2026-06-15)
+
+Separate **site construction scheduling** (PMC-gated) from the **office delivery programme** (always on). Aligned with IS 15883-2 time-management practice: baseline WBS, dependencies, CPM/critical path, construction Gantt, and look-ahead reporting.
+
+### 16A — Schema + templates
+- [x] Migration `0063` — `esti_construction_schedule`, `esti_construction_activity`, `esti_construction_dependency`
+- [x] Template WBS by `projectType` (residential, commercial, institutional, industrial, interior)
+- [x] `constructionSchedule.applyTemplate`, `listActivities`
+
+### 16B — CPM engine
+- [x] `cpm.ts` — forward/backward pass, float, cycle detection
+- [x] Dependency CRUD, `recalculate`, `criticalPath` API + unit tests
+
+### 16C — Construction Gantt + UI
+- [x] `constructionSchedule.gantt`; shared `GanttChart` component
+- [x] `ProjectConstructionSchedule` — WBS, Dependencies, Timeline, Look-ahead, Critical path tabs
+
+### 16D — PMC integration
+- [x] `lookahead` API; PMC hub/portfolio use construction schedule % (not office programme)
+- [x] Progress report draft auto-fills schedule % from construction schedule when present
+- [x] PMC tab restructure — Hub / Schedule / Site ops
+
+### 16E — Polish
+- [x] ROADMAP Phase 16; demo seed applies template on PMC projects with sample actual progress
+- [x] Office Programme labelled “Office delivery programme”; PMC portfolio columns (baseline end, critical overdue)
+
+**Gate met:** PMC-on project can apply template → CPM recalc → construction Gantt; office Programme tab unchanged; `pmc.summary` reflects construction schedule health.
+
+---
+
+## Phase 17 — Project Info & access [P1] — ✅ Complete (2026-06-15)
+
+### 17A — De-duplicate stage vs programme
+- [x] Remove misleading header stage Select; read-only stage tag links to Project Info
+- [x] Remove Programme “Delivery stages” strip; stages managed in Settings only
+
+### 17B — Project Info tab
+- [x] Migration `0064` — `esti_project_brief`; `projectBrief` router (section upsert + aggregate get)
+- [x] **Project Info** tab (second after Overview) — questionnaire sections + compliance summary
+- [x] Project identity/site fields moved from Settings → Info; Settings slimmed to stages, PMC, engagements, log, archive
+- [x] Compliance calculator on **Project Info** tab (section 9); no separate Development control tab
+
+### 17C — Access hierarchy
+- [x] `useCapabilities()` hook; App nav/routes gated with `can()` (invoices, reconcile, fees, users, audit, filing, archived projects)
+- [x] Archive UI uses `project:delete` (Partner+), not Owner-only
+- [x] `projectAccess.ts` — assignment-filtered project lists and portfolios for non-Partner roles
+- [x] **Layer 3 tab visibility** — Costing tab requires `invoice:manage`; Team tab requires HR on + `hr:manage`; invalid tab URLs redirect to Overview
+
+### 17D — Docs & seed
+- [x] ROADMAP Phase 17; PROJECT-BRIEFING ESTI mapping → Project Info tab
+- [x] Demo seed — Sharma Villa project brief + sample billable site travel expense
+
+**Deferred (17E):** Per-project RBAC matrix (PROJECT_LEAD can edit fees on one project only).
+
+---
+
+## Phase 18 — Office & project expenses [P1] — ✅ Complete (2026-06-15)
+
+### 18A — Schema & API
+- [x] Migration `0065` — `esti_account`, `esti_expense`; contracts; `accounts` + `expenses` routers
+- [x] Workflow: DRAFT → SUBMITTED → AUDITED → CLOSED; office scope forced non-billable
+
+### 18B — Office UI
+- [x] **Office expenses** and **Cash book** under Accounting nav (gated `invoice:manage`)
+
+### 18C — Project UI
+- [x] **Project expenses** in Costing tab; billable vs non-billable; pending recovery summary
+
+### 18D — Seed
+- [x] Demo seed — office petty cash (closed) + Sharma Villa billable travel (pending recovery)
+
+**Out of scope:** Full double-entry GL, auto-append billable lines to GST invoice PDF (manual recovery link in v1).
+
+---
+
+## Phase 19 — Master DSR workflow polish [P2] — ✅ Complete (2026-06-15)
+
+### 19A — Version lifecycle
+- [x] Migration `0066` — `esti_dsr_version.status` (`DRAFT` | `PUBLISHED`)
+- [x] **Copy from existing version** on create; **Save draft** vs **Publish** actions
+- [x] Draft versions cannot be set active or linked to estimates until published
+
+### 19B — CSV import
+- [x] `dsr.importCsv` + optional import on new-version create (merge by code)
+- [x] Demo template [`frontend/public/dsr-import-demo.csv`](../../frontend/public/dsr-import-demo.csv)
+- [x] Import CSV on existing versions with optional replace-all
+
+### 19C — Brief ↔ compliance sync
+- [x] Bylaw calc save mirrors permissible built-up (sq m) into `projectBrief.projectInfo.builtUpAreaSqm`
+
+**Gate met:** staff can clone a DSR, edit rates as draft, import CSV, publish, and set active; compliance calculator updates the Project Info questionnaire field.
+
+---
+
+## Phase 20 — Production audit remediation [P1] — ✅ Complete (2026-06-15)
+
+Follow-up from the production-grade codebase audit: security hardening, DRY refactors, dashboard performance, and maintainability.
+
+### 20A — Security
+- [x] Server session revoke on logout (`revokeSessionByToken`, `sessionToken` in tRPC context)
+- [x] Production env secret validation (`assertProductionSecrets`)
+- [x] First-user registration race fix (Postgres advisory lock)
+
+### 20B — Hygiene & DRY
+- [x] Remove orphan components and unused `react-grid-layout` deps
+- [x] Shared `parseRupeeInput`, `PdfActionButtons`, `todayIso`, image upload factory
+- [x] Delete stale `docs/esti/recovered/` snapshot
+
+### 20C — Dashboard & route maintainability
+- [x] Global React Query defaults (`staleTime`, `refetchOnWindowFocus: false`)
+- [x] `dashboard.home` bundled endpoint (parallel server fetch)
+- [x] Dashboard route migrated to single home query; invalidate `dashboard.home` from Invoices/Reconcile
+- [x] Dashboard split into `components/dashboard/*` zone modules
+- [x] Company owner panels split into `components/company/*` (escalation, AI, devices, release, data tools, partners)
+
+### 20D — Tests & backend structure
+- [x] `dashboardModuleFlags` unit tests
+- [x] `registerImageUploadRoute` registration test
+- [x] Dashboard read models split into `readModels/*` modules (boards, action center, intelligence, home bundle)
+
+**Phase 20 gate met:** security fixes shipped, dashboard single-fetch bundle live, god routes split into zone components, dashboard SQL read models modularised.
+
+---
+
 ## Deferred ideas [P3]
 
 Optional — must not delay security, activity, project memory, collaboration, wellbeing basics, or production readiness.
@@ -534,6 +708,9 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-18 | Phase 13B/C/E — companion measurements (`0055`), linkDrawing, setScale, connected devices admin |
 | 2026-06-19 | Phase 12 closed — migration journal repair (`0041`, `0048`, `0056`); demo seed bootstrap; PRODUCTION-OPS TLS + ops docs |
 | 2026-06-19 | Phase 13D — `ai.generateCad`, CAD draft kinds, `esti_ai_run.source`; Phase 13 complete |
-| 2026-06-19 | Documentation sweep — Phase 0–12 backlog reconciled; canonical index + PRD production readiness aligned |
+| 2026-06-15 | Phase 20 — audit remediation: session revoke, prod secrets, dashboard.home bundle, Dashboard + Company component splits |
+| 2026-06-15 | Phase 15 — architect-as-PMC (`0060`–`0062`), toggles, Gantt, snags, progress reports |
+| 2026-06-15 | Phase 17 — project Info tab, access hierarchy, Layer 3 tab gating; Phase 18 — office/project expenses |
+| 2026-06-15 | Phase 19 — Master DSR copy/draft/CSV import; compliance BUA sync to project brief |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

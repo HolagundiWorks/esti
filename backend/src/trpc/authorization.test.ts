@@ -41,6 +41,7 @@ function caller(authUser: AuthUser | null) {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-request",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
 }

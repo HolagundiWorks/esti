@@ -14,6 +14,8 @@ export interface Context {
   ip: string;
   /** Fastify request ID, echoed from X-Request-Id if present (ADR O3). */
   requestId: string;
+  /** Opaque session cookie value when present (for logout revocation). */
+  sessionToken: string | undefined;
   setCookie: (name: string, value: string) => void;
 }
 
@@ -42,6 +44,7 @@ export async function createContext({ req, res }: CreateFastifyContextOptions): 
     deviceSessionId,
     ip: req.ip,
     requestId: String(req.id),
+    sessionToken: cookieToken,
     setCookie: (name, value) =>
       void res.setCookie(name, value, {
         httpOnly: true,

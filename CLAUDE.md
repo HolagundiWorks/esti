@@ -28,8 +28,7 @@ elements.**
 - Prefer semantic HTML (`h1`–`h4`, `p`) inside Carbon containers over styled
   `div`s. Let Carbon/Plex typography apply.
 - Keep `styles.scss` minimal: the `@carbon/react` import (with the IBM Plex CDN
-  `$font-path`), the viewport min-height fix, the drawing-viewer SVG rule, and
-  the colourless structural helpers only.
+  `$font-path`), the viewport min-height fix, and colourless structural helpers only.
 
 When in doubt, reach for an existing Carbon component before inventing markup.
 
@@ -100,7 +99,7 @@ Tests: `worker/tests/test_jobs.py` (handler unit tests) and
 
 ## Module map (all tRPC namespaces — `backend/src/trpc/router.ts`)
 
-Root router has 57 namespaces. Organised by domain below.
+Root router has **80+ namespaces** (see `backend/src/trpc/router.ts`). Organised by domain below.
 
 **Public (no auth):** `health` (liveness), `profile` (India config: currency, FY dates,
 GST rates, SAC codes)
@@ -151,7 +150,20 @@ GST rates, SAC codes)
 
 **Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
-computed KPIs, Action Center, health modules; `portal` — client portal access
+computed KPIs, Action Center, health modules (`dashboard.home` bundles the office home view); `portal` — client portal access
+
+**Programme, PMC, and site delivery (Phases 14–16):**
+- `programme` — office delivery programme and Gantt milestones
+- `pmc` — PMC hub, portfolio, progress reports; `constructionSchedule` — site CPM/Gantt
+- `snags` / `siteInstructions` / `progressReports` / `phaseProgress` — PMC site ops
+
+**Project brief, expenses, and system (Phases 17–20):**
+- `projectBrief` — Project Info questionnaire sections
+- `accounts` / `expenses` — office cash book and project costing expenses
+- `system` — release metadata (owner-only)
+- `companion` — ESTICAD device auth, takeoff catalog, linked drawings
+- `marketing` — landing visit counter
+- `specCatalog` — specification material catalogue (Knowledge Bank)
 
 ## Frontend routes (`frontend/src/routes/`)
 
@@ -159,7 +171,7 @@ computed KPIs, Action Center, health modules; `portal` — client portal access
 
 | File | Purpose |
 |---|---|
-| `Dashboard.tsx` | KPI overview, Action Center |
+| `Dashboard.tsx` | KPI overview, Action Center (uses `dashboard.home` bundle) |
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |

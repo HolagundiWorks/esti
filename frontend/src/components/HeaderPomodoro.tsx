@@ -1,4 +1,4 @@
-import { Stack, Tile } from "@carbon/react";
+import { HeaderGlobalAction, Stack, Tile } from "@carbon/react";
 import { Time } from "@carbon/icons-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -36,16 +36,17 @@ export function HeaderPomodoro() {
 
   return (
     <>
-      <button
+      <HeaderGlobalAction
         ref={triggerRef}
-        type="button"
-        className={`esti-header-pom-btn${pomActive ? " esti-header-pom-btn--active" : ""}${open ? " esti-header-pom-btn--open" : ""}`}
         aria-label={`Focus timer${pomActive ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}
         aria-expanded={open}
+        aria-controls="esti-pom-panel"
+        isActive={open}
+        className={pomActive ? "esti-header-pom--active" : undefined}
         onClick={() => setOpen((o) => !o)}
       >
         <Time size={20} />
-      </button>
+      </HeaderGlobalAction>
 
       {pom.running && !open && (
         <span
@@ -58,8 +59,8 @@ export function HeaderPomodoro() {
       )}
 
       {open && (
-        <div ref={panelRef} className="esti-float-widget esti-float-pom-header">
-          <Tile className="esti-glass-panel esti-float-panel-shell">
+        <div ref={panelRef} id="esti-pom-panel" className="esti-float-widget esti-float-pom-header">
+          <Tile className="esti-float-panel-shell">
             <ScrollAffordance>
               <Stack gap={4}>
                 <h4>Focus timer</h4>

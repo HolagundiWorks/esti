@@ -19,11 +19,10 @@ import {
   type ConsultantDisciplineCode,
   EngagementStatus,
   formatINR,
+  parseRupeeInput,
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
-
-const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
 export function ProjectEngagements({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -177,7 +176,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
             projectId,
             consultantId,
             scope: scope || undefined,
-            agreedFeePaise: rupeesToPaise(agreedFee),
+            agreedFeePaise: parseRupeeInput(agreedFee),
           })
         }
       >
@@ -221,7 +220,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         primaryButtonDisabled={!payAmt || Number(payAmt) <= 0 || pay.isPending}
         onRequestClose={() => setPayId(null)}
         onRequestSubmit={() =>
-          payId && pay.mutate({ id: payId, amountPaise: rupeesToPaise(payAmt) })
+          payId && pay.mutate({ id: payId, amountPaise: parseRupeeInput(payAmt) })
         }
       >
         <TextInput

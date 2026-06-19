@@ -9,7 +9,6 @@ import {
   buildRevisionSourceMeterData,
   computeStudioQualityAxes,
   studioQualityAverage,
-  zeroStudioQualityAxes,
   type RevisionIntelligenceSnapshot,
   type TechnicalIntelligenceSnapshot,
 } from "../lib/quality-intelligence.js";
@@ -82,22 +81,19 @@ export function StudioQualityRadarTile({
   technical,
   loading,
   chartTheme = "white",
-  hasData,
   chartAnimations = true,
 }: {
   revision: RevisionIntelligenceSnapshot | null | undefined;
   technical: TechnicalIntelligenceSnapshot | null | undefined;
   loading?: boolean;
   chartTheme?: string;
-  hasData?: boolean;
   chartAnimations?: boolean;
 }) {
   const rawAxes = computeStudioQualityAxes(revision, technical);
-  const axes =
-    rawAxes ?? (hasData && revision && technical ? zeroStudioQualityAxes() : null);
+  const axes = rawAxes;
   const health = studioProfileHealth(revision, technical);
   const avg = axes ? studioQualityAverage(axes) : null;
-  const showChart = hasData ?? !!rawAxes;
+  const showChart = !!axes;
 
   return (
     <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--radar" style={qiEdge(health)}>
@@ -179,7 +175,7 @@ export function RevisionIntelligenceTile({
               <MetricRow label="Scope change" value={data!.scopeChange} />
               <MetricRow label="Scope drift" value={`${data!.scopeDriftPct}%`} />
             </div>
-            {showContent && (
+            {sourceData.length > 0 && (
               <div className="esti-qi-chart esti-qi-chart--meter esti-lp-qi-chart">
                 <p className="esti-qi-chart-label">Decision sources</p>
                 <MeterChart
@@ -287,7 +283,6 @@ export function QualityIntelligenceTiles({
         loading={revisionLoading || technicalLoading}
         chartTheme={chartTheme}
         chartAnimations={chartAnimations}
-        hasData={!!(revisionReady && revisionReady.totalDecisions > 0 && technicalReady)}
       />
       <RevisionIntelligenceTile
         data={revision}

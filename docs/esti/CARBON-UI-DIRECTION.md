@@ -42,8 +42,8 @@ Reference specs used in this document:
 
 ## Permitted CSS
 
-`styles.scss` contains the Carbon import, full-viewport root fix, drawing-viewer
-SVG sizing, and minimal colourless structural helpers that Carbon cannot express.
+`styles.scss` contains the Carbon import, full-viewport root fix, and minimal
+colourless structural helpers that Carbon cannot express.
 Any helper must affect only layout mechanics and must not define visual identity.
 The exception must be documented beside the rule.
 
@@ -59,7 +59,7 @@ must not spread to staff workspace routes without an explicit policy update.
 | Square-corner tags | `.cds--tag { border-radius: 0 }` | Deliberate brand choice on dashboard and intelligence tiles; do not apply globally to form controls. |
 | ASPRF / Performance KPI track bars | `.esti-kpi-track`, `.esti-kpi-fill` | Legacy CSS retained for any remaining scalar bars; Performance member tiles now use `MeterChart` (Phase 2F). |
 | Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. |
-| Drawing / SteelFlow canvas geometry | Drawing viewer, `SteelArranger.tsx`, `CrossSectionCanvas.tsx` | SVG sizing, drop zones, and palette positioning require structural inline styles; no decorative hex or shadows. |
+| SteelFlow canvas geometry | `SteelArranger.tsx`, `CrossSectionCanvas.tsx` | SVG sizing, drop zones, and palette positioning require structural inline styles; no decorative hex or shadows. Browser drawing takeoff was removed 2026-06-17 — ESTICAD only. |
 | Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
 | Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope (not under `.esti-lp` only). |
 | Login brand mark | `.esti-login-mark` | Inverse background chip for the white ESTI mark on the login tile; uses `--cds-background-inverse`, not hard-coded hex. |

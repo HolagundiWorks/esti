@@ -1,7 +1,8 @@
-import { and, desc, eq, lt, or } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { activities, projectOffices } from "../../db/schema.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { listOfficeActivity } from "./queries.js";
 
 const activityRow = {
   id: activities.id,
@@ -52,34 +53,5 @@ export const activityRouter = router({
           .nullish(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      const cursorFilter = input.cursor
-        ? or(
-            lt(activities.createdAt, new Date(input.cursor.createdAt)),
-            and(eq(activities.createdAt, new Date(input.cursor.createdAt)), lt(activities.id, input.cursor.id)),
-          )
-        : undefined;
-
-      const rows = await ctx.db
-        .select(activityRow)
-        .from(activities)
-        .leftJoin(projectOffices, eq(projectOffices.id, activities.projectId))
-        .where(
-          and(
-            input.visibility === "ALL" ? undefined : eq(activities.visibility, input.visibility),
-            cursorFilter,
-          ),
-        )
-        .orderBy(desc(activities.createdAt), desc(activities.id))
-        .limit(input.limit + 1);
-
-      const hasMore = rows.length > input.limit;
-      const pageRows = hasMore ? rows.slice(0, input.limit) : rows;
-      const last = pageRows.at(-1);
-
-      return {
-        rows: pageRows,
-        nextCursor: hasMore && last ? { createdAt: last.createdAt.toISOString(), id: last.id } : null,
-      };
-    }),
+    .query(async ({ ctx, input }) => listOfficeActivity(ctx.db, input)),
 });

@@ -34,14 +34,19 @@ After the client returns the questionnaire, the lead architect produces a **Proj
 
 | Brief section | Where to record in ESTI |
 | --- | --- |
+| §1 Basic information, §2 Project information, §3 Occupants | Project **Info** tab — questionnaire sections |
+| §4–§11 Design drivers, accommodation, materials, room detail | Project **Info** tab — accordion sections |
+| §8 Assumptions, §9 Client approval | Project **Info** tab — Assumptions & approval |
+| Compliance summary (permits, bylaw calc, site assessment) | Project **Info** tab — Compliance section (run calculator and save envelope there) |
+| Current design stage | Project **Info** (read-only tag) + **Settings** → Project stages |
 | Executive summary | Project **Appointment → scope summary**; proposal **scope** field |
-| Full brief narrative | Issued **letter** or PDF in project **Documents**; link in communication log |
-| Site and context | **Site assessment** (RIE pre-design); project internal **notes** |
-| Accommodation schedule | **Tasks** under Initiation & Brief; future **estimate / BOQ** program lines |
-| Style and loved places | **Mood board** titles and image brief |
-| Material preferences | **Specification sheet** seed rows; Knowledge Bank references |
-| Room-level detail | Mood boards + spec sheets per room; drawing issue descriptions later |
-| Client approval | **Approval** record or signed PDF with issue log entry |
+| Full brief narrative export | Project **Info** → compiled brief (markdown) or issued letter in **Documents** |
+| Site and context (RIE) | **Site assessment** (RIE pre-design); also mirrored on Project **Info** |
+| Accommodation schedule (tasks) | **Tasks** under Initiation & Brief; **Info** accommodation table |
+| Style and loved places | **Mood board** titles; **Info** design drivers |
+| Material preferences | **Info** materials palette; **Specification sheet** rows |
+| Room-level detail | **Info** room character; mood boards + spec sheets per room |
+| Client approval (signed) | **Info** approval note; **Approval** record or signed PDF |
 
 ### Quality gate before Concept Design
 

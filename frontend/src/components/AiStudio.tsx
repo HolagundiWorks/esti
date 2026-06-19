@@ -1,5 +1,7 @@
 import {
   Button,
+  Column,
+  Grid,
   InlineNotification,
   Select,
   SelectItem,
@@ -18,6 +20,7 @@ import {
 } from "@carbon/react";
 import { AI_DRAFT_KIND_LABEL, AiDraftKind, can } from "@esti/contracts";
 import { useState } from "react";
+import { EstiAiExplainLabel } from "./AiCarbon.js";
 import { PageHeader } from "./PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
@@ -101,6 +104,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         size={compact ? "sm" : "md"}
+        decorator={<EstiAiExplainLabel scope="draft" />}
       />
       <Button
         size={compact ? "sm" : "md"}
@@ -131,8 +135,9 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
             value={output}
             onChange={(e) => setOutput(e.target.value)}
             rows={compact ? 10 : 14}
+            decorator={<EstiAiExplainLabel scope="draft" />}
           />
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Stack orientation="horizontal" gap={3}>
             <Button
               kind="secondary"
               size="sm"
@@ -149,22 +154,26 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
             >
               Mark reviewed
             </Button>
-          </div>
+          </Stack>
           {sources.length > 0 && (
-            <div>
-              <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", opacity: 0.85 }}>Sources</p>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            <Stack gap={2}>
+              <span className="esti-label">Sources</span>
+              <Stack orientation="horizontal" gap={2}>
                 {sources.map((s, i) => (
                   <Tag key={i} type="gray" size="sm">
                     {s.entityType}: {s.label}
                   </Tag>
                 ))}
-              </div>
-            </div>
+              </Stack>
+            </Stack>
           )}
-          <p style={{ margin: 0, fontSize: "0.8125rem", opacity: 0.75 }}>
-            Draft only — copy into the target document and issue manually. No automatic transmission.
-          </p>
+          <InlineNotification
+            kind="info"
+            lowContrast
+            hideCloseButton
+            title="Draft only"
+            subtitle="Copy into the target document and issue manually. No automatic transmission."
+          />
         </>
       )}
     </Stack>
@@ -173,8 +182,8 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   if (compact) return body;
 
   return (
-    <Tile>
-      <h4 style={{ marginTop: 0 }}>AI draft assistant</h4>
+    <Tile decorator={<EstiAiExplainLabel scope="draft" />}>
+      <h4 className="esti-ai-studio__title">AI draft assistant</h4>
       {body}
     </Tile>
   );
@@ -210,13 +219,13 @@ export function AiStudioPage() {
           hideCloseButton
           title="AI Studio is off"
           subtitle="Enable under Company settings. Uses Ollama on your server — no API keys."
-          style={{ marginBottom: 16 }}
         />
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-        <Tile>
+      <Grid narrow>
+        <Column sm={4} md={4} lg={8}>
           <AiDraftPanel defaultKind="SUMMARY" />
-        </Tile>
+        </Column>
+        <Column sm={4} md={4} lg={8}>
         <TableContainer title="Recent AI runs" description="Provenance: user, model, approval state">
           <Table size="sm">
             <TableHead>
@@ -241,7 +250,8 @@ export function AiStudioPage() {
             </TableBody>
           </Table>
         </TableContainer>
-      </div>
+        </Column>
+      </Grid>
     </>
   );
 }

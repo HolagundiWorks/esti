@@ -71,6 +71,16 @@ import { searchRouter } from "../modules/search/router.js";
 import { aiRouter } from "../modules/ai/router.js";
 import { companionRouter } from "../modules/companion/router.js";
 import { marketingRouter } from "../modules/marketing/router.js";
+import { programmeRouter } from "../modules/programme/router.js";
+import { pmcRouter } from "../modules/pmc/router.js";
+import { snagsRouter } from "../modules/pmc/snags.js";
+import { siteInstructionsRouter } from "../modules/pmc/siteInstructions.js";
+import { progressReportsRouter } from "../modules/pmc/progressReports.js";
+import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
+import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
+import { projectBriefRouter } from "../modules/project-brief/router.js";
+import { accountsRouter } from "../modules/expense/accounts.js";
+import { expensesRouter } from "../modules/expense/expenses.js";
 import { systemRouter } from "../modules/system/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
@@ -167,6 +177,16 @@ export const appRouter = router({
   ai: aiRouter,
   companion: companionRouter,
   marketing: marketingRouter,
+  programme: programmeRouter,
+  pmc: pmcRouter,
+  snags: snagsRouter,
+  siteInstructions: siteInstructionsRouter,
+  progressReports: progressReportsRouter,
+  phaseProgress: phaseProgressRouter,
+  constructionSchedule: constructionScheduleRouter,
+  projectBrief: projectBriefRouter,
+  accounts: accountsRouter,
+  expenses: expensesRouter,
   system: systemRouter,
 });
 

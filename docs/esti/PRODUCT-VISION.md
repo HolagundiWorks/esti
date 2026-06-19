@@ -108,5 +108,5 @@ Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
 production operations in [PRODUCTION-OPS](PRODUCTION-OPS.md), and long-term
 scope discipline in [Stability Charter](STABILITY-CHARTER.md).
 
-Phases **0–12** are engineering-complete; Phase **13** (ESTICAD companion) is
-in progress — see roadmap status table.
+Phases **0–20** are engineering-complete — see the [roadmap status table](ROADMAP.md#status-at-a-glance).
+Operator restore-drill sign-off for a live firm instance remains in [PRODUCTION-OPS](PRODUCTION-OPS.md).

@@ -45,6 +45,8 @@ export const projectOffices = pgTable("esti_projectoffice", {
   archivedById: uuid("archived_by_id").references(() => users.id),
   /** The phase currently in progress; previous phases are considered complete. */
   currentPhaseId: uuid("current_phase_id"),
+  /** When true (and firm PMC on), project shows PMC tab and site-admin features. */
+  pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Retention deadline: project may be purged on or after this date. */
   purgeAfter: date("purge_after"),
   /** Set when the project data has been scheduled for deletion. */

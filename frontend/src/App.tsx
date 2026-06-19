@@ -15,6 +15,7 @@ import {
 } from "@carbon/react";
 import {
   Building,
+  Calendar,
   Catalog,
   Dashboard as DashboardIcon,
   Document,
@@ -58,6 +59,7 @@ import { Dashboard } from "./routes/Dashboard.js";
 import { FeeProposals } from "./routes/FeeProposals.js";
 import { Filing } from "./routes/Filing.js";
 import { Invoices } from "./routes/Invoices.js";
+import { OfficeExpenses, CashBook } from "./routes/OfficeExpenses.js";
 import { Proposals } from "./routes/Proposals.js";
 import { Landing } from "./routes/Landing.js";
 import { Login } from "./routes/Login.js";
@@ -65,6 +67,8 @@ import { KnowledgeBank } from "./routes/KnowledgeBank.js";
 import { Portal } from "./routes/Portal.js";
 import { ProjectDetail } from "./routes/ProjectDetail.js";
 import { Projects } from "./routes/Projects.js";
+import { Programme } from "./routes/Programme.js";
+import { Pmc } from "./routes/Pmc.js";
 import { Reconcile } from "./routes/Reconcile.js";
 import { Hr } from "./routes/Hr.js";
 import { SearchPage } from "./routes/Search.js";
@@ -159,6 +163,7 @@ function AppShell() {
     enabled: !!user && user.role !== "CLIENT",
   });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
+  const pmcEnabled = settingsQ.data?.pmcEnabled ?? false;
   const isStaff =
     !!user &&
     (isStaffRole(user.role) ||
@@ -215,6 +220,8 @@ function AppShell() {
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
+    { label: "Programme", to: "/programme", icon: Calendar },
+    ...(pmcEnabled ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
     { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
@@ -240,11 +247,17 @@ function AppShell() {
       label: "Accounting",
       icon: Money,
       items: [
-        { label: "Invoices", to: "/invoices" },
+        ...(can(user.role, "invoice:manage")
+          ? [
+              { label: "Invoices", to: "/invoices" },
+              { label: "Office expenses", to: "/accounting/office-expenses" },
+              { label: "Cash book", to: "/accounting/cash-book" },
+              { label: "Reconciliation", to: "/reconcile" },
+            ]
+          : []),
         ...(can(user.role, "fees:manage")
           ? [{ label: "Fee proposals", to: "/accounting/fees" }]
           : []),
-        { label: "Reconciliation", to: "/reconcile" },
         ...(can(user.role, "reports:view")
           ? [{ label: "GST / TDS filing", to: "/filing" }]
           : []),
@@ -261,7 +274,7 @@ function AppShell() {
         { label: "Letters", to: "/office/letters" },
         { label: "Contracts", to: "/office/contracts" },
         { label: "Tenders", to: "/office/tenders" },
-        { label: "Construction", to: "/office/construction" },
+        ...(pmcEnabled ? [{ label: "Construction", to: "/office/construction" }] : []),
         { label: "AI Studio", to: "/office/ai-studio" },
       ],
     },
@@ -359,7 +372,15 @@ function AppShell() {
                 <Route path="/compliance" element={<ComplianceRedirect />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/search" element={<SearchPage />} />
-                <Route path="/invoices" element={<Invoices />} />
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/invoices" element={<Invoices />} />
+                )}
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/accounting/office-expenses" element={<OfficeExpenses />} />
+                )}
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/accounting/cash-book" element={<CashBook />} />
+                )}
                 {can(user.role, "fees:manage") && (
                   <Route path="/accounting/fees" element={<FeeProposals />} />
                 )}
@@ -373,6 +394,8 @@ function AppShell() {
                 <Route path="/office/tenders" element={<Tenders />} />
                 <Route path="/office/construction" element={<Construction />} />
                 <Route path="/tasks" element={<Work />} />
+                <Route path="/programme" element={<Programme />} />
+                {pmcEnabled && <Route path="/pmc" element={<Pmc />} />}
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 <Route
                   path="/workload"
@@ -389,7 +412,9 @@ function AppShell() {
                   path="/consultant-requests"
                   element={<Navigate to="/tasks?tab=consultant-requests" replace />}
                 />
-                <Route path="/reconcile" element={<Reconcile />} />
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/reconcile" element={<Reconcile />} />
+                )}
                 {hrEnabled && <Route path="/team" element={<Team />} />}
                 {hrEnabled && <Route path="/hr" element={<Hr />} />}
                 <Route

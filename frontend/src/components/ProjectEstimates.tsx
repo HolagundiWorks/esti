@@ -16,13 +16,11 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { formatINR } from "@esti/contracts";
+import { formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
-
-const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
 function EstimatePdf({ id, initial }: { id: string; initial: string }) {
   const utils = trpc.useUtils();
@@ -70,7 +68,7 @@ function parseEstimateBulk(text: string) {
         description,
         unit,
         qty: Number(qty) || 0,
-        ratePaise: rupeesToPaise(rate ?? "0"),
+        ratePaise: parseRupeeInput(rate ?? "0"),
         itemLeadPct: Number(lead) || 0,
       };
     })
@@ -84,6 +82,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
     { enabled: !!projectId },
   );
   const versionsQ = trpc.dsr.listVersions.useQuery();
+  const publishedVersions = (versionsQ.data ?? []).filter((v) => v.status !== "DRAFT");
   const [openId, setOpenId] = useState<string | null>(null);
   const itemsQ = trpc.estimates.items.useQuery(
     { estimateId: openId ?? "" },
@@ -308,7 +307,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                   }}
                 >
                   <SelectItem value="" text="Select DSR…" />
-                  {(versionsQ.data ?? []).map((v) => (
+                  {publishedVersions.map((v) => (
                     <SelectItem key={v.id} value={v.id} text={v.label} />
                   ))}
                 </Select>
@@ -532,7 +531,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                           onBlur={(e) =>
                             updateItem.mutate({
                               id: it.id,
-                              ratePaise: rupeesToPaise(e.target.value),
+                              ratePaise: parseRupeeInput(e.target.value),
                             })
                           }
                         />
@@ -616,7 +615,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             }
           >
             <SelectItem value="" text="None" />
-            {(versionsQ.data ?? []).map((v) => (
+            {publishedVersions.map((v) => (
               <SelectItem key={v.id} value={v.id} text={v.label} />
             ))}
           </Select>
@@ -669,7 +668,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             }
           >
             <SelectItem value="" text="Select DSR version…" />
-            {(versionsQ.data ?? []).map((v) => (
+            {publishedVersions.map((v) => (
               <SelectItem key={v.id} value={v.id} text={v.label} />
             ))}
           </Select>
@@ -704,7 +703,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             description: itf.description,
             unit: itf.unit,
             qty: Number(itf.qty) || 0,
-            ratePaise: rupeesToPaise(itf.rate),
+            ratePaise: parseRupeeInput(itf.rate),
             itemLeadPct: Number(itf.itemLeadPct) || 0,
           })
         }

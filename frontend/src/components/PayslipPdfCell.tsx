@@ -1,6 +1,7 @@
-import { Button } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 
 /** Per-payslip PDF action: generate via the worker, poll, then open. */
 export function PayslipPdfCell({
@@ -17,12 +18,7 @@ export function PayslipPdfCell({
     { id: payslipId },
     {
       enabled: active,
-      refetchInterval: (q) =>
-        q.state.data &&
-        (q.state.data.pdfStatus === "PENDING" ||
-          q.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
+      refetchInterval: (q) => pdfPollInterval(q.state.data?.pdfStatus, active),
     },
   );
 
@@ -33,33 +29,13 @@ export function PayslipPdfCell({
     },
   });
 
-  const status = byId.data?.pdfStatus ?? initialStatus;
-  const url = byId.data?.pdfUrl ?? null;
-
-  if (status === "READY" && url) {
-    return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open slip
-      </Button>
-    );
-  }
-  if (status === "PENDING" || status === "PROCESSING") {
-    return <span>Generating…</span>;
-  }
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={generate.isPending}
-      onClick={() => generate.mutate({ id: payslipId })}
-    >
-      {status === "FAILED" ? "Retry slip" : "Salary slip"}
-    </Button>
+    <PdfActionButtons
+      status={byId.data?.pdfStatus ?? initialStatus}
+      url={byId.data?.pdfUrl ?? null}
+      generatePending={generate.isPending}
+      onGenerate={() => generate.mutate({ id: payslipId })}
+      labels={{ open: "Open slip", generate: "Salary slip", retry: "Retry slip" }}
+    />
   );
 }

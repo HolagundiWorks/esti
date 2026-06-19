@@ -43,6 +43,7 @@ function callerFor(user: typeof users.$inferSelect) {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-ai-agent",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
 }

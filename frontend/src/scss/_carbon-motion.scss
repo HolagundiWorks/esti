@@ -1,0 +1,45 @@
+// Carbon productive motion tokens — https://carbondesignsystem.com/elements/motion/overview/
+:root {
+  --esti-motion-duration-fast-01: 70ms;
+  --esti-motion-duration-fast-02: 110ms;
+  --esti-motion-duration-moderate-01: 150ms;
+  --esti-motion-duration-moderate-02: 240ms;
+  --esti-motion-duration-slow-01: 400ms;
+  --esti-motion-duration-slow-02: 700ms;
+
+  --esti-motion-easing-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --esti-motion-easing-entrance: cubic-bezier(0, 0, 0.38, 0.9);
+  --esti-motion-easing-exit: cubic-bezier(0.2, 0, 1, 0.9);
+
+  --esti-motion-standard: var(--esti-motion-duration-moderate-01) var(--esti-motion-easing-standard);
+  --esti-motion-entrance: var(--esti-motion-duration-moderate-02) var(--esti-motion-easing-entrance);
+  --esti-motion-exit: var(--esti-motion-duration-fast-02) var(--esti-motion-easing-exit);
+}
+
+@keyframes esti-motion-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.esti-motion-fade-in {
+  animation: esti-motion-fade-in var(--esti-motion-duration-moderate-02) var(--esti-motion-easing-entrance)
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esti-ai-agent,
+  .esti-ai-agent *,
+  .esti-float-widget,
+  .esti-cal-cell,
+  .esti-header-pom-btn,
+  .esti-motion-fade-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}

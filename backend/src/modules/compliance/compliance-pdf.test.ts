@@ -39,6 +39,11 @@ function mockDb(rows: Record<string, unknown>[]) {
         where: vi.fn().mockResolvedValue(undefined),
       }),
     }),
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([{ id: "doc-issue-1" }]),
+      }),
+    }),
   } as never;
 }
 
@@ -64,7 +69,15 @@ describe("compliance PDF enqueue smoke", () => {
   it("queues render_pdf for a specification sheet", async () => {
     const { enqueueJob } = await import("../../lib/redis.js");
     const caller = specRouter.createCaller(
-      testCtx(testUser("ASSOCIATE"), mockDb([{ id: specSheetId, pdfStatus: "NONE" }])),
+      testCtx(testUser("ASSOCIATE"), mockDb([
+        {
+          id: specSheetId,
+          pdfStatus: "NONE",
+          projectId: null,
+          ref: "SPEC/2026/0001",
+          versionNo: 1,
+        },
+      ])),
     );
 
     await expect(caller.generatePdf({ id: specSheetId })).resolves.toEqual({ ok: true });

@@ -101,7 +101,7 @@ pnpm --filter @esti/backend test:api-smoke   # Production API smoke (Phase 12)
 
 Self-host deploy scripts live under `deploy/`. Operator checklist:
 [docs/esti/PRODUCTION-OPS.md](docs/esti/PRODUCTION-OPS.md). Delivery status:
-[docs/esti/ROADMAP.md](docs/esti/ROADMAP.md) (Phases 0–12 complete).
+[docs/esti/ROADMAP.md](docs/esti/ROADMAP.md) (Phases 0–20 complete; operator gate in PRODUCTION-OPS).
 
 ## Conventions
 

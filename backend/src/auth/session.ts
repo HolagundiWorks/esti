@@ -31,6 +31,15 @@ export async function createSession(userId: string): Promise<string> {
   return token;
 }
 
+/** Invalidate a browser session cookie token (logout). */
+export async function revokeSessionByToken(
+  database: Pick<typeof db, "delete">,
+  token: string | undefined,
+): Promise<void> {
+  if (!token) return;
+  await database.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
+}
+
 export interface AuthUser {
   id: string;
   email: string;

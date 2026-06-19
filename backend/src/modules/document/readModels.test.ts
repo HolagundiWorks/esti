@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { registerExportRows } from "../modules/document/readModels.js";
+import { registerExportRows } from "./readModels.js";
 
 describe("document register", () => {
   it("formats export rows", () => {

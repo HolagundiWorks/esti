@@ -21,6 +21,7 @@ export function testCtx(user: AuthUser | null, db: Context["db"]): Context {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-request",
+    sessionToken: undefined,
     setCookie: () => undefined,
   };
 }

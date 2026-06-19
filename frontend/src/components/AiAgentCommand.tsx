@@ -1,11 +1,20 @@
 import { Close } from "@carbon/icons-react";
+import {
+  IconButton,
+  InlineLoading,
+  InlineNotification,
+  Stack,
+  TextInput,
+  Tile,
+} from "@carbon/react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
+import { EstiAiExplainLabel } from "./AiCarbon.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 
-/** Floating ESTI agent — logo FAB opens a horizontal command bar (Alt+A). */
+/** Floating ESTI agent — Carbon for AI command bar (Alt+A). */
 export function AiAgentCommand() {
   const { user } = useAuth();
   const { pathname } = useLocation();
@@ -96,30 +105,39 @@ export function AiAgentCommand() {
   const showReply = open && (reply || error || generate.isPending);
 
   return (
-    <div ref={rootRef} className={`esti-ai-agent${open ? " esti-ai-agent--open" : ""}`}>
+    <div
+      ref={rootRef}
+      className={`esti-ai-agent${open ? " esti-ai-agent--open" : ""}`}
+      aria-label="ESTI AI assistant"
+    >
       {showReply && (
-        <div
-          className={`esti-ai-agent__reply${error ? " esti-ai-agent__reply--error" : ""}`}
-          aria-live="polite"
+        <Tile
+          decorator={<EstiAiExplainLabel scope="agent" />}
+          className={`esti-ai-agent__reply esti-motion-fade-in${error ? " esti-ai-agent__reply--error" : ""}`}
         >
           {generate.isPending ?
-            "Thinking…"
+            <InlineLoading description="Thinking…" />
           : error ?
-            error
-          : reply}
-        </div>
+            <InlineNotification
+              kind="error"
+              lowContrast
+              hideCloseButton
+              title="ESTI could not answer"
+              subtitle={error}
+            />
+          : <p className="esti-ai-agent__reply-text">{reply}</p>}
+        </Tile>
       )}
 
-      <div className="esti-ai-agent__row">
+      <Stack orientation="horizontal" gap={3} className="esti-ai-agent__row">
         <div className={`esti-ai-agent__bar${open ? " esti-ai-agent__bar--open" : ""}`}>
-          <span className="esti-ai-agent__prompt" aria-hidden>
-            &gt;
-          </span>
-
-          <input
+          <TextInput
             ref={inputRef}
-            type="text"
-            className="esti-ai-agent__input"
+            id="esti-agent-command"
+            labelText="Ask ESTI"
+            hideLabel
+            size="md"
+            decorator={<EstiAiExplainLabel scope="agent" />}
             placeholder={
               projectId ?
                 "Ask ESTI about this project (read-only)…"
@@ -129,32 +147,30 @@ export function AiAgentCommand() {
             disabled={generate.isPending || aiLoading}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onInputKeyDown}
-            aria-label="AI command"
-            tabIndex={open ? 0 : -1}
           />
-
-          <button
-            type="button"
-            className="esti-ai-agent__close"
-            aria-label="Close agent"
+          <IconButton
+            kind="ghost"
+            size="sm"
+            label="Close ESTI"
+            align="top-right"
             onClick={() => setOpen(false)}
-            tabIndex={open ? 0 : -1}
           >
-            <Close size={16} />
-          </button>
+            <Close />
+          </IconButton>
         </div>
 
-        <button
+        <IconButton
           ref={fabRef}
-          type="button"
+          kind="primary"
+          size="lg"
+          label="ESTI assistant (Alt+A)"
           className="esti-ai-agent__fab"
-          aria-label="ESTI assistant (Alt+A)"
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >
-          <span className="esti-ai-agent__logo" aria-hidden />
-        </button>
-      </div>
+          <img src="/esti-mark-white.png" alt="" className="esti-ai-agent__mark" aria-hidden />
+        </IconButton>
+      </Stack>
     </div>
   );
 }

@@ -3,8 +3,8 @@
 **Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 This directory is the single source of truth for ESTI product and engineering
-direction. Historical audits were removed after their unresolved findings were
-incorporated into the roadmap; they must not compete with current requirements.
+direction. Point-in-time audits and superseded specs live in
+[archive/](archive/README.md); they must not compete with current requirements.
 
 ## Canonical Documents
 
@@ -16,18 +16,22 @@ incorporated into the roadmap; they must not compete with current requirements.
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
-| [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes (Phase 12 operator gate) |
+| [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes |
 | [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Studio vs solo demo accounts, HR toggle, seed commands |
+| [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Solo vs studio production rules and HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
-| [WORKFLOW-ARCHITECTURE-AUDIT](WORKFLOW-ARCHITECTURE-AUDIT.md) | Workflow, component hierarchy, and architecture audit snapshot (execution in ROADMAP Phase 2G) |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
-| [BYLAWS-BBMP](BYLAWS-BBMP.md) | BBMP seed for the standalone compliance knowledge bank |
+| [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared BBMP rule engine — pre/post construction workflows |
+| [BBMP-IMPLEMENTATION](BBMP-IMPLEMENTATION.md) | BBMP spec → live schema and API map |
+| [BYLAWS-BBMP](BYLAWS-BBMP.md) | Full BBMP engine specification (agent + reference appendix) |
 | [STEELFLOW-BOUNDED-CONTEXT](STEELFLOW-BOUNDED-CONTEXT.md) | `sf_*` vs `esti_*` naming and SteelFlow module boundaries |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
 Build and runtime instructions live in [DEVELOPMENT.md](../../DEVELOPMENT.md).
+
+Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
 
 ## Precedence
 
@@ -50,5 +54,6 @@ Every material feature change updates the PRD/module profile and roadmap in the
 same pull request. Changes that affect navigation, geometry capture, or AI issue
 paths must cite [STABILITY-CHARTER](STABILITY-CHARTER.md) or record a charter
 exception with redirects. Architecture, tax, or UI-policy changes also update
-their canonical document. Point-in-time audit files should not be added; findings
-go directly into the roadmap backlog with an owner, priority, and acceptance gate.
+their canonical document. New point-in-time audit files should not be added;
+findings go directly into the roadmap backlog with an owner, priority, and
+acceptance gate. Superseded large specs may move to [archive/](archive/README.md).

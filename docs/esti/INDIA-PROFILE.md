@@ -159,3 +159,17 @@ are client-borne unless the project agreement states otherwise.
 ESTI stores GST natively — taxable value, CGST/SGST/IGST, cess, TDS, SAC, place
 of supply, and the active GST system — in its own `esti_invoice` /
 `esti_gst_detail` tables; the domain, UI, and documents speak **GST** end to end.
+
+## Expense vouchers (studio bookkeeping)
+
+Separate from client **GST invoices** (`esti_invoice`), ESTI tracks firm and project
+spends in `esti_expense` with lightweight accounts (`MAIN`, `OFFICE_EXPENSE`,
+`CASH`, `PROJECT_EXPENSE`). Amounts are stored in **paise** (same as invoices).
+
+| Scope | Billing class | Notes |
+|-------|---------------|-------|
+| Office | Always **non-billable** | Overhead — rent share, software, general stationery |
+| Project | **Non-billable** or **billable** | Site travel, food, stay, misc; billable = client-recoverable (manual recovery link in v1) |
+
+Workflow: `DRAFT` → `SUBMITTED` → `AUDITED` → `CLOSED`. Cash vouchers debit the
+**Cash** account; client revenue never mixes with expense rows. See [ROADMAP Phase 18](ROADMAP.md).

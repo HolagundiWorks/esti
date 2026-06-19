@@ -25,7 +25,7 @@ export function FloatingCalculator({ open, onClose, triggerRef }: FloatingCalcul
 
   return (
     <div ref={panelRef} className="esti-float-widget esti-float-calc">
-      <Tile className="esti-glass-panel esti-float-panel-shell">
+      <Tile className="esti-float-panel-shell">
         <ScrollAffordance>
           <Stack gap={4}>
           <h4>Calculator</h4>

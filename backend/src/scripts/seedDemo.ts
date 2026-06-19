@@ -13,7 +13,7 @@
  * real to explore. NOT for production use.
  */
 import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
-import { eq, like, or } from "drizzle-orm";
+import { eq, like, or, asc } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { ensureDemoSchema } from "./seedBootstrap.js";
@@ -36,7 +36,12 @@ import {
   phases,
   poItems,
   projectOffices,
+  projectBriefs,
+  projectMilestones,
+  progressReports,
   purchaseOrders,
+  snags,
+  constructionActivities,
   rewardPoints,
   specItems,
   specSheets,
@@ -45,10 +50,17 @@ import {
   transmittalItems,
   transmittals,
   users,
+  accounts,
+  expenses,
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
+import {
+  applyConstructionTemplate,
+  loadActivities,
+  resolveTemplateKeyForProject,
+} from "../modules/construction-schedule/readModels.js";
 import { backfillDemoBylawCalcs, upsertDemoBylawCalc } from "./seedDemoBylaw.js";
 import {
   ensureDemoShowcase,
@@ -160,6 +172,93 @@ async function backfillProjectDemoRecords(
     const { ref: insRef } = await nextRef(db, "inspection", "SIR");
     await db.insert(inspections).values({ ref: insRef, projectId, dateVisit: dayOffset(-2 + pi), weather: "Clear", attendees: "Site supervisor, contractor, project lead", progress: pi % 2 === 0 ? "RCC slab reinforcement completed for review." : "Masonry and services chase marking in progress.", observations: "Site housekeeping acceptable; contractor to protect exposed starter bars.", instructions: "Submit bar bending schedule and pour card before next inspection.", nextVisit: dayOffset(5 + pi), inspectorName: "Rahul Nair" });
   }
+
+  if (pi === 0 && projectTitle.startsWith("Sharma")) {
+    const [briefExists] = await db
+      .select({ id: projectBriefs.id })
+      .from(projectBriefs)
+      .where(eq(projectBriefs.projectId, projectId))
+      .limit(1);
+    if (!briefExists) {
+      await db.insert(projectBriefs).values({
+        projectId,
+        basicInfo: {
+          contactName: "Rajesh & Priya Sharma",
+          currentAddress: "12th Main, Indiranagar, Bengaluru",
+          siteAddress: "Plot 14, Whitefield Main Road, Bengaluru",
+          plotSize: "2400 sq ft",
+          terrain: "Level",
+          orientation: "East-facing plot",
+        },
+        projectInfo: {
+          intendedUse: "Residential villa — G+1",
+          buaSqm: 420,
+          phasing: "Single phase",
+          budgetNote: "₹4.5 Cr all-inclusive (architecture + interiors guidance)",
+          finance: "Self-funded",
+          tentativeStart: dayOffset(30),
+        },
+        occupants: {
+          household: [
+            { name: "Rajesh Sharma", age: 42, relation: "Client" },
+            { name: "Priya Sharma", age: 38, relation: "Client" },
+            { name: "Aanya", age: 10, relation: "Child" },
+          ],
+          staff: [{ role: "House help", count: 1 }],
+        },
+        designPrefs: {
+          style: "Contemporary with warm materials",
+          vastu: "Consultant engaged — kitchen NE preferred",
+          activities: ["Home office", "Entertaining", "Garden"],
+        },
+        spaceSchedule: [
+          { code: "GF-LIV", room: "Living / dining", areaSqm: 48, floor: "GF", notes: "Double-height optional" },
+          { code: "GF-KIT", room: "Kitchen", areaSqm: 18, floor: "GF", notes: "Open to dining" },
+          { code: "FF-MBR", room: "Master bedroom", areaSqm: 28, floor: "FF", notes: "Walk-in wardrobe" },
+        ],
+        materials: {
+          structure: "RCC frame",
+          flooring: "Vitrified + wood in bedrooms",
+          walls: "Putty + emulsion; stone accent in living",
+        },
+        assumptions: "Survey pending for southern boundary; landscape concept deferred to DD.",
+        approvalNote: "Approved at briefing — 2026-05-10",
+        approvedAt: dayOffset(-35),
+      });
+    }
+
+    const [expExists] = await db
+      .select({ id: expenses.id })
+      .from(expenses)
+      .where(eq(expenses.projectId, projectId))
+      .limit(1);
+    if (!expExists) {
+      const [projAcct] = await db.select().from(accounts).where(eq(accounts.code, "PROJECT_EXPENSE")).limit(1);
+      if (projAcct) {
+        const { ref } = await nextRef(db, "expense", "EXP");
+        await db.insert(expenses).values({
+          ref,
+          scope: "PROJECT",
+          projectId,
+          billingClass: "BILLABLE",
+          category: "TRAVEL",
+          paymentMethod: "UPI",
+          accountId: projAcct.id,
+          amountPaise: 2_450_00,
+          expenseDate: dayOffset(-4),
+          payee: "Uber / fuel",
+          description: "Site visit — slab check with structural consultant",
+          status: "CLOSED",
+          recoveryStatus: "PENDING",
+          submittedById: principalId,
+          auditedById: principalId,
+          closedById: principalId,
+          auditedAt: new Date(),
+          closedAt: new Date(),
+        });
+      }
+    }
+  }
 }
 
 async function linkDemoTeamAndTasks(): Promise<void> {
@@ -199,6 +298,57 @@ async function syncDemoPasswords(): Promise<void> {
   }
 }
 
+async function ensureDemoOfficeExpenses(principalId: string): Promise<void> {
+  const [exists] = await db
+    .select({ id: expenses.id })
+    .from(expenses)
+    .where(eq(expenses.scope, "OFFICE"))
+    .limit(1);
+  if (exists) return;
+
+  const [cashAcct] = await db.select().from(accounts).where(eq(accounts.code, "CASH")).limit(1);
+  const [officeAcct] = await db.select().from(accounts).where(eq(accounts.code, "OFFICE_EXPENSE")).limit(1);
+  if (!cashAcct || !officeAcct) return;
+
+  const { ref: cashRef } = await nextRef(db, "expense", "EXP");
+  await db.insert(expenses).values({
+    ref: cashRef,
+    scope: "OFFICE",
+    billingClass: "NON_BILLABLE",
+    category: "MISC",
+    paymentMethod: "CASH",
+    accountId: cashAcct.id,
+    amountPaise: 850_00,
+    expenseDate: dayOffset(-1),
+    payee: "Stationery Mart",
+    description: "Petty cash — printer paper and markers",
+    status: "CLOSED",
+    recoveryStatus: "NA",
+    submittedById: principalId,
+    auditedById: principalId,
+    closedById: principalId,
+    auditedAt: new Date(),
+    closedAt: new Date(),
+  });
+
+  const { ref: offRef } = await nextRef(db, "expense", "EXP");
+  await db.insert(expenses).values({
+    ref: offRef,
+    scope: "OFFICE",
+    billingClass: "NON_BILLABLE",
+    category: "MISC",
+    paymentMethod: "BANK",
+    accountId: officeAcct.id,
+    amountPaise: 4_999_00,
+    expenseDate: dayOffset(-7),
+    payee: "Adobe Systems",
+    description: "Creative Cloud — monthly subscription share",
+    status: "SUBMITTED",
+    recoveryStatus: "NA",
+    submittedById: principalId,
+  });
+}
+
 async function backfillExistingDemo(principalId: string): Promise<void> {
   await syncDemoPasswords();
   await linkDemoTeamAndTasks();
@@ -212,6 +362,7 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
     const [project] = await db.select({ id: projectOffices.id, ref: projectOffices.ref, title: projectOffices.title }).from(projectOffices).where(eq(projectOffices.title, title)).limit(1);
     if (project) await backfillProjectDemoRecords(project.id, project.ref, project.title, principalId, pi, catalog);
   }
+  await ensureDemoOfficeExpenses(principalId);
   const showcase = await ensureDemoShowcase(db);
   console.log(`    refreshed ${bylawCount} bylaw compliance records (pre + post audit)`);
   console.log(
@@ -238,7 +389,7 @@ async function main(): Promise<void> {
   const pwHash = await hashPassword(DEMO_PASSWORD);
 
   const settings = await getOrgSettings(db);
-  await db.update(orgSettings).set({ hrEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
+  await db.update(orgSettings).set({ hrEnabled: true, pmcEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
   await ensureAiStudioEnabled(db);
 
   // ── Staff personas ────────────────────────────────────────────────────────
@@ -529,6 +680,7 @@ async function main(): Promise<void> {
       clientId: def.client.id,
       state: def.client.state ?? "Karnataka",
       contractValuePaise: def.value,
+      pmcEnabled: pi < 3 && def.status === "ACTIVE",
       createdById: principal!.id,
     }).returning();
     const projectId = project!.id;
@@ -544,6 +696,90 @@ async function main(): Promise<void> {
         status: idx < phaseProgress ? "COMPLETE" : idx === phaseProgress ? "IN_PROGRESS" : "NOT_STARTED",
       })),
     );
+
+    if (pi < 3 && ["ACTIVE", "ON_HOLD"].includes(def.status)) {
+      const phaseRows = await db
+        .select({ id: phases.id })
+        .from(phases)
+        .where(eq(phases.projectId, projectId))
+        .orderBy(asc(phases.sortOrder));
+      const currentPhase = phaseRows[phaseProgress] ?? phaseRows[0];
+      await db.insert(projectMilestones).values([
+        {
+          projectId,
+          phaseId: currentPhase?.id,
+          title: "Authority submission package",
+          targetDate: dayOffset(10),
+          status: "PLANNED",
+          sortOrder: 0,
+        },
+        {
+          projectId,
+          phaseId: currentPhase?.id,
+          title: "GFC drawing issue",
+          targetDate: dayOffset(21),
+          status: pi === 0 ? "IN_PROGRESS" : "PLANNED",
+          sortOrder: 1,
+        },
+        {
+          projectId,
+          title: "Site handover",
+          targetDate: dayOffset(45),
+          status: "PLANNED",
+          sortOrder: 2,
+        },
+      ]);
+    }
+
+    if (pi < 3 && def.status === "ACTIVE") {
+      const existingActs = await loadActivities(db, projectId);
+      if (existingActs.length === 0) {
+        const templateKey = await resolveTemplateKeyForProject(db, projectId);
+        await applyConstructionTemplate(db, projectId, templateKey, dayOffset(-90));
+        const acts = await loadActivities(db, projectId);
+        const parentIds = new Set(acts.map((a) => a.parentId).filter(Boolean));
+        const leaves = acts.filter((a) => !parentIds.has(a.id));
+        for (let i = 0; i < Math.min(3, leaves.length); i++) {
+          const act = leaves[i]!;
+          await db
+            .update(constructionActivities)
+            .set({
+              percentComplete: i === 0 ? 100 : i === 1 ? 65 : 20,
+              actualStart: dayOffset(-60 + i * 10),
+              actualEnd: i === 0 ? dayOffset(-35) : null,
+              updatedAt: new Date(),
+            })
+            .where(eq(constructionActivities.id, act.id));
+        }
+      }
+    }
+
+    if (pi === 0) {
+      const { ref: snagRef } = await nextRef(db, "snag", "SNG");
+      await db.insert(snags).values({
+        projectId,
+        ref: snagRef,
+        location: "Ground floor — living room",
+        trade: "Civil",
+        description: "Minor crack in plaster near window jamb",
+        status: "OPEN",
+        dueDate: dayOffset(7),
+      });
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+      await db.insert(progressReports).values({
+        projectId,
+        periodStart: monthStart.toISOString().slice(0, 10),
+        periodEnd: monthEnd.toISOString().slice(0, 10),
+        narrative: "Construction progressing per programme. One open snag under review.",
+        scheduleProgressPct: 35,
+        openSnagCount: 1,
+        openRfiCount: 0,
+        status: "DRAFT",
+        createdById: principal!.id,
+      });
+    }
 
     const { ref: feeRef } = await nextRef(db, "feeproposal", "FEE");
     await db.insert(feeProposals).values({
@@ -744,6 +980,10 @@ async function main(): Promise<void> {
       { projectId, clientId: def.client.id, kind: "EMAIL", occurredAt: dayOffset(-3 - pi), subject: "Revised drawings shared", body: "Sent revised floor plans incorporating client feedback from last meeting.", createdById: principal!.id },
     ]);
 
+    if (pi === 0) {
+      await backfillProjectDemoRecords(projectId, ref, def.title, principal!.id, 0, catalog);
+    }
+
     pi++;
   }
 
@@ -802,6 +1042,7 @@ async function main(): Promise<void> {
 
   // ── Comments on project decisions (valid decision IDs — see seedDemoShowcase) ─
   await ensureDemoShowcase(db);
+  await ensureDemoOfficeExpenses(principal!.id);
 
   console.log("✓ seeded demo workspace");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);

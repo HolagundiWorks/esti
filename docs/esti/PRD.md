@@ -74,11 +74,7 @@ team, consultants, contractors, and settings.
 
 ### Compliance
 
-Compliance is a standalone module, not a project tab or a permit-status
-tracker. A project supplies the site and jurisdiction context; Compliance runs
-the calculation workflow from published rule sets owned by the Knowledge Bank
-and links its latest issued result back to the project overview and document
-register.
+Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects). Per-project development-control calculations run on the **Project Info** tab (§9 Compliance): `bylawCalc` saves the envelope and links results to the project brief and document register. There is no separate “Compliance” project tab.
 
 - Knowledge is versioned by state, district, local authority, building use,
   rule source, effective date, and supersession date.
@@ -142,7 +138,7 @@ accounting systems.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
 - DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports.
-- **ESTICAD companion** (Phase 13, partial): native desktop CAD links to AORMS for
+- **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
   set. Requires a paying firm account and staff write access; offline drafting
@@ -170,10 +166,10 @@ All money is integer paise and formatted through shared `formatINR` utilities.
   auditable, and never auto-issued.
 - **ESTI agent (Alt+A)** reads live AORMS data and suggests next steps — read-only;
   no auto-issue, upload, or mutation on behalf of the user.
-- **CAD AI** (ESTICAD companion, planned): dimensioning, naming, documentation,
+- **CAD AI** (ESTICAD companion, delivered): dimensioning, naming, documentation,
   quantity extraction, layer audit, revision summary, plot assist, and BOQ
-  narrative — proxied through the same Ollama gateway with CAD-specific draft
-  kinds and ESTICAD-side reconciliation before commit.
+  narrative — proxied through `ai.generateCad` and the Ollama gateway with
+  CAD-specific draft kinds and ESTICAD-side reconciliation before commit.
 - Admin exposes application version, deployment date, pipeline status, release
   notes, users, capabilities, audit review, retention, backup, and restore state.
 
@@ -202,9 +198,9 @@ the same project and task context.
   structured logs.
 - Unit, API integration, worker, and browser smoke coverage in CI.
 
-## Production readiness (Phase 12)
+## Production readiness
 
-Engineering delivery for self-hosted production is complete per [ROADMAP Phase 12](ROADMAP.md#phase-12---production-readiness-p0):
+Self-hosted production engineering is complete through [ROADMAP Phase 20](ROADMAP.md) (Phase 12 delivered the ops baseline):
 
 - Backup/restore scripts and staging restore-drill checklist ([PRODUCTION-OPS](PRODUCTION-OPS.md))
 - Host nginx + Let's Encrypt TLS; secrets and `ALLOWED_ORIGINS` over HTTPS

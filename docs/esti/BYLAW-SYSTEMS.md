@@ -123,7 +123,7 @@ Implemented in `lookupFarRuleResult()` (road-limited FAR) and `governingSetbackF
 
 ## Project data display
 
-Computed values appear on the **project detail page** — Compliance tab (`/projects/:id?tab=compliance`).
+Computed values appear on the **Project Info** tab (`/projects/:id?tab=info#compliance`).
 
 ```text
 Project Data
@@ -174,7 +174,7 @@ Every save stores **explanation JSON** (`calculationTrace`) for auditability.
 Recompute when site area, plot dimensions, road width, building height, project type, development
 zone, built-up, footprint, setbacks, parking, or dwelling units change.
 
-- Pre-construction: user saves via Compliance tab → `bylawCalc.save`
+- Pre-construction: user saves via **Project Info** §9 Compliance → `bylawCalc.save`
 - Post-construction: user saves actuals → `bylawCalc.savePostConstruction` (re-runs audit against
   latest pre-construction allowed values)
 
@@ -187,7 +187,7 @@ No stale post-construction audit without re-save after pre-construction changes.
 ```text
 One shared bylaw rule engine (computeBbmpCompliance + DB catalog)
 Two workflows (computePreConstructionPotential / computePostConstructionAudit)
-One project-level display (ProjectBylawData on Compliance tab)
+One project-level display (Project Info §9 Compliance accordion)
 Versioned rules (esti_bbmp_rule_set)
 Auditable results (calculationTrace + postconstruction_audit)
 PDF-ready output (RIE site assessment PDF — separate path)
