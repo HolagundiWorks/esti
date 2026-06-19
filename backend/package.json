@@ -30,6 +30,8 @@
     "seed:prod": "node dist/scripts/seed.js",
     "seed:demo:prod": "node dist/scripts/seedDemo.js",
     "seed:demo:solo:prod": "node dist/scripts/seedDemoSolo.js",
+    "seed:sync-demo": "tsx src/scripts/seedSyncDemo.ts",
+    "seed:sync-demo:prod": "node dist/scripts/seedSyncDemo.js",
     "backfill:activity": "tsx src/scripts/backfillActivity.ts"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { count, eq, sql } from "drizzle-orm";
+import { count, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createDeviceSession, refreshDeviceAccessToken } from "../../auth/device.js";
 import {
@@ -12,6 +12,7 @@ import {
 } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { normalizeEmail } from "../../lib/email.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
 
@@ -48,7 +49,12 @@ export const authRouter = router({
       const passwordHash = await hashPassword(input.password);
       const [u] = await tx
         .insert(users)
-        .values({ email: input.email, fullName: input.fullName, role, passwordHash })
+        .values({
+          email: normalizeEmail(input.email),
+          fullName: input.fullName,
+          role,
+          passwordHash,
+        })
         .returning({ id: users.id, email: users.email, role: users.role, fullName: users.fullName });
       await writeAudit(tx, {
         entity: "user",
@@ -62,11 +68,16 @@ export const authRouter = router({
   }),
 
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
+    const email = normalizeEmail(input.email);
     // Throttle brute-force: cap attempts per IP and per targeted email.
     await enforceRateLimit("login-ip", ctx.ip, 10, 60);
-    await enforceRateLimit("login-email", input.email.toLowerCase(), 10, 300);
+    await enforceRateLimit("login-email", email, 10, 300);
 
-    const rows = await ctx.db.select().from(users).where(eq(users.email, input.email)).limit(1);
+    const rows = await ctx.db
+      .select()
+      .from(users)
+      .where(ilike(users.email, email))
+      .limit(1);
     const u = rows[0];
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
@@ -78,7 +89,7 @@ export const authRouter = router({
     ctx.setCookie(SESSION_COOKIE, token);
     // Successful login clears the per-email counter so it can't lock out a
     // legitimate user who just fat-fingered the password a few times.
-    await clearRateLimit("login-email", input.email.toLowerCase());
+    await clearRateLimit("login-email", email);
     await writeAudit(ctx.db, {
       entity: "user",
       entityId: u.id,
@@ -90,10 +101,15 @@ export const authRouter = router({
 
   /** ESTICAD companion — email/password → bearer token pair (no browser cookie). */
   loginDevice: publicProcedure.input(DeviceLoginInput).mutation(async ({ ctx, input }) => {
+    const email = normalizeEmail(input.email);
     await enforceRateLimit("device-login-ip", ctx.ip, 10, 60);
-    await enforceRateLimit("device-login-email", input.email.toLowerCase(), 10, 300);
+    await enforceRateLimit("device-login-email", email, 10, 300);
 
-    const rows = await ctx.db.select().from(users).where(eq(users.email, input.email)).limit(1);
+    const rows = await ctx.db
+      .select()
+      .from(users)
+      .where(ilike(users.email, email))
+      .limit(1);
     const u = rows[0];
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });

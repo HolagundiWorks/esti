@@ -107,8 +107,11 @@ docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
 Run after deploy on **demo** instances — not production firm data:
 
 ```bash
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:prod
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod
+# Repair passwords + print login status:
+docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:sync-demo:prod
 ```
 
 | Account | Email | Password |
