@@ -60,12 +60,9 @@ describe("uploadDenial", () => {
     (role) => expect(uploadDenial(user(role))).toBeNull(),
   );
 
-  it("blocks demo staff from uploads", () => {
-    expect(uploadDenial(user("OWNER", { isDemo: true }))).toEqual({
-      status: 403,
-      error: "Uploads are disabled on the demo account.",
-    });
-  });
+  it("allows demo staff through role checks (upload password is enforced separately)",
+    () => expect(uploadDenial(user("OWNER", { isDemo: true }))).toBeNull(),
+  );
 
   it("requires owner capability for firm assets", () => {
     expect(uploadDenial(user("PARTNER"), "firm:admin")).toEqual({

@@ -1,6 +1,6 @@
 import { computeSiteDrawingIntelligence } from "@esti/contracts";
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /**
  * Technical Intelligence — site query rate vs issued drawings, repeat queries,

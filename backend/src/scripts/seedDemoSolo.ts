@@ -21,6 +21,7 @@ import {
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
+import { syncDemoUploadPassword } from "../lib/uploadSecurity.js";
 import { ensureDemoSchema } from "./seedBootstrap.js";
 import { ensureSoloDemoShowcase } from "./seedDemoShowcase.js";
 
@@ -45,6 +46,7 @@ async function main(): Promise<void> {
       .set({ hrEnabled: false, orgMode: "SOLO" })
       .where(eq(orgSettings.id, settings.id));
     await ensureSoloDemoShowcase(db);
+    await syncDemoUploadPassword(db, DEMO_PASSWORD);
     console.log("✓ solo demo workspace already present (org mode + showcase refreshed)");
     return;
   }
@@ -56,6 +58,7 @@ async function main(): Promise<void> {
     .update(orgSettings)
     .set({ hrEnabled: false, orgMode: "SOLO" })
     .where(eq(orgSettings.id, settings.id));
+  await syncDemoUploadPassword(db, DEMO_PASSWORD);
 
   const [owner] = await db
     .insert(users)

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /** Financial health: revenue pipeline, ready-to-bill estimate, collections. */
 export async function getFinancialHealth(db: DB) {

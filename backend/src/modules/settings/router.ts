@@ -1,6 +1,12 @@
-import { ArchiveTeamModuleInput, EscalationSettings } from "@esti/contracts";
+import {
+  ArchiveTeamModuleInput,
+  EscalationSettings,
+  UploadSecuritySettingsInput,
+} from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { hashPassword } from "../../auth/session.js";
 import { orgSettings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import {
@@ -14,8 +20,15 @@ import { getOrgSettings } from "../../lib/settings.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const settingsRouter = router({
-  /** Office feature flags — any staff member may read. */
-  get: protectedProcedure.query(async ({ ctx }) => getOrgSettings(ctx.db)),
+  /** Office feature flags — any staff member may read (upload hash never exposed). */
+  get: protectedProcedure.query(async ({ ctx }) => {
+    const row = await getOrgSettings(ctx.db);
+    const { uploadPasswordHash, ...safe } = row;
+    return {
+      ...safe,
+      uploadPasswordConfigured: Boolean(uploadPasswordHash),
+    };
+  }),
 
   /** Team & HR module status — lock reasons, counts, archive history. */
   hrModuleStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -146,5 +159,60 @@ export const settingsRouter = router({
         after: { escalationSettings: input },
       });
       return row!;
+    }),
+
+  /** Require a shared password for REST file uploads (owner only). */
+  setUploadSecurity: ownerProcedure
+    .input(UploadSecuritySettingsInput)
+    .mutation(async ({ ctx, input }) => {
+      const current = await getOrgSettings(ctx.db);
+      const enabling = input.uploadPasswordRequired;
+      const hasHash = Boolean(current.uploadPasswordHash);
+
+      if (enabling && !hasHash && !input.uploadPassword) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Set an upload password when enabling upload protection.",
+        });
+      }
+
+      let uploadPasswordHash = current.uploadPasswordHash;
+      if (input.uploadPassword) {
+        uploadPasswordHash = await hashPassword(input.uploadPassword);
+      }
+      if (!enabling) {
+        uploadPasswordHash = null;
+      }
+
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({
+          uploadPasswordRequired: enabling,
+          uploadPasswordHash,
+          updatedAt: new Date(),
+        })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: {
+          uploadPasswordRequired: current.uploadPasswordRequired,
+          uploadPasswordConfigured: Boolean(current.uploadPasswordHash),
+        },
+        after: {
+          uploadPasswordRequired: enabling,
+          uploadPasswordConfigured: Boolean(uploadPasswordHash),
+        },
+      });
+
+      const { uploadPasswordHash: _hash, ...safe } = row!;
+      return {
+        ...safe,
+        uploadPasswordConfigured: Boolean(uploadPasswordHash),
+      };
     }),
 });

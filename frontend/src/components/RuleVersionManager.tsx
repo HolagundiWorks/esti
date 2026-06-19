@@ -21,8 +21,9 @@ import {
   RULE_VERSION_STATUS_TAG,
   type RuleVersionStatus,
 } from "@esti/contracts";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { STATES, districtsFor } from "@esti/contracts";
+import { BbmpFarRuleTable } from "./knowledge/BbmpFarRuleTable.js";
 import {
   BbmpRuleSetEditor,
   defaultBbmpCatalogInput,
@@ -51,12 +52,20 @@ interface Props {
 const BUILDING_USES = ["RESIDENTIAL", "COMMERCIAL", "SEMI_PUBLIC", "PUBLIC", "INDUSTRIAL", "MIXED_USE"];
 const AUTHORITIES = ["BBMP", "BDA", "BMRDA", "BIAPPA", "CMC", "TMC", "NWDA", "HMDA", "GHMC", "CIDCO", "MHADA", "Other"];
 
+type DetailTarget =
+  | { kind: "rie"; id: string }
+  | { kind: "bbmp"; id: string };
+
 export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
   const utils = trpc.useUtils();
   const [createOpen, setCreateOpen] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<DetailTarget | null>(null);
 
   const bbmpSetsQ = trpc.bbmpRules.listRuleSets.useQuery();
+  const detailBbmpCatalogQ = trpc.bbmpRules.catalogByRuleSetId.useQuery(
+    { ruleSetId: detail?.kind === "bbmp" ? detail.id : "" },
+    { enabled: detail?.kind === "bbmp" },
+  );
 
   const createMut = trpc.ruleVersions.create.useMutation({
     onSuccess: () => {
@@ -225,7 +234,47 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
     });
   }
 
-  const detailRv = detailId ? versions.find((v) => v.id === detailId) : null;
+  const detailRv = detail?.kind === "rie" ? versions.find((v) => v.id === detail.id) : null;
+  const detailBbmp =
+    detail?.kind === "bbmp"
+      ? (bbmpSetsQ.data ?? []).find((rs) => rs.id === detail.id)
+      : null;
+
+  const libraryRows = useMemo(() => {
+    const rieRows = versions.map((rv) => ({
+      key: `rie-${rv.id}`,
+      kind: "rie" as const,
+      id: rv.id,
+      name: rv.authority,
+      district: rv.district,
+      state: rv.state,
+      buildingUse: rv.buildingUse,
+      effectiveDate: rv.effectiveDate,
+      status: rv.status,
+      engine: rv.authority === "BBMP" ? "Development control" : "Site checklist",
+      active: null as boolean | null,
+      sourceCitation: rv.sourceCitation,
+      rv,
+    }));
+    const bbmpRows = (bbmpSetsQ.data ?? []).map((rs) => ({
+      key: `bbmp-${rs.id}`,
+      kind: "bbmp" as const,
+      id: rs.id,
+      name: rs.label,
+      district: "Bengaluru Urban",
+      state: "Karnataka",
+      buildingUse: "—",
+      effectiveDate: rs.effectiveDate,
+      status: rs.status,
+      engine: "Development control",
+      active: rs.active,
+      sourceCitation: rs.sourceCitation,
+      rs,
+    }));
+    return [...rieRows, ...bbmpRows].sort((a, b) =>
+      b.effectiveDate.localeCompare(a.effectiveDate),
+    );
+  }, [versions, bbmpSetsQ.data]);
   const createPending = createMut.isPending || bbmpCreateMut.isPending;
   const canSubmit =
     form.state &&
@@ -239,94 +288,80 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
     <>
       <Stack gap={4}>
         {canManage && (
-          <Button onClick={() => setCreateOpen(true)}>New rule version</Button>
+          <Button onClick={() => setCreateOpen(true)}>Add rule set</Button>
         )}
 
-        <h4>RIE rule versions (site assessment checklist)</h4>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Authority</TableHeader>
-                <TableHeader>District / State</TableHeader>
+                <TableHeader>Name / authority</TableHeader>
+                <TableHeader>District</TableHeader>
+                <TableHeader>State</TableHeader>
                 <TableHeader>Building use</TableHeader>
                 <TableHeader>Effective date</TableHeader>
+                <TableHeader>Engine</TableHeader>
                 <TableHeader>Status</TableHeader>
-                <TableHeader>Source</TableHeader>
+                <TableHeader>Active</TableHeader>
                 <TableHeader></TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
-              {versions.map((rv) => (
-                <TableRow key={rv.id}>
-                  <TableCell>{rv.authority}</TableCell>
-                  <TableCell>{rv.district}, {rv.state}</TableCell>
-                  <TableCell>{rv.buildingUse}</TableCell>
-                  <TableCell>{rv.effectiveDate}</TableCell>
+              {libraryRows.map((row) => (
+                <TableRow key={row.key}>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.district}</TableCell>
+                  <TableCell>{row.state}</TableCell>
+                  <TableCell>{row.buildingUse}</TableCell>
+                  <TableCell>{row.effectiveDate}</TableCell>
+                  <TableCell>{row.engine}</TableCell>
                   <TableCell>
-                    <Tag type={RULE_VERSION_STATUS_TAG[rv.status as RuleVersionStatus] ?? "gray"}>
-                      {RULE_VERSION_STATUS_LABEL[rv.status as RuleVersionStatus] ?? rv.status}
+                    <Tag type={RULE_VERSION_STATUS_TAG[row.status as RuleVersionStatus] ?? "gray"}>
+                      {RULE_VERSION_STATUS_LABEL[row.status as RuleVersionStatus] ?? row.status}
                     </Tag>
                   </TableCell>
-                  <TableCell>{rv.sourceCitation ?? "—"}</TableCell>
+                  <TableCell>{row.active === null ? "—" : row.active ? "Yes" : "—"}</TableCell>
                   <TableCell>
                     <Stack orientation="horizontal" gap={2}>
-                      <Button kind="ghost" size="sm" onClick={() => setDetailId(rv.id)}>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => setDetail({ kind: row.kind, id: row.id })}
+                      >
                         View
                       </Button>
-                      {canManage && rv.status === "DRAFT" && (
-                        <Button kind="ghost" size="sm" onClick={() => reviewMut.mutate({ id: rv.id })}>
+                      {canManage && row.kind === "rie" && row.status === "DRAFT" && (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          onClick={() => reviewMut.mutate({ id: row.id })}
+                        >
                           Submit for review
                         </Button>
                       )}
-                      {canManage && (rv.status === "DRAFT" || rv.status === "REVIEW") && (
-                        <Button kind="primary" size="sm" onClick={() => publishMut.mutate({ id: rv.id })}>
-                          Publish
-                        </Button>
-                      )}
+                      {canManage &&
+                        row.kind === "rie" &&
+                        (row.status === "DRAFT" || row.status === "REVIEW") && (
+                          <Button
+                            kind="primary"
+                            size="sm"
+                            onClick={() => publishMut.mutate({ id: row.id })}
+                          >
+                            Publish
+                          </Button>
+                        )}
+                      {canManage &&
+                        row.kind === "bbmp" &&
+                        (row.status === "DRAFT" || row.status === "REVIEW") && (
+                          <Button
+                            kind="primary"
+                            size="sm"
+                            onClick={() => bbmpPublishMut.mutate({ id: row.id, setActive: true })}
+                          >
+                            Publish &amp; activate
+                          </Button>
+                        )}
                     </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <h4>BBMP modular rule sets (FAR, setbacks, parking — compliance engine)</h4>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Label</TableHeader>
-                <TableHeader>Effective date</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Active</TableHeader>
-                <TableHeader>Source</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(bbmpSetsQ.data ?? []).map((rs) => (
-                <TableRow key={rs.id}>
-                  <TableCell>{rs.label}</TableCell>
-                  <TableCell>{rs.effectiveDate}</TableCell>
-                  <TableCell>
-                    <Tag type={RULE_VERSION_STATUS_TAG[rs.status as RuleVersionStatus] ?? "gray"}>
-                      {RULE_VERSION_STATUS_LABEL[rs.status as RuleVersionStatus] ?? rs.status}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>{rs.active ? "Yes" : "—"}</TableCell>
-                  <TableCell>{rs.sourceCitation ?? "—"}</TableCell>
-                  <TableCell>
-                    {canManage && (rs.status === "DRAFT" || rs.status === "REVIEW") && (
-                      <Button
-                        kind="primary"
-                        size="sm"
-                        onClick={() => bbmpPublishMut.mutate({ id: rs.id, setActive: true })}
-                      >
-                        Publish &amp; activate
-                      </Button>
-                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -337,7 +372,7 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
 
       <Modal
         open={createOpen}
-        modalHeading={isBBMP ? "New BBMP rule set" : "New RIE rule version"}
+        modalHeading="New jurisdiction rule set"
         primaryButtonText={createPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={!canSubmit || createPending}
@@ -420,8 +455,8 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
             <>
               <InlineNotification
                 kind="info"
-                title="BBMP modular rule tables"
-                subtitle="Enter FAR, setback, road margin, parking, and engine constant values. These drive pre-construction and post-construction compliance on project pages."
+                title="Development control tables"
+                subtitle="FAR, setback, road margin, parking, and engine constants used for project envelope and audit calculations."
                 hideCloseButton
                 lowContrast
               />
@@ -438,8 +473,8 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
             <>
               <InlineNotification
                 kind="info"
-                title="RIE supplementary parameters"
-                subtitle="For non-BBMP authorities. Height, parking ratios, basement, and sustainability checks used by the site assessment engines."
+                title="Site checklist parameters"
+                subtitle="Height, parking, basement, and sustainability checks used by site feasibility assessments for non-BBMP authorities."
                 hideCloseButton
                 lowContrast
               />
@@ -547,13 +582,17 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
       </Modal>
 
       <Modal
-        open={!!detailRv}
+        open={!!detail}
         modalHeading={
-          detailRv ? `${detailRv.authority} · ${detailRv.district} · ${detailRv.buildingUse}` : "Rule version"
+          detailRv
+            ? `${detailRv.authority} · ${detailRv.district} · ${detailRv.buildingUse}`
+            : detailBbmp
+              ? detailBbmp.label
+              : "Rule set"
         }
         primaryButtonText="Close"
         passiveModal
-        onRequestClose={() => setDetailId(null)}
+        onRequestClose={() => setDetail(null)}
         size="lg"
       >
         {detailRv && (
@@ -563,6 +602,7 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
                 {RULE_VERSION_STATUS_LABEL[detailRv.status as RuleVersionStatus] ?? detailRv.status}
               </Tag>
               <span>Effective {detailRv.effectiveDate}</span>
+              <Tag type="blue" size="sm">Site checklist</Tag>
             </Stack>
             {detailRv.sourceCitation && (
               <p>
@@ -570,6 +610,33 @@ export function RuleVersionManager({ versions, canManage, onRefresh }: Props) {
               </p>
             )}
             {detailRv.notes && <p>{detailRv.notes}</p>}
+          </Stack>
+        )}
+        {detailBbmp && (
+          <Stack gap={4}>
+            <Stack orientation="horizontal" gap={3}>
+              <Tag type={RULE_VERSION_STATUS_TAG[detailBbmp.status as RuleVersionStatus] ?? "gray"}>
+                {RULE_VERSION_STATUS_LABEL[detailBbmp.status as RuleVersionStatus] ?? detailBbmp.status}
+              </Tag>
+              <span>Effective {detailBbmp.effectiveDate}</span>
+              {detailBbmp.active ? <Tag type="green" size="sm">Active</Tag> : null}
+              <Tag type="blue" size="sm">Development control</Tag>
+            </Stack>
+            {detailBbmp.sourceCitation && (
+              <p>
+                <strong>Source:</strong> {detailBbmp.sourceCitation}
+              </p>
+            )}
+            {detailBbmp.notes && <p>{detailBbmp.notes}</p>}
+            {detailBbmpCatalogQ.data ? (
+              <BbmpFarRuleTable
+                catalog={detailBbmpCatalogQ.data}
+                title="FAR and ground cover bands"
+                description="When site area qualifies for a higher band but the governing road width is lower, the lesser road-width band applies."
+              />
+            ) : (
+              <p>Loading development-control tables…</p>
+            )}
           </Stack>
         )}
       </Modal>

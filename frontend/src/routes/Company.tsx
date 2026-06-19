@@ -28,9 +28,11 @@ import { DataTools } from "../components/company/DataTools.js";
 import { EscalationSettingsPanel } from "../components/company/EscalationSettingsPanel.js";
 import { Partners } from "../components/company/PartnersPanel.js";
 import { ReleaseMetadataPanel } from "../components/company/ReleaseMetadataPanel.js";
+import { UploadSecurityPanel } from "../components/company/UploadSecurityPanel.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { useAuth } from "../lib/auth.js";
 import { useCapabilities } from "../lib/capabilities.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
 const GST_LABEL: Record<string, string> = {
@@ -86,6 +88,7 @@ const EMPTY: Form = {
 export function Company() {
   const { user } = useAuth();
   const { canFirmAdmin } = useCapabilities();
+  const { authorizedFetch } = useUploadAuth();
   const isOwner = canFirmAdmin;
   const utils = trpc.useUtils();
   const firmQ = trpc.firm.get.useQuery();
@@ -175,20 +178,20 @@ export function Company() {
   });
 
   async function uploadLogo(file: File) {
-    const fd = new FormData();
-    fd.append("file", file);
-    const res = await fetch("/upload/firm-logo", {
-      method: "POST",
-      body: fd,
-      credentials: "include",
-    });
-    if (res.ok) {
-      utils.firm.get.invalidate();
-      setMsg("Logo uploaded");
-    } else {
-      const err =
-        (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`;
-      setMsg(`Logo upload failed: ${err}`);
+    try {
+      const res = await authorizedFetch("/upload/firm-logo", (fd) => {
+        fd.append("file", file);
+      });
+      if (res.ok) {
+        utils.firm.get.invalidate();
+        setMsg("Logo uploaded");
+      } else {
+        const err =
+          (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`;
+        setMsg(`Logo upload failed: ${err}`);
+      }
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Logo upload cancelled");
     }
   }
 
@@ -559,6 +562,7 @@ export function Company() {
       </Modal>
 
       {isOwner && <EscalationSettingsPanel />}
+      {isOwner && <UploadSecurityPanel />}
       {isOwner && !user?.isDemo && <AiStudioSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}

@@ -38,9 +38,7 @@ import {
   projectOffices,
   projectBriefs,
   projectMilestones,
-  progressReports,
   purchaseOrders,
-  snags,
   constructionActivities,
   rewardPoints,
   specItems,
@@ -55,6 +53,7 @@ import {
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
+import { syncDemoUploadPassword } from "../lib/uploadSecurity.js";
 import { nextRef } from "../lib/numbering.js";
 import {
   applyConstructionTemplate,
@@ -69,6 +68,7 @@ import {
 import { catalogSnapshot, ensureDemoSpecCatalog } from "./seedSpecCatalog.js";
 import { ensureDemoSteelFlowCatalog } from "./seedSteelFlowCatalog.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
+import { ensureDemoPmcShowcase } from "./seedDemoPmc.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
@@ -296,6 +296,8 @@ async function syncDemoPasswords(): Promise<void> {
   if (updated.length) {
     console.log(`    synced ${updated.length} demo account password(s) → ${DEMO_PASSWORD}`);
   }
+  await syncDemoUploadPassword(db, DEMO_PASSWORD);
+  console.log(`    upload password gate enabled (password → ${DEMO_PASSWORD})`);
 }
 
 async function ensureDemoOfficeExpenses(principalId: string): Promise<void> {
@@ -364,9 +366,13 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   }
   await ensureDemoOfficeExpenses(principalId);
   const showcase = await ensureDemoShowcase(db);
+  const pmc = await ensureDemoPmcShowcase(db, principalId);
   console.log(`    refreshed ${bylawCount} bylaw compliance records (pre + post audit)`);
   console.log(
     `    showcase: ${showcase.drawings} drawing(s), ${showcase.measurements} takeoff row(s), purged ${showcase.purgedWebMeasurements} legacy WEB measurement(s)`,
+  );
+  console.log(
+    `    PMC: ${pmc.projects} project(s), +${pmc.snagsAdded} snag(s), +${pmc.reportsAdded} report(s), +${pmc.instructionsAdded} site instruction(s), +${pmc.submissionsAdded} contractor item(s)`,
   );
 }
 
@@ -390,6 +396,7 @@ async function main(): Promise<void> {
 
   const settings = await getOrgSettings(db);
   await db.update(orgSettings).set({ hrEnabled: true, pmcEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
+  await syncDemoUploadPassword(db, DEMO_PASSWORD);
   await ensureAiStudioEnabled(db);
 
   // ── Staff personas ────────────────────────────────────────────────────────
@@ -754,33 +761,6 @@ async function main(): Promise<void> {
       }
     }
 
-    if (pi === 0) {
-      const { ref: snagRef } = await nextRef(db, "snag", "SNG");
-      await db.insert(snags).values({
-        projectId,
-        ref: snagRef,
-        location: "Ground floor — living room",
-        trade: "Civil",
-        description: "Minor crack in plaster near window jamb",
-        status: "OPEN",
-        dueDate: dayOffset(7),
-      });
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
-      await db.insert(progressReports).values({
-        projectId,
-        periodStart: monthStart.toISOString().slice(0, 10),
-        periodEnd: monthEnd.toISOString().slice(0, 10),
-        narrative: "Construction progressing per programme. One open snag under review.",
-        scheduleProgressPct: 35,
-        openSnagCount: 1,
-        openRfiCount: 0,
-        status: "DRAFT",
-        createdById: principal!.id,
-      });
-    }
-
     const { ref: feeRef } = await nextRef(db, "feeproposal", "FEE");
     await db.insert(feeProposals).values({
       ref: feeRef,
@@ -1043,12 +1023,16 @@ async function main(): Promise<void> {
   // ── Comments on project decisions (valid decision IDs — see seedDemoShowcase) ─
   await ensureDemoShowcase(db);
   await ensureDemoOfficeExpenses(principal!.id);
+  const pmc = await ensureDemoPmcShowcase(db, principal!.id);
 
   console.log("✓ seeded demo workspace");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
   console.log("    lead@ / site@ / junior@ / intern@ / client@demo.aorms.in (same password)");
   console.log("    Solo demo: solo@demo.aorms.in (pnpm seed:demo:solo)");
   console.log(`    ${projectDefs.length} projects, ${attendanceRows.length} attendance entries`);
+  console.log(
+    `    PMC: ${pmc.projects} project(s), +${pmc.snagsAdded} snag(s), +${pmc.reportsAdded} report(s), +${pmc.instructionsAdded} site instruction(s), +${pmc.submissionsAdded} contractor item(s)`,
+  );
 }
 
 main()

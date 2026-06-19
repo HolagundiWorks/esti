@@ -7,7 +7,7 @@ import {
   decisions,
   projectOffices,
 } from "../../db/schema.js";
-import { getActionCenter } from "../../modules/dashboard/readModels.js";
+import { getActionCenter } from "../../modules/dashboard/readModels/index.js";
 import { getFirm } from "../firm.js";
 import { AGENT_ANSWER_RULES, AORMS_OPERATOR_SYSTEM } from "./aorms-operator.js";
 import { buildAgentMockAnswer } from "./agent-response.js";

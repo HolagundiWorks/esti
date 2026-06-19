@@ -10,6 +10,7 @@ import { getFirm } from "../../lib/firm.js";
 import { writeAudit } from "../../lib/audit.js";
 import { imageMatchesExt } from "../../lib/filetype.js";
 import { putObject } from "../../lib/storage.js";
+import { verifyUploadPassword } from "../../lib/uploadSecurity.js";
 
 const LOGO_EXT = [".png", ".jpg", ".jpeg", ".svg", ".webp"];
 const LOGO_MAX = 2 * 1024 * 1024; // 2 MB
@@ -25,12 +26,19 @@ export function registerFirmLogoUpload(app: FastifyInstance): void {
 
     let buf: Buffer | null = null;
     let fileName = "logo.png";
+    const fields: Record<string, string> = {};
     for await (const part of req.parts()) {
       if (part.type === "file") {
         fileName = part.filename || fileName;
         buf = await part.toBuffer();
+      } else {
+        fields[part.fieldname] = String(part.value);
       }
     }
+
+    const passwordDenial = await verifyUploadPassword(db, fields);
+    if (passwordDenial) return reply.code(passwordDenial.status).send({ error: passwordDenial.error });
+
     if (!buf || buf.length === 0) return reply.code(400).send({ error: "no file" });
     if (buf.length > LOGO_MAX) return reply.code(413).send({ error: "file too large" });
     const ext = extname(fileName).toLowerCase();

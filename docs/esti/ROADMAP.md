@@ -58,6 +58,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [18](#phase-18---office--project-expenses-p1) | Office & project expenses | P1 | ✅ |
 | [19](#phase-19---master-dsr-workflow-polish-p2) | Master DSR polish | P2 | ✅ |
 | [20](#phase-20---production-audit-remediation-p1) | Audit remediation | P1 | ✅ |
+| [21](#phase-21---unified-compliance-module-ia-p1) | Unified compliance IA | P1 | ✅ |
 
 ---
 
@@ -661,6 +662,20 @@ Follow-up from the production-grade codebase audit: security hardening, DRY refa
 
 ---
 
+## Phase 21 — Unified compliance module IA [P1] — ✅ Complete (2026-06-15)
+
+Consolidate BBMP rules, site assessments, and project development-control under one product model: **rules in Knowledge Bank → Compliance**; **calculate and store on Project Info §9**.
+
+- [x] `ComplianceHub` — KB Compliance tab: rule library + site feasibility only (no project calculator duplicate)
+- [x] Unified `RuleVersionManager` — single jurisdiction rule table; FAR bands in rule-set detail modal
+- [x] `ProjectBylawData` — permits + assessment PDF links; statutory permits relocated from KB
+- [x] User-facing copy — remove separate RIE/BBMP/bylaws headings; site feasibility engines label
+- [x] Docs — `ARCHITECT-PROFILE`, `BYLAW-SYSTEMS` office vs project surfaces
+
+**Gate met:** KB Compliance is rule authoring + site feasibility only; envelope, audit, and permits live exclusively on Project Info §9.
+
+---
+
 ## Deferred ideas [P3]
 
 Optional — must not delay security, activity, project memory, collaboration, wellbeing basics, or production readiness.
@@ -708,6 +723,7 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-18 | Phase 13B/C/E — companion measurements (`0055`), linkDrawing, setScale, connected devices admin |
 | 2026-06-19 | Phase 12 closed — migration journal repair (`0041`, `0048`, `0056`); demo seed bootstrap; PRODUCTION-OPS TLS + ops docs |
 | 2026-06-19 | Phase 13D — `ai.generateCad`, CAD draft kinds, `esti_ai_run.source`; Phase 13 complete |
+| 2026-06-15 | Phase 21 — unified Compliance IA: KB rule library + site feasibility; project calc on Info §9 only |
 | 2026-06-15 | Phase 20 — audit remediation: session revoke, prod secrets, dashboard.home bundle, Dashboard + Company component splits |
 | 2026-06-15 | Phase 15 — architect-as-PMC (`0060`–`0062`), toggles, Gantt, snags, progress reports |
 | 2026-06-15 | Phase 17 — project Info tab, access hierarchy, Layer 3 tab gating; Phase 18 — office/project expenses |

@@ -8,16 +8,13 @@ import {
   Select,
   SelectItem,
   Stack,
-  Tag,
   TextArea,
   TextInput,
   Tile,
 } from "@carbon/react";
 import {
   Jurisdiction,
-  PROJECT_STATUS_LABEL,
   PROJECT_WORK_TYPE_LABEL,
-  ProjectStatus,
   ProjectType,
   ProjectWorkType,
   type BriefBasicInfo,
@@ -27,9 +24,9 @@ import {
   type BriefProjectInfo,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import { ProjectAppointment } from "./ProjectAppointment.js";
 import { ProjectBylawData } from "./ProjectBylawData.js";
+import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { trpc } from "../lib/trpc.js";
 
 export function ProjectInfo({ projectId }: { projectId: string }) {
@@ -54,7 +51,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
 
   const [identity, setIdentity] = useState({
     title: "",
-    status: "ACTIVE",
     projectType: "Residential Architecture",
     workType: "ARCHITECTURE",
     jurisdiction: "OTHER",
@@ -76,7 +72,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
     if (p) {
       setIdentity({
         title: p.title,
-        status: p.status,
         projectType: p.projectType,
         workType: (p as { workType?: string }).workType ?? "ARCHITECTURE",
         jurisdiction: p.jurisdiction,
@@ -105,8 +100,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
 
   const p = projectQ.data;
   const phases = phasesQ.data ?? [];
-  const currentPhase =
-    phases.find((ph) => ph.id === p.currentPhaseId) ?? phases[phases.length - 1];
   const compliance = complianceQ.data?.result as { far?: number; maxBuiltUpSqm?: number } | undefined;
   const agg = briefQ.data?.aggregates;
 
@@ -118,19 +111,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
           Questionnaire answers, site context, and compliance summary — the single source for
           project briefing data.
         </p>
-      </div>
-
-      <div id="stage">
-        {currentPhase && (
-          <Stack orientation="horizontal" gap={3}>
-            <Tag type="blue" size="md">
-              Current stage: {currentPhase.label}
-            </Tag>
-            <RouterLink to={`/projects/${projectId}?tab=settings`}>
-              Change stage in Settings
-            </RouterLink>
-          </Stack>
-        )}
       </div>
 
       <Accordion>
@@ -146,16 +126,13 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
                 />
               </Column>
               <Column sm={4} md={4} lg={4}>
-                <Select
-                  id="pi-status"
-                  labelText="Status"
-                  value={identity.status}
-                  onChange={(e) => setIdentity((x) => ({ ...x, status: e.target.value }))}
-                >
-                  {ProjectStatus.options.map((s) => (
-                    <SelectItem key={s} value={s} text={PROJECT_STATUS_LABEL[s]} />
-                  ))}
-                </Select>
+                <CurrentPhaseSelect
+                  id="pi-current-stage"
+                  projectId={projectId}
+                  phases={phases}
+                  currentPhaseId={p.currentPhaseId}
+                  labelText="Current stage"
+                />
               </Column>
               <Column sm={4} md={4} lg={4}>
                 <Select
@@ -198,7 +175,7 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
                 updateProject.mutate({
                   id: projectId,
                   title: identity.title,
-                  status: identity.status as (typeof ProjectStatus.options)[number],
+                  status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
                   projectType: identity.projectType,
                   workType: identity.workType as (typeof ProjectWorkType.options)[number],
                   jurisdiction: identity.jurisdiction,

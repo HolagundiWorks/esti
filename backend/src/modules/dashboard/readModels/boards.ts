@@ -1,5 +1,5 @@
 import { and, count, eq, isNull, sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 import {
   contractorSubmissions,
   invoices,
@@ -7,8 +7,8 @@ import {
   projectOffices,
   tasks,
   tenders,
-} from "../../db/schema.js";
-import { getOrgSettings } from "../../lib/settings.js";
+} from "../../../db/schema.js";
+import { getOrgSettings } from "../../../lib/settings.js";
 
 /** Aggregations for the dashboard board widgets. */
 export async function getDashboardBoards(db: DB) {

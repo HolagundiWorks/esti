@@ -198,7 +198,7 @@ export function SiteAssessmentPanel({ projectId, publishedVersions }: Props) {
         <Stack orientation="horizontal" gap={4}>
           <Stack gap={2} className="esti-grow">
             <h3>Site assessments</h3>
-            <p>Each assessment runs all five RIE engines against a published rule set.</p>
+            <p>Each assessment runs all five feasibility engines against a published rule set.</p>
           </Stack>
           {publishedVersions.length > 0 && (
             <Button onClick={() => setFormOpen(true)}>New assessment</Button>

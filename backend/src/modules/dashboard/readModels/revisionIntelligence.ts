@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /**
  * Revision Intelligence — firm-wide breakdown of design decisions by source.

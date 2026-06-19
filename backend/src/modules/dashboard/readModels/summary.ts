@@ -1,5 +1,5 @@
 import { and, count, eq, isNull, sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 import {
   feeProposals,
   invoices,
@@ -8,8 +8,8 @@ import {
   permits,
   projectOffices,
   teamMembers,
-} from "../../db/schema.js";
-import { getOrgSettings } from "../../lib/settings.js";
+} from "../../../db/schema.js";
+import { getOrgSettings } from "../../../lib/settings.js";
 
 export async function getDashboardSummary(db: DB) {
   const projectRows = await db

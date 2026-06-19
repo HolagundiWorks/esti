@@ -38,9 +38,8 @@ import { AlertsBell } from "./components/AlertsBell.js";
 import { FloatingDock } from "./components/FloatingDock.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
-import {
-  PomodoroProvider,
-} from "./contexts/PomodoroContext.js";
+import { PomodoroProvider } from "./contexts/PomodoroContext.js";
+import { UploadAuthProvider } from "./lib/uploadAuth.js";
 import { Alerts } from "./routes/Alerts.js";
 import { ArchivedProjects } from "./routes/ArchivedProjects.js";
 import { AuditLog } from "./routes/AuditLog.js";
@@ -134,7 +133,9 @@ function HeaderClock() {
 export function App() {
   return (
     <PomodoroProvider>
-      <AppShell />
+      <UploadAuthProvider>
+        <AppShell />
+      </UploadAuthProvider>
     </PomodoroProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /** Per-client intelligence signals: approval lag, revision frequency, payment age. */
 export async function getClientIntelligence(db: DB) {

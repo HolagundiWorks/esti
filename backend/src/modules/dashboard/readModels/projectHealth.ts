@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /** Per-project health scores for all active projects. */
 export async function getProjectHealth(db: DB) {

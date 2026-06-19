@@ -9,7 +9,7 @@ import {
   tasks,
   teamMembers,
 } from "../../db/schema.js";
-import { getActionCenter } from "../../modules/dashboard/readModels.js";
+import { getActionCenter } from "../../modules/dashboard/readModels/index.js";
 
 type UserCtx = { id: string; role: string; email?: string; fullName?: string };
 

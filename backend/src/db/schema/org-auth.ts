@@ -45,6 +45,10 @@ export const orgSettings = pgTable("esti_orgsettings", {
       model: "llama3.2",
       redactPii: true,
     }),
+  /** When true, REST file uploads require uploadPassword in multipart form data. */
+  uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
+  /** Argon2 hash — never expose via API. */
+  uploadPasswordHash: text("upload_password_hash"),
   updatedAt: updatedAt(),
 });
 
@@ -136,7 +140,7 @@ export const users = pgTable("esti_user", {
   consultantId: uuid("consultant_id"),
   // Per-user dashboard layout (react-grid-layout items); null = default layout.
   dashboardLayout: jsonb("dashboard_layout"),
-  // Seeded demo workspace — uploads/AI blocked; credential admin blocked in tRPC.
+  // Seeded demo workspace — credential admin blocked in tRPC; uploads follow org upload policy.
   isDemo: boolean("is_demo").notNull().default(false),
   /** Secret token for iCal/Google Calendar workload subscription (rotate to revoke). */
   calendarFeedToken: text("calendar_feed_token"),

@@ -28,7 +28,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Clients | register, communication log, portal provisioning | Deep links, exports |
 | Projects | overview, timeline, CRIF, health, archive, tabs | Additive fields on existing tabs |
 | Knowledge Bank | DSR, compliance/RIE, spec catalogue, SteelFlow templates, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
-| Compliance | Knowledge Bank tab + **Project Info** §9 calculator | Rule versions only |
+| Compliance | **KB Compliance tab** (rule library + site feasibility) + **Project Info** §9 (calculate & store) | Jurisdiction rule sets only — no duplicate project calc in KB |
 | Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
 | Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
 | Documents | register, specs, mood boards, inspections, transmittals, MOM | Revision/approval on existing types |

@@ -8,6 +8,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { useState } from "react";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
 export function ProjectInspectionDetail({
@@ -20,6 +21,7 @@ export function ProjectInspectionDetail({
   onClose: () => void;
 }) {
   const utils = trpc.useUtils();
+  const { authorizedFetch } = useUploadAuth();
   const q = trpc.inspections.byId.useQuery({ id: inspectionId! }, { enabled: !!inspectionId && open });
   const addAction = trpc.inspections.addAction.useMutation({
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
@@ -48,13 +50,9 @@ export function ProjectInspectionDetail({
     if (!inspectionId) return;
     setUploadBusy(true);
     try {
-      const fd = new FormData();
-      fd.append("inspectionId", inspectionId);
-      fd.append("file", file);
-      const res = await fetch("/upload/inspection-photo", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      const res = await authorizedFetch("/upload/inspection-photo", (fd) => {
+        fd.append("inspectionId", inspectionId);
+        fd.append("file", file);
       });
       if (res.ok) await utils.inspections.byId.invalidate({ id: inspectionId });
     } finally {

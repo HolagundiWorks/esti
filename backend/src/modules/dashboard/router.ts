@@ -15,7 +15,7 @@ import {
   getTeamAttendanceToday,
   getTechnicalIntelligence,
   getDashboardHome,
-} from "./readModels.js";
+} from "./readModels/index.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({

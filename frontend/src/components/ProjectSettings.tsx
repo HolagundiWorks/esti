@@ -22,7 +22,9 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCapabilities } from "../lib/capabilities.js";
+import { derivePhaseStageStatus, PHASE_STAGE_TAG } from "../lib/currentPhase.js";
 import { trpc } from "../lib/trpc.js";
+import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
 
 const ACTIVITY_TAG: Record<
@@ -55,12 +57,6 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     { projectId },
     { enabled: !!projectId },
   );
-  const setCurrent = trpc.phases.setCurrent.useMutation({
-    onSuccess: () => {
-      utils.phases.listByProject.invalidate({ projectId });
-      utils.projectOffice.byId.invalidate({ id: projectId });
-    },
-  });
   const setRevisionBudget = trpc.phases.setRevisionBudget.useMutation({
     onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
   });
@@ -157,9 +153,15 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         <Stack gap={4}>
           <h4>Project stages</h4>
           <p>
-            Mark the stage currently in progress. Earlier stages are automatically complete;
-            later stages are pending. The current stage is also shown on the Project Info tab.
+            Pick the stage currently in progress. Earlier stages are complete; later stages are
+            pending.
           </p>
+          <CurrentPhaseSelect
+            id="ps-current-stage"
+            projectId={projectId}
+            phases={phasesQ.data ?? []}
+            currentPhaseId={projectQ.data?.currentPhaseId}
+          />
           <TableContainer>
             <Table size="sm">
               <TableHead>
@@ -168,16 +170,13 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                   <TableHeader>Fee allocation %</TableHeader>
                   <TableHeader>Rev. budget</TableHeader>
                   <TableHeader>Status</TableHeader>
-                  <TableHeader></TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {(phasesQ.data ?? []).map((ph, idx) => {
                   const currentId = projectQ.data?.currentPhaseId;
                   const currentIdx = (phasesQ.data ?? []).findIndex((p) => p.id === currentId);
-                  const isActive = ph.id === currentId;
-                  const stageStatus = isActive ? "Active" : (currentIdx >= 0 && idx < currentIdx) ? "Complete" : "Pending";
-                  const tagType = stageStatus === "Active" ? "blue" : stageStatus === "Complete" ? "green" : "gray";
+                  const stageStatus = derivePhaseStageStatus(idx, currentIdx);
                   return (
                     <TableRow key={ph.id}>
                       <TableCell>{ph.label}</TableCell>
@@ -205,19 +204,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                         />
                       </TableCell>
                       <TableCell>
-                        <Tag type={tagType} size="sm">{stageStatus}</Tag>
-                      </TableCell>
-                      <TableCell>
-                        {!isActive && (
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            disabled={setCurrent.isPending}
-                            onClick={() => setCurrent.mutate({ projectId, phaseId: ph.id })}
-                          >
-                            Set as current
-                          </Button>
-                        )}
+                        <Tag type={PHASE_STAGE_TAG[stageStatus]} size="sm">
+                          {stageStatus}
+                        </Tag>
                       </TableCell>
                     </TableRow>
                   );

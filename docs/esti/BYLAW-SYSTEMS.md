@@ -184,13 +184,18 @@ No stale post-construction audit without re-save after pre-construction changes.
 
 ## Final architecture
 
+**Office (Knowledge Bank → Compliance tab):** author and publish jurisdiction rule sets; run optional site feasibility assessments.
+
+**Project (Project Info → §9 Compliance):** calculate development envelope and post-construction audit; store results on the project; statutory permits.
+
 ```text
 One shared bylaw rule engine (computeBbmpCompliance + DB catalog)
 Two workflows (computePreConstructionPotential / computePostConstructionAudit)
+Office rule library (KB Compliance tab) → published catalog feeds project calculations
 One project-level display (Project Info §9 Compliance accordion)
-Versioned rules (esti_bbmp_rule_set)
+Versioned rules (esti_bbmp_rule_set + esti_rule_version)
 Auditable results (calculationTrace + postconstruction_audit)
-PDF-ready output (RIE site assessment PDF — separate path)
+PDF-ready output (site assessment — issued from KB, linked from project)
 ```
 
 Pre-construction tells the user **what can be built**.
