@@ -8,6 +8,7 @@
 );
 // Access the forwarded Carbon type module for the type-style() mixin.
 @use "@carbon/react/scss/type" as type;
+@use "./scss/carbon-motion";
 
 // Drawing viewer: single SVG viewport with pan/zoom + measurement overlay.
 .dwg-base svg {
@@ -188,6 +189,188 @@ html:has(.esti-lp) body {
 .esti-chart-medium,
 .esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
 .esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
+
+// Programme Gantt — Carbon Gantt spec layout (cards + timeline bars).
+// https://carbondesignsystem.com/data-visualization/gantt-charts/
+.esti-gantt {
+  --esti-gantt-card-width: 17.5rem;
+  --esti-gantt-row-height: 3.5rem;
+  border: 1px solid var(--cds-border-subtle);
+  border-radius: 4px;
+  background: var(--cds-layer-01);
+  overflow-x: auto;
+}
+
+.esti-gantt--empty {
+  padding: 1rem;
+}
+
+.esti-gantt__intro {
+  margin: 0;
+  color: var(--cds-text-secondary);
+  @include type.type-style("body-compact-01");
+}
+
+.esti-gantt__header,
+.esti-gantt__row {
+  display: grid;
+  grid-template-columns: var(--esti-gantt-card-width) minmax(28rem, 1fr);
+  min-width: 44rem;
+}
+
+.esti-gantt__header {
+  border-bottom: 1px solid var(--cds-border-subtle);
+  background: var(--cds-layer-02);
+}
+
+.esti-gantt__col-label {
+  @include type.type-style("label-01");
+  color: var(--cds-text-secondary);
+}
+
+.esti-gantt__card-col {
+  padding: 0.5rem;
+  border-right: 1px solid var(--cds-border-subtle);
+}
+
+.esti-gantt__timeline-col {
+  position: relative;
+  min-height: var(--esti-gantt-row-height);
+}
+
+.esti-gantt__axis {
+  position: relative;
+  height: 2rem;
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.esti-gantt__axis-tick {
+  position: absolute;
+  top: 0.5rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  @include type.type-style("label-01");
+  color: var(--cds-text-secondary);
+}
+
+.esti-gantt__body .esti-gantt__row {
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.esti-gantt__row--child .esti-gantt__card {
+  margin-left: 0.75rem;
+}
+
+.esti-gantt__card {
+  padding: 0.5rem 0.75rem;
+  min-height: calc(var(--esti-gantt-row-height) - 1rem);
+}
+
+.esti-gantt__card--sub {
+  background: var(--cds-layer-02);
+}
+
+.esti-gantt__card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.esti-gantt__expand {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--cds-icon-primary);
+  cursor: pointer;
+
+  &--spacer {
+    cursor: default;
+    visibility: hidden;
+  }
+}
+
+.esti-gantt__card-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.esti-gantt__card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  @include type.type-style("body-compact-01");
+  color: var(--cds-text-primary);
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.esti-gantt__card-meta {
+  margin: 0.25rem 0 0;
+  @include type.type-style("label-01");
+  color: var(--cds-text-secondary);
+}
+
+.esti-gantt__track {
+  position: relative;
+  height: var(--esti-gantt-row-height);
+  margin: 0.5rem 0.75rem;
+  background: var(--cds-layer-accent-01);
+  border-radius: 2px;
+}
+
+.esti-gantt__grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--cds-border-subtle);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.esti-gantt__bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 4px;
+  height: 0.75rem;
+  border-radius: 2px;
+
+  &--phase {
+    height: 1.25rem;
+    border-radius: 3px;
+  }
+
+  &--task {
+    height: 0.625rem;
+  }
+}
+
+.esti-gantt__milestone {
+  position: absolute;
+  top: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: -0.375rem;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--cds-layer-01);
+  border: 2px solid currentColor;
+  box-sizing: border-box;
+}
 
 // Structural-only: the dashboard uses the condensed grid (1px gutters) so
 // tiles read as a flush mosaic; match the vertical rhythm with a 1px row-gap
@@ -512,7 +695,7 @@ html:has(.esti-lp) body {
   z-index: 8500;
 }
 
-// ESTI assistant — horizontal command bar, expands left from logo FAB.
+// ESTI assistant — Carbon for AI command bar (TextInput + IconButton + Tile).
 .esti-ai-agent {
   position: fixed;
   inset-inline-end: 1rem;
@@ -525,115 +708,47 @@ html:has(.esti-lp) body {
   max-width: calc(100vw - 2rem);
 
   &__row {
-    display: flex;
     flex-direction: row-reverse;
-    align-items: center;
-    gap: var(--cds-spacing-03);
+    align-items: flex-end;
   }
 
   &__fab {
-    flex-shrink: 0;
-    width: 3rem;
-    height: 3rem;
-    padding: 0.375rem;
-    border: 1px solid var(--cds-border-subtle);
     border-radius: 50%;
-    background: var(--cds-layer);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform var(--esti-motion-duration-fast-02) var(--esti-motion-easing-standard);
 
     &:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--cds-focus);
-      outline-offset: 2px;
+      transform: scale(1.04);
     }
   }
 
-  &__logo {
+  &__mark {
     display: block;
-    width: 100%;
-    height: 100%;
-    background-color: var(--cds-link-primary);
-    mask-image: url("/esti-mark-black.png");
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-image: url("/esti-mark-black.png");
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
   }
 
   &__bar {
     display: flex;
-    align-items: center;
-    gap: var(--cds-spacing-03);
-    padding: 0.35rem 0.5rem 0.35rem 0.75rem;
-    border: 1px solid var(--cds-border-subtle);
-    border-radius: 2rem;
-    background: var(--cds-layer);
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+    align-items: flex-end;
+    gap: var(--cds-spacing-02);
     overflow: hidden;
     max-width: 0;
     opacity: 0;
     pointer-events: none;
     transition:
-      max-width 0.28s ease,
-      opacity 0.2s ease,
-      padding 0.28s ease;
+      max-width var(--esti-motion-duration-moderate-02) var(--esti-motion-easing-entrance),
+      opacity var(--esti-motion-duration-fast-02) var(--esti-motion-easing-entrance);
 
     &--open {
-      max-width: min(72vw, 28rem);
+      max-width: min(72vw, 32rem);
       opacity: 1;
       pointer-events: auto;
     }
-  }
 
-  &__prompt {
-    flex-shrink: 0;
-    font-family: "IBM Plex Mono", "Consolas", monospace;
-    color: var(--cds-link-primary);
-    user-select: none;
-    line-height: 1;
-  }
-
-  &__input {
-    flex: 1 1 auto;
-    min-width: 8rem;
-    border: none;
-    background: transparent;
-    color: var(--cds-text-primary);
-    font-family: "IBM Plex Mono", "Consolas", monospace;
-    font-size: 0.875rem;
-    outline: none;
-
-    &::placeholder {
-      color: var(--cds-text-placeholder);
-    }
-  }
-
-  &__close {
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--cds-icon-primary);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--cds-layer-hover);
+    .cds--text-input-wrapper {
+      flex: 1 1 auto;
+      min-width: 12rem;
     }
   }
 
@@ -642,21 +757,38 @@ html:has(.esti-lp) body {
     max-width: min(72vw, 36rem);
     max-height: min(40vh, 18rem);
     overflow: auto;
-    padding: var(--cds-spacing-03) var(--cds-spacing-04);
-    border-radius: var(--cds-spacing-03);
-    background: color-mix(in srgb, var(--cds-layer) 92%, var(--cds-background));
-    border: 1px solid var(--cds-border-subtle);
-    font-size: 0.8125rem;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    word-break: break-word;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 
-    &--error {
-      border-color: var(--cds-support-error);
-      color: var(--cds-text-error);
+    &--error .cds--inline-notification {
+      max-width: none;
     }
   }
+
+  &__reply-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    @include type.type-style("body-compact-01");
+  }
+}
+
+.esti-ai-explain__summary {
+  margin: 0;
+  @include type.type-style("body-compact-01");
+}
+
+.esti-ai-explain__list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  @include type.type-style("label-01");
+}
+
+.esti-ai-studio__title {
+  margin-block-start: 0;
+  @include type.type-style("heading-compact-01");
+}
+
+.esti-ai-settings-tile {
+  max-width: 47.5rem;
 }
 
 // Floating widget (Pomodoro / calculator) anchored beside the dock, bottom-left.
@@ -668,10 +800,11 @@ html:has(.esti-lp) body {
   max-width: calc(100vw - 4.5rem);
   max-height: calc(100vh - 4rem);
   z-index: 8600;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: esti-motion-fade-in var(--esti-motion-duration-moderate-02) var(--esti-motion-easing-entrance)
+    both;
 
   // Catch any nested overflow (Carbon tiles, stacks) — bars stay hidden.
   scrollbar-width: none;
@@ -690,7 +823,7 @@ html:has(.esti-lp) body {
   }
 }
 
-// Glass panel shell: flex column so inner scroll affordance can shrink.
+// Floating panel shell: flex column so inner scroll affordance can shrink.
 .esti-float-panel-shell.cds--tile {
   flex: 1 1 auto;
   min-height: 0;
@@ -788,69 +921,19 @@ html:has(.esti-lp) body {
   inset-block-end: auto;
   inset-block-start: 3.25rem;
   width: 15rem;
-  box-shadow: none;
 }
 
-// Liquid-glass floating panels (settings, Pomodoro, calculator) — 65% layer opacity.
-.esti-glass-panel.cds--tile,
-.esti-glass-panel.cds--tile:not(:disabled):hover {
-  overflow: hidden;
-  border-radius: var(--cds-spacing-03);
-  background: color-mix(in srgb, var(--cds-layer) 65%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cds-border-subtle) 45%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow:
-    0 8px 32px color-mix(in srgb, var(--cds-background-inverse) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--cds-text-primary) 10%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, var(--cds-text-primary) 4%, transparent);
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-      155deg,
-      color-mix(in srgb, var(--cds-text-primary) 12%, transparent) 0%,
-      transparent 42%,
-      color-mix(in srgb, var(--cds-text-primary) 5%, transparent) 100%
-    );
-    pointer-events: none;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
-}
-
-@supports not (backdrop-filter: blur(1px)) {
-  .esti-glass-panel.cds--tile {
-    background: var(--cds-layer);
-  }
-}
-
-// Header focus-timer trigger (matches Carbon HeaderGlobalAction sizing).
-.esti-header-pom-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  block-size: 3rem;
-  inline-size: 3rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  &:hover { background: var(--cds-background-hover); }
-  &--open { background: var(--cds-background-active); }
-  &--active { box-shadow: inset 0 0 0 2px var(--cds-support-success); }
+// Header focus-timer — active ring uses Carbon support token.
+.esti-header-pom--active {
+  box-shadow: inset 0 0 0 2px var(--cds-support-success);
 }
 
 // Animated Pomodoro ring on the dashboard (centred SVG; gentle pulse while running).
 .esti-pom-ring { display: flex; justify-content: center; }
-.esti-pom-ring--run { animation: esti-pom-pulse 2s ease-in-out infinite; }
+.esti-pom-ring--run {
+  animation: esti-pom-pulse var(--esti-motion-duration-slow-02) var(--esti-motion-easing-standard)
+    infinite;
+}
 @keyframes esti-pom-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
@@ -2441,7 +2524,7 @@ html:has(.esti-lp) body {
   padding: 6px var(--cds-spacing-03);
   cursor: pointer;
   border-radius: 2px;
-  transition: background-color 150ms;
+  transition: background-color var(--esti-motion-duration-moderate-01) var(--esti-motion-easing-standard);
   border: 1px solid transparent;
   background: var(--cds-layer);
   text-align: start;

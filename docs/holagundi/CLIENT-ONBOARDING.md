@@ -100,10 +100,11 @@ Record discrepancies in the project **internal notes** and update the questionna
 
 Follow [PROJECT-BRIEFING.md — Compiling the design brief](PROJECT-BRIEFING.md#compiling-the-design-brief).
 
-Store the approved brief as:
+Store the approved brief in ESTI using the [PROJECT-BRIEFING ESTI mapping](PROJECT-BRIEFING.md#esti-mapping):
 
-- Project **scope / appointment scope summary** (executive summary).
-- **Internal note** or issued **letter / document** in the project register.
+- **Project Info** tab — questionnaire sections §1–§11, assumptions, and client approval note.
+- **Appointment → scope summary** — executive summary for proposals.
+- **Documents** — optional issued letter or signed brief PDF.
 - Inputs to **mood boards**, **specification preferences**, and **Initiation & Brief** tasks.
 
 Obtain explicit **client approval** (approval record or signed brief PDF) before advancing to Concept Design.
@@ -126,7 +127,7 @@ Use this checklist before closing onboarding:
 - [ ] Material preferences captured (or marked “to develop in Concept”)
 - [ ] Room templates completed for entrance, living, kitchen, dining, and all bedrooms
 - [ ] Vastu requirement confirmed (yes/no/consultant named)
-- [ ] Project design brief compiled and client-approved
+- [ ] Project design brief entered on **Project Info** tab and client-approved
 - [ ] Concept Design phase authorized
 
 ---

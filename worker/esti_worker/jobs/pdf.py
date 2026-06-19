@@ -26,14 +26,18 @@ from ..db import (
     fetch_estimate_full,
     fetch_bbs_full,
     fetch_transmittal_full,
+    fetch_progress_report_full,
+    fetch_site_instruction_full,
     update_drawing,
     update_feeproposal,
     update_inspection,
     update_invoice,
     update_letter,
     update_payslip,
+    update_progress_report,
     update_proposal,
     update_site_assessment,
+    update_site_instruction,
     update_specsheet,
     update_estimate,
     update_bbs,
@@ -679,6 +683,30 @@ def _render_compliance_pdf(record_id: str, firm: dict[str, Any]) -> dict:
         return {"status": "error", "id": record_id, "error": str(exc)}
 
 
+def _site_instruction_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    return f"""<!doctype html><html><head><meta charset="utf-8"></head><body>
+      <h1>Site instruction {_e(rec.get('ref'))}</h1>
+      <p><strong>Project:</strong> {_e(rec.get('project_ref'))} — {_e(rec.get('project_title'))}</p>
+      <p><strong>Date:</strong> {_e(rec.get('issued_at'))}</p>
+      <h2>{_e(rec.get('subject'))}</h2>
+      <div>{_e(rec.get('body') or '')}</div>
+      <p class="muted">{_e(firm.get('legalName'))}</p>
+    </body></html>"""
+
+
+def _progress_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    return f"""<!doctype html><html><head><meta charset="utf-8"></head><body>
+      <h1>Monthly progress report</h1>
+      <p><strong>Project:</strong> {_e(rec.get('project_ref'))} — {_e(rec.get('project_title'))}</p>
+      <p><strong>Period:</strong> {_e(rec.get('period_start'))} to {_e(rec.get('period_end'))}</p>
+      <p><strong>Schedule progress:</strong> {rec.get('schedule_progress_pct') or 0}%</p>
+      <p><strong>Open snags:</strong> {rec.get('open_snag_count') or 0} · <strong>Open RFIs:</strong> {rec.get('open_rfi_count') or 0}</p>
+      <h2>Narrative</h2>
+      <div>{_e(rec.get('narrative') or '')}</div>
+      <p class="muted">{_e(firm.get('legalName'))}</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -690,6 +718,8 @@ _RENDERERS = {
     "estimate": (fetch_estimate_full, _estimate_html, update_estimate, "estimate"),
     "bbs": (fetch_bbs_full, _bbs_html, update_bbs, "bbs"),
     "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
+    "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
+    "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
 
 

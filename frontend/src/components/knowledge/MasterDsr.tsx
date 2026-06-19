@@ -1,5 +1,7 @@
 import {
   Button,
+  FileUploaderButton,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -11,15 +13,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextInput,
 } from "@carbon/react";
-import { formatINR } from "@esti/contracts";
+import { formatINR, parseDsrCsvText, parseRupeeInput, type DsrImportRow } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 
-const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
+const DEMO_CSV_URL = "/dsr-import-demo.csv";
+
+const emptyVForm = () => ({
+  label: "",
+  description: "",
+  copyFromVersionId: "",
+  csvText: "",
+});
 
 export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -36,18 +46,50 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
   );
 
   const [vOpen, setVOpen] = useState(false);
-  const [vForm, setVForm] = useState({ label: "", description: "" });
-  const createVersion = trpc.dsr.createVersion.useMutation({
-    onSuccess: (row) => {
-      utils.dsr.listVersions.invalidate();
-      setVersionId(row.id);
-      setVOpen(false);
-      setVForm({ label: "", description: "" });
-    },
-  });
+  const [vForm, setVForm] = useState(emptyVForm);
+  const [vError, setVError] = useState<string | null>(null);
+  const [vBusy, setVBusy] = useState(false);
+
+  const createVersion = trpc.dsr.createVersion.useMutation();
   const setActive = trpc.dsr.setActiveVersion.useMutation({
     onSuccess: () => utils.dsr.listVersions.invalidate(),
   });
+  const publishVersion = trpc.dsr.publishVersion.useMutation({
+    onSuccess: () => utils.dsr.listVersions.invalidate(),
+  });
+  const importCsv = trpc.dsr.importCsv.useMutation({
+    onSuccess: () => utils.dsr.listItems.invalidate({ versionId }),
+  });
+
+  async function submitNewVersion(status: "DRAFT" | "PUBLISHED") {
+    setVError(null);
+    let importRows: DsrImportRow[] | undefined;
+    if (vForm.csvText.trim()) {
+      importRows = parseDsrCsvText(vForm.csvText);
+      if (importRows.length === 0) {
+        setVError("No valid rows in CSV. Use code, description, unit, rate (₹) columns.");
+        return;
+      }
+    }
+    setVBusy(true);
+    try {
+      const row = await createVersion.mutateAsync({
+        label: vForm.label,
+        description: vForm.description || undefined,
+        copyFromVersionId: vForm.copyFromVersionId || undefined,
+        status,
+        importRows,
+      });
+      utils.dsr.listVersions.invalidate();
+      setVersionId(row.id);
+      setVOpen(false);
+      setVForm(emptyVForm());
+    } catch (e) {
+      setVError(e instanceof Error ? e.message : "Could not create version");
+    } finally {
+      setVBusy(false);
+    }
+  }
 
   const [iOpen, setIOpen] = useState(false);
   const [iForm, setIForm] = useState({
@@ -68,7 +110,37 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
   });
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  const [importOpen, setImportOpen] = useState(false);
+  const [importReplace, setImportReplace] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
+
+  async function readCsvFile(file: File | null) {
+    if (!file) return;
+    setImportError(null);
+    const text = await file.text();
+    setImportText(text);
+  }
+
+  async function submitImport() {
+    setImportError(null);
+    const rows = parseDsrCsvText(importText);
+    if (rows.length === 0) {
+      setImportError("No valid rows. Expected: code, description, unit, rate (₹).");
+      return;
+    }
+    try {
+      await importCsv.mutateAsync({ versionId, rows, replace: importReplace });
+      setImportOpen(false);
+      setImportText("");
+      setImportReplace(false);
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : "Import failed");
+    }
+  }
+
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
+  const isDraft = activeVersion?.status === "DRAFT";
 
   return (
     <Stack gap={5}>
@@ -80,7 +152,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             orders.
           </p>
         </Stack>
-        <Button onClick={() => setVOpen(true)}>New version</Button>
+        <Button onClick={() => { setVOpen(true); setVError(null); }}>New version</Button>
       </Stack>
 
       <Stack orientation="horizontal" gap={4}>
@@ -95,11 +167,23 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             <SelectItem
               key={v.id}
               value={v.id}
-              text={`${v.label}${v.active ? " (active)" : ""}`}
+              text={`${v.label}${v.active ? " (active)" : ""}${v.status === "DRAFT" ? " (draft)" : ""}`}
             />
           ))}
         </Select>
-        {activeVersion && !activeVersion.active && (
+        {activeVersion && isDraft && (
+          <Tag type="gray">Draft</Tag>
+        )}
+        {activeVersion && isDraft && (
+          <Button
+            kind="tertiary"
+            disabled={publishVersion.isPending}
+            onClick={() => publishVersion.mutate({ id: versionId })}
+          >
+            {publishVersion.isPending ? "Publishing…" : "Publish"}
+          </Button>
+        )}
+        {activeVersion && !activeVersion.active && !isDraft && (
           <Button
             kind="tertiary"
             onClick={() => setActive.mutate({ id: versionId })}
@@ -109,6 +193,18 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
         )}
         <Button disabled={!versionId} onClick={() => setIOpen(true)}>
           Add item
+        </Button>
+        <Button
+          kind="tertiary"
+          disabled={!versionId}
+          onClick={() => {
+            setImportOpen(true);
+            setImportError(null);
+            setImportText("");
+            setImportReplace(false);
+          }}
+        >
+          Import CSV
         </Button>
       </Stack>
 
@@ -121,12 +217,17 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             ? "No rate items in this version"
             : "Select or create a DSR version",
           description: versionId
-            ? "Add schedule-of-rates items to build estimates from."
+            ? "Add schedule-of-rates items, copy from an existing version, or import a CSV."
             : undefined,
           action: versionId ? (
-            <Button size="sm" onClick={() => setIOpen(true)}>
-              Add item
-            </Button>
+            <Stack orientation="horizontal" gap={3}>
+              <Button size="sm" onClick={() => setIOpen(true)}>
+                Add item
+              </Button>
+              <Button size="sm" kind="tertiary" onClick={() => setImportOpen(true)}>
+                Import CSV
+              </Button>
+            </Stack>
           ) : undefined,
         }}
       >
@@ -183,16 +284,11 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
       <Modal
         open={vOpen}
         modalHeading="New DSR version"
-        primaryButtonText={createVersion.isPending ? "Creating…" : "Create"}
+        primaryButtonText={vBusy ? "Publishing…" : "Publish"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!vForm.label || createVersion.isPending}
+        primaryButtonDisabled={!vForm.label || vBusy}
         onRequestClose={() => setVOpen(false)}
-        onRequestSubmit={() =>
-          createVersion.mutate({
-            label: vForm.label,
-            description: vForm.description || undefined,
-          })
-        }
+        onRequestSubmit={() => submitNewVersion("PUBLISHED")}
       >
         <Stack gap={5}>
           <TextInput
@@ -210,6 +306,98 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
               setVForm((f) => ({ ...f, description: e.target.value }))
             }
           />
+          <Select
+            id="v-copy"
+            labelText="Copy from existing version (optional)"
+            value={vForm.copyFromVersionId}
+            onChange={(e) =>
+              setVForm((f) => ({ ...f, copyFromVersionId: e.target.value }))
+            }
+          >
+            <SelectItem value="" text="Start empty" />
+            {(versionsQ.data ?? []).map((v) => (
+              <SelectItem key={v.id} value={v.id} text={v.label} />
+            ))}
+          </Select>
+          <Stack gap={3}>
+            <p style={{ margin: 0, fontSize: "0.875rem" }}>
+              Import rate items from CSV (optional). Columns:{" "}
+              <code>code, description, unit, rate</code> — rate in ₹. Imported rows
+              override copied items with the same code.
+            </p>
+            <Stack orientation="horizontal" gap={3}>
+              <FileUploaderButton
+                labelText="Choose CSV"
+                accept={[".csv"]}
+                disableLabelChanges
+                buttonKind="tertiary"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const file = e.target.files?.[0] ?? null;
+                  if (file) void file.text().then((text) => setVForm((f) => ({ ...f, csvText: text })));
+                }}
+              />
+              <Button kind="ghost" size="sm" href={DEMO_CSV_URL} download>
+                Download demo CSV
+              </Button>
+            </Stack>
+            {vForm.csvText.trim() ? (
+              <Tag type="blue">{parseDsrCsvText(vForm.csvText).length} rows ready to import</Tag>
+            ) : null}
+          </Stack>
+          {vError && (
+            <InlineNotification kind="error" title="Error" subtitle={vError} hideCloseButton />
+          )}
+          <Button
+            kind="secondary"
+            disabled={!vForm.label || vBusy}
+            onClick={() => submitNewVersion("DRAFT")}
+          >
+            {vBusy ? "Saving…" : "Save draft"}
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={importOpen}
+        modalHeading="Import DSR items from CSV"
+        primaryButtonText={importCsv.isPending ? "Importing…" : "Import"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!importText.trim() || importCsv.isPending}
+        onRequestClose={() => setImportOpen(false)}
+        onRequestSubmit={() => void submitImport()}
+      >
+        <Stack gap={5}>
+          <p style={{ margin: 0, fontSize: "0.875rem" }}>
+            Columns: <code>code, description, unit, rate</code> (rate in ₹). Header row optional.
+          </p>
+          <Stack orientation="horizontal" gap={3}>
+            <FileUploaderButton
+              labelText="Choose CSV file"
+              accept={[".csv"]}
+              disableLabelChanges
+              buttonKind="tertiary"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                void readCsvFile(e.target.files?.[0] ?? null)
+              }
+            />
+            <Button kind="ghost" size="sm" href={DEMO_CSV_URL} download>
+              Download demo CSV
+            </Button>
+          </Stack>
+          {importText.trim() ? (
+            <Tag type="blue">{parseDsrCsvText(importText).length} rows parsed</Tag>
+          ) : null}
+          <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={importReplace}
+              onChange={(e) => setImportReplace(e.target.checked)}
+            />
+            Replace all existing items in this version
+          </label>
+          {importError && (
+            <InlineNotification kind="error" title="Import failed" subtitle={importError} hideCloseButton />
+          )}
         </Stack>
       </Modal>
 
@@ -231,7 +419,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             code: iForm.code,
             description: iForm.description,
             unit: iForm.unit,
-            ratePaise: rupeesToPaise(iForm.rate),
+            ratePaise: parseRupeeInput(iForm.rate),
           })
         }
       >

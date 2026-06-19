@@ -1,6 +1,7 @@
-import { Button } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 
 /** Per-fee-proposal PDF action: generate via the worker, poll, then open. */
 export function FeeProposalPdfCell({
@@ -17,12 +18,7 @@ export function FeeProposalPdfCell({
     { id: feeId },
     {
       enabled: active,
-      refetchInterval: (q) =>
-        q.state.data &&
-        (q.state.data.pdfStatus === "PENDING" ||
-          q.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
+      refetchInterval: (q) => pdfPollInterval(q.state.data?.pdfStatus, active),
     },
   );
 
@@ -33,33 +29,12 @@ export function FeeProposalPdfCell({
     },
   });
 
-  const status = byId.data?.pdfStatus ?? initialStatus;
-  const url = byId.data?.pdfUrl ?? null;
-
-  if (status === "READY" && url) {
-    return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open PDF
-      </Button>
-    );
-  }
-  if (status === "PENDING" || status === "PROCESSING") {
-    return <span>Generating…</span>;
-  }
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={generate.isPending}
-      onClick={() => generate.mutate({ id: feeId })}
-    >
-      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
-    </Button>
+    <PdfActionButtons
+      status={byId.data?.pdfStatus ?? initialStatus}
+      url={byId.data?.pdfUrl ?? null}
+      generatePending={generate.isPending}
+      onGenerate={() => generate.mutate({ id: feeId })}
+    />
   );
 }

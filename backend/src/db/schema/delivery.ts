@@ -135,6 +135,9 @@ export const contractorSubmissions = pgTable("esti_contractor_submission", {
   storageKey: text("storage_key"),
   fileName: text("file_name"),
   submittedById: uuid("submitted_by_id").references(() => users.id),
+  reviewCode: text("review_code"),
+  reviewNote: text("review_note"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

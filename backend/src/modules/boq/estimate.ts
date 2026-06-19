@@ -20,6 +20,7 @@ import { presignedGet } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import { recomputeEstimate } from "./recomputeEstimate.js";
 import { importTakeoffToEstimate } from "./takeoffImport.js";
+import { assertPublishedDsrVersion } from "./dsr.js";
 
 const recompute = recomputeEstimate;
 
@@ -52,6 +53,7 @@ export const estimateRouter = router({
   }),
 
   create: protectedProcedure.input(EstimateCreate).mutation(async ({ ctx, input }) => {
+    if (input.dsrVersionId) await assertPublishedDsrVersion(ctx.db, input.dsrVersionId);
     const { ref } = await nextRef(ctx.db, "estimate", "EST");
     const [row] = await ctx.db
       .insert(estimates)
@@ -97,6 +99,7 @@ export const estimateRouter = router({
     .input(z.object({ id: z.string().uuid(), dsrVersionId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await assertDraft(ctx.db, input.id);
+      await assertPublishedDsrVersion(ctx.db, input.dsrVersionId);
       const [before] = await ctx.db.select().from(estimates).where(eq(estimates.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
       await ctx.db
@@ -125,6 +128,7 @@ export const estimateRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertPublishedDsrVersion(ctx.db, input.dsrVersionId);
       const { ref } = await nextRef(ctx.db, "estimate", "EST");
       const [row] = await ctx.db
         .insert(estimates)

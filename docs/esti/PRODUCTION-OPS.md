@@ -1,6 +1,8 @@
 # Production operations checklist
 
-Use this before declaring a VPS instance production-ready. Engineering delivery through [Phase 12](ROADMAP.md#phase-12---production-readiness-p0) is complete; this checklist is the **operator gate** for a live firm instance.
+Use this before declaring a VPS instance production-ready. Engineering delivery
+through [Phase 20](ROADMAP.md) is complete; this checklist is the **operator gate**
+for a live firm instance (secrets, TLS, backup/restore drill).
 
 ---
 

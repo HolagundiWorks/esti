@@ -60,7 +60,7 @@ export function Reconcile() {
         `Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`,
       );
       utils.reconcile.list.invalidate();
-      utils.dashboard.summary.invalidate();
+      utils.dashboard.home.invalidate();
     },
   });
   const remap = trpc.reconcile.setColumnMapping.useMutation({

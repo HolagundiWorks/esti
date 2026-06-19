@@ -313,6 +313,39 @@ def fetch_site_assessment_full(sa_id: str) -> dict[str, Any] | None:
         return conn.execute(sql, [sa_id]).fetchone()
 
 
+def update_progress_report(rid: str, **fields: Any) -> None:
+    _patch("esti_progress_report", rid, set(), fields)
+
+
+def fetch_progress_report_full(rid: str) -> dict[str, Any] | None:
+    sql = """
+        select r.period_start, r.period_end, r.narrative, r.physical_progress_pct,
+               r.schedule_progress_pct, r.open_snag_count, r.open_rfi_count, r.status,
+               p.ref as project_ref, p.title as project_title
+        from esti_progress_report r
+        join esti_projectoffice p on p.id = r.project_id
+        where r.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [rid]).fetchone()
+
+
+def update_site_instruction(sid: str, **fields: Any) -> None:
+    _patch("esti_site_instruction", sid, set(), fields)
+
+
+def fetch_site_instruction_full(sid: str) -> dict[str, Any] | None:
+    sql = """
+        select si.ref, si.subject, si.body, si.issued_at,
+               p.ref as project_ref, p.title as project_title
+        from esti_site_instruction si
+        join esti_projectoffice p on p.id = si.project_id
+        where si.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [sid]).fetchone()
+
+
 def fetch_open_invoices() -> list[dict[str, Any]]:
     """Invoices eligible for matching — issued receivables awaiting payment."""
     with psycopg.connect(settings.database_url) as conn:

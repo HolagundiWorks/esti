@@ -423,7 +423,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
             }
           >
             <SelectItem value="" text="Select DSR version…" />
-            {(dsrVersionsQ.data ?? []).map((v) => (
+            {(dsrVersionsQ.data ?? []).filter((v) => v.status !== "DRAFT").map((v) => (
               <SelectItem key={v.id} value={v.id} text={v.label} />
             ))}
           </Select>

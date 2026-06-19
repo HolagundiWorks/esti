@@ -27,7 +27,9 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
   requests expanding through the roadmap.
 - Architect-side contractor/tender coordination: invitations, bids, RFIs,
   submittals, inspections, snags, and awards.
-- DXF/PDF drawing viewer and measurement takeoff feeding BOQ / fee quantities.
+- Drawing register: DXF upload, revision control, issue PDFs, transmittals, and
+  **Open in ESTICAD** for quantity takeoff (ESTICAD capture only; list and
+  estimate in AORMS — no browser measure tool).
 
 DSR/SOR rate reference and BOQ/quantity structures exist to support architect
 workflows such as tender costing and drawing takeoff. General-purpose ERP,
@@ -54,16 +56,7 @@ Full instructions, including local (non-container) dev, are in
 
 ## Documentation
 
-The documentation set is in [docs/esti](docs/esti):
-
-- [Product Vision](docs/esti/PRODUCT-VISION.md)
-- [Product Requirements](docs/esti/PRD.md)
-- [Architect Practice Profile](docs/esti/ARCHITECT-PROFILE.md)
-- [System Architecture](docs/esti/ARCHITECTURE.md)
-- [Product Roadmap](docs/esti/ROADMAP.md)
-- [India Profile](docs/esti/INDIA-PROFILE.md)
-- [Carbon UI Direction](docs/esti/CARBON-UI-DIRECTION.md)
-- [License and Notices](docs/esti/LICENSE-NOTICE.md)
+Canonical product and engineering docs: **[docs/esti/README.md](docs/esti/README.md)**.
 
 ## License
 

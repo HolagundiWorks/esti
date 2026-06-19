@@ -14,7 +14,7 @@ import {
   Tag,
   TextInput,
 } from "@carbon/react";
-import { LEAVE_TYPES, type LeaveTypeCode, formatINR } from "@esti/contracts";
+import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
@@ -26,7 +26,6 @@ const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
   APPROVED: "green",
   REJECTED: "red",
 };
-const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
 export function Hr() {
@@ -342,8 +341,8 @@ export function Hr() {
           generate.mutate({
             teamMemberId: py.teamMemberId,
             month: py.month,
-            grossPaise: py.gross ? rupeesToPaise(py.gross) : undefined,
-            deductionsPaise: py.deductions ? rupeesToPaise(py.deductions) : 0,
+            grossPaise: py.gross ? parseRupeeInput(py.gross) : undefined,
+            deductionsPaise: py.deductions ? parseRupeeInput(py.deductions) : 0,
           })
         }
       >

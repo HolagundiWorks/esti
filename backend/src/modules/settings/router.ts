@@ -63,6 +63,27 @@ export const settingsRouter = router({
       return { ...row!, soloSummary, membersReactivated };
     }),
 
+  /** Toggle the optional PMC module (owner only). */
+  setPmcEnabled: ownerProcedure
+    .input(z.object({ pmcEnabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const current = await getOrgSettings(ctx.db);
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({ pmcEnabled: input.pmcEnabled, updatedAt: new Date() })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { pmcEnabled: current.pmcEnabled },
+        after: { pmcEnabled: input.pmcEnabled },
+      });
+      return row!;
+    }),
+
   /**
    * Archive Team & HR before switching a studio to solo mode.
    * Required when operational team data exists (attendance, roster, etc.).

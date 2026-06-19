@@ -13,7 +13,7 @@ Quick reference for demo logins and how they relate to production org mode.
 | **Studio** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
 | **Solo** | `pnpm seed:demo:solo` | `solo@demo.aorms.in` | `demo1234` |
 
-After seed, open any studio project → **Compliance** tab for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
+After seed, open any studio project → **Project Info** tab (§9 Compliance) for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
 
 **Showcase paths (investor tour):**
 

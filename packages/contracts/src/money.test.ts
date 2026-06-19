@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatINR, formatINRShort, parseINR, roundToRupee } from "./money.js";
+import { formatINR, formatINRShort, parseINR, parseRupeeInput, roundToRupee } from "./money.js";
 import { computeGst, GstSystem } from "./gst.js";
 import { financialYear } from "./fy.js";
 
@@ -16,6 +16,11 @@ describe("money", () => {
   });
   it("round-trips parse", () => {
     expect(parseINR("₹1,23,456.50")).toBe(12345650);
+  });
+  it("parseRupeeInput is safe for empty form fields", () => {
+    expect(parseRupeeInput("")).toBe(0);
+    expect(parseRupeeInput("abc")).toBe(0);
+    expect(parseRupeeInput("8500")).toBe(850_000);
   });
   it("rounds to rupee half-up", () => {
     expect(roundToRupee(150)).toBe(200);

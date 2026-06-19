@@ -12,6 +12,7 @@ import { bylawCalcs } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { loadActiveBbmpRuleCatalog } from "../../lib/bbmpRules.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { syncComplianceBuiltUpToBrief } from "../project-brief/helpers.js";
 
 export const bylawCalcRouter = router({
   getByProject: protectedProcedure
@@ -60,6 +61,9 @@ export const bylawCalcRouter = router({
           before: existing,
           after: row,
         });
+        if (result.permissibleBuiltup > 0) {
+          await syncComplianceBuiltUpToBrief(ctx.db, input.projectId, result.permissibleBuiltup);
+        }
         return row!;
       }
       const [row] = await ctx.db
@@ -79,6 +83,9 @@ export const bylawCalcRouter = router({
         actorId: ctx.user.id,
         after: row,
       });
+      if (result.permissibleBuiltup > 0) {
+        await syncComplianceBuiltUpToBrief(ctx.db, input.projectId, result.permissibleBuiltup);
+      }
       return row!;
     }),
 

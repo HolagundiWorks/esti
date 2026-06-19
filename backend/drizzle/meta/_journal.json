@@ -414,6 +414,62 @@
       "when": 1781194500000,
       "tag": "0058_ai_run_source",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1781194600000,
+      "tag": "0059_project_milestones",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1781194700000,
+      "tag": "0060_pmc_toggles",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1781194800000,
+      "tag": "0061_task_start_date",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1781194900000,
+      "tag": "0062_pmc_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1781195000000,
+      "tag": "0063_construction_schedule",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1781195100000,
+      "tag": "0064_project_brief",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1781195200000,
+      "tag": "0065_expense_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1781195300000,
+      "tag": "0066_dsr_version_status",
+      "breakpoints": true
     }
   ]
 }

@@ -25,6 +25,7 @@ import { verifyPassword } from "../../auth/session.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getProjectById,
@@ -36,13 +37,14 @@ import {
 } from "./queries.js";
 
 export const projectOfficeRouter = router({
-  list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => listProjects(ctx.db, input)),
+  list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => listProjects(ctx.db, input, ctx.user)),
 
   byId: protectedProcedure.input(projectByIdInput).query(async ({ ctx, input }) => getProjectById(ctx.db, input.id)),
 
   listArchived: protectedProcedure.query(async ({ ctx }) => listArchivedProjects(ctx.db, ctx.user)),
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
+    const org = await getOrgSettings(ctx.db);
     const { ref } = await nextRef(ctx.db, "projectoffice", "PRJ");
     // Project + its general delivery stage plan are created atomically.
     const row = await ctx.db.transaction(async (tx) => {
@@ -63,6 +65,7 @@ export const projectOfficeRouter = router({
           siteAreaSqm: input.siteAreaSqm ?? null,
           contractValuePaise: input.contractValuePaise,
           dateStart: input.dateStart ?? null,
+          pmcEnabled: org.pmcEnabled && (input.pmcEnabled ?? false),
           createdById: ctx.user.id,
         })
         .returning();
@@ -138,11 +141,19 @@ export const projectOfficeRouter = router({
         workType: ProjectWorkType.optional(),
         jurisdiction: z.string().min(1),
         dateStart: z.string().nullish(),
+        pmcEnabled: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const org = await getOrgSettings(ctx.db);
+      if (input.pmcEnabled !== undefined && input.pmcEnabled && !org.pmcEnabled) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Enable the PMC module in Company settings first",
+        });
+      }
     const row = await ctx.db.transaction(async (tx) => {
         const [updated] = await tx
           .update(projectOffices)
@@ -153,6 +164,7 @@ export const projectOfficeRouter = router({
             ...(input.workType ? { workType: input.workType } : {}),
             jurisdiction: input.jurisdiction,
             dateStart: input.dateStart ?? null,
+            ...(input.pmcEnabled !== undefined ? { pmcEnabled: input.pmcEnabled } : {}),
           })
           .where(eq(projectOffices.id, input.id))
           .returning();

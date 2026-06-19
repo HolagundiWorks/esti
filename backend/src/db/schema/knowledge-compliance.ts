@@ -22,6 +22,8 @@ export const dsrVersions = pgTable("esti_dsr_version", {
   id: id(),
   label: text("label").notNull().unique(),
   description: text("description"),
+  /** DRAFT versions are editable but cannot be set active or linked to estimates. */
+  status: text("status").notNull().default("PUBLISHED"),
   active: boolean("active").notNull().default(false),
   createdAt: createdAt(),
 });

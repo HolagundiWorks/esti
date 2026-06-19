@@ -3,15 +3,18 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ilike, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
+import { projectAccessFilter } from "../../lib/projectAccess.js";
 import { projectLogs, projectOffices } from "../../db/schema.js";
 
 type AuthUser = { id: string; role: string };
 
-export async function listProjects(db: DB, input: ListParams) {
+export async function listProjects(db: DB, input: ListParams, user?: AuthUser) {
+  const access = user ? await projectAccessFilter(db, user) : undefined;
   const where = and(
     isNull(projectOffices.archivedAt),
     input.search ? ilike(projectOffices.title, `%${input.search}%`) : undefined,
     input.status ? eq(projectOffices.status, input.status) : undefined,
+    access,
   );
   return db
     .select()

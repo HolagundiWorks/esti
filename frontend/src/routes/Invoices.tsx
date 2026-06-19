@@ -62,7 +62,7 @@ export function Invoices() {
   const create = trpc.invoices.create.useMutation({
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
-      utils.dashboard.summary.invalidate();
+      utils.dashboard.home.invalidate();
       setOpen(false);
       setTaxableR("");
       setProjectId("");
@@ -71,7 +71,7 @@ export function Invoices() {
   const updateStatus = trpc.invoices.updateStatus.useMutation({
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
-      utils.dashboard.summary.invalidate();
+      utils.dashboard.home.invalidate();
     },
   });
 

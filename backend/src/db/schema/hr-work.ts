@@ -120,6 +120,7 @@ export const tasks = pgTable("esti_task", {
   status: text("status").notNull().default("TODO"),
   priority: text("priority").notNull().default("MEDIUM"),
   dueDate: date("due_date"),
+  startDate: date("start_date"),
   createdById: uuid("created_by_id"),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: createdAt(),

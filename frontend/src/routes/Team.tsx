@@ -25,6 +25,7 @@ import {
   TEAM_ROLES,
   type TeamRoleCode,
   formatINR,
+  parseRupeeInput,
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
@@ -39,8 +40,6 @@ const HEADERS = [
   { key: "status", header: "Status" },
   { key: "actions", header: "" },
 ];
-
-const rupeesToPaise = (s: string) => Math.round(Number(s) * 100);
 
 export function Team() {
   const utils = trpc.useUtils();
@@ -226,7 +225,7 @@ export function Team() {
             employmentType: form.employmentType,
             email: form.email || undefined,
             phone: form.phone || undefined,
-            monthlySalaryPaise: form.salary ? rupeesToPaise(form.salary) : 0,
+            monthlySalaryPaise: form.salary ? parseRupeeInput(form.salary) : 0,
             dateJoined: form.dateJoined || null,
           })
         }

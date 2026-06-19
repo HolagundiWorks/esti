@@ -56,6 +56,7 @@ async function main(): Promise<void> {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-api-smoke",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
 

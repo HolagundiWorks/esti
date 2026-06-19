@@ -3,22 +3,9 @@ import {
   FileUploaderButton,
   InlineNotification,
   Modal,
-  PasswordInput,
   Select,
   SelectItem,
   Stack,
-  StructuredListBody,
-  StructuredListCell,
-  StructuredListRow,
-  StructuredListWrapper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
   TextInput,
   Tile,
   Toggle,
@@ -26,24 +13,24 @@ import {
 import {
   type FirmType,
   type GstType,
-  DEFAULT_AI_SETTINGS,
-  DEFAULT_ESCALATION_SETTINGS,
-  type AiSettings,
-  type EscalationSettings,
   GstSystem,
   HR_LOCK_REASON_LABEL,
   HrArchiveConfirmPhrase,
   ORG_MODE_LABEL,
-  parseAiSettings,
-  parseEscalationSettings,
   PhoneType,
   STATES,
   districtsFor,
 } from "@esti/contracts";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useAuth } from "../lib/auth.js";
+import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
+import { ConnectedDevicesPanel } from "../components/company/ConnectedDevicesPanel.js";
+import { DataTools } from "../components/company/DataTools.js";
+import { EscalationSettingsPanel } from "../components/company/EscalationSettingsPanel.js";
+import { Partners } from "../components/company/PartnersPanel.js";
+import { ReleaseMetadataPanel } from "../components/company/ReleaseMetadataPanel.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { useAuth } from "../lib/auth.js";
+import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
 const GST_LABEL: Record<string, string> = {
@@ -98,7 +85,8 @@ const EMPTY: Form = {
 
 export function Company() {
   const { user } = useAuth();
-  const isOwner = user?.role === "OWNER";
+  const { canFirmAdmin } = useCapabilities();
+  const isOwner = canFirmAdmin;
   const utils = trpc.useUtils();
   const firmQ = trpc.firm.get.useQuery();
   const settingsQ = trpc.settings.get.useQuery();
@@ -134,6 +122,13 @@ export function Company() {
       setMsg(
         `Team module archived. ${row.tasksRemapped} task(s) remapped, ${row.membersArchived} member(s) deactivated. Snapshot ${row.archiveId.slice(0, 8)}… stored for reference.`,
       );
+    },
+  });
+
+  const setPmc = trpc.settings.setPmcEnabled.useMutation({
+    onSuccess: () => {
+      utils.settings.get.invalidate();
+      setMsg("PMC module setting updated.");
     },
   });
 
@@ -500,6 +495,26 @@ export function Company() {
         </Stack>
       </Tile>
 
+      <Tile style={{ maxWidth: 760 }}>
+        <Stack gap={5}>
+          <h2>PMC module</h2>
+          <p>
+            Project management for site coordination — construction inbox, snag register, site
+            instructions, and monthly progress reports. Enable per project in Project settings.
+          </p>
+          <Toggle
+            id="pmc-toggle"
+            labelText="Enable PMC module"
+            labelA="Off"
+            labelB="On"
+            toggled={settingsQ.data?.pmcEnabled ?? false}
+            disabled={!isOwner || setPmc.isPending || settingsQ.isLoading}
+            onToggle={(checked) => setPmc.mutate({ pmcEnabled: checked })}
+          />
+          {!isOwner && <p>Only the owner can change this.</p>}
+        </Stack>
+      </Tile>
+
       <Modal
         open={archiveOpen}
         modalHeading="Archive Team & HR module"
@@ -552,621 +567,3 @@ export function Company() {
   );
 }
 
-function EscalationSettingsPanel() {
-  const utils = trpc.useUtils();
-  const settingsQ = trpc.settings.get.useQuery();
-  const [form, setForm] = useState<EscalationSettings>(DEFAULT_ESCALATION_SETTINGS);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (settingsQ.data?.escalationSettings) {
-      setForm(parseEscalationSettings(settingsQ.data.escalationSettings));
-    }
-  }, [settingsQ.data]);
-
-  const save = trpc.settings.setEscalationSettings.useMutation({
-    onSuccess: () => {
-      utils.settings.get.invalidate();
-      setMsg("Alert escalation rules saved");
-    },
-  });
-
-  return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={5}>
-        <h2>Alert escalation</h2>
-        <p>
-          Controls when client approvals, follow-ups, overdue tasks, and leave
-          appear as immediate alerts vs the daily digest on the Alerts page.
-        </p>
-        {msg && (
-          <InlineNotification
-            kind="success"
-            title="Saved"
-            subtitle={msg}
-            lowContrast
-            onCloseButtonClick={() => setMsg(null)}
-          />
-        )}
-        <TextInput
-          id="esc-stale"
-          labelText="Stale client approval (days)"
-          helperText="Approvals unanswered for this many days become immediate alerts."
-          type="number"
-          value={String(form.staleApprovalDays)}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, staleApprovalDays: Number(e.target.value) || 7 }))
-          }
-        />
-        <TextInput
-          id="esc-followup"
-          labelText="Follow-up lead time (days before due)"
-          helperText="0 = alert on the due date only."
-          type="number"
-          value={String(form.followUpLeadDays)}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, followUpLeadDays: Number(e.target.value) || 0 }))
-          }
-        />
-        <TextInput
-          id="esc-task"
-          labelText="Overdue task threshold (days past due)"
-          type="number"
-          value={String(form.taskOverdueDays)}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, taskOverdueDays: Number(e.target.value) || 3 }))
-          }
-        />
-        <TextInput
-          id="esc-leave"
-          labelText="Leave horizon (days ahead)"
-          helperText="Approved leave starting within this window surfaces on alerts."
-          type="number"
-          value={String(form.leaveHorizonDays)}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, leaveHorizonDays: Number(e.target.value) || 7 }))
-          }
-        />
-        <Toggle
-          id="esc-digest"
-          labelText="Daily digest"
-          labelB="On"
-          labelA="Off"
-          toggled={form.digestEnabled}
-          onToggle={(checked) => setForm((f) => ({ ...f, digestEnabled: checked }))}
-        />
-        <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
-          {save.isPending ? "Saving…" : "Save escalation rules"}
-        </Button>
-      </Stack>
-    </Tile>
-  );
-}
-
-function AiStudioSettingsPanel() {
-  const utils = trpc.useUtils();
-  const settingsQ = trpc.ai.settings.useQuery();
-  const [form, setForm] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (settingsQ.data) {
-      const { ollamaDefaultUrl: _, ...rest } = settingsQ.data;
-      setForm(rest);
-    }
-  }, [settingsQ.data]);
-
-  const save = trpc.ai.setSettings.useMutation({
-    onSuccess: () => {
-      utils.ai.settings.invalidate();
-      setMsg("AI Studio settings saved");
-    },
-  });
-
-  return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={5}>
-        <h2>AI Studio</h2>
-        <p>
-          Drafts run on <strong>Ollama</strong> on your server — no cloud API keys or external
-          integrations. Pull the model once: <code>ollama pull llama3.2</code>
-        </p>
-        <InlineNotification
-          kind="info"
-          lowContrast
-          hideCloseButton
-          title="Ollama endpoint"
-          subtitle={settingsQ.data?.ollamaDefaultUrl ?? "http://127.0.0.1:11434"}
-        />
-        {msg && (
-          <InlineNotification kind="success" title="Saved" subtitle={msg} lowContrast onClose={() => setMsg(null)} />
-        )}
-        <Toggle
-          id="ai-enabled"
-          labelText="Enable AI Studio"
-          labelB="On"
-          labelA="Off"
-          toggled={form.enabled}
-          onToggle={(checked) => setForm((f) => ({ ...f, enabled: checked }))}
-        />
-        <Select
-          id="ai-provider"
-          labelText="Provider"
-          value={form.provider}
-          onChange={(e) => setForm((f) => ({ ...f, provider: e.target.value as AiSettings["provider"] }))}
-        >
-          <SelectItem value="ollama" text="Ollama (on-server)" />
-          <SelectItem value="mock" text="Template only (offline / demo)" />
-        </Select>
-        <TextInput
-          id="ai-ollama-url"
-          labelText="Ollama base URL"
-          helperText="Docker service name, e.g. http://ollama:11434"
-          value={form.ollamaBaseUrl ?? ""}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, ollamaBaseUrl: e.target.value.trim() || undefined }))
-          }
-        />
-        <TextInput
-          id="ai-model"
-          labelText="Ollama model name"
-          helperText="Must match a model pulled on the server, e.g. llama3.2"
-          value={form.model}
-          onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
-        />
-        <Toggle
-          id="ai-redact"
-          labelText="Redact PII in stored output"
-          labelB="On"
-          labelA="Off"
-          toggled={form.redactPii}
-          onToggle={(checked) => setForm((f) => ({ ...f, redactPii: checked }))}
-        />
-        <Button disabled={save.isPending} onClick={() => save.mutate(form)}>
-          {save.isPending ? "Saving…" : "Save AI settings"}
-        </Button>
-      </Stack>
-    </Tile>
-  );
-}
-
-function ConnectedDevicesPanel() {
-  const utils = trpc.useUtils();
-  const devicesQ = trpc.companion.listDevices.useQuery();
-  const revoke = trpc.companion.revokeDevice.useMutation({
-    onSuccess: () => utils.companion.listDevices.invalidate(),
-  });
-
-  const rows = devicesQ.data ?? [];
-
-  return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={4}>
-        <h2>Connected devices</h2>
-        <p>
-          ESTICAD desktop sessions with active device tokens. Revoke a session if a
-          laptop is lost or a staff member leaves.
-        </p>
-        {devicesQ.isLoading && <p className="esti-label">Loading…</p>}
-        {devicesQ.isError && (
-          <InlineNotification
-            kind="error"
-            lowContrast
-            title="Could not load devices"
-            subtitle={devicesQ.error.message}
-            hideCloseButton
-          />
-        )}
-        {!devicesQ.isLoading && rows.length === 0 && (
-          <p className="esti-label">No active ESTICAD device sessions.</p>
-        )}
-        {rows.length > 0 && (
-          <TableContainer title="Active sessions">
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Device</TableHeader>
-                  <TableHeader>User</TableHeader>
-                  <TableHeader>Last used</TableHeader>
-                  <TableHeader />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.deviceName}</TableCell>
-                    <TableCell>
-                      {row.userFullName}
-                      <br />
-                      <span className="esti-label">{row.userEmail}</span>
-                    </TableCell>
-                    <TableCell>
-                      {row.lastUsedAt ?
-                        new Date(row.lastUsedAt).toLocaleString()
-                      : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        kind="danger--ghost"
-                        size="sm"
-                        disabled={revoke.isPending}
-                        onClick={() => revoke.mutate({ sessionId: row.id })}
-                      >
-                        Revoke
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-function ReleaseMetadataPanel() {
-  // Same payload as GET /health — avoids a separate tRPC route and matches deploy probes.
-  const releaseQ = useQuery({
-    queryKey: ["release-health"],
-    queryFn: async () => {
-      const res = await fetch("/health");
-      if (!res.ok) throw new Error(`Health check failed (${res.status})`);
-      return res.json() as Promise<{
-        ok: boolean;
-        app: string;
-        version: string;
-        revision: string;
-        nodeEnv: string;
-        builtAt: string | null;
-        checks: { db: boolean; redis: boolean; storage: boolean };
-      }>;
-    },
-    staleTime: 30_000,
-  });
-
-  return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={4}>
-        <h2>Release &amp; readiness</h2>
-        <p>Build revision and backing-service checks for production operations.</p>
-        {releaseQ.isLoading && <p className="esti-label">Loading…</p>}
-        {releaseQ.isError && (
-          <InlineNotification
-            kind="error"
-            lowContrast
-            title="Could not load release metadata"
-            subtitle={releaseQ.error instanceof Error ? releaseQ.error.message : "Unknown error"}
-            hideCloseButton
-          />
-        )}
-        {releaseQ.data && (
-          <>
-            <StructuredListWrapper isCondensed>
-              <StructuredListBody>
-                <StructuredListRow>
-                  <StructuredListCell>Application</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.app}</StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Version</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.version}</StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Revision</StructuredListCell>
-                  <StructuredListCell noWrap>
-                    <code>{releaseQ.data.revision}</code>
-                  </StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Environment</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.nodeEnv}</StructuredListCell>
-                </StructuredListRow>
-              </StructuredListBody>
-            </StructuredListWrapper>
-            <Stack orientation="horizontal" gap={3}>
-              <Tag type={releaseQ.data.checks.db ? "green" : "red"} size="sm">
-                Database {releaseQ.data.checks.db ? "OK" : "down"}
-              </Tag>
-              <Tag type={releaseQ.data.checks.redis ? "green" : "red"} size="sm">
-                Redis {releaseQ.data.checks.redis ? "OK" : "down"}
-              </Tag>
-              <Tag type={releaseQ.data.checks.storage ? "green" : "red"} size="sm">
-                Storage {releaseQ.data.checks.storage ? "OK" : "down"}
-              </Tag>
-            </Stack>
-            <p className="esti-label esti-label--helper">
-              Public liveness: <code>/health</code> · dependency probe: <code>/readyz</code>
-            </p>
-          </>
-        )}
-      </Stack>
-    </Tile>
-  );
-}
-
-function DataTools() {
-  const utils = trpc.useUtils();
-  const [msg, setMsg] = useState<string | null>(null);
-  const importDemo = trpc.admin.importDemo.useMutation({
-    onSuccess: (r) => {
-      utils.invalidate();
-      setMsg(
-        `Demo data imported: ${r.clientsCreated} clients, ${r.projectsCreated} projects.`,
-      );
-    },
-  });
-  const [purgeOpen, setPurgeOpen] = useState(false);
-  const [pwd, setPwd] = useState("");
-  const purge = trpc.admin.purge.useMutation({
-    onSuccess: (r) => {
-      utils.invalidate();
-      setPurgeOpen(false);
-      setPwd("");
-      setMsg(`Data reset complete (${r.tablesWiped} tables cleared).`);
-    },
-  });
-
-  return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={5}>
-        <h2>Data tools</h2>
-        {msg && (
-          <InlineNotification
-            kind="success"
-            title="Done"
-            subtitle={msg}
-            lowContrast
-            onCloseButtonClick={() => setMsg(null)}
-          />
-        )}
-        <p>
-          Load sample records to explore the system, or reset everything to a
-          clean slate. Reset keeps your firm profile, this owner login and DSR
-          reference data — all projects, clients, invoices, drawings, HR and other
-          logins are permanently removed.
-        </p>
-        <Stack orientation="horizontal" gap={2}>
-          <Button
-            kind="tertiary"
-            disabled={importDemo.isPending}
-            onClick={() => importDemo.mutate()}
-          >
-            {importDemo.isPending ? "Importing…" : "Import demo data"}
-          </Button>
-          <Button kind="danger" onClick={() => setPurgeOpen(true)}>
-            Reset all data…
-          </Button>
-        </Stack>
-      </Stack>
-
-      <Modal
-        open={purgeOpen}
-        danger
-        modalHeading="Reset all data?"
-        primaryButtonText={purge.isPending ? "Resetting…" : "Permanently reset"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={pwd.length === 0 || purge.isPending}
-        onRequestClose={() => {
-          setPurgeOpen(false);
-          setPwd("");
-          purge.reset();
-        }}
-        onRequestSubmit={() => purge.mutate({ password: pwd })}
-      >
-        <Stack gap={5}>
-          <p>
-            This permanently deletes <strong>all operational data</strong> and
-            cannot be undone. Enter your admin password to confirm.
-          </p>
-          <PasswordInput
-            id="purge-pwd"
-            labelText="Admin password"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-          />
-          {purge.error && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              title="Reset failed"
-              subtitle={purge.error.message}
-            />
-          )}
-        </Stack>
-      </Modal>
-    </Tile>
-  );
-}
-
-function Partners({ isOwner }: { isOwner: boolean }) {
-  const utils = trpc.useUtils();
-  const partnersQ = trpc.firm.listPartners.useQuery();
-  const invalidate = () => utils.firm.listPartners.invalidate();
-  const remove = trpc.firm.removePartner.useMutation({ onSuccess: invalidate });
-
-  const [p, setP] = useState({
-    name: "",
-    coaRegNo: "",
-    pan: "",
-    din: "",
-    email: "",
-    phone1Type: "MOBILE",
-    phone1: "",
-    state: "Karnataka",
-    district: "",
-    city: "",
-  });
-  const add = trpc.firm.addPartner.useMutation({
-    onSuccess: () => {
-      invalidate();
-      setP((x) => ({
-        ...x,
-        name: "",
-        coaRegNo: "",
-        pan: "",
-        din: "",
-        email: "",
-        phone1: "",
-      }));
-    },
-  });
-  const districts = districtsFor(p.state);
-
-  return (
-    <Stack gap={6}>
-      <h2>Partners</h2>
-      <TableContainer title="Partner register">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Name</TableHeader>
-              <TableHeader>COA no</TableHeader>
-              <TableHeader>PAN</TableHeader>
-              <TableHeader>DIN</TableHeader>
-              <TableHeader>Email</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(partnersQ.data ?? []).map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>{row.coaRegNo ?? "—"}</TableCell>
-                <TableCell>{row.pan ?? "—"}</TableCell>
-                <TableCell>{row.din ?? "—"}</TableCell>
-                <TableCell>{row.email ?? "—"}</TableCell>
-                <TableCell>
-                  {isOwner && (
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      onClick={() => remove.mutate({ id: row.id })}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {isOwner && (
-        <Tile style={{ maxWidth: 760 }}>
-          <Stack gap={5}>
-            <h3>Add partner</h3>
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput
-                id="pt-name"
-                labelText="Name"
-                value={p.name}
-                onChange={(e) => setP((x) => ({ ...x, name: e.target.value }))}
-              />
-              <TextInput
-                id="pt-coa"
-                labelText="COA no"
-                value={p.coaRegNo}
-                onChange={(e) =>
-                  setP((x) => ({ ...x, coaRegNo: e.target.value }))
-                }
-              />
-              <TextInput
-                id="pt-pan"
-                labelText="PAN"
-                value={p.pan}
-                onChange={(e) => setP((x) => ({ ...x, pan: e.target.value }))}
-              />
-              <TextInput
-                id="pt-din"
-                labelText="DIN"
-                value={p.din}
-                onChange={(e) => setP((x) => ({ ...x, din: e.target.value }))}
-              />
-            </Stack>
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput
-                id="pt-email"
-                labelText="Email"
-                type="email"
-                value={p.email}
-                onChange={(e) => setP((x) => ({ ...x, email: e.target.value }))}
-              />
-              <TextInput
-                id="pt-phone"
-                labelText="Phone"
-                value={p.phone1}
-                onChange={(e) =>
-                  setP((x) => ({ ...x, phone1: e.target.value }))
-                }
-              />
-              <TextInput
-                id="pt-city"
-                labelText="City"
-                value={p.city}
-                onChange={(e) => setP((x) => ({ ...x, city: e.target.value }))}
-              />
-              <Select
-                id="pt-state"
-                labelText="State"
-                value={p.state}
-                onChange={(e) =>
-                  setP((x) => ({ ...x, state: e.target.value, district: "" }))
-                }
-              >
-                {STATES.map((s) => (
-                  <SelectItem key={s} value={s} text={s} />
-                ))}
-              </Select>
-              {districts.length > 0 ? (
-                <Select
-                  id="pt-dist"
-                  labelText="District"
-                  value={p.district}
-                  onChange={(e) =>
-                    setP((x) => ({ ...x, district: e.target.value }))
-                  }
-                >
-                  <SelectItem value="" text="Select…" />
-                  {districts.map((d) => (
-                    <SelectItem key={d} value={d} text={d} />
-                  ))}
-                </Select>
-              ) : (
-                <TextInput
-                  id="pt-dist"
-                  labelText="District"
-                  value={p.district}
-                  onChange={(e) =>
-                    setP((x) => ({ ...x, district: e.target.value }))
-                  }
-                />
-              )}
-            </Stack>
-            <Button
-              disabled={!p.name || add.isPending}
-              onClick={() =>
-                add.mutate({
-                  name: p.name,
-                  coaRegNo: p.coaRegNo,
-                  pan: p.pan,
-                  din: p.din,
-                  email: p.email,
-                  phone1Type: "MOBILE",
-                  phone1: p.phone1,
-                  city: p.city,
-                  state: p.state,
-                  district: p.district,
-                })
-              }
-            >
-              {add.isPending ? "Adding…" : "Add partner"}
-            </Button>
-          </Stack>
-        </Tile>
-      )}
-    </Stack>
-  );
-}

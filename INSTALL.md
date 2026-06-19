@@ -100,7 +100,7 @@ podman exec esti-backend sh -lc "cd /app/backend && pnpm db:generate"
 
 ## 5. Production checklist
 
-Full VPS operator checklist: **[docs/esti/PRODUCTION-OPS.md](docs/esti/PRODUCTION-OPS.md)** (Phase 12).
+Full VPS operator checklist: **[docs/esti/PRODUCTION-OPS.md](docs/esti/PRODUCTION-OPS.md)**.
 
 Summary before exposing a live firm instance:
 
@@ -113,7 +113,7 @@ Summary before exposing a live firm instance:
 
 VPS deploy: `bash deploy/deploy.sh` after `git pull`. Fresh host: `bash deploy/setup-vps.sh`.
 
-See [ROADMAP Phase 12](docs/esti/ROADMAP.md#phase-12---production-readiness-p0) for delivered engineering scope.
+See [ROADMAP](docs/esti/ROADMAP.md#status-at-a-glance) for delivered engineering scope (Phases 0–20).
 
 ---
 

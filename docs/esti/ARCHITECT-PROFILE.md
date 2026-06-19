@@ -28,7 +28,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Clients | register, communication log, portal provisioning | Deep links, exports |
 | Projects | overview, timeline, CRIF, health, archive, tabs | Additive fields on existing tabs |
 | Knowledge Bank | DSR, compliance/RIE, spec catalogue, SteelFlow templates, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
-| Compliance | standalone assessment + immutable PDF | Rule versions only |
+| Compliance | Knowledge Bank tab + **Project Info** §9 calculator | Rule versions only |
 | Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
 | Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
 | Documents | register, specs, mood boards, inspections, transmittals, MOM | Revision/approval on existing types |
@@ -54,8 +54,9 @@ applicable, another source object.
 Default project stages are Initiation & Brief, Concept Design, Design
 Development, Statutory Coordination, Construction Documentation, Tender &
 Appointment, Construction Administration, and Handover & Closeout. Project
-lifecycle status and stage status are separate. Compliance
-results are linked project documents; compliance itself is not a project tab.
+lifecycle status and stage status are separate. Development-control results are
+saved on the **Project Info** tab and linked to the document register; office
+rule sets live in the Knowledge Bank.
 
 ## Compliance Boundary
 

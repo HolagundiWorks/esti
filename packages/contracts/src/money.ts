@@ -54,3 +54,11 @@ export function parseINR(input: string): Paise {
   if (Number.isNaN(value)) throw new Error(`Invalid amount: ${input}`);
   return Math.round(value * 100);
 }
+
+/** Parse form input into paise; empty or invalid input → 0 (no throw). */
+export function parseRupeeInput(input: string): Paise {
+  const cleaned = String(input ?? "").replace(/[₹,\s]/g, "");
+  if (!cleaned) return 0;
+  const value = Number.parseFloat(cleaned);
+  return Number.isFinite(value) ? Math.round(value * 100) : 0;
+}

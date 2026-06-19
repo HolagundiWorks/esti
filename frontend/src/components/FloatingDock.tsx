@@ -102,7 +102,7 @@ function FloatingSettings({
 
   return (
     <div ref={panelRef} className="esti-float-widget esti-float-settings">
-      <Tile className="esti-glass-panel esti-float-panel-shell">
+      <Tile className="esti-float-panel-shell">
         <ScrollAffordance>
           <Stack gap={5}>
             <h4>Settings</h4>

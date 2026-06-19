@@ -30,7 +30,13 @@ const AUDIT_STATUS_TAG: Record<string, "green" | "red" | "gray"> = {
   not_evaluated: "gray",
 };
 
-export function ProjectBylawData({ projectId }: { projectId: string }) {
+export function ProjectBylawData({
+  projectId,
+  embedded = false,
+}: {
+  projectId: string;
+  embedded?: boolean;
+}) {
   const utils = trpc.useUtils();
   const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId }, { enabled: !!projectId });
   const calcQ = trpc.bylawCalc.getByProject.useQuery({ projectId }, { enabled: !!projectId });
@@ -137,13 +143,15 @@ export function ProjectBylawData({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={6}>
-      <div>
-        <h2>Project data — bylaw compliance</h2>
-        <p>
-          Pre-construction development potential and post-construction violation checking share
-          one BBMP rule engine. See <code>BYLAW-SYSTEMS.md</code>.
-        </p>
-      </div>
+      {!embedded && (
+        <div>
+          <h2>Project data — bylaw compliance</h2>
+          <p>
+            Pre-construction development potential and post-construction violation checking share
+            one BBMP rule engine. See <code>BYLAW-SYSTEMS.md</code>.
+          </p>
+        </div>
+      )}
 
       <Tile>
         <h3>Site information</h3>

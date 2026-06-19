@@ -14,12 +14,16 @@ import {
   getTeamIntelligence,
   getTeamAttendanceToday,
   getTechnicalIntelligence,
+  getDashboardHome,
 } from "./readModels.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({
   /** Per-user header strip: server date + this user's leave balance. */
   me: protectedProcedure.query(({ ctx }) => getDashboardMe(ctx.db, ctx.user)),
+
+  /** Bundled office dashboard data — one server round-trip for the home view. */
+  home: protectedProcedure.query(({ ctx }) => getDashboardHome(ctx.db)),
 
   /** This user's saved dashboard layout (null = use the default). */
   layout: protectedProcedure.query(async ({ ctx }) => {

@@ -128,9 +128,8 @@ ESTICAD is a native desktop companion — not a second product database.
 - CI: typecheck, lint, unit tests, API integration tests, worker tests, frontend
   build and browser smoke tests.
 
-## Current Known Gaps
+## Delivery status
 
-The active gaps are maintained only in [ROADMAP](ROADMAP.md), beginning with
-REST upload authorization, retention/audit completeness, Pure Carbon cleanup,
-and the activity foundation. Architecture documents must not claim those gaps
-are already resolved.
+Engineering delivery through [Phase 20](ROADMAP.md) is complete. Open product gaps,
+if any, are tracked only in [ROADMAP](ROADMAP.md). This document describes the
+stack and ADRs — not the live backlog.

@@ -1,6 +1,7 @@
-import { Button } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 
 /** Per-invoice PDF action: generate via the worker, poll, then open. */
 export function InvoicePdfCell({
@@ -20,12 +21,7 @@ export function InvoicePdfCell({
     { id: invoiceId },
     {
       enabled: active,
-      refetchInterval: (q) =>
-        q.state.data &&
-        (q.state.data.pdfStatus === "PENDING" ||
-          q.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
+      refetchInterval: (q) => pdfPollInterval(q.state.data?.pdfStatus, active),
     },
   );
 
@@ -36,48 +32,14 @@ export function InvoicePdfCell({
     },
   });
 
-  const status = byId.data?.pdfStatus ?? initialStatus;
-  const url = byId.data?.pdfUrl ?? null;
-
-  if (status === "READY" && url) {
-    return (
-      <span style={{ display: "inline-flex", gap: 4 }}>
-        <Button
-          kind="ghost"
-          size="sm"
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open PDF
-        </Button>
-        {canManage && (
-          <Button
-            kind="ghost"
-            size="sm"
-            disabled={generate.isPending}
-            onClick={() => generate.mutate({ id: invoiceId })}
-          >
-            Regenerate
-          </Button>
-        )}
-      </span>
-    );
-  }
-  if (status === "PENDING" || status === "PROCESSING") {
-    return <span>Generating…</span>;
-  }
-  if (!canManage) {
-    return <span>—</span>;
-  }
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={generate.isPending}
-      onClick={() => generate.mutate({ id: invoiceId })}
-    >
-      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
-    </Button>
+    <PdfActionButtons
+      status={byId.data?.pdfStatus ?? initialStatus}
+      url={byId.data?.pdfUrl ?? null}
+      canManage={canManage}
+      showRegenerateWhenReady
+      generatePending={generate.isPending}
+      onGenerate={() => generate.mutate({ id: invoiceId })}
+    />
   );
 }

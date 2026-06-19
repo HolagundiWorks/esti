@@ -1,12 +1,13 @@
 import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createDeviceSession, refreshDeviceAccessToken } from "../../auth/device.js";
 import {
   SESSION_COOKIE,
   createSession,
   hashPassword,
+  revokeSessionByToken,
   verifyPassword,
 } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
@@ -36,25 +37,28 @@ export const authRouter = router({
         message: "Managing users and credentials is disabled on the demo account.",
       });
     }
-    const rows = await ctx.db.select({ n: count() }).from(users);
-    const isFirst = Number(rows[0]?.n ?? 0) === 0;
-    if (!isFirst && ctx.user?.role !== "OWNER") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Only the owner can add users" });
-    }
-    const role = isFirst ? "OWNER" : (input.role ?? "CONSULTANT");
-    const passwordHash = await hashPassword(input.password);
-    const [u] = await ctx.db
-      .insert(users)
-      .values({ email: input.email, fullName: input.fullName, role, passwordHash })
-      .returning({ id: users.id, email: users.email, role: users.role, fullName: users.fullName });
-    await writeAudit(ctx.db, {
-      entity: "user",
-      entityId: u!.id,
-      action: isFirst ? "REGISTER_OWNER" : "REGISTER_USER",
-      actorId: ctx.user?.id ?? u!.id,
-      after: { email: u!.email, role: u!.role },
+    return ctx.db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(8347291)`);
+      const rows = await tx.select({ n: count() }).from(users);
+      const isFirst = Number(rows[0]?.n ?? 0) === 0;
+      if (!isFirst && ctx.user?.role !== "OWNER") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only the owner can add users" });
+      }
+      const role = isFirst ? "OWNER" : (input.role ?? "CONSULTANT");
+      const passwordHash = await hashPassword(input.password);
+      const [u] = await tx
+        .insert(users)
+        .values({ email: input.email, fullName: input.fullName, role, passwordHash })
+        .returning({ id: users.id, email: users.email, role: users.role, fullName: users.fullName });
+      await writeAudit(tx, {
+        entity: "user",
+        entityId: u!.id,
+        action: isFirst ? "REGISTER_OWNER" : "REGISTER_USER",
+        actorId: ctx.user?.id ?? u!.id,
+        after: { email: u!.email, role: u!.role },
+      });
+      return u!;
     });
-    return u!;
   }),
 
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
@@ -154,6 +158,7 @@ export const authRouter = router({
   me: publicProcedure.query(({ ctx }) => ctx.user),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
+    await revokeSessionByToken(ctx.db, ctx.sessionToken);
     ctx.setCookie(SESSION_COOKIE, "");
     if (ctx.user) {
       await writeAudit(ctx.db, {

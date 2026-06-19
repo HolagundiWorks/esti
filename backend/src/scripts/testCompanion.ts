@@ -40,6 +40,7 @@ async function main(): Promise<void> {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-companion",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
 
@@ -61,6 +62,7 @@ async function main(): Promise<void> {
     deviceSessionId: deviceUser!.deviceSessionId,
     ip: "127.0.0.1",
     requestId: "test-companion-device",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
 
@@ -157,6 +159,7 @@ async function main(): Promise<void> {
     deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-companion-owner",
+    sessionToken: undefined,
     setCookie: () => undefined,
   });
   const devices = await ownerCaller.companion.listDevices();

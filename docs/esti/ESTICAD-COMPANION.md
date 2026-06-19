@@ -1,6 +1,6 @@
 # ESTICAD Companion Integration
 
-**Status:** Approved planning baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
+**Status:** Delivered · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **ESTI AORMS** (web office platform). ESTICAD mirror: [ESTI-COMPANION.md](../../../esticad/docs/ESTI-COMPANION.md).
 

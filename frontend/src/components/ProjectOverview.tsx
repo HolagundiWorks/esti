@@ -36,7 +36,6 @@ import {
   RevisionSource,
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
-import { ProjectAppointment } from "./ProjectAppointment.js";
 import { AiDraftPanel } from "./AiStudio.js";
 
 function StatCard({
@@ -251,7 +250,6 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={7}>
-      <ProjectAppointment projectId={projectId} />
       <Grid condensed>
         <Column sm={4} md={4} lg={4}>
           <StatCard
@@ -303,10 +301,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             detail={
               compliance
                 ? `${compliance.maxBuiltUpSqm ?? "—"} sq m FAR area · ${compliance.maxFootprintSqm ?? "—"} sq m ground cover`
-                : "Open the Compliance tab to compute development potential."
+                : "Run compliance on the Project Info tab after site data is entered."
             }
             tag="Linked result"
-            onClick={() => navigate(`/projects/${projectId}?tab=compliance`)}
+            onClick={() => navigate(`/projects/${projectId}?tab=info#compliance`)}
           />
         </Column>
       </Grid>

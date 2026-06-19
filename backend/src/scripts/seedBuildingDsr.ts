@@ -27,6 +27,7 @@ export async function ensureBuildingDsrCatalog(
       .values({
         label: BUILDING_DSR_VERSION_LABEL,
         description: BUILDING_DSR_VERSION_DESCRIPTION,
+        status: "PUBLISHED",
         active: true,
       })
       .returning();

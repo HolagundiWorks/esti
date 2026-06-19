@@ -15,13 +15,13 @@ export type { TechnicalIntelligenceSnapshot };
 
 export const STUDIO_QUALITY_GROUP = "Studio quality";
 
-/** Normalized 0–100 axes for the studio quality radar profile. */
+/** Normalized 0–100 axes for the studio quality radar profile (short labels for Carbon Charts). */
 export const STUDIO_QUALITY_FEATURES = [
-  "Revision health",
-  "Drawing accuracy",
-  "Scope control",
-  "Internal quality",
-  "Site coordination",
+  "Revisions",
+  "Drawings",
+  "Scope",
+  "Internal",
+  "Site",
 ] as const;
 
 export type StudioQualityFeature = (typeof STUDIO_QUALITY_FEATURES)[number];
@@ -48,11 +48,11 @@ export function computeStudioQualityAxes(
       : 0;
 
   return [
-    { feature: "Revision health", score: clampScore(revision.healthScore) },
-    { feature: "Drawing accuracy", score: clampScore(technical.drawingClarityScore) },
-    { feature: "Scope control", score: clampScore(100 - revision.scopeDriftPct) },
-    { feature: "Internal quality", score: clampScore(100 - internalErrorRate) },
-    { feature: "Site coordination", score: clampScore(100 - technical.siteQueryRate) },
+    { feature: "Revisions", score: clampScore(revision.healthScore) },
+    { feature: "Drawings", score: clampScore(technical.drawingClarityScore) },
+    { feature: "Scope", score: clampScore(100 - revision.scopeDriftPct) },
+    { feature: "Internal", score: clampScore(100 - internalErrorRate) },
+    { feature: "Site", score: clampScore(100 - technical.siteQueryRate) },
   ];
 }
 
