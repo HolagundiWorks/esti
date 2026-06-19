@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
-import { getOrgSettings } from "../../lib/settings.js";
+import type { DB } from "../../../db/index.js";
+import { getOrgSettings } from "../../../lib/settings.js";
 
 /** Team capacity signals: per-assignee task load (HR module only). */
 export async function getTeamIntelligence(db: DB) {

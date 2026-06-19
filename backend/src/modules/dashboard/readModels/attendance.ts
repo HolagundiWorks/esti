@@ -1,7 +1,7 @@
 import { count, eq } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
-import { attendance, teamMembers } from "../../db/schema.js";
-import { getOrgSettings } from "../../lib/settings.js";
+import type { DB } from "../../../db/index.js";
+import { attendance, teamMembers } from "../../../db/schema.js";
+import { getOrgSettings } from "../../../lib/settings.js";
 
 /** Team attendance summary for today (HR module only). */
 export async function getTeamAttendanceToday(db: DB) {

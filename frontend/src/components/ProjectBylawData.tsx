@@ -21,7 +21,9 @@ import {
   type PreConstructionPotential,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ProjectBylawCalc } from "./ProjectBylawCalc.js";
+import { ProjectPermits } from "./ProjectPermits.js";
 import { trpc } from "../lib/trpc.js";
 
 const AUDIT_STATUS_TAG: Record<string, "green" | "red" | "gray"> = {
@@ -29,6 +31,56 @@ const AUDIT_STATUS_TAG: Record<string, "green" | "red" | "gray"> = {
   failed: "red",
   not_evaluated: "gray",
 };
+
+type StoredBylawResult = BylawEnvelope & { preConstruction?: Partial<PreConstructionPotential> };
+
+/** Merge nested preConstruction with legacy flat envelope fields (demo / older saves). */
+function normalizePreConstruction(envelope: StoredBylawResult | undefined): PreConstructionPotential | null {
+  if (!envelope) return null;
+
+  const nested = envelope.preConstruction;
+  const farAllowed = nested?.farAllowed ?? envelope.farAllowed ?? envelope.far;
+  if (farAllowed == null || Number.isNaN(Number(farAllowed))) return null;
+
+  const setbacks = nested?.setbacks ?? envelope.setbacks;
+  const parking = nested?.parking ?? envelope.parking;
+  if (!setbacks?.front || !parking) return null;
+
+  const secondaryRequirements =
+    nested?.secondaryRequirements ??
+    envelope.secondaryCompliance ?? {
+      rainwaterHarvesting: false,
+      solarWaterHeating: false,
+      treePlanting: false,
+      earthquakeDesign: false,
+    };
+
+  return {
+    farAllowed: Number(farAllowed),
+    permissibleBuiltup: Number(
+      nested?.permissibleBuiltup ?? envelope.permissibleBuiltup ?? envelope.maxBuiltUpSqm ?? 0,
+    ),
+    coverageAllowed: Number(
+      nested?.coverageAllowed ?? envelope.coverageAllowed ?? envelope.coveragePct ?? 0,
+    ),
+    maxFootprint: Number(
+      nested?.maxFootprint ?? envelope.maxFootprint ?? envelope.maxFootprintSqm ?? 0,
+    ),
+    setbacks,
+    parking,
+    basementAllowed: nested?.basementAllowed ?? envelope.basementAllowed ?? false,
+    secondaryRequirements,
+    governingRoadWidthM: Number(
+      nested?.governingRoadWidthM ?? envelope.governingRoadWidthM ?? 0,
+    ),
+    notes: nested?.notes ?? envelope.notes ?? [],
+    calculationTrace: nested?.calculationTrace ?? envelope.calculationTrace,
+  };
+}
+
+function formatRatio(value: number | undefined): string {
+  return value != null && !Number.isNaN(value) ? value.toFixed(2) : "—";
+}
 
 export function ProjectBylawData({
   projectId,
@@ -90,24 +142,8 @@ export function ProjectBylawData({
     onSuccess: () => utils.bylawCalc.getByProject.invalidate({ projectId }),
   });
 
-  const envelope = calcQ.data?.result as (BylawEnvelope & { preConstruction?: PreConstructionPotential }) | undefined;
-  const pre =
-    envelope?.preConstruction ??
-    (envelope
-      ? {
-          farAllowed: envelope.farAllowed,
-          permissibleBuiltup: envelope.permissibleBuiltup,
-          coverageAllowed: envelope.coverageAllowed,
-          maxFootprint: envelope.maxFootprint,
-          setbacks: envelope.setbacks,
-          parking: envelope.parking,
-          basementAllowed: envelope.basementAllowed,
-          secondaryRequirements: envelope.secondaryCompliance,
-          governingRoadWidthM: envelope.governingRoadWidthM,
-          notes: envelope.notes,
-          calculationTrace: envelope.calculationTrace,
-        }
-      : null);
+  const envelope = calcQ.data?.result as StoredBylawResult | undefined;
+  const pre = normalizePreConstruction(envelope);
   const audit = calcQ.data?.postconstructionAudit as PostConstructionAudit | undefined;
   const issuedAssessment = (assessmentsQ.data ?? []).find((a) => a.status === "ISSUED");
 
@@ -147,8 +183,8 @@ export function ProjectBylawData({
         <div>
           <h2>Project data — bylaw compliance</h2>
           <p>
-            Pre-construction development potential and post-construction violation checking share
-            one BBMP rule engine. See <code>BYLAW-SYSTEMS.md</code>.
+            Pre-construction development potential and post-construction violation checking use the
+            jurisdiction rule sets from Knowledge Bank → Compliance.
           </p>
         </div>
       )}
@@ -180,7 +216,7 @@ export function ProjectBylawData({
         <h3>Pre-construction development potential</h3>
         <p>How much can be legally built — no violation detection.</p>
         {pre ? (
-          <PreConstructionSummary pre={pre as PreConstructionPotential} />
+          <PreConstructionSummary pre={pre} />
         ) : (
           <InlineNotification
             kind="info"
@@ -314,17 +350,38 @@ export function ProjectBylawData({
       </Tile>
 
       <Tile>
-        <h3>Compliance PDF</h3>
+        <h3>Statutory permits</h3>
+        <p>BPAS, RERA, Fire NOC, and other permit records for this project.</p>
+        <div style={{ marginTop: 12 }}>
+          <ProjectPermits projectId={projectId} />
+        </div>
+      </Tile>
+
+      <Tile>
+        <h3>Site feasibility &amp; compliance PDF</h3>
         {issuedAssessment?.pdfKey ? (
-          <p>
-            Issued site assessment PDF available (ref via Knowledge Bank → RIE). Status:{" "}
-            {issuedAssessment.pdfStatus}
-          </p>
+          <Stack gap={3}>
+            <p style={{ margin: 0 }}>
+              Latest issued site assessment PDF — status: {issuedAssessment.pdfStatus}
+            </p>
+            <Button
+              kind="tertiary"
+              as={Link}
+              to={`/knowledge-bank?tab=compliance&project=${projectId}`}
+            >
+              Open site assessments in Knowledge Bank
+            </Button>
+          </Stack>
         ) : (
-          <p>
-            No compliance PDF issued yet. Run a site assessment in Knowledge Bank and issue to
-            generate a branded PDF.
-          </p>
+          <Stack gap={3}>
+            <p style={{ margin: 0 }}>
+              No compliance PDF issued yet. Run a site feasibility assessment in{" "}
+              <Link to={`/knowledge-bank?tab=compliance&project=${projectId}`}>
+                Knowledge Bank → Compliance
+              </Link>{" "}
+              and issue to generate a branded PDF.
+            </p>
+          </Stack>
         )}
       </Tile>
     </Stack>
@@ -336,7 +393,7 @@ function PreConstructionSummary({ pre }: { pre: PreConstructionPotential }) {
   return (
     <TableContainer
       title="Allowed development envelope"
-      description="From shared BBMP rule engine"
+      description="From jurisdiction development-control rules"
       style={{ marginTop: 12 }}
     >
       <Table size="sm">
@@ -349,34 +406,42 @@ function PreConstructionSummary({ pre }: { pre: PreConstructionPotential }) {
         <TableBody>
           <TableRow>
             <TableCell>Allowed FAR</TableCell>
-            <TableCell>{pre.farAllowed.toFixed(2)}</TableCell>
+            <TableCell>{formatRatio(pre.farAllowed)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Permissible built-up area</TableCell>
-            <TableCell>{pre.permissibleBuiltup} sq m</TableCell>
+            <TableCell>
+              {pre.permissibleBuiltup != null ? `${pre.permissibleBuiltup} sq m` : "—"}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Allowed coverage</TableCell>
             <TableCell>
-              {pre.coverageAllowed}% · max footprint {pre.maxFootprint} sq m
+              {pre.coverageAllowed != null ? `${pre.coverageAllowed}%` : "—"}
+              {pre.maxFootprint != null ? ` · max footprint ${pre.maxFootprint} sq m` : ""}
             </TableCell>
           </TableRow>
-          {(["front", "rear", "left", "right"] as const).map((side) => (
+          {(["front", "rear", "left", "right"] as const).map((side) => {
+            const setback = pre.setbacks?.[side];
+            if (!setback) return null;
+            return (
             <TableRow key={side}>
               <TableCell>{side.charAt(0).toUpperCase() + side.slice(1)} setback</TableCell>
               <TableCell>
-                {pre.setbacks[side].value} m{" "}
-                <Tag type={pre.setbacks[side].governedBy === "RBL" ? "red" : "blue"} size="sm">
-                  {pre.setbacks[side].governedBy}
+                {setback.value} m{" "}
+                <Tag type={setback.governedBy === "RBL" ? "red" : "blue"} size="sm">
+                  {setback.governedBy}
                 </Tag>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
           <TableRow>
             <TableCell>Required parking</TableCell>
             <TableCell>
-              {pre.parking.total} ECS ({pre.parking.requiredECS} + {pre.parking.visitorECS}{" "}
-              visitor)
+              {pre.parking
+                ? `${pre.parking.total} ECS (${pre.parking.requiredECS} + ${pre.parking.visitorECS} visitor)`
+                : "—"}
             </TableCell>
           </TableRow>
           <TableRow>

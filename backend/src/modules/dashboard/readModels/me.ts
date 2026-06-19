@@ -1,8 +1,8 @@
 import { ANNUAL_LEAVE_ALLOWANCE_DAYS } from "@esti/contracts";
 import { and, eq, gte, sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
-import { leaves, teamMembers } from "../../db/schema.js";
-import { getOrgSettings } from "../../lib/settings.js";
+import type { DB } from "../../../db/index.js";
+import { leaves, teamMembers } from "../../../db/schema.js";
+import { getOrgSettings } from "../../../lib/settings.js";
 import type { DashboardUser } from "./types.js";
 
 /** Per-user header strip: server date + optional leave balance (HR module only). */

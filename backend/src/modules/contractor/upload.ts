@@ -15,6 +15,7 @@ import { tenderDocuments, tenders } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
 import { putObject } from "../../lib/storage.js";
+import { verifyUploadPassword } from "../../lib/uploadSecurity.js";
 
 const UploadFields = z.object({
   tenderId: z.string().uuid(),
@@ -45,6 +46,9 @@ export function registerTenderDocumentUpload(app: FastifyInstance): void {
           fields[part.fieldname] = String(part.value);
         }
       }
+
+      const passwordDenial = await verifyUploadPassword(db, fields);
+      if (passwordDenial) return reply.code(passwordDenial.status).send({ error: passwordDenial.error });
 
       const parsed = UploadFields.safeParse(fields);
       if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });

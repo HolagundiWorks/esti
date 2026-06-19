@@ -26,6 +26,7 @@ export * from "./reconcile.js";
 export * from "./ai.js";
 export * from "./firm.js";
 export * from "./org-mode.js";
+export * from "./upload-security.js";
 export * from "./india-geo.js";
 export * from "./permissions.js";
 export * from "./dashboard.js";

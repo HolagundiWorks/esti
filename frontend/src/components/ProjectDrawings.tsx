@@ -22,6 +22,7 @@ import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
 import { useAuth } from "../lib/auth.js";
 import { ESTICAD_DOWNLOAD_URL, esticadDrawingUrl, openEsticadDrawing } from "../lib/esticadLink.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -33,6 +34,7 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
 
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
+  const { authorizedFetch, uploadRequired } = useUploadAuth();
   const canUpload = !!user && can(user.role, "write");
   const canTakeoff = canUpload;
   const utils = trpc.useUtils();
@@ -94,10 +96,10 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   }
 
   async function postUpload(fd: FormData) {
-    const res = await fetch("/upload/drawing", {
-      method: "POST",
-      body: fd,
-      credentials: "include",
+    const res = await authorizedFetch("/upload/drawing", (form) => {
+      for (const [key, value] of fd.entries()) {
+        form.append(key, value);
+      }
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -180,6 +182,16 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           subtitle="Your role is read-only. Ask a project lead or sign in with an Associate (or higher) account to upload DXF drawings."
           lowContrast
           hideCloseButton
+        />
+      )}
+      {canUpload && uploadRequired && user?.isDemo && (
+        <InlineNotification
+          kind="info"
+          title="Demo upload password"
+          subtitle="Use the demo login password (demo1234) when prompted — same gate as a live firm with upload protection enabled."
+          lowContrast
+          hideCloseButton
+          style={{ marginBottom: 12 }}
         />
       )}
       <div

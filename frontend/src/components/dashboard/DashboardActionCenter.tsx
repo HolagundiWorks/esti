@@ -203,15 +203,13 @@ export function DashboardActionCenter({
       </Column>
 
       <Column lg={8} md={4} sm={4}>
-        <ClickableTile
-          className="esti-fill"
-          style={edge(openTenders.length > 0 ? "watch" : "ok")}
-          onClick={() => navigate("/office/tenders")}
-        >
+        <Tile className="esti-fill" style={edge(openTenders.length > 0 ? "watch" : "ok")}>
           <Stack gap={4}>
             <div className="esti-row">
               <h4 className="esti-grow">Open tenders</h4>
-              <ArrowRight size={16} />
+              <Link to="/office/tenders" className="esti-inline-link">
+                View all <ArrowRight size={16} />
+              </Link>
             </div>
             {homeLoading ? (
               <InlineLoading description="Loading…" />
@@ -235,19 +233,17 @@ export function DashboardActionCenter({
               </StructuredListWrapper>
             )}
           </Stack>
-        </ClickableTile>
+        </Tile>
       </Column>
 
       <Column lg={8} md={4} sm={4}>
-        <ClickableTile
-          className="esti-fill"
-          style={edge(openConstruction.length > 0 ? "watch" : "ok")}
-          onClick={() => navigate("/office/construction")}
-        >
+        <Tile className="esti-fill" style={edge(openConstruction.length > 0 ? "watch" : "ok")}>
           <Stack gap={4}>
             <div className="esti-row">
               <h4 className="esti-grow">Site coordination</h4>
-              <ArrowRight size={16} />
+              <Link to="/office/construction" className="esti-inline-link">
+                View all <ArrowRight size={16} />
+              </Link>
             </div>
             {homeLoading ? (
               <InlineLoading description="Loading…" />
@@ -259,7 +255,7 @@ export function DashboardActionCenter({
                   {openConstruction.slice(0, 4).map((c) => (
                     <StructuredListRow key={c.id}>
                       <StructuredListCell>
-                        <Link to="/office/construction">{c.subject}</Link>
+                        <Link to={`/projects/${c.projectId}?tab=pmc`}>{c.subject}</Link>
                         <p>
                           {c.kind} · {c.contractorName} · {c.projectRef}
                         </p>
@@ -270,7 +266,7 @@ export function DashboardActionCenter({
               </StructuredListWrapper>
             )}
           </Stack>
-        </ClickableTile>
+        </Tile>
       </Column>
     </>
   );

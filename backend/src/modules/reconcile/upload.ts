@@ -13,6 +13,7 @@ import { db } from "../../db/index.js";
 import { reconciliations } from "../../db/schema.js";
 import { tabularMatchesExt } from "../../lib/filetype.js";
 import { writeAudit } from "../../lib/audit.js";
+import { verifyUploadPassword } from "../../lib/uploadSecurity.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { BUCKET, putObject } from "../../lib/storage.js";
@@ -41,6 +42,9 @@ export function registerReconcileUpload(app: FastifyInstance): void {
         fields[part.fieldname] = String(part.value);
       }
     }
+
+    const passwordDenial = await verifyUploadPassword(db, fields);
+    if (passwordDenial) return reply.code(passwordDenial.status).send({ error: passwordDenial.error });
 
     const parsed = ReconcileUploadFields.safeParse(fields);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });

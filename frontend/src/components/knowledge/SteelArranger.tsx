@@ -569,7 +569,7 @@ function ElementEditor({ elementId }: { elementId: string }) {
                             <p style={{ flex: 1 }}>
                               {r.barMark} · {r.quantity} nos · {(r.cuttingLengthMm ?? el.lengthMm).toLocaleString()} mm
                             </p>
-                            <Button kind="danger--ghost" size="sm" hasIconOnly
+                            <Button kind="ghost" size="sm" hasIconOnly
                               renderIcon={TrashCan} iconDescription="Remove"
                               onClick={() => deleteRebarMut.mutate({ id: r.id })} />
                           </Stack>
@@ -593,7 +593,7 @@ function ElementEditor({ elementId }: { elementId: string }) {
                                 {SF_STIRRUP_LABEL[s.stirrupType as (typeof SF_STIRRUP_TYPES)[number]] ?? s.stirrupType}
                               </Tag>
                               <p>@ {s.spacingMm} mm c/c · {s.zone}</p>
-                              <Button kind="danger--ghost" size="sm" hasIconOnly
+                              <Button kind="ghost" size="sm" hasIconOnly
                                 renderIcon={TrashCan} iconDescription="Remove"
                                 onClick={() => deleteStirrupMut.mutate({ id: s.id })} />
                             </Stack>
@@ -978,7 +978,7 @@ function SteelArrangerWorkshop({ embedded = false }: { embedded?: boolean }) {
                         onClick={() => setActiveSession(s.id)}>
                         {s.name}
                       </Button>
-                      <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={TrashCan}
+                      <Button kind="ghost" size="sm" hasIconOnly renderIcon={TrashCan}
                         iconDescription="Delete" onClick={() => deleteSessionMut.mutate({ id: s.id })} />
                     </Stack>
                   ))}
@@ -1013,7 +1013,7 @@ function SteelArrangerWorkshop({ embedded = false }: { embedded?: boolean }) {
                             {e.elementCode}
                           </Stack>
                         </Button>
-                        <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={TrashCan}
+                        <Button kind="ghost" size="sm" hasIconOnly renderIcon={TrashCan}
                           iconDescription="Delete" onClick={() => deleteElementMut.mutate({ id: e.id })} />
                       </Stack>
                     ))}

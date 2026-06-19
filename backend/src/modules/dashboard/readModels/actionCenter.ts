@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { DB } from "../../db/index.js";
+import type { DB } from "../../../db/index.js";
 
 /** Action Center: billable phases, overdue invoices, pending approvals. */
 export async function getActionCenter(db: DB) {

@@ -19,6 +19,7 @@ import {
 } from "@carbon/react";
 import { Add, TrashCan } from "@carbon/icons-react";
 import { useState } from "react";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { ConfirmModal } from "./ConfirmModal.js";
@@ -687,6 +688,7 @@ function MoodBoardCard({
   onRevise: () => void;
 }) {
   const utils = trpc.useUtils();
+  const { authorizedFetch } = useUploadAuth();
   const imgsQ = trpc.spec.boardImages.useQuery({ boardId: board.id });
   const removeImage = trpc.spec.removeImage.useMutation({
     onSuccess: () => utils.spec.boardImages.invalidate({ boardId: board.id }),
@@ -696,13 +698,9 @@ function MoodBoardCard({
   async function uploadImage(file: File) {
     setBusy(true);
     try {
-      const fd = new FormData();
-      fd.append("boardId", board.id);
-      fd.append("file", file);
-      const res = await fetch("/upload/mood-image", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      const res = await authorizedFetch("/upload/mood-image", (fd) => {
+        fd.append("boardId", board.id);
+        fd.append("file", file);
       });
       if (res.ok) utils.spec.boardImages.invalidate({ boardId: board.id });
     } finally {

@@ -9,6 +9,7 @@ import { db } from "../db/index.js";
 import { writeAudit } from "./audit.js";
 import { imageMatchesExt } from "./filetype.js";
 import { putObject } from "./storage.js";
+import { verifyUploadPassword } from "./uploadSecurity.js";
 
 type ParentLookup = { projectId?: string | null };
 
@@ -62,6 +63,9 @@ export function registerImageUploadRoute(app: FastifyInstance, config: ImageUplo
 
       const parentId = fields[config.requiredField];
       if (!parentId) return reply.code(400).send({ error: `${config.requiredField} required` });
+
+      const passwordDenial = await verifyUploadPassword(db, fields);
+      if (passwordDenial) return reply.code(passwordDenial.status).send({ error: passwordDenial.error });
 
       const parent = await config.resolveParent(parentId);
       if (!parent) return reply.code(404).send({ error: config.notFoundError });

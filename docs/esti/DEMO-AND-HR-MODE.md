@@ -13,6 +13,8 @@ Quick reference for demo logins and how they relate to production org mode.
 | **Studio** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
 | **Solo** | `pnpm seed:demo:solo` | `solo@demo.aorms.in` | `demo1234` |
 
+Demo workspaces mirror live upload behaviour. File uploads require the **upload password** (same as the demo login password unless `SEED_DEMO_PASSWORD` was changed). Owners can toggle this gate under **Company → Upload protection** on live firms too.
+
 After seed, open any studio project → **Project Info** tab (§9 Compliance) for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
 
 **Showcase paths (investor tour):**
@@ -22,12 +24,13 @@ After seed, open any studio project → **Project Info** tab (§9 Compliance) fo
 | Drawings + takeoff | **Sharma Villa** or **Verde Commercial Block** → Drawings tab — linked GFC plan, ESTICAD-synced quantities, **Open in ESTICAD** |
 | Estimation | **Sharma Villa** → Estimates tab — draft BOQ linked to Master DSR |
 | CRIF + comments | **Sharma / Verde / Patel HQ** → Overview or Decisions — threaded decision comments |
+| PMC portfolio | **PMC** nav → Sharma Villa, Verde Block, GreenField Factory, Rao House — schedules, snags, RFIs, progress reports |
 | Client portal | `client@demo.aorms.in` — Kapoor Residence |
 | Solo practice | `solo@demo.aorms.in` — 3 projects, HR off, one linked drawing with takeoff |
 
 Re-run `seed:demo` on an existing workspace to **backfill** missing records (idempotent). Legacy browser takeoff rows (`source: WEB`) are purged on each run.
 
-**Intentionally not seeded** (charter / scope): tenders, contractor bids, construction RFI inbox, document register bulk, AI Studio draft runs, device sessions — add only when a module needs a dedicated demo pilot.
+**Intentionally not seeded** (charter / scope): tenders, contractor bids, document register bulk, AI Studio draft runs, device sessions — add only when a module needs a dedicated demo pilot. PMC contractor RFIs/NCRs are seeded on showcase projects via `seedDemoPmc.ts`.
 
 **Container workflow:**
 

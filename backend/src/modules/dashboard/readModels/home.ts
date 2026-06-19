@@ -1,6 +1,6 @@
-import type { DB } from "../../db/index.js";
-import { getOrgSettings } from "../../lib/settings.js";
-import { listOfficeActivity } from "../activity/queries.js";
+import type { DB } from "../../../db/index.js";
+import { getOrgSettings } from "../../../lib/settings.js";
+import { listOfficeActivity } from "../../activity/queries.js";
 import { getActionCenter } from "./actionCenter.js";
 import { getDashboardBoards } from "./boards.js";
 import { getClientIntelligence } from "./clientIntelligence.js";

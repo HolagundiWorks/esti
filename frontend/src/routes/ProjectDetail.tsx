@@ -207,7 +207,7 @@ export function ProjectDetail() {
         </div>
         {phases.length > 0 && currentPhase && (
           <div style={{ marginTop: 8 }}>
-            <Link to={`/projects/${id}?tab=info#stage`}>
+            <Link to={`/projects/${id}?tab=info`}>
               <Tag type="blue" size="md">
                 Stage: {currentPhase.label}
               </Tag>

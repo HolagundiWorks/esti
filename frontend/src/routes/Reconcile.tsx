@@ -18,6 +18,7 @@ import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
 import { PageHeader } from "../components/PageHeader.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -45,6 +46,7 @@ type Line = {
 
 export function Reconcile() {
   const utils = trpc.useUtils();
+  const { authorizedFetch } = useUploadAuth();
   const listQ = trpc.reconcile.list.useQuery(undefined, {
     refetchInterval: (q) =>
       (q.state.data ?? []).some(
@@ -83,15 +85,11 @@ export function Reconcile() {
     setBusy(true);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("label", label);
-      fd.append("file", file);
-      const hasMap = colMap.date || colMap.description || colMap.amount;
-      if (hasMap) fd.append("columnMapping", JSON.stringify(colMap));
-      const res = await fetch("/upload/reconcile", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      const res = await authorizedFetch("/upload/reconcile", (fd) => {
+        fd.append("label", label);
+        fd.append("file", file);
+        const hasMap = colMap.date || colMap.description || colMap.amount;
+        if (hasMap) fd.append("columnMapping", JSON.stringify(colMap));
       });
       if (!res.ok)
         throw new Error(

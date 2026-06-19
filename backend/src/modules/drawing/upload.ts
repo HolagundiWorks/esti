@@ -7,6 +7,7 @@ import { UPLOAD_ROUTE_CAPABILITIES, uploadDenial } from "../../auth/upload.js";
 import { db } from "../../db/index.js";
 import { drawings, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { verifyUploadPassword } from "../../lib/uploadSecurity.js";
 import { writeActivity } from "../../lib/activity.js";
 import { looksLikeDwg, looksLikeDxf } from "../../lib/filetype.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -42,6 +43,10 @@ export function registerDrawingUpload(app: FastifyInstance): void {
 
     const parsed = DrawingUploadFields.safeParse(fields);
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.message });
+
+    const passwordDenial = await verifyUploadPassword(db, fields);
+    if (passwordDenial) return reply.code(passwordDenial.status).send({ error: passwordDenial.error });
+
     const [project] = await db
       .select({ id: projectOffices.id })
       .from(projectOffices)

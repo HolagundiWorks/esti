@@ -1,6 +1,5 @@
 import { type Capability, can } from "@esti/contracts";
 import type { AuthUser } from "./session.js";
-import { demoBlocksUpload, DEMO_UPLOAD_MESSAGE } from "../lib/demo-policy.js";
 
 export type UploadDenial = { status: 401 | 403; error: string };
 
@@ -20,9 +19,6 @@ export function uploadDenial(
   capability: Capability = "write",
 ): UploadDenial | null {
   if (!user) return { status: 401, error: "unauthenticated" };
-  if (demoBlocksUpload(user)) {
-    return { status: 403, error: DEMO_UPLOAD_MESSAGE };
-  }
   if (user.role === "CLIENT" || (user.role === "CONSULTANT" && user.consultantId)) {
     return { status: 403, error: "insufficient permission" };
   }

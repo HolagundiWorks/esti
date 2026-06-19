@@ -36,11 +36,13 @@ import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
-import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
+import { trpc } from "../lib/trpc.js";
 
 export function Tenders() {
   const utils = trpc.useUtils();
+  const { authorizedFetch } = useUploadAuth();
   const [status, setStatus] = useState("");
   const listQ = trpc.tenders.list.useQuery({ status: status ? (status as TenderStatusT) : undefined });
   const rows = listQ.data ?? [];
@@ -89,13 +91,13 @@ export function Tenders() {
     setDocUploading(true);
     setDocError(null);
     try {
-      const fd = new FormData();
-      fd.append("tenderId", detailId);
-      fd.append("title", docUpload.title.trim());
-      fd.append("kind", docUpload.kind);
-      if (docUpload.addendumNo) fd.append("addendumNo", docUpload.addendumNo);
-      fd.append("file", docUpload.file);
-      const res = await fetch("/upload/tender-document", { method: "POST", body: fd, credentials: "include" });
+      const res = await authorizedFetch("/upload/tender-document", (fd) => {
+        fd.append("tenderId", detailId);
+        fd.append("title", docUpload.title.trim());
+        fd.append("kind", docUpload.kind);
+        if (docUpload.addendumNo) fd.append("addendumNo", docUpload.addendumNo);
+        fd.append("file", docUpload.file!);
+      });
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? res.statusText);
       setDocUpload({ title: "", kind: "OTHER", addendumNo: "", file: null });
       await refreshDetail();
