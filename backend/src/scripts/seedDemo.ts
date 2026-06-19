@@ -13,7 +13,7 @@
  * real to explore. NOT for production use.
  */
 import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
-import { eq, like, or, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { ensureDemoSchema } from "./seedBootstrap.js";
@@ -52,6 +52,7 @@ import {
   expenses,
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
+import { demoPasswordFromEnv, syncDemoLoginPasswords } from "../lib/demoSeeds.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { syncDemoUploadPassword } from "../lib/uploadSecurity.js";
 import { nextRef } from "../lib/numbering.js";
@@ -70,7 +71,7 @@ import { ensureDemoSteelFlowCatalog } from "./seedSteelFlowCatalog.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
 import { ensureDemoPmcShowcase } from "./seedDemoPmc.js";
 
-const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
+const DEMO_PASSWORD = demoPasswordFromEnv();
 
 /** yyyy-mm-dd offset from today by N days (local time). */
 function dayOffset(n: number): string {
@@ -287,16 +288,10 @@ async function linkDemoTeamAndTasks(): Promise<void> {
 
 /** Align demo login passwords after seed:prod created principal with a different hash. */
 async function syncDemoPasswords(): Promise<void> {
-  const pwHash = await hashPassword(DEMO_PASSWORD);
-  const updated = await db
-    .update(users)
-    .set({ passwordHash: pwHash, isDemo: true })
-    .where(or(eq(users.isDemo, true), like(users.email, "%@demo.aorms.in")))
-    .returning({ id: users.id });
-  if (updated.length) {
-    console.log(`    synced ${updated.length} demo account password(s) → ${DEMO_PASSWORD}`);
+  const count = await syncDemoLoginPasswords(db, DEMO_PASSWORD);
+  if (count) {
+    console.log(`    synced ${count} demo account password(s) → ${DEMO_PASSWORD}`);
   }
-  await syncDemoUploadPassword(db, DEMO_PASSWORD);
   console.log(`    upload password gate enabled (password → ${DEMO_PASSWORD})`);
 }
 

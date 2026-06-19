@@ -20,12 +20,13 @@ import {
   users,
 } from "../db/schema.js";
 import { getFirm } from "../lib/firm.js";
+import { demoPasswordFromEnv } from "../lib/demoSeeds.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { syncDemoUploadPassword } from "../lib/uploadSecurity.js";
 import { ensureDemoSchema } from "./seedBootstrap.js";
 import { ensureSoloDemoShowcase } from "./seedDemoShowcase.js";
 
-const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
+const DEMO_PASSWORD = demoPasswordFromEnv();
 const SOLO_EMAIL = "solo@demo.aorms.in";
 
 function dayOffset(n: number): string {
