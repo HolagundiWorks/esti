@@ -20,8 +20,10 @@ function useQiAnimProgress(durationMs: number) {
   const ref = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const startedRef = useRef(false);
+  const aliveRef = useRef(true);
 
   useEffect(() => {
+    aliveRef.current = true;
     const el = ref.current;
     if (!el) return;
 
@@ -29,6 +31,7 @@ function useQiAnimProgress(durationMs: number) {
     let startTime = 0;
 
     const tick = (now: number) => {
+      if (!aliveRef.current) return;
       if (!startTime) startTime = now;
       const t = Math.min(1, (now - startTime) / durationMs);
       const step = Math.round(t * CHART_STEPS) / CHART_STEPS;
@@ -54,6 +57,7 @@ function useQiAnimProgress(durationMs: number) {
     obs.observe(el);
 
     return () => {
+      aliveRef.current = false;
       obs.disconnect();
       cancelAnimationFrame(raf);
     };

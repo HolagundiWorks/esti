@@ -8,16 +8,18 @@ complete delivery sequence is maintained in [ROADMAP](ROADMAP.md).
 
 ## Users And Access
 
-| User | Required access |
-| --- | --- |
-| Owner | Firm, users, permissions, finance, deletion, and all projects |
-| Partner / principal | Full project and commercial oversight except owner-only administration |
-| Senior / project manager | Project delivery, coordination, invoices, drawings, tasks |
-| Associate / architect | Assigned project operations, tasks, drawings, documents |
-| Viewer / accounts-limited role | Capability-scoped read access; no operational writes |
-| Client | Own projects; issued documents; approvals, acknowledgements, and change requests |
-| Consultant | Engaged projects; assigned deliverables, drawings, RFIs, and responses |
-| Contractor | Invited tenders and awarded projects only; bids, RFIs, submittals, inspections |
+Canonical level taxonomy: [ACCESS-MODEL](ACCESS-MODEL.md).
+
+| User | Level | Required access |
+| --- | --- | --- |
+| Owner | L5 | Firm, users, permissions, finance, deletion, compliance audit log, and all projects |
+| Partner / principal | L4 | Full project and commercial oversight except owner-only administration and audit log |
+| Senior / project manager | L3 | Project delivery, coordination, invoices, drawings, tasks on **assigned** projects |
+| Associate / architect | L2 | Assigned project operations, tasks, drawings, documents |
+| Viewer / accounts-limited role | L1 | Capability-scoped read access; no operational writes |
+| Client | External | Own projects; issued documents; approvals, acknowledgements, and change requests |
+| Consultant | External | Engaged projects; assigned deliverables, drawings, RFIs, and responses |
+| Contractor | External | Invited tenders and awarded projects only; bids, RFIs, submittals, inspections |
 
 Authorization is enforced server-side for tRPC and REST/upload routes. Portal
 roles cannot call office procedures or access unrelated projects.

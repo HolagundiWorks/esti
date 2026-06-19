@@ -320,27 +320,36 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           remove.mutate({ id: projectId, password: adminPwd })
         }
       >
-        <Stack gap={5}>
-          <p>
-            This removes <strong>{p?.title}</strong> from active project lists
-            while retaining every related record for audit and later
-            restoration.
-          </p>
-          <PasswordInput
-            id="ps-admin-pwd"
-            labelText="Enter your admin password to confirm"
-            value={adminPwd}
-            onChange={(e) => setAdminPwd(e.target.value)}
-          />
-          {remove.error && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              title="Archive failed"
-              subtitle={remove.error.message}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!remove.isPending && adminPwd.length > 0) {
+              remove.mutate({ id: projectId, password: adminPwd });
+            }
+          }}
+        >
+          <Stack gap={5}>
+            <p>
+              This removes <strong>{p?.title}</strong> from active project lists
+              while retaining every related record for audit and later
+              restoration.
+            </p>
+            <PasswordInput
+              id="ps-admin-pwd"
+              labelText="Enter your admin password to confirm"
+              value={adminPwd}
+              onChange={(e) => setAdminPwd(e.target.value)}
             />
-          )}
-        </Stack>
+            {remove.error && (
+              <InlineNotification
+                kind="error"
+                lowContrast
+                title="Archive failed"
+                subtitle={remove.error.message}
+              />
+            )}
+          </Stack>
+        </form>
       </Modal>
     </div>
   );

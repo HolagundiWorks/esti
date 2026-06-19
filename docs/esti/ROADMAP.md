@@ -59,6 +59,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [19](#phase-19---master-dsr-workflow-polish-p2) | Master DSR polish | P2 | ✅ |
 | [20](#phase-20---production-audit-remediation-p1) | Audit remediation | P1 | ✅ |
 | [21](#phase-21---unified-compliance-module-ia-p1) | Unified compliance IA | P1 | ✅ |
+| [22](#phase-22---access-level-documentation-p1) | Access level documentation | P1 | ✅ |
 
 ---
 
@@ -594,6 +595,16 @@ Separate **site construction scheduling** (PMC-gated) from the **office delivery
 
 ---
 
+## Phase 22 — Access level documentation [P1] — ✅ Complete (2026-06-19)
+
+- [x] [ACCESS-MODEL](ACCESS-MODEL.md) — L1–L5 taxonomy, external tier, capability and information matrices, procedure ladder, demo personas
+- [x] `accessLevelForRole`, `externalClassForUser`, `minLevelForCapability`, `accessLabelForUser` in `packages/contracts`
+- [x] `useCapabilities()` exposes `accessLevel` and `isExternal`; Users admin shows Level column
+- [x] Compliance audit log remains L5 (`ownerProcedure`); documented vs `reports:view` (L4)
+- [x] Authorization tests — level ↔ capability alignment; portal scope negatives
+
+---
+
 ## Phase 18 — Office & project expenses [P1] — ✅ Complete (2026-06-15)
 
 ### 18A — Schema & API
@@ -728,5 +739,6 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-15 | Phase 15 — architect-as-PMC (`0060`–`0062`), toggles, Gantt, snags, progress reports |
 | 2026-06-15 | Phase 17 — project Info tab, access hierarchy, Layer 3 tab gating; Phase 18 — office/project expenses |
 | 2026-06-15 | Phase 19 — Master DSR copy/draft/CSV import; compliance BUA sync to project brief |
+| 2026-06-19 | Phase 22 — ACCESS-MODEL (L1–L5), contracts access helpers, Users level column, audit L5 policy |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

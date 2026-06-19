@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  accessLevelForRole,
+  minLevelForCapability,
+} from "@esti/contracts";
 import type { AuthUser } from "../auth/session.js";
 import type { Context } from "./context.js";
 import {
@@ -108,5 +112,34 @@ describe("tRPC authorization boundaries", () => {
     await expect(caller(user("OWNER", { isDemo: true })).users.createStaff()).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
+  });
+
+  it("maps staff roles to access levels L1–L5", () => {
+    expect(accessLevelForRole("OWNER")).toBe(5);
+    expect(accessLevelForRole("PARTNER")).toBe(4);
+    expect(accessLevelForRole("SENIOR")).toBe(3);
+    expect(accessLevelForRole("ASSOCIATE")).toBe(2);
+    expect(accessLevelForRole("VIEWER")).toBe(1);
+    expect(accessLevelForRole("CLIENT", { clientId: "c1" })).toBeNull();
+  });
+
+  it("aligns capability gates with documented minimum levels", () => {
+    expect(minLevelForCapability("firm:admin")).toBe(5);
+    expect(minLevelForCapability("reports:view")).toBe(4);
+    expect(minLevelForCapability("invoice:manage")).toBe(3);
+    expect(minLevelForCapability("write")).toBe(2);
+    expect(minLevelForCapability("workspace:view")).toBe(1);
+  });
+
+  it("rejects portal users from owner-only audit procedures", async () => {
+    await expect(caller(user("PARTNER")).owner()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller(user("OWNER")).owner()).resolves.toBe(true);
+  });
+
+  it("rejects cross-portal scope (client cannot use collaborator procedure)", async () => {
+    const clientId = "00000000-0000-0000-0000-000000000002";
+    await expect(
+      caller(user("CLIENT", { clientId })).collaborator(),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

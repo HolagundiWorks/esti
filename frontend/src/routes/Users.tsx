@@ -18,6 +18,7 @@ import {
 import {
   ASSIGNABLE_STAFF_ROLES,
   STAFF_ROLE_LABEL,
+  accessLabelForUser,
   isStaffRole,
 } from "@esti/contracts";
 import { useState } from "react";
@@ -99,6 +100,7 @@ export function Users() {
             <TableRow>
               <TableHeader>Email</TableHeader>
               <TableHeader>Name</TableHeader>
+              <TableHeader>Level</TableHeader>
               <TableHeader>Role</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Actions</TableHeader>
@@ -117,6 +119,9 @@ export function Users() {
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.fullName}</TableCell>
+                  <TableCell>
+                    {accessLabelForUser(u)}
+                  </TableCell>
                   <TableCell>
                     {!isSelf &&
                     u.role !== "OWNER" &&

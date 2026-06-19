@@ -8,7 +8,9 @@ are authoritative only in [ROADMAP](ROADMAP.md). Long-term scope discipline is i
 
 ## Access Model
 
-- **Internal:** Owner, Partner, Senior, Associate, Viewer. Capabilities refine
+Canonical reference: [ACCESS-MODEL](ACCESS-MODEL.md) (L1–L5 internal ladder + external tier).
+
+- **Internal (L5–L1):** Owner, Partner, Senior, Associate, Viewer. Capabilities refine
   access for administration, finance, HR, reports, and destructive operations.
 - **Client portal:** one client record; own projects and explicitly client-visible objects.
 - **Consultant portal:** one consultant record; engaged projects and assigned objects.

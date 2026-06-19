@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { trpc } from "./trpc.js";
+import { useAuth } from "./auth.js";
 
 const CACHE_KEY = "esti.uploadPassword";
 
@@ -45,7 +46,11 @@ type UploadAuthContextValue = {
 const UploadAuthContext = createContext<UploadAuthContextValue | null>(null);
 
 export function UploadAuthProvider({ children }: { children: ReactNode }) {
-  const settingsQ = trpc.settings.get.useQuery(undefined, { staleTime: 60_000 });
+  const { user } = useAuth();
+  const settingsQ = trpc.settings.get.useQuery(undefined, {
+    staleTime: 60_000,
+    enabled: !!user,
+  });
   const uploadRequired = settingsQ.data?.uploadPasswordRequired ?? false;
 
   const [open, setOpen] = useState(false);
@@ -117,24 +122,31 @@ export function UploadAuthProvider({ children }: { children: ReactNode }) {
         onRequestClose={() => closeModal(null)}
         onRequestSubmit={() => closeModal(password.trim())}
       >
-        <Stack gap={4}>
-          <p style={{ margin: 0 }}>
-            Your firm requires an upload password before files can be stored. The password is
-            remembered for this browser session.
-          </p>
-          {wrongHint ? (
-            <p style={{ margin: 0, color: "var(--cds-text-error)" }}>
-              Incorrect password — try again.
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (password.trim()) closeModal(password.trim());
+          }}
+        >
+          <Stack gap={4}>
+            <p style={{ margin: 0 }}>
+              Your firm requires an upload password before files can be stored. The password is
+              remembered for this browser session.
             </p>
-          ) : null}
-          <PasswordInput
-            id="upload-password"
-            labelText="Upload password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="off"
-          />
-        </Stack>
+            {wrongHint ? (
+              <p style={{ margin: 0, color: "var(--cds-text-error)" }}>
+                Incorrect password — try again.
+              </p>
+            ) : null}
+            <PasswordInput
+              id="upload-password"
+              labelText="Upload password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="off"
+            />
+          </Stack>
+        </form>
       </Modal>
     </UploadAuthContext.Provider>
   );
