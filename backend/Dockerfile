@@ -1,17 +1,26 @@
 # ESTI AORMS backend (TypeScript / Fastify)
+# Build context: parent repos folder (contains esti + hcw-*-kit siblings).
+#   podman build -f esti/backend/Dockerfile -t localhost/esti-backend:dev .
 FROM node:20-alpine AS base
+ENV IBM_TELEMETRY_DISABLED=true
 RUN corepack enable
-WORKDIR /app
+WORKDIR /app/esti
 
-# Workspace manifests (better layer caching)
-COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
-COPY packages/contracts/package.json packages/contracts/
-COPY backend/package.json backend/
-RUN pnpm install --frozen-lockfile || pnpm install
+COPY esti/package.json esti/pnpm-workspace.yaml esti/pnpm-lock.yaml esti/tsconfig.base.json ./
+COPY esti/packages/contracts/package.json packages/contracts/
+COPY esti/backend/package.json backend/
+COPY hcw-carbon-agent-kit/package.json ../hcw-carbon-agent-kit/
+COPY hcw-aorms-ai-kit/package.json ../hcw-aorms-ai-kit/
 
-# Source
-COPY packages/contracts packages/contracts
-COPY backend backend
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
+
+COPY esti/packages/contracts packages/contracts
+COPY esti/backend backend
+COPY esti/scripts scripts
+COPY hcw-carbon-agent-kit ../hcw-carbon-agent-kit
+COPY hcw-aorms-ai-kit ../hcw-aorms-ai-kit
+
+RUN pnpm --filter @hcw/aorms-ai-kit build && node scripts/setup-carbon-kit.mjs
 
 EXPOSE 4000
 CMD ["pnpm", "--filter", "@esti/backend", "dev"]
