@@ -12,6 +12,11 @@ import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
+import {
+  demoPasswordFromEnv,
+  isDemoAormsEmail,
+  syncDemoOwnerPassword,
+} from "../lib/demoSeeds.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
 
 const email = process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in";
@@ -23,9 +28,16 @@ async function main(): Promise<void> {
   await ensureAiStudioEnabled(db);
   console.log(`✓ building DSR: ${dsr.itemsTotal} items (${dsr.itemsSeeded} new)`);
 
+  const loginPassword = isDemoAormsEmail(email) ? demoPasswordFromEnv() : password;
+
   const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (existing) {
-    console.log(`✓ owner already present: ${email} (no change)`);
+    if (isDemoAormsEmail(email)) {
+      await syncDemoOwnerPassword(db, email, loginPassword);
+      console.log(`✓ demo owner password synced: ${email} / ${loginPassword}`);
+    } else {
+      console.log(`✓ owner already present: ${email} (no change)`);
+    }
     return;
   }
 
@@ -33,12 +45,13 @@ async function main(): Promise<void> {
     email,
     fullName,
     role: "OWNER",
-    passwordHash: await hashPassword(password),
+    passwordHash: await hashPassword(loginPassword),
+    isDemo: isDemoAormsEmail(email),
   });
 
   console.log("✓ seeded OWNER account");
   console.log(`    email:    ${email}`);
-  console.log(`    password: ${password}`);
+  console.log(`    password: ${loginPassword}`);
 }
 
 main()
