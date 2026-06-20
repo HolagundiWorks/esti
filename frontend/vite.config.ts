@@ -4,31 +4,38 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
-// In the pod the backend is reachable as http://backend:4000; locally it is
-// http://localhost:4000. The browser always calls same-origin /trpc.
 const proxyTarget = process.env.VITE_PROXY_TARGET ?? "http://localhost:4000";
 
 const frontendDir = path.dirname(fileURLToPath(import.meta.url));
 const estiRoot = path.resolve(frontendDir, "..");
-const reposRoot = path.resolve(estiRoot, "..");
 const vendorDir = path.resolve(estiRoot, "vendor");
 
 // In Docker and self-contained builds the kits are vendored under vendor/.
-// On a dev machine with the sibling repos checked out, vendor/ may also exist
-// (it is committed); if so we prefer it over the live siblings so the build
-// is always deterministic. Fall back to sibling repos only if vendor/ is absent.
+// vendor/ is also committed to the repo so dev builds use the same paths.
+// Falls back to the parent directory only when vendor/ is absent (rare).
 function kitFile(pkg: string, file: string) {
   const vendorPath = path.resolve(vendorDir, pkg, file);
   if (fs.existsSync(vendorPath)) return vendorPath;
-  return path.resolve(reposRoot, pkg, file);
+  return path.resolve(estiRoot, "..", pkg, file);
 }
 
 export default defineConfig({
   plugins: [react()],
-  // Some CJS deps (e.g. react-grid-layout) read process.env.NODE_ENV at
-  // runtime; the browser has no `process`, so define it at build time.
+  // Several bundled packages (Carbon, react-responsive-masonry, etc.) read
+  // process.env.NODE_ENV at runtime; define it so the browser bundle sees it.
   define: {
-    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "development"),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "production"),
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Sass 1.77+ logs legacy-js-api deprecation warnings for packages
+        // (like @carbon/react) that haven't fully migrated to the modern API.
+        // Silence them so they don't become build errors in strict mode.
+        silenceDeprecations: ["legacy-js-api"],
+        quietDeps: true,
+      },
+    },
   },
   resolve: {
     alias: [
@@ -57,14 +64,13 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    // File watching over the WSL/virtiofs bind is event-lossy; poll instead.
     watch: { usePolling: true },
     fs: {
-      allow: [estiRoot, reposRoot],
+      // vendor/ is inside estiRoot — no need to allow the parent directory.
+      allow: [estiRoot],
     },
     proxy: {
       "/trpc": { target: proxyTarget, changeOrigin: true },
-      // Binary upload endpoints (logo, drawings, reconcile) live outside tRPC.
       "/upload": { target: proxyTarget, changeOrigin: true },
       "/calendar": { target: proxyTarget, changeOrigin: true },
       "/health": { target: proxyTarget, changeOrigin: true },

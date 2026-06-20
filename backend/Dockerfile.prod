@@ -5,7 +5,7 @@
 # ── Stage 1: build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
-# Build tools needed for native addons (@node-rs/argon2 etc.)
+# Build tools for native addons (@node-rs/argon2 needs musl build env).
 RUN apk add --no-cache python3 make g++
 
 RUN corepack enable
@@ -22,30 +22,11 @@ RUN pnpm install --ignore-scripts
 COPY packages/contracts packages/contracts
 COPY backend            backend
 
-# Build contracts (tsc resolves tsconfig relative to the file location).
 RUN node_modules/.bin/tsc -p packages/contracts/tsconfig.json
-
-# Build backend.
 RUN node_modules/.bin/tsc -p backend/tsconfig.json
 
-# ── Stage 2: runtime ─────────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-# node_modules contains the pnpm virtual store (.pnpm/) + workspace symlinks.
-# vendor/ must be present because @hcw/* symlinks point back to it.
-COPY --from=builder /app/node_modules node_modules/
-COPY vendor vendor/
-
-COPY package.json pnpm-workspace.yaml          ./
-COPY packages/contracts/package.json           packages/contracts/
-COPY backend/package.json                      backend/
-COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
-COPY --from=builder /app/backend/dist            backend/dist
-COPY backend/drizzle                             backend/drizzle
-
-# Redirect @esti/contracts to compiled dist/ at runtime.
+# Rewrite @esti/contracts to resolve from compiled dist/ — must happen in the
+# builder so the runner image has the correct exports baked in.
 RUN node -e " \
   const fs = require('fs'); \
   const p = 'packages/contracts/package.json'; \
@@ -55,6 +36,23 @@ RUN node -e " \
   pkg.exports = { '.': './dist/index.js' }; \
   fs.writeFileSync(p, JSON.stringify(pkg, null, 2)); \
 "
+
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# node_modules includes the pnpm virtual store (.pnpm/) and workspace symlinks.
+# vendor/ must be present because @hcw/* symlinks in node_modules point to it.
+COPY --from=builder /app/node_modules          node_modules/
+COPY vendor                                    vendor/
+
+COPY package.json                              ./
+COPY packages/contracts/package.json           packages/contracts/
+COPY backend/package.json                      backend/
+COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
+COPY --from=builder /app/backend/dist            backend/dist
+COPY backend/drizzle                             backend/drizzle
 
 EXPOSE 4000
 CMD ["node", "backend/dist/index.js"]
