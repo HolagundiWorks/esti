@@ -1,49 +1,15 @@
 {
   "name": "@hcw/master-dsr-kit",
   "version": "0.1.0",
-  "description": "CPWD + state SSR master DSR catalogs for Indian construction estimation",
   "type": "module",
-  "license": "UNLICENSED",
-  "private": false,
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HolagundiWorks/hcw-master-dsr-kit.git"
-  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./catalog": {
-      "types": "./dist/catalog/index.d.ts",
-      "import": "./dist/catalog/index.js"
-    },
-    "./schemas": {
-      "types": "./dist/schemas/dsr-import.d.ts",
-      "import": "./dist/schemas/dsr-import.js"
-    }
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./catalog": { "types": "./dist/catalog/index.d.ts", "import": "./dist/catalog/index.js" },
+    "./schemas": { "types": "./dist/schemas/dsr-import.d.ts", "import": "./dist/schemas/dsr-import.js" }
   },
-  "files": [
-    "dist",
-    "knowledge"
-  ],
-  "scripts": {},
   "dependencies": {
     "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/node": "^20.14.0",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
-  },
-  "packageManager": "pnpm@9.7.0",
-  "engines": {
-    "node": ">=20"
   }
 }
