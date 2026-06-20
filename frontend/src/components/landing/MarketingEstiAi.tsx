@@ -65,7 +65,11 @@ export function MarketingEstiAi() {
   }
 
   return (
-    <div className="esti-landing-ai" aria-label="Ask ESTI about AORMS">
+    <>
+      {/* Modal is a sibling of the FAB container, NOT a child.
+          If nested inside the fixed FAB div, the modal's own z-index (9000)
+          would paint above the static FAB button within the same stacking context,
+          making the button unclickable even when the modal is visually hidden. */}
       <ComposedModal
         open={open}
         onClose={() => setOpen(false)}
@@ -140,15 +144,17 @@ export function MarketingEstiAi() {
         </ModalBody>
       </ComposedModal>
 
-      <IconButton
-        kind="primary"
-        size="lg"
-        label={open ? "Close ESTI" : "Ask ESTI about AORMS"}
-        className="esti-landing-ai__fab"
-        onClick={() => setOpen((o) => !o)}
-      >
-        {open ? <Close size={24} /> : <Chat size={24} />}
-      </IconButton>
-    </div>
+      <div className="esti-landing-ai" aria-label="Ask ESTI about AORMS">
+        <IconButton
+          kind="primary"
+          size="lg"
+          label={open ? "Close ESTI" : "Ask ESTI about AORMS"}
+          className="esti-landing-ai__fab"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? <Close size={24} /> : <Chat size={24} />}
+        </IconButton>
+      </div>
+    </>
   );
 }
