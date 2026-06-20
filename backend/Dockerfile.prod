@@ -18,7 +18,8 @@ COPY backend/package.json backend/
 COPY vendor vendor/
 
 # Install all dependencies (including devDependencies needed for tsc).
-RUN pnpm install --frozen-lockfile
+# --ignore-scripts: vendor kit packages have no tsconfig/scripts to run.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source.
 COPY packages/contracts packages/contracts
@@ -33,28 +34,29 @@ RUN pnpm --filter @esti/backend build
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 
-RUN corepack enable
-
 WORKDIR /app
 
-# Copy workspace manifests for production install.
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
+# Reuse the pnpm content-addressable store and all node_modules from the
+# builder — avoids a second pnpm install and any lockfile validation issues.
+COPY --from=builder /root/.local/share/pnpm /root/.local/share/pnpm
+COPY --from=builder /app/node_modules                    node_modules/
+COPY --from=builder /app/backend/node_modules            backend/node_modules/
+COPY --from=builder /app/packages/contracts/node_modules packages/contracts/node_modules/
+
+# Package manifests needed so Node can resolve the workspace symlinks.
+COPY package.json pnpm-workspace.yaml ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 COPY vendor vendor/
 
-# Production-only install (no devDependencies).
-RUN pnpm install --frozen-lockfile --prod
-
-# Copy compiled output from builder.
+# Compiled output from builder.
 COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
 COPY --from=builder /app/backend/dist             backend/dist
 
-# Copy migration SQL files (runMigrations() reads them at startup).
+# Migration SQL files (runMigrations() reads them at startup).
 COPY backend/drizzle backend/drizzle
 
-# Patch @esti/contracts to resolve from its compiled dist/ rather than src/.
-# The package.json exports point to src/index.ts in dev; rewrite for prod.
+# Patch @esti/contracts to resolve from compiled dist/ rather than src/.
 RUN node -e " \
   const fs = require('fs'); \
   const p = 'packages/contracts/package.json'; \
@@ -67,5 +69,4 @@ RUN node -e " \
 
 EXPOSE 4000
 
-# Fastify reads BACKEND_PORT from env (default 4000); all other config via env vars.
 CMD ["node", "backend/dist/index.js"]
