@@ -1,5 +1,5 @@
 import { ArrowRight } from "@carbon/icons-react";
-import { Link, Stack, Tag } from "@carbon/react";
+import { Link, Stack, StructuredListBody, StructuredListCell, StructuredListRow, StructuredListWrapper, Tag } from "@carbon/react";
 import type { ElementType, ReactNode } from "react";
 import { MarketingFeatureTile } from "./MarketingFeatureTile.js";
 
@@ -52,30 +52,32 @@ export function LandingFeatureCard({
         <Icon size={32} aria-hidden className="esti-landing-feature-tile__icon" />
       : null}
       {metric ?
-        <Stack gap={1}>
+        <Stack gap={3}>
           <p className="esti-landing-feature-tile__metric">{metric}</p>
           {metricLabel ?
             <p className="esti-landing-feature-tile__metric-label">{metricLabel}</p>
           : null}
         </Stack>
       : null}
-      <div className="esti-row">
+      <Stack orientation="horizontal" gap={3} className="esti-landing-feature-card__title-row">
         <h3 className="esti-landing-section-title">{title}</h3>
         {tag ?
           <Tag type="blue" size="sm">
             {tag}
           </Tag>
         : null}
-      </div>
+      </Stack>
       <p>{body}</p>
       {highlights && highlights.length > 0 ?
-        <Stack gap={4}>
-          {highlights.map((h) => (
-            <p key={h} className="esti-label esti-label--secondary">
-              {h}
-            </p>
-          ))}
-        </Stack>
+        <StructuredListWrapper aria-label={`${title} highlights`}>
+          <StructuredListBody>
+            {highlights.map((h) => (
+              <StructuredListRow key={h}>
+                <StructuredListCell>{h}</StructuredListCell>
+              </StructuredListRow>
+            ))}
+          </StructuredListBody>
+        </StructuredListWrapper>
       : null}
       {children}
     </MarketingFeatureTile>

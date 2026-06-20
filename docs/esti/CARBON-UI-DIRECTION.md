@@ -150,6 +150,7 @@ Spacing rhythm (see [Carbon spacing](https://carbondesignsystem.com/elements/spa
 | Hero copy internal | `5` | `spacing-05` | 16 |
 | Tile internal blocks | `5` | `spacing-05` | 16 |
 | Grid row gap | — | `spacing-07` | 32 (matches default column gutter) |
+| Band backgrounds | — | alternate `background` / `layer-01` / `layer-02` | lead → contrast → default → contrast → muted → default → contrast |
 | Tile padding | — | `spacing-05` | 16 |
 
 Productive heading overrides in `styles.scss` are scoped to

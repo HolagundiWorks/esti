@@ -13,7 +13,7 @@ const STEPS = [
 
 export function MarketingWorkflow() {
   return (
-    <LandingBand id="workflow" ariaLabelledby="workflow-title">
+    <LandingBand variant="muted" id="workflow" ariaLabelledby="workflow-title">
       <LandingEditorial>
         <Stack gap={10}>
           <MarketingSectionHead

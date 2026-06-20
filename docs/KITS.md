@@ -1,11 +1,13 @@
 # External kit packages
 
-ESTI consumes two workspace packages (sibling repos). Canonical source lives outside `esti-aorms`; this monorepo links them via `pnpm-workspace.yaml`.
+ESTI consumes four workspace packages (sibling repos). Canonical source lives outside `esti-aorms`; this monorepo links them via `pnpm-workspace.yaml`.
 
 | Package | Repo | Role |
 |---------|------|------|
 | `@hcw/carbon-agent-kit` | `../hcw-carbon-agent-kit` | Carbon agent knowledge, patterns, Cursor rules |
 | `@hcw/aorms-ai-kit` | `../hcw-aorms-ai-kit` | AORMS AI prompts + Ollama SDK |
+| `@hcw/india-compliance-kit` | `../hcw-india-compliance-kit` | Pan-India building compliance engine; BBMP `bbmp-2003` profile in v0.1 |
+| `@hcw/master-dsr-kit` | `../hcw-master-dsr-kit` | CPWD + state SSR master DSR catalogs |
 
 ## Local setup
 
@@ -17,52 +19,50 @@ pnpm carbon:search tile
 
 After install, `.carbon-kit/` junction points at `@hcw/carbon-agent-kit` for agent docs.
 
+Kit packages build to `dist/` on install (`prepare` script). Podman dev images run explicit builds for AI, compliance, and DSR kits.
+
+## Compliance jurisdiction model
+
+Rules resolve at the most specific level available:
+
+```text
+state → district → taluka → planning zone → authority (e.g. bbmp-2003)
+```
+
+esti DB loads rule rows and maps them to `ComplianceRuleCatalog` via [`backend/src/lib/bbmpRules.ts`](../backend/src/lib/bbmpRules.ts) with jurisdiction `{ stateCode: "IN-KA", authorityId: "bbmp-2003" }`.
+
+## DSR source kinds
+
+| Source | Examples |
+|--------|----------|
+| `CPWD` | Central DAR/SOR building division |
+| `STATE` | Karnataka SSR, Maharashtra SSR, … |
+
+`esti_dsr_version` stores `source` and `state_code`. Demo seed uses Karnataka building SSR (`KA`, FY 2026-27).
+
 ## Versioning and publish
 
 1. Tag kit repos: `git tag v0.1.0 && git push origin v0.1.0`
 2. Publish to GitHub Packages (optional):
 
 ```bash
-cd ../hcw-carbon-agent-kit && npm publish --access restricted
-cd ../hcw-aorms-ai-kit && npm publish --access restricted
+cd ../hcw-india-compliance-kit && npm publish --access restricted
+cd ../hcw-master-dsr-kit && npm publish --access restricted
 ```
 
-3. In esti `package.json`, pin version instead of `workspace:*` when consuming from registry:
+3. In esti `package.json`, pin version instead of `workspace:*` when consuming from registry.
 
-```json
-"@hcw/carbon-agent-kit": "^0.1.0",
-"@hcw/aorms-ai-kit": "^0.1.0"
-```
-
-Or interim git dependency:
-
-```json
-"@hcw/aorms-ai-kit": "github:HolagundiWorks/hcw-aorms-ai-kit#v0.1.0"
-```
-
-**Policy:** bump kit **minor** when prompts or Carbon patterns change; esti PR pins new version.
+**Policy:** bump kit **minor** when compliance profiles or state SSR packs change; esti PR pins new version.
 
 ## CI
 
-- `pnpm install` must resolve both workspace packages
+- `pnpm install` must resolve all four workspace packages
+- `pnpm --filter @hcw/india-compliance-kit test` — BBMP profile + jurisdiction resolver
+- `pnpm --filter @hcw/master-dsr-kit test` — KA building catalog + CSV import
 - `pnpm --filter @hcw/aorms-ai-kit test` — landing AI unit tests
 - `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks
 - `pnpm --filter @esti/frontend lint` — `check-carbon.mjs` imports `@hcw/carbon-agent-kit/policy`
 
-## AORMS AI kit — sync docs from esti
-
-From `hcw-aorms-ai-kit`:
-
-```bash
-node scripts/sync-docs.mjs ../esti
-```
-
-Edit prompts in `knowledge/prompts/*.md`, then `pnpm build-prompts` (runs automatically on `pnpm build`).
-
-Canonical product docs remain in `docs/esti/`; the kit holds copies for prompt maintenance.
-
 ## Production
 
-Ollama requirement for landing AI unchanged — see [PRODUCTION-OPS.md](esti/PRODUCTION-OPS.md).
-
-Rebuild backend after bumping `@hcw/aorms-ai-kit` so prompts are in the image.
+Rebuild backend after bumping kit versions so compiled SDKs are in the image. Ollama requirement for landing AI unchanged — see [PRODUCTION-OPS.md](esti/PRODUCTION-OPS.md).

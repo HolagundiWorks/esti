@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { computeBbmpCompliance } from "./bbmp/engine.js";
-import type { BbmpRuleCatalog } from "./bbmp/catalog.js";
-import { DEFAULT_BBMP_RULE_CATALOG } from "./bbmp/catalog.js";
-import { DevelopmentArea, RoadClass } from "./bbmp/types.js";
+import {
+  computeBbmpCompliance,
+  type BbmpRuleCatalog,
+  DEFAULT_BBMP_RULE_CATALOG,
+  DevelopmentArea,
+  RoadClass,
+} from "./bbmp/index.js";
 
 // ─── Rule version (knowledge bank) ─────────────────────────────────────────
 

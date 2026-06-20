@@ -21,7 +21,7 @@ export function MarketingRecommended({
   const solo = DEMO_ACCOUNTS.solo;
 
   return (
-    <LandingBand variant="muted" id="recommended" ariaLabelledby="recommended-title">
+    <LandingBand variant="contrast" id="recommended" ariaLabelledby="recommended-title">
       <LandingEditorial>
         <Stack gap={10}>
           <MarketingSectionHead

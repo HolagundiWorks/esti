@@ -1,7 +1,7 @@
-import { Activity, ArrowRight, Building, Enterprise, Group } from "@carbon/icons-react";
-import { Button, Stack } from "@carbon/react";
+import { Activity, Building, Enterprise, Group } from "@carbon/icons-react";
+import { Stack } from "@carbon/react";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
-import { LandingFeatureCard } from "./LandingFeatureCard.js";
+import { LandingCaseStudyCard } from "./LandingCaseStudyCard.js";
 import { MarketingSectionHead } from "./MarketingSectionHead.js";
 import { MarketingTileGrid } from "./MarketingTileGrid.js";
 
@@ -87,7 +87,7 @@ export function MarketingImpactGrid({
           />
           <MarketingTileGrid columns={2}>
             {IMPACT.map((item) => (
-              <LandingFeatureCard
+              <LandingCaseStudyCard
                 key={item.title}
                 icon={item.icon}
                 eyebrow={item.eyebrow}
@@ -97,17 +97,10 @@ export function MarketingImpactGrid({
                 metricLabel={item.metricLabel}
                 highlights={[...item.highlights]}
                 tag={item.tag}
-                primaryAction={
-                  <Button
-                    kind="primary"
-                    size="lg"
-                    renderIcon={ArrowRight}
-                    onClick={onStudioDemo}
-                    disabled={demoLoading}
-                  >
-                    {demoLoading ? "Opening…" : item.ctaLabel}
-                  </Button>
-                }
+                ctaLabel={item.ctaLabel}
+                onCta={onStudioDemo}
+                loading={demoLoading}
+                disabled={demoLoading}
               />
             ))}
           </MarketingTileGrid>

@@ -3129,7 +3129,7 @@ html:has(.esti-landing-shell) body {
 
   .esti-landing-content.cds--content {
     flex: 1;
-    margin-block-start: 3rem;
+    margin-block-start: var(--cds-spacing-09);
     max-width: 100%;
     padding-inline: 0;
   }
@@ -3218,6 +3218,7 @@ html:has(.esti-landing-shell) body {
 
 .esti-landing-band {
   padding-block: var(--cds-spacing-10);
+  background: var(--cds-background);
 
   &--lead {
     padding-block: var(--cds-spacing-10);
@@ -3254,8 +3255,6 @@ html:has(.esti-landing-shell) body {
 }
 
 // Carbon 2x Grid + spacing-07 row rhythm (32px — matches default column gutter).
-// https://carbondesignsystem.com/elements/2x-grid/overview/
-// https://carbondesignsystem.com/elements/spacing/overview/
 .esti-landing-grid {
   row-gap: var(--cds-spacing-07);
   padding-inline: 0;
@@ -3265,8 +3264,9 @@ html:has(.esti-landing-shell) body {
   }
 }
 
-.esti-landing-hero-grid {
-  row-gap: var(--cds-spacing-07);
+.esti-landing-feature-card__title-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .esti-landing-feature-tile.cds--tile {
@@ -3335,8 +3335,11 @@ html:has(.esti-landing-shell) body {
   padding-block: var(--cds-spacing-05);
 }
 
-.esti-landing-footer {
+.esti-landing-footer.esti-landing-band {
   padding-block: var(--cds-spacing-09);
+  background: var(--cds-background);
+  border-block-start: 1px solid var(--cds-border-subtle-01);
+  color: var(--cds-text-primary);
 }
 
 .esti-landing-header-brand {
@@ -3427,6 +3430,10 @@ html:has(.esti-landing-shell) body {
     background: var(--cds-layer-02);
     padding: var(--cds-spacing-06);
     border: 1px solid var(--cds-border-subtle-01);
+  }
+
+  .esti-landing-band--contrast &__inner {
+    background: var(--cds-layer-01);
   }
 
   &__hero {

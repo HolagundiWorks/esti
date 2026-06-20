@@ -157,7 +157,7 @@ function CheckGroup<T extends string>({
   return (
     <fieldset>
       <legend>{legend}</legend>
-      <Grid>
+      <Grid fullWidth className="esti-landing-grid">
         {options.map((o) => (
           <Column key={o.value} lg={8} md={4} sm={4}>
             <Checkbox
@@ -236,7 +236,7 @@ export function LandingTrialForm() {
       <Stack gap={6}>
         <Stack gap={5}>
           <h3 className="esti-landing-section-title">Contact details</h3>
-          <Grid>
+          <Grid fullWidth className="esti-landing-grid">
             <Column lg={8} md={4} sm={4}>
               <TextInput
                 id="trial-name"
@@ -300,7 +300,7 @@ export function LandingTrialForm() {
 
         <Stack gap={5}>
           <h3 className="esti-landing-section-title">Practice profile</h3>
-          <Grid>
+          <Grid fullWidth className="esti-landing-grid">
             <Column lg={5} md={8} sm={4}>
               <Select
                 id="trial-practice"
@@ -382,7 +382,7 @@ export function LandingTrialForm() {
 
         <Stack gap={5}>
           <h3 className="esti-landing-section-title">What you are looking for</h3>
-          <Grid>
+          <Grid fullWidth className="esti-landing-grid">
             <Column lg={8} md={4} sm={4}>
               <Select
                 id="trial-pref"
