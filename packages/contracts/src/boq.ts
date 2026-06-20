@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  DsrImportRow,
+  parseDsrCsvText,
+  type DsrImportCsv,
+} from "@hcw/master-dsr-kit/schemas";
+
+export { DsrImportRow, parseDsrCsvText, type DsrImportCsv };
 
 /**
  * Estimation / BOQ / BBS (Phase 10). A versioned master DSR feeds estimates;
@@ -10,14 +17,6 @@ import { z } from "zod";
 export const DsrVersionStatus = z.enum(["DRAFT", "PUBLISHED"]);
 export type DsrVersionStatus = z.infer<typeof DsrVersionStatus>;
 
-export const DsrImportRow = z.object({
-  code: z.string().min(1).max(40),
-  description: z.string().min(1).max(400),
-  unit: z.string().min(1).max(20),
-  ratePaise: z.number().int().nonnegative(),
-});
-export type DsrImportRow = z.infer<typeof DsrImportRow>;
-
 export const DsrVersionCreate = z.object({
   label: z.string().min(1).max(40), // e.g. "2026-27"
   description: z.string().max(200).optional(),
@@ -28,38 +27,6 @@ export const DsrVersionCreate = z.object({
   importRows: z.array(DsrImportRow).max(500).optional(),
 });
 export type DsrVersionCreate = z.infer<typeof DsrVersionCreate>;
-
-export const DsrImportCsv = z.object({
-  versionId: z.string().uuid(),
-  rows: z.array(DsrImportRow).min(1).max(500),
-  /** When true, remove all existing items before importing. */
-  replace: z.boolean().default(false),
-});
-export type DsrImportCsv = z.infer<typeof DsrImportCsv>;
-
-/** Parse CSV/TSV text: code, description, unit, rate (₹). Header row optional. */
-export function parseDsrCsvText(text: string): DsrImportRow[] {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  if (lines.length === 0) return [];
-  let start = 0;
-  const header = lines[0]!.split(/[\t,;]/).map((c) => c.trim().toLowerCase());
-  if (header[0] === "code" || header.includes("description")) start = 1;
-  const rows: DsrImportRow[] = [];
-  for (const line of lines.slice(start)) {
-    const cols = line.split(/[\t,;]/).map((c) => c.trim());
-    const [code, description, unit, rateStr] = cols;
-    if (!code || !description || !unit) continue;
-    const rateNum = Number(String(rateStr ?? "0").replace(/[,₹]/g, ""));
-    if (!Number.isFinite(rateNum)) continue;
-    rows.push({
-      code,
-      description,
-      unit,
-      ratePaise: Math.round(rateNum * 100),
-    });
-  }
-  return rows;
-}
 
 export const DsrItemCreate = z.object({
   versionId: z.string().uuid(),

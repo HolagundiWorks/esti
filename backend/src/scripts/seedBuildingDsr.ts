@@ -1,6 +1,7 @@
 import {
   BUILDING_DSR_VERSION_DESCRIPTION,
   BUILDING_DSR_VERSION_LABEL,
+  KA_BUILDING_DSR_REF,
   buildingDsrCatalogItems,
 } from "@esti/contracts";
 import { and, eq } from "drizzle-orm";
@@ -27,6 +28,8 @@ export async function ensureBuildingDsrCatalog(
       .values({
         label: BUILDING_DSR_VERSION_LABEL,
         description: BUILDING_DSR_VERSION_DESCRIPTION,
+        source: KA_BUILDING_DSR_REF.source,
+        stateCode: KA_BUILDING_DSR_REF.stateCode,
         status: "PUBLISHED",
         active: true,
       })
@@ -35,7 +38,7 @@ export async function ensureBuildingDsrCatalog(
     await database.update(dsrVersions).set({ active: false });
     await database
       .update(dsrVersions)
-      .set({ active: true, description: BUILDING_DSR_VERSION_DESCRIPTION })
+      .set({ active: true, description: BUILDING_DSR_VERSION_DESCRIPTION, source: KA_BUILDING_DSR_REF.source, stateCode: KA_BUILDING_DSR_REF.stateCode })
       .where(eq(dsrVersions.id, version.id));
   }
 

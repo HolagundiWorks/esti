@@ -22,6 +22,19 @@ export * from "./daily-update.js";
 export * from "./drawing.js";
 export * from "./takeoff.js";
 export * from "./building-dsr-catalog.js";
+export {
+  computeCompliance,
+  type ComplianceJurisdiction,
+  type ComplianceRuleCatalog,
+  resolveRuleSetRef,
+} from "@hcw/india-compliance-kit";
+export {
+  KA_BUILDING_DSR_REF,
+  CPWD_BUILDING_DSR_REF,
+  cpwdBuildingDsrItems,
+  type DsrCatalogRef,
+  type DsrSourceKind,
+} from "@hcw/master-dsr-kit";
 export * from "./reconcile.js";
 export * from "./ai.js";
 export * from "./firm.js";

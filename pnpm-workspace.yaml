@@ -4,3 +4,5 @@ packages:
   - frontend
   - ../hcw-carbon-agent-kit
   - ../hcw-aorms-ai-kit
+  - ../hcw-india-compliance-kit
+  - ../hcw-master-dsr-kit

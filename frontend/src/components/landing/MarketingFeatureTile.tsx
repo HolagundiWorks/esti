@@ -32,7 +32,9 @@ export function MarketingFeatureTile({
         </Stack>
       : null}
       {footer ?
-        <div className="esti-landing-feature-tile__footer">{footer}</div>
+        <Stack gap={3} className="esti-landing-feature-tile__footer">
+          {footer}
+        </Stack>
       : null}
     </Tile>
   );

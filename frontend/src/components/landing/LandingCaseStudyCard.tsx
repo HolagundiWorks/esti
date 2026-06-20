@@ -60,7 +60,7 @@ export function LandingCaseStudyCard({
         <Stack gap={6}>
           <div className="esti-case-study-card__hero">
             <Icon size={32} aria-hidden className="esti-case-study-card__icon" />
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p className="esti-case-study-card__metric">{metric}</p>
               <p className="esti-case-study-card__metric-label">{metricLabel}</p>
             </Stack>

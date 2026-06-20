@@ -22,6 +22,10 @@ export const dsrVersions = pgTable("esti_dsr_version", {
   id: id(),
   label: text("label").notNull().unique(),
   description: text("description"),
+  /** CPWD central catalog or state SSR pack. */
+  source: text("source").notNull().default("STATE"),
+  /** ISO 3166-2 state code when source === STATE (e.g. KA). */
+  stateCode: text("state_code"),
   /** DRAFT versions are editable but cannot be set active or linked to estimates. */
   status: text("status").notNull().default("PUBLISHED"),
   active: boolean("active").notNull().default(false),
