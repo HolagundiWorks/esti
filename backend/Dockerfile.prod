@@ -1,6 +1,7 @@
 # ESTI AORMS backend — production image (multi-stage)
-# Build context must be the monorepo root.
-#   podman build -f backend/Dockerfile.prod -t esti-backend:prod .
+# Built automatically by deploy.sh via:
+#   docker compose -f compose.prod.yaml build backend worker
+# Do NOT build this with podman on the VPS — the VPS uses Docker.
 
 # ── Stage 1: build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
