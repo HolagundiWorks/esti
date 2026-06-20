@@ -13,38 +13,35 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
-# Vendor kits: pre-built dist/ for @hcw/* workspace packages that live in
-# sibling repos during development but must be self-contained for Docker.
+# Vendor kits: pre-built dist/ for @hcw/* workspace packages.
 COPY vendor vendor/
 
-# Install all dependencies (including devDependencies needed for tsc).
-# No --frozen-lockfile: lockfile was hand-patched for vendored kits.
-# --ignore-scripts: vendor packages have no tsconfig/scripts to run.
-RUN pnpm install --ignore-scripts
+# --shamefully-hoist flattens all packages into root node_modules, avoiding
+# pnpm virtual-store symlink issues inside Docker. Vendor packages have empty
+# scripts so omitting --ignore-scripts is safe.
+RUN pnpm install --shamefully-hoist
 
 # Copy source.
 COPY packages/contracts packages/contracts
 COPY backend backend
 
-# Build contracts first (backend imports from @esti/contracts at dist/).
-RUN pnpm --filter @esti/contracts build
-
-# Build backend (tsc → backend/dist/).
-RUN pnpm --filter @esti/backend build
+# Build contracts then backend directly (bypass pnpm --filter which needs
+# the workspace to be fully resolved to find packages by name).
+RUN cd packages/contracts && node_modules/.bin/tsc -p tsconfig.json || \
+    /app/node_modules/.bin/tsc -p tsconfig.json
+RUN cd backend && node_modules/.bin/tsc -p tsconfig.json || \
+    /app/node_modules/.bin/tsc -p tsconfig.json
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Reuse the pnpm content-addressable store and all node_modules from the
-# builder — avoids a second pnpm install and any lockfile validation issues.
-COPY --from=builder /root/.local/share/pnpm /root/.local/share/pnpm
-COPY --from=builder /app/node_modules                    node_modules/
-COPY --from=builder /app/backend/node_modules            backend/node_modules/
-COPY --from=builder /app/packages/contracts/node_modules packages/contracts/node_modules/
+# With --shamefully-hoist, all packages land in root node_modules — safe to
+# copy directly. No pnpm store needed.
+COPY --from=builder /app/node_modules node_modules/
 
-# Package manifests needed so Node can resolve the workspace symlinks.
+# Package manifests and vendor.
 COPY package.json pnpm-workspace.yaml ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
