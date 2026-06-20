@@ -20,6 +20,7 @@ function kitFile(pkg: string, file: string) {
 }
 
 export default defineConfig({
+  root: frontendDir,
   plugins: [react()],
   // Several bundled packages (Carbon, react-responsive-masonry, etc.) read
   // process.env.NODE_ENV at runtime; define it so the browser bundle sees it.
