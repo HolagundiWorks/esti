@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
@@ -10,8 +11,15 @@ const proxyTarget = process.env.VITE_PROXY_TARGET ?? "http://localhost:4000";
 const frontendDir = path.dirname(fileURLToPath(import.meta.url));
 const estiRoot = path.resolve(frontendDir, "..");
 const reposRoot = path.resolve(estiRoot, "..");
+const vendorDir = path.resolve(estiRoot, "vendor");
 
+// In Docker and self-contained builds the kits are vendored under vendor/.
+// On a dev machine with the sibling repos checked out, vendor/ may also exist
+// (it is committed); if so we prefer it over the live siblings so the build
+// is always deterministic. Fall back to sibling repos only if vendor/ is absent.
 function kitFile(pkg: string, file: string) {
+  const vendorPath = path.resolve(vendorDir, pkg, file);
+  if (fs.existsSync(vendorPath)) return vendorPath;
   return path.resolve(reposRoot, pkg, file);
 }
 
