@@ -10,6 +10,27 @@
 @use "@carbon/react/scss/type" as type;
 @use "./scss/carbon-motion";
 
+// Carbon spacing tokens emitted as CSS custom properties.
+// @carbon/react compiles them to static Sass values and does NOT output them
+// as runtime CSS custom properties. Declaring them on :root lets any
+// var(--cds-spacing-*) usage in our own CSS resolve correctly.
+:root {
+  --cds-spacing-01: 0.125rem;  // 2px
+  --cds-spacing-02: 0.25rem;   // 4px
+  --cds-spacing-03: 0.5rem;    // 8px
+  --cds-spacing-04: 0.75rem;   // 12px
+  --cds-spacing-05: 1rem;      // 16px
+  --cds-spacing-06: 1.5rem;    // 24px
+  --cds-spacing-07: 2rem;      // 32px
+  --cds-spacing-08: 2.5rem;    // 40px
+  --cds-spacing-09: 3rem;      // 48px
+  --cds-spacing-10: 4rem;      // 64px
+  --cds-spacing-11: 5rem;      // 80px
+  --cds-spacing-12: 6rem;      // 96px
+  --cds-spacing-13: 10rem;     // 160px
+  --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
+}
+
 // Drawing viewer: single SVG viewport with pan/zoom + measurement overlay.
 .dwg-base svg {
   width: 100%;
@@ -2753,90 +2774,48 @@ html:has(.esti-landing-shell) body {
   transform: translateY(0);
 }
 
-.esti-lp-carbon .esti-lp-zone-head {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-zone-head {
+  animation: esti-lp-kpi-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+}
+
+.esti-lp-carbon .esti-zone-head {
   opacity: 0;
   transform: translateY(0.5rem);
   margin-block-start: 0;
 }
 
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-zone-head {
-  animation: esti-lp-kpi-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
-}
-
-.esti-lp-carbon .esti-lp-kpi {
+.esti-lp-carbon .esti-lp-kpi-slot {
   opacity: 0;
   transform: translateY(0.75rem);
 }
 
-.esti-lp-carbon .esti-lp-kpi-label,
-.esti-lp-carbon .esti-lp-kpi-value,
-.esti-lp-carbon .esti-lp-kpi-tag {
-  opacity: 0;
-  transform: translateY(0.35rem);
-}
-
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--0 {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi-slot--0 {
   animation: esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
 }
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--1 {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi-slot--1 {
   animation: esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
 }
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--2 {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi-slot--2 {
   animation: esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
 }
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--3 {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi-slot--3 {
   animation: esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.65s forwards;
 }
 
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--0 .esti-lp-kpi-label {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--0 .esti-lp-kpi-value {
-  animation: esti-lp-kpi-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--0 .esti-lp-kpi-tag {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
-}
-
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--1 .esti-lp-kpi-label {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--1 .esti-lp-kpi-value {
-  animation: esti-lp-kpi-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--1 .esti-lp-kpi-tag {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.7s forwards;
-}
-
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--2 .esti-lp-kpi-label {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.65s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--2 .esti-lp-kpi-value {
-  animation: esti-lp-kpi-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.75s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--2 .esti-lp-kpi-tag {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
-}
-
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--3 .esti-lp-kpi-label {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--3 .esti-lp-kpi-value {
-  animation: esti-lp-kpi-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
-}
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--3 .esti-lp-kpi-tag {
-  animation: esti-lp-kpi-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 1s forwards;
-}
-
-.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi--3.esti-lp-kpi--pulse {
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-kpi-slot--3.esti-lp-kpi-slot--pulse {
   animation:
     esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.65s forwards,
     esti-lp-alert-glow 2.8s ease-in-out 1.15s infinite;
 }
 
-.esti-lp-carbon .esti-lp-kpi-value {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
+.esti-lp-carbon .cds--tile,
+.esti-lp-carbon .cds--clickable-tile {
+  padding: 1rem;
+}
+
+.esti-lp-carbon .esti-lp-activity-preview,
+.esti-lp-carbon .esti-dash {
+  pointer-events: none;
 }
 
 @keyframes esti-lp-kpi-in {
@@ -2854,11 +2833,8 @@ html:has(.esti-landing-shell) body {
 @media (prefers-reduced-motion: reduce) {
   .esti-lp-reveal,
   .esti-lp-carbon .esti-lp-dash-frame,
-  .esti-lp-carbon .esti-lp-zone-head,
-  .esti-lp-carbon .esti-lp-kpi,
-  .esti-lp-carbon .esti-lp-kpi-label,
-  .esti-lp-carbon .esti-lp-kpi-value,
-  .esti-lp-carbon .esti-lp-kpi-tag {
+  .esti-lp-carbon .esti-zone-head,
+  .esti-lp-carbon .esti-lp-kpi-slot {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
@@ -3168,18 +3144,21 @@ html:has(.esti-landing-shell) body {
   // Fixed layout headings inside the editorial max-width container.
   // Fluid expressive tokens are for full-bleed pages — not nested in .esti-landing-editorial.
   // https://carbondesignsystem.com/elements/typography/type-sets/
-  h1.esti-landing-lead-title {
-    @include type.type-style("heading-06");
-    max-width: min(36rem, 100%);
-  }
-
   h2.esti-landing-section-title {
-    @include type.type-style("heading-04");
+    @include type.type-style("heading-05");
   }
 
   h3.esti-landing-section-title {
-    @include type.type-style("heading-03");
+    @include type.type-style("heading-04");
   }
+}
+
+// heading-06 (42px) is the largest non-fluid productive type in Carbon v11.
+// display-* expressive tokens use fluid-type-scale and generate CSS Sass maps
+// that Vite's Sass pipeline cannot serialize — they are off-limits here.
+h1.esti-landing-lead-title {
+  @include type.type-style("heading-06");
+  max-width: min(32rem, 100%);
 }
 
 .esti-landing-eyebrow {
@@ -3200,7 +3179,7 @@ html:has(.esti-landing-shell) body {
 }
 
 .esti-landing-lead-subtitle {
-  @include type.type-style("heading-03");
+  @include type.type-style("heading-04");
   color: var(--cds-text-secondary);
   max-width: 42rem;
 }
@@ -3217,11 +3196,11 @@ html:has(.esti-landing-shell) body {
 }
 
 .esti-landing-band {
-  padding-block: var(--cds-spacing-10);
+  padding-block: var(--cds-spacing-12);
   background: var(--cds-background);
 
   &--lead {
-    padding-block: var(--cds-spacing-10);
+    padding-block: var(--cds-spacing-13);
     min-height: min(40rem, 100svh);
     display: flex;
     align-items: center;
@@ -3230,7 +3209,7 @@ html:has(.esti-landing-shell) body {
 
     @media (max-width: 672px) {
       min-height: auto;
-      padding-block: var(--cds-spacing-09);
+      padding-block: var(--cds-spacing-10);
     }
   }
 
@@ -3264,29 +3243,64 @@ html:has(.esti-landing-shell) body {
   }
 }
 
+// Icon-prefixed lists (Checkmark + text) — hides the default disc since the
+// icon serves as the bullet. Structural/colourless only.
+.esti-landing-icon-list {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.esti-landing-layer-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding-block-end: var(--cds-spacing-05);
+  border-block-end: 1px solid var(--cds-border-subtle-01);
+
+  &:last-child {
+    border-block-end: none;
+    padding-block-end: 0;
+  }
+}
+
+.esti-landing-hero-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.esti-landing-activity-preview {
+  min-block-size: 100%;
+}
+
+.esti-landing-activity-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
 .esti-landing-feature-card__title-row {
   flex-wrap: wrap;
   align-items: flex-start;
 }
 
-.esti-landing-feature-tile.cds--tile {
+.esti-landing-feature-tile {
   min-block-size: 100%;
-  padding: var(--cds-spacing-05);
+  padding: var(--cds-spacing-06);
   display: flex;
   flex-direction: column;
   gap: var(--cds-spacing-05);
-  background: var(--cds-layer-02);
-  border: 1px solid var(--cds-border-subtle-01);
+  box-sizing: border-box;
 
-  .esti-landing-band--contrast & {
-    background: var(--cds-layer-01);
+  // Carbon Tile provides its own background and border — no overrides needed.
+  // ClickableTile: reset text-align since Carbon defaults to center on some builds.
+  &.cds--clickable-tile {
+    text-align: start;
   }
 
   &__content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--cds-spacing-05); // spacing-05 (16px) within tiles
+    gap: var(--cds-spacing-05);
+    width: 100%;
   }
 
   &__footer {
@@ -3324,6 +3338,10 @@ html:has(.esti-landing-shell) body {
     text-align: center;
     min-block-size: 8rem;
   }
+}
+
+.esti-landing-tab-panel {
+  padding-block-start: var(--cds-spacing-07);
 }
 
 .esti-landing-feature-aside {
@@ -3476,11 +3494,37 @@ html:has(.esti-landing-shell) body {
   }
 }
 
+// Hero: tall enough to fill the viewport minus the Carbon header (48px).
+// Structural only — colour comes from the g100 Theme wrapper on the band.
+.esti-landing-hero-full {
+  min-height: max(90svh, 44rem);
+}
+
+// Demo tile grid inside the hero — equal-height tiles on the right column.
+// Uses block layout so tiles stretch to match each other's height.
+.esti-landing-demo-tile-grid {
+  align-items: stretch;
+}
+
+// Hero demo tile — fills the Column height so both cards are equal.
+.esti-landing-hero-demo-tile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// Demo band card — flex column so the CTA button stays pinned to the bottom.
+.esti-landing-demo-card.cds--tile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .esti-landing-ai {
   position: fixed;
-  inset-inline-end: var(--cds-spacing-05);
-  inset-block-end: var(--cds-spacing-05);
-  z-index: 8900;
+  inset-inline-end: 2rem;
+  inset-block-end: 2rem;
+  z-index: 9100;
 
   &__fab {
     border-radius: 50%;
