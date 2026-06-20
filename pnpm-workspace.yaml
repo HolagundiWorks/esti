@@ -2,7 +2,7 @@ packages:
   - packages/*
   - backend
   - frontend
-  - ../hcw-carbon-agent-kit
-  - ../hcw-aorms-ai-kit
-  - ../hcw-india-compliance-kit
-  - ../hcw-master-dsr-kit
+  # HCW kits vendored under vendor/ for self-contained Docker builds.
+  # To use a live sibling checkout during development, run:
+  #   pnpm add --workspace-root <kit>@file:../hcw-<kit>
+  - vendor/*

@@ -1,0 +1,64 @@
+{
+  "name": "@hcw/aorms-ai-kit",
+  "version": "0.1.0",
+  "description": "AORMS AI knowledge + Ollama SDK (landing FAQ, operator prompts)",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HolagundiWorks/hcw-aorms-ai-kit.git"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ollama": {
+      "types": "./dist/ollama/index.d.ts",
+      "import": "./dist/ollama/index.js"
+    },
+    "./landing": {
+      "types": "./dist/landing/index.d.ts",
+      "import": "./dist/landing/index.js"
+    },
+    "./prompts": {
+      "types": "./dist/prompts/index.d.ts",
+      "import": "./dist/prompts/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "knowledge"
+  ],
+  "scripts": {
+    "build-prompts": "node scripts/build-prompts.mjs",
+    "build": "node scripts/build-prompts.mjs && tsc -p tsconfig.json",
+    "prepare": "node scripts/build-prompts.mjs && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "sync-docs": "node scripts/sync-docs.mjs"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
