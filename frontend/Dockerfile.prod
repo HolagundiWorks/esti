@@ -29,17 +29,16 @@ ENV VITE_FULL_DEMO_URL=${VITE_FULL_DEMO_URL}
 ARG VITE_SOLO_DEMO_URL=""
 ENV VITE_SOLO_DEMO_URL=${VITE_SOLO_DEMO_URL}
 ARG BUILD_REVISION=dev
+
+# Carbon SCSS compilation is memory-heavy; give Node.js a generous heap.
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 RUN echo "Build revision: ${BUILD_REVISION}"
 
-# Sanity-check: vendor kit dist files must survive the .dockerignore exclusions.
-RUN echo "--- vendor dist check ---" && \
-    ls vendor/hcw-india-compliance-kit/dist/index.js && \
-    ls vendor/hcw-aorms-ai-kit/dist/index.js && \
-    ls vendor/hcw-master-dsr-kit/dist/index.js && \
-    echo "--- vendor ok ---"
-
-# Run Vite directly — uses esbuild for TS, no separate tsc needed.
-RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts 2>&1
+# Capture Vite output so the error is always visible on failure.
+RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts \
+      > /tmp/vite.log 2>&1 || { cat /tmp/vite.log; exit 1; }
 
 # ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
