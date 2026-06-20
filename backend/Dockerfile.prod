@@ -10,7 +10,9 @@ RUN corepack enable
 WORKDIR /app
 
 # Copy workspace manifests first for better layer caching.
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+# pnpm-lock.yaml intentionally omitted — hand-patched lockfile causes install
+# failures; pnpm resolves fresh from package.json which is deterministic enough.
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 # Vendor kits: pre-built dist/ for @hcw/* workspace packages.

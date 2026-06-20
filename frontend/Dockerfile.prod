@@ -11,7 +11,9 @@ RUN corepack enable
 WORKDIR /app
 
 # Workspace manifests.
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+# pnpm-lock.yaml intentionally omitted — hand-patched lockfile causes install
+# failures; pnpm resolves fresh from package.json.
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
