@@ -26,6 +26,13 @@ export const dsrVersions = pgTable("esti_dsr_version", {
   source: text("source").notNull().default("STATE"),
   /** ISO 3166-2 state code when source === STATE (e.g. KA). */
   stateCode: text("state_code"),
+  /** HCW_OFFICIAL = kit repo (read-only); CUSTOM = firm-owned. */
+  origin: text("origin").notNull().default("CUSTOM"),
+  /** Official kit pack id when origin === HCW_OFFICIAL. */
+  packId: text("pack_id"),
+  readOnly: boolean("read_only").notNull().default(false),
+  /** City key when pack is city-scoped (e.g. bengaluru). */
+  cityKey: text("city_key"),
   /** DRAFT versions are editable but cannot be set active or linked to estimates. */
   status: text("status").notNull().default("PUBLISHED"),
   active: boolean("active").notNull().default(false),

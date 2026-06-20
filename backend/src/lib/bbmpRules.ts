@@ -1,13 +1,13 @@
 import {
   type BbmpRuleCatalog,
   type BbmpEngineConstants,
-  DEFAULT_BBMP_RULE_CATALOG,
   type DevelopmentArea,
   type RoadClass,
   type SecondaryRuleKey,
   type ParkingFormulaKey,
   BBMP_ENGINE_CONSTANT_DEFAULTS,
 } from "@esti/contracts";
+import { DEFAULT_BBMP_RULE_CATALOG } from "@hcw/india-compliance-kit/profiles/bbmp-2003";
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import {
@@ -168,6 +168,14 @@ export async function loadBbmpRuleCatalogById(
     .where(eq(bbmpRuleSets.id, ruleSetId));
 
   if (!ruleSet) return DEFAULT_BBMP_RULE_CATALOG;
+
+  if ((ruleSet.readOnly || ruleSet.origin === "HCW_OFFICIAL") && ruleSet.packId === "compliance-bbmp-2003") {
+    return {
+      ...DEFAULT_BBMP_RULE_CATALOG,
+      ruleSetId: ruleSet.id,
+      label: ruleSet.label,
+    };
+  }
 
   const [far, lowrise, highrise, road, parking, solar, secondary, constants] =
     await Promise.all([

@@ -97,6 +97,12 @@ importers:
       '@hcw/aorms-ai-kit':
         specifier: workspace:*
         version: link:../../hcw-aorms-ai-kit
+      '@hcw/india-compliance-kit':
+        specifier: workspace:*
+        version: link:../../hcw-india-compliance-kit
+      '@hcw/master-dsr-kit':
+        specifier: workspace:*
+        version: link:../../hcw-master-dsr-kit
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.0.2

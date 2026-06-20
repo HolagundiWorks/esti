@@ -6,8 +6,9 @@ import {
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
-import { dsrItems, estimateItems, estimates, measurements } from "../../db/schema.js";
+import { estimateItems, estimates, measurements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { resolveDsrItemRefsForVersion } from "../../lib/dsrCatalog.js";
 import { recomputeEstimate } from "./recomputeEstimate.js";
 
 export async function importTakeoffToEstimate(
@@ -47,16 +48,7 @@ export async function importTakeoffToEstimate(
     throw new TRPCError({ code: "BAD_REQUEST", message: "No tagged takeoff measurements to import" });
   }
 
-  const dsrRows = await db
-    .select({
-      id: dsrItems.id,
-      code: dsrItems.code,
-      description: dsrItems.description,
-      unit: dsrItems.unit,
-      ratePaise: dsrItems.ratePaise,
-    })
-    .from(dsrItems)
-    .where(eq(dsrItems.versionId, est.dsrVersionId));
+  const dsrRows = await resolveDsrItemRefsForVersion(db, est.dsrVersionId);
 
   const refs: TakeoffMeasurementRef[] = tagged.map((m) => ({
     elementTypeId: m.elementTypeId,
@@ -123,16 +115,7 @@ export async function previewTakeoffForDsr(
     .where(eq(measurements.projectId, input.projectId));
 
   const tagged = rows.filter((r) => r.elementTypeId && r.boqQty != null);
-  const dsrRows = await db
-    .select({
-      id: dsrItems.id,
-      code: dsrItems.code,
-      description: dsrItems.description,
-      unit: dsrItems.unit,
-      ratePaise: dsrItems.ratePaise,
-    })
-    .from(dsrItems)
-    .where(eq(dsrItems.versionId, input.dsrVersionId));
+  const dsrRows = await resolveDsrItemRefsForVersion(db, input.dsrVersionId);
 
   const lines = buildTakeoffEstimateLines(tagged, dsrRows);
   const subtotalPaise = lines.reduce((s, l) => s + l.amountPaise, 0);
