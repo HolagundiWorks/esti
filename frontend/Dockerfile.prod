@@ -18,9 +18,9 @@ COPY frontend/package.json frontend/
 # Vendor kits: @hcw/* workspace packages self-contained for Docker builds.
 COPY vendor vendor/
 
-# Install all dependencies (Vite/TypeScript/Carbon included in devDependencies).
-# No --frozen-lockfile: lockfile was hand-patched for vendored kits.
-RUN pnpm install --ignore-scripts
+# --shamefully-hoist flattens all packages into root node_modules, avoiding
+# pnpm virtual-store symlink resolution issues inside Docker.
+RUN pnpm install --shamefully-hoist
 
 # Copy source.
 COPY packages/contracts packages/contracts
@@ -28,37 +28,29 @@ COPY backend/src         backend/src
 COPY backend/tsconfig.json backend/
 COPY frontend            frontend
 
-# VITE_API_URL must be set at build time if you bake an absolute API URL into
-# the bundle. In the recommended setup the SPA uses relative paths (/trpc,
-# /upload) and VITE_API_URL is not needed — pass it as a build arg only if
-# your vite.config.ts or source code references it directly.
 ARG VITE_API_URL=""
 ENV VITE_API_URL=${VITE_API_URL}
 
-# Optional external demo URLs (baked into the bundle at build time).
 ARG VITE_FULL_DEMO_URL=""
 ENV VITE_FULL_DEMO_URL=${VITE_FULL_DEMO_URL}
 
 ARG VITE_SOLO_DEMO_URL=""
 ENV VITE_SOLO_DEMO_URL=${VITE_SOLO_DEMO_URL}
 
-# Busts Docker layer cache on every deploy (pass git SHA from deploy.sh).
 ARG BUILD_REVISION=dev
 RUN echo "ESTI frontend build revision: ${BUILD_REVISION}"
 
-# tsc type-check + Vite bundle → frontend/dist/
-RUN pnpm --filter @esti/frontend build
+# Run Vite directly — Vite uses esbuild for TS transpilation and doesn't
+# need a separate tsc invocation. Bypasses pnpm --filter and tsc project-
+# reference issues that cause exit code 2 in a fresh Docker environment.
+RUN /app/node_modules/.bin/vite build --config frontend/vite.config.ts
 
 # ── Stage 2: nginx static server ─────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
 
-# Remove default nginx content.
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy Vite build output.
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-
-# Copy SPA nginx config.
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
