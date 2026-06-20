@@ -32,7 +32,7 @@ ARG BUILD_REVISION=dev
 RUN echo "Build revision: ${BUILD_REVISION}"
 
 # Run Vite directly — uses esbuild for TS, no separate tsc needed.
-RUN node_modules/.bin/vite build --config frontend/vite.config.ts
+RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts
 
 # ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
