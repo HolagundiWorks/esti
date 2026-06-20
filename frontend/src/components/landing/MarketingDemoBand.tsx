@@ -1,0 +1,142 @@
+import { ArrowRight, Checkmark } from "@carbon/icons-react";
+import { Button, Column, Grid, ListItem, Stack, Tag, Theme, Tile, UnorderedList } from "@carbon/react";
+import { DEMO_ACCOUNTS, type DemoKind } from "../../lib/landing-demo.js";
+import { LandingBand, LandingEditorial } from "./LandingBand.js";
+import { MarketingSectionHead } from "./MarketingSectionHead.js";
+
+export function MarketingDemoBand({
+  onStudioDemo,
+  onSoloDemo,
+  demoLoading,
+  demoKind,
+}: {
+  onStudioDemo: () => void;
+  onSoloDemo: () => void;
+  demoLoading: boolean;
+  demoKind: DemoKind | null;
+}) {
+  return (
+    <Theme theme="g100">
+      <LandingBand id="demo" ariaLabelledby="demo-title">
+        <LandingEditorial>
+          <Stack gap={10}>
+            <MarketingSectionHead
+              id="demo-title"
+              eyebrow="Live demo"
+              title="Experience ESTI in a working office — no sign-up."
+              lead="Each demo workspace has real projects, drawings, fees, and portals seeded and ready. Pick the workspace that matches your practice size."
+            />
+            <Grid fullWidth className="esti-landing-grid">
+              <Column lg={8} md={4} sm={4}>
+                <DemoCard
+                  kind="studio"
+                  onOpen={onStudioDemo}
+                  loading={demoLoading}
+                  activeKind={demoKind}
+                />
+              </Column>
+              <Column lg={8} md={4} sm={4}>
+                <DemoCard
+                  kind="solo"
+                  onOpen={onSoloDemo}
+                  loading={demoLoading}
+                  activeKind={demoKind}
+                />
+              </Column>
+            </Grid>
+            <p className="esti-landing-section-lead">
+              Demo accounts reset weekly. Credentials: email shown on the login screen /
+              password <code>demo1234</code>. Read-only on destructive operations.
+            </p>
+          </Stack>
+        </LandingEditorial>
+      </LandingBand>
+    </Theme>
+  );
+}
+
+function DemoCard({
+  kind,
+  onOpen,
+  loading,
+  activeKind,
+}: {
+  kind: DemoKind;
+  onOpen: () => void;
+  loading: boolean;
+  activeKind: DemoKind | null;
+}) {
+  const acct = DEMO_ACCOUNTS[kind];
+  const isLoading = loading && activeKind === kind;
+  const tagType = kind === "studio" ? "blue" : "teal";
+
+  return (
+    <Tile className="esti-fill esti-landing-demo-card">
+      <Stack gap={7}>
+        <Stack gap={5}>
+          <Stack orientation="horizontal" gap={3}>
+            <Tag type={tagType} size="md">
+              {acct.caseStudy.eyebrow}
+            </Tag>
+            {acct.featured && (
+              <Tag type="purple" size="md">
+                Recommended
+              </Tag>
+            )}
+          </Stack>
+          <Stack gap={2}>
+            <h3 className="esti-landing-section-title">{acct.title}</h3>
+            <p className="esti-landing-section-lead">{acct.subtitle}</p>
+          </Stack>
+        </Stack>
+
+        <Stack gap={4}>
+          <p className="esti-landing-eyebrow">What you will see</p>
+          <UnorderedList className="esti-landing-icon-list">
+            {acct.highlights.map((h) => (
+              <ListItem key={h}>
+                <span className="esti-row">
+                  <Checkmark size={16} aria-hidden className="esti-landing-feature-tile__icon" />
+                  <span>{h}</span>
+                </span>
+              </ListItem>
+            ))}
+          </UnorderedList>
+        </Stack>
+
+        {acct.tour && acct.tour.length > 0 && (
+          <Stack gap={4}>
+            <p className="esti-landing-eyebrow">Recommended tour</p>
+            <Stack gap={3}>
+              {acct.tour.map((step, i) => (
+                <Stack key={step.label} gap={1}>
+                  <p className="esti-label">
+                    {i + 1}. {step.label}
+                  </p>
+                  <p className="esti-label esti-label--helper">{step.hint}</p>
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
+        )}
+
+        <Stack gap={2}>
+          <p className="esti-landing-feature-tile__metric">{acct.caseStudy.metric}</p>
+          <p className="esti-landing-feature-tile__metric-label">
+            {acct.caseStudy.metricLabel}
+          </p>
+        </Stack>
+
+        <Button
+          kind={kind === "studio" ? "primary" : "tertiary"}
+          size="lg"
+          renderIcon={ArrowRight}
+          onClick={onOpen}
+          disabled={loading}
+        >
+          {isLoading ? "Opening workspace…" : acct.cta}
+        </Button>
+      </Stack>
+    </Tile>
+  );
+}

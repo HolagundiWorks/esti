@@ -477,6 +477,20 @@
       "when": 1781195400000,
       "tag": "0067_upload_password",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1781195500000,
+      "tag": "0068_dsr_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1781195600000,
+      "tag": "0069_kb_seed_meta",
+      "breakpoints": true
     }
   ]
 }

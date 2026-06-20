@@ -20,10 +20,10 @@ import { formatVisitCount } from "../../lib/landing-visit.js";
 
 const NAV = [
   { href: "#platform", label: "Platform" },
-  { href: "#impact", label: "Impact" },
-  { href: "#workflow", label: "Workflow" },
-  { href: "#esticad", label: "ESTICAD" },
-  { href: "#beta", label: "Beta access" },
+  { href: "#india", label: "India desk" },
+  { href: "#lifecycle", label: "Workflow" },
+  { href: "#demo", label: "Try demo" },
+  { href: "#trial", label: "Get started" },
 ] as const;
 
 export function MarketingShell({
