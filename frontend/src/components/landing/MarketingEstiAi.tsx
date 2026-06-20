@@ -21,10 +21,8 @@ function landingSessionId(): string {
   try {
     const existing = sessionStorage.getItem(SESSION_KEY);
     if (existing) return existing;
-    const id =
-      typeof crypto !== "undefined" && crypto.randomUUID ?
-        crypto.randomUUID()
-      : `lp-${Date.now()}`;
+    // crypto.randomUUID() throws on plain HTTP — use a safe fallback always.
+    const id = `lp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     sessionStorage.setItem(SESSION_KEY, id);
     return id;
   } catch {
