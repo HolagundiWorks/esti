@@ -26,8 +26,7 @@ COPY backend            backend
 RUN node_modules/.bin/tsc -p packages/contracts/tsconfig.json
 RUN node_modules/.bin/tsc -p backend/tsconfig.json
 
-# Rewrite @esti/contracts to resolve from compiled dist/ — must happen in the
-# builder so the runner image has the correct exports baked in.
+# Rewrite @esti/contracts exports to point at compiled dist/ (not src/).
 RUN node -e " \
   const fs = require('fs'); \
   const p = 'packages/contracts/package.json'; \
@@ -43,17 +42,28 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# node_modules includes the pnpm virtual store (.pnpm/) and workspace symlinks.
-# vendor/ must be present because @hcw/* symlinks in node_modules point to it.
+# node_modules from the builder contains the pnpm virtual store (.pnpm/) and
+# workspace symlinks. vendor/ must be present because @hcw/* symlinks point to it.
 COPY --from=builder /app/node_modules          node_modules/
 COPY vendor                                    vendor/
 
 COPY package.json                              ./
-COPY packages/contracts/package.json           packages/contracts/
 COPY backend/package.json                      backend/
-COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
-COPY --from=builder /app/backend/dist            backend/dist
-COPY backend/drizzle                             backend/drizzle
+
+# Copy the PATCHED contracts package.json (exports dist/index.js, not src/).
+# The build-context copy would bring the original (exports src/index.ts) which
+# does not exist in the runner — causing ERR_MODULE_NOT_FOUND at startup.
+COPY --from=builder /app/packages/contracts/package.json packages/contracts/package.json
+COPY --from=builder /app/packages/contracts/dist         packages/contracts/dist
+
+# pnpm workspace symlinks (node_modules/@esti/contracts → ../../packages/contracts)
+# may not survive Docker's cross-stage COPY reliably. Re-create it explicitly as
+# an absolute symlink so Node.js always resolves the package regardless.
+RUN mkdir -p node_modules/@esti && \
+    ln -snf /app/packages/contracts node_modules/@esti/contracts
+
+COPY --from=builder /app/backend/dist          backend/dist
+COPY backend/drizzle                           backend/drizzle
 
 EXPOSE 4000
 CMD ["node", "backend/dist/index.js"]
