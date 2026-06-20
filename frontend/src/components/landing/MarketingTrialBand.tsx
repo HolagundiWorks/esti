@@ -19,7 +19,7 @@ export function MarketingTrialBand() {
             }
           >
             <LandingTrialForm />
-            <p className="esti-landing-section-lead" style={{ marginTop: "1rem" }}>
+            <p className="esti-landing-section-lead esti-landing-section-lead--spaced">
               Already have access? <Link href="/login">Sign in to your workspace</Link>
             </p>
           </AccordionItem>
