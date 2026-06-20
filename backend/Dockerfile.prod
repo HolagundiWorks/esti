@@ -13,9 +13,12 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
+# Vendor kits: pre-built dist/ for @hcw/* workspace packages that live in
+# sibling repos during development but must be self-contained for Docker.
+COPY vendor vendor/
 
 # Install all dependencies (including devDependencies needed for tsc).
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy source.
 COPY packages/contracts packages/contracts
@@ -38,9 +41,10 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
 COPY backend/package.json backend/
+COPY vendor vendor/
 
 # Production-only install (no devDependencies).
-RUN pnpm install --frozen-lockfile --prod || pnpm install --prod
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled output from builder.
 COPY --from=builder /app/packages/contracts/dist packages/contracts/dist

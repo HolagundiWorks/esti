@@ -1,0 +1,1 @@
+{"version":3,"file":"runLandingAsk.d.ts","sourceRoot":"","sources":["../../src/landing/runLandingAsk.ts"],"names":[],"mappings":"AAQA,MAAM,MAAM,iBAAiB,GAAG;IAC9B,MAAM,EAAE,MAAM,CAAC;IACf,KAAK,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,yDAAyD;AACzD,wBAAsB,aAAa,CAAC,MAAM,EAAE,MAAM,GAAG,OAAO,CAAC,iBAAiB,CAAC,CAgB9E"}

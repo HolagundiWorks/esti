@@ -13,7 +13,7 @@ importers:
         version: 9.39.4
       '@hcw/carbon-agent-kit':
         specifier: workspace:*
-        version: link:../hcw-carbon-agent-kit
+        version: link:vendor/hcw-carbon-agent-kit
       eslint:
         specifier: ^9.9.0
         version: 9.39.4
@@ -30,7 +30,7 @@ importers:
         specifier: ^8.2.0
         version: 8.60.1(eslint@9.39.4)(typescript@5.9.3)
 
-  ../hcw-aorms-ai-kit:
+  vendor/hcw-aorms-ai-kit:
     dependencies:
       zod:
         specifier: ^3.23.8
@@ -46,9 +46,9 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.42)(sass@1.100.0)
 
-  ../hcw-carbon-agent-kit: {}
+  vendor/hcw-carbon-agent-kit: {}
 
-  ../hcw-india-compliance-kit:
+  vendor/hcw-india-compliance-kit:
     dependencies:
       zod:
         specifier: ^3.23.8
@@ -64,7 +64,7 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.42)(sass@1.100.0)
 
-  ../hcw-master-dsr-kit:
+  vendor/hcw-master-dsr-kit:
     dependencies:
       zod:
         specifier: ^3.23.8
@@ -96,13 +96,13 @@ importers:
         version: 9.1.0
       '@hcw/aorms-ai-kit':
         specifier: workspace:*
-        version: link:../../hcw-aorms-ai-kit
+        version: link:../vendor/hcw-aorms-ai-kit
       '@hcw/india-compliance-kit':
         specifier: workspace:*
-        version: link:../../hcw-india-compliance-kit
+        version: link:../vendor/hcw-india-compliance-kit
       '@hcw/master-dsr-kit':
         specifier: workspace:*
-        version: link:../../hcw-master-dsr-kit
+        version: link:../vendor/hcw-master-dsr-kit
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.0.2
@@ -200,7 +200,7 @@ importers:
     devDependencies:
       '@hcw/carbon-agent-kit':
         specifier: workspace:*
-        version: link:../../hcw-carbon-agent-kit
+        version: link:../vendor/hcw-carbon-agent-kit
       '@types/node':
         specifier: ^20.14.0
         version: 20.19.42
@@ -230,10 +230,10 @@ importers:
     dependencies:
       '@hcw/india-compliance-kit':
         specifier: workspace:*
-        version: link:../../../hcw-india-compliance-kit
+        version: link:../../vendor/hcw-india-compliance-kit
       '@hcw/master-dsr-kit':
         specifier: workspace:*
-        version: link:../../../hcw-master-dsr-kit
+        version: link:../../vendor/hcw-master-dsr-kit
       zod:
         specifier: ^3.23.8
         version: 3.25.76

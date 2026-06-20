@@ -1,0 +1,37 @@
+{
+  "name": "@hcw/carbon-agent-kit",
+  "version": "0.1.0",
+  "description": "Carbon Design System agent knowledge base — patterns, tokens, index, Cursor rules",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HolagundiWorks/hcw-carbon-agent-kit.git"
+  },
+  "files": [
+    "knowledge",
+    "design-intelligence",
+    "pattern-library",
+    "cursor-rules",
+    "policy",
+    "scripts"
+  ],
+  "exports": {
+    ".": "./README.md",
+    "./package.json": "./package.json",
+    "./policy": "./policy/carbon-policy-rules.mjs",
+    "./knowledge/*": "./knowledge/*",
+    "./design-intelligence/*": "./design-intelligence/*",
+    "./pattern-library/*": "./pattern-library/*"
+  },
+  "scripts": {
+    "index": "python knowledge/scripts/sync-index.py",
+    "search": "python knowledge/scripts/search.py",
+    "install-cursor-rules": "node scripts/install-cursor-rules.mjs"
+  }
+}
