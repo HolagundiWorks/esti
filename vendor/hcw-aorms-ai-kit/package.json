@@ -41,14 +41,7 @@
     "dist",
     "knowledge"
   ],
-  "scripts": {
-    "build-prompts": "node scripts/build-prompts.mjs",
-    "build": "node scripts/build-prompts.mjs && tsc -p tsconfig.json",
-    "prepare": "node scripts/build-prompts.mjs && tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "sync-docs": "node scripts/sync-docs.mjs"
-  },
+  "scripts": {},
   "dependencies": {
     "zod": "^3.23.8"
   },

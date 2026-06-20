@@ -29,12 +29,7 @@
     "dist",
     "knowledge"
   ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "prepare": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
-  },
+  "scripts": {},
   "dependencies": {
     "zod": "^3.23.8"
   },
