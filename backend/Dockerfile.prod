@@ -18,8 +18,9 @@ COPY backend/package.json backend/
 COPY vendor vendor/
 
 # Install all dependencies (including devDependencies needed for tsc).
-# --ignore-scripts: vendor kit packages have no tsconfig/scripts to run.
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# No --frozen-lockfile: lockfile was hand-patched for vendored kits.
+# --ignore-scripts: vendor packages have no tsconfig/scripts to run.
+RUN pnpm install --ignore-scripts
 
 # Copy source.
 COPY packages/contracts packages/contracts
