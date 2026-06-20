@@ -63,6 +63,10 @@ services:
       - ./backend/src:/app/esti/backend/src
       - ./backend/drizzle:/app/esti/backend/drizzle
       - ./packages/contracts/src:/app/esti/packages/contracts/src
+      - ../hcw-carbon-agent-kit:/app/hcw-carbon-agent-kit
+      - ../hcw-aorms-ai-kit:/app/hcw-aorms-ai-kit
+      - ../hcw-india-compliance-kit:/app/hcw-india-compliance-kit
+      - ../hcw-master-dsr-kit:/app/hcw-master-dsr-kit
     ports: ["4000:4000"]
     depends_on: [db, redis, ollama]
 
@@ -97,10 +101,15 @@ services:
       VITE_API_URL: http://localhost:4000
       VITE_PROXY_TARGET: http://backend:4000
     volumes:
+      - ./frontend/vite.config.ts:/app/esti/frontend/vite.config.ts
       - ./frontend/src:/app/esti/frontend/src
       - ./frontend/public:/app/esti/frontend/public
       - ./packages/contracts/src:/app/esti/packages/contracts/src
       - ./backend/src:/app/esti/backend/src # type-only: SPA imports AppRouter
+      - ../hcw-carbon-agent-kit:/app/hcw-carbon-agent-kit
+      - ../hcw-aorms-ai-kit:/app/hcw-aorms-ai-kit
+      - ../hcw-india-compliance-kit:/app/hcw-india-compliance-kit
+      - ../hcw-master-dsr-kit:/app/hcw-master-dsr-kit
     ports: ["5173:5173"]
     depends_on: [backend]
 
