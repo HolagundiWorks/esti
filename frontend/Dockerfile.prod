@@ -19,7 +19,7 @@ COPY frontend/package.json frontend/
 COPY vendor vendor/
 
 # Install all dependencies (Vite/TypeScript/Carbon included in devDependencies).
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source.
 COPY packages/contracts packages/contracts
