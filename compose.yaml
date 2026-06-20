@@ -59,14 +59,12 @@ services:
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD:-ChangeMe123}
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-HCW Owner}
     # Dev hot-reload: host source is mounted over the image; node_modules stays.
+    # vendor/ supplies the HCW kit packages — pnpm workspace symlinks point here.
     volumes:
       - ./backend/src:/app/esti/backend/src
       - ./backend/drizzle:/app/esti/backend/drizzle
       - ./packages/contracts/src:/app/esti/packages/contracts/src
-      - ../hcw-carbon-agent-kit:/app/hcw-carbon-agent-kit
-      - ../hcw-aorms-ai-kit:/app/hcw-aorms-ai-kit
-      - ../hcw-india-compliance-kit:/app/hcw-india-compliance-kit
-      - ../hcw-master-dsr-kit:/app/hcw-master-dsr-kit
+      - ./vendor:/app/esti/vendor
     ports: ["4000:4000"]
     depends_on: [db, redis, ollama]
 
@@ -100,16 +98,15 @@ services:
     environment:
       VITE_API_URL: http://localhost:4000
       VITE_PROXY_TARGET: http://backend:4000
+    # vendor/ mirrors the production layout: Vite aliases resolve to vendor/hcw-*/dist/
+    # and Vite's fs.allow covers estiRoot which includes vendor/.
     volumes:
       - ./frontend/vite.config.ts:/app/esti/frontend/vite.config.ts
       - ./frontend/src:/app/esti/frontend/src
       - ./frontend/public:/app/esti/frontend/public
       - ./packages/contracts/src:/app/esti/packages/contracts/src
       - ./backend/src:/app/esti/backend/src # type-only: SPA imports AppRouter
-      - ../hcw-carbon-agent-kit:/app/hcw-carbon-agent-kit
-      - ../hcw-aorms-ai-kit:/app/hcw-aorms-ai-kit
-      - ../hcw-india-compliance-kit:/app/hcw-india-compliance-kit
-      - ../hcw-master-dsr-kit:/app/hcw-master-dsr-kit
+      - ./vendor:/app/esti/vendor
     ports: ["5173:5173"]
     depends_on: [backend]
 
