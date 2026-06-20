@@ -31,8 +31,15 @@ ENV VITE_SOLO_DEMO_URL=${VITE_SOLO_DEMO_URL}
 ARG BUILD_REVISION=dev
 RUN echo "Build revision: ${BUILD_REVISION}"
 
+# Sanity-check: vendor kit dist files must survive the .dockerignore exclusions.
+RUN echo "--- vendor dist check ---" && \
+    ls vendor/hcw-india-compliance-kit/dist/index.js && \
+    ls vendor/hcw-aorms-ai-kit/dist/index.js && \
+    ls vendor/hcw-master-dsr-kit/dist/index.js && \
+    echo "--- vendor ok ---"
+
 # Run Vite directly — uses esbuild for TS, no separate tsc needed.
-RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts
+RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts 2>&1
 
 # ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
