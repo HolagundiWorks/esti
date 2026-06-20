@@ -36,9 +36,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 RUN echo "Build revision: ${BUILD_REVISION}"
 
-# Capture Vite output so the error is always visible on failure.
-RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts \
-      > /tmp/vite.log 2>&1 || { cat /tmp/vite.log; exit 1; }
+RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts
 
 # ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
