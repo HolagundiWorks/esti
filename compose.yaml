@@ -60,9 +60,9 @@ services:
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-HCW Owner}
     # Dev hot-reload: host source is mounted over the image; node_modules stays.
     volumes:
-      - ./backend/src:/app/backend/src
-      - ./backend/drizzle:/app/backend/drizzle
-      - ./packages/contracts/src:/app/packages/contracts/src
+      - ./backend/src:/app/esti/backend/src
+      - ./backend/drizzle:/app/esti/backend/drizzle
+      - ./packages/contracts/src:/app/esti/packages/contracts/src
     ports: ["4000:4000"]
     depends_on: [db, redis, ollama]
 
@@ -97,10 +97,10 @@ services:
       VITE_API_URL: http://localhost:4000
       VITE_PROXY_TARGET: http://backend:4000
     volumes:
-      - ./frontend/src:/app/frontend/src
-      - ./frontend/public:/app/frontend/public
-      - ./packages/contracts/src:/app/packages/contracts/src
-      - ./backend/src:/app/backend/src # type-only: SPA imports AppRouter
+      - ./frontend/src:/app/esti/frontend/src
+      - ./frontend/public:/app/esti/frontend/public
+      - ./packages/contracts/src:/app/esti/packages/contracts/src
+      - ./backend/src:/app/esti/backend/src # type-only: SPA imports AppRouter
     ports: ["5173:5173"]
     depends_on: [backend]
 
