@@ -6,6 +6,7 @@ import {
   Checkbox,
   Column,
   Form,
+  FormGroup,
   Grid,
   InlineNotification,
   Link,
@@ -155,8 +156,7 @@ function CheckGroup<T extends string>({
   onChange: (next: Set<T>) => void;
 }) {
   return (
-    <fieldset>
-      <legend>{legend}</legend>
+    <FormGroup legendText={legend}>
       <Grid fullWidth className="esti-landing-grid">
         {options.map((o) => (
           <Column key={o.value} lg={8} md={4} sm={4}>
@@ -174,7 +174,7 @@ function CheckGroup<T extends string>({
           </Column>
         ))}
       </Grid>
-    </fieldset>
+    </FormGroup>
   );
 }
 

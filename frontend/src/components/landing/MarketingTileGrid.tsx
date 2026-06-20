@@ -46,6 +46,14 @@ function columnProps(columns: LandingTileColumns, index: number): ColSpan {
   return TILE_COLS[columns];
 }
 
+function toColumnSpan(span: ColSpan) {
+  return {
+    sm: span.sm,
+    md: span.mdOffset != null ? { span: span.md, offset: span.mdOffset } : span.md,
+    lg: span.lgOffset != null ? { span: span.lg, offset: span.lgOffset } : span.lg,
+  };
+}
+
 /**
  * Carbon CSS Grid wrapper — each child is placed in a 2x-aligned Column.
  */
@@ -64,14 +72,7 @@ export function MarketingTileGrid({
         if (!isValidElement(child)) return null;
         const span = columnProps(columns, index);
         return (
-          <Column
-            key={child.key ?? index}
-            sm={span.sm}
-            md={span.md}
-            lg={span.lg}
-            mdOffset={span.mdOffset}
-            lgOffset={span.lgOffset}
-          >
+          <Column key={child.key ?? index} {...toColumnSpan(span)}>
             {child}
           </Column>
         );

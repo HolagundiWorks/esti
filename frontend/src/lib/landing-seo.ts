@@ -2,7 +2,7 @@
 export const LANDING_SEO = {
   title: "ESTI AORMS — Architectural Office Record for Indian Practices",
   description:
-    "Self-hosted AORMS for Indian architects — traceable projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD desktop companion, client portals, and Knowledge Bank compliance. Solo to studio.",
+    "Self-hosted AORMS for Indian architects — traceable projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD 2D CAD, client portals, and Knowledge Bank compliance. Solo to studio.",
   keywords:
     "AORMS, architectural office record, architecture practice management India, CRIF revision intelligence, COA scale of charges, GST invoicing architects, ESTICAD companion, client portal, self-hosted architecture software, ESTI AORMS",
   ogTitle: "One traceable office record for Indian architecture practices",
@@ -10,10 +10,10 @@ export const LANDING_SEO = {
     "ESTI AORMS — projects, drawings, revisions, fees, and portals in one self-hosted system. Explore the live studio demo or ask ESTI on the landing page.",
   twitterTitle: "ESTI AORMS — Architecture Office Record",
   twitterDescription:
-    "Traceable AORMS for Indian studios — CRIF, commercial, ESTICAD takeoff, and scoped portals. Self-hosted from solo to mid-size practice.",
-  headline: "One traceable office record for Indian architecture practices",
+    "Traceable AORMS for Indian studios — CRIF, commercial, ESTICAD 2D CAD, and scoped portals. Self-hosted from solo to mid-size practice.",
+  headline: "The office record your projects deserve.",
   footerBlurb:
-    "AORMS for Indian architecture practices — projects, fees, drawings, and accounts in one place, powered by ESTI.",
+    "AORMS for Indian architecture practices — traceable projects, fees, drawings, compliance evidence, and scoped portals in one office record.",
   canonical: "https://aorms.in/",
   siteName: "ESTI AORMS",
 } as const;
