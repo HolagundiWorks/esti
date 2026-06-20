@@ -1,62 +1,51 @@
 # ESTI AORMS backend — production image (multi-stage)
-# Build context must be the monorepo root (compose.prod.yaml does this automatically).
-#   docker build -f backend/Dockerfile.prod -t esti-backend:prod .
+# Build context must be the monorepo root.
+#   podman build -f backend/Dockerfile.prod -t esti-backend:prod .
 
 # ── Stage 1: build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
+
+# Build tools needed for native addons (@node-rs/argon2 etc.)
+RUN apk add --no-cache python3 make g++
 
 RUN corepack enable
 
 WORKDIR /app
 
-# Copy workspace manifests first for better layer caching.
 COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
-# pnpm-lock.yaml intentionally omitted — hand-patched lockfile causes install
-# failures; pnpm resolves fresh from package.json which is deterministic enough.
 COPY packages/contracts/package.json packages/contracts/
-COPY backend/package.json backend/
-# Vendor kits: pre-built dist/ for @hcw/* workspace packages.
-COPY vendor vendor/
+COPY backend/package.json           backend/
+COPY vendor                         vendor/
 
-# --shamefully-hoist flattens all packages into root node_modules, avoiding
-# pnpm virtual-store symlink issues inside Docker. Vendor packages have empty
-# scripts so omitting --ignore-scripts is safe.
-RUN pnpm install --shamefully-hoist
+RUN pnpm install --ignore-scripts
 
-# Copy source.
 COPY packages/contracts packages/contracts
-COPY backend backend
+COPY backend            backend
 
-# Build contracts then backend directly (bypass pnpm --filter which needs
-# the workspace to be fully resolved to find packages by name).
-RUN cd packages/contracts && node_modules/.bin/tsc -p tsconfig.json || \
-    /app/node_modules/.bin/tsc -p tsconfig.json
-RUN cd backend && node_modules/.bin/tsc -p tsconfig.json || \
-    /app/node_modules/.bin/tsc -p tsconfig.json
+# Build contracts (tsc resolves tsconfig relative to the file location).
+RUN node_modules/.bin/tsc -p packages/contracts/tsconfig.json
+
+# Build backend.
+RUN node_modules/.bin/tsc -p backend/tsconfig.json
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# With --shamefully-hoist, all packages land in root node_modules — safe to
-# copy directly. No pnpm store needed.
+# node_modules contains the pnpm virtual store (.pnpm/) + workspace symlinks.
+# vendor/ must be present because @hcw/* symlinks point back to it.
 COPY --from=builder /app/node_modules node_modules/
-
-# Package manifests and vendor.
-COPY package.json pnpm-workspace.yaml ./
-COPY packages/contracts/package.json packages/contracts/
-COPY backend/package.json backend/
 COPY vendor vendor/
 
-# Compiled output from builder.
+COPY package.json pnpm-workspace.yaml          ./
+COPY packages/contracts/package.json           packages/contracts/
+COPY backend/package.json                      backend/
 COPY --from=builder /app/packages/contracts/dist packages/contracts/dist
-COPY --from=builder /app/backend/dist             backend/dist
+COPY --from=builder /app/backend/dist            backend/dist
+COPY backend/drizzle                             backend/drizzle
 
-# Migration SQL files (runMigrations() reads them at startup).
-COPY backend/drizzle backend/drizzle
-
-# Patch @esti/contracts to resolve from compiled dist/ rather than src/.
+# Redirect @esti/contracts to compiled dist/ at runtime.
 RUN node -e " \
   const fs = require('fs'); \
   const p = 'packages/contracts/package.json'; \
@@ -68,5 +57,4 @@ RUN node -e " \
 "
 
 EXPOSE 4000
-
 CMD ["node", "backend/dist/index.js"]

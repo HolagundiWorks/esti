@@ -1,7 +1,6 @@
 # ESTI AORMS frontend — production image (multi-stage)
-# Build context must be the monorepo root (compose.prod.yaml does this automatically).
-# The compiled dist/ is extracted via `docker cp` or a bind mount; see deploy/deploy.sh.
-#   docker build -f frontend/Dockerfile.prod -t esti-frontend:prod .
+# Build context must be the monorepo root.
+#   podman build -f frontend/Dockerfile.prod -t esti-frontend:prod .
 
 # ── Stage 1: build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
@@ -10,21 +9,14 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Workspace manifests.
 COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
-# pnpm-lock.yaml intentionally omitted — hand-patched lockfile causes install
-# failures; pnpm resolves fresh from package.json.
 COPY packages/contracts/package.json packages/contracts/
-COPY backend/package.json backend/
-COPY frontend/package.json frontend/
-# Vendor kits: @hcw/* workspace packages self-contained for Docker builds.
-COPY vendor vendor/
+COPY backend/package.json            backend/
+COPY frontend/package.json           frontend/
+COPY vendor                          vendor/
 
-# --shamefully-hoist flattens all packages into root node_modules, avoiding
-# pnpm virtual-store symlink resolution issues inside Docker.
-RUN pnpm install --shamefully-hoist
+RUN pnpm install --ignore-scripts
 
-# Copy source.
 COPY packages/contracts packages/contracts
 COPY backend/src         backend/src
 COPY backend/tsconfig.json backend/
@@ -32,29 +24,22 @@ COPY frontend            frontend
 
 ARG VITE_API_URL=""
 ENV VITE_API_URL=${VITE_API_URL}
-
 ARG VITE_FULL_DEMO_URL=""
 ENV VITE_FULL_DEMO_URL=${VITE_FULL_DEMO_URL}
-
 ARG VITE_SOLO_DEMO_URL=""
 ENV VITE_SOLO_DEMO_URL=${VITE_SOLO_DEMO_URL}
-
 ARG BUILD_REVISION=dev
-RUN echo "ESTI frontend build revision: ${BUILD_REVISION}"
+RUN echo "Build revision: ${BUILD_REVISION}"
 
-# Run Vite directly — Vite uses esbuild for TS transpilation and doesn't
-# need a separate tsc invocation. Bypasses pnpm --filter and tsc project-
-# reference issues that cause exit code 2 in a fresh Docker environment.
-RUN /app/node_modules/.bin/vite build --config frontend/vite.config.ts
+# Run Vite directly — uses esbuild for TS, no separate tsc needed.
+RUN node_modules/.bin/vite build --config frontend/vite.config.ts
 
-# ── Stage 2: nginx static server ─────────────────────────────────────────────
+# ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
 
 RUN rm -rf /usr/share/nginx/html/*
-
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
