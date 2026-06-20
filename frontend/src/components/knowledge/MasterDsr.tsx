@@ -141,6 +141,26 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
 
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
   const isDraft = activeVersion?.status === "DRAFT";
+  const isReadOnly =
+    activeVersion?.readOnly === true || activeVersion?.origin === "HCW_OFFICIAL";
+
+  const exportCsvQ = trpc.dsr.exportCsv.useQuery(
+    { versionId },
+    { enabled: false },
+  );
+
+  async function downloadExportCsv() {
+    if (!versionId || isReadOnly) return;
+    const result = await exportCsvQ.refetch();
+    if (!result.data) return;
+    const blob = new Blob([result.data.csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = result.data.filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <Stack gap={5}>
@@ -149,7 +169,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
           {embedded ? <h2>Master DSR</h2> : <h1>Master DSR</h1>}
           <p>
             Versioned schedule-of-rates items used by estimates and purchase
-            orders.
+            orders. Official HCW seeds are read-only; create a custom version to edit or export CSV.
           </p>
         </Stack>
         <Button onClick={() => { setVOpen(true); setVError(null); }}>New version</Button>
@@ -167,10 +187,13 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             <SelectItem
               key={v.id}
               value={v.id}
-              text={`${v.label}${v.active ? " (active)" : ""}${v.status === "DRAFT" ? " (draft)" : ""}`}
+              text={`${v.label}${v.active ? " (active)" : ""}${v.status === "DRAFT" ? " (draft)" : ""}${v.origin === "HCW_OFFICIAL" ? " (HCW)" : ""}`}
             />
           ))}
         </Select>
+        {activeVersion && isReadOnly && (
+          <Tag type="purple">HCW read-only</Tag>
+        )}
         {activeVersion && isDraft && (
           <Tag type="gray">Draft</Tag>
         )}
@@ -191,12 +214,12 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
             Set active
           </Button>
         )}
-        <Button disabled={!versionId} onClick={() => setIOpen(true)}>
+        <Button disabled={!versionId || isReadOnly} onClick={() => setIOpen(true)}>
           Add item
         </Button>
         <Button
           kind="tertiary"
-          disabled={!versionId}
+          disabled={!versionId || isReadOnly}
           onClick={() => {
             setImportOpen(true);
             setImportError(null);
@@ -205,6 +228,13 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
           }}
         >
           Import CSV
+        </Button>
+        <Button
+          kind="tertiary"
+          disabled={!versionId || isReadOnly}
+          onClick={() => void downloadExportCsv()}
+        >
+          Export CSV
         </Button>
       </Stack>
 
@@ -253,13 +283,15 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
                   <TableCell>{it.unit}</TableCell>
                   <TableCell>{formatINR(it.ratePaise)}</TableCell>
                   <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(it.id)}
-                    >
-                      Remove
-                    </Button>
+                    {!isReadOnly && !it.fromKit && (
+                      <Button
+                        kind="danger--ghost"
+                        size="sm"
+                        onClick={() => setConfirmId(it.id)}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

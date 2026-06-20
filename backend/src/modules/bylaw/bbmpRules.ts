@@ -73,6 +73,12 @@ export const bbmpRulesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db.select().from(bbmpRuleSets).where(eq(bbmpRuleSets.id, input.id));
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (row.readOnly || row.origin === "HCW_OFFICIAL") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Official HCW compliance seed is read-only",
+        });
+      }
       if (!["DRAFT", "REVIEW"].includes(row.status)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT or REVIEW rule sets can be published" });
       }

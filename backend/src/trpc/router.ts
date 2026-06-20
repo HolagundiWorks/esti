@@ -54,6 +54,7 @@ import {
   ruleVersionRouter,
   siteAssessmentRouter,
 } from "../modules/rie/router.js";
+import { kbSeedRouter } from "../modules/knowledgebank/seed.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { steelflowRouter } from "../modules/steelflow/router.js";
@@ -169,6 +170,7 @@ export const appRouter = router({
   ruleVersions: ruleVersionRouter,
   siteAssessments: siteAssessmentRouter,
   knowledgeBank: knowledgeBankRouter,
+  kbSeed: kbSeedRouter,
   specCatalog: specCatalogRouter,
   steelflow: steelflowRouter,
   attendance: attendanceRouter,

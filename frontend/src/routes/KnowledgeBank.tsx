@@ -23,13 +23,14 @@ import { LessonsBank } from "../components/ProjectLessons.js";
 import { DataState } from "../components/DataState.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
 import { PageHeader } from "../components/PageHeader.js";
+import { KnowledgeSeedManager } from "../components/knowledge/KnowledgeSeedManager.js";
 import { ComplianceHub } from "../components/knowledge/ComplianceHub.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { MasterDsr } from "../components/knowledge/MasterDsr.js";
 import { SteelArranger } from "../components/knowledge/SteelArranger.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["dsr", "compliance", "specification", "steelflow", "lessons"] as const;
+const KB_TAB_SLUGS = ["seeds", "dsr", "compliance", "specification", "steelflow", "lessons"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ export function KnowledgeBank() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabIndex = Math.max(0, KB_TAB_SLUGS.indexOf(
-    (searchParams.get("tab") ?? "dsr") as (typeof KB_TAB_SLUGS)[number],
+    (searchParams.get("tab") ?? "seeds") as (typeof KB_TAB_SLUGS)[number],
   ));
   const selectTab = (index: number) => {
     setSearchParams((prev) => {
@@ -127,6 +128,7 @@ export function KnowledgeBank() {
 
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections">
+          <Tab>Seed data</Tab>
           <Tab>Master DSR</Tab>
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
@@ -134,6 +136,9 @@ export function KnowledgeBank() {
           <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
+          <TabPanel>
+            <KnowledgeSeedManager />
+          </TabPanel>
           <TabPanel>
             <MasterDsr embedded />
           </TabPanel>

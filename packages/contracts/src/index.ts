@@ -50,6 +50,7 @@ export * from "./workload.js";
 export * from "./schemas.js";
 export * from "./rie.js";
 export * from "./knowledge-bank.js";
+export * from "./kb-seed.js";
 export * from "./steel-arranger.js";
 export * from "./steelflow-catalog.js";
 export * from "./asprf.js";

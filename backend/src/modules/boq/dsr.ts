@@ -1,9 +1,16 @@
-import { DsrImportCsv, DsrItemCreate, DsrVersionCreate } from "@esti/contracts";
+import { DsrItemCreate, DsrVersionCreate } from "@esti/contracts";
+import { DsrImportCsv } from "@hcw/master-dsr-kit/schemas";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { dsrItems, dsrVersions } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import {
+  assertDsrVersionWritable,
+  dsrItemsToCsv,
+  getDsrVersionOrThrow,
+  resolveDsrItemsForVersion,
+} from "../../lib/dsrCatalog.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import { applyDsrImport, copyDsrItems } from "./dsrImport.js";
 
@@ -28,11 +35,13 @@ export const dsrRouter = router({
 
   createVersion: protectedProcedure.input(DsrVersionCreate).mutation(async ({ ctx, input }) => {
     if (input.copyFromVersionId) {
-      const [source] = await ctx.db
-        .select({ id: dsrVersions.id })
-        .from(dsrVersions)
-        .where(eq(dsrVersions.id, input.copyFromVersionId));
-      if (!source) throw new TRPCError({ code: "NOT_FOUND", message: "Source DSR version not found" });
+      const source = await getDsrVersionOrThrow(ctx.db, input.copyFromVersionId);
+      if (source.origin === "HCW_OFFICIAL") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Copy official HCW seed into a new custom version via CSV export from a custom copy instead",
+        });
+      }
     }
 
     const [row] = await ctx.db
@@ -42,6 +51,8 @@ export const dsrRouter = router({
         description: input.description ?? null,
         status: input.status,
         active: false,
+        origin: "CUSTOM",
+        readOnly: false,
       })
       .returning();
 
@@ -67,8 +78,7 @@ export const dsrRouter = router({
   publishVersion: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db.select().from(dsrVersions).where(eq(dsrVersions.id, input.id));
-      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const before = await getDsrVersionOrThrow(ctx.db, input.id);
       if (before.status === "PUBLISHED") return before;
       const [row] = await ctx.db
         .update(dsrVersions)
@@ -87,8 +97,8 @@ export const dsrRouter = router({
     }),
 
   importCsv: protectedProcedure.input(DsrImportCsv).mutation(async ({ ctx, input }) => {
-    const [version] = await ctx.db.select().from(dsrVersions).where(eq(dsrVersions.id, input.versionId));
-    if (!version) throw new TRPCError({ code: "NOT_FOUND" });
+    const version = await getDsrVersionOrThrow(ctx.db, input.versionId);
+    assertDsrVersionWritable(version);
     const count = await applyDsrImport(ctx.db, input.versionId, input.rows, input.replace);
     await writeAudit(ctx.db, {
       entity: "dsrversion",
@@ -100,11 +110,28 @@ export const dsrRouter = router({
     return { imported: count };
   }),
 
+  exportCsv: protectedProcedure
+    .input(z.object({ versionId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const version = await getDsrVersionOrThrow(ctx.db, input.versionId);
+      if (version.origin === "HCW_OFFICIAL") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Official HCW seed cannot be exported. Create a custom version to export editable data.",
+        });
+      }
+      const items = await resolveDsrItemsForVersion(ctx.db, version);
+      return {
+        filename: `${version.label.replace(/[^\w.-]+/g, "_")}.csv`,
+        csv: dsrItemsToCsv(items),
+        rowCount: items.length,
+      };
+    }),
+
   setActiveVersion: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db.select().from(dsrVersions).where(eq(dsrVersions.id, input.id));
-      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const before = await getDsrVersionOrThrow(ctx.db, input.id);
       if (before.status === "DRAFT") {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -131,14 +158,13 @@ export const dsrRouter = router({
   listItems: protectedProcedure
     .input(z.object({ versionId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select()
-        .from(dsrItems)
-        .where(eq(dsrItems.versionId, input.versionId))
-        .orderBy(asc(dsrItems.code));
+      const version = await getDsrVersionOrThrow(ctx.db, input.versionId);
+      return resolveDsrItemsForVersion(ctx.db, version);
     }),
 
   createItem: protectedProcedure.input(DsrItemCreate).mutation(async ({ ctx, input }) => {
+    const version = await getDsrVersionOrThrow(ctx.db, input.versionId);
+    assertDsrVersionWritable(version);
     const [row] = await ctx.db
       .insert(dsrItems)
       .values({
@@ -158,6 +184,8 @@ export const dsrRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(dsrItems).where(eq(dsrItems.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const version = await getDsrVersionOrThrow(ctx.db, before.versionId);
+      assertDsrVersionWritable(version);
       await ctx.db.delete(dsrItems).where(eq(dsrItems.id, input.id));
       await writeAudit(ctx.db, { entity: "dsritem", entityId: input.id, action: "DELETE", actorId: ctx.user.id, before });
       return { ok: true };

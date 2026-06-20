@@ -63,6 +63,13 @@ cd ../hcw-master-dsr-kit && npm publish --access restricted
 - `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks
 - `pnpm --filter @esti/frontend lint` — `check-carbon.mjs` imports `@hcw/carbon-agent-kit/policy`
 
-## Production
+## Knowledge Bank seed data
+
+Official catalogues (DSR + compliance) are maintained by HCW in kit repos and are **read-only** in esti.
+
+- **Seed data** tab: activate all or selected city packs (stores lightweight DB refs only)
+- **Master DSR**: custom versions support CSV import/export; official HCW versions load rates from `@hcw/master-dsr-kit` at runtime
+- **Compliance**: official BBMP packs load rules from `@hcw/india-compliance-kit` at runtime
+
 
 Rebuild backend after bumping kit versions so compiled SDKs are in the image. Ollama requirement for landing AI unchanged — see [PRODUCTION-OPS.md](esti/PRODUCTION-OPS.md).

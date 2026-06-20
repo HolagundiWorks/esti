@@ -21,6 +21,13 @@ export const bbmpRuleSets = pgTable("esti_bbmp_rule_set", {
   sourceCitation: text("source_citation"),
   notes: text("notes"),
   active: boolean("active").notNull().default(false),
+  /** HCW_OFFICIAL = kit repo (read-only); CUSTOM = firm-owned. */
+  origin: text("origin").notNull().default("CUSTOM"),
+  packId: text("pack_id"),
+  readOnly: boolean("read_only").notNull().default(false),
+  cityKey: text("city_key"),
+  stateCode: text("state_code"),
+  authorityId: text("authority_id"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
