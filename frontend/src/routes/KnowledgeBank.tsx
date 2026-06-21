@@ -28,9 +28,10 @@ import { ComplianceHub } from "../components/knowledge/ComplianceHub.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { MasterDsr } from "../components/knowledge/MasterDsr.js";
 import { SteelArranger } from "../components/knowledge/SteelArranger.js";
+import { ParametricCanvas } from "../components/estimation/ParametricCanvas.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["seeds", "dsr", "compliance", "specification", "steelflow", "lessons"] as const;
+const KB_TAB_SLUGS = ["seeds", "dsr", "compliance", "specification", "steelflow", "parametric", "lessons"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -133,6 +134,7 @@ export function KnowledgeBank() {
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
           <Tab>SteelFlow</Tab>
+          <Tab>Parametric</Tab>
           <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
@@ -153,6 +155,12 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <SteelArranger embedded />
+          </TabPanel>
+
+          <TabPanel>
+            <div style={{ height: "calc(100vh - 280px)", minHeight: 500 }}>
+              <ParametricCanvas />
+            </div>
           </TabPanel>
 
           <TabPanel>
