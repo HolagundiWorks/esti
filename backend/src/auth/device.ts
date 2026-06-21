@@ -111,6 +111,7 @@ export async function userFromDeviceToken(
       clientId: users.clientId,
       consultantId: users.consultantId,
       isDemo: users.isDemo,
+      isSystemAdmin: users.isSystemAdmin,
     })
     .from(deviceSessions)
     .innerJoin(users, eq(users.id, deviceSessions.userId))

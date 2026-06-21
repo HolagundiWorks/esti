@@ -23,6 +23,7 @@ import {
   formatINRShort,
   PERFORMANCE_BAND_LABEL,
   PERFORMANCE_BAND_TAG,
+  ROLE_RANK,
   type PerformanceBand,
 } from "@esti/contracts";
 import { Link, useNavigate } from "react-router-dom";
@@ -82,8 +83,23 @@ export function Dashboard() {
   const canFees = can(user?.role, "fees:manage");
   const canInvoice = can(user?.role, "invoice:manage");
   const canFinanceOps = can(user?.role, "finance:ops");
-  const isViewer = (user?.role === "VIEWER");
-  const showTeamIntelligence = hrEnabled && !isViewer;
+  const canHr = can(user?.role, "hr:manage");
+  const rank = ROLE_RANK[user?.role ?? ""] ?? 0;
+  const atLeast = (r: number) => rank >= r;
+
+  // Action Center gating per ACCESS-HIERARCHY.md §4
+  const acShowBilling   = canInvoice;              // L2+: billing-ready phases + overdue invoices
+  const acShowTenders   = atLeast(60);             // L3+: open tenders + at-risk projects
+  const acShowAtRisk    = atLeast(60);             // L3+: at-risk projects
+  const acShowConstruct = atLeast(40);             // L4+: construction coordination
+  const acShowApprovals = atLeast(40);             // L4+: pending approvals
+  const acShowTeam      = hrEnabled && canHr;      // L2+: overloaded team members
+
+  // Dashboard sections per ACCESS-HIERARCHY.md §5
+  const showTeamIntelligence = hrEnabled && canHr;            // L2+: full team ASPRF
+  const showOwnAsprf = hrEnabled && atLeast(60) && !canHr;   // L3 SENIOR: own card only
+  const showQuality = atLeast(60);                            // L3+: quality intelligence
+  const showActivity = atLeast(40);                           // L4+: activity feed (not L5)
 
   // Action Center — five urgency categories (capacity alerts only when HR is on).
   const billingReady = ac?.billingReadyPhases ?? [];
@@ -92,16 +108,15 @@ export function Dashboard() {
   const openTenders = ac?.openTenders ?? [];
   const openConstruction = ac?.openConstruction ?? [];
   const riskProjects = ph.filter((p) => p.health === "RED");
-  const overloadedMembers = hrEnabled
+  const overloadedMembers = acShowTeam
     ? (tiQ.data ?? []).filter((m) => m.capacity === "OVERLOADED")
     : [];
   const acTotal =
-    billingReady.length +
-    overdueInvoices.length +
-    pendingApprovals.length +
-    openTenders.length +
-    openConstruction.length +
-    riskProjects.length +
+    (acShowBilling ? billingReady.length + overdueInvoices.length : 0) +
+    (acShowApprovals ? pendingApprovals.length : 0) +
+    (acShowTenders ? openTenders.length : 0) +
+    (acShowConstruct ? openConstruction.length : 0) +
+    (acShowAtRisk ? riskProjects.length : 0) +
     overloadedMembers.length;
 
   const readyToBillSum = billingReady.reduce(
@@ -126,9 +141,14 @@ export function Dashboard() {
   ];
   const agingEmpty = agingData.every((d) => d.value === 0);
 
-  // Team ASPRF cards — only when HR module is on.
+  // Team ASPRF cards
+  const myScoreQ = trpc.aspRf.myScore.useQuery(undefined, { enabled: hrEnabled && showOwnAsprf });
   const capacityByName = new Map((tiQ.data ?? []).map((m) => [m.assignee, m]));
-  const teamCards = hrEnabled ? (aspQ.data ?? []).slice(0, 4) : [];
+  const teamCards = showTeamIntelligence
+    ? (aspQ.data ?? []).slice(0, 4)
+    : showOwnAsprf && myScoreQ.data
+      ? [myScoreQ.data]
+      : [];
 
   const hasActivity = (activity?.rows.length ?? 0) > 0;
   const hasClients = ci.length > 0;
@@ -150,7 +170,7 @@ export function Dashboard() {
       <Column lg={16} md={8} sm={4}>
         <ZoneHead
           title="Office overview"
-          sub={isViewer ? "Project delivery at a glance." : hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
+          sub={!atLeast(40) ? "Project delivery at a glance." : hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
         />
       </Column>
 
@@ -260,22 +280,30 @@ export function Dashboard() {
         </Column>
       )}
 
-      <DashboardActionCenter
-        navigate={navigate}
-        homeLoading={homeLoading}
-        hrEnabled={hrEnabled}
-        showBillingAssistant={can(user?.role, "fees:manage")}
-        acTotal={acTotal}
-        teamLoading={tiQ.isLoading}
-        billingReady={billingReady}
-        overdueInvoices={overdueInvoices}
-        pendingApprovals={pendingApprovals}
-        openTenders={openTenders}
-        openConstruction={openConstruction}
-        riskProjects={riskProjects}
-        overloadedMembers={overloadedMembers}
-        readyToBillSum={readyToBillSum}
-      />
+      {atLeast(40) && (
+        <DashboardActionCenter
+          navigate={navigate}
+          homeLoading={homeLoading}
+          hrEnabled={hrEnabled}
+          showBillingAssistant={canFees}
+          showBillingItems={acShowBilling}
+          showTenders={acShowTenders}
+          showAtRisk={acShowAtRisk}
+          showConstruction={acShowConstruct}
+          showApprovals={acShowApprovals}
+          showTeamCapacity={acShowTeam}
+          acTotal={acTotal}
+          teamLoading={tiQ.isLoading}
+          billingReady={billingReady}
+          overdueInvoices={overdueInvoices}
+          pendingApprovals={pendingApprovals}
+          openTenders={openTenders}
+          openConstruction={openConstruction}
+          riskProjects={riskProjects}
+          overloadedMembers={overloadedMembers}
+          readyToBillSum={readyToBillSum}
+        />
+      )}
 
       {/* ═══ Company · delivery & people ══════════════════════════════════ */}
       <Column lg={16} md={8} sm={4}>
@@ -289,35 +317,39 @@ export function Dashboard() {
         />
       </Column>
 
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Open tenders"
-          value={b?.openTenders ?? 0}
-          health={(b?.openTenders ?? 0) > 0 ? "watch" : "ok"}
-          tagType={(b?.openTenders ?? 0) > 0 ? "blue" : "gray"}
-          tagText={
-            (b?.tenderDueSoon?.length ?? 0) > 0
-              ? `${b!.tenderDueSoon!.length} due within 7 days`
-              : "None closing soon"
-          }
-          onClick={() => navigate("/office/tenders")}
-          loading={homeLoading}
-        />
-      </Column>
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Site coordination"
-          value={b?.constructionOpen ?? 0}
-          health={(b?.constructionOpen ?? 0) > 0 ? "watch" : "ok"}
-          tagType={(b?.constructionOpen ?? 0) > 0 ? "magenta" : "gray"}
-          tagText={
-            (b?.constructionOpen ?? 0) > 0 ? "Awaiting firm response" : "Inbox clear"
-          }
-          onClick={() => navigate("/office/construction")}
-          loading={homeLoading}
-        />
-      </Column>
-      {(b?.tenderDueSoon?.length ?? 0) > 0 && (
+      {acShowTenders && (
+        <Column lg={4} md={4} sm={2}>
+          <KpiChip
+            label="Open tenders"
+            value={b?.openTenders ?? 0}
+            health={(b?.openTenders ?? 0) > 0 ? "watch" : "ok"}
+            tagType={(b?.openTenders ?? 0) > 0 ? "blue" : "gray"}
+            tagText={
+              (b?.tenderDueSoon?.length ?? 0) > 0
+                ? `${b!.tenderDueSoon!.length} due within 7 days`
+                : "None closing soon"
+            }
+            onClick={() => navigate("/office/tenders")}
+            loading={homeLoading}
+          />
+        </Column>
+      )}
+      {acShowConstruct && (
+        <Column lg={4} md={4} sm={2}>
+          <KpiChip
+            label="Site coordination"
+            value={b?.constructionOpen ?? 0}
+            health={(b?.constructionOpen ?? 0) > 0 ? "watch" : "ok"}
+            tagType={(b?.constructionOpen ?? 0) > 0 ? "magenta" : "gray"}
+            tagText={
+              (b?.constructionOpen ?? 0) > 0 ? "Awaiting firm response" : "Inbox clear"
+            }
+            onClick={() => navigate("/office/construction")}
+            loading={homeLoading}
+          />
+        </Column>
+      )}
+      {acShowTenders && (b?.tenderDueSoon?.length ?? 0) > 0 && (
         <Column lg={8} md={8} sm={4}>
           <Tile className="esti-fill" style={edge("watch")}>
             <Stack gap={3}>
@@ -482,14 +514,14 @@ export function Dashboard() {
         </>
       )}
 
-      {/* ═══ 6 · Team ══════════════════════════════════════════════════════ */}
-      {teamCards.length > 0 && showTeamIntelligence && (
+      {/* ═══ 6 · Team — L2+ full, L3 own card ══════════════════════════ */}
+      {teamCards.length > 0 && (showTeamIntelligence || showOwnAsprf) && (
         <>
           <Column lg={16} md={8} sm={4}>
             <ZoneTile
               navigate={navigate}
-              title="Team performance"
-              sub="Rolling 30-day ASPRF scores."
+              title={showOwnAsprf ? "My performance" : "Team performance"}
+              sub="Rolling 30-day ASPRF score."
               to="/performance"
             />
           </Column>
@@ -536,27 +568,30 @@ export function Dashboard() {
         </>
       )}
 
-      {/* ═══ 7 · Quality intelligence ══════════════════════════════════════ */}
-      <Column lg={16} md={8} sm={4}>
-        <ZoneTile
-          navigate={navigate}
-          title="Quality intelligence"
-          sub="Studio quality profile, revision sources, and drawing accuracy from the CRIF ledger."
-          to="/projects"
-        />
-      </Column>
+      {/* ═══ 7 · Quality intelligence — L3+ ══════════════════════════════ */}
+      {showQuality && (
+        <>
+          <Column lg={16} md={8} sm={4}>
+            <ZoneTile
+              navigate={navigate}
+              title="Quality intelligence"
+              sub="Studio quality profile, revision sources, and drawing accuracy from the CRIF ledger."
+              to="/projects"
+            />
+          </Column>
+          <Column lg={16} md={8} sm={4}>
+            <QualityIntelligenceTiles
+              revision={ri}
+              technical={tech}
+              revisionLoading={homeLoading}
+              technicalLoading={homeLoading}
+              chartTheme={chartTheme}
+            />
+          </Column>
+        </>
+      )}
 
-      <Column lg={16} md={8} sm={4}>
-        <QualityIntelligenceTiles
-          revision={ri}
-          technical={tech}
-          revisionLoading={homeLoading}
-          technicalLoading={homeLoading}
-          chartTheme={chartTheme}
-        />
-      </Column>
-
-      {hasActivity && (
+      {showActivity && hasActivity && (
         <Column lg={16} md={8} sm={4}>
           <ClickableTile
             className="esti-fill"

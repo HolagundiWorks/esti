@@ -26,5 +26,7 @@ export function useCapabilities() {
     canProjectDelete: cap("project:delete"),
     canFirmAdmin: cap("firm:admin"),
     canHr: cap("hr:manage"),
+    canSalary: cap("salary:view"),
+    canTenders: cap("tenders:view"),
   };
 }

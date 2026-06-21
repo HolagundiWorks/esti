@@ -17,41 +17,61 @@ import { TaskCalendarTab } from "../components/work/TaskCalendarTab.js";
 import { TasksTab, type TasksTabHandle } from "../components/work/TasksTab.js";
 import { WorkloadTab } from "../components/work/WorkloadTab.js";
 import { can } from "@esti/contracts";
-import { type WorkTabSlug, workTabsForNav } from "../components/work/workHelpers.js";
+import { type WorkTabSlug } from "../components/work/workHelpers.js";
 import { ClientRequests } from "./ClientRequests.js";
 import { ConsultantRequests } from "./ConsultantRequests.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+
+type TabDef = { slug: WorkTabSlug; label: string; panel: React.ReactNode };
 
 export function Work() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  const canWrite = can(user?.role, "write");
-  // VIEWER (rank 20) sees tasks/board/calendar/activity only; no client/consultant triage
-  const allTabs = workTabsForNav(hrEnabled);
-  const visibleTabs = canWrite
-    ? allTabs
-    : allTabs.filter((t) => !["client-requests", "consultant-requests"].includes(t));
+
+  const canWrite = can(user?.role, "write");    // L4+ (ASSOCIATE and above)
+  const canHr = can(user?.role, "hr:manage");   // L2+ (PARTNER and above)
+
+  const tasksRef = useRef<TasksTabHandle>(null);
+
+  // Build the visible tab list based on role capabilities and module toggles
+  const allTabs: TabDef[] = [
+    { slug: "tasks", label: "Tasks", panel: <TasksTab ref={tasksRef} /> },
+    { slug: "board", label: "Board", panel: <TaskBoardTab /> },
+    { slug: "calendar", label: "Calendar", panel: <TaskCalendarTab /> },
+    // Workload: HR module + L2+ (hr:manage)
+    ...(hrEnabled && canHr
+      ? [{ slug: "workload" as WorkTabSlug, label: "Workload", panel: <WorkloadTab /> }]
+      : []),
+    { slug: "activity", label: "Activity", panel: <ActivityTab /> },
+    // Portal triage tabs: L4+ (write)
+    ...(canWrite
+      ? [
+          { slug: "client-requests" as WorkTabSlug, label: "Client requests", panel: <ClientRequests embedded /> },
+          { slug: "consultant-requests" as WorkTabSlug, label: "Consultant requests", panel: <ConsultantRequests embedded /> },
+        ]
+      : []),
+    // Attendance: HR module + L2+ (hr:manage)
+    ...(hrEnabled && canHr
+      ? [{ slug: "attendance" as WorkTabSlug, label: "Attendance", panel: <AttendanceTab /> }]
+      : []),
+  ];
+
   const tab = (searchParams.get("tab") ?? "tasks") as WorkTabSlug;
   const tabIndex = Math.max(
     0,
-    visibleTabs.indexOf(
-      visibleTabs.includes(tab as (typeof visibleTabs)[number])
-        ? (tab as (typeof visibleTabs)[number])
-        : "tasks",
-    ),
+    allTabs.findIndex((t) => t.slug === tab),
   );
-  const tasksRef = useRef<TasksTabHandle>(null);
-  const activeTab = visibleTabs[tabIndex] ?? "tasks";
+  const activeTab = allTabs[tabIndex]?.slug ?? "tasks";
 
   return (
     <Stack gap={6}>
       <PageHeader
         title="Work"
         description={
-          hrEnabled
+          hrEnabled && canHr
             ? "Tasks, portal triage, workload, attendance, and office activity."
             : "Tasks, client and consultant requests, and activity — enable Team & HR for workload and attendance."
         }
@@ -65,49 +85,14 @@ export function Work() {
       <Tabs
         selectedIndex={tabIndex}
         onChange={({ selectedIndex }) =>
-          setSearchParams({ tab: visibleTabs[selectedIndex] ?? "tasks" }, { replace: true })
+          setSearchParams({ tab: allTabs[selectedIndex]?.slug ?? "tasks" }, { replace: true })
         }
       >
         <TabList aria-label="Work sections" contained>
-          <Tab>Tasks</Tab>
-          <Tab>Board</Tab>
-          <Tab>Calendar</Tab>
-          {hrEnabled && <Tab>Workload</Tab>}
-          <Tab>Activity</Tab>
-          <Tab>Client requests</Tab>
-          <Tab>Consultant requests</Tab>
-          {hrEnabled && <Tab>Attendance</Tab>}
+          {allTabs.map((t) => <Tab key={t.slug}>{t.label}</Tab>)}
         </TabList>
-
         <TabPanels>
-          <TabPanel>
-            <TasksTab ref={tasksRef} />
-          </TabPanel>
-          <TabPanel>
-            <TaskBoardTab />
-          </TabPanel>
-          <TabPanel>
-            <TaskCalendarTab />
-          </TabPanel>
-          {hrEnabled && (
-            <TabPanel>
-              <WorkloadTab />
-            </TabPanel>
-          )}
-          <TabPanel>
-            <ActivityTab />
-          </TabPanel>
-          <TabPanel>
-            <ClientRequests embedded />
-          </TabPanel>
-          <TabPanel>
-            <ConsultantRequests embedded />
-          </TabPanel>
-          {hrEnabled && (
-            <TabPanel>
-              <AttendanceTab />
-            </TabPanel>
-          )}
+          {allTabs.map((t) => <TabPanel key={t.slug}>{t.panel}</TabPanel>)}
         </TabPanels>
       </Tabs>
     </Stack>
