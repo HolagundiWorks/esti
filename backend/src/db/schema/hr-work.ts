@@ -8,6 +8,7 @@ import {
   doublePrecision,
   id,
   integer,
+  jsonb,
   numeric,
   pgTable,
   smallint,
@@ -38,6 +39,10 @@ export const teamMembers = pgTable("esti_teammember", {
   backupContactPhone: text("backup_contact_phone"),
   /** When true, ASPRF composite includes the wellbeing dimension (opt-in). */
   wellbeingOptIn: boolean("wellbeing_opt_in").notNull().default(false),
+  /** Display-facing staff grade: L1 (Principal) – L4 (Junior/Support). */
+  staffLevel: text("staff_level"),
+  /** Free-text job title shown on ID card / HR profile, e.g. "Senior Architect". */
+  jobTitle: text("job_title"),
   createdAt: createdAt(),
 });
 
@@ -191,4 +196,88 @@ export const rewardPoints = pgTable("esti_reward_point", {
   referenceId: uuid("reference_id"),
   createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
+});
+
+/** Personal details vault — one-to-one with esti_teammember. */
+export const hrProfiles = pgTable("esti_hr_profile", {
+  id: id(),
+  memberId: uuid("member_id")
+    .notNull()
+    .unique()
+    .references(() => teamMembers.id, { onDelete: "cascade" }),
+  // Personal
+  dateOfBirth: date("date_of_birth"),
+  gender: text("gender"),
+  bloodGroup: text("blood_group"),
+  nationality: text("nationality").notNull().default("Indian"),
+  // Government IDs
+  aadhaarNumber: text("aadhaar_number"),
+  panNumber: text("pan_number"),
+  passportNumber: text("passport_number"),
+  passportExpiry: date("passport_expiry"),
+  passportCountry: text("passport_country").default("India"),
+  voterId: text("voter_id"),
+  drivingLicence: text("driving_licence"),
+  // Addresses
+  permanentAddress: jsonb("permanent_address"),
+  currentAddress: jsonb("current_address"),
+  sameAddress: boolean("same_address").notNull().default(false),
+  // Communication
+  personalEmail: text("personal_email"),
+  personalPhone: text("personal_phone"),
+  emergencyContactName: text("emergency_contact_name"),
+  emergencyContactRelation: text("emergency_contact_relation"),
+  emergencyContactPhone: text("emergency_contact_phone"),
+  // Payroll / financial
+  bankAccountNumber: text("bank_account_number"),
+  bankIfsc: text("bank_ifsc"),
+  bankName: text("bank_name"),
+  bankBranch: text("bank_branch"),
+  pfUan: text("pf_uan"),
+  esicNumber: text("esic_number"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Document scans and certificates attached to a staff member. */
+export const hrDocuments = pgTable("esti_hr_document", {
+  id: id(),
+  memberId: uuid("member_id")
+    .notNull()
+    .references(() => teamMembers.id, { onDelete: "cascade" }),
+  documentType: text("document_type").notNull(),
+  documentName: text("document_name").notNull(),
+  s3Key: text("s3_key"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  issueDate: date("issue_date"),
+  expiryDate: date("expiry_date"),
+  verifiedBy: uuid("verified_by").references(() => users.id),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  notes: text("notes"),
+  createdAt: createdAt(),
+});
+
+/** Job application pipeline — entry point before team member is created. */
+export const jobApplications = pgTable("esti_job_application", {
+  id: id(),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  appliedRole: text("applied_role").notNull(),
+  experienceYears: numeric("experience_years", { precision: 4, scale: 1 }),
+  currentEmployer: text("current_employer"),
+  currentSalaryPaise: bigint("current_salary_paise", { mode: "number" }),
+  expectedSalaryPaise: bigint("expected_salary_paise", { mode: "number" }),
+  resumeKey: text("resume_key"),
+  portfolioUrl: text("portfolio_url"),
+  status: text("status").notNull().default("APPLIED"),
+  notes: text("notes"),
+  handledBy: uuid("handled_by").references(() => users.id),
+  memberId: uuid("member_id").references(() => teamMembers.id),
+  appliedAt: timestamp("applied_at", { withTimezone: true }).notNull().defaultNow(),
+  statusUpdatedAt: timestamp("status_updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });

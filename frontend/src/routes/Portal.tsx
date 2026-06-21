@@ -60,45 +60,6 @@ const AP_TAG: Record<
 // Approvals the client can still respond to.
 const RESPONDABLE = ["SENT", "REVISIONS"];
 
-// Pie chart colors — using Carbon data-vis palette
-const PIE_COLORS = ["#6929c4", "#1192e8", "#005d5d", "#9f1853", "#b28600", "#198038"];
-
-function PieChart({ data, title }: { data: { label: string; value: number }[]; title: string }) {
-  const total = data.reduce((s, d) => s + d.value, 0);
-  if (total === 0) return <p style={{ color: "var(--cds-text-secondary)" }}>No data yet.</p>;
-  let cumAngle = -Math.PI / 2;
-  const arcs = data.map((d, i) => {
-    const angle = (d.value / total) * 2 * Math.PI;
-    const start = cumAngle;
-    cumAngle += angle;
-    const x1 = 80 + 70 * Math.cos(start);
-    const y1 = 80 + 70 * Math.sin(start);
-    const x2 = 80 + 70 * Math.cos(cumAngle);
-    const y2 = 80 + 70 * Math.sin(cumAngle);
-    const large = angle > Math.PI ? 1 : 0;
-    return { path: `M 80 80 L ${x1} ${y1} A 70 70 0 ${large} 1 ${x2} ${y2} Z`, color: PIE_COLORS[i % PIE_COLORS.length], ...d };
-  });
-  return (
-    <Stack gap={3}>
-      <p style={{ color: "var(--cds-text-secondary)", fontSize: "0.875rem" }}>{title}</p>
-      <Stack orientation="horizontal" gap={4}>
-        <svg viewBox="0 0 160 160" width={120} height={120}>
-          {arcs.map((a, i) => (
-            <path key={i} d={a.path} fill={a.color} stroke="var(--cds-background)" strokeWidth={1} />
-          ))}
-        </svg>
-        <Stack gap={2}>
-          {arcs.map((a, i) => (
-            <Stack key={i} orientation="horizontal" gap={2}>
-              <span style={{ display: "inline-block", width: 12, height: 12, background: a.color, borderRadius: 2, flexShrink: 0, marginTop: 2 }} />
-              <span style={{ fontSize: "0.75rem", color: "var(--cds-text-primary)" }}>{a.label} ({a.value})</span>
-            </Stack>
-          ))}
-        </Stack>
-      </Stack>
-    </Stack>
-  );
-}
 
 export function Portal() {
   const navigate = useNavigate();
@@ -260,11 +221,12 @@ export function Portal() {
                 ← All projects
               </Button>
               <h2>{d.project.title}</h2>
-              <p>
-                {d.project.ref} · {d.project.projectType} ·{" "}
-                {d.project.jurisdiction} ·{" "}
+              <Stack orientation="horizontal" gap={3} style={{ flexWrap: "wrap", alignItems: "center" }}>
+                <span className="esti-label">
+                  {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction}
+                </span>
                 <Tag type="cool-gray">{d.project.status}</Tag>
-              </p>
+              </Stack>
               <Stack orientation="horizontal" gap={3}>
                 <Button size="sm" onClick={() => setRequestOpen(true)}>Raise change request</Button>
                 <Button size="sm" kind="tertiary" onClick={() => setFeedbackOpen(true)}>Leave feedback</Button>
@@ -493,26 +455,69 @@ export function Portal() {
             </Section>
 
             {/* ── Revision dashboard ───────────────────────────────────────── */}
-            <Section title="Revision dashboard">
-              <Grid condensed>
+            <Stack gap={3}>
+              <h4>Revision dashboard</h4>
+              <Grid>
                 <Column sm={4} md={4} lg={8}>
                   <Tile>
-                    <PieChart
-                      title="Change requests by category"
-                      data={changesByCat}
-                    />
+                    <Stack gap={3}>
+                      <p className="esti-label" style={{ margin: 0 }}>Change requests by category</p>
+                      {revisionStatsQ.isLoading ? (
+                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>Loading…</p>
+                      ) : changesByCat.length === 0 ? (
+                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>No change requests yet.</p>
+                      ) : (
+                        <Table size="sm" useZebraStyles>
+                          <TableHead>
+                            <TableRow>
+                              <TableHeader>Category</TableHeader>
+                              <TableHeader>Count</TableHeader>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {changesByCat.map((c) => (
+                              <TableRow key={c.label}>
+                                <TableCell>{c.label}</TableCell>
+                                <TableCell>{c.value}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </Stack>
                   </Tile>
                 </Column>
                 <Column sm={4} md={4} lg={8}>
                   <Tile>
-                    <PieChart
-                      title="Drawing revisions by type"
-                      data={drawingsByRev}
-                    />
+                    <Stack gap={3}>
+                      <p className="esti-label" style={{ margin: 0 }}>Drawing revisions by type</p>
+                      {revisionStatsQ.isLoading ? (
+                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>Loading…</p>
+                      ) : drawingsByRev.length === 0 ? (
+                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>No drawing revisions yet.</p>
+                      ) : (
+                        <Table size="sm" useZebraStyles>
+                          <TableHead>
+                            <TableRow>
+                              <TableHeader>Revision</TableHeader>
+                              <TableHeader>Count</TableHeader>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {drawingsByRev.map((r) => (
+                              <TableRow key={r.label}>
+                                <TableCell>{r.label}</TableCell>
+                                <TableCell>{r.value}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </Stack>
                   </Tile>
                 </Column>
               </Grid>
-            </Section>
+            </Stack>
 
             <Section title="Activity">
               <DataState

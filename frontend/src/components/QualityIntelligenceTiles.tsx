@@ -3,7 +3,17 @@
  * Studio quality radar + revision detail (with proportional meter) + technical metrics.
  */
 import { DonutChart, RadarChart } from "@carbon/charts-react";
-import { InlineLoading, Stack, Tag, Tile } from "@carbon/react";
+import {
+  InlineLoading,
+  Stack,
+  StructuredListBody,
+  StructuredListCell,
+  StructuredListHead,
+  StructuredListRow,
+  StructuredListWrapper,
+  Tag,
+  Tile,
+} from "@carbon/react";
 import {
   buildRadarChartData,
   buildRevisionDonutData,
@@ -141,6 +151,13 @@ export function StudioQualityRadarTile({
   );
 }
 
+const REVISION_CATEGORY_COLORS: Record<string, string> = {
+  "Client Requested":   "#8a3ffc",
+  "Architectural Office": "#4589ff",
+  "Technical Revision": "#007d79",
+  "Misc":               "#ff7eb6",
+};
+
 export function RevisionIntelligenceTile({
   data,
   chartData,
@@ -179,39 +196,115 @@ export function RevisionIntelligenceTile({
           <InlineLoading description="Loading…" />
         ) : !showContent ? (
           <p className="esti-qi-empty">No decisions recorded yet.</p>
+        ) : donutData.length > 0 ? (
+          <div className="esti-qi-chart esti-lp-qi-chart">
+            <DonutChart
+              key={donutData.map((d) => `${d.group}:${d.value}`).join("|")}
+              data={donutData}
+              options={{
+                data: { groupMapsTo: "group" },
+                height: QI_DONUT_HEIGHT,
+                theme: chartTheme,
+                toolbar: { enabled: false },
+                legend: { enabled: false },
+                animations: chartAnimations,
+                accessibility: { svgAriaLabel: "Revision categories" },
+                donut: {
+                  center: {
+                    label: "revisions",
+                    number: meterRevision!.totalDecisions,
+                  },
+                },
+              }}
+            />
+          </div>
+        ) : null}
+      </Stack>
+    </Tile>
+  );
+}
+
+export function RevisionLegendTile({
+  data,
+  hasData,
+  loading,
+}: {
+  data: RevisionIntelligenceSnapshot | null | undefined;
+  hasData?: boolean;
+  loading?: boolean;
+}) {
+  const health = revisionHealth(data);
+  const empty = !data || data.totalDecisions === 0;
+  const showContent = hasData ?? !empty;
+  const total = data?.totalDecisions ?? 0;
+
+  const rows = data && showContent
+    ? [
+        { label: "Client Requested",    value: data.clientDriven },
+        { label: "Architectural Office", value: data.internalError },
+        { label: "Technical Revision",   value: data.technicalQuery },
+        { label: "Misc",                 value: data.scopeChange },
+      ]
+    : [];
+
+  return (
+    <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-qi-tile--wide" style={qiEdge(health)}>
+      <Stack gap={5}>
+        <div className="esti-qi-header">
+          <h4>Changes by category</h4>
+          {data && showContent && (
+            <span className="esti-label esti-label--secondary">
+              Scope drift: {data.scopeDriftPct}%
+            </span>
+          )}
+        </div>
+        {loading ? (
+          <InlineLoading description="Loading…" />
+        ) : !showContent ? (
+          <p className="esti-qi-empty">No decisions recorded yet.</p>
         ) : (
-          <>
-            <div className="esti-qi-metrics esti-lp-qi-metrics">
-              <MetricRow label="Client Requested" value={data!.clientDriven} />
-              <MetricRow label="Architectural Office" value={data!.internalError} />
-              <MetricRow label="Technical Revision" value={data!.technicalQuery} />
-              <MetricRow label="Misc" value={data!.scopeChange} />
-              <MetricRow label="Scope drift" value={`${data!.scopeDriftPct}%`} />
-            </div>
-            {donutData.length > 0 && (
-              <div className="esti-qi-chart esti-lp-qi-chart">
-                <DonutChart
-                  key={donutData.map((d) => `${d.group}:${d.value}`).join("|")}
-                  data={donutData}
-                  options={{
-                    data: { groupMapsTo: "group" },
-                    height: QI_DONUT_HEIGHT,
-                    theme: chartTheme,
-                    toolbar: { enabled: false },
-                    legend: { enabled: true, position: "bottom" as const },
-                    animations: chartAnimations,
-                    accessibility: { svgAriaLabel: "Revision categories" },
-                    donut: {
-                      center: {
-                        label: "revisions",
-                        number: meterRevision!.totalDecisions,
-                      },
-                    },
-                  }}
-                />
-              </div>
-            )}
-          </>
+          <StructuredListWrapper>
+            <StructuredListHead>
+              <StructuredListRow head>
+                <StructuredListCell head>Category</StructuredListCell>
+                <StructuredListCell head>Count</StructuredListCell>
+                <StructuredListCell head>% of total</StructuredListCell>
+              </StructuredListRow>
+            </StructuredListHead>
+            <StructuredListBody>
+              {rows.map((r) => (
+                <StructuredListRow key={r.label}>
+                  <StructuredListCell>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 3,
+                          height: 16,
+                          background: REVISION_CATEGORY_COLORS[r.label] ?? "var(--cds-border-subtle-01)",
+                          borderRadius: 1,
+                          flexShrink: 0,
+                        }}
+                      />
+                      {r.label}
+                    </span>
+                  </StructuredListCell>
+                  <StructuredListCell>
+                    <strong>{r.value}</strong>
+                  </StructuredListCell>
+                  <StructuredListCell>
+                    {total > 0 ? `${Math.round((r.value / total) * 100)}%` : "—"}
+                  </StructuredListCell>
+                </StructuredListRow>
+              ))}
+            </StructuredListBody>
+          </StructuredListWrapper>
         )}
       </Stack>
     </Tile>
@@ -306,6 +399,11 @@ export function QualityIntelligenceTiles({
         loading={revisionLoading}
         chartTheme={chartTheme}
         chartAnimations={chartAnimations}
+        hasData={!!(revisionReady && revisionReady.totalDecisions > 0)}
+      />
+      <RevisionLegendTile
+        data={revision}
+        loading={revisionLoading}
         hasData={!!(revisionReady && revisionReady.totalDecisions > 0)}
       />
       <TechnicalQualityTile

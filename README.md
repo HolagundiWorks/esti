@@ -8,7 +8,7 @@ architecture practices.
 Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **Carbon React**
 SPA, and a **Python** worker for drawings/PDF/reconciliation. See
 [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md) and
-[DEVELOPMENT.md](DEVELOPMENT.md).
+[INSTALL.md](INSTALL.md).
 
 ## Product focus
 
@@ -45,14 +45,14 @@ light/dark. These are hardcoded — see [docs/esti/INDIA-PROFILE.md](docs/esti/I
 ## Run it (everything in containers)
 
 ```sh
-cp .env.example .env
-podman compose -f compose.yaml up -d --build
+podman compose up -d --build
 # SPA      → http://localhost:5173
 # Backend  → http://localhost:4000/health
 ```
 
-Full instructions, including local (non-container) dev, are in
-[DEVELOPMENT.md](DEVELOPMENT.md).
+No `.env` needed for local dev — `compose.yaml` ships safe defaults. See [INSTALL.md](INSTALL.md) for configuration and production setup.
+
+Full instructions: [INSTALL.md](INSTALL.md).
 
 ## Documentation
 

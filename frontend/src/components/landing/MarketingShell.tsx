@@ -1,7 +1,5 @@
-import { Login } from "@carbon/icons-react";
 import {
   Header,
-  HeaderGlobalAction,
   HeaderGlobalBar,
   HeaderMenuButton,
   HeaderName,
@@ -15,13 +13,11 @@ import {
   Theme,
 } from "@carbon/react";
 import { useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 
 const NAV = [
   { href: "#platform", label: "Platform" },
   { href: "#india", label: "India desk" },
-  { href: "#lifecycle", label: "Workflow" },
   { href: "#demo", label: "Try demo" },
   { href: "#trial", label: "Get started" },
 ] as const;
@@ -34,7 +30,6 @@ export function MarketingShell({
   visitCount: number | null | undefined;
 }) {
   const [navOpen, setNavOpen] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <div className="esti-landing-shell">
@@ -74,13 +69,6 @@ export function MarketingShell({
                 {formatVisitCount(visitCount)} visits
               </span>
             ) : null}
-            <HeaderGlobalAction
-              aria-label="Sign in to workspace"
-              tooltipAlignment="end"
-              onClick={() => navigate("/login")}
-            >
-              <Login size={20} />
-            </HeaderGlobalAction>
           </HeaderGlobalBar>
           <SideNav
             aria-label="Mobile navigation"
@@ -99,9 +87,6 @@ export function MarketingShell({
                     {n.label}
                   </HeaderMenuItem>
                 ))}
-                <HeaderMenuItem href="/login" onClick={() => setNavOpen(false)}>
-                  Sign in
-                </HeaderMenuItem>
               </HeaderSideNavItems>
             </SideNavItems>
           </SideNav>

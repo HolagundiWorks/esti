@@ -21,8 +21,8 @@ export function MarketingLifecycleBand() {
       id="lifecycle"
       variant="contrast"
       eyebrow="Practice workflow"
-      title="From enquiry to handover — one project context."
-      lead="Each project stage keeps decisions, documents, and commercial records in the same traceable object model."
+      title="From first enquiry to final handover — one place."
+      lead="Every stage, every deliverable, every decision lives in the same project record. Nothing gets lost between phases."
     >
       <Tabs>
         <TabList aria-label="Project lifecycle stages" contained>

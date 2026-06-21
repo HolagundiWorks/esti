@@ -14,8 +14,8 @@
     <meta name="theme-color" content="#332a73" />
 
     <!-- SEO -->
-    <meta name="description" content="Self-hosted AORMS for Indian architects — traceable projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD desktop companion, client portals, and Knowledge Bank compliance. Solo to studio." />
-    <meta name="keywords" content="AORMS, architectural office record, architecture practice management India, CRIF revision intelligence, COA scale of charges, GST invoicing architects, ESTICAD companion, client portal, self-hosted architecture software, ESTI AORMS" />
+    <meta name="description" content="Self-hosted AORMS for Indian architects — traceable projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD desktop companion, client portals, and free BBMP / UDCPR / GHMC / DDA / CMDA building bylaw compliance checker for Bengaluru, Mumbai, Delhi, Chennai, Hyderabad, Pune, Kolkata, Ahmedabad. Solo to studio." />
+    <meta name="keywords" content="AORMS, architectural office record, architecture practice management India, CRIF revision intelligence, COA scale of charges, GST invoicing architects, ESTICAD companion, client portal, self-hosted architecture software, ESTI AORMS, BBMP compliance check, building bylaw checker India, FAR calculator India, FSI calculator Mumbai UDCPR, setback calculator Bengaluru, GHMC building rules Hyderabad, DDA FAR checker Delhi, CMDA regulations Chennai, KMC building rules Kolkata, AUDA GDCR Ahmedabad, building compliance open API" />
     <meta name="author" content="Holagundi Consulting Works" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://aorms.in/" />
@@ -93,6 +93,25 @@
     }
     </script>
 
+    <!-- Compliance checker tool structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "@id": "https://aorms.in/compliance-check#tool",
+      "name": "BBMP Building Compliance Checker",
+      "alternateName": ["FAR Calculator India", "FSI Calculator", "Building Bylaw Checker India", "Setback Calculator Bengaluru"],
+      "url": "https://aorms.in/compliance-check",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Web",
+      "description": "Free BBMP building compliance checker for Bengaluru. Compute FAR, ground coverage, setbacks, parking requirements, and basement rules for any site under BBMP Bye-Laws 2003. Embeddable as an iframe or accessible via open REST API. Reference data available for Mumbai (UDCPR), Delhi (MPD/DDA), Chennai (CMDA), Hyderabad (GHMC), Pune (UDCPR), Kolkata (KMC), and Ahmedabad (GDCR/AUDA).",
+      "featureList": "FAR / FSI calculation, ground coverage, setbacks, parking ECS, basement rules, BBMP zones A-D, open REST API, iframe embed",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+      "audience": { "@type": "Audience", "audienceType": "Indian architects, town planners, property developers" },
+      "publisher": { "@id": "https://aorms.in/#organization" }
+    }
+    </script>
+
     <!-- FAQ structured data (rich result eligible) -->
     <script type="application/ld+json">
     {
@@ -143,6 +162,26 @@
           "@type": "Question",
           "name": "Is my data safe and can ESTI be self-hosted?",
           "acceptedAnswer": { "@type": "Answer", "text": "ESTI is self-hosted on your own server — your drawings, invoices and client data never leave your infrastructure. Role-based access and separate read-only client and consultant portals ensure outsiders see only what you share." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does ESTI have a free building compliance checker for Indian cities?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. ESTI provides a free public BBMP building compliance checker at aorms.in/compliance-check — no login or API key required. Enter your site area, building type, development zone, height, floors, and front road width to get FAR, ground coverage, setbacks, parking ECS, and basement rules under BBMP Bye-Laws 2003 (Bengaluru). DCR reference data for Mumbai (UDCPR), Delhi (DDA/MPD), Chennai (CMDA), Hyderabad (GHMC), Pune (PMC/UDCPR), Kolkata (KMC), and Ahmedabad (GDCR/AUDA) is also available." }
+        },
+        {
+          "@type": "Question",
+          "name": "What is FAR or FSI and how is it calculated for Indian cities?",
+          "acceptedAnswer": { "@type": "Answer", "text": "FAR (Floor Area Ratio) — also called FSI (Floor Space Index) — is the ratio of total built-up area to the plot area. A FAR of 2.0 on a 300 m² plot permits 600 m² of built-up space. Each city's development control regulations (BBMP, UDCPR, DDA, CMDA, GHMC) set FAR limits by zone, plot size, road width, and building type. The ESTI compliance API computes the exact permitted FAR and built-up area for Bengaluru plots, and provides reference tables for other major Indian cities." }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I check setback requirements for my building project?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Setbacks (front, rear, and side margins from plot boundaries) are governed by each city's DCR. In Bengaluru under BBMP, setbacks depend on building height, road width, and plot dimensions. The ESTI compliance checker computes exact BBMP setbacks — including the Road Building Line (RBL) override for front setbacks — for your specific inputs. For Mumbai (UDCPR), Delhi (DDA), Chennai (CMDA), Hyderabad (GHMC), Pune, Kolkata (KMC), and Ahmedabad (GDCR), ESTI provides reference setback tables from the respective published regulations." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I embed the building compliance checker on my architecture firm website?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — ESTI's compliance checker is freely embeddable as an iframe: add <iframe src='https://aorms.in/compliance-check' width='100%' height='680'></iframe> to any webpage. No API key or account is needed. The REST API (POST /api/compliance/check) is also open with CORS enabled, so you can call it from any frontend. Rate limit is 30 requests per minute per IP." }
         }
       ]
     }

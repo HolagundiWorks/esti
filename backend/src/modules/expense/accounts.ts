@@ -2,7 +2,10 @@ import { clampListLimit } from "@esti/contracts";
 import { and, eq, sql } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import { accounts, expenses } from "../../db/schema.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, router } from "../../trpc/trpc.js";
+
+// Company cash book is L2 (Management / finance:ops) and above only.
+const financeOps = capabilityProcedure("finance:ops");
 
 export async function getAccountByCode(db: DB, code: string) {
   const [row] = await db.select().from(accounts).where(eq(accounts.code, code)).limit(1);
@@ -10,7 +13,7 @@ export async function getAccountByCode(db: DB, code: string) {
 }
 
 export const accountsRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: financeOps.query(async ({ ctx }) => {
     const rows = await ctx.db.select().from(accounts).orderBy(accounts.code);
     const balances = await ctx.db
       .select({

@@ -123,10 +123,7 @@ body,
 }
 
 .esti-app-shell--demo {
-  --esti-sticky-top: 112px;
-  .cds--header { top: 64px; }
-  .cds--side-nav { top: calc(48px + 64px); height: calc(100% - 112px); }
-  .cds--content { margin-top: calc(48px + 64px); }
+  /* Demo bar is a right-side fixed panel — no header/nav/content offset needed. */
 }
 
 // Hide native scrollbars in the office shell; wheel / touch scrolling still works.

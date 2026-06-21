@@ -23,8 +23,8 @@ export function MarketingDemoBand({
             <MarketingSectionHead
               id="demo-title"
               eyebrow="Live demo"
-              title="Experience ESTI in a working office — no sign-up."
-              lead="Each demo workspace has real projects, drawings, fees, and portals seeded and ready. Pick the workspace that matches your practice size."
+              title="Walk through a real Indian architecture practice — no sign-up."
+              lead="Two workspaces seeded with real projects, fees, and decisions. A busy Bengaluru design studio or a solo practitioner — pick the practice that matches yours."
             />
             <Grid fullWidth className="esti-landing-grid">
               <Column lg={8} md={4} sm={4}>
@@ -90,42 +90,16 @@ function DemoCard({
           </Stack>
         </Stack>
 
-        <Stack gap={4}>
-          <p className="esti-landing-eyebrow">What you will see</p>
-          <UnorderedList className="esti-landing-icon-list">
-            {acct.highlights.map((h) => (
-              <ListItem key={h}>
-                <span className="esti-row">
-                  <Checkmark size={16} aria-hidden className="esti-landing-feature-tile__icon" />
-                  <span>{h}</span>
-                </span>
-              </ListItem>
-            ))}
-          </UnorderedList>
-        </Stack>
-
-        {acct.tour && acct.tour.length > 0 && (
-          <Stack gap={4}>
-            <p className="esti-landing-eyebrow">Recommended tour</p>
-            <Stack gap={3}>
-              {acct.tour.map((step, i) => (
-                <Stack key={step.label} gap={1}>
-                  <p className="esti-label">
-                    {i + 1}. {step.label}
-                  </p>
-                  <p className="esti-label esti-label--helper">{step.hint}</p>
-                </Stack>
-              ))}
-            </Stack>
-          </Stack>
-        )}
-
-        <Stack gap={2}>
-          <p className="esti-landing-feature-tile__metric">{acct.caseStudy.metric}</p>
-          <p className="esti-landing-feature-tile__metric-label">
-            {acct.caseStudy.metricLabel}
-          </p>
-        </Stack>
+        <UnorderedList className="esti-landing-icon-list">
+          {acct.highlights.slice(0, 3).map((h) => (
+            <ListItem key={h}>
+              <span className="esti-row">
+                <Checkmark size={16} aria-hidden className="esti-landing-feature-tile__icon" />
+                <span>{h}</span>
+              </span>
+            </ListItem>
+          ))}
+        </UnorderedList>
 
         <Button
           kind={kind === "studio" ? "primary" : "tertiary"}

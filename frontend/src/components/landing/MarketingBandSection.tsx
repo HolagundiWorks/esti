@@ -12,6 +12,7 @@ export function MarketingBandSection({
   title,
   lead,
   titleId,
+  centered,
   children,
   className,
 }: {
@@ -21,6 +22,7 @@ export function MarketingBandSection({
   title: string;
   lead: string;
   titleId?: string;
+  centered?: boolean;
   children: ReactNode;
   className?: string;
 }) {
@@ -35,7 +37,13 @@ export function MarketingBandSection({
     >
       <LandingEditorial>
         <Stack gap={10}>
-          <MarketingSectionHead id={headId} eyebrow={eyebrow} title={title} lead={lead} />
+          <MarketingSectionHead
+            id={headId}
+            eyebrow={eyebrow}
+            title={title}
+            lead={lead}
+            centered={centered}
+          />
           {children}
         </Stack>
       </LandingEditorial>

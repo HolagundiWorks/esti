@@ -1,23 +1,16 @@
 import {
   Button,
-  DataTable,
+  Column,
+  Grid,
   InlineNotification,
   Modal,
+  Search,
   Select,
   SelectItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
   Tag,
   TextInput,
+  Tile,
 } from "@carbon/react";
 import {
   EMPLOYMENT_TYPES,
@@ -28,18 +21,10 @@ import {
   parseRupeeInput,
 } from "@esti/contracts";
 import { useState } from "react";
-import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { getInitials, resolveColor } from "../components/StaffAvatar.js";
+import { STAFF_LEVEL_LABEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
-
-const HEADERS = [
-  { key: "name", header: "Name" },
-  { key: "role", header: "Role" },
-  { key: "employmentType", header: "Employment" },
-  { key: "salary", header: "Monthly salary" },
-  { key: "status", header: "Status" },
-  { key: "actions", header: "" },
-];
 
 export function Team() {
   const utils = trpc.useUtils();
@@ -48,6 +33,7 @@ export function Team() {
     onSuccess: () => utils.team.list.invalidate(),
   });
 
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -77,20 +63,9 @@ export function Team() {
     },
   });
 
-  const allRows =
-    list.data?.map((m) => ({
-      id: m.id,
-      name: m.name,
-      _contact: m.email ?? m.phone ?? "",
-      role: TEAM_ROLES[m.role as TeamRoleCode] ?? m.role,
-      employmentType:
-        EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
-        m.employmentType,
-      salary: formatINR(m.monthlySalaryPaise, { paise: false }),
-      status: m.active ? "Active" : "Inactive",
-      _active: m.active,
-      actions: m.active ? "Deactivate" : "Activate",
-    })) ?? [];
+  const members = (list.data ?? []).filter(
+    (m) => !search || m.name.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <Stack gap={6}>
@@ -98,119 +73,108 @@ export function Team() {
         title="Team"
         description="Office team members, roles, employment type and monthly salary."
       />
-      <DataState
-        loading={list.isLoading}
-        isEmpty={allRows.length === 0}
-        columnCount={6}
-        empty={{
-          title: "No team members yet",
-          description:
-            "Add staff to enable HR, payroll and project team tracking.",
-          action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
-              New member
-            </Button>
-          ),
-        }}
-      >
-        <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({
-            rows,
-            headers,
-            getTableProps,
-            getHeaderProps,
-            getRowProps,
-            onInputChange,
-          }) => (
-            <TableContainer
-              title="Staff register"
-              description="Office team members and monthly salary"
-            >
-              <TableToolbar>
-                <TableToolbarContent>
-                  <TableToolbarSearch
-                    placeholder="Search team…"
-                    persistent
-                    onChange={onInputChange}
-                  />
-                  <Button onClick={() => setOpen(true)}>New member</Button>
-                </TableToolbarContent>
-              </TableToolbar>
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    {headers.map((header) => {
-                      const { key, ...rest } = getHeaderProps({ header });
-                      return (
-                        <TableHeader key={key} {...rest}>
-                          {header.header}
-                        </TableHeader>
-                      );
-                    })}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => {
-                    const { key, ...rest } = getRowProps({ row });
-                    const original = allRows.find((r) => r.id === row.id);
-                    return (
-                      <TableRow key={key} {...rest}>
-                        {row.cells.map((cell) => {
-                          if (cell.id.endsWith(":name")) {
-                            return (
-                              <TableCell key={cell.id}>
-                                {cell.value}
-                                {original?._contact && (
-                                  <div>{original._contact}</div>
-                                )}
-                              </TableCell>
-                            );
-                          }
-                          if (cell.id.endsWith(":status")) {
-                            return (
-                              <TableCell key={cell.id}>
-                                <Tag
-                                  type={original?._active ? "green" : "gray"}
-                                >
-                                  {cell.value}
-                                </Tag>
-                              </TableCell>
-                            );
-                          }
-                          if (cell.id.endsWith(":actions")) {
-                            return (
-                              <TableCell key={cell.id}>
-                                <Button
-                                  kind="ghost"
-                                  size="sm"
-                                  disabled={update.isPending}
-                                  onClick={() =>
-                                    original &&
-                                    update.mutate({
-                                      id: original.id,
-                                      active: !original._active,
-                                    })
-                                  }
-                                >
-                                  {cell.value}
-                                </Button>
-                              </TableCell>
-                            );
-                          }
-                          return (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </DataTable>
-      </DataState>
 
+      {/* Toolbar */}
+      <div className="esti-team-bar">
+        <Search
+          id="team-search"
+          labelText="Search team"
+          placeholder="Search team…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <Button onClick={() => setOpen(true)}>New member</Button>
+      </div>
+
+      {/* Portrait tile grid */}
+      {list.isLoading ? (
+        <p className="esti-label esti-label--secondary">Loading…</p>
+      ) : members.length === 0 ? (
+        <Tile>
+          <Stack gap={3}>
+            <p>
+              {search
+                ? `No staff match "${search}".`
+                : "No team members yet. Add staff to enable HR, payroll and project team tracking."}
+            </p>
+            {!search && (
+              <Button size="sm" onClick={() => setOpen(true)}>
+                New member
+              </Button>
+            )}
+          </Stack>
+        </Tile>
+      ) : (
+        <Grid narrow>
+          {members.map((m) => {
+            const color = resolveColor({ staffLevel: m.staffLevel ?? null, name: m.name });
+            const initials = getInitials(m.name);
+            const levelKey = m.staffLevel as keyof typeof STAFF_LEVEL_LABEL | undefined;
+            const levelLabel = levelKey ? STAFF_LEVEL_LABEL[levelKey] : null;
+            const contact = m.email ?? m.phone ?? null;
+            return (
+              <Column key={m.id} lg={3} md={2} sm={2}>
+                <Tile className="esti-staff-tile">
+                  {/* Portrait photo area — color fill + large initials */}
+                  <div className="esti-staff-tile__photo" style={{ background: color }}>
+                    <span className="esti-staff-tile__initials">{initials}</span>
+                    {/* Diagonal accent strip at bottom-left */}
+                    <div className="esti-staff-tile__accent" style={{ background: color }} />
+                  </div>
+
+                  {/* Info panel */}
+                  <div className="esti-staff-tile__info">
+                    <div className="esti-staff-tile__top-row">
+                      <span
+                        className="esti-staff-tile__dot"
+                        style={{ background: color }}
+                      />
+                      <span className="esti-label esti-label--secondary">
+                        {EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
+                          m.employmentType}
+                      </span>
+                      <Tag type={m.active ? "green" : "gray"} size="sm">
+                        {m.active ? "Active" : "Inactive"}
+                      </Tag>
+                    </div>
+
+                    <p className="esti-staff-tile__name">{m.name}</p>
+                    <p className="esti-staff-tile__role">
+                      {m.jobTitle || (TEAM_ROLES[m.role as TeamRoleCode] ?? m.role)}
+                    </p>
+                    {levelLabel && (
+                      <span className="esti-staff-tile__level-badge" style={{ background: color }}>
+                        {m.staffLevel}
+                      </span>
+                    )}
+                    {contact && (
+                      <p className="esti-label esti-label--secondary">{contact}</p>
+                    )}
+                    <p className="esti-label esti-label--secondary">
+                      {formatINR(m.monthlySalaryPaise, { paise: false })} / mo
+                    </p>
+
+                    <div className="esti-staff-tile__actions">
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        disabled={update.isPending}
+                        onClick={() =>
+                          update.mutate({ id: m.id, active: !m.active })
+                        }
+                      >
+                        {m.active ? "Deactivate" : "Activate"}
+                      </Button>
+                    </div>
+                  </div>
+                </Tile>
+              </Column>
+            );
+          })}
+        </Grid>
+      )}
+
+      {/* Add member modal */}
       <Modal
         open={open}
         modalHeading="New team member"
