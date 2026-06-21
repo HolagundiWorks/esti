@@ -23,6 +23,10 @@ const ROLE_LABEL: Record<string, string> = {
   CONSULTANT: "Consultant",
 };
 
+const LEVEL_ORDER: Record<string, number> = {
+  OWNER: 1, PARTNER: 2, SENIOR: 3, ASSOCIATE: 4, VIEWER: 5, CLIENT: 6, CONSULTANT: 7,
+};
+
 const LEVEL_BG: Record<string, string> = {
   L1: "#6929c4",
   L2: "#1192e8",
@@ -44,7 +48,9 @@ export function DemoSwitcherBar({ currentUserId }: { currentUserId: string }) {
   });
   const [switching, setSwitching] = useState<string | null>(null);
 
-  const users = demoUsersQ.data ?? [];
+  const users = [...(demoUsersQ.data ?? [])].sort(
+    (a, b) => (LEVEL_ORDER[a.role] ?? 99) - (LEVEL_ORDER[b.role] ?? 99),
+  );
   if (users.length === 0) return null;
 
   async function handleSwitch(email: string) {
