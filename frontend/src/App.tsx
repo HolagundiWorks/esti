@@ -35,9 +35,11 @@ import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
+import { UserIdCard } from "./components/UserIdCard.js";
 import { FloatingDock } from "./components/FloatingDock.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
+import { DemoSwitcherBar } from "./components/DemoSwitcherBar.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
 import { Alerts } from "./routes/Alerts.js";
@@ -49,6 +51,7 @@ import { Company } from "./routes/Company.js";
 import { Consultants } from "./routes/Consultants.js";
 import { Contractors } from "./routes/Contractors.js";
 import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
+import { ComplianceWidget } from "./routes/ComplianceWidget.js";
 import { Tenders } from "./routes/Tenders.js";
 import { Construction } from "./routes/Construction.js";
 import { Contracts } from "./routes/Contracts.js";
@@ -172,8 +175,7 @@ function AppShell() {
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
 
-  // Public contractor bid portal — a magic-link page reachable with or without a
-  // session (always white-themed, no app chrome).
+  // Public contractor bid portal — magic-link page, no session required.
   if (pathname.startsWith("/bid/"))
     return (
       <Theme theme="white">
@@ -182,6 +184,10 @@ function AppShell() {
         </Routes>
       </Theme>
     );
+
+  // Public compliance widget — no auth, embeddable as iframe.
+  if (pathname === "/compliance-check")
+    return <ComplianceWidget />;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
@@ -196,22 +202,28 @@ function AppShell() {
   if (user.role === "CLIENT")
     return (
       <Theme theme="white">
-        <Routes>
-          <Route path="/" element={<Portal />} />
-          <Route path="/projects/:projectId" element={<Portal />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
+        <div style={user.isDemo ? { paddingTop: 36 } : undefined}>
+          <Routes>
+            <Route path="/" element={<Portal />} />
+            <Route path="/projects/:projectId" element={<Portal />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </Theme>
     );
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId)
     return (
       <Theme theme="white">
-        <Routes>
-          <Route path="/" element={<CollaboratorPortal />} />
-          <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
+        <div style={user.isDemo ? { paddingTop: 36 } : undefined}>
+          <Routes>
+            <Route path="/" element={<CollaboratorPortal />} />
+            <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </Theme>
     );
 
@@ -238,7 +250,7 @@ function AppShell() {
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
-              { label: "HR", to: "/hr" },
+              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
               { label: "Performance", to: "/performance" },
             ]
           : []),
@@ -301,7 +313,8 @@ function AppShell() {
   return (
     <ThemeContext.Provider value={theme}>
       <Theme theme={theme}>
-        <div className="esti-app-shell">
+        <div className="esti-app-shell" style={user.isDemo ? { paddingTop: 36 } : undefined}>
+          {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
           <Theme theme="g100">
             <Header aria-label="ESTI AORMS">
               <HeaderName prefix="">
@@ -316,6 +329,7 @@ function AppShell() {
                 <HeaderClock />
                 <HeaderPomodoro />
                 <AlertsBell />
+                <UserIdCard />
                 <HeaderGlobalAction
                   aria-label="Sign out"
                   onClick={() => logout.mutate()}

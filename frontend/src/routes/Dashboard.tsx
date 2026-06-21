@@ -80,6 +80,10 @@ export function Dashboard() {
   const homeLoading = homeQ.isLoading && !home;
 
   const canFees = can(user?.role, "fees:manage");
+  const canInvoice = can(user?.role, "invoice:manage");
+  const canFinanceOps = can(user?.role, "finance:ops");
+  const isViewer = (user?.role === "VIEWER");
+  const showTeamIntelligence = hrEnabled && !isViewer;
 
   // Action Center — five urgency categories (capacity alerts only when HR is on).
   const billingReady = ac?.billingReadyPhases ?? [];
@@ -146,37 +150,41 @@ export function Dashboard() {
       <Column lg={16} md={8} sm={4}>
         <ZoneHead
           title="Office overview"
-          sub={hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
+          sub={isViewer ? "Project delivery at a glance." : hrEnabled ? "Billing, delivery, and team at a glance." : "Billing and delivery at a glance."}
         />
       </Column>
 
       {/* KPI strip — four answers, one row ═════════════════════════ */}
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Ready to bill"
-          value={formatINRShort(fh?.readyToBillPaise ?? 0)}
-          health={billingReady.length > 0 ? "ok" : "neutral"}
-          tagType={billingReady.length > 0 ? "green" : "gray"}
-          tagText={`${billingReady.length} phase${billingReady.length !== 1 ? "s" : ""}`}
-          onClick={() => navigate("/invoices")}
-          loading={homeLoading}
-        />
-      </Column>
-      <Column lg={4} md={4} sm={2}>
-        <KpiChip
-          label="Outstanding collections"
-          value={formatINRShort(fh?.outstandingPaise ?? 0)}
-          health={(fh?.overdue30dPaise ?? 0) > 0 ? "alert" : "neutral"}
-          tagType={(fh?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"}
-          tagText={
-            (fh?.overdue30dPaise ?? 0) > 0
-              ? `${formatINRShort(fh.overdue30dPaise)} overdue 30d+`
-              : "Nothing overdue"
-          }
-          onClick={() => navigate("/invoices")}
-          loading={homeLoading}
-        />
-      </Column>
+      {canInvoice && (
+        <Column lg={4} md={4} sm={2}>
+          <KpiChip
+            label="Ready to bill"
+            value={formatINRShort(fh?.readyToBillPaise ?? 0)}
+            health={billingReady.length > 0 ? "ok" : "neutral"}
+            tagType={billingReady.length > 0 ? "green" : "gray"}
+            tagText={`${billingReady.length} phase${billingReady.length !== 1 ? "s" : ""}`}
+            onClick={() => navigate("/invoices")}
+            loading={homeLoading}
+          />
+        </Column>
+      )}
+      {canInvoice && (
+        <Column lg={4} md={4} sm={2}>
+          <KpiChip
+            label="Outstanding collections"
+            value={formatINRShort(fh?.outstandingPaise ?? 0)}
+            health={(fh?.overdue30dPaise ?? 0) > 0 ? "alert" : "neutral"}
+            tagType={(fh?.overdue30dPaise ?? 0) > 0 ? "red" : "gray"}
+            tagText={
+              (fh?.overdue30dPaise ?? 0) > 0
+                ? `${formatINRShort(fh?.overdue30dPaise ?? 0)} overdue 30d+`
+                : "Nothing overdue"
+            }
+            onClick={() => navigate("/invoices")}
+            loading={homeLoading}
+          />
+        </Column>
+      )}
       <Column lg={4} md={4} sm={2}>
         <KpiChip
           label="Active projects"
@@ -380,10 +388,10 @@ export function Dashboard() {
                             </TableCell>
                             <TableCell>
                               <Stack orientation="horizontal" gap={2}>
-                                {p.unbilledPhases > 0 && (
+                                {p.unbilledPhases > 0 && canInvoice && (
                                   <Tag type="green" size="sm">{p.unbilledPhases} billable</Tag>
                                 )}
-                                {p.overdueInvoices > 0 && (
+                                {p.overdueInvoices > 0 && canInvoice && (
                                   <Tag type="red" size="sm">{p.overdueInvoices} overdue inv</Tag>
                                 )}
                                 {p.overdueTasks > 0 && (
@@ -415,7 +423,7 @@ export function Dashboard() {
       )}
 
       {/* ═══ 5 · Clients ═══════════════════════════════════════════════════ */}
-      {hasClients && (
+      {hasClients && canInvoice && (
         <>
           <Column lg={16} md={8} sm={4}>
             <ZoneTile navigate={navigate} title="Client signals" to="/clients" />
@@ -475,7 +483,7 @@ export function Dashboard() {
       )}
 
       {/* ═══ 6 · Team ══════════════════════════════════════════════════════ */}
-      {teamCards.length > 0 && (
+      {teamCards.length > 0 && showTeamIntelligence && (
         <>
           <Column lg={16} md={8} sm={4}>
             <ZoneTile
@@ -587,16 +595,18 @@ export function Dashboard() {
         </Column>
       )}
 
-      <DashboardFinancialSection
-        navigate={navigate}
-        chartTheme={chartTheme}
-        homeLoading={homeLoading}
-        canFees={canFees}
-        showFinancial={showFinancial}
-        revenueData={revenueData}
-        agingData={agingData}
-        agingEmpty={agingEmpty}
-      />
+      {canFinanceOps && (
+        <DashboardFinancialSection
+          navigate={navigate}
+          chartTheme={chartTheme}
+          homeLoading={homeLoading}
+          canFees={canFees}
+          showFinancial={showFinancial}
+          revenueData={revenueData}
+          agingData={agingData}
+          agingEmpty={agingEmpty}
+        />
+      )}
 
     </Grid>
   );

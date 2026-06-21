@@ -1,7 +1,9 @@
 import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
+import { drawings } from "./delivery.js";
 import {
   bigint,
+  boolean,
   createdAt,
   id,
   integer,
@@ -58,10 +60,17 @@ export const portalSubmissions = pgTable("esti_portal_submission", {
   subject: text("subject").notNull(),
   body: text("body"),
   rating: integer("rating"), // 1–5, feedback only
-  status: text("status").notNull().default("OPEN"), // OPEN | ACKNOWLEDGED | RESOLVED | DECLINED
+  status: text("status").notNull().default("OPEN"), // OPEN | ACKNOWLEDGED | IMPACT_SENT | CLIENT_APPROVED | CLIENT_REJECTED | RESOLVED | DECLINED
   responseNote: text("response_note"),
   revisionCategory: text("revision_category"), // MINOR | MAJOR | CRITICAL
   submittedById: uuid("submitted_by_id").references(() => users.id),
+  // Change-request impact assessment fields (populated by staff)
+  attentionToId: uuid("attention_to_id").references(() => users.id),
+  refDrawingId: uuid("ref_drawing_id").references(() => drawings.id),
+  affectsCosting: boolean("affects_costing").notNull().default(false),
+  affectsTimeline: boolean("affects_timeline").notNull().default(false),
+  isBillable: boolean("is_billable").notNull().default(false),
+  architectComment: text("architect_comment"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

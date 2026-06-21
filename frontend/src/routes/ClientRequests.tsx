@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   InlineNotification,
   Modal,
   Select,
@@ -14,6 +15,7 @@ import {
   TableRow,
   Tag,
   TextArea,
+  Tile,
 } from "@carbon/react";
 import {
   PORTAL_SUBMISSION_KIND_LABEL,
@@ -58,6 +60,27 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       utils.clientRequests.list.invalidate();
       utils.clientRequests.openCount.invalidate();
       setTriage(null);
+    },
+  });
+
+  // Impact assessment state
+  const [impact, setImpact] = useState<{
+    id: string;
+    subject: string;
+    refDrawingRef: string | null | undefined;
+    refDrawingTitle: string | null | undefined;
+    attentionToName: string | null | undefined;
+    body: string | null | undefined;
+    affectsCosting: boolean;
+    affectsTimeline: boolean;
+    isBillable: boolean;
+    architectComment: string;
+  } | null>(null);
+  const sendImpact = trpc.clientRequests.sendImpactAssessment.useMutation({
+    onSuccess: () => {
+      utils.clientRequests.list.invalidate();
+      utils.clientRequests.openCount.invalidate();
+      setImpact(null);
     },
   });
 
@@ -117,7 +140,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
                 <TableHeader>Project</TableHeader>
                 <TableHeader>Client</TableHeader>
                 <TableHeader>Status</TableHeader>
-                <TableHeader>Action</TableHeader>
+                <TableHeader>Actions</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -139,28 +162,66 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
                     {r.subject}
                     {r.body && <div className="esti-label esti-label--secondary">{r.body}</div>}
                     {r.rating != null && <div className="esti-label esti-label--helper">Rating: {r.rating}/5</div>}
+                    {r.refDrawingRef && (
+                      <div className="esti-label esti-label--helper">
+                        Ref drawing: {r.refDrawingRef}{r.refDrawingTitle ? ` — ${r.refDrawingTitle}` : ""}
+                      </div>
+                    )}
+                    {r.attentionToId && (
+                      <div className="esti-label esti-label--helper">
+                        Attn: {(r as { submittedBy?: string | null }).submittedBy ?? r.attentionToId}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Link to={`/projects/${r.projectId}`}>{r.projectRef}</Link>
                   </TableCell>
-                  <TableCell>{r.clientName ?? r.submittedBy ?? "—"}</TableCell>
+                  <TableCell>{r.clientName ?? "—"}</TableCell>
                   <TableCell>
-                    <Tag type={PORTAL_SUBMISSION_STATUS_TAG[r.status as PortalSubmissionStatusT] ?? "blue"}>
-                      {PORTAL_SUBMISSION_STATUS_LABEL[r.status as PortalSubmissionStatusT] ?? r.status}
-                    </Tag>
+                    <Stack gap={1}>
+                      <Tag type={PORTAL_SUBMISSION_STATUS_TAG[r.status as PortalSubmissionStatusT] ?? "blue"}>
+                        {PORTAL_SUBMISSION_STATUS_LABEL[r.status as PortalSubmissionStatusT] ?? r.status}
+                      </Tag>
+                      {(r.affectsCosting || r.affectsTimeline || r.isBillable) && (
+                        <Stack orientation="horizontal" gap={1}>
+                          {r.affectsCosting && <Tag type="red" size="sm">Cost</Tag>}
+                          {r.affectsTimeline && <Tag type="magenta" size="sm">Time</Tag>}
+                          {r.isBillable && <Tag type="purple" size="sm">Billable</Tag>}
+                        </Stack>
+                      )}
+                    </Stack>
                   </TableCell>
                   <TableCell>
-                    <Button kind="ghost" size="sm"
-                      onClick={() => setTriage({
-                        id: r.id, subject: r.subject,
-                        status: r.status as PortalSubmissionStatusT,
-                        responseNote: r.responseNote ?? "",
-                      })}>
-                      Triage
-                    </Button>
-                    <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: r.id, subject: r.subject })}>
-                      Reply
-                    </Button>
+                    <Stack gap={2}>
+                      {r.kind === "CHANGE_REQUEST" && !["IMPACT_SENT", "CLIENT_APPROVED", "CLIENT_REJECTED", "RESOLVED", "DECLINED"].includes(r.status) && (
+                        <Button kind="primary" size="sm"
+                          onClick={() => setImpact({
+                            id: r.id,
+                            subject: r.subject,
+                            refDrawingRef: r.refDrawingRef,
+                            refDrawingTitle: r.refDrawingTitle,
+                            attentionToName: r.attentionToId ? String(r.attentionToId) : null,
+                            body: r.body,
+                            affectsCosting: r.affectsCosting ?? false,
+                            affectsTimeline: r.affectsTimeline ?? false,
+                            isBillable: r.isBillable ?? false,
+                            architectComment: r.architectComment ?? "",
+                          })}>
+                          Send impact
+                        </Button>
+                      )}
+                      <Button kind="ghost" size="sm"
+                        onClick={() => setTriage({
+                          id: r.id, subject: r.subject,
+                          status: r.status as PortalSubmissionStatusT,
+                          responseNote: r.responseNote ?? "",
+                        })}>
+                        Triage
+                      </Button>
+                      <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: r.id, subject: r.subject })}>
+                        Reply
+                      </Button>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -169,6 +230,76 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         </TableContainer>
       </DataState>
 
+      {/* ── Impact Assessment modal ──────────────────────────────────────── */}
+      <Modal
+        open={impact !== null}
+        modalHeading={impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}
+        primaryButtonText={sendImpact.isPending ? "Sending…" : "Send to client"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={sendImpact.isPending}
+        onRequestClose={() => setImpact(null)}
+        onRequestSubmit={() => impact && sendImpact.mutate({
+          submissionId: impact.id,
+          affectsCosting: impact.affectsCosting,
+          affectsTimeline: impact.affectsTimeline,
+          isBillable: impact.isBillable,
+          architectComment: impact.architectComment || undefined,
+        })}
+      >
+        {impact && (
+          <Stack gap={5}>
+            {impact.body && (
+              <Tile>
+                <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Client's request</p>
+                <p>{impact.body}</p>
+                {impact.refDrawingRef && (
+                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)", marginTop: "0.5rem" }}>
+                    Reference drawing: {impact.refDrawingRef}{impact.refDrawingTitle ? ` — ${impact.refDrawingTitle}` : ""}
+                  </p>
+                )}
+              </Tile>
+            )}
+            <p>Tick all that apply to this change:</p>
+            <Stack gap={3}>
+              <Checkbox
+                id="ia-costing"
+                labelText="Affects costing"
+                helperText="This change will require a revised fee or additional costing."
+                checked={impact.affectsCosting}
+                onChange={(_e, { checked }) => setImpact({ ...impact, affectsCosting: checked })}
+              />
+              <Checkbox
+                id="ia-timeline"
+                labelText="Affects timeline / delivery schedule"
+                helperText="This change will extend or shift the project delivery dates."
+                checked={impact.affectsTimeline}
+                onChange={(_e, { checked }) => setImpact({ ...impact, affectsTimeline: checked })}
+              />
+              <Checkbox
+                id="ia-billable"
+                labelText="Billable additional work"
+                helperText="This change is outside the original scope and will be billed separately."
+                checked={impact.isBillable}
+                onChange={(_e, { checked }) => setImpact({ ...impact, isBillable: checked })}
+              />
+            </Stack>
+            <TextArea
+              id="ia-comment"
+              labelText="Your comment to the client (optional)"
+              helperText="Explain the impact in plain terms. The client will see this before approving."
+              rows={4}
+              value={impact.architectComment}
+              onChange={(e) => setImpact({ ...impact, architectComment: e.target.value })}
+            />
+            {sendImpact.error && (
+              <InlineNotification kind="error" title="Could not send"
+                subtitle={sendImpact.error.message} hideCloseButton lowContrast />
+            )}
+          </Stack>
+        )}
+      </Modal>
+
+      {/* ── Triage modal ─────────────────────────────────────────────────── */}
       <Modal
         open={triage !== null}
         modalHeading={triage ? `Triage — ${triage.subject}` : "Triage"}
@@ -200,6 +331,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         )}
       </Modal>
 
+      {/* ── Thread modal ─────────────────────────────────────────────────── */}
       <Modal
         open={threadFor !== null}
         modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
