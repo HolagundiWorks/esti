@@ -2,11 +2,11 @@
  * Quality intelligence tiles — shared by Dashboard and marketing landing preview.
  * Studio quality radar + revision detail (with proportional meter) + technical metrics.
  */
-import { MeterChart, RadarChart } from "@carbon/charts-react";
+import { DonutChart, RadarChart } from "@carbon/charts-react";
 import { InlineLoading, Stack, Tag, Tile } from "@carbon/react";
 import {
   buildRadarChartData,
-  buildRevisionSourceMeterData,
+  buildRevisionDonutData,
   computeStudioQualityAxes,
   studioQualityAverage,
   type RevisionIntelligenceSnapshot,
@@ -31,7 +31,7 @@ const EDGE_COLOR: Record<QiCardHealth, string> = {
 };
 
 const QI_RADAR_HEIGHT = "220px";
-const QI_METER_HEIGHT = "130px";
+const QI_DONUT_HEIGHT = "200px";
 
 export function qiEdge(health: QiCardHealth) {
   return { borderLeft: `3px solid ${EDGE_COLOR[health]}` };
@@ -161,8 +161,8 @@ export function RevisionIntelligenceTile({
   const empty = !data || data.totalDecisions === 0;
   const showContent = hasData ?? !empty;
   const meterRevision = chartData ?? data;
-  const sourceData =
-    meterRevision && showContent ? buildRevisionSourceMeterData(meterRevision, !!hasData) : [];
+  const donutData =
+    meterRevision && showContent ? buildRevisionDonutData(meterRevision, !!hasData) : [];
 
   return (
     <Tile className="esti-fill esti-qi-tile esti-lp-qi-tile esti-lp-qi-tile--revision" style={qiEdge(health)}>
@@ -182,30 +182,29 @@ export function RevisionIntelligenceTile({
         ) : (
           <>
             <div className="esti-qi-metrics esti-lp-qi-metrics">
-              <MetricRow label="Client driven" value={data!.clientDriven} />
-              <MetricRow label="Internal error" value={data!.internalError} />
-              <MetricRow label="Technical query" value={data!.technicalQuery} />
-              <MetricRow label="Scope change" value={data!.scopeChange} />
+              <MetricRow label="Client Requested" value={data!.clientDriven} />
+              <MetricRow label="Architectural Office" value={data!.internalError} />
+              <MetricRow label="Technical Revision" value={data!.technicalQuery} />
+              <MetricRow label="Misc" value={data!.scopeChange} />
               <MetricRow label="Scope drift" value={`${data!.scopeDriftPct}%`} />
             </div>
-            {sourceData.length > 0 && (
-              <div className="esti-qi-chart esti-qi-chart--meter esti-lp-qi-chart">
-                <p className="esti-qi-chart-label">Decision sources</p>
-                <MeterChart
-                  key={sourceData.map((d) => `${d.group}:${d.value}`).join("|")}
-                  data={sourceData}
+            {donutData.length > 0 && (
+              <div className="esti-qi-chart esti-lp-qi-chart">
+                <DonutChart
+                  key={donutData.map((d) => `${d.group}:${d.value}`).join("|")}
+                  data={donutData}
                   options={{
                     data: { groupMapsTo: "group" },
-                    height: QI_METER_HEIGHT,
+                    height: QI_DONUT_HEIGHT,
                     theme: chartTheme,
                     toolbar: { enabled: false },
                     legend: { enabled: true, position: "bottom" as const },
                     animations: chartAnimations,
-                    accessibility: { svgAriaLabel: "Revision decision sources" },
-                    meter: {
-                      proportional: {
-                        total: Math.max(1, meterRevision!.totalDecisions),
-                        unit: "decisions",
+                    accessibility: { svgAriaLabel: "Revision categories" },
+                    donut: {
+                      center: {
+                        label: "revisions",
+                        number: meterRevision!.totalDecisions,
                       },
                     },
                   }}
