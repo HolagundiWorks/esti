@@ -75,3 +75,4 @@ export * from "./construction-schedule-templates.js";
 export * from "./project-brief.js";
 export * from "./expense.js";
 export * from "./pmc.js";
+export * from "./hr-profile.js";

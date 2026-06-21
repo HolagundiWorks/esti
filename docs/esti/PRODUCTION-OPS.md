@@ -4,6 +4,10 @@ Use this before declaring a VPS instance production-ready. Engineering delivery
 through [Phase 20](ROADMAP.md) is complete; this checklist is the **operator gate**
 for a live firm instance (secrets, TLS, backup/restore drill).
 
+> **Runtime split:** development uses **Podman** (`podman compose up`) with `compose.yaml`.
+> Production (VPS) uses **Docker** (`docker compose`) with `compose.prod.yaml`.
+> All commands in this document target the VPS/Docker environment unless explicitly noted.
+
 ---
 
 ## Secrets and environment
@@ -38,10 +42,11 @@ bash deploy/setup-vps.sh
 # prompts for domain + admin email; runs certbot at the end
 ```
 
-Or one-shot bootstrap:
+Or one-shot bootstrap (clone first — the script sources `lib.sh` and cannot be piped via `curl | bash`):
 
 ```bash
-DOMAIN=aorms.in bash deploy/bootstrap.sh
+git clone https://github.com/HolagundiWorks/esti.git /opt/esti
+DOMAIN=aorms.in bash /opt/esti/deploy/bootstrap.sh
 ```
 
 ### Enable SSL on an existing HTTP-only VPS
@@ -96,7 +101,7 @@ After deploy, confirm migrations applied:
 
 ```bash
 docker compose -f compose.prod.yaml logs backend --tail 30
-docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
+docker compose -f compose.prod.yaml exec esti-db psql -U esti -d esti -c \
   "SELECT id, hash FROM drizzle.__drizzle_migrations ORDER BY id DESC LIMIT 5;"
 ```
 
@@ -125,7 +130,7 @@ See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
 ## Landing page ESTI AI (Ollama required)
 
-Prompts and Ollama client live in **`@hcw/aorms-ai-kit`** (sibling repo `hcw-aorms-ai-kit`). Rebuild backend after bumping that package version. See [KITS.md](../KITS.md).
+Prompts and Ollama client live in **`@hcw/aorms-ai-kit`** (vendored at `vendor/hcw-aorms-ai-kit/`). Rebuild backend after updating that package version. See [KITS.md](../KITS.md).
 
 The public marketing site exposes **Ask ESTI** (`marketing.askEsti`) — product FAQ powered by on-server Ollama. There is **no mock fallback** on the landing page; if Ollama is down, visitors see a friendly unavailable message.
 
@@ -153,10 +158,10 @@ The **Request beta testing access** form on the landing page (`#beta`) is built 
 1. Saved in PostgreSQL (`esti_trial_request`)
 2. Emailed to **`BETA_REQUEST_NOTIFY_TO`** (default `hi@aorms.in`) when SMTP is configured
 
-Configure your **mailbox SMTP** in `/opt/esti/.env` using credentials from your mail host panel (Hostinger, cPanel, Zoho Mail, Postfix on the same VPS, etc.):
+Configure your **mailbox SMTP** in `/opt/esti/.env` using credentials from your mail host panel:
 
 ```env
-SMTP_HOST=mail.aorms.in
+SMTP_HOST=smtp.gmail.com        # or mail.aorms.in / smtp.hostinger.com
 SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=hi@aorms.in
@@ -172,6 +177,7 @@ BETA_REQUEST_NOTIFY_TO=hi@aorms.in
 
 **Where to find settings**
 
+- **Gmail with App Password:** Google Account → Security → 2-Step Verification → App passwords. Set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER=you@gmail.com`, `SMTP_PASS=<16-char app password>`. Requires 2-Step Verification enabled.
 - **Hostinger / similar:** hPanel → Emails → your mailbox → Connect apps / SMTP settings
 - **cPanel:** Email Accounts → Connect Devices → outgoing server `mail.yourdomain.com`
 - **Zoho Mail:** Mail → Settings → Mail accounts → SMTP
@@ -195,7 +201,7 @@ Expect `✓ test message sent to hi@aorms.in` and the message in your inbox.
 ```bash
 docker compose -f compose.prod.yaml logs backend --tail 30
 
-docker compose -f compose.prod.yaml exec db psql -U esti -d esti -c \
+docker compose -f compose.prod.yaml exec esti-db psql -U esti -d esti -c \
   "SELECT full_name, work_email, company_name, created_at FROM esti_trial_request ORDER BY created_at DESC LIMIT 5;"
 ```
 
@@ -272,7 +278,7 @@ Owner UI: **Company → Release & readiness** mirrors `system.release` tRPC.
 
 ## CI and release audit
 
-- GitHub Actions: typecheck, lint, unit tests, backend + frontend production builds.
+- GitHub Actions: typecheck, lint, unit tests, backend + frontend production builds. *(CI pipeline not yet configured — run these manually before each release.)*
 - Dependency licenses: `node scripts/licenses.mjs`
 - Backend API smoke: `pnpm --filter @esti/backend test:api-smoke`
 - Worker limits / idempotency: [WORKER-LIMITS.md](WORKER-LIMITS.md)

@@ -1,11 +1,13 @@
 import {
   Button,
+  InlineLoading,
   InlineNotification,
   Stack,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { useEffect, useState } from "react";
+import { UserAvatar } from "@carbon/icons-react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
@@ -14,15 +16,29 @@ export function Settings() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const [name, setName] = useState("");
+  const [designation, setDesignation] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const profileQ = trpc.users.myProfile.useQuery(undefined, { enabled: !!user });
 
   useEffect(() => {
     if (user?.fullName) setName(user.fullName);
   }, [user?.fullName]);
 
+  useEffect(() => {
+    if (profileQ.data) {
+      if (profileQ.data.designation) setDesignation(profileQ.data.designation);
+      if (profileQ.data.photoUrl) setPhotoUrl(profileQ.data.photoUrl);
+    }
+  }, [profileQ.data]);
+
   const updateProfile = trpc.users.updateProfile.useMutation({
     onSuccess: () => {
       utils.auth.me.invalidate();
+      utils.users.myProfile.invalidate();
       setMsg("Profile updated");
     },
   });
@@ -34,6 +50,25 @@ export function Settings() {
       setMsg("Password changed");
     },
   });
+
+  async function uploadPhoto(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await fetch("/upload/profile-photo", { method: "POST", body: fd, credentials: "include" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Upload failed" }));
+        setMsg(`Upload failed: ${err.error}`);
+        return;
+      }
+      // Refresh profile to get new photo URL
+      await utils.users.myProfile.invalidate();
+      setMsg("Photo updated");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <Stack gap={6}>
@@ -51,6 +86,44 @@ export function Settings() {
           onCloseButtonClick={() => setMsg(null)}
         />
       )}
+
+      {/* Profile photo */}
+      <Tile style={{ maxWidth: 520 }}>
+        <Stack gap={4}>
+          <h2>Profile photo</h2>
+          <Stack orientation="horizontal" gap={5} style={{ alignItems: "center" }}>
+            <div className="esti-profile-photo">
+              {photoUrl ? (
+                <img src={photoUrl} alt={user?.fullName ?? "Photo"} />
+              ) : (
+                <UserAvatar size={40} />
+              )}
+            </div>
+            <Stack gap={2}>
+              <Button
+                kind="secondary"
+                size="sm"
+                disabled={uploading || user?.isDemo}
+                onClick={() => fileRef.current?.click()}
+              >
+                {uploading ? <InlineLoading description="Uploading…" /> : "Upload photo"}
+              </Button>
+              <p className="esti-label esti-label--helper">JPG, PNG or WebP, max 2 MB</p>
+            </Stack>
+          </Stack>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadPhoto(f);
+              e.target.value = "";
+            }}
+          />
+        </Stack>
+      </Tile>
 
       <Tile style={{ maxWidth: 520 }}>
         <Stack gap={3}>
@@ -72,11 +145,18 @@ export function Settings() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          <TextInput
+            id="pf-designation"
+            labelText="Designation / job title"
+            placeholder="e.g. Senior Architect"
+            value={designation}
+            onChange={(e) => setDesignation(e.target.value)}
+          />
           <Button
             disabled={name.length < 2 || updateProfile.isPending}
-            onClick={() => updateProfile.mutate({ fullName: name })}
+            onClick={() => updateProfile.mutate({ fullName: name, designation })}
           >
-            {updateProfile.isPending ? "Saving…" : "Save name"}
+            {updateProfile.isPending ? "Saving…" : "Save profile"}
           </Button>
         </Stack>
       </Tile>

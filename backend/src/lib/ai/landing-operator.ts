@@ -1,1 +1,1 @@
-export { LANDING_AI_UNAVAILABLE_MESSAGE } from "@hcw/aorms-ai-kit/prompts";
+export { LANDING_UNAVAILABLE_MESSAGE as LANDING_AI_UNAVAILABLE_MESSAGE } from "./landing-prompt.js";

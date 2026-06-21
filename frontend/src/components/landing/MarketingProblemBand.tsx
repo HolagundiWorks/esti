@@ -7,10 +7,11 @@ export function MarketingProblemBand() {
   return (
     <MarketingBandSection
       id="problem"
-      variant="muted"
-      eyebrow="The problem"
-      title="Important work lives outside the project."
-      lead="Drawings in one folder, approvals in WhatsApp, fees in a spreadsheet, compliance in a PDF someone saved in 2023."
+      variant="contrast"
+      eyebrow="Sound familiar?"
+      title="Your practice runs across six different apps."
+      lead="Drawings in one folder. Approvals on WhatsApp. Fees in a spreadsheet. Compliance in a PDF nobody can find. Your client's decisions — in your head."
+      centered
     >
       <MarketingTileGrid columns={3}>
         {PROBLEM_TILES.map((tile) => {

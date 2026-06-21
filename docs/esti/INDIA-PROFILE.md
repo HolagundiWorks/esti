@@ -38,7 +38,7 @@ in the UI, and never exposed as options.
 - Grouping is 3 digits then 2-digit groups: `12,34,567` not `1,234,567`.
 - Short display uses crore / lakh / thousand: `₹1.50 Cr`, `₹12.34 L`, `₹45,000`.
 - One shared money/format module owns this; no component formats currency ad hoc.
-- Money is computed in decimal (paise precision), never floating point — see
+- Money is stored and computed as **integer paise** (never float/decimal) — see
   [ARCHITECTURE](ARCHITECTURE.md) ADR (money & rounding).
 
 ## GST Systems (exactly one active per firm)

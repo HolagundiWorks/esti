@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-21
 
 Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
 
@@ -61,12 +61,13 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [21](#phase-21---unified-compliance-module-ia-p1) | Unified compliance IA | P1 | ✅ |
 | [22](#phase-22---access-level-documentation-p1) | Access level documentation | P1 | ✅ |
 | [23](#phase-23---marketing-landing-refresh-p2) | Marketing landing refresh | P2 | ✅ |
+| [24](#phase-24---vps-first-deploy-and-carbon-diagram-canvas-p0) | VPS first-deploy hardening & Carbon diagram canvas | P0 | ✅ |
 
 ---
 
 ## Product snapshot
 
-ESTI (AORMS) is **production-engineered through Phase 20** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
+ESTI (AORMS) is **production-engineered through Phase 24** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -95,6 +96,7 @@ ESTI (AORMS) is **production-engineered through Phase 20** and deployed at [aorm
 ## Remaining work (priority order)
 
 1. **Staging ops (operator)** — restore drill sign-off on VPS clone ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record))
+2. **Object storage** — wire `S3_PUBLIC_ENDPOINT` to a TLS-served MinIO proxy or managed S3/B2 so PDF/drawing presigned URLs resolve in the browser ([PRODUCTION-OPS](PRODUCTION-OPS.md#object-storage-downloads))
 
 ---
 
@@ -699,6 +701,27 @@ Consolidate BBMP rules, site assessments, and project development-control under 
 
 ---
 
+## Phase 24 — VPS first-deploy hardening & Carbon diagram canvas [P0] — ✅ Complete (2026-06-21)
+
+### 24A — Backend production image fix
+- [x] `backend/Dockerfile.prod` runner stage: copy `backend/node_modules/` alongside root `node_modules/` — pnpm puts workspace-scoped deps (e.g. `@fastify/cookie`) in the package's own tree, not root, causing `ERR_MODULE_NOT_FOUND` on first VPS boot
+
+### 24B — Bootstrap deployment flow
+- [x] Documented that `bootstrap.sh` must be cloned first (`git clone` to `/opt/esti`) before executing — piping via `curl | bash` fails because `source lib.sh` resolves relative to `/dev/fd/` at runtime
+- [x] Gmail SMTP with App Password documented as supported SMTP provider in [PRODUCTION-OPS](PRODUCTION-OPS.md)
+- [x] `deploy/.env.production.example` — confirmed complete for Hostinger Ubuntu 24.04 + Docker target
+
+### 24C — Parametric estimator — Carbon diagram building blocks
+- [x] `ParametricCanvas` rewritten from custom Grasshopper-style nodes to IBM Carbon diagram components
+- [x] `CardNode` (from `@carbon/charts-react`) replaces hand-rolled dark `<div>` panels; 4px coloured left accent border per node type
+- [x] `Edge` with custom bezier `path` prop replaces plain SVG `<path>` wires; `ArrowRightMarker` per port type (number/area/volume/length/weight/money) in `<defs>`
+- [x] `<Theme theme="g100">` wrapper with `style={{ height: "100%" }}` for correct canvas height inheritance
+- [x] All interaction (drag, pan, zoom, wire connect/delete, node add/delete, BOQ compute, modals) preserved unchanged
+
+**Gate met:** `bootstrap.sh` completes on Hostinger Ubuntu 24.04 LTS with Docker; backend starts healthy; Carbon diagram canvas renders with typed connectors and dark g100 theme.
+
+---
+
 ## Deferred ideas [P3]
 
 Optional — must not delay security, activity, project memory, collaboration, wellbeing basics, or production readiness.
@@ -753,5 +776,6 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-15 | Phase 19 — Master DSR copy/draft/CSV import; compliance BUA sync to project brief |
 | 2026-06-19 | Phase 22 — ACCESS-MODEL (L1–L5), contracts access helpers, Users level column, audit L5 policy |
 | 2026-06-19 | Phase 23 — IBM-inspired landing refresh, case-study cards, public corner ESTI AI (`marketing.askEsti`) |
+| 2026-06-21 | Phase 24 — VPS first-deploy hardening; Carbon diagram canvas (ParametricCanvas); `backend/Dockerfile.prod` pnpm workspace node_modules fix |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.

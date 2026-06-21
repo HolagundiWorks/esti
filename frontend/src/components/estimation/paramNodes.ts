@@ -383,7 +383,35 @@ export function outputPortY(kind: NodeKind, idx: number): number {
   return HEADER_H + idx * PORT_ROW_H + PORT_ROW_H / 2;
 }
 
+// ── Unit → port kind mapping (for estimate item auto-connect) ────────────────
+export const UNIT_TO_PORT_KIND: Record<string, PortKind> = {
+  CUM: "volume",
+  M3:  "volume",
+  SQM: "area",
+  M2:  "area",
+  RM:  "length",
+  RMT: "length",
+  M:   "length",
+  KG:  "weight",
+  MT:  "weight",
+  NOS: "number",
+  NO:  "number",
+  BAG: "number",
+  LOT: "number",
+  SET: "number",
+  LS:  "number",
+};
+
 // ── Runtime node state ───────────────────────────────────────────────────────
+export interface NodeMeta {
+  unit?: string;           // e.g. "CUM", "SQM", "RM"
+  description?: string;    // full description from estimate item
+  estimateItemId?: string;
+  estimateId?: string;
+  projectId?: string;
+  ratePaise?: number;      // original rate in paise for reference
+}
+
 export interface NodeState {
   id: string;
   kind: NodeKind;
@@ -391,6 +419,7 @@ export interface NodeState {
   pos: { x: number; y: number };
   params: Record<string, number>;
   outputs: Record<string, number | null>; // computed
+  meta?: NodeMeta;
 }
 
 export interface WireState {

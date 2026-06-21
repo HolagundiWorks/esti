@@ -1,24 +1,24 @@
 import {
-  Collaborate,
+  Building,
   Document,
   Finance,
 } from "@carbon/icons-react";
 
 export const PROBLEM_TILES = [
   {
-    icon: Collaborate,
-    title: "Context lost",
-    body: "RFIs and revision notes detached from the drawing they refer to.",
+    icon: Document,
+    title: "The approval you can't find",
+    body: "A client disputes a scope change. You have a WhatsApp thread and a fading memory. The revision was never formally documented.",
   },
   {
     icon: Finance,
-    title: "Money disconnected",
-    body: "Proposals, invoices, and TDS reconciliation in separate files.",
+    title: "Money scattered across files",
+    body: "Fee proposal in Word, invoice in Excel, TDS in a third file. Quarter-end reconciliation is a scramble every time.",
   },
   {
-    icon: Document,
-    title: "Compliance as files",
-    body: "Development-control calculations without versioned rule sources.",
+    icon: Building,
+    title: "The instruction nobody wrote down",
+    body: "The site team did it differently — someone called, someone approved it verbally. You find out at the inspection visit.",
   },
 ] as const;
 
@@ -37,7 +37,7 @@ export const PRACTICE_LAYERS = [
   {
     tag: "Office record",
     type: "teal" as const,
-    detail: "ESTI AORMS — projects, fees, issued documents, coordination, and commercial workflows.",
+    detail: "ESTI — projects, fees, issued documents, coordination, and commercial workflows.",
   },
 ] as const;
 
@@ -53,9 +53,9 @@ export const LIFECYCLE_STAGES: LifecycleStage[] = [
     id: "initiation",
     label: "Initiation & Brief",
     outcomes: [
-      "Client enquiry converted to a structured project brief",
-      "Accommodation schedule and assumptions recorded on Project Info",
-      "Fee proposal scoped to COA scale and deliverables",
+      "Client enquiry converted to a documented project brief with scope and assumptions",
+      "Accommodation schedule and programme pinned to Project Info — not a separate spreadsheet",
+      "Fee proposal structured to COA service stages, deliverables, and payment schedule",
     ],
     modules: ["Enquiries", "Project brief", "Fee proposal"],
   },
@@ -63,9 +63,9 @@ export const LIFECYCLE_STAGES: LifecycleStage[] = [
     id: "concept",
     label: "Concept Design",
     outcomes: [
-      "Design drivers and mood boards linked to the project",
-      "Early compliance feasibility against published rule sets",
-      "Decisions and critical notes visible to the team",
+      "Design intent and mood boards captured and linked to the project record",
+      "Early site feasibility checked against the published development-control rules",
+      "Decisions and critical notes visible to the whole team — nothing lost in email",
     ],
     modules: ["Mood boards", "Decisions", "Site assessment"],
   },
@@ -73,9 +73,9 @@ export const LIFECYCLE_STAGES: LifecycleStage[] = [
     id: "dd",
     label: "Design Development",
     outcomes: [
-      "Drawing register with revision control and issue sets",
-      "Working drawings authored in ESTICAD — Open in ESTICAD from any project row",
-      "Consultant engagements and scoped portal access",
+      "Drawing register with issued sets, revision history, and every approval documented",
+      "Working drawings linked to ESTICAD — open in the desktop app from any drawing row",
+      "Consultant scope and portal access assigned from within the project",
     ],
     modules: ["Drawings", "Consultants", "Revision register"],
   },
@@ -83,29 +83,29 @@ export const LIFECYCLE_STAGES: LifecycleStage[] = [
     id: "statutory",
     label: "Statutory Coordination",
     outcomes: [
-      "Versioned compliance rules in Knowledge Bank",
-      "Site feasibility calculation with immutable PDF snapshot",
-      "Permit records as office evidence — not live authority polling",
+      "Development-control rules saved to the project — calculation and rule version together",
+      "Site feasibility computation with a branded PDF snapshot for authority submission",
+      "Permit records as office evidence — date, reference number, and issuing authority",
     ],
-    modules: ["Knowledge Bank", "Bylaw calc", "Document register"],
+    modules: ["Knowledge Bank", "Bylaw calc", "Compliance PDF"],
   },
   {
     id: "cd",
     label: "Construction Documentation",
     outcomes: [
-      "Working drawings produced in ESTICAD with transmittals and approval log",
-      "Specifications and procurement standards from catalogue",
-      "Takeoff quantities synced from ESTICAD into BOQ and DSR estimates in AORMS",
+      "Working drawings issued in ESTICAD with transmittals and an approval log",
+      "Specifications and procurement standards from the office catalogue",
+      "Quantities from drawings feed directly into cost estimates and DSR rates",
     ],
-    modules: ["ESTICAD", "Transmittals", "Spec catalogue", "BOQ / DSR"],
+    modules: ["ESTICAD", "Transmittals", "Specifications", "Cost estimates"],
   },
   {
     id: "tender",
     label: "Tender & Appointment",
     outcomes: [
-      "Tender packages, addenda, and sealed bid comparison",
-      "Contractor register and award recommendation",
-      "Architect-side BOQ and tender costing",
+      "Tender packages, addenda, and sealed bid comparison in one place",
+      "Contractor register, award recommendation, and appointment record",
+      "Architect-side cost estimate and rate analysis",
     ],
     modules: ["Tenders", "Contractors", "Estimation"],
   },
@@ -113,19 +113,19 @@ export const LIFECYCLE_STAGES: LifecycleStage[] = [
     id: "ca",
     label: "Construction Administration",
     outcomes: [
-      "RFIs, submittals, shop drawings, and site instructions in context",
-      "Inspections, snags, and NCRs linked to the project",
-      "Payment certificates and architect-side PO support",
+      "Site instructions, RFIs, submittals, and shop drawings attached to the project",
+      "Inspection reports, snag lists, and NCRs linked to drawings and contractor records",
+      "Payment certificates and progress claims tracked against the appointment",
     ],
-    modules: ["Site coordination", "PMC schedule", "Invoices"],
+    modules: ["Site instructions", "Site schedule", "Invoices"],
   },
   {
     id: "handover",
     label: "Handover & Closeout",
     outcomes: [
-      "Final issue sets and as-built document register",
-      "Lessons learned captured for the office",
-      "Project archive with retained financial and audit records",
+      "Final drawing sets and as-built register — archived and retrievable years later",
+      "Lessons learned captured for the office, not lost with the project",
+      "Project archive with complete financial and audit records",
     ],
     modules: ["Archive", "Lessons learned", "Reconciliation"],
   },
@@ -136,25 +136,25 @@ export const INDIA_DESK_TILES = [
     tag: "Money",
     type: "blue" as const,
     metric: "₹1.23 Cr",
-    detail: "Indian grouping, integer paise, financial year 1 Apr – 31 Mar.",
+    detail: "Lakh and crore formatting, integer-paise billing, financial year 1 Apr–31 Mar — built in, not a configuration setting.",
   },
   {
     tag: "GST",
     type: "teal" as const,
-    metric: "3 systems",
-    detail: "Not applicable · Composition 6% · Regular 18% with SAC 998321–998339.",
+    metric: "3 schemes",
+    detail: "Not applicable, Composition 6%, or Regular 18% — the right scheme and SAC code on every invoice, automatically.",
   },
   {
-    tag: "Professional ID",
+    tag: "COA number",
     type: "purple" as const,
-    metric: "COA number",
-    detail: "Mandatory firm Legal ID on proposals, invoices, and document footers.",
+    metric: "Mandatory",
+    detail: "Your Council of Architecture registration appears on every fee proposal and invoice footer, as the CoA requires.",
   },
   {
     tag: "Compliance",
     type: "gray" as const,
-    metric: "Versioned rules",
-    detail: "State and district rule sets; deterministic development-control calculations.",
+    metric: "8 cities",
+    detail: "BBMP, GHMC, DDA, CMDA, UDCPR, and more — versioned rule sets with a citable snapshot for every compliance calculation.",
   },
 ] as const;
 

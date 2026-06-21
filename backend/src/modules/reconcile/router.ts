@@ -6,10 +6,13 @@ import { invoices, reconciliations } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { BUCKET } from "../../lib/storage.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, router } from "../../trpc/trpc.js";
+
+// Bank statement reconciliation is L2 (finance:ops) and above.
+const financeOps = capabilityProcedure("finance:ops");
 
 export const reconcileRouter = router({
-  list: protectedProcedure.input(OfficeListParams.optional()).query(async ({ ctx, input }) => {
+  list: financeOps.input(OfficeListParams.optional()).query(async ({ ctx, input }) => {
     return ctx.db
       .select()
       .from(reconciliations)
@@ -17,7 +20,7 @@ export const reconcileRouter = router({
       .limit(clampListLimit(input?.limit));
   }),
 
-  byId: protectedProcedure
+  byId: financeOps
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [row] = await ctx.db
@@ -32,7 +35,7 @@ export const reconcileRouter = router({
    * ISSUED invoices transition (idempotent — re-running settles the rest);
    * everything else is counted as skipped.
    */
-  settle: protectedProcedure
+  settle: financeOps
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [batch] = await ctx.db
@@ -72,7 +75,7 @@ export const reconcileRouter = router({
       return { settled, skipped, matched: ids.length };
     }),
 
-  setColumnMapping: protectedProcedure
+  setColumnMapping: financeOps
     .input(z.object({ id: z.string().uuid(), mapping: ReconcileColumnMapping }))
     .mutation(async ({ ctx, input }) => {
       const [batch] = await ctx.db.select().from(reconciliations).where(eq(reconciliations.id, input.id));
@@ -91,7 +94,7 @@ export const reconcileRouter = router({
       return { ok: true };
     }),
 
-  exportRows: protectedProcedure
+  exportRows: financeOps
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [batch] = await ctx.db.select().from(reconciliations).where(eq(reconciliations.id, input.id));

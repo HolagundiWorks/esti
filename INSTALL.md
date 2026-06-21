@@ -27,7 +27,7 @@ git clone <repo-url> esti && cd esti
 podman compose up -d --build
 
 # Create the first owner login (idempotent)
-podman exec esti-backend sh -lc "cd /app/backend && pnpm seed"
+podman exec esti-backend sh -lc "cd /app/esti/backend && pnpm seed"
 ```
 
 Then open **http://localhost:5173** and sign in with the seeded credentials
@@ -92,7 +92,7 @@ uploads therefore work on a fresh stack without a separate MinIO init step.
 To generate a new migration after changing `backend/src/db/schema.ts`:
 
 ```bash
-podman exec esti-backend sh -lc "cd /app/backend && pnpm db:generate"
+podman exec esti-backend sh -lc "cd /app/esti/backend && pnpm db:generate"
 # commit the new files in backend/drizzle/
 ```
 
@@ -111,7 +111,7 @@ Summary before exposing a live firm instance:
 - [ ] Run `deploy/restore-drill.sh` on a staging clone and record sign-off.
 - [ ] Rate limiting and upload validation are built in; review limits in `backend/src/index.ts`.
 
-VPS deploy: `bash deploy/deploy.sh` after `git pull`. Fresh host: `bash deploy/setup-vps.sh`.
+VPS deploy: `bash deploy/deploy.sh` (the script does `git pull` itself). Fresh host: clone the repo first then run `bash /opt/esti/deploy/bootstrap.sh` — the script sources `lib.sh` relative to its location and cannot be piped directly via `curl | bash`.
 
 See [ROADMAP](docs/esti/ROADMAP.md#status-at-a-glance) for delivered engineering scope (Phases 0–20).
 

@@ -75,6 +75,7 @@ export default defineConfig({
       "/upload": { target: proxyTarget, changeOrigin: true },
       "/calendar": { target: proxyTarget, changeOrigin: true },
       "/health": { target: proxyTarget, changeOrigin: true },
+      "/api": { target: proxyTarget, changeOrigin: true },
     },
   },
 });

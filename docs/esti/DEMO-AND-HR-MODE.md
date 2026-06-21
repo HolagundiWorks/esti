@@ -36,8 +36,8 @@ Re-run `seed:demo` on an existing workspace to **backfill** missing records (ide
 
 ```bash
 podman compose up -d --build
-podman exec esti-backend sh -c "cd /app/backend && pnpm db:migrate && pnpm seed:demo"
-podman exec esti-backend sh -c "cd /app/backend && pnpm seed:demo:solo"
+podman exec esti-backend sh -c "cd /app/esti/backend && pnpm db:migrate && pnpm seed:demo"
+podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo:solo"
 ```
 
 **Production (VPS / Docker):**

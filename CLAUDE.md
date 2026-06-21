@@ -90,10 +90,10 @@ Tests: `worker/tests/test_jobs.py` (handler unit tests) and
   the VM mount — `podman restart esti-backend` after backend changes.
 - `frontend` runs in the `esti-frontend` container (Vite at
   `http://localhost:5173`); typecheck/lint inside it:
-  `podman exec esti-frontend sh -lc "cd /app/frontend && pnpm exec tsc -p tsconfig.json --noEmit"`
+  `podman exec esti-frontend sh -lc "cd /app/esti/frontend && pnpm exec tsc -p tsconfig.json --noEmit"`
   and `pnpm exec eslint <files>`.
 - After editing `packages/contracts`, rebuild it in the relevant container
-  (`cd /app/packages/contracts && pnpm build`).
+  (`cd /app/esti/packages/contracts && pnpm build`).
 - Quick render check: `GET http://localhost:5173/src/<path>` should return 200.
 - Migrations live in `backend/drizzle/`; generate with drizzle-kit, copy the
   `.sql` + `meta/` into the container, applied on boot by `runMigrations()`.
@@ -149,9 +149,7 @@ GST rates, SAC codes)
 - `team` / `assignments` — roster and project-staff assignments
 - `leaves` / `payroll` — HR (from `backend/src/modules/team/hr.ts`; `hr:manage`)
 - `workload` — team workload overview; `notifications` — notification system
-- `timesheets` — per-person per-day project/task time attribution with billable
-  flag; `list/create/update/remove/summary`
-- `dailyUpdates` — stand-up upsert per team member per date; `list/upsertMine/today`
+- `attendance` — per-person daily attendance and time attribution records
 - `aspRf` — rolling 30-day ASPRF composite score; `teamScores/myScore`
 - `rewards` — reward point events with audit; `listByMember/grant` (owner-only)
 

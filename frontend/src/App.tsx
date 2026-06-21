@@ -204,7 +204,7 @@ function AppShell() {
     return (
       <Theme theme="white">
         {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-        <div style={user.isDemo ? { paddingTop: 36 } : undefined}>
+        <div>
           <Routes>
             <Route path="/" element={<Portal />} />
             <Route path="/projects/:projectId" element={<Portal />} />
@@ -218,7 +218,7 @@ function AppShell() {
     return (
       <Theme theme="white">
         {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-        <div style={user.isDemo ? { paddingTop: 36 } : undefined}>
+        <div>
           <Routes>
             <Route path="/" element={<CollaboratorPortal />} />
             <Route path="/projects/:projectId" element={<CollaboratorPortal />} />

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const publicUser = {
@@ -15,6 +16,9 @@ const publicUser = {
   disabled: users.disabled,
   clientId: users.clientId,
   consultantId: users.consultantId,
+  userCode: users.userCode,
+  designation: users.designation,
+  photoKey: users.photoKey,
 };
 
 export const userRouter = router({
@@ -131,19 +135,29 @@ export const userRouter = router({
       return { ok: true };
     }),
 
-  /** Self-service: update own display name. */
+  /** Self-service: fetch own profile with a short-lived photo URL. */
+  myProfile: protectedProcedure.query(async ({ ctx }) => {
+    const [u] = await ctx.db
+      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role })
+      .from(users)
+      .where(eq(users.id, ctx.user.id));
+    const photoUrl = u?.photoKey ? await presignedGet(u.photoKey).catch(() => null) : null;
+    return { ...(u ?? {}), photoUrl };
+  }),
+
+  /** Self-service: update own display name and/or designation. */
   updateProfile: protectedProcedure
-    .input(z.object({ fullName: z.string().min(2).max(200) }))
+    .input(z.object({ fullName: z.string().min(2).max(200), designation: z.string().max(100).optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db.select({ fullName: users.fullName }).from(users).where(eq(users.id, ctx.user.id));
-      await ctx.db.update(users).set({ fullName: input.fullName }).where(eq(users.id, ctx.user.id));
+      const [before] = await ctx.db.select({ fullName: users.fullName, designation: users.designation }).from(users).where(eq(users.id, ctx.user.id));
+      await ctx.db.update(users).set({ fullName: input.fullName, ...(input.designation !== undefined ? { designation: input.designation } : {}) }).where(eq(users.id, ctx.user.id));
       await writeAudit(ctx.db, {
         entity: "user",
         entityId: ctx.user.id,
         action: "PROFILE_UPDATE",
         actorId: ctx.user.id,
         before,
-        after: { fullName: input.fullName },
+        after: { fullName: input.fullName, designation: input.designation },
       });
       return { ok: true };
     }),

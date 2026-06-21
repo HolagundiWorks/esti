@@ -21,6 +21,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StaffAvatar } from "./StaffAvatar.js";
 
 export function ProjectTeam({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -83,7 +84,12 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
           <TableBody>
             {(listQ.data ?? []).map((a) => (
               <TableRow key={a.id}>
-                <TableCell>{a.name}</TableCell>
+                <TableCell>
+                  <span className="esti-avatar-name-cell">
+                    <StaffAvatar name={a.name} size="sm" />
+                    {a.name}
+                  </span>
+                </TableCell>
                 <TableCell>
                   {TEAM_ROLES[a.memberRole as TeamRoleCode] ?? a.memberRole}
                 </TableCell>

@@ -11,6 +11,7 @@ export const UPLOAD_ROUTE_CAPABILITIES = {
   "/upload/reconcile": "write",
   "/upload/firm-logo": "firm:admin",
   "/upload/tender-document": "write",
+  "/upload/profile-photo": "write",
 } as const satisfies Record<string, Capability>;
 
 /** Shared authorization policy for cookie-authenticated REST upload routes. */

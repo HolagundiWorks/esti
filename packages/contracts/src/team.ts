@@ -6,15 +6,24 @@ import { z } from "zod";
  * in-charge.
  */
 export const TEAM_ROLES = {
-  PRINCIPAL: "Principal architect",
+  // Current-generation role codes
+  PRINCIPAL_ARCHITECT: "Principal Architect",
+  ASSOCIATE_PARTNER: "Associate Partner",
+  SENIOR_ARCHITECT: "Senior Architect",
+  PROJECT_MANAGER: "Project Manager",
   ARCHITECT: "Architect",
-  JR_ARCHITECT: "Junior architect",
+  SITE_SUPERVISOR: "Site Supervisor",
+  ENGINEER: "Engineer",
+  INTERN: "Intern / Trainee",
+  ADMIN: "Admin / Support",
+  ACCOUNTS: "Accounts / Finance",
+  // Legacy codes (kept for backward compatibility)
+  PRINCIPAL: "Principal Architect",
+  JR_ARCHITECT: "Jr Architect",
+  PROJECT_LEAD: "Project Lead",
   DRAFTSMAN: "Draughtsperson",
-  SITE_ENGINEER: "Site engineer",
-  SITE_SUPERVISOR: "Site supervisor",
-  INTERIOR: "Interior designer",
-  ADMIN: "Admin",
-  ACCOUNTS: "Accounts",
+  SITE_ENGINEER: "Site Engineer",
+  INTERIOR: "Interior Designer",
   OTHER: "Other",
 } as const;
 export type TeamRoleCode = keyof typeof TEAM_ROLES;
@@ -51,6 +60,10 @@ export const TeamMemberUpdate = z.object({
   active: z.boolean().optional(),
   backupContactName: z.string().max(120).nullable().optional(),
   backupContactPhone: z.string().max(40).nullable().optional(),
+  /** Display-facing staff grade L1–L4 (see HR-PROFILE-SYSTEM.md). */
+  staffLevel: z.enum(["L1", "L2", "L3", "L4"]).nullable().optional(),
+  /** Free-text job title e.g. "Senior Architect". */
+  jobTitle: z.string().max(120).nullable().optional(),
 });
 export type TeamMemberUpdate = z.infer<typeof TeamMemberUpdate>;
 

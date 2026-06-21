@@ -19,7 +19,10 @@ import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { registerInspectionPhotoUpload } from "./modules/inspection/upload.js";
 import { registerMoodImageUpload } from "./modules/spec/upload.js";
 import { registerTenderDocumentUpload } from "./modules/contractor/upload.js";
+import { registerProfilePhotoUpload } from "./modules/users/photoUpload.js";
+import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
+import { registerComplianceApi } from "./modules/compliance/publicApi.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { userFromDeviceToken } from "./auth/device.js";
@@ -44,6 +47,11 @@ const app = Fastify({
 const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
 
 app.addHook("onRequest", (req, reply, done) => {
+  // Public compliance API is open to all origins — skip the firm origin check.
+  if (req.url.startsWith("/api/compliance/")) {
+    done();
+    return;
+  }
   const denial = originDenial(req.method, req.headers.origin, allowedOrigins);
   if (denial) {
     void reply.code(403).send({ error: denial });
@@ -54,7 +62,22 @@ app.addHook("onRequest", (req, reply, done) => {
 
 app.addHook("onSend", (_req, reply, _payload, done) => {
   reply.header("x-request-id", _req.id);
+  if (_req.url.startsWith("/api/compliance/")) {
+    reply.header("access-control-allow-origin", "*");
+    reply.header("access-control-allow-methods", "GET, POST, OPTIONS");
+    reply.header("access-control-allow-headers", "content-type");
+  }
   done();
+});
+
+// OPTIONS preflight for the public compliance API.
+app.options("/api/compliance/*", async (_req, reply) => {
+  reply
+    .header("access-control-allow-origin", "*")
+    .header("access-control-allow-methods", "GET, POST, OPTIONS")
+    .header("access-control-allow-headers", "content-type")
+    .code(204)
+    .send();
 });
 
 // Coarse global abuse protection (per IP). Generous enough for the SPA's
@@ -95,7 +118,10 @@ registerFirmLogoUpload(app);
 registerMoodImageUpload(app);
 registerInspectionPhotoUpload(app);
 registerTenderDocumentUpload(app);
+registerProfilePhotoUpload(app);
+registerHrDocUpload(app);
 registerCalendarFeed(app);
+registerComplianceApi(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
