@@ -1,8 +1,9 @@
 import { ArrowRight, Checkmark } from "@carbon/icons-react";
-import { Button, Column, Grid, ListItem, Stack, UnorderedList } from "@carbon/react";
+import { Button, Column, Grid, Stack, Tag, Theme } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
 import { LandingDashboardPreview } from "../LandingDashboardPreview.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
+import { MarketingTopoBackground } from "./MarketingTopoBackground.js";
 
 const RESOLVERS = [
   "Every scope change documented before work begins — no revision disputes",
@@ -12,7 +13,6 @@ const RESOLVERS = [
 
 export function MarketingHero({
   onStudioDemo,
-  onSoloDemo,
   onTrialScroll,
   demoLoading,
   demoKind,
@@ -24,66 +24,66 @@ export function MarketingHero({
   demoKind?: DemoKind | null;
 }) {
   return (
-    <LandingBand
-      variant="default"
-      id="top"
-      ariaLabelledby="hero-title"
-      className="esti-landing-hero-full"
-    >
-      <LandingEditorial>
-        <Grid fullWidth className="esti-landing-grid">
-          {/* Centered text block */}
-          <Column lg={{ span: 8, offset: 4 }} md={8} sm={4}>
-            <Stack gap={8} className="esti-lp-hero-center">
-              <Stack gap={5}>
-                <p className="esti-landing-eyebrow">For Indian architecture practices</p>
-                <h1 id="hero-title" className="esti-landing-lead-title">
-                  Run your practice, not your inbox.
-                </h1>
-                <p className="esti-landing-lead-subtitle">
-                  From the first client call to the final invoice — projects,
-                  drawings, fees, compliance, and portals in one place.
-                </p>
-              </Stack>
+    <Theme theme="g100">
+      <LandingBand
+        variant="lead"
+        id="top"
+        ariaLabelledby="hero-title"
+        className="esti-landing-hero-topo"
+      >
+        <MarketingTopoBackground />
 
-              <UnorderedList className="esti-landing-icon-list">
-                {RESOLVERS.map((r) => (
-                  <ListItem key={r}>
-                    <span className="esti-row">
+        <LandingEditorial>
+          <Grid fullWidth className="esti-landing-grid">
+            <Column lg={{ span: 7, offset: 1 }} md={8} sm={4}>
+              <Stack gap={8} className="esti-lp-hero-center">
+                <Stack gap={5}>
+                  <Tag type="purple" size="md">For Indian architecture practices</Tag>
+                  <h1 id="hero-title" className="esti-landing-lead-title">
+                    Run your practice,<br />not your inbox.
+                  </h1>
+                  <p className="esti-landing-lead-subtitle">
+                    From the first client call to the final invoice — projects,
+                    drawings, fees, compliance, and portals in one place.
+                  </p>
+                </Stack>
+
+                <Stack gap={3} className="esti-lp-hero-resolvers">
+                  {RESOLVERS.map((r) => (
+                    <span key={r} className="esti-row esti-lp-hero-resolver">
                       <Checkmark size={16} aria-hidden />
                       <span>{r}</span>
                     </span>
-                  </ListItem>
-                ))}
-              </UnorderedList>
+                  ))}
+                </Stack>
 
-              <Stack orientation="horizontal" gap={4} className="esti-landing-hero-actions">
-                <Button
-                  kind="primary"
-                  size="lg"
-                  renderIcon={ArrowRight}
-                  onClick={onStudioDemo}
-                  disabled={demoLoading}
-                >
-                  {demoLoading && demoKind === "studio" ? "Opening…" : "Explore studio demo"}
-                </Button>
-                {onTrialScroll && (
-                  <Button kind="tertiary" size="lg" onClick={onTrialScroll}>
-                    Request trial
+                <Stack orientation="horizontal" gap={4} className="esti-landing-hero-actions">
+                  <Button
+                    kind="primary"
+                    size="lg"
+                    renderIcon={ArrowRight}
+                    onClick={onStudioDemo}
+                    disabled={demoLoading}
+                  >
+                    {demoLoading && demoKind === "studio" ? "Opening…" : "Explore studio demo"}
                   </Button>
-                )}
+                  {onTrialScroll && (
+                    <Button kind="ghost" size="lg" onClick={onTrialScroll}>
+                      Request trial
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
-            </Stack>
-          </Column>
+            </Column>
 
-          {/* Full-width product screenshot */}
-          <Column lg={{ span: 14, offset: 1 }} md={8} sm={4}>
-            <div className="esti-lp-hero-preview-stage">
-              <LandingDashboardPreview />
-            </div>
-          </Column>
-        </Grid>
-      </LandingEditorial>
-    </LandingBand>
+            <Column lg={{ span: 8, offset: 0 }} md={8} sm={4}>
+              <div className="esti-lp-hero-preview-stage">
+                <LandingDashboardPreview />
+              </div>
+            </Column>
+          </Grid>
+        </LandingEditorial>
+      </LandingBand>
+    </Theme>
   );
 }
