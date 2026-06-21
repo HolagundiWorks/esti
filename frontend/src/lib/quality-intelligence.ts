@@ -70,15 +70,15 @@ export function zeroStudioQualityAxes(): StudioQualityAxis[] {
   return STUDIO_QUALITY_FEATURES.map((feature) => ({ feature, score: 0 }));
 }
 
-export function buildRevisionSourceMeterData(
+export function buildRevisionDonutData(
   revision: RevisionIntelligenceSnapshot,
   includeZero = false,
 ): { group: string; value: number }[] {
   return [
-    { group: "Client driven", value: revision.clientDriven },
-    { group: "Internal error", value: revision.internalError },
-    { group: "Technical query", value: revision.technicalQuery },
-    { group: "Scope change", value: revision.scopeChange },
+    { group: "Client Requested", value: revision.clientDriven },
+    { group: "Architectural Office", value: revision.internalError },
+    { group: "Technical Revision", value: revision.technicalQuery },
+    { group: "Misc", value: revision.scopeChange },
   ].filter((d) => includeZero || d.value > 0);
 }
 
