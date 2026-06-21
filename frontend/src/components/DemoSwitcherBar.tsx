@@ -85,16 +85,15 @@ export function DemoSwitcherBar({ currentUserId }: { currentUserId: string }) {
     >
       <span
         style={{
-          color: "#888",
-          fontSize: 10,
-          textTransform: "uppercase",
-          letterSpacing: 0.8,
+          color: "#aaa",
+          fontSize: 11,
           whiteSpace: "nowrap",
-          marginRight: 4,
+          marginRight: 8,
           flexShrink: 0,
+          fontFamily: "'IBM Plex Sans', sans-serif",
         }}
       >
-        Demo
+        Which user's view would you like to see?
       </span>
 
       {users.map((u) => {
