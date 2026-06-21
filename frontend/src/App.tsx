@@ -334,7 +334,7 @@ function AppShell() {
   return (
     <ThemeContext.Provider value={theme}>
       <Theme theme={theme}>
-        <div className="esti-app-shell" style={user.isDemo ? { paddingTop: 36 } : undefined}>
+        <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>
           {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
           <Theme theme="g100">
             <Header aria-label="ESTI AORMS">
