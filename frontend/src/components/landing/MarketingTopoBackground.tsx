@@ -1,109 +1,81 @@
-import { useMemo } from "react";
+/**
+ * MarketingTopoBackground
+ *
+ * SVG background for the hero and pillars sections.
+ * Aesthetic: radial glow + dot grid + sweeping terrain arcs (alternating
+ * purple / teal) + nested closed contour loops around a focal peak +
+ * accent dots.  All purely declarative SVG — zero runtime computation,
+ * zero CSS classes, zero custom animation.
+ *
+ * purpleAccent=false shows arcs only (teal-dominant), used on the
+ * pillars section so it reads differently from the hero.
+ */
 
-// Anisotropic Gaussian peaks — each defines a terrain feature.
-// x,y: centre (1440×960 space)  amp: peak height  sX/sY: spread  rot: tilt (rad)
-type Peak = { x: number; y: number; amp: number; sX: number; sY: number; rot: number };
+const PURPLE  = "rgba(138,63,252,";
+const TEAL    = "rgba(0,125,121,";
+const BLUE    = "rgba(15,98,254,";
 
-const PEAKS: Peak[] = [
-  { x: 380,  y: 260, amp: 1.00, sX: 265, sY: 202, rot:  0.30 }, // main massif NW
-  { x: 940,  y: 380, amp: 0.80, sX: 218, sY: 168, rot: -0.22 }, // eastern ridge
-  { x: 570,  y: 730, amp: 0.62, sX: 172, sY: 134, rot:  0.65 }, // southern hill
-  { x: 1170, y: 185, amp: 0.50, sX: 148, sY: 120, rot: -0.52 }, // NE summit
-  { x:  90,  y: 595, amp: 0.42, sX: 120, sY: 146, rot:  0.12 }, // western knoll
-  { x: 720,  y: 520, amp: 0.32, sX:  98, sY: 108, rot: -0.35 }, // centre saddle
+// 8 sweeping terrain arcs — left edge to right edge, rising gently
+const ARCS = [
+  "M-100,195 C210,72  460,100 672,188 C908,282 1112,148 1540,100",
+  "M-110,278 C208,148 466,164 686,256 C930,360 1134,248 1540,196",
+  "M-120,368 C215,232 496,240 728,336 C966,432 1174,338 1540,290",
+  "M-130,458 C228,316 528,314 778,418 C1020,520 1224,454 1540,410",
+  "M-140,552 C235,406 552,408 818,502 C1062,598 1264,566 1540,524",
+  "M-150,646 C228,516 566,524 848,598 C1096,672 1276,676 1540,640",
+  "M-155,738 C230,628 572,644 864,696 C1124,748 1296,776 1540,758",
+  "M-155,830 C218,742 564,754 876,778 C1148,802 1304,866 1540,870",
+] as const;
+
+// Closed contour loops around the focal peak at ~(876, 330)
+// Listed outer → inner so inner loops paint on top
+const LOOPS: { d: string; strokeOpacity: number; strokeWidth: number }[] = [
+  {
+    d:  "M978,62 C1096,30 1250,88 1274,218 C1300,368 1208,478 1062,470 "
+      + "C912,462 832,370 850,218 C862,120 892,82 978,62 Z",
+    strokeOpacity: 0.22,
+    strokeWidth: 0.9,
+  },
+  {
+    d:  "M916,104 C1006,74 1124,110 1150,206 C1178,312 1102,402 992,396 "
+      + "C880,390 818,316 834,214 C844,150 864,118 916,104 Z",
+    strokeOpacity: 0.30,
+    strokeWidth: 1.0,
+  },
+  {
+    d:  "M858,148 C924,120 1014,142 1038,202 C1064,272 1010,330 932,324 "
+      + "C854,318 806,258 818,196 C826,166 838,154 858,148 Z",
+    strokeOpacity: 0.40,
+    strokeWidth: 1.0,
+  },
+  {
+    d:  "M872,198 C916,182 966,196 982,234 C1000,278 972,316 920,312 "
+      + "C868,308 840,272 848,230 C852,210 858,200 872,198 Z",
+    strokeOpacity: 0.52,
+    strokeWidth: 0.95,
+  },
+  {
+    d:  "M880,240 C906,230 938,240 950,264 C964,292 946,318 912,316 "
+      + "C878,314 858,292 862,264 C864,248 870,242 880,240 Z",
+    strokeOpacity: 0.64,
+    strokeWidth: 0.9,
+  },
+  {
+    d:  "M884,272 C900,264 920,272 928,292 C936,314 922,332 898,330 "
+      + "C874,328 860,310 864,288 C866,278 874,272 884,272 Z",
+    strokeOpacity: 0.76,
+    strokeWidth: 0.85,
+  },
 ];
-
-// 20 elevation bands → dense packing like a real topo map
-const LEVELS = Array.from({ length: 20 }, (_, i) => 0.74 - i * 0.034);
-
-// Terrain height: sum of anisotropic Gaussians + organic noise
-function evalH(x: number, y: number): number {
-  let v = 0;
-  for (const p of PEAKS) {
-    const cos = Math.cos(p.rot), sin = Math.sin(p.rot);
-    const dx = x - p.x, dy = y - p.y;
-    const rx = dx * cos + dy * sin;
-    const ry = -dx * sin + dy * cos;
-    v += p.amp * Math.exp(
-      -rx * rx / (2 * p.sX * p.sX)
-      -ry * ry / (2 * p.sY * p.sY),
-    );
-  }
-  // Beating-sine noise — irregular organic irregularity
-  v += 0.048 * Math.sin(x * 0.0188 + y * 0.0134)
-              * Math.cos(x * 0.0312 - y * 0.0207);
-  v += 0.022 * Math.sin(x * 0.0071 - y * 0.0415 + 1.3);
-  return v;
-}
-
-// Ray-cast from peak centre outward at each angle; binary-search to find isoline radius.
-function traceContour(
-  cx: number,
-  cy: number,
-  elev: number,
-  n = 56,
-): [number, number][] | null {
-  if (evalH(cx, cy) <= elev) return null; // this peak is below the target elevation
-  const pts: [number, number][] = [];
-  for (let i = 0; i < n; i++) {
-    const ang = (i / n) * 2 * Math.PI;
-    const cosA = Math.cos(ang), sinA = Math.sin(ang);
-    let lo = 0, hi = 1100;
-    for (let k = 0; k < 32; k++) {
-      const m = (lo + hi) * 0.5;
-      evalH(cx + m * cosA, cy + m * sinA) > elev ? (lo = m) : (hi = m);
-    }
-    const r = (lo + hi) * 0.5;
-    if (r < 4 || r > 1050) continue;
-    pts.push([cx + r * cosA, cy + r * sinA]);
-  }
-  return pts.length >= 8 ? pts : null;
-}
-
-const f = (n: number) => n.toFixed(1);
-
-// Catmull-Rom → cubic bezier; tension t controls smoothness (0.16 = smooth)
-function toPath(pts: [number, number][]): string {
-  const n = pts.length, t = 0.16;
-  // pts is guaranteed non-empty by traceContour (>= 8 elements) — safe to assert
-  const p0 = pts[0]!;
-  let d = `M${f(p0[0])},${f(p0[1])}`;
-  for (let i = 0; i < n; i++) {
-    const [x0, y0] = pts[(i + n - 1) % n]!;
-    const [x1, y1] = pts[i]!;
-    const [x2, y2] = pts[(i + 1) % n]!;
-    const [x3, y3] = pts[(i + 2) % n]!;
-    d += ` C${f(x1 + (x2 - x0) * t)},${f(y1 + (y2 - y0) * t)}`
-       + ` ${f(x2 - (x3 - x1) * t)},${f(y2 - (y3 - y1) * t)}`
-       + ` ${f(x2)},${f(y2)}`;
-  }
-  return d + "Z";
-}
-
-// Pre-compute all contour paths at module load (pure constants — runs once, ~8 ms)
-const CONTOURS: { d: string; elev: number; seq: number }[] = (() => {
-  const out: { d: string; elev: number; seq: number }[] = [];
-  let seq = 0;
-  for (const peak of PEAKS) {
-    for (const elev of LEVELS) {
-      const pts = traceContour(peak.x, peak.y, elev);
-      if (pts) out.push({ d: toPath(pts), elev, seq: seq++ });
-    }
-  }
-  return out;
-})();
 
 export function MarketingTopoBackground({
   purpleAccent = true,
 }: {
   purpleAccent?: boolean;
 }) {
-  // Nothing reactive — CONTOURS are constant. useMemo just keeps the render clean.
-  const contours = useMemo(() => CONTOURS, []);
-
   return (
     <svg
-      viewBox="0 0 1440 960"
+      viewBox="0 0 1440 900"
       preserveAspectRatio="xMidYMid slice"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
@@ -113,46 +85,96 @@ export function MarketingTopoBackground({
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        overflow: "hidden",
+        opacity: 0.82,
       }}
     >
       <defs>
+        {/* Radial glow — blue core, purple mid, fades out */}
+        <radialGradient id="topo-glow" cx="62%" cy="34%" r="68%">
+          <stop offset="0%"   stopColor="#0F62FE" stopOpacity="0.16" />
+          <stop offset="42%"  stopColor="#8A3FFC" stopOpacity="0.07" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0"    />
+        </radialGradient>
+
+        {/* Subtle line-grid — gives a technical / dashboard grid feel */}
+        <pattern id="topo-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+          <path
+            d="M48 0 L0 0 0 48"
+            stroke="#ffffff"
+            strokeOpacity="0.032"
+            strokeWidth="1"
+            fill="none"
+          />
+        </pattern>
+
+        {/* Soft glow filter on the contour layer */}
+        <filter id="topo-blur" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="2.2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
         <clipPath id="topo-bounds">
-          <rect x="0" y="0" width="1440" height="960" />
+          <rect x="0" y="0" width="1440" height="900" />
         </clipPath>
-        {/* Subtle fade toward bottom so hero content stays readable */}
-        <linearGradient id="topo-fade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="transparent" />
-          <stop offset="70%"  stopColor="transparent" />
+      </defs>
+
+      {/* 1 — Radial glow overlay */}
+      <rect width="1440" height="900" fill="url(#topo-glow)" />
+
+      {/* 2 — Dot-line grid */}
+      <rect width="1440" height="900" fill="url(#topo-grid)" />
+
+      {/* 3 — Contour layer (filtered) */}
+      <g filter="url(#topo-blur)" clipPath="url(#topo-bounds)">
+
+        {/* Sweeping terrain arcs — alternate purple / teal */}
+        {ARCS.map((d, i) => (
+          <path
+            key={`arc-${i}`}
+            d={d}
+            stroke={
+              i % 2 === 0
+                ? `${PURPLE}0.38)`
+                : `${TEAL}0.34)`
+            }
+            strokeWidth="1.15"
+            fill="none"
+          />
+        ))}
+
+        {/* Closed contour loops — purple (only when purpleAccent=true) */}
+        {purpleAccent && LOOPS.map((lp, i) => (
+          <path
+            key={`loop-${i}`}
+            d={lp.d}
+            stroke={`${PURPLE}${lp.strokeOpacity})`}
+            strokeWidth={lp.strokeWidth}
+            fill="none"
+          />
+        ))}
+
+        {/* Glowing accent dots at terrain peaks (shown only with accent) */}
+        {purpleAccent && (
+          <>
+            <circle cx="898" cy="316" r="3.0" fill={`${PURPLE}0.72)`} />
+            <circle cx="962" cy="244" r="2.5" fill={`${BLUE}0.66)`}   />
+            <circle cx="1048" cy="358" r="2.5" fill={`${TEAL}0.60)`}  />
+            <circle cx="714"  cy="222" r="2.0" fill={`${PURPLE}0.55)`} />
+          </>
+        )}
+      </g>
+
+      {/* 4 — Bottom fade so hero text reads clearly */}
+      <defs>
+        <linearGradient id="topo-bottom-fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="65%" stopColor="transparent"            />
           <stop offset="100%" stopColor="var(--cds-background)" />
         </linearGradient>
       </defs>
-
-      <g clipPath="url(#topo-bounds)">
-        {contours.map((c) => {
-          // Inner (high elevation) contours are slightly more visible
-          const base = c.elev > 0.58 ? 0.22 : c.elev > 0.40 ? 0.16 : 0.11;
-          // Every 6th line gets a purple accent
-          const isAccent = purpleAccent && c.seq % 6 === 0;
-          return (
-            <path
-              key={c.seq}
-              d={c.d}
-              fill="none"
-              stroke={
-                isAccent
-                  ? `rgba(138,63,252,${(base * 1.75).toFixed(2)})`
-                  : `rgba(255,255,255,${base})`
-              }
-              strokeWidth={isAccent ? "1.0" : "0.65"}
-              vectorEffect="non-scaling-stroke"
-            />
-          );
-        })}
-
-        {/* Overlay gradient to fade bottom */}
-        <rect x="0" y="0" width="1440" height="960" fill="url(#topo-fade)" />
-      </g>
+      <rect width="1440" height="900" fill="url(#topo-bottom-fade)" />
     </svg>
   );
 }
