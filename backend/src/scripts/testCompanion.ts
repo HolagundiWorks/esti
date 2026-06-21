@@ -94,6 +94,10 @@ async function main(): Promise<void> {
     clientId: owner!.clientId,
     consultantId: owner!.consultantId,
     isDemo: false,
+    isSystemAdmin: owner!.isSystemAdmin ?? false,
+    userCode: owner!.userCode ?? null,
+    designation: owner!.designation ?? null,
+    photoKey: owner!.photoKey ?? null,
   });
   check(ownerCaps.subscriptionActive === true, "non-demo staff is subscription-active");
 
