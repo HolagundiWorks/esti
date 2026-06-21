@@ -10,6 +10,10 @@ export function testUser(role: AuthUser["role"], overrides: Partial<AuthUser> = 
     clientId: null,
     consultantId: null,
     isDemo: false,
+    isSystemAdmin: false,
+    userCode: null,
+    designation: null,
+    photoKey: null,
     ...overrides,
   };
 }
