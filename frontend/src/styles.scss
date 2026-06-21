@@ -124,9 +124,9 @@ body,
 
 .esti-app-shell--demo {
   --esti-sticky-top: 84px;
-  .bx--header { top: 36px; }
-  .bx--side-nav { top: calc(48px + 36px); height: calc(100% - 84px); }
-  .bx--content { margin-top: calc(48px + 36px); }
+  .cds--header { top: 36px; }
+  .cds--side-nav { top: calc(48px + 36px); height: calc(100% - 84px); }
+  .cds--content { margin-top: calc(48px + 36px); }
 }
 
 // Hide native scrollbars in the office shell; wheel / touch scrolling still works.
