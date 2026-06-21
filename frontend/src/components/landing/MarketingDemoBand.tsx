@@ -45,8 +45,8 @@ export function MarketingDemoBand({
               </Column>
             </Grid>
             <p className="esti-landing-section-lead">
-              Demo accounts reset weekly. Credentials: email shown on the login screen /
-              password <code>demo1234</code>. Read-only on destructive operations.
+              Demo accounts reset weekly. Sign in via the buttons above — no credentials needed.
+              Destructive operations are disabled in demo mode.
             </p>
           </Stack>
         </LandingEditorial>

@@ -187,8 +187,8 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       {canUpload && uploadRequired && user?.isDemo && (
         <InlineNotification
           kind="info"
-          title="Demo upload password"
-          subtitle="Use the demo login password (demo1234) when prompted — same gate as a live firm with upload protection enabled."
+          title="Upload password required"
+          subtitle="This demo has upload protection enabled — enter the upload password when prompted, same as a live firm."
           lowContrast
           hideCloseButton
           style={{ marginBottom: 12 }}
