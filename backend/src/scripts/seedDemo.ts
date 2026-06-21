@@ -403,6 +403,7 @@ async function main(): Promise<void> {
       role: "OWNER",
       passwordHash: pwHash,
       isDemo: true,
+      designation: "Principal Architect",
     })
     .returning();
   const staffUsers = await db
@@ -414,6 +415,7 @@ async function main(): Promise<void> {
         role: "PARTNER",
         passwordHash: pwHash,
         isDemo: true,
+        designation: "Partner / Project Lead",
       },
       {
         email: "site@demo.aorms.in",
@@ -421,6 +423,7 @@ async function main(): Promise<void> {
         role: "ASSOCIATE",
         passwordHash: pwHash,
         isDemo: true,
+        designation: "Site Architect",
       },
       {
         email: "junior@demo.aorms.in",
@@ -428,6 +431,7 @@ async function main(): Promise<void> {
         role: "VIEWER",
         passwordHash: pwHash,
         isDemo: true,
+        designation: "Junior Architect",
       },
       {
         email: "intern@demo.aorms.in",
@@ -435,6 +439,7 @@ async function main(): Promise<void> {
         role: "VIEWER",
         passwordHash: pwHash,
         isDemo: true,
+        designation: "Intern",
       },
     ])
     .returning();
@@ -525,7 +530,7 @@ async function main(): Promise<void> {
   ]).returning();
 
   const kapoor = clientRows[3]!;
-  await db.insert(users).values({ email: "client@demo.aorms.in", fullName: "Divya Kapoor (Client)", role: "CLIENT", passwordHash: pwHash, isDemo: true, clientId: kapoor.id });
+  await db.insert(users).values({ email: "client@demo.aorms.in", fullName: "Divya Kapoor (Client)", role: "CLIENT", passwordHash: pwHash, isDemo: true, clientId: kapoor.id, designation: "Client" });
 
   // ── Consultants ───────────────────────────────────────────────────────────
   const consultantRows = await db.insert(consultants).values([

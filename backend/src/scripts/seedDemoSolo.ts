@@ -69,6 +69,7 @@ async function main(): Promise<void> {
       role: "OWNER",
       passwordHash: pwHash,
       isDemo: true,
+      designation: "Principal Architect",
     })
     .returning();
 

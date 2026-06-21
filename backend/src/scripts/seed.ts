@@ -47,6 +47,7 @@ async function main(): Promise<void> {
     role: "OWNER",
     passwordHash: await hashPassword(loginPassword),
     isDemo: isDemoAormsEmail(email),
+    designation: "Principal Architect",
   });
 
   console.log("✓ seeded OWNER account");
