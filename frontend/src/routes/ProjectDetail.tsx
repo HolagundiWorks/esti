@@ -171,9 +171,10 @@ export function ProjectDetail() {
       <div
         style={{
           position: "sticky",
-          top: 48,
+          top: "var(--esti-sticky-top, 48px)",
           zIndex: 100,
           paddingBottom: 8,
+          background: "var(--cds-background)",
         }}
       >
         <Link to="/projects">← Projects</Link>
@@ -203,7 +204,6 @@ export function ProjectDetail() {
               p.status as keyof typeof PROJECT_STATUS_LABEL
             ] ?? p.status}
           </Tag>
-          <span>· {formatINR(p.contractValuePaise, { paise: false })}</span>
         </div>
         {phases.length > 0 && currentPhase && (
           <div style={{ marginTop: 8 }}>

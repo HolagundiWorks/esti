@@ -122,6 +122,13 @@ body,
   min-height: 100vh;
 }
 
+.esti-app-shell--demo {
+  --esti-sticky-top: 84px;
+  .bx--header { top: 36px; }
+  .bx--side-nav { top: calc(48px + 36px); height: calc(100% - 84px); }
+  .bx--content { margin-top: calc(48px + 36px); }
+}
+
 // Hide native scrollbars in the office shell; wheel / touch scrolling still works.
 html:has(.esti-app-shell),
 html:has(.esti-app-shell) body,
@@ -2749,14 +2756,14 @@ html:has(.esti-landing-shell) body {
   background: #fff;
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
-  padding: 1rem;
+  padding: var(--cds-spacing-07);
   overflow: hidden;
   box-shadow:
     0 16px 40px rgba(22, 22, 22, 0.08),
     0 2px 8px rgba(22, 22, 22, 0.04);
 
   &--wide {
-    padding: 1.25rem;
+    padding: var(--cds-spacing-08);
   }
 }
 
@@ -2818,6 +2825,15 @@ html:has(.esti-landing-shell) body {
   pointer-events: none;
 }
 
+.esti-lp-carbon .esti-lp-dash-lower {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+.esti-lp-carbon .esti-lp-dash-frame--live .esti-lp-dash-lower {
+  animation: esti-lp-kpi-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
+}
+
 @keyframes esti-lp-kpi-in {
   to {
     opacity: 1;
@@ -2834,7 +2850,8 @@ html:has(.esti-landing-shell) body {
   .esti-lp-reveal,
   .esti-lp-carbon .esti-lp-dash-frame,
   .esti-lp-carbon .esti-zone-head,
-  .esti-lp-carbon .esti-lp-kpi-slot {
+  .esti-lp-carbon .esti-lp-kpi-slot,
+  .esti-lp-carbon .esti-lp-dash-lower {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
@@ -3159,6 +3176,43 @@ html:has(.esti-landing-shell) body {
 h1.esti-landing-lead-title {
   @include type.type-style("heading-06");
   max-width: min(32rem, 100%);
+}
+
+// ─── Linear-style layout helpers ─────────────────────────────────────────────
+
+// Centered hero text stack — structural only.
+.esti-lp-hero-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  h1.esti-landing-lead-title {
+    max-width: min(44rem, 100%);
+    text-align: center;
+  }
+
+  .esti-landing-lead-subtitle {
+    text-align: center;
+    margin-inline: auto;
+  }
+}
+
+// Centered section head — text-align, margin, align are structural.
+.esti-lp-head-centered {
+  text-align: center;
+
+  .esti-landing-section-title,
+  .esti-landing-section-lead,
+  .esti-landing-eyebrow {
+    margin-inline: auto;
+  }
+}
+
+// Breathing room above the dashboard preview card inside the hero.
+.esti-lp-hero-preview-stage {
+  padding-block-start: var(--cds-spacing-10);
+  padding-block-end: 0;
 }
 
 .esti-landing-eyebrow {
@@ -3527,8 +3581,56 @@ h1.esti-landing-lead-title {
   inset-block-end: 2rem;
   z-index: 9100;
 
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9050;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  &__cmd {
+    position: fixed;
+    top: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(44rem, calc(100vw - 2rem));
+    z-index: 9075;
+    background: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-top: 3px solid var(--cds-support-warning);
+    box-shadow: 0 16px 40px rgba(22, 22, 22, 0.18);
+    padding: var(--cds-spacing-06);
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+
+  &__cmd-input-row {
+    align-items: flex-end;
+  }
+
   &__fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
+    border: 1px solid var(--cds-support-warning);
+    background: var(--cds-support-warning);
+    color: var(--cds-text-primary);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(22, 22, 22, 0.12);
+    transition: box-shadow 0.1s;
+
+    &:hover {
+      box-shadow: 0 6px 18px rgba(22, 22, 22, 0.18);
+    }
+  }
+
+  &__fab-logo {
+    width: 1.375rem;
+    height: auto;
+    display: block;
   }
 
   &__thread {
@@ -3539,4 +3641,373 @@ h1.esti-landing-lead-title {
   &__turn {
     max-width: 100%;
   }
+}
+
+// ── User ID card popover ──────────────────────────────────────────────────────
+.esti-user-card {
+  position: absolute;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-end: 0;
+  min-width: 280px;
+  max-width: 340px;
+  z-index: 9000;
+  box-shadow: var(--cds-shadow);
+
+  &__hero {
+    align-items: flex-start;
+  }
+
+  &__avatar {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--cds-layer-02);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__name {
+    font-weight: 600;
+  }
+
+  &__row {
+    align-items: center;
+  }
+}
+
+// Profile photo preview in Settings
+.esti-profile-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--cds-layer-02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// ── Staff avatar (circular, initials or photo) ────────────────────────────────
+.esti-staff-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+// Inline name + avatar in table cells
+.esti-avatar-name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+}
+
+// ── Portrait ID card ──────────────────────────────────────────────────────────
+.esti-id-card {
+  position: absolute;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-end: 0;
+  width: 220px;
+  border-radius: var(--cds-border-radius-lg, 8px);
+  overflow: hidden;
+  box-shadow: var(--cds-shadow);
+  z-index: 9000;
+  background: var(--cds-layer);
+
+  &__photo-area {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+  }
+
+  &__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  // When no photo — full-colour background with large initials
+  &__initials-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__initials {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    opacity: 0.9;
+  }
+
+  // Diagonal colour triangle over photo (bottom-left corner)
+  &__overlay {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    width: 90px;
+    height: 90px;
+    clip-path: polygon(0 100%, 100% 100%, 0 0);
+    opacity: 0.85;
+  }
+
+  // "ESTI / USR002" badge inside the coloured area
+  &__badge {
+    position: absolute;
+    inset-block-end: 8px;
+    inset-inline-start: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    z-index: 1;
+  }
+
+  &__badge-label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1;
+  }
+
+  &__badge-code {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1;
+  }
+
+  // White info section
+  &__body {
+    padding: var(--cds-spacing-04) var(--cds-spacing-04) var(--cds-spacing-05);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-02);
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    color: var(--cds-text-primary);
+  }
+
+  &__designation {
+    font-size: 0.75rem;
+    color: var(--cds-text-secondary);
+    margin-block-end: var(--cds-spacing-02);
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-02);
+    margin-block-end: var(--cds-spacing-03);
+  }
+
+  &__role-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__link {
+    font-size: 0.75rem;
+  }
+}
+
+// Remove old .esti-user-card rules now replaced by .esti-id-card
+
+// ── Staff portrait tile grid (Team registry) ─────────────────────────────────
+.esti-team-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--cds-spacing-04);
+
+  .cds--search {
+    flex: 1;
+  }
+}
+
+.esti-staff-tile.cds--tile {
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.esti-staff-tile__photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.esti-staff-tile__initials {
+  font-size: 4rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+// Bottom-left diagonal accent (same hue, darker shadow tone)
+.esti-staff-tile__accent {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: 55%;
+  height: 25%;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  opacity: 0.45;
+  filter: brightness(0.6);
+}
+
+.esti-staff-tile__info {
+  padding: var(--cds-spacing-04) var(--cds-spacing-04) var(--cds-spacing-03);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02);
+}
+
+.esti-staff-tile__top-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-02);
+  margin-block-end: var(--cds-spacing-01);
+}
+
+.esti-staff-tile__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.esti-staff-tile__name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--cds-text-primary);
+  line-height: 1.25;
+}
+
+.esti-staff-tile__role {
+  font-size: 0.8125rem;
+  color: var(--cds-text-secondary);
+  line-height: 1.3;
+}
+
+.esti-staff-tile__actions {
+  margin-block-start: var(--cds-spacing-02);
+  display: flex;
+  justify-content: flex-end;
+}
+
+// ── Level badge (staff tile + ID card) ──────────────────────────────────────
+.esti-staff-tile__level-badge,
+.esti-id-card__level-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 var(--cds-spacing-03);
+  border-radius: 9px;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  width: fit-content;
+  line-height: 1;
+}
+
+.esti-id-card__level-badge {
+  margin-block-end: var(--cds-spacing-02);
+}
+
+// ── HR profile tiles ─────────────────────────────────────────────────────────
+.esti-profile-member-tile.cds--tile {
+  cursor: pointer;
+  padding: var(--cds-spacing-04);
+}
+.esti-profile-member-tile--active.cds--tile {
+  outline: 2px solid var(--cds-focus);
+  outline-offset: -2px;
+}
+
+// ── Document vault tiles ─────────────────────────────────────────────────────
+.esti-doc-tile.cds--tile {
+  padding: var(--cds-spacing-05);
+  height: 100%;
+}
+.esti-doc-tile__header {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+}
+.esti-doc-tile__actions {
+  display: flex;
+  gap: var(--cds-spacing-02);
+  flex-wrap: wrap;
+  margin-block-start: auto;
+}
+
+// ── Application pipeline tiles ───────────────────────────────────────────────
+.esti-app-tile.cds--tile {
+  padding: var(--cds-spacing-05);
+  height: 100%;
+}
+.esti-app-tile__actions {
+  display: flex;
+  gap: var(--cds-spacing-02);
+  flex-wrap: wrap;
+  margin-block-start: var(--cds-spacing-03);
 }

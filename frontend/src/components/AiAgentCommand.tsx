@@ -1,20 +1,19 @@
-import { Close } from "@carbon/icons-react";
+import { Close, Send } from "@carbon/icons-react";
 import {
-  IconButton,
+  Button,
   InlineLoading,
-  InlineNotification,
   Stack,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
-import { EstiAiExplainLabel } from "./AiCarbon.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
-import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 
-/** Floating ESTI agent — Carbon for AI command bar (Alt+A). */
+type ChatTurn = { role: "user" | "assistant"; text: string };
+
+/** Floating ESTI agent — same dialog UI as the landing page (Alt+A). */
 export function AiAgentCommand() {
   const { user } = useAuth();
   const { pathname } = useLocation();
@@ -29,30 +28,37 @@ export function AiAgentCommand() {
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [reply, setReply] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [turns, setTurns] = useState<ChatTurn[]>([]);
 
-  const rootRef = useRef<HTMLDivElement>(null);
-  const fabRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const aiLoading = settingsQ.isLoading;
+  const endRef = useRef<HTMLDivElement>(null);
 
   const generate = trpc.ai.generate.useMutation({
     onSuccess: (res) => {
-      setReply(res.output);
-      setError(null);
+      setTurns((t) => [...t, { role: "assistant", text: res.output }]);
     },
     onError: (err) => {
-      setError(err.message);
+      setTurns((t) => [
+        ...t,
+        { role: "assistant", text: `Could not answer: ${err.message}` },
+      ]);
     },
   });
 
-  useDismissOnOutsideClick(open, () => setOpen(false), [rootRef, fabRef]);
+  useEffect(() => {
+    if (open) {
+      const t = window.setTimeout(() => inputRef.current?.focus(), 80);
+      return () => window.clearTimeout(t);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [turns, generate.isPending, open]);
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if (!e.altKey) return;
-      if (e.key === "a" || e.key === "A") {
+      if (e.altKey && (e.key === "a" || e.key === "A")) {
         e.preventDefault();
         setOpen((o) => !o);
       }
@@ -65,36 +71,29 @@ export function AiAgentCommand() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      const t = window.setTimeout(() => inputRef.current?.focus(), 80);
-      return () => window.clearTimeout(t);
-    }
-  }, [open]);
-
   if (!canUseAgent) return null;
 
-  function submitCommand() {
-    const cmd = input.trim();
-    if (!cmd || generate.isPending) return;
+  function submit(e?: FormEvent) {
+    e?.preventDefault();
+    const prompt = input.trim();
+    if (!prompt || generate.isPending) return;
     if (!aiEnabled) {
-      setError(
-        settingsQ.isError ?
-          "Could not load AI settings — try refreshing the page."
-        : "ESTI is unavailable — AI is not enabled for this firm.",
-      );
+      setTurns((t) => [
+        ...t,
+        { role: "assistant", text: "ESTI is unavailable — AI is not enabled for this firm." },
+      ]);
       setInput("");
       return;
     }
-    setError(null);
+    setTurns((t) => [...t, { role: "user", text: prompt }]);
     setInput("");
-    generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt: cmd });
+    generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt });
   }
 
-  function onInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
+  function handleInputKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      submitCommand();
+      submit();
     }
     if (e.key === "Escape") {
       e.preventDefault();
@@ -102,75 +101,104 @@ export function AiAgentCommand() {
     }
   }
 
-  const showReply = open && (reply || error || generate.isPending);
-
   return (
-    <div
-      ref={rootRef}
-      className={`esti-ai-agent${open ? " esti-ai-agent--open" : ""}`}
-      aria-label="ESTI AI assistant"
-    >
-      {showReply && (
-        <Tile
-          decorator={<EstiAiExplainLabel scope="agent" />}
-          className={`esti-ai-agent__reply esti-motion-fade-in${error ? " esti-ai-agent__reply--error" : ""}`}
-        >
-          {generate.isPending ?
-            <InlineLoading description="Thinking…" />
-          : error ?
-            <InlineNotification
-              kind="error"
-              lowContrast
-              hideCloseButton
-              title="ESTI could not answer"
-              subtitle={error}
-            />
-          : <p className="esti-ai-agent__reply-text">{reply}</p>}
-        </Tile>
+    <>
+      {open && (
+        <div
+          className="esti-landing-ai__backdrop"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
       )}
 
-      <Stack orientation="horizontal" gap={3} className="esti-ai-agent__row">
-        <div className={`esti-ai-agent__bar${open ? " esti-ai-agent__bar--open" : ""}`}>
-          <TextInput
-            ref={inputRef}
-            id="esti-agent-command"
-            labelText="Ask ESTI"
-            hideLabel
-            size="md"
-            decorator={<EstiAiExplainLabel scope="agent" />}
-            placeholder={
-              projectId ?
-                "Ask ESTI about this project (read-only)…"
-              : "Ask ESTI about your office data (read-only)…"
-            }
-            value={input}
-            disabled={generate.isPending || aiLoading}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onInputKeyDown}
-          />
-          <IconButton
-            kind="ghost"
-            size="sm"
-            label="Close ESTI"
-            align="top-right"
-            onClick={() => setOpen(false)}
-          >
-            <Close />
-          </IconButton>
-        </div>
-
-        <IconButton
-          ref={fabRef}
-          kind="primary"
-          size="lg"
-          label="ESTI assistant (Alt+A)"
-          className="esti-ai-agent__fab"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
+      {open && (
+        <div
+          className="esti-landing-ai__cmd"
+          role="dialog"
+          aria-modal
+          aria-label="Ask ESTI"
         >
-          <img src="/esti-mark-white.png" alt="" className="esti-ai-agent__mark" aria-hidden />
-        </IconButton>
-      </Stack>
-    </div>
+          <Stack gap={5}>
+            <Stack orientation="horizontal" gap={4} className="esti-landing-ai__cmd-input-row">
+              <TextInput
+                ref={inputRef}
+                id="esti-agent-command"
+                labelText=""
+                hideLabel
+                size="lg"
+                className="esti-grow"
+                placeholder={
+                  projectId
+                    ? "Ask your office manager about this project…"
+                    : "Ask your office manager — projects, invoices, tasks, compliance…"
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleInputKey}
+                disabled={generate.isPending || settingsQ.isLoading}
+              />
+              <Button
+                kind="primary"
+                size="lg"
+                renderIcon={Send}
+                iconDescription="Send"
+                hasIconOnly
+                onClick={() => submit()}
+                disabled={!input.trim() || generate.isPending}
+              />
+              <Button
+                kind="ghost"
+                size="lg"
+                renderIcon={Close}
+                iconDescription="Close"
+                hasIconOnly
+                onClick={() => setOpen(false)}
+              />
+            </Stack>
+
+            {(turns.length > 0 || generate.isPending) && (
+              <Stack gap={3} className="esti-landing-ai__thread">
+                {turns.map((t, i) => (
+                  <Tile key={`${t.role}-${i}`} className="esti-landing-ai__turn">
+                    <p className="esti-landing-eyebrow">
+                      {t.role === "user" ? "You" : "ESTI"}
+                    </p>
+                    <p>{t.text}</p>
+                  </Tile>
+                ))}
+                {generate.isPending && <InlineLoading description="Thinking…" />}
+                <div ref={endRef} />
+              </Stack>
+            )}
+
+            {turns.length === 0 && !generate.isPending && (
+              <p className="esti-label esti-label--secondary">
+                Ask ESTI anything — revisions, invoices, client status, upcoming deadlines, compliance, or team workload.
+              </p>
+            )}
+          </Stack>
+        </div>
+      )}
+
+      <div className="esti-landing-ai">
+        <button
+          className="esti-landing-ai__fab"
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Close ESTI" : "Ask ESTI (Alt+A)"}
+          aria-expanded={open}
+        >
+          {open ? (
+            <Close size={20} aria-hidden />
+          ) : (
+            <img
+              src="/esti-mark-black.png"
+              alt=""
+              aria-hidden
+              className="esti-landing-ai__fab-logo"
+            />
+          )}
+        </button>
+      </div>
+    </>
   );
 }
