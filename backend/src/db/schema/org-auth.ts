@@ -148,6 +148,14 @@ export const users = pgTable("esti_user", {
   aiApiKey: text("ai_api_key"),
   /** When true and aiApiKey is set, generation uses the user's cloud key instead of firm Ollama. */
   usePersonalAiKey: boolean("use_personal_ai_key").notNull().default(false),
+  /** Auto-generated staff code, e.g. USR001. Unique per firm. */
+  userCode: text("user_code"),
+  /** Freeform job title / designation, e.g. "Senior Architect". */
+  designation: text("designation"),
+  /** S3 key for the profile photo image. */
+  photoKey: text("photo_key"),
+  /** Installation-level super-user: seeds, purges, and system metadata only. */
+  isSystemAdmin: boolean("is_system_admin").notNull().default(false),
   createdAt: createdAt(),
 });
 

@@ -28,6 +28,12 @@ type Props = {
   homeLoading: boolean;
   hrEnabled: boolean;
   showBillingAssistant: boolean;
+  showBillingItems: boolean;
+  showTenders: boolean;
+  showAtRisk: boolean;
+  showConstruction: boolean;
+  showApprovals: boolean;
+  showTeamCapacity: boolean;
   acTotal: number;
   teamLoading: boolean;
   billingReady: ActionCenter["billingReadyPhases"];
@@ -45,6 +51,12 @@ export function DashboardActionCenter({
   homeLoading,
   hrEnabled,
   showBillingAssistant,
+  showBillingItems,
+  showTenders,
+  showAtRisk,
+  showConstruction,
+  showApprovals,
+  showTeamCapacity,
   acTotal,
   teamLoading,
   billingReady,
@@ -75,7 +87,7 @@ export function DashboardActionCenter({
         )}
       </Column>
 
-      <Column lg={4} md={4} sm={4}>
+      {showBillingItems && <Column lg={4} md={4} sm={4}>
         <Tile className="esti-fill" style={edge(overdueInvoices.length > 0 ? "alert" : "ok")}>
           <Stack gap={4}>
             <h4>Overdue collections</h4>
@@ -104,9 +116,9 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </Tile>
-      </Column>
+      </Column>}
 
-      <Column lg={4} md={4} sm={4}>
+      {showApprovals && <Column lg={4} md={4} sm={4}>
         <Tile className="esti-fill" style={edge(pendingApprovals.length > 0 ? "watch" : "ok")}>
           <Stack gap={4}>
             <h4>Approvals pending</h4>
@@ -135,9 +147,9 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </Tile>
-      </Column>
+      </Column>}
 
-      <Column lg={4} md={4} sm={4}>
+      {showBillingItems && <Column lg={4} md={4} sm={4}>
         <ClickableTile
           className="esti-fill"
           style={edge(billingReady.length > 0 ? "ok" : "neutral")}
@@ -161,33 +173,39 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </ClickableTile>
-      </Column>
+      </Column>}
 
-      <Column lg={4} md={4} sm={4}>
+      {(showAtRisk || showTeamCapacity) && <Column lg={4} md={4} sm={4}>
         <Tile
           className="esti-fill"
           style={edge(
-            riskProjects.length > 0 || (hrEnabled && overloadedMembers.length > 0) ? "alert" : "ok",
+            (showAtRisk && riskProjects.length > 0) || (showTeamCapacity && overloadedMembers.length > 0)
+              ? "alert"
+              : "ok",
           )}
         >
           <Stack gap={4}>
-            <h4>{hrEnabled ? "Risk & capacity" : "Project risk"}</h4>
-            <Stack gap={2}>
-              <p className="esti-label">High-risk projects</p>
-              {riskProjects.length === 0 ? (
-                <p>None at risk.</p>
-              ) : (
-                riskProjects.slice(0, 2).map((p) => (
-                  <p key={p.id}>
-                    <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
-                  </p>
-                ))
-              )}
-            </Stack>
-            {hrEnabled && (
+            <h4>{showTeamCapacity ? "Risk & capacity" : "Project risk"}</h4>
+            {showAtRisk && (
+              <Stack gap={2}>
+                <p className="esti-label">High-risk projects</p>
+                {riskProjects.length === 0 ? (
+                  <p>None at risk.</p>
+                ) : (
+                  riskProjects.slice(0, 2).map((p) => (
+                    <p key={p.id}>
+                      <Link to={`/projects/${p.id}`}>{p.ref}</Link> {p.title}
+                    </p>
+                  ))
+                )}
+              </Stack>
+            )}
+            {showTeamCapacity && (
               <Stack gap={2}>
                 <p className="esti-label">Capacity alerts</p>
-                {overloadedMembers.length === 0 ? (
+                {teamLoading ? (
+                  <InlineLoading description="Loading…" />
+                ) : overloadedMembers.length === 0 ? (
                   <p>No one overloaded.</p>
                 ) : (
                   overloadedMembers.slice(0, 2).map((m) => (
@@ -200,9 +218,9 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </Tile>
-      </Column>
+      </Column>}
 
-      <Column lg={8} md={4} sm={4}>
+      {showTenders && <Column lg={8} md={4} sm={4}>
         <Tile className="esti-fill" style={edge(openTenders.length > 0 ? "watch" : "ok")}>
           <Stack gap={4}>
             <div className="esti-row">
@@ -234,9 +252,9 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </Tile>
-      </Column>
+      </Column>}
 
-      <Column lg={8} md={4} sm={4}>
+      {showConstruction && <Column lg={8} md={4} sm={4}>
         <Tile className="esti-fill" style={edge(openConstruction.length > 0 ? "watch" : "ok")}>
           <Stack gap={4}>
             <div className="esti-row">
@@ -267,7 +285,7 @@ export function DashboardActionCenter({
             )}
           </Stack>
         </Tile>
-      </Column>
+      </Column>}
     </>
   );
 }

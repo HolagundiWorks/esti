@@ -51,6 +51,11 @@ export interface AuthUser {
   consultantId: string | null;
   /** Seeded demo workspace — uploads blocked; ESTI agent read-only; credential admin blocked. */
   isDemo: boolean;
+  /** Installation super-user: seeds, purges, system metadata. Independent of role rank. */
+  isSystemAdmin: boolean;
+  userCode: string | null;
+  designation: string | null;
+  photoKey: string | null;
 }
 
 /** Resolve a cookie token to a live user, or null. */
@@ -65,6 +70,10 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
       clientId: users.clientId,
       consultantId: users.consultantId,
       isDemo: users.isDemo,
+      isSystemAdmin: users.isSystemAdmin,
+      userCode: users.userCode,
+      designation: users.designation,
+      photoKey: users.photoKey,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))

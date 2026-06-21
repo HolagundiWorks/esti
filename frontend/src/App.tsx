@@ -30,7 +30,7 @@ import {
 } from "@carbon/icons-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { can, isStaffRole } from "@esti/contracts";
+import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
@@ -80,6 +80,7 @@ import { Work } from "./routes/Work.js";
 import { Performance } from "./routes/Performance.js";
 import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
+import { SystemAdmin } from "./routes/SystemAdmin.js";
 
 type ThemeName = "white" | "g100";
 
@@ -228,30 +229,40 @@ function AppShell() {
     );
 
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
-  // Grouped navigation (modules → sub-modules).
+  const rank = ROLE_RANK[user.role] ?? 0;
+  const atLeast = (r: number) => rank >= r;
+
+  // Top-level links — visible by level
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
-    { label: "Programme", to: "/programme", icon: Calendar },
-    ...(pmcEnabled ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
+    // Programme visible to L3+ (rank 60 = SENIOR and above)
+    ...(atLeast(60) ? [{ label: "Programme", to: "/programme", icon: Calendar }] : []),
+    // PMC: module gate only (L2+ can see if enabled; L3/L4 see if enabled)
+    ...(pmcEnabled && atLeast(60) ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
     { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
     { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
   ];
+
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
     {
       label: "People",
       icon: UserMultiple,
       items: [
-        { label: "Clients", to: "/clients" },
-        { label: "Consultants", to: "/consultants" },
-        { label: "Contractors", to: "/contractors" },
+        // Clients: L4+ (write, rank 40)
+        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
+        // Consultants & Contractors: L3+ (rank 60)
+        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
+        ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
+        // Team, HR, Performance: HR module gate + rank
         ...(hrEnabled
           ? [
               { label: "Team", to: "/team" },
               ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
-              { label: "Performance", to: "/performance" },
+              // Performance: L3+ within HR module
+              ...(atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
             ]
           : []),
       ],
@@ -260,6 +271,7 @@ function AppShell() {
       label: "Accounting",
       icon: Money,
       items: [
+        // All financial ops: L2+ (invoice:manage / fees:manage, rank 80)
         ...(can(user.role, "invoice:manage")
           ? [
               { label: "Invoices", to: "/invoices" },
@@ -280,35 +292,44 @@ function AppShell() {
       label: "Office",
       icon: Document,
       items: [
+        // Proposals: L2+
         ...(can(user.role, "fees:manage")
           ? [{ label: "Proposals", to: "/office/proposals" }]
           : []),
-        { label: "Document register", to: "/office/documents" },
-        { label: "Letters", to: "/office/letters" },
-        { label: "Contracts", to: "/office/contracts" },
-        { label: "Tenders", to: "/office/tenders" },
-        ...(pmcEnabled ? [{ label: "Construction", to: "/office/construction" }] : []),
-        { label: "AI Studio", to: "/office/ai-studio" },
+        // Documents, Letters, Contracts: L4+ (write)
+        ...(can(user.role, "write")
+          ? [
+              { label: "Document register", to: "/office/documents" },
+              { label: "Letters", to: "/office/letters" },
+              { label: "Contracts", to: "/office/contracts" },
+            ]
+          : []),
+        // Tenders: L3+ (tenders:view, rank 60)
+        ...(can(user.role, "tenders:view") ? [{ label: "Tenders", to: "/office/tenders" }] : []),
+        ...(pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
+        // AI Studio: L3+
+        ...(atLeast(60) ? [{ label: "AI Studio", to: "/office/ai-studio" }] : []),
       ],
     },
     {
       label: "Admin",
       icon: Enterprise,
       items: [
-        { label: "Company", to: "/company" },
-        ...(can(user.role, "firm:admin")
-          ? [{ label: "Users", to: "/users" }]
-          : []),
-        ...(can(user.role, "firm:admin")
-          ? [{ label: "Audit log", to: "/audit" }]
-          : []),
+        // Company settings: L1 only (firm:admin)
+        ...(can(user.role, "firm:admin") ? [{ label: "Company", to: "/company" }] : []),
+        ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
+        ...(can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
+        // Archived projects: L2+ (project:delete)
         ...(can(user.role, "project:delete")
           ? [{ label: "Archived projects", to: "/archived-projects" }]
           : []),
+        // System Admin panel: is_system_admin overlay only
+        ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
+        // My profile: all staff
         { label: "My profile", to: "/settings" },
       ],
     },
-  ];
+  ].filter((g) => g.items.length > 0);
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -402,23 +423,41 @@ function AppShell() {
                 {can(user.role, "fees:manage") && (
                   <Route path="/office/proposals" element={<Proposals />} />
                 )}
-                <Route path="/office/documents" element={<DocumentsRegister />} />
-                <Route path="/office/ai-studio" element={<AiStudioPage />} />
-                <Route path="/office/letters" element={<Letters />} />
-                <Route path="/office/contracts" element={<Contracts />} />
-                <Route path="/office/tenders" element={<Tenders />} />
-                <Route path="/office/construction" element={<Construction />} />
+                {can(user.role, "write") && (
+                  <Route path="/office/documents" element={<DocumentsRegister />} />
+                )}
+                {can(user.role, "write") && (
+                  <Route path="/office/letters" element={<Letters />} />
+                )}
+                {can(user.role, "write") && (
+                  <Route path="/office/contracts" element={<Contracts />} />
+                )}
+                {atLeast(60) && (
+                  <Route path="/office/ai-studio" element={<AiStudioPage />} />
+                )}
+                {can(user.role, "tenders:view") && (
+                  <Route path="/office/tenders" element={<Tenders />} />
+                )}
+                {pmcEnabled && atLeast(60) && (
+                  <Route path="/office/construction" element={<Construction />} />
+                )}
                 <Route path="/tasks" element={<Work />} />
-                <Route path="/programme" element={<Programme />} />
-                {pmcEnabled && <Route path="/pmc" element={<Pmc />} />}
+                {atLeast(60) && <Route path="/programme" element={<Programme />} />}
+                {pmcEnabled && atLeast(60) && <Route path="/pmc" element={<Pmc />} />}
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 <Route
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
                 />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/consultants" element={<Consultants />} />
-                <Route path="/contractors" element={<Contractors />} />
+                {can(user.role, "write") && (
+                  <Route path="/clients" element={<Clients />} />
+                )}
+                {atLeast(60) && (
+                  <Route path="/consultants" element={<Consultants />} />
+                )}
+                {atLeast(60) && (
+                  <Route path="/contractors" element={<Contractors />} />
+                )}
                 <Route
                   path="/client-requests"
                   element={<Navigate to="/tasks?tab=client-requests" replace />}
@@ -439,12 +478,17 @@ function AppShell() {
                 {can(user.role, "reports:view") && (
                   <Route path="/filing" element={<Filing />} />
                 )}
-                <Route path="/company" element={<Company />} />
+                {can(user.role, "firm:admin") && (
+                  <Route path="/company" element={<Company />} />
+                )}
                 {can(user.role, "firm:admin") && (
                   <Route path="/users" element={<Users />} />
                 )}
                 {can(user.role, "firm:admin") && (
                   <Route path="/audit" element={<AuditLog />} />
+                )}
+                {user.isSystemAdmin && (
+                  <Route path="/system-admin" element={<SystemAdmin />} />
                 )}
                 {can(user.role, "project:delete") && (
                   <Route
@@ -453,7 +497,7 @@ function AppShell() {
                   />
                 )}
                 <Route path="/settings" element={<Settings />} />
-                {hrEnabled && <Route path="/performance" element={<Performance />} />}
+                {hrEnabled && atLeast(60) && <Route path="/performance" element={<Performance />} />}
                 <Route
                   path="/steel-arranger"
                   element={<Navigate to="/knowledge-bank?tab=steelflow" replace />}

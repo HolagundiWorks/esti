@@ -40,8 +40,11 @@ const DEMO_PROJECTS = [
 ] as const;
 
 export const adminRouter = router({
-  /** Owner-only: seed a small set of demo records for evaluation/training. */
+  /** System-admin only: seed a small set of demo records for evaluation/training. */
   importDemo: ownerProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.user.isSystemAdmin) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Requires system admin access" });
+    }
     const firm = await getFirm(ctx.db);
     const system = firm.gstType as GstSystem;
     let projectsCreated = 0;
@@ -145,6 +148,9 @@ export const adminRouter = router({
   purge: ownerProcedure
     .input(z.object({ password: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.user.isSystemAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Requires system admin access" });
+      }
       const [me] = await ctx.db.select().from(users).where(sql`${users.id} = ${ctx.user.id}`);
       if (!me?.passwordHash || !(await verifyPassword(me.passwordHash, input.password))) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });

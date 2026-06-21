@@ -4,6 +4,11 @@ import {
   Select,
   SelectItem,
   Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +25,9 @@ import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
+import { useCapabilities } from "../lib/capabilities.js";
+import { StaffProfilesTab } from "../components/hr/StaffProfilesTab.js";
+import { ApplicationsTab } from "../components/hr/ApplicationsTab.js";
 
 const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
   REQUESTED: "blue",
@@ -30,6 +38,7 @@ const thisMonth = () => new Date().toISOString().slice(0, 7);
 
 export function Hr() {
   const navigate = useNavigate();
+  const { canSalary } = useCapabilities();
   const utils = trpc.useUtils();
   const teamQ = trpc.team.list.useQuery();
   const leavesQ = trpc.leaves.list.useQuery();
@@ -96,8 +105,19 @@ export function Hr() {
     <Stack gap={6}>
       <PageHeader
         title="HR"
-        description="Leave, attendance, and payslip management for your team."
+        description="Leave management, payroll, staff profiles, and the hiring pipeline."
       />
+
+      <Tabs>
+        <TabList aria-label="HR sections">
+          <Tab>Operations</Tab>
+          <Tab>Staff profiles</Tab>
+          <Tab>Applications</Tab>
+        </TabList>
+        <TabPanels>
+          {/* ── Operations panel ── */}
+          <TabPanel>
+            <Stack gap={6}>
 
       <Stack orientation="horizontal" gap={5}>
         <h2 className="esti-grow">Today&apos;s attendance</h2>
@@ -197,9 +217,9 @@ export function Hr() {
             <TableRow>
               <TableHeader>Member</TableHeader>
               <TableHeader>Month</TableHeader>
-              <TableHeader>Gross</TableHeader>
-              <TableHeader>Deductions</TableHeader>
-              <TableHeader>Net</TableHeader>
+              {canSalary && <TableHeader>Gross</TableHeader>}
+              {canSalary && <TableHeader>Deductions</TableHeader>}
+              {canSalary && <TableHeader>Net</TableHeader>}
               <TableHeader>Status</TableHeader>
               <TableHeader>Action</TableHeader>
               <TableHeader>Slip</TableHeader>
@@ -210,13 +230,15 @@ export function Hr() {
               <TableRow key={p.id}>
                 <TableCell>{p.name}</TableCell>
                 <TableCell>{p.month}</TableCell>
-                <TableCell>
-                  {formatINR(p.grossPaise, { paise: false })}
-                </TableCell>
-                <TableCell>
-                  {formatINR(p.deductionsPaise, { paise: false })}
-                </TableCell>
-                <TableCell>{formatINR(p.netPaise, { paise: false })}</TableCell>
+                {canSalary && (
+                  <TableCell>{formatINR(p.grossPaise, { paise: false })}</TableCell>
+                )}
+                {canSalary && (
+                  <TableCell>{formatINR(p.deductionsPaise, { paise: false })}</TableCell>
+                )}
+                {canSalary && (
+                  <TableCell>{formatINR(p.netPaise, { paise: false })}</TableCell>
+                )}
                 <TableCell>
                   <Tag type={p.paid ? "green" : "gray"}>
                     {p.paid ? `Paid ${p.paidDate ?? ""}` : "Unpaid"}
@@ -366,25 +388,43 @@ export function Hr() {
             value={py.month}
             onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
           />
-          <TextInput
-            id="py-g"
-            labelText="Gross (₹ — blank = member salary)"
-            type="number"
-            value={py.gross}
-            onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
-          />
-          <TextInput
-            id="py-d"
-            labelText="Deductions (₹)"
-            type="number"
-            value={py.deductions}
-            onChange={(e) =>
-              setPy((f) => ({ ...f, deductions: e.target.value }))
-            }
-          />
+          {canSalary && (
+            <TextInput
+              id="py-g"
+              labelText="Gross (₹ — blank = member salary)"
+              type="number"
+              value={py.gross}
+              onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
+            />
+          )}
+          {canSalary && (
+            <TextInput
+              id="py-d"
+              labelText="Deductions (₹)"
+              type="number"
+              value={py.deductions}
+              onChange={(e) =>
+                setPy((f) => ({ ...f, deductions: e.target.value }))
+              }
+            />
+          )}
           {generate.error && <p>{generate.error.message}</p>}
         </Stack>
       </Modal>
+            </Stack>
+          </TabPanel>
+
+          {/* ── Staff profiles panel ── */}
+          <TabPanel>
+            <StaffProfilesTab />
+          </TabPanel>
+
+          {/* ── Applications panel ── */}
+          <TabPanel>
+            <ApplicationsTab />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </Stack>
   );
 }
