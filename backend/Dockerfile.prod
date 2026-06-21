@@ -44,11 +44,12 @@ WORKDIR /app
 
 # node_modules from the builder contains the pnpm virtual store (.pnpm/) and
 # workspace symlinks. vendor/ must be present because @hcw/* symlinks point to it.
-COPY --from=builder /app/node_modules          node_modules/
-# pnpm puts workspace-scoped deps (e.g. @fastify/cookie) in the package's own
-# node_modules, not the root. Copy both to avoid ERR_MODULE_NOT_FOUND at runtime.
-COPY --from=builder /app/backend/node_modules  backend/node_modules/
-COPY vendor                                    vendor/
+COPY --from=builder /app/node_modules                    node_modules/
+# pnpm puts workspace-scoped deps in each package's own node_modules, not root.
+# Copy all three package trees to avoid ERR_MODULE_NOT_FOUND at runtime.
+COPY --from=builder /app/backend/node_modules           backend/node_modules/
+COPY --from=builder /app/packages/contracts/node_modules packages/contracts/node_modules/
+COPY vendor                                              vendor/
 
 COPY package.json                              ./
 COPY backend/package.json                      backend/
