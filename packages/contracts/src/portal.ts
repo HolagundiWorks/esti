@@ -19,6 +19,9 @@ export const PORTAL_SUBMISSION_KIND_LABEL: Record<PortalSubmissionKind, string> 
 export const PortalSubmissionStatus = z.enum([
   "OPEN",
   "ACKNOWLEDGED",
+  "IMPACT_SENT",
+  "CLIENT_APPROVED",
+  "CLIENT_REJECTED",
   "RESOLVED",
   "DECLINED",
 ]);
@@ -27,16 +30,22 @@ export type PortalSubmissionStatus = z.infer<typeof PortalSubmissionStatus>;
 export const PORTAL_SUBMISSION_STATUS_LABEL: Record<PortalSubmissionStatus, string> = {
   OPEN: "Open",
   ACKNOWLEDGED: "Acknowledged",
+  IMPACT_SENT: "Impact sent to client",
+  CLIENT_APPROVED: "Client approved",
+  CLIENT_REJECTED: "Client rejected",
   RESOLVED: "Resolved",
   DECLINED: "Declined",
 };
 
 export const PORTAL_SUBMISSION_STATUS_TAG: Record<
   PortalSubmissionStatus,
-  "blue" | "teal" | "green" | "gray"
+  "blue" | "teal" | "green" | "gray" | "purple" | "magenta" | "red"
 > = {
   OPEN: "blue",
   ACKNOWLEDGED: "teal",
+  IMPACT_SENT: "purple",
+  CLIENT_APPROVED: "green",
+  CLIENT_REJECTED: "red",
   RESOLVED: "green",
   DECLINED: "gray",
 };
@@ -70,8 +79,26 @@ export const PortalChangeRequestInput = z.object({
   revisionCategory: RevisionCategory,
   objectType: z.string().trim().max(40).optional(),
   objectId: z.string().uuid().optional(),
+  attentionToId: z.string().uuid().optional(),
+  refDrawingId: z.string().uuid().optional(),
 });
 export type PortalChangeRequestInput = z.infer<typeof PortalChangeRequestInput>;
+
+export const ImpactAssessmentInput = z.object({
+  submissionId: z.string().uuid(),
+  affectsCosting: z.boolean(),
+  affectsTimeline: z.boolean(),
+  isBillable: z.boolean(),
+  architectComment: z.string().trim().max(2000).optional(),
+});
+export type ImpactAssessmentInput = z.infer<typeof ImpactAssessmentInput>;
+
+export const ClientImpactResponseInput = z.object({
+  submissionId: z.string().uuid(),
+  approved: z.boolean(),
+  remarks: z.string().trim().max(2000).optional(),
+});
+export type ClientImpactResponseInput = z.infer<typeof ClientImpactResponseInput>;
 
 export const PortalFeedbackInput = z.object({
   projectId: z.string().uuid(),

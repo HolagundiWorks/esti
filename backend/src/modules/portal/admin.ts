@@ -1,7 +1,7 @@
-import { PortalSubmissionKind, PortalSubmissionStatus } from "@esti/contracts";
+import { ImpactAssessmentInput, PortalSubmissionKind, PortalSubmissionStatus } from "@esti/contracts";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { clients, portalSubmissions, projectOffices, users } from "../../db/schema.js";
+import { clients, drawings, portalSubmissions, projectOffices, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { addMessage, listMessages } from "../../lib/submissionThread.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -32,6 +32,7 @@ export const clientRequestsRouter = router({
         input?.openOnly ? eq(portalSubmissions.status, "OPEN") : undefined,
       ].filter(Boolean);
 
+      const attnUser = users;
       return ctx.db
         .select({
           id: portalSubmissions.id,
@@ -47,13 +48,21 @@ export const clientRequestsRouter = router({
           status: portalSubmissions.status,
           responseNote: portalSubmissions.responseNote,
           revisionCategory: portalSubmissions.revisionCategory,
-          submittedBy: users.fullName,
+          attentionToId: portalSubmissions.attentionToId,
+          affectsCosting: portalSubmissions.affectsCosting,
+          affectsTimeline: portalSubmissions.affectsTimeline,
+          isBillable: portalSubmissions.isBillable,
+          architectComment: portalSubmissions.architectComment,
+          refDrawingRef: drawings.ref,
+          refDrawingTitle: drawings.title,
+          submittedBy: attnUser.fullName,
           createdAt: portalSubmissions.createdAt,
         })
         .from(portalSubmissions)
         .innerJoin(projectOffices, eq(projectOffices.id, portalSubmissions.projectId))
         .leftJoin(clients, eq(clients.id, portalSubmissions.clientId))
-        .leftJoin(users, eq(users.id, portalSubmissions.submittedById))
+        .leftJoin(attnUser, eq(attnUser.id, portalSubmissions.submittedById))
+        .leftJoin(drawings, eq(drawings.id, portalSubmissions.refDrawingId))
         .where(filters.length ? and(...filters) : undefined)
         .orderBy(desc(portalSubmissions.createdAt));
     }),
@@ -87,6 +96,44 @@ export const clientRequestsRouter = router({
         projectId: row.projectId, objectType: "portal_submission", objectId: input.id,
         eventType: "portal.firm_reply", actorId: ctx.user.id, actorName: ctx.user.fullName,
         visibility: "ALL", summary: `Firm replied on: ${row.subject}`,
+      });
+      return { ok: true as const };
+    }),
+
+  /** Send impact assessment to client for a CHANGE_REQUEST submission. */
+  sendImpactAssessment: protectedProcedure
+    .input(ImpactAssessmentInput)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ id: portalSubmissions.id, projectId: portalSubmissions.projectId, subject: portalSubmissions.subject })
+        .from(portalSubmissions)
+        .where(eq(portalSubmissions.id, input.submissionId));
+      if (!row) throw new Error("Submission not found");
+      await ctx.db
+        .update(portalSubmissions)
+        .set({
+          affectsCosting: input.affectsCosting,
+          affectsTimeline: input.affectsTimeline,
+          isBillable: input.isBillable,
+          architectComment: input.architectComment ?? null,
+          status: "IMPACT_SENT",
+          updatedAt: new Date(),
+        })
+        .where(eq(portalSubmissions.id, input.submissionId));
+      if (input.architectComment) {
+        await addMessage(ctx.db, { portalSubmissionId: input.submissionId },
+          { id: ctx.user.id, name: ctx.user.fullName, side: "FIRM" }, input.architectComment);
+      }
+      await writeActivity(ctx.db, {
+        projectId: row.projectId,
+        objectType: "portal_submission",
+        objectId: input.submissionId,
+        eventType: "portal.impact_sent",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Impact assessment sent to client for: ${row.subject}`,
+        metadata: { affectsCosting: input.affectsCosting, affectsTimeline: input.affectsTimeline, isBillable: input.isBillable },
       });
       return { ok: true as const };
     }),

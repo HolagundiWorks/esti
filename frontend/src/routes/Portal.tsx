@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   ClickableTile,
   Column,
   Content,
@@ -20,6 +21,7 @@ import {
   TextArea,
   TextInput,
   Stack,
+  Tile,
 } from "@carbon/react";
 import {
   formatINR,
@@ -58,6 +60,46 @@ const AP_TAG: Record<
 // Approvals the client can still respond to.
 const RESPONDABLE = ["SENT", "REVISIONS"];
 
+// Pie chart colors — using Carbon data-vis palette
+const PIE_COLORS = ["#6929c4", "#1192e8", "#005d5d", "#9f1853", "#b28600", "#198038"];
+
+function PieChart({ data, title }: { data: { label: string; value: number }[]; title: string }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return <p style={{ color: "var(--cds-text-secondary)" }}>No data yet.</p>;
+  let cumAngle = -Math.PI / 2;
+  const arcs = data.map((d, i) => {
+    const angle = (d.value / total) * 2 * Math.PI;
+    const start = cumAngle;
+    cumAngle += angle;
+    const x1 = 80 + 70 * Math.cos(start);
+    const y1 = 80 + 70 * Math.sin(start);
+    const x2 = 80 + 70 * Math.cos(cumAngle);
+    const y2 = 80 + 70 * Math.sin(cumAngle);
+    const large = angle > Math.PI ? 1 : 0;
+    return { path: `M 80 80 L ${x1} ${y1} A 70 70 0 ${large} 1 ${x2} ${y2} Z`, color: PIE_COLORS[i % PIE_COLORS.length], ...d };
+  });
+  return (
+    <Stack gap={3}>
+      <p style={{ color: "var(--cds-text-secondary)", fontSize: "0.875rem" }}>{title}</p>
+      <Stack orientation="horizontal" gap={4}>
+        <svg viewBox="0 0 160 160" width={120} height={120}>
+          {arcs.map((a, i) => (
+            <path key={i} d={a.path} fill={a.color} stroke="var(--cds-background)" strokeWidth={1} />
+          ))}
+        </svg>
+        <Stack gap={2}>
+          {arcs.map((a, i) => (
+            <Stack key={i} orientation="horizontal" gap={2}>
+              <span style={{ display: "inline-block", width: 12, height: 12, background: a.color, borderRadius: 2, flexShrink: 0, marginTop: 2 }} />
+              <span style={{ fontSize: "0.75rem", color: "var(--cds-text-primary)" }}>{a.label} ({a.value})</span>
+            </Stack>
+          ))}
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
 export function Portal() {
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId?: string }>();
@@ -80,7 +122,17 @@ export function Portal() {
     { projectId: openId ?? "" },
     { enabled: !!openId },
   );
+  const teamQ = trpc.portal.projectTeam.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
+  const revisionStatsQ = trpc.portal.revisionStats.useQuery(
+    { projectId: openId ?? "" },
+    { enabled: !!openId },
+  );
   const d = detailQ.data;
+  const teamMembers = teamQ.data ?? [];
+  const drawings = d?.drawings ?? [];
 
   useEffect(() => {
     if (openId && detailQ.isError) {
@@ -103,14 +155,28 @@ export function Portal() {
     subject: "",
     body: "",
     revisionCategory: "MINOR" as RevisionCategoryT,
+    attentionToId: "",
+    refDrawingId: "",
   });
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState({ subject: "", body: "", rating: "" });
+
+  // Impact assessment response
+  const [impactResponse, setImpactResponse] = useState<{
+    submissionId: string;
+    subject: string;
+    affectsCosting: boolean;
+    affectsTimeline: boolean;
+    isBillable: boolean;
+    architectComment: string | null | undefined;
+    remarks: string;
+  } | null>(null);
 
   const refresh = () => {
     utils.portal.projectDetail.invalidate();
     utils.portal.mySubmissions.invalidate();
     utils.portal.activityFeed.invalidate();
+    utils.portal.revisionStats.invalidate();
   };
   const respond = trpc.portal.respondApproval.useMutation({
     onSuccess: () => { refresh(); setDecision(null); },
@@ -120,11 +186,14 @@ export function Portal() {
     onSuccess: () => {
       refresh();
       setRequestOpen(false);
-      setRequest({ subject: "", body: "", revisionCategory: "MINOR" });
+      setRequest({ subject: "", body: "", revisionCategory: "MINOR", attentionToId: "", refDrawingId: "" });
     },
   });
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
+  });
+  const respondImpact = trpc.portal.respondToImpact.useMutation({
+    onSuccess: () => { refresh(); setImpactResponse(null); },
   });
 
   // ── conversation thread ────────────────────────────────────────────────────
@@ -136,6 +205,17 @@ export function Portal() {
   const reply = trpc.portal.replySubmission.useMutation({
     onSuccess: () => utils.portal.submissionThread.invalidate(),
   });
+
+  // ── revision stats pie data ───────────────────────────────────────────────
+  const revStats = revisionStatsQ.data;
+  const changesByCat = (revStats?.submissions ?? []).map((s) => ({
+    label: s.category === "MINOR" ? "Minor" : s.category === "MAJOR" ? "Major" : s.category === "CRITICAL" ? "Critical" : s.category ?? "Unclassified",
+    value: s.count,
+  }));
+  const drawingsByRev = (revStats?.drawings ?? []).map((s) => ({
+    label: s.revisionNote ?? "Original",
+    value: s.count,
+  }));
 
   return (
     <>
@@ -343,7 +423,7 @@ export function Portal() {
               <DataState
                 loading={submissionsQ.isLoading}
                 isEmpty={(submissionsQ.data ?? []).length === 0}
-                columnCount={5}
+                columnCount={6}
                 empty={{ title: "Nothing submitted yet", description: "Your acknowledgements, change requests and feedback appear here." }}
               >
                 <Table>
@@ -353,8 +433,8 @@ export function Portal() {
                       <TableHeader>Revision</TableHeader>
                       <TableHeader>Subject</TableHeader>
                       <TableHeader>Status</TableHeader>
-                      <TableHeader>Firm response</TableHeader>
-                      <TableHeader>Conversation</TableHeader>
+                      <TableHeader>Architect response</TableHeader>
+                      <TableHeader>Actions</TableHeader>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -374,17 +454,64 @@ export function Portal() {
                             {PORTAL_SUBMISSION_STATUS_LABEL[s.status as PortalSubmissionStatus] ?? s.status}
                           </Tag>
                         </TableCell>
-                        <TableCell>{s.responseNote ?? "—"}</TableCell>
                         <TableCell>
-                          <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
-                            Open
-                          </Button>
+                          {s.status === "IMPACT_SENT" ? (
+                            <Stack gap={1}>
+                              {s.affectsCosting && <Tag type="red" size="sm">Affects costing</Tag>}
+                              {s.affectsTimeline && <Tag type="magenta" size="sm">Affects timeline</Tag>}
+                              {s.isBillable && <Tag type="purple" size="sm">Billable</Tag>}
+                              {s.architectComment && <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>{s.architectComment}</p>}
+                            </Stack>
+                          ) : (s.responseNote ?? "—")}
+                        </TableCell>
+                        <TableCell>
+                          <Stack orientation="horizontal" gap={2}>
+                            {s.status === "IMPACT_SENT" && (
+                              <Button kind="primary" size="sm"
+                                onClick={() => setImpactResponse({
+                                  submissionId: s.id,
+                                  subject: s.subject,
+                                  affectsCosting: s.affectsCosting ?? false,
+                                  affectsTimeline: s.affectsTimeline ?? false,
+                                  isBillable: s.isBillable ?? false,
+                                  architectComment: s.architectComment,
+                                  remarks: "",
+                                })}>
+                                Review &amp; respond
+                              </Button>
+                            )}
+                            <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
+                              Conversation
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </DataState>
+            </Section>
+
+            {/* ── Revision dashboard ───────────────────────────────────────── */}
+            <Section title="Revision dashboard">
+              <Grid condensed>
+                <Column sm={4} md={4} lg={8}>
+                  <Tile>
+                    <PieChart
+                      title="Change requests by category"
+                      data={changesByCat}
+                    />
+                  </Tile>
+                </Column>
+                <Column sm={4} md={4} lg={8}>
+                  <Tile>
+                    <PieChart
+                      title="Drawing revisions by type"
+                      data={drawingsByRev}
+                    />
+                  </Tile>
+                </Column>
+              </Grid>
             </Section>
 
             <Section title="Activity">
@@ -490,6 +617,8 @@ export function Portal() {
             subject: request.subject,
             body: request.body,
             revisionCategory: request.revisionCategory,
+            attentionToId: request.attentionToId || undefined,
+            refDrawingId: request.refDrawingId || undefined,
           })}
         >
           <Form onSubmit={(e) => e.preventDefault()}>
@@ -508,6 +637,34 @@ export function Portal() {
                   <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
                 ))}
               </Select>
+              {teamMembers.length > 0 && (
+                <Select
+                  id="cr-attn"
+                  labelText="Attention to (optional)"
+                  helperText="Which team member should handle this?"
+                  value={request.attentionToId}
+                  onChange={(e) => setRequest((r) => ({ ...r, attentionToId: e.target.value }))}
+                >
+                  <SelectItem value="" text="— any team member —" />
+                  {teamMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id} text={`${m.fullName} (${m.role})`} />
+                  ))}
+                </Select>
+              )}
+              {drawings.length > 0 && (
+                <Select
+                  id="cr-drawing"
+                  labelText="Reference drawing (optional)"
+                  helperText="Which drawing does this change relate to?"
+                  value={request.refDrawingId}
+                  onChange={(e) => setRequest((r) => ({ ...r, refDrawingId: e.target.value }))}
+                >
+                  <SelectItem value="" text="— no specific drawing —" />
+                  {drawings.map((dr) => (
+                    <SelectItem key={dr.id} value={dr.id} text={`${dr.ref} — ${dr.title}`} />
+                  ))}
+                </Select>
+              )}
               <TextInput id="cr-subject" labelText="Subject" value={request.subject}
                 onChange={(e) => setRequest((r) => ({ ...r, subject: e.target.value }))} />
               <TextArea id="cr-body" labelText="What would you like changed?" rows={4}
@@ -546,6 +703,70 @@ export function Portal() {
                 onChange={(e) => setFeedback((f) => ({ ...f, body: e.target.value }))} />
             </Stack>
           </Form>
+        </Modal>
+
+        {/* ── impact assessment response modal ─────────────────────────── */}
+        <Modal
+          open={impactResponse !== null}
+          modalHeading={impactResponse ? `Impact assessment — ${impactResponse.subject}` : "Impact assessment"}
+          primaryButtonText={respondImpact.isPending ? "Submitting…" : "Approve"}
+          secondaryButtonText="Reject"
+          danger={false}
+          primaryButtonDisabled={respondImpact.isPending}
+          onRequestClose={() => setImpactResponse(null)}
+          onSecondarySubmit={() => impactResponse && respondImpact.mutate({
+            submissionId: impactResponse.submissionId,
+            approved: false,
+            remarks: impactResponse.remarks || undefined,
+          })}
+          onRequestSubmit={() => impactResponse && respondImpact.mutate({
+            submissionId: impactResponse.submissionId,
+            approved: true,
+            remarks: impactResponse.remarks || undefined,
+          })}
+        >
+          {impactResponse && (
+            <Stack gap={5}>
+              <p>Your architect has assessed the impact of this change request:</p>
+              <Stack gap={3}>
+                <Checkbox
+                  id="ia-costing" labelText="Affects costing"
+                  checked={impactResponse.affectsCosting}
+                  readOnly
+                />
+                <Checkbox
+                  id="ia-timeline" labelText="Affects timeline"
+                  checked={impactResponse.affectsTimeline}
+                  readOnly
+                />
+                <Checkbox
+                  id="ia-billable" labelText="Additional billable work"
+                  checked={impactResponse.isBillable}
+                  readOnly
+                />
+              </Stack>
+              {impactResponse.architectComment && (
+                <Tile>
+                  <p style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
+                    Architect's note
+                  </p>
+                  <p>{impactResponse.architectComment}</p>
+                </Tile>
+              )}
+              <TextArea
+                id="ia-remarks"
+                labelText="Your remarks (optional)"
+                helperText="Your response will be shared with the architect."
+                rows={3}
+                value={impactResponse.remarks}
+                onChange={(e) => setImpactResponse({ ...impactResponse, remarks: e.target.value })}
+              />
+              {respondImpact.error && (
+                <InlineNotification kind="error" title="Could not submit"
+                  subtitle={respondImpact.error.message} hideCloseButton lowContrast />
+              )}
+            </Stack>
+          )}
         </Modal>
 
         {/* ── conversation thread modal ─────────────────────────────────── */}

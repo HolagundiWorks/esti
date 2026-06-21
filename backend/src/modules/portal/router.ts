@@ -1,14 +1,15 @@
 import {
+  ClientImpactResponseInput,
   PortalAcknowledgeInput,
   PortalApprovalRespondInput,
   PortalChangeRequestInput,
   PortalFeedbackInput,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { activities, approvals, drawings, invoices, phases, portalSubmissions, projectOffices } from "../../db/schema.js";
+import { activities, approvals, assignments, drawings, invoices, phases, portalSubmissions, projectOffices, teamMembers, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -146,11 +147,94 @@ export const portalRouter = router({
           status: portalSubmissions.status,
           responseNote: portalSubmissions.responseNote,
           revisionCategory: portalSubmissions.revisionCategory,
+          affectsCosting: portalSubmissions.affectsCosting,
+          affectsTimeline: portalSubmissions.affectsTimeline,
+          isBillable: portalSubmissions.isBillable,
+          architectComment: portalSubmissions.architectComment,
+          attentionToName: users.fullName,
+          refDrawingRef: drawings.ref,
+          refDrawingTitle: drawings.title,
           createdAt: portalSubmissions.createdAt,
         })
         .from(portalSubmissions)
+        .leftJoin(users, eq(users.id, portalSubmissions.attentionToId))
+        .leftJoin(drawings, eq(drawings.id, portalSubmissions.refDrawingId))
         .where(eq(portalSubmissions.projectId, input.projectId))
         .orderBy(desc(portalSubmissions.createdAt));
+    }),
+
+  /** Project team members the client can address a change request to. */
+  projectTeam: clientProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      return ctx.db
+        .select({ id: users.id, fullName: users.fullName, role: users.role })
+        .from(assignments)
+        .innerJoin(teamMembers, eq(teamMembers.id, assignments.teamMemberId))
+        .innerJoin(users, eq(users.id, teamMembers.userId))
+        .where(and(eq(assignments.projectId, input.projectId), sql`${users.id} IS NOT NULL`))
+        .orderBy(asc(users.fullName));
+    }),
+
+  /** Revision stats for the client dashboard — change request breakdown by category. */
+  revisionStats: clientProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      const rows = await ctx.db
+        .select({
+          category: portalSubmissions.revisionCategory,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(portalSubmissions)
+        .where(and(
+          eq(portalSubmissions.projectId, input.projectId),
+          eq(portalSubmissions.kind, "CHANGE_REQUEST"),
+        ))
+        .groupBy(portalSubmissions.revisionCategory);
+
+      const drawingRows = await ctx.db
+        .select({
+          revisionNote: drawings.revisionNote,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(drawings)
+        .where(and(
+          eq(drawings.projectId, input.projectId),
+          sql`${drawings.rootId} IS NOT NULL`,
+        ))
+        .groupBy(drawings.revisionNote);
+
+      return { submissions: rows, drawings: drawingRows };
+    }),
+
+  /** Client responds to an impact assessment (approve or reject). */
+  respondToImpact: clientProcedure
+    .input(ClientImpactResponseInput)
+    .mutation(async ({ ctx, input }) => {
+      const sub = await assertOwnedSubmission(ctx, input.submissionId);
+      if (!sub) throw new TRPCError({ code: "NOT_FOUND" });
+      const newStatus = input.approved ? "CLIENT_APPROVED" : "CLIENT_REJECTED";
+      await ctx.db
+        .update(portalSubmissions)
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(eq(portalSubmissions.id, input.submissionId));
+      if (input.remarks) {
+        await addMessage(ctx.db, { portalSubmissionId: input.submissionId },
+          { id: ctx.user.id, name: ctx.user.fullName, side: "CLIENT" }, input.remarks);
+      }
+      await writeActivity(ctx.db, {
+        projectId: sub.projectId,
+        objectType: "portal_submission",
+        objectId: input.submissionId,
+        eventType: "portal.impact_response",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        visibility: "ALL",
+        summary: `Client ${input.approved ? "approved" : "rejected"} impact assessment on: ${sub.subject}`,
+      });
+      return { ok: true as const };
     }),
 
   /** Read the firm↔client conversation thread on one of the client's submissions. */
@@ -276,6 +360,8 @@ export const portalRouter = router({
         subject: input.subject,
         body: input.body,
         revisionCategory: input.revisionCategory,
+        attentionToId: input.attentionToId ?? null,
+        refDrawingId: input.refDrawingId ?? null,
         eventSummary: `Client raised a ${input.revisionCategory} change request: ${input.subject}`,
       });
     }),
@@ -333,6 +419,8 @@ async function insertSubmission(
     body?: string | null;
     rating?: number | null;
     revisionCategory?: string | null;
+    attentionToId?: string | null;
+    refDrawingId?: string | null;
     eventSummary: string;
   },
 ): Promise<{ ok: true; id: string }> {
@@ -348,6 +436,8 @@ async function insertSubmission(
       body: entry.body ?? null,
       rating: entry.rating ?? null,
       revisionCategory: entry.revisionCategory ?? null,
+      attentionToId: entry.attentionToId ?? null,
+      refDrawingId: entry.refDrawingId ?? null,
       submittedById: ctx.user.id,
     })
     .returning({ id: portalSubmissions.id });
