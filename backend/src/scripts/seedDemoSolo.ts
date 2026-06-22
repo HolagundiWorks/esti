@@ -28,6 +28,7 @@ import { ensureSoloDemoShowcase } from "./seedDemoShowcase.js";
 
 const DEMO_PASSWORD = demoPasswordFromEnv();
 const SOLO_EMAIL = "solo@demo.aorms.in";
+const STUDIO_EMAIL = "principal@demo.aorms.in";
 
 function dayOffset(n: number): string {
   const d = new Date();
@@ -39,26 +40,44 @@ async function main(): Promise<void> {
   await ensureDemoSchema();
   console.log("✓ migrations applied");
 
+  // On a combined server the studio demo (principal@demo.aorms.in) is already
+  // seeded and owns the org settings (STUDIO, hrEnabled true). Setting SOLO mode
+  // here would break the studio demo for every subsequent login. Skip the org
+  // mode mutation when the studio principal exists — the solo user is created
+  // normally and can still log in; the org just stays in STUDIO mode.
+  const [studioExists] = await db.select({ id: users.id }).from(users).where(eq(users.email, STUDIO_EMAIL));
+  const isCombinedServer = !!studioExists;
+
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, SOLO_EMAIL));
   if (exists) {
-    const settings = await getOrgSettings(db);
-    await db
-      .update(orgSettings)
-      .set({ hrEnabled: false, orgMode: "SOLO" })
-      .where(eq(orgSettings.id, settings.id));
+    if (!isCombinedServer) {
+      const settings = await getOrgSettings(db);
+      await db
+        .update(orgSettings)
+        .set({ hrEnabled: false, orgMode: "SOLO" })
+        .where(eq(orgSettings.id, settings.id));
+    }
     await ensureSoloDemoShowcase(db);
     await syncDemoUploadPassword(db, DEMO_PASSWORD);
-    console.log("✓ solo demo workspace already present (org mode + showcase refreshed)");
+    console.log(
+      isCombinedServer
+        ? "✓ solo demo workspace already present (combined server — org mode unchanged)"
+        : "✓ solo demo workspace already present (org mode + showcase refreshed)"
+    );
     return;
   }
 
   await getFirm(db);
   const pwHash = await hashPassword(DEMO_PASSWORD);
-  const settings = await getOrgSettings(db);
-  await db
-    .update(orgSettings)
-    .set({ hrEnabled: false, orgMode: "SOLO" })
-    .where(eq(orgSettings.id, settings.id));
+  if (!isCombinedServer) {
+    const settings = await getOrgSettings(db);
+    await db
+      .update(orgSettings)
+      .set({ hrEnabled: false, orgMode: "SOLO" })
+      .where(eq(orgSettings.id, settings.id));
+  } else {
+    console.log("  Combined server detected — org stays in STUDIO mode.");
+  }
   await syncDemoUploadPassword(db, DEMO_PASSWORD);
 
   const [owner] = await db
