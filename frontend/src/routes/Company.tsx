@@ -6,6 +6,12 @@ import {
   Select,
   SelectItem,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   TextInput,
   Tile,
   Toggle,
@@ -213,7 +219,7 @@ export function Company() {
         />
       )}
 
-      <Tile style={{ maxWidth: 760 }}>
+      <Tile className="esti-form-panel--wide">
         <Stack gap={5}>
           <TextInput
             id="co-name"
@@ -235,7 +241,7 @@ export function Company() {
               <SelectItem value="PARTNERSHIP" text="Partnership" />
             </Select>
             {firmQ.data?.logoUrl && (
-              <img src={firmQ.data.logoUrl} alt="logo" style={{ height: 48 }} />
+              <img src={firmQ.data.logoUrl} alt="logo" className="esti-firm-logo" />
             )}
             <FileUploaderButton
               labelText="Upload logo"
@@ -439,7 +445,7 @@ export function Company() {
 
       {f.firmType === "PARTNERSHIP" && <Partners isOwner={isOwner} />}
 
-      <Tile style={{ maxWidth: 760 }}>
+      <Tile className="esti-form-panel--wide">
         <Stack gap={5}>
           <h2>Team &amp; HR module</h2>
           <p>
@@ -478,27 +484,33 @@ export function Company() {
           {hrStatusQ.data?.archives && hrStatusQ.data.archives.length > 0 && (
             <Stack gap={2}>
               <h3>Archive history</h3>
-              <StructuredListWrapper isCondensed>
-                <StructuredListBody>
+              <Table size="sm" useZebraStyles={false}>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Date / Reason</TableHeader>
+                    <TableHeader>Summary</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
                   {hrStatusQ.data.archives.map((a) => (
-                    <StructuredListRow key={a.id}>
-                      <StructuredListCell>
+                    <TableRow key={a.id}>
+                      <TableCell>
                         {new Date(a.createdAt).toLocaleString("en-IN")}
                         {a.reason ? ` — ${a.reason}` : ""}
-                      </StructuredListCell>
-                      <StructuredListCell noWrap>
+                      </TableCell>
+                      <TableCell>
                         {a.tasksRemapped} tasks · {a.membersArchived} members
-                      </StructuredListCell>
-                    </StructuredListRow>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </StructuredListBody>
-              </StructuredListWrapper>
+                </TableBody>
+              </Table>
             </Stack>
           )}
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 760 }}>
+      <Tile className="esti-form-panel--wide">
         <Stack gap={5}>
           <h2>PMC module</h2>
           <p>

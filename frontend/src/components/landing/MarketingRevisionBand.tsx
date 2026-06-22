@@ -20,8 +20,7 @@ export function MarketingRevisionBand() {
           lead="ESTI logs every design decision with its source, category, and approval. The revision dashboard tells you at a glance whether rework is driven by clients, internal errors, or technical queries — so you can address the real cause."
         />
 
-        <div style={{ marginTop: "var(--cds-spacing-08)" }}>
-          <Grid fullWidth className="esti-landing-grid">
+        <Grid fullWidth className="esti-landing-tile-grid" style={{ marginTop: "var(--cds-spacing-08)" }}>
             {/* Donut chart tile */}
             <Column sm={4} md={4} lg={8}>
               <Theme theme="white">
@@ -41,8 +40,7 @@ export function MarketingRevisionBand() {
                 <RevisionLegendTile data={DEMO} hasData />
               </Theme>
             </Column>
-          </Grid>
-        </div>
+        </Grid>
       </LandingEditorial>
     </LandingBand>
   );

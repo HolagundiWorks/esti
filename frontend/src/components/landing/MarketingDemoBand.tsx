@@ -1,5 +1,5 @@
 import { ArrowRight, Checkmark } from "@carbon/icons-react";
-import { Button, Column, Grid, ListItem, Stack, Tag, Theme, Tile, UnorderedList } from "@carbon/react";
+import { Button, Column, Grid, ListItem, Stack, Tag, Tile, UnorderedList } from "@carbon/react";
 import { DEMO_ACCOUNTS, type DemoKind } from "../../lib/landing-demo.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
 import { MarketingSectionHead } from "./MarketingSectionHead.js";
@@ -16,42 +16,40 @@ export function MarketingDemoBand({
   demoKind: DemoKind | null;
 }) {
   return (
-    <Theme theme="g100">
-      <LandingBand id="demo" ariaLabelledby="demo-title">
-        <LandingEditorial>
-          <Stack gap={10}>
-            <MarketingSectionHead
-              id="demo-title"
-              eyebrow="Live demo"
-              title="Walk through a real Indian architecture practice — no sign-up."
-              lead="Two workspaces seeded with real projects, fees, and decisions. A busy Bengaluru design studio or a solo practitioner — pick the practice that matches yours."
-            />
-            <Grid fullWidth className="esti-landing-grid">
-              <Column lg={8} md={4} sm={4}>
-                <DemoCard
-                  kind="studio"
-                  onOpen={onStudioDemo}
-                  loading={demoLoading}
-                  activeKind={demoKind}
-                />
-              </Column>
-              <Column lg={8} md={4} sm={4}>
-                <DemoCard
-                  kind="solo"
-                  onOpen={onSoloDemo}
-                  loading={demoLoading}
-                  activeKind={demoKind}
-                />
-              </Column>
-            </Grid>
-            <p className="esti-landing-section-lead">
-              Demo accounts reset weekly. Sign in via the buttons above — no credentials needed.
-              Destructive operations are disabled in demo mode.
-            </p>
-          </Stack>
-        </LandingEditorial>
-      </LandingBand>
-    </Theme>
+    <LandingBand id="demo" ariaLabelledby="demo-title">
+      <LandingEditorial>
+        <Stack gap={10}>
+          <MarketingSectionHead
+            id="demo-title"
+            eyebrow="Live demo"
+            title="Walk through a real Indian architecture practice — no sign-up."
+            lead="Two workspaces seeded with real projects, fees, and decisions. A busy Bengaluru design studio or a solo practitioner — pick the practice that matches yours."
+          />
+          <Grid fullWidth className="esti-landing-tile-grid">
+            <Column lg={8} md={4} sm={4}>
+              <DemoCard
+                kind="studio"
+                onOpen={onStudioDemo}
+                loading={demoLoading}
+                activeKind={demoKind}
+              />
+            </Column>
+            <Column lg={8} md={4} sm={4}>
+              <DemoCard
+                kind="solo"
+                onOpen={onSoloDemo}
+                loading={demoLoading}
+                activeKind={demoKind}
+              />
+            </Column>
+          </Grid>
+          <p className="esti-landing-section-lead">
+            Demo accounts reset weekly. Sign in via the buttons above — no credentials needed.
+            Destructive operations are disabled in demo mode.
+          </p>
+        </Stack>
+      </LandingEditorial>
+    </LandingBand>
   );
 }
 

@@ -6,19 +6,10 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 import { trpc } from "../lib/trpc.js";
-import type { AppTheme } from "../lib/theme-context.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
 import { ScrollAffordance } from "./ScrollAffordance.js";
 
-type FloatingDockProps = {
-  theme: AppTheme;
-  onToggleTheme: () => void;
-};
-
-/**
- * Floating dock pinned to the bottom of the left nav rail: settings and calculator.
- */
-export function FloatingDock({ theme, onToggleTheme }: FloatingDockProps) {
+export function FloatingDock() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCalc, setShowCalc] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement>(null);
@@ -58,8 +49,6 @@ export function FloatingDock({ theme, onToggleTheme }: FloatingDockProps) {
         open={showSettings}
         onClose={() => setShowSettings(false)}
         triggerRef={settingsTriggerRef}
-        theme={theme}
-        onToggleTheme={onToggleTheme}
       />
       <FloatingCalculator
         open={showCalc}
@@ -74,14 +63,10 @@ function FloatingSettings({
   open,
   onClose,
   triggerRef,
-  theme,
-  onToggleTheme,
 }: {
   open: boolean;
   onClose: () => void;
   triggerRef: RefObject<HTMLElement | null>;
-  theme: AppTheme;
-  onToggleTheme: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -106,18 +91,8 @@ function FloatingSettings({
         <ScrollAffordance>
           <Stack gap={5}>
             <h4>Settings</h4>
-            <Stack gap={4}>
-            <Toggle
-              id="dock-theme"
-              size="sm"
-              labelText="Theme"
-              labelA="Light"
-              labelB="Dark"
-              toggled={theme === "g100"}
-              onToggle={() => onToggleTheme()}
-            />
             {isAdmin && (
-              <>
+              <Stack gap={4}>
                 <h4>Dashboard sections</h4>
                 <Stack gap={4}>
                   <Toggle
@@ -145,7 +120,7 @@ function FloatingSettings({
                     }
                   />
                 </Stack>
-              </>
+              </Stack>
             )}
             <p>Display name and password are on the full profile page.</p>
             <Button
@@ -158,7 +133,6 @@ function FloatingSettings({
               Open my profile
             </Button>
           </Stack>
-        </Stack>
         </ScrollAffordance>
       </Tile>
     </div>

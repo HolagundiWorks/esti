@@ -1,5 +1,8 @@
 import {
+  Breadcrumb,
+  BreadcrumbItem,
   Loading,
+  Stack,
   Tab,
   TabList,
   TabPanel,
@@ -173,23 +176,20 @@ export function ProjectDetail() {
           position: "sticky",
           top: "var(--esti-sticky-top, 48px)",
           zIndex: 100,
-          paddingBottom: 8,
+          paddingBottom: "var(--cds-spacing-03)",
           background: "var(--cds-background)",
         }}
       >
-        <Link to="/projects">← Projects</Link>
+        <Breadcrumb noTrailingSlash>
+          <BreadcrumbItem>
+            <Link to="/projects">Projects</Link>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage>{p.ref}</BreadcrumbItem>
+        </Breadcrumb>
         <h1>
           {p.ref} — {p.title}
         </h1>
-        <div
-          style={{
-            margin: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            flexWrap: "wrap",
-          }}
-        >
+        <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap" }}>
           <span>
             {
               PROJECT_WORK_TYPE_LABEL[
@@ -204,9 +204,9 @@ export function ProjectDetail() {
               p.status as keyof typeof PROJECT_STATUS_LABEL
             ] ?? p.status}
           </Tag>
-        </div>
+        </Stack>
         {phases.length > 0 && currentPhase && (
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: "var(--cds-spacing-03)" }}>
             <Link to={`/projects/${id}?tab=info`}>
               <Tag type="blue" size="md">
                 Stage: {currentPhase.label}

@@ -30,6 +30,11 @@ authoritative business state. ESTICAD owns local geometry only; takeoff
 measurements and CAD AI runs are authoritative in PostgreSQL via the companion
 API ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)).
 
+The same authority boundary applies to the AORMS cognition engine:
+deterministic TypeScript read models calculate office health and interventions,
+Python may later recognise anomalies or predictions, and LLMs only explain
+structured machine output. See [COGNITION-ENGINE](COGNITION-ENGINE.md).
+
 ## Repository
 
 - `packages/contracts`: shared Zod schemas, permissions, money, tax, labels.
