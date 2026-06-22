@@ -34,6 +34,7 @@ import {
 import { can, formatINRShort } from "@esti/contracts";
 import { Send } from "@carbon/icons-react";
 import { useState, Fragment, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { AiDraftPanel } from "../components/AiStudio.js";
 import {
   CAPACITY_LABEL,
@@ -629,7 +630,7 @@ function CognitiveEvidence({
 }: {
   title: string;
   empty: string;
-  items: Array<{ ref: string; val?: string; tag?: string; state?: ZoneState }>;
+  items: Array<{ ref: string; val?: string; tag?: string; state?: ZoneState; href?: string }>;
 }) {
   return (
     <div className="esti-cognitive-evidence">
@@ -638,17 +639,28 @@ function CognitiveEvidence({
         <div className="esti-detail-empty">
           <span style={{ color: ZCOLOR["stable"] }}>●</span> {empty}
         </div>
-      ) : items.slice(0, 4).map((item, i) => (
-        <div key={`${item.ref}-${i}`} className="esti-detail-item">
-          <span className="esti-detail-item__ref">{item.ref}</span>
-          {item.val && <span className="esti-detail-item__val">{item.val}</span>}
-          {item.tag && (
-            <span className="esti-detail-item__tag" style={{ color: ZCOLOR[item.state ?? "watch"] }}>
-              {item.tag}
-            </span>
-          )}
-        </div>
-      ))}
+      ) : items.slice(0, 4).map((item, i) => {
+        const content = (
+          <>
+            <span className="esti-detail-item__ref">{item.ref}</span>
+            {item.val && <span className="esti-detail-item__val">{item.val}</span>}
+            {item.tag && (
+              <span className="esti-detail-item__tag" style={{ color: ZCOLOR[item.state ?? "watch"] }}>
+                {item.tag}
+              </span>
+            )}
+          </>
+        );
+        return item.href ? (
+          <Link key={`${item.ref}-${i}`} to={item.href} className="esti-detail-item esti-detail-item--link">
+            {content}
+          </Link>
+        ) : (
+          <div key={`${item.ref}-${i}`} className="esti-detail-item">
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -792,8 +804,15 @@ function ScreenOverview({
               val: formatINRShort(inv.netReceivablePaise),
               tag: `${inv.daysOverdue}d`,
               state: "critical" as ZoneState,
+              href: `/projects/${inv.projectId}?tab=invoices`,
             }))),
-            ...(billingReady.length > 0 ? [{ ref: "Ready to invoice", val: `${billingReady.length} phases`, tag: "READY", state: "watch" as ZoneState }] : []),
+            ...(billingReady.length > 0 ? [{
+              ref: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
+              val: billingReady.length === 1 ? billingReady[0].projectRef : undefined,
+              tag: "READY",
+              state: "watch" as ZoneState,
+              href: billingReady.length === 1 ? `/projects/${billingReady[0].projectId}?tab=invoices` : "/invoices",
+            }] : []),
           ]}
         />
         <CognitiveEvidence
@@ -804,24 +823,61 @@ function ScreenOverview({
             val: `${m.totalOpen} open`,
             tag: CAPACITY_LABEL[m.capacity] ?? m.capacity,
             state: m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable",
+            href: "/team",
           }))}
         />
         <CognitiveEvidence
           title="PROJECT EVIDENCE"
           empty="No project delivery pressure detected"
           items={[
-            ...riskProjects.slice(0, 3).map((p: any) => ({ ref: p.ref, val: p.title, tag: "RED", state: "critical" as ZoneState })),
-            ...(delayedProjects > 0 ? [{ ref: "Delayed projects", val: String(delayedProjects), tag: "TASKS", state: "watch" as ZoneState }] : []),
+            ...riskProjects.slice(0, 3).map((p: any) => ({
+              ref: p.ref,
+              val: p.title,
+              tag: "RED",
+              state: "critical" as ZoneState,
+              href: `/projects/${p.id}`,
+            })),
+            ...(delayedProjects > 0 ? [{
+              ref: "Delayed projects",
+              val: String(delayedProjects),
+              tag: "TASKS",
+              state: "watch" as ZoneState,
+              href: "/projects",
+            }] : []),
           ]}
         />
         <CognitiveEvidence
           title="CLIENT EVIDENCE"
           empty="No client approval blockage detected"
           items={[
-            ...pending.slice(0, 3).map((ap: any) => ({ ref: ap.projectRef, val: ap.title, tag: `${ap.daysWaiting}d`, state: ap.daysWaiting > 14 ? "critical" as ZoneState : "friction" as ZoneState })),
-            ...(revisionCount > 0 ? [{ ref: "Client-driven revisions", val: String(revisionCount), tag: "CRIF", state: revisionCount > 10 ? "critical" as ZoneState : "watch" as ZoneState }] : []),
-            ...(totalStaleAppr > 0 ? [{ ref: "Stale approvals", val: String(totalStaleAppr), tag: "BLOCKED", state: "friction" as ZoneState }] : []),
-            ...(siteDelay > 0 ? [{ ref: "Open site items", val: String(siteDelay), tag: "SITE", state: "watch" as ZoneState }] : []),
+            ...pending.slice(0, 3).map((ap: any) => ({
+              ref: ap.projectRef,
+              val: ap.title,
+              tag: `${ap.daysWaiting}d`,
+              state: ap.daysWaiting > 14 ? "critical" as ZoneState : "friction" as ZoneState,
+              href: `/projects/${ap.projectId}?tab=approvals`,
+            })),
+            ...(revisionCount > 0 ? [{
+              ref: "Client-driven revisions",
+              val: String(revisionCount),
+              tag: "CRIF",
+              state: revisionCount > 10 ? "critical" as ZoneState : "watch" as ZoneState,
+              href: "/projects",
+            }] : []),
+            ...(totalStaleAppr > 0 ? [{
+              ref: "Stale approvals",
+              val: String(totalStaleAppr),
+              tag: "BLOCKED",
+              state: "friction" as ZoneState,
+              href: "/projects",
+            }] : []),
+            ...(siteDelay > 0 ? [{
+              ref: "Open site items",
+              val: String(siteDelay),
+              tag: "SITE",
+              state: "watch" as ZoneState,
+              href: "/projects",
+            }] : []),
           ]}
         />
       </section>
