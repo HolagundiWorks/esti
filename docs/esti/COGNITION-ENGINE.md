@@ -62,32 +62,43 @@ The first implementation slice is live and deterministic:
 - returns this as `dashboard.home.cognition` via the existing `dashboard.home` bundle;
 - keeps LLMs outside the score and intervention path.
 
-The dashboard PRIMARY OFFICE ATTENTION tile renders the full 5-question intervention surface (ISSUE → CAUSE CHAIN → NORMALIZATION PLAN → EXPECTED RECOVERY → CONFIDENCE → RISK IF IGNORED) from this structured output. The SYSTEM HEALTH quad tile shows live domain health percentages.
+The dashboard TODAY'S FOCUS tile renders the breathing space engine: OFFICE CALMNESS score + at most 3 immediate actions + safely deferred list + system confidence. The SYSTEM HEALTH quad tile shows live domain health percentages.
 
 The Python worker image now carries scikit-learn, XGBoost, MLflow, and Evidently for the next recognition and prediction phases.
 
-## Dashboard Model
+## Executive Cognitive Load Principle
 
-The dashboard must shift from reporting raw metrics to presenting system understanding.
+The purpose of the dashboard is not to show all problems. It is to protect the owner's mental bandwidth.
+
+Architecture firm owners carry continuous unresolved task loops (Zeigarnik Effect) that occupy working memory even during client meetings and site visits. The system must reduce cognitive load — not add to it.
+
+Rules:
+- Never show more than 3 items requiring immediate attention.
+- All other interventions are silently classified as **safely deferred** and shown with reduced visual weight.
+- The OFFICE CALMNESS score (0–100) is the headline metric — not a stress indicator but a calm-state signal.
+- Time-aware focus context (morning / midday / afternoon) replaces meeting-calendar integration until that data is available.
+
+Future phases will add meeting awareness (pre-meeting clearance), Focus Lock Mode (active meeting context), and deferred attention scheduling (auto-defer by time window).
+
+## Dashboard Model
 
 The overview screen follows three cognitive layers:
 
-1. **Office state recognition.** Dense top signals for client, finance, project, and team health.
-2. **Reasoning and prediction.** Primary attention, reasoning trace, confidence, 72-hour forecast, and recommended interventions.
-3. **Operational evidence.** Billing, team, project, and client evidence that proves why the system reached its conclusion.
+1. **Office calmness.** OFFICE CALMNESS score and SYSTEM HEALTH quad show state without alarm.
+2. **Breathing space engine.** TODAY'S FOCUS shows exactly 3 actions. Everything else is safely deferred and hidden.
+3. **Operational evidence.** Billing, team, project, and client evidence panels prove the system's reasoning.
 
 The user's eye path should be:
 
 ```text
-System health
-  -> detected issue
-  -> reasoning chain
-  -> recommended action
-  -> evidence
-  -> Ask AORMS AI follow-up
+Office calmness score
+  -> today's 3 focus items
+  -> deferred (mentally offloaded)
+  -> confidence
+  -> evidence panels
 ```
 
-Raw metrics remain available, but they are supporting evidence. The primary surface should answer: what is happening, why it matters, what will likely happen next, and what intervention should be considered.
+Raw metrics remain available in other dashboard tabs. The primary surface answers one question: what do I need to do right now, and what can I safely stop thinking about?
 
 ## Domain Scores
 
