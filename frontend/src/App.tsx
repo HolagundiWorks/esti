@@ -82,8 +82,6 @@ import { Team } from "./routes/Team.js";
 import { Users } from "./routes/Users.js";
 import { SystemAdmin } from "./routes/SystemAdmin.js";
 
-type ThemeName = "white" | "g100";
-
 /** Side nav highlight — prefix match for nested routes (projects, tasks, KB). */
 function navPathActive(pathname: string, to: string): boolean {
   if (to === "/") return pathname === "/";
@@ -151,18 +149,6 @@ function AppShell() {
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
-  const [theme, setTheme] = useState<ThemeName>(
-    () => (localStorage.getItem("esti-theme") as ThemeName) || "white",
-  );
-
-  function toggleTheme() {
-    setTheme((t) => {
-      const next: ThemeName = t === "white" ? "g100" : "white";
-      localStorage.setItem("esti-theme", next);
-      return next;
-    });
-  }
-
   // Only staff read settings; CLIENT users never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, {
     enabled: !!user && user.role !== "CLIENT",
@@ -194,8 +180,7 @@ function AppShell() {
   if (!user)
     return (
       <Routes>
-        {/* Login follows the saved theme; the marketing landing is always white. */}
-        <Route path="/login" element={<Theme theme={theme}><Login /></Theme>} />
+        <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
         <Route path="*" element={<Landing />} />
       </Routes>
     );
@@ -332,8 +317,8 @@ function AppShell() {
   ].filter((g) => g.items.length > 0);
 
   return (
-    <ThemeContext.Provider value={theme}>
-      <Theme theme={theme}>
+    <ThemeContext.Provider value="g100">
+      <Theme theme="g100">
         <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>
           {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
           <Theme theme="g100">
@@ -505,27 +490,8 @@ function AppShell() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
-            <footer className="esti-footer">
-              <Stack orientation="horizontal" gap={4}>
-                <p>
-                  <strong>ESTI</strong> — Architectural Office Resource
-                  Management System
-                </p>
-                <p>·</p>
-                <a href="mailto:hi@aorms.in">hi@aorms.in</a>
-                <p>·</p>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  <span>Developed by</span>
-                  <img
-                    src={theme === "white" ? "/hcw-black.png" : "/hcw-white.png"}
-                    alt="Holagundi Consulting Wurkz"
-                    style={{ height: 16, verticalAlign: "middle" }}
-                  />
-                </span>
-              </Stack>
-            </footer>
           </Content>
-          <FloatingDock theme={theme} onToggleTheme={toggleTheme} />
+          <FloatingDock />
           <AiAgentCommand />
         </div>
       </Theme>

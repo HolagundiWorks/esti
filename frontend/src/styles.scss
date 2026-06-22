@@ -128,9 +128,21 @@ body,
 
 // Hide native scrollbars in the office shell; wheel / touch scrolling still works.
 html:has(.esti-app-shell),
-html:has(.esti-app-shell) body,
+html:has(.esti-app-shell) body {
+  background: #161616;
+}
+
+// Landing page uses a deeper black — the topo background shows through
+html:has(.esti-landing-shell),
+html:has(.esti-landing-shell) body {
+  background: #0b0b0b;
+}
+
 html:has(.esti-lp),
-html:has(.esti-lp) body,
+html:has(.esti-lp) body {
+  background: #161616;
+}
+
 html:has(.esti-landing-shell),
 html:has(.esti-landing-shell) body {
   scrollbar-width: none;
@@ -185,12 +197,11 @@ html:has(.esti-landing-shell) body {
 .esti-login-brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--cds-spacing-03);
 }
 .esti-login-mark {
   display: inline-flex;
   padding: 6px;
-  border-radius: 4px;
   background: var(--cds-background-inverse);
 }
 .esti-login-mark img {
@@ -216,6 +227,12 @@ html:has(.esti-landing-shell) body {
 .esti-chart-medium,
 .esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
 .esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
+.esti-chart-canvas { height: calc(100vh - 280px); min-height: 500px; } /* viewport-fill interactive canvas */
+.esti-form-panel      { max-width: 640px; }   /* constrained form tile — matches Column lg=8  */
+.esti-form-panel--wide { max-width: 800px; }  /* wide form tile — matches Column lg=10 */
+.esti-firm-logo { height: 48px; width: auto; } /* firm logo in company profile */
+.esti-input-md  { max-width: 280px; }  /* medium constrained TextInput in horizontal Stack */
+.esti-input-sm  { max-width: 220px; }  /* narrow constrained TextInput in horizontal Stack */
 
 // Programme Gantt — Carbon Gantt spec layout (cards + timeline bars).
 // https://carbondesignsystem.com/data-visualization/gantt-charts/
@@ -447,8 +464,8 @@ html:has(.esti-landing-shell) body {
   gap: 0.75rem 2rem;
 }
 .esti-qi-chart-label {
-  margin: 0 0 0.25rem;
-  font-size: 0.75rem;
+  margin: 0 0 var(--cds-spacing-02);
+  @include type.type-style("label-01");
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2988,6 +3005,9 @@ html:has(.esti-landing-shell) body {
 .esti-label--secondary { color: var(--cds-text-secondary); }
 .esti-label--helper    { color: var(--cds-text-helper); }
 
+// Large KPI number scale — heading-07 type-style (2.625rem/600). Colourless.
+.esti-landing-kpi-number { @include type.type-style("heading-07"); }
+
 .esti-inline-with-tag {
   display: flex;
   align-items: center;
@@ -3113,15 +3133,49 @@ html:has(.esti-landing-shell) body {
 
 // Landing page — IBM.com editorial layout (Carbon UI Shell + bands).
 .esti-landing-shell {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: fixed;
+    inset: var(--cds-spacing-09) 0 auto;
+    width: 100%;
+    height: 60vh;
+    min-height: 420px;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(11, 11, 11, 0.18) 0%, rgba(11, 11, 11, 0.36) 64%, #0b0b0b 100%),
+      url("/landing-contour-bg.svg") center center / cover no-repeat;
+    opacity: 0.62;
+    z-index: 0;
+  }
+
+  &::after {
+    content: "";
+    position: fixed;
+    inset: var(--cds-spacing-09) 0 auto;
+    width: 100%;
+    height: 60vh;
+    min-height: 420px;
+    pointer-events: none;
+    backdrop-filter: blur(1.1px) saturate(1.08);
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.004) 42%, rgba(255, 255, 255, 0.014)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.014), transparent 58%);
+    z-index: 1;
+  }
 
   .esti-landing-content.cds--content {
     flex: 1;
     margin-block-start: var(--cds-spacing-09);
     max-width: 100%;
     padding-inline: 0;
+    position: relative;
+    z-index: 2;
   }
 }
 
@@ -3154,6 +3208,7 @@ html:has(.esti-landing-shell) body {
 
 .esti-landing-content {
   padding: 0;
+  background: transparent;
 
   // Fixed layout headings inside the editorial max-width container.
   // Fluid expressive tokens are for full-bleed pages — not nested in .esti-landing-editorial.
@@ -3170,9 +3225,10 @@ html:has(.esti-landing-shell) body {
 // heading-06 (42px) is the largest non-fluid productive type in Carbon v11.
 // display-* expressive tokens use fluid-type-scale and generate CSS Sass maps
 // that Vite's Sass pipeline cannot serialize — they are off-limits here.
+// heading-07 = 54px / weight 300 — largest safe non-fluid productive token.
 h1.esti-landing-lead-title {
-  @include type.type-style("heading-06");
-  max-width: min(32rem, 100%);
+  @include type.type-style("heading-07");
+  max-width: min(36rem, 100%);
 }
 
 // ─── Linear-style layout helpers ─────────────────────────────────────────────
@@ -3249,14 +3305,14 @@ h1.esti-landing-lead-title {
 
 .esti-landing-band {
   padding-block: var(--cds-spacing-12);
-  background: var(--cds-background);
+  background: transparent;
 
   &--lead {
     padding-block: var(--cds-spacing-13);
-    min-height: min(40rem, 100svh);
+    min-height: min(90svh, 56rem);
     display: flex;
     align-items: center;
-    background: var(--cds-layer-01);
+    background: transparent;
     border-block-end: 1px solid var(--cds-border-subtle-01);
 
     @media (max-width: 672px) {
@@ -3283,6 +3339,63 @@ h1.esti-landing-lead-title {
 
 .esti-landing-hero-grid {
   row-gap: var(--cds-spacing-07);
+}
+
+// ── Connected tile grids ──────────────────────────────────────────────────────
+// gap: 1px on the grid + grid background = border-subtle creates true 1px
+// dividers between tiles with no inter-tile space. --cds-grid-gutter: 0 removes
+// Carbon's column padding-inline so columns sit flush.
+// Bands shed their block padding so the grid runs full-bleed.
+.esti-landing-kpi-band,
+.esti-landing-bento-band {
+  padding-block: 0;
+}
+
+.esti-landing-tile-grid,
+.esti-landing-kpi-grid,
+.esti-landing-bento {
+  gap: 1px;
+  --cds-grid-gutter: 0;
+  background: var(--cds-border-subtle);
+
+  // Remove individual tile borders — the 1px grid gap IS the border.
+  // Apply the 24px internal padding spec uniformly.
+  .cds--tile,
+  .cds--expandable-tile {
+    border: none;
+    padding: var(--cds-spacing-06); // 24px
+  }
+}
+
+// All marketing tiles: fill column height.
+.esti-landing-kpi-tile,
+.esti-landing-bento-tile {
+  height: 100%;
+}
+
+// KPI tiles min-height.
+.esti-landing-kpi-tile {
+  min-height: 10rem;
+}
+
+// Bento feature tiles taller.
+.esti-landing-bento-tile {
+  min-height: 20rem;
+}
+
+// Bullet list inside tiles — reset browser list styles.
+.esti-landing-bento-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02); // 8px
+
+  li::before {
+    content: "— ";
+    color: var(--cds-text-helper);
+  }
 }
 
 // Carbon 2x Grid + spacing-07 row rhythm (32px — matches default column gutter).
@@ -3405,11 +3518,174 @@ h1.esti-landing-lead-title {
   padding-block: var(--cds-spacing-05);
 }
 
+// ── Hero and topo section helpers ────────────────────────────────────────────
+
+// Full-viewport hero: overrides --lead min-height to 90svh.
+.esti-landing-hero-full.esti-landing-band--lead {
+  min-height: 90svh;
+}
+
+// Legacy per-section topo wrapper (kept for backwards compat, no longer used).
+.esti-landing-hero-topo,
+.esti-landing-pillars-topo {
+  position: relative;
+  overflow: hidden;
+}
+
+// Resolver list inside the topo hero — small checkmark rows.
+.esti-lp-hero-resolvers {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.esti-lp-hero-resolver {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-03);
+}
+
+// ExpandableTile pillar — ensure tiles fill their column height.
+.esti-landing-pillar-tile {
+  height: 100%;
+}
+
+.esti-landing-pillar-above {
+  min-height: 7rem;
+}
+
+.esti-landing-pillar-below {
+  padding-block-start: var(--cds-spacing-05);
+  border-block-start: 1px solid var(--cds-border-subtle-01);
+}
+
+// Bullet points inside expanded pillar tiles — structural indent only.
+.esti-landing-pillar-points {
+  padding-inline-start: var(--cds-spacing-05);
+
+  li {
+    @include type.type-style("body-01");
+    color: var(--cds-text-secondary);
+    padding-block: var(--cds-spacing-02);
+  }
+}
+
+// ── End topographic sections ─────────────────────────────────────────────────
+
 .esti-landing-footer.esti-landing-band {
-  padding-block: var(--cds-spacing-09);
-  background: var(--cds-background);
+  padding-block: var(--cds-spacing-10) var(--cds-spacing-09);
+  background: rgba(11, 11, 11, 0.92);
   border-block-start: 1px solid var(--cds-border-subtle-01);
   color: var(--cds-text-primary);
+  backdrop-filter: blur(8px) saturate(1.08);
+}
+
+.esti-landing-footer__grid {
+  display: grid;
+  grid-template-columns: 6fr 3fr 3fr 4fr;
+  gap: var(--cds-spacing-07);
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+
+  @media (max-width: 1055px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 671px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.esti-landing-footer__brand,
+.esti-landing-footer__nav,
+.esti-landing-footer__studio {
+  min-height: 15rem;
+  padding: var(--cds-spacing-06);
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.esti-landing-footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cds-spacing-06);
+
+  p {
+    @include type.type-style("body-02");
+    color: var(--cds-text-secondary);
+    max-width: 34rem;
+    margin: 0;
+  }
+}
+
+.esti-landing-footer__nav {
+  h2 {
+    @include type.type-style("label-01");
+    color: var(--cds-text-helper);
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--cds-spacing-06);
+    text-transform: uppercase;
+  }
+
+  a {
+    width: fit-content;
+  }
+}
+
+.esti-landing-footer__studio {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--cds-spacing-05);
+}
+
+.esti-landing-footer__aorms {
+  height: 1.75rem;
+  width: auto;
+  max-width: 12rem;
+  object-fit: contain;
+}
+
+.esti-landing-footer__hcw {
+  aspect-ratio: 4 / 1;
+  width: 16.5rem;
+  height: auto;
+  max-height: 4.125rem;
+  object-fit: contain;
+  display: block;
+  max-width: 100%;
+}
+
+.esti-landing-footer__eyebrow {
+  @include type.type-style("label-01");
+  color: var(--cds-text-helper);
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.esti-landing-footer__bottom {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cds-spacing-05);
+  min-height: 3.5rem;
+  padding: 0 var(--cds-spacing-06);
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  color: var(--cds-text-helper);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  @media (max-width: 671px) {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--cds-spacing-05);
+  }
 }
 
 .esti-landing-header-brand {
@@ -3995,6 +4271,1842 @@ h1.esti-landing-lead-title {
   gap: var(--cds-spacing-02);
   flex-wrap: wrap;
   margin-block-start: auto;
+}
+
+// ── Operating System Grid — Landing Page ─────────────────────────────────────
+// One continuous tile grid that starts immediately after the hero.
+// 4 columns desktop / 2 tablet / 1 mobile. gap: 0 with shared border lines.
+
+// Hero
+.esti-lp-hero {
+  min-height: 58vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--cds-spacing-10) var(--cds-spacing-07) var(--cds-spacing-07);
+  width: 80%;
+  max-width: none;
+  margin-inline: auto;
+
+  @media (max-width: 1055px) { width: 90%; }
+  @media (max-width: 671px) {
+    width: 100%;
+    padding: var(--cds-spacing-09) var(--cds-spacing-05) var(--cds-spacing-06);
+    min-height: 64vh;
+  }
+}
+
+.esti-lp-hero__sysid {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  margin-bottom: var(--cds-spacing-06);
+}
+
+.esti-lp-hero__h1 {
+  @include type.type-style("heading-07");
+  font-weight: 300;
+  letter-spacing: 0;
+  color: var(--cds-text-primary);
+  max-width: 760px;
+  margin: 0 0 var(--cds-spacing-04);
+}
+
+.esti-lp-hero__sub {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.34;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cds-text-secondary);
+  max-width: 720px;
+  margin-bottom: var(--cds-spacing-05);
+}
+
+.esti-lp-hero__lead {
+  @include type.type-style("body-02");
+  color: var(--cds-text-secondary);
+  max-width: 680px;
+  margin: 0 0 var(--cds-spacing-07);
+}
+
+.esti-lp-hero__actions {
+  display: flex;
+  gap: var(--cds-spacing-04);
+  flex-wrap: wrap;
+  margin-bottom: var(--cds-spacing-06);
+}
+
+.esti-lp-hero__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-03) var(--cds-spacing-06);
+}
+
+.esti-lp-hero__status-line {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-02);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.34;
+  color: var(--cds-text-helper);
+}
+
+// Status dots — semantic only
+.esti-lp-dot { font-size: 8px; flex-shrink: 0; line-height: 1; }
+.esti-lp-dot--green  { color: #42be65; }
+.esti-lp-dot--yellow { color: #f1c21b; }
+.esti-lp-dot--red    { color: #fa4d56; }
+.esti-lp-dot--white  { color: #a8a8a8; }
+
+// Grid container — shared borders create the grid lines (no gap)
+.esti-lp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 296px;
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+  width: 80%;
+  margin-inline: auto;
+  align-items: stretch;
+
+  @media (max-width: 1055px) {
+    grid-template-columns: repeat(2, 1fr);
+    width: 90%;
+  }
+  @media (max-width: 671px)  {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    width: 100%;
+  }
+}
+
+.esti-lp-section-break {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  column-gap: var(--cds-spacing-07);
+  min-height: 256px;
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  width: 80%;
+  margin-inline: auto;
+  padding-inline: var(--cds-spacing-07);
+  background: transparent;
+
+  @media (max-width: 1055px) {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    width: 90%;
+  }
+
+  @media (max-width: 671px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--cds-spacing-05);
+    min-height: 224px;
+    padding-inline: var(--cds-spacing-05);
+    width: 100%;
+  }
+}
+
+.esti-lp-section-break__copy {
+  grid-column: 3 / span 7;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 256px;
+  padding-block: var(--cds-spacing-09) var(--cds-spacing-07);
+  background: transparent;
+  box-shadow: none;
+
+  @media (max-width: 1055px) {
+    grid-column: 2 / span 5;
+  }
+
+  @media (max-width: 671px) {
+    grid-column: 1 / span 4;
+    min-height: 224px;
+    padding-block: var(--cds-spacing-07) var(--cds-spacing-06);
+  }
+
+  h2 {
+    @include type.type-style("heading-04");
+    color: var(--cds-text-primary);
+    max-width: 36rem;
+    margin: 0 0 var(--cds-spacing-04);
+  }
+
+  p {
+    @include type.type-style("body-02");
+    color: var(--cds-text-secondary);
+    max-width: 40rem;
+    margin: 0;
+  }
+}
+
+.esti-lp-section-break__copy .esti-lp-section-break__eyebrow {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  margin: 0 0 var(--cds-spacing-04);
+}
+
+// Tile — border-right + border-bottom creates the shared grid lines
+.esti-lp-tile {
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  backdrop-filter: blur(7px) saturate(1.12);
+
+  &--2x1 { grid-column: span 2; }
+  &--2x2 { grid-column: span 2; grid-row: span 2; }
+  &--4x1 { grid-column: span 4; }
+  &--pitch,
+  &--outcome {
+    background: transparent;
+  }
+
+  @media (max-width: 671px) {
+    min-height: auto;
+    &--2x1, &--2x2, &--4x1 { grid-column: span 1; grid-row: span 1; }
+  }
+}
+
+// Tile header strip — dashboard rhythm with compact, repeatable sizing.
+.esti-lp-tile__hdr {
+  height: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  padding: 0 var(--cds-spacing-06);
+  border-bottom: 1px solid #262626;
+  background: none;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cds-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.esti-lp-tile__hdr-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.esti-lp-tile__hdr-meta {
+  margin-left: auto;
+  color: var(--cds-text-helper);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.esti-lp-tile--pitch .esti-lp-tile__hdr,
+.esti-lp-tile--outcome .esti-lp-tile__hdr {
+  color: var(--cds-text-primary);
+}
+
+// Tile body
+.esti-lp-tile__body {
+  flex: 1;
+  padding: var(--cds-spacing-06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  overflow: hidden;
+  min-height: 0;
+}
+
+// KPI value
+.esti-lp-kpi {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--cds-text-primary);
+  line-height: 1;
+  margin: auto 0 var(--cds-spacing-03);
+}
+
+.esti-lp-tile--pitch .esti-lp-tile__body {
+  padding: var(--cds-spacing-07);
+  gap: var(--cds-spacing-05);
+}
+
+.esti-lp-tile--pitch .esti-lp-feature-title {
+  @include type.type-style("heading-03");
+  line-height: 1.22;
+}
+
+.esti-lp-tile--outcome .esti-lp-feature-title {
+  @include type.type-style("heading-03");
+  line-height: 1.22;
+  max-width: 32rem;
+}
+
+.esti-lp-tile--outcome .esti-lp-bullets {
+  margin-top: var(--cds-spacing-06);
+}
+
+.esti-lp-cognition-signals {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+  margin-bottom: 0;
+}
+
+.esti-lp-cognition-signal {
+  min-height: 68px;
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: var(--cds-spacing-04);
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  grid-template-rows: auto auto;
+  gap: var(--cds-spacing-02) var(--cds-spacing-03);
+  align-items: start;
+
+  &__name,
+  &__state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cds-text-helper);
+  }
+
+  &__score {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--cds-text-primary);
+  }
+
+  &__state {
+    grid-column: 2;
+    color: var(--cds-text-secondary);
+  }
+}
+
+.esti-lp-cognition-reason {
+  border-top: 1px solid var(--cds-border-subtle);
+  padding-top: var(--cds-spacing-04);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  min-height: 0;
+}
+
+.esti-lp-cognition-chain {
+  display: grid;
+  gap: 1px;
+  background: var(--cds-border-subtle);
+
+  span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    color: var(--cds-text-secondary);
+    background: var(--cds-background);
+    padding: var(--cds-spacing-02) var(--cds-spacing-04);
+    text-transform: uppercase;
+  }
+}
+
+.esti-lp-cognition-forecast {
+  margin-top: auto;
+  border-top: 1px solid var(--cds-border-subtle);
+  padding-top: var(--cds-spacing-04);
+}
+
+// Helper / note text
+.esti-lp-note {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--cds-text-helper);
+  line-height: 1.42;
+  margin: 0;
+}
+
+// Section label inside tile body
+.esti-lp-section-label {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  margin: 0 0 var(--cds-spacing-02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: var(--cds-spacing-02);
+}
+
+// Feature tile title
+.esti-lp-feature-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--cds-text-primary);
+  line-height: 1.32;
+  margin: 0;
+}
+
+// Bullet list — em-dash prefix
+.esti-lp-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-03);
+
+  li {
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.42;
+    color: var(--cds-text-secondary);
+    display: flex;
+    gap: var(--cds-spacing-02);
+
+    &::before { content: "—"; color: var(--cds-text-helper); flex-shrink: 0; }
+  }
+}
+
+.esti-lp-tile:not(.esti-lp-tile--2x2) .esti-lp-bullets li {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+// Data row: key .............. value
+.esti-lp-data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.34;
+  padding-block: var(--cds-spacing-02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.esti-lp-data-key { color: var(--cds-text-helper); flex-shrink: 0; }
+.esti-lp-data-val { color: var(--cds-text-primary); text-align: right; }
+
+// Project row — for the office overview tile
+.esti-lp-project-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  padding-block: var(--cds-spacing-01);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.esti-lp-project-name  { font-size: 13px; color: var(--cds-text-primary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.esti-lp-project-type  { font-size: 11px; color: var(--cds-text-helper); flex-shrink: 0; }
+.esti-lp-project-phase { font-size: 11px; color: var(--cds-text-secondary); flex-shrink: 0; margin-left: auto; }
+
+// Activity row
+.esti-lp-activity {
+  display: flex;
+  gap: var(--cds-spacing-03);
+  align-items: baseline;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  padding-block: var(--cds-spacing-01);
+}
+
+.esti-lp-activity-text { color: var(--cds-text-secondary); flex: 1; }
+.esti-lp-activity-time { color: var(--cds-text-helper); white-space: nowrap; flex-shrink: 0; }
+
+// Compliance two-column layout
+.esti-lp-compliance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cds-spacing-07);
+  flex: 1;
+
+  @media (max-width: 671px) { grid-template-columns: 1fr; }
+}
+
+// Revision bar chart rows
+.esti-lp-rev-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  padding-block: var(--cds-spacing-02);
+}
+
+.esti-lp-rev-label { font-size: 12px; color: var(--cds-text-secondary); width: 6.5rem; flex-shrink: 0; }
+.esti-lp-rev-pct   { font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 12px; color: var(--cds-text-helper); width: 2.5rem; text-align: right; flex-shrink: 0; }
+
+.esti-lp-rev-track {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+}
+
+.esti-lp-rev-fill {
+  height: 100%;
+  border-radius: 0;
+  transition: width 0.3s ease;
+}
+
+// Demo tile body
+.esti-lp-demo-body {
+  flex: 1;
+  padding: var(--cds-spacing-06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  min-height: 0;
+}
+
+.esti-lp-demo-eyebrow {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.esti-lp-demo-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--cds-text-primary);
+  line-height: 1.32;
+  margin: 0;
+}
+
+.esti-lp-demo-action { margin-top: auto; padding-top: var(--cds-spacing-05); }
+
+// Role tile — full-tile button
+.esti-lp-role-btn {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-06);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.03); }
+  &:disabled { cursor: not-allowed; }
+}
+
+.esti-lp-role-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+.esti-lp-role-info { flex: 1; min-width: 0; }
+
+.esti-lp-role-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cds-text-primary);
+  line-height: 1.25;
+  margin: 0 0 var(--cds-spacing-01);
+}
+
+.esti-lp-role-title {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--cds-spacing-02);
+}
+
+.esti-lp-role-arrow {
+  color: var(--cds-text-helper);
+  font-size: 16px;
+  align-self: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+// CTA tile (4×1)
+.esti-lp-cta-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-09);
+  padding: var(--cds-spacing-07) var(--cds-spacing-06);
+
+  @media (max-width: 671px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cds-spacing-06);
+  }
+}
+
+.esti-lp-cta-text { flex: 1; }
+
+.esti-lp-cta-h {
+  @include type.type-style("heading-03");
+  color: var(--cds-text-primary);
+  margin: 0 0 var(--cds-spacing-03);
+}
+
+// Fixed bottom status bar
+.esti-lp-statusbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: rgba(11, 11, 11, 0.92);
+  border-top: 1px solid var(--cds-border-subtle);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-07);
+  padding: 0 var(--cds-spacing-05);
+  z-index: 200;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--cds-text-helper);
+  overflow: hidden;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-02);
+    white-space: nowrap;
+  }
+
+  &__ver { margin-left: auto; }
+
+  @media (max-width: 1055px) {
+    .esti-lp-statusbar__item:nth-child(n+3):not(.esti-lp-statusbar__ver) { display: none; }
+  }
+
+  @media (max-width: 671px) {
+    .esti-lp-statusbar__item:nth-child(n+2):not(.esti-lp-statusbar__ver) { display: none; }
+  }
+}
+
+// Account for the status bar at bottom of content
+.esti-landing-content {
+  padding-bottom: 28px !important;
+}
+
+// ── Dashboard OS grid ────────────────────────────────────────────────────────
+// Same connected-tile system as the landing page, full-width inside app shell.
+// grid-auto-rows enforces uniform card height per implicit row.
+$dash-tile-h: clamp(200px, 18vw, 280px);
+
+.esti-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: $dash-tile-h;
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+
+  @media (max-width: 1055px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 671px)  { grid-template-columns: 1fr; }
+}
+
+.esti-dash-tile {
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  // height is driven by grid-auto-rows — no min-height override here
+
+  &--2x1 { grid-column: span 2; }
+  &--3x1 { grid-column: span 3; }
+  // 4x1: natural content height (no grid-auto-rows constraint)
+  &--4x1 { grid-column: span 4; grid-row: auto; height: auto; overflow: visible; }
+  &--2x2 { grid-column: span 2; grid-row: span 2; }
+
+  // Expand: double height by spanning 2 implicit rows
+  &--expanded { grid-row: span 2; }
+  &--expanded.esti-dash-tile--4x1 { grid-row: auto; }
+
+  &--clickable {
+    cursor: pointer;
+    &:hover { background: var(--cds-background-hover); }
+  }
+
+  @media (max-width: 1055px) {
+    &--2x1 { grid-column: span 2; }
+    &--3x1 { grid-column: span 2; }
+    &--4x1 { grid-column: span 2; }
+    &--2x2 { grid-column: span 2; }
+  }
+  @media (max-width: 671px) {
+    &--2x1, &--3x1, &--4x1, &--2x2 { grid-column: span 1; grid-row: span 1; }
+  }
+}
+
+// Expand toggle button inside tile header
+.esti-dash-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cds-text-helper);
+  padding: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 100ms;
+
+  &:hover { opacity: 1; color: var(--cds-text-primary); }
+}
+
+// Level badges in tile headers
+.esti-dash-level {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--cds-text-helper);
+  opacity: 0.5;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.esti-dash-tile__body {
+  flex: 1;
+  padding: var(--cds-spacing-05);
+  overflow-y: auto;
+}
+
+.esti-dash-kpi {
+  @include type.type-style("heading-06");
+  color: var(--cds-text-primary);
+  line-height: 1;
+  padding: var(--cds-spacing-05) var(--cds-spacing-05) var(--cds-spacing-03);
+}
+
+.esti-dash-kpi-note {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--cds-text-helper);
+  padding: 0 var(--cds-spacing-05);
+}
+
+.esti-dash-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  font-size: 13px;
+  color: var(--cds-text-secondary);
+
+  &:last-child { border-bottom: none; }
+  &__key { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--cds-text-helper); }
+  &__val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--cds-text-primary); }
+  &__tag { flex-shrink: 0; }
+}
+
+.esti-dash-table-wrap {
+  overflow-x: auto;
+  flex: 1;
+
+  .cds--data-table-container { margin-block-start: 0; }
+  .cds--table-toolbar { display: none; }
+}
+
+.esti-dash-activity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle-00);
+  &:last-child { border-bottom: none; }
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cds-border-strong);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  &__text { flex: 1; font-size: 13px; color: var(--cds-text-secondary); line-height: 1.4; }
+  &__time { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--cds-text-helper); flex-shrink: 0; }
+}
+
+.esti-dash-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  padding: var(--cds-spacing-04) var(--cds-spacing-05) var(--cds-spacing-02);
+}
+
+// QualityIntelligenceTiles inside a dash tile — let it scroll
+.esti-dash-tile__body .esti-qi-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+
+  > * { flex: 1 1 300px; border: none; border-right: 1px solid var(--cds-border-subtle); }
+  > *:last-child { border-right: none; }
+  .cds--tile { border: none; border-radius: 0; height: 100%; }
+}
+
+// ── Office State Cockpit ─────────────────────────────────────────────────────
+// Fixed spatial grid: Client TL | Finance TR | Attention C | Project BL | Team BR
+// Never reorder zones — spatial memory is the core UX principle.
+
+@keyframes esti-zone-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.esti-cockpit {
+  display: grid;
+  grid-template-areas:
+    "client  finance"
+    "attn    attn"
+    "project team";
+  grid-template-columns: 1fr 1fr;
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top:  1px solid var(--cds-border-subtle);
+
+  @media (max-width: 671px) {
+    grid-template-areas: "client" "finance" "attn" "project" "team";
+    grid-template-columns: 1fr;
+  }
+}
+
+.esti-cockpit__client  { grid-area: client;  }
+.esti-cockpit__finance { grid-area: finance; }
+.esti-cockpit__attn    { grid-area: attn;    }
+.esti-cockpit__project { grid-area: project; }
+.esti-cockpit__team    { grid-area: team;    }
+
+// Individual zone tile
+.esti-cockpit__zone {
+  border-top:    3px solid var(--esti-zc, var(--cds-border-subtle));
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06) var(--cds-spacing-06);
+  min-height: clamp(240px, 24vw, 340px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+}
+
+.esti-cockpit__zone-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+}
+
+.esti-cockpit__zone-left { display: flex; flex-direction: column; gap: var(--cds-spacing-03); }
+
+.esti-cockpit__zone-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--cds-text-helper);
+  text-transform: uppercase;
+}
+
+.esti-cockpit__state-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+}
+
+.esti-cockpit__shape {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--esti-zc, var(--cds-text-helper));
+  &--pulse { animation: esti-zone-pulse 2.4s ease-in-out infinite; }
+}
+
+.esti-cockpit__state-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--esti-zc, var(--cds-text-primary));
+}
+
+// Radial SVG ring (small, right of header)
+.esti-cockpit__radial { flex-shrink: 0; }
+
+// Main KPI area inside zone
+.esti-cockpit__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-01);
+  margin-top: var(--cds-spacing-02);
+
+  &-main {
+    @include type.type-style("heading-05");
+    color: var(--cds-text-primary);
+    line-height: 1;
+  }
+  &-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+
+// Detail rows at the bottom of a zone
+.esti-cockpit__details {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.esti-cockpit__drow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-02) 0;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+  &:last-child { border-bottom: none; }
+  &__k {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 72px;
+  }
+  &__v { flex: 1; }
+  &__accent { color: var(--esti-zc, var(--cds-text-secondary)); }
+}
+
+// ── Attention Vector (center strip) ──────────────────────────────────────────
+.esti-cockpit__av {
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-07);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  min-height: 160px;
+
+  @media (max-width: 671px) { flex-direction: column; gap: var(--cds-spacing-05); }
+}
+
+.esti-cockpit__av-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  min-width: 0;
+}
+
+.esti-cockpit__av-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--cds-text-helper);
+  text-transform: uppercase;
+}
+
+.esti-cockpit__av-issue {
+  font-size: 15px;
+  color: var(--cds-text-primary);
+  line-height: 1.4;
+  max-width: 640px;
+}
+
+.esti-cockpit__av-sub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02);
+}
+
+.esti-cockpit__av-impact {
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+
+.esti-cockpit__av-action {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--cds-link-primary);
+  text-transform: uppercase;
+}
+
+// Causal chain
+.esti-cockpit__causal {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.esti-cockpit__cn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1px var(--cds-spacing-02);
+  color: var(--cds-text-helper);
+  &--on { color: var(--esti-zc, var(--cds-text-secondary)); font-weight: 700; }
+}
+
+.esti-cockpit__cl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--cds-border-subtle);
+  padding: 0 2px;
+  &--on { color: var(--esti-zc, var(--cds-text-helper)); }
+}
+
+// Health score widget (right of attention vector)
+.esti-cockpit__av-health {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--cds-spacing-01);
+  flex-shrink: 0;
+}
+
+.esti-cockpit__hl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--cds-text-helper);
+  text-transform: uppercase;
+}
+
+.esti-cockpit__hs {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--cds-text-primary);
+}
+
+.esti-cockpit__hb {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+// ── Screen 1 — 2×2 macro + inner 2×2 quad cell system ───────────────────────
+// Rule: color only on top-strip, dot, shape — NEVER whole tile background.
+// Rule: each quad is always 2×2, never asymmetric.
+// Rule: zone locations never change (spatial memory).
+
+.esti-av-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-05);
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-left:   1px solid var(--cds-border-subtle);
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  min-height: 40px;
+
+  &__shape  { font-size: 11px; flex-shrink: 0; }
+  &__issue  { flex: 1; font-size: 12px; color: var(--cds-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  &__action { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--cds-link-primary); text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+  &__health { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--cds-text-helper); flex-shrink: 0; white-space: nowrap; }
+}
+
+.esti-command-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: calc(100vh - 3rem - 3rem);  // viewport - header - tablist
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top:  1px solid var(--cds-border-subtle);
+
+  @media (max-width: 1023px) {
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+  }
+}
+
+.esti-command-cell {
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  // Suppress double-borders on nested grid components
+  > .esti-av-strip {
+    border-left:  none;
+    border-right: none;
+  }
+
+  > .esti-detail-grid {
+    border-left: none;
+    border-top:  none;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+.esti-cognitive-dashboard {
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top: 1px solid var(--cds-border-subtle);
+  min-height: calc(100vh - 3rem - 3rem);
+  display: grid;
+  grid-template-columns: 1fr 2.5fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+
+  @media (max-width: 1023px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 260px auto auto;
+  }
+}
+
+// Left column — SYSTEM HEALTH quad tile
+.esti-cognitive-health {
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  > .esti-quad {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+// Right column — PRIMARY OFFICE ATTENTION vertical scroll column
+.esti-cognitive-main {
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.esti-cognitive-evidence {
+  border-right: 1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+// Shared monospace label for section titles
+.esti-cognitive-kicker,
+.esti-cognitive-section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--cds-text-helper);
+  text-transform: uppercase;
+  margin-bottom: var(--cds-spacing-03);
+}
+
+.esti-cognitive-title {
+  margin: 0;
+  font-size: clamp(18px, 2vw, 28px);
+  line-height: 1.2;
+  font-weight: 300;
+  color: var(--cds-text-primary);
+}
+
+.esti-cognitive-copy {
+  margin: var(--cds-spacing-02) 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cds-text-secondary);
+}
+
+// ── PRIMARY OFFICE ATTENTION sections ────────────────────────────────────────
+
+.esti-poa-section {
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  flex-shrink: 0;
+}
+
+// Cause chain
+.esti-poa-chain {
+  display: flex;
+  flex-direction: column;
+}
+
+.esti-poa-chain__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-02) 0;
+}
+
+.esti-poa-chain__arrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--cds-text-helper);
+  padding: 0 var(--cds-spacing-03);
+}
+
+// Normalization plan
+.esti-poa-action {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-02) 0;
+}
+
+.esti-poa-action__num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  min-width: 1.2rem;
+  padding-top: 2px;
+}
+
+// Expected recovery
+.esti-poa-recovery {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-02) 0;
+}
+
+.esti-poa-recovery__domain {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  min-width: 3.8rem;
+}
+
+.esti-poa-recovery__arrow {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--cds-text-helper);
+}
+
+// Risk if ignored
+.esti-poa-risk {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-02) 0;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+
+.esti-poa-risk__arrow {
+  color: var(--cds-text-helper);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.esti-cognitive-evidence-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: 1023px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.esti-cognitive-evidence {
+  min-height: 190px;
+
+  .esti-cognitive-section-title {
+    padding: var(--cds-spacing-04) var(--cds-spacing-05);
+    border-bottom: 1px solid var(--cds-border-subtle);
+  }
+}
+
+.esti-macro-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  flex-shrink: 0;
+  gap: var(--cds-spacing-04);
+
+  &__name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  // Square alert tag — background set inline from ZCOLOR[state]
+  &__status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border-radius: 0;
+    flex-shrink: 0;
+  }
+}
+
+// Command cell identity colors: passed inline via nameColor prop on MacroHdr
+
+// Telemetry tile accent — alert border-top applied inline in JSX (dynamic per state)
+// No static background or border-top here.
+.esti-telem-tile:nth-child(1),
+.esti-telem-tile:nth-child(2),
+.esti-telem-tile:nth-child(3),
+.esti-telem-tile:nth-child(4) { background: transparent; }
+
+// Inner 2×2 metric quad — fills zone height; rows split evenly
+.esti-quad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+@keyframes esti-qpulse {
+  0%, 88%, 100% { opacity: 1; }
+  94%            { opacity: 0.4; }
+}
+
+.esti-qcell {
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02);
+  min-height: 0;
+
+  --qc: var(--cds-text-primary);
+
+
+  &--stable   { --qc: #42be65; }
+  &--watch    { --qc: #f1c21b; }
+  &--friction { --qc: #ff832b; }
+  &--critical { --qc: #fa4d56; }
+  &--info     { --qc: #4589ff; }
+  &--inactive { --qc: var(--cds-text-disabled); opacity: 0.35; }
+
+  &__name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+  }
+
+  &__val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 2.2vw, 30px);
+    line-height: 1;
+    color: #fff;
+    font-weight: 300;
+    margin-top: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-left: 12px;  // room for superscript dot
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;              // anchored to top of number = superscript position
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--qc);
+    }
+  }
+
+  &__tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(9px, 0.7vw, 11px);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    padding: 2px 6px;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 0;
+  }
+
+  &__note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--cds-text-disabled);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+}
+
+// ── Vertical telemetry column — SYSTEM HEALTH command cell ───────────────────
+.esti-telem-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+
+  > .esti-telem-tile {
+    flex: 1;
+    border-right: none;
+    border-bottom: 1px solid var(--cds-border-subtle);
+    &:last-child { border-bottom: none; }
+  }
+}
+
+.esti-telem-tile {
+  border-right: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cds-spacing-02);
+  padding: var(--cds-spacing-04);
+  text-align: center;
+  background: transparent;
+  overflow: hidden;
+
+  &:last-child { border-right: none; }
+
+  &__label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(8px, 0.7vw, 11px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  &__value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(15px, 1.4vw, 22px);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  &__state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(8px, 0.7vw, 11px);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ── Tab screen common patterns ────────────────────────────────────────────────
+.esti-screen {
+  border-left:   1px solid var(--cds-border-subtle);
+  border-top:    1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+
+  &__hdr {
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-04);
+    padding: var(--cds-spacing-04) var(--cds-spacing-06);
+    border-bottom: 1px solid var(--cds-border-subtle);
+    flex-shrink: 0;
+
+    &-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: var(--cds-text-helper);
+      text-transform: uppercase;
+    }
+  }
+
+  &__empty {
+    padding: var(--cds-spacing-07) var(--cds-spacing-06);
+    font-size: 14px;
+    color: var(--cds-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-03);
+  }
+
+  &__placeholder {
+    padding: var(--cds-spacing-07) var(--cds-spacing-06);
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-04);
+    min-height: 200px;
+    border-bottom: 1px solid var(--cds-border-subtle);
+
+    &-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--cds-text-disabled);
+      text-transform: uppercase;
+    }
+  }
+}
+
+// ── Approval row (used on Approvals tab) ──────────────────────────────────────
+.esti-appr-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-05);
+  padding: var(--cds-spacing-04) var(--cds-spacing-06);
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  &__accent {
+    width: 3px;
+    flex-shrink: 0;
+    align-self: stretch;
+    border-radius: 0;
+  }
+
+  &__body  { flex: 1; min-width: 0; }
+  &__title { font-size: 14px; color: var(--cds-text-primary); }
+  &__ref   { font-size: 12px; color: var(--cds-text-secondary); margin-top: 2px; }
+
+  &__days {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+// ── Top telemetry strip — 4 health gauges, mission-control feel ───────────────
+.esti-telemetry {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-left:   1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  @media (max-width: 767px) { grid-template-columns: 1fr 1fr; }
+
+  &__cell {
+    border-right: 1px solid var(--cds-border-subtle);
+    padding: var(--cds-spacing-04) var(--cds-spacing-06);
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-05);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-01);
+    min-width: 0;
+  }
+
+  &__label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+  }
+
+  &__value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  &__state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ── Detail row — Billing · Team Capacity · Interventions ──────────────────────
+.esti-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top:  1px solid var(--cds-border-subtle);
+}
+
+.esti-detail-cell {
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(180px, 18vw, 280px);
+}
+
+.esti-detail-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  flex-shrink: 0;
+  gap: var(--cds-spacing-04);
+
+  &__title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--cds-text-helper);
+    text-transform: uppercase;
+  }
+}
+
+.esti-detail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  &__ref {
+    flex: 1;
+    font-size: 14px;
+    color: var(--cds-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--cds-text-primary);
+    flex-shrink: 0;
+  }
+
+  &__tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+.esti-detail-empty {
+  padding: var(--cds-spacing-06) var(--cds-spacing-05);
+  font-size: 14px;
+  color: var(--cds-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  flex: 1;
+}
+
+// ── Resource Pressure screen (Screen 2) ──────────────────────────────────────
+.esti-pressure-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top:  1px solid var(--cds-border-subtle);
+  @media (max-width: 671px) { grid-template-columns: 1fr; }
+}
+
+.esti-pressure-cell {
+  border-right:  1px solid var(--cds-border-subtle);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  min-height: clamp(200px, 20vw, 300px);
+  &--full { grid-column: span 2; min-height: auto; }
+  @media (max-width: 671px) { &--full { grid-column: span 1; } }
+}
+
+.esti-resource-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-03) 0;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  &:last-child { border-bottom: none; }
+  &__name { flex: 1; font-size: 14px; color: var(--cds-text-primary); }
+  &__load { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--cds-text-helper); flex-shrink: 0; }
+  &__bar  {
+    width: 80px; height: 3px;
+    background: var(--cds-border-subtle);
+    border-radius: 1px;
+    position: relative;
+    flex-shrink: 0;
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: var(--rl, 0%);
+      background: var(--rc, var(--cds-border-strong));
+      border-radius: 1px;
+    }
+  }
+}
+
+// ── Mini 2×2 stats grid (attendance / presence / finance overview) ────────────
+.esti-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border: 1px solid var(--cds-border-subtle);
+
+  &__cell {
+    padding: var(--cds-spacing-05);
+    border-right:  1px solid var(--cds-border-subtle);
+    border-bottom: 1px solid var(--cds-border-subtle);
+  }
+
+  &__val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--cds-text-primary);
+    margin-top: var(--cds-spacing-02);
+    line-height: 1;
+  }
+}
+
+// ── 3-column variant for detail grids (Revision Intelligence etc.) ────────────
+.esti-detail-grid--3col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+// ── AI Insights panel ─────────────────────────────────────────────────────────
+.esti-ai-panel {
+  border-left: 1px solid var(--cds-border-subtle);
+  border-top:  1px solid var(--cds-border-subtle);
+
+  &__section {
+    border-bottom: 1px solid var(--cds-border-subtle);
+    border-right:  1px solid var(--cds-border-subtle);
+    padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  }
+
+  &__hdr {
+    border-right:  1px solid var(--cds-border-subtle);
+    border-bottom: 1px solid var(--cds-border-subtle);
+    padding: var(--cds-spacing-04) var(--cds-spacing-06);
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-04);
+  }
+
+  &__empty {
+    border-right: 1px solid var(--cds-border-subtle);
+    padding: var(--cds-spacing-07) var(--cds-spacing-06);
+    color: var(--cds-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-03);
+  }
+
+  &__row {
+    border-right:  1px solid var(--cds-border-subtle);
+    border-bottom: 1px solid var(--cds-border-subtle);
+    padding: var(--cds-spacing-05) var(--cds-spacing-06);
+    display: flex;
+    gap: var(--cds-spacing-05);
+    align-items: flex-start;
+
+    &__icon {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      min-width: 20px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+
+    &__title {
+      flex: 1;
+      font-size: 14px;
+      color: var(--cds-text-primary);
+    }
+
+    &__priority {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--cds-text-helper);
+      flex-shrink: 0;
+    }
+  }
 }
 
 // ── Application pipeline tiles ───────────────────────────────────────────────

@@ -1,14 +1,12 @@
-import { ArrowRight, Checkmark } from "@carbon/icons-react";
-import { Button, Column, Grid, Stack, Tag, Theme } from "@carbon/react";
+import { ArrowRight } from "@carbon/icons-react";
+import { Button } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
-import { LandingDashboardPreview } from "../LandingDashboardPreview.js";
-import { LandingBand, LandingEditorial } from "./LandingBand.js";
-import { MarketingTopoBackground } from "./MarketingTopoBackground.js";
 
-const RESOLVERS = [
-  "Every scope change documented before work begins — no revision disputes",
-  "Fee proposals, GST invoices, and TDS reconciliation in the project record",
-  "Clients get a scoped portal — drawings, approvals, and change requests",
+const STATUS_LINES = [
+  { label: "Built for architecture practices", dot: "green" },
+  { label: "India-ready operations", dot: "green" },
+  { label: "AI-assisted office intelligence", dot: "yellow" },
+  { label: "Demo workspace available", dot: "green" },
 ] as const;
 
 export function MarketingHero({
@@ -24,66 +22,49 @@ export function MarketingHero({
   demoKind?: DemoKind | null;
 }) {
   return (
-    <Theme theme="g100">
-      <LandingBand
-        variant="lead"
-        id="top"
-        ariaLabelledby="hero-title"
-        className="esti-landing-hero-topo"
-      >
-        <MarketingTopoBackground />
+    <section className="esti-lp-hero" id="top" aria-labelledby="hero-title">
+      <p className="esti-lp-hero__sysid">
+        AORMS — Architecture Office Resource Management System
+      </p>
 
-        <LandingEditorial>
-          <Grid fullWidth className="esti-landing-grid">
-            <Column lg={{ span: 7, offset: 1 }} md={8} sm={4}>
-              <Stack gap={8} className="esti-lp-hero-center">
-                <Stack gap={5}>
-                  <Tag type="purple" size="md">For Indian architecture practices</Tag>
-                  <h1 id="hero-title" className="esti-landing-lead-title">
-                    Run your practice,<br />not your inbox.
-                  </h1>
-                  <p className="esti-landing-lead-subtitle">
-                    From the first client call to the final invoice — projects,
-                    drawings, fees, compliance, and portals in one place.
-                  </p>
-                </Stack>
+      <h1 id="hero-title" className="esti-lp-hero__h1">
+        Run your architecture firm<br />from one command center.
+      </h1>
 
-                <Stack gap={3} className="esti-lp-hero-resolvers">
-                  {RESOLVERS.map((r) => (
-                    <span key={r} className="esti-row esti-lp-hero-resolver">
-                      <Checkmark size={16} aria-hidden />
-                      <span>{r}</span>
-                    </span>
-                  ))}
-                </Stack>
+      <p className="esti-lp-hero__sub">
+        Projects · Fees · Teams · Compliance · Client portals · AI
+      </p>
 
-                <Stack orientation="horizontal" gap={4} className="esti-landing-hero-actions">
-                  <Button
-                    kind="primary"
-                    size="lg"
-                    renderIcon={ArrowRight}
-                    onClick={onStudioDemo}
-                    disabled={demoLoading}
-                  >
-                    {demoLoading && demoKind === "studio" ? "Opening…" : "Explore studio demo"}
-                  </Button>
-                  {onTrialScroll && (
-                    <Button kind="ghost" size="lg" onClick={onTrialScroll}>
-                      Request trial
-                    </Button>
-                  )}
-                </Stack>
-              </Stack>
-            </Column>
+      <p className="esti-lp-hero__lead">
+        AORMS replaces scattered spreadsheets, WhatsApp follow-ups, fee trackers, and project memory
+        with one operating system for architecture practices.
+      </p>
 
-            <Column lg={{ span: 8, offset: 0 }} md={8} sm={4}>
-              <div className="esti-lp-hero-preview-stage">
-                <LandingDashboardPreview />
-              </div>
-            </Column>
-          </Grid>
-        </LandingEditorial>
-      </LandingBand>
-    </Theme>
+      <div className="esti-lp-hero__actions">
+        <Button
+          kind="primary"
+          size="lg"
+          renderIcon={ArrowRight}
+          onClick={onStudioDemo}
+          disabled={demoLoading}
+        >
+          {demoLoading && demoKind === "studio" ? "Opening…" : "Open Practice Demo"}
+        </Button>
+        {onTrialScroll && (
+          <Button kind="ghost" size="lg" onClick={onTrialScroll}>
+            Request Workspace
+          </Button>
+        )}
+      </div>
+
+      <div className="esti-lp-hero__status" aria-label="System status">
+        {STATUS_LINES.map((s) => (
+          <p key={s.label} className="esti-lp-hero__status-line">
+            <span className={`esti-lp-dot esti-lp-dot--${s.dot}`} aria-hidden>●</span>
+            {s.label}
+          </p>
+        ))}
+      </div>
+    </section>
   );
 }

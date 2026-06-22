@@ -1,4 +1,4 @@
-import { Column, Grid, InlineLoading, Stack, Theme } from "@carbon/react";
+import { Column, Grid, InlineLoading, Stack } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
@@ -68,32 +68,31 @@ export function MarketingDemoRolesBand() {
   }
 
   return (
-    <Theme theme="g100">
-      <LandingBand id="demo-roles" ariaLabelledby="demo-roles-title">
-        <LandingEditorial>
-          <Stack gap={8}>
-            <MarketingSectionHead
-              id="demo-roles-title"
-              eyebrow="Try a specific role"
-              title="Step into any seat in the studio."
-              lead="See exactly what each team member sees — from the principal's full dashboard to the junior's task board and the client's scoped portal."
-            />
+    <LandingBand id="demo-roles" ariaLabelledby="demo-roles-title">
+      <LandingEditorial>
+        <Stack gap={8}>
+          <MarketingSectionHead
+            id="demo-roles-title"
+            eyebrow="Try a specific role"
+            title="Step into any seat in the studio."
+            lead="See exactly what each team member sees — from the principal's full dashboard to the junior's task board and the client's scoped portal."
+          />
 
-            {demoUsersQ.isLoading ? (
-              <InlineLoading description="Loading demo accounts…" />
-            ) : (
-              <Grid fullWidth className="esti-landing-grid">
-                {users.map((u) => {
-                  const level = ROLE_LEVEL[u.role] ?? "?";
-                  const levelBg = LEVEL_BG[level] ?? "#444";
-                  const name = u.fullName.split("(")[0]?.trim() ?? u.fullName;
-                  const roleLabel = ROLE_LABEL[u.role] ?? u.role;
-                  const desc = ROLE_DESC[u.role] ?? "";
-                  const isLoading = switching === u.email;
-                  const busy = !!switching;
+          {demoUsersQ.isLoading ? (
+            <InlineLoading description="Loading demo accounts…" />
+          ) : (
+            <Grid fullWidth className="esti-landing-tile-grid">
+              {users.map((u) => {
+                const level = ROLE_LEVEL[u.role] ?? "?";
+                const levelBg = LEVEL_BG[level] ?? "#444";
+                const name = u.fullName.split("(")[0]?.trim() ?? u.fullName;
+                const roleLabel = ROLE_LABEL[u.role] ?? u.role;
+                const desc = ROLE_DESC[u.role] ?? "";
+                const isLoading = switching === u.email;
+                const busy = !!switching;
 
-                  return (
-                    <Column key={u.id} sm={4} md={4} lg={8}>
+                return (
+                  <Column key={u.id} sm={4} md={4} lg={8}>
                       <button
                         onClick={() => handleSwitch(u.email)}
                         disabled={busy}
@@ -102,14 +101,16 @@ export function MarketingDemoRolesBand() {
                           alignItems: "flex-start",
                           gap: 14,
                           width: "100%",
-                          padding: "16px 20px",
+                          height: "100%",
+                          padding: "var(--cds-spacing-06)",
                           background: "var(--cds-layer-01)",
-                          border: "1px solid var(--cds-border-subtle-01)",
+                          border: "none",
                           textAlign: "left",
                           cursor: busy ? (isLoading ? "wait" : "not-allowed") : "pointer",
                           opacity: busy && !isLoading ? 0.55 : 1,
-                          transition: "background 0.1s, border-color 0.1s",
+                          transition: "background 0.1s",
                           fontFamily: "'IBM Plex Sans', sans-serif",
+                          boxSizing: "border-box",
                         }}
                       >
                         {/* Level badge */}
@@ -168,11 +169,10 @@ export function MarketingDemoRolesBand() {
                     </Column>
                   );
                 })}
-              </Grid>
-            )}
-          </Stack>
-        </LandingEditorial>
-      </LandingBand>
-    </Theme>
+            </Grid>
+          )}
+        </Stack>
+      </LandingEditorial>
+    </LandingBand>
   );
 }

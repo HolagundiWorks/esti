@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-21
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
 
 Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
 
@@ -62,12 +62,15 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [22](#phase-22---access-level-documentation-p1) | Access level documentation | P1 | ✅ |
 | [23](#phase-23---marketing-landing-refresh-p2) | Marketing landing refresh | P2 | ✅ |
 | [24](#phase-24---vps-first-deploy-and-carbon-diagram-canvas-p0) | VPS first-deploy hardening & Carbon diagram canvas | P0 | ✅ |
+| [25](#phase-25---design-governance-and-ui-audit-p0) | Design governance & UI audit | P0 | ✅ |
+| [26](#phase-26---dark-theme-lock-and-landing-operational-grid-p2) | Dark theme lock & landing operational grid | P2 | ✅ |
+| [27](#phase-27---aorms-cognition-engine-and-primary-office-attention-p1) | AORMS Cognition Engine & Primary Office Attention | P1 | ✅ |
 
 ---
 
 ## Product snapshot
 
-ESTI (AORMS) is **production-engineered through Phase 24** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
+ESTI (AORMS) is **production-engineered through Phase 27** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -86,6 +89,10 @@ ESTI (AORMS) is **production-engineered through Phase 24** and deployed at [aorm
 - **Project Info** — structured project brief questionnaire + compliance calculator on one tab
 - **Office & project expenses** — cash book and billable project expenses (Accounting nav)
 - **Dashboard home bundle** — single `dashboard.home` round-trip for the office dashboard
+- **AORMS Cognition Engine** — deterministic domain scoring (client/finance/project/team/approval), weighted office health, intervention ranking with expected effect, confidence, and risk-if-ignored; returned as `dashboard.home.cognition`
+- **Primary Office Attention engine** — 5-question intervention surface: ISSUE → CAUSE CHAIN → NORMALIZATION PLAN → EXPECTED RECOVERY → RISK IF IGNORED; SYSTEM HEALTH 2×2 quad tile showing live domain health percentages
+- **Dark theme lock** — application-wide g100 Carbon theme; theme toggle removed; landing page dark
+- **ML/monitoring stack** — Python worker gains scikit-learn, XGBoost, MLflow, Evidently for future cognition recognition and prediction jobs
 
 **Before declaring a live firm instance production-ready**
 
@@ -719,6 +726,77 @@ Consolidate BBMP rules, site assessments, and project development-control under 
 - [x] All interaction (drag, pan, zoom, wire connect/delete, node add/delete, BOQ compute, modals) preserved unchanged
 
 **Gate met:** `bootstrap.sh` completes on Hostinger Ubuntu 24.04 LTS with Docker; backend starts healthy; Carbon diagram canvas renders with typed connectors and dark g100 theme.
+
+---
+
+## Phase 25 — Design Governance & UI Audit [P0] — ✅ Complete (2026-06-22)
+
+Establish a canonical design law and audit trail for the Carbon-only AORMS UI, preventing future design debt accumulation.
+
+- [x] `docs/esti/design/DESIGN_LAW.md` — binding design principles (one OS, no rounded corners/shadows, Carbon tokens only)
+- [x] `docs/esti/design/COMPONENT_LIBRARY.md` — approved Carbon component catalogue with AORMS-specific usage notes
+- [x] `docs/esti/design/CARBON_MAPPING.md` — screen pattern → Carbon component → zone mapping reference
+- [x] `docs/esti/design/DESIGN_TOKENS.md` — `--cds-*` token usage rules and forbidden patterns
+- [x] `docs/esti/design/UI_CONSISTENCY_AUDIT.md` — 11-phase audit checklist; P0–P3 violation taxonomy
+- [x] `docs/esti/design/VISUAL_HIERARCHY_GUIDE.md` — type scale, spacing, zone identity colour rules
+- [x] `docs/esti/design/DASHBOARD_RULES.md` — dashboard-specific layout and cognitive display rules
+- [x] `docs/esti/design/DESIGN_SYSTEM.md` — master design system reference (aggregates all above)
+
+**Gate met:** every future Carbon-only question has an authoritative answer in `docs/esti/design/`; P0 violations (StructuredList crash, token violations) resolved; design law document matches running code.
+
+---
+
+## Phase 26 — Dark Theme Lock & Landing Operational Grid [P2] — ✅ Complete (2026-06-22)
+
+Lock the application to Carbon g100 dark theme permanently and replace the landing page marketing bands with an AORMS operational grid.
+
+### 26A — Dark theme lock
+- [x] `App.tsx` — hardcode `theme="g100"`; remove `ThemeName` state and toggle prop
+- [x] `FloatingDock.tsx` — remove `theme` / `onToggleTheme` props and light/dark toggle UI
+- [x] `Landing.tsx` — switch from `theme="white"` to `theme="g100"`
+
+### 26B — Landing operational grid
+- [x] `LandingOperationalGrid.tsx` — replaces six legacy marketing band components with a single AORMS capability grid
+- [x] `GlobalTopoBackground.tsx` — declarative topographic arc + loop SVG background layer
+- [x] `MarketingBentoGrid.tsx` — bento-style feature grid with Carbon `ClickableTile`
+- [x] `MarketingKpiGrid.tsx` — live-feel KPI strip showing AORMS operational metrics
+- [x] `landing-contour-bg.svg` — static topographic SVG for hero section
+- [x] `lib/landing-seo.ts` — structured SEO metadata for landing route
+
+**Gate met:** application renders only g100 dark; theme toggle is absent; landing page shows operational grid without legacy marketing bands; no custom visual CSS added.
+
+---
+
+## Phase 27 — AORMS Cognition Engine & Primary Office Attention [P1] — ✅ Complete (2026-06-23)
+
+Replace passive metric reporting with an intelligent intervention engine: deterministic domain scoring on the backend, a 5-question operational reasoning surface on the dashboard.
+
+### 27A — Cognition Engine (backend)
+- [x] `backend/src/lib/cognition/scoring.ts` — deterministic domain scoring: `scoreFinance`, `scoreClient`, `scoreProject`, `scoreTeam`, `scoreApproval`, `officeScore` (weighted aggregate)
+- [x] `backend/src/lib/cognition/interventions.ts` — `deriveCognitionInterventions`: ranked interventions with `title`, `severity`, `expectedEffect`, `confidence`, `riskIfIgnored`
+- [x] `backend/src/lib/cognition/scoring.test.ts` — unit tests for all scoring functions
+- [x] `backend/src/modules/dashboard/readModels/cognition.ts` — `buildCognitionSnapshot`: assembles full cognition payload from existing read models
+- [x] `backend/src/modules/dashboard/readModels/home.ts` — includes `cognition` snapshot in the `dashboard.home` bundle
+- [x] `docs/esti/COGNITION-ENGINE.md` — architecture, layer responsibilities, LLM contract
+
+### 27B — Primary Office Attention dashboard surface
+- [x] SYSTEM HEALTH cell — 2×2 `QuadCell` grid showing CLIENT / FINANCE / PROJECT / TEAM health percentages with state labels
+- [x] PRIMARY OFFICE ATTENTION tile — 5-question intervention engine:
+  1. **ISSUE** — highest severity detected problem
+  2. **CAUSE CHAIN** — dependency chain with ↓ connectors and severity shapes
+  3. **NORMALIZATION PLAN** — ranked numbered intervention actions (operational command language)
+  4. **EXPECTED RECOVERY** — current → next state transitions for all four domains using Carbon `Tag`
+  5. **CONFIDENCE** — deterministic confidence `ProgressBar`
+  6. **RISK IF IGNORED** — consequence forecast with probability percentages
+- [x] Operational evidence grid (bottom, full-width) — BILLING / TEAM / PROJECT / CLIENT evidence panels
+- [x] `nextState()` / `stateTagType()` helpers for recovery state derivation
+- [x] CSS: `.esti-cognitive-health`, `.esti-poa-section`, `.esti-poa-chain`, `.esti-poa-action`, `.esti-poa-recovery`, `.esti-poa-risk` — structural and colourless only
+
+### 27C — ML / monitoring foundation (worker)
+- [x] `worker/requirements.txt` — scikit-learn ≥1.5, XGBoost-cpu ≥2.1, networkx, durable-rules, MLflow ≥2.14, Evidently ≥0.4.35
+- [x] `compose.yaml` / `compose.prod.yaml` — `MLFLOW_TRACKING_URI`, `GIT_PYTHON_REFRESH`, `EVIDENTLY_DISABLE_TELEMETRY` env vars; `esti-mlruns` volume for experiment persistence
+
+**Gate met:** `dashboard.home.cognition` returns structured interventions with confidence and risk-if-ignored; dashboard overview shows SYSTEM HEALTH quad and PRIMARY OFFICE ATTENTION 5-question tile; LLM is not in the scoring or intervention path; ML libraries available in worker image.
 
 ---
 

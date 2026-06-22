@@ -50,7 +50,7 @@ function KnowledgeBankSearch() {
             Templates, DSR, specification catalogue, structural templates, drawings, contractors, and published lessons.
           </p>
         </Stack>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <Stack orientation="horizontal" gap={4} style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
           <div style={{ flex: "1 1 240px", maxWidth: 420 }}>
             <Search
               id="kb-search"
@@ -74,7 +74,7 @@ function KnowledgeBankSearch() {
           >
             Full search
           </Button>
-        </div>
+        </Stack>
         {q.trim().length >= 2 && (
           <DataState loading={kbQ.isLoading} isEmpty={(kbQ.data?.hits ?? []).length === 0} columnCount={3} empty={{ title: "No matches", description: "Try a different term or open full search." }}>
             <TableContainer>
@@ -158,7 +158,7 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <div style={{ height: "calc(100vh - 280px)", minHeight: 500 }}>
+            <div className="esti-chart-canvas">
               <ParametricCanvas />
             </div>
           </TabPanel>

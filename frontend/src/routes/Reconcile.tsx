@@ -128,7 +128,7 @@ export function Reconcile() {
             placeholder="e.g. HDFC Apr 2026"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            style={{ maxWidth: 280 }}
+            className="esti-input-md"
           />
           <FileUploaderButton
             labelText={file ? file.name : "Choose statement"}
@@ -150,7 +150,7 @@ export function Reconcile() {
             placeholder="e.g. Transaction Date"
             value={colMap.date ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, date: e.target.value || undefined }))}
-            style={{ maxWidth: 220 }}
+            className="esti-input-sm"
           />
           <TextInput
             id="rcn-desc-col"
@@ -158,7 +158,7 @@ export function Reconcile() {
             placeholder="e.g. Narration"
             value={colMap.description ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, description: e.target.value || undefined }))}
-            style={{ maxWidth: 220 }}
+            className="esti-input-sm"
           />
           <TextInput
             id="rcn-amt-col"
@@ -166,7 +166,7 @@ export function Reconcile() {
             placeholder="e.g. Credit"
             value={colMap.amount ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, amount: e.target.value || undefined }))}
-            style={{ maxWidth: 220 }}
+            className="esti-input-sm"
           />
         </Stack>
       </Stack>

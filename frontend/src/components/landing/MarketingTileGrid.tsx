@@ -67,7 +67,7 @@ export function MarketingTileGrid({
   className?: string;
 }) {
   return (
-    <Grid fullWidth className={["esti-landing-grid", className].filter(Boolean).join(" ")}>
+    <Grid fullWidth className={["esti-landing-tile-grid", className].filter(Boolean).join(" ")}>
       {Children.toArray(children).map((child, index) => {
         if (!isValidElement(child)) return null;
         const span = columnProps(columns, index);

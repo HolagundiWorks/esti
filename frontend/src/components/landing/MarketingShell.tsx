@@ -17,10 +17,40 @@ import { formatVisitCount } from "../../lib/landing-visit.js";
 
 const NAV = [
   { href: "#platform", label: "Platform" },
-  { href: "#india", label: "India desk" },
-  { href: "#demo", label: "Try demo" },
+  { href: "#compliance", label: "Compliance" },
+  { href: "#demo", label: "Demo" },
   { href: "#trial", label: "Get started" },
 ] as const;
+
+const STATUS_ITEMS = [
+  { label: "PROJECTS + FEES + TEAM", dot: "green" },
+  { label: "CLIENT PORTALS INCLUDED", dot: "green" },
+  { label: "GST + INDIA WORKFLOWS", dot: "green" },
+  { label: "AI OFFICE BRIEFINGS", dot: "yellow" },
+  { label: "DEMO WORKSPACE READY", dot: "green" },
+] as const;
+
+type Dot = "green" | "yellow" | "red" | "white";
+
+function StatusDot({ color }: { color: Dot }) {
+  return <span className={`esti-lp-dot esti-lp-dot--${color}`} aria-hidden>●</span>;
+}
+
+function LandingStatusBar() {
+  return (
+    <div className="esti-lp-statusbar" aria-hidden>
+      {STATUS_ITEMS.map((item) => (
+        <span key={item.label} className="esti-lp-statusbar__item">
+          <StatusDot color={item.dot as Dot} />
+          {item.label}
+        </span>
+      ))}
+      <span className="esti-lp-statusbar__item esti-lp-statusbar__ver">
+        AORMS · v2025.06
+      </span>
+    </div>
+  );
+}
 
 export function MarketingShell({
   children,
@@ -95,6 +125,7 @@ export function MarketingShell({
       <Content id="main-content" className="esti-landing-content">
         {children}
       </Content>
+      <LandingStatusBar />
     </div>
   );
 }

@@ -226,11 +226,11 @@ export function MarketingAccessBand() {
           {/* External portals */}
           <Stack gap={5}>
             <p className="esti-landing-eyebrow">External portals</p>
-            <Grid fullWidth className="esti-landing-grid">
+            <Grid fullWidth className="esti-landing-tile-grid">
               {PORTALS.map((portal) => {
                 const Icon = portal.icon;
                 return (
-                  <Column key={portal.role} sm={4} md={4} lg={5}>
+                  <Column key={portal.role} sm={4} md={8} lg={5}>
                     <Tile className="esti-fill">
                       <Stack gap={4}>
                         <div

@@ -88,7 +88,7 @@ export function Settings() {
       )}
 
       {/* Profile photo */}
-      <Tile style={{ maxWidth: 520 }}>
+      <Tile className="esti-form-panel">
         <Stack gap={4}>
           <h2>Profile photo</h2>
           <Stack orientation="horizontal" gap={5} style={{ alignItems: "center" }}>
@@ -125,7 +125,7 @@ export function Settings() {
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 520 }}>
+      <Tile className="esti-form-panel">
         <Stack gap={3}>
           <h2>Workspace preferences</h2>
           <p>
@@ -136,7 +136,7 @@ export function Settings() {
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 520 }}>
+      <Tile className="esti-form-panel">
         <Stack gap={5}>
           <h2>Display name</h2>
           <TextInput
@@ -161,7 +161,7 @@ export function Settings() {
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 520 }}>
+      <Tile className="esti-form-panel">
         <Stack gap={5}>
           <h2>Change password</h2>
           <TextInput

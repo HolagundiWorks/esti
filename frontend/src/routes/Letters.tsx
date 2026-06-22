@@ -212,7 +212,7 @@ export function Letters() {
               <SelectItem key={t.id} value={t.id} text={t.title} />
             ))}
           </Select>
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={4}>
             <TextInput
               id="l-to"
               labelText="Recipient"
@@ -226,7 +226,7 @@ export function Letters() {
               value={f.dateLetter}
               onChange={set("dateLetter")}
             />
-          </div>
+          </Stack>
           <Select
             id="l-proj"
             labelText="Related project (optional)"

@@ -11,3 +11,4 @@ export { getTeamIntelligence } from "./teamIntelligence.js";
 export { getRevisionIntelligence } from "./revisionIntelligence.js";
 export { getTechnicalIntelligence } from "./technicalIntelligence.js";
 export { dashboardModuleFlags, getDashboardHome } from "./home.js";
+export { buildCognitionSnapshot, type CognitionSnapshot } from "./cognition.js";

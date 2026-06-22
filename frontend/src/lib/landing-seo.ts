@@ -1,19 +1,19 @@
 /** Landing-page SEO copy — keep in sync with index.html meta tags. */
 export const LANDING_SEO = {
-  title: "ESTI — Practice Management for Indian Architects",
+  title: "AORMS — Architecture Office Intelligence System",
   description:
-    "Stop managing your architecture practice on WhatsApp and spreadsheets. ESTI gives Indian architects a single place for projects, fee proposals, GST invoices, drawing registers, client portals, and building bylaw compliance — Bengaluru, Mumbai, Delhi, Chennai, Hyderabad, Pune, Kolkata, Ahmedabad. Solo to studio.",
+    "AORMS is a continuous office cognition engine for Indian architecture firms. It observes projects, approvals, billing, revisions, compliance, and team load, then reasons, predicts, recommends interventions, and explains findings through a guarded AI layer.",
   keywords:
-    "architecture practice management India, Indian architect office software, COA fee proposal software, GST invoicing architects India, drawing register architecture, client portal architect, building compliance checker India, BBMP FAR calculator, FSI calculator India, self-hosted architecture software, ESTI, architectural office record, ESTICAD companion, GHMC building rules, DDA FAR, CMDA FSI Chennai, building bylaw checker",
-  ogTitle: "Run your architecture practice, not your inbox",
+    "architecture office intelligence system, AORMS, architecture operations intelligence, Indian architect office software, AI dashboard for architects, office cognition engine, COA fee proposal software, GST invoicing architects India, drawing register architecture, client portal architect, building compliance checker India, BBMP FAR calculator, self-hosted architecture software, ESTICAD companion",
+  ogTitle: "A digital nervous system for architecture firms",
   ogDescription:
-    "From the first client call to the final GST invoice — projects, drawings, fees, and portals in one place. Walk through a live Bengaluru studio demo, no sign-up needed.",
-  twitterTitle: "ESTI — for Indian architecture studios",
+    "AORMS observes your office, reasons through client/project/finance/team pressure, predicts risk, and recommends interventions before failure matures.",
+  twitterTitle: "AORMS — office cognition for architects",
   twitterDescription:
-    "Stop managing your practice on WhatsApp. Projects, drawings, GST invoices, client portals, and bylaw compliance for 8 Indian cities — in one place. Free live demo.",
-  headline: "The office record your practice deserves.",
+    "A digital nervous system for Indian architecture firms: observe, reason, predict, recommend, explain.",
+  headline: "The architecture office intelligence system.",
   footerBlurb:
-    "Practice management for Indian architects — projects, fees, drawings, compliance, and client portals in one place.",
+    "Continuous organizational cognition for architecture firms — projects, billing, approvals, revisions, compliance, and team load understood as one operating system.",
   canonical: "https://aorms.in/",
   siteName: "ESTI",
 } as const;

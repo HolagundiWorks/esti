@@ -277,7 +277,7 @@ export function Performance() {
       />
 
       {myScoreQ.data && (
-        <Tile style={{ maxWidth: 640 }}>
+        <Tile className="esti-form-panel">
           <Stack gap={4}>
             <h3>Wellbeing dimension (optional)</h3>
             <p>

@@ -1,6 +1,6 @@
 # ESTI Documentation
 
-**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
+**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
 
 This directory is the single source of truth for ESTI product and engineering
 direction. Point-in-time audits and superseded specs live in
@@ -16,6 +16,7 @@ direction. Point-in-time audits and superseded specs live in
 | [PRD](PRD.md) | Functional and non-functional requirements |
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
+| [COGNITION-ENGINE](COGNITION-ENGINE.md) | Continuous office cognition, deterministic scoring, interventions, and LLM boundary |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
 | [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes |
 | [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Studio vs solo demo accounts, HR toggle, seed commands |

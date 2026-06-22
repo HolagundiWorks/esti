@@ -23,12 +23,12 @@ export function MarketingFeatureTile({
         .join(" ")}
     >
       {children ?
-        <Stack gap={5} className="esti-landing-feature-tile__content">
+        <Stack gap={4} className="esti-landing-feature-tile__content">
           {children}
         </Stack>
       : null}
       {footer ?
-        <Stack gap={3} className="esti-landing-feature-tile__footer">
+        <Stack gap={2} className="esti-landing-feature-tile__footer">
           {footer}
         </Stack>
       : null}
@@ -53,12 +53,12 @@ export function MarketingFeatureClickableTile({
       onClick={onClick}
     >
       {children ?
-        <Stack gap={5} className="esti-landing-feature-tile__content">
+        <Stack gap={4} className="esti-landing-feature-tile__content">
           {children}
         </Stack>
       : null}
       {footer ?
-        <Stack gap={3} className="esti-landing-feature-tile__footer">
+        <Stack gap={2} className="esti-landing-feature-tile__footer">
           {footer}
         </Stack>
       : null}

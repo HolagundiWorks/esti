@@ -7,6 +7,18 @@ backend and runs the document/data-heavy jobs where Python is strongest:
 - **`render_pdf`** — GST tax-invoice / bill-of-supply / drawing-set PDFs with
   WeasyPrint.
 - **`reconcile_import`** — bank / 26AS / AIS / GSTR imports + matching with pandas.
+- **cognition jobs** — anomaly recognition, prediction, graph reasoning, and
+  AI/ML monitoring for the AORMS cognition engine. Deterministic business truth
+  still belongs to the TypeScript backend; Python supplies derived signals.
+
+## Cognition stack
+
+- `scikit-learn`: anomaly recognition and clustering.
+- `xgboost-cpu`: first local prediction models without CUDA dependencies.
+- `networkx`: dependency graph reasoning support.
+- `durable-rules`: optional Python rules engine for worker-side experiments.
+- `mlflow`: model/run tracking.
+- `evidently`: data drift and model monitoring.
 
 ```bash
 python -m venv .venv && . .venv/bin/activate

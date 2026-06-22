@@ -11,14 +11,12 @@ import {
   ExpandableTile,
   Grid,
   Stack,
-  Theme,
   TileAboveTheFoldContent,
   TileBelowTheFoldContent,
 } from "@carbon/react";
 import type { ElementType } from "react";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
 import { MarketingSectionHead } from "./MarketingSectionHead.js";
-import { MarketingTopoBackground } from "./MarketingTopoBackground.js";
 
 const PILLARS: {
   icon: ElementType;
@@ -97,15 +95,12 @@ const PILLARS: {
 
 export function MarketingPillars() {
   return (
-    <Theme theme="g100">
-      <LandingBand
-        id="platform"
-        variant="lead"
-        ariaLabelledby="platform-title"
-        className="esti-landing-pillars-topo"
-      >
-        <MarketingTopoBackground />
-        <LandingEditorial>
+    <LandingBand
+      id="platform"
+      variant="lead"
+      ariaLabelledby="platform-title"
+    >
+      <LandingEditorial>
           <Stack gap={10}>
             <MarketingSectionHead
               id="platform-title"
@@ -114,11 +109,11 @@ export function MarketingPillars() {
               lead="Each pillar is a daily headache that disappears when it lives inside the project record — not scattered across your phone, laptop, and someone else's inbox."
               centered
             />
-            <Grid fullWidth className="esti-landing-grid">
+            <Grid fullWidth className="esti-landing-tile-grid">
               {PILLARS.map((p) => {
                 const Icon = p.icon;
                 return (
-                  <Column key={p.title} sm={4} md={4} lg={5}>
+                  <Column key={p.title} sm={4} md={4} lg={8}>
                     <ExpandableTile
                       tileCollapsedIconText="Expand feature"
                       tileExpandedIconText="Collapse feature"
@@ -149,8 +144,7 @@ export function MarketingPillars() {
               })}
             </Grid>
           </Stack>
-        </LandingEditorial>
-      </LandingBand>
-    </Theme>
+      </LandingEditorial>
+    </LandingBand>
   );
 }

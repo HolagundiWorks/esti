@@ -4,10 +4,12 @@ import { listOfficeActivity } from "../../activity/queries.js";
 import { getActionCenter } from "./actionCenter.js";
 import { getDashboardBoards } from "./boards.js";
 import { getClientIntelligence } from "./clientIntelligence.js";
+import { buildCognitionSnapshot } from "./cognition.js";
 import { getFinancialHealth } from "./financial.js";
 import { getProjectHealth } from "./projectHealth.js";
 import { getRevisionIntelligence } from "./revisionIntelligence.js";
 import { getDashboardSummary } from "./summary.js";
+import { getTeamIntelligence } from "./teamIntelligence.js";
 import { getTechnicalIntelligence } from "./technicalIntelligence.js";
 
 /** Normalises org module toggles for dashboard payloads. */
@@ -33,6 +35,7 @@ export async function getDashboardHome(db: DB) {
     financialHealth,
     projectHealth,
     clientIntelligence,
+    teamIntelligence,
     revisionIntelligence,
     technicalIntelligence,
     activity,
@@ -43,10 +46,21 @@ export async function getDashboardHome(db: DB) {
     financialEnabled ? getFinancialHealth(db) : Promise.resolve(null),
     projectEnabled ? getProjectHealth(db) : Promise.resolve([]),
     getClientIntelligence(db),
+    getTeamIntelligence(db),
     getRevisionIntelligence(db),
     getTechnicalIntelligence(db),
     listOfficeActivity(db, { limit: 4, visibility: "STAFF" }),
   ]);
+
+  const cognition = buildCognitionSnapshot({
+    actionCenter,
+    financialHealth,
+    projectHealth,
+    clientIntelligence,
+    teamIntelligence,
+    canSeeFinance: financialEnabled,
+    hrEnabled: settings.hrEnabled === true,
+  });
 
   return {
     summary,
@@ -55,6 +69,8 @@ export async function getDashboardHome(db: DB) {
     financialHealth,
     projectHealth,
     clientIntelligence,
+    teamIntelligence,
+    cognition,
     revisionIntelligence,
     technicalIntelligence,
     activity,

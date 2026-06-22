@@ -1,12 +1,19 @@
 # ESTI Product Vision
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
 
 ESTI is an **Architectural Office Resource Management System (AORMS)** for
 Indian freelance architects and small architecture practices. It is the single
 operational record for projects, communication, tasks, decisions, drawings,
 documents, statutory work, fees, invoices, consultants, tenders, and office
 resources.
+
+The long-term product identity is a continuous organizational cognition engine:
+ESTI should not merely store office data, but continuously calculate office
+health, surface causes, recommend interventions, and teach better managerial
+instinct. The implementation boundary is defined in
+[COGNITION-ENGINE](COGNITION-ENGINE.md): deterministic systems create business
+truth; LLMs explain business truth.
 
 ## Product Promise
 
@@ -58,6 +65,9 @@ out of scope.
    tokens without a parallel custom design system.
 7. **Human-controlled AI.** AI may draft or summarize, but output remains
    editable and no external transmission occurs without explicit user action.
+8. **Deterministic cognition.** Office health scores and interventions come
+   from auditable system rules; LLMs explain those findings but do not create
+   operational truth.
 
 ## Product Areas
 
@@ -108,5 +118,5 @@ Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
 production operations in [PRODUCTION-OPS](PRODUCTION-OPS.md), and long-term
 scope discipline in [Stability Charter](STABILITY-CHARTER.md).
 
-Phases **0–20** are engineering-complete — see the [roadmap status table](ROADMAP.md#status-at-a-glance).
+Phases **0–27** are engineering-complete — see the [roadmap status table](ROADMAP.md#status-at-a-glance).
 Operator restore-drill sign-off for a live firm instance remains in [PRODUCTION-OPS](PRODUCTION-OPS.md).

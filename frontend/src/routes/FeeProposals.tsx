@@ -189,7 +189,7 @@ export function FeeProposals() {
               <SelectItem key={c} value={c} text={c} />
             ))}
           </Select>
-          <div style={{ display: "flex", gap: 12 }}>
+          <Stack orientation="horizontal" gap={4}>
             <TextInput
               id="fp-cost"
               labelText="Cost of works (₹)"
@@ -211,7 +211,7 @@ export function FeeProposals() {
               value={docComm}
               onChange={(e) => setDocComm(e.target.value)}
             />
-          </div>
+          </Stack>
           {coaMin > 0 && (
             <div>
               COA minimum ≈ {formatINR(coaMin, { paise: false })}
