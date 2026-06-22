@@ -533,6 +533,33 @@ function stateTagType(s: ZoneState): string {
   return s === "critical" ? "red" : s === "friction" ? "orange" : s === "watch" ? "yellow" : "green";
 }
 
+// ── Cognitive load protection helpers ─────────────────────────────────────────
+
+function calmnessColor(score: number): string {
+  if (score >= 72) return ZCOLOR["stable"];
+  if (score >= 55) return ZCOLOR["watch"];
+  if (score >= 38) return ZCOLOR["friction"];
+  return ZCOLOR["critical"];
+}
+
+function focusContext(items: any[]): string {
+  const hasCritical = items.some((i: any) => i.severity === "critical");
+  if (hasCritical) return "Immediate — cannot safely defer";
+  const h = new Date().getHours();
+  if (h < 10) return "Plan for the day ahead";
+  if (h < 13) return "Complete before midday";
+  if (h < 17) return "Complete before end of day";
+  return "Remaining today";
+}
+
+function calmnessLabel(score: number): string {
+  if (score >= 88) return "CALM";
+  if (score >= 72) return "MANAGEABLE";
+  if (score >= 55) return "LOAD ELEVATED";
+  if (score >= 38) return "LOAD HIGH";
+  return "OVERLOAD RISK";
+}
+
 function cognitionState(severity?: string): ZoneState {
   return severity === "critical" || severity === "friction" || severity === "watch" || severity === "stable" || severity === "inactive"
     ? severity
@@ -698,38 +725,29 @@ function ScreenOverview({
         </div>
       </div>
 
-      {/* ── RIGHT: PRIMARY OFFICE ATTENTION — intervention engine ─────── */}
-      <section className="esti-cognitive-main" aria-label="Primary office attention engine">
-        <MacroHdr name="PRIMARY OFFICE ATTENTION" state={primarySeverity} label={healthBand(score).label} />
+      {/* ── RIGHT: TODAY'S FOCUS — cognitive breathing space engine ─────── */}
+      <section className="esti-cognitive-main" aria-label="Today's focus">
 
-        {/* 1. ISSUE */}
-        <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">ISSUE</div>
-          <h2 className="esti-cognitive-title">{primary?.title ?? attn.issue}</h2>
-        </div>
-
-        {/* 2. CAUSE CHAIN */}
-        <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">CAUSE CHAIN</div>
-          <div className="esti-poa-chain">
-            {chainItems.map((item, i) => (
-              <Fragment key={`${item.domain}-${i}`}>
-                {i > 0 && <div className="esti-poa-chain__arrow">↓</div>}
-                <div className="esti-poa-chain__row">
-                  <span style={{ color: ZCOLOR[item.severity], flexShrink: 0, fontFamily: "'IBM Plex Mono', monospace" }}>{SHAPE[item.severity]}</span>
-                  <span className="esti-label">{item.driver}</span>
-                </div>
-              </Fragment>
-            ))}
+        {/* Office Calmness — the headline metric */}
+        <div className="esti-focus-header">
+          <div className="esti-focus-calmness">
+            <span className="esti-focus-calmness__label">OFFICE CALMNESS</span>
+            <span className="esti-focus-calmness__score" style={{ color: calmnessColor(score) }}>
+              {loading ? "—" : `${score}%`}
+            </span>
+            <span className="esti-focus-calmness__band">{calmnessLabel(score)}</span>
           </div>
         </div>
 
-        {/* 3. NORMALIZATION PLAN */}
+        {/* Today's Focus — max 3 items, chosen by system */}
         <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">NORMALIZATION PLAN</div>
+          <div className="esti-cognitive-section-title">TODAY'S FOCUS</div>
+          <div className="esti-focus-context">{focusContext(interventions)}</div>
           {interventions.length === 0 ? (
-            <InlineNotification kind="success" lowContrast hideCloseButton title="No intervention required" subtitle="Practice operating normally." />
-          ) : interventions.slice(0, 4).map((item: any, i: number) => (
+            <InlineNotification kind="success" lowContrast hideCloseButton
+              title="No immediate action required"
+              subtitle="Office is calm. Use this time for deep work." />
+          ) : interventions.slice(0, 3).map((item: any, i: number) => (
             <div key={item.id} className="esti-poa-action">
               <span className="esti-poa-action__num" style={{ color: ZCOLOR[cognitionState(item.severity)] }}>{i + 1}</span>
               <span className="esti-label">{item.title}</span>
@@ -737,44 +755,29 @@ function ScreenOverview({
           ))}
         </div>
 
-        {/* 4. EXPECTED RECOVERY */}
-        <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">EXPECTED RECOVERY</div>
-          {([
-            { label: "Client",  state: cs, labels: CLIENT_LABEL  },
-            { label: "Finance", state: fs, labels: FINANCE_LABEL },
-            { label: "Project", state: ps, labels: PROJECT_LABEL },
-            { label: "Team",    state: ts, labels: TEAM_LABEL    },
-          ] as const).map((d) => {
-            const nxt = nextState(d.state);
-            return (
-              <div key={d.label} className="esti-poa-recovery">
-                <span className="esti-poa-recovery__domain">{d.label}</span>
-                <Tag type={stateTagType(d.state) as any} size="sm">{d.labels[d.state]}</Tag>
-                <span className="esti-poa-recovery__arrow">→</span>
-                <Tag type={stateTagType(nxt) as any} size="sm">{d.labels[nxt]}</Tag>
+        {/* Safely deferred — system has removed these from your mental load */}
+        {interventions.length > 3 && (
+          <div className="esti-poa-section">
+            <div className="esti-cognitive-section-title">SAFELY DEFERRED</div>
+            <div className="esti-focus-deferred-note">System has assessed these as non-critical. No action needed now.</div>
+            {interventions.slice(3).map((item: any) => (
+              <div key={item.id} className="esti-focus-deferred">
+                <span style={{ color: ZCOLOR["inactive"], fontFamily: "'IBM Plex Mono', monospace" }}>○</span>
+                <span className="esti-label--secondary">{item.title}</span>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* 5. CONFIDENCE */}
+        {/* System confidence — self-critique */}
         <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">CONFIDENCE</div>
-          <ProgressBar label="Confidence" hideLabel size="small" value={primaryConfidence || score} max={100} helperText={`${primaryConfidence || score}%`} />
-        </div>
-
-        {/* 6. RISK IF IGNORED */}
-        <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">RISK IF IGNORED</div>
-          <p className="esti-cognitive-copy">{primary?.riskIfIgnored ?? attn.action}</p>
-          {forecast.slice(0, 2).map((item) => (
-            <div key={item.label} className="esti-poa-risk">
-              <span className="esti-poa-risk__arrow">→</span>
-              <span>{item.label}</span>
-              <span style={{ color: ZCOLOR[item.value > 70 ? "critical" : item.value > 40 ? "friction" : "watch"], marginLeft: "auto" }}>{item.value}%</span>
-            </div>
-          ))}
+          <div className="esti-cognitive-section-title">SYSTEM CONFIDENCE</div>
+          <ProgressBar label="Confidence" hideLabel size="small"
+            value={primaryConfidence || score} max={100}
+            helperText={`${primaryConfidence || score}%`} />
+          {primary?.riskIfIgnored && (
+            <p className="esti-cognitive-copy">{primary.riskIfIgnored}</p>
+          )}
         </div>
       </section>
 

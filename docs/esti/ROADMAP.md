@@ -1,6 +1,6 @@
 # ESTI Implementation Roadmap
 
-**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
+**Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23 (Phase 28)
 
 Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
 
@@ -65,12 +65,13 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [25](#phase-25---design-governance-and-ui-audit-p0) | Design governance & UI audit | P0 | ✅ |
 | [26](#phase-26---dark-theme-lock-and-landing-operational-grid-p2) | Dark theme lock & landing operational grid | P2 | ✅ |
 | [27](#phase-27---aorms-cognition-engine-and-primary-office-attention-p1) | AORMS Cognition Engine & Primary Office Attention | P1 | ✅ |
+| [28](#phase-28---executive-cognitive-load-engine-p1) | Executive Cognitive Load Engine | P1 | ✅ |
 
 ---
 
 ## Product snapshot
 
-ESTI (AORMS) is **production-engineered through Phase 27** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
+ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -90,7 +91,7 @@ ESTI (AORMS) is **production-engineered through Phase 27** and deployed at [aorm
 - **Office & project expenses** — cash book and billable project expenses (Accounting nav)
 - **Dashboard home bundle** — single `dashboard.home` round-trip for the office dashboard
 - **AORMS Cognition Engine** — deterministic domain scoring (client/finance/project/team/approval), weighted office health, intervention ranking with expected effect, confidence, and risk-if-ignored; returned as `dashboard.home.cognition`
-- **Primary Office Attention engine** — 5-question intervention surface: ISSUE → CAUSE CHAIN → NORMALIZATION PLAN → EXPECTED RECOVERY → RISK IF IGNORED; SYSTEM HEALTH 2×2 quad tile showing live domain health percentages
+- **Executive Cognitive Load Engine** — TODAY'S FOCUS tile: OFFICE CALMNESS score + max 3 immediate actions + safely deferred list + system confidence; protects owner mental bandwidth (Zeigarnik Effect / attentional residue); SYSTEM HEALTH 2×2 quad tile for domain health percentages
 - **Dark theme lock** — application-wide g100 Carbon theme; theme toggle removed; landing page dark
 - **ML/monitoring stack** — Python worker gains scikit-learn, XGBoost, MLflow, Evidently for future cognition recognition and prediction jobs
 
@@ -797,6 +798,43 @@ Replace passive metric reporting with an intelligent intervention engine: determ
 - [x] `compose.yaml` / `compose.prod.yaml` — `MLFLOW_TRACKING_URI`, `GIT_PYTHON_REFRESH`, `EVIDENTLY_DISABLE_TELEMETRY` env vars; `esti-mlruns` volume for experiment persistence
 
 **Gate met:** `dashboard.home.cognition` returns structured interventions with confidence and risk-if-ignored; dashboard overview shows SYSTEM HEALTH quad and PRIMARY OFFICE ATTENTION 5-question tile; LLM is not in the scoring or intervention path; ML libraries available in worker image.
+
+---
+
+## Phase 28 — Executive Cognitive Load Engine [P1] — ✅ Complete (2026-06-23)
+
+Replace the "show all problems" dashboard pattern with a system that actively protects the owner's mental bandwidth and creates cognitive breathing space.
+
+**Foundation:** Zeigarnik Effect (unfinished tasks occupy working memory), Attentional Residue (switching tasks leaves attention behind), Decision Fatigue (repeated micro-decisions reduce quality). AORMS counters all three through intelligent load compression.
+
+### 28A — TODAY'S FOCUS tile
+- [x] Replace "PRIMARY OFFICE ATTENTION" with "TODAY'S FOCUS" — calmer title, protection framing
+- [x] **OFFICE CALMNESS score** — large 52px headline metric (0–100); colour tracks health band; labels: CALM / MANAGEABLE / LOAD ELEVATED / LOAD HIGH / OVERLOAD RISK
+- [x] **Breathing space compression** — system shows exactly 3 items; interventions 4+ silently classified as SAFELY DEFERRED with reduced visual weight (0.5 opacity)
+- [x] **Time-aware focus context** — derives label from severity + hour: "Immediate — cannot safely defer" / "Plan for the day ahead" / "Complete before midday" / "Complete before end of day"
+- [x] **SAFELY DEFERRED section** — system-generated note: "System has assessed these as non-critical. No action needed now." Removes items from owner mental load without hiding information
+- [x] **SYSTEM CONFIDENCE** — retained for self-critique transparency; `primary.riskIfIgnored` shown as supporting context, not alarm
+- [x] Remove: ISSUE heading, CAUSE CHAIN, EXPECTED RECOVERY, RISK IF IGNORED as primary sections (information available in evidence grid and AI tab)
+
+### 28B — CSS breathing space design
+- [x] `.esti-focus-header` — calmness score header block
+- [x] `.esti-focus-calmness` — `__label` / `__score` (52px mono) / `__band` — colourless layout, colour from `calmnessColor()` inline
+- [x] `.esti-focus-context` — time-aware label (monospace 11px, secondary colour)
+- [x] `.esti-focus-deferred` — opacity 0.5, structural flex only
+- [x] `.esti-focus-deferred-note` — italic helper text
+
+### 28C — Cognitive load helpers
+- [x] `calmnessColor(score)` — maps office health to ZCOLOR for calm framing
+- [x] `focusContext(items)` — derives time-aware context string without calendar integration
+- [x] `calmnessLabel(score)` — 5-level label set: CALM → OVERLOAD RISK
+
+**Deferred to Phase 28D+:**
+- Meeting Awareness Engine (pre-meeting clearance, task reorganisation by meeting proximity) — requires calendar integration not yet in AORMS
+- Focus Lock Mode (active meeting: hide all unrelated context, show only meeting-relevant data)
+- Cognitive Recovery Model (detect owner overload from repeated postponement and late-night activity patterns)
+- Dynamic priority scoring formula (urgency × financial impact × dependency × team blockage × deadline risk)
+
+**Gate met:** dashboard overview shows OFFICE CALMNESS as headline metric; TODAY'S FOCUS shows max 3 items; all remaining interventions appear in SAFELY DEFERRED with system note; time-aware focus context derives without calendar; typecheck clean.
 
 ---
 
