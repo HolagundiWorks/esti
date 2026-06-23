@@ -25,7 +25,7 @@ direction. Point-in-time audits and superseded specs live in
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
-| [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared BBMP rule engine — pre/post construction workflows |
+| [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared compliance rule engine — pre/post workflows, public API, snapshots |
 | [BBMP-IMPLEMENTATION](BBMP-IMPLEMENTATION.md) | BBMP spec → live schema and API map |
 | [BYLAWS-BBMP](BYLAWS-BBMP.md) | Full BBMP engine specification (agent + reference appendix) |
 | [STEELFLOW-BOUNDED-CONTEXT](STEELFLOW-BOUNDED-CONTEXT.md) | `sf_*` vs `esti_*` naming and SteelFlow module boundaries |

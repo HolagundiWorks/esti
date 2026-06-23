@@ -526,6 +526,13 @@
       "when": 1782200000000,
       "tag": "0074_user_code_sequence",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1782200100000,
+      "tag": "0075_compliance_calculation_snapshots",
+      "breakpoints": true
     }
   ]
 }

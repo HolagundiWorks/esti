@@ -3,6 +3,13 @@ import type { FastifyInstance } from "fastify";
 import { db } from "../../db/index.js";
 import { loadActiveBbmpRuleCatalog } from "../../lib/bbmpRules.js";
 import { CITY_REGS, getCityById } from "./cityData.js";
+import {
+  PostProjectApiInput,
+  PreProjectApiInput,
+  calculatePostProjectResponse,
+  calculatePreProjectResponse,
+  unsupportedReason,
+} from "./workflows.js";
 
 /**
  * Public (no-auth) compliance REST API.
@@ -15,6 +22,8 @@ import { CITY_REGS, getCityById } from "./cityData.js";
  *   GET  /api/compliance/authorities          — legacy: BBMP authority list
  *   GET  /api/compliance/cities               — all cities with reference data
  *   GET  /api/compliance/cities/:cityId       — single city DCR reference
+ *   POST /api/compliance/pre-project          — spec workflow: feasibility / permissible scope
+ *   POST /api/compliance/post-project         — spec workflow: approved-vs-actual audit
  *   POST /api/compliance/check                — BBMP compute (full engine)
  */
 export function registerComplianceApi(app: FastifyInstance) {
@@ -66,6 +75,50 @@ export function registerComplianceApi(app: FastifyInstance) {
         return reply.code(404).send({ error: "City not found", cityId: req.params.cityId });
       }
       return { apiVersion: "1", data: city };
+    },
+  );
+
+  app.post<{ Body: unknown }>(
+    "/api/compliance/pre-project",
+    { config: { rateLimit: { max: 30, timeWindow: "1 minute" } } },
+    async (req, reply) => {
+      const parsed = PreProjectApiInput.safeParse(req.body);
+      if (!parsed.success) {
+        return reply
+          .code(400)
+          .send({ status: "INSUFFICIENT_DATA", errors: parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message })) });
+      }
+      const unsupported = unsupportedReason(parsed.data);
+      if (unsupported) {
+        return reply.code(400).send({
+          status: "INSUFFICIENT_DATA",
+          errors: [{ field: "city/authority/projectType", message: unsupported }],
+        });
+      }
+      const catalog = await loadActiveBbmpRuleCatalog(db);
+      return calculatePreProjectResponse(parsed.data, catalog);
+    },
+  );
+
+  app.post<{ Body: unknown }>(
+    "/api/compliance/post-project",
+    { config: { rateLimit: { max: 30, timeWindow: "1 minute" } } },
+    async (req, reply) => {
+      const parsed = PostProjectApiInput.safeParse(req.body);
+      if (!parsed.success) {
+        return reply
+          .code(400)
+          .send({ status: "INSUFFICIENT_DATA", errors: parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message })) });
+      }
+      const unsupported = unsupportedReason(parsed.data);
+      if (unsupported) {
+        return reply.code(400).send({
+          status: "INSUFFICIENT_DATA",
+          errors: [{ field: "city/authority/projectType", message: unsupported }],
+        });
+      }
+      const catalog = await loadActiveBbmpRuleCatalog(db);
+      return calculatePostProjectResponse(parsed.data, catalog);
     },
   );
 

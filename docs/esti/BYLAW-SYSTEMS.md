@@ -1,6 +1,6 @@
 # AI Agent Guidelines — Esti Bylaw Systems
 
-**Status:** Active · **Implementation:** [`BBMP-IMPLEMENTATION.md`](./BBMP-IMPLEMENTATION.md) · **Engine spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md)
+**Status:** Active · **Implementation:** [`BBMP-IMPLEMENTATION.md`](./BBMP-IMPLEMENTATION.md) · **Engine spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Generic spec:** [`../holagundi/bylaws_compliance_engine_agent_spec.md`](../holagundi/bylaws_compliance_engine_agent_spec.md)
 
 Build two bylaw systems using **one shared rule engine**.
 
@@ -15,9 +15,20 @@ Use one shared database-driven rule engine for both:
 1. **Pre-Construction Development Potential**
 2. **Post-Construction Compliance / Violation Checker**
 
-Implementation: `packages/contracts/src/bbmp/` — `computePreConstructionPotential()` and
-`computePostConstructionAudit()` both call `computeBbmpCompliance()` with the same
-`BbmpRuleCatalog` loaded from `esti_bbmp_*` tables.
+Implementation: `@hcw/india-compliance-kit` via `packages/contracts/src/bbmp/` —
+`computePreConstructionPotential()` and `computePostConstructionAudit()` both call
+`computeBbmpCompliance()` with the same `BbmpRuleCatalog` loaded from `esti_bbmp_*`
+tables.
+
+The architecture follows the generic city-wise compliance-engine spec:
+
+```text
+Rules data      → esti_bbmp_* rule tables / published rule-set versions
+Calculation     → @hcw/india-compliance-kit pure calculators
+City adapter    → backend/src/modules/compliance/workflows.ts
+Project storage → esti_bylaw_calc latest row + esti_compliance_calculation snapshots
+Reports         → compliance PDF worker / site assessment output
+```
 
 ---
 
@@ -38,7 +49,10 @@ How much can we legally build?
 ```
 
 **API:** `bylawCalc.save` → stores `input`, `result` (+ embedded `preConstruction`), `precomputed_at`
-on `esti_bylaw_calc` (maps to spec `esti_preconstruction_calc`).
+on `esti_bylaw_calc` (latest project row) and appends an immutable
+`esti_compliance_calculation` snapshot.
+
+**Public stateless API:** `POST /api/compliance/pre-project`.
 
 ---
 
@@ -79,7 +93,10 @@ Example audit parameter shape:
 
 **API:** `bylawCalc.savePostConstruction` → stores `postconstruction_input`,
 `postconstruction_audit`, `postcomputed_at` on the same project row (maps to spec
-`esti_postconstruction_audit`).
+`esti_postconstruction_audit`) and appends an immutable `esti_compliance_calculation`
+snapshot.
+
+**Public stateless API:** `POST /api/compliance/post-project`.
 
 Requires pre-construction save first.
 
@@ -163,9 +180,12 @@ Each rule shows: allowed · actual · difference · pass/fail · reason · gover
 | `esti_project_bylaw_input` | `esti_bylaw_calc.input` (JSONB) |
 | `esti_preconstruction_calc` | `esti_bylaw_calc.result` + `precomputed_at` |
 | `esti_postconstruction_audit` | `esti_bylaw_calc.postconstruction_*` + `postcomputed_at` |
-| `esti_bylaw_calc_result` | Embedded in `result.preConstruction` + `postconstruction_audit.calculationTrace` |
+| `compliance_calculations` | `esti_compliance_calculation` immutable snapshots |
+| `esti_bylaw_calc_result` | Embedded in `result.preConstruction` + `postconstruction_audit.calculationTrace`; copied into `esti_compliance_calculation.result_json` |
 
 Every save stores **explanation JSON** (`calculationTrace`) for auditability.
+Snapshots also store **input JSON**, **result JSON**, **mode**, **rule version**, and
+timestamp so old project calculations remain explainable after rules change.
 
 ---
 
@@ -188,13 +208,17 @@ No stale post-construction audit without re-save after pre-construction changes.
 
 **Project (Project Info → §9 Compliance):** calculate development envelope and post-construction audit; store results on the project; statutory permits.
 
+**External API (`/api/compliance/*`):** stateless pre-project and post-project endpoints
+for integrations. MVP supports Bengaluru / BBMP / residential only; unsupported cities
+or project types return `INSUFFICIENT_DATA` with explicit errors.
+
 ```text
 One shared bylaw rule engine (computeBbmpCompliance + DB catalog)
 Two workflows (computePreConstructionPotential / computePostConstructionAudit)
 Office rule library (KB Compliance tab) → published catalog feeds project calculations
 One project-level display (Project Info §9 Compliance accordion)
 Versioned rules (esti_bbmp_rule_set + esti_rule_version)
-Auditable results (calculationTrace + postconstruction_audit)
+Auditable results (calculationTrace + postconstruction_audit + immutable snapshots)
 PDF-ready output (site assessment — issued from KB, linked from project)
 ```
 

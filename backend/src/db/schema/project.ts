@@ -294,6 +294,21 @@ export const bylawCalcs = pgTable("esti_bylaw_calc", {
   updatedAt: updatedAt(),
 });
 
+/** Immutable compliance calculation snapshots — preserves old results as bylaws change. */
+export const complianceCalculations = pgTable("esti_compliance_calculation", {
+  id: id(),
+  projectId: uuid("project_id").references(() => projectOffices.id),
+  mode: text("mode").notNull(),
+  authority: text("authority").notNull().default("BBMP"),
+  city: text("city").notNull().default("bangalore"),
+  ruleVersion: text("rule_version"),
+  bbmpRuleSetId: uuid("bbmp_rule_set_id").references(() => bbmpRuleSets.id),
+  inputJson: jsonb("input_json").notNull(),
+  resultJson: jsonb("result_json").notNull(),
+  overallStatus: text("overall_status"),
+  createdAt: createdAt(),
+});
+
 /** Fee proposals — COA scale benchmark + below-minimum compliance snapshot. */
 export const feeProposals = pgTable("esti_feeproposal", {
   id: id(),

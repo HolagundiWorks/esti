@@ -1,6 +1,6 @@
 # BBMP Compliance Engine — Implementation Guide
 
-**Status:** Active · **Spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Two-system guide:** [`BYLAW-SYSTEMS.md`](./BYLAW-SYSTEMS.md) · **Reviewed:** 2026-06-15
+**Status:** Active · **Spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Two-system guide:** [`BYLAW-SYSTEMS.md`](./BYLAW-SYSTEMS.md) · **Generic API spec:** [`../holagundi/bylaws_compliance_engine_agent_spec.md`](../holagundi/bylaws_compliance_engine_agent_spec.md) · **Reviewed:** 2026-06-23
 
 This document maps the BBMP bye-law specification to what Esti implements today, records
 architectural decisions, and lists remaining work.
@@ -53,7 +53,7 @@ secondary, and engine-constant tables.
 Code defaults in `packages/contracts/src/bbmp/rules.ts` mirror the seed rows so unit
 tests and offline use work without a database.
 
-### 3. Project input and result storage (intentional simplification)
+### 3. Project latest-row storage plus immutable snapshots
 
 The spec defines normalized tables:
 
@@ -61,13 +61,15 @@ The spec defines normalized tables:
 esti_project_bylaw_input → esti_project_road → esti_bylaw_calc_result
 ```
 
-Esti uses **JSONB on existing project tables** instead:
+Esti keeps a **latest editable project row** for the Project Info UI and appends
+immutable calculation snapshots for traceability:
 
 | Spec | Implemented | Rationale |
 |------|-------------|-----------|
-| `esti_project_bylaw_input` | `esti_bylaw_calc.input` | One envelope calc per project; avoids migration churn |
+| `esti_project_bylaw_input` | `esti_bylaw_calc.input` | Latest project calculator input for Project Info |
 | `esti_project_road` | Road sides embedded in input JSON | Same shape as RIE `SiteInputs` |
-| `esti_bylaw_calc_result` | `esti_bylaw_calc.result` | Typed fields + `calculationTrace` + `compliance` in JSON |
+| `esti_bylaw_calc_result` | `esti_bylaw_calc.result` | Latest typed fields + `calculationTrace` + `compliance` in JSON |
+| `compliance_calculations` | `esti_compliance_calculation` | Immutable input/result/rule-version snapshots for old calculations |
 
 RIE site assessments use `esti_site_assessment` with the same BBMP engine and
 `bbmp_rule_set_id` pointer. Violations and relaxations remain RIE-specific.
@@ -106,6 +108,10 @@ Entry points:
 | Surface | Path | Notes |
 |---------|------|-------|
 | Knowledge Bank calculator | `bylawCalc.save` → `esti_bylaw_calc` | `ProjectBylawCalc` UI |
+| Project snapshot | `bylawCalc.save` / `savePostConstruction` → `esti_compliance_calculation` | Immutable history row per calculation |
+| Public pre-project API | `POST /api/compliance/pre-project` | Stateless spec-shaped request/response, Bengaluru/BBMP/residential MVP |
+| Public post-project API | `POST /api/compliance/post-project` | Approved-vs-actual violation response with rule trace |
+| Legacy public API | `POST /api/compliance/check` | Backwards-compatible BBMP envelope compute |
 | RIE feasibility | `siteAssessments.create` → `esti_site_assessment` | Uses `runDevControl` → `computeBbmpCompliance` when authority is BBMP |
 | Rule inspection | `bbmpRules.activeCatalog` | Read-only; Knowledge Bank FAR table |
 
@@ -127,16 +133,27 @@ Optional input fields for POST-design validation:
 - `actualSetbacks` — setback actual vs required
 - `providedParkingEcs` — parking actual
 
+The public API adapter in `backend/src/modules/compliance/workflows.ts` returns the
+generic spec statuses:
+
+- `PRE_PROJECT_PLANNING`: `FEASIBLE` or `FEASIBLE_WITH_CONSTRAINTS`
+- `POST_PROJECT_AUDIT`: `COMPLIANT` or `VIOLATION_FOUND`
+
+Every response includes `ruleVersion` and flattened `trace[]` entries derived from
+the BBMP calculation trace. The post-project public API compares actual values
+against the **approved/projected values supplied in the request**; the internal
+Project Info audit continues to compare against the saved pre-construction envelope.
+
 ---
 
 ## Not yet implemented
 
 | Item | Spec reference | Notes |
 |------|----------------|-------|
-| Rule-set admin UI | Version lifecycle | Seed + read API only; no publish/edit screen |
-| Normalized project I/O tables | `esti_project_bylaw_input` | Deferred — JSONB documented above |
+| Rule-set admin UI | Version lifecycle | Seed + Knowledge Bank manager; publish/edit restricted to Owner |
+| Normalized project I/O tables | `esti_project_bylaw_input` | Latest row uses JSONB; immutable snapshots in `esti_compliance_calculation` |
 | Hospital LPD solar lookup | `esti_solar_rule` | Table seeded; engine uses site-area trigger via secondary rules |
-| Compliance PDF | RIE site assessment | Delivered via worker `target="compliance"` |
+| Compliance PDF | RIE site assessment | Delivered via worker `target="compliance"`; public JSON API is report-ready but does not render PDF |
 | Document PDFs (invoice, spec sheet, …) | Worker `render_pdf` | Requires object-store bucket — auto-provisioned at backend startup (2026-06-16) |
 | Recalculate-all on rule publish | Recalculation rules | No background job |
 | Multi-jurisdiction | Knowledge bank | BBMP-only modular engine; other authorities use RIE rule JSON |
@@ -154,7 +171,8 @@ Optional input fields for POST-design validation:
 | DB schema | `backend/src/db/schema/bbmp-rules.ts` |
 | Migrations | `0033_bbmp_rule_engine.sql`, `0036_bbmp_extended_rules.sql` |
 | Loader | `backend/src/lib/bbmpRules.ts` |
-| API | `backend/src/modules/bylaw/bbmpRules.ts`, `calc.ts` |
+| Project API | `backend/src/modules/bylaw/bbmpRules.ts`, `calc.ts` |
+| Public workflow API | `backend/src/modules/compliance/publicApi.ts`, `workflows.ts` |
 | UI | `frontend/src/components/ProjectBylawCalc.tsx`, `knowledge/BbmpFarRuleTable.tsx` |
 
 ---

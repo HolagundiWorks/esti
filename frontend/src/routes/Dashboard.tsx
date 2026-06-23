@@ -601,11 +601,19 @@ function recoveryForecast(score: number, interventions: any[]): number {
   return Math.max(score, Math.min(96, Math.round(score + lift)));
 }
 
-function meetingAwareness(pendingCount: number, delayedProjects: number): { label: string; detail: string; state: ZoneState } {
-  if (pendingCount > 0 || delayedProjects > 0) {
-    return { label: "FOCUS MODE", detail: "Protect owner attention", state: "watch" };
+function meetingAwareness(meetings: any[]): { label: string; detail: string; state: ZoneState } {
+  const next = meetings[0];
+  if (!next) {
+    return { label: "OPEN", detail: "No meeting lock active", state: "stable" };
   }
-  return { label: "OPEN", detail: "No meeting lock active", state: "stable" };
+  const days = Number(next.daysUntil ?? 999);
+  if (days <= 0) {
+    return { label: "FOCUS MODE", detail: `${next.projectRef ?? "Meeting"} today`, state: "watch" };
+  }
+  if (days === 1) {
+    return { label: "PREP", detail: `${next.projectRef ?? "Meeting"} tomorrow`, state: "watch" };
+  }
+  return { label: "AWARE", detail: `${meetings.length} meeting signals`, state: "stable" };
 }
 
 function recoveryLevelLabel(level?: number): string {
@@ -626,16 +634,47 @@ function domainLabel(domain?: string): string {
   return "OFFICE";
 }
 
+function taskHref(taskId?: string | null, projectId?: string | null): string {
+  const params = new URLSearchParams({ tab: "tasks" });
+  if (taskId) params.set("taskId", taskId);
+  if (projectId) params.set("projectId", projectId);
+  return `/tasks?${params.toString()}`;
+}
+
+function projectIssueHref(p: any): string {
+  if (p.focusTaskId) return taskHref(p.focusTaskId, p.id);
+  if (p.focusInvoiceId) return `/projects/${p.id}?tab=invoices&invoiceId=${p.focusInvoiceId}`;
+  if (p.focusApprovalId) return `/projects/${p.id}?tab=approvals&approvalId=${p.focusApprovalId}`;
+  if ((p.overdueInvoices ?? 0) > 0) return `/projects/${p.id}?tab=invoices`;
+  if ((p.staleApprovals ?? 0) > 0) return `/projects/${p.id}?tab=approvals`;
+  return `/projects/${p.id}?tab=overview`;
+}
+
 function fallbackCognitiveInterventions(input: {
   pendingCount: number;
   maxWaitDays: number;
   overduePaise: number;
   billingReadyCount: number;
+  meetingCount: number;
   riskProjects: number;
   delayedProjects: number;
   overloadedCount: number;
 }): any[] {
   const items: any[] = [];
+  if (input.meetingCount > 0 && (input.pendingCount > 0 || input.riskProjects > 0 || input.delayedProjects > 0)) {
+    items.push({
+      id: "meeting-focus-prep",
+      source: "project",
+      severity: "watch",
+      recoveryLevel: 1,
+      impactPct: 7,
+      title: "Prepare meeting context before switching attention",
+      suggestedAction: "Review only meeting-relevant project notes, approvals, and blockers before the next meeting.",
+      howTo: ["Open the meeting project evidence.", "Read unresolved blockers only.", "Hide finance and HR items until the meeting is complete."],
+      confidence: 0.76,
+      riskIfIgnored: "Unrelated operational pressure can create attentional residue before the meeting.",
+    });
+  }
   if (input.maxWaitDays > 7 || input.pendingCount >= 2) {
     items.push({
       id: "approval-escalation",
@@ -854,6 +893,7 @@ function ScreenOverview({
   const pendingCount  = pending.length;
   const maxWaitDays   = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
   const billingReady  = ac?.billingReadyPhases ?? [];
+  const meetingFocus  = ac?.meetingFocus ?? [];
   const overduePaise  = fh?.overdue30dPaise ?? 0;
   const riskProjects  = ph.filter((p: any) => p.health === "RED");
   const overloaded    = ti.filter((m: any) => m.capacity === "OVERLOADED");
@@ -885,6 +925,7 @@ function ScreenOverview({
     maxWaitDays,
     overduePaise,
     billingReadyCount: billingReady.length,
+    meetingCount: meetingFocus.length,
     riskProjects: riskProjects.length,
     delayedProjects,
     overloadedCount: overloaded.length,
@@ -915,7 +956,7 @@ function ScreenOverview({
     { label: "Team overload risk", value: forecastPct(domains.find((d: any) => d.domain === "team")?.score, (signals.overloadedAssignees ?? overloaded.length) * 8) },
     { label: "Client escalation probability", value: forecastPct(domains.find((d: any) => d.domain === "approval")?.score, (signals.blockedApprovals ?? blockedDecisions) * 8) },
   ];
-  const meeting = meetingAwareness(pendingCount, delayedProjects);
+  const meeting = meetingAwareness(meetingFocus);
   const recoveryAfter = recoveryForecast(score, interventions);
   const activeDomains = [
     { key: "client", label: "CLIENT", pct: cHpct, state: cs },
@@ -1008,7 +1049,7 @@ function ScreenOverview({
                 )}
                 {Array.isArray(item.howTo) && item.howTo.length > 0 && (
                   <div className="esti-poa-action__steps">
-                    {item.howTo.slice(0, 3).map((step: string, idx: number) => (
+                    {item.howTo.slice(0, i === 0 ? 2 : 1).map((step: string, idx: number) => (
                       <span key={`${item.id}-step-${idx}`}>{step}</span>
                     ))}
                   </div>
@@ -1107,14 +1148,14 @@ function ScreenOverview({
               val: formatINRShort(inv.netReceivablePaise),
               tag: `${inv.daysOverdue}d`,
               state: "critical" as ZoneState,
-              href: `/projects/${inv.projectId}?tab=invoices`,
+              href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
             }))),
             ...(billingReady.length > 0 ? [{
               ref: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
               val: billingReady.length === 1 ? billingReady[0].projectRef : undefined,
               tag: "READY",
               state: "watch" as ZoneState,
-              href: billingReady.length === 1 ? `/projects/${billingReady[0].projectId}?tab=invoices` : "/invoices",
+              href: billingReady.length === 1 ? `/projects/${billingReady[0].projectId}?tab=invoices&phaseId=${billingReady[0].id}` : "/invoices",
             }] : []),
           ]}
         />
@@ -1126,26 +1167,33 @@ function ScreenOverview({
             val: `${m.totalOpen} open`,
             tag: CAPACITY_LABEL[m.capacity] ?? m.capacity,
             state: m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable",
-            href: "/team",
+            href: taskHref(m.focusTaskId, m.focusProjectId),
           }))}
         />
         <CognitiveEvidence
           title="PROJECT EVIDENCE"
           empty="No project delivery pressure detected"
           items={[
+            ...meetingFocus.slice(0, 2).map((m: any) => ({
+              ref: m.projectRef ?? "Meeting",
+              val: m.title,
+              tag: Number(m.daysUntil ?? 999) <= 0 ? "TODAY" : `${m.daysUntil}D`,
+              state: Number(m.daysUntil ?? 999) <= 1 ? "watch" as ZoneState : "stable" as ZoneState,
+              href: taskHref(m.id, m.projectId),
+            })),
             ...riskProjects.slice(0, 3).map((p: any) => ({
               ref: p.ref,
               val: p.title,
               tag: "RED",
               state: "critical" as ZoneState,
-              href: `/projects/${p.id}`,
+              href: projectIssueHref(p),
             })),
             ...(delayedProjects > 0 ? [{
               ref: "Delayed projects",
               val: String(delayedProjects),
               tag: "TASKS",
               state: "watch" as ZoneState,
-              href: "/projects",
+              href: "/tasks?tab=tasks&openOnly=1",
             }] : []),
           ]}
         />
@@ -1158,28 +1206,28 @@ function ScreenOverview({
               val: ap.title,
               tag: `${ap.daysWaiting}d`,
               state: ap.daysWaiting > 14 ? "critical" as ZoneState : "friction" as ZoneState,
-              href: `/projects/${ap.projectId}?tab=approvals`,
+              href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
             })),
             ...(revisionCount > 0 ? [{
               ref: "Client-driven revisions",
               val: String(revisionCount),
               tag: "CRIF",
               state: revisionCount > 10 ? "critical" as ZoneState : "watch" as ZoneState,
-              href: "/projects",
+              href: "/projects?tab=revisions",
             }] : []),
             ...(totalStaleAppr > 0 ? [{
               ref: "Stale approvals",
               val: String(totalStaleAppr),
               tag: "BLOCKED",
               state: "friction" as ZoneState,
-              href: "/projects",
+              href: "/tasks?tab=activity",
             }] : []),
             ...(siteDelay > 0 ? [{
               ref: "Open site items",
               val: String(siteDelay),
               tag: "SITE",
               state: "watch" as ZoneState,
-              href: "/projects",
+              href: "/office/construction",
             }] : []),
           ]}
         />
