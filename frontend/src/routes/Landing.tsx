@@ -1,6 +1,7 @@
-import { InlineNotification, Theme } from "@carbon/react";
+import { InlineNotification, Modal, Theme } from "@carbon/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LandingTrialForm } from "../components/LandingTrialForm.js";
 import { LandingEditorial } from "../components/landing/LandingBand.js";
 import { LandingOperationalGrid } from "../components/landing/LandingOperationalGrid.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
@@ -17,6 +18,7 @@ export function Landing() {
   const utils = trpc.useUtils();
   const visitCount = useLandingVisitCounter();
   const [demoKind, setDemoKind] = useState<DemoKind | null>(null);
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const demoLogin = trpc.auth.login.useMutation({
     onSuccess: async () => {
@@ -36,7 +38,7 @@ export function Landing() {
   }
 
   function scrollToTrial() {
-    document.getElementById("trial")?.scrollIntoView({ behavior: "smooth" });
+    setRequestOpen(true);
   }
 
   const demoLoading = demoLogin.isPending;
@@ -55,22 +57,30 @@ export function Landing() {
         )}
 
         <MarketingHero
-          onStudioDemo={() => openDemo("studio")}
-          onSoloDemo={() => openDemo("solo")}
+          onStudioDemo={() => openDemo("team")}
           demoLoading={demoLoading}
           demoKind={demoKind}
           onTrialScroll={scrollToTrial}
         />
 
         <LandingOperationalGrid
-          onStudioDemo={() => openDemo("studio")}
-          onSoloDemo={() => openDemo("solo")}
+          onStudioDemo={() => openDemo("team")}
           demoLoading={demoLoading}
           demoKind={demoKind}
           onTrialScroll={scrollToTrial}
         />
 
-        <MarketingFooter />
+        <MarketingFooter onRequestWorkspace={scrollToTrial} />
+
+        <Modal
+          open={requestOpen}
+          passiveModal
+          className="esti-lp-request-modal"
+          modalHeading="Request a workspace"
+          onRequestClose={() => setRequestOpen(false)}
+        >
+          <LandingTrialForm />
+        </Modal>
       </MarketingShell>
 
       <MarketingEstiAi />

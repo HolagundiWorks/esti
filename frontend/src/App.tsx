@@ -325,7 +325,7 @@ function AppShell() {
             <Header aria-label="ESTI AORMS">
               <HeaderName prefix="">
                 <img
-                  src="/esti-mark-white.png"
+                  src="/esti-logo.png"
                   alt="ESTI"
                   className="esti-app-mark"
                 />

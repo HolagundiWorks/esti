@@ -5,8 +5,17 @@ import { orgSettings } from "../db/schema.js";
 /** Read the singleton org-settings row, creating it on first access. */
 export async function getOrgSettings(db: DB): Promise<typeof orgSettings.$inferSelect> {
   const [row] = await db.select().from(orgSettings).limit(1);
-  if (row) return row;
-  const [created] = await db.insert(orgSettings).values({}).returning();
+  if (row) {
+    if (!row.hrEnabled || row.orgMode !== "STUDIO") {
+      const [updated] = await db
+        .update(orgSettings)
+        .set({ hrEnabled: true, orgMode: "STUDIO", updatedAt: new Date() })
+        .returning();
+      return updated!;
+    }
+    return row;
+  }
+  const [created] = await db.insert(orgSettings).values({ hrEnabled: true, orgMode: "STUDIO" }).returning();
   return created!;
 }
 

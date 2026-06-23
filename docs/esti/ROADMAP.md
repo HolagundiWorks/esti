@@ -357,7 +357,7 @@ Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolid
 
 **Gate met:** portal writes object-scoped, audited, cannot expose internal data. Verified end-to-end (client + consultant round-trips, STAFF rows excluded).
 
-Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemoSolo.ts` (solo, `solo@demo.aorms.in`). See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md), [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md).
+Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md), [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md).
 
 ---
 
@@ -445,7 +445,7 @@ Demo workspaces: `seedDemo.ts` (studio, `principal@demo.aorms.in`) and `seedDemo
 - [x] Restore drill sign-off checklist — [PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record) (operator runs `deploy/restore-drill.sh` on staging VPS).
 - [x] Extended API integration smoke — `test:api-smoke` + extended `test:companion` (13B/C/E paths).
 - [x] Migration journal repair — register skipped entries (`0041_wellbeing_opt_in`, `0048_ai_studio`); `0056_schema_repair.sql` belt-and-suspenders for VPS drift.
-- [x] Demo seed bootstrap — `seedBootstrap.ts` runs migrations before `seed:demo:prod` / `seed:demo:solo:prod`; showcase guards on companion schema.
+- [x] Demo seed bootstrap — `seedBootstrap.ts` runs migrations before `seed:demo:prod`; showcase guards on companion schema.
 
 **Engineering gate met:** production build, smoke suite, backup/restore scripts, pagination caps, ops documentation, and migration repair delivered.
 

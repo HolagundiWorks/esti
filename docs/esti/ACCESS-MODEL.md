@@ -182,7 +182,6 @@ Studio demo (`pnpm seed:demo`):
 | `junior@demo.aorms.in` | L1 | VIEWER |
 | `intern@demo.aorms.in` | L1 | VIEWER |
 | `client@demo.aorms.in` | External — Client | CLIENT |
-| `solo@demo.aorms.in` | L5 | OWNER (solo seed) |
 
 ---
 

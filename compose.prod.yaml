@@ -146,7 +146,6 @@ services:
       args:
         # Baked into SPA at build time — set in .env before `deploy.sh` / bootstrap frontend build.
         VITE_FULL_DEMO_URL: ${VITE_FULL_DEMO_URL:-}
-        VITE_SOLO_DEMO_URL: ${VITE_SOLO_DEMO_URL:-}
         BUILD_REVISION: ${BUILD_REVISION:-dev}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only

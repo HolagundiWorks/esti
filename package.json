@@ -15,7 +15,6 @@
     "db:generate": "pnpm --filter @esti/backend db:generate",
     "db:migrate": "pnpm --filter @esti/backend db:migrate",
     "seed:demo": "pnpm --filter @esti/backend seed:demo",
-    "seed:demo:solo": "pnpm --filter @esti/backend seed:demo:solo",
     "licenses": "node scripts/licenses.mjs",
     "carbon:index": "python node_modules/@hcw/carbon-agent-kit/knowledge/scripts/sync-index.py",
     "carbon:search": "python node_modules/@hcw/carbon-agent-kit/knowledge/scripts/search.py",

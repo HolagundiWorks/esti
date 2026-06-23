@@ -79,7 +79,7 @@ export function MarketingShell({
                 className="esti-landing-brand-logo"
               />
               <img
-                src="/esti-mark-white.png"
+                src="/esti-logo.png"
                 alt=""
                 aria-hidden
                 className="esti-landing-mark"

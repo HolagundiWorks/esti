@@ -11,7 +11,6 @@ type Span = "1x1" | "2x1" | "2x2" | "4x1";
 
 export interface LandingGridProps {
   onStudioDemo: () => void;
-  onSoloDemo: () => void;
   demoLoading: boolean;
   demoKind: DemoKind | null;
   onTrialScroll?: () => void;
@@ -131,7 +130,7 @@ function ProductStoryTile() {
         </div>
 
         <div className="esti-lp-cognition-forecast">
-          <DataRow k="Best for" v="Solo to mid-size firms" />
+          <DataRow k="Best for" v="Small to mid-size teams" />
           <DataRow k="Setup" v="Demo workspace first" />
           <DataRow k="AI role" v="Explains and recommends" />
         </div>
@@ -263,14 +262,14 @@ function DemoTile({
 }) {
   const acct = DEMO_ACCOUNTS[kind];
   const isActive = loading && activeKind === kind;
-  const accentColor = kind === "studio" ? "#1192e8" : "#009d9a";
+  const accentColor = "#1192e8";
 
   return (
-    <Tile span="2x1" id={kind === "studio" ? "demo" : undefined}>
+    <Tile span="2x1" id="demo">
       <TileHead
-        label={kind === "studio" ? "Studio Demo" : "Solo Practice"}
+        label="Team Demo"
         dot="green"
-        meta={kind === "studio" ? "Recommended" : undefined}
+        meta="Recommended"
       />
       <div className="esti-lp-demo-body">
         <p className="esti-lp-demo-eyebrow" style={{ color: accentColor }}>
@@ -283,7 +282,7 @@ function DemoTile({
         </ul>
         <div className="esti-lp-demo-action">
           <Button
-            kind={kind === "studio" ? "primary" : "ghost"}
+            kind="primary"
             size="sm"
             renderIcon={ArrowRight}
             onClick={onOpen}
@@ -389,7 +388,7 @@ function BidPortalTile() {
 
 // ── CTA tile (4×1 full row) ────────────────────────────────────────
 
-function CtaTile({ onTrialScroll }: { onTrialScroll?: () => void }) {
+function CtaTile({ onOpenForm }: { onOpenForm: () => void }) {
   return (
     <Tile span="4x1" id="trial" className="esti-lp-tile--final-cta">
       <TileHead label="Request Workspace" dot="green" />
@@ -401,7 +400,7 @@ function CtaTile({ onTrialScroll }: { onTrialScroll?: () => void }) {
             No credit card. No onboarding call.
           </p>
         </div>
-        <Button kind="primary" size="lg" renderIcon={ArrowRight} onClick={onTrialScroll}>
+        <Button kind="primary" size="lg" renderIcon={ArrowRight} onClick={onOpenForm}>
           Request workspace
         </Button>
       </div>
@@ -412,7 +411,7 @@ function CtaTile({ onTrialScroll }: { onTrialScroll?: () => void }) {
 // ── Main export ────────────────────────────────────────────────────
 
 export function LandingOperationalGrid({
-  onStudioDemo, onSoloDemo, demoLoading, demoKind, onTrialScroll,
+  onStudioDemo, demoLoading, demoKind, onTrialScroll,
 }: LandingGridProps) {
   const [switching, setSwitching] = useState<string | null>(null);
 
@@ -511,8 +510,18 @@ export function LandingOperationalGrid({
       />
 
       <div className="esti-lp-grid">
-        <DemoTile kind="studio" onOpen={onStudioDemo} loading={demoLoading} activeKind={demoKind} />
-        <DemoTile kind="solo" onOpen={onSoloDemo} loading={demoLoading} activeKind={demoKind} />
+        <DemoTile kind="team" onOpen={onStudioDemo} loading={demoLoading} activeKind={demoKind} />
+        <FeatureTile
+          header="Team Mode"
+          dot="green"
+          meta="DEFAULT"
+          title="One workspace for owners, staff, clients, consultants, and bidders"
+          bullets={[
+            "Team, HR, workload, attendance, and role access are always part of the demo",
+            "No separate solo mode or reduced module set",
+            "The dashboard shows team load and recommendations from real demo records",
+          ]}
+        />
         <RevisionTile />
         <BidPortalTile />
       </div>
@@ -542,7 +551,7 @@ export function LandingOperationalGrid({
       />
 
       <div className="esti-lp-grid esti-lp-grid--final">
-        <CtaTile onTrialScroll={onTrialScroll} />
+        <CtaTile onOpenForm={() => onTrialScroll?.()} />
       </div>
     </>
   );

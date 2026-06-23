@@ -13,6 +13,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 LR = ROOT / "logo resources"
 PUB = ROOT / "frontend" / "public"
+ESTI_BLUE = (15, 98, 254, 255)
+WHITE = (255, 255, 255, 255)
 
 
 def trim_alpha(im: Image.Image, pad: int = 4) -> Image.Image:
@@ -88,18 +90,7 @@ def aorms_white_wordmark(src: Path, dest: Path) -> None:
 
 
 def favicon_sizes() -> None:
-    shutil.copy2(LR / "favicon.ico", PUB / "favicon.ico")
-    ico = Image.open(LR / "favicon.ico")
-    frames: list[Image.Image] = []
-    try:
-        i = 0
-        while True:
-            ico.seek(i)
-            frames.append(ico.copy().convert("RGBA"))
-            i += 1
-    except EOFError:
-        pass
-    frame = max(frames, key=lambda f: f.size[0] * f.size[1])
+    frame = make_esti_badge(512, ESTI_BLUE, WHITE)
     for size, name in [
         (16, "favicon-16x16.png"),
         (32, "favicon-32x32.png"),
@@ -109,10 +100,33 @@ def favicon_sizes() -> None:
         (512, "android-chrome-512x512.png"),
     ]:
         frame.resize((size, size), Image.Resampling.LANCZOS).save(PUB / name)
+    frame.resize((32, 32), Image.Resampling.LANCZOS).save(PUB / "favicon.ico", sizes=[(16, 16), (32, 32)])
+
+
+def make_esti_badge(size: int, bg: tuple[int, int, int, int], fg: tuple[int, int, int, int]) -> Image.Image:
+    src = Image.open(LR / "etsi black.png").convert("RGBA")
+    arr = np.array(src)
+    mask = arr[:, :, 3] > 10
+    ys, xs = np.where(mask)
+    mark = src.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+    mark_arr = np.array(mark.convert("RGBA"))
+    mark_mask = mark_arr[:, :, 3] > 10
+    mark_arr[:, :, 0] = fg[0]
+    mark_arr[:, :, 1] = fg[1]
+    mark_arr[:, :, 2] = fg[2]
+    mark_arr[:, :, 3] = np.where(mark_mask, fg[3], 0)
+    mark = Image.fromarray(mark_arr)
+    canvas = Image.new("RGBA", (size, size), bg)
+    target = int(size * 0.76)
+    mark.thumbnail((target, target), Image.Resampling.LANCZOS)
+    canvas.alpha_composite(mark, ((size - mark.width) // 2, (size - mark.height) // 2))
+    return canvas
 
 
 def main() -> None:
     PUB.mkdir(parents=True, exist_ok=True)
+    make_esti_badge(512, ESTI_BLUE, WHITE).save(PUB / "esti-logo.png")
+    make_esti_badge(512, WHITE, ESTI_BLUE).save(PUB / "esti-logo-inverted.png")
     trim_alpha(drop_near_black(Image.open(LR / "etsi white colour.png"))).save(
         PUB / "esti-mark-white.png"
     )

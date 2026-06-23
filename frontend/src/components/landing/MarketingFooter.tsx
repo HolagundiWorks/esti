@@ -15,7 +15,7 @@ const CONTACT_LINKS = [
   { href: "/login", label: "Workspace sign in" },
 ] as const;
 
-export function MarketingFooter() {
+export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: () => void }) {
   return (
     <Theme theme="g100">
       <LandingBand className="esti-landing-footer">
@@ -31,7 +31,7 @@ export function MarketingFooter() {
               <Button
                 kind="primary"
                 size="sm"
-                href="#trial"
+                onClick={onRequestWorkspace}
                 renderIcon={ArrowRight}
               >
                 Request workspace

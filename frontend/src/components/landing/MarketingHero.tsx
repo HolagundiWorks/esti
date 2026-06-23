@@ -48,7 +48,7 @@ export function MarketingHero({
           onClick={onStudioDemo}
           disabled={demoLoading}
         >
-          {demoLoading && demoKind === "studio" ? "Opening…" : "Open Practice Demo"}
+          {demoLoading && demoKind === "team" ? "Opening…" : "Open Team Demo"}
         </Button>
         {onTrialScroll && (
           <Button kind="ghost" size="lg" onClick={onTrialScroll}>

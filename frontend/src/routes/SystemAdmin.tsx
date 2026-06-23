@@ -87,7 +87,7 @@ export function SystemAdmin() {
     {
       icon: UserMultiple,
       title: "Team & HR",
-      description: "Staff roster, attendance tracking, leave management, payroll processing, and ASPRF performance scoring. Disable only if the firm operates in solo-principal mode.",
+      description: "Staff roster, attendance tracking, leave management, payroll processing, and ASPRF performance scoring. Team mode is the default operating model.",
       enabled: s.hrEnabled,
       loading: setHr.isPending,
       onToggle: (checked) => setHr.mutate({ hrEnabled: checked }),

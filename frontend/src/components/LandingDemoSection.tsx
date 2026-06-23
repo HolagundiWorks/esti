@@ -1,4 +1,4 @@
-import { ArrowRight, Building, Launch, PlayFilledAlt, User } from "@carbon/icons-react";
+import { ArrowRight, Building, Launch, PlayFilledAlt } from "@carbon/icons-react";
 import { Column, Grid, InlineNotification, Link, Stack } from "@carbon/react";
 import type { ElementType } from "react";
 import { DEMO_ACCOUNTS, type DemoKind } from "../lib/landing-demo.js";
@@ -6,8 +6,7 @@ import { LandingCaseStudyCard } from "./landing/LandingCaseStudyCard.js";
 import { LandingContentBlock } from "./landing/LandingContentBlock.js";
 
 const DEMO_ICONS: Record<DemoKind, ElementType> = {
-  studio: Building,
-  solo: User,
+  team: Building,
 };
 
 type Props = {
@@ -29,11 +28,11 @@ export function LandingDemoSection({ onOpenDemo, loadingKind, isPending, errorMe
           </Stack>
         }
         title="Walk through a real architecture practice"
-        lead="Two ready-made studios — one solo desk, one fifteen-person office. One click and you are inside."
+        lead="One team workspace seeded with projects, fees, decisions, workload, portals, and site coordination. One click and you are inside."
       />
 
       <Grid>
-        {(["studio", "solo"] as const).map((kind) => {
+        {(["team"] as const).map((kind) => {
           const acct = DEMO_ACCOUNTS[kind];
           const Icon = DEMO_ICONS[kind];
           const loading = isPending && loadingKind === kind;

@@ -45,7 +45,7 @@ export function Login() {
             <Stack gap={3}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
-                  <img src="/esti-mark-white.png" alt="" />
+                  <img src="/esti-logo.png" alt="" />
                 </span>
                 <h3>ESTI AORMS</h3>
               </div>

@@ -1,4 +1,4 @@
-# Demo workspace and Team / HR mode
+# Demo workspace and Team mode
 
 Quick reference for demo logins and how they relate to production org mode.
 
@@ -6,16 +6,15 @@ Quick reference for demo logins and how they relate to production org mode.
 
 ---
 
-## Demo logins (separate workspaces)
+## Demo logins
 
 | Persona | Seed | Login | Password |
 | ------- | ---- | ----- | -------- |
-| **Studio** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
-| **Solo** | `pnpm seed:demo:solo` | `solo@demo.aorms.in` | `demo1234` |
+| **Team practice** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
 
 Demo workspaces mirror live upload behaviour. File uploads require the **upload password** (same as the demo login password unless `SEED_DEMO_PASSWORD` was changed). Owners can toggle this gate under **Company → Upload protection** on live firms too.
 
-After seed, open any studio project → **Project Info** tab (§9 Compliance) for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
+After seed, open any project → **Project Info** tab (§9 Compliance) for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
 
 **Showcase paths (investor tour):**
 
@@ -26,7 +25,6 @@ After seed, open any studio project → **Project Info** tab (§9 Compliance) fo
 | CRIF + comments | **Sharma / Verde / Patel HQ** → Overview or Decisions — threaded decision comments |
 | PMC portfolio | **PMC** nav → Sharma Villa, Verde Block, GreenField Factory, Rao House — schedules, snags, RFIs, progress reports |
 | Client portal | `client@demo.aorms.in` — Kapoor Residence |
-| Solo practice | `solo@demo.aorms.in` — 3 projects, HR off, one linked drawing with takeoff |
 
 Re-run `seed:demo` on an existing workspace to **backfill** missing records (idempotent). Legacy browser takeoff rows (`source: WEB`) are purged on each run.
 
@@ -37,7 +35,6 @@ Re-run `seed:demo` on an existing workspace to **backfill** missing records (ide
 ```bash
 podman compose up -d --build
 podman exec esti-backend sh -c "cd /app/esti/backend && pnpm db:migrate && pnpm seed:demo"
-podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo:solo"
 ```
 
 **Production (VPS / Docker):**
@@ -45,14 +42,11 @@ podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo:solo"
 ```bash
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:prod
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
-docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod
 ```
 
-Solo seed source: `backend/src/scripts/seedDemoSolo.ts` — login `solo@demo.aorms.in`, password `demo1234` (or `SEED_DEMO_PASSWORD`).
+Staff personas on team demo: `lead@`, `site@`, `junior@`, `intern@`, `client@demo.aorms.in`.
 
-Staff personas on studio demo: `lead@`, `site@`, `junior@`, `intern@`, `client@demo.aorms.in`.
-
-Landing page opens the matching login per audience card. Optional: `VITE_SOLO_DEMO_URL`, `VITE_FULL_DEMO_URL`.
+Landing page opens the team demo login.
 
 ---
 
@@ -60,19 +54,10 @@ Landing page opens the matching login per audience card. Optional: `VITE_SOLO_DE
 
 | | Demo | Production |
 | --- | --- | --- |
-| Solo vs studio | Two seeded accounts | `orgMode` + `hrEnabled` on your firm |
-| Disable team with data | Archive modal on studio demo | Same archive workflow (`settings.archiveTeamModule`) |
-| Casual toggle | Exercises real rules on studio demo | Simple disable only when no team records |
+| Operating mode | Team mode only | Team mode only |
+| Team / HR | Enabled | Enabled |
 
-Do **not** treat the Company toggle as a reversible “preview” on a live studio — use the archive workflow when lock reasons apply.
-
----
-
-## What solo mode hides
-
-When `hrEnabled = false`: Team, HR, Performance nav; Workload, Attendance tabs; dashboard team widgets; team API writes (see ORG-MODE doc for full list).
-
-Tasks remain; assignee resolves to the principal architect.
+Team mode includes team nav, workload, attendance, dashboard team widgets, and team API writes.
 
 ---
 

@@ -18,7 +18,6 @@ const DEMO_EMAILS = [
   "junior@demo.aorms.in",
   "intern@demo.aorms.in",
   "client@demo.aorms.in",
-  "solo@demo.aorms.in",
 ] as const;
 
 async function main(): Promise<void> {
@@ -31,7 +30,7 @@ async function main(): Promise<void> {
   for (const email of DEMO_EMAILS) {
     const [u] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!u) {
-      console.log(`  ✗ ${email} — missing (run seed:demo:prod or seed:demo:solo:prod)`);
+      console.log(`  ✗ ${email} — missing (run seed:prod && seed:demo:prod)`);
       if (email === "principal@demo.aorms.in") missingPrincipal = true;
       continue;
     }
@@ -47,7 +46,7 @@ async function main(): Promise<void> {
 
   if (missingPrincipal) {
     console.log("");
-    console.log("Studio demo not seeded. Run:");
+    console.log("Team demo not seeded. Run:");
     console.log("  seed:prod && seed:demo:prod");
     process.exit(1);
   }

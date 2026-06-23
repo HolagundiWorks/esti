@@ -14,6 +14,7 @@ import {
 import { getFirm } from "../../lib/firm.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { seedDemoWorkspace } from "../../scripts/seedDemo.js";
 import { ownerProcedure, router } from "../../trpc/trpc.js";
 
 // Reference/config tables preserved by a data reset.
@@ -38,6 +39,8 @@ const DEMO_PROJECTS = [
   { title: "Rao House — Mysuru", projectType: "Residential Architecture", contractValuePaise: 1_20_00_000 },
   { title: "Verde Commercial Block", projectType: "Commercial Architecture", contractValuePaise: 8_50_00_000 },
 ] as const;
+
+const DEMO_RESET_CONFIRM = "RESET DEMO DATA";
 
 export const adminRouter = router({
   /** System-admin only: seed a small set of demo records for evaluation/training. */
@@ -180,6 +183,69 @@ export const adminRouter = router({
         actorId: ctx.user.id,
         after: { tablesWiped: wipe.length },
       });
+      return result;
+    }),
+
+  /**
+   * Demo-server maintenance: make local and VPS demo workspaces identical.
+   *
+   * This wipes operational data and demo logins, then runs the canonical team
+   * workspace seed. Non-demo owners are preserved. If the caller is a
+   * demo user, their session is removed and the UI must send them back to login.
+   */
+  resetDemoData: ownerProcedure
+    .input(z.object({
+      confirmPhrase: z.literal(DEMO_RESET_CONFIRM),
+      password: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user.isDemo && !ctx.user.isSystemAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Demo reset is available only on demo/system-admin workspaces.",
+        });
+      }
+
+      if (!ctx.user.isDemo) {
+        const [me] = await ctx.db.select().from(users).where(sql`${users.id} = ${ctx.user.id}`);
+        if (!input.password || !me?.passwordHash || !(await verifyPassword(me.passwordHash, input.password))) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });
+        }
+      }
+
+      const tableRows = (await ctx.db.execute(
+        sql`select tablename from pg_tables where schemaname = 'public' and tablename like 'esti_%'`,
+      )) as unknown as { tablename: string }[];
+      const wipe = tableRows
+        .map((r) => r.tablename)
+        .filter((t) => !KEEP_TABLES.has(t))
+        .map((t) => `"${t}"`);
+
+      if (wipe.length > 0) {
+        await ctx.db.execute(sql.raw(`TRUNCATE TABLE ${wipe.join(", ")} RESTART IDENTITY CASCADE`));
+      }
+
+      await ctx.db.execute(
+        sql`delete from esti_session where user_id in (select id from esti_user where is_demo = true)`,
+      );
+      await ctx.db.execute(sql`delete from esti_user where is_demo = true`);
+
+      await seedDemoWorkspace();
+
+      const result = {
+        ok: true,
+        tablesWiped: wipe.length,
+        seeded: ["team"] as const,
+        sessionResetRequired: ctx.user.isDemo,
+      };
+
+      await writeAudit(ctx.db, {
+        entity: "admin",
+        action: "RESET_DEMO_DATA",
+        actorId: ctx.user.isDemo ? undefined : ctx.user.id,
+        after: result,
+      });
+
       return result;
     }),
 });
