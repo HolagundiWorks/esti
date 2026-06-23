@@ -8,7 +8,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { bylawCalcs } from "../../db/schema.js";
+import { bylawCalcs, complianceCalculations } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { loadActiveBbmpRuleCatalog } from "../../lib/bbmpRules.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -38,6 +38,7 @@ export const bylawCalcRouter = router({
         ...result,
         preConstruction,
       };
+      const ruleVersion = catalog.label ?? catalog.ruleSetId ?? "bbmp-2003-default";
       const [existing] = await ctx.db
         .select()
         .from(bylawCalcs)
@@ -64,6 +65,17 @@ export const bylawCalcRouter = router({
         if (result.permissibleBuiltup > 0) {
           await syncComplianceBuiltUpToBrief(ctx.db, input.projectId, result.permissibleBuiltup);
         }
+        await ctx.db.insert(complianceCalculations).values({
+          projectId: input.projectId,
+          mode: "PRE_PROJECT_PLANNING",
+          authority: "BBMP",
+          city: "bangalore",
+          ruleVersion,
+          bbmpRuleSetId,
+          inputJson: input.input,
+          resultJson: payload,
+          overallStatus: "FEASIBLE_WITH_CONSTRAINTS",
+        });
         return row!;
       }
       const [row] = await ctx.db
@@ -86,6 +98,17 @@ export const bylawCalcRouter = router({
       if (result.permissibleBuiltup > 0) {
         await syncComplianceBuiltUpToBrief(ctx.db, input.projectId, result.permissibleBuiltup);
       }
+      await ctx.db.insert(complianceCalculations).values({
+        projectId: input.projectId,
+        mode: "PRE_PROJECT_PLANNING",
+        authority: "BBMP",
+        city: "bangalore",
+        ruleVersion,
+        bbmpRuleSetId,
+        inputJson: input.input,
+        resultJson: payload,
+        overallStatus: "FEASIBLE_WITH_CONSTRAINTS",
+      });
       return row!;
     }),
 
@@ -111,6 +134,7 @@ export const bylawCalcRouter = router({
       const catalog = await loadActiveBbmpRuleCatalog(ctx.db);
       const preInput = BylawCalcInput.parse(existing.input);
       const audit = computePostConstructionAudit(preInput, input.actuals, catalog);
+      const ruleVersion = catalog.label ?? catalog.ruleSetId ?? "bbmp-2003-default";
       const now = new Date();
       const [row] = await ctx.db
         .update(bylawCalcs)
@@ -134,6 +158,20 @@ export const bylawCalcRouter = router({
           postconstructionInput: row!.postconstructionInput,
           postconstructionAudit: row!.postconstructionAudit,
         },
+      });
+      await ctx.db.insert(complianceCalculations).values({
+        projectId: input.projectId,
+        mode: "POST_PROJECT_AUDIT",
+        authority: "BBMP",
+        city: "bangalore",
+        ruleVersion,
+        bbmpRuleSetId: catalog.ruleSetId ?? null,
+        inputJson: {
+          preProject: preInput,
+          actual: input.actuals,
+        },
+        resultJson: audit,
+        overallStatus: audit.overallStatus,
       });
       return row!;
     }),

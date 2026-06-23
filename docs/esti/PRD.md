@@ -76,12 +76,15 @@ team, consultants, contractors, and settings.
 
 ### Compliance
 
-Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects). Per-project development-control calculations run on the **Project Info** tab (§9 Compliance): `bylawCalc` saves the envelope and links results to the project brief and document register. There is no separate “Compliance” project tab.
+Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects). Per-project development-control calculations run on the **Project Info** tab (§9 Compliance): `bylawCalc` saves the latest envelope/audit, appends immutable compliance calculation snapshots, and links results to the project brief and document register. There is no separate “Compliance” project tab.
 
 - Knowledge is versioned by state, district, local authority, building use,
   rule source, effective date, and supersession date.
 - Deterministic calculation rules produce ground coverage, FAR area, setbacks,
   and restricted building lines, with source clauses and assumptions.
+- External integrations use stateless public JSON endpoints:
+  `POST /api/compliance/pre-project` and `POST /api/compliance/post-project`
+  (Bengaluru / BBMP / residential MVP). Responses include rule version and trace.
 - Every issued calculation produces a branded PDF snapshot. Historical issued
   PDFs remain immutable when rules or project inputs later change.
 - The module must show when no verified rule set exists for the selected

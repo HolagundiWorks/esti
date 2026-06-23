@@ -39,7 +39,25 @@ export async function getProjectHealth(db: DB) {
       (select count(*)::int from esti_critical_note cn
         where cn.project_id = po.id
         and cn.status = 'OPEN'
-        and cn.priority = 'HIGH') as critical_notes_open
+        and cn.priority = 'HIGH') as critical_notes_open,
+      (select t.id from esti_task t
+        where t.project_id = po.id
+        and t.status <> 'DONE'
+        and t.due_date < current_date
+        order by t.due_date asc nulls last, t.priority desc
+        limit 1) as focus_task_id,
+      (select i.id from esti_invoice i
+        where i.project_id = po.id
+        and i.status = 'ISSUED'
+        and i.date_invoice < current_date - 30
+        order by i.date_invoice asc
+        limit 1) as focus_invoice_id,
+      (select a.id from esti_approval a
+        where a.project_id = po.id
+        and a.status = 'SENT'
+        and a.sent_date < current_date - 14
+        order by a.sent_date asc nulls last
+        limit 1) as focus_approval_id
     from esti_projectoffice po
     where po.status = 'ACTIVE'
       and po.archived_at is null
@@ -49,6 +67,7 @@ export async function getProjectHealth(db: DB) {
     current_phase: string | null; total_phases: number; phases_reached: number;
     unbilled_phases: number; overdue_tasks: number; overdue_invoices: number;
     stale_approvals: number; revisions_open: number; critical_notes_open: number;
+    focus_task_id: string | null; focus_invoice_id: string | null; focus_approval_id: string | null;
   }[];
 
   return rows.map((r) => {
@@ -75,6 +94,9 @@ export async function getProjectHealth(db: DB) {
       staleApprovals: Number(r.stale_approvals),
       revisionsOpen: Number(r.revisions_open),
       criticalNotesOpen: Number(r.critical_notes_open),
+      focusTaskId: r.focus_task_id,
+      focusInvoiceId: r.focus_invoice_id,
+      focusApprovalId: r.focus_approval_id,
     };
   });
 }

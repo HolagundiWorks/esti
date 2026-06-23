@@ -126,6 +126,42 @@ export async function getActionCenter(db: DB) {
     project_title: string;
   }[];
 
+  const meetingRows = (await db.execute(sql`
+    select
+      t.id,
+      t.title,
+      t.priority,
+      t.due_date,
+      t.assignee,
+      po.id as project_id,
+      po.ref as project_ref,
+      po.title as project_title,
+      coalesce((t.due_date - current_date)::int, 999) as days_until
+    from esti_task t
+    left join esti_projectoffice po on po.id = t.project_id
+    where t.status <> 'DONE'
+      and t.due_date is not null
+      and t.due_date <= current_date + 7
+      and (
+        lower(t.title) like '%meeting%'
+        or lower(t.title) like '%review%'
+        or lower(t.title) like '%coordination%'
+        or t.work_type = 'DESIGN_COMMUNICATION'
+      )
+    order by t.due_date asc, case when t.priority = 'HIGH' then 0 else 1 end, t.title asc
+    limit 8
+  `)) as unknown as {
+    id: string;
+    title: string;
+    priority: string;
+    due_date: string;
+    assignee: string | null;
+    project_id: string | null;
+    project_ref: string | null;
+    project_title: string | null;
+    days_until: number;
+  }[];
+
   return {
     revisionRiskCount: Number(revisionRiskRow?.n ?? 0),
     revisionRiskBand,
@@ -175,6 +211,17 @@ export async function getActionCenter(db: DB) {
       projectId: r.project_id,
       projectRef: r.project_ref,
       projectTitle: r.project_title,
+    })),
+    meetingFocus: meetingRows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      priority: r.priority,
+      dueDate: r.due_date,
+      assignee: r.assignee,
+      projectId: r.project_id,
+      projectRef: r.project_ref,
+      projectTitle: r.project_title,
+      daysUntil: Number(r.days_until),
     })),
   };
 }

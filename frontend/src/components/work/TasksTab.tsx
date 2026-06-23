@@ -26,8 +26,8 @@ import {
   TaskStatus,
   TaskWorkType,
 } from "@esti/contracts";
-import { forwardRef, useImperativeHandle, useState } from "react";
-import { Link } from "react-router-dom";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { ContextualComments } from "../ContextualComments.js";
 import { DataState } from "../DataState.js";
@@ -37,14 +37,20 @@ import { PRIORITY_TAG } from "./workHelpers.js";
 export type TasksTabHandle = { openCreate: () => void };
 
 export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref) {
+  const [searchParams] = useSearchParams();
   const utils = trpc.useUtils();
   const [openOnly,      setOpenOnly]      = useState(false);
   const [myTasks,       setMyTasks]       = useState(false);
   const [filterStatus,  setFilterStatus]  = useState("");
   const [filterPriority,setFilterPriority]= useState("");
+  const targetTaskId = searchParams.get("taskId");
+  const targetProjectId = searchParams.get("projectId") || undefined;
+  const urlOpenOnly = searchParams.get("openOnly") === "1";
 
   const listQ     = trpc.tasks.list.useQuery({
-    openOnly, myTasks,
+    openOnly: openOnly || urlOpenOnly,
+    myTasks,
+    projectId: targetProjectId,
     status:   filterStatus   ? (filterStatus   as (typeof TaskStatus.options)[number])   : undefined,
     priority: filterPriority ? (filterPriority as (typeof TaskPriority.options)[number]) : undefined,
   });
@@ -76,6 +82,15 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
     },
   });
   const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (!targetTaskId || listQ.isLoading) return;
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`task-row-${targetTaskId}`)
+        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  }, [targetTaskId, listQ.isLoading, listQ.data]);
 
   useImperativeHandle(ref, () => ({
     openCreate: () => setOpen(true),
@@ -134,7 +149,11 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                 {(listQ.data ?? []).map((t) => {
                   const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
                   return (
-                    <TableRow key={t.id}>
+                    <TableRow
+                      key={t.id}
+                      id={`task-row-${t.id}`}
+                      className={targetTaskId === t.id ? "esti-task-row--target" : undefined}
+                    >
                       <TableCell>
                         {t.title}
                         {t.description && <div>{t.description}</div>}
