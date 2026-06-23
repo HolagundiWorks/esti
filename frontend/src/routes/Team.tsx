@@ -22,6 +22,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { PageHeader } from "../components/PageHeader.js";
+import { TeamsPanel } from "../components/TeamsPanel.js";
 import { getInitials, resolveColor } from "../components/StaffAvatar.js";
 import { STAFF_LEVEL_LABEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
@@ -173,6 +174,8 @@ export function Team() {
           })}
         </Grid>
       )}
+
+      <TeamsPanel />
 
       {/* Add member modal */}
       <Modal

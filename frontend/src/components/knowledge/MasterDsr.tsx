@@ -368,9 +368,9 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
                   if (file) void file.text().then((text) => setVForm((f) => ({ ...f, csvText: text })));
                 }}
               />
-              <Button kind="ghost" size="sm" href={DEMO_CSV_URL} download>
+              <a className="cds--btn cds--btn--ghost cds--btn--sm" href={DEMO_CSV_URL} download>
                 Download demo CSV
-              </Button>
+              </a>
             </Stack>
             {vForm.csvText.trim() ? (
               <Tag type="blue">{parseDsrCsvText(vForm.csvText).length} rows ready to import</Tag>
@@ -412,9 +412,9 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
                 void readCsvFile(e.target.files?.[0] ?? null)
               }
             />
-            <Button kind="ghost" size="sm" href={DEMO_CSV_URL} download>
+            <a className="cds--btn cds--btn--ghost cds--btn--sm" href={DEMO_CSV_URL} download>
               Download demo CSV
-            </Button>
+            </a>
           </Stack>
           {importText.trim() ? (
             <Tag type="blue">{parseDsrCsvText(importText).length} rows parsed</Tag>

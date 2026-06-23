@@ -160,7 +160,7 @@ export const adminRouter = router({
       }
 
       const tableRows = (await ctx.db.execute(
-        sql`select tablename from pg_tables where schemaname = 'public' and tablename like 'esti_%'`,
+        sql`select tablename from pg_tables where schemaname = 'public' and (tablename like 'esti_%' or tablename like 'sf_%')`,
       )) as unknown as { tablename: string }[];
       const wipe = tableRows
         .map((r) => r.tablename)
@@ -214,7 +214,7 @@ export const adminRouter = router({
       }
 
       const tableRows = (await ctx.db.execute(
-        sql`select tablename from pg_tables where schemaname = 'public' and tablename like 'esti_%'`,
+        sql`select tablename from pg_tables where schemaname = 'public' and (tablename like 'esti_%' or tablename like 'sf_%')`,
       )) as unknown as { tablename: string }[];
       const wipe = tableRows
         .map((r) => r.tablename)

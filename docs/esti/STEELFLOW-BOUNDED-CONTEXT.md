@@ -2,8 +2,8 @@
 
 **Status:** Canonical · **Owner:** HCW · **Reviewed:** 2026-06-15
 
-SteelFlow is ESTI’s reinforcement-detailing sub-domain: interactive bar
-arrangement and automated Bar Bending Schedule (BBS) generation. It is embedded
+SteelFlow is ESTI’s reinforcement-detailing sub-domain: member-flow reinforcement
+mapping and automated Bar Bending Schedule (BBS) generation. It is embedded
 in the Knowledge Bank (`/knowledge-bank?tab=steelflow`) and reachable via the
 legacy alias `/steel-arranger`.
 
@@ -35,7 +35,7 @@ SteelFlow in the Knowledge Bank has two layers:
 | Layer | Purpose |
 | --- | --- |
 | **Catalogue** (`esti_structural_element_template`) | Versioned IS-aligned configurations: section (e.g. 230×600 mm), M25, bar roles (top, bottom, extra, skin), stirrups, and **length rules** |
-| **Workshop** (`sf_*` sessions) | Project or lab BBS sessions; elements are created by **applying** a published catalogue entry with an instance **span** |
+| **Workshop** (`sf_*` sessions) | Project or lab BBS sessions; slab/beam/column/footing members are mapped as flow nodes, then bars and links generate BBS rows |
 
 ### Length rules (catalogue → cutting length)
 
@@ -68,9 +68,7 @@ Cascade deletes: session → elements → rebars/stirrups.
 | Schema | `backend/src/db/schema/steelflow.ts` |
 | API | `backend/src/modules/steelflow/router.ts` |
 | UI panel | `frontend/src/components/knowledge/SteelArranger.tsx` |
-| Client state | `frontend/src/store/useSteelStore.ts` |
 | BBS engine | `frontend/src/engine/bbsEngine.ts` |
-| Carbon widgets | `frontend/src/components/steelflow/*` |
 
 ## Activity and audit
 
@@ -82,5 +80,6 @@ sessions are not project timeline events unless linked to a `project_id`
 ## Related documents
 
 - [ROADMAP Phase 2E](ROADMAP.md) — SteelFlow delivery scope
+- [STEELFLOW-BBS-FLOW](STEELFLOW-BBS-FLOW.md) — current member-flow interface and IS-rule boundary
 - [ARCHITECTURE](ARCHITECTURE.md) — stack and ADRs
 - [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — SteelFlow tab uses standard Carbon shell

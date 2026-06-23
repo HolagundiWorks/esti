@@ -381,6 +381,31 @@ export function Portal() {
               </Table>
             </Section>
 
+            {d.transmittals.length > 0 && (
+              <Section title="Transmittals">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Ref</TableHeader>
+                      <TableHeader>Purpose</TableHeader>
+                      <TableHeader>Channel</TableHeader>
+                      <TableHeader>Issued</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {d.transmittals.map((t) => (
+                      <TableRow key={t.ref}>
+                        <TableCell>{t.ref}</TableCell>
+                        <TableCell>{t.purpose}</TableCell>
+                        <TableCell>{t.channel}</TableCell>
+                        <TableCell>{t.dateIssued ?? "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Section>
+            )}
+
             <Section title="My requests & feedback">
               <DataState
                 loading={submissionsQ.isLoading}

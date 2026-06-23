@@ -86,3 +86,33 @@ export const AssignmentCreate = z.object({
   role: AssignmentRole,
 });
 export type AssignmentCreate = z.infer<typeof AssignmentCreate>;
+
+/**
+ * Reusable named team — a group of office staff. Selecting a team onto a project
+ * staffs all its members at once (see assignments.assignTeam).
+ */
+export const TeamCreate = z.object({
+  name: z.string().min(1).max(120),
+  description: z.string().max(500).optional(),
+  memberIds: z.array(z.string().uuid()).default([]),
+});
+export type TeamCreate = z.infer<typeof TeamCreate>;
+
+export const TeamUpdate = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(120).optional(),
+  description: z.string().max(500).nullable().optional(),
+  active: z.boolean().optional(),
+  /** When provided, replaces the team's full membership set. */
+  memberIds: z.array(z.string().uuid()).optional(),
+});
+export type TeamUpdate = z.infer<typeof TeamUpdate>;
+
+/** Staff every active member of a team onto a project in one action. */
+export const AssignTeamToProject = z.object({
+  projectId: z.string().uuid(),
+  teamId: z.string().uuid(),
+  /** Project role applied to each newly-created assignment. */
+  role: AssignmentRole.default("SUPPORT"),
+});
+export type AssignTeamToProject = z.infer<typeof AssignTeamToProject>;

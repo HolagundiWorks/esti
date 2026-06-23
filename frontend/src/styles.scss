@@ -379,6 +379,164 @@ html:has(.esti-dashboard-page) body {
 .esti-dep-node__port--out {
   right: -8px;
 }
+
+.esti-steel-flow {
+  border: 1px solid var(--cds-border-subtle);
+  background: var(--cds-background);
+}
+
+.esti-steel-flow__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cds-spacing-05);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  h4 {
+    margin: 0 0 var(--cds-spacing-02);
+  }
+}
+
+.esti-steel-flow__viewport {
+  overflow: auto;
+  min-height: 430px;
+  max-height: 68vh;
+  background:
+    linear-gradient(var(--cds-border-subtle-00) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cds-border-subtle-00) 1px, transparent 1px),
+    var(--cds-layer-01);
+  background-size: 32px 32px;
+}
+
+.esti-steel-flow__canvas {
+  position: relative;
+  min-width: 100%;
+}
+
+.esti-steel-flow__edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.esti-steel-flow__edge {
+  fill: none;
+  stroke: var(--cds-border-strong-01);
+  stroke-width: 1.5;
+}
+
+.esti-steel-flow__arrow {
+  fill: var(--cds-border-strong-01);
+}
+
+.esti-steel-flow__empty {
+  position: absolute;
+  inset: var(--cds-spacing-07);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--cds-spacing-04);
+  color: var(--cds-text-secondary);
+}
+
+.esti-steel-node {
+  position: absolute;
+  width: 250px;
+  height: 124px;
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
+  border: 1px solid var(--cds-border-subtle);
+  background: color-mix(in srgb, var(--cds-layer-02) 88%, transparent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  cursor: grab;
+  user-select: none;
+}
+
+.esti-steel-node:active {
+  cursor: grabbing;
+}
+
+.esti-steel-node--selected {
+  border-color: #0f62fe;
+  box-shadow: 0 0 0 1px #0f62fe, 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.esti-steel-node__hdr,
+.esti-steel-node__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cds-spacing-03);
+}
+
+.esti-steel-node__hdr {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+
+.esti-steel-node__title {
+  margin-top: var(--cds-spacing-03);
+  color: var(--cds-text-primary);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.esti-steel-node__meta {
+  margin-top: var(--cds-spacing-02);
+  color: var(--cds-text-helper);
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.esti-steel-node__port {
+  position: absolute;
+  top: 56px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--cds-background);
+  border-radius: 50%;
+  background: #0f62fe;
+}
+
+.esti-steel-node__port--in {
+  left: -7px;
+}
+
+.esti-steel-node__port--out {
+  right: -7px;
+}
+
+.esti-steel-node__delete {
+  position: absolute;
+  right: var(--cds-spacing-02);
+  bottom: var(--cds-spacing-02);
+}
+
+.esti-steel-member-summary {
+  border: 1px solid var(--cds-border-subtle);
+}
+
+.esti-steel-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-03) 0;
+  border-bottom: 1px solid var(--cds-border-subtle);
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.esti-steel-table-scroll {
+  overflow-x: auto;
+}
+
 .esti-form-panel      { max-width: 640px; }   /* constrained form tile — matches Column lg=8  */
 .esti-form-panel--wide { max-width: 800px; }  /* wide form tile — matches Column lg=10 */
 .esti-firm-logo { height: 48px; width: auto; } /* firm logo in company profile */
@@ -3166,14 +3324,6 @@ html:has(.esti-dashboard-page) body {
   flex-wrap: wrap;
 }
 
-// BarPalette drag-source row: flex wrap of draggable pills + caption.
-.esti-bar-palette {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--cds-spacing-03);
-  align-items: center;
-}
-
 // ASPRF KPI bar: fixed-height track + width-animated fill.
 // Only `width` and `background` stay as dynamic inline styles on the fill.
 .esti-kpi-track {
@@ -5629,11 +5779,12 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   min-height: 0;
   overflow: hidden;
   display: grid;
-  grid-template-rows: 190px minmax(0, 1fr) 150px;
+  // Office state · focus + outcome · flow · legend — fits one screen, breathing space at the foot.
+  grid-template-rows: auto minmax(0, 1fr) 172px auto;
+  padding-bottom: 32px;
 
   @media (max-width: 1023px) {
     height: 100%;
-    grid-template-rows: 172px minmax(0, 1fr) 132px;
     overflow: hidden;
   }
 }
@@ -5643,86 +5794,212 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   min-height: 0;
 }
 
-.esti-cognitive-signal-layer {
+// OFFICE STATE — one panel, six sublines in a single row. No quad, no colour-coded side line.
+.esti-office-state {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  overflow: hidden;
+}
+
+// OFFICE STATE — three task-count tiles (● running · ▲ attention · ■ urgent).
+.esti-state-counts {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 0;
+  flex: 1;
 
-  @media (max-width: 1023px) {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  @media (max-width: 767px) {
+  @media (max-width: 639px) {
     grid-template-columns: 1fr;
   }
 }
 
-// SYSTEM HEALTH remains a quad tile inside the signal layer.
-.esti-cognitive-health {
-  border-right: 1px solid var(--cds-border-subtle);
-  border-bottom: 1px solid var(--cds-border-subtle);
+.esti-state-count {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-05) var(--cds-spacing-06);
+  border-right: 1px solid var(--cds-border-subtle);
+  min-width: 0;
   overflow: hidden;
 
-  > .esti-quad {
-    flex: 1;
-    min-height: 0;
+  &:last-child {
+    border-right: 0;
   }
 
-  .esti-qcell {
-    padding: var(--cds-spacing-03) var(--cds-spacing-04);
+  .esti-geo {
+    font-size: clamp(20px, 2vw, 28px);
   }
 
-  .esti-qcell__val {
-    font-size: 22px;
+  &__num {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 300;
+    line-height: 1;
+    color: var(--cds-text-primary);
+    flex-shrink: 0;
   }
 
-  .esti-qcell__name {
+  &__label {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cds-text-secondary);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.esti-state-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  min-height: 0;
+
+  @media (max-width: 1023px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 639px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.esti-state-line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-05);
+  border-right: 1px solid var(--cds-border-subtle);
+  min-width: 0;
+  overflow: hidden;
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  &__name {
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cds-text-helper);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .esti-qcell__tag {
-    font-size: 9px;
+  &__icon {
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-03);
+    min-height: clamp(20px, 2vw, 28px);
+    color: var(--cds-text-primary);
+    font-size: 18px;
+  }
+
+  &__count {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(22px, 2.2vw, 30px);
+    font-weight: 300;
+    line-height: 1;
+    color: var(--cds-text-primary);
+  }
+
+  &__detail {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--cds-text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
   }
 }
 
 .esti-signal-metric {
+  --signal-color: var(--cds-text-primary);
+
   border-right: 1px solid var(--cds-border-subtle);
   border-bottom: 1px solid var(--cds-border-subtle);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--cds-spacing-03);
+  gap: var(--cds-spacing-04);
   min-height: 0;
   padding: var(--cds-spacing-05);
   overflow: hidden;
+  position: relative;
+  isolation: isolate;
 
   &__title,
   &__detail {
-    font-family: 'IBM Plex Mono', monospace;
     color: var(--cds-text-helper);
-    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
   }
 
   &__title {
     font-size: 10px;
     letter-spacing: 0.1em;
     line-height: 1.25;
+    text-transform: uppercase;
   }
 
   &__value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(22px, 2.2vw, 34px);
-    font-weight: 300;
-    line-height: 1.08;
-    overflow-wrap: anywhere;
+    color: var(--signal-color);
+    position: relative;
+    z-index: 1;
   }
 
   &__detail {
-    font-size: 10px;
-    letter-spacing: 0.08em;
+    font-size: 12px;
+    letter-spacing: 0;
     line-height: 1.35;
+    text-transform: none;
+    max-width: 18rem;
+    color: var(--cds-text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
+}
+
+// AORMS geometry state language — ● Handled · ▲ Monitoring (white) · ■ Act (blue).
+// Two colours only: Carbon White #F4F4F4 for normal states, Carbon Blue #0F62FE for the one Act.
+.esti-geo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1;
+  color: var(--cds-text-primary); // #F4F4F4 in g100
+}
+
+.esti-geo--sm {
+  font-size: 18px;
+}
+
+// Equal optical height across the three glyphs — the font draws ● smaller than ▲/■,
+// so each shape is scaled to match. Transform keeps the layout box unchanged (no shift).
+.esti-geo--circle {
+  transform: scale(1.22);
+}
+
+.esti-geo--triangle {
+  transform: scale(1);
+}
+
+.esti-geo--square {
+  transform: scale(0.92);
+}
+
+// The single owner-intervention marker — the only blue on the dashboard.
+.esti-geo--act {
+  color: #0f62fe;
 }
 
 @keyframes esti-calm-breathe {
@@ -5736,7 +6013,7 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
 .esti-cognitive-brain-layer {
   display: grid;
-  grid-template-columns: 1.45fr 1fr 1fr;
+  grid-template-columns: 1.5fr 1fr; // Today's focus · After this action
 
   @media (max-width: 1023px) {
     grid-template-columns: 1fr;
@@ -5751,6 +6028,185 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  padding: var(--cds-spacing-05);
+  gap: var(--cds-spacing-04);
+}
+
+// Three stacked priority boxes (top-3 actions). Equal height, small gaps.
+.esti-focus-stack {
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: var(--cds-spacing-03);
+  min-height: 0;
+  flex: 1;
+}
+
+.esti-focus-box {
+  border: 1px solid var(--cds-border-subtle);
+  background: var(--cds-layer-01);
+  padding: var(--cds-spacing-04);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+
+  // The whole box is the action — click it to proceed that task.
+  &--clickable {
+    cursor: pointer;
+    transition: background 70ms ease;
+
+    &:hover {
+      background: var(--cds-layer-hover-01);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--cds-focus);
+      outline-offset: -2px;
+    }
+
+    &:disabled {
+      cursor: progress;
+      opacity: 0.6;
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cds-spacing-03);
+  }
+
+  &__num {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cds-text-helper); // #8d8d8d
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .esti-label {
+    color: var(--cds-text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--cds-text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+  }
+}
+
+.esti-focus-actions {
+  flex-shrink: 0;
+
+  .cds--btn {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// TODAY'S FOCUS as a table — clickable rows proceed that task.
+.esti-focus-table {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.esti-focus-row {
+  cursor: pointer;
+
+  td {
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
+  }
+
+  .esti-geo {
+    font-size: 16px;
+  }
+}
+
+.esti-focus-row__num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  color: var(--cds-text-helper);
+  width: 1.5rem;
+}
+
+.esti-focus-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-05) 0;
+
+  .esti-focus-box__desc {
+    margin: 0;
+  }
+}
+
+// AFTER THIS ACTION — reassurance panel (replaces the recovery engine). Text only, no icons.
+.esti-cognitive-after {
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: var(--cds-spacing-05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.esti-after-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--cds-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Persistent shape legend — subtle, centered, gray (no blue).
+.esti-shape-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: var(--cds-spacing-04) 0 0;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cds-spacing-02);
+    font-size: 12px;
+    color: var(--cds-text-helper); // #8d8d8d
+  }
+
+  .esti-geo {
+    color: var(--cds-text-helper); // legend stays gray — the only live blue is on focus box #1
+    font-size: 13px;
+  }
 }
 
 .esti-cognitive-reasoning,
@@ -5844,6 +6300,12 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     font-size: clamp(24px, 2.2vw, 34px);
     line-height: 1;
     font-weight: 300;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .esti-geo {
+    font-size: clamp(26px, 2.4vw, 34px);
   }
 }
 
@@ -5874,6 +6336,10 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .esti-geo {
+    font-size: 18px;
   }
 }
 
@@ -5923,19 +6389,32 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   overflow: hidden;
 }
 
-// Office Calmness header — the headline metric
+// TODAY'S FOCUS header — label + short context line.
 .esti-focus-header {
-  padding: var(--cds-spacing-04) var(--cds-spacing-05) var(--cds-spacing-03);
-  border-bottom: 1px solid var(--cds-border-subtle);
   flex-shrink: 0;
   overflow: hidden;
+  display: flex;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  padding-bottom: var(--cds-spacing-02);
+  border-bottom: 1px solid var(--cds-border-subtle);
 }
 
 .esti-focus-calmness {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--cds-spacing-04);
   flex-wrap: wrap;
+
+  &__pictogram {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+    color: var(--cds-text-secondary);
+    opacity: 0.9;
+    flex-shrink: 0;
+    align-self: center;
+  }
 
   &__label {
     font-family: 'IBM Plex Mono', monospace;
@@ -5946,20 +6425,18 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     align-self: center;
   }
 
-  &__score {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 34px;
-    line-height: 1;
-    font-weight: 300;
-  }
-
   &__band {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--cds-text-helper);
-    text-transform: uppercase;
-    align-self: center;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0;
+    line-height: 1.35;
+    color: var(--cds-text-secondary);
+    text-transform: none;
+    align-self: baseline;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -5977,8 +6454,8 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 .esti-poa-action {
   display: flex;
   align-items: flex-start;
-  gap: var(--cds-spacing-03);
-  padding: var(--cds-spacing-01) 0;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-03) 0;
   min-height: 0;
   overflow: hidden;
 
@@ -5990,7 +6467,7 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
 .esti-poa-action__num {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   min-width: 1.4rem;
   padding-top: 1px;
@@ -6003,9 +6480,13 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
   > .esti-label {
     display: block;
+    color: var(--cds-text-primary);
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
   }
 }
 
@@ -6014,16 +6495,25 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   flex-wrap: wrap;
   gap: var(--cds-spacing-02);
   margin-top: var(--cds-spacing-01);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: 0;
   color: var(--cds-text-helper);
-  text-transform: uppercase;
+  text-transform: none;
 
   span {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+  }
+
+  span:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cds-text-helper);
   }
 }
 
@@ -6032,8 +6522,8 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   gap: var(--cds-spacing-01);
   margin-top: var(--cds-spacing-01);
   color: var(--cds-text-helper);
-  font-size: 10px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.35;
 
   span {
     padding-left: var(--cds-spacing-04);
@@ -6081,7 +6571,7 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   min-height: 0;
   overflow: hidden;
   display: grid;
-  grid-template-rows: 36px repeat(4, minmax(0, 1fr));
+  grid-template-rows: 36px repeat(5, minmax(0, 1fr));
 
   .esti-cognitive-section-title {
     display: flex;
@@ -6159,7 +6649,7 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     text-overflow: ellipsis;
   }
 
-  // Square alert tag — background set inline from ZCOLOR[state]
+  // Neutral state chip — calm, monochrome (no colour-coded background).
   &__status {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 9px;
@@ -6170,6 +6660,8 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     padding: 2px 6px;
     border-radius: 0;
     flex-shrink: 0;
+    color: var(--cds-text-primary);
+    background: var(--cds-layer-02);
   }
 }
 
@@ -6203,15 +6695,17 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   gap: var(--cds-spacing-02);
   min-height: 0;
   min-width: 0;
+  position: relative;
+  isolation: isolate;
 
+  // Neutral by design — all states render white; the pictogram conveys the state.
   --qc: var(--cds-text-primary);
 
-
-  &--stable   { --qc: #42be65; }
-  &--watch    { --qc: #f1c21b; }
-  &--friction { --qc: #ff832b; }
-  &--critical { --qc: #fa4d56; }
-  &--info     { --qc: #4589ff; }
+  &--stable,
+  &--watch,
+  &--friction,
+  &--critical,
+  &--info     { --qc: var(--cds-text-primary); }
   &--inactive { --qc: var(--cds-text-disabled); opacity: 0.35; }
 
   &__name {
@@ -6224,39 +6718,31 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    position: relative;
+    z-index: 1;
   }
 
   &__val {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 24px;
-    line-height: 1;
-    color: #fff;
-    font-weight: 300;
+    line-height: 1.08;
+    color: var(--cds-text-primary);
+    font-weight: 400;
     margin-top: auto;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     position: relative;
-    padding-left: 12px;  // room for superscript dot
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;              // anchored to top of number = superscript position
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--qc);
-    }
+    padding-left: 0;
+    z-index: 1;
   }
 
   &__tag {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1.3;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.35;
     padding: 2px 6px;
     display: inline-block;
     max-width: 100%;
@@ -6265,6 +6751,8 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     white-space: nowrap;
     flex-shrink: 0;
     border-radius: 0;
+    position: relative;
+    z-index: 1;
   }
 
   &__note {
@@ -6278,6 +6766,20 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__pictogram {
+    position: absolute;
+    right: var(--cds-spacing-04);
+    top: var(--cds-spacing-04);
+    width: clamp(50px, 4.5vw, 76px);
+    height: clamp(50px, 4.5vw, 76px);
+    fill: var(--qc);
+    opacity: 0.16;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 

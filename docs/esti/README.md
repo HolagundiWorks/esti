@@ -24,6 +24,7 @@ direction. Point-in-time audits and superseded specs live in
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | DSR, takeoff, estimate, BOQ, provenance, and output boundaries |
+| [STEELFLOW-BBS-FLOW](STEELFLOW-BBS-FLOW.md) | Reinforcement member-flow UI, TMT references, IS-rule boundaries, and BBS extraction |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
 | [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared compliance rule engine — pre/post workflows, public API, snapshots |

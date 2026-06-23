@@ -6,12 +6,13 @@ import {
   TenderDeclineByToken,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import {
   contractorSubmissions,
   contractors,
+  drawings,
   projectOffices,
   runningBills,
   tenderBids,
@@ -19,6 +20,7 @@ import {
   tenderDocuments,
   tenderInvitations,
   tenders,
+  transmittals,
 } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
@@ -185,6 +187,30 @@ export const contractorPortalRouter = router({
       .onConflictDoNothing();
     return { ok: true as const };
   }),
+
+  /** Issued drawings + transmittals for the contractor's project (read-only). */
+  projectDocuments: publicProcedure
+    .input(z.object({ token: z.string().min(10).max(96) }))
+    .query(async ({ ctx, input }) => {
+      const inv = await loadByToken(ctx.db, input.token);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+      const drawingRows = await ctx.db
+        .select({ id: drawings.id, ref: drawings.ref, title: drawings.title })
+        .from(drawings)
+        .where(and(eq(drawings.projectId, inv.projectId), eq(drawings.status, "READY")))
+        .orderBy(desc(drawings.createdAt));
+      const transmittalRows = await ctx.db
+        .select({
+          ref: transmittals.ref,
+          purpose: transmittals.purpose,
+          channel: transmittals.channel,
+          dateIssued: transmittals.dateIssued,
+        })
+        .from(transmittals)
+        .where(and(eq(transmittals.projectId, inv.projectId), isNotNull(transmittals.dateIssued)))
+        .orderBy(desc(transmittals.dateIssued));
+      return { drawings: drawingRows, transmittals: transmittalRows };
+    }),
 
   listCoordination: publicProcedure
     .input(z.object({ token: z.string().min(10).max(96) }))

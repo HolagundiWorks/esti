@@ -19,6 +19,12 @@ import {
   getTechnicalIntelligence,
   getDashboardHome,
 } from "./readModels/index.js";
+import {
+  buildReasoningFrame,
+  ingestCognitionEvents,
+  loadBehaviorProfiles,
+  loadCognitionQueue,
+} from "../cognition/engine.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({
@@ -27,6 +33,47 @@ export const dashboardRouter = router({
 
   /** Bundled office dashboard data — one server round-trip for the home view. */
   home: protectedProcedure.query(({ ctx }) => getDashboardHome(ctx.db)),
+
+  /** Explicit ingestion hook for workers/cron/tests; dashboard.home also refreshes idempotently. */
+  ingestCognition: protectedProcedure.mutation(async ({ ctx }) => {
+    const [actionCenter, financialHealth, projectHealth, clientIntelligence, teamIntelligence] =
+      await Promise.all([
+        getActionCenter(ctx.db),
+        getFinancialHealth(ctx.db),
+        getProjectHealth(ctx.db),
+        getClientIntelligence(ctx.db),
+        getTeamIntelligence(ctx.db),
+      ]);
+    const ingestion = await ingestCognitionEvents(ctx.db, {
+      actionCenter,
+      financialHealth,
+      projectHealth,
+      clientIntelligence,
+      teamIntelligence,
+    });
+    const [priorityQueue, behaviorProfiles] = await Promise.all([
+      loadCognitionQueue(ctx.db),
+      loadBehaviorProfiles(ctx.db),
+    ]);
+    return {
+      ingestion,
+      priorityQueue,
+      behaviorProfiles,
+      reasoning: buildReasoningFrame({ queue: priorityQueue, behaviorProfiles }),
+    };
+  }),
+
+  cognitionQueue: protectedProcedure.query(async ({ ctx }) => {
+    const [priorityQueue, behaviorProfiles] = await Promise.all([
+      loadCognitionQueue(ctx.db),
+      loadBehaviorProfiles(ctx.db),
+    ]);
+    return {
+      priorityQueue,
+      behaviorProfiles,
+      reasoning: buildReasoningFrame({ queue: priorityQueue, behaviorProfiles }),
+    };
+  }),
 
   /** This user's saved dashboard layout (null = use the default). */
   layout: protectedProcedure.query(async ({ ctx }) => {

@@ -11,17 +11,58 @@ import {
   Tile,
 } from "@carbon/react";
 import { ArrowRight } from "@carbon/icons-react";
-import type { AppRouter } from "@esti/backend/router";
 import { formatINRShort } from "@esti/contracts";
-import type { inferRouterOutputs } from "@trpc/server";
 import { Link } from "react-router-dom";
 import { AiDraftPanel } from "../AiStudio.js";
 import { edge, ZoneHead } from "./dashboardUi.js";
 
-type DashboardHome = inferRouterOutputs<AppRouter>["dashboard"]["home"];
-type ActionCenter = NonNullable<DashboardHome["actionCenter"]>;
-type ProjectHealth = DashboardHome["projectHealth"][number];
-type TeamMember = inferRouterOutputs<AppRouter>["dashboard"]["teamIntelligence"][number];
+type BillingReadyPhase = {
+  id: string;
+  label: string;
+  projectId: string;
+  projectRef: string;
+  projectTitle: string;
+  contractValuePaise: number;
+};
+type OverdueInvoice = {
+  id: string;
+  ref: string;
+  projectId: string;
+  netReceivablePaise: number;
+  daysOverdue: number;
+};
+type PendingApproval = {
+  id: string;
+  title: string;
+  projectId: string;
+  projectRef: string;
+  daysWaiting: number;
+};
+type OpenTender = {
+  id: string;
+  title: string;
+  projectRef: string;
+  projectTitle: string;
+  dueDate: string | null;
+};
+type OpenConstruction = {
+  id: string;
+  kind: string;
+  subject: string;
+  contractorName: string;
+  projectId: string;
+  projectRef: string;
+};
+type ProjectHealth = {
+  id: string;
+  ref: string;
+  title: string;
+};
+type TeamMember = {
+  assignee: string;
+  totalOpen: number;
+  overdueCount: number;
+};
 
 type Props = {
   navigate: (to: string) => void;
@@ -36,11 +77,11 @@ type Props = {
   showTeamCapacity: boolean;
   acTotal: number;
   teamLoading: boolean;
-  billingReady: ActionCenter["billingReadyPhases"];
-  overdueInvoices: ActionCenter["overdueInvoices"];
-  pendingApprovals: ActionCenter["pendingApprovals"];
-  openTenders: ActionCenter["openTenders"];
-  openConstruction: ActionCenter["openConstruction"];
+  billingReady: BillingReadyPhase[];
+  overdueInvoices: OverdueInvoice[];
+  pendingApprovals: PendingApproval[];
+  openTenders: OpenTender[];
+  openConstruction: OpenConstruction[];
   riskProjects: ProjectHealth[];
   overloadedMembers: TeamMember[];
   readyToBillSum: number;

@@ -52,19 +52,108 @@ Outcome measurement
 | Intervention | Convert pressure into owner actions with expected effect and risk if ignored | TypeScript backend |
 | Explanation | Produce clear human briefings from structured machine output | Ollama via AI gateway |
 
-## Current Foundation
+## Current Implementation
 
-The first implementation slice is live and deterministic:
+The live implementation is deterministic and backed by a normalized cognition
+event layer:
 
 - computes domain health from existing dashboard read models (finance, client, project, team, approval);
+- ingests real office records into `esti_cognition_event` with stable `source_key`
+  values so repeated ingestion updates the same signal instead of duplicating it;
+- materializes learned behavior profiles in
+  `esti_cognition_behavior_profile` for clients, assignees, and office-level
+  approval patterns;
+- materializes open priority items in `esti_cognition_priority_item`;
 - produces office health as a weighted score;
-- emits ranked intervention recommendations with `title`, `confidence`, `expectedEffect`, and `riskIfIgnored`;
-- returns this as `dashboard.home.cognition` via the existing `dashboard.home` bundle;
+- emits ranked intervention recommendations with `title`, `confidence`,
+  `expectedEffect`, and `riskIfIgnored`;
+- returns this as `dashboard.home.cognition` and
+  `dashboard.home.cognitiveEngine` via the existing `dashboard.home` bundle;
+- exposes `dashboard.ingestCognition` and `dashboard.cognitionQueue` for worker,
+  cron, and test access;
 - keeps LLMs outside the score and intervention path.
 
 The dashboard TODAY'S FOCUS tile renders the breathing space engine: OFFICE CALMNESS score + at most 3 immediate actions + safely deferred list + system confidence. The SYSTEM HEALTH quad tile shows live domain health percentages.
 
-The Python worker image now carries scikit-learn, XGBoost, MLflow, and Evidently for the next recognition and prediction phases.
+The Python worker image carries scikit-learn, XGBoost, MLflow, and Evidently for
+future model-assisted recognition and prediction phases. The current production
+path is TypeScript/PostgreSQL deterministic logic.
+
+## Event Ingestion
+
+The ingestion engine lives in `backend/src/modules/cognition/engine.ts`.
+
+Inputs:
+
+- pending approvals;
+- overdue invoices;
+- billing-ready phases;
+- project health rows;
+- client-intelligence rows;
+- team-intelligence rows;
+- near meeting/review tasks.
+
+Each event records:
+
+- domain and event type;
+- subject and project references;
+- severity;
+- urgency, finance, dependency, team blockage, meeting proximity, deadline, and
+  safe-deferral scores;
+- final `priorityScore`;
+- structured evidence JSON.
+
+## Priority Formula
+
+Priority is deterministic:
+
+```text
+priority =
+  urgency
+  + financial impact band
+  + dependency risk
+  + team blockage
+  + meeting proximity
+  + deadline risk
+  - safe deferral
+```
+
+The score is clamped to `0-100`. Financial impact is logarithmic so one large
+invoice matters without overwhelming every other signal.
+
+## Behavioral Learning
+
+The first learning layer is durable pattern extraction, not black-box ML.
+
+Profiles are currently generated for:
+
+- clients: approval delay, payment delay, revision churn, normal response;
+- assignees: overload, deadline slip, balanced load;
+- office approval system: approval queue backlog.
+
+Each profile stores sample count, confidence percentage, metrics, and last
+observed timestamp. These are evidence for reasoning and future prediction, not
+punitive staff scoring.
+
+## AI Reasoning Frame
+
+`dashboard.home.cognitiveEngine.reasoning` returns:
+
+- the single next best action;
+- supporting evidence;
+- expected benefit;
+- step-by-step `howTo`;
+- learned patterns that explain why the action is suggested;
+- items safe to ignore today.
+
+The frame has:
+
+```text
+rule = DETERMINISTIC_REASONING_LLM_EXPLAINS_ONLY
+```
+
+This is the handoff object for an LLM briefing. LLMs may explain this frame in
+plain language but must not change the score, action, evidence, or ranking.
 
 ## Executive Cognitive Load Principle
 
@@ -133,9 +222,9 @@ It must not create or alter scores, calculate financial truth, invent prediction
 
 ## Next Phases
 
-1. Append-only cognition event ledger for operational signals.
-2. Worker jobs for anomaly recognition using scikit-learn.
-3. Worker jobs for prediction using XGBoost or equivalent local models.
-4. Reasoning graph across client, project, finance, team, and compliance dependencies.
-5. Outcome measurement after intervention.
-6. LLM briefing generated from persisted cognition snapshots.
+1. Worker jobs for anomaly recognition using scikit-learn.
+2. Worker jobs for prediction using XGBoost or equivalent local models.
+3. Reasoning graph edges across client, project, finance, team, and compliance
+   dependencies.
+4. Outcome measurement after intervention.
+5. LLM briefing generated from persisted cognition snapshots.

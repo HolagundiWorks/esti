@@ -34,9 +34,15 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
     utils.assignments.listByProject.invalidate({ projectId });
   const remove = trpc.assignments.remove.useMutation({ onSuccess: invalidate });
 
+  const teamsQ = trpc.teams.list.useQuery();
+
   const [open, setOpen] = useState(false);
   const [teamMemberId, setTeamMemberId] = useState("");
   const [role, setRole] = useState<AssignmentRoleCode>("SITE_INCHARGE");
+
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [selTeamId, setSelTeamId] = useState("");
+  const [teamRole, setTeamRole] = useState<AssignmentRoleCode>("SUPPORT");
 
   const create = trpc.assignments.create.useMutation({
     onSuccess: () => {
@@ -46,7 +52,16 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
     },
   });
 
+  const assignTeam = trpc.assignments.assignTeam.useMutation({
+    onSuccess: () => {
+      invalidate();
+      setTeamOpen(false);
+      setSelTeamId("");
+    },
+  });
+
   const team = (teamQ.data ?? []).filter((m) => m.active);
+  const teamGroups = (teamsQ.data ?? []).filter((g) => g.active);
 
   return (
     <>
@@ -59,13 +74,23 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
         }}
       >
         <h3>Project team</h3>
-        <Button
-          size="sm"
-          disabled={team.length === 0}
-          onClick={() => setOpen(true)}
-        >
-          Assign member
-        </Button>
+        <Stack orientation="horizontal" gap={3}>
+          <Button
+            kind="tertiary"
+            size="sm"
+            disabled={teamGroups.length === 0}
+            onClick={() => setTeamOpen(true)}
+          >
+            Assign team
+          </Button>
+          <Button
+            size="sm"
+            disabled={team.length === 0}
+            onClick={() => setOpen(true)}
+          >
+            Assign member
+          </Button>
+        </Stack>
       </div>
       {team.length === 0 && <p>Add staff in the Team register first.</p>}
       <TableContainer
@@ -146,6 +171,50 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
                 <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
               ),
             )}
+          </Select>
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={teamOpen}
+        modalHeading="Assign a team"
+        primaryButtonText={assignTeam.isPending ? "Assigning…" : "Assign team"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!selTeamId || assignTeam.isPending}
+        onRequestClose={() => setTeamOpen(false)}
+        onRequestSubmit={() =>
+          assignTeam.mutate({ projectId, teamId: selTeamId, role: teamRole })
+        }
+      >
+        <Stack gap={5}>
+          <p>
+            Selecting a team staffs all of its active members onto this project
+            in one action. Members already assigned are skipped.
+          </p>
+          <Select
+            id="at-team"
+            labelText="Team"
+            value={selTeamId}
+            onChange={(e) => setSelTeamId(e.target.value)}
+          >
+            <SelectItem value="" text="Select…" />
+            {teamGroups.map((g) => (
+              <SelectItem
+                key={g.id}
+                value={g.id}
+                text={`${g.name} (${g.members.length} member${g.members.length === 1 ? "" : "s"})`}
+              />
+            ))}
+          </Select>
+          <Select
+            id="at-role"
+            labelText="Project role for all members"
+            value={teamRole}
+            onChange={(e) => setTeamRole(e.target.value as AssignmentRoleCode)}
+          >
+            {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map((k) => (
+              <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
+            ))}
           </Select>
         </Stack>
       </Modal>

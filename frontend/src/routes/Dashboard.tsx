@@ -128,11 +128,11 @@ function officeHealth(cs: ZoneState, fs: ZoneState, ps: ZoneState, ts: ZoneState
 }
 
 function healthBand(score: number): { label: string; color: string } {
-  if (score >= 88) return { label: "STABLE",                color: "#42be65" };
-  if (score >= 72) return { label: "OPERATIONAL",           color: "#42be65" };
-  if (score >= 55) return { label: "ELEVATED STRESS",       color: "#f1c21b" };
-  if (score >= 38) return { label: "FRICTION",              color: "#ff832b" };
-  return              { label: "INTERVENTION REQUIRED", color: "#fa4d56" };
+  if (score >= 88) return { label: "Stable",              color: "#42be65" };
+  if (score >= 72) return { label: "Flowing",             color: "#4589ff" };
+  if (score >= 55) return { label: "Review soon",         color: "#f1c21b" };
+  if (score >= 38) return { label: "Needs attention",     color: "#ff832b" };
+  return               { label: "Owner action needed", color: "#fa4d56" };
 }
 
 // ── Health percentages ────────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ function AlertStrip({ attn, score }: { attn: AttnResult; score: number }) {
       <span className="esti-av-strip__shape" style={{ color: attn.chainColor }}>{SHAPE[st]}</span>
       <span className="esti-av-strip__issue">{attn.issue}</span>
       <span className="esti-av-strip__action">→ {attn.action}</span>
-      <span className="esti-av-strip__health" style={{ color: band.color }}>HEALTH {score} · {band.label}</span>
+      <span className="esti-av-strip__health" style={{ color: band.color }}>STATE · {band.label}</span>
     </div>
   );
 }
@@ -322,44 +322,80 @@ function TelemGauge({ pct, state, sz = 32 }: { pct: number; state: ZoneState; sz
 
 // ── Quad cell primitives ──────────────────────────────────────────────────────
 
-const ALERT_COLOR: Record<string, string> = {
-  stable: "#42be65", watch: "#f1c21b", friction: "#ff832b",
-  critical: "#fa4d56", info: "#4589ff", inactive: "transparent",
+// AORMS geometry state language — three shapes, two colours only.
+//   ● Handled (white)     — system handling internally, no owner attention
+//   ▲ Monitoring (white)  — system monitoring internally
+//   ■ Act (blue #0F62FE)  — AI requesting owner intervention (ONE per dashboard, in evidence)
+// StatusSymbol never emits ■: the single Act marker is rendered explicitly in the evidence layer.
+const GEO_WORD: Record<string, string> = {
+  stable: "Handled",
+  info: "Handled",
+  watch: "Monitoring",
+  friction: "Monitoring",
+  critical: "Monitoring",
+  inactive: "Handled",
 };
 
-function QuadCell({
-  name, value, sub, state, note,
-}: {
-  name: string; value: React.ReactNode;
-  sub?: string; state: ZoneState | "info" | "inactive"; note?: string;
-}) {
-  const tagBg   = "transparent";
-  const tagColor = state !== "inactive" ? "var(--cds-text-inverse)" : "var(--cds-text-disabled)";
+function geoGlyph(state: ZoneState | "info" | "inactive"): "●" | "▲" {
+  if (state === "stable" || state === "info" || state === "inactive") return "●";
+  return "▲"; // watch / friction / critical → monitoring
+}
 
+// Three-way shape for flow tasks: ● Running · ▲ Attention · ■ Urgent.
+function shapeFor(state?: ZoneState): "●" | "▲" | "■" {
+  if (state === "critical") return "■";
+  if (state === "watch" || state === "friction") return "▲";
+  return "●";
+}
+
+// Priority weight for ranking flow tasks (highest first).
+const FLOW_PRIORITY: Record<string, number> = { critical: 3, friction: 2, watch: 1, stable: 0, inactive: 0 };
+const rankFlow = (a: { state?: ZoneState }, b: { state?: ZoneState }) =>
+  (FLOW_PRIORITY[b.state ?? "stable"] ?? 0) - (FLOW_PRIORITY[a.state ?? "stable"] ?? 0);
+
+// The three glyphs have different optical sizes in the font; a per-shape class scales them
+// to equal visual height (the circle is drawn smaller, so it gets scaled up).
+const GEO_SHAPE_CLASS: Record<string, string> = {
+  "●": "esti-geo--circle",
+  "▲": "esti-geo--triangle",
+  "■": "esti-geo--square",
+};
+
+function GeoMark({
+  glyph,
+  sm,
+  act,
+  className = "",
+  label,
+  style,
+}: {
+  glyph: "●" | "▲" | "■";
+  sm?: boolean;
+  act?: boolean;
+  className?: string;
+  label?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div className={`esti-qcell esti-qcell--${state}`}>
-      <span className="esti-qcell__name">{name}</span>
-      <span className="esti-qcell__val">{value}</span>
-      {sub && (
-        <span className="esti-qcell__tag" style={{ background: tagBg, color: tagColor }}>
-          {sub}
-        </span>
-      )}
-      {note && <span className="esti-qcell__note">{note}</span>}
-    </div>
+    <span
+      className={`esti-geo ${GEO_SHAPE_CLASS[glyph]}${sm ? " esti-geo--sm" : ""}${act ? " esti-geo--act" : ""}${className ? ` ${className}` : ""}`}
+      aria-label={label}
+      style={style}
+    >
+      {glyph}
+    </span>
   );
 }
 
-function MacroHdr({ name, state, label, nameColor }: { name: string; state: ZoneState; label: string; nameColor?: string }) {
+function StatusSymbol({ state, label }: { state: ZoneState | "info" | "inactive"; label: string }) {
+  return <GeoMark glyph={geoGlyph(state)} label={label || GEO_WORD[state]} />;
+}
+
+function MacroHdr({ name, label, nameColor }: { name: string; label: string; nameColor?: string }) {
   return (
     <div className="esti-macro-hdr">
       <span className="esti-macro-hdr__name" style={nameColor ? { color: nameColor } : undefined}>{name}</span>
-      <span
-        className="esti-macro-hdr__status"
-        style={{ background: ZCOLOR[state], color: "var(--cds-background)" }}
-      >
-        {label}
-      </span>
+      <span className="esti-macro-hdr__status">{label}</span>
     </div>
   );
 }
@@ -536,29 +572,110 @@ function stateTagType(s: ZoneState): string {
 
 // ── Cognitive load protection helpers ─────────────────────────────────────────
 
-function calmnessColor(score: number): string {
-  if (score >= 72) return ZCOLOR["stable"];
-  if (score >= 55) return ZCOLOR["watch"];
-  if (score >= 38) return ZCOLOR["friction"];
-  return ZCOLOR["critical"];
+// Neutral by design — recovery readout stays white, not colour-coded.
+function calmnessColor(_score: number): string {
+  return "var(--cds-text-primary)";
 }
 
 function focusContext(items: any[]): string {
   const hasCritical = items.some((i: any) => i.severity === "critical");
-  if (hasCritical) return "Immediate — cannot safely defer";
+  if (hasCritical) return "This needs owner attention now.";
   const h = new Date().getHours();
-  if (h < 10) return "Plan for the day ahead";
-  if (h < 13) return "Complete before midday";
-  if (h < 17) return "Complete before end of day";
-  return "Remaining today";
+  if (h < 10) return "Plan this into the day before work spreads.";
+  if (h < 13) return "Handle this before midday.";
+  if (h < 17) return "Close this before end of day.";
+  return "This remains the useful action for today.";
 }
 
 function calmnessLabel(score: number): string {
-  if (score >= 88) return "CALM";
-  if (score >= 72) return "MANAGEABLE";
-  if (score >= 55) return "LOAD ELEVATED";
-  if (score >= 38) return "LOAD HIGH";
-  return "OVERLOAD RISK";
+  if (score >= 88) return "Everything under control";
+  if (score >= 72) return "Operations running smoothly";
+  if (score >= 55) return "Small delays detected";
+  if (score >= 38) return "Dependencies slowing progress";
+  return "Multiple workflows blocked";
+}
+
+type SignalCopy = {
+  value: string;
+  detail: string;
+};
+
+function officeSignal(state: ZoneState): SignalCopy {
+  if (state === "stable") return { value: "Stable", detail: "The office is under control." };
+  if (state === "watch") return { value: "Minor friction", detail: "A few items may slow the day." };
+  if (state === "friction") return { value: "Needs attention", detail: "Dependencies are slowing progress." };
+  if (state === "critical") return { value: "Recovery required", detail: "Several workflows need owner attention." };
+  return { value: "Reviewing", detail: "The system is still reading office signals." };
+}
+
+function clientSignal(state: ZoneState): SignalCopy {
+  if (state === "stable") return { value: "Responsive", detail: "Client communication is healthy." };
+  if (state === "watch") return { value: "Waiting", detail: "A normal client response is pending." };
+  if (state === "friction") return { value: "Approval blocking", detail: "A client decision is affecting progress." };
+  if (state === "critical") return { value: "Escalate today", detail: "A follow-up is needed to unblock work." };
+  return { value: "No client signal", detail: "Client activity is not available yet." };
+}
+
+function financeSignal(state: ZoneState): SignalCopy {
+  if (state === "stable") return { value: "Cash flow stable", detail: "Billing is moving normally." };
+  if (state === "watch") return { value: "Follow-up pending", detail: "A payment reminder is recommended." };
+  if (state === "friction") return { value: "Recovery delayed", detail: "The billing cycle is slowing down." };
+  if (state === "critical") return { value: "Recover payment", detail: "Payment recovery needs attention today." };
+  return { value: "Finance restricted", detail: "Finance signals are not available for this role." };
+}
+
+function projectSignal(state: ZoneState): SignalCopy {
+  if (state === "stable") return { value: "On track", detail: "Project delivery is moving normally." };
+  if (state === "watch") return { value: "Starting to slow", detail: "Early delay signals are appearing." };
+  if (state === "friction") return { value: "Waiting on dependency", detail: "A blocker is slowing project progress." };
+  if (state === "critical") return { value: "Intervention needed", detail: "A project is stalled and needs review." };
+  return { value: "No project signal", detail: "No active project signal is available." };
+}
+
+function teamSignal(state: ZoneState): SignalCopy {
+  if (state === "stable") return { value: "Workload balanced", detail: "Team capacity is distributed well." };
+  if (state === "watch") return { value: "Team is busy", detail: "Workload is increasing but manageable." };
+  if (state === "friction") return { value: "Load is uneven", detail: "Reallocation is recommended." };
+  if (state === "critical") return { value: "Team bottlenecked", detail: "Overload is blocking progress." };
+  return { value: "No team signal", detail: "Team capacity data is not available." };
+}
+
+function domainSignal(domain: string, state: ZoneState): SignalCopy {
+  if (domain === "client" || domain === "approval") return clientSignal(state);
+  if (domain === "finance") return financeSignal(state);
+  if (domain === "project") return projectSignal(state);
+  if (domain === "team") return teamSignal(state);
+  return officeSignal(state);
+}
+
+function preparedSignal(state: ZoneState, hasAction: boolean): SignalCopy {
+  if (state === "stable" && !hasAction) return { value: "Ready for today", detail: "Everything important is arranged." };
+  if (state === "stable") return { value: "Priorities arranged", detail: "The day has a clear order." };
+  if (state === "watch") return { value: "Review in progress", detail: "The system is processing new updates." };
+  return { value: "Needs review", detail: "Human judgment is recommended before proceeding." };
+}
+
+function forecastSignal(value: number): string {
+  if (value >= 78) return "Action required";
+  if (value >= 58) return "Review recommended";
+  if (value >= 36) return "Watch only";
+  return "Moving normally";
+}
+
+function effortLabel(item: any): string {
+  const steps = Array.isArray(item?.howTo) ? item.howTo.length : 0;
+  if (cognitionState(item?.severity) === "critical") return "Owner attention";
+  if (steps <= 2) return "Quick action";
+  return "Focused review";
+}
+
+function actionOutcome(item: any): string {
+  const source = item?.source ?? "";
+  if (source === "finance") return "Billing can resume and cash-flow pressure should reduce.";
+  if (source === "approval" || source === "client") return "The project team can continue without waiting on the client.";
+  if (source === "team") return "Work moves away from overloaded people and delivery risk reduces.";
+  if (source === "project") return "The project has a clearer recovery path and owner.";
+  return "The office should return to a calmer operating state.";
 }
 
 function cognitionState(severity?: string): ZoneState {
@@ -582,11 +699,6 @@ function interventionAction(id?: string): DashboardInterventionAction {
   if (id === "team-load-redistribution") return "rebalance-team-load";
   if (id === "client-project-causal-chain") return "stabilize-office";
   return "stabilize-office";
-}
-
-function confidencePct(value?: number): number {
-  if (value == null) return 0;
-  return Math.round(value <= 1 ? value * 100 : value);
 }
 
 function forecastPct(score: number | undefined, signal = 0): number {
@@ -614,15 +726,6 @@ function meetingAwareness(meetings: any[]): { label: string; detail: string; sta
     return { label: "PREP", detail: `${next.projectRef ?? "Meeting"} tomorrow`, state: "watch" };
   }
   return { label: "AWARE", detail: `${meetings.length} meeting signals`, state: "stable" };
-}
-
-function recoveryLevelLabel(level?: number): string {
-  if (level === 1) return "L1 OWNER";
-  if (level === 2) return "L2 REALLOCATE";
-  if (level === 3) return "L3 DELEGATE";
-  if (level === 4) return "L4 FINANCE";
-  if (level === 5) return "L5 WORKFLOW";
-  return "RECOVERY";
 }
 
 function domainLabel(domain?: string): string {
@@ -749,28 +852,6 @@ function fallbackCognitiveInterventions(input: {
   return items.sort((a, b) => rank[b.severity as keyof typeof rank] - rank[a.severity as keyof typeof rank] || b.impactPct - a.impactPct).slice(0, 6);
 }
 
-function SignalMetric({
-  title,
-  value,
-  detail,
-  state,
-  pulse,
-}: {
-  title: string;
-  value: React.ReactNode;
-  detail: string;
-  state: ZoneState;
-  pulse?: boolean;
-}) {
-  return (
-    <div className={`esti-signal-metric ${pulse ? "esti-signal-metric--pulse" : ""}`}>
-      <span className="esti-signal-metric__title">{title}</span>
-      <span className="esti-signal-metric__value" style={{ color: ZCOLOR[state] }}>{value}</span>
-      <span className="esti-signal-metric__detail">{detail}</span>
-    </div>
-  );
-}
-
 function CognitiveAskAi() {
   const [prompt, setPrompt] = useState("");
   const [answer, setAnswer] = useState("");
@@ -824,22 +905,25 @@ function CognitiveEvidence({
 }: {
   title: string;
   empty: string;
-  items: Array<{ ref: string; val?: string; tag?: string; state?: ZoneState; href?: string }>;
+  items: Array<{ ref: string; val?: string; tag?: string; state?: ZoneState; href?: string; act?: boolean }>;
 }) {
   return (
     <div className="esti-cognitive-evidence">
       <div className="esti-cognitive-section-title">{title}</div>
       {items.length === 0 ? (
         <div className="esti-detail-empty">
-          <span style={{ color: ZCOLOR["stable"] }}>●</span> {empty}
+          <GeoMark sm glyph="●" /> {empty}
         </div>
-      ) : items.slice(0, 4).map((item, i) => {
+      ) : items.slice(0, 5).map((item, i) => {
         const content = (
           <>
-            <span className="esti-detail-item__ref">{item.ref}</span>
+            <span className="esti-detail-item__ref">
+              <GeoMark sm glyph={shapeFor(item.state)} />{" "}
+              {item.ref}
+            </span>
             {item.val && <span className="esti-detail-item__val">{item.val}</span>}
             {item.tag && (
-              <span className="esti-detail-item__tag" style={{ color: ZCOLOR[item.state ?? "watch"] }}>
+              <span className="esti-detail-item__tag" style={{ color: "var(--cds-text-secondary)" }}>
                 {item.tag}
               </span>
             )}
@@ -936,7 +1020,6 @@ function ScreenOverview({
   const officeState = cognitionState(office?.severity) !== "inactive" ? cognitionState(office?.severity) : cognitionState(attn.chainColor === ZCOLOR["critical"] ? "critical" : attn.chainColor === ZCOLOR["friction"] ? "friction" : attn.chainColor === ZCOLOR["watch"] ? "watch" : "stable");
   const primary = interventions[0];
   const primarySeverity = cognitionState(primary?.severity ?? officeState);
-  const primaryConfidence = confidencePct(primary?.confidence);
   const reasoningDrivers = domains
     .filter((d: any) => d.severity !== "stable" && d.severity !== "inactive")
     .flatMap((d: any) => (d.drivers ?? []).map((driver: string) => ({ domain: d.domain, driver, severity: cognitionState(d.severity) })))
@@ -958,6 +1041,17 @@ function ScreenOverview({
   ];
   const meeting = meetingAwareness(meetingFocus);
   const recoveryAfter = recoveryForecast(score, interventions);
+  const officeCopy = officeSignal(officeState);
+  const clientCopy = clientSignal(cs);
+  const financeCopy = financeSignal(fs);
+  const projectCopy = projectSignal(ps);
+  const teamCopy = teamSignal(ts);
+  const preparedCopy = preparedSignal(primarySeverity, interventions.length > 0);
+  const recoveryCopy = recoveryAfter > score + 8
+    ? { value: "Improving", detail: "Billing and workflow expected to normalize after action" }
+    : officeState === "stable"
+      ? { value: "Restored", detail: "Office stable again" }
+      : { value: "Recovering", detail: "Recovery process started" };
   const activeDomains = [
     { key: "client", label: "CLIENT", pct: cHpct, state: cs },
     { key: "finance", label: "FINANCE", pct: fHpct, state: fs },
@@ -966,272 +1060,202 @@ function ScreenOverview({
   ];
   const recoveryDomains = activeDomains.filter((d) => d.state !== "stable" && d.state !== "inactive").slice(0, 3);
 
+  // ── Evidence rows + the single Act marker ──────────────────────────────────
+  // Geometry language allows exactly ONE blue ■ on the dashboard: the highest-leverage
+  // intervention. We build all evidence rows, then promote one critical item to act=true.
+  type EvidenceItem = { ref: string; val?: string; tag?: string; state?: ZoneState; href?: string; act?: boolean };
+  const billingEvidence: EvidenceItem[] = [
+    ...((ac?.overdueInvoices ?? []).slice(0, 3).map((inv: any) => ({
+      ref: inv.ref,
+      val: formatINRShort(inv.netReceivablePaise),
+      tag: `${inv.daysOverdue}d`,
+      state: "critical" as ZoneState,
+      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
+    }))),
+    ...(billingReady.length > 0 ? [{
+      ref: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
+      val: billingReady.length === 1 ? billingReady[0].projectRef : undefined,
+      tag: "READY",
+      state: "watch" as ZoneState,
+      href: billingReady.length === 1 ? `/projects/${billingReady[0].projectId}?tab=invoices&phaseId=${billingReady[0].id}` : "/invoices",
+    }] : []),
+  ];
+  const clientEvidence: EvidenceItem[] = [
+    ...pending.slice(0, 3).map((ap: any) => ({
+      ref: ap.projectRef,
+      val: ap.title,
+      tag: `${ap.daysWaiting}d`,
+      state: ap.daysWaiting > 14 ? "critical" as ZoneState : "friction" as ZoneState,
+      href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
+    })),
+    ...(revisionCount > 0 ? [{
+      ref: "Client-driven revisions",
+      val: String(revisionCount),
+      tag: "CRIF",
+      state: revisionCount > 10 ? "critical" as ZoneState : "watch" as ZoneState,
+      href: "/projects?tab=revisions",
+    }] : []),
+    ...(totalStaleAppr > 0 ? [{
+      ref: "Stale approvals",
+      val: String(totalStaleAppr),
+      tag: "BLOCKED",
+      state: "friction" as ZoneState,
+      href: "/tasks?tab=activity",
+    }] : []),
+    ...(siteDelay > 0 ? [{
+      ref: "Open site items",
+      val: String(siteDelay),
+      tag: "SITE",
+      state: "watch" as ZoneState,
+      href: "/office/construction",
+    }] : []),
+  ];
+  const projectEvidence: EvidenceItem[] = [
+    ...meetingFocus.slice(0, 2).map((m: any) => ({
+      ref: m.projectRef ?? "Meeting",
+      val: m.title,
+      tag: Number(m.daysUntil ?? 999) <= 0 ? "TODAY" : `${m.daysUntil}D`,
+      state: Number(m.daysUntil ?? 999) <= 1 ? "watch" as ZoneState : "stable" as ZoneState,
+      href: taskHref(m.id, m.projectId),
+    })),
+    ...riskProjects.slice(0, 3).map((p: any) => ({
+      ref: p.ref,
+      val: p.title,
+      tag: "RED",
+      state: "critical" as ZoneState,
+      href: projectIssueHref(p),
+    })),
+    ...(delayedProjects > 0 ? [{
+      ref: "Delayed projects",
+      val: String(delayedProjects),
+      tag: "TASKS",
+      state: "watch" as ZoneState,
+      href: "/tasks?tab=tasks&openOnly=1",
+    }] : []),
+  ];
+  const teamEvidence: EvidenceItem[] = ti.slice(0, 4).map((m: any) => ({
+    ref: m.assignee,
+    val: `${m.totalOpen} open`,
+    tag: CAPACITY_LABEL[m.capacity] ?? m.capacity,
+    state: (m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable") as ZoneState,
+    href: taskHref(m.focusTaskId, m.focusProjectId),
+  }));
+  // Flow task lists, each ranked by priority — feed the Top-5 flow panels and the
+  // per-module task counts in Office State. Today's Focus is AI/ML-driven (interventions).
+  const billingFlow = [...billingEvidence].sort(rankFlow);
+  const teamFlow = [...teamEvidence].sort(rankFlow);
+  const projectFlow = [...projectEvidence].sort(rankFlow);
+  const clientFlow = [...clientEvidence].sort(rankFlow);
+
   return (
     <div className="esti-cognitive-dashboard">
 
-      <section className="esti-cognitive-layer esti-cognitive-signal-layer" aria-label="Signal layer">
-        <div className="esti-cognitive-health">
-        <MacroHdr name="SYSTEM HEALTH" state={officeState} label={healthBand(score).label} />
-        <div className="esti-quad">
-          <QuadCell name="CLIENT"  value={loading ? "—" : `${cHpct}%`} sub={CLIENT_LABEL[cs]}  state={cs} />
-          <QuadCell name="FINANCE" value={loading ? "—" : `${fHpct}%`} sub={FINANCE_LABEL[fs]} state={fs} />
-          <QuadCell name="PROJECT" value={loading ? "—" : `${pHpct}%`} sub={PROJECT_LABEL[ps]} state={ps} />
-          <QuadCell name="TEAM"    value={loading ? "—" : `${tHpct}%`} sub={TEAM_LABEL[ts]}    state={ts} />
-        </div>
-      </div>
-
-        <SignalMetric
-          title="OFFICE CALMNESS"
-          value={loading ? "—" : `${score}%`}
-          detail={calmnessLabel(score)}
-          state={officeState}
-          pulse
-        />
-        <SignalMetric
-          title="MEETING AWARENESS"
-          value={meeting.label}
-          detail={meeting.detail}
-          state={meeting.state}
-        />
-        <SignalMetric
-          title="SYSTEM CONFIDENCE"
-          value={`${primaryConfidence || score}%`}
-          detail={primary ? "Recommendation visible" : "No low-confidence action shown"}
-          state={primarySeverity}
-        />
-      </section>
-
-      <section className="esti-cognitive-layer esti-cognitive-brain-layer" aria-label="Cognitive layer">
-        <div className="esti-cognitive-main" aria-label="Today's focus">
-          <div className="esti-focus-header">
-            <div className="esti-focus-calmness">
-              <span className="esti-focus-calmness__label">TODAY'S FOCUS</span>
-              <span className="esti-focus-calmness__score" style={{ color: calmnessColor(score) }}>
-                {interventions.length === 0 ? "0" : Math.min(interventions.length, 3)}
+      <section className="esti-cognitive-layer esti-office-state" aria-label="Office state">
+        <MacroHdr name="OFFICE STATE" label={healthBand(score).label} />
+        <div className="esti-state-row">
+          {[
+            { name: "CLIENT",   state: cs,              count: clientFlow.length,   copy: clientCopy },
+            { name: "FINANCE",  state: fs,              count: billingFlow.length,  copy: financeCopy },
+            { name: "PROJECTS", state: ps,              count: projectFlow.length,  copy: projectCopy },
+            { name: "TEAM",     state: ts,              count: teamFlow.length,     copy: teamCopy },
+            { name: "MEETING",  state: meeting.state,   count: meetingFocus.length, copy: { detail: meeting.detail } },
+            { name: "PREPARED", state: primarySeverity, count: interventions.length, copy: preparedCopy },
+          ].map((c) => (
+            <div key={c.name} className="esti-state-line">
+              <span className="esti-state-line__name">{c.name}</span>
+              <span className="esti-state-line__icon">
+                {loading ? "—" : <GeoMark glyph={shapeFor(c.state as ZoneState)} />}
+                <span className="esti-state-line__count">{loading ? "" : c.count}</span>
               </span>
-              <span className="esti-focus-calmness__band">{focusContext(interventions)}</span>
-            </div>
-        </div>
-
-        <div className="esti-poa-section">
-          {appliedMsg && (
-            <InlineNotification
-              kind="success"
-              lowContrast
-              title="Intervention applied"
-              subtitle={appliedMsg}
-              onCloseButtonClick={() => setAppliedMsg(null)}
-            />
-          )}
-          {applyIntervention.error && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              title="Intervention failed"
-              subtitle={applyIntervention.error.message}
-            />
-          )}
-          {interventions.length === 0 ? (
-            <InlineNotification kind="success" lowContrast hideCloseButton
-              title="No immediate action required"
-              subtitle="Office is calm. Use this time for deep work." />
-          ) : interventions.slice(0, 3).map((item: any, i: number) => (
-            <div key={item.id} className="esti-poa-action">
-              <span className="esti-poa-action__num" style={{ color: ZCOLOR[cognitionState(item.severity)] }}>{i + 1}</span>
-              <div className="esti-poa-action__body">
-                <span className="esti-label">{item.title}</span>
-                <div className="esti-poa-action__meta">
-                  <span>{recoveryLevelLabel(item.recoveryLevel)}</span>
-                  <span style={{ color: ZCOLOR[cognitionState(item.severity)] }}>+{item.impactPct ?? 6}% recovery</span>
-                </div>
-                {item.suggestedAction && (
-                  <p className="esti-cognitive-copy">{item.suggestedAction}</p>
-                )}
-                {Array.isArray(item.howTo) && item.howTo.length > 0 && (
-                  <div className="esti-poa-action__steps">
-                    {item.howTo.slice(0, i === 0 ? 2 : 1).map((step: string, idx: number) => (
-                      <span key={`${item.id}-step-${idx}`}>{step}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <Button
-                size="sm"
-                kind={cognitionState(item.severity) === "critical" ? "danger" : "tertiary"}
-                disabled={applyIntervention.isPending}
-                onClick={() => applyIntervention.mutate({ action: interventionAction(item.id) })}
-              >
-                {applyIntervention.isPending ? "Applying…" : "Apply"}
-              </Button>
+              <span className="esti-state-line__detail">{c.copy.detail}</span>
             </div>
           ))}
-          </div>
-
-          {interventions.length > 3 && (
-            <div className="esti-poa-section">
-              <div className="esti-cognitive-section-title">SAFELY DEFERRED</div>
-              <div className="esti-focus-deferred-note">System has assessed these as non-critical. No action needed now.</div>
-              {interventions.slice(3).map((item: any) => (
-                <div key={item.id} className="esti-focus-deferred">
-                  <span style={{ color: ZCOLOR["inactive"], fontFamily: "'IBM Plex Mono', monospace" }}>○</span>
-                  <span className="esti-label--secondary">{item.title}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="esti-cognitive-reasoning" aria-label="AI reasoning">
-          <div className="esti-cognitive-section-title">AI REASONING</div>
-          <div className="esti-cognitive-chain">
-            {chainItems.slice(0, 4).map((item, i) => (
-              <div key={`${item.domain}-${i}`} className="esti-cognitive-chain__row">
-                <span style={{ color: ZCOLOR[item.severity] }}>{SHAPE[item.severity]}</span>
-                <span>{domainLabel(item.domain)}</span>
-                <span>{item.driver}</span>
-              </div>
-            ))}
-          </div>
-          <div className="esti-cognitive-forecast">
-            {forecast.map((item) => (
-              <div key={item.label} className="esti-cognitive-forecast__row">
-                <span>{item.label}</span>
-                <span>{item.value}%</span>
-              </div>
-            ))}
-          </div>
-          {primary?.riskIfIgnored && (
-            <p className="esti-cognitive-copy">{primary.riskIfIgnored}</p>
-          )}
-        </div>
-
-        <div className="esti-cognitive-recovery" aria-label="Office recovery engine">
-          <div className="esti-cognitive-section-title">OFFICE RECOVERY ENGINE</div>
-          <div className="esti-recovery-forecast">
-            <div>
-              <span>Current</span>
-              <strong style={{ color: calmnessColor(score) }}>{loading ? "—" : `${score}%`}</strong>
-            </div>
-            <span className="esti-recovery-forecast__arrow">→</span>
-            <div>
-              <span>Post action</span>
-              <strong style={{ color: calmnessColor(recoveryAfter) }}>{loading ? "—" : `${recoveryAfter}%`}</strong>
-            </div>
-          </div>
-          <div className="esti-recovery-domain-list">
-            {(recoveryDomains.length > 0 ? recoveryDomains : activeDomains.slice(0, 3)).map((d) => {
-              const next = nextState(d.state);
-              const lift = d.state === "stable" ? 0 : 18;
-              return (
-                <div key={d.key} className="esti-recovery-domain">
-                  <span>{d.label}</span>
-                  <span style={{ color: ZCOLOR[d.state] }}>{d.pct}%</span>
-                  <span>→</span>
-                  <span style={{ color: ZCOLOR[next] }}>{Math.min(96, d.pct + lift)}%</span>
-                </div>
-              );
-            })}
-          </div>
-          <ProgressBar label="Recovery confidence" hideLabel size="small"
-            value={primaryConfidence || score} max={100}
-            helperText={`Confidence ${primaryConfidence || score}%`} />
         </div>
       </section>
 
-      <section className="esti-cognitive-layer esti-cognitive-evidence-grid" aria-label="Evidence layer">
-        <CognitiveEvidence
-          title="BILLING EVIDENCE"
-          empty="No billing pressure detected"
-          items={[
-            ...((ac?.overdueInvoices ?? []).slice(0, 3).map((inv: any) => ({
-              ref: inv.ref,
-              val: formatINRShort(inv.netReceivablePaise),
-              tag: `${inv.daysOverdue}d`,
-              state: "critical" as ZoneState,
-              href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-            }))),
-            ...(billingReady.length > 0 ? [{
-              ref: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
-              val: billingReady.length === 1 ? billingReady[0].projectRef : undefined,
-              tag: "READY",
-              state: "watch" as ZoneState,
-              href: billingReady.length === 1 ? `/projects/${billingReady[0].projectId}?tab=invoices&phaseId=${billingReady[0].id}` : "/invoices",
-            }] : []),
-          ]}
-        />
-        <CognitiveEvidence
-          title="TEAM EVIDENCE"
-          empty="No team overload detected"
-          items={ti.slice(0, 4).map((m: any) => ({
-            ref: m.assignee,
-            val: `${m.totalOpen} open`,
-            tag: CAPACITY_LABEL[m.capacity] ?? m.capacity,
-            state: m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable",
-            href: taskHref(m.focusTaskId, m.focusProjectId),
-          }))}
-        />
-        <CognitiveEvidence
-          title="PROJECT EVIDENCE"
-          empty="No project delivery pressure detected"
-          items={[
-            ...meetingFocus.slice(0, 2).map((m: any) => ({
-              ref: m.projectRef ?? "Meeting",
-              val: m.title,
-              tag: Number(m.daysUntil ?? 999) <= 0 ? "TODAY" : `${m.daysUntil}D`,
-              state: Number(m.daysUntil ?? 999) <= 1 ? "watch" as ZoneState : "stable" as ZoneState,
-              href: taskHref(m.id, m.projectId),
-            })),
-            ...riskProjects.slice(0, 3).map((p: any) => ({
-              ref: p.ref,
-              val: p.title,
-              tag: "RED",
-              state: "critical" as ZoneState,
-              href: projectIssueHref(p),
-            })),
-            ...(delayedProjects > 0 ? [{
-              ref: "Delayed projects",
-              val: String(delayedProjects),
-              tag: "TASKS",
-              state: "watch" as ZoneState,
-              href: "/tasks?tab=tasks&openOnly=1",
-            }] : []),
-          ]}
-        />
-        <CognitiveEvidence
-          title="CLIENT EVIDENCE"
-          empty="No client approval blockage detected"
-          items={[
-            ...pending.slice(0, 3).map((ap: any) => ({
-              ref: ap.projectRef,
-              val: ap.title,
-              tag: `${ap.daysWaiting}d`,
-              state: ap.daysWaiting > 14 ? "critical" as ZoneState : "friction" as ZoneState,
-              href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
-            })),
-            ...(revisionCount > 0 ? [{
-              ref: "Client-driven revisions",
-              val: String(revisionCount),
-              tag: "CRIF",
-              state: revisionCount > 10 ? "critical" as ZoneState : "watch" as ZoneState,
-              href: "/projects?tab=revisions",
-            }] : []),
-            ...(totalStaleAppr > 0 ? [{
-              ref: "Stale approvals",
-              val: String(totalStaleAppr),
-              tag: "BLOCKED",
-              state: "friction" as ZoneState,
-              href: "/tasks?tab=activity",
-            }] : []),
-            ...(siteDelay > 0 ? [{
-              ref: "Open site items",
-              val: String(siteDelay),
-              tag: "SITE",
-              state: "watch" as ZoneState,
-              href: "/office/construction",
-            }] : []),
-          ]}
-        />
+      <section className="esti-cognitive-layer esti-cognitive-brain-layer" aria-label="Today's focus and outcome">
+        <div className="esti-cognitive-main" aria-label="Today's focus">
+          <div className="esti-focus-header">
+            <span className="esti-focus-calmness__label">TODAY'S FOCUS</span>
+            <span className="esti-focus-calmness__band">AI recommendation · do this now</span>
+          </div>
+
+          {appliedMsg && (
+            <InlineNotification kind="info" lowContrast title="Done" subtitle={appliedMsg}
+              onCloseButtonClick={() => setAppliedMsg(null)} />
+          )}
+          {applyIntervention.error && (
+            <InlineNotification kind="error" lowContrast title="Could not apply"
+              subtitle={applyIntervention.error.message} />
+          )}
+
+          {interventions.length === 0 ? (
+            <div className="esti-focus-empty">
+              <GeoMark glyph="●" />
+              <div>
+                <span className="esti-label">Everything is under control</span>
+                <p className="esti-focus-box__desc">No place needs your attention.</p>
+              </div>
+            </div>
+          ) : (
+            <TableContainer className="esti-focus-table">
+              <Table size="sm">
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>#</TableHeader>
+                    <TableHeader>State</TableHeader>
+                    <TableHeader>Task</TableHeader>
+                    <TableHeader>AI suggests</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {interventions.slice(0, 3).map((item: any, idx: number) => (
+                    <TableRow
+                      key={item.id}
+                      className="esti-focus-row"
+                      onClick={() => !applyIntervention.isPending && applyIntervention.mutate({ action: interventionAction(item.id) })}
+                    >
+                      <TableCell className="esti-focus-row__num">{idx + 1}</TableCell>
+                      <TableCell>
+                        <GeoMark glyph={idx === 0 ? "■" : idx === 1 ? "▲" : "●"} act={idx === 0} />
+                      </TableCell>
+                      <TableCell>{item.title}</TableCell>
+                      <TableCell>
+                        {applyIntervention.isPending
+                          ? "Applying…"
+                          : (item.suggestedAction ?? item.riskIfIgnored ?? "Apply this action.")}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </div>
+
+        <div className="esti-cognitive-after" aria-label="After this action">
+          <div className="esti-cognitive-section-title">AFTER THIS ACTION</div>
+          <div className="esti-after-list">
+            <p>Finance operations will become stronger.</p>
+            <p>Project delivery will continue smoothly.</p>
+            <p>Team coordination will improve.</p>
+            <p>Client approvals should move faster.</p>
+          </div>
+        </div>
       </section>
+
+      <section className="esti-cognitive-layer esti-cognitive-evidence-grid" aria-label="Office flow">
+        <CognitiveEvidence title="BILLING FLOW" empty="Finance moving normally" items={billingFlow} />
+        <CognitiveEvidence title="TEAM FLOW" empty="Team workload balanced" items={teamFlow} />
+        <CognitiveEvidence title="PROJECT FLOW" empty="Delivery on track" items={projectFlow} />
+        <CognitiveEvidence title="CLIENT FLOW" empty="Client approvals flowing" items={clientFlow} />
+      </section>
+
+      <div className="esti-shape-legend">
+        <span><GeoMark sm glyph="●" /> Running Smoothly</span>
+        <span><GeoMark sm glyph="▲" /> Attention Required</span>
+        <span><GeoMark sm glyph="■" /> Urgent Action</span>
+      </div>
     </div>
   );
 }

@@ -31,6 +31,7 @@ export function ContractorBidPortal() {
   const utils = trpc.useUtils();
   const q = trpc.contractorPortal.byToken.useQuery({ token }, { enabled: token.length > 0, retry: false });
   const coordQ = trpc.contractorPortal.listCoordination.useQuery({ token }, { enabled: token.length > 0 });
+  const docsQ = trpc.contractorPortal.projectDocuments.useQuery({ token }, { enabled: token.length > 0 });
   const submit = trpc.contractorPortal.submitBid.useMutation({
     onSuccess: () => utils.contractorPortal.byToken.invalidate(),
   });
@@ -188,8 +189,48 @@ export function ContractorBidPortal() {
 
             <Tile>
               <Stack gap={4}>
+                <h4>Issued drawings &amp; transmittals</h4>
+                {(docsQ.data?.drawings.length ?? 0) === 0 && (docsQ.data?.transmittals.length ?? 0) === 0 ? (
+                  <p className="esti-label esti-label--secondary">No issued drawings or transmittals yet.</p>
+                ) : (
+                  <>
+                    {(docsQ.data?.drawings ?? []).length > 0 && (
+                      <Stack gap={2}>
+                        <p className="esti-label">Drawings</p>
+                        {docsQ.data!.drawings.map((dr) => (
+                          <p key={dr.id}><Tag size="sm">{dr.ref}</Tag> {dr.title}</p>
+                        ))}
+                      </Stack>
+                    )}
+                    {(docsQ.data?.transmittals ?? []).length > 0 && (
+                      <Stack gap={2}>
+                        <p className="esti-label">Transmittals</p>
+                        {docsQ.data!.transmittals.map((t) => (
+                          <p key={t.ref}>
+                            <Tag size="sm">{t.ref}</Tag> {t.purpose} · {t.channel}
+                            {t.dateIssued ? ` · ${t.dateIssued}` : ""}
+                          </p>
+                        ))}
+                      </Stack>
+                    )}
+                  </>
+                )}
+              </Stack>
+            </Tile>
+
+            <Tile>
+              <Stack gap={4}>
                 <h4>Site coordination</h4>
-                <p className="esti-label">Raise RFIs, submittals, inspection requests, snags, or NCRs to the firm.</p>
+                <p className="esti-label">Raise a query, RFI, submittal, inspection request, snag, or NCR to the firm.</p>
+                <div>
+                  <Button
+                    size="sm"
+                    kind="tertiary"
+                    onClick={() => setCoordForm((f) => ({ ...f, kind: "QUERY" }))}
+                  >
+                    Raise a query
+                  </Button>
+                </div>
                 {(coordQ.data ?? []).slice(0, 5).map((c) => (
                   <p key={c.id}>
                     <Tag size="sm">{CONSTRUCTION_KIND_LABEL[c.kind as ConstructionKindT] ?? c.kind}</Tag> {c.subject} — {c.status}
