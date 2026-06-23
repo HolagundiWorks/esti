@@ -1,4 +1,4 @@
-export type DemoKind = "solo" | "studio";
+export type DemoKind = "team";
 
 export type DemoAccount = {
   kind: DemoKind;
@@ -20,35 +20,13 @@ export type DemoAccount = {
 export const DEMO_PASSWORD = "demo1234";
 
 export const DEMO_ACCOUNTS: Record<DemoKind, DemoAccount> = {
-  solo: {
-    kind: "solo",
-    title: "Solo practitioner",
-    subtitle: "Everything a solo architect needs — team features appear only when you hire.",
-    email: "solo@demo.aorms.in",
-    password: DEMO_PASSWORD,
-    cta: "Open solo practice",
-    highlights: [
-      "Three projects with fee proposals, GST invoices, and payment tracking",
-      "Drawing register with revision history and issued sets",
-      "COA fee proposal with service stages and payment schedule",
-    ],
-    tour: [
-      { label: "Projects → Drawings", hint: "Open any project and see the drawing register with issued sets and revision history" },
-      { label: "Fees", hint: "Check the fee proposal structured to COA stages and the linked GST invoice" },
-    ],
-    caseStudy: {
-      eyebrow: "Solo practice",
-      metric: "3",
-      metricLabel: "live projects on one desk",
-    },
-  },
-  studio: {
-    kind: "studio",
-    title: "Design studio",
+  team: {
+    kind: "team",
+    title: "Team practice",
     subtitle: "A busy Bengaluru mid-size office — 14 projects, a full team, client portals, and site work running in parallel.",
     email: "principal@demo.aorms.in",
     password: DEMO_PASSWORD,
-    cta: "Open studio demo",
+    cta: "Open team demo",
     featured: true,
     highlights: [
       "14 live projects: residential, commercial, interiors, and PMC work",
@@ -62,7 +40,7 @@ export const DEMO_ACCOUNTS: Record<DemoKind, DemoAccount> = {
       { label: "Site coordination", hint: "Explore PMC — site schedule, RFIs, snag list, and inspector records" },
     ],
     caseStudy: {
-      eyebrow: "Mid-size studio",
+      eyebrow: "Team mode",
       metric: "14",
       metricLabel: "projects across four disciplines",
     },

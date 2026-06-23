@@ -167,7 +167,7 @@ export function MarketingEstiAi() {
 
             {turns.length === 0 && !ask.isPending && (
               <p className="esti-label esti-label--secondary">
-                Ask ESTI anything — how it handles GST, client portals, drawing revisions, BBMP compliance, or whether it fits a solo practice.
+                Ask ESTI anything — how it handles GST, client portals, drawing revisions, BBMP compliance, or whether it fits a small team.
               </p>
             )}
           </Stack>
@@ -186,7 +186,7 @@ export function MarketingEstiAi() {
             <Close size={20} aria-hidden />
           ) : (
             <img
-              src="/esti-mark-black.png"
+              src="/esti-logo-inverted.png"
               alt=""
               aria-hidden
               className="esti-landing-ai__fab-logo"

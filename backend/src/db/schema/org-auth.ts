@@ -15,9 +15,9 @@ import {
 /** Single-row org settings — feature toggles (e.g. the optional HR module). */
 export const orgSettings = pgTable("esti_orgsettings", {
   id: id(),
-  /** SOLO = one-person practice; STUDIO = multi-person team module. */
-  orgMode: text("org_mode").notNull().default("SOLO"),
-  hrEnabled: boolean("hr_enabled").notNull().default(false),
+  /** Team mode is the only supported operating mode. */
+  orgMode: text("org_mode").notNull().default("STUDIO"),
+  hrEnabled: boolean("hr_enabled").notNull().default(true),
   /** PMC module — construction coordination, site registers, progress reports. */
   pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Owner-configured alert thresholds — see EscalationSettings in @esti/contracts. */

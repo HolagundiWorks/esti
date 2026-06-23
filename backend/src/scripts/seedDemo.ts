@@ -13,6 +13,7 @@
  * real to explore. NOT for production use.
  */
 import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
+import { pathToFileURL } from "node:url";
 import { eq, asc } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
@@ -21,8 +22,10 @@ import {
   approvals,
   assignments,
   attendance,
+  appointments,
   clientLogs,
   clients,
+  contracts,
   consultants,
   criticalNotes,
   decisions,
@@ -31,6 +34,10 @@ import {
   inspections,
   invoices,
   leaves,
+  lessonsLearned,
+  letters,
+  momActions,
+  moms,
   orgSettings,
   permits,
   phases,
@@ -172,6 +179,115 @@ async function backfillProjectDemoRecords(
   if (!inspectionExists) {
     const { ref: insRef } = await nextRef(db, "inspection", "SIR");
     await db.insert(inspections).values({ ref: insRef, projectId, dateVisit: dayOffset(-2 + pi), weather: "Clear", attendees: "Site supervisor, contractor, project lead", progress: pi % 2 === 0 ? "RCC slab reinforcement completed for review." : "Masonry and services chase marking in progress.", observations: "Site housekeeping acceptable; contractor to protect exposed starter bars.", instructions: "Submit bar bending schedule and pour card before next inspection.", nextVisit: dayOffset(5 + pi), inspectorName: "Rahul Nair" });
+  }
+
+  const [letterExists] = await db.select({ id: letters.id }).from(letters).where(eq(letters.projectId, projectId)).limit(1);
+  let appointmentLetterId = letterExists?.id;
+  if (!letterExists) {
+    const { ref: letterRef } = await nextRef(db, "letter", "LTR");
+    const [letter] = await db.insert(letters).values({
+      ref: letterRef,
+      projectId,
+      recipient: projectTitle.includes("Kapoor") ? "Divya Kapoor" : "Demo client",
+      subject: "Design coordination and pending decision summary",
+      body: [
+        "This demo letter records the current coordination position for the project.",
+        "Please review the attached decision list, approval items and next actions so the project team can maintain the planned programme.",
+        "The office will update the action register after receiving your confirmation.",
+      ].join("\n\n"),
+      dateLetter: dayOffset(-3 + pi),
+      pdfStatus: "READY",
+    }).returning();
+    appointmentLetterId = letter!.id;
+  }
+
+  const [contractExists] = await db.select({ id: contracts.id }).from(contracts).where(eq(contracts.projectId, projectId)).limit(1);
+  if (!contractExists) {
+    const { ref: contractRef } = await nextRef(db, "contract", "CON");
+    await db.insert(contracts).values({
+      ref: contractRef,
+      projectId,
+      title: "Architectural consultancy agreement",
+      party: projectTitle.includes("Kapoor") ? "Divya Kapoor" : "Demo client",
+      contractType: "CLIENT",
+      valuePaise: 18_00_000_00 + pi * 1_25_000_00,
+      startDate: dayOffset(-45 + pi),
+      endDate: dayOffset(120 + pi),
+      status: pi % 4 === 0 ? "SIGNED" : "DRAFT",
+      notes: "Demo agreement for contract register, fee linkage and document issue workflows.",
+    });
+  }
+
+  const [momExists] = await db.select({ id: moms.id }).from(moms).where(eq(moms.projectId, projectId)).limit(1);
+  if (!momExists) {
+    const { ref: momRef } = await nextRef(db, "mom", "MOM");
+    const [mom] = await db.insert(moms).values({
+      ref: momRef,
+      projectId,
+      title: "Weekly design coordination meeting",
+      meetingDate: dayOffset(-2),
+      venue: pi % 2 === 0 ? "Client office / video call" : "ESTI studio",
+      attendees: "Client, project lead, design coordinator, consultant",
+      minutes: [
+        "Reviewed open client decisions and consultant coordination items.",
+        "Confirmed next drawing issue sequence and billing readiness checks.",
+        "Team to close overdue internal actions before the next project review.",
+      ].join("\n"),
+      versionNo: 1,
+      status: pi % 2 === 0 ? "ISSUED" : "DRAFT",
+      pdfStatus: "READY",
+    }).returning();
+    await db.insert(momActions).values([
+      {
+        momId: mom!.id,
+        description: "Confirm material palette decision with client",
+        assigneeName: "Ananya Rao",
+        dueDate: dayOffset(2),
+        status: pi % 2 === 0 ? "OPEN" : "DONE",
+        sortOrder: 10,
+      },
+      {
+        momId: mom!.id,
+        description: "Update drawing issue register after consultant markups",
+        assigneeName: "Vikram Bhat",
+        dueDate: dayOffset(4),
+        status: "OPEN",
+        sortOrder: 20,
+      },
+    ]);
+  }
+
+  const [lessonExists] = await db
+    .select({ id: lessonsLearned.id })
+    .from(lessonsLearned)
+    .where(eq(lessonsLearned.projectId, projectId))
+    .limit(1);
+  if (!lessonExists && pi < 4) {
+    await db.insert(lessonsLearned).values({
+      projectId,
+      title: `${projectRef} coordination learning`,
+      category: pi % 2 === 0 ? "CLIENT_APPROVAL" : "DELIVERY",
+      body: "Client decision latency and consultant drawing dependencies should be reviewed together, not as separate registers.",
+      recommendations: "Surface stale approvals in the project review, assign one recovery owner, and close linked delivery tasks in the same cycle.",
+      tags: "demo,coordination,approval,dashboard",
+      status: "PUBLISHED",
+      authorId: principalId,
+      authorName: "AORMS demo principal",
+    });
+  }
+
+  const [appointmentExists] = await db.select({ id: appointments.id }).from(appointments).where(eq(appointments.projectId, projectId)).limit(1);
+  if (!appointmentExists && appointmentLetterId) {
+    const [fee] = await db.select({ id: feeProposals.id }).from(feeProposals).where(eq(feeProposals.projectId, projectId)).limit(1);
+    await db.insert(appointments).values({
+      projectId,
+      siteVisitDate: dayOffset(-30 + pi),
+      scopeSummary: "Demo pre-engagement appointment linking site visit, proposal and appointment letter.",
+      letterId: appointmentLetterId,
+      feeProposalId: fee?.id,
+      status: pi % 3 === 0 ? "COMPLETED" : "DRAFT",
+      completedAt: pi % 3 === 0 ? new Date() : null,
+    });
   }
 
   if (pi === 0 && projectTitle.startsWith("Sharma")) {
@@ -373,7 +489,7 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-async function main(): Promise<void> {
+export async function seedDemoWorkspace(): Promise<void> {
   await ensureDemoSchema();
   console.log("✓ migrations applied");
 
@@ -1028,16 +1144,18 @@ async function main(): Promise<void> {
   console.log("✓ seeded demo workspace");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
   console.log("    lead@ / site@ / junior@ / intern@ / client@demo.aorms.in (same password)");
-  console.log("    Solo demo: solo@demo.aorms.in (pnpm seed:demo:solo)");
+  console.log("    Demo mode: team workspace only");
   console.log(`    ${projectDefs.length} projects, ${attendanceRows.length} attendance entries`);
   console.log(
     `    PMC: ${pmc.projects} project(s), +${pmc.snagsAdded} snag(s), +${pmc.reportsAdded} report(s), +${pmc.instructionsAdded} site instruction(s), +${pmc.submissionsAdded} contractor item(s)`,
   );
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error("demo seed failed:", err);
-    process.exit(1);
-  });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  seedDemoWorkspace()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("demo seed failed:", err);
+      process.exit(1);
+    });
+}

@@ -6,12 +6,10 @@ import { MarketingSectionHead } from "./MarketingSectionHead.js";
 
 export function MarketingDemoBand({
   onStudioDemo,
-  onSoloDemo,
   demoLoading,
   demoKind,
 }: {
   onStudioDemo: () => void;
-  onSoloDemo: () => void;
   demoLoading: boolean;
   demoKind: DemoKind | null;
 }) {
@@ -23,21 +21,13 @@ export function MarketingDemoBand({
             id="demo-title"
             eyebrow="Live demo"
             title="Walk through a real Indian architecture practice — no sign-up."
-            lead="Two workspaces seeded with real projects, fees, and decisions. A busy Bengaluru design studio or a solo practitioner — pick the practice that matches yours."
+            lead="One team workspace seeded with real projects, fees, decisions, workload, portals, and site coordination."
           />
           <Grid fullWidth className="esti-landing-tile-grid">
-            <Column lg={8} md={4} sm={4}>
+            <Column lg={16} md={8} sm={4}>
               <DemoCard
-                kind="studio"
+                kind="team"
                 onOpen={onStudioDemo}
-                loading={demoLoading}
-                activeKind={demoKind}
-              />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <DemoCard
-                kind="solo"
-                onOpen={onSoloDemo}
                 loading={demoLoading}
                 activeKind={demoKind}
               />
@@ -66,7 +56,7 @@ function DemoCard({
 }) {
   const acct = DEMO_ACCOUNTS[kind];
   const isLoading = loading && activeKind === kind;
-  const tagType = kind === "studio" ? "blue" : "teal";
+  const tagType = "blue";
 
   return (
     <Tile className="esti-fill esti-landing-demo-card">
@@ -100,7 +90,7 @@ function DemoCard({
         </UnorderedList>
 
         <Button
-          kind={kind === "studio" ? "primary" : "tertiary"}
+          kind="primary"
           size="lg"
           renderIcon={ArrowRight}
           onClick={onOpen}

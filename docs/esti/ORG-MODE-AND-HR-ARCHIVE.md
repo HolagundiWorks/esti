@@ -79,20 +79,17 @@ API: `settings.hrModuleStatus` returns `locked`, `lockReasons`, counts, and rece
 
 ---
 
-## Demo workspaces (separate accounts)
+## Demo workspace
 
-Demo is **not** production mode switching.
+Demo is **not** production mode switching. The public demo now runs team mode only.
 
 | Seed | Login | Mode |
 | ---- | ----- | ---- |
-| `pnpm seed:demo` | `principal@demo.aorms.in` | STUDIO · HR on · 14 projects · full team |
-| `pnpm seed:demo:solo` | `solo@demo.aorms.in` | SOLO · HR off · 3 projects · principal only |
+| `pnpm seed:demo` | `principal@demo.aorms.in` | Team mode · HR on · 14 projects · full team |
 
-Landing page: Solo persona → `solo@demo…`; Studio persona → `principal@demo…`.
+Landing page: team demo → `principal@demo…`.
 
-Optional env: `VITE_SOLO_DEMO_URL`, `VITE_FULL_DEMO_URL` for external hosts.
-
-The Company toggle on the **studio demo** still exercises the production archive workflow if you try to disable HR with team data present.
+The Company settings page no longer exposes a switch to disable Team & HR.
 
 ---
 
@@ -116,8 +113,8 @@ Legacy tables may remain in the database from older demos but are **not exposed*
 | `attendance` | staff | daily register (`dayRegister`, `mark`, `markDay`) |
 | `settings.get` | staff | org flags including `orgMode`, `hrEnabled` |
 | `settings.hrModuleStatus` | staff | lock assessment + archive list |
-| `settings.setHrEnabled` | owner | simple enable/disable (disable throws if locked) |
-| `settings.archiveTeamModule` | owner | full archive workflow (`confirmPhrase: "ARCHIVE TEAM"`) |
+| `settings.setHrEnabled` | owner | accepts enable; disable is rejected because team mode is always on |
+| `settings.archiveTeamModule` | owner | legacy archive workflow retained for historical data |
 
 All team-module write paths remain guarded by `requireHrEnabled`.
 
@@ -131,9 +128,9 @@ All team-module write paths remain guarded by `requireHrEnabled`.
 | Lock / snapshot / archive | `backend/src/lib/hrMode.ts` |
 | Settings API | `backend/src/modules/settings/router.ts` |
 | Shared types | `packages/contracts/src/org-mode.ts` |
-| Company UI + archive modal | `frontend/src/routes/Company.tsx` |
+| Company UI | `frontend/src/routes/Company.tsx` |
 | Attendance API + UI | `backend/src/modules/attendance/router.ts`, `frontend/src/components/work/AttendanceTab.tsx` |
-| Demo seeds | `backend/src/scripts/seedDemo.ts`, `seedDemoSolo.ts` |
+| Demo seed | `backend/src/scripts/seedDemo.ts` |
 | Landing personas | `frontend/src/routes/Landing.tsx` |
 
 ---
@@ -142,19 +139,15 @@ All team-module write paths remain guarded by `requireHrEnabled`.
 
 - [ ] Read-only **HR archive viewer** (browse snapshot roster + attribution without mutating live data)
 - [ ] **Export bundle** (JSON/PDF) at archive time for offline retention
-- [ ] **Onboarding wizard** — explicit solo vs studio choice on first owner login (production signup)
-- [ ] Block `setHrEnabled` entirely on non-demo tenants until onboarding complete
+- [ ] Read-only archive viewer for historical HR snapshots
 
 ---
 
 ## Operations
 
 ```sh
-# Studio demo
+# Team demo
 podman exec esti-backend sh -c "cd /app/backend && pnpm db:migrate && pnpm seed:demo"
-
-# Solo demo (same DB — separate user)
-podman exec esti-backend sh -c "cd /app/backend && pnpm seed:demo:solo"
 ```
 
 Password: `SEED_DEMO_PASSWORD` or default `demo1234`.

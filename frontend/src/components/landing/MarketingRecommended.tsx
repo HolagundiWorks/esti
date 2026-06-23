@@ -8,17 +8,14 @@ import { MarketingTileGrid } from "./MarketingTileGrid.js";
 
 export function MarketingRecommended({
   onStudioDemo,
-  onSoloDemo,
   onBetaScroll,
   demoKind,
 }: {
   onStudioDemo: () => void;
-  onSoloDemo: () => void;
   onBetaScroll: () => void;
-  demoKind: "solo" | "studio" | null;
+  demoKind: "team" | null;
 }) {
-  const studio = DEMO_ACCOUNTS.studio;
-  const solo = DEMO_ACCOUNTS.solo;
+  const team = DEMO_ACCOUNTS.team;
 
   return (
     <LandingBand variant="contrast" id="recommended" ariaLabelledby="recommended-title">
@@ -28,40 +25,24 @@ export function MarketingRecommended({
             id="recommended-title"
             eyebrow="Recommended for you"
             title="Choose how you want to explore AORMS"
-            lead="Each path opens a seeded workspace — studio scale, solo practice, or a conversation with our team."
+            lead="Open the seeded team workspace, or request a provisioned workspace for your firm."
           />
-          <MarketingTileGrid columns={3}>
+          <MarketingTileGrid columns={2}>
             <MarketingFeatureTile
               footer={
                 <Button
                   kind="primary"
                   renderIcon={ArrowRight}
                   onClick={onStudioDemo}
-                  disabled={demoKind === "studio"}
+                  disabled={demoKind === "team"}
                 >
-                  {demoKind === "studio" ? "Opening…" : studio.cta}
+                  {demoKind === "team" ? "Opening…" : team.cta}
                 </Button>
               }
             >
-              <p className="esti-landing-eyebrow">Studio</p>
-              <h3 className="esti-landing-section-title">{studio.title}</h3>
-              <p>{studio.subtitle}</p>
-            </MarketingFeatureTile>
-            <MarketingFeatureTile
-              footer={
-                <Button
-                  kind="secondary"
-                  renderIcon={ArrowRight}
-                  onClick={onSoloDemo}
-                  disabled={demoKind === "solo"}
-                >
-                  {demoKind === "solo" ? "Opening…" : solo.cta}
-                </Button>
-              }
-            >
-              <p className="esti-landing-eyebrow">Solo</p>
-              <h3 className="esti-landing-section-title">{solo.title}</h3>
-              <p>{solo.subtitle}</p>
+              <p className="esti-landing-eyebrow">Team mode</p>
+              <h3 className="esti-landing-section-title">{team.title}</h3>
+              <p>{team.subtitle}</p>
             </MarketingFeatureTile>
             <MarketingFeatureTile
               footer={

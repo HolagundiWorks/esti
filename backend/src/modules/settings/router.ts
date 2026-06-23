@@ -41,6 +41,12 @@ export const settingsRouter = router({
   setHrEnabled: ownerProcedure
     .input(z.object({ hrEnabled: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
+      if (!input.hrEnabled) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Team mode is always enabled for this workspace.",
+        });
+      }
       const current = await getOrgSettings(ctx.db);
       let soloSummary: { tasksUpdated: number; projectsTouched: number } | null = null;
       let membersReactivated = 0;

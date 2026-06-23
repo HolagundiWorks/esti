@@ -191,7 +191,7 @@ export function AiAgentCommand() {
             <Close size={20} aria-hidden />
           ) : (
             <img
-              src="/esti-mark-black.png"
+              src="/esti-logo-inverted.png"
               alt=""
               aria-hidden
               className="esti-landing-ai__fab-logo"

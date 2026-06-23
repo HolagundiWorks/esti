@@ -19,8 +19,8 @@ direction. Point-in-time audits and superseded specs live in
 | [COGNITION-ENGINE](COGNITION-ENGINE.md) | Continuous office cognition, deterministic scoring, interventions, and LLM boundary |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
 | [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes |
-| [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Studio vs solo demo accounts, HR toggle, seed commands |
-| [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Solo vs studio production rules and HR archive workflow |
+| [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Team demo account set and seed commands |
+| [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |

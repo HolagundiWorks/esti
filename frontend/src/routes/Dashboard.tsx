@@ -567,6 +567,23 @@ function cognitionState(severity?: string): ZoneState {
     : "inactive";
 }
 
+type DashboardInterventionAction =
+  | "complete-overdue-tasks"
+  | "rebalance-team-load"
+  | "clear-stale-approvals"
+  | "settle-overdue-invoices"
+  | "close-critical-notes"
+  | "stabilize-office";
+
+function interventionAction(id?: string): DashboardInterventionAction {
+  if (id === "finance-recovery") return "settle-overdue-invoices";
+  if (id === "approval-escalation") return "clear-stale-approvals";
+  if (id === "project-owner-review") return "complete-overdue-tasks";
+  if (id === "team-load-redistribution") return "rebalance-team-load";
+  if (id === "client-project-causal-chain") return "stabilize-office";
+  return "stabilize-office";
+}
+
 function confidencePct(value?: number): number {
   if (value == null) return 0;
   return Math.round(value <= 1 ? value * 100 : value);
@@ -575,6 +592,144 @@ function confidencePct(value?: number): number {
 function forecastPct(score: number | undefined, signal = 0): number {
   const base = score == null ? 50 : 100 - score;
   return Math.max(4, Math.min(96, Math.round(base + signal)));
+}
+
+function recoveryForecast(score: number, interventions: any[]): number {
+  const lift = interventions
+    .slice(0, 3)
+    .reduce((sum: number, item: any) => sum + Number(item.impactPct ?? 6), 0);
+  return Math.max(score, Math.min(96, Math.round(score + lift)));
+}
+
+function meetingAwareness(pendingCount: number, delayedProjects: number): { label: string; detail: string; state: ZoneState } {
+  if (pendingCount > 0 || delayedProjects > 0) {
+    return { label: "FOCUS MODE", detail: "Protect owner attention", state: "watch" };
+  }
+  return { label: "OPEN", detail: "No meeting lock active", state: "stable" };
+}
+
+function recoveryLevelLabel(level?: number): string {
+  if (level === 1) return "L1 OWNER";
+  if (level === 2) return "L2 REALLOCATE";
+  if (level === 3) return "L3 DELEGATE";
+  if (level === 4) return "L4 FINANCE";
+  if (level === 5) return "L5 WORKFLOW";
+  return "RECOVERY";
+}
+
+function domainLabel(domain?: string): string {
+  if (domain === "finance") return "FINANCE";
+  if (domain === "client") return "CLIENT";
+  if (domain === "project") return "PROJECT";
+  if (domain === "team") return "TEAM";
+  if (domain === "approval") return "APPROVAL";
+  return "OFFICE";
+}
+
+function fallbackCognitiveInterventions(input: {
+  pendingCount: number;
+  maxWaitDays: number;
+  overduePaise: number;
+  billingReadyCount: number;
+  riskProjects: number;
+  delayedProjects: number;
+  overloadedCount: number;
+}): any[] {
+  const items: any[] = [];
+  if (input.maxWaitDays > 7 || input.pendingCount >= 2) {
+    items.push({
+      id: "approval-escalation",
+      source: "approval",
+      severity: input.maxWaitDays > 14 ? "critical" : "friction",
+      recoveryLevel: 1,
+      impactPct: input.maxWaitDays > 14 ? 14 : 10,
+      title: "Escalate stale client approvals",
+      suggestedAction: "Clear the oldest waiting approvals first so project and billing pressure can reduce.",
+      howTo: ["Open client approvals.", "Send one decision-focused escalation.", "Record the response or escalation outcome."],
+      confidence: 0.78,
+      riskIfIgnored: "Client response delay will keep project and billing signals under pressure.",
+    });
+  }
+  if (input.overduePaise > 0) {
+    items.push({
+      id: "finance-recovery",
+      source: "finance",
+      severity: input.overduePaise > 5_000_000 ? "critical" : "friction",
+      recoveryLevel: 4,
+      impactPct: input.overduePaise > 5_000_000 ? 16 : 10,
+      title: "Run collection recovery on overdue invoices",
+      suggestedAction: "Recover overdue invoice status after client follow-up is complete.",
+      howTo: ["Open billing evidence.", "Follow up on the overdue invoice reference.", "Mark recovered invoices as paid."],
+      confidence: 0.74,
+      riskIfIgnored: "Aging receivables will continue to lower office calmness.",
+    });
+  }
+  if (input.overloadedCount > 0) {
+    items.push({
+      id: "team-load-redistribution",
+      source: "team",
+      severity: input.overloadedCount > 2 ? "critical" : "friction",
+      recoveryLevel: 2,
+      impactPct: input.overloadedCount > 2 ? 15 : 9,
+      title: "Redistribute overloaded staff tasks",
+      suggestedAction: "Move overdue or overloaded work to the most available active team member.",
+      howTo: ["Find the most overloaded assignee.", "Move selected overdue tasks.", "Review the new workload before stand-up."],
+      confidence: 0.72,
+      riskIfIgnored: "Work will stay concentrated around overloaded people and project health will degrade.",
+    });
+  }
+  if (input.riskProjects > 0 || input.delayedProjects > 0) {
+    items.push({
+      id: "project-owner-review",
+      source: "project",
+      severity: input.riskProjects > 2 ? "critical" : "friction",
+      recoveryLevel: 5,
+      impactPct: input.riskProjects > 2 ? 16 : 11,
+      title: "Run owner review for delayed projects",
+      suggestedAction: "Close completed overdue tasks and assign one recovery owner for remaining blockers.",
+      howTo: ["Open red project evidence.", "Close already-finished overdue tasks.", "Assign one owner to the recovery path."],
+      confidence: 0.7,
+      riskIfIgnored: "Schedule pressure will move from preventive recovery into correction.",
+    });
+  }
+  if (input.billingReadyCount > 0) {
+    items.push({
+      id: "billing-ready",
+      source: "finance",
+      severity: "watch",
+      recoveryLevel: 4,
+      impactPct: 6,
+      title: "Convert billing-ready phases into invoices",
+      suggestedAction: "Turn completed phases into invoices before they become hidden finance load.",
+      howTo: ["Review ready-to-bill phases.", "Confirm scope completion.", "Generate and send invoices."],
+      confidence: 0.72,
+      riskIfIgnored: "Earned work remains outside the receivables pipeline.",
+    });
+  }
+  const rank = { critical: 3, friction: 2, watch: 1 };
+  return items.sort((a, b) => rank[b.severity as keyof typeof rank] - rank[a.severity as keyof typeof rank] || b.impactPct - a.impactPct).slice(0, 6);
+}
+
+function SignalMetric({
+  title,
+  value,
+  detail,
+  state,
+  pulse,
+}: {
+  title: string;
+  value: React.ReactNode;
+  detail: string;
+  state: ZoneState;
+  pulse?: boolean;
+}) {
+  return (
+    <div className={`esti-signal-metric ${pulse ? "esti-signal-metric--pulse" : ""}`}>
+      <span className="esti-signal-metric__title">{title}</span>
+      <span className="esti-signal-metric__value" style={{ color: ZCOLOR[state] }}>{value}</span>
+      <span className="esti-signal-metric__detail">{detail}</span>
+    </div>
+  );
 }
 
 function CognitiveAskAi() {
@@ -673,6 +828,28 @@ function ScreenOverview({
   home: any; fh: any; ac: any; ph: any[]; ti: any[]; att: any; ri: any;
   canInvoice: boolean; hrEnabled: boolean;
 }) {
+  const utils = trpc.useUtils();
+  const [appliedMsg, setAppliedMsg] = useState<string | null>(null);
+  const applyIntervention = trpc.dashboard.applyIntervention.useMutation({
+    onSuccess: (result) => {
+      const changed =
+        result.completedTasks +
+        result.reassignedTasks +
+        result.approvalsCleared +
+        result.invoicesSettled +
+        result.notesClosed;
+      setAppliedMsg(
+        changed > 0
+          ? `Applied ${changed} demo update${changed === 1 ? "" : "s"}. Health is recalculating from live records.`
+          : "No matching demo records needed changes. Health is recalculating.",
+      );
+      void utils.dashboard.home.invalidate();
+      void utils.dashboard.actionCenter.invalidate();
+      void utils.dashboard.financialHealth.invalidate();
+      void utils.dashboard.projectHealth.invalidate();
+      void utils.dashboard.teamIntelligence.invalidate();
+    },
+  });
   const pending       = ac?.pendingApprovals  ?? [];
   const pendingCount  = pending.length;
   const maxWaitDays   = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
@@ -702,7 +879,17 @@ function ScreenOverview({
   const cognition = home?.cognition;
   const office = cognition?.office;
   const domains = cognition?.domains ?? [];
-  const interventions = cognition?.interventions ?? [];
+  const backendInterventions = cognition?.interventions ?? [];
+  const fallbackInterventions = fallbackCognitiveInterventions({
+    pendingCount,
+    maxWaitDays,
+    overduePaise,
+    billingReadyCount: billingReady.length,
+    riskProjects: riskProjects.length,
+    delayedProjects,
+    overloadedCount: overloaded.length,
+  });
+  const interventions = backendInterventions.length > 0 ? backendInterventions : fallbackInterventions;
   const signals = cognition?.signals ?? {};
   const score = office?.score ?? officeHealth(cs, fs, ps, ts);
   const officeState = cognitionState(office?.severity) !== "inactive" ? cognitionState(office?.severity) : cognitionState(attn.chainColor === ZCOLOR["critical"] ? "critical" : attn.chainColor === ZCOLOR["friction"] ? "friction" : attn.chainColor === ZCOLOR["watch"] ? "watch" : "stable");
@@ -715,19 +902,34 @@ function ScreenOverview({
     .slice(0, 5);
   const chainItems: Array<{ domain: string; driver: string; severity: ZoneState }> = reasoningDrivers.length > 0
     ? reasoningDrivers
-    : [{ domain: "office", driver: "Practice operating normally. No immediate intervention required.", severity: officeState }];
+    : interventions.length > 0
+      ? interventions.map((item: any) => ({
+          domain: item.source ?? "office",
+          driver: item.suggestedAction ?? item.title,
+          severity: cognitionState(item.severity),
+        }))
+      : [{ domain: "office", driver: "Practice operating normally. No immediate intervention required.", severity: officeState }];
   const forecast = [
     { label: "Project delay probability", value: forecastPct(domains.find((d: any) => d.domain === "project")?.score, (signals.delayedProjects ?? delayedProjects) * 5) },
     { label: "Invoice recovery delay", value: forecastPct(domains.find((d: any) => d.domain === "finance")?.score, (signals.overdueInvoices ?? 0) * 4) },
     { label: "Team overload risk", value: forecastPct(domains.find((d: any) => d.domain === "team")?.score, (signals.overloadedAssignees ?? overloaded.length) * 8) },
     { label: "Client escalation probability", value: forecastPct(domains.find((d: any) => d.domain === "approval")?.score, (signals.blockedApprovals ?? blockedDecisions) * 8) },
   ];
+  const meeting = meetingAwareness(pendingCount, delayedProjects);
+  const recoveryAfter = recoveryForecast(score, interventions);
+  const activeDomains = [
+    { key: "client", label: "CLIENT", pct: cHpct, state: cs },
+    { key: "finance", label: "FINANCE", pct: fHpct, state: fs },
+    { key: "project", label: "PROJECT", pct: pHpct, state: ps },
+    { key: "team", label: "TEAM", pct: tHpct, state: ts },
+  ];
+  const recoveryDomains = activeDomains.filter((d) => d.state !== "stable" && d.state !== "inactive").slice(0, 3);
 
   return (
     <div className="esti-cognitive-dashboard">
 
-      {/* ── LEFT: SYSTEM HEALTH quad ───────────────────────────────────── */}
-      <div className="esti-cognitive-health">
+      <section className="esti-cognitive-layer esti-cognitive-signal-layer" aria-label="Signal layer">
+        <div className="esti-cognitive-health">
         <MacroHdr name="SYSTEM HEALTH" state={officeState} label={healthBand(score).label} />
         <div className="esti-quad">
           <QuadCell name="CLIENT"  value={loading ? "—" : `${cHpct}%`} sub={CLIENT_LABEL[cs]}  state={cs} />
@@ -737,24 +939,57 @@ function ScreenOverview({
         </div>
       </div>
 
-      {/* ── RIGHT: TODAY'S FOCUS — cognitive breathing space engine ─────── */}
-      <section className="esti-cognitive-main" aria-label="Today's focus">
+        <SignalMetric
+          title="OFFICE CALMNESS"
+          value={loading ? "—" : `${score}%`}
+          detail={calmnessLabel(score)}
+          state={officeState}
+          pulse
+        />
+        <SignalMetric
+          title="MEETING AWARENESS"
+          value={meeting.label}
+          detail={meeting.detail}
+          state={meeting.state}
+        />
+        <SignalMetric
+          title="SYSTEM CONFIDENCE"
+          value={`${primaryConfidence || score}%`}
+          detail={primary ? "Recommendation visible" : "No low-confidence action shown"}
+          state={primarySeverity}
+        />
+      </section>
 
-        {/* Office Calmness — the headline metric */}
-        <div className="esti-focus-header">
-          <div className="esti-focus-calmness">
-            <span className="esti-focus-calmness__label">OFFICE CALMNESS</span>
-            <span className="esti-focus-calmness__score" style={{ color: calmnessColor(score) }}>
-              {loading ? "—" : `${score}%`}
-            </span>
-            <span className="esti-focus-calmness__band">{calmnessLabel(score)}</span>
-          </div>
+      <section className="esti-cognitive-layer esti-cognitive-brain-layer" aria-label="Cognitive layer">
+        <div className="esti-cognitive-main" aria-label="Today's focus">
+          <div className="esti-focus-header">
+            <div className="esti-focus-calmness">
+              <span className="esti-focus-calmness__label">TODAY'S FOCUS</span>
+              <span className="esti-focus-calmness__score" style={{ color: calmnessColor(score) }}>
+                {interventions.length === 0 ? "0" : Math.min(interventions.length, 3)}
+              </span>
+              <span className="esti-focus-calmness__band">{focusContext(interventions)}</span>
+            </div>
         </div>
 
-        {/* Today's Focus — max 3 items, chosen by system */}
         <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">TODAY'S FOCUS</div>
-          <div className="esti-focus-context">{focusContext(interventions)}</div>
+          {appliedMsg && (
+            <InlineNotification
+              kind="success"
+              lowContrast
+              title="Intervention applied"
+              subtitle={appliedMsg}
+              onCloseButtonClick={() => setAppliedMsg(null)}
+            />
+          )}
+          {applyIntervention.error && (
+            <InlineNotification
+              kind="error"
+              lowContrast
+              title="Intervention failed"
+              subtitle={applyIntervention.error.message}
+            />
+          )}
           {interventions.length === 0 ? (
             <InlineNotification kind="success" lowContrast hideCloseButton
               title="No immediate action required"
@@ -762,39 +997,107 @@ function ScreenOverview({
           ) : interventions.slice(0, 3).map((item: any, i: number) => (
             <div key={item.id} className="esti-poa-action">
               <span className="esti-poa-action__num" style={{ color: ZCOLOR[cognitionState(item.severity)] }}>{i + 1}</span>
-              <span className="esti-label">{item.title}</span>
+              <div className="esti-poa-action__body">
+                <span className="esti-label">{item.title}</span>
+                <div className="esti-poa-action__meta">
+                  <span>{recoveryLevelLabel(item.recoveryLevel)}</span>
+                  <span style={{ color: ZCOLOR[cognitionState(item.severity)] }}>+{item.impactPct ?? 6}% recovery</span>
+                </div>
+                {item.suggestedAction && (
+                  <p className="esti-cognitive-copy">{item.suggestedAction}</p>
+                )}
+                {Array.isArray(item.howTo) && item.howTo.length > 0 && (
+                  <div className="esti-poa-action__steps">
+                    {item.howTo.slice(0, 3).map((step: string, idx: number) => (
+                      <span key={`${item.id}-step-${idx}`}>{step}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                size="sm"
+                kind={cognitionState(item.severity) === "critical" ? "danger" : "tertiary"}
+                disabled={applyIntervention.isPending}
+                onClick={() => applyIntervention.mutate({ action: interventionAction(item.id) })}
+              >
+                {applyIntervention.isPending ? "Applying…" : "Apply"}
+              </Button>
             </div>
           ))}
+          </div>
+
+          {interventions.length > 3 && (
+            <div className="esti-poa-section">
+              <div className="esti-cognitive-section-title">SAFELY DEFERRED</div>
+              <div className="esti-focus-deferred-note">System has assessed these as non-critical. No action needed now.</div>
+              {interventions.slice(3).map((item: any) => (
+                <div key={item.id} className="esti-focus-deferred">
+                  <span style={{ color: ZCOLOR["inactive"], fontFamily: "'IBM Plex Mono', monospace" }}>○</span>
+                  <span className="esti-label--secondary">{item.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Safely deferred — system has removed these from your mental load */}
-        {interventions.length > 3 && (
-          <div className="esti-poa-section">
-            <div className="esti-cognitive-section-title">SAFELY DEFERRED</div>
-            <div className="esti-focus-deferred-note">System has assessed these as non-critical. No action needed now.</div>
-            {interventions.slice(3).map((item: any) => (
-              <div key={item.id} className="esti-focus-deferred">
-                <span style={{ color: ZCOLOR["inactive"], fontFamily: "'IBM Plex Mono', monospace" }}>○</span>
-                <span className="esti-label--secondary">{item.title}</span>
+        <div className="esti-cognitive-reasoning" aria-label="AI reasoning">
+          <div className="esti-cognitive-section-title">AI REASONING</div>
+          <div className="esti-cognitive-chain">
+            {chainItems.slice(0, 4).map((item, i) => (
+              <div key={`${item.domain}-${i}`} className="esti-cognitive-chain__row">
+                <span style={{ color: ZCOLOR[item.severity] }}>{SHAPE[item.severity]}</span>
+                <span>{domainLabel(item.domain)}</span>
+                <span>{item.driver}</span>
               </div>
             ))}
           </div>
-        )}
-
-        {/* System confidence — self-critique */}
-        <div className="esti-poa-section">
-          <div className="esti-cognitive-section-title">SYSTEM CONFIDENCE</div>
-          <ProgressBar label="Confidence" hideLabel size="small"
-            value={primaryConfidence || score} max={100}
-            helperText={`${primaryConfidence || score}%`} />
+          <div className="esti-cognitive-forecast">
+            {forecast.map((item) => (
+              <div key={item.label} className="esti-cognitive-forecast__row">
+                <span>{item.label}</span>
+                <span>{item.value}%</span>
+              </div>
+            ))}
+          </div>
           {primary?.riskIfIgnored && (
             <p className="esti-cognitive-copy">{primary.riskIfIgnored}</p>
           )}
         </div>
+
+        <div className="esti-cognitive-recovery" aria-label="Office recovery engine">
+          <div className="esti-cognitive-section-title">OFFICE RECOVERY ENGINE</div>
+          <div className="esti-recovery-forecast">
+            <div>
+              <span>Current</span>
+              <strong style={{ color: calmnessColor(score) }}>{loading ? "—" : `${score}%`}</strong>
+            </div>
+            <span className="esti-recovery-forecast__arrow">→</span>
+            <div>
+              <span>Post action</span>
+              <strong style={{ color: calmnessColor(recoveryAfter) }}>{loading ? "—" : `${recoveryAfter}%`}</strong>
+            </div>
+          </div>
+          <div className="esti-recovery-domain-list">
+            {(recoveryDomains.length > 0 ? recoveryDomains : activeDomains.slice(0, 3)).map((d) => {
+              const next = nextState(d.state);
+              const lift = d.state === "stable" ? 0 : 18;
+              return (
+                <div key={d.key} className="esti-recovery-domain">
+                  <span>{d.label}</span>
+                  <span style={{ color: ZCOLOR[d.state] }}>{d.pct}%</span>
+                  <span>→</span>
+                  <span style={{ color: ZCOLOR[next] }}>{Math.min(96, d.pct + lift)}%</span>
+                </div>
+              );
+            })}
+          </div>
+          <ProgressBar label="Recovery confidence" hideLabel size="small"
+            value={primaryConfidence || score} max={100}
+            helperText={`Confidence ${primaryConfidence || score}%`} />
+        </div>
       </section>
 
-      {/* ── BOTTOM: Operational evidence (spans both columns) ─────────── */}
-      <section className="esti-cognitive-evidence-grid" aria-label="Operational evidence">
+      <section className="esti-cognitive-layer esti-cognitive-evidence-grid" aria-label="Evidence layer">
         <CognitiveEvidence
           title="BILLING EVIDENCE"
           empty="No billing pressure detected"

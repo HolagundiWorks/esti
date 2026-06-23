@@ -5,8 +5,8 @@ export const OrgMode = z.enum(["SOLO", "STUDIO"]);
 export type OrgMode = z.infer<typeof OrgMode>;
 
 export const ORG_MODE_LABEL: Record<OrgMode, string> = {
-  SOLO: "Solo practice",
-  STUDIO: "Studio (team)",
+  SOLO: "Team mode",
+  STUDIO: "Team mode",
 };
 
 /** Why disabling Team & HR requires an archive workflow instead of a simple toggle. */

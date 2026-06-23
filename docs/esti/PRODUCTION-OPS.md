@@ -114,15 +114,13 @@ Run after deploy on **demo** instances — not production firm data:
 ```bash
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:prod
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
-docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:solo:prod
 # Repair passwords + print login status:
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:sync-demo:prod
 ```
 
 | Account | Email | Password |
 |---------|-------|----------|
-| Studio demo | `principal@demo.aorms.in` | `demo1234` (or `SEED_DEMO_PASSWORD`) |
-| Solo demo | `solo@demo.aorms.in` | same |
+| Team demo | `principal@demo.aorms.in` | `demo1234` (or `SEED_DEMO_PASSWORD`) |
 
 See [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md).
 
