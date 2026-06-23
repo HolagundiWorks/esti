@@ -6,10 +6,10 @@ import {
   PortalFeedbackInput,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { activities, approvals, assignments, drawings, invoices, phases, portalSubmissions, projectOffices, teamMembers, users } from "../../db/schema.js";
+import { activities, approvals, assignments, drawings, invoices, phases, portalSubmissions, projectOffices, teamMembers, transmittals, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -110,6 +110,19 @@ export const portalRouter = router({
         .where(and(eq(drawings.projectId, input.projectId), eq(drawings.status, "READY")))
         .orderBy(desc(drawings.createdAt));
 
+      // Drawing transmittals that have actually been issued to the client.
+      const transmittalRows = await ctx.db
+        .select({
+          ref: transmittals.ref,
+          recipient: transmittals.recipient,
+          purpose: transmittals.purpose,
+          channel: transmittals.channel,
+          dateIssued: transmittals.dateIssued,
+        })
+        .from(transmittals)
+        .where(and(eq(transmittals.projectId, input.projectId), isNotNull(transmittals.dateIssued)))
+        .orderBy(desc(transmittals.dateIssued));
+
       return {
         project: {
           ref: project.ref,
@@ -129,6 +142,7 @@ export const portalRouter = router({
         invoices: invoiceRows,
         approvals: approvalRows,
         drawings: drawingRows,
+        transmittals: transmittalRows,
       };
     }),
 

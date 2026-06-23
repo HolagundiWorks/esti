@@ -59,6 +59,33 @@ export const assignments = pgTable("esti_assignment", {
   createdAt: createdAt(),
 });
 
+/** Reusable named team — a group of office staff that can be staffed onto a project in one action. */
+export const teams = pgTable("esti_team", {
+  id: id(),
+  name: text("name").notNull(),
+  description: text("description"),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Membership join — which staff belong to a team. */
+export const teamMemberships = pgTable(
+  "esti_team_membership",
+  {
+    id: id(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    teamMemberId: uuid("team_member_id")
+      .notNull()
+      .references(() => teamMembers.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => ({
+    uq: uniqueIndex("esti_team_membership_uq").on(t.teamId, t.teamMemberId),
+  }),
+);
+
 /** Staff leave records (optional HR module). */
 export const leaves = pgTable("esti_leave", {
   id: id(),

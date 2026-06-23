@@ -2,6 +2,7 @@ import { z } from "zod";
 
 /** Contractor → firm construction coordination items (Phase 7). */
 export const ConstructionKind = z.enum([
+  "QUERY",
   "RFI",
   "MATERIAL_SUBMITTAL",
   "SHOP_DRAWING",
@@ -13,6 +14,7 @@ export const ConstructionKind = z.enum([
 export type ConstructionKind = z.infer<typeof ConstructionKind>;
 
 export const CONSTRUCTION_KIND_LABEL: Record<ConstructionKind, string> = {
+  QUERY: "Query",
   RFI: "RFI",
   MATERIAL_SUBMITTAL: "Material submittal",
   SHOP_DRAWING: "Shop drawing",

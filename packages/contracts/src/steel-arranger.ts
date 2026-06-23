@@ -11,7 +11,7 @@ import { z } from "zod";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const SF_BAR_DIAS = [6, 8, 10, 12, 16, 20, 25, 32] as const;
+export const SF_BAR_DIAS = [4, 5, 6, 8, 10, 12, 16, 20, 25, 28, 32, 36, 40, 45, 50] as const;
 export type SfBarDia = (typeof SF_BAR_DIAS)[number];
 
 export const SF_ELEMENT_TYPES = ["BEAM", "COLUMN", "SLAB", "FOOTING"] as const;
@@ -99,7 +99,7 @@ export const SfRebarCreate = z.object({
   diaMm: z.number().int().refine((v): v is SfBarDia =>
     (SF_BAR_DIAS as readonly number[]).includes(v), { message: "Invalid bar diameter" }),
   barType: z.enum(SF_BAR_TYPES),
-  quantity: z.number().int().min(1).max(50),
+  quantity: z.number().int().min(1).max(500),
   cuttingLengthMm: z.number().int().min(100).optional(),
   shapeCode: z.string().max(4).default("A"),
   posX: z.number().optional(),

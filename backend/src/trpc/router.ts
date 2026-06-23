@@ -45,7 +45,7 @@ import { transmittalRouter } from "../modules/transmittal/router.js";
 import { userRouter } from "../modules/users/router.js";
 import { leaveRouter, payrollRouter } from "../modules/team/hr.js";
 import { hrProfileRouter } from "../modules/team/hrProfile.js";
-import { assignmentRouter, teamRouter } from "../modules/team/router.js";
+import { assignmentRouter, teamRouter, teamsRouter } from "../modules/team/router.js";
 import { reconcileRouter } from "../modules/reconcile/router.js";
 import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
@@ -166,6 +166,7 @@ export const appRouter = router({
   workload: workloadRouter,
   notifications: notificationsRouter,
   team: teamRouter,
+  teams: teamsRouter,
   assignments: assignmentRouter,
   leaves: leaveRouter,
   payroll: payrollRouter,

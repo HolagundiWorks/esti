@@ -49,6 +49,13 @@ context: revision budget, impact previews, feedback quality, approval lag,
 workload health, and recognition cues. These are attached to work objects
 rather than exposed as detached management metrics.
 
+The cognition backend ingests real office records into a normalized event
+ledger, learns durable behavioral patterns for clients/team/office queues,
+materializes a deterministic priority queue, and returns an AI reasoning frame
+through `dashboard.home.cognitiveEngine`. The reasoning frame is evidence for
+owner briefings; LLMs may explain it but must not create or alter scores,
+rankings, or recommendations.
+
 The Activity Center is the daily command surface: digest, recent revisions,
 critical notes, approvals, leave impact, contractor queries, client requests,
 escalations, and announcements.

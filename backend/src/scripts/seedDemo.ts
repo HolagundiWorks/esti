@@ -172,7 +172,7 @@ async function backfillProjectDemoRecords(
 
   const [approvalExists] = await db.select({ id: approvals.id }).from(approvals).where(eq(approvals.projectId, projectId)).limit(1);
   if (!approvalExists) {
-    await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: projectTitle.includes("Kapoor") ? "Divya Kapoor" : "Demo client", channel: "Client portal", status: pi % 2 === 0 ? "SENT" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6) : null, responseDate: pi === 0 ? dayOffset(-2) : null, remarks: pi === 0 ? "Approved with facade material comments." : "Awaiting client review.", createdById: principalId });
+    await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: projectTitle.includes("Kapoor") ? "Divya Kapoor" : "Demo client", channel: "Client portal", status: pi % 2 === 0 ? "APPROVED" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6) : null, responseDate: pi % 2 === 0 ? dayOffset(-2) : null, remarks: pi % 2 === 0 ? "Approved by client — proceed to next stage." : null, createdById: principalId });
   }
 
   const [inspectionExists] = await db.select({ id: inspections.id }).from(inspections).where(eq(inspections.projectId, projectId)).limit(1);
@@ -902,7 +902,7 @@ export async function seedDemoWorkspace(): Promise<void> {
             { offset: -15, status: "ISSUED" },
           ]
         : pi === 6
-          ? [{ offset: -30, status: "ISSUED" }]
+          ? [{ offset: -55, status: "PAID" }, { offset: -8, status: "PAID" }]
           : [
               { offset: -90, status: "PAID" },
               { offset: -60, status: "PAID" },
@@ -993,7 +993,7 @@ export async function seedDemoWorkspace(): Promise<void> {
     ]);
 
     // Approvals
-    await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: pi === 3 ? "Divya Kapoor" : def.client.name, channel: "Client portal", status: pi % 2 === 0 ? "SENT" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6 - pi) : null, responseDate: pi === 0 ? dayOffset(-2) : null, remarks: pi === 0 ? "Approved with facade material comments." : pi % 2 === 0 ? "Awaiting client review." : null, createdById: principal!.id });
+    await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: pi === 3 ? "Divya Kapoor" : def.client.name, channel: "Client portal", status: pi % 2 === 0 ? "APPROVED" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6 - pi) : null, responseDate: pi % 2 === 0 ? dayOffset(-2 - pi) : null, remarks: pi % 2 === 0 ? "Approved by client — proceed to next stage." : null, createdById: principal!.id });
 
     // Inspection
     const { ref: insRef } = await nextRef(db, "inspection", "SIR");

@@ -11,6 +11,12 @@ import { getRevisionIntelligence } from "./revisionIntelligence.js";
 import { getDashboardSummary } from "./summary.js";
 import { getTeamIntelligence } from "./teamIntelligence.js";
 import { getTechnicalIntelligence } from "./technicalIntelligence.js";
+import {
+  buildReasoningFrame,
+  ingestCognitionEvents,
+  loadBehaviorProfiles,
+  loadCognitionQueue,
+} from "../../cognition/engine.js";
 
 /** Normalises org module toggles for dashboard payloads. */
 export function dashboardModuleFlags(settings: {
@@ -61,6 +67,18 @@ export async function getDashboardHome(db: DB) {
     canSeeFinance: financialEnabled,
     hrEnabled: settings.hrEnabled === true,
   });
+  const ingestion = await ingestCognitionEvents(db, {
+    actionCenter,
+    financialHealth,
+    projectHealth,
+    clientIntelligence,
+    teamIntelligence,
+  });
+  const [priorityQueue, behaviorProfiles] = await Promise.all([
+    loadCognitionQueue(db),
+    loadBehaviorProfiles(db),
+  ]);
+  const reasoning = buildReasoningFrame({ queue: priorityQueue, behaviorProfiles });
 
   return {
     summary,
@@ -71,6 +89,12 @@ export async function getDashboardHome(db: DB) {
     clientIntelligence,
     teamIntelligence,
     cognition,
+    cognitiveEngine: {
+      ingestion,
+      priorityQueue,
+      behaviorProfiles,
+      reasoning,
+    },
     revisionIntelligence,
     technicalIntelligence,
     activity,

@@ -34,6 +34,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [2C](#phase-2c---dashboard-chart-refresh-and-work-module-p1) | Dashboard charts & Work module | P1 | ✅ |
 | [2D](#phase-2d---personal-workspace-and-dashboard-polish-p1) | Personal workspace | P1 | ✅ |
 | [2E](#phase-2e---steelflow-ai-steel-arranger--automated-bbs-p1) | SteelFlow AI | P1 | ✅ |
+| [2E-C](#phase-2e-c---cognition-engine-event-learning-and-priority-core-p1) | Cognition event + learning core | P1 | ✅ |
 | [2F](#phase-2f---ui-audit-page-hierarchy-and-policy-alignment-p0) | UI audit & PageHeader | P0 | ✅ |
 | [2G](#phase-2g---workflow-ia--architecture-remediation-p0p3) | Workflow & IA remediation | P0–P3 | ✅ |
 | [3](#phase-3---domain-activity-foundation-p1) | Activity foundation | P1 | ✅ |
@@ -195,18 +196,36 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 
 ## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] — Complete 2026-06-12
 
-End-to-end interactive reinforcement arrangement and BBS generation per IS:456 / IS:2502.
+End-to-end reinforcement member flow and BBS generation per IS:456 / IS:2502 / IS:1786 references.
 
 - [x] Contracts layer (`steel-arranger.ts`): enums, Zod schemas, IS:456/IS:2502 pure functions.
 - [x] Database migration `0022_steel_arranger.sql`; Drizzle schema; `steelflow` tRPC router.
-- [x] BBS engine, Zustand store, `SteelArranger` route with SVG canvas, Excel export, AI review.
-- [x] `dnd-kit` drag-and-drop bar placement; shape codes B/C/D/E; SLAB strip and FOOTING plan views.
+- [x] BBS engine, `SteelArranger` route with member-flow canvas, Excel export, and rule-assist review.
+- [x] Member nodes for footing, column, beam, and slab; shape codes B/C/D/E; TMT diameter and grade reference selection.
 - [x] SteelFlow nav link; migration applied.
 - [x] PDF export of BBS via worker — delivered in [Phase 10](#phase-10---commercial-and-estimation-expansion-p2).
 
-**Gate met:** user can define geometry, drag bars, export BBS to Excel, run IS:456 review — persisted via tRPC.
+**Gate met:** user can define member geometry, arrange reinforcement groups, export BBS to Excel, run IS-rule review — persisted via tRPC.
 
-See also [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md).
+See also [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md) and [STEELFLOW-BBS-FLOW.md](STEELFLOW-BBS-FLOW.md).
+
+---
+
+## Phase 2E-C - Cognition Engine: Event, Learning, And Priority Core [P1] — Complete 2026-06-23
+
+Backend cognition foundation for the AORMS cognitive operating system.
+
+- [x] `esti_cognition_event` normalized event ledger with idempotent `source_key` ingestion.
+- [x] `esti_cognition_behavior_profile` durable behavioral learning profiles for clients, assignees, and office queues.
+- [x] `esti_cognition_priority_item` materialized priority queue with deterministic priority formula.
+- [x] `dashboard.home.cognitiveEngine` payload: ingestion summary, priority queue, behavior profiles, and AI reasoning frame.
+- [x] `dashboard.ingestCognition` worker/cron hook and `dashboard.cognitionQueue` inspection endpoint.
+- [x] LLM boundary encoded as `DETERMINISTIC_REASONING_LLM_EXPLAINS_ONLY`.
+- [x] Carbon/API consistency cleanup: removed frontend dependency on server-only tRPC types and fixed CSV download controls.
+
+**Gate met:** local migration applied; backend typecheck passes; frontend typecheck passes; cognition smoke verifies event/profile/priority generation; focused contracts tests pass.
+
+See [COGNITION-ENGINE.md](COGNITION-ENGINE.md).
 
 ---
 

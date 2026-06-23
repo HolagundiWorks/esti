@@ -64,6 +64,13 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
   const [open,         setOpen]         = useState(false);
   const [confirmId,    setConfirmId]    = useState<string | null>(null);
   const [commentsTask, setCommentsTask] = useState<{ id: string; projectId: string; title: string } | null>(null);
+  const [reassign,     setReassign]     = useState<{ id: string; projectId: string; title: string } | null>(null);
+  const [reassignTo,   setReassignTo]   = useState("");
+  const reassignMembersQ = trpc.assignments.listByProject.useQuery(
+    { projectId: reassign?.projectId ?? "" },
+    { enabled: hrEnabled && !!reassign?.projectId },
+  );
+  const reassignMembers = reassignMembersQ.data ?? [];
   const [form, setForm] = useState({
     title: "", projectId: "", assigneeId: "", reviewerId: "",
     classification: "", workType: "", priority: "MEDIUM",
@@ -168,7 +175,23 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                           ? <Link to={`/projects/${t.projectId}`}>{t.projectRef}</Link>
                           : "—"}
                       </TableCell>
-                      <TableCell>{t.assignee ?? "—"}</TableCell>
+                      <TableCell>
+                        <span className="esti-row" style={{ gap: "0.5rem", alignItems: "center" }}>
+                          {t.assignee ?? "—"}
+                          {hrEnabled && t.projectId && (
+                            <Button
+                              kind="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setReassign({ id: t.id, projectId: t.projectId ?? "", title: t.title });
+                                setReassignTo(t.assigneeId ?? "");
+                              }}
+                            >
+                              Reassign
+                            </Button>
+                          )}
+                        </span>
+                      </TableCell>
                       <TableCell>{"—"}</TableCell>
                       <TableCell>
                         <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
@@ -318,6 +341,35 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
             objectId={commentsTask.id} heading="Task comments"
             description="Contextual discussion linked directly to this task." />
         )}
+      </Modal>
+
+      <Modal
+        open={reassign !== null}
+        modalHeading={reassign ? `Reassign — ${reassign.title}` : "Reassign task"}
+        primaryButtonText={update.isPending ? "Saving…" : "Reassign"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={update.isPending}
+        onRequestClose={() => setReassign(null)}
+        onRequestSubmit={() => {
+          if (!reassign) return;
+          update.mutate(
+            { id: reassign.id, assigneeId: reassignTo || null },
+            { onSuccess: () => setReassign(null) },
+          );
+        }}
+      >
+        <Select
+          id="reassign-to"
+          labelText="Assign to"
+          helperText={reassignMembers.length === 0 ? "No members are staffed on this project yet" : "Only members staffed on this project can be assigned"}
+          value={reassignTo}
+          onChange={(e) => setReassignTo(e.target.value)}
+        >
+          <SelectItem value="" text="— unassigned —" />
+          {reassignMembers.map((m) => (
+            <SelectItem key={m.teamMemberId} value={m.teamMemberId} text={`${m.name} (${m.role})`} />
+          ))}
+        </Select>
       </Modal>
     </>
   );

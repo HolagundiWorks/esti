@@ -106,3 +106,77 @@ export const ACTIVITY_DOMAIN_TAG: Record<ActivityDomain, "blue" | "green" | "tea
   TEAM: "purple",
   SYSTEM: "gray",
 };
+
+// --- Cognition engine contracts ----------------------------------------------
+
+export const CognitionEventDomain = z.enum([
+  "CLIENT",
+  "FINANCE",
+  "PROJECT",
+  "TEAM",
+  "APPROVAL",
+  "MEETING",
+  "SYSTEM",
+]);
+export type CognitionEventDomain = z.infer<typeof CognitionEventDomain>;
+
+export const CognitionEventSeverity = z.enum(["stable", "watch", "friction", "critical"]);
+export type CognitionEventSeverity = z.infer<typeof CognitionEventSeverity>;
+
+export const CognitionPriorityItem = z.object({
+  id: z.string().uuid(),
+  eventId: z.string().uuid(),
+  title: z.string(),
+  recommendedAction: z.string(),
+  howTo: z.array(z.string()),
+  expectedBenefit: z.string(),
+  priorityScore: z.number().int().min(0).max(100),
+  status: z.string(),
+  sourceKey: z.string(),
+  domain: CognitionEventDomain,
+  eventType: z.string(),
+  subjectLabel: z.string(),
+  severity: CognitionEventSeverity,
+  evidence: z.unknown(),
+});
+export type CognitionPriorityItem = z.infer<typeof CognitionPriorityItem>;
+
+export const CognitionBehaviorProfile = z.object({
+  subjectType: z.string(),
+  subjectId: z.string(),
+  label: z.string(),
+  signalType: z.string(),
+  sampleCount: z.number().int().min(0),
+  confidencePct: z.number().int().min(0).max(100),
+  metrics: z.unknown(),
+  lastObservedAt: z.union([z.string(), z.date()]),
+});
+export type CognitionBehaviorProfile = z.infer<typeof CognitionBehaviorProfile>;
+
+export const CognitionReasoningFrame = z.object({
+  rule: z.literal("DETERMINISTIC_REASONING_LLM_EXPLAINS_ONLY"),
+  generatedAt: z.string(),
+  nextBestAction: z.object({
+    title: z.string(),
+    recommendedAction: z.string(),
+    priorityScore: z.number().int().min(0).max(100),
+    reason: z.string(),
+    expectedBenefit: z.string(),
+    howTo: z.array(z.string()),
+    evidence: z.unknown(),
+  }),
+  learnedPatterns: z.array(z.object({
+    subjectType: z.string(),
+    label: z.string(),
+    signalType: z.string(),
+    confidencePct: z.number().int().min(0).max(100),
+    pattern: z.unknown(),
+    metrics: z.unknown(),
+  })),
+  safeToIgnore: z.array(z.object({
+    title: z.string(),
+    reason: z.string(),
+    priorityScore: z.number().int().min(0).max(100),
+  })),
+});
+export type CognitionReasoningFrame = z.infer<typeof CognitionReasoningFrame>;

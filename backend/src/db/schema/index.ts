@@ -24,5 +24,6 @@ export * from "./pmc.js";
 export * from "./construction-schedule.js";
 export * from "./project-brief.js";
 export * from "./expense.js";
+export * from "./cognition.js";
 
 export type { ProjectOfficeRow } from "./project.js";

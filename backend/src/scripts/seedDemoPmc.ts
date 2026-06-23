@@ -15,6 +15,9 @@ import {
   projectOffices,
   siteInstructions,
   snags,
+  tenderDocuments,
+  tenderInvitations,
+  tenders,
   users,
 } from "../db/schema.js";
 import { nextRef } from "../lib/numbering.js";
@@ -493,6 +496,93 @@ async function ensureContractorSubmissions(
   return added;
 }
 
+/** Stable demo contractor-portal link: /bid/demo-contractor-sharma-villa */
+export const DEMO_CONTRACTOR_TOKEN = "demo-contractor-sharma-villa";
+
+/**
+ * Make the contractor portal (token-based) reachable in the demo: an OPEN tender on the
+ * flagship project, a fixed-token invitation for the civil contractor, a tender document,
+ * and a contractor QUERY so the new query feature is visible. Idempotent.
+ */
+async function ensureDemoContractorPortal(
+  database: Db,
+  projectId: string,
+  civilContractorId: string,
+  principalId: string,
+): Promise<boolean> {
+  const tenderTitle = "Civil works package — Sharma Villa";
+  let [tender] = await database
+    .select({ id: tenders.id })
+    .from(tenders)
+    .where(and(eq(tenders.projectId, projectId), eq(tenders.title, tenderTitle)))
+    .limit(1);
+  if (!tender) {
+    [tender] = await database
+      .insert(tenders)
+      .values({
+        projectId,
+        title: tenderTitle,
+        category: "Civil",
+        scope: "RCC frame, blockwork and internal finishes for the residence as per the issued GFC set.",
+        status: "OPEN",
+        dueDate: dayOffset(14),
+        instructions: "Quote against the issued drawings and BOQ. Raise queries through the portal before bidding.",
+        createdById: principalId,
+      })
+      .returning({ id: tenders.id });
+  }
+
+  const [invExists] = await database
+    .select({ id: tenderInvitations.id })
+    .from(tenderInvitations)
+    .where(eq(tenderInvitations.accessToken, DEMO_CONTRACTOR_TOKEN))
+    .limit(1);
+  if (!invExists) {
+    await database.insert(tenderInvitations).values({
+      tenderId: tender!.id,
+      contractorId: civilContractorId,
+      status: "VIEWED",
+      accessToken: DEMO_CONTRACTOR_TOKEN,
+    });
+  }
+
+  const [docExists] = await database
+    .select({ id: tenderDocuments.id })
+    .from(tenderDocuments)
+    .where(eq(tenderDocuments.tenderId, tender!.id))
+    .limit(1);
+  if (!docExists) {
+    await database.insert(tenderDocuments).values({
+      tenderId: tender!.id,
+      title: "Tender drawings & BOQ",
+      kind: "DRAWING",
+      fileName: "sharma-villa-tender-set.pdf",
+      storageKey: `demo/tender/${tender!.id}.pdf`,
+      issuedAt: dayOffset(-3),
+      createdById: principalId,
+    });
+  }
+
+  const querySubject = "Query — finishing schedule for ground floor";
+  const [queryExists] = await database
+    .select({ id: contractorSubmissions.id })
+    .from(contractorSubmissions)
+    .where(and(eq(contractorSubmissions.projectId, projectId), eq(contractorSubmissions.subject, querySubject)))
+    .limit(1);
+  if (!queryExists) {
+    await database.insert(contractorSubmissions).values({
+      projectId,
+      contractorId: civilContractorId,
+      kind: "QUERY",
+      subject: querySubject,
+      body: "Please confirm the flooring specification for the ground-floor common areas before we price the package.",
+      status: "OPEN",
+      submittedById: principalId,
+    });
+  }
+  return true;
+}
+
 async function ensureLivePhaseStages(database: Db, projectId: string, tier: ShowcaseTier): Promise<void> {
   const [caPhase] = await database
     .select({ id: phases.id, code: phases.code })
@@ -599,6 +689,9 @@ export async function ensureDemoPmcShowcase(
       contractorIds,
       principalId,
     );
+    if (tier === "flagship") {
+      await ensureDemoContractorPortal(database, project.id, contractorIds.civil, principalId);
+    }
     await ensureLivePhaseStages(database, project.id, tier);
     stats.projects++;
   }
