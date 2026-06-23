@@ -10,6 +10,7 @@ import { estimateItems, estimates, measurements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { resolveDsrItemRefsForVersion } from "../../lib/dsrCatalog.js";
 import { recomputeEstimate } from "./recomputeEstimate.js";
+import { dsrSnapshotForItem } from "./estimateProvenance.js";
 
 export async function importTakeoffToEstimate(
   db: DB,
@@ -65,9 +66,24 @@ export async function importTakeoffToEstimate(
   for (const line of lines) {
     if (!line.dsrMatched) unmatched += 1;
     const amountPaise = estimateItemAmount(line.qty, line.ratePaise, 0);
+    const sourceRows = tagged.filter((m) => m.elementTypeId === line.elementTypeId);
+    const dsrSnapshot = await dsrSnapshotForItem(db, line.dsrItemId);
     await db.insert(estimateItems).values({
       estimateId: input.estimateId,
       dsrItemId: line.dsrItemId,
+      sourceKind: "TAKEOFF_IMPORT",
+      ...dsrSnapshot,
+      sourceMeasurementIds: sourceRows.map((m) => m.id),
+      sourcePayload: {
+        ...(dsrSnapshot.sourcePayload ?? {}),
+        takeoff: {
+          elementTypeId: line.elementTypeId,
+          elementLabel: line.elementLabel,
+          measurementCount: line.measurementCount,
+          measurementNames: line.takeoffNames,
+          unmatchedDsr: !line.dsrMatched,
+        },
+      },
       description: line.description,
       unit: line.unit,
       qty: line.qty,

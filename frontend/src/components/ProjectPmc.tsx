@@ -137,6 +137,11 @@ export function ProjectPmc({ projectId }: { projectId: string }) {
               <Tag type={s.snags.overdue > 0 ? "red" : "green"} size="sm">
                 {s.snags.open} open snags
               </Tag>
+              {s.runningBills?.open > 0 && (
+                <Tag type="blue" size="sm">
+                  {s.runningBills.open} running bill{ s.runningBills.open === 1 ? "" : "s" }
+                </Tag>
+              )}
             </Stack>
           </Tile>
         </Column>

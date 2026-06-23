@@ -533,6 +533,20 @@
       "when": 1782200100000,
       "tag": "0075_compliance_calculation_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1782200200000,
+      "tag": "0076_estimate_item_provenance",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1782200300000,
+      "tag": "0077_pmc_running_bills",
+      "breakpoints": true
     }
   ]
 }

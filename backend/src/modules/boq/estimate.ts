@@ -21,6 +21,7 @@ import { protectedProcedure, router } from "../../trpc/trpc.js";
 import { recomputeEstimate } from "./recomputeEstimate.js";
 import { importTakeoffToEstimate } from "./takeoffImport.js";
 import { assertPublishedDsrVersion } from "./dsr.js";
+import { dsrSnapshotForItem } from "./estimateProvenance.js";
 
 const recompute = recomputeEstimate;
 
@@ -160,9 +161,12 @@ export const estimateRouter = router({
   addItem: protectedProcedure.input(EstimateItemCreate).mutation(async ({ ctx, input }) => {
     await assertDraft(ctx.db, input.estimateId);
     const amountPaise = estimateItemAmount(input.qty, input.ratePaise, input.itemLeadPct);
+    const dsrSnapshot = await dsrSnapshotForItem(ctx.db, input.dsrItemId);
     const [row] = await ctx.db.insert(estimateItems).values({
       estimateId: input.estimateId,
       dsrItemId: input.dsrItemId ?? null,
+      sourceKind: input.dsrItemId ? "DSR_PICK" : "MANUAL",
+      ...dsrSnapshot,
       description: input.description,
       unit: input.unit,
       qty: input.qty,
@@ -202,9 +206,16 @@ export const estimateRouter = router({
     await assertDraft(ctx.db, input.estimateId);
     for (const row of input.rows) {
       const amountPaise = estimateItemAmount(row.qty, row.ratePaise, row.itemLeadPct);
+      const dsrSnapshot = await dsrSnapshotForItem(ctx.db, row.dsrItemId);
       await ctx.db.insert(estimateItems).values({
         estimateId: input.estimateId,
         dsrItemId: row.dsrItemId ?? null,
+        sourceKind: "BULK_IMPORT",
+        ...dsrSnapshot,
+        sourcePayload: {
+          ...(dsrSnapshot.sourcePayload ?? {}),
+          import: { kind: "CSV_TSV", originalRatePaise: row.ratePaise },
+        },
         description: row.description,
         unit: row.unit,
         qty: row.qty,
@@ -327,6 +338,8 @@ export const estimateRouter = router({
         total: formatINR(est.totalPaise, { paise: false }),
         rows: items.map((i, idx) => ({
           "#": idx + 1,
+          Source: i.sourceKind,
+          "DSR code": i.dsrItemCode ?? "",
           Description: i.description,
           Unit: i.unit,
           Qty: i.qty,

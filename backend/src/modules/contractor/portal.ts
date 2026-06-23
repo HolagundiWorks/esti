@@ -13,6 +13,7 @@ import {
   contractorSubmissions,
   contractors,
   projectOffices,
+  runningBills,
   tenderBids,
   tenderDocumentAcks,
   tenderDocuments,
@@ -235,4 +236,64 @@ export const contractorPortalRouter = router({
     });
     return { ok: true as const, id: row!.id };
   }),
+
+  listRunningBills: publicProcedure
+    .input(z.object({ token: z.string().min(10).max(96) }))
+    .query(async ({ ctx, input }) => {
+      const inv = await loadByToken(ctx.db, input.token);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db
+        .select()
+        .from(runningBills)
+        .where(and(eq(runningBills.projectId, inv.projectId), eq(runningBills.contractorId, inv.contractorId)))
+        .orderBy(desc(runningBills.createdAt));
+    }),
+
+  contractorAdvanceRunningBill: publicProcedure
+    .input(z.object({
+      token: z.string().min(10).max(96),
+      id: z.string().uuid(),
+      status: z.enum(["CONTRACTOR_VERIFIED", "CONTRACTOR_INVOICED"]),
+      note: z.string().max(2000).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const inv = await loadByToken(ctx.db, input.token);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND" });
+      const [bill] = await ctx.db.select().from(runningBills).where(eq(runningBills.id, input.id));
+      if (!bill || bill.projectId !== inv.projectId || bill.contractorId !== inv.contractorId) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      const allowed =
+        (bill.status === "SENT_TO_CONTRACTOR" && input.status === "CONTRACTOR_VERIFIED") ||
+        (bill.status === "APPROVED_MEASUREMENT_SENT" && input.status === "CONTRACTOR_INVOICED");
+      if (!allowed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Running bill is not waiting for contractor action" });
+      }
+      const statusHistory = [
+        ...((bill.statusHistory as unknown[]) ?? []),
+        {
+          status: input.status,
+          actor: "contractor",
+          contractorId: inv.contractorId,
+          contractorName: inv.contractorName,
+          note: input.note ?? null,
+          at: new Date().toISOString(),
+        },
+      ];
+      await ctx.db
+        .update(runningBills)
+        .set({ status: input.status, statusHistory, updatedAt: new Date() })
+        .where(eq(runningBills.id, input.id));
+      await writeActivity(ctx.db, {
+        projectId: inv.projectId,
+        objectType: "running_bill",
+        objectId: input.id,
+        eventType: "pmc.running_bill.contractor",
+        actorName: inv.contractorName,
+        visibility: "STAFF",
+        summary: `${bill.ref}: ${input.status}`,
+        metadata: { contractorId: inv.contractorId, status: input.status },
+      });
+      return { ok: true as const };
+    }),
 });

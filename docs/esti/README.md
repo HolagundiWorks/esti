@@ -23,6 +23,7 @@ direction. Point-in-time audits and superseded specs live in
 | [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
+| [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | DSR, takeoff, estimate, BOQ, provenance, and output boundaries |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
 | [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared compliance rule engine — pre/post workflows, public API, snapshots |

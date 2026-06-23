@@ -42,11 +42,12 @@ include the contractor-facing coordination needed by an architect:
 - tender issue, queries, bid receipt, comparison, and award recommendation;
 - RFIs, material submittals, shop drawings, inspections, site instructions,
   snags, and NCRs;
-- architect-side BOQ, estimation, purchase-order, and payment-certificate
+- architect-side BOQ, estimation, purchase-order, running-bill measurement
+  verification, and payment-certificate
   support.
 
 Inventory, warehouses, labour gangs, attendance for contractor labour, GRNs,
-subcontractor ledgers, RA-bill accounting, and construction-company finance are
+subcontractor ledgers, contractor-side RA-bill accounting, and construction-company finance are
 out of scope.
 
 ## Core Principles

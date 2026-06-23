@@ -173,6 +173,7 @@ ESTICAD does not host DSR SQLite or local BOQ generation.
 | Excel/PDF export | ESTI worker + office routes |
 
 ESTICAD may show read-only preview fetched from API or deep-link to AORMS project estimation tab.
+Estimate lines created from takeoff are stamped with source provenance and DSR/takeoff snapshots in AORMS; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
 
 ---
 

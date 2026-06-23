@@ -79,6 +79,7 @@ import { snagsRouter } from "../modules/pmc/snags.js";
 import { siteInstructionsRouter } from "../modules/pmc/siteInstructions.js";
 import { progressReportsRouter } from "../modules/pmc/progressReports.js";
 import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
+import { runningBillsRouter } from "../modules/pmc/runningBills.js";
 import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
 import { accountsRouter } from "../modules/expense/accounts.js";
@@ -187,6 +188,7 @@ export const appRouter = router({
   siteInstructions: siteInstructionsRouter,
   progressReports: progressReportsRouter,
   phaseProgress: phaseProgressRouter,
+  runningBills: runningBillsRouter,
   constructionSchedule: constructionScheduleRouter,
   projectBrief: projectBriefRouter,
   accounts: accountsRouter,

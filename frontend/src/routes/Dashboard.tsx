@@ -1612,7 +1612,7 @@ export function Dashboard() {
   const billingReady = ac?.billingReadyPhases ?? [];
 
   return (
-    <div style={{ width: "80%", margin: "0 auto" }}>
+    <div className="esti-dashboard-page">
       <Tabs>
         <TabList aria-label="Dashboard navigation">
           <Tab>OVERVIEW</Tab>
