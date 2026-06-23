@@ -84,6 +84,54 @@ export const PhaseProgressUpdate = z.object({
 });
 export type PhaseProgressUpdate = z.infer<typeof PhaseProgressUpdate>;
 
+export const RunningBillStatus = z.enum([
+  "MEASURED",
+  "SENT_TO_CONTRACTOR",
+  "CONTRACTOR_VERIFIED",
+  "SENT_TO_OFFICE",
+  "MEASUREMENT_VERIFIED",
+  "APPROVED_MEASUREMENT_SENT",
+  "CONTRACTOR_INVOICED",
+  "OFFICE_APPROVED",
+  "SENT_TO_CLIENT",
+]);
+export type RunningBillStatus = z.infer<typeof RunningBillStatus>;
+
+export const RUNNING_BILL_STATUS_LABEL: Record<RunningBillStatus, string> = {
+  MEASURED: "Measured on site",
+  SENT_TO_CONTRACTOR: "Sent to contractor",
+  CONTRACTOR_VERIFIED: "Contractor verified",
+  SENT_TO_OFFICE: "Sent to office",
+  MEASUREMENT_VERIFIED: "Measurement verified",
+  APPROVED_MEASUREMENT_SENT: "Approved measurement sent",
+  CONTRACTOR_INVOICED: "Contractor invoiced",
+  OFFICE_APPROVED: "Office approved",
+  SENT_TO_CLIENT: "Sent to client",
+};
+
+export const RunningBillCreate = z.object({
+  projectId: z.string().uuid(),
+  contractorId: z.string().uuid().optional(),
+  title: z.string().min(2).max(200),
+  measurementDate: z.string().date().optional(),
+  notes: z.string().max(4000).optional(),
+  items: z.array(z.object({
+    description: z.string().min(1).max(400),
+    unit: z.string().min(1).max(20),
+    qty: z.number().nonnegative(),
+    ratePaise: z.number().int().nonnegative().default(0),
+  })).min(1).max(100),
+});
+export type RunningBillCreate = z.infer<typeof RunningBillCreate>;
+
+export const RunningBillAdvance = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  status: RunningBillStatus,
+  note: z.string().max(2000).optional(),
+});
+export type RunningBillAdvance = z.infer<typeof RunningBillAdvance>;
+
 /** Default APBF Layer 2 live stages keyed by phase code. */
 export const DEFAULT_LIVE_STAGES: Record<string, { code: string; label: string }[]> = {
   CONSTRUCTION_ADMINISTRATION: [

@@ -531,6 +531,9 @@ Optional PMC for firms that also act as project management consultants — chart
 - [x] `pmc_enabled` on org settings and project office (migration `0060`)
 - [x] `settings.setPmcEnabled` + project Settings toggle
 - [x] `pmc.summary`, `pmc.portfolio`, `pmc.status`; project **PMC** tab; office `/pmc`
+- [x] Project IA grouped into **Info**, **Consultancy**, and **PMC**
+- [x] PMC group includes costing, running bills, purchase orders, and specification sheets
+- [x] Running-bill measurement workflow from site in-charge to contractor, office, and client forwarding
 
 ### 15B — Gantt programme
 - [x] `task.start_date` (migration `0061`); `programme.gantt` API

@@ -2,10 +2,13 @@ import { contractors } from "./delivery.js";
 import { users } from "./org-auth.js";
 import { phases, projectOffices } from "./project.js";
 import {
+  bigint,
   createdAt,
   date,
+  doublePrecision,
   id,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -94,4 +97,36 @@ export const phaseProgress = pgTable("esti_phase_progress", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+export const runningBills = pgTable("esti_running_bill", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  status: text("status").notNull().default("MEASURED"),
+  measurementDate: date("measurement_date"),
+  notes: text("notes"),
+  totalPaise: bigint("total_paise", { mode: "number" }).notNull().default(0),
+  statusHistory: jsonb("status_history").notNull().default([]),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const runningBillItems = pgTable("esti_running_bill_item", {
+  id: id(),
+  runningBillId: uuid("running_bill_id")
+    .notNull()
+    .references(() => runningBills.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  qty: doublePrecision("qty").notNull().default(0),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
 });

@@ -54,6 +54,19 @@ function EstimatePdf({ id, initial }: { id: string; initial: string }) {
   );
 }
 
+function sourceTag(sourceKind?: string | null) {
+  switch (sourceKind) {
+    case "TAKEOFF_IMPORT":
+      return { label: "TAKEOFF", type: "purple" as const };
+    case "DSR_PICK":
+      return { label: "DSR", type: "blue" as const };
+    case "BULK_IMPORT":
+      return { label: "IMPORT", type: "cyan" as const };
+    default:
+      return { label: "MANUAL", type: "gray" as const };
+  }
+}
+
 /** Parse CSV/TSV bulk lines: description, unit, qty, rate (₹), itemLeadPct */
 function parseEstimateBulk(text: string) {
   return text
@@ -456,6 +469,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               <TableHead>
                 <TableRow>
                   <TableHeader>Description</TableHeader>
+                  <TableHeader>Source</TableHeader>
                   <TableHeader>Unit</TableHeader>
                   <TableHeader>Qty</TableHeader>
                   <TableHeader>Rate</TableHeader>
@@ -482,6 +496,18 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                       ) : (
                         it.description
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Stack gap={2}>
+                        <Tag size="sm" type={sourceTag(it.sourceKind).type}>
+                          {sourceTag(it.sourceKind).label}
+                        </Tag>
+                        {it.dsrItemCode && (
+                          <span className="esti-label esti-label--helper">
+                            {it.dsrItemCode}
+                          </span>
+                        )}
+                      </Stack>
                     </TableCell>
                     <TableCell>
                       {open.status === "DRAFT" ? (

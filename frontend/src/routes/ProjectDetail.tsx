@@ -21,9 +21,10 @@ import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectBbs } from "../components/ProjectBbs.js";
-import { ProjectDocuments } from "../components/ProjectDocuments.js";
+import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectExpenses } from "../components/ProjectExpenses.js";
+import { ProjectRunningBills } from "../components/ProjectRunningBills.js";
 import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
@@ -50,6 +51,7 @@ const PROJECT_STATUS_TAG: Record<
 };
 
 type ProjectTab = { slug: string; label: string; panel: ReactNode };
+type ProjectGroup = { slug: string; label: string; tabs: ProjectTab[] };
 
 export function ProjectDetail() {
   const { id = "" } = useParams();
@@ -70,35 +72,19 @@ export function ProjectDetail() {
   const showCosting = canInvoice;
   const showTeam = hrEnabled && canHr;
 
-  const projectTabs = useMemo((): ProjectTab[] => {
-    const tabs: ProjectTab[] = [
+  const projectGroups = useMemo((): ProjectGroup[] => {
+    const infoTabs: ProjectTab[] = [
       { slug: "overview", label: "Overview", panel: <ProjectOverview projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
       { slug: "programme", label: "Programme", panel: <ProjectProgramme projectId={id} /> },
+      { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
-    if (showPmc) {
-      tabs.push({ slug: "pmc", label: "PMC", panel: <ProjectPmc projectId={id} /> });
-    }
-    tabs.push({
+
+    const consultancyTabs: ProjectTab[] = [{
       slug: "clientlog",
       label: "Client log",
       panel: <ProjectClientLog projectId={id} />,
-    });
-    if (showCosting) {
-      tabs.push({
-        slug: "costing",
-        label: "Costing & expenses",
-        panel: (
-          <>
-            <ProjectEstimates projectId={id} />
-            <ProjectBbs projectId={id} />
-            <ProjectPurchaseOrders projectId={id} />
-            <ProjectExpenses projectId={id} />
-          </>
-        ),
-      });
-    }
-    tabs.push({
+    }, {
       slug: "drawings",
       label: "Drawings",
       panel: (
@@ -108,16 +94,15 @@ export function ProjectDetail() {
           <ProjectApprovals projectId={id} />
         </>
       ),
-    });
-    tabs.push({
+    }, {
       slug: "documents",
       label: "Documents",
-      panel: <ProjectDocuments projectId={id} />,
-    });
+      panel: <ProjectDocuments projectId={id} includeSpecs={false} />,
+    }];
     if (showTeam) {
-      tabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
+      consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
-    tabs.push(
+    consultancyTabs.push(
       {
         slug: "comments",
         label: "Comments",
@@ -132,10 +117,37 @@ export function ProjectDetail() {
         ),
       },
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
-      { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     );
-    return tabs;
+
+    const pmcTabs: ProjectTab[] = [];
+    if (showPmc) {
+      pmcTabs.push({ slug: "pmc", label: "PMC control", panel: <ProjectPmc projectId={id} /> });
+    }
+    if (showCosting) {
+      pmcTabs.push({
+        slug: "costing",
+        label: "Costing",
+        panel: (
+          <>
+            <ProjectEstimates projectId={id} />
+            <ProjectBbs projectId={id} />
+            <ProjectExpenses projectId={id} />
+          </>
+        ),
+      });
+      pmcTabs.push({ slug: "running-bills", label: "Running bills", panel: <ProjectRunningBills projectId={id} /> });
+      pmcTabs.push({ slug: "purchase-orders", label: "Purchase orders", panel: <ProjectPurchaseOrders projectId={id} /> });
+      pmcTabs.push({ slug: "spec-sheets", label: "Specification sheets", panel: <ProjectSpecSheets projectId={id} /> });
+    }
+
+    return [
+      { slug: "info", label: "Info", tabs: infoTabs },
+      { slug: "consultancy", label: "Consultancy", tabs: consultancyTabs },
+      ...(pmcTabs.length > 0 ? [{ slug: "pmc", label: "PMC", tabs: pmcTabs }] : []),
+    ];
   }, [id, showPmc, showCosting, showTeam]);
+
+  const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
   const rawTab = searchParams.get("tab") ?? "overview";
   const tabSlug = rawTab === "compliance" ? "info" : rawTab;
@@ -144,6 +156,12 @@ export function ProjectDetail() {
     projectTabs.findIndex((t) => t.slug === tabSlug),
   );
   const activeTab = projectTabs[tabIndex]?.slug ?? "overview";
+  const groupIndex = Math.max(
+    0,
+    projectGroups.findIndex((g) => g.tabs.some((t) => t.slug === activeTab)),
+  );
+  const activeGroup = projectGroups[groupIndex] ?? projectGroups[0]!;
+  const innerIndex = Math.max(0, activeGroup.tabs.findIndex((t) => t.slug === activeTab));
 
   useEffect(() => {
     if (rawTab === "compliance") {
@@ -217,22 +235,43 @@ export function ProjectDetail() {
       </div>
 
       <Tabs
-        selectedIndex={tabIndex}
+        selectedIndex={groupIndex}
         onChange={({ selectedIndex }) =>
           setSearchParams(
-            { tab: projectTabs[selectedIndex]?.slug ?? "overview" },
+            { tab: projectGroups[selectedIndex]?.tabs[0]?.slug ?? "overview" },
             { replace: true },
           )
         }
       >
         <TabList aria-label="Project sections" contained>
-          {projectTabs.map((t) => (
-            <Tab key={t.slug}>{t.label}</Tab>
+          {projectGroups.map((group) => (
+            <Tab key={group.slug}>{group.label}</Tab>
           ))}
         </TabList>
         <TabPanels>
-          {projectTabs.map((t) => (
-            <TabPanel key={t.slug}>{t.panel}</TabPanel>
+          {projectGroups.map((group) => (
+            <TabPanel key={group.slug}>
+              <Tabs
+                selectedIndex={group.slug === activeGroup.slug ? innerIndex : 0}
+                onChange={({ selectedIndex }) =>
+                  setSearchParams(
+                    { tab: group.tabs[selectedIndex]?.slug ?? group.tabs[0]?.slug ?? "overview" },
+                    { replace: true },
+                  )
+                }
+              >
+                <TabList aria-label={`${group.label} project sections`}>
+                  {group.tabs.map((t) => (
+                    <Tab key={t.slug}>{t.label}</Tab>
+                  ))}
+                </TabList>
+                <TabPanels>
+                  {group.tabs.map((t) => (
+                    <TabPanel key={t.slug}>{t.panel}</TabPanel>
+                  ))}
+                </TabPanels>
+              </Tabs>
+            </TabPanel>
           ))}
         </TabPanels>
       </Tabs>

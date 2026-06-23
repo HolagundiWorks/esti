@@ -100,12 +100,12 @@ function PdfButton({
   );
 }
 
-export function ProjectDocuments({ projectId }: { projectId: string }) {
+export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId: string; includeSpecs?: boolean }) {
   return (
     <Stack gap={7} style={{ marginTop: 16 }}>
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
-      <SpecSheets projectId={projectId} />
+      {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
       <MoodBoards projectId={projectId} />
     </Stack>
   );
@@ -338,7 +338,7 @@ function rowFromCatalog(item: {
   };
 }
 
-function SpecSheets({ projectId }: { projectId: string }) {
+export function ProjectSpecSheets({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const listQ = trpc.spec.listByProject.useQuery({ projectId });
   const catalogQ = trpc.specCatalog.activeCatalog.useQuery();

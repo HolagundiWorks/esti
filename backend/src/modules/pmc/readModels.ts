@@ -8,6 +8,7 @@ import {
   phases,
   progressReports,
   projectOffices,
+  runningBills,
   snags,
   siteInstructions,
 } from "../../db/schema.js";
@@ -69,6 +70,19 @@ export async function buildPmcSummary(db: DB, projectId: string) {
     .where(and(eq(snags.projectId, projectId), ne(snags.status, "CLOSED")))
     .orderBy(asc(snags.dueDate));
 
+  const runningBillRows = await db
+    .select({
+      id: runningBills.id,
+      ref: runningBills.ref,
+      title: runningBills.title,
+      status: runningBills.status,
+      measurementDate: runningBills.measurementDate,
+      createdAt: runningBills.createdAt,
+    })
+    .from(runningBills)
+    .where(and(eq(runningBills.projectId, projectId), ne(runningBills.status, "SENT_TO_CLIENT")))
+    .orderBy(desc(runningBills.createdAt));
+
   const [latestInspection] = await db
     .select({
       id: inspections.id,
@@ -118,6 +132,14 @@ export async function buildPmcSummary(db: DB, projectId: string) {
         status: s.status,
         date: s.dueDate!,
       })),
+    ...runningBillRows.map((rb) => ({
+      kind: "running_bill" as const,
+      id: rb.id,
+      title: `${rb.ref} · ${rb.title}`,
+      subtype: rb.status,
+      status: rb.status,
+      date: rb.measurementDate ?? rb.createdAt.toISOString().slice(0, 10),
+    })),
     ...(programme?.upcomingSchedule ?? []).map((u) => ({
       kind: u.kind,
       id: u.id,
@@ -175,6 +197,10 @@ export async function buildPmcSummary(db: DB, projectId: string) {
       open: snagRows.length,
       overdue: snagRows.filter((s) => s.dueDate && s.dueDate < today).length,
       items: snagRows.slice(0, 10),
+    },
+    runningBills: {
+      open: runningBillRows.length,
+      items: runningBillRows.slice(0, 8),
     },
     inspections: {
       latest: latestInspection ?? null,

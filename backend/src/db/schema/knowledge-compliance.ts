@@ -80,6 +80,15 @@ export const estimateItems = pgTable("esti_estimate_item", {
     .notNull()
     .references(() => estimates.id),
   dsrItemId: uuid("dsr_item_id").references(() => dsrItems.id),
+  /** MANUAL, DSR_PICK, BULK_IMPORT, TAKEOFF_IMPORT. */
+  sourceKind: text("source_kind").notNull().default("MANUAL"),
+  /** Snapshot fields keep issued BOQs intelligible after DSR/catalog changes. */
+  dsrItemCode: text("dsr_item_code"),
+  dsrItemDescription: text("dsr_item_description"),
+  dsrVersionLabel: text("dsr_version_label"),
+  /** Measurement IDs and compact source details used to create the line. */
+  sourceMeasurementIds: jsonb("source_measurement_ids").notNull().default([]),
+  sourcePayload: jsonb("source_payload").notNull().default({}),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
   qty: doublePrecision("qty").notNull().default(0),

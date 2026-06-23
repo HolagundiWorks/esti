@@ -132,6 +132,10 @@ The contractor module supports architect-side coordination only:
   receipt, comparison, scoring, and award recommendation;
 - RFIs, material submittals, shop drawings, inspection requests, site
   instructions, snags, and NCRs;
+- PMC running-bill measurement workflow: site in-charge measurement, contractor
+  verification, office measurement verification, approved measurement back to
+  contractor, item-wise contractor invoice, office approval, and client
+  forwarding;
 - strict portal isolation between contractors.
 
 It does not provide inventory, labour, subcontractor, GRN, or contractor
@@ -142,7 +146,9 @@ accounting systems.
 - COA-aware fee proposals, scope, deliverables, exclusions, versions, approval.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
-- DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports.
+- PMC commercial control: costing, running bills, purchase orders, and
+  specification sheets under the project PMC group.
+- DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and DSR/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
