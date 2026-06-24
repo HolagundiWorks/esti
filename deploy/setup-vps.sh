@@ -47,6 +47,17 @@ ask  "Your email (for TLS certificate):"                    ADMIN_EMAIL
 ask  "Git branch [main]:"                                   GIT_BRANCH
 GIT_BRANCH="${GIT_BRANCH:-main}"
 
+# Build variant — set by the install-demo.sh / install-firm.sh wrappers, or pass
+# VARIANT=demo|firm directly. demo = public marketing site (landing/blog/investors)
+# + seeded demo workspace; firm = product only (no marketing, no demo, /login at root).
+VARIANT="${VARIANT:-demo}"
+case "$VARIANT" in
+  demo) PUBLIC_SITE="true";  SEED_DEMO="true"  ;;
+  firm) PUBLIC_SITE="false"; SEED_DEMO="false" ;;
+  *) error "VARIANT must be 'demo' or 'firm' (got: '$VARIANT'). Use install-demo.sh or install-firm.sh." ;;
+esac
+info "Build variant: ${BOLD}${VARIANT}${NC} (public site: ${PUBLIC_SITE}, demo data: ${SEED_DEMO})"
+
 echo ""
 warn "Database & session secrets"
 askpass "PostgreSQL password [auto-generate]:" POSTGRES_PASSWORD
@@ -68,12 +79,19 @@ echo ""
 warn "First owner account for ESTI"
 ask     "Owner email:"     OWNER_EMAIL
 askpass "Owner password:"  OWNER_PASSWORD
-askpass "Demo account password [demo1234]:" DEMO_PASSWORD
-DEMO_PASSWORD="${DEMO_PASSWORD:-demo1234}"
-# Public demo login page always shows demo1234 — keep owner in sync when using demo principal.
-if [[ "${OWNER_EMAIL}" == "principal@demo.aorms.in" ]]; then
-  OWNER_PASSWORD="$DEMO_PASSWORD"
-  info "Demo principal: owner password set to match demo password."
+if [[ "$VARIANT" == "demo" ]]; then
+  # The public demo button sends a hardcoded "demo1234" (frontend landing-demo.ts), so
+  # changing this breaks one-click demo login. Keep the default unless you know why.
+  askpass "Demo account password [demo1234]:" DEMO_PASSWORD
+  DEMO_PASSWORD="${DEMO_PASSWORD:-demo1234}"
+  [[ "$DEMO_PASSWORD" != "demo1234" ]] && warn "Demo password ≠ demo1234 — the public one-click demo button will fail until the frontend constant matches."
+  # Keep owner in sync when the owner *is* the demo principal.
+  if [[ "${OWNER_EMAIL}" == "principal@demo.aorms.in" ]]; then
+    OWNER_PASSWORD="$DEMO_PASSWORD"
+    info "Demo principal: owner password set to match demo password."
+  fi
+else
+  DEMO_PASSWORD="demo1234"   # unused on the firm build (no demo workspace is seeded)
 fi
 
 echo ""
@@ -167,6 +185,11 @@ SEED_OWNER_EMAIL=${OWNER_EMAIL}
 SEED_OWNER_NAME="Firm Owner"
 SEED_OWNER_PASSWORD=${OWNER_PASSWORD}
 SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
+
+# Build variant (set by install-demo.sh / install-firm.sh). VITE_PUBLIC_SITE is read by
+# compose for the frontend build; SEED_DEMO gates the demo workspace seed in deploy.sh.
+VITE_PUBLIC_SITE=${PUBLIC_SITE}
+SEED_DEMO=${SEED_DEMO}
 EOF
 chmod 600 "$DEPLOY_DIR/.env"
 info ".env written and locked to root-only (600)."
@@ -211,8 +234,12 @@ fi
 section "Seeding initial data"
 docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seed.js \
   && info "Owner/base data seeded." || warn "Base seed failed — check: docker logs esti-backend"
-docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js \
-  && info "Demo workspace seeded." || warn "Demo seed failed — check: docker logs esti-backend"
+if [[ "$SEED_DEMO" == "true" ]]; then
+  docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js \
+    && info "Demo workspace seeded." || warn "Demo seed failed — check: docker logs esti-backend"
+else
+  info "Demo workspace seed skipped (firm product build)."
+fi
 
 # ── 10. Build frontend static files ──────────────────────────────────────────
 section "Building frontend"
@@ -267,11 +294,13 @@ echo -e "${GREEN}${BOLD}============================================${NC}"
 echo -e "${GREEN}${BOLD}  ESTI AORMS is live!${NC}"
 echo -e "${GREEN}${BOLD}============================================${NC}"
 echo ""
+echo -e "  Variant  : ${BOLD}${VARIANT}${NC} (public site: ${PUBLIC_SITE}, demo data: ${SEED_DEMO})"
 echo -e "  URL      : ${BOLD}https://${DOMAIN}${NC}"
 echo -e "  Login    : ${BOLD}${OWNER_EMAIL}${NC}"
+[[ "$VARIANT" == "demo" ]] && echo -e "  Demo     : ${BOLD}principal@demo.aorms.in${NC} / ${BOLD}${DEMO_PASSWORD}${NC}"
 echo ""
 echo "  Running containers:"
 docker compose -f "$DEPLOY_DIR/compose.prod.yaml" ps --format "table {{.Name}}\t{{.Status}}" 2>/dev/null
 echo ""
-echo -e "  To redeploy after updates: ${CYAN}bash ${DEPLOY_DIR}/deploy/deploy.sh${NC}"
+echo -e "  To update after pulling new code: ${CYAN}bash ${DEPLOY_DIR}/deploy/update.sh${NC}"
 echo ""
