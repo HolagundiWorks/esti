@@ -32,7 +32,7 @@ unchanged) — the split is purely how the work is presented.
 | **Practice** | Proposals pipeline, Letters, Contracts, Document register, **Office programme & PMC portfolios** (read-only rollups), AI Studio |
 | **Accounts** | Invoices (cross-project rollup), Reconciliation, Expenses & cash book, GST/TDS filing |
 | **People** | Team, HR, Performance, Consultants (directory), Contractors (directory) |
-| **Knowledge** | DSR rates, Bylaw / RIE compliance, Spec catalogue, SteelFlow BBS reference |
+| **Knowledge** | DSR rates, Rate-analysis library, Spec catalogue, SteelFlow BBS reference |
 | **Admin** | Company, Users, Audit log, System, My profile |
 
 ## The project workspace — two heads
@@ -49,18 +49,43 @@ unchanged) — the split is purely how the work is presented.
 
 ### Project Management head — construction delivery *(when the project is a PMC engagement)*
 - PMC control — programme of works, progress reports
-- **BOQ & costing** — takeoff (reads the Consultancy drawings) → estimate → BBS
+- **Costing & Measurement** — the single window (see below): rate analysis →
+  estimation → BOQ → costing → site measurement → RA running bills → submissions
 - Tenders & contractors — tender → bids → award *(prices the BOQ)*
-- Running bills — measurement → contractor → office → bill (RA bills)
 - Site — snags, site instructions, inspections, progress
 - Purchase orders
 - Specification sheets
+
+## Costing & Measurement — the single window
+
+The biggest source of "scattered + relinking" today is that rates, quantities,
+the BOQ, site measurement and bills live in separate screens that re-key the same
+items. They should be **one workspace on one shared item/rate spine** — quantities
+and rates flow forward, nothing is re-entered:
+
+```
+Rate analysis ─▶ Estimation ─▶ BOQ ─▶ Costing ─▶ Site measurement ─▶ Running bills (RA) ─▶ Submissions
+```
+
+| Step | What it is | Source / sink |
+|---|---|---|
+| **Rate analysis** | composite rate build-up (material + labour + machinery + overhead), or pull a DSR rate | the analysed-rate library (Knowledge) seeds it |
+| **Estimation** | apply rates to *estimated* quantities (takeoff from the Consultancy drawings) | reads `measurements` (takeoff) |
+| **BOQ** | the formal bill of quantities — the tender/contract document | priced by **Tenders** |
+| **Costing** | project cost roll-up, budget vs estimate, lead % | summary rolls to **Accounts** |
+| **Site measurement** | *actual* measured quantities recorded on site (measurement sheet / abstract) | the as-built quantities |
+| **Running bills (RA)** | measured qty × analysed/BOQ rate → RA bill; the measure→verify→approve→bill lifecycle | contractor portal |
+| **Submissions** | contractor submits the bill against approved quantities | closes the loop |
+
+One item carries its rate from analysis all the way to the running bill — so the
+RA bill is **rate-analysis-based by construction**, not re-keyed. This window is
+the heart of the **Project Management** head.
 
 ## What this fixes (current → proposed)
 
 | Scattered today | Move to |
 |---|---|
-| Estimates / BBS under a vague **Costing** group | **Project Management › BOQ & costing**, beside tenders and running bills; takeoff still reads the Consultancy drawings |
+| Estimates / BBS / measurement / running bills as **separate screens** | **One Costing & Measurement window** (rate analysis → estimation → BOQ → costing → site measurement → RA bills → submissions) on a shared item/rate spine |
 | **Programme** as top-level nav *and* project Info tab | Per-project Programme stays in the project (shared header); top-level becomes a read-only **portfolio Gantt** under Practice |
 | **PMC** as top-level nav *and* project group | Project Management is a **project head**; the nav item becomes the read-only **PMC portfolio** rollup under Practice |
 | **Tenders**, **Construction** under nav "Office" | **Project Management head** (per project); Practice shows the portfolio rollup |
@@ -120,7 +145,6 @@ under **Project Management**; design under **Consultancy**.
 | Decisions & revisions (revision intelligence) | source/category — the design audit trail |
 | Documents (`documents`) | this project's document register (instance) |
 | Specifications (`spec`) | this project's spec sheets (instance) |
-| Compliance & RIE (`bylawCalc`, `siteAssessments`) | FAR/bylaw check + assessment for *this site* |
 | Statutory permits (`permits`) | sanction/approval tracking with authorities |
 | Fee & billing (`feeProposals`, `invoices`) | COA fee for this project + **raise invoices here** |
 
@@ -129,9 +153,8 @@ under **Project Management**; design under **Consultancy**.
 |---|---|
 | PMC control (`pmc`) | hub, progress reports, portfolio status |
 | Construction schedule (`constructionSchedule`, `phaseProgress`) | site CPM / Gantt |
-| BOQ & costing (`estimates`, `measurements` takeoff, `bbs`, `dsr` ref) | quantities → priced BOQ (one costing home) |
+| **Costing & Measurement** (`estimates`, `measurements`, `bbs`, `dsr`, `runningBills`) | the single window — rate analysis → estimation → BOQ → costing → site measurement → RA bills → submissions |
 | Tenders & contractors (tender → bid → award) | prices the BOQ; links the contractor record |
-| Running bills (`runningBills`) | measurement → contractor → office → bill (RA) |
 | Site ops (`snags`, `siteInstructions`, `progressReports`, `inspections`) | day-to-day construction administration |
 | Purchase orders (`purchaseOrders`) | procurement of goods |
 | Project expenses (`expenses`) | project cost book (read-write here, rolls up to Accounts) |
@@ -153,18 +176,18 @@ under **Project Management**; design under **Consultancy**.
 | **Practice / Office** | `letters`, `contracts`, document register (office-wide), Programme + PMC **portfolios** (read-only rollups), AI Studio | office documents + cross-project overview |
 | **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
 | **People** | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`); `consultants` + `contractors` **directories** | the firm's roster + capability; engagements live in the project |
-| **Knowledge** | `dsr` (rates), `knowledgeBank`, `bylaws`+`ruleVersions` (RIE rule bank), `specCatalog`, `steelflow` | **reference data**, not project instances |
+| **Knowledge** | `dsr` (rates), `knowledgeBank`, analysed-rate library, `specCatalog`, `steelflow` | **reference data**, not project instances |
 | **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `companion` (ESTICAD devices), `marketing` | run the installation |
 
 `health`, `profile` are public/infra — no nav home.
 
 ## Key relocations (the wins)
 
-1. **One costing home.** `estimates` + `measurements` (takeoff) + `bbs` consolidate into **PM › BOQ & costing**, reading the Consultancy drawings. Today they are split across a project "Costing" tab and the Knowledge Bank.
-2. **Statutory work lands in Design.** `permits`, `bylawCalc`, `siteAssessments`, `inspections` move out of "Office"/floating into the Consultancy head (or PM Site, for site inspections) where they belong to the stage.
+1. **One costing window.** `estimates` + `measurements` + `bbs` + `runningBills` become a single **Costing & Measurement** workspace on a shared item/rate spine — rate analysis flows all the way to the RA bill, nothing re-keyed. Today they are separate screens that re-enter the same items.
+2. **Statutory work lands in Design.** `permits` and `inspections` move out of "Office"/floating into the Consultancy head (or PM Site, for site inspections) where they belong to the stage.
 3. **Tenders & Construction leave the global "Office" group** for the PM head; Practice keeps only the read-only **portfolio** rollup.
 4. **Expenses: one editor, one rollup.** Read-write in the project; Accounts is the cross-project summary — not two editable copies.
 5. **Directory vs engagement.** `consultants`/`contractors` are master **directories** under People; the project shows the engagement, linking back.
 6. **Collaboration is contextual, not navigational.** `comments`, `criticalNotes`, `activity` attach to records and timelines, not a sidebar item.
-7. **Reference vs instance.** Knowledge holds rule/rate/spec *banks* (`dsr`, `ruleVersions`, `specCatalog`); projects hold the *applied* result (`bylawCalc`, `spec` sheets).
+7. **Reference vs instance.** Knowledge holds the rate/spec *banks* (`dsr`, analysed-rate library, `specCatalog`); projects hold the *applied* result (BOQ, `spec` sheets).
 8. **Portals are one project, scoped.** Client, consultant and contractor portals are the same project data filtered by role — not separate modules.
