@@ -26,6 +26,10 @@ export const LANDING_SLUGS = [
   "coa-compliant-billing-software",
   "gst-billing-software-architects-india",
   "architecture-office-management-india",
+  // Phase 11 — India tax intent + consultancy.
+  "gst-on-architecture-services",
+  "hsn-sac-code-for-architects",
+  "architecture-consultancy-management-software",
 ] as const;
 
 const SET: ReadonlySet<string> = new Set(LANDING_SLUGS);
@@ -53,6 +57,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "architecture-practice-management-software", label: "Practice management software" },
       { slug: "architecture-project-management-software", label: "Project management software" },
       { slug: "software-for-architecture-firms", label: "Software for architecture firms" },
+      { slug: "architecture-consultancy-management-software", label: "Consultancy management software" },
     ],
   },
   {
@@ -73,6 +78,8 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "coa-compliant-billing-software", label: "COA-compliant billing" },
       { slug: "gst-billing-software-architects-india", label: "GST billing for architects" },
       { slug: "architecture-office-management-india", label: "Office management in India" },
+      { slug: "gst-on-architecture-services", label: "GST on architecture work" },
+      { slug: "hsn-sac-code-for-architects", label: "HSN / SAC code for architects" },
     ],
   },
 ];
