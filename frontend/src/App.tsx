@@ -345,24 +345,22 @@ function AppShell() {
       label: "Accounting",
       icon: Money,
       items: [
-        // GST invoicing + expenses: needs `billing` plan feature (Core+).
-        ...(planAllowsFeature("billing") && can(user.role, "invoice:manage")
+        // Invoices, expenses, cash book, reconciliation are Lite+ (non-GST billing
+        // and basic bank reconciliation work below the GST registration threshold).
+        ...(can(user.role, "invoice:manage")
           ? [
               { label: "Invoices", to: "/invoices" },
               { label: "Office expenses", to: "/accounting/office-expenses" },
               { label: "Cash book", to: "/accounting/cash-book" },
+              { label: "Reconciliation", to: "/reconcile" },
             ]
-          : []),
-        // Reconciliation: needs `reconciliation` plan feature (Core+).
-        ...(planAllowsFeature("reconciliation") && can(user.role, "invoice:manage")
-          ? [{ label: "Reconciliation", to: "/reconcile" }]
           : []),
         // Fee proposals stay on Lite (basic flat fee).
         ...(can(user.role, "fees:manage")
           ? [{ label: "Fee proposals", to: "/accounting/fees" }]
           : []),
-        // GST/TDS filing: needs `reconciliation` plan feature.
-        ...(planAllowsFeature("reconciliation") && can(user.role, "reports:view")
+        // GST / TDS filing abstracts (returns): Core+ only.
+        ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
           ? [{ label: "GST / TDS filing", to: "/filing" }]
           : []),
       ],

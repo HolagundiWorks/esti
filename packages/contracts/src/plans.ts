@@ -34,13 +34,14 @@ export type PlanQuota = keyof PlanLimits;
 
 /** Feature flags gated by a minimum plan. */
 export const PLAN_FEATURES = [
-  "pmc", // construction / Project Management head
+  "pmc", // construction / Project Management head — incl. tenders/bidding (Core+)
   "costing", // BOQ & measurement window
   "revisionIntelligence",
-  "billing", // GST invoicing — not in Lite
+  // billing (basic, non-GST) and reconciliation (basic bank) are LITE+ — no gate.
+  // GST-specific behaviour (CGST/SGST split, SAC, 26AS/AIS/GSTR returns) is gated:
+  "gstFiling", // GST / TDS filing abstracts — Core+
   "hr", // HR & payroll
   "performance", // ASPRF / scores / rewards
-  "reconciliation", // bank / 26AS / AIS / GSTR import + filing
   "consultantPortal",
   "contractorPortal",
   "ai", // ESTI AI / cognition / LLM / ML
@@ -60,10 +61,9 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   pmc: "CORE",
   costing: "CORE",
   revisionIntelligence: "CORE",
-  billing: "CORE",
+  gstFiling: "CORE",
   hr: "CORE",
   performance: "CORE",
-  reconciliation: "CORE",
   consultantPortal: "CORE",
   contractorPortal: "CORE",
   ai: "CORE",
