@@ -1,6 +1,7 @@
 // Parametric construction estimator — Carbon diagram building blocks.
 // Uses @carbon/charts-react CardNode for nodes, Edge + ArrowRightMarker for connectors.
-// CSS (cds--cc--*) already imported globally via @carbon/charts-react/styles.css in main.tsx.
+// CSS (cds--cc--*) is imported here so it ships in this lazy chunk, not the eager bundle.
+import "@carbon/charts-react/styles.css";
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import { Button, Theme } from "@carbon/react";
