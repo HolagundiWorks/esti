@@ -5,12 +5,13 @@ import {
   EstimateItemUpdate,
   estimateItemAmount,
   formatINR,
+  TAKEOFF_CATALOG,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { estimateItems, estimates } from "../../db/schema.js";
+import { drawings, estimateItems, estimates, measurements } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -52,6 +53,54 @@ export const estimateRouter = router({
     const pdfUrl = row.pdfKey ? await presignedGet(row.pdfKey).catch(() => null) : null;
     return { ...row, pdfUrl };
   }),
+
+  /**
+   * The takeoff measurements behind a line item's quantity — the calculation
+   * breakdown. Resolves the item's sourceMeasurementIds to the measurement rows
+   * (drawing, element type + its catalog unit, measured value → BOQ qty), so the
+   * estimate can show where each quantity came from instead of a bare number.
+   */
+  itemSources: protectedProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [item] = await ctx.db
+        .select({ ids: estimateItems.sourceMeasurementIds, unit: estimateItems.unit, qty: estimateItems.qty })
+        .from(estimateItems)
+        .where(eq(estimateItems.id, input.itemId));
+      if (!item) throw new TRPCError({ code: "NOT_FOUND" });
+      const ids = (item.ids as string[]) ?? [];
+      if (ids.length === 0) return { unit: item.unit, qty: item.qty, total: 0, rows: [] };
+      const rows = await ctx.db
+        .select({
+          id: measurements.id,
+          label: measurements.label,
+          kind: measurements.kind,
+          realLength: measurements.realLength,
+          heightMm: measurements.heightMm,
+          itemCount: measurements.itemCount,
+          unit: measurements.unit,
+          elementTypeId: measurements.elementTypeId,
+          elementCategory: measurements.elementCategory,
+          boqQty: measurements.boqQty,
+          boqUnit: measurements.boqUnit,
+          drawingRef: drawings.ref,
+          drawingTitle: drawings.title,
+        })
+        .from(measurements)
+        .leftJoin(drawings, eq(drawings.id, measurements.drawingId))
+        .where(inArray(measurements.id, ids));
+      const catalog = new Map(TAKEOFF_CATALOG.map((e) => [e.id, e]));
+      const enriched = rows.map((r) => {
+        const spec = r.elementTypeId ? catalog.get(r.elementTypeId) : undefined;
+        return {
+          ...r,
+          elementLabel: spec?.label ?? r.elementTypeId ?? r.label,
+          measureKind: spec?.measureKind ?? r.kind,
+        };
+      });
+      const total = enriched.reduce((sum, r) => sum + (r.boqQty ?? 0), 0);
+      return { unit: item.unit, qty: item.qty, total, rows: enriched };
+    }),
 
   create: protectedProcedure.input(EstimateCreate).mutation(async ({ ctx, input }) => {
     if (input.dsrVersionId) await assertPublishedDsrVersion(ctx.db, input.dsrVersionId);
