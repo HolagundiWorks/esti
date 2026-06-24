@@ -11,8 +11,9 @@ shared **practice** functions that are not project-internal.
 
 - **Consultancy** — design services on the COA/RIBA stages: brief → design →
   drawings → approvals → fees. This is what the firm *designs*.
-- **Project Management (PMC)** — construction delivery: tenders → contractors →
-  measurement → running bills → site. This is what the firm *administers on site*.
+- **Project Management (PMC)** — construction delivery: BOQ & costing → tenders →
+  contractors → measurement → running bills → site. This is what the firm
+  *administers on site*.
 - **Practice (shared)** — Clients, Accounts, People, Knowledge, Admin. Cross-cuts
   every project; each lives in exactly one place.
 
@@ -28,8 +29,8 @@ unchanged) — the split is purely how the work is presented.
 | **Clients** | Client CRM, client log, portal access |
 | **Projects** | Project list → **project workspace** (two heads, below) · Archived projects |
 | **Work** | Tasks, workload, my work |
-| **Practice** | Proposals pipeline, Fee proposals, Letters, Contracts, Document register, Office programme (portfolio Gantt), AI Studio |
-| **Accounts** | Invoices, Reconciliation, Expenses & cash book, GST/TDS filing, Purchase orders |
+| **Practice** | Proposals pipeline, Letters, Contracts, Document register, **Office programme & PMC portfolios** (read-only rollups), AI Studio |
+| **Accounts** | Invoices (cross-project rollup), Reconciliation, Expenses & cash book, GST/TDS filing |
 | **People** | Team, HR, Performance, Consultants (directory), Contractors (directory) |
 | **Knowledge** | DSR rates, Bylaw / RIE compliance, Spec catalogue, SteelFlow BBS reference |
 | **Admin** | Company, Users, Audit log, System, My profile |
@@ -42,14 +43,14 @@ unchanged) — the split is purely how the work is presented.
 - Client log
 - Design & drawings — drawings, transmittals, approvals
 - Decisions & revisions — revision intelligence (source / category)
-- BOQ & estimation — takeoff → estimate → BBS *(quantities flow from drawings)*
 - Documents
-- Fee & billing — fee proposal, consultancy invoices
+- **Fee & billing** — fee proposal **and** raise/manage invoices for this project
 - Team · Comments · Lessons
 
-### Project Management head — construction delivery *(when PMC enabled)*
+### Project Management head — construction delivery *(when the project is a PMC engagement)*
 - PMC control — programme of works, progress reports
-- Tenders & contractors — tender → bids → award *(prices the Consultancy BOQ)*
+- **BOQ & costing** — takeoff (reads the Consultancy drawings) → estimate → BBS
+- Tenders & contractors — tender → bids → award *(prices the BOQ)*
 - Running bills — measurement → contractor → office → bill (RA bills)
 - Site — snags, site instructions, inspections, progress
 - Purchase orders
@@ -59,13 +60,14 @@ unchanged) — the split is purely how the work is presented.
 
 | Scattered today | Move to |
 |---|---|
-| Estimates / BBS under project **PMC › Costing** | **Consultancy › BOQ & estimation** (design output); Tenders/Costing *reference* it |
-| **Programme** as top-level nav *and* project Info tab | Per-project Programme stays in the project; top-level becomes a read-only **portfolio** Gantt under Practice |
-| **PMC** as top-level nav *and* project group | Project Management is a **project head**; the nav item becomes the PMC **portfolio** rollup |
-| **Tenders**, **Construction** under nav "Office" | **Project Management head** (per project) + a Practice rollup |
-| **Expenses** in project Costing *and* nav Accounting | One home: **Accounts** (filterable by project); project shows a read-only summary that links there |
+| Estimates / BBS under a vague **Costing** group | **Project Management › BOQ & costing**, beside tenders and running bills; takeoff still reads the Consultancy drawings |
+| **Programme** as top-level nav *and* project Info tab | Per-project Programme stays in the project (shared header); top-level becomes a read-only **portfolio Gantt** under Practice |
+| **PMC** as top-level nav *and* project group | Project Management is a **project head**; the nav item becomes the read-only **PMC portfolio** rollup under Practice |
+| **Tenders**, **Construction** under nav "Office" | **Project Management head** (per project); Practice shows the portfolio rollup |
+| **Invoices** raised from several places | Raised in the project's **Consultancy › Fee & billing**; **Accounts** is the cross-project rollup + reconciliation / GST-TDS filing |
+| **Expenses** in project Costing *and* nav Accounting | One home: **Accounts** (filterable by project); the project shows a read-only summary that links there |
 | **Spec sheets** (project) vs **Spec catalogue** (Knowledge) | Keep both, labelled: catalogue = reference (Knowledge), sheets = instance (project) |
-| **Consultants / Contractors** under People *and* as engagements | Directory = **People** (master); project shows the **engagement** linking back |
+| **Consultants / Contractors** under People *and* as engagements | Directory = **People** (master); the project shows the **engagement** linking back |
 
 ## Principles
 
@@ -74,5 +76,6 @@ unchanged) — the split is purely how the work is presented.
 2. **Project = two heads.** Consultancy and Project Management never mix items.
 3. **Practice wraps projects.** Clients, Accounts, People, Knowledge, Admin are
    office-wide, reached from the global nav, not from inside a project.
-4. **Flow, not a flat list.** Brief → design → approvals → BOQ → tender → site →
-   bills, with each step owned by one head.
+4. **Flow, not a flat list.** Consultancy: brief → design → drawings → approvals
+   → fee. Project Management: BOQ → tender → running bills → site. The drawings
+   handoff (takeoff) is the one bridge between the heads.
