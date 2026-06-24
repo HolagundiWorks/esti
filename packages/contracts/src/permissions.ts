@@ -147,9 +147,11 @@ export function externalClassForUser(user: {
   role: string;
   clientId?: string | null;
   consultantId?: string | null;
+  contractorId?: string | null;
 }): ExternalAccessClass | null {
   if (user.role === "CLIENT" && user.clientId) return "CLIENT";
   if (user.role === "CONSULTANT" && user.consultantId) return "CONSULTANT";
+  if (user.role === "CONTRACTOR" && user.contractorId) return "CONTRACTOR";
   return null;
 }
 
@@ -164,10 +166,12 @@ export function accessLabelForUser(user: {
   role: string;
   clientId?: string | null;
   consultantId?: string | null;
+  contractorId?: string | null;
 }): string {
   const external = externalClassForUser(user);
   if (external === "CLIENT") return "External — Client";
   if (external === "CONSULTANT") return "External — Consultant";
+  if (external === "CONTRACTOR") return "External — Contractor";
   const level = accessLevelForRole(user.role, user);
   if (level) return ACCESS_LEVEL_LABEL[level];
   if (user.role === "CONSULTANT") return ACCESS_LEVEL_LABEL[2];

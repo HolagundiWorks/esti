@@ -9,6 +9,7 @@ export function testUser(role: AuthUser["role"], overrides: Partial<AuthUser> = 
     role,
     clientId: null,
     consultantId: null,
+    contractorId: null,
     isDemo: false,
     isSystemAdmin: false,
     userCode: null,

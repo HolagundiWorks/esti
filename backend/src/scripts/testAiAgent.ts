@@ -38,6 +38,7 @@ function callerFor(user: typeof users.$inferSelect) {
       role: user.role,
       clientId: user.clientId,
       consultantId: user.consultantId,
+      contractorId: user.contractorId,
       isDemo: user.isDemo ?? false,
       isSystemAdmin: user.isSystemAdmin ?? false,
       userCode: user.userCode ?? null,

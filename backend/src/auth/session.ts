@@ -46,9 +46,10 @@ export interface AuthUser {
   fullName: string;
   // Staff ladder (OWNER/PARTNER/SENIOR/ASSOCIATE/VIEWER) plus the two portal
   // roles (CONSULTANT collaborator, CLIENT). See @esti/contracts permissions.
-  role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT";
+  role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT" | "CONTRACTOR";
   clientId: string | null;
   consultantId: string | null;
+  contractorId: string | null;
   /** Seeded demo workspace — uploads blocked; ESTI agent read-only; credential admin blocked. */
   isDemo: boolean;
   /** Installation super-user: seeds, purges, system metadata. Independent of role rank. */
@@ -69,6 +70,7 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
       role: users.role,
       clientId: users.clientId,
       consultantId: users.consultantId,
+      contractorId: users.contractorId,
       isDemo: users.isDemo,
       isSystemAdmin: users.isSystemAdmin,
       userCode: users.userCode,

@@ -127,6 +127,7 @@ export const users = pgTable("esti_user", {
       "VIEWER",
       "CONSULTANT",
       "CLIENT",
+      "CONTRACTOR",
     ],
   })
     .notNull()
@@ -138,6 +139,8 @@ export const users = pgTable("esti_user", {
   clientId: uuid("client_id"),
   // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.
   consultantId: uuid("consultant_id"),
+  // Contractor portal users (role CONTRACTOR + this set) are scoped to a contractor.
+  contractorId: uuid("contractor_id"),
   // Per-user dashboard layout (react-grid-layout items); null = default layout.
   dashboardLayout: jsonb("dashboard_layout"),
   // Seeded demo workspace — credential admin blocked in tRPC; uploads follow org upload policy.
