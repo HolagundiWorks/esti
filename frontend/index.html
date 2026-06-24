@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- IBM Plex fonts load from unpkg via Carbon's @font-face — warm the
+         connection early so text paints without a DNS+TLS round-trip first. -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+
     <title>ESTI AORMS — Architectural Office Record for Indian Practices</title>
 
     <!-- Icons -->
