@@ -45,6 +45,19 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
     { enabled: !!versionId },
   );
 
+  // Spec → rate-book finder: type a trade/material (e.g. "brick") to see the
+  // related rate-book items (code, description, unit, rate) you can map to.
+  const [itemSearch, setItemSearch] = useState("");
+  const itemRows = itemsQ.data ?? [];
+  const itemFilter = itemSearch.trim().toLowerCase();
+  const filteredItems = itemFilter
+    ? itemRows.filter(
+        (it) =>
+          it.code.toLowerCase().includes(itemFilter) ||
+          it.description.toLowerCase().includes(itemFilter),
+      )
+    : itemRows;
+
   const [vOpen, setVOpen] = useState(false);
   const [vForm, setVForm] = useState(emptyVForm);
   const [vError, setVError] = useState<string | null>(null);
@@ -166,19 +179,19 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
     <Stack gap={5}>
       <Stack orientation="horizontal" gap={4}>
         <Stack gap={2} className="esti-grow">
-          {embedded ? <h2>Master DSR</h2> : <h1>Master DSR</h1>}
+          {embedded ? <h2>Rate Books</h2> : <h1>Rate Books</h1>}
           <p>
-            Versioned schedule-of-rates items used by estimates and purchase
-            orders. Official HCW seeds are read-only; create a custom version to edit or export CSV.
+            Versioned rate books (schedules of rates) used by estimates and purchase
+            orders. Official HCW seeds are read-only; create a custom rate book to edit or import/export CSV.
           </p>
         </Stack>
-        <Button onClick={() => { setVOpen(true); setVError(null); }}>New version</Button>
+        <Button onClick={() => { setVOpen(true); setVError(null); }}>New rate book</Button>
       </Stack>
 
       <Stack orientation="horizontal" gap={4}>
         <Select
           id="dsr-ver"
-          labelText="DSR version"
+          labelText="Rate book"
           value={versionId}
           onChange={(e) => setVersionId(e.target.value)}
         >
@@ -238,14 +251,24 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
         </Button>
       </Stack>
 
+      {versionId && (itemsQ.data ?? []).length > 0 && (
+        <TextInput
+          id="dsr-item-search"
+          labelText="Find a specification (e.g. brickwork, RCC, plaster)"
+          placeholder="Type a trade or material to see the related rate-book items"
+          value={itemSearch}
+          onChange={(e) => setItemSearch(e.target.value)}
+        />
+      )}
+
       <DataState
         loading={!!versionId && itemsQ.isLoading}
         isEmpty={!versionId || (itemsQ.data ?? []).length === 0}
         columnCount={5}
         empty={{
           title: versionId
-            ? "No rate items in this version"
-            : "Select or create a DSR version",
+            ? "No rate items in this rate book"
+            : "Select or create a rate book",
           description: versionId
             ? "Add schedule-of-rates items, copy from an existing version, or import a CSV."
             : undefined,
@@ -262,7 +285,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
         }}
       >
         <TableContainer
-          title="Rate items"
+          title={itemFilter ? `Related rate items (${filteredItems.length})` : "Rate items"}
           description={activeVersion?.description ?? ""}
         >
           <Table>
@@ -276,7 +299,12 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(itemsQ.data ?? []).map((it) => (
+              {itemFilter && filteredItems.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5}>No rate items match “{itemSearch.trim()}”.</TableCell>
+                </TableRow>
+              )}
+              {filteredItems.map((it) => (
                 <TableRow key={it.id}>
                   <TableCell>{it.code}</TableCell>
                   <TableCell>{it.description}</TableCell>
@@ -303,7 +331,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
       <ConfirmModal
         open={!!confirmId}
         heading="Remove rate item?"
-        body="This removes the item from this DSR version."
+        body="This removes the item from this rate book."
         confirmText="Remove"
         pending={removeItem.isPending}
         onConfirm={() => {
@@ -315,7 +343,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
 
       <Modal
         open={vOpen}
-        modalHeading="New DSR version"
+        modalHeading="New rate book"
         primaryButtonText={vBusy ? "Publishing…" : "Publish"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={!vForm.label || vBusy}
@@ -391,7 +419,7 @@ export function MasterDsr({ embedded = false }: { embedded?: boolean }) {
 
       <Modal
         open={importOpen}
-        modalHeading="Import DSR items from CSV"
+        modalHeading="Import rate-book items from CSV"
         primaryButtonText={importCsv.isPending ? "Importing…" : "Import"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={!importText.trim() || importCsv.isPending}

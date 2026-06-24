@@ -60,7 +60,27 @@ export function Legal() {
                 on your own infrastructure. We do not sell your data.
               </p>
 
-              <h2>4. Privacy</h2>
+              <h2>4. Use of free-tier data for model training</h2>
+              <p>
+                <strong>AORMS-Lite (the free edition) does not include AI, LLM or ML
+                features.</strong> In exchange for providing AORMS-Lite at no cost, you grant
+                Holagundi Consulting Works a licence to use the data you create in AORMS-Lite — in
+                de-identified and aggregated form — to develop, train and improve our artificial
+                intelligence, large-language and machine-learning models. We take reasonable steps
+                to strip direct identifiers (names, contacts, and other personal data) before any
+                such use, and we do not sell this data.
+              </p>
+              <p>
+                This applies <strong>only to the free AORMS-Lite tier</strong>. Data in the paid
+                editions (AORMS-Core and AORMS-Enterprise) and in self-hosted deployments is
+                <strong> never used to train our models</strong>. Upgrading to a paid edition, or
+                self-hosting, opts you out of model-training use entirely. Where the law requires
+                consent for such processing, your acceptance of these terms on the free tier
+                constitutes that consent, and you may withdraw it by upgrading or by ceasing use of
+                AORMS-Lite.
+              </p>
+
+              <h2>5. Privacy</h2>
               <p>
                 We collect the minimum needed to run the Service — account details, usage, and the
                 operational records you create. We do not share personal data with third parties
@@ -68,7 +88,7 @@ export function Legal() {
                 by law. You may request export or deletion of your data.
               </p>
 
-              <h2>5. Availability and warranty</h2>
+              <h2>6. Availability and warranty</h2>
               <p>
                 We work to keep the Service reliable but provide it "as is", without warranties of
                 uninterrupted availability or fitness for a particular purpose, except as set out in
@@ -76,13 +96,13 @@ export function Legal() {
                 support, not a substitute for professional judgement or statutory sanction.
               </p>
 
-              <h2>6. Liability</h2>
+              <h2>7. Liability</h2>
               <p>
                 To the extent permitted by law, our liability is limited as set out in your
                 subscription agreement. We are not liable for indirect or consequential losses.
               </p>
 
-              <h2>7. Intellectual property and licensing</h2>
+              <h2>8. Intellectual property and licensing</h2>
               <p>
                 AORMS and its source code are proprietary to Holagundi Consulting Works. The Service
                 incorporates third-party open-source components under their respective licenses; see
@@ -90,13 +110,13 @@ export function Legal() {
                 subscription.
               </p>
 
-              <h2>8. Governing law</h2>
+              <h2>9. Governing law</h2>
               <p>
                 These terms are governed by the laws of India, with jurisdiction in Karnataka, unless
                 your subscription agreement states otherwise.
               </p>
 
-              <h2>9. Contact</h2>
+              <h2>10. Contact</h2>
               <p>
                 Holagundi Consulting Works · Hospet, Karnataka, India<br />
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · +91 89510 89191
