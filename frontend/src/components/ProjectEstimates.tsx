@@ -67,6 +67,68 @@ function sourceTag(sourceKind?: string | null) {
   }
 }
 
+/** How a single source measurement was measured on the drawing. */
+function measuredText(r: {
+  measureKind?: string | null;
+  itemCount: number;
+  realLength: number;
+  heightMm?: number | null;
+  unit: string;
+}): string {
+  if (r.measureKind === "COUNT") return `${r.itemCount} no.`;
+  if (r.heightMm) return `${r.realLength.toFixed(2)} m × ${(r.heightMm / 1000).toFixed(2)} m ht`;
+  return `${r.realLength.toFixed(2)} ${r.unit}`;
+}
+
+/**
+ * Calculation breakdown for one estimate line: the takeoff measurements that sum
+ * to its quantity, each with the element's catalog unit. Shows where the number
+ * came from instead of a bare quantity.
+ */
+function ItemCalculation({ itemId }: { itemId: string }) {
+  const q = trpc.estimates.itemSources.useQuery({ itemId });
+  if (q.isLoading) return <p>Loading calculation…</p>;
+  const d = q.data;
+  if (!d || d.rows.length === 0) {
+    return <p className="esti-label esti-label--secondary">This line was entered manually — no linked takeoff measurements.</p>;
+  }
+  return (
+    <Stack gap={4}>
+      <p className="esti-label">
+        Quantity <strong>{d.qty} {d.unit}</strong> = sum of {d.rows.length} takeoff measurement(s).
+      </p>
+      <Table size="sm">
+        <TableHead>
+          <TableRow>
+            <TableHeader>Drawing</TableHeader>
+            <TableHeader>Element</TableHeader>
+            <TableHeader>Measured</TableHeader>
+            <TableHeader>BOQ qty</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {d.rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>{r.drawingRef ?? "—"}</TableCell>
+              <TableCell>
+                {r.elementLabel}{" "}
+                <span className="esti-label esti-label--secondary">({r.label})</span>
+              </TableCell>
+              <TableCell>{measuredText(r)}</TableCell>
+              <TableCell>
+                {(r.boqQty ?? 0).toFixed(3)} {r.boqUnit}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <p>
+        <strong>Total {d.total.toFixed(3)} {d.unit}</strong>
+      </p>
+    </Stack>
+  );
+}
+
 /** Parse CSV/TSV bulk lines: description, unit, qty, rate (₹), itemLeadPct */
 function parseEstimateBulk(text: string) {
   return text
@@ -197,6 +259,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
   const [bulkText, setBulkText] = useState("");
   const [reviseOpen, setReviseOpen] = useState(false);
   const [reviseNote, setReviseNote] = useState("");
+  const [calcItemId, setCalcItemId] = useState<string | null>(null);
   const [takeoffOpen, setTakeoffOpen] = useState(false);
   const [takeoffForm, setTakeoffForm] = useState({
     title: "Takeoff estimate",
@@ -507,6 +570,11 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                             {it.dsrItemCode}
                           </span>
                         )}
+                        {it.sourceKind === "TAKEOFF_IMPORT" && (
+                          <Button kind="ghost" size="sm" onClick={() => setCalcItemId(it.id)}>
+                            View calculation
+                          </Button>
+                        )}
                       </Stack>
                     </TableCell>
                     <TableCell>
@@ -608,6 +676,17 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           </p>
         </div>
       )}
+
+      <Modal
+        open={!!calcItemId}
+        passiveModal
+        size="lg"
+        modalHeading="Quantity calculation"
+        modalLabel="Related measurements"
+        onRequestClose={() => setCalcItemId(null)}
+      >
+        {calcItemId && <ItemCalculation itemId={calcItemId} />}
+      </Modal>
 
       <Modal
         open={newOpen}
