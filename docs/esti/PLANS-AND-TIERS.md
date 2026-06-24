@@ -57,8 +57,6 @@
 | Approvals / issue log | ✓ | ✓ | ✓ |
 | Decisions & **revision intelligence** | — | ✓ | ✓ |
 | Documents & spec sheets | ◐ | ✓ | ✓ |
-| Compliance checker (FAR/bylaw) | ✓ (free tool) | ✓ | ✓ |
-| RIE site assessments + rule versions | — | ✓ | ✓ |
 | Statutory permits | ◐ | ✓ | ✓ |
 | Fee & billing — GST invoices | ◐ (basic GST) | ✓ | ✓ |
 
@@ -66,9 +64,8 @@
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
 | PMC control + construction schedule (CPM) | — | ✓ | ✓ |
-| BOQ & costing (estimates, BBS, takeoff) | — | ✓ | ✓ |
+| **Costing & Measurement** — single window: rate analysis → estimation → BOQ → costing → site measurement → RA bills → submissions | — | ✓ | ✓ |
 | Tenders & contractor bids | — | ✓ | ✓ |
-| Running bills (RA) | — | ✓ | ✓ |
 | Site ops (snags, instructions, progress, inspections) | — | ✓ | ✓ |
 | Purchase orders | — | ✓ | ✓ |
 | Multi-project PMC portfolio | — | ◐ | ✓ |
@@ -94,7 +91,7 @@
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
 | DSR rates, knowledge bank | — | ✓ | ✓ |
-| Bylaw / RIE rule bank | — | ✓ | ✓ |
+| Analysed-rate library (rate analysis) | — | ✓ | ✓ |
 | Spec catalogue | — | ✓ | ✓ |
 | SteelFlow (BBS) | — | ◐ | ✓ |
 
