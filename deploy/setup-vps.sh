@@ -44,6 +44,9 @@ DOMAIN="${DOMAIN:-aorms.in}"
 DOMAIN="$(normalize_domain "$DOMAIN")"
 validate_domain "$DOMAIN" || error "Enter a valid domain (hostname only, e.g. aorms.in)."
 ask  "Your email (for TLS certificate):"                    ADMIN_EMAIL
+# certbot fails non-interactively on an empty/invalid email — catch it now, before the
+# ~5-minute build, instead of dying at the TLS step.
+[[ "$ADMIN_EMAIL" == *@*.* ]] || error "A valid email is required for the TLS certificate (Let's Encrypt renewal notices)."
 ask  "Git branch [main]:"                                   GIT_BRANCH
 GIT_BRANCH="${GIT_BRANCH:-main}"
 
@@ -78,7 +81,9 @@ askpass "MinIO root password (min 8 chars) [auto-generate]:" MINIO_PASSWORD
 echo ""
 warn "First owner account for ESTI"
 ask     "Owner email:"     OWNER_EMAIL
+[[ "$OWNER_EMAIL" == *@* ]] || error "Owner email is required — it is your admin login."
 askpass "Owner password:"  OWNER_PASSWORD
+[[ -n "$OWNER_PASSWORD" ]] || error "Owner password is required."
 if [[ "$VARIANT" == "demo" ]]; then
   # The public demo button sends a hardcoded "demo1234" (frontend landing-demo.ts), so
   # changing this breaks one-click demo login. Keep the default unless you know why.
