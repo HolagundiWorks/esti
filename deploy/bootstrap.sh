@@ -120,6 +120,18 @@ ensure_minio_bucket "$DEPLOY_DIR" || warn "MinIO bucket setup failed — backend
 docker compose -f compose.prod.yaml up -d backend worker
 wait_for_backend_health 30 2 || warn "Backend not healthy yet — check: docker logs esti-backend --tail 80"
 
+# ── 7b. Seed owner (and demo workspace unless SEED_DEMO=false) — idempotent ───
+# Without this there is no login after install. Runs the compiled seeds directly
+# (the runtime image has node, not pnpm).
+info "Seeding owner/base data (idempotent)..."
+docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seed.js \
+  || warn "Base seed failed — check: docker logs esti-backend"
+if [[ "${SEED_DEMO:-true}" != "false" ]]; then
+  info "Seeding demo workspace (idempotent)..."
+  docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js \
+    || warn "Demo seed failed — check: docker logs esti-backend"
+fi
+
 # ── 8. Build frontend static files ────────────────────────────────────────────
 info "Building frontend static files..."
 # compose.prod.yaml reads VITE_* from .env — do not `source .env` (breaks on spaces).
@@ -141,7 +153,7 @@ install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || error "nginx configuration failed 
 
 # ── 10. TLS via Certbot ────────────────────────────────────────────────────────
 info "Obtaining Let's Encrypt certificate for $DOMAIN..."
-certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "admin@$DOMAIN" --redirect
+certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "${ADMIN_EMAIL:-admin@$DOMAIN}" --redirect
 systemctl reload nginx
 
 # ── 11. Systemd auto-start on reboot ─────────────────────────────────────────
@@ -170,7 +182,9 @@ info "=================================================="
 info "  ESTI AORMS is live at https://$DOMAIN"
 info "  Containers: $(docker compose -f compose.prod.yaml ps --format 'table {{.Name}}\t{{.Status}}' 2>/dev/null | tail -n +2 | tr '\n' ' ')"
 info ""
-info "  Optional demo seed (public demo site):"
-info "    docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js"
-info "  Team demo: principal@demo.aorms.in / demo1234"
+info "  Owner login: the SEED_OWNER_* values from your .env"
+if [[ "${SEED_DEMO:-true}" != "false" ]]; then
+  info "  Demo login : principal@demo.aorms.in / demo1234"
+fi
+info "  To update later: bash deploy/update.sh"
 info "=================================================="
