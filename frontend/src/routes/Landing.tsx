@@ -1,7 +1,8 @@
 import { InlineNotification, Modal, Theme } from "@carbon/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LandingTrialForm } from "../components/LandingTrialForm.js";
+import { LandingTrialForm, type LandingTrialPlanContext } from "../components/LandingTrialForm.js";
+import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
 import { LandingEditorial } from "../components/landing/LandingBand.js";
 import { LandingOperationalGrid } from "../components/landing/LandingOperationalGrid.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
@@ -21,6 +22,7 @@ export function Landing() {
   const visitCount = useLandingVisitCounter();
   const [demoKind, setDemoKind] = useState<DemoKind | null>(null);
   const [requestOpen, setRequestOpen] = useState(false);
+  const [planContext, setPlanContext] = useState<LandingTrialPlanContext | undefined>();
 
   const demoLogin = trpc.auth.login.useMutation({
     onSuccess: async () => {
@@ -51,6 +53,12 @@ export function Landing() {
   }
 
   function scrollToTrial() {
+    setPlanContext(undefined);
+    setRequestOpen(true);
+  }
+
+  function openPlanRequest(ctx: LandingTrialPlanContext) {
+    setPlanContext(ctx);
     setRequestOpen(true);
   }
 
@@ -83,6 +91,8 @@ export function Landing() {
           onTrialScroll={scrollToTrial}
         />
 
+        <MarketingPricingBand onSelectPlan={openPlanRequest} />
+
         <LandingInsights />
 
         <MarketingSolutions />
@@ -93,10 +103,18 @@ export function Landing() {
           open={requestOpen}
           passiveModal
           className="esti-lp-request-modal"
-          modalHeading="Request a workspace"
+          modalHeading={
+            planContext === "LITE"
+              ? "Create your free AORMS-Lite account"
+              : planContext === "CORE"
+              ? "Contact us about AORMS-Core"
+              : planContext === "ENTERPRISE"
+              ? "Contact us about AORMS-Enterprise"
+              : "Request a workspace"
+          }
           onRequestClose={() => setRequestOpen(false)}
         >
-          <LandingTrialForm />
+          <LandingTrialForm planContext={planContext} />
         </Modal>
       </MarketingShell>
 

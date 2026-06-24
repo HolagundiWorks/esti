@@ -19,7 +19,7 @@ import { formatVisitCount } from "../../lib/landing-visit.js";
 // just the landing page where the in-page anchors live.
 const NAV = [
   { href: "/#platform", label: "Platform" },
-  { href: "/#compliance", label: "Compliance" },
+  { href: "/#pricing", label: "Pricing" },
   { href: "/#demo", label: "Demo" },
   { href: "/blog", label: "Blog" },
   { href: "/investors", label: "Investors" },
