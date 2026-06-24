@@ -19,6 +19,15 @@ warn() { echo -e "${YELLOW}[warn]${NC} $*"; }
 
 cd "$DEPLOY_DIR"
 
+# Variant flags persist in .env (written by setup-vps.sh). compose reads VITE_PUBLIC_SITE
+# itself for the frontend build; SEED_DEMO is consumed below to gate the demo seed, so pull
+# it from .env when not already set in the environment. (We avoid `source .env` — it breaks
+# on values with spaces; read just this one key.)
+if [[ -z "${SEED_DEMO:-}" && -f "$DEPLOY_DIR/.env" ]]; then
+  SEED_DEMO="$(grep -E '^SEED_DEMO=' "$DEPLOY_DIR/.env" | head -1 | cut -d= -f2- | tr -d "\"' ")"
+fi
+SEED_DEMO="${SEED_DEMO:-true}"
+
 # ── 1. Pull latest code ───────────────────────────────────────────────────────
 info "Pulling $GIT_BRANCH..."
 git fetch origin
