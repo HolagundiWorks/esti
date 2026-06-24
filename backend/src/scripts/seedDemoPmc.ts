@@ -13,6 +13,8 @@ import {
   phases,
   progressReports,
   projectOffices,
+  runningBills,
+  runningBillItems,
   siteInstructions,
   snags,
   tenderDocuments,
@@ -609,6 +611,67 @@ async function ensureDemoContractorPortal(
       .update(users)
       .set({ contractorId: civilContractorId, role: "CONTRACTOR" })
       .where(eq(users.id, userExists.id));
+  }
+
+  // Running bills so the awarded-project flow is visible end to end: one waiting
+  // for the contractor to agree the measurement, one already office-approved and
+  // ready for the contractor to raise a bill on.
+  const demoBills = [
+    {
+      ref: "DEMO-RA-1",
+      title: "RA Bill 1 — substructure",
+      status: "SENT_TO_CONTRACTOR",
+      measurementDate: dayOffset(-5),
+      items: [
+        { description: "Earthwork excavation in foundation", unit: "cum", qty: 120, ratePaise: 35000 },
+        { description: "PCC 1:4:8 in foundation", unit: "cum", qty: 18, ratePaise: 450000 },
+        { description: "RCC M25 in footings & plinth beams", unit: "cum", qty: 36.5, ratePaise: 680000 },
+      ],
+    },
+    {
+      ref: "DEMO-RA-2",
+      title: "RA Bill 2 — superstructure (ground floor)",
+      status: "APPROVED_MEASUREMENT_SENT",
+      measurementDate: dayOffset(-2),
+      items: [
+        { description: "RCC M25 in columns & beams (ground floor)", unit: "cum", qty: 28, ratePaise: 720000 },
+        { description: "Brick masonry 230mm in CM 1:6", unit: "cum", qty: 64, ratePaise: 540000 },
+      ],
+    },
+  ];
+  for (const def of demoBills) {
+    const [exists] = await database
+      .select({ id: runningBills.id })
+      .from(runningBills)
+      .where(eq(runningBills.ref, def.ref))
+      .limit(1);
+    if (exists) continue;
+    const items = def.items.map((it) => ({ ...it, amountPaise: Math.round(it.qty * it.ratePaise) }));
+    const total = items.reduce((sum, it) => sum + it.amountPaise, 0);
+    const [bill] = await database
+      .insert(runningBills)
+      .values({
+        ref: def.ref,
+        projectId,
+        contractorId: civilContractorId,
+        title: def.title,
+        status: def.status,
+        measurementDate: def.measurementDate,
+        totalPaise: total,
+        createdById: principalId,
+      })
+      .returning({ id: runningBills.id });
+    await database.insert(runningBillItems).values(
+      items.map((it, i) => ({
+        runningBillId: bill!.id,
+        description: it.description,
+        unit: it.unit,
+        qty: it.qty,
+        ratePaise: it.ratePaise,
+        amountPaise: it.amountPaise,
+        sortOrder: i,
+      })),
+    );
   }
   return true;
 }
