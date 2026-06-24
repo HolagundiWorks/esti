@@ -22,12 +22,18 @@ echo "==> PostgreSQL dump → $OUT/esti-pg-$STAMP.sql.gz"
   --clean --if-exists \
   | gzip > "$OUT/esti-pg-$STAMP.sql.gz"
 
-if docker volume inspect miniodata >/dev/null 2>&1; then
-  echo "==> MinIO volume → $OUT/esti-minio-$STAMP.tar.gz"
-  docker run --rm -v miniodata:/data:ro -v "$OUT":/backup alpine \
+# Compose prefixes volume names with the project (compose.prod.yaml → name: esti-aorms-prod),
+# so the MinIO volume is "esti-aorms-prod_miniodata", not bare "miniodata". Resolve the
+# prefixed name first, then fall back to an unprefixed/legacy volume if present.
+MINIO_VOLUME="${MINIO_VOLUME:-esti-aorms-prod_miniodata}"
+docker volume inspect "$MINIO_VOLUME" >/dev/null 2>&1 || MINIO_VOLUME="miniodata"
+
+if docker volume inspect "$MINIO_VOLUME" >/dev/null 2>&1; then
+  echo "==> MinIO volume ($MINIO_VOLUME) → $OUT/esti-minio-$STAMP.tar.gz"
+  docker run --rm -v "$MINIO_VOLUME":/data:ro -v "$OUT":/backup alpine \
     tar czf "/backup/esti-minio-$STAMP.tar.gz" -C /data .
 else
-  echo "==> MinIO volume 'miniodata' not found — skipping object-store archive"
+  echo "==> MinIO volume not found (tried esti-aorms-prod_miniodata, miniodata) — skipping object-store archive"
 fi
 
 echo "==> Backup complete in $OUT"
