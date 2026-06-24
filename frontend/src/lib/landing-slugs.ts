@@ -30,6 +30,9 @@ export const LANDING_SLUGS = [
   "gst-on-architecture-services",
   "hsn-sac-code-for-architects",
   "architecture-consultancy-management-software",
+  // Phase 12 — client revision + construction client management.
+  "client-revision-management",
+  "construction-client-management-software",
 ] as const;
 
 const SET: ReadonlySet<string> = new Set(LANDING_SLUGS);
@@ -58,6 +61,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "architecture-project-management-software", label: "Project management software" },
       { slug: "software-for-architecture-firms", label: "Software for architecture firms" },
       { slug: "architecture-consultancy-management-software", label: "Consultancy management software" },
+      { slug: "construction-client-management-software", label: "Construction client management" },
     ],
   },
   {
@@ -67,6 +71,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "drawing-revision-tracking-software", label: "Drawing revision control" },
       { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
       { slug: "architecture-change-management-software", label: "Change management" },
+      { slug: "client-revision-management", label: "Client revision management" },
       { slug: "architecture-client-management-software", label: "Client management" },
       { slug: "architecture-office-workflow-management", label: "Workflow management" },
     ],
