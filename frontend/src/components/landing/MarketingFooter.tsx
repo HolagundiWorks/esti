@@ -14,6 +14,7 @@ const PRODUCT_LINKS = [
 const CONTACT_LINKS = [
   { href: "mailto:hi@aorms.in", label: "hi@aorms.in" },
   { href: "tel:+918951089191", label: "+91 89510 89191" },
+  { href: "https://www.linkedin.com/company/aorms", label: "LinkedIn" },
   { href: "/investors", label: "Investors" },
   { href: "/legal", label: "Legal" },
   { href: "/login", label: "Workspace sign in" },
@@ -57,7 +58,13 @@ export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: (
               <h2>Contact</h2>
               <Stack gap={3}>
                 {CONTACT_LINKS.map((item) => (
-                  <Link key={item.href} href={item.href}>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    {...(item.href.startsWith("http")
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
                     {item.label}
                   </Link>
                 ))}
