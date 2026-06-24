@@ -16,7 +16,6 @@ export function MarketingHero({
   demoKind,
 }: {
   onStudioDemo: () => void;
-  onSoloDemo?: () => void;
   onTrialScroll?: () => void;
   demoLoading: boolean;
   demoKind?: DemoKind | null;

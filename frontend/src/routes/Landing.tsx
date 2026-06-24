@@ -85,19 +85,16 @@ export function Landing() {
         />
 
         <LandingOperationalGrid
+          afterWhatYouGet={<MarketingSolutions />}
+          afterTryIt={<LandingInsights />}
           onStudioDemo={() => openDemo("team")}
           demoLoading={demoLoading}
           demoKind={demoKind}
-          onTrialScroll={scrollToTrial}
         />
 
-        <MarketingPricingBand onSelectPlan={openPlanRequest} />
-
-        <LandingInsights />
-
-        <MarketingSolutions />
-
-        <LandingFinalCta onTrialScroll={scrollToTrial} />
+        <LandingFinalCta>
+          <MarketingPricingBand onSelectPlan={openPlanRequest} />
+        </LandingFinalCta>
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} />
 

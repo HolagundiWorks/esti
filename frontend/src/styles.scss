@@ -3473,7 +3473,7 @@ html:has(.esti-dashboard-page) body {
     pointer-events: none;
     background:
       linear-gradient(180deg, rgba(11, 11, 11, 0.18) 0%, rgba(11, 11, 11, 0.36) 64%, #0b0b0b 100%),
-      url("/landing-contour-bg.svg") center center / 50% auto repeat;
+      url("/landing-contour-bg.svg") center center / 50% auto no-repeat;
     opacity: 0.62;
     z-index: 0;
   }
@@ -3627,6 +3627,16 @@ h1.esti-landing-lead-title {
   width: 100%;
 }
 
+.esti-landing-shell .esti-landing-editorial,
+.esti-landing-shell .esti-insights {
+  width: 80%;
+  max-width: none;
+  padding-inline: 0;
+
+  @media (max-width: 1055px) { width: 90%; }
+  @media (max-width: 671px) { width: 100%; padding-inline: var(--cds-spacing-05); }
+}
+
 .esti-landing-band {
   padding-block: var(--cds-spacing-12);
   background: transparent;
@@ -3646,7 +3656,7 @@ h1.esti-landing-lead-title {
   }
 
   &--muted {
-    background: var(--cds-layer-01);
+    background: transparent;
   }
 
   &--contrast {
@@ -4734,7 +4744,7 @@ h1.esti-landing-lead-title {
   grid-template-columns: repeat(16, minmax(0, 1fr));
   column-gap: var(--cds-spacing-07);
   min-height: 256px;
-  border-left: 1px solid var(--cds-border-subtle);
+  border-left: 2px solid var(--cds-support-info);
   border-top: 1px solid var(--cds-border-subtle);
   border-right: 1px solid var(--cds-border-subtle);
   border-bottom: 1px solid var(--cds-border-subtle);
@@ -5232,27 +5242,193 @@ h1.esti-landing-lead-title {
   margin-left: auto;
 }
 
-// CTA tile (4×1)
-.esti-lp-cta-body {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--cds-spacing-09);
-  padding: var(--cds-spacing-07) var(--cds-spacing-06);
-
-  @media (max-width: 671px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--cds-spacing-06);
-  }
-}
-
-.esti-lp-cta-text { flex: 1; }
-
 .esti-lp-cta-h {
   @include type.type-style("heading-03");
   color: var(--cds-text-primary);
   margin: 0 0 var(--cds-spacing-03);
+}
+
+.esti-lp-anchor {
+  display: block;
+  scroll-margin-top: var(--cds-spacing-10);
+}
+
+.esti-lp-pricing-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(296px, auto);
+
+  .esti-lp-tile--4x1 {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 1055px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.esti-lp-pricing-intro,
+.esti-lp-pricing-tile {
+  background: transparent;
+  backdrop-filter: blur(7px) saturate(1.12);
+}
+
+.esti-lp-pricing-intro__body,
+.esti-lp-pricing-tile__body {
+  padding: var(--cds-spacing-06);
+}
+
+.esti-lp-pricing-intro__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: calc(296px - 40px);
+  max-width: 46rem;
+}
+
+.esti-lp-pricing-tile--featured {
+  box-shadow: inset 0 0 0 1px var(--cds-border-interactive);
+}
+
+.esti-lp-pricing-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-04);
+}
+
+.esti-lp-pricing-tile__pitch {
+  @include type.type-style("body-02");
+  color: var(--cds-text-secondary);
+  margin: 0;
+}
+
+.esti-lp-pricing-tile__price-block {
+  border-top: 1px solid var(--cds-border-subtle);
+  padding-top: var(--cds-spacing-04);
+}
+
+.esti-lp-pricing-tile__price {
+  @include type.type-style("heading-04");
+  color: var(--cds-text-primary);
+  font-weight: 300;
+  margin: 0 0 var(--cds-spacing-02);
+}
+
+.esti-lp-pricing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-03);
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cds-spacing-03);
+    @include type.type-style("body-compact-01");
+    color: var(--cds-text-secondary);
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: var(--cds-support-success);
+    margin-top: 1px;
+  }
+}
+
+.esti-lp-pricing-tile .cds--btn {
+  margin-top: auto;
+  width: fit-content;
+}
+
+.esti-lp-solutions-grid,
+.esti-lp-insights-grid {
+  grid-auto-rows: minmax(220px, auto);
+}
+
+.esti-lp-solutions-intro,
+.esti-lp-solution-tile,
+.esti-lp-insights-intro,
+.esti-lp-insight-card,
+.esti-lp-insights-upcoming {
+  background: transparent;
+  backdrop-filter: blur(7px) saturate(1.12);
+}
+
+.esti-lp-solutions-intro__body,
+.esti-lp-solution-tile__body,
+.esti-lp-insights-intro__body,
+.esti-lp-insight-card__body,
+.esti-lp-insights-upcoming {
+  padding: var(--cds-spacing-06);
+}
+
+.esti-lp-solutions-intro__body,
+.esti-lp-insights-intro__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: calc(220px - 40px);
+  gap: var(--cds-spacing-04);
+}
+
+.esti-lp-solution-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-03);
+}
+
+.esti-lp-solution-tile a,
+.esti-lp-inline-link {
+  @include type.type-style("body-compact-01");
+  color: var(--cds-link-primary);
+  text-decoration: none;
+  width: fit-content;
+
+  &:hover { text-decoration: underline; }
+}
+
+.esti-lp-insight-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+.esti-lp-insight-card__body {
+  display: flex;
+  min-height: calc(220px - 40px);
+  align-items: flex-end;
+
+  h3 {
+    @include type.type-style("heading-03");
+    color: var(--cds-text-primary);
+    font-weight: 400;
+    line-height: 1.25;
+    margin: 0;
+  }
+}
+
+.esti-lp-insights-upcoming {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-04);
+  }
+
+  li {
+    @include type.type-style("body-compact-01");
+    color: var(--cds-text-secondary);
+    display: flex;
+    gap: var(--cds-spacing-03);
+  }
+
+  span { color: var(--cds-text-helper); }
 }
 
 // Fixed bottom status bar
@@ -7588,9 +7764,16 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
 // Homepage "Architecture Insights" band.
 .esti-insights {
-  max-width: 72rem;
+  width: 80%;
+  max-width: none;
   margin: 0 auto;
-  padding: var(--cds-spacing-09) var(--cds-spacing-06);
+  padding: var(--cds-spacing-09) 0;
+
+  @media (max-width: 1055px) { width: 90%; }
+  @media (max-width: 671px) {
+    width: 100%;
+    padding-inline: var(--cds-spacing-05);
+  }
 
   &__head {
     display: flex;

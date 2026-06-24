@@ -128,3 +128,26 @@ PageHeader is used for every route page title. DataState is used for every list 
 **Dark background:** `html:has(.esti-app-shell)` sets `background: #161616` on body so there is no unstyled flash between navigation. This is the only body-level CSS in styles.scss.
 
 **Dashboard width:** The dashboard uses `style={{ width: "80%", margin: "0 auto" }}` as a documented product decision for the command-center layout on wide monitors. This is not a pattern to copy to other screens.
+
+---
+
+## 9. Landing Page Sales Flow
+
+The public landing page is allowed to operate as a sales and product-story surface while still using Carbon geometry, tokens, and discipline. It must not look like an internal dashboard, and it must not drift into pitch-deck cards without operational flow.
+
+**Numbered narrative structure:**
+- 01 / Morning View — first impression and office-state promise
+- 02 / Work In Motion — operational workflows and practice modules
+- 03 / See It Running — live scenario demo, dashboard signals, recommendations, and revision evidence
+- 04 / People Enter — stakeholder entry paths such as bidders, owners, staff, clients, consultants, and contractors
+- 05 / Choose Workspace — pricing and workspace depth
+
+**Section breaks:** Full-width section title blocks use the Carbon 2x grid, remain transparent, and are constrained to the same 80% desktop width as the tile grid. They may use border-only emphasis, including a Carbon token left rule, but must not use background fill.
+
+**Tiles:** Landing content tiles use the glass/grid treatment over the fixed contour background. Blog/insight, built-for-practice, and pricing modules must sit inside the numbered flow instead of becoming loose unnumbered sections.
+
+**Pricing:** Pricing belongs in 05 / Choose Workspace. Lite, Core, and Enterprise must render as equal-width plan tiles. Lite is intentionally small-office scoped: 3 team members, 5 clients, and 5 projects.
+
+**Demo split:** 03 is for seeing the operating scenario running. 04 is for entering through stakeholder roles. Do not duplicate generic demo language across both sections.
+
+**Removed sections:** India Desk, plan notes, and standalone request-workspace bands are not part of the active landing structure.
