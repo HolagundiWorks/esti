@@ -19,6 +19,16 @@ warn() { echo -e "${YELLOW}[warn]${NC} $*"; }
 
 cd "$DEPLOY_DIR"
 
+# Backfill variant keys on boxes installed before variant support. Defaults preserve the
+# old behavior (public demo site + demo data), so existing demo-prod servers self-heal on
+# the next update with no change in behavior. Idempotent — only appends when missing.
+if [[ -f "$DEPLOY_DIR/.env" ]]; then
+  grep -qE '^VITE_PUBLIC_SITE=' "$DEPLOY_DIR/.env" \
+    || { printf 'VITE_PUBLIC_SITE=true\n' >> "$DEPLOY_DIR/.env"; info "Backfilled VITE_PUBLIC_SITE=true into .env"; }
+  grep -qE '^SEED_DEMO=' "$DEPLOY_DIR/.env" \
+    || { printf 'SEED_DEMO=true\n' >> "$DEPLOY_DIR/.env"; info "Backfilled SEED_DEMO=true into .env"; }
+fi
+
 # Variant flags persist in .env (written by setup-vps.sh). compose reads VITE_PUBLIC_SITE
 # itself for the frontend build; SEED_DEMO is consumed below to gate the demo seed, so pull
 # it from .env when not already set in the environment. (We avoid `source .env` — it breaks
