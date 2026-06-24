@@ -49,7 +49,10 @@ GIT_BRANCH="${GIT_BRANCH:-main}"
 
 echo ""
 warn "Database & session secrets"
-ask     "PostgreSQL password:"           POSTGRES_PASSWORD
+askpass "PostgreSQL password [auto-generate]:" POSTGRES_PASSWORD
+# An empty password leaves Postgres uninitialized (the container never goes healthy),
+# so auto-generate a strong one when left blank.
+[[ -z "$POSTGRES_PASSWORD" ]] && POSTGRES_PASSWORD=$(openssl rand -hex 16) && info "PostgreSQL password auto-generated (stored in .env)."
 askpass "Session secret [auto-generate]:" SESSION_SECRET
 [[ -z "$SESSION_SECRET" ]] && SESSION_SECRET=$(openssl rand -hex 32) && info "Session secret auto-generated."
 
@@ -57,7 +60,9 @@ echo ""
 warn "MinIO (built-in S3-compatible storage)"
 ask "MinIO root user   [esti-admin]:"  MINIO_USER
 MINIO_USER="${MINIO_USER:-esti-admin}"
-askpass "MinIO root password (min 8 chars):" MINIO_PASSWORD
+askpass "MinIO root password (min 8 chars) [auto-generate]:" MINIO_PASSWORD
+# MinIO refuses to start with a password under 8 characters — auto-generate if too short.
+[[ ${#MINIO_PASSWORD} -lt 8 ]] && MINIO_PASSWORD=$(openssl rand -hex 16) && warn "MinIO password missing/too short — auto-generated a strong one (stored in .env)."
 
 echo ""
 warn "First owner account for ESTI"
