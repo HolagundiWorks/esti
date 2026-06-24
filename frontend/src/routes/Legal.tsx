@@ -62,8 +62,12 @@ export function Legal() {
 
               <h2>4. Use of free-tier data for model training</h2>
               <p>
-                <strong>AORMS-Lite (the free edition) does not include AI, LLM or ML features,
-                GST invoicing, or financial reconciliation.</strong> In exchange for providing
+                <strong>AORMS-Lite (the free edition) does not include AI, LLM or ML
+                features, construction / PMC and tendering, GST-specific invoicing
+                (CGST/SGST split, SAC code, FY-sequential numbering) or GST returns and
+                26AS / AIS / GSTR reconciliation.</strong> Lite supports simple non-GST
+                invoices and basic bank reconciliation for firms below the GST
+                registration threshold. In exchange for providing
                 AORMS-Lite at no cost, you grant Holagundi Consulting Works a licence to use the
                 data you create in AORMS-Lite — in de-identified and aggregated form — to develop,
                 train and improve our artificial intelligence, large-language and machine-learning

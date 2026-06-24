@@ -9,8 +9,8 @@
 
 | Edition | For | One line |
 |---|---|---|
-| **AORMS-Lite** (free) | solo / tiny studios | Run your design practice — clients, projects, drawings — free, with caps. *Self-signup, no billing or reconciliation.* |
-| **AORMS-Core** (paid · contact for pricing) | established firms | The full office OS: construction/PMC, revision intelligence, HR, GST billing & reconciliation, portals, ESTI cognition. Cloud-hosted with dedicated infrastructure. |
+| **AORMS-Lite** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no tenders/PMC, no AI.* |
+| **AORMS-Core** (paid · contact for pricing) | established firms | The full office OS: construction/PMC, tenders/bidding, revision intelligence, HR, GST invoicing + reconciliation + filing, portals, ESTI cognition. Cloud-hosted with dedicated infrastructure. |
 | **AORMS-Enterprise** (contact for pricing) | multi-office / scale | Core at scale — unlimited seats, **on-premises deployment**, SSO, API/ESTICAD, governance, integrations, white-label. |
 
 ## Quotas
@@ -59,7 +59,8 @@
 | Documents & spec sheets | ◐ | ✓ | ✓ |
 | Statutory permits | ◐ | ✓ | ✓ |
 | Fee proposals (COA) | ◐ (flat) | ✓ | ✓ |
-| GST invoicing | **—** | ✓ | ✓ |
+| Invoices (non-GST simple invoice) | ✓ | ✓ | ✓ |
+| GST invoicing (CGST/SGST split, SAC, FY-sequential) | **—** | ✓ | ✓ |
 
 ### Projects — Project Management (construction / PMC)
 | Feature | Lite | Core | Ent |
@@ -74,9 +75,10 @@
 ### Accounts
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| GST invoicing | **—** | ✓ | ✓ |
-| Expenses & cash book | — | ✓ | ✓ |
-| Reconciliation (bank / 26AS / AIS / GSTR import) | **—** | ✓ | ✓ |
+| Expenses & cash book | ✓ | ✓ | ✓ |
+| Reconciliation — bank statements | ✓ | ✓ | ✓ |
+| Reconciliation — 26AS / AIS / GSTR import | **—** | ✓ | ✓ |
+| GST / TDS filing abstracts | **—** | ✓ | ✓ |
 | GST / TDS filing abstracts | — | ✓ | ✓ |
 
 ### People
@@ -137,8 +139,9 @@
 
 ## The upgrade story (what pulls Lite → Core → Enterprise)
 
-- **Lite → Core** when the firm needs to **bill or build, not just design**: the
-  moment they need GST invoicing/reconciliation, a project goes to tender/site
+- **Lite → Core** when the firm crosses the **GST threshold or starts to build**:
+  the moment they need GST-correct invoices (CGST/SGST/IGST, SAC, filing
+  abstracts) and 26AS/AIS/GSTR reconciliation, a project goes to tender or site
   (PMC), they need revision intelligence to defend fees, HR/payroll, or a 4th
   team member / 11th client.
 - **Core → Enterprise** when the firm needs **scale & governance**: many offices,
