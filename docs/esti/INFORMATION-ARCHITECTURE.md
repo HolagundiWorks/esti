@@ -79,3 +79,92 @@ unchanged) — the split is purely how the work is presented.
 4. **Flow, not a flat list.** Consultancy: brief → design → drawings → approvals
    → fee. Project Management: BOQ → tender → running bills → site. The drawings
    handoff (takeoff) is the one bridge between the heads.
+
+---
+
+# Complete module placement — senior-architect recommendation
+
+*Free-hand pass over every module. Organising principle: a construction
+practice runs on a **delivery lifecycle** (the project is the spine), wrapped by
+**office-wide services** that serve many projects at once. Rule: one entity has
+one read-write home; everywhere else links to it. Below, every module is placed.*
+
+## The delivery spine — a project, in order
+
+```
+Capture ──▶ Design (Consultancy) ──▶ Procure (Tender) ──▶ Construct (PMC) ──▶ Close
+```
+
+Capture is pre-project (pipeline). Design + Procure + Construct + Close are the
+project workspace, grouped under the two heads. Procurement and construction sit
+under **Project Management**; design under **Consultancy**.
+
+## Project workspace — modules by stage
+
+### Setup (shared header — visible under both heads)
+| Module / sub-module | Why here |
+|---|---|
+| Overview, Project info (`projectOffice`) | identity, status, jurisdiction, type |
+| Project brief (`projectBrief`) | the questionnaire that scopes the job |
+| Phases (`phases`) | the COA stages this project runs on |
+| Programme (`programme`, per-project) | this project's delivery Gantt |
+| Team & assignments (`assignments`) | who is staffed on it |
+| Settings | per-project config (PMC toggle, module gates) |
+
+### Consultancy head — Design
+| Module / sub-module | Why here |
+|---|---|
+| Client log (`clientLog`) | interactions on this project |
+| Drawings & transmittals (`drawings`, `transmittals`) | the register + issue record |
+| Approvals (`approvals`) | sign-off / issue log against drawing versions |
+| Decisions & revisions (revision intelligence) | source/category — the design audit trail |
+| Documents (`documents`) | this project's document register (instance) |
+| Specifications (`spec`) | this project's spec sheets (instance) |
+| Compliance & RIE (`bylawCalc`, `siteAssessments`) | FAR/bylaw check + assessment for *this site* |
+| Statutory permits (`permits`) | sanction/approval tracking with authorities |
+| Fee & billing (`feeProposals`, `invoices`) | COA fee for this project + **raise invoices here** |
+
+### Project Management head — Construction  *(PMC engagements only)*
+| Module / sub-module | Why here |
+|---|---|
+| PMC control (`pmc`) | hub, progress reports, portfolio status |
+| Construction schedule (`constructionSchedule`, `phaseProgress`) | site CPM / Gantt |
+| BOQ & costing (`estimates`, `measurements` takeoff, `bbs`, `dsr` ref) | quantities → priced BOQ (one costing home) |
+| Tenders & contractors (tender → bid → award) | prices the BOQ; links the contractor record |
+| Running bills (`runningBills`) | measurement → contractor → office → bill (RA) |
+| Site ops (`snags`, `siteInstructions`, `progressReports`, `inspections`) | day-to-day construction administration |
+| Purchase orders (`purchaseOrders`) | procurement of goods |
+| Project expenses (`expenses`) | project cost book (read-write here, rolls up to Accounts) |
+
+### Collaboration — cross-cutting *inside* the project (surfaced contextually, not a nav item)
+| Module | Why here |
+|---|---|
+| Comments (`comments`) | threaded discussion on any record |
+| Critical notes (`criticalNotes`) | flagged project notes |
+| Activity (`activity`) | immutable per-project timeline |
+| Portals (`portal`, `collab`, contractor portal) | scoped external views of *this* project |
+
+## Office-wide services — wrap many projects
+
+| Area | Modules | Role |
+|---|---|---|
+| **Home / Work** | `dashboard`, `notifications` (Alerts), `workload`, search | the firm's pulse + my tasks |
+| **Clients & pipeline** | `clients`, `clientLog` (CRM master), `proposals`, `feeProposals` (pre-award) | winning work, *before* it is a project |
+| **Practice / Office** | `letters`, `contracts`, document register (office-wide), Programme + PMC **portfolios** (read-only rollups), AI Studio | office documents + cross-project overview |
+| **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
+| **People** | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`); `consultants` + `contractors` **directories** | the firm's roster + capability; engagements live in the project |
+| **Knowledge** | `dsr` (rates), `knowledgeBank`, `bylaws`+`ruleVersions` (RIE rule bank), `specCatalog`, `steelflow` | **reference data**, not project instances |
+| **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `companion` (ESTICAD devices), `marketing` | run the installation |
+
+`health`, `profile` are public/infra — no nav home.
+
+## Key relocations (the wins)
+
+1. **One costing home.** `estimates` + `measurements` (takeoff) + `bbs` consolidate into **PM › BOQ & costing**, reading the Consultancy drawings. Today they are split across a project "Costing" tab and the Knowledge Bank.
+2. **Statutory work lands in Design.** `permits`, `bylawCalc`, `siteAssessments`, `inspections` move out of "Office"/floating into the Consultancy head (or PM Site, for site inspections) where they belong to the stage.
+3. **Tenders & Construction leave the global "Office" group** for the PM head; Practice keeps only the read-only **portfolio** rollup.
+4. **Expenses: one editor, one rollup.** Read-write in the project; Accounts is the cross-project summary — not two editable copies.
+5. **Directory vs engagement.** `consultants`/`contractors` are master **directories** under People; the project shows the engagement, linking back.
+6. **Collaboration is contextual, not navigational.** `comments`, `criticalNotes`, `activity` attach to records and timelines, not a sidebar item.
+7. **Reference vs instance.** Knowledge holds rule/rate/spec *banks* (`dsr`, `ruleVersions`, `specCatalog`); projects hold the *applied* result (`bylawCalc`, `spec` sheets).
+8. **Portals are one project, scoped.** Client, consultant and contractor portals are the same project data filtered by role — not separate modules.
