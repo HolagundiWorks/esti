@@ -130,7 +130,7 @@ export function KnowledgeBank() {
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections">
           <Tab>Seed data</Tab>
-          <Tab>Master DSR</Tab>
+          <Tab>Rate Books</Tab>
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
           <Tab>SteelFlow</Tab>

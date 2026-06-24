@@ -106,8 +106,15 @@
 ### AI — ESTI
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| ESTI AI Studio / agent | trial | ✓ standard | ✓ full + higher limits |
-| Cognition engine (dashboard) | — | ✓ | ✓ |
+| ESTI AI Studio / agent | **—** | ✓ standard | ✓ full + higher limits |
+| Cognition engine (dashboard) | **—** | ✓ | ✓ |
+| ESTICAD desktop AI / takeoff | — | ✓ | ✓ |
+
+> **AORMS-Lite has no AI / LLM / ML features.** In exchange for the free tier,
+> Lite operational data — de-identified and aggregated — may be used to train our
+> AI/LLM/ML models. Paid editions (Core, Enterprise) and self-hosted deployments
+> are excluded and never used for training. This is disclosed in the Terms of
+> Service (§4) and is the legal basis for the free tier.
 
 ### Admin & governance
 | Feature | Lite | Core | Ent |
