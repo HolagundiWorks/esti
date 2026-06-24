@@ -8,7 +8,7 @@ import {
   can,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   criticalNotes,
@@ -25,6 +25,7 @@ import { verifyPassword } from "../../auth/session.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { assertQuota } from "../../lib/plan.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
@@ -45,6 +46,13 @@ export const projectOfficeRouter = router({
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
     const org = await getOrgSettings(ctx.db);
+    // Plan quota: count only live projects (archived ones don't take a slot).
+    const cRows = await ctx.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(projectOffices)
+      .where(isNull(projectOffices.archivedAt));
+    const liveProjectCount = cRows[0] ? cRows[0].count : 0;
+    await assertQuota(ctx.db, "projects", liveProjectCount);
     const { ref } = await nextRef(ctx.db, "projectoffice", "PRJ");
     // Project + its general delivery stage plan are created atomically.
     const row = await ctx.db.transaction(async (tx) => {

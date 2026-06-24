@@ -5,6 +5,8 @@ import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { clients, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertQuota } from "../../lib/plan.js";
+import { sql } from "drizzle-orm";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const clientRouter = router({
@@ -25,6 +27,9 @@ export const clientRouter = router({
   }),
 
   create: protectedProcedure.input(ClientCreate).mutation(async ({ ctx, input }) => {
+    const rows = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(clients);
+    const currentCount = rows[0] ? rows[0].count : 0;
+    await assertQuota(ctx.db, "clients", currentCount);
     const [row] = await ctx.db
       .insert(clients)
       .values({

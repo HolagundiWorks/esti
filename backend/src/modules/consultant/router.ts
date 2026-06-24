@@ -1,10 +1,11 @@
 import { ConsultantCreate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { consultants, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertQuota } from "../../lib/plan.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const consultantRouter = router({
@@ -13,6 +14,9 @@ export const consultantRouter = router({
   }),
 
   create: protectedProcedure.input(ConsultantCreate).mutation(async ({ ctx, input }) => {
+    const rows = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(consultants);
+    const currentCount = rows[0] ? rows[0].count : 0;
+    await assertQuota(ctx.db, "consultants", currentCount);
     const [row] = await ctx.db
       .insert(consultants)
       .values({

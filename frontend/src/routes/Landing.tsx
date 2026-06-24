@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { LandingTrialForm, type LandingTrialPlanContext } from "../components/LandingTrialForm.js";
 import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
 import { LandingEditorial } from "../components/landing/LandingBand.js";
-import { LandingOperationalGrid } from "../components/landing/LandingOperationalGrid.js";
+import { LandingFinalCta, LandingOperationalGrid } from "../components/landing/LandingOperationalGrid.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
@@ -96,6 +96,8 @@ export function Landing() {
         <LandingInsights />
 
         <MarketingSolutions />
+
+        <LandingFinalCta onTrialScroll={scrollToTrial} />
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} />
 

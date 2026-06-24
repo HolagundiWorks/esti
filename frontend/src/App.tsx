@@ -11,6 +11,7 @@ import {
   SideNavMenu,
   SideNavMenuItem,
   Stack,
+  Tag,
   Theme,
 } from "@carbon/react";
 import {
@@ -37,7 +38,7 @@ import {
   type LazyExoticComponent,
 } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
+import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
 import { useAuth } from "./lib/auth.js";
@@ -169,6 +170,17 @@ function HeaderClock() {
   );
 }
 
+/** Small edition badge in the workspace header (LITE | CORE | ENTERPRISE). */
+function PlanChip({ plan }: { plan: string }) {
+  const label = plan === "ENTERPRISE" ? "Enterprise" : plan === "CORE" ? "Core" : "Lite";
+  const type = plan === "ENTERPRISE" ? "purple" : plan === "CORE" ? "blue" : "green";
+  return (
+    <Tag size="sm" type={type as "purple" | "blue" | "green"} title={`AORMS-${label} subscription`}>
+      {label}
+    </Tag>
+  );
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -198,6 +210,10 @@ function AppShell() {
   });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const pmcEnabled = settingsQ.data?.pmcEnabled ?? false;
+  // Plan gates: a Lite firm doesn't see PMC, HR, AI, GST billing, reconciliation,
+  // rate books or audit-log nav. planAllows() defaults LITE until settings load.
+  const plan = settingsQ.data?.plan ?? "LITE";
+  const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
   const isStaff =
     !!user &&
     (isStaffRole(user.role) ||
@@ -297,9 +313,9 @@ function AppShell() {
     { label: "Work", to: "/tasks", icon: TaskComplete },
     // Programme visible to L3+ (rank 60 = SENIOR and above)
     ...(atLeast(60) ? [{ label: "Programme", to: "/programme", icon: Calendar }] : []),
-    // PMC: module gate only (L2+ can see if enabled; L3/L4 see if enabled)
-    ...(pmcEnabled && atLeast(60) ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
-    { label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog },
+    // PMC: plan gate + module gate (L2+ can see if enabled; L3/L4 see if enabled)
+    ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
+    ...(planAllowsFeature("knowledgeBank") ? [{ label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog }] : []),
     { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
   ];
@@ -314,13 +330,13 @@ function AppShell() {
         // Consultants & Contractors: L3+ (rank 60)
         ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
         ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
-        // Team, HR, Performance: HR module gate + rank
-        ...(hrEnabled
+        // Team, HR, Performance: plan gate + HR module gate + rank
+        ...(planAllowsFeature("hr") && hrEnabled
           ? [
               { label: "Team", to: "/team" },
               ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
               // Performance: L3+ within HR module
-              ...(atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
+              ...(planAllowsFeature("performance") && atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
             ]
           : []),
       ],
@@ -329,19 +345,24 @@ function AppShell() {
       label: "Accounting",
       icon: Money,
       items: [
-        // All financial ops: L2+ (invoice:manage / fees:manage, rank 80)
-        ...(can(user.role, "invoice:manage")
+        // GST invoicing + expenses: needs `billing` plan feature (Core+).
+        ...(planAllowsFeature("billing") && can(user.role, "invoice:manage")
           ? [
               { label: "Invoices", to: "/invoices" },
               { label: "Office expenses", to: "/accounting/office-expenses" },
               { label: "Cash book", to: "/accounting/cash-book" },
-              { label: "Reconciliation", to: "/reconcile" },
             ]
           : []),
+        // Reconciliation: needs `reconciliation` plan feature (Core+).
+        ...(planAllowsFeature("reconciliation") && can(user.role, "invoice:manage")
+          ? [{ label: "Reconciliation", to: "/reconcile" }]
+          : []),
+        // Fee proposals stay on Lite (basic flat fee).
         ...(can(user.role, "fees:manage")
           ? [{ label: "Fee proposals", to: "/accounting/fees" }]
           : []),
-        ...(can(user.role, "reports:view")
+        // GST/TDS filing: needs `reconciliation` plan feature.
+        ...(planAllowsFeature("reconciliation") && can(user.role, "reports:view")
           ? [{ label: "GST / TDS filing", to: "/filing" }]
           : []),
       ],
@@ -362,11 +383,11 @@ function AppShell() {
               { label: "Contracts", to: "/office/contracts" },
             ]
           : []),
-        // Tenders: L3+ (tenders:view, rank 60)
-        ...(can(user.role, "tenders:view") ? [{ label: "Tenders", to: "/office/tenders" }] : []),
-        ...(pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
-        // AI Studio: L3+
-        ...(atLeast(60) ? [{ label: "AI Studio", to: "/office/ai-studio" }] : []),
+        // Tenders: PMC plan + L3+ (tenders:view, rank 60)
+        ...(planAllowsFeature("pmc") && can(user.role, "tenders:view") ? [{ label: "Tenders", to: "/office/tenders" }] : []),
+        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
+        // AI Studio: needs `ai` plan feature (Core+) + L3+
+        ...(planAllowsFeature("ai") && atLeast(60) ? [{ label: "AI Studio", to: "/office/ai-studio" }] : []),
       ],
     },
     {
@@ -376,7 +397,7 @@ function AppShell() {
         // Company settings: L1 only (firm:admin)
         ...(can(user.role, "firm:admin") ? [{ label: "Company", to: "/company" }] : []),
         ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
-        ...(can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
+        ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
         // Archived projects: L2+ (project:delete)
         ...(can(user.role, "project:delete")
           ? [{ label: "Archived projects", to: "/archived-projects" }]
@@ -407,6 +428,7 @@ function AppShell() {
               <HeaderGlobalBar>
                 <HeaderClock />
                 <HeaderPomodoro />
+                <PlanChip plan={plan} />
                 <AlertsBell />
                 <UserIdCard />
                 <HeaderGlobalAction

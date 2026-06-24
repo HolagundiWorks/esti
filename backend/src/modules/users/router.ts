@@ -1,10 +1,11 @@
-import { ASSIGNABLE_STAFF_ROLES, OfficeListParams, clampListLimit } from "@esti/contracts";
+import { ASSIGNABLE_STAFF_ROLES, OfficeListParams, STAFF_ROLES, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -47,6 +48,14 @@ export const userRouter = router({
         .from(users)
         .where(eq(users.email, input.email));
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
+      // Plan quota: count only staff (workspace) logins — portal users (CLIENT,
+      // CONSULTANT-portal, CONTRACTOR) don't take a team seat.
+      const teamRows = await ctx.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(inArray(users.role, [...STAFF_ROLES]));
+      const teamMemberCount = teamRows[0] ? teamRows[0].count : 0;
+      await assertQuota(ctx.db, "teamMembers", teamMemberCount);
       const [u] = await ctx.db
         .insert(users)
         .values({
