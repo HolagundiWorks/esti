@@ -1,43 +1,42 @@
-import { Column, Grid, Link, Stack, Theme } from "@carbon/react";
 import { Link as RouterLink } from "react-router-dom";
 import { LANDING_NAV } from "../../lib/landing-slugs.js";
-import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
-/**
- * Homepage "Solutions" band — an internal-linking hub into the keyword landing
- * pages (SEO Phase 3/9/10). Pure Carbon layout (Grid/Column/Stack/Link); React
- * Router `Link` keeps navigation client-side while still emitting real anchors
- * for crawlers.
- */
 export function MarketingSolutions() {
   return (
-    <Theme theme="g100">
-      <LandingBand variant="muted" ariaLabelledby="solutions-title">
-        <LandingEditorial>
-          <h2 id="solutions-title">Built for every part of the practice</h2>
-          <p className="esti-lp-lead">
-            AORMS is architecture office management software for Indian firms — from
-            COA fees and GST billing to drawing revisions, approvals and bylaw
-            compliance. Explore by what you need to run.
+    <div className="esti-lp-grid esti-lp-solutions-grid" aria-labelledby="solutions-title">
+      <div className="esti-lp-tile esti-lp-tile--2x1 esti-lp-solutions-intro">
+        <div className="esti-lp-tile__hdr">
+          <span className="esti-lp-dot esti-lp-dot--green" aria-hidden>●</span>
+          <span className="esti-lp-tile__hdr-label">02 / Where Work Lands</span>
+          <span className="esti-lp-tile__hdr-meta">Workflow paths</span>
+        </div>
+        <div className="esti-lp-solutions-intro__body">
+          <p className="esti-lp-section-label">Built around daily office movement</p>
+          <h3 id="solutions-title" className="esti-lp-feature-title">
+            Follow the trail from enquiry, drawings, approvals, billing, and site work into the right operating surface.
+          </h3>
+          <p className="esti-lp-note">
+            Each path opens a focused view without leaving the shared project, client, finance,
+            and team memory behind.
           </p>
-          <Grid narrow>
-            {LANDING_NAV.map((group) => (
-              <Column key={group.heading} lg={5} md={4} sm={4}>
-                <nav aria-label={group.heading}>
-                  <h3>{group.heading}</h3>
-                  <Stack gap={3}>
-                    {group.links.map((item) => (
-                      <Link key={item.slug} as={RouterLink} to={`/${item.slug}`}>
-                        {item.label}
-                      </Link>
-                    ))}
-                  </Stack>
-                </nav>
-              </Column>
+        </div>
+      </div>
+
+      {LANDING_NAV.map((group) => (
+        <nav key={group.heading} className="esti-lp-tile esti-lp-solution-tile" aria-label={group.heading}>
+          <div className="esti-lp-tile__hdr">
+            <span className="esti-lp-dot esti-lp-dot--white" aria-hidden>●</span>
+            <span className="esti-lp-tile__hdr-label">{group.heading}</span>
+          </div>
+          <div className="esti-lp-solution-tile__body">
+            {group.links.map((item) => (
+              <RouterLink key={item.slug} to={`/${item.slug}`}>
+                {item.label}
+              </RouterLink>
             ))}
-          </Grid>
-        </LandingEditorial>
-      </LandingBand>
-    </Theme>
+          </div>
+        </nav>
+      ))}
+    </div>
   );
 }
