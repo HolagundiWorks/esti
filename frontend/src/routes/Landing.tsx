@@ -7,6 +7,7 @@ import { LandingOperationalGrid } from "../components/landing/LandingOperational
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
+import { LandingInsights } from "../components/landing/LandingInsights.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { demoLoginPayload, type DemoKind } from "../lib/landing-demo.js";
 import { applyLandingSeo } from "../lib/landing-seo.js";
@@ -30,6 +31,17 @@ export function Landing() {
 
   useEffect(() => {
     applyLandingSeo();
+  }, []);
+
+  // Arriving via "/#section" (e.g. from the blog header): sections render on mount,
+  // so wait a frame for the target to exist, then scroll to it.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const raf = window.requestAnimationFrame(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(raf);
   }, []);
 
   function openDemo(kind: DemoKind) {
@@ -69,6 +81,8 @@ export function Landing() {
           demoKind={demoKind}
           onTrialScroll={scrollToTrial}
         />
+
+        <LandingInsights />
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} />
 

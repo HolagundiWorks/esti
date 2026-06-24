@@ -147,6 +147,9 @@ services:
         # Baked into SPA at build time — set in .env before `deploy.sh` / bootstrap frontend build.
         VITE_FULL_DEMO_URL: ${VITE_FULL_DEMO_URL:-}
         BUILD_REVISION: ${BUILD_REVISION:-dev}
+        # "true" = public demo site (landing/blog/investors/legal). Override with
+        # compose.firm.yaml (or VITE_PUBLIC_SITE=false) for the firm product.
+        VITE_PUBLIC_SITE: ${VITE_PUBLIC_SITE:-true}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.

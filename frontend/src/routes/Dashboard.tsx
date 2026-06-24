@@ -41,6 +41,7 @@ import {
   CAPACITY_TAG,
   HEALTH_LABEL,
   HEALTH_TAG,
+  nextTdsReturnDue,
 } from "../components/dashboard/dashboardUi.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -1147,6 +1148,17 @@ function ScreenOverview({
   const projectFlow = [...projectEvidence].sort(rankFlow);
   const clientFlow = [...clientEvidence].sort(rankFlow);
 
+  // "After this action" outcomes — derived from live state, one line per domain that
+  // currently needs attention. No static copy: a calm office shows the steady line.
+  const flowNeedsAttention = (flow: EvidenceItem[], state: ZoneState) =>
+    state !== "stable" || flow.some((t) => t.state != null && t.state !== "stable");
+  const afterLines: string[] = [];
+  if (flowNeedsAttention(billingFlow, fs)) afterLines.push("Billing and collections will recover.");
+  if (flowNeedsAttention(projectFlow, ps)) afterLines.push("Project delivery will stay on schedule.");
+  if (flowNeedsAttention(teamFlow, ts)) afterLines.push("Team workload will rebalance.");
+  if (flowNeedsAttention(clientFlow, cs)) afterLines.push("Client approvals will move faster.");
+  if (afterLines.length === 0) afterLines.push("The office stays steady and on track.");
+
   return (
     <div className="esti-cognitive-dashboard">
 
@@ -1236,10 +1248,7 @@ function ScreenOverview({
         <div className="esti-cognitive-after" aria-label="After this action">
           <div className="esti-cognitive-section-title">AFTER THIS ACTION</div>
           <div className="esti-after-list">
-            <p>Finance operations will become stronger.</p>
-            <p>Project delivery will continue smoothly.</p>
-            <p>Team coordination will improve.</p>
-            <p>Client approvals should move faster.</p>
+            {afterLines.map((line) => <p key={line}>{line}</p>)}
           </div>
         </div>
       </section>
@@ -1598,17 +1607,133 @@ function ScreenAI({ ac, ph, ti, canInvoice, canFees }: {
   );
 }
 
-// ── PLACEHOLDER (unimplemented tabs) ──────────────────────────────────────────
+// ── REPORTS TAB ───────────────────────────────────────────────────────────────
 
-function Placeholder({ title }: { title: string }) {
+function ScreenReports({ fh, ph, ri, canInvoice, home }: {
+  fh: any; ph: any[]; ri: any; canInvoice: boolean; home: any;
+}) {
+  if (!home) {
+    return (
+      <div className="esti-screen">
+        <div style={{ padding: "var(--cds-spacing-06)" }}><InlineLoading description="Loading reports…" /></div>
+      </div>
+    );
+  }
+
+  const red     = ph.filter((p: any) => p.health === "RED").length;
+  const yellow  = ph.filter((p: any) => p.health === "YELLOW").length;
+  const green   = ph.filter((p: any) => p.health === "GREEN").length;
+  const delayed = ph.filter((p: any) => (p.overdueTasks ?? 0) > 0).length;
+  const unbilled = ph.reduce((s: number, p: any) => s + (p.unbilledPhases ?? 0), 0);
+  const gst = gstStatus();
+  const tdsDue = nextTdsReturnDue();
+
+  const Cell = ({ k, v }: { k: string; v: React.ReactNode }) => (
+    <div className="esti-mini-grid__cell">
+      <div className="esti-cockpit__zone-name">{k}</div>
+      <div className="esti-mini-grid__val">{v}</div>
+    </div>
+  );
+
   return (
-    <div className="esti-screen">
-      <div className="esti-screen__placeholder">
-        <span className="esti-screen__placeholder-label">○ {title} — OPERATIONAL VIEW LOADING</span>
+    <div className="esti-pressure-grid">
+      {canInvoice && (
+        <div className="esti-pressure-cell esti-pressure-cell--full">
+          <div className="esti-cockpit__zone-name">FINANCIAL SUMMARY</div>
+          <div className="esti-mini-grid">
+            <Cell k="OUTSTANDING"     v={formatINRShort(fh?.outstandingPaise ?? 0)} />
+            <Cell k="OVERDUE 30D+"    v={formatINRShort(fh?.overdue30dPaise ?? 0)} />
+            <Cell k="READY TO BILL"   v={formatINRShort(fh?.readyToBillPaise ?? 0)} />
+            <Cell k="UNBILLED PHASES" v={unbilled} />
+          </div>
+        </div>
+      )}
+
+      <div className="esti-pressure-cell esti-pressure-cell--full">
+        <div className="esti-cockpit__zone-name">DELIVERY SUMMARY</div>
+        <div className="esti-mini-grid">
+          <Cell k="PROJECTS" v={ph.length} />
+          <Cell k="ON TRACK" v={green} />
+          <Cell k="WATCH"    v={yellow} />
+          <Cell k="AT RISK"  v={red} />
+          <Cell k="DELAYED"  v={delayed} />
+        </div>
+      </div>
+
+      <div className="esti-pressure-cell esti-pressure-cell--full">
+        <div className="esti-cockpit__zone-name">STATUTORY FILING</div>
+        <div className="esti-mini-grid">
+          <Cell k="GST DUE"    v={`${gst.label}${gst.daysUntil != null ? ` · ${gst.daysUntil}d` : ""}`} />
+          <Cell k="TDS RETURN" v={tdsDue} />
+        </div>
+      </div>
+
+      <div className="esti-pressure-cell esti-pressure-cell--full">
+        <div className="esti-cockpit__zone-name">REVISION INTELLIGENCE</div>
+        <div className="esti-mini-grid">
+          <Cell k="CLIENT-DRIVEN" v={ri?.clientDriven ?? 0} />
+          <Cell k="INTERNAL"      v={ri?.internalError ?? 0} />
+          <Cell k="RISK BAND"     v={ri?.revisionRiskBand ?? "—"} />
+        </div>
+      </div>
+
+      <div className="esti-pressure-cell esti-pressure-cell--full">
+        <div className="esti-cockpit__zone-name">DETAILED REPORTS</div>
+        <Stack gap={3}>
+          {canInvoice && <Link to="/filing">GST / TDS filing abstracts →</Link>}
+          <Link to="/performance">Team performance →</Link>
+          <Link to="/tasks?tab=activity">Office activity log →</Link>
+        </Stack>
       </div>
     </div>
   );
 }
+
+// ── ACTIVITY TAB ──────────────────────────────────────────────────────────────
+
+function relTime(input: string | Date): string {
+  const t = new Date(input).getTime();
+  if (Number.isNaN(t)) return "";
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
+}
+
+function ScreenActivity() {
+  const q = trpc.activity.listOffice.useQuery({ limit: 30, visibility: "STAFF" }, { staleTime: 30_000 });
+  const rows = q.data?.rows ?? [];
+
+  return (
+    <div className="esti-screen">
+      <div className="esti-screen__hdr">
+        <span className="esti-screen__hdr-title">OFFICE ACTIVITY</span>
+        {rows.length > 0 && <Tag type="gray" size="sm">{rows.length} recent</Tag>}
+      </div>
+
+      {q.isLoading ? (
+        <div style={{ padding: "var(--cds-spacing-06)" }}><InlineLoading description="Loading activity…" /></div>
+      ) : rows.length === 0 ? (
+        <div className="esti-screen__empty">No recent office activity.</div>
+      ) : (
+        rows.map((a) => (
+          <div key={a.id} className="esti-detail-item">
+            <span className="esti-detail-item__ref">{a.summary}</span>
+            <span className="esti-detail-item__val">
+              {a.actorName ?? "System"}{a.projectRef ? ` · ${a.projectRef}` : ""}
+            </span>
+            <span className="esti-detail-item__tag" style={{ color: "var(--cds-text-secondary)" }}>
+              {relTime(a.createdAt)}
+            </span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 
@@ -1672,10 +1797,10 @@ export function Dashboard() {
             <ScreenAI ac={ac} ph={ph} ti={ti} canInvoice={canInvoice} canFees={canFees} />
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
-            <Placeholder title="REPORTS" />
+            <ScreenReports fh={fh} ph={ph} ri={ri} canInvoice={canInvoice} home={home} />
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
-            <Placeholder title="ACTIVITY" />
+            <ScreenActivity />
           </TabPanel>
         </TabPanels>
       </Tabs>

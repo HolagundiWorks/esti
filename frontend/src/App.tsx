@@ -52,6 +52,17 @@ import { Consultants } from "./routes/Consultants.js";
 import { Contractors } from "./routes/Contractors.js";
 import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
 import { ComplianceWidget } from "./routes/ComplianceWidget.js";
+import { Blog } from "./routes/Blog.js";
+import { BlogPost } from "./routes/BlogPost.js";
+import { DemoAutoLogin } from "./routes/DemoAutoLogin.js";
+import { Investors } from "./routes/Investors.js";
+import { Legal } from "./routes/Legal.js";
+
+// Build variant gate. The public marketing site (landing, blog, investors, one-click
+// demo) is included only when VITE_PUBLIC_SITE !== "false". Set it to "false" for the
+// firm product build — unauthenticated visitors then go straight to /login, with no
+// marketing surfaces shipped. Defaults to public (demo/dev builds).
+const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 import { Tenders } from "./routes/Tenders.js";
 import { Construction } from "./routes/Construction.js";
 import { Contracts } from "./routes/Contracts.js";
@@ -176,12 +187,34 @@ function AppShell() {
   if (pathname === "/compliance-check")
     return <ComplianceWidget />;
 
+  // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
+  if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
+    return (
+      <Routes>
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+      </Routes>
+    );
+
+  // Public one-click demo launcher — signs into the team demo and redirects.
+  if (PUBLIC_SITE && pathname === "/demo")
+    return <DemoAutoLogin />;
+
+  // Investor brief — standalone public page, not linked from the marketing nav.
+  if (PUBLIC_SITE && pathname === "/investors")
+    return <Investors />;
+
+  // Legal — terms, privacy, acceptable use, licensing.
+  if (PUBLIC_SITE && pathname === "/legal")
+    return <Legal />;
+
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
     return (
       <Routes>
         <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
-        <Route path="*" element={<Landing />} />
+        {/* Public-site builds land on marketing; the firm product goes straight to login. */}
+        <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>
     );
   // Client-role users get the read-only portal, not the office workspace.

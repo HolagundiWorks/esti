@@ -199,6 +199,16 @@ else
   warn "Backend /health failed — check: docker logs esti-backend --tail 80"
 fi
 
+# ── 9b. Seed initial data (idempotent) ───────────────────────────────────────
+# Creates the owner login from SEED_OWNER_* and the demo workspace. The runtime
+# image has node (not pnpm), so run the compiled seeds directly. Re-running is
+# safe — both seeds guard against existing records.
+section "Seeding initial data"
+docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seed.js \
+  && info "Owner/base data seeded." || warn "Base seed failed — check: docker logs esti-backend"
+docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js \
+  && info "Demo workspace seeded." || warn "Demo seed failed — check: docker logs esti-backend"
+
 # ── 10. Build frontend static files ──────────────────────────────────────────
 section "Building frontend"
 docker compose -f compose.prod.yaml --profile build-only build frontend

@@ -30,13 +30,23 @@ async function main(): Promise<void> {
 
   const loginPassword = isDemoAormsEmail(email) ? demoPasswordFromEnv() : password;
 
-  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+  // The real firm owner is the full administrator of their own instance (system admin).
+  // The public demo principal is not — it relies on isDemo for the demo-reset path.
+  const fullAdmin = !isDemoAormsEmail(email);
+
+  const [existing] = await db
+    .select({ id: users.id, isSystemAdmin: users.isSystemAdmin })
+    .from(users)
+    .where(eq(users.email, email));
   if (existing) {
     if (isDemoAormsEmail(email)) {
       await syncDemoOwnerPassword(db, email, loginPassword);
       console.log(`✓ demo owner password synced: ${email} / ${loginPassword}`);
+    } else if (!existing.isSystemAdmin) {
+      await db.update(users).set({ isSystemAdmin: true }).where(eq(users.id, existing.id));
+      console.log(`✓ owner promoted to full system admin: ${email}`);
     } else {
-      console.log(`✓ owner already present: ${email} (no change)`);
+      console.log(`✓ owner already present with full access: ${email} (no change)`);
     }
     return;
   }
@@ -47,10 +57,11 @@ async function main(): Promise<void> {
     role: "OWNER",
     passwordHash: await hashPassword(loginPassword),
     isDemo: isDemoAormsEmail(email),
+    isSystemAdmin: fullAdmin,
     designation: "Principal Architect",
   });
 
-  console.log("✓ seeded OWNER account");
+  console.log(`✓ seeded OWNER account${fullAdmin ? " (full system admin)" : ""}`);
   console.log(`    email:    ${email}`);
   console.log(`    password: ${loginPassword}`);
 }
