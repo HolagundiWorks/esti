@@ -2,6 +2,7 @@
  * Quality intelligence tiles — shared by Dashboard and marketing landing preview.
  * Studio quality radar + revision detail (with proportional meter) + technical metrics.
  */
+import "@carbon/charts-react/styles.css";
 import { DonutChart, RadarChart } from "@carbon/charts-react";
 import {
   InlineLoading,

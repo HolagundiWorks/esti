@@ -1,3 +1,4 @@
+import "@carbon/charts-react/styles.css";
 import { Column, InlineLoading, Stack, Tile } from "@carbon/react";
 import { DonutChart, SimpleBarChart } from "@carbon/charts-react";
 import { ScaleTypes } from "@carbon/charts";

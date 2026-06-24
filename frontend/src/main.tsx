@@ -1,4 +1,3 @@
-import "@carbon/charts-react/styles.css";
 import "./styles.scss";
 import {
   MutationCache,

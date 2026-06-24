@@ -28,7 +28,14 @@ import {
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
-import { useEffect, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  type ComponentType,
+  type LazyExoticComponent,
+} from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
@@ -42,56 +49,73 @@ import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import { DemoSwitcherBar } from "./components/DemoSwitcherBar.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
-import { Alerts } from "./routes/Alerts.js";
-import { ArchivedProjects } from "./routes/ArchivedProjects.js";
-import { AuditLog } from "./routes/AuditLog.js";
-import { Clients } from "./routes/Clients.js";
-import { CollaboratorPortal } from "./routes/CollaboratorPortal.js";
-import { Company } from "./routes/Company.js";
-import { Consultants } from "./routes/Consultants.js";
-import { Contractors } from "./routes/Contractors.js";
-import { ContractorBidPortal } from "./routes/ContractorBidPortal.js";
-import { ComplianceWidget } from "./routes/ComplianceWidget.js";
-import { Blog } from "./routes/Blog.js";
-import { BlogPost } from "./routes/BlogPost.js";
-import { DemoAutoLogin } from "./routes/DemoAutoLogin.js";
-import { Investors } from "./routes/Investors.js";
-import { Legal } from "./routes/Legal.js";
+// Landing + Login stay eager so the first paint (marketing / sign-in) needs no extra
+// chunk fetch. Every other route is code-split below so a landing visitor never
+// downloads the authenticated workspace (and its charts/xlsx) bundle.
+import { Landing } from "./routes/Landing.js";
+import { Login } from "./routes/Login.js";
 
 // Build variant gate. The public marketing site (landing, blog, investors, one-click
 // demo) is included only when VITE_PUBLIC_SITE !== "false". Set it to "false" for the
 // firm product build — unauthenticated visitors then go straight to /login, with no
 // marketing surfaces shipped. Defaults to public (demo/dev builds).
 const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
-import { Tenders } from "./routes/Tenders.js";
-import { Construction } from "./routes/Construction.js";
-import { Contracts } from "./routes/Contracts.js";
-import { DocumentsRegister } from "./routes/DocumentsRegister.js";
-import { Letters } from "./routes/Letters.js";
-import { Dashboard } from "./routes/Dashboard.js";
-import { FeeProposals } from "./routes/FeeProposals.js";
-import { Filing } from "./routes/Filing.js";
-import { Invoices } from "./routes/Invoices.js";
-import { OfficeExpenses, CashBook } from "./routes/OfficeExpenses.js";
-import { Proposals } from "./routes/Proposals.js";
-import { Landing } from "./routes/Landing.js";
-import { Login } from "./routes/Login.js";
-import { KnowledgeBank } from "./routes/KnowledgeBank.js";
-import { Portal } from "./routes/Portal.js";
-import { ProjectDetail } from "./routes/ProjectDetail.js";
-import { Projects } from "./routes/Projects.js";
-import { Programme } from "./routes/Programme.js";
-import { Pmc } from "./routes/Pmc.js";
-import { Reconcile } from "./routes/Reconcile.js";
-import { Hr } from "./routes/Hr.js";
-import { SearchPage } from "./routes/Search.js";
-import { AiStudioPage } from "./components/AiStudio.js";
-import { Settings } from "./routes/Settings.js";
-import { Work } from "./routes/Work.js";
-import { Performance } from "./routes/Performance.js";
-import { Team } from "./routes/Team.js";
-import { Users } from "./routes/Users.js";
-import { SystemAdmin } from "./routes/SystemAdmin.js";
+
+// Lazily import a named export as a route component (Vite splits each into its own chunk).
+// Loader is typed loosely so modules that also export types/constants still satisfy it.
+function lazyRoute(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  loader: () => Promise<any>,
+  name: string,
+): LazyExoticComponent<ComponentType<unknown>> {
+  return lazy(() =>
+    loader().then((m) => ({ default: m[name] as ComponentType<unknown> })),
+  );
+}
+
+const Alerts = lazyRoute(() => import("./routes/Alerts.js"), "Alerts");
+const ArchivedProjects = lazyRoute(() => import("./routes/ArchivedProjects.js"), "ArchivedProjects");
+const AuditLog = lazyRoute(() => import("./routes/AuditLog.js"), "AuditLog");
+const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
+const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.js"), "CollaboratorPortal");
+const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
+const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
+const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
+const ContractorBidPortal = lazyRoute(() => import("./routes/ContractorBidPortal.js"), "ContractorBidPortal");
+const ComplianceWidget = lazyRoute(() => import("./routes/ComplianceWidget.js"), "ComplianceWidget");
+const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
+const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
+const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
+const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
+const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
+const Tenders = lazyRoute(() => import("./routes/Tenders.js"), "Tenders");
+const Construction = lazyRoute(() => import("./routes/Construction.js"), "Construction");
+const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
+const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
+const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
+const Dashboard = lazyRoute(() => import("./routes/Dashboard.js"), "Dashboard");
+const FeeProposals = lazyRoute(() => import("./routes/FeeProposals.js"), "FeeProposals");
+const Filing = lazyRoute(() => import("./routes/Filing.js"), "Filing");
+const Invoices = lazyRoute(() => import("./routes/Invoices.js"), "Invoices");
+const OfficeExpenses = lazyRoute(() => import("./routes/OfficeExpenses.js"), "OfficeExpenses");
+const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook");
+const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
+const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "KnowledgeBank");
+const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
+const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
+const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
+const Programme = lazyRoute(() => import("./routes/Programme.js"), "Programme");
+const Pmc = lazyRoute(() => import("./routes/Pmc.js"), "Pmc");
+const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
+const Hr = lazyRoute(() => import("./routes/Hr.js"), "Hr");
+const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
+const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
+const Settings = lazyRoute(() => import("./routes/Settings.js"), "Settings");
+const Work = lazyRoute(() => import("./routes/Work.js"), "Work");
+const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performance");
+const Team = lazyRoute(() => import("./routes/Team.js"), "Team");
+const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
+const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
 /** Side nav highlight — prefix match for nested routes (projects, tasks, KB). */
 function navPathActive(pathname: string, to: string): boolean {
@@ -147,7 +171,11 @@ export function App() {
   return (
     <PomodoroProvider>
       <UploadAuthProvider>
-        <AppShell />
+        {/* One boundary covers the lazy routes rendered in every AppShell branch
+            (public paths, portals, and the authenticated workspace). */}
+        <Suspense fallback={<Loading withOverlay description="Loading ESTI" />}>
+          <AppShell />
+        </Suspense>
       </UploadAuthProvider>
     </PomodoroProvider>
   );

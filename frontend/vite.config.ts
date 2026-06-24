@@ -69,6 +69,22 @@ export default defineConfig({
       },
     ],
   },
+  build: {
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        // Split the heavy libraries into their own cacheable chunks. charts and xlsx
+        // are only reached from lazy (authenticated) routes, so they stay off the
+        // landing's critical path; carbon (the design system) is one shared chunk.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("@carbon/charts")) return "vendor-charts";
+          if (id.includes("xlsx")) return "vendor-xlsx";
+          if (id.includes("@carbon")) return "vendor-carbon";
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,
