@@ -463,6 +463,9 @@ async function ensureDemoOfficeExpenses(principalId: string): Promise<void> {
 }
 
 async function backfillExistingDemo(principalId: string): Promise<void> {
+  // Demo runs the full edition so every feature is visible.
+  const orgRow = await getOrgSettings(db);
+  await db.update(orgSettings).set({ plan: "ENTERPRISE" }).where(eq(orgSettings.id, orgRow.id));
   await syncDemoPasswords();
   await linkDemoTeamAndTasks();
   await ensureDemoConsultants();
@@ -506,7 +509,7 @@ export async function seedDemoWorkspace(): Promise<void> {
   const pwHash = await hashPassword(DEMO_PASSWORD);
 
   const settings = await getOrgSettings(db);
-  await db.update(orgSettings).set({ hrEnabled: true, pmcEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
+  await db.update(orgSettings).set({ hrEnabled: true, pmcEnabled: true, orgMode: "STUDIO", plan: "ENTERPRISE" }).where(eq(orgSettings.id, settings.id));
   await syncDemoUploadPassword(db, DEMO_PASSWORD);
   await ensureAiStudioEnabled(db);
 
