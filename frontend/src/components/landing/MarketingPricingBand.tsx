@@ -19,7 +19,7 @@ const PLANS: Array<{
   {
     ctx: "LITE",
     name: "AORMS-Lite",
-    pitch: "Run your design practice — free.",
+    pitch: "Start a small team workspace — free.",
     price: "Free",
     priceNote: "Forever",
     caps: "3 team members · 10 clients · 10 contractors · 5 projects",
@@ -31,8 +31,8 @@ const PLANS: Array<{
       "Client portal (1 project)",
       "Statutory permits (basic)",
     ],
-    hosting: "Cloud (shared) · self-signup",
-    cta: "Create free account",
+    hosting: "Cloud (shared) · workspace request",
+    cta: "Request Lite workspace",
   },
   {
     ctx: "CORE",
@@ -83,8 +83,8 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
           <MarketingSectionHead
             id="pricing-title"
             eyebrow="Pricing"
-            title="Start free. Upgrade when you bill or build."
-            lead="Three editions on one codebase. Lite is genuinely free to run a design practice; Core unlocks billing, construction and AI; Enterprise runs on your infrastructure."
+            title="Start with the team workspace. Upgrade when you bill or build."
+            lead="Three editions on one codebase. Lite gives small teams a governed starting workspace; Core unlocks billing, construction and AI; Enterprise runs on your infrastructure."
           />
           <Grid fullWidth className="esti-landing-tile-grid">
             {PLANS.map((p) => (
@@ -125,8 +125,8 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
             ))}
           </Grid>
           <p className="esti-landing-section-lead">
-            Lite is for solo and tiny studios — no GST invoicing, no reconciliation, no AI; in
-            exchange, Lite data may be used (de-identified) to train our models.
+            Lite is for small teams starting their office record — no GST invoicing, no
+            reconciliation, no AI; in exchange, Lite data may be used (de-identified) to train our models.
             See the <a href="/legal">Terms</a> for details.
           </p>
         </Stack>
