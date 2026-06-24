@@ -20,6 +20,8 @@ import {
   tenders,
   users,
 } from "../db/schema.js";
+import { hashPassword } from "../auth/session.js";
+import { demoPasswordFromEnv } from "../lib/demoSeeds.js";
 import { nextRef } from "../lib/numbering.js";
 import {
   applyConstructionTemplate,
@@ -496,13 +498,14 @@ async function ensureContractorSubmissions(
   return added;
 }
 
-/** Stable demo contractor-portal link: /bid/demo-contractor-sharma-villa */
-export const DEMO_CONTRACTOR_TOKEN = "demo-contractor-sharma-villa";
+/** Stable demo contractor login (password = SEED_DEMO_PASSWORD, e.g. demo1234). */
+export const DEMO_CONTRACTOR_EMAIL = "contractor@demo.aorms.in";
 
 /**
- * Make the contractor portal (token-based) reachable in the demo: an OPEN tender on the
- * flagship project, a fixed-token invitation for the civil contractor, a tender document,
- * and a contractor QUERY so the new query feature is visible. Idempotent.
+ * Make the login-based contractor portal reachable in the demo: an OPEN tender on the
+ * flagship project, an invitation for the civil contractor, a tender document, a
+ * contractor QUERY, and a CONTRACTOR login scoped to that contractor so the portal can
+ * be reached from the demo switcher. Idempotent.
  */
 async function ensureDemoContractorPortal(
   database: Db,
@@ -535,14 +538,16 @@ async function ensureDemoContractorPortal(
   const [invExists] = await database
     .select({ id: tenderInvitations.id })
     .from(tenderInvitations)
-    .where(eq(tenderInvitations.accessToken, DEMO_CONTRACTOR_TOKEN))
+    .where(and(eq(tenderInvitations.tenderId, tender!.id), eq(tenderInvitations.contractorId, civilContractorId)))
     .limit(1);
   if (!invExists) {
     await database.insert(tenderInvitations).values({
       tenderId: tender!.id,
       contractorId: civilContractorId,
       status: "VIEWED",
-      accessToken: DEMO_CONTRACTOR_TOKEN,
+      // accessToken column is NOT NULL but no longer used for portal access
+      // (the portal is login-based now) — store a stable vestigial value.
+      accessToken: "demo-contractor-sharma-villa",
     });
   }
 
@@ -579,6 +584,31 @@ async function ensureDemoContractorPortal(
       status: "OPEN",
       submittedById: principalId,
     });
+  }
+
+  // Login-based contractor portal: a CONTRACTOR user scoped to the civil contractor.
+  // Password is kept in sync with the other demo logins by syncDemoLoginPasswords.
+  const [userExists] = await database
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, DEMO_CONTRACTOR_EMAIL))
+    .limit(1);
+  if (!userExists) {
+    await database.insert(users).values({
+      email: DEMO_CONTRACTOR_EMAIL,
+      fullName: "Ravi Kumar (BuildRight Contractors)",
+      role: "CONTRACTOR",
+      passwordHash: await hashPassword(demoPasswordFromEnv()),
+      isDemo: true,
+      contractorId: civilContractorId,
+      designation: "Contractor",
+    });
+  } else {
+    // Keep the link current if the user already exists from an older seed.
+    await database
+      .update(users)
+      .set({ contractorId: civilContractorId, role: "CONTRACTOR" })
+      .where(eq(users.id, userExists.id));
   }
   return true;
 }

@@ -277,10 +277,6 @@ export function Tenders() {
                             onClick={() => setBidFor({ invitationId: iv.id, contractorName: iv.contractorName, rupees: "", weeks: "", technical: "", notes: "" })}>
                             {iv.status === "SUBMITTED" ? "Edit bid" : "Record bid"}
                           </Button>
-                          <Button kind="ghost" size="sm"
-                            onClick={() => navigator.clipboard?.writeText(`${window.location.origin}/bid/${iv.accessToken}`)}>
-                            Copy bid link
-                          </Button>
                           <Button kind="ghost" size="sm" disabled={update.isPending}
                             onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: iv.contractorId })}>
                             Award

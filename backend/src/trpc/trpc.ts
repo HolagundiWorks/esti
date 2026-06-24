@@ -51,6 +51,7 @@ const SELF_SERVICE_MUTATIONS = new Set([
  */
 export const protectedProcedure = authedProcedure.use(({ ctx, next, type, path }) => {
   if (ctx.user.role === "CLIENT") throw new TRPCError({ code: "FORBIDDEN" });
+  if (ctx.user.role === "CONTRACTOR") throw new TRPCError({ code: "FORBIDDEN" });
   if (ctx.user.role === "CONSULTANT" && ctx.user.consultantId)
     throw new TRPCError({ code: "FORBIDDEN" });
   if (type === "mutation" && !SELF_SERVICE_MUTATIONS.has(path) && !can(ctx.user.role, "write")) {
@@ -83,6 +84,13 @@ export const collaboratorProcedure = authedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "CONSULTANT" || !ctx.user.consultantId)
     throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx: { ...ctx, user: { ...ctx.user, consultantId: ctx.user.consultantId } } });
+});
+
+/** Requires a contractor portal user (role CONTRACTOR scoped to a contractor). */
+export const contractorProcedure = authedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "CONTRACTOR" || !ctx.user.contractorId)
+    throw new TRPCError({ code: "FORBIDDEN" });
+  return next({ ctx: { ...ctx, user: { ...ctx.user, contractorId: ctx.user.contractorId } } });
 });
 
 /** ESTICAD device bearer writes — takeoff, drawing link, scale calibration. */

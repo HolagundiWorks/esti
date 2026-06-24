@@ -93,6 +93,7 @@ async function main(): Promise<void> {
     role: owner!.role,
     clientId: owner!.clientId,
     consultantId: owner!.consultantId,
+    contractorId: owner!.contractorId,
     isDemo: false,
     isSystemAdmin: owner!.isSystemAdmin ?? false,
     userCode: owner!.userCode ?? null,

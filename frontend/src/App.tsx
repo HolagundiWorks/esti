@@ -81,7 +81,7 @@ const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.j
 const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
-const ContractorBidPortal = lazyRoute(() => import("./routes/ContractorBidPortal.js"), "ContractorBidPortal");
+const ContractorPortal = lazyRoute(() => import("./routes/ContractorPortal.js"), "ContractorPortal");
 const ComplianceWidget = lazyRoute(() => import("./routes/ComplianceWidget.js"), "ComplianceWidget");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
@@ -188,9 +188,9 @@ function AppShell() {
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => utils.auth.me.invalidate(),
   });
-  // Only staff read settings; CLIENT users never reach this query.
+  // Only staff read settings; portal users (CLIENT, CONTRACTOR) never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, {
-    enabled: !!user && user.role !== "CLIENT",
+    enabled: !!user && user.role !== "CLIENT" && user.role !== "CONTRACTOR",
   });
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const pmcEnabled = settingsQ.data?.pmcEnabled ?? false;
@@ -200,16 +200,6 @@ function AppShell() {
       (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
-
-  // Public contractor bid portal — magic-link page, no session required.
-  if (pathname.startsWith("/bid/"))
-    return (
-      <Theme theme="white">
-        <Routes>
-          <Route path="/bid/:token" element={<ContractorBidPortal />} />
-        </Routes>
-      </Theme>
-    );
 
   // Public compliance widget — no auth, embeddable as iframe.
   if (pathname === "/compliance-check")
@@ -268,6 +258,20 @@ function AppShell() {
           <Routes>
             <Route path="/" element={<CollaboratorPortal />} />
             <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Theme>
+    );
+
+  // Contractors (scoped to a contractor record) get the login-based contractor portal.
+  if (user.role === "CONTRACTOR" && user.contractorId)
+    return (
+      <Theme theme="white">
+        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
+        <div>
+          <Routes>
+            <Route path="/" element={<ContractorPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

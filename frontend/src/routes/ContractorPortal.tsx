@@ -2,6 +2,8 @@ import {
   Button,
   Content,
   Header,
+  HeaderGlobalAction,
+  HeaderGlobalBar,
   HeaderName,
   InlineNotification,
   Loading,
@@ -13,37 +15,42 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
+import { Logout } from "@carbon/icons-react";
 import {
   CONSTRUCTION_KIND_LABEL,
   ConstructionKind,
-  formatINR,
   TENDER_DOCUMENT_KIND_LABEL,
   TENDER_STATUS_TAG,
   type ConstructionKind as ConstructionKindT,
   type TenderStatus,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
-export function ContractorBidPortal() {
-  const { token = "" } = useParams();
+/**
+ * Login-based contractor portal. The logged-in CONTRACTOR user is scoped to a
+ * contractor record (ctx.user.contractorId); all data is resolved from their
+ * current tender invitation — no magic-link token.
+ */
+export function ContractorPortal() {
   const utils = trpc.useUtils();
-  const q = trpc.contractorPortal.byToken.useQuery({ token }, { enabled: token.length > 0, retry: false });
-  const coordQ = trpc.contractorPortal.listCoordination.useQuery({ token }, { enabled: token.length > 0 });
-  const docsQ = trpc.contractorPortal.projectDocuments.useQuery({ token }, { enabled: token.length > 0 });
-  const submit = trpc.contractorPortal.submitBid.useMutation({
-    onSuccess: () => utils.contractorPortal.byToken.invalidate(),
+  const q = trpc.contractorPortal.mySpace.useQuery(undefined, { retry: false });
+  const coordQ = trpc.contractorPortal.listCoordination.useQuery(undefined, {
+    enabled: !!q.data?.tender,
   });
-  const decline = trpc.contractorPortal.decline.useMutation({
-    onSuccess: () => utils.contractorPortal.byToken.invalidate(),
+  const docsQ = trpc.contractorPortal.projectDocuments.useQuery(undefined, {
+    enabled: !!q.data?.tender,
   });
-  const ackDoc = trpc.contractorPortal.ackDocument.useMutation({
-    onSuccess: () => utils.contractorPortal.byToken.invalidate(),
-  });
+  const refresh = () => utils.contractorPortal.mySpace.invalidate();
+  const submit = trpc.contractorPortal.submitBid.useMutation({ onSuccess: refresh });
+  const decline = trpc.contractorPortal.decline.useMutation({ onSuccess: refresh });
+  const ackDoc = trpc.contractorPortal.ackDocument.useMutation({ onSuccess: refresh });
   const submitCoord = trpc.contractorPortal.submitCoordination.useMutation({
+    onSuccess: () => void utils.contractorPortal.listCoordination.invalidate(),
+  });
+  const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
-      void utils.contractorPortal.listCoordination.invalidate();
+      window.location.href = "/login";
     },
   });
 
@@ -67,20 +74,36 @@ export function ContractorBidPortal() {
 
   return (
     <>
-      <Header aria-label="Contractor bid portal">
-        <HeaderName prefix={firm}>Tender bid</HeaderName>
+      <Header aria-label="Contractor portal">
+        <HeaderName prefix={firm}>Contractor portal</HeaderName>
+        <HeaderGlobalBar>
+          <HeaderGlobalAction aria-label="Sign out" onClick={() => logout.mutate()}>
+            <Logout size={20} />
+          </HeaderGlobalAction>
+        </HeaderGlobalBar>
       </Header>
       <Content>
         {q.isLoading ? (
-          <Loading withOverlay={false} description="Loading tender…" />
+          <Loading withOverlay={false} description="Loading…" />
         ) : q.error || !d ? (
           <InlineNotification
             kind="error"
-            title="Bid link not valid"
-            subtitle={q.error?.message ?? "This bid link is invalid or has expired. Ask the firm for a new link."}
+            title="Could not load your portal"
+            subtitle={q.error?.message ?? "Please try again, or contact the firm."}
             hideCloseButton
             lowContrast
           />
+        ) : !d.tender ? (
+          <Stack gap={4}>
+            <h2>Welcome{d.contractorName ? `, ${d.contractorName}` : ""}</h2>
+            <InlineNotification
+              kind="info"
+              title="No tender assigned yet"
+              subtitle="When the firm invites you to a tender, it will appear here."
+              hideCloseButton
+              lowContrast
+            />
+          </Stack>
         ) : (
           <Stack gap={6}>
             <Stack gap={2}>
@@ -92,7 +115,7 @@ export function ContractorBidPortal() {
                   {d.tender.statusLabel}
                 </Tag>
               </p>
-              <p className="esti-label esti-label--secondary">Bidding as {d.contractorName}</p>
+              <p className="esti-label esti-label--secondary">Signed in as {d.contractorName}</p>
             </Stack>
 
             {d.tender.scope && (
@@ -129,7 +152,7 @@ export function ContractorBidPortal() {
                         <a href={doc.downloadUrl} target="_blank" rel="noreferrer">Download</a>
                       )}
                       {doc.requiresAck && !doc.acknowledged && (
-                        <Button size="sm" kind="tertiary" disabled={ackDoc.isPending} onClick={() => ackDoc.mutate({ token, documentId: doc.id })}>
+                        <Button size="sm" kind="tertiary" disabled={ackDoc.isPending} onClick={() => ackDoc.mutate({ documentId: doc.id })}>
                           Acknowledge addendum
                         </Button>
                       )}
@@ -167,7 +190,6 @@ export function ContractorBidPortal() {
                     disabled={!d.tender.open || !form.rupees || submit.isPending || d.pendingAddendaCount > 0}
                     onClick={() =>
                       submit.mutate({
-                        token,
                         amountPaise: Math.round(Number(form.rupees) * 100),
                         completionWeeks: form.weeks ? Number(form.weeks) : undefined,
                         technicalScore: form.technical ? Number(form.technical) : undefined,
@@ -178,7 +200,7 @@ export function ContractorBidPortal() {
                     {submit.isPending ? "Submitting…" : bid ? "Update bid" : "Submit bid"}
                   </Button>
                   {d.tender.open && (
-                    <Button kind="danger--tertiary" disabled={decline.isPending} onClick={() => decline.mutate({ token })}>
+                    <Button kind="danger--tertiary" disabled={decline.isPending} onClick={() => decline.mutate()}>
                       Decline invitation
                     </Button>
                   )}
@@ -222,15 +244,6 @@ export function ContractorBidPortal() {
               <Stack gap={4}>
                 <h4>Site coordination</h4>
                 <p className="esti-label">Raise a query, RFI, submittal, inspection request, snag, or NCR to the firm.</p>
-                <div>
-                  <Button
-                    size="sm"
-                    kind="tertiary"
-                    onClick={() => setCoordForm((f) => ({ ...f, kind: "QUERY" }))}
-                  >
-                    Raise a query
-                  </Button>
-                </div>
                 {(coordQ.data ?? []).slice(0, 5).map((c) => (
                   <p key={c.id}>
                     <Tag size="sm">{CONSTRUCTION_KIND_LABEL[c.kind as ConstructionKindT] ?? c.kind}</Tag> {c.subject} — {c.status}
@@ -244,7 +257,7 @@ export function ContractorBidPortal() {
                 <Button
                   size="sm"
                   disabled={!coordForm.subject.trim() || submitCoord.isPending}
-                  onClick={() => submitCoord.mutate({ token, kind: coordForm.kind, subject: coordForm.subject, body: coordForm.body || undefined })}
+                  onClick={() => submitCoord.mutate({ kind: coordForm.kind, subject: coordForm.subject, body: coordForm.body || undefined })}
                 >
                   Submit to firm
                 </Button>
