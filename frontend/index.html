@@ -20,8 +20,8 @@
     <meta name="theme-color" content="#332a73" />
 
     <!-- SEO -->
-    <meta name="description" content="AORMS is architecture office management software for Indian firms — projects, CRIF revision control, COA fees, GST invoicing, drawing registers, ESTICAD desktop companion, client portals, and a free BBMP / UDCPR / GHMC / DDA / CMDA building bylaw compliance checker. Self-hosted office intelligence for architecture practices." />
-    <meta name="keywords" content="AORMS, architectural office record, architecture practice management India, CRIF revision intelligence, COA scale of charges, GST invoicing architects, ESTICAD companion, client portal, self-hosted architecture software, ESTI AORMS, BBMP compliance check, building bylaw checker India, FAR calculator India, FSI calculator Mumbai UDCPR, setback calculator Bengaluru, GHMC building rules Hyderabad, DDA FAR checker Delhi, CMDA regulations Chennai, KMC building rules Kolkata, AUDA GDCR Ahmedabad, building compliance open API" />
+    <meta name="description" content="AORMS — architecture office management software for Indian firms. Free AORMS-Lite for solo studios (3 team, 10 clients, 10 contractors); paid AORMS-Core adds construction/PMC, GST billing, reconciliation, HR, portals and ESTI AI; AORMS-Enterprise deploys on your infrastructure. Drawings, COA fees, revision intelligence, BOQ & costing, client portals." />
+    <meta name="keywords" content="AORMS, AORMS Lite free, free architecture software India, architecture practice management India, architecture office management software, CRIF revision intelligence, COA scale of charges, GST invoicing architects, BOQ rate analysis running bills, ESTICAD companion, client portal, contractor portal, ESTI AORMS, on-premises architecture software, architecture firm pricing, AORMS Core pricing, AORMS Enterprise on-premises" />
     <meta name="author" content="Holagundi Consulting Works" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://aorms.in/" />
@@ -90,17 +90,33 @@
             "@type": "Audience",
             "audienceType": "Indian architects and architecture studios"
           },
-          "offers": {
-            "@type": "Offer",
-            "priceCurrency": "INR",
-            "price": "499",
-            "priceSpecification": {
-              "@type": "UnitPriceSpecification",
-              "price": "499",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "AORMS-Lite",
+              "description": "Free design-practice edition — clients, projects, drawings, approvals. Capped at 3 team members, 10 clients, 10 contractors. Self-signup at https://aorms.in/#pricing",
+              "price": "0",
               "priceCurrency": "INR",
-              "unitText": "MONTH"
+              "availability": "https://schema.org/InStock",
+              "url": "https://aorms.in/#pricing"
+            },
+            {
+              "@type": "Offer",
+              "name": "AORMS-Core",
+              "description": "Full office OS — construction/PMC, GST billing, reconciliation, HR, portals, ESTI cognition. Cloud-hosted dedicated VM (4 vCPU, 16 GB RAM, 200 GB NVMe, 16 TB bandwidth, dedicated IP, weekly backups). Contact for pricing.",
+              "priceSpecification": { "@type": "PriceSpecification", "priceCurrency": "INR", "valueAddedTaxIncluded": false },
+              "availability": "https://schema.org/InStock",
+              "url": "https://aorms.in/#pricing"
+            },
+            {
+              "@type": "Offer",
+              "name": "AORMS-Enterprise",
+              "description": "On-premises edition — unlimited seats, multi-office portfolios, SSO, API/ESTICAD, audit export, white-label, SLA support. Deployed on your infrastructure. Contact for pricing.",
+              "priceSpecification": { "@type": "PriceSpecification", "priceCurrency": "INR", "valueAddedTaxIncluded": false },
+              "availability": "https://schema.org/InStock",
+              "url": "https://aorms.in/#pricing"
             }
-          },
+          ],
           "publisher": { "@id": "https://aorms.in/#organization" }
         }
       ]
@@ -132,6 +148,21 @@
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is AORMS free for small architecture practices?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. AORMS-Lite is free for solo studios and small practices — capped at 3 team members, 10 clients, 10 contractors and 5 projects. It includes clients, projects, drawings, transmittals and approvals. Lite does not include GST invoicing, reconciliation, construction/PMC, HR or AI — those are in AORMS-Core. Sign up free on the pricing section." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does AORMS-Core cost?",
+          "acceptedAnswer": { "@type": "Answer", "text": "AORMS-Core is contact-for-pricing. It is delivered on a dedicated cloud VM (4 vCPU, 16 GB RAM, 200 GB NVMe disk, 16 TB bandwidth, 1 snapshot, weekly backups, dedicated IP). Core includes the full office OS — construction/PMC, BOQ and Costing, revision intelligence, GST invoicing and reconciliation, HR, payroll, ASPRF performance, consultant and contractor portals, and ESTI AI cognition." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is AORMS-Enterprise on-premises or cloud?",
+          "acceptedAnswer": { "@type": "Answer", "text": "AORMS-Enterprise is deployed on-premises on your own infrastructure. It is contact-for-pricing and adds unlimited seats, multi-office portfolios, SSO, API and ESTICAD device integration, audit export, white-label and priority SLA support. Everything in AORMS-Core is included." }
+        },
         {
           "@type": "Question",
           "name": "What does ESTI stand for?",

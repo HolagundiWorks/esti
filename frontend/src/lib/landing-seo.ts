@@ -2,9 +2,9 @@
 export const LANDING_SEO = {
   title: "AORMS — Architecture Office Management Software for Indian Firms",
   description:
-    "AORMS is AI-powered architecture office management software for Indian firms — projects, drawings, revisions, COA fees, GST invoicing, bylaw compliance, teams and client portals in one record. An office intelligence system that observes, predicts and recommends.",
+    "AORMS — architecture office management software for Indian firms. Free AORMS-Lite for solo studios (3 team, 10 clients, 10 contractors); paid AORMS-Core adds construction/PMC, GST billing, reconciliation, HR, AI cognition; AORMS-Enterprise deploys on your infrastructure. Projects, drawings, revisions, COA fees, BOQ & costing, client portals.",
   keywords:
-    "architecture office management software, architecture firm management software, architecture practice management software, software for architecture firms, architecture project management software, architecture office intelligence system, AORMS, Indian architect office software, COA fee proposal software, GST invoicing architects India, drawing revision tracking software, architecture approval workflow software, building compliance checker India, BBMP FAR calculator, self-hosted architecture software, ESTICAD companion",
+    "AORMS Lite free, free architecture software India, architecture office management software, architecture firm management software, architecture practice management software, software for architecture firms, architecture project management software, AORMS, Indian architect office software, COA fee proposal software, GST invoicing architects India, drawing revision tracking software, architecture approval workflow software, on-premises architecture software, BOQ rate analysis running bills, ESTICAD companion, AORMS Core pricing, AORMS Enterprise on-premises",
   ogTitle: "A digital nervous system for architecture firms",
   ogDescription:
     "AORMS observes your office, reasons through client/project/finance/team pressure, predicts risk, and recommends interventions before failure matures.",

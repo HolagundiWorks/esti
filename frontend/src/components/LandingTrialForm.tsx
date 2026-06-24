@@ -13,6 +13,7 @@ import {
   Select,
   SelectItem,
   Stack,
+  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
@@ -178,7 +179,16 @@ function CheckGroup<T extends string>({
   );
 }
 
-export function LandingTrialForm() {
+/** Pre-fill context: which edition the user clicked from the pricing cards. */
+export type LandingTrialPlanContext = "LITE" | "CORE" | "ENTERPRISE";
+
+const PLAN_CONTEXT_LABEL: Record<LandingTrialPlanContext, string> = {
+  LITE: "AORMS-Lite — free account",
+  CORE: "AORMS-Core — contact for pricing",
+  ENTERPRISE: "AORMS-Enterprise — contact for pricing (on-premises)",
+};
+
+export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPlanContext } = {}) {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [error, setError] = useState<string | null>(null);
   const submit = trpc.marketing.submitTrialRequest.useMutation({
@@ -197,6 +207,8 @@ export function LandingTrialForm() {
       setError("Select at least one capability you are interested in.");
       return;
     }
+    const tag = planContext ? `[${PLAN_CONTEXT_LABEL[planContext]}]` : "";
+    const notes = [tag, form.improvementNotes].filter(Boolean).join("\n").trim();
     submit.mutate({
       fullName: form.fullName,
       workEmail: form.workEmail,
@@ -209,7 +221,7 @@ export function LandingTrialForm() {
       interestedModules: [...form.interestedModules],
       currentTools: [...form.currentTools],
       painPoints: [...form.painPoints],
-      improvementNotes: form.improvementNotes || undefined,
+      improvementNotes: notes || undefined,
       trialPreference: form.trialPreference,
       timeline: form.timeline || undefined,
     });
@@ -234,6 +246,11 @@ export function LandingTrialForm() {
   return (
     <Form onSubmit={onSubmit}>
       <Stack gap={6}>
+        {planContext && (
+          <Tag size="md" type={planContext === "LITE" ? "green" : planContext === "CORE" ? "blue" : "purple"}>
+            {PLAN_CONTEXT_LABEL[planContext]}
+          </Tag>
+        )}
         <Stack gap={5}>
           <h3 className="esti-landing-section-title">Contact details</h3>
           <Grid fullWidth className="esti-landing-grid">

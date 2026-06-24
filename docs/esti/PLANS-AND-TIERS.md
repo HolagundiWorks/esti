@@ -9,9 +9,9 @@
 
 | Edition | For | One line |
 |---|---|---|
-| **AORMS-Lite** (free) | solo / tiny studios | Run your design practice — clients, projects, drawings, GST invoicing — free, with caps. |
-| **AORMS-Core** (paid) | established firms | The full office OS: construction/PMC, revision intelligence, HR, reconciliation, portals, ESTI cognition. |
-| **AORMS-Enterprise** | multi-office / scale | Core at scale — unlimited seats, SSO, API/ESTICAD, governance, integrations, white-label. |
+| **AORMS-Lite** (free) | solo / tiny studios | Run your design practice — clients, projects, drawings — free, with caps. *Self-signup, no billing or reconciliation.* |
+| **AORMS-Core** (paid · contact for pricing) | established firms | The full office OS: construction/PMC, revision intelligence, HR, GST billing & reconciliation, portals, ESTI cognition. Cloud-hosted with dedicated infrastructure. |
+| **AORMS-Enterprise** (contact for pricing) | multi-office / scale | Core at scale — unlimited seats, **on-premises deployment**, SSO, API/ESTICAD, governance, integrations, white-label. |
 
 ## Quotas
 
@@ -58,7 +58,8 @@
 | Decisions & **revision intelligence** | — | ✓ | ✓ |
 | Documents & spec sheets | ◐ | ✓ | ✓ |
 | Statutory permits | ◐ | ✓ | ✓ |
-| Fee & billing — GST invoices | ◐ (basic GST) | ✓ | ✓ |
+| Fee proposals (COA) | ◐ (flat) | ✓ | ✓ |
+| GST invoicing | **—** | ✓ | ✓ |
 
 ### Projects — Project Management (construction / PMC)
 | Feature | Lite | Core | Ent |
@@ -73,9 +74,9 @@
 ### Accounts
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| GST invoicing | ◐ | ✓ | ✓ |
+| GST invoicing | **—** | ✓ | ✓ |
 | Expenses & cash book | — | ✓ | ✓ |
-| Reconciliation (bank / 26AS / AIS / GSTR import) | — | ✓ | ✓ |
+| Reconciliation (bank / 26AS / AIS / GSTR import) | **—** | ✓ | ✓ |
 | GST / TDS filing abstracts | — | ✓ | ✓ |
 
 ### People
@@ -126,11 +127,20 @@
 | SSO, API access, multi-office, white-label | — | — | ✓ |
 | Priority support / SLA | — | — | ✓ |
 
+## Pricing & deployment
+
+| Edition | Pricing | Hosting | How to start |
+|---|---|---|---|
+| **Lite** | **Free** | Cloud (shared) | **Self-signup** on the landing page |
+| **Core** | **Contact for pricing** | **Cloud — dedicated VM**: 4 vCPU · 16 GB RAM · 200 GB NVMe · 16 TB bandwidth · 1 snapshot · weekly backups · dedicated IP | Contact form on the landing page |
+| **Enterprise** | **Contact for pricing** | **On-premises** (deployed on your infrastructure) | Contact form on the landing page |
+
 ## The upgrade story (what pulls Lite → Core → Enterprise)
 
-- **Lite → Core** when the firm needs to **build, not just design**: the moment a
-  project goes to tender/site (PMC), needs revision intelligence to defend fees,
-  HR/payroll, reconciliation, or a 4th team member / 11th client.
+- **Lite → Core** when the firm needs to **bill or build, not just design**: the
+  moment they need GST invoicing/reconciliation, a project goes to tender/site
+  (PMC), they need revision intelligence to defend fees, HR/payroll, or a 4th
+  team member / 11th client.
 - **Core → Enterprise** when the firm needs **scale & governance**: many offices,
   unlimited seats, SSO, the ESTICAD/API integration, audit export, white-label.
 

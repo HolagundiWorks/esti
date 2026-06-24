@@ -37,6 +37,7 @@ export const PLAN_FEATURES = [
   "pmc", // construction / Project Management head
   "costing", // BOQ & measurement window
   "revisionIntelligence",
+  "billing", // GST invoicing — not in Lite
   "hr", // HR & payroll
   "performance", // ASPRF / scores / rewards
   "reconciliation", // bank / 26AS / AIS / GSTR import + filing
@@ -59,6 +60,7 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   pmc: "CORE",
   costing: "CORE",
   revisionIntelligence: "CORE",
+  billing: "CORE",
   hr: "CORE",
   performance: "CORE",
   reconciliation: "CORE",

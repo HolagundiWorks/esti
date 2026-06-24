@@ -62,13 +62,13 @@ export function Legal() {
 
               <h2>4. Use of free-tier data for model training</h2>
               <p>
-                <strong>AORMS-Lite (the free edition) does not include AI, LLM or ML
-                features.</strong> In exchange for providing AORMS-Lite at no cost, you grant
-                Holagundi Consulting Works a licence to use the data you create in AORMS-Lite — in
-                de-identified and aggregated form — to develop, train and improve our artificial
-                intelligence, large-language and machine-learning models. We take reasonable steps
-                to strip direct identifiers (names, contacts, and other personal data) before any
-                such use, and we do not sell this data.
+                <strong>AORMS-Lite (the free edition) does not include AI, LLM or ML features,
+                GST invoicing, or financial reconciliation.</strong> In exchange for providing
+                AORMS-Lite at no cost, you grant Holagundi Consulting Works a licence to use the
+                data you create in AORMS-Lite — in de-identified and aggregated form — to develop,
+                train and improve our artificial intelligence, large-language and machine-learning
+                models. We take reasonable steps to strip direct identifiers (names, contacts, and
+                other personal data) before any such use, and we do not sell this data.
               </p>
               <p>
                 This applies <strong>only to the free AORMS-Lite tier</strong>. Data in the paid
