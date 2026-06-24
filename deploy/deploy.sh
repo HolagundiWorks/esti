@@ -52,14 +52,21 @@ rm -rf "$DEPLOY_DIR/frontend/dist.old"
 mv "$DIST_NEW" "$DEPLOY_DIR/frontend/dist"
 rm -rf "$DEPLOY_DIR/frontend/dist.old"
 
-# Refresh nginx site config (no-cache index.html) and reload.
-if [[ -f /etc/nginx/sites-available/esti ]]; then
+# The nginx vhost is installed once (with TLS added by certbot) and is stable across
+# deploys — only the dist/ files change. We do NOT rewrite it here by default, because
+# install_nginx_site lays down the HTTP-only template and would drop certbot's TLS block,
+# taking the site to plain HTTP (lost cert, slow/broken HTTPS). Set REFRESH_NGINX=true to
+# pull template changes; we then re-apply TLS from the existing certificate.
+if [[ "${REFRESH_NGINX:-false}" == "true" && -f /etc/nginx/sites-available/esti ]]; then
   DOMAIN="$(grep -m1 'server_name' /etc/nginx/sites-available/esti | awk '{print $2}' | tr -d ';')"
   if [[ -n "$DOMAIN" && "$DOMAIN" != "DOMAIN_PLACEHOLDER" ]]; then
+    info "Refreshing nginx config for ${DOMAIN} (REFRESH_NGINX=true)..."
     install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || warn "nginx config refresh skipped"
+    if [[ -d "/etc/letsencrypt/live/$DOMAIN" ]]; then
+      certbot --nginx -d "$DOMAIN" --non-interactive --reinstall --redirect >/dev/null 2>&1 \
+        || warn "TLS re-apply failed — run: certbot --nginx -d $DOMAIN"
+    fi
   fi
-else
-  warn "nginx site not installed — run bootstrap.sh or copy deploy/nginx-proxy.conf"
 fi
 systemctl reload nginx 2>/dev/null || nginx -s reload 2>/dev/null || true
 
