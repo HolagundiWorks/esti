@@ -17,6 +17,7 @@ import {
   users,
 } from "../db/schema.js";
 import { nextRef } from "../lib/numbering.js";
+import { importTakeoffToEstimate } from "../modules/boq/takeoffImport.js";
 import { companionMeasurementSchemaReady } from "./seedBootstrap.js";
 import { ensureBuildingDsrCatalog } from "./seedBuildingDsr.js";
 
@@ -168,48 +169,45 @@ async function ensureEsticadMeasurements(
   return added;
 }
 
-async function ensureDraftEstimate(database: Db, projectId: string, title: string): Promise<void> {
-  const [existing] = await database
-    .select({ id: estimates.id })
+async function ensureDraftEstimate(
+  database: Db,
+  projectId: string,
+  title: string,
+  actorId: string,
+): Promise<void> {
+  const { versionId } = await ensureBuildingDsrCatalog(database);
+
+  let [estimate] = await database
+    .select({ id: estimates.id, status: estimates.status })
     .from(estimates)
     .where(and(eq(estimates.projectId, projectId), eq(estimates.title, title)))
     .limit(1);
-  if (existing) return;
+  if (!estimate) {
+    const { ref } = await nextRef(database, "estimate", "EST");
+    [estimate] = await database
+      .insert(estimates)
+      .values({
+        ref,
+        projectId,
+        title,
+        dsrVersionId: versionId,
+        status: "DRAFT",
+        leadPct: 12.5,
+      })
+      .returning({ id: estimates.id, status: estimates.status });
+  }
 
-  const { versionId } = await ensureBuildingDsrCatalog(database);
-  const { ref } = await nextRef(database, "estimate", "EST");
-  const [estimate] = await database
-    .insert(estimates)
-    .values({
-      ref,
-      projectId,
-      title,
-      dsrVersionId: versionId,
-      status: "DRAFT",
-      leadPct: 12.5,
-    })
-    .returning();
-
-  await database.insert(estimateItems).values([
-    {
-      estimateId: estimate!.id,
-      description: "Brick masonry 230 mm thick in cement mortar",
-      unit: "rm",
-      qty: 42,
-      ratePaise: 125_000,
-      amountPaise: 42 * 125_000,
-      sortOrder: 10,
-    },
-    {
-      estimateId: estimate!.id,
-      description: "RCC slab 150 mm thick M25",
-      unit: "sqm",
-      qty: 185,
-      ratePaise: 420_000,
-      amountPaise: 185 * 420_000,
-      sortOrder: 20,
-    },
-  ]);
+  // Never touch an approved estimate. For a draft, rebuild the BOQ lines from the
+  // project's current takeoff measurements so each line is traceable to its source
+  // ("View calculation"). Idempotent + self-healing: an older demo whose estimate
+  // had hand-entered items (or stale lines) is refreshed to the real takeoff.
+  if (estimate!.status !== "DRAFT") return;
+  await database.delete(estimateItems).where(eq(estimateItems.estimateId, estimate!.id));
+  try {
+    await importTakeoffToEstimate(database, { projectId, estimateId: estimate!.id, actorId });
+  } catch {
+    /* no tagged measurements yet — leave the estimate empty until takeoff exists */
+  }
 }
 
 /** Decision-thread comments with valid decision object IDs (not project refs). */
@@ -293,7 +291,7 @@ export async function ensureDemoShowcase(database: Db): Promise<{
 
   for (const title of SHOWCASE_PROJECT_TITLES) {
     const [project] = await database
-      .select({ id: projectOffices.id })
+      .select({ id: projectOffices.id, createdById: projectOffices.createdById })
       .from(projectOffices)
       .where(eq(projectOffices.title, title))
       .limit(1);
@@ -306,6 +304,16 @@ export async function ensureDemoShowcase(database: Db): Promise<{
     });
     drawingCount += 1;
 
+    // The AREA takeoff model is a length×1-unit placeholder (not a true polygon
+    // area), so it yields nonsense BOQ quantities. Drop the legacy Sharma slab
+    // measurement and use LINEAR/COUNT elements that compute correctly, so the
+    // demo estimate (and its "View calculation" breakdown) reads true.
+    if (title.startsWith("Sharma")) {
+      await database
+        .delete(measurements)
+        .where(and(eq(measurements.drawingId, drawing.id), eq(measurements.elementTypeId, "SLAB_150")));
+    }
+
     measurementCount += await ensureEsticadMeasurements(database, {
       projectId: project.id,
       drawingId: drawing.id,
@@ -314,7 +322,9 @@ export async function ensureDemoShowcase(database: Db): Promise<{
           [
             { label: "External wall — north", elementTypeId: "WALL_230", kind: "LINEAR", realLength: 12_400 },
             { label: "External wall — south", elementTypeId: "WALL_230", kind: "LINEAR", realLength: 11_800 },
-            { label: "Ground slab", elementTypeId: "SLAB_150", kind: "AREA", realLength: 13_600 },
+            { label: "Internal partitions — GF", elementTypeId: "WALL_115", kind: "LINEAR", realLength: 24_600 },
+            { label: "RCC columns — ground floor", elementTypeId: "COL_300x300", kind: "COUNT", realLength: 0, itemCount: 12 },
+            { label: "Isolated footings", elementTypeId: "FTG_1000x1000x450", kind: "COUNT", realLength: 0, itemCount: 12 },
           ]
         : [
             { label: "Typical floor plate", elementTypeId: "SLAB_150", kind: "AREA", realLength: 5_000 },
@@ -323,8 +333,13 @@ export async function ensureDemoShowcase(database: Db): Promise<{
           ],
     });
 
-    if (title.startsWith("Sharma")) {
-      await ensureDraftEstimate(database, project.id, "Sharma Villa — architecture BOQ (draft)");
+    if (title.startsWith("Sharma") && project.createdById) {
+      await ensureDraftEstimate(
+        database,
+        project.id,
+        "Sharma Villa — architecture BOQ (draft)",
+        project.createdById,
+      );
     }
   }
 
