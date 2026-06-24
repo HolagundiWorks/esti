@@ -39,6 +39,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
+import { isLandingSlug } from "./lib/landing-slugs.js";
 import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
@@ -85,6 +86,9 @@ const ContractorPortal = lazyRoute(() => import("./routes/ContractorPortal.js"),
 const ComplianceWidget = lazyRoute(() => import("./routes/ComplianceWidget.js"), "ComplianceWidget");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
+const SeoLanding = lazy(() =>
+  import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
+);
 const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
@@ -213,6 +217,10 @@ function AppShell() {
         <Route path="/blog/:slug" element={<BlogPost />} />
       </Routes>
     );
+
+  // Public keyword landing pages (SEO) — `/architecture-office-management-software`, etc.
+  if (PUBLIC_SITE && isLandingSlug(pathname))
+    return <SeoLanding slug={pathname.replace(/^\/+/, "").replace(/\/+$/, "")} />;
 
   // Public one-click demo launcher — signs into the team demo and redirects.
   if (PUBLIC_SITE && pathname === "/demo")

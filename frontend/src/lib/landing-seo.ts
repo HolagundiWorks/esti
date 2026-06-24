@@ -1,10 +1,10 @@
 /** Landing-page SEO copy — keep in sync with index.html meta tags. */
 export const LANDING_SEO = {
-  title: "AORMS — Architecture Office Intelligence System",
+  title: "AORMS — Architecture Office Management Software for Indian Firms",
   description:
-    "AORMS is a continuous office cognition engine for Indian architecture firms. It observes projects, approvals, billing, revisions, compliance, and team load, then reasons, predicts, recommends interventions, and explains findings through a guarded AI layer.",
+    "AORMS is AI-powered architecture office management software for Indian firms — projects, drawings, revisions, COA fees, GST invoicing, bylaw compliance, teams and client portals in one record. An office intelligence system that observes, predicts and recommends.",
   keywords:
-    "architecture office intelligence system, AORMS, architecture operations intelligence, Indian architect office software, AI dashboard for architects, office cognition engine, COA fee proposal software, GST invoicing architects India, drawing register architecture, client portal architect, building compliance checker India, BBMP FAR calculator, self-hosted architecture software, ESTICAD companion",
+    "architecture office management software, architecture firm management software, architecture practice management software, software for architecture firms, architecture project management software, architecture office intelligence system, AORMS, Indian architect office software, COA fee proposal software, GST invoicing architects India, drawing revision tracking software, architecture approval workflow software, building compliance checker India, BBMP FAR calculator, self-hosted architecture software, ESTICAD companion",
   ogTitle: "A digital nervous system for architecture firms",
   ogDescription:
     "AORMS observes your office, reasons through client/project/finance/team pressure, predicts risk, and recommends interventions before failure matures.",

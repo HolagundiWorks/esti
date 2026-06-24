@@ -21,6 +21,11 @@ User-agent: CCBot
 Allow: /
 Allow: /sitemap.xml
 
+# Keyword landing pages (/architecture-office-management-software, etc.) and the
+# public compliance tool are crawlable by default; the explicit Allow below keeps
+# /compliance-check indexable despite the broader /compliance block (longest match wins).
+Allow: /compliance-check
+
 # Block authenticated app routes — these require login and must not be indexed
 Disallow: /dashboard
 Disallow: /projects
