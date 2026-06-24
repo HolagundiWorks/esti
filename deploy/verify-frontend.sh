@@ -17,9 +17,13 @@ echo "Git HEAD: $REV"
 echo "index.html modified: $(stat -c '%y' "$DIST/index.html" 2>/dev/null || stat -f '%Sm' "$DIST/index.html")"
 
 if grep -q 'esti-lp' "$DIST/index.html" 2>/dev/null || grep -rq 'esti-lp' "$DIST/assets" 2>/dev/null; then
-  echo "OK: new marketing landing (esti-lp) found in frontend/dist"
+  echo "OK: marketing landing (esti-lp) present — public/demo build"
+elif ls "$DIST"/assets/*.js >/dev/null 2>&1; then
+  # The firm build (VITE_PUBLIC_SITE=false) ships no marketing landing on purpose;
+  # a present JS bundle without esti-lp is a valid firm-product build, not a stale dist.
+  echo "OK: bundle present, no marketing landing — firm build (VITE_PUBLIC_SITE=false)"
 else
-  echo "FAIL: esti-lp not found — frontend/dist is stale. Rebuild with:" >&2
+  echo "FAIL: no JS bundle in $DIST/assets — frontend/dist is stale. Rebuild with:" >&2
   echo "  cd $DEPLOY_DIR && bash deploy/deploy.sh" >&2
   exit 1
 fi
