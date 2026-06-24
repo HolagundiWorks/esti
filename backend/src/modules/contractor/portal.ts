@@ -1,6 +1,6 @@
 import { ConstructionSubmit, TENDER_STATUS_LABEL } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import {
@@ -9,6 +9,7 @@ import {
   drawings,
   projectOffices,
   runningBills,
+  runningBillItems,
   tenderBids,
   tenderDocumentAcks,
   tenderDocuments,
@@ -300,11 +301,33 @@ export const contractorPortalRouter = router({
 
   listRunningBills: contractorProcedure.query(async ({ ctx }) => {
     const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
-    return ctx.db
+    const bills = await ctx.db
       .select()
       .from(runningBills)
       .where(and(eq(runningBills.projectId, inv.projectId), eq(runningBills.contractorId, inv.contractorId)))
       .orderBy(desc(runningBills.createdAt));
+    if (bills.length === 0) return [];
+    // Attach the measured line items so the contractor sees the quantities they
+    // are verifying / billing against.
+    const items = await ctx.db
+      .select({
+        runningBillId: runningBillItems.runningBillId,
+        description: runningBillItems.description,
+        unit: runningBillItems.unit,
+        qty: runningBillItems.qty,
+        ratePaise: runningBillItems.ratePaise,
+        amountPaise: runningBillItems.amountPaise,
+      })
+      .from(runningBillItems)
+      .where(inArray(runningBillItems.runningBillId, bills.map((b) => b.id)))
+      .orderBy(asc(runningBillItems.sortOrder), asc(runningBillItems.createdAt));
+    const byBill = new Map<string, typeof items>();
+    for (const it of items) {
+      const arr = byBill.get(it.runningBillId) ?? [];
+      arr.push(it);
+      byBill.set(it.runningBillId, arr);
+    }
+    return bills.map((b) => ({ ...b, items: byBill.get(b.id) ?? [] }));
   }),
 
   advanceRunningBill: contractorProcedure

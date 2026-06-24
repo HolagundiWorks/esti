@@ -19,9 +19,12 @@ import { Logout } from "@carbon/icons-react";
 import {
   CONSTRUCTION_KIND_LABEL,
   ConstructionKind,
+  formatINR,
+  RUNNING_BILL_STATUS_LABEL,
   TENDER_DOCUMENT_KIND_LABEL,
   TENDER_STATUS_TAG,
   type ConstructionKind as ConstructionKindT,
+  type RunningBillStatus,
   type TenderStatus,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
@@ -47,6 +50,12 @@ export function ContractorPortal() {
   const ackDoc = trpc.contractorPortal.ackDocument.useMutation({ onSuccess: refresh });
   const submitCoord = trpc.contractorPortal.submitCoordination.useMutation({
     onSuccess: () => void utils.contractorPortal.listCoordination.invalidate(),
+  });
+  const billsQ = trpc.contractorPortal.listRunningBills.useQuery(undefined, {
+    enabled: !!q.data?.tender,
+  });
+  const advanceBill = trpc.contractorPortal.advanceRunningBill.useMutation({
+    onSuccess: () => void utils.contractorPortal.listRunningBills.invalidate(),
   });
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -236,6 +245,82 @@ export function ContractorPortal() {
                       </Stack>
                     )}
                   </>
+                )}
+              </Stack>
+            </Tile>
+
+            <Tile>
+              <Stack gap={4}>
+                <h4>Running bills &amp; measurements</h4>
+                <p className="esti-label">
+                  The site team sends measurements here. Agree them to pass them to the office;
+                  once the office approves the calculations, raise your bill on the approved quantities.
+                </p>
+                {(billsQ.data ?? []).length === 0 ? (
+                  <p className="esti-label esti-label--secondary">
+                    No measurements yet. When the site team sends one, it appears here for you to verify.
+                  </p>
+                ) : (
+                  (billsQ.data ?? []).map((b) => {
+                    const canVerify = b.status === "SENT_TO_CONTRACTOR";
+                    const canInvoice = b.status === "APPROVED_MEASUREMENT_SENT";
+                    return (
+                      <Tile key={b.id}>
+                        <Stack gap={3}>
+                          <Stack orientation="horizontal" gap={3}>
+                            <strong>{b.ref}</strong>
+                            <span>{b.title}</span>
+                            <Tag size="sm">
+                              {RUNNING_BILL_STATUS_LABEL[b.status as RunningBillStatus] ?? b.status}
+                            </Tag>
+                            {b.measurementDate && (
+                              <span className="esti-label esti-label--secondary">{b.measurementDate}</span>
+                            )}
+                          </Stack>
+                          {b.items.map((it, i) => (
+                            <Stack key={i} orientation="horizontal" gap={3}>
+                              <span>{it.description}</span>
+                              <span className="esti-label esti-label--secondary">
+                                {it.qty} {it.unit} × {formatINR(it.ratePaise, { paise: false })}
+                              </span>
+                              <span>{formatINR(it.amountPaise, { paise: false })}</span>
+                            </Stack>
+                          ))}
+                          <p><strong>Total: {formatINR(b.totalPaise, { paise: false })}</strong></p>
+                          {canVerify && (
+                            <div>
+                              <Button
+                                size="sm"
+                                disabled={advanceBill.isPending}
+                                onClick={() => advanceBill.mutate({ id: b.id, status: "CONTRACTOR_VERIFIED" })}
+                              >
+                                Agree measurement &amp; send to office
+                              </Button>
+                            </div>
+                          )}
+                          {canInvoice && (
+                            <div>
+                              <Button
+                                size="sm"
+                                disabled={advanceBill.isPending}
+                                onClick={() => advanceBill.mutate({ id: b.id, status: "CONTRACTOR_INVOICED" })}
+                              >
+                                Raise &amp; submit bill ({formatINR(b.totalPaise, { paise: false })})
+                              </Button>
+                            </div>
+                          )}
+                          {!canVerify && !canInvoice && (
+                            <p className="esti-label esti-label--secondary">
+                              Waiting on the office — no action needed from you right now.
+                            </p>
+                          )}
+                        </Stack>
+                      </Tile>
+                    );
+                  })
+                )}
+                {advanceBill.error && (
+                  <InlineNotification kind="error" title="Could not update" subtitle={advanceBill.error.message} hideCloseButton lowContrast />
                 )}
               </Stack>
             </Tile>
