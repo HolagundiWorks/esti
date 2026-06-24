@@ -9,6 +9,7 @@ import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
 import { LandingInsights } from "../components/landing/LandingInsights.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
+import { MarketingSolutions } from "../components/landing/MarketingSolutions.js";
 import { demoLoginPayload, type DemoKind } from "../lib/landing-demo.js";
 import { applyLandingSeo } from "../lib/landing-seo.js";
 import { useLandingVisitCounter } from "../lib/landing-visit.js";
@@ -83,6 +84,8 @@ export function Landing() {
         />
 
         <LandingInsights />
+
+        <MarketingSolutions />
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} />
 

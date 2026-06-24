@@ -28,6 +28,8 @@ if (process.env.VITE_PUBLIC_SITE === "false") {
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = join(root, "dist");
 const contentDir = join(root, "src", "content", "blog");
+const landingDir = join(root, "src", "content", "landing");
+const slugsPath = join(root, "src", "lib", "landing-slugs.ts");
 const templatePath = join(distDir, "index.html");
 
 if (!existsSync(templatePath)) {
@@ -77,6 +79,83 @@ function loadPosts() {
     })
     .filter((p) => !p.draft)
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+// Pull Q&A pairs out of a body's "Frequently asked questions" section — mirror of
+// extractFaqs() in src/lib/landing-pages.ts (### question + following paragraphs).
+function extractFaqs(body) {
+  const faqs = [];
+  let inFaq = false;
+  let current = null;
+  const flush = () => {
+    if (current) {
+      current.answer = current.answer.trim();
+      if (current.question && current.answer) faqs.push(current);
+    }
+    current = null;
+  };
+  for (const line of body.split(/\r?\n/)) {
+    const h2 = /^##\s+(.*)$/.exec(line);
+    const h3 = /^###\s+(.*)$/.exec(line);
+    if (h2 && !h3) {
+      flush();
+      inFaq = /frequently asked questions|faqs?\b/i.test(h2[1]);
+      continue;
+    }
+    if (!inFaq) continue;
+    if (h3) {
+      flush();
+      current = { question: h3[1].trim(), answer: "" };
+      continue;
+    }
+    if (current) current.answer += `${line}\n`;
+  }
+  flush();
+  return faqs;
+}
+
+function loadLanding() {
+  if (!existsSync(landingDir)) return [];
+  return readdirSync(landingDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => {
+      const { data, body } = parseFrontmatter(readFileSync(join(landingDir, f), "utf8"));
+      const slug = data.slug || f.replace(/\.md$/, "");
+      const title = data.title || slug;
+      return {
+        slug,
+        title,
+        metaTitle: data.metaTitle || title,
+        metaDescription: data.metaDescription || data.intro || "",
+        intro: data.intro || "",
+        category: data.category || "solution",
+        updated: data.updated || "",
+        draft: data.draft === "true",
+        faqs: extractFaqs(body),
+        body,
+      };
+    })
+    .filter((p) => !p.draft)
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+// Fail the build if the markdown files and the App router's slug list drift apart —
+// a slug in one but not the other means a page that 404s or is unreachable.
+function assertSlugsInSync(landing) {
+  if (!existsSync(slugsPath)) return;
+  const src = readFileSync(slugsPath, "utf8");
+  const arrMatch = /export const LANDING_SLUGS = \[([\s\S]*?)\] as const;/.exec(src);
+  if (!arrMatch) return;
+  const declared = new Set([...arrMatch[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]));
+  const files = new Set(landing.map((p) => p.slug));
+  const missingFile = [...declared].filter((s) => !files.has(s));
+  const missingSlug = [...files].filter((s) => !declared.has(s));
+  if (missingFile.length || missingSlug.length) {
+    console.error("[prerender] landing slug mismatch between landing-slugs.ts and src/content/landing/:");
+    if (missingFile.length) console.error(`  declared but no .md file: ${missingFile.join(", ")}`);
+    if (missingSlug.length) console.error(`  .md file but not declared: ${missingSlug.join(", ")}`);
+    process.exit(1);
+  }
 }
 
 // Patch the SPA shell's <head> + #root for one page.
@@ -170,12 +249,63 @@ for (const p of posts) {
   );
 }
 
+// Each keyword landing page → dist/<slug>/index.html
+const landing = loadLanding();
+assertSlugsInSync(landing);
+for (const p of landing) {
+  const url = `${SITE}/${p.slug}`;
+  const introHtml = p.intro ? `<p class="esti-blog-article__byline">${esc(p.intro)}</p>` : "";
+  const articleHtml = `<main class="esti-blog"><article class="esti-blog-article"><h1>${esc(p.title)}</h1>${introHtml}${marked.parse(p.body, { async: false })}</article></main>`;
+  const graph = [
+    {
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url,
+      name: p.metaTitle,
+      description: p.metaDescription,
+      inLanguage: "en-IN",
+      isPartOf: { "@id": `${SITE}/#website` },
+      about: { "@id": `${SITE}/#software` },
+      publisher: { "@id": `${SITE}/#organization` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+        { "@type": "ListItem", position: 2, name: p.title, item: url },
+      ],
+    },
+  ];
+  if (p.faqs.length > 0) {
+    graph.push({
+      "@type": "FAQPage",
+      "@id": `${url}#faq`,
+      mainEntity: p.faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: { "@type": "Answer", text: f.answer },
+      })),
+    });
+  }
+  writePage(
+    p.slug,
+    renderPage({
+      title: p.metaTitle,
+      description: p.metaDescription,
+      canonical: url,
+      bodyHtml: articleHtml,
+      jsonLd: { "@context": "https://schema.org", "@graph": graph },
+    }),
+  );
+}
+
 // ── sitemap.xml ───────────────────────────────────────────────────────────────
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
   { loc: `${SITE}/compliance-check`, lastmod: today, changefreq: "monthly", priority: "0.9" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
+  ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
   ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}`, lastmod: p.date || today, changefreq: "monthly", priority: "0.7" })),
 ];
@@ -200,6 +330,9 @@ const llms = `# AORMS — Architectural Office Resource Management System
 - [AORMS home](${SITE}/): office cognition for architecture firms — observe, reason, predict, recommend.
 - [Building compliance checker](${SITE}/compliance-check): free FAR, ground coverage and setback checker for BBMP (Bengaluru), with reference data for Mumbai, Delhi, Chennai, Hyderabad, Pune, Kolkata and Ahmedabad.
 - [Live demo](${SITE}/demo): one-click demo workspace, no signup.
+
+## Solutions
+${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}
 
 ## Articles
 ${posts.map((p) => `- [${p.title}](${SITE}/blog/${p.slug}): ${p.excerpt}`).join("\n")}
