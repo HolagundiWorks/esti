@@ -24,6 +24,7 @@ import { ProjectBbs } from "../components/ProjectBbs.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
 import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectExpenses } from "../components/ProjectExpenses.js";
+import { ProjectPermits } from "../components/ProjectPermits.js";
 import { ProjectRunningBills } from "../components/ProjectRunningBills.js";
 import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
@@ -73,32 +74,38 @@ export function ProjectDetail() {
   const showTeam = hrEnabled && canHr;
 
   const projectGroups = useMemo((): ProjectGroup[] => {
-    const infoTabs: ProjectTab[] = [
+    // ── Setup (shared) — identity, info, schedule and admin live above the heads.
+    const setupTabs: ProjectTab[] = [
       { slug: "overview", label: "Overview", panel: <ProjectOverview projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
       { slug: "programme", label: "Programme", panel: <ProjectProgramme projectId={id} /> },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
 
-    const consultancyTabs: ProjectTab[] = [{
-      slug: "clientlog",
-      label: "Client log",
-      panel: <ProjectClientLog projectId={id} />,
-    }, {
-      slug: "drawings",
-      label: "Drawings",
-      panel: (
-        <>
-          <ProjectDrawings projectId={id} />
-          <ProjectTransmittals projectId={id} />
-          <ProjectApprovals projectId={id} />
-        </>
-      ),
-    }, {
-      slug: "documents",
-      label: "Documents",
-      panel: <ProjectDocuments projectId={id} includeSpecs={false} />,
-    }];
+    // ── Consultancy — design delivery.
+    const consultancyTabs: ProjectTab[] = [
+      { slug: "clientlog", label: "Client log", panel: <ProjectClientLog projectId={id} /> },
+      {
+        slug: "drawings",
+        label: "Drawings & approvals",
+        panel: (
+          <>
+            <ProjectDrawings projectId={id} />
+            <ProjectTransmittals projectId={id} />
+            <ProjectApprovals projectId={id} />
+          </>
+        ),
+      },
+      {
+        slug: "documents",
+        label: "Documents",
+        panel: <ProjectDocuments projectId={id} includeSpecs={false} />,
+      },
+      // Specifications: design output — the *instance* of the firm-wide spec catalogue.
+      { slug: "spec-sheets", label: "Specifications", panel: <ProjectSpecSheets projectId={id} /> },
+      // Statutory permits belong to design (sanction with authorities).
+      { slug: "permits", label: "Permits", panel: <ProjectPermits projectId={id} /> },
+    ];
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
@@ -119,31 +126,37 @@ export function ProjectDetail() {
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 
+    // ── Project Management — construction delivery (only when this is a PMC engagement).
     const pmcTabs: ProjectTab[] = [];
     if (showPmc) {
       pmcTabs.push({ slug: "pmc", label: "PMC control", panel: <ProjectPmc projectId={id} /> });
     }
     if (showCosting) {
+      // Phase 4 will consolidate these into one Costing & Measurement window;
+      // for now they sit together at the top of the PM head.
       pmcTabs.push({
         slug: "costing",
-        label: "Costing",
+        label: "BOQ & costing",
         panel: (
           <>
             <ProjectEstimates projectId={id} />
             <ProjectBbs projectId={id} />
-            <ProjectExpenses projectId={id} />
           </>
         ),
       });
-      pmcTabs.push({ slug: "running-bills", label: "Running bills", panel: <ProjectRunningBills projectId={id} /> });
+      if (showPmc) {
+        pmcTabs.push({ slug: "running-bills", label: "Running bills", panel: <ProjectRunningBills projectId={id} /> });
+      }
+      pmcTabs.push({ slug: "expenses", label: "Expenses", panel: <ProjectExpenses projectId={id} /> });
       pmcTabs.push({ slug: "purchase-orders", label: "Purchase orders", panel: <ProjectPurchaseOrders projectId={id} /> });
-      pmcTabs.push({ slug: "spec-sheets", label: "Specification sheets", panel: <ProjectSpecSheets projectId={id} /> });
     }
 
     return [
-      { slug: "info", label: "Info", tabs: infoTabs },
-      { slug: "consultancy", label: "Consultancy", tabs: consultancyTabs },
-      ...(pmcTabs.length > 0 ? [{ slug: "pmc", label: "PMC", tabs: pmcTabs }] : []),
+      { slug: "setup", label: "Setup", tabs: setupTabs },
+      { slug: "consultancy", label: "Consultancy — design", tabs: consultancyTabs },
+      ...(pmcTabs.length > 0
+        ? [{ slug: "pm", label: "Project Management — construction", tabs: pmcTabs }]
+        : []),
     ];
   }, [id, showPmc, showCosting, showTeam]);
 
