@@ -42,6 +42,7 @@ export * from "./org-mode.js";
 export * from "./upload-security.js";
 export * from "./india-geo.js";
 export * from "./permissions.js";
+export * from "./plans.js";
 export * from "./dashboard.js";
 export * from "./po.js";
 export * from "./projectdocs.js";
