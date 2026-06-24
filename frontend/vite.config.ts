@@ -1,8 +1,11 @@
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+
+const require = createRequire(import.meta.url);
 
 const proxyTarget = process.env.VITE_PROXY_TARGET ?? "http://localhost:4000";
 
@@ -40,6 +43,10 @@ export default defineConfig({
   },
   resolve: {
     alias: [
+      // The vendored kits (compliance, DSR) import "zod", but their dist files live
+      // under vendor/ — outside frontend/ — so Rollup can't resolve "zod" from their
+      // location. Pin every "zod" import to the frontend's installed copy.
+      { find: /^zod$/, replacement: require.resolve("zod") },
       {
         find: "@hcw/india-compliance-kit/profiles/bbmp-2003",
         replacement: kitFile("hcw-india-compliance-kit", "dist/profiles/bbmp-2003/index.js"),
