@@ -270,6 +270,7 @@ export function Portal() {
                     <TableHeader>Date</TableHeader>
                     <TableHeader>Amount</TableHeader>
                     <TableHeader>Status</TableHeader>
+                    <TableHeader>Invoice</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -285,6 +286,23 @@ export function Portal() {
                         <Tag type={INV_TAG[iv.status] ?? "blue"}>
                           {iv.status}
                         </Tag>
+                      </TableCell>
+                      <TableCell>
+                        {iv.pdfUrl ? (
+                          <Button
+                            kind="ghost"
+                            size="sm"
+                            onClick={() =>
+                              window.open(iv.pdfUrl!, "_blank", "noopener,noreferrer")
+                            }
+                          >
+                            Download
+                          </Button>
+                        ) : iv.pdfStatus === "PENDING" || iv.pdfStatus === "PROCESSING" ? (
+                          "Preparing…"
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

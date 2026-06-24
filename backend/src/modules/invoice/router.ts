@@ -136,6 +136,11 @@ export const invoiceRouter = router({
           ...(input.status === "ISSUED" && !current.dateInvoice
             ? { dateInvoice: new Date().toISOString().slice(0, 10) }
             : {}),
+          // On first issue, mark the PDF pending so the client portal shows
+          // "Preparing…" until the worker renders the downloadable invoice.
+          ...(input.status === "ISSUED" && current.status !== "ISSUED"
+            ? { pdfStatus: "PENDING" as const }
+            : {}),
         })
         .where(eq(invoices.id, input.id))
         .returning();
@@ -157,6 +162,15 @@ export const invoiceRouter = router({
         summary: `Invoice ${current.ref} → ${input.status}`,
         metadata: { from: current.status, to: input.status },
       });
+      // On first issue, enqueue the PDF render so the client can download the
+      // invoice from the portal without the firm having to generate it manually.
+      if (input.status === "ISSUED" && current.status !== "ISSUED") {
+        await enqueueJob("render_pdf", {
+          documentKind: row!.documentKind,
+          id: row!.id,
+          firm: await firmPayload(ctx.db),
+        }, ctx.requestId);
+      }
       return row!;
     }),
 

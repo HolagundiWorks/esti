@@ -75,19 +75,33 @@ export const portalRouter = router({
       const currentSortOrder = phaseRows.find((p) => p.id === project.currentPhaseId)?.sortOrder ?? -1;
 
       // Only issued/paid invoices are visible to the client.
-      const invoiceRows = await ctx.db
+      const invoiceRowsRaw = await ctx.db
         .select({
           ref: invoices.ref,
           documentKind: invoices.documentKind,
           status: invoices.status,
           grandTotalPaise: invoices.grandTotalPaise,
           dateInvoice: invoices.dateInvoice,
+          pdfKey: invoices.pdfKey,
+          pdfStatus: invoices.pdfStatus,
         })
         .from(invoices)
         .where(
           and(eq(invoices.projectId, input.projectId), inArray(invoices.status, ["ISSUED", "PAID"])),
         )
         .orderBy(desc(invoices.createdAt));
+
+      // Surface a short-lived download URL for the rendered PDF so the client can
+      // actually open the invoice (not just see the row). Never expose the raw key.
+      const invoiceRows = await Promise.all(
+        invoiceRowsRaw.map(async ({ pdfKey, ...iv }) => ({
+          ...iv,
+          pdfUrl:
+            pdfKey && iv.pdfStatus === "READY"
+              ? await presignedGet(pdfKey).catch(() => null)
+              : null,
+        })),
+      );
 
       // Approvals that have actually been sent (no drafts).
       const approvalRows = await ctx.db
