@@ -4,14 +4,18 @@ import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
 const PRODUCT_LINKS = [
-  { href: "#platform", label: "Platform" },
-  { href: "#compliance", label: "Compliance" },
-  { href: "#demo", label: "Demo workspace" },
-  { href: "#trial", label: "Request access" },
+  { href: "/#platform", label: "Platform" },
+  { href: "/#compliance", label: "Compliance" },
+  { href: "/#demo", label: "Demo workspace" },
+  { href: "/blog", label: "Blog" },
+  { href: "/#trial", label: "Request access" },
 ] as const;
 
 const CONTACT_LINKS = [
   { href: "mailto:hi@aorms.in", label: "hi@aorms.in" },
+  { href: "tel:+918951089191", label: "+91 89510 89191" },
+  { href: "/investors", label: "Investors" },
+  { href: "/legal", label: "Legal" },
   { href: "/login", label: "Workspace sign in" },
 ] as const;
 
@@ -67,12 +71,18 @@ export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: (
                 alt="Holagundi Consulting Works"
                 className="esti-landing-footer__hcw"
               />
+              <p className="esti-landing-footer__addr">
+                Holagundi Consulting Works<br />
+                Hospet, Karnataka, India<br />
+                +91 89510 89191
+              </p>
             </div>
 
             <div className="esti-landing-footer__bottom">
               <span>ESTI AORMS</span>
               <span>Architecture Office Resource Management System</span>
               <span>© Holagundi Consulting Works</span>
+              <span>Built with passion, proudly from Hospet.</span>
             </div>
           </footer>
         </LandingEditorial>

@@ -1,7 +1,21 @@
 # ESTI AORMS — robots.txt
 # https://aorms.in
+# All crawlers, including AI/LLM crawlers, are welcome on public pages.
+# (Search/answer engines: GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)
 
 User-agent: *
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
 
 # Allow public landing page and assets
 Allow: /
@@ -37,6 +51,10 @@ Disallow: /alerts
 Disallow: /activity
 Disallow: /portal
 Disallow: /collab
+
+# Auto-login launcher and the private investor brief — not for indexing
+Disallow: /demo
+Disallow: /investors
 
 # Block API and tRPC endpoints
 Disallow: /api/

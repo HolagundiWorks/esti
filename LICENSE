@@ -1,0 +1,51 @@
+ESTI AORMS — Proprietary Software License
+Copyright (c) 2026 Holagundi Consulting Works. All rights reserved.
+
+1. DEFINITIONS
+   "Software" means the ESTI AORMS source code, object code, documentation, and
+   all related materials in this repository. "Licensor" means Holagundi
+   Consulting Works.
+
+2. OWNERSHIP
+   The Software is the confidential and proprietary property of the Licensor and
+   is protected by copyright and other intellectual property laws. The Software
+   is licensed, not sold. No title to or ownership of the Software is transferred.
+
+3. NO LICENSE GRANTED BY THIS REPOSITORY
+   Access to this repository does not grant any license to use, copy, modify,
+   merge, publish, distribute, sublicense, sell, reverse engineer, decompile, or
+   create derivative works of the Software, in whole or in part. The Software is
+   provided solely as a hosted Software-as-a-Service (SaaS) offering under a
+   separate written commercial subscription agreement with the Licensor. Any use
+   outside such an agreement is unauthorized.
+
+4. RESTRICTIONS
+   Except as expressly permitted by a written agreement signed by the Licensor,
+   you may not: (a) reproduce or distribute the Software; (b) modify or create
+   derivative works; (c) reverse engineer or attempt to derive source code from
+   any object form; (d) remove or alter any proprietary notices; or (e) use the
+   Software to build a competing product.
+
+5. THIRD-PARTY COMPONENTS
+   The Software incorporates third-party open-source components, each licensed
+   under its own terms (predominantly MIT, Apache-2.0, BSD, ISC, and similar
+   permissive licenses; fonts under SIL OFL-1.1; database connectivity under
+   LGPL used as a dynamically-linked library). Those components remain governed
+   by their respective licenses. See THIRD_PARTY_NOTICES for attributions. This
+   proprietary license applies only to the Licensor's own code and the Software
+   as a whole.
+
+6. CONFIDENTIALITY
+   The Software and its source code are confidential. You may not disclose them
+   to any third party without the Licensor's prior written consent.
+
+7. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+8. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY ARISING FROM OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+For licensing inquiries: hi@aorms.in

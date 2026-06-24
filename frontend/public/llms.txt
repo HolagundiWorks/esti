@@ -1,0 +1,13 @@
+# AORMS — Architectural Office Resource Management System
+
+> AORMS, by Holagundi Consulting Works, is an office intelligence system for Indian architecture practices. It unifies projects, drawings, revisions, COA fee proposals, GST invoicing, bylaw compliance, and client/contractor portals, and runs a cognition engine that observes the office, predicts risk, and recommends the next action. Built India-native: GST/SAC codes, the April–March year, BBMP and jurisdiction bylaws, and DSR rates.
+
+## Product
+- [AORMS home](https://aorms.in/): office cognition for architecture firms — observe, reason, predict, recommend.
+- [Building compliance checker](https://aorms.in/compliance-check): free FAR, ground coverage and setback checker for BBMP (Bengaluru), with reference data for other major Indian cities.
+- [Live demo](https://aorms.in/demo): one-click demo workspace, no signup.
+
+## Articles
+- [All articles](https://aorms.in/blog)
+
+<!-- The production build regenerates this file with the full article list. -->

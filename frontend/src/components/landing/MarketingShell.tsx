@@ -15,11 +15,15 @@ import {
 import { useState, type ReactNode } from "react";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 
+// Absolute "/#section" links so the nav works from any route (e.g. /blog), not
+// just the landing page where the in-page anchors live.
 const NAV = [
-  { href: "#platform", label: "Platform" },
-  { href: "#compliance", label: "Compliance" },
-  { href: "#demo", label: "Demo" },
-  { href: "#trial", label: "Get started" },
+  { href: "/#platform", label: "Platform" },
+  { href: "/#compliance", label: "Compliance" },
+  { href: "/#demo", label: "Demo" },
+  { href: "/blog", label: "Blog" },
+  { href: "/investors", label: "Investors" },
+  { href: "/#trial", label: "Get started" },
 ] as const;
 
 const STATUS_ITEMS = [
@@ -71,7 +75,7 @@ export function MarketingShell({
             isActive={navOpen}
             onClick={() => setNavOpen((o) => !o)}
           />
-          <HeaderName prefix="" href="#top" aria-label="AORMS home">
+          <HeaderName prefix="" href="/#top" aria-label="AORMS home">
             <span className="esti-landing-header-brand">
               <img
                 src="/aorms-logo-white.png"
