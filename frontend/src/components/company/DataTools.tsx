@@ -38,7 +38,7 @@ export function DataTools() {
         )}
         <p>
           Reset everything to a clean slate. Reset keeps your firm profile, this
-          owner login and DSR reference data — all projects, clients, invoices,
+          owner login and rate book reference data — all projects, clients, invoices,
           drawings, HR and other logins are permanently removed.
         </p>
         <Stack orientation="horizontal" gap={2}>

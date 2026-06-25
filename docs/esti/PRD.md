@@ -8,7 +8,7 @@ complete delivery sequence is maintained in [ROADMAP](ROADMAP.md).
 
 ## Users And Access
 
-Canonical level taxonomy: [ACCESS-MODEL](ACCESS-MODEL.md).
+Canonical level taxonomy: [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md).
 
 | User | Level | Required access |
 | --- | --- | --- |
@@ -83,21 +83,23 @@ team, consultants, contractors, and settings.
 
 ### Compliance
 
-Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects), where they are authored, versioned, and published via `ComplianceHub`. Development-control calculations are run against that published catalog either **statelessly** through the public `/api/compliance/*` API or persisted through **RIE site assessments**. The in-product per-project calculator (the Project Info §9 Compliance accordion and its `bylawCalc` storage) was removed in Phase 7.
+The in-product building-bylaw / development-control compliance engine — the
+Knowledge Bank `ComplianceHub`, the RIE site-assessment rule engine
+(`ruleVersions` / `siteAssessments`), the BBMP bylaw calculator (`bbmpRules`),
+the per-project `bylawCalc` calculator, the public `/compliance-check` SEO tool,
+and the public `/api/compliance/*` endpoints — was **removed** in the 2026-06
+cleanup. AORMS no longer authors, versions, or computes ground-coverage / FAR /
+setback envelopes, and no longer issues compliance PDFs. Regulatory awareness is
+now limited to record-keeping plus the financial statutory obligations the office
+genuinely owns:
 
-- Knowledge is versioned by state, district, local authority, building use,
-  rule source, effective date, and supersession date.
-- Deterministic calculation rules produce ground coverage, FAR area, setbacks,
-  and restricted building lines, with source clauses and assumptions.
-- External integrations use stateless public JSON endpoints:
-  `POST /api/compliance/pre-project` and `POST /api/compliance/post-project`
-  (Bengaluru / BBMP / residential MVP). Responses include rule version and trace.
-- Every issued calculation produces a branded PDF snapshot. Historical issued
-  PDFs remain immutable when rules or project inputs later change.
-- The module must show when no verified rule set exists for the selected
-  jurisdiction and must never silently substitute another district's rules.
-- Statutory permits may remain office/project records, but permit due dates and
-  approval statuses are not compliance tracking.
+- **Statutory permits** remain office/project records (the `permits` feature):
+  permit type, authority, application/approval dates, and document links (BPAS,
+  RERA, Fire/Aviation/Env NOC, OC, CC). Permit due dates and approval statuses
+  are tracking aids, not a development-control engine.
+- **GST / TDS statutory filing** (the `reports` filing abstracts) and **COA fee
+  compliance** are unaffected — these are the statutory/financial obligations
+  AORMS continues to support.
 - External BPAS, AutoPlan, or authority status polling is out of scope because
   no dependable endpoint is available for incorporation.
 
@@ -157,7 +159,7 @@ accounting systems.
 - Simple quantity x rate purchase orders without inventory.
 - PMC commercial control: costing, running bills, purchase orders, and
   specification sheets under the project PMC group.
-- DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and DSR/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
+- Rate book/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and rate-book/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes.
 - **Estimation OS** (Phases 29–30): a progressive, component-based
   estimation engine extending the above — design-stage cost-head estimate
   (area-rate / percentage / lumpsum / non-modeled), component master with
@@ -180,10 +182,10 @@ All money is integer paise and formatted through shared `formatINR` utilities.
 ## Knowledge Bank, AI, And Administration
 
 - The former Resources area is named **Knowledge Bank** and is the governed,
-  versioned source for Master DSR, compliance rule sets, specification and
-  procurement standards, and structural element/reinforcement templates.
+  versioned source for Rate Books, specification and procurement standards, and
+  structural element/reinforcement (BBS) templates.
 - Specification standards carry project/work-package tags, reusable clauses,
-  approved alternatives, units, DSR references, and purchase-order wording.
+  approved alternatives, units, rate-book references, and purchase-order wording.
 - Structural templates cover beams, columns, slabs, and footings, their types,
   geometry, cover, bar roles, diameters, spacing/count, laps, hooks, and shape
   codes. Published templates generate reviewable BBS lines; engineers remain

@@ -11,11 +11,13 @@
 >   portfolio rollups; the per-project Programme and PM head remain the masters.
 > - The two-head project workspace and the single Costing & Measurement window
 >   are live (`ProjectDetail.tsx`, `ProjectCosting.tsx`).
-> - Phase 7 cleanup: the in-product BBMP **bylaw calculator** is removed (the
->   public `/compliance-check` SEO tool and the RIE/site-feasibility compliance
->   engine are kept); **DSR is labelled "Rate Books"** throughout the product UI
->   (SEO/landing copy keeps "DSR"); and a **spec → rate-book mapping** is now
->   persisted on spec-catalogue items.
+> - 2026-06 cleanup: the entire in-product compliance engine is **removed** — the
+>   BBMP bylaw calculator, the RIE/site-feasibility rule engine
+>   (`ruleVersions`/`siteAssessments`/`bbmpRules`), the KB Compliance tab, and the
+>   public `/compliance-check` SEO tool are all gone. **"DSR" is eliminated
+>   everywhere → "Rate Books"** (product UI *and* SEO/landing copy); the `dsr`
+>   code namespace stays. A **spec → rate-book mapping** is persisted on
+>   spec-catalogue items.
 
 ## The core idea: two delivery heads + shared practice
 
@@ -45,7 +47,7 @@ unchanged) — the split is purely how the work is presented.
 | **Practice** | Proposals pipeline, Letters, Contracts, Document register, **Office programme & PMC portfolios** (read-only rollups), AI Studio |
 | **Accounts** | Invoices (cross-project rollup), Reconciliation, Expenses & cash book, GST/TDS filing |
 | **People** | Team, HR, Performance, Consultants (directory), Contractors (directory) |
-| **Knowledge** | Rate books (rate schedules), Rate-analysis library, Spec catalogue (with persisted rate-book mapping), SteelFlow BBS reference |
+| **Knowledge** | Rate books (rate schedules), Rate-analysis library, Spec catalogue (with persisted rate-book mapping), BBS reference |
 | **Admin** | Company, Users, Audit log, System, My profile |
 
 ## The project workspace — two heads
@@ -82,7 +84,7 @@ Rate analysis ─▶ Estimation ─▶ BOQ ─▶ Costing ─▶ Site measuremen
 
 | Step | What it is | Source / sink |
 |---|---|---|
-| **Rate analysis** | composite rate build-up (material + labour + machinery + overhead), or pull a DSR rate | the analysed-rate library (Knowledge) seeds it |
+| **Rate analysis** | composite rate build-up (material + labour + machinery + overhead), or pull a rate-book rate | the analysed-rate library (Knowledge) seeds it |
 | **Estimation** | apply rates to *estimated* quantities (takeoff from the Consultancy drawings) | reads `measurements` (takeoff) |
 | **BOQ** | the formal bill of quantities — the tender/contract document | priced by **Tenders** |
 | **Costing** | project cost roll-up, budget vs estimate, lead % | summary rolls to **Accounts** |
@@ -189,7 +191,7 @@ under **Project Management**; design under **Consultancy**.
 | **Practice / Office** | `letters`, `contracts`, document register (office-wide), Programme + PMC **portfolios** (read-only rollups), AI Studio | office documents + cross-project overview |
 | **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
 | **People** | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`); `consultants` + `contractors` **directories** | the firm's roster + capability; engagements live in the project |
-| **Knowledge** | `dsr` (rates), `knowledgeBank`, analysed-rate library, `specCatalog`, `steelflow` | **reference data**, not project instances |
+| **Knowledge** | `dsr` (rates), `knowledgeBank`, analysed-rate library, `specCatalog` | **reference data**, not project instances |
 | **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `companion` (ESTICAD devices), `marketing` | run the installation |
 
 `health`, `profile` are public/infra — no nav home.

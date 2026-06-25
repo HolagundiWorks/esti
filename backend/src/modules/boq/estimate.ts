@@ -390,7 +390,7 @@ export const estimateRouter = router({
         rows: items.map((i, idx) => ({
           "#": idx + 1,
           Source: i.sourceKind,
-          "DSR code": i.dsrItemCode ?? "",
+          "Rate book code": i.dsrItemCode ?? "",
           Description: i.description,
           Unit: i.unit,
           Qty: i.qty,

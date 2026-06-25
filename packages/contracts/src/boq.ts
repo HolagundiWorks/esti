@@ -9,12 +9,12 @@ import { CalculationType, CostHead } from "./estimation.js";
 export { DsrImportRow, parseDsrCsvText, type DsrImportCsv };
 
 /**
- * Estimation / BOQ / BBS (Phase 10). A versioned master DSR feeds estimates;
+ * Estimation / BOQ / BBS (Phase 10). A versioned rate book feeds estimates;
  * an estimate carries a whole-estimate lead plus optional per-item leads. An
  * approved estimate is the project's BOQ.
  */
 
-// --- Master DSR -------------------------------------------------------------
+// --- Rate Book --------------------------------------------------------------
 export const DsrVersionStatus = z.enum(["DRAFT", "PUBLISHED"]);
 export type DsrVersionStatus = z.infer<typeof DsrVersionStatus>;
 

@@ -71,11 +71,11 @@ Fee proposals follow COA logic; invoices are GST-correct by construction. Bank,
 and TDS filing abstracts are built in — so the financial heart of the practice is
 connected to the work, not stranded in a spreadsheet.
 
-### Compliance, knowledge and the field
+### Permits, knowledge and the field
 
 The office record keeps authority context, permit assumptions and project evidence
-beside drawings, approvals and site movement. The knowledge bank holds DSR rates,
-specifications and SteelFlow bar bending schedules.
+beside drawings, approvals and site movement. The knowledge bank holds rate books,
+specifications and bar bending schedules.
 On site, programme and construction schedules, snags, site instructions and
 progress reports keep delivery on the same record as design.
 

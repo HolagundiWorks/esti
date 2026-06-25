@@ -93,9 +93,7 @@ must not spread to staff workspace routes without an explicit policy update.
 | Dashboard mosaic grid | `.esti-dash` | Condensed `Grid` with 1 px row-gap so zone tiles read as a flush mosaic; vertical rhythm matches horizontal gutters. |
 | Square-corner tags | `.cds--tag { border-radius: 0 }` | Deliberate brand choice on dashboard and intelligence tiles; do not apply globally to form controls. |
 | ASPRF / Performance KPI track bars | `.esti-kpi-track`, `.esti-kpi-fill` | Legacy CSS retained for any remaining scalar bars; Performance member tiles now use `MeterChart` (Phase 2F). |
-| Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. |
-| SteelFlow canvas geometry | `SteelArranger.tsx`, `CrossSectionCanvas.tsx` | SVG sizing, drop zones, and palette positioning require structural inline styles; no decorative hex or shadows. Browser drawing takeoff was removed 2026-06-17 — ESTICAD only. |
-| Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
+| Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. || Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
 | Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope. |
 | Login brand mark | `.esti-login-mark` | Inverse background chip for the white ESTI mark on the login tile; uses `--cds-background-inverse`, not hard-coded hex. |
 | Landing layout | `.esti-landing-content`, `.esti-landing-*` | UI Shell chrome plus expressive editorial typography and 2x Grid tile layout. Marketing sections use Carbon `Grid`, `Column`, `Stack`, and `Tile`. |
@@ -404,3 +402,27 @@ Always use the shared `ConfirmModal` wrapper — never `window.confirm`.
 
 The implementation cleanup and data-viz enhancements are tracked in
 [ROADMAP Phase 2F](ROADMAP.md) (UI audit, page hierarchy, policy alignment).
+
+---
+
+## 6 — Consolidated design references
+
+This document is the **single canonical UI authority**. The former
+`docs/esti/design/` set was consolidated here on 2026-06-25 and the originals
+moved to `deprecated_review/design/` (the point-in-time `UI_CONSISTENCY_AUDIT.md`
+to `deprecated_review/`). Their durable rules are folded into the sections above;
+the table records what each covered so nothing is lost.
+
+| Former doc | Durable content | Where it now lives |
+|---|---|---|
+| `DESIGN_LAW.md` | Binding principles — one OS, Carbon-only, no rounded corners/shadows, tokens only | §0 scope + "Required"/"Prohibited" above |
+| `DESIGN_SYSTEM.md` | Master reference aggregating the set + PR contribution checklist | This document (it is now the master) |
+| `DESIGN_TOKENS.md` | `--cds-*` token usage rules + AORMS alert/identity palette | §3 Carbon Colour Anatomy |
+| `CARBON_MAPPING.md` | Custom-pattern → Carbon-component remediation map | §4 Standard Patterns + §5 What NOT to do |
+| `COMPONENT_LIBRARY.md` | Approved Carbon component catalogue + usage notes | "Required" list + §4 patterns |
+| `DASHBOARD_RULES.md` | Dashboard layout + cognitive display rules | "Documented exceptions" (`.esti-dash`) + §4 dashboard section |
+| `VISUAL_HIERARCHY_GUIDE.md` | Type scale, spacing, zone identity colour | §1 Grid/Spacing + §3 Colour |
+| `UI_CONSISTENCY_AUDIT.md` | Point-in-time violation audit (June 2026) | Archived only — findings already actioned; no standing audit (see Change Rule) |
+
+Full originals remain readable under `deprecated_review/design/` until a future
+pass confirms every durable rule is captured here, after which they can be deleted.

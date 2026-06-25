@@ -338,21 +338,4 @@ export const clientLogs = pgTable("esti_clientlog", {
   createdAt: createdAt(),
 });
 
-/** Development-control (zoning/bylaw) compliance parameters per project. */
-export const bylaws = pgTable("esti_bylaw", {
-  id: id(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projectOffices.id),
-  parameter: text("parameter").notNull(),
-  unit: text("unit").notNull(),
-  direction: text("direction").notNull(),
-  permittedValue: doublePrecision("permitted_value"),
-  proposedValue: doublePrecision("proposed_value"),
-  clause: text("clause"),
-  remarks: text("remarks"),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
-
 export type ProjectOfficeRow = typeof projectOffices.$inferSelect;

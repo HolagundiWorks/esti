@@ -101,7 +101,7 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
       <div>
         <h3>Project Info</h3>
         <p style={{ margin: 0, opacity: 0.85 }}>
-          Questionnaire answers, site context, and compliance summary — the single source for
+          Questionnaire answers and site context — the single source for
           project briefing data.
         </p>
       </div>

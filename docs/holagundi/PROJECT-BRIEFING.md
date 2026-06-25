@@ -37,11 +37,11 @@ After the client returns the questionnaire, the lead architect produces a **Proj
 | §1 Basic information, §2 Project information, §3 Occupants | Project **Info** tab — questionnaire sections |
 | §4–§11 Design drivers, accommodation, materials, room detail | Project **Info** tab — accordion sections |
 | §8 Assumptions, §9 Client approval | Project **Info** tab — Assumptions & approval |
-| Compliance summary (permits, bylaw calc, site assessment) | Project **Info** tab — Compliance section (run calculator and save envelope there) |
+| Compliance summary (permits) | Project **Info** tab — Compliance/permits section |
 | Current design stage | Project **Info** (read-only tag) + **Settings** → Project stages |
 | Executive summary | Project **Appointment → scope summary**; proposal **scope** field |
 | Full brief narrative export | Project **Info** → compiled brief (markdown) or issued letter in **Documents** |
-| Site and context (RIE) | **Site assessment** (RIE pre-design); also mirrored on Project **Info** |
+| Site and context | Project **Info** — site & context section |
 | Accommodation schedule (tasks) | **Tasks** under Initiation & Brief; **Info** accommodation table |
 | Style and loved places | **Mood board** titles; **Info** design drivers |
 | Material preferences | **Info** materials palette; **Specification sheet** rows |

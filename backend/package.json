@@ -31,7 +31,6 @@
   "dependencies": {
     "@esti/contracts": "workspace:*",
     "@hcw/aorms-ai-kit": "workspace:*",
-    "@hcw/india-compliance-kit": "workspace:*",
     "@hcw/master-dsr-kit": "workspace:*",
     "@fastify/cookie": "^9.4.0",
     "@fastify/multipart": "^8.3.0",

@@ -1,4 +1,3 @@
-import type { BriefProjectInfo } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
@@ -45,27 +44,4 @@ export async function getOrCreateBrief(db: DB, projectId: string) {
     })
     .returning();
   return created!;
-}
-
-/** After bylaw calc, mirror permissible built-up into questionnaire §2. */
-export async function syncComplianceBuiltUpToBrief(
-  db: DB,
-  projectId: string,
-  maxBuiltUpSqm: number,
-): Promise<void> {
-  if (!Number.isFinite(maxBuiltUpSqm) || maxBuiltUpSqm <= 0) return;
-  await getOrCreateBrief(db, projectId);
-  const [brief] = await db
-    .select({ projectInfo: projectBriefs.projectInfo })
-    .from(projectBriefs)
-    .where(eq(projectBriefs.projectId, projectId))
-    .limit(1);
-  const existing = (brief?.projectInfo ?? {}) as BriefProjectInfo;
-  await db
-    .update(projectBriefs)
-    .set({
-      projectInfo: { ...existing, builtUpAreaSqm: maxBuiltUpSqm },
-      updatedAt: new Date(),
-    })
-    .where(eq(projectBriefs.projectId, projectId));
 }

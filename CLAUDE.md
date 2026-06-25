@@ -72,7 +72,7 @@ Three job handlers (`worker/esti_worker/jobs/`):
 | Type | Handler | Purpose |
 |---|---|---|
 | `dxf_to_svg` | `dxf.py` | Converts DXF takeoff to SVG via `ezdxf` |
-| `render_pdf` | `pdf.py` | HTML → PDF (invoices, compliance reports, drawing sets) via WeasyPrint; targets: `invoice`, `compliance`, `drawing` |
+| `render_pdf` | `pdf.py` | HTML → PDF via WeasyPrint; targets include `invoice`, `estimate`, `bbs`, `running_bill`, `feeproposal`, `proposal`, `inspection`, `progress_report`, `drawing` (full set: `_RENDERERS` in `pdf.py`) |
 | `reconcile_import` | `reconcile.py` | Parses bank/26AS/AIS/GSTR imports and matches entries via `pandas` |
 
 Config (`worker/esti_worker/config.py`): Pydantic Settings reading `REDIS_URL`,
@@ -141,9 +141,8 @@ GST rates, SAC codes)
 
 **Drawings / BOQ / Steel:**
 - `drawings` — drawing/document management; `measurements` — measurement sheets
-- `dsr` — Delhi Schedule of Rates reference; `estimates` — BOQ cost estimates;
+- `dsr` — Rate Book reference (code namespace `dsr`); `estimates` — BOQ cost estimates;
   `bbs` — Bar Bending Schedule (all three from `backend/src/modules/boq/`)
-- `steelflow` — Steel Arranger workflow
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
@@ -158,13 +157,16 @@ GST rates, SAC codes)
   records; `collab` — collaborator portal sessions
   (all three from `backend/src/modules/consultant/`)
 
-**Knowledge / RIE:**
-- `ruleVersions` / `siteAssessments` — RIE knowledge bank and site assessments
-  (`backend/src/modules/rie/router.ts`; contracts in `packages/contracts/src/rie.ts`)
-- `knowledgeBank` — knowledge catalog
-- `bbmpRules` — BBMP bye-law reference rules feeding the RIE compliance engine
-  (`backend/src/modules/bylaw/bbmpRules.ts`; the in-product bylaw calculator was
-  removed in Phase 7 — only the shared rule reference remains)
+**Knowledge:**
+- `knowledgeBank` — knowledge catalog (Rate Books, rate analysis, components,
+  specification, parametric, and lessons surfaced in `KnowledgeBank.tsx`)
+- `specCatalog` — specification material catalogue (Knowledge Bank)
+
+> The in-product RIE/compliance rule engine, site assessments (`ruleVersions` /
+> `siteAssessments`), and the BBMP bylaw calculator (`bbmpRules`) were **removed**
+> in the 2026-06 Knowledge-Bank cleanup; their modules and contracts no longer
+> exist. The shared BBS feature (`bbs` / `esti_bbs`) and Rate Books (the `dsr`
+> namespace, surfaced as "Rate Books") remain.
 
 **Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
@@ -202,9 +204,8 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 | `Consultants.tsx` | External consultants |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
-| `KnowledgeBank.tsx` | DSR, compliance/RIE, specification, SteelFlow tabs (`/compliance` redirects here) |
-| `components/knowledge/SteelArranger.tsx` | Steel BBS panel (embedded in Knowledge Bank) |
-| `components/knowledge/MasterDsr.tsx` | DSR panel (embedded in Knowledge Bank) |
+| `KnowledgeBank.tsx` | Rate Books, Rate Analysis, Components, Specification, Parametric, Lessons tabs |
+| `components/knowledge/MasterDsr.tsx` | Rate Book panel (embedded in Knowledge Bank) |
 | `Performance.tsx` | ASPRF performance dashboard |
 | `AuditLog.tsx` | Audit trail (firm:admin gated) |
 | `Alerts.tsx` | Notification/alert center |
@@ -224,10 +225,6 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 - **Task ASPRF fields**: `difficultyCoefficient` (1–5, default 3, anti-gaming weight)
   and `estimatedHours` (numeric, for delivery-predictability scoring) are separate
   from classification and work type.
-- **RIE FAR**: `siteArea × FAR = maxPermissibleBuiltUp` is the **gross** limit.
-  User-entered `proposedBuiltUpSqm` should be net after subtracting excluded
-  areas (parking, stairs, lifts, ramps, machine rooms, open balconies, ducts,
-  water tanks). The engine compares net proposed against the gross limit.
 - **Revision types**: decisions carry a `revisionCategory` (MINOR/MAJOR/CRITICAL)
   and a `revisionSource` (CLIENT_DRIVEN/INTERNAL_ERROR/TECHNICAL_QUERY/SCOPE_CHANGE).
   Both fields are live and feed the Revision Intelligence dashboard module.

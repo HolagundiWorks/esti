@@ -96,7 +96,7 @@ export const ProjectOfficeCreate = z.object({
 });
 export type ProjectOfficeCreate = z.infer<typeof ProjectOfficeCreate>;
 
-/** Editable site details on a project (drives the bylaw calculator). */
+/** Editable site details on a project. */
 export const ProjectSiteUpdate = z.object({
   id: z.string().uuid(),
   siteAddress: z.string().max(400).nullish(),

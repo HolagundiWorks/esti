@@ -1,8 +1,9 @@
 # ESTI AORMS — Access Hierarchy
 
 > **Version:** 1.0 · **Date:** 2026-06-21  
-> **Status:** Confirmed by Holagundi Consulting Works  
+> **Status:** Canonical — single source of truth (HCW) · **Reviewed:** 2026-06-25  
 > This document is the single source of truth for role-based access control across all ESTI modules. Code changes to permissions must be reflected here first.
+> **Implementation source:** [`packages/contracts/src/permissions.ts`](../../packages/contracts/src/permissions.ts). Supersedes the former `ACCESS-MODEL.md` (moved to `deprecated_review/`, 2026-06-25).
 
 ---
 

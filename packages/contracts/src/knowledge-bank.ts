@@ -54,7 +54,7 @@ export const SpecCatalogItemCreate = z.object({
   specification: z.string().max(500).optional(),
   finish: z.string().max(120).optional(),
   remarks: z.string().max(300).optional(),
-  // Optional spec → rate-book mapping (the DSR/analysed rate item to cost against).
+  // Optional spec → rate-book mapping (the analysed rate item to cost against).
   rateItemId: z.string().uuid().nullable().optional(),
 });
 export type SpecCatalogItemCreate = z.infer<typeof SpecCatalogItemCreate>;

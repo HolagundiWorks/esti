@@ -2,7 +2,7 @@
 
 **Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-21
 
-Full lifecycle management for internal staff: job applications → onboarding → active employee record → document vault → exit. For access levels see [ACCESS-MODEL.md](ACCESS-MODEL.md).
+Full lifecycle management for internal staff: job applications → onboarding → active employee record → document vault → exit. For access levels see [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md).
 
 ---
 

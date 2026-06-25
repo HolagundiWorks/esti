@@ -153,14 +153,7 @@ export function ProjectDetail() {
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
   const rawTab = searchParams.get("tab") ?? "overview";
-  const tabSlug =
-    rawTab === "compliance"
-      ? "info"
-      : rawTab === "running-bills"
-        ? "costing"
-        : rawTab;
-  // NOTE: the in-project BBMP bylaw calculator was removed in Phase 7; legacy
-  // ?tab=compliance links now resolve to the Project Info tab.
+  const tabSlug = rawTab === "running-bills" ? "costing" : rawTab;
   const tabIndex = Math.max(
     0,
     projectTabs.findIndex((t) => t.slug === tabSlug),
@@ -174,14 +167,10 @@ export function ProjectDetail() {
   const innerIndex = Math.max(0, activeGroup.tabs.findIndex((t) => t.slug === activeTab));
 
   useEffect(() => {
-    if (rawTab === "compliance") {
-      setSearchParams({ tab: "info" }, { replace: true });
-      return;
-    }
     if (tabSlug !== activeTab) {
       setSearchParams({ tab: activeTab }, { replace: true });
     }
-  }, [rawTab, tabSlug, activeTab, setSearchParams]);
+  }, [tabSlug, activeTab, setSearchParams]);
 
   if (project.isLoading)
     return <Loading description="Loading project" withOverlay={false} />;

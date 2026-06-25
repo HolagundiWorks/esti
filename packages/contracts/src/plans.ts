@@ -103,7 +103,7 @@ export const PLAN_FEATURES = [
   "ai", // ESTI AI / cognition / LLM / ML
   "esticad", // companion device API
   "auditLog",
-  "rateBooks", // rate-book (DSR) library
+  "rateBooks", // rate-book library
   "knowledgeBank",
   "sso",
   "apiAccess",

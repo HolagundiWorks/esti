@@ -21,7 +21,7 @@ export const adminRouter = router({
   /**
    * Owner-only: irreversibly wipe ALL operational data (projects, clients,
    * invoices, drawings, HR, etc.), keeping the firm profile, owner login and
-   * DSR reference data. Requires the owner's password.
+   * rate-book reference data. Requires the owner's password.
    */
   purge: ownerProcedure
     .input(z.object({ password: z.string().min(1) }))

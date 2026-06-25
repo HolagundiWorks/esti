@@ -31,7 +31,7 @@ system, and software should do the *watching* so the principal does not have to.
 AORMS — the Architectural Office Resource Management System — observes the whole
 office continuously, reasons across its parts, predicts where pressure is
 building, and recommends the one action that matters most today. It speaks the
-language of an Indian practice natively: GST, SAC codes, FY dates, DSR rates,
+language of an Indian practice natively: GST, SAC codes, FY dates, rate-book costing,
 COA fee logic, tenders, and site records.
 
 It is not another dashboard to monitor. It is a quieter office that tells you

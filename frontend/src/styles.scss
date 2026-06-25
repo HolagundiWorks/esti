@@ -5112,16 +5112,6 @@ h1.esti-landing-lead-title {
 .esti-lp-activity-text { color: var(--cds-text-secondary); flex: 1; }
 .esti-lp-activity-time { color: var(--cds-text-helper); white-space: nowrap; flex-shrink: 0; }
 
-// Compliance two-column layout
-.esti-lp-compliance-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--cds-spacing-07);
-  flex: 1;
-
-  @media (max-width: 671px) { grid-template-columns: 1fr; }
-}
-
 // Revision bar chart rows
 .esti-lp-rev-row {
   display: flex;

@@ -46,7 +46,7 @@ function KnowledgeBankSearch() {
         <Stack gap={2}>
           <h3>Search Knowledge Bank</h3>
           <p style={{ margin: 0 }}>
-            Templates, DSR, specification catalogue, drawings, contractors, and published lessons.
+            Templates, rate books, specification catalogue, drawings, contractors, and published lessons.
           </p>
         </Stack>
         <Stack orientation="horizontal" gap={4} style={{ flexWrap: "wrap", alignItems: "flex-end" }}>

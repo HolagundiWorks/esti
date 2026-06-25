@@ -19,11 +19,11 @@ export async function assertPublishedDsrVersion(
   versionId: string,
 ): Promise<void> {
   const [version] = await db.select().from(dsrVersions).where(eq(dsrVersions.id, versionId));
-  if (!version) throw new TRPCError({ code: "NOT_FOUND", message: "DSR version not found" });
+  if (!version) throw new TRPCError({ code: "NOT_FOUND", message: "Rate-book version not found" });
   if (version.status === "DRAFT") {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Draft DSR versions cannot be used on estimates until published",
+      message: "Draft rate-book versions cannot be used on estimates until published",
     });
   }
 }
@@ -135,7 +135,7 @@ export const dsrRouter = router({
       if (before.status === "DRAFT") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Publish the DSR version before setting it active",
+          message: "Publish the rate-book version before setting it active",
         });
       }
       await ctx.db.update(dsrVersions).set({ active: false });

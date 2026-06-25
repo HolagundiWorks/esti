@@ -4,12 +4,12 @@
  * higher-level bar positioning and BBS row computation.
  */
 import {
-  sfAutoPositionBars,
-  sfSteelWeight,
-  sfStirrupCount,
-  sfStirrupLength,
-  sfUnitWeight,
-  type SfBbsRow,
+  steelAutoPositionBars,
+  steelWeight,
+  steelStirrupCount,
+  steelStirrupLength,
+  steelUnitWeight,
+  type SteelBbsRow,
 } from "@esti/contracts";
 
 export interface BarSpec {
@@ -66,7 +66,7 @@ export function autoPositionRebars(
   const positioned: BarSpec[] = [];
 
   for (const bar of [...topBars]) {
-    const xs = sfAutoPositionBars(
+    const xs = steelAutoPositionBars(
       bar.quantity,
       el.widthMm,
       el.coverMm,
@@ -77,7 +77,7 @@ export function autoPositionRebars(
   }
 
   for (const bar of [...botBars]) {
-    const xs = sfAutoPositionBars(
+    const xs = steelAutoPositionBars(
       bar.quantity,
       el.widthMm,
       el.coverMm,
@@ -102,12 +102,12 @@ export function computeBbsRows(
   el: ElementSpec,
   bars: BarSpec[],
   stirrups: StirrupSpec[],
-): SfBbsRow[] {
-  const rows: SfBbsRow[] = [];
+): SteelBbsRow[] {
+  const rows: SteelBbsRow[] = [];
 
   for (const b of bars) {
     const cl = b.cuttingLengthMm ?? el.lengthMm;
-    const uw = sfUnitWeight(b.diaMm);
+    const uw = steelUnitWeight(b.diaMm);
     rows.push({
       elementCode: el.elementCode,
       barMark: b.barMark,
@@ -117,17 +117,17 @@ export function computeBbsRows(
       cuttingLengthMm: cl,
       totalLengthMm: cl * b.quantity,
       unitWeightKgPerM: Math.round(uw * 1000) / 1000,
-      totalWeightKg: Math.round(sfSteelWeight(b.diaMm, cl, b.quantity) * 100) / 100,
+      totalWeightKg: Math.round(steelWeight(b.diaMm, cl, b.quantity) * 100) / 100,
     });
   }
 
   let sIdx = 1;
   for (const s of stirrups) {
     const cl = Math.round(
-      sfStirrupLength(el.widthMm, el.depthMm, el.coverMm, s.diaMm, s.hookAngle),
+      steelStirrupLength(el.widthMm, el.depthMm, el.coverMm, s.diaMm, s.hookAngle),
     );
-    const qty = sfStirrupCount(el.lengthMm, s.spacingMm);
-    const uw = sfUnitWeight(s.diaMm);
+    const qty = steelStirrupCount(el.lengthMm, s.spacingMm);
+    const uw = steelUnitWeight(s.diaMm);
     rows.push({
       elementCode: el.elementCode,
       barMark: `S${sIdx++}`,
@@ -137,13 +137,13 @@ export function computeBbsRows(
       cuttingLengthMm: cl,
       totalLengthMm: cl * qty,
       unitWeightKgPerM: Math.round(uw * 1000) / 1000,
-      totalWeightKg: Math.round(sfSteelWeight(s.diaMm, cl, qty) * 100) / 100,
+      totalWeightKg: Math.round(steelWeight(s.diaMm, cl, qty) * 100) / 100,
     });
   }
 
   return rows;
 }
 
-export function totalSteelKg(rows: SfBbsRow[]): number {
+export function totalSteelKg(rows: SteelBbsRow[]): number {
   return Math.round(rows.reduce((s, r) => s + r.totalWeightKg, 0) * 100) / 100;
 }

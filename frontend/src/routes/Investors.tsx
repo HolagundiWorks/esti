@@ -16,37 +16,37 @@ const SLIDES = [
     n: "02",
     kicker: "The solution",
     title: "Continuous office cognition",
-    body: "AORMS reads the whole practice as one system — clients, drawings, approvals, billing, revisions, compliance, and team load — then observes, reasons, predicts where pressure is building, and recommends the single highest-leverage action for the day. It does the watching so the principal doesn't have to. The screen is calm by design: most of the office is fine, so it says so, and surfaces the one place that needs attention.",
+    body: "AORMS reads the whole practice as one system — clients, drawings, approvals, billing, revisions, and team load — then observes, reasons, predicts where pressure is building, and recommends the single highest-leverage action for the day. It does the watching so the principal doesn't have to. The screen is calm by design: most of the office is fine, so it says so, and surfaces the one place that needs attention.",
   },
   {
     n: "03",
     kicker: "Why now",
     title: "Reasoning is finally good enough — and practices are digitising",
-    body: "LLM and behavioural reasoning have crossed the threshold where software can triage an office, not just store its records. At the same time, Indian practices are moving off paper and into tools, while compliance (GST, bylaws, COA fees) grows more intricate every year. The firm that encodes that complexity natively wins the workflow.",
+    body: "LLM and behavioural reasoning have crossed the threshold where software can triage an office, not just store its records. At the same time, Indian practices are moving off paper and into tools, while compliance (GST, TDS, COA fees) grows more intricate every year. The firm that encodes that complexity natively wins the workflow.",
   },
   {
     n: "04",
     kicker: "Market",
     title: "An underserved, India-native segment",
-    body: "India has one of the largest pools of registered architects in the world, and the mid-size practice — busy enough to feel the pain, too small for enterprise software — is poorly served by generic project tools built for somewhere else. AORMS is built for that firm: rupees in paise, the April–March year, GST and SAC codes, BBMP and jurisdiction bylaws, DSR rates, and COA fee logic, assumed from the ground up.",
+    body: "India has one of the largest pools of registered architects in the world, and the mid-size practice — busy enough to feel the pain, too small for enterprise software — is poorly served by generic project tools built for somewhere else. AORMS is built for that firm: rupees in paise, the April–March year, GST and SAC codes, rate books, and COA fee logic, assumed from the ground up.",
   },
   {
     n: "05",
     kicker: "Product & moat",
     title: "Deep domain encoding, not another dashboard",
-    body: "The moat is the depth: a cognition and architectural-reasoning engine that ranks tasks and reasons through missing data; a revision-intelligence model that separates billable client scope from internal error; an India compliance desk and bylaw engine; scoped client, contractor, and consultant portals; and a fair, anti-gaming team performance score. It is self-hostable, so a firm's data stays its own — a real differentiator in this market.",
+    body: "The moat is the depth: a cognition and architectural-reasoning engine that ranks tasks and reasons through missing data; a revision-intelligence model that separates billable client scope from internal error; an end-to-end estimation, BOQ, and construction-cost engine; scoped client, contractor, and consultant portals; and a fair, anti-gaming team performance score. It is self-hostable, so a firm's data stays its own — a real differentiator in this market.",
   },
   {
     n: "06",
     kicker: "Business model",
     title: "Self-hosted licence and hosted SaaS",
-    body: "Two paths to the same product: a self-hosted licence for firms that want their data on their own infrastructure, and a managed hosted offering for those that want zero ops. Pricing scales by firm and seat. The compliance widget and public surfaces double as a low-cost acquisition channel.",
+    body: "Two paths to the same product: a self-hosted licence for firms that want their data on their own infrastructure, and a managed hosted offering for those that want zero ops. Pricing scales by firm and seat. The public marketing surfaces and a one-click demo double as a low-cost acquisition channel.",
   },
   {
     n: "07",
     kicker: "Traction",
     title: "A working, demoable product — not a deck of mockups",
-    body: "The full office is built and live: projects, fees, GST invoicing, drawings, revisions, PMC site delivery, the compliance engine, the portals, and the cognition dashboard. A fully seeded demo practice can be opened in one click, and every number on its dashboard is computed from real records. This is shippable software, today.",
+    body: "The full office is built and live: projects, fees, GST invoicing, drawings, revisions, PMC site delivery, the construction-cost OS, the portals, and the cognition dashboard. A fully seeded demo practice can be opened in one click, and every number on its dashboard is computed from real records. This is shippable software, today.",
   },
 ];
 

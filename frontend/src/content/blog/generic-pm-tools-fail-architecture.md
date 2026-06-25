@@ -72,7 +72,7 @@ managing.
 
 ### Site and office standards have no home
 
-DSR references, specifications, tender conditions, site instructions, and project
+Rate book references, specifications, tender conditions, site instructions, and project
 standards have no place in a kanban board. A generic tool cannot connect an issued
 drawing to the BOQ, the site note, the tender clarification, and the office record
 that explains why work moved. For an architecture practice, this is not a nice-to-have;
@@ -105,7 +105,7 @@ directly. In a fit-for-purpose system:
   construction.
 - A **client approval** has a recipient, an age, a recorded decision, and a client
   portal.
-- **Project standards** — DSR, specifications, tenders and site notes — stay
+- **Project standards** — rate books, specifications, tenders and site notes — stay
   attached to the record.
 
 The difference is philosophical. A generic tool gives you an empty container and asks

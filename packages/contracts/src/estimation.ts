@@ -41,7 +41,7 @@ export const COST_HEAD_LABEL: Record<CostHead, string> = {
 
 /** How a line's amount is derived. */
 export const CalculationType = z.enum([
-  "RATE_BOOK", // qty × rate from a rate-book / DSR item (existing default)
+  "RATE_BOOK", // qty × rate from a rate-book item (existing default)
   "AREA_RATE", // qty (area) × rate — design-stage ballpark
   "PERCENTAGE", // % of a basis (subtotal / cost head / selected items) — clauses
   "LUMPSUM", // fixed amount, qty = 1

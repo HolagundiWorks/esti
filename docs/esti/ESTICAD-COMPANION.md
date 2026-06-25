@@ -10,7 +10,7 @@ Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **
 
 | Product | Role |
 |---------|------|
-| **ESTI AORMS** (`aorms.in`) | System of record — auth, projects, takeoff measurements, BOQ/DSR, estimates, AI gateway (Ollama), audit |
+| **ESTI AORMS** (`aorms.in`) | System of record — auth, projects, takeoff measurements, BOQ/rate book, estimates, AI gateway (Ollama), audit |
 | **ESTICAD** (desktop, free) | **Only** takeoff capture client — native 2D drafting, measurement UI, AI reconciliation |
 
 ESTICAD remains free and closed source. Cloud takeoff and cloud AI require an active **paying AORMS firm** account.
@@ -164,16 +164,16 @@ Native command-line UX — spec in [ESTI-COMPANION.md](../../../esticad/docs/EST
 
 ## BOQ and estimates
 
-ESTICAD does not host DSR SQLite or local BOQ generation.
+ESTICAD does not host the rate-book SQLite or local BOQ generation.
 
 | Action | Where |
 |--------|-------|
 | Aggregate takeoff → estimate lines | ESTI `measurements.takeoffPreview`, `applyToEstimate` |
-| DSR rate matching | ESTI `buildTakeoffEstimateLines` |
+| Rate-book rate matching | ESTI `buildTakeoffEstimateLines` |
 | Excel/PDF export | ESTI worker + office routes |
 
 ESTICAD may show read-only preview fetched from API or deep-link to AORMS project estimation tab.
-Estimate lines created from takeoff are stamped with source provenance and DSR/takeoff snapshots in AORMS; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
+Estimate lines created from takeoff are stamped with source provenance and rate-book/takeoff snapshots in AORMS.
 
 ---
 

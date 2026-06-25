@@ -29,7 +29,7 @@ export const specCatalogItems = pgTable("esti_spec_catalog_item", {
   specification: text("specification"),
   finish: text("finish"),
   remarks: text("remarks"),
-  // Persisted spec → rate-book mapping: the analysed/DSR rate item this
+  // Persisted spec → rate-book mapping: the analysed rate item this
   // specification is costed against. Cleared (set null) if the rate item is removed.
   rateItemId: uuid("rate_item_id").references(() => dsrItems.id, {
     onDelete: "set null",

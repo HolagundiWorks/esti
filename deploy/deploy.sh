@@ -132,14 +132,14 @@ if [[ -f /etc/nginx/sites-available/esti ]]; then
   [[ -n "$_d" && "$_d" != "DOMAIN_PLACEHOLDER" ]] && INDEXNOW_HOST="$_d"
 fi
 # Submit every URL from the prerendered sitemap (home, all keyword landing pages,
-# blog posts, compliance) — not just a few fixed ones. Falls back to core URLs if
+# blog posts) — not just a few fixed ones. Falls back to core URLs if
 # the sitemap is missing. IndexNow accepts up to 10,000 URLs per request.
 SITEMAP="$DEPLOY_DIR/frontend/dist/sitemap.xml"
 URLLIST=""
 if [[ -f "$SITEMAP" ]]; then
   URLLIST=$(grep -oE '<loc>[^<]+</loc>' "$SITEMAP" | sed -E 's,</?loc>,,g' | sed 's/.*/"&"/' | paste -sd, -)
 fi
-URLLIST="${URLLIST:-\"https://${INDEXNOW_HOST}/\",\"https://${INDEXNOW_HOST}/blog\",\"https://${INDEXNOW_HOST}/compliance-check\"}"
+URLLIST="${URLLIST:-\"https://${INDEXNOW_HOST}/\",\"https://${INDEXNOW_HOST}/blog\"}"
 info "Pinging IndexNow for ${INDEXNOW_HOST} ($(printf '%s' "$URLLIST" | tr -cd ',' | wc -c | tr -d ' ' | awk '{print $1+1}') URLs)..."
 curl -s -m 15 -X POST "https://api.indexnow.org/indexnow" \
   -H "Content-Type: application/json" \

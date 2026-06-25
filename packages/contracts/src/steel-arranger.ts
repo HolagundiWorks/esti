@@ -1,5 +1,5 @@
 /**
- * SteelFlow AI — Interactive Steel Arranger + Automated BBS Generator.
+ * Steel arranger + automated BBS generator.
  * Types, schemas, and pure calculation functions (IS:456 / IS:2502).
  *
  * ARCHITECTURE:
@@ -11,22 +11,22 @@ import { z } from "zod";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const SF_BAR_DIAS = [4, 5, 6, 8, 10, 12, 16, 20, 25, 28, 32, 36, 40, 45, 50] as const;
-export type SfBarDia = (typeof SF_BAR_DIAS)[number];
+export const STEEL_BAR_DIAS = [4, 5, 6, 8, 10, 12, 16, 20, 25, 28, 32, 36, 40, 45, 50] as const;
+export type SteelBarDia = (typeof STEEL_BAR_DIAS)[number];
 
-export const SF_ELEMENT_TYPES = ["BEAM", "COLUMN", "SLAB", "FOOTING"] as const;
-export type SfElementType = (typeof SF_ELEMENT_TYPES)[number];
+export const STEEL_ELEMENT_TYPES = ["BEAM", "COLUMN", "SLAB", "FOOTING"] as const;
+export type SteelElementType = (typeof STEEL_ELEMENT_TYPES)[number];
 
-export const SF_BAR_TYPES = [
+export const STEEL_BAR_TYPES = [
   "TOP_MAIN",
   "BOTTOM_MAIN",
   "EXTRA_TOP",
   "EXTRA_BOTTOM",
   "SIDE_FACE",
 ] as const;
-export type SfBarType = (typeof SF_BAR_TYPES)[number];
+export type SteelBarType = (typeof STEEL_BAR_TYPES)[number];
 
-export const SF_BAR_TYPE_LABEL: Record<SfBarType, string> = {
+export const STEEL_BAR_TYPE_LABEL: Record<SteelBarType, string> = {
   TOP_MAIN:     "Top main",
   BOTTOM_MAIN:  "Bottom main",
   EXTRA_TOP:    "Extra top",
@@ -34,7 +34,7 @@ export const SF_BAR_TYPE_LABEL: Record<SfBarType, string> = {
   SIDE_FACE:    "Side face",
 };
 
-export const SF_STIRRUP_TYPES = [
+export const STEEL_STIRRUP_TYPES = [
   "CLOSED",
   "OPEN",
   "TWO_LEG",
@@ -42,9 +42,9 @@ export const SF_STIRRUP_TYPES = [
   "U_SHAPE",
   "DIAMOND",
 ] as const;
-export type SfStirrupType = (typeof SF_STIRRUP_TYPES)[number];
+export type SteelStirrupType = (typeof STEEL_STIRRUP_TYPES)[number];
 
-export const SF_STIRRUP_LABEL: Record<SfStirrupType, string> = {
+export const STEEL_STIRRUP_LABEL: Record<SteelStirrupType, string> = {
   CLOSED:  "Closed",
   OPEN:    "Open",
   TWO_LEG: "2-Leg",
@@ -53,7 +53,7 @@ export const SF_STIRRUP_LABEL: Record<SfStirrupType, string> = {
   DIAMOND: "Diamond",
 };
 
-export const SF_SHAPE_CODES = [
+export const STEEL_SHAPE_CODES = [
   "A", // straight
   "B", // L-shape
   "C", // Z-shape
@@ -61,21 +61,21 @@ export const SF_SHAPE_CODES = [
   "E", // cranked
   "F", // closed stirrup
 ] as const;
-export type SfShapeCode = (typeof SF_SHAPE_CODES)[number];
+export type SteelShapeCode = (typeof STEEL_SHAPE_CODES)[number];
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 
-export const SfSessionCreate = z.object({
+export const SteelSessionCreate = z.object({
   name: z.string().min(1).max(100),
   projectId: z.string().uuid().optional(),
 });
-export type SfSessionCreate = z.infer<typeof SfSessionCreate>;
+export type SteelSessionCreate = z.infer<typeof SteelSessionCreate>;
 
 // ─── Element ─────────────────────────────────────────────────────────────────
 
-export const SfElementCreate = z.object({
+export const SteelElementCreate = z.object({
   sessionId: z.string().uuid(),
-  elementType: z.enum(SF_ELEMENT_TYPES),
+  elementType: z.enum(STEEL_ELEMENT_TYPES),
   elementCode: z.string().min(1).max(20),
   lengthMm: z.number().int().min(300).max(30000),
   widthMm: z.number().int().min(100).max(3000),
@@ -84,56 +84,56 @@ export const SfElementCreate = z.object({
   fck: z.number().int().default(25),
   fy: z.number().int().default(500),
 });
-export type SfElementCreate = z.infer<typeof SfElementCreate>;
+export type SteelElementCreate = z.infer<typeof SteelElementCreate>;
 
-export const SfElementUpdate = SfElementCreate.partial().extend({
+export const SteelElementUpdate = SteelElementCreate.partial().extend({
   id: z.string().uuid(),
 });
-export type SfElementUpdate = z.infer<typeof SfElementUpdate>;
+export type SteelElementUpdate = z.infer<typeof SteelElementUpdate>;
 
 // ─── Rebar ────────────────────────────────────────────────────────────────────
 
-export const SfRebarCreate = z.object({
+export const SteelRebarCreate = z.object({
   elementId: z.string().uuid(),
   barMark: z.string().min(1).max(10),
-  diaMm: z.number().int().refine((v): v is SfBarDia =>
-    (SF_BAR_DIAS as readonly number[]).includes(v), { message: "Invalid bar diameter" }),
-  barType: z.enum(SF_BAR_TYPES),
+  diaMm: z.number().int().refine((v): v is SteelBarDia =>
+    (STEEL_BAR_DIAS as readonly number[]).includes(v), { message: "Invalid bar diameter" }),
+  barType: z.enum(STEEL_BAR_TYPES),
   quantity: z.number().int().min(1).max(500),
   cuttingLengthMm: z.number().int().min(100).optional(),
   shapeCode: z.string().max(4).default("A"),
   posX: z.number().optional(),
   posY: z.number().optional(),
 });
-export type SfRebarCreate = z.infer<typeof SfRebarCreate>;
+export type SteelRebarCreate = z.infer<typeof SteelRebarCreate>;
 
-export const SfRebarUpdate = SfRebarCreate.partial().extend({
+export const SteelRebarUpdate = SteelRebarCreate.partial().extend({
   id: z.string().uuid(),
 });
-export type SfRebarUpdate = z.infer<typeof SfRebarUpdate>;
+export type SteelRebarUpdate = z.infer<typeof SteelRebarUpdate>;
 
 // ─── Stirrup ─────────────────────────────────────────────────────────────────
 
-export const SfStirrupCreate = z.object({
+export const SteelStirrupCreate = z.object({
   elementId: z.string().uuid(),
-  diaMm: z.number().int().refine((v): v is SfBarDia =>
-    (SF_BAR_DIAS as readonly number[]).includes(v), { message: "Invalid stirrup diameter" }),
-  stirrupType: z.enum(SF_STIRRUP_TYPES),
+  diaMm: z.number().int().refine((v): v is SteelBarDia =>
+    (STEEL_BAR_DIAS as readonly number[]).includes(v), { message: "Invalid stirrup diameter" }),
+  stirrupType: z.enum(STEEL_STIRRUP_TYPES),
   spacingMm: z.number().int().min(50).max(500),
   hookAngle: z.number().int().default(135),
   hookLengthMm: z.number().int().optional(),
   zone: z.enum(["FULL", "END_ZONE", "MID_ZONE"]).default("FULL"),
 });
-export type SfStirrupCreate = z.infer<typeof SfStirrupCreate>;
+export type SteelStirrupCreate = z.infer<typeof SteelStirrupCreate>;
 
-export const SfStirrupUpdate = SfStirrupCreate.partial().extend({
+export const SteelStirrupUpdate = SteelStirrupCreate.partial().extend({
   id: z.string().uuid(),
 });
-export type SfStirrupUpdate = z.infer<typeof SfStirrupUpdate>;
+export type SteelStirrupUpdate = z.infer<typeof SteelStirrupUpdate>;
 
 // ─── BBS Row (computed, not stored) ──────────────────────────────────────────
 
-export interface SfBbsRow {
+export interface SteelBbsRow {
   elementCode: string;
   barMark: string;
   diaMm: number;
@@ -147,13 +147,13 @@ export interface SfBbsRow {
 
 // ─── AI Review ────────────────────────────────────────────────────────────────
 
-export const SfAiReviewInput = z.object({
+export const SteelAiReviewInput = z.object({
   elementId: z.string().uuid(),
   sessionId: z.string().uuid(),
 });
-export type SfAiReviewInput = z.infer<typeof SfAiReviewInput>;
+export type SteelAiReviewInput = z.infer<typeof SteelAiReviewInput>;
 
-export interface SfAiReview {
+export interface SteelAiReview {
   warnings: string[];
   suggestions: string[];
   summary: { totalSteelKg: number; steelPercentage: number };
@@ -162,20 +162,20 @@ export interface SfAiReview {
 // ─── Calculation Engine (IS:456 / IS:2502) ───────────────────────────────────
 
 /** Unit weight of a steel bar, kg/m (IS standard formula D²/162). */
-export function sfUnitWeight(diaMm: number): number {
+export function steelUnitWeight(diaMm: number): number {
   return (diaMm * diaMm) / 162;
 }
 
 /** Total steel weight in kg. */
-export function sfSteelWeight(diaMm: number, lengthMm: number, qty: number): number {
-  return sfUnitWeight(diaMm) * (lengthMm / 1000) * qty;
+export function steelWeight(diaMm: number, lengthMm: number, qty: number): number {
+  return steelUnitWeight(diaMm) * (lengthMm / 1000) * qty;
 }
 
 /**
  * Stirrup cutting length for a closed rectangular stirrup (IS:2502).
  * Returns length in mm.
  */
-export function sfStirrupLength(
+export function steelStirrupLength(
   widthMm: number,
   depthMm: number,
   coverMm: number,
@@ -193,12 +193,12 @@ export function sfStirrupLength(
 }
 
 /** Number of stirrups for a given zone length and spacing. */
-export function sfStirrupCount(lengthMm: number, spacingMm: number): number {
+export function steelStirrupCount(lengthMm: number, spacingMm: number): number {
   return Math.floor(lengthMm / spacingMm) + 1;
 }
 
 /** Development length Ld in mm (IS:456 clause 26.2, simplified). */
-export function sfDevelopmentLength(
+export function steelDevelopmentLength(
   diaMm: number,
   fy: number = 500,
   fck: number = 25,
@@ -209,7 +209,7 @@ export function sfDevelopmentLength(
 }
 
 /** Minimum bar spacing (IS:456 clause 26.3.1). */
-export function sfMinBarSpacing(diaMm: number, maxAggSizeMm: number = 20): number {
+export function steelMinBarSpacing(diaMm: number, maxAggSizeMm: number = 20): number {
   return Math.max(diaMm, maxAggSizeMm + 5, 25);
 }
 
@@ -217,7 +217,7 @@ export function sfMinBarSpacing(diaMm: number, maxAggSizeMm: number = 20): numbe
  * Auto-compute x positions for n bars in a row.
  * Returns array of x coordinates (mm from left face of beam).
  */
-export function sfAutoPositionBars(
+export function steelAutoPositionBars(
   n: number,
   beamWidthMm: number,
   coverMm: number,
@@ -232,7 +232,7 @@ export function sfAutoPositionBars(
 
 // ─── Bent-bar cutting-length formulas (IS:2502) ───────────────────────────────
 
-export const SF_SHAPE_CODE_LABEL: Record<string, string> = {
+export const STEEL_SHAPE_CODE_LABEL: Record<string, string> = {
   A: "Straight",
   B: "L-bend (one end)",
   C: "Z-shape / S-bend",
@@ -258,7 +258,7 @@ function hookAllowance(diaMm: number, angle: number = 90) {
  * Shape B — L-bend (one 90° leg at one end).
  * cuttingLength = mainLeg + sideLeg + 1 hook − 1 bend deduction
  */
-export function sfLShapeCuttingLength(
+export function steelLShapeCuttingLength(
   mainLegMm: number,
   sideLegMm: number,
   diaMm: number,
@@ -270,7 +270,7 @@ export function sfLShapeCuttingLength(
  * Shape D — Hairpin / U-shape (two parallel legs + bottom).
  * cuttingLength = 2×height + width + 2 hooks − 2 bend deductions
  */
-export function sfHairpinCuttingLength(
+export function steelHairpinCuttingLength(
   heightMm: number,
   widthMm: number,
   diaMm: number,
@@ -285,7 +285,7 @@ export function sfHairpinCuttingLength(
  * Additional diagonal length = crankHeight / sin(θ) − crankHeight / tan(θ)
  * Applied twice (crank up + crank down) by default.
  */
-export function sfCrankedBarCuttingLength(
+export function steelCrankedBarCuttingLength(
   totalSpanMm: number,
   crankHeightMm: number,
   crankAngleDeg: number = 45,
@@ -301,7 +301,7 @@ export function sfCrankedBarCuttingLength(
  * Shape C — Z-shape / S-bend (two 90° bends, cranked between two parallel levels).
  * cuttingLength = leg1 + offset + leg2 + 2 hooks − 2 bend deductions
  */
-export function sfZShapeCuttingLength(
+export function steelZShapeCuttingLength(
   leg1Mm: number,
   offsetMm: number,
   leg2Mm: number,
@@ -314,7 +314,7 @@ export function sfZShapeCuttingLength(
  * Dispatcher: compute cutting length for any shape code given element length
  * and optional bent-bar dimensions.
  */
-export function sfShapeCuttingLength(
+export function steelShapeCuttingLength(
   shapeCode: string,
   elementLengthMm: number,
   diaMm: number,
@@ -330,13 +330,13 @@ export function sfShapeCuttingLength(
 ): number {
   switch (shapeCode) {
     case "B":
-      return sfLShapeCuttingLength(elementLengthMm, opts.leg2 ?? 300, diaMm);
+      return steelLShapeCuttingLength(elementLengthMm, opts.leg2 ?? 300, diaMm);
     case "D":
-      return sfHairpinCuttingLength(opts.hairpinH ?? 300, opts.hairpinW ?? 150, diaMm);
+      return steelHairpinCuttingLength(opts.hairpinH ?? 300, opts.hairpinW ?? 150, diaMm);
     case "E":
-      return sfCrankedBarCuttingLength(elementLengthMm, opts.crankH ?? 50, opts.crankAngle ?? 45);
+      return steelCrankedBarCuttingLength(elementLengthMm, opts.crankH ?? 50, opts.crankAngle ?? 45);
     case "C":
-      return sfZShapeCuttingLength(opts.leg1 ?? 300, opts.offset ?? 150, opts.leg2 ?? 300, diaMm);
+      return steelZShapeCuttingLength(opts.leg1 ?? 300, opts.offset ?? 150, opts.leg2 ?? 300, diaMm);
     default:
       return elementLengthMm; // A: straight
   }

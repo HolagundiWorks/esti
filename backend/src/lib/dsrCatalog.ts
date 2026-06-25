@@ -30,7 +30,7 @@ export function assertDsrVersionWritable(version: DsrVersionRow): void {
   if (isOfficialReadOnlyVersion(version)) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "Official HCW seed data is read-only. Create a custom DSR version to edit or import.",
+      message: "Official HCW seed data is read-only. Create a custom rate-book version to edit or import.",
     });
   }
 }
@@ -81,7 +81,7 @@ export async function resolveDsrItemsForVersion(
 
 export async function getDsrVersionOrThrow(db: DB, versionId: string): Promise<DsrVersionRow> {
   const [version] = await db.select().from(dsrVersions).where(eq(dsrVersions.id, versionId));
-  if (!version) throw new TRPCError({ code: "NOT_FOUND", message: "DSR version not found" });
+  if (!version) throw new TRPCError({ code: "NOT_FOUND", message: "Rate-book version not found" });
   return version;
 }
 

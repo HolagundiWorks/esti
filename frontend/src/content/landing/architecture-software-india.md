@@ -39,7 +39,7 @@ Indian projects stall when records are scattered: client decisions in chat, perm
 
 ### Indian costing knowledge
 
-The knowledge bank carries DSR (Delhi Schedule of Rates) rates, a specification catalogue, and SteelFlow bar bending schedules, so estimates and BOQs are grounded in Indian reference data rather than guesswork.
+The knowledge bank carries rate books, a specification catalogue, and bar bending schedules, so estimates and BOQs are grounded in Indian reference data rather than guesswork.
 
 ## Projects, drawings and people
 
@@ -71,7 +71,7 @@ The easiest way to see the India-native approach is to enter the demo office and
 
 ### What is the best software for architecture firms in India?
 
-The best fit is whichever tool understands Indian billing, approvals, site work and the financial year without workarounds. AORMS is purpose-built for Indian practices — GST and TDS invoicing, COA fee proposals, tenders, contractor records and DSR costing in one self-hosted system — rather than a foreign product adapted at the edges.
+The best fit is whichever tool understands Indian billing, approvals, site work and the financial year without workarounds. AORMS is purpose-built for Indian practices — GST and TDS invoicing, COA fee proposals, tenders, contractor records and rate-book costing in one self-hosted system — rather than a foreign product adapted at the edges.
 
 ### Does it handle GST and TDS, or only project management?
 

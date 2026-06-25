@@ -39,7 +39,7 @@ export const SEARCH_ENTITY_LABEL: Record<SearchEntityType, string> = {
   CRITICAL_NOTE: "Critical note",
   LESSON: "Lesson learned",
   OFFICE_TEMPLATE: "Office template",
-  DSR_ITEM: "DSR item",
+  DSR_ITEM: "Rate book item",
   SPEC_CATALOG: "Spec catalogue",
   SPEC_STANDARD: "Specification standard",
   CONSULTANT: "Consultant",

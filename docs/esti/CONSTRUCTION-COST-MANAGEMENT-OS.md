@@ -30,7 +30,7 @@ Planned → Estimated → Quantified → Analysed → Tendered → Awarded
 |---|---|---|---|
 | Estimated | 5.2 Estimate | `esti_estimate` (+stage/status), `esti_estimate_item`, `esti_estimate_component`, `esti_estimate_version` (freeze); `estimates`/`designEstimate` namespaces | **Built** (Estimation OS 1) |
 | Quantified | 5.3 BOQ, 5.5 Structural | `esti_estimate_item` + auto-BOQ from `esti_component` via the formula registry | **Built** (extend validation) |
-| Analysed | 5.4 Rate Analysis | `esti_rate_analysis` / `esti_rate_component` + DSR (`rateAnalyses`, `dsr`); Knowledge Bank → Rate Analysis | **Built** (Estimation OS 3) |
+| Analysed | 5.4 Rate Analysis | `esti_rate_analysis` / `esti_rate_component` + rate book (`rateAnalyses`, `dsr`); Knowledge Bank → Rate Analysis | **Built** (Estimation OS 3) |
 | Steel | 5.6 Bar Bending Schedule | `esti_bbs` / `esti_bbs_item`, `bbs` namespace, `D²/162`, validation, PDF | **Built, but isolated** → link to BOQ/WO + reconciliation |
 | Tendered | 5.7 Tender, 5.8 Bidding, 5.9 Comparison | `esti_tender` (+invitations/bids/documents/acks), `esti_tender_item`/`esti_tender_bid_item`, `tenders` namespace (item procedures + `compareItems`), `Tenders.tsx`, contractor portal (`submitItemBid`) | **Built** (CC Phase A) → tender-doc PDF deferred |
 | Awarded | 5.10 Work Order, Award | `esti_work_package` / `esti_work_package_item` ← `tenders.award` (winning rates); `work_package.tender_id` ↔ `tender.estimate_version_id` | **Built** (CC Phase B) → contract-condition columns + WO PDF deferred |
@@ -279,9 +279,10 @@ Your three named priorities map to **A+B (tender management)**, **D
 - Reference spec: `AORMS_Construction_Cost_Management_OS_Architecture.md` (external).
 - Built foundation: [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md)
   (Phases 1–4 done; 5–6 deferred, now folded into CC Phases D and Future).
-- Roadmap: [IMPLEMENTATION-ROADMAP](IMPLEMENTATION-ROADMAP.md),
-  [ROADMAP](ROADMAP.md).
+- Roadmap: [ROADMAP](ROADMAP.md) § "AORMS restructure & Construction Cost OS"
+  (the former `IMPLEMENTATION-ROADMAP.md` was folded in and moved to
+  `deprecated_review/`).
 - UI governance (resolved — Pure Carbon everywhere, mobile-first portals):
   [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md). The earlier Material-UI portal
-  proposal (`docs/holagundi/AORMS_External_Portals_Material_UI_Architecture.md`) is
+  proposal (now in `deprecated_review/AORMS_External_Portals_Material_UI_Architecture.md`) is
   **superseded** and not being implemented.

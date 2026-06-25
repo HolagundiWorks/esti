@@ -43,18 +43,10 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      // The vendored kits (compliance, DSR) import "zod", but their dist files live
-      // under vendor/ — outside frontend/ — so Rollup can't resolve "zod" from their
+      // The vendored Rate Book kit imports "zod", but its dist files live
+      // under vendor/ — outside frontend/ — so Rollup can't resolve "zod" from that
       // location. Pin every "zod" import to the frontend's installed copy.
       { find: /^zod$/, replacement: require.resolve("zod") },
-      {
-        find: "@hcw/india-compliance-kit/profiles/bbmp-2003",
-        replacement: kitFile("hcw-india-compliance-kit", "dist/profiles/bbmp-2003/index.js"),
-      },
-      {
-        find: "@hcw/india-compliance-kit",
-        replacement: kitFile("hcw-india-compliance-kit", "dist/index.js"),
-      },
       {
         find: "@hcw/master-dsr-kit/schemas",
         replacement: kitFile("hcw-master-dsr-kit", "dist/schemas/dsr-import.js"),

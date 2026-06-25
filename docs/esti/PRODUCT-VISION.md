@@ -83,16 +83,16 @@ out of scope.
 - Contractor register, tender management, and construction coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
 - BOQ, takeoff, estimation, BBS, and simple purchase orders
-- Knowledge Bank for Master DSR, compliance rules, specification/procurement
-  standards, and structural element/reinforcement templates
-- Standalone district/state compliance calculations and project-linked PDFs
+- Knowledge Bank for Rate Books, specification/procurement standards, and
+  structural element/reinforcement (BBS) templates
 - Office correspondence, MOM, templates, CAD/BIM resources, and lessons learned
 - Client and contractor portals
 - Universal search, notifications, audit review, administration, and AI Studio
 
-Compliance is calculation and evidence, not live authority tracking. ESTI's
-Knowledge Bank maintains versioned local-rule knowledge and Compliance produces
-traceable development-control outputs; it does not imply a live BPAS/AutoPlan
+The in-product bylaw/development-control compliance engine was **removed** in the
+2026-06 cleanup — ESTI no longer calculates ground-coverage/FAR/setback envelopes
+or issues compliance PDFs. Regulatory awareness is limited to statutory **permit**
+records and **GST/TDS** filing; ESTI never implied a live BPAS/AutoPlan
 connection.
 
 CRIF-style revision intelligence is part of ESTI's project memory: decision
