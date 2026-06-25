@@ -10,6 +10,7 @@ import {
   netPayable,
   quantityDeviation,
   rateDeviation,
+  rateLadderHops,
   RunningBillCreate,
   variationItemAmountPaise,
   WorkPackageFromEstimate,
@@ -181,6 +182,62 @@ describe("deviationSeverity", () => {
   it("honours custom thresholds", () => {
     expect(deviationSeverity(8, { warnPct: 10, approvePct: 20 })).toBe("WITHIN_LIMIT");
     expect(deviationSeverity(25, { warnPct: 10, approvePct: 20 })).toBe("APPROVAL_REQUIRED");
+  });
+});
+
+describe("rateLadderHops", () => {
+  it("computes each signed hop % across the four rungs", () => {
+    const h = rateLadderHops({
+      estimatedPaise: 100000,
+      tenderedPaise: 110000,
+      awardedPaise: 121000,
+      revisedPaise: 133100,
+    });
+    expect(h.estToTenderPct).toBe(10);
+    expect(h.tenderToAwardPct).toBe(10);
+    expect(h.awardToRevisedPct).toBe(10);
+    expect(h.maxAbsHopPct).toBe(10);
+    expect(h.severity).toBe("WARNING");
+  });
+
+  it("nulls a hop whose baseline rung is absent (0 / null)", () => {
+    const h = rateLadderHops({
+      estimatedPaise: null,
+      tenderedPaise: 0,
+      awardedPaise: 100000,
+      revisedPaise: null,
+    });
+    expect(h.estToTenderPct).toBeNull(); // estimate absent
+    expect(h.tenderToAwardPct).toBeNull(); // tender baseline 0
+    expect(h.awardToRevisedPct).toBeNull(); // no revision
+    expect(h.maxAbsHopPct).toBe(0);
+    expect(h.severity).toBe("WITHIN_LIMIT");
+  });
+
+  it("an all-equal line is all-zero hops + within limit", () => {
+    const h = rateLadderHops({
+      estimatedPaise: 100000,
+      tenderedPaise: 100000,
+      awardedPaise: 100000,
+      revisedPaise: 100000,
+    });
+    expect(h.estToTenderPct).toBe(0);
+    expect(h.tenderToAwardPct).toBe(0);
+    expect(h.awardToRevisedPct).toBe(0);
+    expect(h.maxAbsHopPct).toBe(0);
+    expect(h.severity).toBe("WITHIN_LIMIT");
+  });
+
+  it("escalates severity off the largest absolute hop", () => {
+    const h = rateLadderHops({
+      estimatedPaise: 100000,
+      tenderedPaise: 103000, // +3% (within)
+      awardedPaise: 100000, // -2.91% (within)
+      revisedPaise: 115000, // +15% (approval required)
+    });
+    expect(h.awardToRevisedPct).toBe(15);
+    expect(h.maxAbsHopPct).toBe(15);
+    expect(h.severity).toBe("APPROVAL_REQUIRED");
   });
 });
 

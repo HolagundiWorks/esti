@@ -48,6 +48,7 @@ import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { DataState } from "./DataState.js";
+import { ProjectRateLadder } from "./ProjectRateLadder.js";
 
 const DEVIATION_STATUS_TAG: Record<DeviationStatus, "blue" | "green" | "red"> = {
   OPEN: "blue",
@@ -101,6 +102,7 @@ export function ProjectControls({ projectId }: { projectId: string }) {
         <TabList aria-label="Controls" contained>
           <Tab>Deviations</Tab>
           <Tab>Variation orders</Tab>
+          <Tab>Rate ladder</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -108,6 +110,9 @@ export function ProjectControls({ projectId }: { projectId: string }) {
           </TabPanel>
           <TabPanel>
             <VariationsPanel projectId={projectId} />
+          </TabPanel>
+          <TabPanel>
+            <ProjectRateLadder projectId={projectId} />
           </TabPanel>
         </TabPanels>
       </Tabs>

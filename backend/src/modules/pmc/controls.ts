@@ -22,9 +22,11 @@ import {
   DeviationConvert,
   DeviationCreate,
   DeviationReject,
+  type DeviationStatus,
   deviationCostImpactPaise,
   quantityDeviation,
   rateDeviation,
+  rateLadderHops,
   VARIATION_STATUS_LABEL,
   VariationApply,
   VariationApproveClient,
@@ -37,6 +39,7 @@ import {
   VariationReject,
   VariationSubmit,
   variationItemAmountPaise,
+  type RateLadderRow,
   type VariationStatus,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
@@ -147,6 +150,99 @@ export const deviationRouter = router({
         .orderBy(desc(deviations.createdAt)),
     ),
 
+  /**
+   * Rate-deviation ladder (3.4) — every work-package line's rate journey across
+   * the spine: estimated (design estimate) → tendered (office BOQ baseline) →
+   * awarded (winning bid) → revised (latest non-rejected RATE deviation). Computed
+   * live from the spine by the Rule-9 boqItemId ledger key, so it is correct for
+   * pre-existing deviations too. Read-only; advisory — a revised rate reaches bills
+   * only via a variation (Rule 5).
+   */
+  rateLadder: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      const rows = (await ctx.db.execute(sql`
+        select
+          wpi.id                 as work_package_item_id,
+          wp.id                  as work_package_id,
+          wp.ref                 as ref,
+          wpi.description        as description,
+          wpi.unit               as unit,
+          ei.rate_paise          as estimated_paise,
+          (
+            select ti.est_rate_paise
+            from esti_tender_item ti
+            join esti_tender t on t.id = ti.tender_id
+            where t.project_id = ${input.projectId} and ti.boq_item_id = wpi.boq_item_id
+            order by t.created_at desc
+            limit 1
+          )                      as tendered_paise,
+          wpi.rate_paise         as awarded_paise,
+          d.id                   as dev_id,
+          d.ref                  as dev_ref,
+          d.status               as dev_status,
+          d.reason               as dev_reason,
+          d.revised_rate_paise   as revised_paise
+        from esti_work_package_item wpi
+        join esti_work_package wp on wp.id = wpi.work_package_id
+        left join esti_estimate_item ei on ei.id = wpi.boq_item_id
+        left join lateral (
+          select id, ref, status, reason, revised_rate_paise
+          from esti_deviation dd
+          where dd.work_package_item_id = wpi.id
+            and dd.deviation_type = 'RATE'
+            and dd.status <> 'REJECTED'
+          order by dd.created_at desc
+          limit 1
+        ) d on true
+        where wp.project_id = ${input.projectId}
+        order by wp.ref, wpi.sort_order, wpi.description
+      `)) as unknown as {
+        work_package_item_id: string;
+        work_package_id: string;
+        ref: string;
+        description: string;
+        unit: string;
+        estimated_paise: number | string | null;
+        tendered_paise: number | string | null;
+        awarded_paise: number | string | null;
+        dev_id: string | null;
+        dev_ref: string | null;
+        dev_status: string | null;
+        dev_reason: string | null;
+        revised_paise: number | string | null;
+      }[];
+
+      const ladder: RateLadderRow[] = rows.map((r) => {
+        const estimatedPaise = r.estimated_paise == null ? null : Number(r.estimated_paise);
+        const tenderedPaise = r.tendered_paise == null ? null : Number(r.tendered_paise);
+        const awardedPaise = r.awarded_paise == null ? null : Number(r.awarded_paise);
+        const revisedPaise = r.dev_id == null ? null : Number(r.revised_paise);
+        return {
+          workPackageId: r.work_package_id,
+          workPackageItemId: r.work_package_item_id,
+          ref: r.ref,
+          description: r.description,
+          unit: r.unit,
+          estimatedPaise,
+          tenderedPaise,
+          awardedPaise,
+          revisedPaise,
+          hops: rateLadderHops({ estimatedPaise, tenderedPaise, awardedPaise, revisedPaise }),
+          deviation: r.dev_id
+            ? {
+                id: r.dev_id,
+                ref: r.dev_ref!,
+                status: (r.dev_status ?? "OPEN") as DeviationStatus,
+                reason: r.dev_reason,
+              }
+            : null,
+        };
+      });
+      return { rows: ladder, generatedAt: new Date().toISOString() };
+    }),
+
   create: author.input(DeviationCreate).mutation(async ({ ctx, input }) => {
     await assertPlanFeature(ctx.db, "costing");
     const [wpItem] = await ctx.db
@@ -191,6 +287,29 @@ export const deviationRouter = router({
       });
     }
 
+    // Rate-ladder rungs (3.4): the estimate baseline and the tender office-baseline
+    // for this line, linked by the Rule-9 boqItemId ledger key. Persisted so the
+    // stored deviation carries the full estimated → tendered → awarded → revised
+    // ladder (the read view recomputes them live, but the row keeps them for audit).
+    let estimatedRatePaise = 0;
+    let tenderedRatePaise = 0;
+    if (wpItem.boqItemId) {
+      const [est] = (await ctx.db.execute(sql`
+        select coalesce(rate_paise, 0)::bigint as rate_paise
+        from esti_estimate_item where id = ${wpItem.boqItemId}
+      `)) as unknown as [{ rate_paise: number } | undefined];
+      estimatedRatePaise = Number(est?.rate_paise ?? 0);
+      const [ten] = (await ctx.db.execute(sql`
+        select coalesce(ti.est_rate_paise, 0)::bigint as rate_paise
+        from esti_tender_item ti
+        join esti_tender t on t.id = ti.tender_id
+        where t.project_id = ${input.projectId} and ti.boq_item_id = ${wpItem.boqItemId}
+        order by t.created_at desc
+        limit 1
+      `)) as unknown as [{ rate_paise: number } | undefined];
+      tenderedRatePaise = Number(ten?.rate_paise ?? 0);
+    }
+
     const { ref } = await nextRef(ctx.db, "deviation", "DEV");
     const [row] = await ctx.db
       .insert(deviations)
@@ -207,6 +326,8 @@ export const deviationRouter = router({
         executedQty,
         deviationQty,
         deviationPct,
+        estimatedRatePaise,
+        tenderedRatePaise,
         awardedRatePaise,
         revisedRatePaise,
         costImpactPaise,

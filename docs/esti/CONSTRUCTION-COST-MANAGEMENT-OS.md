@@ -100,10 +100,20 @@ Auto-BOQ from components via the formula registry exists. **Build:** the BOQ
 missing spec/drawing ref, item without trade/package, stale drawing revision) as
 a `estimates.validateBoq` query surfacing warnings — currently absent.
 
-### 3.4 Rate Analysis (ref 5.4) — **Built; rate-deviation is new**
+### 3.4 Rate Analysis (ref 5.4) — **Built + rate-deviation ladder (2026-06-26)**
 `esti_rate_analysis` build-up (material/labour/equipment + wastage/overhead/
-profit) ships. **Build (Phase 5):** the **rate-deviation** ladder — estimated vs
-tendered vs awarded vs revised rate, with deviation amount/%/reason/approval.
+profit) ships. The **rate-deviation ladder** is now built: `deviations.rateLadder`
+recomputes every work-package line's rate journey live off the spine — **estimated**
+(`esti_estimate_item`) → **tendered** (`esti_tender_item.est_rate_paise` office
+baseline) → **awarded** (`esti_work_package_item.rate_paise` winning bid) →
+**revised** (latest non-rejected RATE `esti_deviation`) — joined by the Rule-9
+`boqItemId` ledger key, with per-hop deviation %/severity (`rateLadderHops`) and the
+active deviation's status/reason. Surfaced as the **Rate ladder** tab in
+`ProjectControls.tsx` (`ProjectRateLadder.tsx`), where a line can raise a RATE
+deviation through the existing Phase-D flow. The create path now also persists the
+estimated/tendered rungs on the stored row. No migration — `esti_deviation` already
+carried all four rate columns; Rule 5 unchanged (a revised rate reaches bills only
+via a variation).
 
 ### 3.5 Structural Quantification (ref 5.5) — **Thin / optional**
 No dedicated structural quantifier; the component master can model footings/
@@ -299,7 +309,8 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **E — BBS into the spine + Steel reconciliation** ✅ **Done (2026-06-25)** | `esti_bbs` gains `work_package_id` + `boq_item_id` (Rule 9 plain-uuid ledger key, no FK) + `drawing_id` links (`bbs.link`, set-null FKs for the two real targets); optional `floor` on `esti_bbs_item` driving `diameterSummary` / `floorSummary` roll-ups. `esti_steel_reconciliation` (+ `_item`) compares per diameter `scheduledKg` (auto-seeded from the linked BBS via `seedFromBbs`), `issuedKg` and `consumedKg` (entered); `wastageKg = issued − consumed` with a severity ladder (within ≤3% / watch / over >5%); two-state **DRAFT → FINALIZED**, finalize gated by the existing `cost:approve`, finalized record locks edits. `steelReconciliation` namespace, `ProjectSteelReconciliation.tsx` mounted under `ProjectBbs` in the BBS tab. *Deferred:* steel-reconciliation PDF (mirrors deferred variation-order PDF); full-BBS fields (shape/lap/Ld/hook/bend — formulas already in `steel-arranger.ts`); deriving consumed from the measurement book / a GRN store-issue ledger (Future "material reconciliation") | ref 5.6, 5.5 | **High** (you named BBS) |
 | **F — Final Account + Closure** ✅ **Done (2026-06-26)** | `esti_final_account` — **per work package**; reconciliation snapshot auto-rolled off the spine (`finalAccountFinancials`: original contract + variations/extra items + gross billed − retention/advance/TDS/other = net paid) and recomputed live while `DRAFT`; manual closing adjustments (final certified, retention released, no-claim cert, client approval, notes); `balanceDue = finalCertified − netPaid`. Rule-6 closure checklist (`finalAccountChecklist`) — blocking: no open deviations/variations (**enforced server-side in `close`**) + no-claim cert + client approval; advisory: approved-unbilled measurements + steel finalized. Two-state **DRAFT → CLOSED**, `close` gated by `cost:approve`, stamps the snapshot + checklist jsonb and sets the parent work package `CLOSED`. Closure PDF (`final_account` worker target, `_final_account_html`). `finalAccount` namespace, `ProjectFinalAccount.tsx`. *Deferred:* project-level rollup account; retention-release bill auto-gen; final-account XLSX | ref 5.18 | Med |
 | **G — Cost dashboard + reports + AI checks** ✅ **Done (2026-06-26)** | `dashboard.constructionCost(projectId)` read model + the `showBills`-gated **Cost dashboard** tab (`ProjectCostDashboard.tsx`): Estimated / Tendered / Awarded / Billed / Certified KPIs, cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey, deviation/variation/pending-bill exposure. The three risk checks (duplicate/over-billing, unbalanced bid, bill deviation) are **deterministic** "checker" output (pure + unit-tested in `cost-dashboard.ts`; the §9 rule that AI must not "silently approve" financial data), advisory-only with a severity. Read-only, no migration, costing-plan gated. *Deferred:* LLM narration of the notes (`ai` namespace); `cost_report` PDF worker target; office-wide cross-project roll-up | ref 5.1, §9, §16 | Med |
-| **Future** | Procurement forecast (3.16), material reconciliation (3.17), BOQ-validation checklist (3.3), rate-deviation ladder (3.4), cost-report PDF, AI narration, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
+| **3.4 — Rate-deviation ladder** ✅ **Done (2026-06-26)** | `deviations.rateLadder` recomputes each work-package line's estimated → tendered → awarded → revised rate journey live off the spine (Rule-9 `boqItemId` join), per-hop deviation %/severity (`rateLadderHops`), active-deviation status. **Rate ladder** tab in `ProjectControls.tsx` (`ProjectRateLadder.tsx`) raises a RATE deviation via the existing Phase-D flow; create now persists the estimated/tendered rungs. No migration; Rule 5 unchanged | ref 5.4, §3.4 | Med |
+| **Future** | Procurement forecast (3.16), material reconciliation (3.17), BOQ-validation checklist (3.3), cost-report PDF, AI narration, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
 
 Your three named priorities map to **A+B (tender management)**, **D
 (additions/variations)**, and **E (BBS)** — a natural first three.
@@ -308,9 +319,9 @@ Your three named priorities map to **A+B (tender management)**, **D
 Construction Cost OS spine is complete: `estimate → frozen BOQ → tender → award →
 work package → site measurement → running bill → deviations/variations → BBS +
 steel reconciliation → final account + closure → cost dashboard + risk checks`.
-What remains (the **Future** row) is additive: procurement forecast, material
-reconciliation, the BOQ-validation checklist, the rate-deviation ladder, report
-PDFs, and optional AI narration.
+The first Future-row slice — the **rate-deviation ladder (3.4)** — also shipped
+(2026-06-26). What remains is additive: procurement forecast, material
+reconciliation, the BOQ-validation checklist, report PDFs, and optional AI narration.
 
 ---
 
