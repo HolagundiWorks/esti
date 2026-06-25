@@ -458,3 +458,27 @@ export const finalAccounts = pgTable("esti_final_account", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/**
+ * Construction Cost OS — project-level cost-report PDF. One row per project
+ * (unique project_id), upserted on each "Generate PDF". The backend computes the
+ * cost-health dashboard once and stores the whole result in `snapshot`, so the
+ * worker renders the PDF straight from the snapshot — an exact, reproducible
+ * print of what was on screen at `generatedAt`, with no read-model SQL duplicated
+ * in Python. Carries the async pdf_status / pdf_key slot the render pipeline
+ * patches (PENDING → PROCESSING → READY/FAILED).
+ */
+export const costReports = pgTable("esti_cost_report", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .unique()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  snapshot: jsonb("snapshot").notNull().default({}),
+  generatedAt: timestamp("generated_at", { withTimezone: true }),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});

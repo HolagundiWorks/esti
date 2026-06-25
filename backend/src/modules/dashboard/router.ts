@@ -2,9 +2,11 @@ import { DashboardLayout } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { users } from "../../db/schema.js";
+import { costReports, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { firmPayload } from "../../lib/firm.js";
+import { enqueueJob } from "../../lib/redis.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getActionCenter,
   getClientIntelligence,
@@ -284,5 +286,64 @@ export const dashboardRouter = router({
     .query(async ({ ctx, input }) => {
       await assertPlanFeature(ctx.db, "costing");
       return getConstructionCostHealth(ctx.db, input.projectId);
+    }),
+
+  /**
+   * Generate (or refresh) the printable cost report for one project. Computes the
+   * Phase-G cost-health model once, snapshots the whole result into esti_cost_report
+   * (one row per project, upserted), and enqueues the worker render_pdf job. The
+   * worker renders the PDF straight from the stored snapshot — an exact, reproducible
+   * print of the dashboard at generation time. Write-capability + costing gated.
+   */
+  generateCostReport: capabilityProcedure("write")
+    .input(z.object({ projectId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      const health = await getConstructionCostHealth(ctx.db, input.projectId);
+      const now = new Date();
+      const [row] = await ctx.db
+        .insert(costReports)
+        .values({
+          projectId: input.projectId,
+          snapshot: health,
+          generatedAt: now,
+          pdfStatus: "PENDING",
+          createdById: ctx.user.id,
+        })
+        .onConflictDoUpdate({
+          target: costReports.projectId,
+          set: { snapshot: health, generatedAt: now, pdfStatus: "PENDING", updatedAt: now },
+        })
+        .returning();
+      if (!row) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await enqueueJob(
+        "render_pdf",
+        { target: "cost_report", id: row.id, firm: await firmPayload(ctx.db) },
+        ctx.requestId,
+      );
+      await writeAudit(ctx.db, {
+        entity: "cost_report",
+        entityId: row.id,
+        action: "GENERATE_PDF",
+        actorId: ctx.user.id,
+      });
+      return { ok: true as const };
+    }),
+
+  /** Poll the cost-report PDF status for one project. Read-only; costing gated. */
+  costReport: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      const [row] = await ctx.db
+        .select({
+          pdfStatus: costReports.pdfStatus,
+          pdfKey: costReports.pdfKey,
+          generatedAt: costReports.generatedAt,
+        })
+        .from(costReports)
+        .where(eq(costReports.projectId, input.projectId))
+        .limit(1);
+      return row ?? { pdfStatus: "NONE", pdfKey: null, generatedAt: null };
     }),
 });

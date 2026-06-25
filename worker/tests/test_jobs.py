@@ -1,6 +1,11 @@
 """Unit tests for the worker's pure helpers (no DB / object storage / network)."""
 from esti_worker.jobs import HANDLERS
-from esti_worker.jobs.pdf import _final_account_html, _inr, _running_bill_html
+from esti_worker.jobs.pdf import (
+    _cost_report_html,
+    _final_account_html,
+    _inr,
+    _running_bill_html,
+)
 from esti_worker.jobs.reconcile import _digits, _pick, _to_paise
 
 
@@ -109,3 +114,84 @@ def test_final_account_html_renders_reconciliation_and_attestations() -> None:
     assert "No-claim certificate received" in html_str
     # A zero-value deduction (advance recovery) is omitted.
     assert "Advances recovered" not in html_str
+
+
+def test_cost_report_html_renders_kpis_packages_and_checks() -> None:
+    snapshot = {
+        "kpis": {
+            "estimatedPaise": 100000000,  # ₹10,00,000
+            "tenderedPaise": 98000000,
+            "awardedPaise": 95000000,  # ₹9,50,000
+            "billedGrossPaise": 60000000,  # ₹6,00,000
+            "certifiedNetPaise": 57000000,
+            "pendingBillsCount": 1,
+            "pendingBillsPaise": 5000000,
+            "approvedDeviations": {"count": 2, "valuePaise": 1500000},
+            "unapprovedDeviations": {"count": 0, "valuePaise": 0},
+            "variationValuePaise": 2500000,  # ₹25,000
+        },
+        "overrunPct": -5.0,
+        "packages": [
+            {
+                "id": "wp1",
+                "ref": "WP-0001",
+                "name": "Civil works",
+                "contractor": "Acme Builders",
+                "awardedPaise": 95000000,
+                "variationPaise": 2500000,
+                "billedPaise": 60000000,
+                "openDeviations": 0,
+                "status": "GREEN",
+            }
+        ],
+        "contractors": [
+            {
+                "id": "c1",
+                "name": "Acme Builders",
+                "billedPaise": 60000000,
+                "certifiedPaise": 57000000,
+                "pendingBills": 1,
+            }
+        ],
+        "riskNotes": [
+            {
+                "kind": "BILL_DEVIATION",
+                "severity": "HIGH",
+                "label": "Billing exceeds awarded value",
+                "detail": "Billed ₹6,00,000 against awarded ₹9,50,000",
+                "ref": "WP-0001",
+            }
+        ],
+        "generatedAt": "2026-06-26T10:00:00.000Z",
+    }
+    rec = {
+        "snapshot": snapshot,
+        "generated_at": "2026-06-26T10:00:00.000Z",
+        "pdf_status": "PENDING",
+        "pdf_key": None,
+        "project_ref": "PRJ-1",
+        "project_title": "Sample tower",
+    }
+    html_str = _cost_report_html(rec, {"legalName": "HCW", "addressLines": []})
+    assert "Cost report — Sample tower (PRJ-1)" in html_str
+    assert "-5.0% vs estimate" in html_str
+    assert "₹10,00,000.00" in html_str  # estimated KPI
+    assert "₹9,50,000.00" in html_str  # awarded KPI / package awarded
+    assert "Civil works" in html_str
+    assert "Within budget" in html_str  # GREEN status label
+    assert "Acme Builders" in html_str  # contractor row
+    assert "Billing exceeds awarded value" in html_str  # risk note
+    assert "Advisory only" in html_str
+
+
+def test_cost_report_html_no_risks_shows_clean() -> None:
+    rec = {
+        "snapshot": {"kpis": {}, "overrunPct": None, "packages": [], "contractors": [], "riskNotes": []},
+        "generated_at": "2026-06-26T10:00:00.000Z",
+        "project_ref": "PRJ-2",
+        "project_title": "Empty project",
+    }
+    html_str = _cost_report_html(rec, {"legalName": "HCW", "addressLines": []})
+    assert "No cost risks detected." in html_str
+    assert "No estimate baseline yet" in html_str
+    assert "No work packages yet" in html_str

@@ -341,6 +341,28 @@ def update_final_account(faid: str, **fields: Any) -> None:
     _patch("esti_final_account", faid, set(), fields)
 
 
+def update_cost_report(report_id: str, **fields: Any) -> None:
+    """Patch an esti_cost_report row (only pdf_status / pdf_key; the snapshot is
+    written by the backend and never touched here)."""
+    _patch("esti_cost_report", report_id, set(), fields)
+
+
+def fetch_cost_report_full(report_id: str) -> dict[str, Any] | None:
+    """A project cost report (Construction Cost OS Future row). Carries the
+    cost-health dashboard `snapshot` jsonb + project header, so the PDF prints
+    straight from the snapshot taken at generation time — no read-model SQL is
+    re-implemented here. psycopg parses the jsonb into a Python dict."""
+    sql = """
+        select cr.snapshot, cr.generated_at, cr.pdf_key, cr.pdf_status,
+               p.ref as project_ref, p.title as project_title
+        from esti_cost_report cr
+        join esti_projectoffice p on p.id = cr.project_id
+        where cr.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [report_id]).fetchone()
+
+
 def fetch_final_account_full(faid: str) -> dict[str, Any] | None:
     """A final account + project / work-package headers (Construction Cost OS
     Phase F). Carries the reconciliation snapshot + closure attestations so the
