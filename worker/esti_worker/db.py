@@ -247,6 +247,7 @@ def update_estimate(eid: str, **fields: Any) -> None:
 def fetch_estimate_full(eid: str) -> dict[str, Any] | None:
     sql = """
         select e.ref, e.title, e.lead_pct, e.subtotal_paise, e.total_paise, e.version_no,
+               e.stage, e.status,
                p.ref as project_ref, p.title as project_title
         from esti_estimate e
         join esti_projectoffice p on p.id = e.project_id
@@ -257,7 +258,8 @@ def fetch_estimate_full(eid: str) -> dict[str, Any] | None:
         if row is None:
             return None
         row["items"] = conn.execute(
-            "select description, unit, qty, rate_paise, item_lead_pct, amount_paise "
+            "select description, unit, qty, rate_paise, item_lead_pct, amount_paise, "
+            "cost_head, calculation_type, confidence "
             "from esti_estimate_item where estimate_id = %s order by sort_order, created_at",
             [eid],
         ).fetchall()
@@ -286,31 +288,6 @@ def fetch_bbs_full(bid: str) -> dict[str, Any] | None:
             [bid],
         ).fetchall()
         return row
-
-
-def update_site_assessment(sa_id: str, **fields: Any) -> None:
-    _patch("esti_site_assessment", sa_id, {"site_inputs", "dev_control", "basement", "sustainability", "approval_readiness", "violations", "relaxations"}, fields)
-
-
-def fetch_site_assessment_full(sa_id: str) -> dict[str, Any] | None:
-    """Site assessment joined with project, for the compliance PDF."""
-    sql = """
-        select
-          sa.id, sa.status, sa.assessment_phase, sa.overall_score,
-          sa.site_inputs, sa.dev_control, sa.basement, sa.sustainability,
-          sa.approval_readiness, sa.violations, sa.relaxations,
-          sa.issued_at, sa.created_at,
-          rv.authority, rv.district, rv.state, rv.building_use, rv.effective_date,
-          p.ref as project_ref, p.title as project_title, p.site_address,
-          c.name as client_name, c.city as client_city, c.state as client_state
-        from esti_site_assessment sa
-        join esti_projectoffice p on p.id = sa.project_id
-        left join esti_rule_version rv on rv.id = sa.rule_version_id
-        left join esti_client c on c.id = p.client_id
-        where sa.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        return conn.execute(sql, [sa_id]).fetchone()
 
 
 def update_progress_report(rid: str, **fields: Any) -> None:

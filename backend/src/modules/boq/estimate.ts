@@ -289,8 +289,10 @@ export const estimateRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [row] = await ctx.db.select().from(estimates).where(eq(estimates.id, input.id));
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-      if (row.status !== "APPROVED") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Only approved estimates can be revised" });
+      // A revise reopens an issued/frozen estimate for further editing.
+      const REVISABLE = new Set(["APPROVED", "DESIGN_FROZEN", "EXECUTION_FROZEN"]);
+      if (!REVISABLE.has(row.status)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only frozen or approved estimates can be revised" });
       }
       const versionNo = (row.versionNo ?? 1) + 1;
       await ctx.db

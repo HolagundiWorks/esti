@@ -29,7 +29,6 @@ import {
   specCatalogItems,
   specSheets,
   specificationStandards,
-  structuralElementTemplates,
   tasks,
   tenders,
 } from "../../db/schema.js";
@@ -536,36 +535,6 @@ async function searchKnowledge(db: DB, q: string): Promise<SearchHit[]> {
     })),
   );
 
-  const structRows = await db
-    .select({
-      id: structuralElementTemplates.id,
-      code: structuralElementTemplates.code,
-      name: structuralElementTemplates.name,
-      description: structuralElementTemplates.description,
-    })
-    .from(structuralElementTemplates)
-    .where(
-      and(
-        eq(structuralElementTemplates.status, "PUBLISHED"),
-        or(
-          ilike(structuralElementTemplates.code, like),
-          ilike(structuralElementTemplates.name, like),
-          ilike(structuralElementTemplates.description, like),
-        ),
-      ),
-    )
-    .limit(PER_TYPE_LIMIT);
-  hits.push(
-    ...structRows.map((r) => ({
-      entityType: "STRUCTURAL_TEMPLATE" as const,
-      entityId: r.id,
-      title: `${r.code} · ${r.name}`,
-      snippet: snippet(r.description, 120),
-      href: searchResultHref("STRUCTURAL_TEMPLATE", r.id),
-      rank: rank(r.code, r.name, q),
-    })),
-  );
-
   return hits;
 }
 
@@ -883,8 +852,7 @@ export async function runUniversalSearch(
     wants(types, "OFFICE_TEMPLATE") ||
     wants(types, "DSR_ITEM") ||
     wants(types, "SPEC_CATALOG") ||
-    wants(types, "SPEC_STANDARD") ||
-    wants(types, "STRUCTURAL_TEMPLATE")
+    wants(types, "SPEC_STANDARD")
   ) {
     batches.push(searchKnowledge(db, q));
   }

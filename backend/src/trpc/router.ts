@@ -8,10 +8,11 @@ import { decisionRouter } from "../modules/decision/router.js";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
 import { bbsRouter } from "../modules/boq/bbs.js";
+import { componentRouter } from "../modules/boq/component.js";
+import { designEstimateRouter } from "../modules/boq/designEstimate.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
 import { estimateRouter } from "../modules/boq/estimate.js";
 import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
-import { bbmpRulesRouter } from "../modules/bylaw/bbmpRules.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
@@ -50,14 +51,8 @@ import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
-import {
-  ruleVersionRouter,
-  siteAssessmentRouter,
-} from "../modules/rie/router.js";
-import { kbSeedRouter } from "../modules/knowledgebank/seed.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
-import { steelflowRouter } from "../modules/steelflow/router.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
@@ -123,9 +118,10 @@ export const appRouter = router({
   feeProposals: feeProposalRouter,
   invoices: invoiceRouter,
   permits: permitRouter,
-  bbmpRules: bbmpRulesRouter,
   dsr: dsrRouter,
   estimates: estimateRouter,
+  estimation: designEstimateRouter,
+  components: componentRouter,
   bbs: bbsRouter,
   rateAnalysis: rateAnalysisRouter,
   approvals: approvalRouter,
@@ -169,12 +165,8 @@ export const appRouter = router({
   leaves: leaveRouter,
   payroll: payrollRouter,
   hrProfile: hrProfileRouter,
-  ruleVersions: ruleVersionRouter,
-  siteAssessments: siteAssessmentRouter,
   knowledgeBank: knowledgeBankRouter,
-  kbSeed: kbSeedRouter,
   specCatalog: specCatalogRouter,
-  steelflow: steelflowRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,
   rewards: rewardRouter,

@@ -16,7 +16,6 @@ export const SearchEntityType = z.enum([
   "DSR_ITEM",
   "SPEC_CATALOG",
   "SPEC_STANDARD",
-  "STRUCTURAL_TEMPLATE",
   "CONSULTANT",
   "CONTRACTOR",
   "TENDER",
@@ -43,7 +42,6 @@ export const SEARCH_ENTITY_LABEL: Record<SearchEntityType, string> = {
   DSR_ITEM: "DSR item",
   SPEC_CATALOG: "Spec catalogue",
   SPEC_STANDARD: "Specification standard",
-  STRUCTURAL_TEMPLATE: "Structural template",
   CONSULTANT: "Consultant",
   CONTRACTOR: "Contractor / vendor",
   TENDER: "Tender",
@@ -60,7 +58,6 @@ export const KB_SEARCH_TYPES: SearchEntityType[] = [
   "DSR_ITEM",
   "SPEC_CATALOG",
   "SPEC_STANDARD",
-  "STRUCTURAL_TEMPLATE",
   "DRAWING",
   "CONTRACTOR",
   "LESSON",
@@ -160,8 +157,6 @@ export function searchResultHref(
     case "SPEC_CATALOG":
     case "SPEC_STANDARD":
       return "/knowledge-bank?tab=specification";
-    case "STRUCTURAL_TEMPLATE":
-      return "/knowledge-bank?tab=steelflow";
     case "CONSULTANT":
       return "/consultants";
     case "CONTRACTOR":

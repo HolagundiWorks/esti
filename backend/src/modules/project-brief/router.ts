@@ -1,5 +1,5 @@
 import { ProjectBriefUpsertSection } from "@esti/contracts";
-import { desc, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   appointments,
@@ -7,7 +7,6 @@ import {
   permits,
   projectBriefs,
   projectOffices,
-  siteAssessments,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -27,16 +26,6 @@ export const projectBriefRouter = router({
         .where(eq(appointments.projectId, input.projectId))
         .limit(1);
 
-      const [latestAssessment] = await ctx.db
-        .select({
-          overallScore: siteAssessments.overallScore,
-          assessmentPhase: siteAssessments.assessmentPhase,
-        })
-        .from(siteAssessments)
-        .where(eq(siteAssessments.projectId, input.projectId))
-        .orderBy(desc(siteAssessments.createdAt))
-        .limit(1);
-
       const [permitCount] = await ctx.db
         .select({ count: sql<number>`count(*)::int` })
         .from(permits)
@@ -52,8 +41,6 @@ export const projectBriefRouter = router({
         aggregates: {
           appointmentScope: appointment?.scopeSummary ?? null,
           appointmentStatus: appointment?.status ?? null,
-          siteAssessmentScore: latestAssessment?.overallScore ?? null,
-          siteAssessmentPhase: latestAssessment?.assessmentPhase ?? null,
           permitCount: permitCount?.count ?? 0,
           moodBoardCount: moodCount?.count ?? 0,
         },

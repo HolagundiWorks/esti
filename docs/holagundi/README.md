@@ -9,3 +9,15 @@ complement the product docs in [`docs/esti/`](../esti/README.md).
 | [PROJECT-BRIEFING.md](PROJECT-BRIEFING.md) | Pre-design questionnaire, room templates, and how to compile the project design brief in ESTI |
 
 **Lifecycle placement:** Phase 0 (Appointment) through Initiation & Brief — before Concept Design sign-off.
+
+The brief feeds the **design-stage estimate**: once a project brief and concept
+exist, the design-stage estimate is the next commercial artefact. The estimation
+engine that consumes these inputs is a product concern, documented canonically in
+[`docs/esti/ESTIMATION-OS-ARCHITECTURE.md`](../esti/ESTIMATION-OS-ARCHITECTURE.md)
+and [`docs/esti/IFC-COMPONENT-MAPPING.md`](../esti/IFC-COMPONENT-MAPPING.md)
+(promoted here from this folder — they are product architecture, not firm
+practice).
+
+> `bylaws_compliance_engine_agent_spec.md` in this folder is **superseded**: the
+> in-product RIE/compliance engine was removed; the file remains for historical
+> reference only.

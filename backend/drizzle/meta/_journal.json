@@ -603,6 +603,20 @@
       "when": 1782201100000,
       "tag": "0085_lite_fixed_workspace",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1782201200000,
+      "tag": "0086_drop_compliance_steel",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1782201300000,
+      "tag": "0087_estimation_os",
+      "breakpoints": true
     }
   ]
 }

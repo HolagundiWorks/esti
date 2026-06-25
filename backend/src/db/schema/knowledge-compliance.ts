@@ -1,4 +1,3 @@
-import { bbmpRuleSets } from "./bbmp-rules.js";
 import { users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 import {
@@ -62,6 +61,11 @@ export const estimates = pgTable("esti_estimate", {
   dsrVersionId: uuid("dsr_version_id").references(() => dsrVersions.id),
   leadPct: doublePrecision("lead_pct").notNull().default(0),
   status: text("status").notNull().default("DRAFT"),
+  /** Estimation OS: DESIGN (ballpark) or EXECUTION (detailed). */
+  stage: text("stage").notNull().default("DESIGN"),
+  /** Overall confidence band (LOW/MEDIUM/HIGH) for a design-stage estimate. */
+  confidence: text("confidence"),
+  basisNote: text("basis_note"),
   subtotalPaise: bigint("subtotal_paise", { mode: "number" })
     .notNull()
     .default(0),
@@ -95,6 +99,17 @@ export const estimateItems = pgTable("esti_estimate_item", {
   ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
   itemLeadPct: doublePrecision("item_lead_pct").notNull().default(0),
   amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  /** Estimation OS classification + calculation. */
+  costHead: text("cost_head"),
+  /** RATE_BOOK | AREA_RATE | PERCENTAGE | LUMPSUM | COMPONENT | NON_MODELED. */
+  calculationType: text("calculation_type").notNull().default("RATE_BOOK"),
+  confidence: text("confidence"),
+  /** PERCENTAGE clauses: percent + the basis it is computed against. */
+  pct: doublePrecision("pct"),
+  basisSelector: jsonb("basis_selector").notNull().default({}),
+  /** FK constraints added in migration to avoid a schema-module cycle. */
+  componentId: uuid("component_id"),
+  estimateComponentId: uuid("estimate_component_id"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });
@@ -119,6 +134,8 @@ export const rateAnalyses = pgTable("esti_rate_analysis", {
   directCostPaise: bigint("direct_cost_paise", { mode: "number" }).notNull().default(0),
   /** directCostPaise × (1 + overheadPct / 100). */
   analysedRatePaise: bigint("analysed_rate_paise", { mode: "number" }).notNull().default(0),
+  /** Estimation OS: the component this analysis prices (FK added in migration). */
+  componentId: uuid("component_id"),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -171,26 +188,6 @@ export const bbsItems = pgTable("esti_bbs_item", {
   createdAt: createdAt(),
 });
 
-/** RIE: Versioned jurisdiction rule sets (knowledge bank). */
-export const ruleVersions = pgTable("esti_rule_version", {
-  id: id(),
-  state: text("state").notNull(),
-  district: text("district").notNull(),
-  authority: text("authority").notNull(),
-  buildingUse: text("building_use").notNull(),
-  effectiveDate: date("effective_date").notNull(),
-  status: text("status").notNull().default("DRAFT"),
-  sourceCitation: text("source_citation"),
-  data: jsonb("data").notNull().default({}),
-  notes: text("notes"),
-  createdById: uuid("created_by_id").references(() => users.id),
-  reviewedById: uuid("reviewed_by_id").references(() => users.id),
-  publishedAt: timestamp("published_at", { withTimezone: true }),
-  supersededById: uuid("superseded_by_id"),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
-
 /** Knowledge Bank: versioned specification and procurement standards. */
 export const specificationStandards = pgTable("esti_specification_standard", {
   id: id(),
@@ -214,52 +211,3 @@ export const specificationStandards = pgTable("esti_specification_standard", {
   updatedAt: updatedAt(),
 });
 
-/** Knowledge Bank: versioned structural geometry and reinforcement templates. */
-export const structuralElementTemplates = pgTable(
-  "esti_structural_element_template",
-  {
-    id: id(),
-    code: text("code").notNull(),
-    name: text("name").notNull(),
-    family: text("family").notNull(),
-    type: text("type").notNull(),
-    version: text("version").notNull(),
-    status: text("status").notNull().default("DRAFT"),
-    description: text("description"),
-    geometry: jsonb("geometry").notNull().default({}),
-    reinforcement: jsonb("reinforcement").notNull().default([]),
-    sourceCitation: text("source_citation"),
-    createdById: uuid("created_by_id").references(() => users.id),
-    reviewedById: uuid("reviewed_by_id").references(() => users.id),
-    publishedAt: timestamp("published_at", { withTimezone: true }),
-    supersededById: uuid("superseded_by_id"),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-);
-
-/** RIE: Per-project site assessment (all five engine outputs). */
-export const siteAssessments = pgTable("esti_site_assessment", {
-  id: id(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projectOffices.id),
-  ruleVersionId: uuid("rule_version_id").references(() => ruleVersions.id),
-  bbmpRuleSetId: uuid("bbmp_rule_set_id").references(() => bbmpRuleSets.id),
-  status: text("status").notNull().default("DRAFT"),
-  assessmentPhase: text("assessment_phase").notNull().default("PRE_DESIGN"),
-  siteInputs: jsonb("site_inputs").notNull().default({}),
-  devControl: jsonb("dev_control"),
-  basement: jsonb("basement"),
-  sustainability: jsonb("sustainability"),
-  approvalReadiness: jsonb("approval_readiness"),
-  violations: jsonb("violations"),
-  relaxations: jsonb("relaxations"),
-  overallScore: integer("overall_score"),
-  issuedAt: timestamp("issued_at", { withTimezone: true }),
-  pdfKey: text("pdf_key"),
-  pdfStatus: text("pdf_status"),
-  createdById: uuid("created_by_id").references(() => users.id),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
