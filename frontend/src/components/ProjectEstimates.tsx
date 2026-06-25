@@ -253,6 +253,10 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
     { versionId: open?.dsrVersionId ?? "" },
     { enabled: !!open?.dsrVersionId },
   );
+  // Phase 4: estimation can pull from the Phase 6 analysed-rate library.
+  const rateAnalysesQ = trpc.rateAnalysis.list.useQuery(undefined, {
+    enabled: !!open,
+  });
 
   const [itemOpen, setItemOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -282,6 +286,16 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
       description: d?.description ?? f.description,
       unit: d?.unit ?? f.unit,
       rate: d ? String(d.ratePaise / 100) : f.rate,
+    }));
+  }
+  function pickAnalysed(id: string) {
+    const a = (rateAnalysesQ.data ?? []).find((x) => x.id === id);
+    setItf((f) => ({
+      ...f,
+      dsrItemId: "",
+      description: a?.description ?? f.description,
+      unit: a?.unit ?? f.unit,
+      rate: a ? String(a.analysedRatePaise / 100) : f.rate,
     }));
   }
 
@@ -817,7 +831,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           {(dsrItemsQ.data ?? []).length > 0 && (
             <Select
               id="it-dsr"
-              labelText="From DSR (optional)"
+              labelText="From rate book (optional)"
               value={itf.dsrItemId}
               onChange={(e) => pickDsr(e.target.value)}
             >
@@ -827,6 +841,24 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                   key={d.id}
                   value={d.id}
                   text={`${d.code} — ${d.description}`}
+                />
+              ))}
+            </Select>
+          )}
+          {(rateAnalysesQ.data ?? []).length > 0 && (
+            <Select
+              id="it-analysed"
+              labelText="From analysed rate (optional)"
+              helperText="Composite rates built in Knowledge Bank → Rate Analysis."
+              defaultValue=""
+              onChange={(e) => pickAnalysed(e.target.value)}
+            >
+              <SelectItem value="" text="—" />
+              {(rateAnalysesQ.data ?? []).map((a) => (
+                <SelectItem
+                  key={a.id}
+                  value={a.id}
+                  text={`${a.code} — ${a.description} (${formatINR(a.analysedRatePaise)}/${a.unit})`}
                 />
               ))}
             </Select>
