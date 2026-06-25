@@ -34,12 +34,22 @@ export async function assertNotFixedPlan(db: DB): Promise<void> {
   }
 }
 
+const QUOTA_LABEL: Record<PlanQuota, string> = {
+  accountants: "accountant seat",
+  hrManagers: "HR manager seat",
+  staff: "staff seat",
+  clients: "client",
+  contractors: "contractor",
+  consultants: "consultant",
+  projects: "project",
+};
+
 /** Throw FORBIDDEN if adding one more of `kind` exceeds the plan quota. */
 export async function assertQuota(db: DB, kind: PlanQuota, currentCount: number): Promise<void> {
   if (!withinQuota(await firmPlan(db), kind, currentCount)) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `You have reached your plan's ${kind} limit. Upgrade to add more.`,
+      message: `You have reached your plan's ${QUOTA_LABEL[kind]} limit. Upgrade to add more.`,
     });
   }
 }

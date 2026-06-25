@@ -16,10 +16,19 @@ export const PLAN_LABEL: Record<Plan, string> = {
 
 const PLAN_RANK: Record<Plan, number> = { LITE: 0, CORE: 1, ENTERPRISE: 2 };
 
-/** Quota caps per plan. `null` = unlimited. */
+/**
+ * Quota caps per plan. `null` = unlimited.
+ *
+ * Staff seats are split by function. The single OWNER (admin) is pinned
+ * separately and never counted here:
+ *   - `accountants` — ACCOUNTANT logins
+ *   - `hrManagers`  — HR_MANAGER logins
+ *   - `staff`       — general seniority-tier logins (PARTNER/SENIOR/ASSOCIATE/VIEWER)
+ */
 export interface PlanLimits {
-  /** Non-OWNER staff seats. The single OWNER (admin) is counted separately. */
-  teamMembers: number | null;
+  accountants: number | null;
+  hrManagers: number | null;
+  staff: number | null;
   clients: number | null;
   contractors: number | null;
   consultants: number | null;
@@ -30,10 +39,16 @@ export interface PlanLimits {
 
 /** 5 GB, the AORMS-Lite storage cap. */
 export const LITE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+/** 200 GB, the AORMS-Core storage cap. */
+export const CORE_STORAGE_BYTES = 200 * 1024 * 1024 * 1024;
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   LITE: {
-    teamMembers: 3,
+    // Lite is a fixed workspace — staff creation is blocked entirely; the seeded
+    // roster is 3 general staff and no functional (accountant/HR) seats.
+    accountants: 0,
+    hrManagers: 0,
+    staff: 3,
     clients: 5,
     contractors: 5,
     consultants: 5,
@@ -41,15 +56,20 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     storageBytes: LITE_STORAGE_BYTES,
   },
   CORE: {
-    teamMembers: 25,
+    // 1 admin (OWNER, pinned) + 1 accountant + 1 HR + 10 general staff.
+    accountants: 1,
+    hrManagers: 1,
+    staff: 10,
     clients: null,
     contractors: null,
     consultants: null,
     projects: null,
-    storageBytes: null,
+    storageBytes: CORE_STORAGE_BYTES,
   },
   ENTERPRISE: {
-    teamMembers: null,
+    accountants: null,
+    hrManagers: null,
+    staff: null,
     clients: null,
     contractors: null,
     consultants: null,
@@ -58,7 +78,14 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   },
 };
 /** Count-based quotas (storageBytes is enforced separately via `withinStorage`). */
-export type PlanQuota = "teamMembers" | "clients" | "contractors" | "consultants" | "projects";
+export type PlanQuota =
+  | "accountants"
+  | "hrManagers"
+  | "staff"
+  | "clients"
+  | "contractors"
+  | "consultants"
+  | "projects";
 
 /** Feature flags gated by a minimum plan. */
 export const PLAN_FEATURES = [

@@ -1,4 +1,11 @@
-import { ASSIGNABLE_STAFF_ROLES, OfficeListParams, clampListLimit } from "@esti/contracts";
+import {
+  ASSIGNABLE_STAFF_ROLES,
+  GENERAL_STAFF_ROLES,
+  OfficeListParams,
+  type PlanQuota,
+  type StaffRole,
+  clampListLimit,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -50,15 +57,22 @@ export const userRouter = router({
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
       // Lite ships a fixed roster (1 admin + 3 staff) — no new staff logins.
       await assertNotFixedPlan(ctx.db);
-      // Plan quota: count only non-OWNER staff seats — the single OWNER (admin)
-      // is pinned separately, and portal users (CLIENT, CONSULTANT-portal,
-      // CONTRACTOR) don't take a team seat.
-      const teamRows = await ctx.db
+      // Plan quota by functional seat bucket — the single OWNER (admin) is pinned
+      // separately, ACCOUNTANT and HR_MANAGER each get their own seat, and the
+      // seniority tiers share the general "staff" bucket. Portal users (CLIENT,
+      // CONSULTANT-portal, CONTRACTOR) never take a staff seat.
+      const seat: { quota: PlanQuota; roles: StaffRole[] } =
+        input.role === "ACCOUNTANT"
+          ? { quota: "accountants", roles: ["ACCOUNTANT"] }
+          : input.role === "HR_MANAGER"
+            ? { quota: "hrManagers", roles: ["HR_MANAGER"] }
+            : { quota: "staff", roles: [...GENERAL_STAFF_ROLES] };
+      const seatRows = await ctx.db
         .select({ count: sql<number>`count(*)::int` })
         .from(users)
-        .where(inArray(users.role, [...ASSIGNABLE_STAFF_ROLES]));
-      const teamMemberCount = teamRows[0] ? teamRows[0].count : 0;
-      await assertQuota(ctx.db, "teamMembers", teamMemberCount);
+        .where(inArray(users.role, seat.roles));
+      const seatCount = seatRows[0] ? seatRows[0].count : 0;
+      await assertQuota(ctx.db, seat.quota, seatCount);
       const [u] = await ctx.db
         .insert(users)
         .values({
