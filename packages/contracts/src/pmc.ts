@@ -500,6 +500,80 @@ export function variationItemAmountPaise(qty: number, ratePaise: number): number
   return Math.round(qty * ratePaise);
 }
 
+// --- Rate-deviation ladder (Construction Cost OS 3.4) -----------------------
+// A line's rate journey across the spine: estimated (design estimate) → tendered
+// (office BOQ baseline) → awarded (winning bid) → revised (a RATE deviation).
+// Pure presentation maths over rates already on the spine; Rule 5 still holds —
+// a revised rate reaches bills only via a variation, never by overwriting.
+
+/** One hop's signed % change; null when the baseline rung is absent (≤ 0 / null). */
+function rateHopPct(fromPaise: number | null, toPaise: number | null): number | null {
+  if (fromPaise == null || toPaise == null || fromPaise <= 0) return null;
+  return Number((((toPaise - fromPaise) / fromPaise) * 100).toFixed(2));
+}
+
+export interface RateLadderHops {
+  /** Estimate → tender baseline. */
+  estToTenderPct: number | null;
+  /** Tender baseline → awarded (winning bid). */
+  tenderToAwardPct: number | null;
+  /** Awarded → revised (RATE deviation). Equals `rateDeviation(...).deviationPct`. */
+  awardToRevisedPct: number | null;
+  /** Largest absolute hop % present (0 when no hop is computable). */
+  maxAbsHopPct: number;
+  severity: DeviationSeverity;
+}
+
+/**
+ * Per-hop deviation across the rate ladder. Each rate is paise, or `null` when
+ * that rung doesn't exist (line never estimated/tendered, or no revision yet).
+ * Severity runs the existing `deviationSeverity` ladder over the largest hop.
+ */
+export function rateLadderHops(input: {
+  estimatedPaise: number | null;
+  tenderedPaise: number | null;
+  awardedPaise: number | null;
+  revisedPaise: number | null;
+}): RateLadderHops {
+  const estToTenderPct = rateHopPct(input.estimatedPaise, input.tenderedPaise);
+  const tenderToAwardPct = rateHopPct(input.tenderedPaise, input.awardedPaise);
+  const awardToRevisedPct = rateHopPct(input.awardedPaise, input.revisedPaise);
+  const present = [estToTenderPct, tenderToAwardPct, awardToRevisedPct].filter(
+    (p): p is number => p != null,
+  );
+  const maxAbsHopPct = present.length ? Math.max(...present.map((p) => Math.abs(p))) : 0;
+  return {
+    estToTenderPct,
+    tenderToAwardPct,
+    awardToRevisedPct,
+    maxAbsHopPct,
+    severity: deviationSeverity(maxAbsHopPct),
+  };
+}
+
+/** The active (latest non-rejected) RATE deviation on a ladder row, if any. */
+export interface RateLadderDeviation {
+  id: string;
+  ref: string;
+  status: DeviationStatus;
+  reason: string | null;
+}
+
+/** One work-package line's rate-ladder row for the read model. */
+export interface RateLadderRow {
+  workPackageId: string;
+  workPackageItemId: string;
+  ref: string;
+  description: string;
+  unit: string;
+  estimatedPaise: number | null;
+  tenderedPaise: number | null;
+  awardedPaise: number | null;
+  revisedPaise: number | null;
+  hops: RateLadderHops;
+  deviation: RateLadderDeviation | null;
+}
+
 /** Allowed forward transitions of a variation order's two-step approval ladder. */
 export const VARIATION_FLOW: Record<VariationStatus, readonly VariationStatus[]> = {
   DRAFT: ["SUBMITTED", "REJECTED"],
