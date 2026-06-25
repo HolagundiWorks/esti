@@ -24,12 +24,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed": "tsx src/scripts/seed.ts",
-    "seed:demo": "tsx src/scripts/seedDemo.ts",
     "seed:dsr": "tsx src/scripts/seedBuildingDsrCli.ts",
     "seed:prod": "node dist/scripts/seed.js",
-    "seed:demo:prod": "node dist/scripts/seedDemo.js",
-    "seed:sync-demo": "tsx src/scripts/seedSyncDemo.ts",
-    "seed:sync-demo:prod": "node dist/scripts/seedSyncDemo.js",
     "backfill:activity": "tsx src/scripts/backfillActivity.ts"
   },
   "dependencies": {

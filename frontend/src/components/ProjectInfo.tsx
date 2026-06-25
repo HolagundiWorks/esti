@@ -4,7 +4,6 @@ import {
   Button,
   Column,
   Grid,
-  InlineNotification,
   Select,
   SelectItem,
   Stack,
@@ -12,7 +11,6 @@ import {
   TextInput,
 } from "@carbon/react";
 import {
-  Jurisdiction,
   PROJECT_WORK_TYPE_LABEL,
   ProjectType,
   ProjectWorkType,
@@ -97,7 +95,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
 
   const p = projectQ.data;
   const phases = phasesQ.data ?? [];
-  const agg = briefQ.data?.aggregates;
 
   return (
     <Stack gap={6}>
@@ -262,15 +259,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
             >
               Save site context
             </Button>
-            {agg?.siteAssessmentScore != null && (
-              <InlineNotification
-                kind="info"
-                lowContrast
-                hideCloseButton
-                title="Latest site assessment"
-                subtitle={`Score ${agg.siteAssessmentScore} (${agg.siteAssessmentPhase ?? "—"})`}
-              />
-            )}
           </Stack>
         </AccordionItem>
 

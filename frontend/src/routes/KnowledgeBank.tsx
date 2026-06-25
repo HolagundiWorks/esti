@@ -23,16 +23,14 @@ import { LessonsBank } from "../components/ProjectLessons.js";
 import { DataState } from "../components/DataState.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
 import { PageHeader } from "../components/PageHeader.js";
-import { KnowledgeSeedManager } from "../components/knowledge/KnowledgeSeedManager.js";
-import { ComplianceHub } from "../components/knowledge/ComplianceHub.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { MasterDsr } from "../components/knowledge/MasterDsr.js";
 import { RateAnalysisPanel } from "../components/knowledge/RateAnalysisPanel.js";
-import { SteelArranger } from "../components/knowledge/SteelArranger.js";
+import { ComponentLibrary } from "../components/knowledge/ComponentLibrary.js";
 import { ParametricCanvas } from "../components/estimation/ParametricCanvas.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["seeds", "dsr", "rate-analysis", "compliance", "specification", "steelflow", "parametric", "lessons"] as const;
+const KB_TAB_SLUGS = ["dsr", "rate-analysis", "components", "specification", "parametric", "lessons"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -48,7 +46,7 @@ function KnowledgeBankSearch() {
         <Stack gap={2}>
           <h3>Search Knowledge Bank</h3>
           <p style={{ margin: 0 }}>
-            Templates, DSR, specification catalogue, structural templates, drawings, contractors, and published lessons.
+            Templates, DSR, specification catalogue, drawings, contractors, and published lessons.
           </p>
         </Stack>
         <Stack orientation="horizontal" gap={4} style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -61,7 +59,7 @@ function KnowledgeBankSearch() {
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && q.trim().length >= 2) {
-                  navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,STRUCTURAL_TEMPLATE,DRAWING,CONTRACTOR,LESSON`);
+                  navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,DRAWING,CONTRACTOR,LESSON`);
                 }
               }}
             />
@@ -70,7 +68,7 @@ function KnowledgeBankSearch() {
             kind="tertiary"
             disabled={q.trim().length < 2}
             onClick={() =>
-              navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,STRUCTURAL_TEMPLATE,DRAWING,CONTRACTOR,LESSON`)
+              navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,DRAWING,CONTRACTOR,LESSON`)
             }
           >
             Full search
@@ -109,7 +107,7 @@ export function KnowledgeBank() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabIndex = Math.max(0, KB_TAB_SLUGS.indexOf(
-    (searchParams.get("tab") ?? "seeds") as (typeof KB_TAB_SLUGS)[number],
+    (searchParams.get("tab") ?? "dsr") as (typeof KB_TAB_SLUGS)[number],
   ));
   const selectTab = (index: number) => {
     setSearchParams((prev) => {
@@ -123,26 +121,21 @@ export function KnowledgeBank() {
     <Stack gap={7}>
       <PageHeader
         title="Knowledge Bank"
-        description="Governed office standards used by compliance, estimation, specifications, procurement, and reinforcement detailing workflows."
+        description="Governed office standards used by estimation, specifications, and procurement workflows."
       />
 
       <KnowledgeBankSearch />
 
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections">
-          <Tab>Seed data</Tab>
           <Tab>Rate Books</Tab>
           <Tab>Rate Analysis</Tab>
-          <Tab>Compliance</Tab>
+          <Tab>Components</Tab>
           <Tab>Specification</Tab>
-          <Tab>SteelFlow</Tab>
           <Tab>Parametric</Tab>
           <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
-          <TabPanel>
-            <KnowledgeSeedManager />
-          </TabPanel>
           <TabPanel>
             <MasterDsr embedded />
           </TabPanel>
@@ -152,15 +145,11 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <ComplianceHub />
+            <ComponentLibrary embedded />
           </TabPanel>
 
           <TabPanel>
             <SpecCatalogManager embedded />
-          </TabPanel>
-
-          <TabPanel>
-            <SteelArranger embedded />
           </TabPanel>
 
           <TabPanel>

@@ -67,6 +67,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [26](#phase-26---dark-theme-lock-and-landing-operational-grid-p2) | Dark theme lock & landing operational grid | P2 | ✅ |
 | [27](#phase-27---aorms-cognition-engine-and-primary-office-attention-p1) | AORMS Cognition Engine & Primary Office Attention | P1 | ✅ |
 | [28](#phase-28---executive-cognitive-load-engine-p1) | Executive Cognitive Load Engine | P1 | ✅ |
+| [29](#phase-29---estimation-os-costing-spine-p1) | Estimation OS — costing spine (OS Phases 1–3) | P1 | 🔄 |
 
 ---
 
@@ -857,6 +858,44 @@ Replace the "show all problems" dashboard pattern with a system that actively pr
 - Dynamic priority scoring formula (urgency × financial impact × dependency × team blockage × deadline risk)
 
 **Gate met:** dashboard overview shows OFFICE CALMNESS as headline metric; TODAY'S FOCUS shows max 3 items; all remaining interventions appear in SAFELY DEFERRED with system note; time-aware focus context derives without calendar; typecheck clean.
+
+---
+
+## Phase 29 — Estimation OS: costing spine [P1] — 🔄 In progress (2026-06-25)
+
+Turns the flat `esti_estimate` engine into the component-based **Estimation OS**.
+Specs: [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
+[IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md); sub-phase sequencing in
+[IMPLEMENTATION-ROADMAP](IMPLEMENTATION-ROADMAP.md) (restructure Phase 4 + 6).
+Extends the existing engine — one component master, never a parallel estimate;
+every change is audited and frozen estimates are snapshotted, never overwritten.
+
+**Active increment (OS Phases 1–3):**
+- **Design-stage estimation** — `esti_estimate` gains stage + wider status;
+  items gain cost head, calculation type (AREA_RATE/PERCENTAGE/LUMPSUM/
+  NON_MODELED), confidence, and % clause parent; freeze writes an
+  `esti_estimate_version` snapshot.
+- **Component + IFC execution detail** — `esti_component` (AORMS code) master,
+  `esti_ifc_mapping` catalog, `esti_component_related` templates, and
+  `esti_estimate_component` expansion to BOQ items via a deterministic formula
+  registry (auto-BOQ).
+- **Ratebook + rate analysis** — complete the existing
+  `esti_rate_analysis`/`esti_rate_component` build-up and link component rates.
+
+**Deferred (OS Phases 4–6):** work packages, running bills (double-billing
+prevention), deviations/escalation, IFC re-sync — overlaps PMC/site-delivery.
+
+**Gate:** new `esti_component*`/`esti_estimate_version`/`esti_estimate_component`
+tables migrated; a design-stage estimate with a % clause and a non-modeled item
+computes correct paise totals; a component expands to auto-BOQ lines; freeze
+produces a version snapshot; Pure Carbon costing window renders; typecheck +
+carbon-check + worker pytest clean.
+
+> **Superseded references:** Phase 2E (SteelFlow AI), Phase 4A (RIE/compliance),
+> Phase 21 (Unified compliance IA), and Knowledge Bank SteelFlow/compliance
+> tabs describe features **removed** in the 2026-06 Knowledge-Bank cleanup
+> (RIE/compliance engine, BBMP calculator, SteelFlow `sf_*`). Their phase
+> sections are retained as delivery history but no longer describe live product.
 
 ---
 

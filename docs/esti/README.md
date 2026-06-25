@@ -23,14 +23,16 @@ direction. Point-in-time audits and superseded specs live in
 | [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
-| [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | DSR, takeoff, estimate, BOQ, provenance, and output boundaries |
-| [STEELFLOW-BBS-FLOW](STEELFLOW-BBS-FLOW.md) | Reinforcement member-flow UI, TMT references, IS-rule boundaries, and BBS extraction |
+| [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) | **Target** — component-based estimation engine: component master, design-stage estimate, auto-BOQ, rate analysis, billing, deviations (phased build) |
+| [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md) | IFC→AORMS component-code mapping standard, quantity formulas, and dependency templates underpinning the component master |
+| [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | **Current-state** — DSR, takeoff, estimate, BOQ, provenance, and output boundaries that ship today (superseded section-by-section by ESTIMATION-OS-ARCHITECTURE) |
+| ~~STEELFLOW-BBS-FLOW~~ | _Superseded_ — SteelFlow workshop was removed; only shared BBS (`esti_bbs`) remains |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
-| [BYLAW-SYSTEMS](BYLAW-SYSTEMS.md) | Shared compliance rule engine — pre/post workflows, public API, snapshots |
-| [BBMP-IMPLEMENTATION](BBMP-IMPLEMENTATION.md) | BBMP spec → live schema and API map |
-| [BYLAWS-BBMP](BYLAWS-BBMP.md) | Full BBMP engine specification (agent + reference appendix) |
-| [STEELFLOW-BOUNDED-CONTEXT](STEELFLOW-BOUNDED-CONTEXT.md) | `sf_*` vs `esti_*` naming and SteelFlow module boundaries |
+| ~~BYLAW-SYSTEMS~~ | _Superseded_ — RIE/compliance rule engine removed; only the shared BBMP rule reference (`bbmpRules`) remains |
+| ~~BBMP-IMPLEMENTATION~~ | _Superseded_ — in-product bylaw calculator removed; doc retained for historical schema/API reference only |
+| ~~BYLAWS-BBMP~~ | _Superseded_ — full BBMP engine spec; reference appendix only, no live in-product engine |
+| ~~STEELFLOW-BOUNDED-CONTEXT~~ | _Superseded_ — `sf_*` SteelFlow module removed in the Knowledge Bank cleanup |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
 Build and runtime instructions live in [DEVELOPMENT.md](../../DEVELOPMENT.md).

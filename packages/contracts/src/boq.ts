@@ -4,6 +4,7 @@ import {
   parseDsrCsvText,
   type DsrImportCsv,
 } from "@hcw/master-dsr-kit/schemas";
+import { CalculationType, CostHead } from "./estimation.js";
 
 export { DsrImportRow, parseDsrCsvText, type DsrImportCsv };
 
@@ -38,7 +39,17 @@ export const DsrItemCreate = z.object({
 export type DsrItemCreate = z.infer<typeof DsrItemCreate>;
 
 // --- Estimate ---------------------------------------------------------------
-export const EstimateStatus = z.enum(["DRAFT", "APPROVED"]);
+// Lifecycle (Estimation OS Phase 1). `APPROVED` is retained as a legacy alias
+// for an execution-frozen estimate so existing approve flows keep working.
+export const EstimateStatus = z.enum([
+  "DRAFT",
+  "UNDER_REVIEW",
+  "DESIGN_FROZEN",
+  "EXECUTION_DETAILING",
+  "EXECUTION_FROZEN",
+  "SUPERSEDED",
+  "APPROVED",
+]);
 export type EstimateStatus = z.infer<typeof EstimateStatus>;
 
 export const EstimateCreate = z.object({
@@ -57,6 +68,9 @@ export const EstimateItemCreate = z.object({
   qty: z.number().nonnegative(),
   ratePaise: z.number().int().nonnegative(),
   itemLeadPct: z.number().min(0).max(100).default(0), // per-item lead
+  /** Optional Estimation OS classification for any line. */
+  costHead: CostHead.optional(),
+  calculationType: CalculationType.optional(),
 });
 export type EstimateItemCreate = z.infer<typeof EstimateItemCreate>;
 

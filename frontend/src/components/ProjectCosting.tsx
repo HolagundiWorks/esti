@@ -10,6 +10,7 @@ import {
 import { ArrowRight } from "@carbon/icons-react";
 import { Fragment } from "react";
 import { ProjectEstimates } from "./ProjectEstimates.js";
+import { CostingWindow } from "./estimation/CostingWindow.js";
 import { ProjectBbs } from "./ProjectBbs.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 
@@ -66,6 +67,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
       <Tabs>
         <TabList aria-label="Costing and measurement stages" contained>
           <Tab>Estimation &amp; BOQ</Tab>
+          <Tab>Design &amp; components</Tab>
           <Tab>Bar bending schedule</Tab>
           {showBills && <Tab>Site measurement &amp; RA bills</Tab>}
         </TabList>
@@ -74,6 +76,12 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
             <Stack gap={5}>
               <SpineRail active="estimation" />
               <ProjectEstimates projectId={projectId} />
+            </Stack>
+          </TabPanel>
+          <TabPanel>
+            <Stack gap={5}>
+              <SpineRail active="estimation" />
+              <CostingWindow projectId={projectId} />
             </Stack>
           </TabPanel>
           <TabPanel>

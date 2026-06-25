@@ -10,7 +10,6 @@ import {
   SideNavLink,
   SideNavMenu,
   SideNavMenuItem,
-  Stack,
   Tag,
   Theme,
 } from "@carbon/react";
@@ -572,10 +571,6 @@ function AppShell() {
                 )}
                 <Route path="/settings" element={<Settings />} />
                 {hrEnabled && atLeast(60) && <Route path="/performance" element={<Performance />} />}
-                <Route
-                  path="/steel-arranger"
-                  element={<Navigate to="/knowledge-bank?tab=steelflow" replace />}
-                />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

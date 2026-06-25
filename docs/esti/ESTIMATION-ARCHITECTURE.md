@@ -1,7 +1,15 @@
 # Estimation Architecture
 
-**Status:** Canonical architecture note  
-**Reviewed:** 2026-06-23
+**Status:** Canonical — **current-state** note (what ships today)  
+**Reviewed:** 2026-06-25
+
+> **Target architecture:** This note describes the estimation engine as it ships
+> today. The component-based **Estimation OS** target — component master, design-
+> stage cost-head estimate, auto-BOQ, completed rate analysis, freeze/versioning,
+> and (later) work packages, running bills, deviations, and IFC sync — is
+> specified in [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) and
+> [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md). As each Estimation OS phase
+> lands, the corresponding section below is superseded by that spec.
 
 ESTI estimation is a deterministic commercial workflow, not a drawing tool. Geometry is captured in ESTICAD, rates are governed in Master DSR, and AORMS produces auditable estimates, BOQs, BBS exports, PDFs, and tender-commercial records.
 
@@ -71,10 +79,19 @@ This is intentional. DSR catalogs and ESTICAD measurements can change later, but
 | Project UI | `frontend/src/components/ProjectEstimates.tsx` |
 | ESTICAD boundary | `docs/esti/ESTICAD-COMPANION.md` |
 
-## Current MVP Limitations
+## Current Limitations → Estimation OS path
 
-- Takeoff aggregation groups by element type; it does not yet create room/floor/package-level BOQ sections.
-- Estimate line hierarchy is flat; future work may add sections, packages, and tender schedule grouping.
-- Rate analysis is schedule-rate based; labour/material breakup is outside current scope.
-- Parametric canvas is exploratory UI, not the authoritative estimate engine.
+These are the boundaries of the current flat engine, each addressed by a named
+Estimation OS phase (see [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md)
+§28 and [IMPLEMENTATION-ROADMAP](IMPLEMENTATION-ROADMAP.md) Phase 4/6):
+
+| Current limitation | Resolved by |
+| --- | --- |
+| Estimate line hierarchy is flat — no cost heads, no design vs execution stage | **OS Phase 1** Design-Stage Estimation (cost heads, calculation types, % clauses, non-modeled items, confidence, freeze + version history) |
+| No component identity; takeoff aggregates only by element type | **OS Phase 2** Component master (AORMS code) + IFC mapping + auto-BOQ from related-item templates |
+| Rate analysis is schedule-rate based; labour/material/machinery breakup unfinished | **OS Phase 3** Ratebook + Rate Analysis completion (component rate sourced from analysis or rate book) |
+| No execution-stage detail, billing, or change tracking | **OS Phases 4–6** Work packages, running bills (double-billing prevention), deviations/escalation, IFC sync — _deferred_, overlaps PMC/site-delivery |
+
+Phases 1–3 are the active **costing-spine** increment; Phases 4–6 are sequenced
+next. The parametric canvas remains exploratory UI, not the authoritative engine.
 

@@ -156,6 +156,13 @@ accounting systems.
 - PMC commercial control: costing, running bills, purchase orders, and
   specification sheets under the project PMC group.
 - DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and DSR/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
+- **Estimation OS** (Phase 29, in progress): a progressive, component-based
+  estimation engine extending the above — design-stage cost-head estimate
+  (area-rate / percentage / lumpsum / non-modeled), component master with
+  IFC→AORMS code mapping and auto-BOQ, completed composite rate analysis, and
+  frozen/versioned estimates. Specs:
+  [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
+  [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md).
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
