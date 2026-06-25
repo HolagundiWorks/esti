@@ -1,6 +1,7 @@
 import {
   ArchiveTeamModuleInput,
   EscalationSettings,
+  Plan,
   UploadSecuritySettingsInput,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
@@ -80,6 +81,32 @@ export const settingsRouter = router({
         },
       });
       return { ...row!, soloSummary, membersReactivated };
+    }),
+
+  /**
+   * Owner switches the firm's subscription edition (self-hosted / single-firm
+   * install — the plan reflects the firm's license; billing is handled out of
+   * band). Upgrades unlock features and raise seat/quota caps immediately.
+   */
+  setPlan: ownerProcedure
+    .input(z.object({ plan: Plan }))
+    .mutation(async ({ ctx, input }) => {
+      const current = await getOrgSettings(ctx.db);
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({ plan: input.plan, updatedAt: new Date() })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { plan: current.plan },
+        after: { plan: input.plan },
+      });
+      const { uploadPasswordHash, ...safe } = row!;
+      return { ...safe, uploadPasswordConfigured: Boolean(uploadPasswordHash) };
     }),
 
   /** Toggle the optional PMC module (owner only). */

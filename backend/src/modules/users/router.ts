@@ -7,12 +7,12 @@ import {
   clampListLimit,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
+import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -55,12 +55,12 @@ export const userRouter = router({
         .from(users)
         .where(eq(users.email, input.email));
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
-      // Lite ships a fixed roster (1 admin + 3 staff) — no new staff logins.
-      await assertNotFixedPlan(ctx.db);
-      // Plan quota by functional seat bucket — the single OWNER (admin) is pinned
+      // Every edition — including Lite — creates its own staff logins directly,
+      // capped per functional seat bucket. The single OWNER (admin) is pinned
       // separately, ACCOUNTANT and HR_MANAGER each get their own seat, and the
       // seniority tiers share the general "staff" bucket. Portal users (CLIENT,
-      // CONSULTANT-portal, CONTRACTOR) never take a staff seat.
+      // CONSULTANT-portal, CONTRACTOR) never take a staff seat. Only *active*
+      // logins consume a seat — a disabled account frees its seat back up.
       const seat: { quota: PlanQuota; roles: StaffRole[] } =
         input.role === "ACCOUNTANT"
           ? { quota: "accountants", roles: ["ACCOUNTANT"] }
@@ -70,7 +70,7 @@ export const userRouter = router({
       const seatRows = await ctx.db
         .select({ count: sql<number>`count(*)::int` })
         .from(users)
-        .where(inArray(users.role, seat.roles));
+        .where(and(inArray(users.role, seat.roles), eq(users.disabled, false)));
       const seatCount = seatRows[0] ? seatRows[0].count : 0;
       await assertQuota(ctx.db, seat.quota, seatCount);
       const [u] = await ctx.db

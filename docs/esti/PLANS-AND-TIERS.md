@@ -18,7 +18,7 @@
 | Limit | Lite (free) | Core | Enterprise |
 |---|---|---|---|
 | **Admin (owner)** | 1 | 1 | 1 |
-| **Staff seats** | 3 (fixed) | 10 | **unlimited** |
+| **Staff seats** | 3 (self-created) | 10 | **unlimited** |
 | Accountant seats | — | 1 | unlimited |
 | HR manager seats | — | 1 | unlimited |
 | **Clients** | **5** | unlimited | unlimited |
@@ -29,15 +29,21 @@
 | ESTI AI requests | trial | standard | high / dedicated |
 | Support | community | standard | priority + SLA |
 
-> Lite is a **fixed workspace**: the admin activates/deactivates a pre-seeded set
-> (1 admin + 3 staff, 5 clients, 5 contractors, 5 consultants, 5 projects) — no
-> "create" buttons. Core/Enterprise are self-serve with create buttons. Core
-> staff seats split by function: 1 admin + 1 accountant + 1 HR + 10 general staff.
-> Enterprise is self-hosted (on-premises) with no caps.
+> Lite is a **mostly-fixed workspace**: the admin activates/deactivates a
+> pre-seeded set of clients (5), contractors (5), consultants (5) and projects
+> (5) — no "create" buttons for those. **Staff logins are the exception** — the
+> Lite admin creates up to 3 staff directly from the Users page (no functional
+> accountant/HR seats). Core/Enterprise are fully self-serve. Core staff seats
+> split by function: 1 admin + 1 accountant + 1 HR + 10 general staff. Enterprise
+> is self-hosted (on-premises) with no caps.
 
-> On Lite, "create" is blocked outright (fixed workspace). On Core, exceeding a
-> seat cap (2nd accountant, 2nd HR, 11th staff) or the 200 GB storage cap is
-> blocked with an upgrade prompt — never silent data loss.
+> Only **active** logins consume a staff seat — disabling an account frees its
+> seat back up. On Lite, creating a 4th active staff login, or any
+> client/contractor/project, is blocked with an upgrade prompt. On Core,
+> exceeding a seat cap (2nd accountant, 2nd HR, 11th staff) or the 200 GB storage
+> cap is blocked the same way — never silent data loss. The owner can switch the
+> firm's edition from the Users page (Upgrade plan); the plan reflects the firm's
+> licence and applies higher caps immediately.
 
 ## Module → edition matrix
 

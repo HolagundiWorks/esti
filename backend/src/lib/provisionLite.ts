@@ -6,32 +6,17 @@ import {
   contractors,
   phases,
   projectOffices,
-  users,
 } from "../db/schema.js";
-import { normalizeEmail } from "./email.js";
 import { nextRef } from "./numbering.js";
 
-/** Placeholder local domain for seeded staff logins (admin renames on activation). */
-const SEED_DOMAIN = "lite.local";
-
 /**
- * Seed the fixed AORMS-Lite workspace: 3 staff (inactive), 5 clients (inactive),
- * 5 contractors, and 5 empty projects. Lite is a fully-fixed plan — the admin
- * activates/renames these rows but cannot add more. Run inside the bootstrap
- * transaction, after the OWNER is created.
+ * Seed the AORMS-Lite workspace: 5 clients (inactive), 5 contractors,
+ * 5 consultants, and 5 empty projects. The admin activates/renames these rows
+ * but cannot add more. Staff logins are NOT pre-seeded — the Lite admin creates
+ * its own staff (up to the 3-seat cap) directly from the Users page. Run inside
+ * the bootstrap transaction, after the OWNER is created.
  */
 export async function provisionLiteWorkspace(db: DB, ownerId: string): Promise<void> {
-  // 3 staff seats besides the admin — created disabled; admin activates + sets a
-  // password (login needs a passwordHash, which stays null until then).
-  await db.insert(users).values(
-    [1, 2, 3].map((n) => ({
-      email: normalizeEmail(`staff${n}@${SEED_DOMAIN}`),
-      fullName: `Staff Member ${n}`,
-      role: "ASSOCIATE" as const,
-      disabled: true,
-    })),
-  );
-
   // 5 client records — disabled until the admin fills in real details.
   await db.insert(clients).values(
     [1, 2, 3, 4, 5].map((n) => ({

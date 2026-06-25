@@ -1,7 +1,10 @@
 import {
   Button,
+  Column,
+  Grid,
   InlineNotification,
   Modal,
+  ProgressBar,
   Select,
   SelectItem,
   Stack,
@@ -14,9 +17,14 @@ import {
   TableRow,
   Tag,
   TextInput,
+  Tile,
 } from "@carbon/react";
 import {
   ASSIGNABLE_STAFF_ROLES,
+  GENERAL_STAFF_ROLES,
+  PLAN_LABEL,
+  PLAN_LIMITS,
+  type Plan,
   STAFF_ROLE_LABEL,
   accessLabelForUser,
   isStaffRole,
@@ -32,13 +40,47 @@ const ROLE_LABEL: Record<string, string> = {
   CLIENT: "Client",
 };
 
+/** The edition a firm upgrades *into* (Enterprise is the ceiling). */
+const NEXT_PLAN: Record<Plan, Plan | null> = {
+  LITE: "CORE",
+  CORE: "ENTERPRISE",
+  ENTERPRISE: null,
+};
+
 export function Users() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const listQ = trpc.users.list.useQuery();
+  const settingsQ = trpc.settings.get.useQuery();
   const invalidate = () => utils.users.list.invalidate();
-  // Lite ships a fixed roster (1 admin + 3 staff) — activate seats, don't add.
-  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
+  const plan = (settingsQ.data?.plan ?? "LITE") as Plan;
+  const isLite = plan === "LITE";
+  // Lite only offers general staff seats (no accountant/HR functional seats).
+  const roleOptions = isLite ? GENERAL_STAFF_ROLES : ASSIGNABLE_STAFF_ROLES;
+
+  // Active-seat usage per functional bucket. Only enabled logins consume a seat;
+  // a disabled account frees its seat. The single OWNER (admin) is pinned.
+  const rows = listQ.data ?? [];
+  const activeIn = (roles: readonly string[]) =>
+    rows.filter((u) => roles.includes(u.role) && !u.disabled).length;
+  const limits = PLAN_LIMITS[plan];
+  const seats: Array<{ label: string; used: number; cap: number | null }> = [
+    { label: "Admin", used: rows.filter((u) => u.role === "OWNER").length, cap: 1 },
+    { label: "Accountant", used: activeIn(["ACCOUNTANT"]), cap: limits.accountants },
+    { label: "HR manager", used: activeIn(["HR_MANAGER"]), cap: limits.hrManagers },
+    { label: "Staff", used: activeIn(GENERAL_STAFF_ROLES), cap: limits.staff },
+  ].filter((s) => s.cap === null || s.cap > 0);
+
+  const nextPlan = NEXT_PLAN[plan];
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const setPlan = trpc.settings.setPlan.useMutation({
+    onSuccess: () => {
+      utils.settings.get.invalidate();
+      invalidate();
+      setUpgradeOpen(false);
+      setMsg(nextPlan ? `Upgraded to ${PLAN_LABEL[nextPlan]}` : "Plan updated");
+    },
+  });
 
   const setDisabled = trpc.users.setDisabled.useMutation({
     onSuccess: invalidate,
@@ -84,8 +126,46 @@ export function Users() {
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={isLite ? undefined : <Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
+        actions={
+          <Stack orientation="horizontal" gap={3}>
+            {nextPlan && (
+              <Button kind="tertiary" onClick={() => setUpgradeOpen(true)}>
+                Upgrade plan
+              </Button>
+            )}
+            <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
+          </Stack>
+        }
       />
+
+      <Tile>
+        <Stack gap={4}>
+          <Stack orientation="horizontal" gap={3}>
+            <h3 className="esti-label">Seat usage</h3>
+            <Tag type={plan === "LITE" ? "gray" : "blue"}>{PLAN_LABEL[plan]}</Tag>
+          </Stack>
+          <Grid narrow>
+            {seats.map((s) => (
+              <Column key={s.label} sm={4} md={2} lg={4}>
+                {s.cap === null ? (
+                  <Stack gap={2}>
+                    <p className="esti-label">{s.label}</p>
+                    <p>{s.used} active · Unlimited</p>
+                  </Stack>
+                ) : (
+                  <ProgressBar
+                    label={s.label}
+                    helperText={`${s.used} / ${s.cap} seats`}
+                    value={s.used}
+                    max={s.cap}
+                    status={s.used >= s.cap ? "error" : undefined}
+                  />
+                )}
+              </Column>
+            ))}
+          </Grid>
+        </Stack>
+      </Tile>
       {msg && (
         <InlineNotification
           kind="success"
@@ -143,7 +223,7 @@ export function Users() {
                           })
                         }
                       >
-                        {ASSIGNABLE_STAFF_ROLES.map((r) => (
+                        {roleOptions.map((r) => (
                           <SelectItem
                             key={r}
                             value={r}
@@ -237,7 +317,7 @@ export function Users() {
               }))
             }
           >
-            {ASSIGNABLE_STAFF_ROLES.map((r) => (
+            {roleOptions.map((r) => (
               <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
             ))}
           </Select>
@@ -280,6 +360,57 @@ export function Users() {
           value={resetPw}
           onChange={(e) => setResetPw(e.target.value)}
         />
+      </Modal>
+
+      <Modal
+        open={upgradeOpen}
+        modalHeading={nextPlan ? `Upgrade to ${PLAN_LABEL[nextPlan]}` : "Upgrade plan"}
+        primaryButtonText={setPlan.isPending ? "Applying…" : "Confirm upgrade"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!nextPlan || setPlan.isPending}
+        onRequestClose={() => setUpgradeOpen(false)}
+        onRequestSubmit={() => nextPlan && setPlan.mutate({ plan: nextPlan })}
+      >
+        {nextPlan && (
+          <Stack gap={5}>
+            <p>
+              Switch this workspace from {PLAN_LABEL[plan]} to{" "}
+              {PLAN_LABEL[nextPlan]}. Higher seat and storage caps apply
+              immediately, and gated features unlock at once.
+            </p>
+            <Grid narrow>
+              {(
+                [
+                  { label: "Staff seats", cap: PLAN_LIMITS[nextPlan].staff },
+                  { label: "Accountant seats", cap: PLAN_LIMITS[nextPlan].accountants },
+                  { label: "HR manager seats", cap: PLAN_LIMITS[nextPlan].hrManagers },
+                  { label: "Clients", cap: PLAN_LIMITS[nextPlan].clients },
+                  { label: "Projects", cap: PLAN_LIMITS[nextPlan].projects },
+                ] as const
+              ).map((c) => (
+                <Column key={c.label} sm={4} md={4} lg={8}>
+                  <Stack gap={1}>
+                    <p className="esti-label">{c.label}</p>
+                    <p>{c.cap === null ? "Unlimited" : c.cap}</p>
+                  </Stack>
+                </Column>
+              ))}
+            </Grid>
+            <p className="esti-label esti-label--helper">
+              The plan reflects your firm's licence — billing is handled
+              separately by Holagundi Consulting Works.
+            </p>
+            {setPlan.error && (
+              <InlineNotification
+                kind="error"
+                title="Could not upgrade"
+                subtitle={setPlan.error.message}
+                hideCloseButton
+                lowContrast
+              />
+            )}
+          </Stack>
+        )}
       </Modal>
     </Stack>
   );
