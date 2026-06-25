@@ -582,6 +582,20 @@
       "when": 1782200800000,
       "tag": "0082_rate_analysis",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1782200900000,
+      "tag": "0083_drop_bylaw_calc",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1782201000000,
+      "tag": "0084_spec_rate_map",
+      "breakpoints": true
     }
   ]
 }

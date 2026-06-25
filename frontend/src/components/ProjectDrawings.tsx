@@ -417,8 +417,8 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
             kind="info"
             lowContrast
             hideCloseButton
-            title="DSR-linked costing"
-            subtitle="Quantities are grouped by element type, matched to DSR item codes (e.g. BM-230), and rated from the selected schedule. Open Estimation / BOQ to review the draft."
+            title="Rate-book-linked costing"
+            subtitle="Quantities are grouped by element type, matched to rate-book item codes (e.g. BM-230), and rated from the selected schedule. Open Estimation / BOQ to review the draft."
           />
           <TextInput
             id="dwg-to-title"
@@ -428,13 +428,13 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           />
           <Select
             id="dwg-to-dsr"
-            labelText="DSR version"
+            labelText="Rate book"
             value={takeoffEstForm.dsrVersionId}
             onChange={(e) =>
               setTakeoffEstForm((f) => ({ ...f, dsrVersionId: e.target.value }))
             }
           >
-            <SelectItem value="" text="Select DSR version…" />
+            <SelectItem value="" text="Select rate book…" />
             {(dsrVersionsQ.data ?? []).filter((v) => v.status !== "DRAFT").map((v) => (
               <SelectItem key={v.id} value={v.id} text={v.label} />
             ))}

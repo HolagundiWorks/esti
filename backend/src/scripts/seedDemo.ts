@@ -68,7 +68,6 @@ import {
   loadActivities,
   resolveTemplateKeyForProject,
 } from "../modules/construction-schedule/readModels.js";
-import { backfillDemoBylawCalcs, upsertDemoBylawCalc } from "./seedDemoBylaw.js";
 import {
   ensureDemoShowcase,
   STUDIO_DEMO_PROJECT_TITLES,
@@ -473,7 +472,6 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   await ensureDemoSteelFlowCatalog(db);
   await ensureBuildingDsrCatalog(db);
   await ensureAiStudioEnabled(db);
-  const bylawCount = await backfillDemoBylawCalcs(db);
   for (const [pi, title] of STUDIO_DEMO_PROJECT_TITLES.entries()) {
     const [project] = await db.select({ id: projectOffices.id, ref: projectOffices.ref, title: projectOffices.title }).from(projectOffices).where(eq(projectOffices.title, title)).limit(1);
     if (project) await backfillProjectDemoRecords(project.id, project.ref, project.title, principalId, pi, catalog);
@@ -481,7 +479,6 @@ async function backfillExistingDemo(principalId: string): Promise<void> {
   await ensureDemoOfficeExpenses(principalId);
   const showcase = await ensureDemoShowcase(db);
   const pmc = await ensureDemoPmcShowcase(db, principalId);
-  console.log(`    refreshed ${bylawCount} bylaw compliance records (pre + post audit)`);
   console.log(
     `    showcase: ${showcase.drawings} drawing(s), ${showcase.measurements} takeoff row(s), purged ${showcase.purgedWebMeasurements} legacy WEB measurement(s)`,
   );
@@ -1067,10 +1064,6 @@ export async function seedDemoWorkspace(): Promise<void> {
         body: "This issue requires immediate attention and coordination with the consultant team before the next billing milestone.",
       },
     ]);
-
-    // Bylaw calc — shared BBMP engine (Compliance tab on project detail)
-    const siteAreaSqm = 300 + pi * 80;
-    await upsertDemoBylawCalc(db, projectId, pi, siteAreaSqm);
 
     // Client log entries
     await db.insert(clientLogs).values([

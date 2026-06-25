@@ -11,9 +11,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
+import { formatINR } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
@@ -79,6 +81,41 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
   });
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  // ── Spec → rate-book mapping (persisted). Pick a rate item to cost a spec against.
+  const [mapForId, setMapForId] = useState<string | null>(null);
+  const [mapVersionId, setMapVersionId] = useState("");
+  const [mapRateItemId, setMapRateItemId] = useState("");
+  const dsrVersionsQ = trpc.dsr.listVersions.useQuery(undefined, {
+    enabled: !!mapForId,
+  });
+  useEffect(() => {
+    if (mapForId && !mapVersionId && dsrVersionsQ.data && dsrVersionsQ.data.length > 0) {
+      const active = dsrVersionsQ.data.find((v) => v.active);
+      setMapVersionId(active?.id ?? dsrVersionsQ.data[0]!.id);
+    }
+  }, [mapForId, mapVersionId, dsrVersionsQ.data]);
+  const dsrItemsQ = trpc.dsr.listItems.useQuery(
+    { versionId: mapVersionId },
+    { enabled: !!mapForId && !!mapVersionId },
+  );
+  const setRateItem = trpc.specCatalog.setRateItem.useMutation({
+    onSuccess: () => {
+      utils.specCatalog.listItems.invalidate({ versionId });
+      utils.specCatalog.activeCatalog.invalidate();
+      closeMap();
+    },
+  });
+  function openMap(item: { id: string; rateItemId: string | null }) {
+    setMapForId(item.id);
+    setMapRateItemId(item.rateItemId ?? "");
+    setMapVersionId("");
+  }
+  function closeMap() {
+    setMapForId(null);
+    setMapRateItemId("");
+    setMapVersionId("");
+  }
+
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
 
   return (
@@ -126,7 +163,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
       <DataState
         loading={!!versionId && itemsQ.isLoading}
         isEmpty={!versionId || (itemsQ.data ?? []).length === 0}
-        columnCount={6}
+        columnCount={7}
         empty={{
           title: versionId
             ? "No catalogue items in this version"
@@ -153,6 +190,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
                 <TableHeader>Make</TableHeader>
                 <TableHeader>Specification</TableHeader>
                 <TableHeader>Finish</TableHeader>
+                <TableHeader>Rate book</TableHeader>
                 <TableHeader></TableHeader>
               </TableRow>
             </TableHead>
@@ -164,6 +202,24 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
                   <TableCell>{it.make ?? "—"}</TableCell>
                   <TableCell>{it.specification ?? "—"}</TableCell>
                   <TableCell>{it.finish ?? "—"}</TableCell>
+                  <TableCell>
+                    <Stack orientation="horizontal" gap={3} style={{ alignItems: "center" }}>
+                      {it.rateItemId ? (
+                        <Tag type="blue" size="sm">
+                          {it.rateCode} · {formatINR(it.ratePaise ?? 0)}/{it.rateUnit}
+                        </Tag>
+                      ) : (
+                        <span>—</span>
+                      )}
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => openMap(it)}
+                      >
+                        {it.rateItemId ? "Change" : "Map rate"}
+                      </Button>
+                    </Stack>
+                  </TableCell>
                   <TableCell>
                     <Button
                       kind="danger--ghost"
@@ -192,6 +248,69 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         }}
         onClose={() => setConfirmId(null)}
       />
+
+      <Modal
+        open={!!mapForId}
+        modalHeading="Map specification to a rate-book item"
+        primaryButtonText={setRateItem.isPending ? "Saving…" : "Save mapping"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!mapRateItemId || setRateItem.isPending}
+        onRequestClose={closeMap}
+        onRequestSubmit={() => {
+          if (mapForId && mapRateItemId)
+            setRateItem.mutate({ id: mapForId, rateItemId: mapRateItemId });
+        }}
+      >
+        <Stack gap={5}>
+          <p style={{ margin: 0 }}>
+            Cost this specification against a rate-book item. The link is saved and
+            flows to estimation and project spec sheets.
+          </p>
+          <Select
+            id="map-dsr-ver"
+            labelText="Rate book"
+            value={mapVersionId}
+            onChange={(e) => {
+              setMapVersionId(e.target.value);
+              setMapRateItemId("");
+            }}
+          >
+            <SelectItem value="" text="Select…" />
+            {(dsrVersionsQ.data ?? []).map((v) => (
+              <SelectItem
+                key={v.id}
+                value={v.id}
+                text={`${v.label}${v.active ? " (active)" : ""}`}
+              />
+            ))}
+          </Select>
+          <Select
+            id="map-dsr-item"
+            labelText="Rate item"
+            value={mapRateItemId}
+            disabled={!mapVersionId || dsrItemsQ.isLoading}
+            onChange={(e) => setMapRateItemId(e.target.value)}
+          >
+            <SelectItem value="" text="Select…" />
+            {(dsrItemsQ.data ?? []).map((r) => (
+              <SelectItem
+                key={r.id}
+                value={r.id}
+                text={`${r.code} — ${r.description} (${formatINR(r.ratePaise)}/${r.unit})`}
+              />
+            ))}
+          </Select>
+          <Button
+            kind="danger--tertiary"
+            disabled={setRateItem.isPending}
+            onClick={() => {
+              if (mapForId) setRateItem.mutate({ id: mapForId, rateItemId: null });
+            }}
+          >
+            Clear mapping
+          </Button>
+        </Stack>
+      </Modal>
 
       <Modal
         open={vOpen}

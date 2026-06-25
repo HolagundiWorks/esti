@@ -11,9 +11,7 @@ import { bbsRouter } from "../modules/boq/bbs.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
 import { estimateRouter } from "../modules/boq/estimate.js";
 import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
-import { bylawCalcRouter } from "../modules/bylaw/calc.js";
 import { bbmpRulesRouter } from "../modules/bylaw/bbmpRules.js";
-import { bylawRouter } from "../modules/bylaw/router.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
@@ -125,8 +123,6 @@ export const appRouter = router({
   feeProposals: feeProposalRouter,
   invoices: invoiceRouter,
   permits: permitRouter,
-  bylaws: bylawRouter,
-  bylawCalc: bylawCalcRouter,
   bbmpRules: bbmpRulesRouter,
   dsr: dsrRouter,
   estimates: estimateRouter,

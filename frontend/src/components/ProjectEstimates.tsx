@@ -59,7 +59,7 @@ function sourceTag(sourceKind?: string | null) {
     case "TAKEOFF_IMPORT":
       return { label: "TAKEOFF", type: "purple" as const };
     case "DSR_PICK":
-      return { label: "DSR", type: "blue" as const };
+      return { label: "RATE BOOK", type: "blue" as const };
     case "BULK_IMPORT":
       return { label: "IMPORT", type: "cyan" as const };
     default:
@@ -388,7 +388,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               open.status === "DRAFT" && (
                 <Select
                   id="est-dsr"
-                  labelText="Link DSR version"
+                  labelText="Link rate book"
                   size="sm"
                   value=""
                   onChange={(e) => {
@@ -396,7 +396,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                     if (id) setDsrVersion.mutate({ id: open.id, dsrVersionId: id });
                   }}
                 >
-                  <SelectItem value="" text="Select DSR…" />
+                  <SelectItem value="" text="Select rate book…" />
                   {publishedVersions.map((v) => (
                     <SelectItem key={v.id} value={v.id} text={v.label} />
                   ))}
@@ -474,8 +474,8 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               kind="warning"
               lowContrast
               hideCloseButton
-              title="DSR version required"
-              subtitle="Link a DSR version to apply schedule rates to takeoff quantities."
+              title="Rate book required"
+              subtitle="Link a rate book to apply schedule rates to takeoff quantities."
               style={{ marginTop: 12 }}
             />
           )}
@@ -485,14 +485,14 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
             (takeoffPreviewQ.data?.lines.length ?? 0) > 0 && (
               <TableContainer
                 title="Takeoff → costing preview (draft)"
-                description="Measured quantities mapped to DSR items. Import to add as estimate lines."
+                description="Measured quantities mapped to rate-book items. Import to add as estimate lines."
                 style={{ marginTop: 16 }}
               >
                 <Table size="sm">
                   <TableHead>
                     <TableRow>
                       <TableHeader>Type</TableHeader>
-                      <TableHeader>DSR</TableHeader>
+                      <TableHeader>Rate item</TableHeader>
                       <TableHeader>Description</TableHeader>
                       <TableHeader>Qty</TableHeader>
                       <TableHeader>Rate</TableHeader>
@@ -727,7 +727,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           />
           <Select
             id="ne-ver"
-            labelText="DSR version"
+            labelText="Rate book"
             value={nf.dsrVersionId}
             onChange={(e) =>
               setNf((f) => ({ ...f, dsrVersionId: e.target.value }))
@@ -769,7 +769,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
         <Stack gap={5}>
           <p style={{ margin: 0, opacity: 0.9 }}>
             Creates a draft estimate from all measured quantities on this project&apos;s
-            drawings. Each element type is linked to the matching DSR item code and
+            drawings. Each element type is linked to the matching rate-book item code and
             schedule rate.
           </p>
           <TextInput
@@ -780,13 +780,13 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           />
           <Select
             id="to-dsr"
-            labelText="DSR version (rates)"
+            labelText="Rate book (rates)"
             value={takeoffForm.dsrVersionId}
             onChange={(e) =>
               setTakeoffForm((f) => ({ ...f, dsrVersionId: e.target.value }))
             }
           >
-            <SelectItem value="" text="Select DSR version…" />
+            <SelectItem value="" text="Select rate book…" />
             {publishedVersions.map((v) => (
               <SelectItem key={v.id} value={v.id} text={v.label} />
             ))}
