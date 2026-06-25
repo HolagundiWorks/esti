@@ -91,9 +91,8 @@ record, backed by an immutable audit log and a project activity timeline.
 
 Change management is not a standalone module bolted onto a billing tool. In AORMS
 it runs inside one self-hosted, role-based, India-native system that already
-understands the COA fee basis, the GST and TDS rules, permits tracking, and bylaw
-compliance against versioned rule-sets — the free checker is at
-[/compliance-check](/compliance-check). A change accepted is a change that flows
+understands the COA fee basis, the GST and TDS rules, permits tracking, and the
+authority context around the project. A change accepted is a change that flows
 through to the invoice without re-keying. See how it sits within the broader
 [architecture firm management software](/architecture-firm-management-software),
 read more on the [blog](/blog), or [book a demo](/demo).

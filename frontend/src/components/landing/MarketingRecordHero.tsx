@@ -27,7 +27,7 @@ export function MarketingRecordHero({
                   The office record your projects deserve.
                 </h1>
                 <p className="esti-landing-section-lead">
-                  One operational system for projects, drawings, fees, compliance evidence,
+                  One operational system for projects, drawings, fees, approvals,
                   tenders, and coordination — linked to the object that created them.
                 </p>
               </Stack>

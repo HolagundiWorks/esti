@@ -12,7 +12,7 @@ intro: An architecture consultancy lives or dies on coordination — clients, in
 
 An architecture consultancy is a coordination business. On any given project you are managing the client relationship, your in-house team, a structural and an MEP consultant, a contractor's queries, a stack of drawings under revision, the fee that all of it is billed against, and the GST and TDS on every invoice. **Architecture consultancy management** software has to hold that whole engagement as one connected record — not as a folder of spreadsheets, a billing app and a WhatsApp thread that no one can audit later.
 
-AORMS, powered by ESTI, does exactly that, and it is built India-native: COA fees, GST/SAC codes, the April–March year and local bylaws are assumed from the ground up.
+AORMS, powered by ESTI, does exactly that, and it is built India-native: COA fees, GST/SAC codes, the April–March year, tenders, site records and project documentation are assumed from the ground up.
 
 ## The client and the engagement in one place
 

@@ -50,11 +50,11 @@ As a practice grows, no single partner can be in every client conversation, so t
 
 ## Billing the practice can stand behind
 
-Financial discipline is part of practice maturity. Fees follow the COA Scale of Charges and bill against phase milestones; invoices are GST-correct with the right CGST/SGST or IGST split, TDS under section 194J, the professional-services SAC code, and gap-free FY-sequential numbering across the April–March year. You can reconcile against bank, 26AS, AIS and GSTR imports and produce GSTR-1, GSTR-3B and TDS filing abstracts. A practice that bills the same correct way every time builds trust and avoids the compliance scares that catch out firms still working from a spreadsheet. More on [COA-compliant billing](/coa-compliant-billing-software).
+Financial discipline is part of practice maturity. Fees follow the COA Scale of Charges and bill against phase milestones; invoices are GST-correct with the right CGST/SGST or IGST split, TDS under section 194J, the professional-services SAC code, and gap-free FY-sequential numbering across the April–March year. You can reconcile against bank, 26AS, AIS and GSTR imports and produce GSTR-1, GSTR-3B and TDS filing abstracts. A practice that bills the same correct way every time builds trust and avoids the filing scares that catch out firms still working from a spreadsheet. More on [COA-compliant billing](/coa-compliant-billing-software).
 
 ## Built for the Indian practice, on your own server
 
-AORMS is India-native — GST, SAC, COA, the April–March financial year, BBMP and other Indian bylaws — and self-hosted on your own server with role-based access. The RIE bylaw engine and the free public [compliance checker](/compliance-check) help the practice keep its statutory standards as consistent as its design ones. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
+AORMS is India-native — GST, SAC, COA, the April–March financial year, tenders, site records and client approval habits — and self-hosted on your own server with role-based access. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
 
 To see how AORMS would carry your practice's standards, [book a demo](/demo).
 
@@ -78,4 +78,4 @@ Every project uses the same structure, so a new joiner learns one way of working
 
 ### Is it suitable for an Indian practice specifically?
 
-Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April–March financial year and Indian bylaws including BBMP. It is self-hosted on your own server, so the practice owns its data and its standards rather than renting them.
+Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April–March financial year, tenders, site work and contractor records. It is self-hosted on your own server, so the practice owns its data and its standards rather than renting them.

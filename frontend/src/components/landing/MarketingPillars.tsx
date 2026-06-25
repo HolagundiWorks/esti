@@ -82,13 +82,13 @@ const PILLARS: {
   },
   {
     icon: Building,
-    title: "Know what your site can carry",
-    lead: "Never argue development-control rules from memory.",
-    body: "Development-control rules for 8 Indian cities, master DSR rates, and a specification catalogue — versioned and cited in every project record.",
+    title: "Keep standards attached to the work",
+    lead: "Do not let office references live only in someone's memory.",
+    body: "Master DSR rates, specification catalogues, GST context, and project standards stay versioned and cited in the project record.",
     points: [
-      "BBMP, HMDA, MCGM and 5 more municipal rule engines",
       "Delhi Schedule of Rates — master reference with DSR version history",
       "Specification catalogue linked to BOQ line items",
+      "GST and billing context kept with project records",
     ],
   },
 ];

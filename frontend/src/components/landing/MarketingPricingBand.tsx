@@ -17,18 +17,18 @@ const PLANS: Array<{
   {
     ctx: "LITE",
     name: "AORMS-Lite",
-    pitch: "Start when the team needs one shared record.",
+    pitch: "Start with shared office memory before the practice becomes too scattered.",
     price: "Free",
     priceNote: "Forever",
     caps: "3 team members · 5 clients · 5 projects",
     features: [
-      "Clients, projects & client log",
-      "Drawings, transmittals & approvals",
-      "Documents & spec sheets",
+      "Clients, projects & decision log",
+      "Drawings, transmittals & approval records",
+      "Documents, specifications & office evidence",
       "Simple (non-GST) invoices & bank reconciliation",
-      "Tasks, alerts & dashboard",
+      "Tasks, reminders & dashboard warnings",
       "Client portal (1 project)",
-      "Statutory permits (basic)",
+      "Basic statutory permit records",
     ],
     hosting: "Cloud (shared) · workspace request",
     cta: "Request Lite workspace",
@@ -36,20 +36,20 @@ const PLANS: Array<{
   {
     ctx: "CORE",
     name: "AORMS-Core",
-    pitch: "Move into billing, construction, AI, and governed delivery.",
+    pitch: "Run the full architecture office system: delivery, money, people, site, and clients.",
     price: "Contact for pricing",
     priceNote: "Cloud, billed annually",
     featured: true,
     features: [
       "Everything in Lite, plus —",
-      "Construction / PMC — tenders & bidding, site, RA bills",
-      "BOQ & Costing & Measurement window",
-      "Revision intelligence",
+      "Construction / PMC — tenders, bidding, site records, RA bills",
+      "BOQ, costing & measurement workflows",
+      "Client revision intelligence",
       "GST invoicing (CGST/SGST/IGST split, SAC, FY-sequential)",
       "26AS / AIS / GSTR reconciliation + GST/TDS filing abstracts",
       "HR, payroll & ASPRF performance",
       "Consultant & contractor portals",
-      "ESTI AI cognition & AI Studio",
+      "ESTI office intelligence & AI Studio",
       "Rate Books, Knowledge Bank, audit log",
     ],
     hosting: "Cloud · dedicated VM: 4 vCPU · 16 GB RAM · 200 GB NVMe · 16 TB bandwidth · 1 snapshot · weekly backups · dedicated IP",
@@ -58,7 +58,7 @@ const PLANS: Array<{
   {
     ctx: "ENTERPRISE",
     name: "AORMS-Enterprise",
-    pitch: "Run the operating system inside your own infrastructure.",
+    pitch: "Deploy the architecture office record inside your own infrastructure.",
     price: "Contact for pricing",
     priceNote: "On-premises, custom terms",
     features: [
@@ -84,17 +84,17 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
         <div className="esti-lp-tile__hdr">
           <span className="esti-lp-dot esti-lp-dot--green" aria-hidden>●</span>
           <span className="esti-lp-tile__hdr-label">05 / Choose Workspace</span>
-          <span className="esti-lp-tile__hdr-meta">Team record</span>
+          <span className="esti-lp-tile__hdr-meta">Adoption path</span>
         </div>
         <div className="esti-lp-pricing-intro__body">
-          <p className="esti-lp-section-label">Pick the operating depth</p>
+          <p className="esti-lp-section-label">Choose how much office memory you need</p>
           <h3 id="pricing-title" className="esti-lp-cta-h">
-            Start with the record your office can adopt now, then unlock the layers it grows into.
+            Begin with a shared record, then grow into the full operating system when the office is ready.
           </h3>
           <p className="esti-lp-note">
-            Lite captures the shared office record. Core brings billing, construction, AI, and
-            heavier governance into the same workspace. Enterprise keeps that operating system
-            inside your infrastructure.
+            Lite gives a small practice one memory. Core carries the full architecture office:
+            projects, GST, billing, revisions, site work, portals, and team load. Enterprise
+            keeps the same discipline inside your own infrastructure.
           </p>
         </div>
         </div>

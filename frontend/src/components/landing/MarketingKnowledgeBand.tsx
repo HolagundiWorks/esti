@@ -10,7 +10,7 @@ export function MarketingKnowledgeBand() {
       variant="contrast"
       eyebrow="Office standards"
       title="Knowledge Bank and development control — versioned."
-      lead="Master DSR, specification catalogues, SteelFlow templates, and governed compliance rules live in one office library."
+      lead="Master DSR, specification catalogues, SteelFlow templates, and governed office standards live in one office library."
     >
       <Stack gap={7}>
         <MarketingTileGrid columns={2}>

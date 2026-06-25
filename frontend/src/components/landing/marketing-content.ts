@@ -151,10 +151,10 @@ export const INDIA_DESK_TILES = [
     detail: "Your Council of Architecture registration appears on every fee proposal and invoice footer, as the CoA requires.",
   },
   {
-    tag: "Compliance",
+    tag: "Standards",
     type: "gray" as const,
-    metric: "8 cities",
-    detail: "BBMP, GHMC, DDA, CMDA, UDCPR, and more — versioned rule sets with a citable snapshot for every compliance calculation.",
+    metric: "Office library",
+    detail: "DSR references, specification catalogues, and project standards stay versioned with a citable snapshot for every office decision.",
   },
 ] as const;
 

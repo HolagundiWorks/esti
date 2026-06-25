@@ -29,7 +29,7 @@ export function Blog() {
       <main id="main-content" className="esti-blog">
         <header className="esti-blog__head">
           <h1>Blog</h1>
-          <p>Office intelligence, compliance, and delivery notes for Indian architecture practices.</p>
+          <p>Office intelligence, revisions, approvals, billing, and delivery notes for Indian architecture practices.</p>
         </header>
 
         {posts.length === 0 ? (

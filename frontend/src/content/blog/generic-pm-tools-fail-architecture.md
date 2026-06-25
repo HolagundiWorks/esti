@@ -1,7 +1,7 @@
 ---
 title: Why generic project management tools fail architecture firms
 date: 2026-06-10
-excerpt: Trello, Asana, Monday and the rest weren't built for drawings, revisions, COA fees, GST, or building compliance. A detailed look at why generic project tools never fit an architecture practice — and what does.
+excerpt: Trello, Asana, Monday and the rest weren't built for drawings, revisions, COA fees, GST, approvals, or site delivery. A detailed look at why generic project tools never fit an architecture practice — and what does.
 tags: Operations, Workflow
 author: Holagundi Consulting Works
 ---
@@ -15,7 +15,7 @@ team drifts back to email, and the tool becomes one more place no one updates.
 This is not a discipline problem, and it is not the tool's fault. Generic project
 management tools fail architecture firms for a structural reason: **architecture is
 not a generic workflow.** A practice does not run on tasks and lists alone. It runs on
-drawings, revisions, approvals, fees, compliance, and clients — concepts that generic
+drawings, revisions, approvals, fees, site records, and clients — concepts that generic
 tools simply do not have. This article examines exactly where the mismatch lies and
 what a fit-for-purpose system looks like instead.
 
@@ -29,7 +29,7 @@ department, or a general consultancy, they fit well.
 The disappointment in an architecture practice comes from a specific place. The *real*
 units of an architecture project are not tasks. They are drawings with revision
 histories, fee proposals, GST invoices, client approvals, transmittals, and
-compliance checks. A generic tool has no concept of any of these. So the firm is
+site records. A generic tool has no concept of any of these. So the firm is
 forced to either flatten its real work into generic cards (losing all the meaning) or
 keep its real work somewhere else (making the tool redundant). Both paths lead to
 abandonment.
@@ -70,18 +70,18 @@ projects which approvals are stuck. Since approval time is one of the biggest de
 delivery, a tool that cannot manage approvals is missing the thing that most needs
 managing.
 
-### Compliance does not exist
+### Site and office standards have no home
 
-FAR, ground coverage, setbacks, height limits, the exclusion rules for parking and
-services — the regulatory reality that constrains every project — has no place in a
-kanban board. A generic tool cannot tell you whether a proposal is feasible on a plot
-or flag a compliance issue before design commits. For an architecture practice, this is
-not a nice-to-have; it is part of the core workflow that the tool is blind to.
+DSR references, specifications, tender conditions, site instructions, and project
+standards have no place in a kanban board. A generic tool cannot connect an issued
+drawing to the BOQ, the site note, the tender clarification, and the office record
+that explains why work moved. For an architecture practice, this is not a nice-to-have;
+it is part of the core workflow that the tool is blind to.
 
 ## Why the workarounds fail
 
 Faced with these gaps, firms improvise. They keep drawings in folders, fees in
-spreadsheets, approvals in email, and compliance in someone's head — and use the
+spreadsheets, approvals in email, and site standards in someone's head — and use the
 generic tool for "tasks." But this is exactly the fragmentation the firm adopted a tool
 to escape. Now there are *more* places to update, not fewer, and the generic tool holds
 the least important slice of the work.
@@ -105,8 +105,8 @@ directly. In a fit-for-purpose system:
   construction.
 - A **client approval** has a recipient, an age, a recorded decision, and a client
   portal.
-- **Compliance** — FAR, setbacks, bylaws — is built in, so feasibility is checked
-  early.
+- **Project standards** — DSR, specifications, tenders and site notes — stay
+  attached to the record.
 
 The difference is philosophical. A generic tool gives you an empty container and asks
 you to pour your practice into it, losing the shape on the way in. A fit-for-purpose
@@ -124,10 +124,10 @@ of fees, and a board of approvals inside a flexible tool. But three problems fol
 First, you have just taken on a **software project** — design, build, and maintenance —
 inside a firm whose business is architecture, not software. Someone has to own it,
 forever. Second, the pieces stay **disconnected**: even a clever Notion build rarely
-links a revision to its drawing to its approval to its invoice to a compliance check in a
+links a revision to its drawing to its approval to its invoice to a site record in a
 way that holds up, because those relationships are genuinely hard to model. Third, none
 of it understands the **domain**: your custom build has no idea what a GST split is, what
-a COA fee curve looks like, or what the FAR exclusion rules are — so the hard,
+a COA fee curve looks like, or how a site instruction affects billing — so the hard,
 practice-specific logic still lives in someone's head.
 
 What firms discover is that "just customise it" recreates, slowly and at their own
@@ -148,7 +148,7 @@ nothing to reconcile — the parts are already one record.
 ## How AORMS is built for the practice
 
 AORMS encodes the architecture office natively. Projects, phases, drawings, revisions,
-COA fee proposals, GST invoicing, client and contractor portals, and bylaw compliance
+COA fee proposals, GST invoicing, client and contractor portals, and site records
 are first-class concepts — not cards to relabel or fields to improvise. Because the
 domain is *in* the system rather than bolted on around it, the practice's real work
 lives in one place, and the tool is something the team actually keeps, because it

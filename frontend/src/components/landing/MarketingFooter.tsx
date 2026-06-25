@@ -5,7 +5,6 @@ import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
 const PRODUCT_LINKS = [
   { href: "/#platform", label: "Platform" },
-  { href: "/#compliance", label: "Compliance" },
   { href: "/#demo", label: "Demo workspace" },
   { href: "/blog", label: "Blog" },
   { href: "/#trial", label: "Request access" },
@@ -89,7 +88,7 @@ export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: (
               <span>ESTI AORMS</span>
               <span>Architecture Office Resource Management System</span>
               <span>© Holagundi Consulting Works</span>
-              <span>Built with passion, proudly from Hospet.</span>
+              <span>Built in Hospet for architecture offices that value disciplined records.</span>
             </div>
           </footer>
         </LandingEditorial>

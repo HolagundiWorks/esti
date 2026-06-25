@@ -17,6 +17,12 @@ import { marked } from "marked";
 
 const SITE = "https://aorms.in";
 const SITE_NAME = "AORMS";
+const HOME_SEO = {
+  title: "AORMS | Architecture Office Management Software for Indian Architects",
+  description:
+    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination, and office operations in one platform.",
+  canonical: `${SITE}/`,
+};
 
 // The firm product build (VITE_PUBLIC_SITE=false) ships no marketing/blog, so there
 // is nothing to prerender — skip cleanly.
@@ -71,6 +77,7 @@ function loadPosts() {
         title: data.title || f,
         date: data.date || "",
         excerpt: data.excerpt || "",
+        tags: data.tags ? data.tags.split(",").map((tag) => tag.trim()).filter(Boolean) : [],
         author: data.author || SITE_NAME,
         coverImage: data.coverImage || "",
         draft: data.draft === "true",
@@ -159,12 +166,12 @@ function assertSlugsInSync(landing) {
 }
 
 // Patch the SPA shell's <head> + #root for one page.
-function renderPage({ title, description, canonical, jsonLd, bodyHtml, image }) {
+function renderPage({ title, description, canonical, jsonLd, bodyHtml, image, exactTitle = false }) {
   let html = template;
   const set = (re, replacement) => {
     html = re.test(html) ? html.replace(re, replacement) : html;
   };
-  const pageTitle = `${title} — ${SITE_NAME}`;
+  const pageTitle = exactTitle ? title : `${title} — ${SITE_NAME}`;
   const ogImage = image ? `${SITE}${image}` : `${SITE}/og-image.png`;
 
   set(/<title>[\s\S]*?<\/title>/i, `<title>${esc(pageTitle)}</title>`);
@@ -194,6 +201,114 @@ function writePage(routePath, html) {
 
 // ── build ───────────────────────────────────────────────────────────────────
 const posts = loadPosts();
+const landing = loadLanding();
+assertSlugsInSync(landing);
+
+// Homepage → dist/index.html. This gives browsers, text-only readers, Google and
+// AI crawlers a meaningful document before React loads the visual Carbon UI.
+const homeFeatureLinks = [
+  ["Client revision tracking", "/client-revision-management-for-architects", "Record client-driven changes, internal corrections, technical queries and scope shifts with approval evidence."],
+  ["Project and phase management", "/architecture-project-management-software", "Keep enquiries, phases, drawings, site notes and handover evidence attached to one project record."],
+  ["Document approvals", "/architect-document-approval-system", "Track what was issued, reviewed, approved and changed without losing decisions in chat threads."],
+  ["Fee proposals", "/architect-fee-proposal-software", "Connect stage-wise fees to billing readiness, GST workflows, receipts and reconciliation."],
+  ["Contractor billing and reconciliation", "/contractor-billing-software-for-architects", "Follow measurements, contractor verification, office review, item-wise bills and client-facing approval."],
+  ["Cognitive dashboard", "/architecture-erp-india", "See what moved, what is blocked, what needs approval, what is billable and who owns the next action."],
+  ["ESTI AI assistant", "/esti-ai-assistant-for-architects", "Read the office record, explain risk and suggest the next responsible action without replacing human approval."],
+  ["Indian architecture practice workflows", "/architecture-office-management-india", "Work with GST, COA fee logic, tenders, site work, client approvals and practice-specific office records."],
+];
+const homeArticleGroups = [
+  {
+    heading: "Office essays",
+    tags: ["Operations", "Practice", "Product", "Team", "Vision", "Story", "Demo", "Design", "Cognition", "Security", "AI"],
+    excludeTags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings", "India", "Finance"],
+  },
+  {
+    heading: "Change and approval notes",
+    tags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings"],
+    excludeTags: [],
+  },
+  {
+    heading: "Indian practice notes",
+    tags: ["India", "Finance"],
+    excludeTags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings"],
+  },
+].map((group) => {
+  const wanted = new Set(group.tags);
+  const blocked = new Set(group.excludeTags);
+  return {
+    ...group,
+    posts: posts
+      .filter((p) => p.tags.some((tag) => wanted.has(tag)) && !p.tags.some((tag) => blocked.has(tag)))
+      .slice(0, 5),
+  };
+}).filter((group) => group.posts.length > 0);
+const homeArticleHtml = homeArticleGroups.length
+  ? `<section><h2>Practice notes</h2><p>Read after the product has introduced itself: articles grouped by how an architecture office thinks about practice, revisions, approvals and Indian operating context.</p>${homeArticleGroups.map((group) => `<article><h3>${esc(group.heading)}</h3><ul>${group.posts.map((p) => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`).join("")}</ul></article>`).join("")}</section>`
+  : "";
+const homeBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/blog">Blog</a> <a href="/demo">Demo</a> <a href="/#trial">Request workspace</a> <a href="/sitemap.xml">Sitemap</a> <a href="/llms.txt">llms.txt</a></nav></header><main><section><h1>AORMS — Architecture Office Resource Management System</h1><p>AORMS is architecture office management software built for Indian architects, solo practices, and small to mid-sized architecture firms.</p><p>Architecture firms do not fail because they cannot design. They lose time, money and peace because office memory is scattered across WhatsApp messages, spreadsheets, verbal approvals, fee trackers and repeated follow-ups.</p><p>AORMS helps the office remember, track, warn, record and move work forward before chaos becomes cost.</p><p><a href="/demo">Open the working demo</a> <a href="/#trial">Request workspace</a></p></section><section><h2>Morning view</h2><p>When a principal opens AORMS in the morning, the office is already assembled: what moved, what is blocked, what needs approval, what is billable, and who owns the next action.</p></section><section><h2>Work in motion</h2><p>Every enquiry, drawing, revision, approval, site note, bill and client decision stays attached to the project record. Architecture work does not need to break into disconnected fragments.</p></section><section><h2>Core capabilities</h2>${homeFeatureLinks.map(([title, href, text]) => `<article><h3><a href="${href}">${title}</a></h3><p>${text}</p></article>`).join("")}</section><section><h2>Revision intelligence</h2><p>Client-driven changes, internal corrections, technical queries and scope changes can carry fee and time impact. AORMS keeps the reason, approval record and follow-up action visible.</p></section><section><h2>Stakeholder access</h2><p>The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see project approvals. Contractors see only tender or bid scope. Visibility is controlled without splitting the record.</p></section>${homeArticleHtml}</main><footer><p>AORMS is built by Holagundi Consulting Works in Hospet, Karnataka, for architecture practices that want their office to run with the same discipline as their drawings.</p><p><a href="mailto:hi@aorms.in">hi@aorms.in</a></p></footer>`;
+writeFileSync(
+  join(distDir, "index.html"),
+  renderPage({
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
+    canonical: HOME_SEO.canonical,
+    exactTitle: true,
+    bodyHtml: homeBody,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": `${SITE}/#website`,
+          url: SITE,
+          name: "AORMS",
+          description: HOME_SEO.description,
+          inLanguage: "en-IN",
+          publisher: { "@id": `${SITE}/#organization` },
+        },
+        {
+          "@type": "Organization",
+          "@id": `${SITE}/#organization`,
+          name: "Holagundi Consulting Works",
+          url: SITE,
+          email: "hi@aorms.in",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Hospet",
+            addressRegion: "Karnataka",
+            addressCountry: "IN",
+          },
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": `${SITE}/#software`,
+          name: "AORMS",
+          alternateName: "Architecture Office Resource Management System",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: SITE,
+          description: "AORMS is architecture office management software for Indian architects, solo practices and small to mid-sized architecture firms.",
+          audience: {
+            "@type": "Audience",
+            audienceType: "Architects, architecture firms, Indian design practices",
+          },
+          featureList: [
+            "client revision tracking",
+            "project management",
+            "billing",
+            "document approvals",
+            "contractor workflows",
+            "AI assistant",
+            "fee proposals",
+            "cognitive dashboard",
+          ],
+          publisher: { "@id": `${SITE}/#organization` },
+        },
+      ],
+    },
+  }),
+  "utf8",
+);
 
 // Blog list page → dist/blog/index.html
 const listBody = `<main class="esti-blog"><h1>Blog</h1><ul>${posts
@@ -203,7 +318,7 @@ writePage(
   "blog",
   renderPage({
     title: "Blog",
-    description: "Office intelligence, compliance, and delivery notes for Indian architecture practices, from the team building AORMS.",
+    description: "Office intelligence, revisions, approvals, billing, and delivery notes for Indian architecture practices.",
     canonical: `${SITE}/blog`,
     jsonLd: null,
     bodyHtml: listBody,
@@ -250,8 +365,6 @@ for (const p of posts) {
 }
 
 // Each keyword landing page → dist/<slug>/index.html
-const landing = loadLanding();
-assertSlugsInSync(landing);
 for (const p of landing) {
   const url = `${SITE}/${p.slug}`;
   const introHtml = p.intro ? `<p class="esti-blog-article__byline">${esc(p.intro)}</p>` : "";
@@ -303,7 +416,6 @@ for (const p of landing) {
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
-  { loc: `${SITE}/compliance-check`, lastmod: today, changefreq: "monthly", priority: "0.9" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
   ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
@@ -322,14 +434,29 @@ ${urls
 writeFileSync(join(distDir, "sitemap.xml"), sitemap, "utf8");
 
 // ── llms.txt (AI / LLM crawler index) ─────────────────────────────────────────
-const llms = `# AORMS — Architectural Office Resource Management System
+const llms = `# AORMS
 
-> AORMS, by Holagundi Consulting Works, is an office intelligence system for Indian architecture practices. It unifies projects, drawings, revisions, COA fee proposals, GST invoicing, bylaw compliance, and client/contractor portals, and runs a cognition engine that observes the office, predicts risk, and recommends the next action. Built India-native: GST/SAC codes, the April–March year, BBMP and jurisdiction bylaws, and DSR rates.
+AORMS stands for Architecture Office Resource Management System.
 
-## Product
-- [AORMS home](${SITE}/): office cognition for architecture firms — observe, reason, predict, recommend.
-- [Building compliance checker](${SITE}/compliance-check): free FAR, ground coverage and setback checker for BBMP (Bengaluru), with reference data for Mumbai, Delhi, Chennai, Hyderabad, Pune, Kolkata and Ahmedabad.
-- [Live demo](${SITE}/demo): one-click demo workspace, no signup.
+AORMS is architecture office management software for Indian architecture firms, solo architects, and small practices.
+
+Core capabilities:
+- Client revision management
+- Project phase tracking
+- Architecture document approvals
+- Fee proposal workflows
+- Contractor billing and reconciliation
+- Cognitive dashboard
+- ESTI AI assistant
+- Indian practice-focused office workflows
+
+Website:
+${SITE}
+
+## Public Pages
+- [AORMS home](${SITE}/)
+- [Blog](${SITE}/blog)
+- [Live demo](${SITE}/demo)
 
 ## Solutions
 ${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}

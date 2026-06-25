@@ -29,7 +29,7 @@ export function MarketingPositionBand() {
           lowContrast
           hideCloseButton
           title="How the products fit"
-          subtitle="ESTICAD is full 2D CAD on the desktop. AORMS is the traceable office record — projects, fees, portals, and compliance evidence — not a drawing editor."
+          subtitle="ESTICAD is full 2D CAD on the desktop. AORMS is the traceable office record — projects, fees, portals, approvals, and delivery evidence — not a drawing editor."
         />
       </Stack>
     </MarketingBandSection>

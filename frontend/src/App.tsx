@@ -84,7 +84,6 @@ const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
 const ContractorPortal = lazyRoute(() => import("./routes/ContractorPortal.js"), "ContractorPortal");
-const ComplianceWidget = lazyRoute(() => import("./routes/ComplianceWidget.js"), "ComplianceWidget");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
 const SeoLanding = lazy(() =>
@@ -136,15 +135,6 @@ function navPathActive(pathname: string, to: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
-/** Legacy `/compliance` bookmarks → Knowledge Bank compliance tab. */
-function ComplianceRedirect() {
-  const { search } = useLocation();
-  const params = new URLSearchParams(search);
-  params.set("tab", "compliance");
-  const qs = params.toString();
-  return <Navigate to={`/knowledge-bank?${qs}`} replace />;
-}
-
 // ─── Header clock ─────────────────────────────────────────────────────────────
 
 function HeaderClock() {
@@ -175,9 +165,11 @@ function PlanChip({ plan }: { plan: string }) {
   const label = plan === "ENTERPRISE" ? "Enterprise" : plan === "CORE" ? "Core" : "Lite";
   const type = plan === "ENTERPRISE" ? "purple" : plan === "CORE" ? "blue" : "green";
   return (
-    <Tag size="sm" type={type as "purple" | "blue" | "green"} title={`AORMS-${label} subscription`}>
-      {label}
-    </Tag>
+    <span title={`AORMS-${label} subscription`}>
+      <Tag size="sm" type={type as "purple" | "blue" | "green"}>
+        {label}
+      </Tag>
+    </span>
   );
 }
 
@@ -220,10 +212,6 @@ function AppShell() {
       (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
-
-  // Public compliance widget — no auth, embeddable as iframe.
-  if (pathname === "/compliance-check")
-    return <ComplianceWidget />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
@@ -486,7 +474,6 @@ function AppShell() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
-                <Route path="/compliance" element={<ComplianceRedirect />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/search" element={<SearchPage />} />
                 {can(user.role, "invoice:manage") && (

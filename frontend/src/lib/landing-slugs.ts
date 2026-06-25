@@ -16,6 +16,7 @@ export const LANDING_SLUGS = [
   "software-for-architecture-firms",
   "architecture-client-management-software",
   "architecture-office-workflow-management",
+  "architecture-client-portal-software",
   // Phase 10 — revision/approval moat keywords.
   "architecture-revision-tracking",
   "drawing-revision-tracking-software",
@@ -33,6 +34,13 @@ export const LANDING_SLUGS = [
   // Phase 12 — client revision + construction client management.
   "client-revision-management",
   "construction-client-management-software",
+  // Phase 13 — crawler-readable acquisition pages.
+  "client-revision-management-for-architects",
+  "architecture-erp-india",
+  "architect-fee-proposal-software",
+  "architect-document-approval-system",
+  "contractor-billing-software-for-architects",
+  "esti-ai-assistant-for-architects",
 ] as const;
 
 const SET: ReadonlySet<string> = new Set(LANDING_SLUGS);
@@ -53,7 +61,7 @@ export interface LandingNavGroup {
 
 export const LANDING_NAV: LandingNavGroup[] = [
   {
-    heading: "By practice",
+    heading: "Practice systems",
     links: [
       { slug: "architecture-office-management-software", label: "Office management software" },
       { slug: "architecture-firm-management-software", label: "Firm management software" },
@@ -62,22 +70,27 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "software-for-architecture-firms", label: "Software for architecture firms" },
       { slug: "architecture-consultancy-management-software", label: "Consultancy management software" },
       { slug: "construction-client-management-software", label: "Construction client management" },
+      { slug: "architecture-erp-india", label: "Architecture ERP India" },
+      { slug: "architect-fee-proposal-software", label: "Fee proposal software" },
     ],
   },
   {
-    heading: "Revisions & approvals",
+    heading: "Decision records",
     links: [
       { slug: "architecture-revision-tracking", label: "Revision tracking" },
       { slug: "drawing-revision-tracking-software", label: "Drawing revision control" },
       { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
+      { slug: "architect-document-approval-system", label: "Document approval system" },
       { slug: "architecture-change-management-software", label: "Change management" },
       { slug: "client-revision-management", label: "Client revision management" },
+      { slug: "client-revision-management-for-architects", label: "Revision management for architects" },
       { slug: "architecture-client-management-software", label: "Client management" },
+      { slug: "architecture-client-portal-software", label: "Client portal software" },
       { slug: "architecture-office-workflow-management", label: "Workflow management" },
     ],
   },
   {
-    heading: "Built for India",
+    heading: "India operations",
     links: [
       { slug: "architecture-software-india", label: "Architecture software India" },
       { slug: "coa-compliant-billing-software", label: "COA-compliant billing" },
@@ -85,6 +98,8 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "architecture-office-management-india", label: "Office management in India" },
       { slug: "gst-on-architecture-services", label: "GST on architecture work" },
       { slug: "hsn-sac-code-for-architects", label: "HSN / SAC code for architects" },
+      { slug: "contractor-billing-software-for-architects", label: "Contractor billing" },
+      { slug: "esti-ai-assistant-for-architects", label: "ESTI AI assistant" },
     ],
   },
 ];

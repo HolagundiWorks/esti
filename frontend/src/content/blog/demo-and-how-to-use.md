@@ -28,8 +28,8 @@ you are dropped straight into a live workspace as the principal architect:
   transmittals, invoices and approvals from the client's side.
 - **The contractor portal** — open the contractor link to see a tender, issued
   documents, and the "raise a query" flow.
-- **Knowledge bank** — DSR rates, the compliance engine, specifications, and
-  steel scheduling.
+- **Knowledge bank** — DSR rates, specification catalogues, project standards,
+  and steel scheduling.
 
 A demo switcher in the corner lets you hop between roles — principal, project
 lead, site coordinator, junior, intern, and client — so you can see exactly how

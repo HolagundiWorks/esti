@@ -68,11 +68,11 @@ const LEVELS: Level[] = [
     badge: "L3",
     badgeColor: "#005d5d",
     role: "Senior Architect",
-    subtitle: "Full project delivery — drawings, specs, tenders, and compliance.",
+    subtitle: "Full project delivery — drawings, specs, tenders, and approvals.",
     capabilities: [
       "Projects & drawings",
       "Tenders & bid review",
-      "RIE compliance",
+      "Authority records",
       "Knowledge Bank",
       "ASPRF performance",
     ],

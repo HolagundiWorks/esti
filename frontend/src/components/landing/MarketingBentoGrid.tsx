@@ -67,13 +67,13 @@ const TILES = [
   },
   {
     icon: Building,
-    eyebrow: "India compliance",
-    title: "Know what your site can carry — without argument",
-    body: "Development-control rules for 8 Indian cities, master DSR rates, and a specification catalogue — versioned and cited in every project record.",
+    eyebrow: "India-ready standards",
+    title: "Keep project references out of memory and inside the record",
+    body: "Master DSR rates, specification catalogues, GST context, and project standards stay versioned and cited in the project record.",
     bullets: [
-      "BBMP, HMDA, MCGM, CMDA, BDA, GHMC, PMC, MCD",
       "Delhi Schedule of Rates with DSR version history",
       "Specification catalogue linked to BOQ line items",
+      "GST and billing context kept with the project record",
     ],
   },
 ] as const;
