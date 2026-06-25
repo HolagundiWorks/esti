@@ -17,6 +17,7 @@ import { ProjectSteelReconciliation } from "./ProjectSteelReconciliation.js";
 import { ProjectMeasurementBook } from "./ProjectMeasurementBook.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 import { ProjectControls } from "./ProjectControls.js";
+import { ProjectFinalAccount } from "./ProjectFinalAccount.js";
 
 /**
  * Single Costing & Measurement window (Phase 4). Presents the full delivery
@@ -36,6 +37,7 @@ const SPINE: { key: string; label: string; office?: boolean }[] = [
   { key: "measurement", label: "Site measurement" },
   { key: "bills", label: "RA bills" },
   { key: "submissions", label: "Submissions" },
+  { key: "closure", label: "Final account" },
 ];
 
 function SpineRail({ active }: { active: string }) {
@@ -78,6 +80,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           {showBills && <Tab>Work packages</Tab>}
           {showBills && <Tab>Controls</Tab>}
           {showBills && <Tab>Site measurement &amp; RA bills</Tab>}
+          {showBills && <Tab>Final account</Tab>}
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -121,6 +124,14 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
                 <SpineRail active="measurement" />
                 <ProjectMeasurementBook projectId={projectId} />
                 <ProjectRunningBills projectId={projectId} />
+              </Stack>
+            </TabPanel>
+          )}
+          {showBills && (
+            <TabPanel>
+              <Stack gap={5}>
+                <SpineRail active="closure" />
+                <ProjectFinalAccount projectId={projectId} />
               </Stack>
             </TabPanel>
           )}

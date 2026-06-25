@@ -1,6 +1,6 @@
 """Unit tests for the worker's pure helpers (no DB / object storage / network)."""
 from esti_worker.jobs import HANDLERS
-from esti_worker.jobs.pdf import _inr, _running_bill_html
+from esti_worker.jobs.pdf import _final_account_html, _inr, _running_bill_html
 from esti_worker.jobs.reconcile import _digits, _pick, _to_paise
 
 
@@ -69,3 +69,43 @@ def test_running_bill_html_renders_gross_deductions_net() -> None:
     assert "₹93,000.00" in html_str
     # A zero-value deduction (advance recovery) is omitted.
     assert "Advance recovery" not in html_str
+
+
+def test_final_account_html_renders_reconciliation_and_attestations() -> None:
+    rec = {
+        "ref": "FA/2026-27/0001",
+        "title": "Tower A — civil works final account",
+        "status": "CLOSED",
+        "notes": "Closed after no-claim cert.",
+        "original_contract_paise": 50000000,  # ₹5,00,000
+        "variation_paise": 5000000,  # ₹50,000
+        "gross_billed_paise": 54000000,  # ₹5,40,000
+        "retention_held_paise": 2700000,  # ₹27,000
+        "retention_released_paise": 2700000,
+        "advance_recovered_paise": 0,
+        "tax_tds_paise": 1080000,  # ₹10,800
+        "other_recovery_paise": 0,
+        "net_paid_paise": 50220000,  # ₹5,02,200
+        "final_certified_paise": 55000000,  # ₹5,50,000
+        "balance_due_paise": 4780000,  # ₹47,800
+        "no_claim_received": True,
+        "client_final_approval": True,
+        "closed_at": "2026-06-26",
+        "project_ref": "PRJ-1",
+        "project_title": "Sample tower",
+        "wp_ref": "WP-0001",
+        "wp_name": "Civil works",
+    }
+    html_str = _final_account_html(rec, {"legalName": "HCW", "addressLines": []})
+    assert "Final account" in html_str
+    assert "FA/2026-27/0001" in html_str
+    assert "Civil works (WP-0001)" in html_str
+    assert "Adjusted contract value" in html_str
+    assert "₹5,50,000.00" in html_str  # original + variation adjusted contract
+    assert "Less: Retention held" in html_str
+    assert "-₹27,000.00" in html_str
+    assert "Balance due to contractor" in html_str
+    assert "₹47,800.00" in html_str
+    assert "No-claim certificate received" in html_str
+    # A zero-value deduction (advance recovery) is omitted.
+    assert "Advances recovered" not in html_str

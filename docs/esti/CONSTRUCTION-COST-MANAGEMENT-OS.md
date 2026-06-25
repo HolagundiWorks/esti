@@ -2,7 +2,7 @@
 
 **Status:** Canonical · **Target architecture** for the full cost lifecycle —
 estimate → BOQ → rate analysis → BBS → tender → award → measurement → running
-bill → deviation/variation → final account · **Reviewed:** 2026-06-25
+bill → deviation/variation → final account · **Reviewed:** 2026-06-26
 
 This is the ESTI-adapted version of the reference spec
 (`AORMS_Construction_Cost_Management_OS_Architecture.md`). The reference is a
@@ -38,15 +38,15 @@ Planned → Estimated → Quantified → Analysed → Tendered → Awarded
 | Billed | 5.12 Running Bill | `esti_running_bill` 9-state machine + double-billing guard (Rule 9) + bill **types** + **deduction block** (retention/advance/tax-TDS/other → net payable) + running-bill PDF | **Built** (Estimation OS 4 + CC Phase C) |
 | Deviated | 5.13 Qty / 5.14 Rate / 5.15 Variation | `esti_deviation` (qty + rate; severity ladder; rate document-and-approve only — Rule 5) + `esti_variation`/`esti_variation_item` (two-step ladder → **Apply** writes the `variationQty` ledger + self-keyed extra-item lines); `deviations`/`variations` namespaces, `ProjectControls.tsx`; `cost:approve` gate | **Built** (CC Phase D) → variation-order PDF deferred |
 | Approved | §10 Approvals | `esti_approval` (generic) + `approval` namespace; `esti_audit` immutable log | **Built (generic)** → wire financial chains |
-| Closed | 5.18 Final Account | **Not built** | **Build** |
+| Closed | 5.18 Final Account | `esti_final_account` (per work package; auto-rolled reconciliation snapshot + manual closing adjustments) + Rule-6 closure checklist (`cost:approve` close sets the work package `CLOSED`) + closure PDF (`final_account` worker target); `finalAccount` namespace, `ProjectFinalAccount.tsx` | **Built** (CC Phase F) |
 
 **Headline:** the *pre-construction half* of the OS (estimate → BOQ → rate
 analysis → BBS) and the *billing core* (work packages → running bills with
 double-billing prevention) already exist. The middle is now built — BOQ-driven
 **tendering/award** (A+B), the **site measurement book** (C), the **controls
 layer** (deviations + variations + extra items, D), and **BBS-into-the-spine**
-linkage + **steel reconciliation** (E). The **remaining tail** is
-**final-account closure** (F) — plus a **cost-health dashboard** over all of it (G).
+linkage + **steel reconciliation** (E), and **final-account closure** (F). The
+**remaining tail** is a **cost-health dashboard** over all of it (G).
 
 ---
 
@@ -215,12 +215,32 @@ Not present. Depends on BBS-into-spine + a work schedule. Defer.
 Not present. **Note:** the `reconcile` namespace is **bank/26AS/AIS/GSTR financial**
 reconciliation — unrelated. Defer; steel reconciliation (3.6) is the first slice.
 
-### 3.18 Final Account (ref 5.18) — **Build**
-Not present. **Build (Phase F):** `esti_final_account` (original contract value,
-approved variations, extra items, deductions, recoveries, retention, advance
-recovery, taxes, total paid, balance, final certified) + the closure checklist
-(all bills approved, all deviations/variations closed, retention updated, final
-measurements approved, no-claim cert, client final approval) + a closure PDF.
+### 3.18 Final Account (ref 5.18) — **Built (Phase F)**
+`esti_final_account` is a **per-work-package** closing statement (the contract
+artifact — a project with several contracts gets several final accounts; no
+`_item` table, line detail already lives in the running bills + work-package
+items). Its reconciliation snapshot is **auto-rolled off the spine** by
+`finalAccountFinancials` — original contract value (`Σ approvedQty × ratePaise`),
+approved variations + extra items (`Σ variationQty × ratePaise`), gross billed,
+retention held, advances recovered, TDS, other recoveries and net paid (column
+sums over the work package's running bills) — and recomputed live on every read
+while `DRAFT`. The office enters only the **closing adjustments** by hand (final
+certified amount, retention released, no-claim cert, client final approval,
+notes); `balanceDuePaise = finalCertifiedPaise − netPaidPaise`.
+
+The **closure checklist** (`finalAccountChecklist`) gates finalisation:
+**blocking** = no open deviations (`status = OPEN`), no open variations (not
+`CLOSED`/`REJECTED`) — **Rule 6, enforced server-side in `close`, not just the
+UI** — plus no-claim cert and client final approval; **advisory** (shown, never
+blocks) = approved-unbilled measurements and steel-reconciliation finalized.
+Two-state **DRAFT → CLOSED**: `close` (gated by `cost:approve`, Phase D)
+re-evaluates the checklist, stamps the snapshot + checklist jsonb +
+`closedById`/`closedAt`, sets the parent work package `status = CLOSED`, and
+locks the record. A **closure PDF** (`render_pdf` target `final_account`,
+`_final_account_html`) is the printable closing certificate. `finalAccount`
+namespace; `ProjectFinalAccount.tsx` mounted as the "Final account" stage of the
+costing spine. *Deferred:* project-level final account aggregating multiple work
+packages; retention-release bill auto-generation; final-account XLSX.
 
 ---
 
@@ -269,8 +289,8 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **C — Site Measurement Book** ✅ **Done (2026-06-25)** | `esti_measurement_record` (location/floor/zone/photo-key/approve) feeding running bills; the double-billing guard moved onto approved measurements (consumed = billed + approved-unbilled); bill **types** + **deduction block** (retention/advance/tax-TDS/other → `net_payable_paise`, gross unchanged); running-bill PDF worker target. Strict billing — only approved records feed BOQ lines; free-text extras stay. *Deferred:* photo capture/upload UI (`photoKey` column ships) | ref 5.11–5.12 | Med |
 | **D — Controls (Deviations + Variations + Extra Items)** ✅ **Done (2026-06-25)** | `esti_deviation` (qty + rate; severity ladder; document-and-approve — rate never overwrites the contract, Rule 5), `esti_variation` + `esti_variation_item` (the "addition"; existing-line additions priced at contract rate, extra items at own rate) with the two-step ladder **Draft → Submitted → Internal → Client → Applied → Closed** (+ Rejected). **Apply** is the only writer of the billable ledger (`variationQty` on existing lines; a self-keyed work-package line per extra item), recomputing the package contract value; the Phase-C bill guard immediately bills the new scope. New `cost:approve` capability (L2+, granted to ACCOUNTANT) gates every approve/apply step. *Deferred:* variation-order PDF | ref 5.13–5.15; **Estimation OS Phase 5** | **High** (you named additions) |
 | **E — BBS into the spine + Steel reconciliation** ✅ **Done (2026-06-25)** | `esti_bbs` gains `work_package_id` + `boq_item_id` (Rule 9 plain-uuid ledger key, no FK) + `drawing_id` links (`bbs.link`, set-null FKs for the two real targets); optional `floor` on `esti_bbs_item` driving `diameterSummary` / `floorSummary` roll-ups. `esti_steel_reconciliation` (+ `_item`) compares per diameter `scheduledKg` (auto-seeded from the linked BBS via `seedFromBbs`), `issuedKg` and `consumedKg` (entered); `wastageKg = issued − consumed` with a severity ladder (within ≤3% / watch / over >5%); two-state **DRAFT → FINALIZED**, finalize gated by the existing `cost:approve`, finalized record locks edits. `steelReconciliation` namespace, `ProjectSteelReconciliation.tsx` mounted under `ProjectBbs` in the BBS tab. *Deferred:* steel-reconciliation PDF (mirrors deferred variation-order PDF); full-BBS fields (shape/lap/Ld/hook/bend — formulas already in `steel-arranger.ts`); deriving consumed from the measurement book / a GRN store-issue ledger (Future "material reconciliation") | ref 5.6, 5.5 | **High** (you named BBS) |
-| **F — Final Account + Closure** ← **next** | `esti_final_account` + closure checklist + closure PDF | ref 5.18 | Med |
-| **G — Cost dashboard + reports + AI checks** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes (duplicate-billing, unbalanced bid, bill deviation) | ref 5.1, §9, §16 | Med |
+| **F — Final Account + Closure** ✅ **Done (2026-06-26)** | `esti_final_account` — **per work package**; reconciliation snapshot auto-rolled off the spine (`finalAccountFinancials`: original contract + variations/extra items + gross billed − retention/advance/TDS/other = net paid) and recomputed live while `DRAFT`; manual closing adjustments (final certified, retention released, no-claim cert, client approval, notes); `balanceDue = finalCertified − netPaid`. Rule-6 closure checklist (`finalAccountChecklist`) — blocking: no open deviations/variations (**enforced server-side in `close`**) + no-claim cert + client approval; advisory: approved-unbilled measurements + steel finalized. Two-state **DRAFT → CLOSED**, `close` gated by `cost:approve`, stamps the snapshot + checklist jsonb and sets the parent work package `CLOSED`. Closure PDF (`final_account` worker target, `_final_account_html`). `finalAccount` namespace, `ProjectFinalAccount.tsx`. *Deferred:* project-level rollup account; retention-release bill auto-gen; final-account XLSX | ref 5.18 | Med |
+| **G — Cost dashboard + reports + AI checks** ← **next** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes (duplicate-billing, unbalanced bid, bill deviation) | ref 5.1, §9, §16 | Med |
 | **Future** | Procurement forecast, material reconciliation, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
 
 Your three named priorities map to **A+B (tender management)**, **D
@@ -288,7 +308,9 @@ Your three named priorities map to **A+B (tender management)**, **D
    measurement; no billing above balance without an approved variation.
 4. No tender issue without an approved BOQ and the latest drawings.
 5. No rate change without approval; original/contract rate is never overwritten.
-6. No final-account closure with open variations/deviations.
+6. No final-account closure with open variations/deviations — **enforced** in
+   `finalAccount.close` (re-evaluates the checklist server-side; blocking failures
+   throw `BAD_REQUEST`, even for an OWNER).
 7. One spine — the work package is the award artifact; the component master is the
    one identity; never a parallel `work_order`/`execution_component` table.
 8. Every financial action leaves an `esti_audit` row.
