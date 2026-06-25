@@ -73,12 +73,20 @@ are gated by the `pmc` plan feature; costing by the `costing` feature (both Core
 
 ## 3. Module-by-module gap map
 
-### 3.1 Dashboard (ref 5.1) — **Extend**
-`dashboard` read models cover financial/project-health/action-center, but there
-is **no construction cost-health panel** (Estimated / Tendered / Awarded / Billed
-/ Paid / Pending bills / Approved + Unapproved deviations / Variation value /
-Cost-overrun % / package- and contractor-wise status, Green/Amber/Red/Grey).
-**Build:** `dashboard.constructionCost(projectId)` read model + a Carbon panel.
+### 3.1 Dashboard (ref 5.1) — **Built (CC Phase G)**
+`dashboard.constructionCost(projectId)` reads the whole spine back as one calm
+cost-health panel: Estimated / Tendered / Awarded / Billed (gross) / Certified
+(net payable) KPIs, pending bills, approved + unapproved deviations, variation
+value, cost-overrun %, and package- and contractor-wise Green/Amber/Red/Grey
+status. The three **AI risk checks** (duplicate/over-billing, unbalanced bid,
+bill deviation) are computed **deterministically** in the read model (the §9
+"checker" role — arithmetic over financial data, never an LLM that could
+"silently approve"), surfaced as advisory notes with a severity; the logic is
+pure + unit-tested in `@esti/contracts` (`cost-dashboard.ts`). Read-only, no
+migration. Surfaced as the `showBills`-gated **Cost dashboard** tab in
+`ProjectCosting.tsx` (`ProjectCostDashboard.tsx`). *Deferred:* optional LLM
+narration of the risk notes (`ai` namespace); a printable `cost_report` worker
+target (the on-screen panel is the report); office-wide cross-project roll-up.
 
 ### 3.2 Estimate (ref 5.2) — **Built**
 Estimation OS Phase 1. Statuses (`draft … design_frozen … billing_active …
@@ -290,11 +298,19 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **D — Controls (Deviations + Variations + Extra Items)** ✅ **Done (2026-06-25)** | `esti_deviation` (qty + rate; severity ladder; document-and-approve — rate never overwrites the contract, Rule 5), `esti_variation` + `esti_variation_item` (the "addition"; existing-line additions priced at contract rate, extra items at own rate) with the two-step ladder **Draft → Submitted → Internal → Client → Applied → Closed** (+ Rejected). **Apply** is the only writer of the billable ledger (`variationQty` on existing lines; a self-keyed work-package line per extra item), recomputing the package contract value; the Phase-C bill guard immediately bills the new scope. New `cost:approve` capability (L2+, granted to ACCOUNTANT) gates every approve/apply step. *Deferred:* variation-order PDF | ref 5.13–5.15; **Estimation OS Phase 5** | **High** (you named additions) |
 | **E — BBS into the spine + Steel reconciliation** ✅ **Done (2026-06-25)** | `esti_bbs` gains `work_package_id` + `boq_item_id` (Rule 9 plain-uuid ledger key, no FK) + `drawing_id` links (`bbs.link`, set-null FKs for the two real targets); optional `floor` on `esti_bbs_item` driving `diameterSummary` / `floorSummary` roll-ups. `esti_steel_reconciliation` (+ `_item`) compares per diameter `scheduledKg` (auto-seeded from the linked BBS via `seedFromBbs`), `issuedKg` and `consumedKg` (entered); `wastageKg = issued − consumed` with a severity ladder (within ≤3% / watch / over >5%); two-state **DRAFT → FINALIZED**, finalize gated by the existing `cost:approve`, finalized record locks edits. `steelReconciliation` namespace, `ProjectSteelReconciliation.tsx` mounted under `ProjectBbs` in the BBS tab. *Deferred:* steel-reconciliation PDF (mirrors deferred variation-order PDF); full-BBS fields (shape/lap/Ld/hook/bend — formulas already in `steel-arranger.ts`); deriving consumed from the measurement book / a GRN store-issue ledger (Future "material reconciliation") | ref 5.6, 5.5 | **High** (you named BBS) |
 | **F — Final Account + Closure** ✅ **Done (2026-06-26)** | `esti_final_account` — **per work package**; reconciliation snapshot auto-rolled off the spine (`finalAccountFinancials`: original contract + variations/extra items + gross billed − retention/advance/TDS/other = net paid) and recomputed live while `DRAFT`; manual closing adjustments (final certified, retention released, no-claim cert, client approval, notes); `balanceDue = finalCertified − netPaid`. Rule-6 closure checklist (`finalAccountChecklist`) — blocking: no open deviations/variations (**enforced server-side in `close`**) + no-claim cert + client approval; advisory: approved-unbilled measurements + steel finalized. Two-state **DRAFT → CLOSED**, `close` gated by `cost:approve`, stamps the snapshot + checklist jsonb and sets the parent work package `CLOSED`. Closure PDF (`final_account` worker target, `_final_account_html`). `finalAccount` namespace, `ProjectFinalAccount.tsx`. *Deferred:* project-level rollup account; retention-release bill auto-gen; final-account XLSX | ref 5.18 | Med |
-| **G — Cost dashboard + reports + AI checks** ← **next** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes (duplicate-billing, unbalanced bid, bill deviation) | ref 5.1, §9, §16 | Med |
-| **Future** | Procurement forecast, material reconciliation, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
+| **G — Cost dashboard + reports + AI checks** ✅ **Done (2026-06-26)** | `dashboard.constructionCost(projectId)` read model + the `showBills`-gated **Cost dashboard** tab (`ProjectCostDashboard.tsx`): Estimated / Tendered / Awarded / Billed / Certified KPIs, cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey, deviation/variation/pending-bill exposure. The three risk checks (duplicate/over-billing, unbalanced bid, bill deviation) are **deterministic** "checker" output (pure + unit-tested in `cost-dashboard.ts`; the §9 rule that AI must not "silently approve" financial data), advisory-only with a severity. Read-only, no migration, costing-plan gated. *Deferred:* LLM narration of the notes (`ai` namespace); `cost_report` PDF worker target; office-wide cross-project roll-up | ref 5.1, §9, §16 | Med |
+| **Future** | Procurement forecast (3.16), material reconciliation (3.17), BOQ-validation checklist (3.3), rate-deviation ladder (3.4), cost-report PDF, AI narration, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
 
 Your three named priorities map to **A+B (tender management)**, **D
 (additions/variations)**, and **E (BBS)** — a natural first three.
+
+**Phases A–G are now built end-to-end (shipped through 2026-06-26).** The
+Construction Cost OS spine is complete: `estimate → frozen BOQ → tender → award →
+work package → site measurement → running bill → deviations/variations → BBS +
+steel reconciliation → final account + closure → cost dashboard + risk checks`.
+What remains (the **Future** row) is additive: procurement forecast, material
+reconciliation, the BOQ-validation checklist, the rate-deviation ladder, report
+PDFs, and optional AI narration.
 
 ---
 

@@ -10,5 +10,9 @@ export { getClientIntelligence } from "./clientIntelligence.js";
 export { getTeamIntelligence } from "./teamIntelligence.js";
 export { getRevisionIntelligence } from "./revisionIntelligence.js";
 export { getTechnicalIntelligence } from "./technicalIntelligence.js";
+export {
+  getConstructionCostHealth,
+  type ConstructionCostHealth,
+} from "./constructionCost.js";
 export { dashboardModuleFlags, getDashboardHome } from "./home.js";
 export { buildCognitionSnapshot, type CognitionSnapshot } from "./cognition.js";
