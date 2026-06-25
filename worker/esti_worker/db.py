@@ -337,6 +337,32 @@ def fetch_running_bill_full(rid: str) -> dict[str, Any] | None:
         return row
 
 
+def update_final_account(faid: str, **fields: Any) -> None:
+    _patch("esti_final_account", faid, set(), fields)
+
+
+def fetch_final_account_full(faid: str) -> dict[str, Any] | None:
+    """A final account + project / work-package headers (Construction Cost OS
+    Phase F). Carries the reconciliation snapshot + closure attestations so the
+    PDF can print the closing certificate."""
+    sql = """
+        select fa.ref, fa.title, fa.status, fa.notes,
+               fa.original_contract_paise, fa.variation_paise, fa.gross_billed_paise,
+               fa.retention_held_paise, fa.retention_released_paise,
+               fa.advance_recovered_paise, fa.tax_tds_paise, fa.other_recovery_paise,
+               fa.net_paid_paise, fa.final_certified_paise, fa.balance_due_paise,
+               fa.no_claim_received, fa.client_final_approval, fa.closed_at,
+               p.ref as project_ref, p.title as project_title,
+               wp.ref as wp_ref, wp.name as wp_name
+        from esti_final_account fa
+        join esti_projectoffice p on p.id = fa.project_id
+        left join esti_work_package wp on wp.id = fa.work_package_id
+        where fa.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [faid]).fetchone()
+
+
 def update_site_instruction(sid: str, **fields: Any) -> None:
     _patch("esti_site_instruction", sid, set(), fields)
 

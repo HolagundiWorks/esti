@@ -27,6 +27,7 @@ from ..db import (
     fetch_transmittal_full,
     fetch_progress_report_full,
     fetch_running_bill_full,
+    fetch_final_account_full,
     fetch_site_instruction_full,
     update_drawing,
     update_feeproposal,
@@ -37,6 +38,7 @@ from ..db import (
     update_progress_report,
     update_proposal,
     update_running_bill,
+    update_final_account,
     update_site_instruction,
     update_specsheet,
     update_estimate,
@@ -661,6 +663,73 @@ def _running_bill_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _final_account_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Construction Cost OS Phase F — final-account closing certificate. Rolls the
+    contract value (original + variations) into the billed-vs-paid reconciliation,
+    states the final certified amount and balance due, and prints the closure
+    attestations (no-claim cert, client final approval)."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    original = int(rec.get("original_contract_paise") or 0)
+    variation = int(rec.get("variation_paise") or 0)
+    adjusted = original + variation
+    gross = int(rec.get("gross_billed_paise") or 0)
+    net_paid = int(rec.get("net_paid_paise") or 0)
+    final_certified = int(rec.get("final_certified_paise") or 0)
+    balance = int(rec.get("balance_due_paise") or 0)
+    # Deduction rows are shown only when non-zero so a clean account stays clean.
+    deductions = [
+        ("Retention held", int(rec.get("retention_held_paise") or 0)),
+        ("Advances recovered", int(rec.get("advance_recovered_paise") or 0)),
+        ("Tax / TDS", int(rec.get("tax_tds_paise") or 0)),
+        ("Other recoveries", int(rec.get("other_recovery_paise") or 0)),
+    ]
+    ded_rows = "".join(
+        f'<tr><td style="text-align:right">Less: {label}</td><td>-{_inr(amt)}</td></tr>'
+        for label, amt in deductions
+        if amt
+    )
+    wp_row = (
+        f"<tr><td>Work package</td><td>{_e(rec.get('wp_name'))} ({_e(rec.get('wp_ref'))})</td></tr>"
+        if rec.get("wp_ref")
+        else ""
+    )
+    yes_no = lambda v: "Yes" if v else "No"  # noqa: E731
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+      <div class="title">Final account — {_e(rec['ref'])}</div>
+      <table class="kv">
+        <tr><td>Project</td><td>{_e(rec['project_title'])} ({_e(rec['project_ref'])})</td></tr>
+        <tr><td>Title</td><td>{_e(rec['title'])}</td></tr>
+        {wp_row}
+        <tr><td>Status</td><td>{_e(rec.get('status'))}</td></tr>
+        <tr><td>Closed</td><td>{_e(rec.get('closed_at') or '—')}</td></tr>
+      </table>
+      <table>
+        <thead><tr><th>Head</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Original contract value</td><td>{_inr(original)}</td></tr>
+          <tr><td>Add: approved variations / extra items</td><td>{_inr(variation)}</td></tr>
+          <tr><td><b>Adjusted contract value</b></td><td><b>{_inr(adjusted)}</b></td></tr>
+          <tr><td>Gross billed (all RA bills)</td><td>{_inr(gross)}</td></tr>
+          {ded_rows}
+          <tr><td><b>Net paid to date</b></td><td><b>{_inr(net_paid)}</b></td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td style="text-align:right">Final certified amount</td><td>{_inr(final_certified)}</td></tr>
+          <tr><td style="text-align:right">Less: net paid to date</td><td>-{_inr(net_paid)}</td></tr>
+          <tr><td style="text-align:right"><b>Balance due to contractor</b></td><td><b>{_inr(balance)}</b></td></tr>
+        </tfoot>
+      </table>
+      <table class="kv" style="margin-top:12px">
+        <tr><td>Retention released</td><td>{_inr(int(rec.get('retention_released_paise') or 0))}</td></tr>
+        <tr><td>No-claim certificate received</td><td>{yes_no(rec.get('no_claim_received'))}</td></tr>
+        <tr><td>Client final approval received</td><td>{yes_no(rec.get('client_final_approval'))}</td></tr>
+      </table>
+      {f'<p class="pre" style="margin-top:12px">{_e(rec.get("notes"))}</p>' if rec.get("notes") else ''}
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -674,6 +743,7 @@ _RENDERERS = {
     "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
     "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
     "running_bill": (fetch_running_bill_full, _running_bill_html, update_running_bill, "running_bill"),
+    "final_account": (fetch_final_account_full, _final_account_html, update_final_account, "final_account"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
 

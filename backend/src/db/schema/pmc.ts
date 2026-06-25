@@ -411,3 +411,50 @@ export const steelReconciliationItems = pgTable("esti_steel_reconciliation_item"
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });
+
+/**
+ * Construction Cost OS Phase F — final account + closure. The closing statement
+ * for one work package: its financial position is rolled up from the spine (WP
+ * items → original + variation value; the package's running bills → gross billed,
+ * deduction block, net paid) and the office enters the closing adjustments (final
+ * certified, retention released) + attests closure (no-claim cert, client final
+ * approval). Two-state DRAFT → CLOSED; closing is gated by `cost:approve`, sets
+ * the parent work package to CLOSED, and is refused while any deviation/variation
+ * is still open (Rule 6). A summary statement — line detail lives in the running
+ * bills + work-package items, so there is no item table. Money is integer paise.
+ */
+export const finalAccounts = pgTable("esti_final_account", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workPackageId: uuid("work_package_id").references(() => workPackages.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  status: text("status").notNull().default("DRAFT"),
+  notes: text("notes"),
+  // Snapshot financials (paise), re-stamped on update + close.
+  originalContractPaise: bigint("original_contract_paise", { mode: "number" }).notNull().default(0),
+  variationPaise: bigint("variation_paise", { mode: "number" }).notNull().default(0),
+  grossBilledPaise: bigint("gross_billed_paise", { mode: "number" }).notNull().default(0),
+  retentionHeldPaise: bigint("retention_held_paise", { mode: "number" }).notNull().default(0),
+  retentionReleasedPaise: bigint("retention_released_paise", { mode: "number" }).notNull().default(0),
+  advanceRecoveredPaise: bigint("advance_recovered_paise", { mode: "number" }).notNull().default(0),
+  taxTdsPaise: bigint("tax_tds_paise", { mode: "number" }).notNull().default(0),
+  otherRecoveryPaise: bigint("other_recovery_paise", { mode: "number" }).notNull().default(0),
+  netPaidPaise: bigint("net_paid_paise", { mode: "number" }).notNull().default(0),
+  finalCertifiedPaise: bigint("final_certified_paise", { mode: "number" }).notNull().default(0),
+  balanceDuePaise: bigint("balance_due_paise", { mode: "number" }).notNull().default(0),
+  // Manual closure attestations.
+  noClaimReceived: boolean("no_claim_received").notNull().default(false),
+  clientFinalApproval: boolean("client_final_approval").notNull().default(false),
+  /** Closure-time snapshot of the evaluated checklist items. */
+  checklist: jsonb("checklist").notNull().default([]),
+  closedById: uuid("closed_by_id").references(() => users.id, { onDelete: "set null" }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
