@@ -350,6 +350,273 @@ export function isWithinBalance(currentQty: number, balanceQty: number): boolean
   return currentQty <= balanceQty + 1e-4;
 }
 
+// --- Controls: deviations + variation orders (Construction Cost OS Phase D) ---
+// Deviations make scope/rate drift against the contract visible and governed;
+// variation orders (the "additions") are the ONLY thing that mutates the
+// billable ledger (`workPackageItems.variationQty`), and only after a recorded
+// internal + client sign-off. A RATE deviation is document-and-approve only — it
+// never overwrites the contract/work-package rate (non-negotiable Rule 5).
+
+export const DeviationType = z.enum(["QTY", "RATE"]);
+export type DeviationType = z.infer<typeof DeviationType>;
+
+export const DEVIATION_TYPE_LABEL: Record<DeviationType, string> = {
+  QTY: "Quantity deviation",
+  RATE: "Rate deviation",
+};
+
+export const DeviationStatus = z.enum(["OPEN", "APPROVED", "REJECTED"]);
+export type DeviationStatus = z.infer<typeof DeviationStatus>;
+
+export const DEVIATION_STATUS_LABEL: Record<DeviationStatus, string> = {
+  OPEN: "Open",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+};
+
+export const DeviationSeverity = z.enum(["WITHIN_LIMIT", "WARNING", "APPROVAL_REQUIRED"]);
+export type DeviationSeverity = z.infer<typeof DeviationSeverity>;
+
+export const DEVIATION_SEVERITY_LABEL: Record<DeviationSeverity, string> = {
+  WITHIN_LIMIT: "Within limit",
+  WARNING: "Warning",
+  APPROVAL_REQUIRED: "Approval required",
+};
+
+export const ReasonSource = z.enum([
+  "CLIENT_DRIVEN",
+  "SITE_CONDITION",
+  "DESIGN_CHANGE",
+  "MARKET_RATE",
+  "ERROR",
+  "OTHER",
+]);
+export type ReasonSource = z.infer<typeof ReasonSource>;
+
+export const REASON_SOURCE_LABEL: Record<ReasonSource, string> = {
+  CLIENT_DRIVEN: "Client-driven",
+  SITE_CONDITION: "Site condition",
+  DESIGN_CHANGE: "Design change",
+  MARKET_RATE: "Market rate",
+  ERROR: "Error / omission",
+  OTHER: "Other",
+};
+
+export const VariationOriginator = z.enum([
+  "CLIENT",
+  "CONSULTANT",
+  "CONTRACTOR",
+  "SITE",
+  "STATUTORY",
+]);
+export type VariationOriginator = z.infer<typeof VariationOriginator>;
+
+export const VARIATION_ORIGINATOR_LABEL: Record<VariationOriginator, string> = {
+  CLIENT: "Client",
+  CONSULTANT: "Consultant",
+  CONTRACTOR: "Contractor",
+  SITE: "Site",
+  STATUTORY: "Statutory",
+};
+
+export const VariationStatus = z.enum([
+  "DRAFT",
+  "SUBMITTED",
+  "INTERNAL_APPROVED",
+  "CLIENT_APPROVED",
+  "APPLIED",
+  "CLOSED",
+  "REJECTED",
+]);
+export type VariationStatus = z.infer<typeof VariationStatus>;
+
+export const VARIATION_STATUS_LABEL: Record<VariationStatus, string> = {
+  DRAFT: "Draft",
+  SUBMITTED: "Submitted",
+  INTERNAL_APPROVED: "Internal approved",
+  CLIENT_APPROVED: "Client approved",
+  APPLIED: "Applied",
+  CLOSED: "Closed",
+  REJECTED: "Rejected",
+};
+
+/** Quantity deviation of executed vs the BOQ baseline. pct is 0 when baseline ≤ 0. */
+export function quantityDeviation(input: { boqQty: number; executedQty: number }): {
+  deviationQty: number;
+  deviationPct: number;
+} {
+  const deviationQty = Number((input.executedQty - input.boqQty).toFixed(4));
+  const deviationPct =
+    input.boqQty > 0 ? Number(((deviationQty / input.boqQty) * 100).toFixed(2)) : 0;
+  return { deviationQty, deviationPct };
+}
+
+/** Rate deviation of a proposed revised rate vs the awarded/contract rate (paise).
+ * pct is 0 when the awarded rate ≤ 0. */
+export function rateDeviation(input: {
+  awardedRatePaise: number;
+  revisedRatePaise: number;
+}): { deviationPaise: number; deviationPct: number } {
+  const deviationPaise = Math.round(input.revisedRatePaise - input.awardedRatePaise);
+  const deviationPct =
+    input.awardedRatePaise > 0
+      ? Number(((deviationPaise / input.awardedRatePaise) * 100).toFixed(2))
+      : 0;
+  return { deviationPaise, deviationPct };
+}
+
+/** Severity ladder from a deviation % (sign-agnostic): within limit / warning / needs approval. */
+export function deviationSeverity(
+  pct: number,
+  opts: { warnPct?: number; approvePct?: number } = {},
+): DeviationSeverity {
+  const warnPct = opts.warnPct ?? 5;
+  const approvePct = opts.approvePct ?? 10;
+  const abs = Math.abs(pct);
+  if (abs > approvePct) return "APPROVAL_REQUIRED";
+  if (abs > warnPct) return "WARNING";
+  return "WITHIN_LIMIT";
+}
+
+/** Signed cost impact (paise). QTY: deviationQty × rate; RATE: qty × (revised − awarded). */
+export function deviationCostImpactPaise(input: {
+  type: DeviationType;
+  deviationQty?: number;
+  ratePaise?: number;
+  qty?: number;
+  revisedRatePaise?: number;
+  awardedRatePaise?: number;
+}): number {
+  if (input.type === "RATE") {
+    return Math.round(
+      (input.qty ?? 0) * ((input.revisedRatePaise ?? 0) - (input.awardedRatePaise ?? 0)),
+    );
+  }
+  return Math.round((input.deviationQty ?? 0) * (input.ratePaise ?? 0));
+}
+
+/** Signed amount (paise) for a variation line — an omission (negative qty) yields a negative amount. */
+export function variationItemAmountPaise(qty: number, ratePaise: number): number {
+  return Math.round(qty * ratePaise);
+}
+
+/** Allowed forward transitions of a variation order's two-step approval ladder. */
+export const VARIATION_FLOW: Record<VariationStatus, readonly VariationStatus[]> = {
+  DRAFT: ["SUBMITTED", "REJECTED"],
+  SUBMITTED: ["INTERNAL_APPROVED", "REJECTED"],
+  INTERNAL_APPROVED: ["CLIENT_APPROVED", "REJECTED"],
+  CLIENT_APPROVED: ["APPLIED", "REJECTED"],
+  APPLIED: ["CLOSED"],
+  CLOSED: [],
+  REJECTED: [],
+};
+
+/** Whether a variation order may move from one state to another. */
+export function canTransitionVariation(from: VariationStatus, to: VariationStatus): boolean {
+  return VARIATION_FLOW[from].includes(to);
+}
+
+export const DeviationCreate = z.object({
+  projectId: z.string().uuid(),
+  workPackageId: z.string().uuid(),
+  /** The package line this deviation is measured against (baseline derived server-side). */
+  workPackageItemId: z.string().uuid(),
+  type: DeviationType,
+  /** QTY: the executed / projected quantity. */
+  executedQty: z.number().optional(),
+  /** RATE: the proposed revised rate in paise (the contract rate is never overwritten). */
+  revisedRatePaise: z.number().int().nonnegative().optional(),
+  reason: z.string().min(2).max(2000),
+  reasonSource: ReasonSource.default("OTHER"),
+});
+export type DeviationCreate = z.infer<typeof DeviationCreate>;
+
+export const DeviationApprove = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+});
+export type DeviationApprove = z.infer<typeof DeviationApprove>;
+
+export const DeviationReject = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  reason: z.string().min(2).max(2000),
+});
+export type DeviationReject = z.infer<typeof DeviationReject>;
+
+export const DeviationConvert = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  title: z.string().min(2).max(200).optional(),
+});
+export type DeviationConvert = z.infer<typeof DeviationConvert>;
+
+/** A variation line: adds qty to an existing package line, or introduces extra scope. */
+export const VariationItemInput = z.object({
+  /** Set to add qty to an existing package line; omit + isExtraItem for new scope. */
+  workPackageItemId: z.string().uuid().nullable().optional(),
+  isExtraItem: z.boolean().default(false),
+  description: z.string().min(1).max(400),
+  unit: z.string().min(1).max(20),
+  /** Signed — negative for an omission. */
+  qty: z.number(),
+  ratePaise: z.number().int().nonnegative().default(0),
+});
+export type VariationItemInput = z.infer<typeof VariationItemInput>;
+
+export const VariationCreate = z.object({
+  projectId: z.string().uuid(),
+  workPackageId: z.string().uuid(),
+  title: z.string().min(2).max(200),
+  reason: z.string().max(4000).optional(),
+  originator: VariationOriginator.default("CLIENT"),
+  timeImpactDays: z.number().int().default(0),
+  billable: z.boolean().default(true),
+  items: z.array(VariationItemInput).max(200).optional(),
+});
+export type VariationCreate = z.infer<typeof VariationCreate>;
+
+export const VariationItemUpsert = VariationItemInput.extend({
+  variationId: z.string().uuid(),
+  /** Present = edit that line; absent = add a new line. */
+  id: z.string().uuid().optional(),
+});
+export type VariationItemUpsert = z.infer<typeof VariationItemUpsert>;
+
+export const VariationItemRemove = z.object({
+  id: z.string().uuid(),
+  variationId: z.string().uuid(),
+});
+export type VariationItemRemove = z.infer<typeof VariationItemRemove>;
+
+/** Shared shape for a single-step workflow action on a variation order. */
+const VariationStep = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+});
+
+export const VariationSubmit = VariationStep;
+export type VariationSubmit = z.infer<typeof VariationSubmit>;
+
+export const VariationApproveInternal = VariationStep;
+export type VariationApproveInternal = z.infer<typeof VariationApproveInternal>;
+
+export const VariationApproveClient = VariationStep.extend({
+  clientApprovedByName: z.string().max(200).optional(),
+});
+export type VariationApproveClient = z.infer<typeof VariationApproveClient>;
+
+export const VariationApply = VariationStep;
+export type VariationApply = z.infer<typeof VariationApply>;
+
+export const VariationClose = VariationStep;
+export type VariationClose = z.infer<typeof VariationClose>;
+
+export const VariationReject = VariationStep.extend({
+  reason: z.string().min(2).max(2000),
+});
+export type VariationReject = z.infer<typeof VariationReject>;
+
 /** Default APBF Layer 2 live stages keyed by phase code. */
 export const DEFAULT_LIVE_STAGES: Record<string, { code: string; label: string }[]> = {
   CONSTRUCTION_ADMINISTRATION: [

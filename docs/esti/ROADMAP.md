@@ -882,8 +882,9 @@ every change is audited and frozen estimates are snapshotted, never overwritten.
   `esti_rate_analysis`/`esti_rate_component` build-up and link component rates.
 
 **Done (OS Phase 4 — see Phase 30):** work packages + running bills with
-double-billing prevention. **Deferred (OS Phases 5–6):** deviations/escalation,
-IFC re-sync — overlaps PMC/site-delivery.
+double-billing prevention. **Deferred at the time (OS Phases 5–6):**
+deviations/escalation (shipped CC Phase D, 2026-06-25), IFC re-sync — overlaps
+PMC/site-delivery.
 
 **Gate:** new `esti_component*`/`esti_estimate_version`/`esti_estimate_component`
 tables migrated; a design-stage estimate with a % clause and a non-modeled item
@@ -925,9 +926,10 @@ and qty > balance is blocked both server-side and in the UI; contractor portal
 returns balances; contracts build + `pmc.test.ts`, backend + frontend typecheck,
 and carbon-check clean.
 
-**Deferred (OS Phases 5–6):** deviation/escalation engine (only a manual
-`variationQty` allowance today); IFC re-sync; running-bill PDF (no worker target
-exists yet, so its absence is not a regression).
+**Deferred at the time (OS Phases 5–6):** deviation/escalation engine (then only a
+manual `variationQty` allowance — shipped CC Phase D, 2026-06-25, where governed
+variations are the sole writer of that ledger); IFC re-sync; running-bill PDF
+(shipped CC Phase C worker target).
 
 ---
 
@@ -1029,7 +1031,7 @@ parallel estimate.
 | **2. Component + IFC execution detail** | `esti_component` master + `esti_ifc_mapping` catalog + related templates; auto-BOQ via the contracts formula registry. | **Done** |
 | **3. Ratebook + Rate Analysis** | Complete `esti_rate_analysis` build-up; link `componentId`; rate sourced from analysis or rate book. | **Done** |
 | **4. Work packages + running bills** | Group frozen BOQ into contractor packages; running bills check previously-billed qty across the project (double-billing prevention). | **Done** |
-| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. Folded into **CC Phase D**. | Next |
+| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. Folded into **CC Phase D**. | **Done** (CC Phase D, 2026-06-25) |
 | **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. Folded into **CC Future**. | Next |
 
 ### Construction Cost Management OS (umbrella over Estimation OS)
@@ -1043,12 +1045,12 @@ measurement → running bill → deviation/variation → final account**. Spec:
 | **A. BOQ tendering** | Tender BOQ from a frozen estimate version; item-wise contractor quoting + comparison (sealed→revealed, lowest-per-line, XLSX). Migration `0089`. | **Done** (2026-06-25) |
 | **B. Award → Work Order** | `tenders.award` populates a work package from the winning bid; one-shot; audit + activity. | **Done** (2026-06-25) |
 | **C. Site Measurement Book** | `esti_measurement_record` (location/floor/zone/photo, measure→approve→bill); double-billing guard on approved measurements; bill **types** + **deduction block** (→ `net_payable_paise`); running-bill PDF. Migration `0090`. | **Done** (2026-06-25) |
-| **D. Controls** ← **next** | Quantity + rate deviations, **variation orders**, extra items, approval queue. Subsumes Estimation OS Phase 5. | Planned |
-| **E. BBS into the spine** | Link `esti_bbs` → BOQ item / work order / drawing revision; steel reconciliation (issued vs measured). | Planned |
+| **D. Controls** | Quantity + rate deviations (rate is document-and-approve only — never overwrites the contract, Rule 5); **variation orders** + extra items via a two-step ladder (Draft → Submitted → Internal → Client → **Apply** → Closed); Apply is the only writer of the `variationQty` ledger (existing lines + self-keyed extra-item lines). New `cost:approve` gate. Migration `0091`. Subsumes Estimation OS Phase 5. | **Done** (2026-06-25) |
+| **E. BBS into the spine** ← **next** | Link `esti_bbs` → BOQ item / work order / drawing revision; steel reconciliation (issued vs measured). | Planned |
 | **F. Final Account** | `esti_final_account` + closure checklist + closure PDF. | Planned |
 | **G. Cost dashboard + reports** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes. | Planned |
 | **Future** | Procurement forecast, material reconciliation, IFC/CAD extraction. | Deferred |
 
-**Next increment: Phase D (Controls — deviations + variations).** UI governance:
+**Next increment: Phase E (BBS into the spine + steel reconciliation).** UI governance:
 **Pure Carbon everywhere**, mobile-first portals — see
 [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).

@@ -90,6 +90,7 @@ export type Capability =
   | "project:delete"   // delete a whole project
   | "hr:manage"        // team + HR + payroll operations (L2+)
   | "reports:view"     // GST/TDS filing abstracts (L2+)
+  | "cost:approve"     // approve cost deviations / variation orders (L2+)
   | "firm:admin"       // firm profile, users, module toggles (L1 only)
   | "salary:view"      // view team salary and payslip amounts (L1 only)
   | "tenders:view";    // view tenders list and documents (L3+)
@@ -115,6 +116,7 @@ const MIN_RANK: Record<Capability, number> = {
   "project:delete":      80,  // L2+: partner and above
   "hr:manage":           80,  // L2+: partner and above (HR, payroll, leaves)
   "reports:view":        80,  // L2+: GST/TDS filing abstracts
+  "cost:approve":        80,  // L2+: sign off cost deviations + variation orders
   "firm:admin":         100,  // L1 only: owner / director
   "salary:view":        100,  // L1 only: gross/net salary amounts, payslip ₹ values
   "tenders:view":        60,  // L3+: senior and above may view tenders
@@ -136,6 +138,7 @@ const ROLE_CAPABILITIES: Partial<Record<string, readonly Capability[]>> = {
     "fees:manage",
     "finance:ops",
     "reports:view",
+    "cost:approve",
   ],
   HR_MANAGER: ["workspace:view", "write", "hr:manage", "salary:view"],
 };

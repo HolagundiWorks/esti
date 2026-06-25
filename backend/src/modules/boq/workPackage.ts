@@ -10,6 +10,7 @@
  */
 import {
   billableBalance,
+  variationItemAmountPaise,
   WorkPackageFromEstimate,
   WorkPackageItemAdd,
   WorkPackageStatus,
@@ -25,6 +26,8 @@ import {
   measurementRecords,
   runningBillItems,
   runningBills,
+  variationItems,
+  variations,
   workPackageItems,
   workPackages,
 } from "../../db/schema.js";
@@ -112,6 +115,79 @@ async function loadPackageOr404(db: DB, id: string) {
   const [pkg] = await db.select().from(workPackages).where(eq(workPackages.id, id));
   if (!pkg) throw new TRPCError({ code: "NOT_FOUND" });
   return pkg;
+}
+
+/**
+ * Apply an approved variation order into the billable ledger (Construction Cost
+ * OS Phase D). This is the ONLY mutation of `workPackageItems.variationQty` in
+ * the system, and it only ever *adds*:
+ *   • an addition to an existing line bumps that line's `variationQty`; the added
+ *     qty bills at the line's original contract rate, so the contract rate is
+ *     never overwritten (Rule 5);
+ *   • an extra item inserts a brand-new package line, self-keying its `boqItemId`
+ *     to its own variation-item id, so the existing project-wide bill guard
+ *     immediately makes the new scope billable with no change to Phase C billing.
+ * Returns the signed total cost impact (paise) added to the package.
+ */
+export async function applyVariation(db: DB, variationId: string): Promise<number> {
+  const [variation] = await db.select().from(variations).where(eq(variations.id, variationId));
+  if (!variation) throw new TRPCError({ code: "NOT_FOUND" });
+  const items = await db
+    .select()
+    .from(variationItems)
+    .where(eq(variationItems.variationId, variationId))
+    .orderBy(asc(variationItems.sortOrder), asc(variationItems.createdAt));
+
+  let costImpactPaise = 0;
+  for (const line of items) {
+    if (line.workPackageItemId) {
+      // Addition to an existing line — bump variationQty, keep the contract rate.
+      const [wpItem] = await db
+        .select()
+        .from(workPackageItems)
+        .where(eq(workPackageItems.id, line.workPackageItemId));
+      if (!wpItem) continue;
+      const newVariationQty = wpItem.variationQty + line.qty;
+      const lineImpact = amount(line.qty, wpItem.ratePaise);
+      await db
+        .update(workPackageItems)
+        .set({
+          variationQty: newVariationQty,
+          amountPaise: amount(wpItem.approvedQty + newVariationQty, wpItem.ratePaise),
+        })
+        .where(eq(workPackageItems.id, wpItem.id));
+      await db
+        .update(variationItems)
+        .set({ boqItemId: wpItem.boqItemId, amountPaise: lineImpact })
+        .where(eq(variationItems.id, line.id));
+      costImpactPaise += lineImpact;
+    } else if (variation.workPackageId) {
+      // Extra item — a new ledger-keyed package line (self-keyed boqItemId).
+      const lineImpact = variationItemAmountPaise(line.qty, line.ratePaise);
+      const [created] = await db
+        .insert(workPackageItems)
+        .values({
+          workPackageId: variation.workPackageId,
+          boqItemId: line.id,
+          description: line.description,
+          unit: line.unit,
+          approvedQty: 0,
+          variationQty: line.qty,
+          ratePaise: line.ratePaise,
+          amountPaise: lineImpact,
+          sortOrder: line.sortOrder,
+        })
+        .returning();
+      await db
+        .update(variationItems)
+        .set({ workPackageItemId: created!.id, boqItemId: line.id, amountPaise: lineImpact })
+        .where(eq(variationItems.id, line.id));
+      costImpactPaise += lineImpact;
+    }
+  }
+
+  if (variation.workPackageId) await recomputeContractValue(db, variation.workPackageId);
+  return costImpactPaise;
 }
 
 export const workPackageRouter = router({

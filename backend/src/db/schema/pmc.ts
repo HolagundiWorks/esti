@@ -3,6 +3,7 @@ import { users } from "./org-auth.js";
 import { phases, projectOffices } from "./project.js";
 import {
   bigint,
+  boolean,
   createdAt,
   date,
   doublePrecision,
@@ -249,4 +250,118 @@ export const measurementRecords = pgTable("esti_measurement_record", {
   createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/**
+ * Construction Cost OS Phase D — controls layer.
+ *
+ * A deviation makes scope/rate drift against the contract visible and governed
+ * (QTY: executed vs BOQ; RATE: a proposed revised rate vs the awarded rate). It
+ * is a document-and-approve record only — approving a RATE deviation never
+ * overwrites the work-package rate (Rule 5). `boq_item_id` / `variation_id` are
+ * plain uuids (ledger key / cross-table stamp).
+ */
+export const deviations = pgTable("esti_deviation", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workPackageId: uuid("work_package_id")
+    .notNull()
+    .references(() => workPackages.id, { onDelete: "cascade" }),
+  workPackageItemId: uuid("work_package_item_id").references(() => workPackageItems.id, {
+    onDelete: "set null",
+  }),
+  boqItemId: uuid("boq_item_id"),
+  deviationType: text("deviation_type").notNull(),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  // QTY deviation fields.
+  boqQty: doublePrecision("boq_qty").notNull().default(0),
+  executedQty: doublePrecision("executed_qty").notNull().default(0),
+  deviationQty: doublePrecision("deviation_qty").notNull().default(0),
+  deviationPct: doublePrecision("deviation_pct").notNull().default(0),
+  // RATE deviation fields (paise). The contract rate is never overwritten.
+  estimatedRatePaise: bigint("estimated_rate_paise", { mode: "number" }).notNull().default(0),
+  tenderedRatePaise: bigint("tendered_rate_paise", { mode: "number" }).notNull().default(0),
+  awardedRatePaise: bigint("awarded_rate_paise", { mode: "number" }).notNull().default(0),
+  revisedRatePaise: bigint("revised_rate_paise", { mode: "number" }).notNull().default(0),
+  /** Signed cost impact of the deviation. */
+  costImpactPaise: bigint("cost_impact_paise", { mode: "number" }).notNull().default(0),
+  reason: text("reason"),
+  reasonSource: text("reason_source").notNull().default("OTHER"),
+  status: text("status").notNull().default("OPEN"),
+  /** Set when this deviation has been rolled into a variation order. */
+  variationId: uuid("variation_id"),
+  approvedById: uuid("approved_by_id").references(() => users.id, { onDelete: "set null" }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  rejectionReason: text("rejection_reason"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * A variation order (the "addition") — the only thing that legitimately changes
+ * the billable ledger, and only after a two-step internal + client sign-off. On
+ * APPLY, each line either adds qty to an existing package line
+ * (`workPackageItems.variationQty`) or inserts a new ledger-keyed extra item, so
+ * the existing bill guard immediately makes the extra scope billable.
+ */
+export const variations = pgTable("esti_variation", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workPackageId: uuid("work_package_id").references(() => workPackages.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  reason: text("reason"),
+  originator: text("originator").notNull().default("CLIENT"),
+  /** Optional links to a drawing + revision that prompted the variation. */
+  linkedDrawingId: uuid("linked_drawing_id"),
+  linkedDrawingRevisionId: uuid("linked_drawing_revision_id"),
+  /** Signed Σ of the variation's line amounts, stamped on apply. */
+  costImpactPaise: bigint("cost_impact_paise", { mode: "number" }).notNull().default(0),
+  timeImpactDays: integer("time_impact_days").notNull().default(0),
+  billable: boolean("billable").notNull().default(true),
+  status: text("status").notNull().default("DRAFT"),
+  internalApprovedById: uuid("internal_approved_by_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  internalApprovedAt: timestamp("internal_approved_at", { withTimezone: true }),
+  clientApprovedByName: text("client_approved_by_name"),
+  clientApprovedById: uuid("client_approved_by_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  clientApprovedAt: timestamp("client_approved_at", { withTimezone: true }),
+  appliedById: uuid("applied_by_id").references(() => users.id, { onDelete: "set null" }),
+  appliedAt: timestamp("applied_at", { withTimezone: true }),
+  rejectionReason: text("rejection_reason"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const variationItems = pgTable("esti_variation_item", {
+  id: id(),
+  variationId: uuid("variation_id")
+    .notNull()
+    .references(() => variations.id, { onDelete: "cascade" }),
+  /** Existing package line this addition adjusts; set on apply for extra items. */
+  workPackageItemId: uuid("work_package_item_id").references(() => workPackageItems.id, {
+    onDelete: "set null",
+  }),
+  /** Ledger key — existing line's BOQ item, or this row's own id for extra items. */
+  boqItemId: uuid("boq_item_id"),
+  isExtraItem: boolean("is_extra_item").notNull().default(false),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  /** Signed — negative for an omission. */
+  qty: doublePrecision("qty").notNull().default(0),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
 });
