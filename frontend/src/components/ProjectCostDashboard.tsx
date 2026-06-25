@@ -1,5 +1,6 @@
 import "@carbon/charts-react/styles.css";
 import {
+  Button,
   Column,
   Grid,
   InlineNotification,
@@ -15,15 +16,18 @@ import {
   Tile,
 } from "@carbon/react";
 import { MeterChart } from "@carbon/charts-react";
+import { DocumentPdf } from "@carbon/icons-react";
 import {
   COST_STATUS_LABEL,
   COST_STATUS_TAG,
   type CostRiskSeverity,
   type CostStatus,
+  can,
   costStatusFor,
   formatINR,
   formatINRShort,
 } from "@esti/contracts";
+import { useAuth } from "../lib/auth.js";
 import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 import { DataState } from "./DataState.js";
@@ -36,6 +40,15 @@ const SEVERITY_KIND: Record<CostRiskSeverity, "error" | "warning" | "info"> = {
 };
 
 const BUDGET_METER_HEIGHT = "24px";
+
+/** Carbon `Tag` colour per async PDF status — matches the other document panels. */
+const PDF_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
+  NONE: "gray",
+  PENDING: "blue",
+  PROCESSING: "blue",
+  READY: "green",
+  FAILED: "red",
+};
 
 /** One headline KPI: a caption over a money figure, no inline styling. */
 function KpiTile({ label, paise }: { label: string; paise: number }) {
@@ -56,10 +69,21 @@ function KpiTile({ label, paise }: { label: string; paise: number }) {
  */
 export function ProjectCostDashboard({ projectId }: { projectId: string }) {
   const chartTheme = useAppTheme();
+  const { user } = useAuth();
+  const canWrite = can(user?.role, "write");
+  const utils = trpc.useUtils();
   const healthQ = trpc.dashboard.constructionCost.useQuery(
     { projectId },
     { enabled: !!projectId },
   );
+
+  // Printable cost report: poll the async PDF status, generate refreshes the snapshot.
+  const pdfQ = trpc.dashboard.costReport.useQuery({ projectId }, { enabled: !!projectId });
+  const genPdf = trpc.dashboard.generateCostReport.useMutation({
+    onSuccess: () => void utils.dashboard.costReport.invalidate({ projectId }),
+  });
+  const pdfStatus = pdfQ.data?.pdfStatus ?? "NONE";
+  const generating = genPdf.isPending || pdfStatus === "PENDING" || pdfStatus === "PROCESSING";
 
   const data = healthQ.data;
 
@@ -93,13 +117,38 @@ export function ProjectCostDashboard({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={6}>
-      <Stack gap={1}>
-        <h4>Cost dashboard</h4>
+      <Stack gap={2}>
+        <Stack orientation="horizontal" gap={3} style={{ alignItems: "center", flexWrap: "wrap" }}>
+          <h4>Cost dashboard</h4>
+          <Tag type={PDF_TAG[pdfStatus] ?? "gray"} size="sm">
+            PDF: {pdfStatus}
+          </Tag>
+          {canWrite && (
+            <Button
+              size="sm"
+              kind="tertiary"
+              renderIcon={DocumentPdf}
+              disabled={generating}
+              onClick={() => genPdf.mutate({ projectId })}
+            >
+              {generating ? "Generating…" : "Generate PDF"}
+            </Button>
+          )}
+        </Stack>
         <p className="esti-label--secondary">
           The whole delivery spine rolled into one cost-health view — estimated through
           certified, with package- and contractor-wise status. As of{" "}
           {new Date(generatedAt).toLocaleString("en-IN")}.
         </p>
+        {genPdf.error && (
+          <InlineNotification
+            kind="error"
+            lowContrast
+            hideCloseButton
+            title="Could not generate the cost report"
+            subtitle={genPdf.error.message}
+          />
+        )}
       </Stack>
 
       {/* KPI band */}

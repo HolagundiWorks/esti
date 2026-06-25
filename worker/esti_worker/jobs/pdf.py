@@ -28,6 +28,7 @@ from ..db import (
     fetch_progress_report_full,
     fetch_running_bill_full,
     fetch_final_account_full,
+    fetch_cost_report_full,
     fetch_site_instruction_full,
     update_drawing,
     update_feeproposal,
@@ -39,6 +40,7 @@ from ..db import (
     update_proposal,
     update_running_bill,
     update_final_account,
+    update_cost_report,
     update_site_instruction,
     update_specsheet,
     update_estimate,
@@ -730,6 +732,113 @@ def _final_account_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_COST_STATUS_LABEL = {
+    "GREEN": "Within budget",
+    "AMBER": "Watch",
+    "RED": "Overrun or approval required",
+    "GREY": "Not started / no data",
+}
+
+
+def _cost_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Construction Cost OS Future row — the printable cost report. Renders the
+    Phase-G cost-health dashboard straight from the stored `snapshot` jsonb:
+    estimated → certified KPIs, cost-overrun %, deviation/variation exposure,
+    package- and contractor-wise status, and the deterministic risk checks. The
+    snapshot is an exact copy of what was on screen at generation time, so the PDF
+    never re-derives anything. Advisory only — nothing here approves anything."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    snap = rec.get("snapshot") or {}
+    kpis = snap.get("kpis") or {}
+    g = lambda k: int(kpis.get(k) or 0)  # noqa: E731
+    overrun = snap.get("overrunPct")
+    overrun_text = (
+        "No estimate baseline yet"
+        if overrun is None
+        else f"{'+' if overrun >= 0 else ''}{overrun:.1f}% vs estimate"
+    )
+    kpi_rows = "".join(
+        f"<tr><td>{label}</td><td>{_inr(g(key))}</td></tr>"
+        for label, key in (
+            ("Estimated", "estimatedPaise"),
+            ("Tendered", "tenderedPaise"),
+            ("Awarded", "awardedPaise"),
+            ("Billed (gross)", "billedGrossPaise"),
+            ("Certified (net payable)", "certifiedNetPaise"),
+        )
+    )
+    approved = kpis.get("approvedDeviations") or {}
+    unapproved = kpis.get("unapprovedDeviations") or {}
+    exposure_rows = (
+        f"<tr><td>Approved deviations</td><td>{int(approved.get('count') or 0)} · "
+        f"{_inr(int(approved.get('valuePaise') or 0))}</td></tr>"
+        f"<tr><td>Unapproved deviations</td><td>{int(unapproved.get('count') or 0)} · "
+        f"{_inr(int(unapproved.get('valuePaise') or 0))}</td></tr>"
+        f"<tr><td>Variation value</td><td>{_inr(g('variationValuePaise'))}</td></tr>"
+        f"<tr><td>Pending bills</td><td>{int(kpis.get('pendingBillsCount') or 0)} · "
+        f"{_inr(g('pendingBillsPaise'))}</td></tr>"
+    )
+    pkg_rows = "".join(
+        f"<tr><td>{_e(p.get('ref'))}</td><td>{_e(p.get('name'))}</td>"
+        f"<td>{_e(p.get('contractor') or '—')}</td>"
+        f"<td>{_inr(int(p.get('awardedPaise') or 0))}</td>"
+        f"<td>{_inr(int(p.get('variationPaise') or 0))}</td>"
+        f"<td>{_inr(int(p.get('billedPaise') or 0))}</td>"
+        f"<td>{_e(_COST_STATUS_LABEL.get(p.get('status'), p.get('status')))}</td></tr>"
+        for p in snap.get("packages", [])
+    )
+    con_rows = "".join(
+        f"<tr><td>{_e(c.get('name'))}</td>"
+        f"<td>{_inr(int(c.get('billedPaise') or 0))}</td>"
+        f"<td>{_inr(int(c.get('certifiedPaise') or 0))}</td>"
+        f"<td>{int(c.get('pendingBills') or 0)}</td></tr>"
+        for c in snap.get("contractors", [])
+    )
+    contractor_block = (
+        f"""<div class="title" style="font-size:13px">Contractor-wise</div>
+      <table>
+        <thead><tr><th>Contractor</th><th>Billed (gross)</th><th>Certified (net)</th><th>Pending bills</th></tr></thead>
+        <tbody>{con_rows}</tbody>
+      </table>"""
+        if con_rows
+        else ""
+    )
+    notes = snap.get("riskNotes", [])
+    if notes:
+        note_items = "".join(
+            f'<li><b>{_e(n.get("label"))}</b> ({_e(n.get("severity"))}) — '
+            f'{_e(n.get("detail"))} <span class="muted">[{_e(n.get("ref"))}]</span></li>'
+            for n in notes
+        )
+        notes_html = f"<ul>{note_items}</ul>"
+    else:
+        notes_html = '<p class="muted">No cost risks detected.</p>'
+    generated = _e(snap.get("generatedAt") or rec.get("generated_at") or "")
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+      <div class="title">Cost report — {_e(rec.get('project_title'))} ({_e(rec.get('project_ref'))})</div>
+      <div class="muted">{_e(overrun_text)}</div>
+      <table class="kv" style="margin-top:8px">
+        <thead><tr><th>Cost head</th><th>Amount</th></tr></thead>
+        <tbody>{kpi_rows}</tbody>
+      </table>
+      <table class="kv" style="margin-top:8px">
+        <tbody>{exposure_rows}</tbody>
+      </table>
+      <div class="title" style="font-size:13px">Package-wise status</div>
+      <table>
+        <thead><tr><th>Ref</th><th>Package</th><th>Contractor</th><th>Awarded</th><th>Variations</th><th>Billed</th><th>Status</th></tr></thead>
+        <tbody>{pkg_rows or '<tr><td colspan=7 class="muted">No work packages yet</td></tr>'}</tbody>
+      </table>
+      {contractor_block}
+      <div class="title" style="font-size:13px">Automated cost checks</div>
+      {notes_html}
+      <p class="muted" style="margin-top:12px">Advisory only — these are arithmetic checks over the
+        delivery spine; nothing here is auto-approved. Generated {generated}.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -744,6 +853,7 @@ _RENDERERS = {
     "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
     "running_bill": (fetch_running_bill_full, _running_bill_html, update_running_bill, "running_bill"),
     "final_account": (fetch_final_account_full, _final_account_html, update_final_account, "final_account"),
+    "cost_report": (fetch_cost_report_full, _cost_report_html, update_cost_report, "cost_report"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
 
