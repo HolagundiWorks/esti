@@ -15,6 +15,7 @@ import { WorkPackages } from "./estimation/WorkPackages.js";
 import { ProjectBbs } from "./ProjectBbs.js";
 import { ProjectMeasurementBook } from "./ProjectMeasurementBook.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
+import { ProjectControls } from "./ProjectControls.js";
 
 /**
  * Single Costing & Measurement window (Phase 4). Presents the full delivery
@@ -30,6 +31,7 @@ const SPINE: { key: string; label: string; office?: boolean }[] = [
   { key: "estimation", label: "Estimation & BOQ" },
   { key: "costing", label: "Costing" },
   { key: "packages", label: "Work packages" },
+  { key: "controls", label: "Controls" },
   { key: "measurement", label: "Site measurement" },
   { key: "bills", label: "RA bills" },
   { key: "submissions", label: "Submissions" },
@@ -73,6 +75,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           <Tab>Design &amp; components</Tab>
           <Tab>Bar bending schedule</Tab>
           {showBills && <Tab>Work packages</Tab>}
+          {showBills && <Tab>Controls</Tab>}
           {showBills && <Tab>Site measurement &amp; RA bills</Tab>}
         </TabList>
         <TabPanels>
@@ -99,6 +102,14 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
               <Stack gap={5}>
                 <SpineRail active="packages" />
                 <WorkPackages projectId={projectId} />
+              </Stack>
+            </TabPanel>
+          )}
+          {showBills && (
+            <TabPanel>
+              <Stack gap={5}>
+                <SpineRail active="controls" />
+                <ProjectControls projectId={projectId} />
               </Stack>
             </TabPanel>
           )}

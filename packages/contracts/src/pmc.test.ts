@@ -2,10 +2,16 @@ import { describe, expect, it } from "vitest";
 import {
   billableBalance,
   billDeductionTotal,
+  canTransitionVariation,
+  deviationCostImpactPaise,
+  deviationSeverity,
   isWithinBalance,
   measurementLocationKey,
   netPayable,
+  quantityDeviation,
+  rateDeviation,
   RunningBillCreate,
+  variationItemAmountPaise,
   WorkPackageFromEstimate,
 } from "./pmc.js";
 
@@ -126,5 +132,102 @@ describe("WorkPackageFromEstimate", () => {
     });
     expect(parsed.packageType).toBe("CIVIL");
     expect(parsed.costHeads).toEqual(["SUBSTRUCTURE", "SUPERSTRUCTURE"]);
+  });
+});
+
+// --- Controls (Phase D) ------------------------------------------------------
+
+describe("quantityDeviation", () => {
+  it("computes signed deviation qty and percent against the BOQ baseline", () => {
+    expect(quantityDeviation({ boqQty: 100, executedQty: 112 })).toEqual({
+      deviationQty: 12,
+      deviationPct: 12,
+    });
+    expect(quantityDeviation({ boqQty: 100, executedQty: 95 })).toEqual({
+      deviationQty: -5,
+      deviationPct: -5,
+    });
+  });
+
+  it("returns 0 percent when the baseline is zero (avoid div-by-zero)", () => {
+    expect(quantityDeviation({ boqQty: 0, executedQty: 8 })).toEqual({
+      deviationQty: 8,
+      deviationPct: 0,
+    });
+  });
+});
+
+describe("rateDeviation", () => {
+  it("computes the paise delta and percent vs the awarded rate", () => {
+    expect(rateDeviation({ awardedRatePaise: 100000, revisedRatePaise: 115000 })).toEqual({
+      deviationPaise: 15000,
+      deviationPct: 15,
+    });
+    expect(rateDeviation({ awardedRatePaise: 100000, revisedRatePaise: 90000 })).toEqual({
+      deviationPaise: -10000,
+      deviationPct: -10,
+    });
+  });
+});
+
+describe("deviationSeverity", () => {
+  it("ladders within-limit / warning / approval-required on absolute percent", () => {
+    expect(deviationSeverity(3)).toBe("WITHIN_LIMIT");
+    expect(deviationSeverity(7)).toBe("WARNING");
+    expect(deviationSeverity(12)).toBe("APPROVAL_REQUIRED");
+    expect(deviationSeverity(-12)).toBe("APPROVAL_REQUIRED");
+  });
+
+  it("honours custom thresholds", () => {
+    expect(deviationSeverity(8, { warnPct: 10, approvePct: 20 })).toBe("WITHIN_LIMIT");
+    expect(deviationSeverity(25, { warnPct: 10, approvePct: 20 })).toBe("APPROVAL_REQUIRED");
+  });
+});
+
+describe("deviationCostImpactPaise", () => {
+  it("QTY: deviation qty × rate", () => {
+    expect(
+      deviationCostImpactPaise({ type: "QTY", deviationQty: 12, ratePaise: 100000 }),
+    ).toBe(1200000);
+    expect(
+      deviationCostImpactPaise({ type: "QTY", deviationQty: -5, ratePaise: 100000 }),
+    ).toBe(-500000);
+  });
+
+  it("RATE: qty × (revised − awarded)", () => {
+    expect(
+      deviationCostImpactPaise({
+        type: "RATE",
+        qty: 100,
+        awardedRatePaise: 100000,
+        revisedRatePaise: 115000,
+      }),
+    ).toBe(1500000);
+  });
+});
+
+describe("variationItemAmountPaise", () => {
+  it("signs the amount by the qty (omissions are negative)", () => {
+    expect(variationItemAmountPaise(10, 50000)).toBe(500000);
+    expect(variationItemAmountPaise(-4, 50000)).toBe(-200000);
+  });
+});
+
+describe("canTransitionVariation (two-step approval ladder)", () => {
+  it("allows the forward path and rejection from any pre-applied state", () => {
+    expect(canTransitionVariation("DRAFT", "SUBMITTED")).toBe(true);
+    expect(canTransitionVariation("SUBMITTED", "INTERNAL_APPROVED")).toBe(true);
+    expect(canTransitionVariation("INTERNAL_APPROVED", "CLIENT_APPROVED")).toBe(true);
+    expect(canTransitionVariation("CLIENT_APPROVED", "APPLIED")).toBe(true);
+    expect(canTransitionVariation("APPLIED", "CLOSED")).toBe(true);
+    expect(canTransitionVariation("SUBMITTED", "REJECTED")).toBe(true);
+  });
+
+  it("blocks skipping steps and any move out of a terminal state", () => {
+    expect(canTransitionVariation("DRAFT", "APPLIED")).toBe(false);
+    expect(canTransitionVariation("SUBMITTED", "CLIENT_APPROVED")).toBe(false);
+    expect(canTransitionVariation("APPLIED", "REJECTED")).toBe(false);
+    expect(canTransitionVariation("CLOSED", "APPLIED")).toBe(false);
+    expect(canTransitionVariation("REJECTED", "SUBMITTED")).toBe(false);
   });
 });

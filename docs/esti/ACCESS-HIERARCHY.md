@@ -57,6 +57,7 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 | `project:delete` | 80 | L2+ — delete a whole project |
 | `hr:manage` | 80 | L2+ — HR, payroll, leave management |
 | `reports:view` | 80 | L2+ — GST/TDS filing abstracts |
+| `cost:approve` | 80 | L2+ (allow-listed to ACCOUNTANT) — approve/apply construction deviations + variation orders |
 | `firm:admin` | 100 | L1 only — firm profile, users, module toggles |
 | `salary:view` | 100 | L1 only — view team salary and payslip amounts |
 | `system:admin` | overlay | `is_system_admin = true` only |

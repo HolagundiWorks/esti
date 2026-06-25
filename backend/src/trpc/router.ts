@@ -76,6 +76,7 @@ import { progressReportsRouter } from "../modules/pmc/progressReports.js";
 import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
 import { runningBillsRouter } from "../modules/pmc/runningBills.js";
 import { measurementBookRouter } from "../modules/pmc/measurements.js";
+import { deviationRouter, variationRouter } from "../modules/pmc/controls.js";
 import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
 import { accountsRouter } from "../modules/expense/accounts.js";
@@ -184,6 +185,8 @@ export const appRouter = router({
   phaseProgress: phaseProgressRouter,
   runningBills: runningBillsRouter,
   measurementBook: measurementBookRouter,
+  deviations: deviationRouter,
+  variations: variationRouter,
   constructionSchedule: constructionScheduleRouter,
   projectBrief: projectBriefRouter,
   accounts: accountsRouter,

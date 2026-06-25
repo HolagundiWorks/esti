@@ -36,7 +36,7 @@ Planned → Estimated → Quantified → Analysed → Tendered → Awarded
 | Awarded | 5.10 Work Order, Award | `esti_work_package` / `esti_work_package_item` ← `tenders.award` (winning rates); `work_package.tender_id` ↔ `tender.estimate_version_id` | **Built** (CC Phase B) → contract-condition columns + WO PDF deferred |
 | Measured | 5.11 Measurement Book | `esti_measurement_record` (location/floor/zone, photo evidence, measured/checked-by, measure→approve→bill) + the double-billing guard now at approval; `esti_measurement` = drawing takeoff (different thing) | **Built** (CC Phase C) → photo capture/upload UI deferred |
 | Billed | 5.12 Running Bill | `esti_running_bill` 9-state machine + double-billing guard (Rule 9) + bill **types** + **deduction block** (retention/advance/tax-TDS/other → net payable) + running-bill PDF | **Built** (Estimation OS 4 + CC Phase C) |
-| Deviated | 5.13 Qty / 5.14 Rate / 5.15 Variation | **Not built** — only a manual `variationQty` allowance | **Build** (= Estimation OS Phase 5) |
+| Deviated | 5.13 Qty / 5.14 Rate / 5.15 Variation | `esti_deviation` (qty + rate; severity ladder; rate document-and-approve only — Rule 5) + `esti_variation`/`esti_variation_item` (two-step ladder → **Apply** writes the `variationQty` ledger + self-keyed extra-item lines); `deviations`/`variations` namespaces, `ProjectControls.tsx`; `cost:approve` gate | **Built** (CC Phase D) → variation-order PDF deferred |
 | Approved | §10 Approvals | `esti_approval` (generic) + `approval` namespace; `esti_audit` immutable log | **Built (generic)** → wire financial chains |
 | Closed | 5.18 Final Account | **Not built** | **Build** |
 
@@ -61,7 +61,7 @@ Measurement window) and the **Office** area. Mapping:
 | Tendering → Packages / Documents / Issue / Queries / Addendums / Comparison | Office → **Tenders** (`Tenders.tsx`, `tenders` namespace) + **Contractor portal** |
 | Award → Work Orders / Awarded Rates | Project → Costing → **Work packages** (`WorkPackages.tsx`) — becomes the award artifact |
 | Execution Cost Control → Measurements / Running Bills | Project → Costing → **Site measurement & RA bills** (`ProjectRunningBills.tsx`) |
-| Controls → Deviations / Variations / Extra Items / Approval Queue | **New** project sub-area (Phase 5) |
+| Controls → Deviations / Variations / Extra Items / Approval Queue | Project → Costing → **Controls** (`ProjectControls.tsx`, `deviations`/`variations` namespaces) — **Built** (CC Phase D) |
 | Final Account → Final Bill / Retention / Recoveries / Closure | **New** project sub-area |
 | Reports → Cost / Package / Contractor / Deviation / Billing | `reports` + `dashboard` read models (extend) |
 
@@ -172,20 +172,35 @@ Variation / Advance Recovery / Retention Release) and the **deduction block**
 alongside. A **running-bill PDF** worker target (`running_bill`) renders the
 gross → deductions → net-payable certificate.
 
-### 3.13 Quantity Deviation (ref 5.13) — **Build**
-Not present. **Build (Phase 5):** `esti_deviation` keyed to BOQ item, `(executed −
-BOQ)/BOQ`, status ladder (Within Limit / Warning / Approval Required / Approved /
-Client Approval Required), cost impact, approval authority.
+### 3.13 Quantity Deviation (ref 5.13) — ✅ **Built (2026-06-25)**
+`esti_deviation` (type `QTY`) keyed to a work-package BOQ line; `(executed −
+BOQ)/BOQ` with the baseline derived server-side (`boqQty = approvedQty +
+variationQty`); a severity ladder (`WITHIN_LIMIT` / `WARNING` / `APPROVAL_REQUIRED`
+at ±5 % / ±10 %); signed cost impact; `OPEN → APPROVED / REJECTED` gated by the new
+`cost:approve` capability (L2+). Document-and-approve only — it does not move the
+ledger. `convertToVariation` rolls an open/approved qty deviation into a draft
+variation (seeding the addition line).
 
-### 3.14 Rate Deviation (ref 5.14) — **Build** (see 3.4).
+### 3.14 Rate Deviation (ref 5.14) — ✅ **Built (2026-06-25)** — *document + approve only (Rule 5)*
+`esti_deviation` (type `RATE`): a *proposed* revised rate vs the awarded contract
+rate (`revised − awarded`, %), reason + reason-source, `cost:approve` sign-off.
+**Approving a rate deviation never overwrites `work_package_item.rate_paise`** —
+the contract rate is immutable (Rule 5). A rate change reaches bills only as a
+*new* variation-order line, never by mutating the original rate.
 
-### 3.15 Variation Order (ref 5.15) — **Build** — *the "addition" you named*
-Not present (the generic `decision`/`approval` namespaces are design-side).
-**Build (Phase 5):** `esti_variation` (number, originator, reason, linked drawing
-revision + BOQ item, cost impact, time impact, billable?, client/contractor
-approval status) with the Raised → Cost Impact → Internal → Client → WO Amendment
-→ Execution → Billing → Closure workflow; an approved variation feeds the
-work-package item `variationQty` (which the bill guard already honours).
+### 3.15 Variation Order (ref 5.15) — ✅ **Built (2026-06-25)** — *the "addition" you named*
+`esti_variation` + `esti_variation_item` (originator, reason, time/cost impact,
+billable?, linked-drawing columns) carrying lines that either add qty to an
+existing package line (priced at the contract rate — Rule 5) or introduce an
+**extra item** (new scope at its own rate). Two-step approval ladder **Draft →
+Submitted → Internal-approved → Client-approved → Applied → Closed** (plus
+Rejected), every approve/apply step gated by `cost:approve`. On **Apply**,
+`applyVariation` is the *only* writer of the billable ledger: it adds to the
+existing line's `variationQty` (recomputing amount at the contract rate) and
+inserts a ledger-keyed work-package line for each extra item (`boq_item_id =
+variation_item.id` self-key), then recomputes the package contract value — so the
+Phase-C bill guard immediately makes the new scope billable. *Deferred:*
+variation-order PDF (on-screen first, as tenders were).
 
 ### 3.16 Procurement Forecast (ref 5.16) — **Build (later)**
 Not present. Depends on BBS-into-spine + a work schedule. Defer.
@@ -246,8 +261,8 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **A — BOQ tendering** ✅ **Done (2026-06-25)** | `esti_tender_item` carved from a frozen estimate version (or manual lines); item-wise contractor quoting (`esti_tender_bid_item`, office `recordItemBid` + portal `submitItemBid`); addendum-ack guard on item bids; item-wise comparison (`compareItems`, sealed→revealed, lowest-per-line + ranked totals + XLSX). *Deferred:* tender-doc PDF generation (`tender` worker target); `TenderStatus` not widened (existing enum maps cleanly) | ref 5.7–5.9 | **High** (you named tendering) |
 | **B — Award → Work Order** ✅ **Done (2026-06-25)** | Tender `award` populates an `esti_work_package` (+ items) from the winning bid's rates (fallback `estRatePaise`); links `work_package.tender_id` ↔ `tender.estimate_version_id`; one-shot (double-award → CONFLICT); audit + activity. *Deferred:* contract-condition columns (retention/LD/DLP) + WO/award PDF | ref 5.10, Award nav | **High** |
 | **C — Site Measurement Book** ✅ **Done (2026-06-25)** | `esti_measurement_record` (location/floor/zone/photo-key/approve) feeding running bills; the double-billing guard moved onto approved measurements (consumed = billed + approved-unbilled); bill **types** + **deduction block** (retention/advance/tax-TDS/other → `net_payable_paise`, gross unchanged); running-bill PDF worker target. Strict billing — only approved records feed BOQ lines; free-text extras stay. *Deferred:* photo capture/upload UI (`photoKey` column ships) | ref 5.11–5.12 | Med |
-| **D — Controls (Deviations + Variations + Extra Items)** ← **next** | `esti_deviation` (qty + rate), `esti_variation` (the "addition"), extra-item flow, approval queue; approved variation feeds `variationQty` | ref 5.13–5.15; **Estimation OS Phase 5** | **High** (you named additions) |
-| **E — BBS into the spine + Steel reconciliation** | Link `esti_bbs` → BOQ item / work order / drawing revision; diameter-/floor-wise summaries; steel reconciliation (issued vs measured); optional full BBS fields | ref 5.6, 5.5 | **High** (you named BBS) |
+| **D — Controls (Deviations + Variations + Extra Items)** ✅ **Done (2026-06-25)** | `esti_deviation` (qty + rate; severity ladder; document-and-approve — rate never overwrites the contract, Rule 5), `esti_variation` + `esti_variation_item` (the "addition"; existing-line additions priced at contract rate, extra items at own rate) with the two-step ladder **Draft → Submitted → Internal → Client → Applied → Closed** (+ Rejected). **Apply** is the only writer of the billable ledger (`variationQty` on existing lines; a self-keyed work-package line per extra item), recomputing the package contract value; the Phase-C bill guard immediately bills the new scope. New `cost:approve` capability (L2+, granted to ACCOUNTANT) gates every approve/apply step. *Deferred:* variation-order PDF | ref 5.13–5.15; **Estimation OS Phase 5** | **High** (you named additions) |
+| **E — BBS into the spine + Steel reconciliation** ← **next** | Link `esti_bbs` → BOQ item / work order / drawing revision; diameter-/floor-wise summaries; steel reconciliation (issued vs measured); optional full BBS fields | ref 5.6, 5.5 | **High** (you named BBS) |
 | **F — Final Account + Closure** | `esti_final_account` + closure checklist + closure PDF | ref 5.18 | Med |
 | **G — Cost dashboard + reports + AI checks** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes (duplicate-billing, unbalanced bid, bill deviation) | ref 5.1, §9, §16 | Med |
 | **Future** | Procurement forecast, material reconciliation, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
