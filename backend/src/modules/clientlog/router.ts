@@ -5,7 +5,7 @@ import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { clients, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { assertQuota } from "../../lib/plan.js";
+import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { sql } from "drizzle-orm";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -27,6 +27,7 @@ export const clientRouter = router({
   }),
 
   create: protectedProcedure.input(ClientCreate).mutation(async ({ ctx, input }) => {
+    await assertNotFixedPlan(ctx.db);
     const rows = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(clients);
     const currentCount = rows[0] ? rows[0].count : 0;
     await assertQuota(ctx.db, "clients", currentCount);
@@ -90,5 +91,35 @@ export const clientRouter = router({
         after: { email: input.email, clientId: input.clientId },
       });
       return u!;
+    }),
+
+  /**
+   * Activate / deactivate a client. Deactivated clients are hidden from active
+   * use and their portal logins are blocked (cascaded to the linked users).
+   * The fixed Lite workspace uses this in place of add/remove.
+   */
+  setDisabled: ownerProcedure
+    .input(z.object({ id: z.string().uuid(), disabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .update(clients)
+        .set({ disabled: input.disabled })
+        .where(eq(clients.id, input.id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "client not found" });
+      // Mirror the state onto the client's portal logins so a deactivated client
+      // cannot sign in.
+      await ctx.db
+        .update(users)
+        .set({ disabled: input.disabled })
+        .where(eq(users.clientId, input.id));
+      await writeAudit(ctx.db, {
+        entity: "client",
+        entityId: input.id,
+        action: input.disabled ? "DEACTIVATE" : "ACTIVATE",
+        actorId: ctx.user.id,
+        after: { disabled: input.disabled },
+      });
+      return row;
     }),
 });

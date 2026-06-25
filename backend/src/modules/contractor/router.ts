@@ -4,7 +4,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { contractors } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { assertQuota } from "../../lib/plan.js";
+import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const blank = (v: string | undefined) => (v && v.length > 0 ? v : null);
@@ -28,6 +28,7 @@ export const contractorRouter = router({
     }),
 
   create: manage.input(ContractorCreate).mutation(async ({ ctx, input }) => {
+    await assertNotFixedPlan(ctx.db);
     const rows = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(contractors);
     const currentCount = rows[0] ? rows[0].count : 0;
     await assertQuota(ctx.db, "contractors", currentCount);

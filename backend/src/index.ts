@@ -11,6 +11,7 @@ import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
 import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
 import { BUCKET, ensureBucketWithRetry, s3 } from "./lib/storage.js";
+import { StorageQuotaExceededError } from "./lib/storageQuota.js";
 import { isSmtpConfigured } from "./lib/mail/transport.js";
 import { buildReleaseInfo, releaseSummary } from "./lib/releaseInfo.js";
 import { registerDrawingUpload } from "./modules/drawing/upload.js";
@@ -42,6 +43,17 @@ const app = Fastify({
   genReqId: () => crypto.randomUUID(),
   trustProxy: true,
   maxParamLength: 5000,
+});
+
+// Map storage-cap violations (thrown deep inside putObject) to HTTP 413 so the
+// upload routes don't need per-route try/catch around storage writes.
+app.setErrorHandler((err, _req, reply) => {
+  if (err instanceof StorageQuotaExceededError) {
+    return reply.code(413).send({ error: err.message });
+  }
+  app.log.error(err);
+  const status = typeof err.statusCode === "number" ? err.statusCode : 500;
+  return reply.code(status).send({ error: status === 500 ? "internal error" : err.message });
 });
 
 const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);

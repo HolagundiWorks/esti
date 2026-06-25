@@ -19,8 +19,9 @@ import {
 } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { getFirm } from "../../lib/firm.js";
+import { firmPlan } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
-import { contractorProcedure, router } from "../../trpc/trpc.js";
+import { contractorProcedure, contractorWriteProcedure, router } from "../../trpc/trpc.js";
 
 /**
  * Resolve the logged-in contractor's current tender invitation (the most recent
@@ -93,6 +94,8 @@ export const contractorPortalRouter = router({
   mySpace: contractorProcedure.query(async ({ ctx }) => {
     const firm = await getFirm(ctx.db);
     const inv = await loadForContractor(ctx.db, ctx.user.contractorId);
+    // Lite firms get a view-only contractor portal (bidding/acks are blocked).
+    const readOnly = (await firmPlan(ctx.db)) === "LITE";
 
     // Contractor with no tender yet — return the name only so the portal can
     // render a friendly empty state instead of erroring.
@@ -102,6 +105,7 @@ export const contractorPortalRouter = router({
         .from(contractors)
         .where(eq(contractors.id, ctx.user.contractorId));
       return {
+        readOnly,
         firmName: firm.companyName,
         contractorName: c?.name ?? null,
         tender: null,
@@ -133,6 +137,7 @@ export const contractorPortalRouter = router({
     const pendingAddenda = documents.filter((d) => d.requiresAck && !d.acknowledged);
 
     return {
+      readOnly,
       firmName: firm.companyName,
       contractorName: inv.contractorName,
       tender: {
@@ -154,7 +159,7 @@ export const contractorPortalRouter = router({
     };
   }),
 
-  submitBid: contractorProcedure
+  submitBid: contractorWriteProcedure
     .input(
       z.object({
         amountPaise: z.number().int().nonnegative(),
@@ -204,7 +209,7 @@ export const contractorPortalRouter = router({
       return { ok: true as const };
     }),
 
-  decline: contractorProcedure.mutation(async ({ ctx }) => {
+  decline: contractorWriteProcedure.mutation(async ({ ctx }) => {
     const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
     if (inv.tenderStatus !== "OPEN")
       throw new TRPCError({ code: "BAD_REQUEST", message: "This tender is not open." });
@@ -215,7 +220,7 @@ export const contractorPortalRouter = router({
     return { ok: true as const };
   }),
 
-  ackDocument: contractorProcedure
+  ackDocument: contractorWriteProcedure
     .input(z.object({ documentId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
@@ -274,7 +279,7 @@ export const contractorPortalRouter = router({
       .orderBy(desc(contractorSubmissions.createdAt));
   }),
 
-  submitCoordination: contractorProcedure.input(ConstructionSubmit).mutation(async ({ ctx, input }) => {
+  submitCoordination: contractorWriteProcedure.input(ConstructionSubmit).mutation(async ({ ctx, input }) => {
     const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
     const [row] = await ctx.db
       .insert(contractorSubmissions)
@@ -330,7 +335,7 @@ export const contractorPortalRouter = router({
     return bills.map((b) => ({ ...b, items: byBill.get(b.id) ?? [] }));
   }),
 
-  advanceRunningBill: contractorProcedure
+  advanceRunningBill: contractorWriteProcedure
     .input(
       z.object({
         id: z.string().uuid(),

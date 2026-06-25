@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   createdAt,
   id,
@@ -51,6 +52,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
   uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
   /** Argon2 hash — never expose via API. */
   uploadPasswordHash: text("upload_password_hash"),
+  /** Running total of object-store bytes used — enforced against the plan's storage cap. */
+  storageBytesUsed: bigint("storage_bytes_used", { mode: "number" }).notNull().default(0),
   updatedAt: updatedAt(),
 });
 
@@ -203,6 +206,8 @@ export const clients = pgTable("esti_client", {
   city: text("city"),
   email: text("email"),
   phone: text("phone"),
+  /** Deactivated clients keep their records/history but are hidden from active use and portal login. */
+  disabled: boolean("disabled").notNull().default(false),
   createdAt: createdAt(),
 });
 

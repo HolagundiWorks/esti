@@ -37,6 +37,8 @@ export function Users() {
   const utils = trpc.useUtils();
   const listQ = trpc.users.list.useQuery();
   const invalidate = () => utils.users.list.invalidate();
+  // Lite ships a fixed roster (1 admin + 3 staff) — activate seats, don't add.
+  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
 
   const setDisabled = trpc.users.setDisabled.useMutation({
     onSuccess: invalidate,
@@ -82,7 +84,7 @@ export function Users() {
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={<Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
+        actions={isLite ? undefined : <Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
       />
       {msg && (
         <InlineNotification
