@@ -11,6 +11,11 @@
 >   portfolio rollups; the per-project Programme and PM head remain the masters.
 > - The two-head project workspace and the single Costing & Measurement window
 >   are live (`ProjectDetail.tsx`, `ProjectCosting.tsx`).
+> - Phase 7 cleanup: the in-product BBMP **bylaw calculator** is removed (the
+>   public `/compliance-check` SEO tool and the RIE/site-feasibility compliance
+>   engine are kept); **DSR is labelled "Rate Books"** throughout the product UI
+>   (SEO/landing copy keeps "DSR"); and a **spec → rate-book mapping** is now
+>   persisted on spec-catalogue items.
 
 ## The core idea: two delivery heads + shared practice
 
@@ -40,7 +45,7 @@ unchanged) — the split is purely how the work is presented.
 | **Practice** | Proposals pipeline, Letters, Contracts, Document register, **Office programme & PMC portfolios** (read-only rollups), AI Studio |
 | **Accounts** | Invoices (cross-project rollup), Reconciliation, Expenses & cash book, GST/TDS filing |
 | **People** | Team, HR, Performance, Consultants (directory), Contractors (directory) |
-| **Knowledge** | DSR rates, Rate-analysis library, Spec catalogue, SteelFlow BBS reference |
+| **Knowledge** | Rate books (rate schedules), Rate-analysis library, Spec catalogue (with persisted rate-book mapping), SteelFlow BBS reference |
 | **Admin** | Company, Users, Audit log, System, My profile |
 
 ## The project workspace — two heads

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { bbmpRulesRouter } from "../bylaw/bbmpRules.js";
-import { bylawCalcRouter } from "../bylaw/calc.js";
 import { ruleVersionRouter, siteAssessmentRouter } from "../rie/router.js";
 import { noopDb, testCtx, testUser } from "../../test/trpcCaller.js";
 
@@ -18,7 +17,6 @@ function rieCaller(role: Parameters<typeof testUser>[0], overrides: Parameters<t
 function bylawCaller(role: Parameters<typeof testUser>[0], overrides: Parameters<typeof testUser>[1] = {}) {
   const user = testUser(role, overrides);
   return {
-    bylawCalc: bylawCalcRouter.createCaller(testCtx(user, noopDb)),
     bbmpRules: bbmpRulesRouter.createCaller(testCtx(user, noopDb)),
   };
 }
@@ -27,12 +25,10 @@ describe("RIE / BBMP tRPC authorization", () => {
   it("requires authentication on compliance reads", async () => {
     const anonRule = ruleVersionRouter.createCaller(testCtx(null, noopDb));
     const anonSite = siteAssessmentRouter.createCaller(testCtx(null, noopDb));
-    const anonBylaw = bylawCalcRouter.createCaller(testCtx(null, noopDb));
     const anonBbmp = bbmpRulesRouter.createCaller(testCtx(null, noopDb));
 
     await expect(anonRule.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anonSite.listByProject({ projectId })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
-    await expect(anonBylaw.getByProject({ projectId })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anonBbmp.listRuleSets()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
@@ -48,14 +44,12 @@ describe("RIE / BBMP tRPC authorization", () => {
 
       await expect(rie.ruleVersions.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
       await expect(rie.siteAssessments.listByProject({ projectId })).rejects.toMatchObject({ code: "FORBIDDEN" });
-      await expect(bylaw.bylawCalc.getByProject({ projectId })).rejects.toMatchObject({ code: "FORBIDDEN" });
       await expect(bylaw.bbmpRules.listRuleSets()).rejects.toMatchObject({ code: "FORBIDDEN" });
     },
   );
 
   it("keeps Viewer read-only on compliance mutations", async () => {
     const rie = rieCaller("VIEWER");
-    const bylaw = bylawCaller("VIEWER");
 
     await expect(
       rie.siteAssessments.run({
@@ -70,13 +64,6 @@ describe("RIE / BBMP tRPC authorization", () => {
       code: "FORBIDDEN",
     });
     await expect(rie.siteAssessments.issue({ id: assessmentId })).rejects.toMatchObject({ code: "FORBIDDEN" });
-
-    await expect(
-      bylaw.bylawCalc.save({ projectId, input: {} } as never),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
-    await expect(
-      bylaw.bylawCalc.savePostConstruction({ projectId, actuals: {} } as never),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("allows operational staff to request compliance PDF generation", async () => {

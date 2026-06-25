@@ -135,7 +135,7 @@ export function SystemAdmin() {
     {
       icon: Task,
       title: "Knowledge Bank",
-      description: "DSR rate reference, RIE compliance engine, spec catalogue, SteelFlow BBS, and bylaw calculator. Core reference module — always enabled.",
+      description: "Rate-book reference, rate analysis, RIE compliance engine, spec catalogue, and SteelFlow BBS. Core reference module — always enabled.",
       enabled: true,
       loading: false,
       onToggle: () => undefined,

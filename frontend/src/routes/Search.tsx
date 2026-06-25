@@ -96,7 +96,7 @@ export function SearchPage() {
             <Search
               id="global-search"
               labelText="Search"
-              placeholder="Search projects, templates, DSR, lessons…"
+              placeholder="Search projects, templates, rate books, lessons…"
               size="lg"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

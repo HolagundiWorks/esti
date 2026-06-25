@@ -159,6 +159,8 @@ export function ProjectDetail() {
       : rawTab === "running-bills"
         ? "costing"
         : rawTab;
+  // NOTE: the in-project BBMP bylaw calculator was removed in Phase 7; legacy
+  // ?tab=compliance links now resolve to the Project Info tab.
   const tabIndex = Math.max(
     0,
     projectTabs.findIndex((t) => t.slug === tabSlug),
@@ -174,7 +176,6 @@ export function ProjectDetail() {
   useEffect(() => {
     if (rawTab === "compliance") {
       setSearchParams({ tab: "info" }, { replace: true });
-      window.location.hash = "compliance";
       return;
     }
     if (tabSlug !== activeTab) {

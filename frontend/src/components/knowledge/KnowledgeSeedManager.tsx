@@ -246,7 +246,7 @@ export function KnowledgeSeedManager() {
                           HCW read-only
                         </Tag>
                       </TableCell>
-                      <TableCell>DSR</TableCell>
+                      <TableCell>Rate book</TableCell>
                       <TableCell>{row.cityKey ?? "National"}</TableCell>
                       <TableCell>
                         <Button

@@ -10,7 +10,6 @@ import {
   Stack,
   TextArea,
   TextInput,
-  Tile,
 } from "@carbon/react";
 import {
   Jurisdiction,
@@ -25,7 +24,6 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { ProjectAppointment } from "./ProjectAppointment.js";
-import { ProjectBylawData } from "./ProjectBylawData.js";
 import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -34,7 +32,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
   const projectQ = trpc.projectOffice.byId.useQuery({ id: projectId });
   const briefQ = trpc.projectBrief.getByProject.useQuery({ projectId });
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId });
-  const complianceQ = trpc.bylawCalc.getByProject.useQuery({ projectId });
 
   const upsert = trpc.projectBrief.upsertSection.useMutation({
     onSuccess: () => void utils.projectBrief.getByProject.invalidate({ projectId }),
@@ -100,7 +97,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
 
   const p = projectQ.data;
   const phases = phasesQ.data ?? [];
-  const compliance = complianceQ.data?.result as { far?: number; maxBuiltUpSqm?: number } | undefined;
   const agg = briefQ.data?.aggregates;
 
   return (
@@ -362,27 +358,6 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
             >
               Save programme & approval
             </Button>
-          </Stack>
-        </AccordionItem>
-
-        <AccordionItem title="9. Compliance">
-          <Stack gap={4} id="compliance">
-            <p style={{ margin: 0 }}>
-              Run the BBMP calculator after site data is entered — results are saved on this
-              project and summarised on Overview.
-            </p>
-            {(agg?.permitCount ?? 0) > 0 && (
-              <p style={{ margin: 0 }}>Permits tracked: {agg!.permitCount}</p>
-            )}
-            {compliance && (
-              <Tile>
-                <p style={{ margin: 0 }}>
-                  Saved envelope — FAR {compliance.far?.toFixed(2) ?? "—"} · Max BUA{" "}
-                  {compliance.maxBuiltUpSqm ?? "—"} sq m
-                </p>
-              </Tile>
-            )}
-            <ProjectBylawData projectId={projectId} embedded />
           </Stack>
         </AccordionItem>
       </Accordion>

@@ -1,4 +1,3 @@
-import { bbmpRuleSets } from "./bbmp-rules.js";
 import { clients, users } from "./org-auth.js";
 import {
   bigint,
@@ -8,7 +7,6 @@ import {
   doublePrecision,
   id,
   integer,
-  jsonb,
   pgTable,
   text,
   timestamp,
@@ -275,38 +273,6 @@ export const criticalNotes = pgTable("esti_critical_note", {
   actorName: text("actor_name"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
-});
-
-/** Per-project BBMP bylaw-calculator inputs + computed envelope (one per project). */
-export const bylawCalcs = pgTable("esti_bylaw_calc", {
-  id: id(),
-  projectId: uuid("project_id")
-    .notNull()
-    .unique()
-    .references(() => projectOffices.id),
-  bbmpRuleSetId: uuid("bbmp_rule_set_id").references(() => bbmpRuleSets.id),
-  input: jsonb("input").notNull(),
-  result: jsonb("result").notNull(),
-  postconstructionInput: jsonb("postconstruction_input"),
-  postconstructionAudit: jsonb("postconstruction_audit"),
-  precomputedAt: timestamp("precomputed_at", { withTimezone: true }),
-  postcomputedAt: timestamp("postcomputed_at", { withTimezone: true }),
-  updatedAt: updatedAt(),
-});
-
-/** Immutable compliance calculation snapshots — preserves old results as bylaws change. */
-export const complianceCalculations = pgTable("esti_compliance_calculation", {
-  id: id(),
-  projectId: uuid("project_id").references(() => projectOffices.id),
-  mode: text("mode").notNull(),
-  authority: text("authority").notNull().default("BBMP"),
-  city: text("city").notNull().default("bangalore"),
-  ruleVersion: text("rule_version"),
-  bbmpRuleSetId: uuid("bbmp_rule_set_id").references(() => bbmpRuleSets.id),
-  inputJson: jsonb("input_json").notNull(),
-  resultJson: jsonb("result_json").notNull(),
-  overallStatus: text("overall_status"),
-  createdAt: createdAt(),
 });
 
 /** Fee proposals — COA scale benchmark + below-minimum compliance snapshot. */

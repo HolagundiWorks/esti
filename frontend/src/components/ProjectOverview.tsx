@@ -135,11 +135,6 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     { projectId },
     { enabled: !!projectId },
   );
-  const complianceQ = trpc.bylawCalc.getByProject.useQuery(
-    { projectId },
-    { enabled: !!projectId },
-  );
-
   const [noteOpen, setNoteOpen] = useState(false);
   const [decisionOpen, setDecisionOpen] = useState(false);
   const [transitionId, setTransitionId] = useState<string | null>(null);
@@ -239,10 +234,6 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     openNotes.length > 0 ? "Critical notes open" : null,
     activeDecisions.length > 0 ? "Decisions in progress" : null,
   ].filter(Boolean);
-  const compliance = complianceQ.data?.result as
-    | { far?: number; maxBuiltUpSqm?: number; maxFootprintSqm?: number }
-    | undefined;
-
   const transitionDecision = allDecisions.find((d) => d.id === transitionId);
   const allowedNextStates = transitionDecision
     ? DECISION_TRANSITIONS[(transitionDecision.state ?? "OPEN") as DecisionState] ?? []
@@ -288,23 +279,6 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                 : "No obvious blockers right now."
             }
             tag="Overview"
-          />
-        </Column>
-        <Column sm={4} md={4} lg={4}>
-          <StatCard
-            label="Compliance output"
-            value={
-              compliance
-                ? `FAR ${compliance.far?.toFixed(2) ?? "—"}`
-                : "Not calculated"
-            }
-            detail={
-              compliance
-                ? `${compliance.maxBuiltUpSqm ?? "—"} sq m FAR area · ${compliance.maxFootprintSqm ?? "—"} sq m ground cover`
-                : "Run compliance on the Project Info tab after site data is entered."
-            }
-            tag="Linked result"
-            onClick={() => navigate(`/projects/${projectId}?tab=info#compliance`)}
           />
         </Column>
       </Grid>
