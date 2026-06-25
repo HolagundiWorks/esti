@@ -10,6 +10,7 @@ import { authRouter } from "../modules/auth/router.js";
 import { bbsRouter } from "../modules/boq/bbs.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
 import { estimateRouter } from "../modules/boq/estimate.js";
+import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
 import { bylawCalcRouter } from "../modules/bylaw/calc.js";
 import { bbmpRulesRouter } from "../modules/bylaw/bbmpRules.js";
 import { bylawRouter } from "../modules/bylaw/router.js";
@@ -130,6 +131,7 @@ export const appRouter = router({
   dsr: dsrRouter,
   estimates: estimateRouter,
   bbs: bbsRouter,
+  rateAnalysis: rateAnalysisRouter,
   approvals: approvalRouter,
   transmittals: transmittalRouter,
   consultants: consultantRouter,
