@@ -1,8 +1,16 @@
-# AORMS — Information Architecture (proposed)
+# AORMS — Information Architecture
 
-> Status: **proposal for review.** Backend (tRPC namespaces, DB) is unchanged —
-> this is a navigation / information-architecture map. The goal is one home per
-> module, a clear flow, and a project surfaced under two delivery heads.
+> Status: **implemented.** Backend (tRPC namespaces, DB) is unchanged — this is a
+> navigation / information-architecture map. The goal is one home per module, a
+> clear flow, and a project surfaced under two delivery heads.
+>
+> - Global nav restructured into the 9 areas below (`frontend/src/App.tsx`):
+>   standalone areas Home · Clients · Projects · Work · Knowledge, and the
+>   collapsible groups Practice · Accounts · People · Admin.
+> - Programme and PMC moved from top-level links into **Practice** as read-only
+>   portfolio rollups; the per-project Programme and PM head remain the masters.
+> - The two-head project workspace and the single Costing & Measurement window
+>   are live (`ProjectDetail.tsx`, `ProjectCosting.tsx`).
 
 ## The core idea: two delivery heads + shared practice
 
