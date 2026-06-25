@@ -31,7 +31,7 @@ Planned → Estimated → Quantified → Analysed → Tendered → Awarded
 | Estimated | 5.2 Estimate | `esti_estimate` (+stage/status), `esti_estimate_item`, `esti_estimate_component`, `esti_estimate_version` (freeze); `estimates`/`designEstimate` namespaces | **Built** (Estimation OS 1) |
 | Quantified | 5.3 BOQ, 5.5 Structural | `esti_estimate_item` + auto-BOQ from `esti_component` via the formula registry | **Built** (extend validation) |
 | Analysed | 5.4 Rate Analysis | `esti_rate_analysis` / `esti_rate_component` + rate book (`rateAnalyses`, `dsr`); Knowledge Bank → Rate Analysis | **Built** (Estimation OS 3) |
-| Steel | 5.6 Bar Bending Schedule | `esti_bbs` / `esti_bbs_item`, `bbs` namespace, `D²/162`, validation, PDF | **Built, but isolated** → link to BOQ/WO + reconciliation |
+| Steel | 5.6 Bar Bending Schedule | `esti_bbs` / `esti_bbs_item`, `bbs` namespace, `D²/162`, validation, PDF; spine links (`work_package_id` / `boq_item_id` / `drawing_id`) + diameter/floor summaries + `esti_steel_reconciliation` (scheduled vs issued vs consumed, `cost:approve` finalize) | **Built + linked** (CC Phase E) → steel-recon PDF + full-BBS fields deferred |
 | Tendered | 5.7 Tender, 5.8 Bidding, 5.9 Comparison | `esti_tender` (+invitations/bids/documents/acks), `esti_tender_item`/`esti_tender_bid_item`, `tenders` namespace (item procedures + `compareItems`), `Tenders.tsx`, contractor portal (`submitItemBid`) | **Built** (CC Phase A) → tender-doc PDF deferred |
 | Awarded | 5.10 Work Order, Award | `esti_work_package` / `esti_work_package_item` ← `tenders.award` (winning rates); `work_package.tender_id` ↔ `tender.estimate_version_id` | **Built** (CC Phase B) → contract-condition columns + WO PDF deferred |
 | Measured | 5.11 Measurement Book | `esti_measurement_record` (location/floor/zone, photo evidence, measured/checked-by, measure→approve→bill) + the double-billing guard now at approval; `esti_measurement` = drawing takeoff (different thing) | **Built** (CC Phase C) → photo capture/upload UI deferred |
@@ -42,10 +42,11 @@ Planned → Estimated → Quantified → Analysed → Tendered → Awarded
 
 **Headline:** the *pre-construction half* of the OS (estimate → BOQ → rate
 analysis → BBS) and the *billing core* (work packages → running bills with
-double-billing prevention) already exist. The **missing middle and tail** are:
-BOQ-driven **tendering/award**, the **site measurement book**, the **controls
-layer** (deviations + variations + extra items), **BBS-into-the-spine** linkage,
-and **final-account closure** — plus a **cost-health dashboard** over all of it.
+double-billing prevention) already exist. The middle is now built — BOQ-driven
+**tendering/award** (A+B), the **site measurement book** (C), the **controls
+layer** (deviations + variations + extra items, D), and **BBS-into-the-spine**
+linkage + **steel reconciliation** (E). The **remaining tail** is
+**final-account closure** (F) — plus a **cost-health dashboard** over all of it (G).
 
 ---
 
@@ -57,7 +58,7 @@ Measurement window) and the **Office** area. Mapping:
 
 | Reference nav | ESTI surface |
 |---|---|
-| Pre-Construction → Estimates / BOQ / Rate Analysis / BBS | Project → **Costing & Measurement** tabs (`ProjectCosting.tsx`): Estimation & BOQ, Design & components, Bar bending schedule; rate analysis is office-wide in **Knowledge Bank** |
+| Pre-Construction → Estimates / BOQ / Rate Analysis / BBS | Project → **Costing & Measurement** tabs (`ProjectCosting.tsx`): Estimation & BOQ, Design & components, Bar bending schedule (with spine links + **steel reconciliation** under it once a work package exists); rate analysis is office-wide in **Knowledge Bank** |
 | Tendering → Packages / Documents / Issue / Queries / Addendums / Comparison | Office → **Tenders** (`Tenders.tsx`, `tenders` namespace) + **Contractor portal** |
 | Award → Work Orders / Awarded Rates | Project → Costing → **Work packages** (`WorkPackages.tsx`) — becomes the award artifact |
 | Execution Cost Control → Measurements / Running Bills | Project → Costing → **Site measurement & RA bills** (`ProjectRunningBills.tsx`) |
@@ -102,16 +103,21 @@ columns/beams/slabs and auto-BOQ concrete/shuttering/steel. **Decision:** treat
 structural quantities as component-master usage rather than a separate module;
 the only real net-new piece is **BBS linkage** (3.6). Low priority.
 
-### 3.6 Bar Bending Schedule (ref 5.6) — **Built, isolated → link it in**
+### 3.6 Bar Bending Schedule (ref 5.6) — **Built + linked (Phase E)**
 `esti_bbs`/`esti_bbs_item`, `bbsItemTotals` (`D²/162 × L`), `validateBbsSchedule`,
-worker PDF, `ProjectBbs.tsx`. **Gaps vs spec:** no `linked_boq_item`, no
-`linked_work_order`, no `drawing_revision_id`, no diameter/floor steel summaries,
-no **steel reconciliation** (issued vs measured), no shape-code/lap/development/
-hook fields (today it's mark/member/dia/count/cutting-length/weight).
-**Build (Phase E):** add `linkedBoqItemId` + `workPackageId` + `drawingRevisionId`
-columns, diameter-/floor-wise report queries, and a steel reconciliation view;
-optionally enrich item fields for full BBS (shape code, lap, Ld, hook, bend
-deduction). Validation rule "steel issued > measured" depends on reconciliation.
+worker PDF, `ProjectBbs.tsx`. **Phase E linked it into the spine:** `esti_bbs`
+gained `work_package_id` + `boq_item_id` (Rule 9 plain-uuid ledger key, no FK) +
+`drawing_id` (`bbs.link`; set-null FKs for the work-package and drawing targets),
+an optional `floor` on `esti_bbs_item`, and `diameterSummary` / `floorSummary`
+roll-ups. **Steel reconciliation** (`esti_steel_reconciliation` + `_item`,
+`steelReconciliation` namespace, `ProjectSteelReconciliation.tsx`): per diameter
+`scheduledKg` (auto-seeded from the linked BBS via `seedFromBbs`) vs `issuedKg` vs
+`consumedKg`; `wastageKg = issued − consumed` with a severity ladder (≤3% within /
+watch / >5% over); **DRAFT → FINALIZED**, finalize gated by `cost:approve`,
+finalized record locks edits. **Deferred:** steel-reconciliation PDF; full-BBS
+fields (shape code, lap, Ld, hook, bend — formulas already in `steel-arranger.ts`);
+deriving consumed steel from the measurement book / a GRN store-issue ledger (the
+Future "material reconciliation" slice, 3.17).
 
 ### 3.7 Tender Documentation (ref 5.7) — **Built (Phase A); doc-gen deferred**
 Tenders now carry **BOQ line items** (`esti_tender_item`) carved from a frozen
@@ -262,8 +268,8 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **B — Award → Work Order** ✅ **Done (2026-06-25)** | Tender `award` populates an `esti_work_package` (+ items) from the winning bid's rates (fallback `estRatePaise`); links `work_package.tender_id` ↔ `tender.estimate_version_id`; one-shot (double-award → CONFLICT); audit + activity. *Deferred:* contract-condition columns (retention/LD/DLP) + WO/award PDF | ref 5.10, Award nav | **High** |
 | **C — Site Measurement Book** ✅ **Done (2026-06-25)** | `esti_measurement_record` (location/floor/zone/photo-key/approve) feeding running bills; the double-billing guard moved onto approved measurements (consumed = billed + approved-unbilled); bill **types** + **deduction block** (retention/advance/tax-TDS/other → `net_payable_paise`, gross unchanged); running-bill PDF worker target. Strict billing — only approved records feed BOQ lines; free-text extras stay. *Deferred:* photo capture/upload UI (`photoKey` column ships) | ref 5.11–5.12 | Med |
 | **D — Controls (Deviations + Variations + Extra Items)** ✅ **Done (2026-06-25)** | `esti_deviation` (qty + rate; severity ladder; document-and-approve — rate never overwrites the contract, Rule 5), `esti_variation` + `esti_variation_item` (the "addition"; existing-line additions priced at contract rate, extra items at own rate) with the two-step ladder **Draft → Submitted → Internal → Client → Applied → Closed** (+ Rejected). **Apply** is the only writer of the billable ledger (`variationQty` on existing lines; a self-keyed work-package line per extra item), recomputing the package contract value; the Phase-C bill guard immediately bills the new scope. New `cost:approve` capability (L2+, granted to ACCOUNTANT) gates every approve/apply step. *Deferred:* variation-order PDF | ref 5.13–5.15; **Estimation OS Phase 5** | **High** (you named additions) |
-| **E — BBS into the spine + Steel reconciliation** ← **next** | Link `esti_bbs` → BOQ item / work order / drawing revision; diameter-/floor-wise summaries; steel reconciliation (issued vs measured); optional full BBS fields | ref 5.6, 5.5 | **High** (you named BBS) |
-| **F — Final Account + Closure** | `esti_final_account` + closure checklist + closure PDF | ref 5.18 | Med |
+| **E — BBS into the spine + Steel reconciliation** ✅ **Done (2026-06-25)** | `esti_bbs` gains `work_package_id` + `boq_item_id` (Rule 9 plain-uuid ledger key, no FK) + `drawing_id` links (`bbs.link`, set-null FKs for the two real targets); optional `floor` on `esti_bbs_item` driving `diameterSummary` / `floorSummary` roll-ups. `esti_steel_reconciliation` (+ `_item`) compares per diameter `scheduledKg` (auto-seeded from the linked BBS via `seedFromBbs`), `issuedKg` and `consumedKg` (entered); `wastageKg = issued − consumed` with a severity ladder (within ≤3% / watch / over >5%); two-state **DRAFT → FINALIZED**, finalize gated by the existing `cost:approve`, finalized record locks edits. `steelReconciliation` namespace, `ProjectSteelReconciliation.tsx` mounted under `ProjectBbs` in the BBS tab. *Deferred:* steel-reconciliation PDF (mirrors deferred variation-order PDF); full-BBS fields (shape/lap/Ld/hook/bend — formulas already in `steel-arranger.ts`); deriving consumed from the measurement book / a GRN store-issue ledger (Future "material reconciliation") | ref 5.6, 5.5 | **High** (you named BBS) |
+| **F — Final Account + Closure** ← **next** | `esti_final_account` + closure checklist + closure PDF | ref 5.18 | Med |
 | **G — Cost dashboard + reports + AI checks** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes (duplicate-billing, unbalanced bid, bill deviation) | ref 5.1, §9, §16 | Med |
 | **Future** | Procurement forecast, material reconciliation, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
 

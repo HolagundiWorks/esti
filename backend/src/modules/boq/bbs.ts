@@ -1,4 +1,13 @@
-import { BbsBulkImport, BbsCreate, BbsItemCreate, bbsItemTotals, validateBbsSchedule } from "@esti/contracts";
+import {
+  BbsBulkImport,
+  BbsCreate,
+  BbsItemCreate,
+  BbsLink,
+  bbsDiameterSummary,
+  bbsFloorSummary,
+  bbsItemTotals,
+  validateBbsSchedule,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -9,7 +18,7 @@ import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet } from "../../lib/storage.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const bbsRouter = router({
   listByProject: protectedProcedure
@@ -65,6 +74,7 @@ export const bbsRouter = router({
       barsPerMember: input.barsPerMember,
       cuttingLengthMm: input.cuttingLengthMm,
       weightKg,
+      floor: input.floor ?? null,
     }).returning();
     await writeAudit(ctx.db, { entity: "bbsitem", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return { ok: true };
@@ -87,6 +97,7 @@ export const bbsRouter = router({
         barsPerMember: row.barsPerMember,
         cuttingLengthMm: row.cuttingLengthMm,
         weightKg,
+        floor: row.floor ?? null,
       });
     }
     await writeAudit(ctx.db, {
@@ -155,5 +166,45 @@ export const bbsRouter = router({
       if (!sched) throw new TRPCError({ code: "NOT_FOUND" });
       const items = await loadBbsItems(ctx.db, input.bbsId);
       return validateBbsSchedule(items);
+    }),
+
+  /** Tie a schedule into the cost spine (work package / BOQ line / drawing). */
+  link: capabilityProcedure("write").input(BbsLink).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(bbsSchedules).where(eq(bbsSchedules.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    const patch: Record<string, string | null> = {};
+    if (input.workPackageId !== undefined) patch.workPackageId = input.workPackageId;
+    if (input.boqItemId !== undefined) patch.boqItemId = input.boqItemId;
+    if (input.drawingId !== undefined) patch.drawingId = input.drawingId;
+    const [row] = await ctx.db
+      .update(bbsSchedules)
+      .set(patch)
+      .where(eq(bbsSchedules.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "bbs",
+      entityId: input.id,
+      action: "LINK",
+      actorId: ctx.user.id,
+      before: { workPackageId: before.workPackageId, boqItemId: before.boqItemId, drawingId: before.drawingId },
+      after: patch,
+    });
+    return row!;
+  }),
+
+  /** Steel weight (kg) rolled up by bar diameter. */
+  diameterSummary: protectedProcedure
+    .input(z.object({ bbsId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const items = await ctx.db.select().from(bbsItems).where(eq(bbsItems.bbsId, input.bbsId));
+      return bbsDiameterSummary(items);
+    }),
+
+  /** Steel weight (kg) rolled up by floor / level label. */
+  floorSummary: protectedProcedure
+    .input(z.object({ bbsId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const items = await ctx.db.select().from(bbsItems).where(eq(bbsItems.bbsId, input.bbsId));
+      return bbsFloorSummary(items);
     }),
 });

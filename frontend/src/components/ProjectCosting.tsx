@@ -13,6 +13,7 @@ import { ProjectEstimates } from "./ProjectEstimates.js";
 import { CostingWindow } from "./estimation/CostingWindow.js";
 import { WorkPackages } from "./estimation/WorkPackages.js";
 import { ProjectBbs } from "./ProjectBbs.js";
+import { ProjectSteelReconciliation } from "./ProjectSteelReconciliation.js";
 import { ProjectMeasurementBook } from "./ProjectMeasurementBook.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 import { ProjectControls } from "./ProjectControls.js";
@@ -92,9 +93,10 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
             </Stack>
           </TabPanel>
           <TabPanel>
-            <Stack gap={5}>
+            <Stack gap={7}>
               <SpineRail active="costing" />
               <ProjectBbs projectId={projectId} />
+              {showBills && <ProjectSteelReconciliation projectId={projectId} />}
             </Stack>
           </TabPanel>
           {showBills && (

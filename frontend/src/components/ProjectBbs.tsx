@@ -12,11 +12,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { BAR_DIAS, bbsItemTotals, applyStructuralCatalogEntry, DEMO_BEAM_230x600_M25 } from "@esti/contracts";
+import {
+  BAR_DIAS,
+  bbsFloorSummary,
+  bbsItemTotals,
+  applyStructuralCatalogEntry,
+  can,
+  DEMO_BEAM_230x600_M25,
+} from "@esti/contracts";
 import { useState } from "react";
+import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
@@ -44,7 +53,7 @@ function BbsPdf({ id, initial }: { id: string; initial: string }) {
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {
-    return <span style={{ fontSize: "0.875rem" }}>Generating…</span>;
+    return <span className="esti-label--secondary">Generating…</span>;
   }
   return (
     <Button kind="ghost" size="sm" disabled={gen.isPending} onClick={() => gen.mutate({ id })}>
@@ -53,7 +62,7 @@ function BbsPdf({ id, initial }: { id: string; initial: string }) {
   );
 }
 
-/** Parse bulk BBS lines: barMark, member, diaMm, noOfMembers, barsPerMember, cuttingLengthMm */
+/** Parse bulk BBS lines: barMark, member, diaMm, noOfMembers, barsPerMember, cuttingLengthMm, floor? */
 function parseBbsBulk(text: string) {
   return text
     .split(/\r?\n/)
@@ -61,7 +70,7 @@ function parseBbsBulk(text: string) {
     .filter(Boolean)
     .map((line) => {
       const cols = line.split(/[\t,;]/).map((c) => c.trim());
-      const [barMark, member = "", diaMm, noOfMembers = "1", barsPerMember = "1", cuttingLengthMm] = cols;
+      const [barMark, member = "", diaMm, noOfMembers = "1", barsPerMember = "1", cuttingLengthMm, floor = ""] = cols;
       if (!barMark || !diaMm || !cuttingLengthMm) return null;
       return {
         barMark,
@@ -70,12 +79,15 @@ function parseBbsBulk(text: string) {
         noOfMembers: Number(noOfMembers) || 1,
         barsPerMember: Number(barsPerMember) || 1,
         cuttingLengthMm: Number(cuttingLengthMm) || 0,
+        floor: floor || undefined,
       };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null && r.cuttingLengthMm > 0);
 }
 
 export function ProjectBbs({ projectId }: { projectId: string }) {
+  const { user } = useAuth();
+  const canWrite = can(user?.role, "write");
   const utils = trpc.useUtils();
   const listQ = trpc.bbs.listByProject.useQuery(
     { projectId },
@@ -125,6 +137,22 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
     onSuccess: invalidateItems,
   });
 
+  // Spine link (work package / BOQ line / drawing) for the open schedule.
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkForm, setLinkForm] = useState({ workPackageId: "", boqItemId: "", drawingId: "" });
+  const wpQ = trpc.workPackages.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const drawingsQ = trpc.drawings.listByProject.useQuery({ projectId }, { enabled: !!projectId });
+  const wpItemsQ = trpc.workPackages.byId.useQuery(
+    { id: linkForm.workPackageId },
+    { enabled: linkOpen && !!linkForm.workPackageId },
+  );
+  const link = trpc.bbs.link.useMutation({
+    onSuccess: () => {
+      utils.bbs.listByProject.invalidate({ projectId });
+      setLinkOpen(false);
+    },
+  });
+
   const [itemOpen, setItemOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
@@ -137,6 +165,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
     noOfMembers: "1",
     barsPerMember: "1",
     cuttingLengthMm: "",
+    floor: "",
   });
 
   const items = itemsQ.data ?? [];
@@ -154,6 +183,8 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
   for (const it of items)
     byDia.set(it.diaMm, (byDia.get(it.diaMm) ?? 0) + it.weightKg);
   const totalWeight = items.reduce((s, it) => s + it.weightKg, 0);
+  const floorSummary = bbsFloorSummary(items);
+  const hasFloors = floorSummary.some((f) => f.floor !== "—");
 
   const open = (listQ.data ?? []).find((b) => b.id === openId) ?? null;
   const validation = validateQ.data;
@@ -240,6 +271,22 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                   )}
                 </>
               )}
+              {open && canWrite && (
+                <Button
+                  size="sm"
+                  kind="tertiary"
+                  onClick={() => {
+                    setLinkForm({
+                      workPackageId: open.workPackageId ?? "",
+                      boqItemId: open.boqItemId ?? "",
+                      drawingId: open.drawingId ?? "",
+                    });
+                    setLinkOpen(true);
+                  }}
+                >
+                  Link
+                </Button>
+              )}
               <Button size="sm" kind="tertiary" onClick={() => setTemplateOpen(true)}>
                 From template
               </Button>
@@ -251,6 +298,27 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               </Button>
             </Stack>
           </div>
+          {open && (open.workPackageId || open.boqItemId || open.drawingId) && (
+            <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap", marginTop: 8 }}>
+              {open.workPackageId && (
+                <Tag type="teal" size="sm">
+                  Work package:{" "}
+                  {(wpQ.data ?? []).find((w) => w.id === open.workPackageId)?.ref ?? "linked"}
+                </Tag>
+              )}
+              {open.boqItemId && (
+                <Tag type="cyan" size="sm">
+                  BOQ line linked
+                </Tag>
+              )}
+              {open.drawingId && (
+                <Tag type="purple" size="sm">
+                  Drawing:{" "}
+                  {(drawingsQ.data ?? []).find((d) => d.id === open.drawingId)?.ref ?? "linked"}
+                </Tag>
+              )}
+            </Stack>
+          )}
           {validation && validation.issues.length > 0 && (
             <InlineNotification
               kind={validation.ok ? "warning" : "error"}
@@ -273,6 +341,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                 <TableRow>
                   <TableHeader>Mark</TableHeader>
                   <TableHeader>Member</TableHeader>
+                  <TableHeader>Floor</TableHeader>
                   <TableHeader>Dia (mm)</TableHeader>
                   <TableHeader>Members</TableHeader>
                   <TableHeader>Bars/member</TableHeader>
@@ -286,6 +355,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
                   <TableRow key={it.id}>
                     <TableCell>{it.barMark}</TableCell>
                     <TableCell>{it.member ?? "—"}</TableCell>
+                    <TableCell>{it.floor ?? "—"}</TableCell>
                     <TableCell>{it.diaMm}</TableCell>
                     <TableCell>{it.noOfMembers}</TableCell>
                     <TableCell>{it.barsPerMember}</TableCell>
@@ -319,6 +389,16 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               Total steel: <strong>{totalWeight.toFixed(1)} kg</strong>
             </span>
           </div>
+          {hasFloors && (
+            <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap", marginTop: 8 }}>
+              <span className="esti-label--secondary">By floor:</span>
+              {floorSummary.map((f) => (
+                <Tag key={f.floor} type="gray" size="sm">
+                  {f.floor}: {f.weightKg.toFixed(1)} kg
+                </Tag>
+              ))}
+            </Stack>
+          )}
         </div>
       )}
 
@@ -362,6 +442,7 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
             noOfMembers: Number(itf.noOfMembers) || 1,
             barsPerMember: Number(itf.barsPerMember) || 1,
             cuttingLengthMm: Number(itf.cuttingLengthMm) || 0,
+            floor: itf.floor || undefined,
           })
         }
       >
@@ -381,6 +462,14 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
               value={itf.member}
               onChange={(e) =>
                 setItf((f) => ({ ...f, member: e.target.value }))
+              }
+            />
+            <TextInput
+              id="bb-floor"
+              labelText="Floor (optional)"
+              value={itf.floor}
+              onChange={(e) =>
+                setItf((f) => ({ ...f, floor: e.target.value }))
               }
             />
             <Select
@@ -493,6 +582,69 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
             value={spanMm}
             onChange={(e) => setSpanMm(e.target.value)}
           />
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={linkOpen}
+        modalHeading="Link this schedule into the cost spine"
+        primaryButtonText={link.isPending ? "Saving…" : "Save links"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!open || link.isPending}
+        onRequestClose={() => setLinkOpen(false)}
+        onRequestSubmit={() => {
+          if (!open) return;
+          link.mutate({
+            id: open.id,
+            workPackageId: linkForm.workPackageId || null,
+            boqItemId: linkForm.boqItemId || null,
+            drawingId: linkForm.drawingId || null,
+          });
+        }}
+      >
+        <Stack gap={5}>
+          <p className="esti-label--secondary">
+            Tie the bar schedule to the work package, BOQ line, and drawing it reinforces. Leave a
+            field on "Not linked" to clear it.
+          </p>
+          <Select
+            id="link-wp"
+            labelText="Work package"
+            value={linkForm.workPackageId}
+            onChange={(e) =>
+              setLinkForm((f) => ({ ...f, workPackageId: e.target.value, boqItemId: "" }))
+            }
+          >
+            <SelectItem value="" text="Not linked" />
+            {(wpQ.data ?? []).map((wp) => (
+              <SelectItem key={wp.id} value={wp.id} text={`${wp.ref ?? "WP"} · ${wp.name}`} />
+            ))}
+          </Select>
+          <Select
+            id="link-boq"
+            labelText="BOQ line"
+            disabled={!linkForm.workPackageId}
+            value={linkForm.boqItemId}
+            onChange={(e) => setLinkForm((f) => ({ ...f, boqItemId: e.target.value }))}
+          >
+            <SelectItem value="" text="Not linked" />
+            {(wpItemsQ.data?.items ?? [])
+              .filter((it) => it.boqItemId)
+              .map((it) => (
+                <SelectItem key={it.id} value={it.boqItemId!} text={it.description} />
+              ))}
+          </Select>
+          <Select
+            id="link-drawing"
+            labelText="Drawing"
+            value={linkForm.drawingId}
+            onChange={(e) => setLinkForm((f) => ({ ...f, drawingId: e.target.value }))}
+          >
+            <SelectItem value="" text="Not linked" />
+            {(drawingsQ.data ?? []).map((d) => (
+              <SelectItem key={d.id} value={d.id} text={`${d.ref ?? "DRG"} · ${d.title}`} />
+            ))}
+          </Select>
         </Stack>
       </Modal>
     </>
