@@ -11,7 +11,6 @@ type Span = "1x1" | "2x1" | "2x2" | "4x1";
 
 export interface LandingGridProps {
   afterTryIt?: ReactNode;
-  afterWhatYouGet?: ReactNode;
   onStudioDemo: () => void;
   demoLoading: boolean;
   demoKind: DemoKind | null;
@@ -99,16 +98,16 @@ function KpiTile({ header, dot, value, sub }: {
 // ── Story tiles ────────────────────────────────────────────────────
 
 const COGNITION_SIGNALS = [
-  { id: "PROJECTS", score: "14", state: "ACTIVE JOBS IN ONE VIEW", dot: "green" as Dot },
-  { id: "FEES", score: "₹80K", state: "BILLING RISK VISIBLE", dot: "yellow" as Dot },
-  { id: "TEAM", score: "22", state: "LOAD AND ATTENDANCE TRACKED", dot: "green" as Dot },
-  { id: "CLIENTS", score: "4", state: "APPROVALS NEED FOLLOW-UP", dot: "yellow" as Dot },
+  { id: "PROJECTS", score: "14", state: "PHASES, DRAWINGS AND SITE WORK MOVING", dot: "green" as Dot },
+  { id: "FEES", score: "₹80K", state: "COMPLETED WORK WAITING TO BE BILLED", dot: "yellow" as Dot },
+  { id: "TEAM", score: "22", state: "LOAD, ABSENCE AND BLOCKED TASKS VISIBLE", dot: "green" as Dot },
+  { id: "CLIENTS", score: "4", state: "APPROVALS NEED A PRINCIPAL DECISION", dot: "yellow" as Dot },
 ] as const;
 
 function ProductStoryTile() {
   return (
     <Tile span="2x2" className="esti-lp-tile--pitch">
-      <TileHead label="Morning Control" dot="green" meta="One office system" />
+      <TileHead label="Morning View" dot="green" meta="Principal's desk" />
       <TileBody>
         <div className="esti-lp-cognition-signals">
           {COGNITION_SIGNALS.map((s) => (
@@ -124,20 +123,20 @@ function ProductStoryTile() {
         <div className="esti-lp-cognition-reason">
           <p className="esti-lp-section-label">What opens first</p>
           <h3 className="esti-lp-feature-title">
-            A principal opens AORMS and sees where work is moving, where money is exposed, who is overloaded, and which client needs a decision.
+            A principal opens AORMS and sees what moved, what is blocked, what needs approval, what is billable, and who owns the next action.
           </h3>
           <div className="esti-lp-cognition-chain">
-            <span>PROJECT RISK SURFACES</span>
-            <span>FEE FOLLOW-UP BECOMES ACTION</span>
-            <span>OWNERSHIP STAYS VISIBLE</span>
-            <span>CLIENT AND CONSULTANT MOVES ARE RECORDED</span>
+            <span>WORK THAT MOVED</span>
+            <span>APPROVALS THAT WAIT</span>
+            <span>FEES READY TO RAISE</span>
+            <span>OWNERS WHO MUST ACT</span>
           </div>
         </div>
 
         <div className="esti-lp-cognition-forecast">
-          <DataRow k="Best for" v="Small to mid-size teams" />
-          <DataRow k="Setup" v="Demo workspace first" />
-          <DataRow k="AI role" v="Explains and recommends" />
+          <DataRow k="Built for" v="Solo to mid-size practices" />
+          <DataRow k="First step" v="Enter a working office" />
+          <DataRow k="Office role" v="Remembers, warns, records" />
         </div>
       </TileBody>
     </Tile>
@@ -147,13 +146,13 @@ function ProductStoryTile() {
 function BuyerOutcomeTile() {
   return (
     <Tile span="2x1" className="esti-lp-tile--outcome">
-      <TileHead label="What changes" dot="yellow" meta="Next move" />
+      <TileHead label="What changes" dot="yellow" meta="Office memory" />
       <TileBody>
-        <h3 className="esti-lp-feature-title">The office stops waiting for someone to remember what needs attention.</h3>
+        <h3 className="esti-lp-feature-title">The office stops depending on someone's memory to protect time, fees, and approvals.</h3>
         <ul className="esti-lp-bullets">
-          <li>Owners see risk while there is still time to act.</li>
-          <li>Teams see what is blocked and who owns the handoff.</li>
-          <li>Clients approve through records instead of scattered message threads.</li>
+          <li>Principals see risk before it becomes cost.</li>
+          <li>Teams see blocked work and the person responsible for the handoff.</li>
+          <li>Clients approve through records, not noisy message trails.</li>
         </ul>
       </TileBody>
     </Tile>
@@ -178,35 +177,6 @@ function FeatureTile({ header, dot, title, bullets, meta }: {
   );
 }
 
-// ── Compliance engine tile (2×1) ───────────────────────────────────
-
-function ComplianceTile() {
-  return (
-    <Tile span="2x1" id="compliance">
-      <TileHead label="Compliance Engine" dot="green" meta="BBMP DCR 2024 · v2.1.3" />
-      <TileBody>
-        <div className="esti-lp-compliance-grid">
-          <div>
-            <SectionLabel>Location</SectionLabel>
-            <DataRow k="State" v="Karnataka" />
-            <DataRow k="Authority" v="BBMP" />
-            <DataRow k="Zone" v="Residential Main" />
-            <DataRow k="Plot area" v="2,400 sqft" />
-          </div>
-          <div>
-            <SectionLabel>Development Rules</SectionLabel>
-            <DataRow k="FAR Allowed" v="2.25" />
-            <DataRow k="Max Built-up" v="5,400 sqft" />
-            <DataRow k="Setback" v="3m front · 1.5m side" />
-            <DataRow k="Fire NOC" v="Required" />
-            <DataRow k="Parking" v="4 ECS" />
-          </div>
-        </div>
-      </TileBody>
-    </Tile>
-  );
-}
-
 // ── Revision intelligence tile ─────────────────────────────────────
 
 const REVISIONS = [
@@ -219,9 +189,9 @@ const REVISIONS = [
 function RevisionTile() {
   return (
     <Tile>
-      <TileHead label="Revision Intelligence" dot="yellow" meta="Q1 FY 25–26" />
+      <TileHead label="Revision Intelligence" dot="yellow" meta="Scope protection" />
       <TileBody>
-        <SectionLabel>Revision Breakdown</SectionLabel>
+        <SectionLabel>Why the drawing changed</SectionLabel>
         {REVISIONS.map((r) => (
           <div key={r.label} className="esti-lp-rev-row">
             <span className="esti-lp-rev-label">{r.label}</span>
@@ -293,13 +263,13 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const ROLE_DESC: Record<string, string> = {
-  OWNER: "All modules — finances, team, firm settings, and audit log.",
-  PARTNER: "GST invoicing, fee proposals, HR, and reporting.",
-  SENIOR: "Full project delivery, drawings, tenders, and compliance.",
-  ASSOCIATE: "Clients, tasks, site work, and portal triage.",
-  VIEWER: "Personal task board, calendar, and activity feed only.",
-  CLIENT: "Scoped view of one project — drawings, approvals, and fee status.",
-  CONSULTANT: "Engagement scope, RFI inbox, and issued drawing set.",
+  OWNER: "Whole office view — projects, money, people, risk, and audit trail.",
+  PARTNER: "Fee proposals, GST, billing, reconciliation, HR, and reporting.",
+  SENIOR: "Project delivery, drawings, tenders, site work, and approvals.",
+  ASSOCIATE: "Assigned tasks, clients, site notes, and daily project movement.",
+  VIEWER: "Personal work, calendar, and activity without sensitive office data.",
+  CLIENT: "One project only — drawings, approvals, revisions, and fee status.",
+  CONSULTANT: "Scoped engagement, RFI movement, and issued drawing records.",
 };
 
 const LEVEL_ORDER: Record<string, number> = {
@@ -349,7 +319,7 @@ function RoleTile({
   );
 }
 
-// ── Bid portal tile (static — completes role row to 8) ─────────────
+// ── Bid portal tile ────────────────────────────────────────────────
 
 function BidPortalTile() {
   return (
@@ -357,12 +327,12 @@ function BidPortalTile() {
       <TileHead label="BP · Bid Portal" dot="white" />
       <TileBody>
         <p className="esti-lp-note" style={{ marginBottom: "var(--cds-spacing-04)" }}>
-          Magic-link tender access for contractors. No account needed.
+          Contractors enter only the tender or bid scope shared with them.
         </p>
         <ul className="esti-lp-bullets">
-          <li>Tender documents and BOQ</li>
-          <li>Bid submission workflow</li>
-          <li>No access beyond tender scope</li>
+          <li>Tender documents, BOQ, and bid instructions</li>
+          <li>Submission movement recorded against the project</li>
+          <li>No visibility beyond the issued scope</li>
         </ul>
       </TileBody>
     </Tile>
@@ -372,7 +342,7 @@ function BidPortalTile() {
 // ── Main export ────────────────────────────────────────────────────
 
 export function LandingOperationalGrid({
-  afterTryIt, afterWhatYouGet, onStudioDemo, demoLoading, demoKind,
+  afterTryIt, onStudioDemo, demoLoading, demoKind,
 }: LandingGridProps) {
   const [switching, setSwitching] = useState<string | null>(null);
 
@@ -396,79 +366,76 @@ export function LandingOperationalGrid({
     <>
       <SectionBreak
         eyebrow="01 / Morning View"
-        title="Start the day with the office already assembled"
-        body="Projects, money, people, approvals, and client movement arrive in one governed view before follow-up begins."
+        title="The principal opens the office before the office opens"
+        body="AORMS shows what moved overnight, what is blocked, what needs approval, what can be billed, and who owns the next action."
       />
 
       <div className="esti-lp-grid" id="platform">
         <ProductStoryTile />
         <BuyerOutcomeTile />
-        <KpiTile header="Office Record" dot="green" value="9+" sub="Connected surfaces for projects, fees, HR, drawings, tenders, and portals" />
-        <KpiTile header="Live Office" dot="green" value="Demo" sub="Enter a working practice before asking your team to switch" />
+        <KpiTile header="Office Record" dot="green" value="9+" sub="Projects, revisions, fees, GST, teams, tenders, portals, and approvals held together" />
+        <KpiTile header="Next Action" dot="yellow" value="Owner" sub="Every warning points to the person responsible for moving the work forward" />
       </div>
 
       <SectionBreak
         eyebrow="02 / Work In Motion"
-        title="The work keeps its context as it moves"
-        body="A task, fee, drawing, approval, or compliance check does not become another isolated file; it stays attached to the office record."
+        title="Architecture work should not break into fragments"
+        body="Every enquiry, drawing, revision, approval, site note, bill, and client decision stays attached to the project record."
       />
 
       <div className="esti-lp-grid">
-        <KpiTile header="India Ready" dot="green" value="GST" sub="Invoices, compliance workflows, authority context, and audit trails stay local" />
-        <KpiTile header="AI Layer" dot="yellow" value="LLM" sub="Office intelligence explains risk and recommends the next action" />
+        <KpiTile header="Indian Practice" dot="green" value="GST" sub="GST, COA, tenders, site work, client approvals, and authority context stay in the record" />
+        <KpiTile header="ESTI" dot="yellow" value="AI" sub="Reads the office state, explains risk, and suggests the next responsible action" />
         <FeatureTile
           header="Project Control"
           dot="green"
           meta="DELIVERY"
-          title="Follow every project from enquiry to handover"
+          title="From enquiry to handover, the project remains one continuous record"
           bullets={[
-            "Stages, tasks, drawings, decisions, and site notes move together",
-            "Blocked work reaches owners and project leads early",
-            "Evidence stays ready for review and handover",
+            "Phases, tasks, drawings, decisions, and site notes move together",
+            "Blocked work reaches principals and project leads early",
+            "Evidence remains ready for review, handover, and dispute control",
           ]}
         />
         <FeatureTile
           header="Fee Recovery"
           dot="white"
           meta="FINANCE"
-          title="Turn completed work into billable action"
+          title="Completed work should not wait quietly in a folder"
           bullets={[
-            "Fee proposals, invoices, receipts, and GST records stay in one line",
-            "Ready-to-bill and overdue work remains visible",
-            "Owners connect delivery movement to cash flow",
+            "Fee proposals, invoices, receipts, GST records, and reconciliation stay connected",
+            "Ready-to-bill stages and overdue follow-ups remain visible",
+            "Principals connect delivery movement to fee recovery",
           ]}
         />
         <FeatureTile
           header="Team Visibility"
           dot="green"
           meta="HR + LOAD"
-          title="See who is overloaded, absent, blocked, or underused"
+          title="See workload, absence, blocked tasks, and quiet overload"
           bullets={[
-            "Attendance, task ownership, and workload are visible together",
-            "Role-based access keeps sensitive modules controlled",
-            "Leads can rebalance work before deadlines slip",
+            "Attendance, task ownership, and project pressure are visible together",
+            "Leads can rebalance work before deadlines begin to slip",
+            "Sensitive finance and owner views remain controlled",
           ]}
         />
         <FeatureTile
           header="Client Experience"
           dot="green"
           meta="PORTALS"
-          title="Bring clients and consultants into structured access"
+          title="Let clients decide inside a record, not inside WhatsApp noise"
           bullets={[
-            "Approvals, drawings, RFIs, and tenders move through scoped portals",
-            "External users see only what they are meant to see",
-            "Decisions stop disappearing inside chat history",
+            "Approvals, drawings, RFIs, tenders, and fee status move through scoped portals",
+            "Clients, consultants, and contractors see only what belongs to them",
+            "Decisions stop disappearing into screenshots and forwarded messages",
           ]}
         />
-        <ComplianceTile />
       </div>
-
-      {afterWhatYouGet}
 
       <SectionBreak
         eyebrow="03 / See It Running"
-        title="Step into a workspace that already behaves like an office"
-        body="Open a live practice scenario, read the office signals, and see whether the operating rhythm fits your team."
+        title="Enter a working office, not an empty dashboard"
+        body="The demo opens with projects, fees, revisions, client approvals, team load, and recommendations already in motion."
       />
 
       <div className="esti-lp-grid">
@@ -477,23 +444,23 @@ export function LandingOperationalGrid({
           header="Live Scenario"
           dot="green"
           meta="WORKING OFFICE"
-          title="The scenario opens with projects, fees, team load, and recommendations already in motion"
+          title="See how the system behaves before asking your team to change its habits"
           bullets={[
-            "The dashboard reads real demo records instead of empty sample screens",
-            "Signals show what needs attention and why",
-            "You can test whether the operating rhythm fits your office before rollout",
+            "The dashboard reads populated project, fee, client, and team records",
+            "Warnings explain what needs attention and why",
+            "You can judge the office rhythm before rollout",
           ]}
         />
         <RevisionTile />
         <FeatureTile
-          header="Office Signals"
+          header="Revision Memory"
           dot="yellow"
-          meta="RECOMMENDATIONS"
-          title="Follow the trail from a warning to the next action"
+          meta="FEE + TIME IMPACT"
+          title="Client changes, internal corrections, technical queries, and scope shifts stay visible"
           bullets={[
-            "Late tasks, billing exposure, and client approvals stay connected",
-            "Recommendations point to the work record that needs action",
-            "The office sees movement, not just static metrics",
+            "Client-driven changes can carry fee and time impact",
+            "Approval records show who accepted what and when",
+            "Repeated revision pressure becomes visible to the principal",
           ]}
         />
       </div>
@@ -502,8 +469,8 @@ export function LandingOperationalGrid({
 
       <SectionBreak
         eyebrow="04 / People Enter"
-        title="Each stakeholder sees their part without splitting the record"
-        body="After the office rhythm is clear, enter as each stakeholder and see how owners, staff, clients, consultants, and bidders work through the same history."
+        title="Controlled visibility for every person around the project"
+        body="The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see approvals. Contractors see only tender or bid scope."
       />
 
       <div className="esti-lp-grid">
@@ -512,9 +479,9 @@ export function LandingOperationalGrid({
           <Tile span="2x1">
             <TileHead label="Loading Role Entry" dot="yellow" meta="Access model" />
             <TileBody>
-              <h3 className="esti-lp-feature-title">Preparing role workspaces.</h3>
+              <h3 className="esti-lp-feature-title">Preparing controlled views.</h3>
               <p className="esti-lp-note">
-                Owner, partner, staff, client, consultant, and bidder access will appear here.
+                Owner, finance, team, client, consultant, contractor, and bidder access will appear here.
               </p>
             </TileBody>
           </Tile>
@@ -522,7 +489,7 @@ export function LandingOperationalGrid({
           <Tile span="2x1">
             <TileHead label="Role Entry Unavailable" dot="red" meta="Retry later" />
             <TileBody>
-              <h3 className="esti-lp-feature-title">Role workspaces could not be loaded.</h3>
+              <h3 className="esti-lp-feature-title">Controlled views could not be loaded.</h3>
               <p className="esti-lp-note">
                 You can still open the team workspace from the hero.
               </p>
@@ -532,9 +499,9 @@ export function LandingOperationalGrid({
           <Tile span="2x1">
             <TileHead label="Role Entry" dot="white" meta="Not configured" />
             <TileBody>
-              <h3 className="esti-lp-feature-title">Role-based workspaces are configured in the live team workspace.</h3>
+              <h3 className="esti-lp-feature-title">Role-based visibility is configured inside the live workspace.</h3>
               <p className="esti-lp-note">
-                Request access and we will provision the team, client, consultant, and bidder roles.
+                Request access and we will provision owner, finance, team, client, consultant, contractor, and bidder views.
               </p>
             </TileBody>
           </Tile>
@@ -559,8 +526,8 @@ export function LandingFinalCta({ children }: LandingFinalCtaProps) {
     <>
       <SectionBreak
         eyebrow="05 / Choose"
-        title="Choose the workspace that matches the office you are running"
-        body="Start with a small team record, unlock billing and construction when the practice grows, or run the system on your own infrastructure."
+        title="Choose the depth of office memory you need"
+        body="Start with shared office memory, run the full architecture office system, or deploy AORMS inside your own infrastructure."
       />
 
       {children}

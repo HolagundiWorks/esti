@@ -14,7 +14,7 @@ Most firms do not choose software so much as accumulate it. A drawing folder her
 
 A project management app, an accounting tool and a shared drive can each do their narrow job. The problem is the seams between them. No tool knows that this invoice belongs to that phase, that this revision was client-driven, or that this designer is already on three jobs. So those facts live in people's heads, and the firm pays for it in missed billing, untracked scope creep and capacity surprises.
 
-Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April–March financial year, and local bylaws like BBMP. A tool that does not know any of this leaves you doing the hard parts by hand.
+Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April–March financial year, tenders, site records and authority-driven approvals. A tool that does not know any of this leaves you doing the hard parts by hand.
 
 ## The must-have checklist
 
@@ -32,9 +32,9 @@ Anyone can store v1, v2, v3. What protects margin is knowing *why* a revision ha
 
 This is where generic foreign tools fail hardest. Insist on COA-aligned fee proposals, billing tied to phase milestones, and invoices with the correct CGST/SGST or IGST split, TDS under 194J, the professional-services SAC code, and gap-free FY-sequential numbering. Reconciliation against bank, 26AS, AIS and GSTR imports and ready GSTR-1, GSTR-3B and TDS filing abstracts should be built in, not bolted on. Money should be handled in paise. See [GST billing for architects](/gst-billing-software-architects-india).
 
-### 4. Bylaw compliance
+### 4. Statutory and site records
 
-A firm carries real risk if a design breaches FAR, ground coverage, setbacks or height. A good system includes a compliance engine that checks against a versioned jurisdiction rule-set, with a pre-design quick check and a post-design deviation report. AORMS offers exactly this, plus a free public [compliance checker](/compliance-check) covering BBMP, UDCPR, DDA, CMDA, GHMC, KMC and GDCR cities as reference.
+A firm carries real risk when statutory assumptions, permit notes, site instructions and approval evidence live outside the project record. A good system keeps those records beside drawings, client decisions, tenders and bills so the office can defend what it issued and why.
 
 ### 5. People and capacity
 
@@ -56,7 +56,7 @@ For a firm, client drawings and fee data are sensitive. Self-hosting on your own
 
 Hold AORMS against that checklist and the case for purpose-built is clear: it does every item above, and it does them as one connected system rather than seven disconnected ones. A generic stack can be assembled to cover some of the list, but it will never close the seams — the invoice will not know its phase, the revision will not know its source, and someone will still be re-keying data between tools on a Friday evening.
 
-There is also a quieter benefit. A system built for Indian architecture speaks your language by default — COA, GST, SAC, the April–March year, BBMP — so onboarding is faster and there is less to configure. The knowledge bank with DSR rates, a specification catalogue and SteelFlow bar bending schedules, plus delivery tools like the office programme, PMC hub, construction schedule, snags and site instructions, and the ESTICAD desktop companion for takeoff, round out a system that follows a project from brief to site.
+There is also a quieter benefit. A system built for Indian architecture speaks your language by default — COA, GST, SAC, the April–March year, tenders and site coordination — so onboarding is faster and there is less to configure. The knowledge bank with DSR rates, a specification catalogue and SteelFlow bar bending schedules, plus delivery tools like the office programme, PMC hub, construction schedule, snags and site instructions, and the ESTICAD desktop companion for takeoff, round out a system that follows a project from brief to site.
 
 ## How to run the evaluation
 
@@ -71,7 +71,7 @@ When you are ready, [book a demo](/demo) and bring your hardest project. You can
 
 ### What should I look for in software for architecture firms?
 
-The essentials are integrated projects and drawings with revision tracking, India-correct COA and GST billing, a bylaw compliance engine, team workload and capacity, safe read-only portals for outsiders, an immutable record of decisions, and data ownership. The most important test is whether these work as one connected system rather than separate tools you have to reconcile by hand.
+The essentials are integrated projects and drawings with revision tracking, India-correct COA and GST billing, statutory records, team workload and capacity, safe read-only portals for outsiders, an immutable record of decisions, and data ownership. The most important test is whether these work as one connected system rather than separate tools you have to reconcile by hand.
 
 ### Is purpose-built software better than spreadsheets and generic apps?
 

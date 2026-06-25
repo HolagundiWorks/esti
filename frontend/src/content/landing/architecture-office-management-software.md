@@ -1,18 +1,18 @@
 ---
 title: Architecture Office Management Software
 metaTitle: Architecture Office Management Software for Indian Firms
-metaDescription: Architecture office management software for Indian practices — projects, drawings, revisions, COA fees, GST billing, compliance and client portals in one record.
+metaDescription: Architecture office management software for Indian practices — projects, drawings, revisions, COA fees, GST billing, approvals and client portals in one record.
 keyword: architecture office management software
 category: solution
 updated: 2026-06-24
-intro: One system for the whole architecture office — projects, drawings, revisions, fees, billing, compliance, teams and clients — built for how Indian practices actually work.
+intro: One system for the whole architecture office — projects, drawings, revisions, fees, billing, approvals, teams and clients — built for how Indian practices actually work.
 ---
 
 Most architecture offices do not run on one system. They run on a folder of
 drawings, a billing spreadsheet, an accounting package, a chat group for
 approvals, email for the client, and a great deal of memory. **Architecture
 office management software** replaces that scatter with a single record of the
-office: every project, drawing, revision, fee, invoice, approval and compliance
+office: every project, drawing, revision, fee, invoice, approval and project record
 check in one place, connected.
 
 AORMS — the Architectural Office Resource Management System — is that record,
@@ -32,8 +32,8 @@ but the real objects an office produces and depends on:
   delivery milestones.
 - **GST-correct invoices** — the right CGST/SGST or IGST split, TDS under section
   194J, the professional-services SAC code, and gap-free FY-sequential numbering.
-- **Bylaw compliance** — FAR, ground coverage, setbacks, height and basement rules
-  checked against a versioned jurisdiction rule-set before design commits.
+- **Authority and permit records** — statutory notes, permit assumptions and project
+  evidence kept beside drawings, approvals and site movement.
 - **People** — assignments, workload, attendance, leave and payroll, with
   performance understood, not guessed.
 - **Clients and consultants** on scoped, read-only portals that show only what you
@@ -46,7 +46,7 @@ real work lives inside the system instead of around it.
 
 Trello, Asana, Monday and the rest were built for generic task tracking. They have
 no idea what a drawing revision is, what a COA fee curve looks like, what a GST
-split requires, or how FAR is calculated on a plot. So a practice either flattens
+split requires, or how contractor and approval records move on a project. So a practice either flattens
 its real work into cards — losing all the meaning — or keeps the real work
 elsewhere and lets the tool go stale. Both paths end in abandonment, and the firm
 wrongly concludes "software doesn't work for us."
@@ -73,10 +73,9 @@ connected to the work, not stranded in a spreadsheet.
 
 ### Compliance, knowledge and the field
 
-The RIE engine validates FAR/FSI, ground coverage, setbacks, height and basement
-rules and issues a branded compliance PDF. A free public
-[compliance checker](/compliance-check) computes the same for any BBMP plot. The
-knowledge bank holds DSR rates, specifications and SteelFlow bar bending schedules.
+The office record keeps authority context, permit assumptions and project evidence
+beside drawings, approvals and site movement. The knowledge bank holds DSR rates,
+specifications and SteelFlow bar bending schedules.
 On site, programme and construction schedules, snags, site instructions and
 progress reports keep delivery on the same record as design.
 
@@ -92,7 +91,7 @@ record rather than in a chat thread.
 
 AORMS speaks the language of an Indian practice out of the box: GST and SAC codes,
 the April–March financial year, TDS, COA service stages and the Scale of Charges,
-and building bylaws for BBMP and other jurisdictions. It is self-hosted — your
+and site/authority context for Indian projects. It is self-hosted — your
 drawings, invoices and client data stay on your own infrastructure — with
 role-based access and separate client and consultant portals controlling exactly
 what outsiders see.
@@ -103,14 +102,14 @@ what outsiders see.
 
 Architecture office management software is a system that connects everything an
 architecture practice runs on — projects, drawings, revisions, COA fees, GST
-billing, bylaw compliance, teams and client communication — into one office record.
+billing, approvals, teams and client communication — into one office record.
 AORMS is built for this specifically, rather than adapted from a generic project
 tool.
 
 ### How is it different from project management software like Asana or Trello?
 
 Generic project tools track tasks on a board. They have no concept of a drawing
-revision, a COA fee proposal, a GST-correct invoice, or a FAR calculation. AORMS
+revision, a COA fee proposal, a GST-correct invoice, or a contractor handoff. AORMS
 models those objects natively, so the office's real work lives inside the system
 instead of being flattened into cards or kept in folders alongside it.
 
@@ -124,8 +123,8 @@ fifty-person firm.
 ### Is it built for Indian architecture firms?
 
 Yes. GST and SAC codes, the April–March financial year, TDS under 194J, the COA
-Scale of Charges, and building bylaws (FAR, setbacks, ground coverage) for BBMP and
-other Indian jurisdictions are built in — not bolted on.
+Scale of Charges, tenders, site work and authority records for Indian projects are
+built in — not bolted on.
 
 ### Can the office data stay private?
 

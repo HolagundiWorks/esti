@@ -22,27 +22,27 @@ export const DEMO_PASSWORD = "demo1234";
 export const DEMO_ACCOUNTS: Record<DemoKind, DemoAccount> = {
   team: {
     kind: "team",
-    title: "Team practice",
-    subtitle: "A busy Bengaluru mid-size office — 14 projects, a full team, client portals, and site work running in parallel.",
+    title: "A working architecture office",
+    subtitle: "A busy Indian practice with live projects, client approvals, fee follow-up, team load, portals, and site work already in motion.",
     email: "principal@demo.aorms.in",
     password: DEMO_PASSWORD,
     cta: "Open team demo",
     featured: true,
     highlights: [
-      "14 live projects: residential, commercial, interiors, and PMC work",
-      "Every client revision documented — scope, fee impact, and who approved it",
-      "Real GST invoices, receivables tracking, and team assignments",
-      "Client portal on a live residential project with issued drawings",
+      "Live residential, commercial, interiors, and PMC work",
+      "Client revisions recorded with scope, fee impact, and approval trail",
+      "GST invoices, receivables, contractor movement, and team assignments",
+      "Client portal on an active project with issued drawings",
     ],
     tour: [
-      { label: "Projects → Decisions", hint: "Open Sharma Villa — see every revision logged with scope impact and the client's approval" },
-      { label: "Fees & Invoices", hint: "Go to Fees — a COA fee proposal and a GST tax invoice already issued" },
-      { label: "Site coordination", hint: "Explore PMC — site schedule, RFIs, snag list, and inspector records" },
+      { label: "Projects → Decisions", hint: "Open Sharma Villa — see revisions logged with scope impact and client approval" },
+      { label: "Fees & Invoices", hint: "Go to Fees — see a proposal, GST invoice, and receivable trail" },
+      { label: "Site coordination", hint: "Explore PMC — site schedule, RFIs, snag list, and inspection records" },
     ],
     caseStudy: {
-      eyebrow: "Team mode",
+      eyebrow: "Working office",
       metric: "14",
-      metricLabel: "projects across four disciplines",
+      metricLabel: "projects with real office movement",
     },
   },
 };

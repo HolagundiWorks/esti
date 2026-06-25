@@ -99,9 +99,8 @@ the office's controlled source of truth, and the portal is the controlled window
 onto it.
 
 For Indian practices specifically, this sits inside a system that already knows
-the FY runs April–March, that bylaw compliance is checked against versioned
-rule-sets (try the free checker at [/compliance-check](/compliance-check)), and
-that the same drawing whose revision you are tracking may need a compliance PDF.
+the FY runs April–March, that statutory and permit context must stay visible, and
+that the same drawing whose revision you are tracking may need formal project evidence.
 The register is one part of a single office record, not a bolted-on tool. See how
 it fits the wider
 [architecture office management software](/architecture-office-management-software)

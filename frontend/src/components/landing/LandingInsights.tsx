@@ -1,59 +1,73 @@
 import { Link } from "react-router-dom";
 import { formatPostDate, listPosts } from "../../lib/blog.js";
 
-const UPCOMING = [
-  "Preventing scope creep through revision intelligence",
-  "The future of architecture operations",
-  "Better client approval workflow for architecture teams",
-];
+const GROUPS = [
+  {
+    heading: "Office essays",
+    tags: ["Operations", "Practice", "Product", "Team", "Vision", "Story", "Demo", "Design", "Cognition", "Security", "AI"],
+    excludeTags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings", "India", "Finance"],
+  },
+  {
+    heading: "Change and approval notes",
+    tags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings"],
+    excludeTags: [],
+  },
+  {
+    heading: "Indian practice notes",
+    tags: ["India", "Finance"],
+    excludeTags: ["Revisions", "Approvals", "Workflow", "Client", "Drawings"],
+  },
+] as const;
 
-/** Homepage architecture insights grid — latest articles + upcoming roadmap. */
+function postsFor(tags: readonly string[], excludeTags: readonly string[]) {
+  const wanted = new Set(tags);
+  const blocked = new Set(excludeTags);
+  return listPosts()
+    .filter((p) => !p.draft && p.tags.some((tag) => wanted.has(tag)) && !p.tags.some((tag) => blocked.has(tag)))
+    .slice(0, 5);
+}
+
+/** Homepage practice notes grouped after the product story. */
 export function LandingInsights() {
-  const latest = listPosts().slice(0, 3);
-  if (latest.length === 0) return null;
+  const groups = GROUPS.map((group) => ({ ...group, posts: postsFor(group.tags, group.excludeTags) }))
+    .filter((group) => group.posts.length > 0);
+  if (groups.length === 0) return null;
 
   return (
-    <div className="esti-lp-grid esti-lp-insights-grid" aria-labelledby="insights-title">
-      <div className="esti-lp-tile esti-lp-tile--2x1 esti-lp-insights-intro">
-        <div className="esti-lp-tile__hdr">
-          <span className="esti-lp-dot esti-lp-dot--yellow" aria-hidden>●</span>
-          <span className="esti-lp-tile__hdr-label">03 / Learn The Rhythm</span>
-          <span className="esti-lp-tile__hdr-meta">Field notes</span>
-        </div>
-        <div className="esti-lp-insights-intro__body">
-          <p className="esti-lp-section-label">How firms use the operating record</p>
-          <h3 id="insights-title" className="esti-lp-feature-title">
-            Read the situations AORMS is designed to catch before they become expensive habits.
-          </h3>
+    <>
+      <section className="esti-lp-section-break" aria-labelledby="insights-title">
+        <div className="esti-lp-section-break__copy">
+          <p className="esti-lp-section-break__eyebrow">07 / Practice Notes</p>
+          <h2 id="insights-title">Read after the product has introduced itself</h2>
+          <p>
+            Essays grouped by how an architecture office thinks: practice, revisions,
+            approvals, and Indian operating context.
+          </p>
           <Link to="/blog" className="esti-lp-inline-link">All articles →</Link>
         </div>
-      </div>
+      </section>
 
-      {latest.map((p) => (
-        <Link key={p.slug} to={`/blog/${p.slug}`} className="esti-lp-tile esti-lp-insight-card">
-          <div className="esti-lp-tile__hdr">
-            <span className="esti-lp-dot esti-lp-dot--white" aria-hidden>●</span>
-            <span className="esti-lp-tile__hdr-label">
-              {formatPostDate(p.date)} · {p.readingMinutes} min
-            </span>
-          </div>
-          <div className="esti-lp-insight-card__body">
-            <h3>{p.title}</h3>
-          </div>
-        </Link>
-      ))}
-
-      <div className="esti-lp-tile esti-lp-tile--2x1 esti-lp-insights-upcoming">
-        <div className="esti-lp-tile__hdr">
-          <span className="esti-lp-dot esti-lp-dot--white" aria-hidden>●</span>
-          <span className="esti-lp-tile__hdr-label">Upcoming insights</span>
-        </div>
-        <ul>
-          {UPCOMING.map((t) => (
-            <li key={t}><span aria-hidden>→</span>{t}</li>
-          ))}
-        </ul>
+      <div className="esti-lp-grid esti-lp-insights-grid" aria-labelledby="insights-title">
+        {groups.map((group) => (
+          <nav key={group.heading} className="esti-lp-tile esti-lp-insights-upcoming" aria-label={group.heading}>
+            <div className="esti-lp-tile__hdr">
+              <span className="esti-lp-dot esti-lp-dot--white" aria-hidden>●</span>
+              <span className="esti-lp-tile__hdr-label">{group.heading}</span>
+            </div>
+            <ul>
+              {group.posts.map((post) => (
+                <li key={post.slug}>
+                  <span aria-hidden>→</span>
+                  <Link to={`/blog/${post.slug}`}>
+                    {post.title}
+                    <small>{formatPostDate(post.date)} · {post.readingMinutes} min</small>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
       </div>
-    </div>
+    </>
   );
 }

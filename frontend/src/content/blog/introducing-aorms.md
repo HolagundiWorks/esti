@@ -16,7 +16,7 @@ AORMS exists to surface that drift **before it matures into a problem**.
 ## One operating picture
 
 Instead of a dozen disconnected tools, AORMS reads your office as a single
-system: clients, projects, billing, approvals, revisions, compliance, and team
+system: clients, projects, billing, approvals, revisions, drawings, and team
 load. It reasons across them, predicts where pressure is building, and
 recommends the single highest-leverage action for the day.
 

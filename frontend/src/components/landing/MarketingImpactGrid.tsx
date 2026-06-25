@@ -10,7 +10,7 @@ const IMPACT = [
     icon: Building,
     eyebrow: "Residential delivery",
     title: "Sharma Villa",
-    body: "GFC drawings linked to ESTICAD takeoff, BOQ import, and post-construction compliance audit on Project Info.",
+    body: "GFC drawings linked to ESTICAD takeoff, BOQ import, site records, and project evidence on Project Info.",
     metric: "1",
     metricLabel: "linked drawing set with live quantities",
     highlights: [

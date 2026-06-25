@@ -85,8 +85,6 @@ export function Landing() {
         />
 
         <LandingOperationalGrid
-          afterWhatYouGet={<MarketingSolutions />}
-          afterTryIt={<LandingInsights />}
           onStudioDemo={() => openDemo("team")}
           demoLoading={demoLoading}
           demoKind={demoKind}
@@ -94,6 +92,8 @@ export function Landing() {
 
         <LandingFinalCta>
           <MarketingPricingBand onSelectPlan={openPlanRequest} />
+          <MarketingSolutions />
+          <LandingInsights />
         </LandingFinalCta>
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} />

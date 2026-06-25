@@ -27,7 +27,7 @@ const ROLE_LABEL: Record<string, string> = {
 const ROLE_DESC: Record<string, string> = {
   OWNER:      "All modules — finances, team, firm settings, and audit log.",
   PARTNER:    "GST invoicing, fee proposals, HR, and reporting.",
-  SENIOR:     "Full project delivery, drawings, tenders, and compliance.",
+  SENIOR:     "Full project delivery, drawings, tenders, and approvals.",
   ASSOCIATE:  "Clients, tasks, site work, and portal triage.",
   VIEWER:     "Personal task board, calendar, and activity feed only.",
   CLIENT:     "Scoped view of one project — drawings, approvals, and fee status.",

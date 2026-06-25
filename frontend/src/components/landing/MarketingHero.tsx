@@ -3,10 +3,10 @@ import { Button } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
 
 const STATUS_LINES = [
-  { label: "Built for architecture practices", dot: "green" },
-  { label: "India-ready operations", dot: "green" },
-  { label: "AI-assisted office intelligence", dot: "yellow" },
-  { label: "Demo workspace available", dot: "green" },
+  { label: "Built for Indian architecture offices", dot: "green" },
+  { label: "Projects, fees, approvals and billing in one record", dot: "green" },
+  { label: "Office memory, warnings and next actions", dot: "yellow" },
+  { label: "Working demo office available", dot: "green" },
 ] as const;
 
 export function MarketingHero({
@@ -27,16 +27,17 @@ export function MarketingHero({
       </p>
 
       <h1 id="hero-title" className="esti-lp-hero__h1">
-        Run your architecture firm<br />from one command center.
+        AORMS — Architecture Office <br />Resource Management System
       </h1>
 
       <p className="esti-lp-hero__sub">
-        Projects · Fees · Teams · Compliance · Client portals · AI
+        Projects · Client revisions · Approvals · Fees · GST · Team load · Portals
       </p>
 
       <p className="esti-lp-hero__lead">
-        AORMS replaces scattered spreadsheets, WhatsApp follow-ups, fee trackers, and project memory
-        with one operating system for architecture practices.
+        Architecture firms do not fail because they cannot design. They lose time,
+        money, and peace because office memory is scattered across messages,
+        spreadsheets, verbal approvals, and repeated follow-ups.
       </p>
 
       <div className="esti-lp-hero__actions">

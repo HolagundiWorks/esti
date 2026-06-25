@@ -53,7 +53,7 @@ Because the construction schedule and the design phases share a record, a delay 
 
 ## Built for India, owned by you
 
-ESTI is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and compliance checks run against versioned Indian rule-sets such as BBMP bylaws. The system is self-hosted with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
+ESTI is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is self-hosted with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
 
 If you are evaluating ESTI for the wider practice, the [architecture practice management software](/architecture-practice-management-software) and [software for architecture firms](/software-for-architecture-firms) pages cover the office-level view. To see the project record in motion, [book a demo](/demo).
 
@@ -81,4 +81,4 @@ No. ESTI is self-hosted with role-based access, so your drawings, fee data and c
 
 ### Does it work for Indian practices specifically?
 
-ESTI is India-native — paise-based money, April–March financial year, COA-based fee proposals, GST and TDS handling, and compliance checks against versioned Indian bylaws like BBMP. See [architecture software India](/architecture-software-india) for more.
+ESTI is India-native — paise-based money, April–March financial year, COA-based fee proposals, GST and TDS handling, tenders, site records, and project documentation. See [architecture software India](/architecture-software-india) for more.

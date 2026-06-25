@@ -1,19 +1,19 @@
 /** Landing-page SEO copy — keep in sync with index.html meta tags. */
 export const LANDING_SEO = {
-  title: "AORMS — Architecture Office Management Software for Indian Firms",
+  title: "AORMS | Architecture Office Management Software for Indian Architects",
   description:
-    "AORMS — architecture office management software for Indian firms. Free AORMS-Lite for solo studios below the GST threshold (3 team, 10 clients, 10 contractors) — drawings, simple non-GST invoices, bank reconciliation; paid AORMS-Core adds construction/PMC, tenders, GST invoicing, 26AS/GSTR reconciliation & filing, HR, AI; AORMS-Enterprise deploys on your infrastructure.",
+    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination, and office operations in one platform.",
   keywords:
-    "AORMS Lite free, free architecture software India, architecture office management software, architecture firm management software, architecture practice management software, software for architecture firms, architecture project management software, AORMS, Indian architect office software, COA fee proposal software, GST invoicing architects India, drawing revision tracking software, architecture approval workflow software, on-premises architecture software, BOQ rate analysis running bills, ESTICAD companion, AORMS Core pricing, AORMS Enterprise on-premises",
-  ogTitle: "A digital nervous system for architecture firms",
+    "AORMS, architecture office management software, architecture practice management software, architecture firm management software, architecture ERP India, client revision management for architects, architecture project management software, architect fee proposal software, architect document approval system, contractor billing software for architects, ESTI AI assistant for architects",
+  ogTitle: "AORMS — Architecture Office Resource Management System",
   ogDescription:
-    "AORMS observes your office, reasons through client/project/finance/team pressure, predicts risk, and recommends interventions before failure matures.",
-  twitterTitle: "AORMS — office cognition for architects",
+    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination and office operations.",
+  twitterTitle: "AORMS — Architecture Office Management Software",
   twitterDescription:
-    "A digital nervous system for Indian architecture firms: observe, reason, predict, recommend, explain.",
+    "Client revisions, project workflows, fee proposals, approvals, billing, contractor coordination and office operations for Indian architects.",
   headline: "The architecture office intelligence system.",
   footerBlurb:
-    "Continuous organizational cognition for architecture firms — projects, billing, approvals, revisions, compliance, and team load understood as one operating system.",
+    "AORMS is built by Holagundi Consulting Works in Hospet, Karnataka, for architecture practices that want their office to run with the same discipline as their drawings.",
   canonical: "https://aorms.in/",
   siteName: "ESTI",
 } as const;

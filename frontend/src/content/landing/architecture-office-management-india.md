@@ -1,36 +1,26 @@
 ---
 title: Run Your Architecture Office in India
 metaTitle: Architecture Office Management India
-metaDescription: Architecture office management India that ties bylaw compliance for BBMP, UDCPR, DDA, CMDA and GHMC, DSR rates and the India desk to your projects, teams and clients.
+metaDescription: Architecture office management India that ties GST, COA fee logic, tenders, site records, DSR rates, projects, teams and clients into one office system.
 keyword: architecture office management india
 category: india
 updated: 2026-06-24
-intro: One system for the whole Indian office — bylaw compliance across your cities, DSR-grounded costing, and the projects, teams and clients that run on top.
+intro: One system for the whole Indian office — GST, COA fee logic, tenders, site records, DSR-grounded costing, and the projects, teams and clients that run on top.
 ---
 
 # Run Your Architecture Office in India
 
-An architecture office in India runs on a dozen things at once: sanctions to chase across BBMP or CMDA, fee milestones to bill, a steel BBS to issue, three consultants to coordinate, attendance to mark, and a client asking where their drawings are. Most offices manage this across a project tool that ignores Indian bylaws, an accountant's separate ledger, a compliance reference for the wrong city, and a group chat. **Architecture office management India** practices can stand on means putting the regulatory, costing and operational sides in one record — built for Indian cities, not adapted to them.
+An architecture office in India runs on a dozen things at once: fee milestones to bill, a steel BBS to issue, three consultants to coordinate, attendance to mark, site work to record, contractors to follow up, and a client asking where their drawings are. Most offices manage this across a project tool that ignores Indian practice, an accountant's separate ledger, a tender spreadsheet, and a group chat. **Architecture office management India** practices can stand on means putting the commercial, costing and operational sides in one record — built for Indian offices, not adapted to them.
 
-AORMS, powered by ESTI, is that system: a self-hosted Architectural Office Resource Management System where compliance, costing, projects, teams and clients share one source of truth.
+AORMS, powered by ESTI, is that system: a self-hosted Architectural Office Resource Management System where costing, projects, teams, clients, billing and site work share one source of truth.
 
-## Compliance for the cities you build in
+## Authority and site records
 
-Sanctioning is where Indian projects stall, and every city has its own rulebook. AORMS keeps compliance inside the office instead of in a consultant's head.
+Indian projects stall when authority notes, client approvals, tender movement and site records are held outside the office system. AORMS keeps those records inside the project instead of in a consultant's head.
 
-The RIE bylaw compliance engine checks FAR/FSI, ground coverage, setbacks, height and basement against a versioned jurisdiction rule-set — for example the BBMP Bye-Laws for Bengaluru. Run a quick check before design begins so you do not draw something that cannot be sanctioned, and a deviation report after design to show exactly where a scheme sits against the limits. Export a branded compliance PDF for the client or the authority.
+Permit assumptions, authority comments, project evidence and client decisions stay beside drawings, site notes and fee records. That gives the principal a cleaner view of what has been promised, what is pending and what must be reviewed before the project moves.
 
-There is also a free public [compliance checker](/compliance-check) — open to anyone, embeddable as an iframe, with an open REST API. It covers FAR, ground coverage, setbacks, parking ECS and basement rules for BBMP Bengaluru, with reference data for:
-
-- Mumbai (UDCPR)
-- Delhi (DDA / MPD)
-- Chennai (CMDA)
-- Hyderabad (GHMC)
-- Pune (PMC / UDCPR)
-- Kolkata (KMC)
-- Ahmedabad (GDCR / AUDA)
-
-For a practice working across states, having UDCPR and BBMP and CMDA logic in the same place is the difference between a confident feasibility note and a guess.
+For a practice working across cities, keeping authority correspondence, permit assumptions and statutory records in the same project file is the difference between a confident review and a guess.
 
 ## Costing grounded in Indian rates
 
@@ -44,7 +34,7 @@ The ESTICAD desktop companion handles drawing takeoff and feeds quantities back 
 
 ## The office that runs on top
 
-Compliance and costing sit underneath the day-to-day work, and AORMS runs that too.
+Costing, billing and statutory records sit underneath the day-to-day work, and AORMS runs that too.
 
 ### Projects and drawings
 
@@ -60,21 +50,21 @@ Read-only client, consultant and contractor portals let outsiders see exactly wh
 
 ## India-native, self-hosted
 
-This holds together because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year, COA service stages and Indian bylaws are part of the model. Billing follows COA fee proposals and GST-correct invoicing; see the [GST billing](/gst-billing-software-architects-india) and [COA-compliant billing](/coa-compliant-billing-software) pages for that side. For the broader "why India-native" case, see [architecture software India](/architecture-software-india).
+This holds together because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year, COA service stages, tenders and site records are part of the model. Billing follows COA fee proposals and GST-correct invoicing; see the [GST billing](/gst-billing-software-architects-india) and [COA-compliant billing](/coa-compliant-billing-software) pages for that side. For the broader "why India-native" case, see [architecture software India](/architecture-software-india).
 
 It is self-hosted on your own server with role-based access, so your projects, fees and client data stay inside the firm, and partners control who sees and does what.
 
-Run the free [compliance check](/compliance-check) for your city, or [book a demo](/demo) to see the whole office in one place.
+[Book a demo](/demo) to see the whole office in one place.
 
 ## Frequently asked questions
 
 ### What does architecture office management India cover beyond projects?
 
-It covers the regulatory and costing sides that Indian offices live with daily — bylaw compliance for cities like Bengaluru (BBMP), Mumbai (UDCPR), Delhi (DDA), Chennai (CMDA) and Hyderabad (GHMC), DSR-based costing, and India-native GST/TDS billing — alongside projects, phases, drawings, teams and client portals. AORMS keeps all of it in one self-hosted record instead of separate tools.
+It covers the commercial and operational sides that Indian offices live with daily — DSR-based costing, tenders, contractor records, site work and India-native GST/TDS billing — alongside projects, phases, drawings, teams and client portals. AORMS keeps all of it in one self-hosted record instead of separate tools.
 
-### Which Indian cities' bylaws does the compliance engine support?
+### Does it handle authority and site records?
 
-The RIE engine checks FAR/FSI, ground coverage, setbacks, height and basement against versioned rule-sets such as the BBMP Bye-Laws. The free public checker at [/compliance-check](/compliance-check) covers BBMP Bengaluru in detail and provides reference data for Mumbai, Delhi, Chennai, Hyderabad, Pune, Kolkata and Ahmedabad.
+AORMS keeps authority notes, permit records, site instructions, tender documents and contractor movement attached to the project, so statutory and site context remains part of the office record.
 
 ### Does it include Indian costing rates like DSR?
 
@@ -90,4 +80,4 @@ AORMS is self-hosted on your own server with role-based access, so your project,
 
 ### How is this different from generic office software?
 
-Generic software has no concept of Indian bylaws, DSR rates, COA stages or GST/TDS, so the office patches it with spreadsheets and separate tools. Architecture office management India built natively ties compliance, costing, billing and operations into one system designed around how Indian practices actually work.
+Generic software has no concept of DSR rates, COA stages, GST/TDS, tenders or contractor billing, so the office patches it with spreadsheets and separate tools. Architecture office management India built natively ties costing, billing and operations into one system designed around how Indian practices actually work.

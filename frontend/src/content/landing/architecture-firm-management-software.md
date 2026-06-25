@@ -47,7 +47,7 @@ Revisions are where fixed-fee firms bleed. In AORMS every revision is tagged wit
 
 ## Compliance is part of the business
 
-Risk on the regulatory side is firm risk too. The RIE bylaw compliance engine checks FAR/FSI, ground coverage, setbacks, height and basement rules against a versioned jurisdiction rule-set such as BBMP, with a pre-design quick check and a post-design deviation report and a branded compliance PDF. There is a free public [compliance checker](/compliance-check) you can use before a project is even onboarded — covering UDCPR, DDA, CMDA, GHMC, KMC and GDCR cities as reference.
+Risk on the statutory side is firm risk too. AORMS keeps permit notes, authority context, project evidence and client commitments attached to the job, so regulatory assumptions are not left in a consultant's head or a forgotten spreadsheet.
 
 ## Sharing without losing control
 
@@ -55,7 +55,7 @@ A firm deals with outsiders constantly. AORMS gives you separate read-only porta
 
 ## India-native, on your own server
 
-AORMS is built for the Indian practice: GST, SAC, COA, the April–March financial year, and Indian bylaws. It is self-hosted on your own server with role-based access, so client data, fees and drawings stay inside the firm rather than on someone else's cloud. For owners who care where the business's data lives, that is not a small thing.
+AORMS is built for the Indian practice: GST, SAC, COA fee logic, the April–March financial year, tenders, site work and project evidence. It is self-hosted on your own server with role-based access, so client data, fees and drawings stay inside the firm rather than on someone else's cloud. For owners who care where the business's data lives, that is not a small thing.
 
 If you want to see the firm-level view on your own projects, [book a demo](/demo) or read more on the [blog](/blog).
 
