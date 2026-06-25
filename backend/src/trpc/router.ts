@@ -10,6 +10,7 @@ import { authRouter } from "../modules/auth/router.js";
 import { bbsRouter } from "../modules/boq/bbs.js";
 import { componentRouter } from "../modules/boq/component.js";
 import { designEstimateRouter } from "../modules/boq/designEstimate.js";
+import { workPackageRouter } from "../modules/boq/workPackage.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
 import { estimateRouter } from "../modules/boq/estimate.js";
 import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
@@ -121,6 +122,7 @@ export const appRouter = router({
   dsr: dsrRouter,
   estimates: estimateRouter,
   estimation: designEstimateRouter,
+  workPackages: workPackageRouter,
   components: componentRouter,
   bbs: bbsRouter,
   rateAnalysis: rateAnalysisRouter,

@@ -142,7 +142,9 @@ The contractor module supports architect-side coordination only:
 - PMC running-bill measurement workflow: site in-charge measurement, contractor
   verification, office measurement verification, approved measurement back to
   contractor, item-wise contractor invoice, office approval, and client
-  forwarding;
+  forwarding; bills can be raised against a frozen-estimate **work package**, in
+  which case the approved/previously-billed/balance ledger is tracked per BOQ
+  item and over-billing is blocked (double-billing prevention);
 - strict portal isolation between contractors.
 
 It does not provide inventory, labour, subcontractor, GRN, or contractor
@@ -156,11 +158,13 @@ accounting systems.
 - PMC commercial control: costing, running bills, purchase orders, and
   specification sheets under the project PMC group.
 - DSR/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and DSR/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes; see [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md).
-- **Estimation OS** (Phase 29, in progress): a progressive, component-based
+- **Estimation OS** (Phases 29–30): a progressive, component-based
   estimation engine extending the above — design-stage cost-head estimate
   (area-rate / percentage / lumpsum / non-modeled), component master with
   IFC→AORMS code mapping and auto-BOQ, completed composite rate analysis, and
-  frozen/versioned estimates. Specs:
+  frozen/versioned estimates (OS Phases 1–3, in progress); plus contractor
+  **work packages** carved from a frozen estimate and running bills with
+  cross-project double-billing prevention (OS Phase 4, shipped). Specs:
   [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
   [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md).
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for

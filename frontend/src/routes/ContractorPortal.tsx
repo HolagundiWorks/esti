@@ -297,6 +297,11 @@ export function ContractorPortal() {
                                 {it.qty} {it.unit} × {formatINR(it.ratePaise, { paise: false })}
                               </span>
                               <span>{formatINR(it.amountPaise, { paise: false })}</span>
+                              {it.boqItemId && (
+                                <Tag size="sm" type={it.balanceQty <= 0 ? "green" : "outline"}>
+                                  Balance {it.balanceQty} {it.unit}
+                                </Tag>
+                              )}
                             </Stack>
                           ))}
                           <p><strong>Total: {formatINR(b.totalPaise, { paise: false })}</strong></p>

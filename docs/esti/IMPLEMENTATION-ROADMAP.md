@@ -34,8 +34,8 @@ non-breaking; nothing overwrites a frozen estimate.
 | **1. Design-Stage Estimation** | `esti_estimate` gains stage + wider status; items gain cost head, calculation type (AREA_RATE/PERCENTAGE/LUMPSUM/NON_MODELED), confidence, % clause parent; freeze → `esti_estimate_version` snapshot (never overwrite). | **Active** |
 | **2. Component + IFC execution detail** | `esti_component` (AORMS code) master + `esti_ifc_mapping` catalog + `esti_component_related` templates; `esti_estimate_component` expands to BOQ items via the contracts formula registry (auto-BOQ). | **Active** |
 | **3. Ratebook + Rate Analysis** | Complete `esti_rate_analysis` build-up; link `componentId`; a component's rate is sourced from a rate analysis or the rate book. | **Active** |
-| **4. Work packages + running bills** | Group BOQ into packages; running bills check previously-billed qty (double-billing prevention). | Next |
-| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. | Next |
+| **4. Work packages + running bills** | Group frozen BOQ into contractor packages (`esti_work_package`/`esti_work_package_item`); running bills link to package items and check previously-billed qty across the project (double-billing prevention, spec Rule 9). Office + contractor-portal balances. | **Done** |
+| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. (Phase 4 ships a manual `variationQty` allowance only.) | Next |
 | **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. | Next |
 
 Phases 4–6 overlap the existing PMC/site-delivery modules (`programme`, `pmc`,

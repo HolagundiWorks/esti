@@ -322,6 +322,12 @@ export const contractorPortalRouter = router({
         qty: runningBillItems.qty,
         ratePaise: runningBillItems.ratePaise,
         amountPaise: runningBillItems.amountPaise,
+        // Estimation OS Phase 4 — measurement ledger, so the contractor verifies
+        // against the approved balance rather than a free-text quantity.
+        boqItemId: runningBillItems.boqItemId,
+        previousBilledQty: runningBillItems.previousBilledQty,
+        cumulativeBilledQty: runningBillItems.cumulativeBilledQty,
+        balanceQty: runningBillItems.balanceQty,
       })
       .from(runningBillItems)
       .where(inArray(runningBillItems.runningBillId, bills.map((b) => b.id)))

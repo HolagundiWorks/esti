@@ -617,6 +617,13 @@
       "when": 1782201300000,
       "tag": "0087_estimation_os",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1782201400000,
+      "tag": "0088_work_packages_bills",
+      "breakpoints": true
     }
   ]
 }

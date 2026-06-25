@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProgrammeProjectParams } from "./programme.js";
+import { CostHead } from "./estimation.js";
 
 export const PmcProjectParams = ProgrammeProjectParams;
 
@@ -112,6 +113,8 @@ export const RUNNING_BILL_STATUS_LABEL: Record<RunningBillStatus, string> = {
 export const RunningBillCreate = z.object({
   projectId: z.string().uuid(),
   contractorId: z.string().uuid().optional(),
+  /** Optional work package this bill measures against (Estimation OS Phase 4). */
+  workPackageId: z.string().uuid().nullable().optional(),
   title: z.string().min(2).max(200),
   measurementDate: z.string().date().optional(),
   notes: z.string().max(4000).optional(),
@@ -120,6 +123,11 @@ export const RunningBillCreate = z.object({
     unit: z.string().min(1).max(20),
     qty: z.number().nonnegative(),
     ratePaise: z.number().int().nonnegative().default(0),
+    /** Estimation OS links — when set, the bill is checked against the BOQ
+     * balance so nothing is billed twice. Free-text lines omit these. */
+    workPackageItemId: z.string().uuid().nullable().optional(),
+    boqItemId: z.string().uuid().nullable().optional(),
+    componentId: z.string().uuid().nullable().optional(),
   })).min(1).max(100),
 });
 export type RunningBillCreate = z.infer<typeof RunningBillCreate>;
@@ -131,6 +139,97 @@ export const RunningBillAdvance = z.object({
   note: z.string().max(2000).optional(),
 });
 export type RunningBillAdvance = z.infer<typeof RunningBillAdvance>;
+
+// --- Work packages (Estimation OS Phase 4) ----------------------------------
+// Approved (frozen) estimate items are grouped into contractor packages. A
+// running bill then measures against a package item, checking the previously
+// billed quantity so nothing is billed twice (spec §19–20, Rule 9).
+
+export const WorkPackageStatus = z.enum(["DRAFT", "ISSUED", "AWARDED", "ACTIVE", "CLOSED"]);
+export type WorkPackageStatus = z.infer<typeof WorkPackageStatus>;
+
+export const WORK_PACKAGE_STATUS_LABEL: Record<WorkPackageStatus, string> = {
+  DRAFT: "Draft",
+  ISSUED: "Issued",
+  AWARDED: "Awarded",
+  ACTIVE: "Active",
+  CLOSED: "Closed",
+};
+
+/** A line in a contractor package, optionally tied to a frozen BOQ item. */
+export const WorkPackageItemInput = z.object({
+  boqItemId: z.string().uuid().nullable().optional(),
+  componentId: z.string().uuid().nullable().optional(),
+  description: z.string().min(1).max(400),
+  unit: z.string().min(1).max(20),
+  approvedQty: z.number().nonnegative(),
+  /** Manual variation allowance (full deviation engine is Phase 5). */
+  variationQty: z.number().default(0),
+  ratePaise: z.number().int().nonnegative(),
+  sortOrder: z.number().int().default(0),
+});
+export type WorkPackageItemInput = z.infer<typeof WorkPackageItemInput>;
+
+export const WorkPackageCreate = z.object({
+  projectId: z.string().uuid(),
+  estimateId: z.string().uuid(),
+  /** Frozen baseline this package was carved from. */
+  estimateVersionId: z.string().uuid().nullable().optional(),
+  name: z.string().min(2).max(200),
+  packageType: z.string().min(1).max(60).default("CIVIL"),
+  contractorId: z.string().uuid().nullable().optional(),
+  notes: z.string().max(2000).optional(),
+  items: z.array(WorkPackageItemInput).max(500).optional(),
+});
+export type WorkPackageCreate = z.infer<typeof WorkPackageCreate>;
+
+/** Seed a package directly from a frozen estimate version's BOQ items. */
+export const WorkPackageFromEstimate = z.object({
+  projectId: z.string().uuid(),
+  estimateVersionId: z.string().uuid(),
+  name: z.string().min(2).max(200),
+  packageType: z.string().min(1).max(60).default("CIVIL"),
+  contractorId: z.string().uuid().nullable().optional(),
+  notes: z.string().max(2000).optional(),
+  /** Optional cost-head filter; empty/omitted = every head. */
+  costHeads: z.array(CostHead).optional(),
+});
+export type WorkPackageFromEstimate = z.infer<typeof WorkPackageFromEstimate>;
+
+export const WorkPackageUpdate = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(2).max(200).optional(),
+  packageType: z.string().min(1).max(60).optional(),
+  contractorId: z.string().uuid().nullable().optional(),
+  status: WorkPackageStatus.optional(),
+  notes: z.string().max(2000).nullable().optional(),
+});
+export type WorkPackageUpdate = z.infer<typeof WorkPackageUpdate>;
+
+export const WorkPackageItemAdd = WorkPackageItemInput.extend({
+  workPackageId: z.string().uuid(),
+});
+export type WorkPackageItemAdd = z.infer<typeof WorkPackageItemAdd>;
+
+/**
+ * Remaining billable quantity for a BOQ line (the "golden rule"):
+ *   balance = approvedQty + approvedVariationQty − previouslyBilledQty
+ * Rounded to 4 dp for stable quantities. May go negative if over-allocated;
+ * the caller decides how to surface that.
+ */
+export function billableBalance(input: {
+  approvedQty: number;
+  variationQty?: number;
+  previousBilledQty: number;
+}): number {
+  const raw = input.approvedQty + (input.variationQty ?? 0) - input.previousBilledQty;
+  return Number(raw.toFixed(4));
+}
+
+/** Whether a current measured qty fits within the remaining balance (4 dp float tolerance). */
+export function isWithinBalance(currentQty: number, balanceQty: number): boolean {
+  return currentQty <= balanceQty + 1e-4;
+}
 
 /** Default APBF Layer 2 live stages keyed by phase code. */
 export const DEFAULT_LIVE_STAGES: Record<string, { code: string; label: string }[]> = {

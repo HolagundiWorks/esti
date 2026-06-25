@@ -2,14 +2,17 @@ import {
   RUNNING_BILL_STATUS_LABEL,
   RunningBillAdvance,
   RunningBillCreate,
+  billableBalance,
+  isWithinBalance,
   type RunningBillStatus,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq } from "drizzle-orm";
-import { runningBillItems, runningBills } from "../../db/schema.js";
+import { asc, desc, eq, inArray } from "drizzle-orm";
+import { runningBillItems, runningBills, workPackageItems } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { previouslyBilledQty } from "../boq/workPackage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import { z } from "zod";
 
@@ -61,6 +64,57 @@ export const runningBillsRouter = router({
     ),
 
   create: protectedProcedure.input(RunningBillCreate).mutation(async ({ ctx, input }) => {
+    // --- Double-billing guard (Estimation OS Phase 4, spec Rule 9) -----------
+    // Lines linked to a work-package item are checked against the remaining
+    // balance: approved + variation − previously billed. The ledger is keyed by
+    // BOQ item and scoped to the project, so the same quantity can't be billed
+    // twice — even across two packages sharing one BOQ line. Free-text lines
+    // (no link) skip the guard and carry zeroed ledger columns.
+    const wpItemIds = [
+      ...new Set(input.items.map((i) => i.workPackageItemId).filter((x): x is string => Boolean(x))),
+    ];
+    const wpItems = wpItemIds.length
+      ? await ctx.db.select().from(workPackageItems).where(inArray(workPackageItems.id, wpItemIds))
+      : [];
+    const wpById = new Map(wpItems.map((w) => [w.id, w]));
+    const boqIds = [
+      ...new Set(input.items.map((i) => i.boqItemId).filter((x): x is string => Boolean(x))),
+    ];
+    const billedByBoq = await previouslyBilledQty(ctx.db, input.projectId, boqIds);
+
+    // Validate every linked line up front; consumed tracks repeats inside this
+    // same bill so two lines on one BOQ item still respect the shared balance.
+    const consumed = new Map<string, number>();
+    const planned = input.items.map((item) => {
+      const wp = item.workPackageItemId ? wpById.get(item.workPackageItemId) : undefined;
+      if (item.workPackageItemId && !wp) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Work-package line not found for a bill item." });
+      }
+      if (!wp) {
+        return { item, previousBilledQty: 0, cumulativeBilledQty: 0, balanceQty: 0 };
+      }
+      const key = item.boqItemId ?? `wp:${wp.id}`;
+      const prior = (item.boqItemId ? (billedByBoq.get(item.boqItemId) ?? 0) : 0) + (consumed.get(key) ?? 0);
+      const balanceQty = billableBalance({
+        approvedQty: wp.approvedQty,
+        variationQty: wp.variationQty,
+        previousBilledQty: prior,
+      });
+      if (!isWithinBalance(item.qty, balanceQty)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Over-billing blocked for "${item.description}": ${item.qty} ${item.unit} exceeds the remaining balance of ${balanceQty} ${item.unit} (approved ${wp.approvedQty} + variation ${wp.variationQty} − billed ${prior}).`,
+        });
+      }
+      consumed.set(key, (consumed.get(key) ?? 0) + item.qty);
+      return {
+        item,
+        previousBilledQty: prior,
+        cumulativeBilledQty: prior + item.qty,
+        balanceQty: Number((balanceQty - item.qty).toFixed(4)),
+      };
+    });
+
     const totalPaise = input.items.reduce((sum, item) => sum + amount(item.qty, item.ratePaise), 0);
     const { ref } = await nextRef(ctx.db, "running_bill", "RB");
     const initialHistory = [historyEntry("MEASURED", ctx.user.id, input.notes)];
@@ -70,6 +124,7 @@ export const runningBillsRouter = router({
         ref,
         projectId: input.projectId,
         contractorId: input.contractorId ?? null,
+        workPackageId: input.workPackageId ?? null,
         title: input.title,
         measurementDate: input.measurementDate ?? null,
         notes: input.notes ?? null,
@@ -79,14 +134,20 @@ export const runningBillsRouter = router({
       })
       .returning();
 
-    for (const [idx, item] of input.items.entries()) {
+    for (const [idx, p] of planned.entries()) {
       await ctx.db.insert(runningBillItems).values({
         runningBillId: row!.id,
-        description: item.description,
-        unit: item.unit,
-        qty: item.qty,
-        ratePaise: item.ratePaise,
-        amountPaise: amount(item.qty, item.ratePaise),
+        description: p.item.description,
+        unit: p.item.unit,
+        qty: p.item.qty,
+        ratePaise: p.item.ratePaise,
+        amountPaise: amount(p.item.qty, p.item.ratePaise),
+        workPackageItemId: p.item.workPackageItemId ?? null,
+        boqItemId: p.item.boqItemId ?? null,
+        componentId: p.item.componentId ?? null,
+        previousBilledQty: p.previousBilledQty,
+        cumulativeBilledQty: p.cumulativeBilledQty,
+        balanceQty: p.balanceQty,
         sortOrder: idx,
       });
     }
