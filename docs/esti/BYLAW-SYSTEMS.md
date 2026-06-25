@@ -2,7 +2,18 @@
 
 **Status:** Active · **Implementation:** [`BBMP-IMPLEMENTATION.md`](./BBMP-IMPLEMENTATION.md) · **Engine spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Generic spec:** [`../holagundi/bylaws_compliance_engine_agent_spec.md`](../holagundi/bylaws_compliance_engine_agent_spec.md)
 
-Build two bylaw systems using **one shared rule engine**.
+> **Phase 7 reconciliation (2026-06-25):** The **in-product, project-level bylaw
+> calculator was removed** — the `bylawCalc` tRPC router, the
+> `esti_bylaw_calc` / `esti_compliance_calculation` project-storage tables, the
+> `ProjectBylawData.tsx` component, and the Project Info §9 Compliance accordion
+> no longer exist. What remains is the **shared rule engine** (`computeBbmpCompliance`
+> + `esti_bbmp_*` rule tables, surfaced via the `bbmpRules` namespace), the
+> **office-side Knowledge Bank → Compliance tab** (`ComplianceHub`) for rule-set
+> administration and RIE site assessments, and the **public stateless
+> `/api/compliance/*` API**. Both "systems" below are now reached only through
+> that public API and the office tools — there is no per-project persistence.
+
+Build two bylaw workflows using **one shared rule engine**.
 
 ---
 
@@ -26,8 +37,8 @@ The architecture follows the generic city-wise compliance-engine spec:
 Rules data      → esti_bbmp_* rule tables / published rule-set versions
 Calculation     → @hcw/india-compliance-kit pure calculators
 City adapter    → backend/src/modules/compliance/workflows.ts
-Project storage → esti_bylaw_calc latest row + esti_compliance_calculation snapshots
-Reports         → compliance PDF worker / site assessment output
+Public API      → backend/src/modules/compliance/publicApi.ts (/api/compliance/*)
+Reports         → compliance PDF worker / RIE site assessment output
 ```
 
 ---
@@ -48,11 +59,8 @@ This system **does not detect violations**. It answers:
 How much can we legally build?
 ```
 
-**API:** `bylawCalc.save` → stores `input`, `result` (+ embedded `preConstruction`), `precomputed_at`
-on `esti_bylaw_calc` (latest project row) and appends an immutable
-`esti_compliance_calculation` snapshot.
-
-**Public stateless API:** `POST /api/compliance/pre-project`.
+**Public stateless API:** `POST /api/compliance/pre-project`. The endpoint is
+stateless — results are returned to the caller, not persisted on an Esti project.
 
 ---
 
@@ -91,20 +99,15 @@ Example audit parameter shape:
 }
 ```
 
-**API:** `bylawCalc.savePostConstruction` → stores `postconstruction_input`,
-`postconstruction_audit`, `postcomputed_at` on the same project row (maps to spec
-`esti_postconstruction_audit`) and appends an immutable `esti_compliance_calculation`
-snapshot.
-
-**Public stateless API:** `POST /api/compliance/post-project`.
-
-Requires pre-construction save first.
+**Public stateless API:** `POST /api/compliance/post-project`. Pre-construction
+inputs are supplied in the same request — there is no stored pre-construction row
+to read from.
 
 ---
 
 ## Shared rule engine
 
-Both systems use the same rule tables (Esti naming):
+Both workflows use the same rule tables (Esti naming):
 
 ```text
 esti_bbmp_rule_set          (spec: esti_bylaw_version)
@@ -138,25 +141,7 @@ Implemented in `lookupFarRuleResult()` (road-limited FAR) and `governingSetbackF
 
 ---
 
-## Project data display
-
-Computed values appear on the **Project Info** tab (`/projects/:id?tab=info#compliance`).
-
-```text
-Project Data
-  ├── Site Information
-  ├── Pre-Construction Development Potential
-  ├── Post-Construction Compliance / Violations
-  └── Compliance PDF (via RIE site assessment when issued)
-```
-
-Component: `frontend/src/components/ProjectBylawData.tsx`
-
-Knowledge Bank retains full calculator + RIE for rule-set administration.
-
----
-
-## Pre-construction display fields
+## Pre-construction output fields
 
 Allowed FAR · Permissible built-up · Allowed coverage % · Maximum footprint · Front / rear /
 left / right setback · Required parking ECS · Basement allowance · RWH · Solar · Tree · Seismic
@@ -164,7 +149,7 @@ requirements.
 
 ---
 
-## Post-construction display fields
+## Post-construction output fields
 
 Actual FAR · Actual built-up · Actual coverage % · Actual setbacks · Actual parking · Violation
 summary · Compliance status.
@@ -173,40 +158,21 @@ Each rule shows: allowed · actual · difference · pass/fail · reason · gover
 
 ---
 
-## Data storage
+## Rule administration & versioning
 
-| Spec table | Esti implementation |
-|------------|---------------------|
-| `esti_project_bylaw_input` | `esti_bylaw_calc.input` (JSONB) |
-| `esti_preconstruction_calc` | `esti_bylaw_calc.result` + `precomputed_at` |
-| `esti_postconstruction_audit` | `esti_bylaw_calc.postconstruction_*` + `postcomputed_at` |
-| `compliance_calculations` | `esti_compliance_calculation` immutable snapshots |
-| `esti_bylaw_calc_result` | Embedded in `result.preConstruction` + `postconstruction_audit.calculationTrace`; copied into `esti_compliance_calculation.result_json` |
+Rule sets are authored and published from the **Knowledge Bank → Compliance tab**
+(`ComplianceHub`). Published `esti_bbmp_rule_set` versions feed every calculation,
+and `calculationTrace` explanation JSON is returned with each result so a
+calculation remains explainable against the rule version that produced it.
 
-Every save stores **explanation JSON** (`calculationTrace`) for auditability.
-Snapshots also store **input JSON**, **result JSON**, **mode**, **rule version**, and
-timestamp so old project calculations remain explainable after rules change.
-
----
-
-## Recalculation rules
-
-Recompute when site area, plot dimensions, road width, building height, project type, development
-zone, built-up, footprint, setbacks, parking, or dwelling units change.
-
-- Pre-construction: user saves via **Project Info** §9 Compliance → `bylawCalc.save`
-- Post-construction: user saves actuals → `bylawCalc.savePostConstruction` (re-runs audit against
-  latest pre-construction allowed values)
-
-No stale post-construction audit without re-save after pre-construction changes.
+Recompute when site area, plot dimensions, road width, building height, project type,
+development zone, built-up, footprint, setbacks, parking, or dwelling units change.
 
 ---
 
 ## Final architecture
 
-**Office (Knowledge Bank → Compliance tab):** author and publish jurisdiction rule sets; run optional site feasibility assessments.
-
-**Project (Project Info → §9 Compliance):** calculate development envelope and post-construction audit; store results on the project; statutory permits.
+**Office (Knowledge Bank → Compliance tab):** author and publish jurisdiction rule sets; run optional RIE site feasibility assessments.
 
 **External API (`/api/compliance/*`):** stateless pre-project and post-project endpoints
 for integrations. MVP supports Bengaluru / BBMP / residential only; unsupported cities
@@ -215,15 +181,13 @@ or project types return `INSUFFICIENT_DATA` with explicit errors.
 ```text
 One shared bylaw rule engine (computeBbmpCompliance + DB catalog)
 Two workflows (computePreConstructionPotential / computePostConstructionAudit)
-Office rule library (KB Compliance tab) → published catalog feeds project calculations
-One project-level display (Project Info §9 Compliance accordion)
+Office rule library (KB Compliance tab) → published catalog feeds calculations
+Stateless public API (/api/compliance/pre-project, /post-project, /check)
 Versioned rules (esti_bbmp_rule_set + esti_rule_version)
-Auditable results (calculationTrace + postconstruction_audit + immutable snapshots)
-PDF-ready output (site assessment — issued from KB, linked from project)
+Auditable results (calculationTrace returned per call)
+PDF-ready output (RIE site assessment — issued from KB)
 ```
 
-Pre-construction tells the user **what can be built**.
+Pre-construction tells the caller **what can be built**.
 
-Post-construction tells the user **what has been violated**.
-
-Both results appear directly inside project data.
+Post-construction tells the caller **what has been violated**.

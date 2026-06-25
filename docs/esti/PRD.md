@@ -83,7 +83,7 @@ team, consultants, contractors, and settings.
 
 ### Compliance
 
-Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects). Per-project development-control calculations run on the **Project Info** tab (§9 Compliance): `bylawCalc` saves the latest envelope/audit, appends immutable compliance calculation snapshots, and links results to the project brief and document register. There is no separate “Compliance” project tab.
+Office-level compliance rule sets live in the **Knowledge Bank** (`/knowledge-bank?tab=compliance`; legacy `/compliance` redirects), where they are authored, versioned, and published via `ComplianceHub`. Development-control calculations are run against that published catalog either **statelessly** through the public `/api/compliance/*` API or persisted through **RIE site assessments**. The in-product per-project calculator (the Project Info §9 Compliance accordion and its `bylawCalc` storage) was removed in Phase 7.
 
 - Knowledge is versioned by state, district, local authority, building use,
   rule source, effective date, and supersession date.

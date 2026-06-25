@@ -2,6 +2,13 @@
 
 > **Implementation status:** See [`BBMP-IMPLEMENTATION.md`](./BBMP-IMPLEMENTATION.md) for what is
 > built in Esti vs this spec, architectural decisions, and remaining work.
+>
+> **Phase 7 reconciliation (2026-06-25):** This file is the **target spec**, retained
+> as reference. The per-project persistence it describes (`esti_project_bylaw_input`,
+> `esti_bylaw_calc_result`, `compliance_calculations`) was **not** kept as an
+> in-product calculator — Phase 7 removed that surface. The live engine is exercised
+> statelessly via the public `/api/compliance/*` API and persisted only through RIE
+> site assessments. Treat the DDL/storage sections below as spec, not current schema.
 
 You are building a **rule-driven building compliance engine** for an architecture/construction platform called **Esti**.
 

@@ -1,9 +1,19 @@
 # BBMP Compliance Engine — Implementation Guide
 
-**Status:** Active · **Spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Two-system guide:** [`BYLAW-SYSTEMS.md`](./BYLAW-SYSTEMS.md) · **Generic API spec:** [`../holagundi/bylaws_compliance_engine_agent_spec.md`](../holagundi/bylaws_compliance_engine_agent_spec.md) · **Reviewed:** 2026-06-23
+**Status:** Active · **Spec:** [`BYLAWS-BBMP.md`](./BYLAWS-BBMP.md) · **Two-system guide:** [`BYLAW-SYSTEMS.md`](./BYLAW-SYSTEMS.md) · **Generic API spec:** [`../holagundi/bylaws_compliance_engine_agent_spec.md`](../holagundi/bylaws_compliance_engine_agent_spec.md) · **Reviewed:** 2026-06-25
 
 This document maps the BBMP bye-law specification to what Esti implements today, records
 architectural decisions, and lists remaining work.
+
+> **Phase 7 reconciliation (2026-06-25):** The **in-product project-level
+> calculator was removed** — the `bylawCalc` tRPC router and `calc.ts`, the
+> `esti_bylaw_calc` / `esti_compliance_calculation` project-storage tables, and the
+> `ProjectBylawCalc.tsx` / `ProjectBylawData.tsx` UI no longer exist. The shared
+> rule engine (`computeBbmpCompliance` + `esti_bbmp_*` tables, `bbmpRules`
+> namespace), the public `/api/compliance/*` API, the Knowledge Bank Compliance tab
+> (`ComplianceHub`), and RIE site assessments all remain. Rows below that still
+> describe per-project persistence are retained as **spec/historical reference**,
+> not current state.
 
 ---
 
@@ -53,26 +63,21 @@ secondary, and engine-constant tables.
 Code defaults in `packages/contracts/src/bbmp/rules.ts` mirror the seed rows so unit
 tests and offline use work without a database.
 
-### 3. Project latest-row storage plus immutable snapshots
+### 3. Project storage — removed in Phase 7
 
-The spec defines normalized tables:
+The spec defines normalized per-project tables:
 
 ```text
 esti_project_bylaw_input → esti_project_road → esti_bylaw_calc_result
 ```
 
-Esti keeps a **latest editable project row** for the Project Info UI and appends
-immutable calculation snapshots for traceability:
-
-| Spec | Implemented | Rationale |
-|------|-------------|-----------|
-| `esti_project_bylaw_input` | `esti_bylaw_calc.input` | Latest project calculator input for Project Info |
-| `esti_project_road` | Road sides embedded in input JSON | Same shape as RIE `SiteInputs` |
-| `esti_bylaw_calc_result` | `esti_bylaw_calc.result` | Latest typed fields + `calculationTrace` + `compliance` in JSON |
-| `compliance_calculations` | `esti_compliance_calculation` | Immutable input/result/rule-version snapshots for old calculations |
-
-RIE site assessments use `esti_site_assessment` with the same BBMP engine and
-`bbmp_rule_set_id` pointer. Violations and relaxations remain RIE-specific.
+Esti originally implemented these as an `esti_bylaw_calc` latest-row plus
+`esti_compliance_calculation` snapshots feeding a Project Info calculator. **That
+project-level persistence and UI were removed in Phase 7.** Compliance is now
+either **stateless** (public `/api/compliance/*` API — nothing stored on the
+project) or persisted through **RIE site assessments** (`esti_site_assessment`,
+which use the same BBMP engine via the `bbmp_rule_set_id` pointer; violations and
+relaxations remain RIE-specific).
 
 ### 4. Pure calculator + DB loader
 
@@ -107,8 +112,6 @@ Entry points:
 
 | Surface | Path | Notes |
 |---------|------|-------|
-| Knowledge Bank calculator | `bylawCalc.save` → `esti_bylaw_calc` | `ProjectBylawCalc` UI |
-| Project snapshot | `bylawCalc.save` / `savePostConstruction` → `esti_compliance_calculation` | Immutable history row per calculation |
 | Public pre-project API | `POST /api/compliance/pre-project` | Stateless spec-shaped request/response, Bengaluru/BBMP/residential MVP |
 | Public post-project API | `POST /api/compliance/post-project` | Approved-vs-actual violation response with rule trace |
 | Legacy public API | `POST /api/compliance/check` | Backwards-compatible BBMP envelope compute |
@@ -119,7 +122,8 @@ Entry points:
 
 ## Result shape
 
-`BbmpComplianceResult` (stored inside `esti_bylaw_calc.result` or mapped in RIE) includes:
+`BbmpComplianceResult` (returned by the public API or mapped into an RIE site
+assessment) includes:
 
 - **Envelope:** `farAllowed`, `coverageAllowed`, `permissibleBuiltup`, `maxFootprint`, `setbacks`, `parking`
 - **Compliance flags** (when actuals provided): `compliance.isFarCompliant`, …, `isOverallCompliant`
@@ -141,8 +145,8 @@ generic spec statuses:
 
 Every response includes `ruleVersion` and flattened `trace[]` entries derived from
 the BBMP calculation trace. The post-project public API compares actual values
-against the **approved/projected values supplied in the request**; the internal
-Project Info audit continues to compare against the saved pre-construction envelope.
+against the **approved/projected values supplied in the request** (it is stateless —
+there is no saved pre-construction envelope to read from).
 
 ---
 
@@ -151,7 +155,7 @@ Project Info audit continues to compare against the saved pre-construction envel
 | Item | Spec reference | Notes |
 |------|----------------|-------|
 | Rule-set admin UI | Version lifecycle | Seed + Knowledge Bank manager; publish/edit restricted to Owner |
-| Normalized project I/O tables | `esti_project_bylaw_input` | Latest row uses JSONB; immutable snapshots in `esti_compliance_calculation` |
+| Normalized project I/O tables | `esti_project_bylaw_input` | Project-level persistence removed in Phase 7; compliance is now stateless (public API) or via RIE site assessments |
 | Hospital LPD solar lookup | `esti_solar_rule` | Table seeded; engine uses site-area trigger via secondary rules |
 | Compliance PDF | RIE site assessment | Delivered via worker `target="compliance"`; public JSON API is report-ready but does not render PDF |
 | Document PDFs (invoice, spec sheet, …) | Worker `render_pdf` | Requires object-store bucket — auto-provisioned at backend startup (2026-06-16) |
@@ -171,9 +175,9 @@ Project Info audit continues to compare against the saved pre-construction envel
 | DB schema | `backend/src/db/schema/bbmp-rules.ts` |
 | Migrations | `0033_bbmp_rule_engine.sql`, `0036_bbmp_extended_rules.sql` |
 | Loader | `backend/src/lib/bbmpRules.ts` |
-| Project API | `backend/src/modules/bylaw/bbmpRules.ts`, `calc.ts` |
+| Rule reference API | `backend/src/modules/bylaw/bbmpRules.ts` |
 | Public workflow API | `backend/src/modules/compliance/publicApi.ts`, `workflows.ts` |
-| UI | `frontend/src/components/ProjectBylawCalc.tsx`, `knowledge/BbmpFarRuleTable.tsx` |
+| UI | `frontend/src/components/knowledge/ComplianceHub.tsx`, `knowledge/BbmpFarRuleTable.tsx` |
 
 ---
 
