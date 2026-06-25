@@ -18,6 +18,7 @@ import { ProjectMeasurementBook } from "./ProjectMeasurementBook.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 import { ProjectControls } from "./ProjectControls.js";
 import { ProjectFinalAccount } from "./ProjectFinalAccount.js";
+import { ProjectCostDashboard } from "./ProjectCostDashboard.js";
 
 /**
  * Single Costing & Measurement window (Phase 4). Presents the full delivery
@@ -81,6 +82,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           {showBills && <Tab>Controls</Tab>}
           {showBills && <Tab>Site measurement &amp; RA bills</Tab>}
           {showBills && <Tab>Final account</Tab>}
+          {showBills && <Tab>Cost dashboard</Tab>}
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -132,6 +134,14 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
               <Stack gap={5}>
                 <SpineRail active="closure" />
                 <ProjectFinalAccount projectId={projectId} />
+              </Stack>
+            </TabPanel>
+          )}
+          {showBills && (
+            <TabPanel>
+              <Stack gap={5}>
+                <SpineRail active="" />
+                <ProjectCostDashboard projectId={projectId} />
               </Stack>
             </TabPanel>
           )}

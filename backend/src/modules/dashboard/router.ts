@@ -17,6 +17,7 @@ import {
   getTeamIntelligence,
   getTeamAttendanceToday,
   getTechnicalIntelligence,
+  getConstructionCostHealth,
   getDashboardHome,
 } from "./readModels/index.js";
 import {
@@ -25,6 +26,7 @@ import {
   loadBehaviorProfiles,
   loadCognitionQueue,
 } from "../cognition/engine.js";
+import { assertPlanFeature } from "../../lib/plan.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({
@@ -270,4 +272,17 @@ export const dashboardRouter = router({
    * derived from decision source types.
    */
   technicalIntelligence: protectedProcedure.query(({ ctx }) => getTechnicalIntelligence(ctx.db)),
+
+  /**
+   * Construction cost-health for one project (Cost OS Phase G, ref 5.1) —
+   * estimated/tendered/awarded/billed/certified, deviation + variation exposure,
+   * cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey status, and
+   * the deterministic risk checks. Read-only; costing-plan gated (Core+).
+   */
+  constructionCost: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      return getConstructionCostHealth(ctx.db, input.projectId);
+    }),
 });
