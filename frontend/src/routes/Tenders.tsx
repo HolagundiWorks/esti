@@ -20,6 +20,7 @@ import {
   CONTRACTOR_CATEGORIES,
   ContractorCategory,
   formatINR,
+  tenderItemAmount,
   TENDER_INVITATION_STATUS_LABEL,
   TENDER_INVITATION_STATUS_TAG,
   TENDER_STATUS_LABEL,
@@ -78,6 +79,63 @@ export function Tenders() {
   const removeBid = trpc.tenders.removeBid.useMutation({ onSuccess: refreshDetail });
   const removeDoc = trpc.tenders.removeDocument.useMutation({ onSuccess: refreshDetail });
   const docsQ = trpc.tenders.listDocuments.useQuery({ tenderId: detailId ?? "" }, { enabled: !!detailId });
+
+  // BOQ — item-wise tendering (Construction Cost OS Phase A+B)
+  const itemsQ = trpc.tenders.items.useQuery({ tenderId: detailId ?? "" }, { enabled: !!detailId });
+  const compareQ = trpc.tenders.compareItems.useQuery({ tenderId: detailId ?? "" }, { enabled: !!detailId });
+  const items = itemsQ.data ?? [];
+  const hasItems = items.length > 0;
+  const projectIdForDetail = d?.projectId ?? "";
+  const estimatesQ = trpc.estimates.listByProject.useQuery(
+    { projectId: projectIdForDetail },
+    { enabled: !!projectIdForDetail },
+  );
+  const frozenEstimates = (estimatesQ.data ?? []).filter(
+    (e) => e.status === "DESIGN_FROZEN" || e.status === "EXECUTION_FROZEN",
+  );
+  const [boqEstimateId, setBoqEstimateId] = useState("");
+  const versionsForBoqQ = trpc.estimation.versions.useQuery({ estimateId: boqEstimateId }, { enabled: !!boqEstimateId });
+  const frozenBoqVersions = (versionsForBoqQ.data ?? []).filter(
+    (v) => v.status === "DESIGN_FROZEN" || v.status === "EXECUTION_FROZEN",
+  );
+  const [boqVersionId, setBoqVersionId] = useState("");
+  const refreshItems = () => {
+    utils.tenders.items.invalidate();
+    utils.tenders.compareItems.invalidate();
+    refreshDetail();
+  };
+  const buildItems = trpc.tenders.createItemsFromEstimate.useMutation({
+    onSuccess: () => { refreshItems(); setBoqEstimateId(""); setBoqVersionId(""); },
+  });
+  const [newItem, setNewItem] = useState({ description: "", unit: "", qty: "", estRupees: "" });
+  const addItem = trpc.tenders.addItem.useMutation({
+    onSuccess: () => { refreshItems(); setNewItem({ description: "", unit: "", qty: "", estRupees: "" }); },
+  });
+  const removeItemM = trpc.tenders.removeItem.useMutation({ onSuccess: refreshItems });
+  const [itemBidFor, setItemBidFor] = useState<{ invitationId: string; contractorName: string; rates: Record<string, string> } | null>(null);
+  const recordItemBid = trpc.tenders.recordItemBid.useMutation({ onSuccess: () => { refreshItems(); setItemBidFor(null); } });
+  const award = trpc.tenders.award.useMutation({ onSuccess: refreshItems });
+
+  function exportItemComparison() {
+    const data = compareQ.data;
+    if (!data || data.sealed) return;
+    const rows = data.lines.map((ln) => {
+      const row: Record<string, string | number> = { Item: ln.description, Unit: ln.unit, Qty: ln.qty };
+      data.contractors.forEach((c) => {
+        const cell = ln.cells.find((x) => x.invitationId === c.invitationId);
+        row[c.contractorName] = cell?.amountPaise != null ? (cell.amountPaise / 100).toFixed(2) : "";
+      });
+      return row;
+    });
+    const totalRow: Record<string, string | number> = { Item: "TOTAL", Unit: "", Qty: "" };
+    data.contractors.forEach((c) => {
+      const t = data.totals.find((x) => x.invitationId === c.invitationId);
+      totalRow[c.contractorName] = t ? (t.totalPaise / 100).toFixed(2) : "";
+    });
+    rows.push(totalRow);
+    downloadXlsx(rows, "Item bids", `${d?.title ?? "tender"}-item-bids`);
+  }
+
   const bids = bidsQ.data ?? [];
   const sealed = bids.length > 0 && bids[0]?.sealed === true;
   const bestAmount =
@@ -249,6 +307,90 @@ export function Tenders() {
             </Stack>
 
             <Stack gap={3}>
+              <h4>BOQ (item-wise tender)</h4>
+              {!hasItems && d.status === "DRAFT" && (
+                <Stack gap={3}>
+                  <p className="esti-label esti-label--secondary">
+                    Carve BOQ lines from a frozen estimate so contractors quote a rate per item, or add lines manually below. An item-wise tender can be awarded into a work package.
+                  </p>
+                  {frozenEstimates.length === 0 ? (
+                    <InlineNotification kind="info" lowContrast hideCloseButton title="No frozen estimate"
+                      subtitle="Freeze a design or execution estimate on this project to build the tender BOQ from it." />
+                  ) : (
+                    <Stack orientation="horizontal" gap={3}>
+                      <Select id="boq-est" labelText="Frozen estimate" hideLabel size="sm" value={boqEstimateId}
+                        onChange={(e) => { setBoqEstimateId(e.target.value); setBoqVersionId(""); }}>
+                        <SelectItem value="" text="Select estimate…" />
+                        {frozenEstimates.map((e) => <SelectItem key={e.id} value={e.id} text={`${e.ref} — ${e.title}`} />)}
+                      </Select>
+                      <Select id="boq-ver" labelText="Frozen version" hideLabel size="sm" disabled={!boqEstimateId} value={boqVersionId}
+                        onChange={(e) => setBoqVersionId(e.target.value)}>
+                        <SelectItem value="" text="Select version…" />
+                        {frozenBoqVersions.map((v) => <SelectItem key={v.id} value={v.id} text={`v${v.versionNo} · ${v.stage}`} />)}
+                      </Select>
+                      <Button size="sm" disabled={!boqVersionId || buildItems.isPending}
+                        onClick={() => buildItems.mutate({ tenderId: d.id, estimateVersionId: boqVersionId })}>
+                        {buildItems.isPending ? "Building…" : "Build BOQ"}
+                      </Button>
+                    </Stack>
+                  )}
+                  {buildItems.error && <InlineNotification kind="error" title="Could not build BOQ" subtitle={buildItems.error.message} hideCloseButton lowContrast />}
+                </Stack>
+              )}
+
+              {hasItems && (
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Item</TableHeader>
+                      <TableHeader>Unit</TableHeader>
+                      <TableHeader>Qty</TableHeader>
+                      <TableHeader>Est. rate</TableHeader>
+                      {d.status === "DRAFT" && <TableHeader></TableHeader>}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items.map((it) => (
+                      <TableRow key={it.id}>
+                        <TableCell>{it.description}</TableCell>
+                        <TableCell>{it.unit}</TableCell>
+                        <TableCell>{it.qty}</TableCell>
+                        <TableCell>{formatINR(it.estRatePaise, { paise: false })}</TableCell>
+                        {d.status === "DRAFT" && (
+                          <TableCell>
+                            <Button kind="danger--ghost" size="sm" onClick={() => removeItemM.mutate({ id: it.id })}>Remove</Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+
+              {d.status === "DRAFT" && (
+                <Stack orientation="horizontal" gap={3}>
+                  <TextInput id="ni-desc" labelText="Description" hideLabel placeholder="Add a line — description" value={newItem.description}
+                    onChange={(e) => setNewItem((f) => ({ ...f, description: e.target.value }))} />
+                  <TextInput id="ni-unit" labelText="Unit" hideLabel placeholder="Unit" value={newItem.unit}
+                    onChange={(e) => setNewItem((f) => ({ ...f, unit: e.target.value }))} />
+                  <TextInput id="ni-qty" labelText="Qty" hideLabel placeholder="Qty" type="number" value={newItem.qty}
+                    onChange={(e) => setNewItem((f) => ({ ...f, qty: e.target.value }))} />
+                  <TextInput id="ni-rate" labelText="Est ₹" hideLabel placeholder="Est. rate ₹" type="number" value={newItem.estRupees}
+                    onChange={(e) => setNewItem((f) => ({ ...f, estRupees: e.target.value }))} />
+                  <Button size="sm"
+                    disabled={!newItem.description.trim() || !newItem.unit.trim() || !newItem.qty || addItem.isPending}
+                    onClick={() => addItem.mutate({
+                      tenderId: d.id, description: newItem.description.trim(), unit: newItem.unit.trim(),
+                      qty: Number(newItem.qty), estRatePaise: newItem.estRupees ? Math.round(Number(newItem.estRupees) * 100) : 0,
+                    })}>
+                    Add line
+                  </Button>
+                </Stack>
+              )}
+              {addItem.error && <InlineNotification kind="error" title="Could not add line" subtitle={addItem.error.message} hideCloseButton lowContrast />}
+            </Stack>
+
+            <Stack gap={3}>
               <h4>Invited contractors</h4>
               <DataState
                 loading={detailQ.isFetching && !d}
@@ -273,14 +415,23 @@ export function Tenders() {
                         </TableCell>
                         <TableCell><Tag type={TENDER_INVITATION_STATUS_TAG[iv.status as TenderInvitationStatus] ?? "gray"} size="sm">{TENDER_INVITATION_STATUS_LABEL[iv.status as TenderInvitationStatus] ?? iv.status}</Tag></TableCell>
                         <TableCell>
-                          <Button kind="ghost" size="sm"
-                            onClick={() => setBidFor({ invitationId: iv.id, contractorName: iv.contractorName, rupees: "", weeks: "", technical: "", notes: "" })}>
-                            {iv.status === "SUBMITTED" ? "Edit bid" : "Record bid"}
-                          </Button>
-                          <Button kind="ghost" size="sm" disabled={update.isPending}
-                            onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: iv.contractorId })}>
-                            Award
-                          </Button>
+                          {hasItems ? (
+                            <Button kind="ghost" size="sm" disabled={d.status === "AWARDED"}
+                              onClick={() => setItemBidFor({ invitationId: iv.id, contractorName: iv.contractorName, rates: {} })}>
+                              {iv.status === "SUBMITTED" ? "Edit rates" : "Enter rates"}
+                            </Button>
+                          ) : (
+                            <>
+                              <Button kind="ghost" size="sm"
+                                onClick={() => setBidFor({ invitationId: iv.id, contractorName: iv.contractorName, rupees: "", weeks: "", technical: "", notes: "" })}>
+                                {iv.status === "SUBMITTED" ? "Edit bid" : "Record bid"}
+                              </Button>
+                              <Button kind="ghost" size="sm" disabled={update.isPending}
+                                onClick={() => update.mutate({ id: d.id, status: "AWARDED", awardedContractorId: iv.contractorId })}>
+                                Award
+                              </Button>
+                            </>
+                          )}
                           <Button kind="danger--ghost" size="sm" onClick={() => removeInvite.mutate({ id: iv.id })}>Remove</Button>
                         </TableCell>
                       </TableRow>
@@ -299,7 +450,7 @@ export function Tenders() {
               {invite.error && <InlineNotification kind="error" title="Could not invite" subtitle={invite.error.message} hideCloseButton lowContrast />}
             </Stack>
 
-            {bids.length > 0 && (
+            {!hasItems && bids.length > 0 && (
               <Stack gap={3}>
                 <Stack orientation="horizontal" gap={3}>
                   <h4>Bid comparison</h4>
@@ -365,6 +516,96 @@ export function Tenders() {
               </Stack>
             )}
 
+            {hasItems && compareQ.data && (
+              <Stack gap={3}>
+                <Stack orientation="horizontal" gap={3}>
+                  <h4>Item bid comparison</h4>
+                  {compareQ.data.sealed ? (
+                    <Tag type="blue" size="sm">Sealed — close tender to reveal rates</Tag>
+                  ) : (
+                    <Button size="sm" kind="ghost" onClick={exportItemComparison}>Export XLSX</Button>
+                  )}
+                </Stack>
+                <Table size="sm">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Item</TableHeader>
+                      <TableHeader>Unit</TableHeader>
+                      <TableHeader>Qty</TableHeader>
+                      {compareQ.data.contractors.map((c) => <TableHeader key={c.invitationId}>{c.contractorName}</TableHeader>)}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {compareQ.data.sealed ? (
+                      <TableRow>
+                        <TableCell>Rates are sealed until the tender is closed.</TableCell>
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
+                        {compareQ.data.contractors.map((c) => <TableCell key={c.invitationId}>Sealed</TableCell>)}
+                      </TableRow>
+                    ) : (
+                      compareQ.data.lines.map((ln) => (
+                        <TableRow key={ln.tenderItemId}>
+                          <TableCell>{ln.description}</TableCell>
+                          <TableCell>{ln.unit}</TableCell>
+                          <TableCell>{ln.qty}</TableCell>
+                          {compareQ.data!.contractors.map((c) => {
+                            const cell = ln.cells.find((x) => x.invitationId === c.invitationId);
+                            const lowest = ln.lowestInvitationIds.includes(c.invitationId);
+                            return (
+                              <TableCell key={c.invitationId}>
+                                {cell?.amountPaise != null ? (
+                                  <>
+                                    {formatINR(cell.amountPaise, { paise: false })}
+                                    {lowest && <Tag type="green" size="sm">Low</Tag>}
+                                  </>
+                                ) : "—"}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+                {!compareQ.data.sealed && compareQ.data.totals.length > 0 && (
+                  <Table size="sm">
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader>Rank</TableHeader>
+                        <TableHeader>Contractor</TableHeader>
+                        <TableHeader>Total</TableHeader>
+                        <TableHeader></TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {compareQ.data.totals.map((t) => (
+                        <TableRow key={t.invitationId}>
+                          <TableCell>{t.rank}</TableCell>
+                          <TableCell>{t.contractorName}{t.lowest && <Tag type="green" size="sm">Lowest</Tag>}</TableCell>
+                          <TableCell>{formatINR(t.totalPaise, { paise: false })}</TableCell>
+                          <TableCell>
+                            <Button kind="primary" size="sm" disabled={d.status !== "CLOSED" || award.isPending}
+                              onClick={() => award.mutate({ tenderId: d.id, contractorId: t.contractorId })}>
+                              Award → work package
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+                {!compareQ.data.sealed && d.status !== "CLOSED" && d.status !== "AWARDED" && (
+                  <p className="esti-label esti-label--helper">Close the tender to award the lowest bidder and create the work package.</p>
+                )}
+                {award.error && <InlineNotification kind="error" title="Could not award" subtitle={award.error.message} hideCloseButton lowContrast />}
+                {award.data && (
+                  <InlineNotification kind="success" lowContrast hideCloseButton title="Work package created"
+                    subtitle={`${award.data.ref} created — open the project's costing tab to manage running bills.`} />
+                )}
+              </Stack>
+            )}
+
             <Button kind="danger--tertiary" size="sm" onClick={() => setConfirmDelete(true)}>Delete tender</Button>
           </Stack>
         )}
@@ -399,6 +640,60 @@ export function Tenders() {
             <TextArea id="bid-notes" labelText="Notes (optional)" rows={2} value={bidFor.notes}
               onChange={(e) => setBidFor({ ...bidFor, notes: e.target.value })} />
             {recordBid.error && <InlineNotification kind="error" title="Could not save bid" subtitle={recordBid.error.message} hideCloseButton lowContrast />}
+          </Stack>
+        )}
+      </Modal>
+
+      {/* item-wise rate entry */}
+      <Modal
+        open={itemBidFor !== null}
+        modalHeading={itemBidFor ? `Item rates — ${itemBidFor.contractorName}` : "Item rates"}
+        primaryButtonText={recordItemBid.isPending ? "Saving…" : "Save rates"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!itemBidFor || recordItemBid.isPending || items.length === 0}
+        onRequestClose={() => setItemBidFor(null)}
+        onRequestSubmit={() => {
+          if (!itemBidFor) return;
+          recordItemBid.mutate({
+            invitationId: itemBidFor.invitationId,
+            items: items.map((it) => ({ tenderItemId: it.id, ratePaise: Math.round(Number(itemBidFor.rates[it.id] || 0) * 100) })),
+          });
+        }}
+      >
+        {itemBidFor && (
+          <Stack gap={5}>
+            <Table size="sm">
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Item</TableHeader>
+                  <TableHeader>Unit</TableHeader>
+                  <TableHeader>Qty</TableHeader>
+                  <TableHeader>Rate (₹)</TableHeader>
+                  <TableHeader>Amount</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((it) => (
+                  <TableRow key={it.id}>
+                    <TableCell>{it.description}</TableCell>
+                    <TableCell>{it.unit}</TableCell>
+                    <TableCell>{it.qty}</TableCell>
+                    <TableCell>
+                      <TextInput id={`rate-${it.id}`} labelText="Rate" hideLabel type="number" size="sm"
+                        value={itemBidFor.rates[it.id] ?? ""}
+                        onChange={(e) => setItemBidFor({ ...itemBidFor, rates: { ...itemBidFor.rates, [it.id]: e.target.value } })} />
+                    </TableCell>
+                    <TableCell>{formatINR(tenderItemAmount(it.qty, Math.round(Number(itemBidFor.rates[it.id] || 0) * 100)), { paise: false })}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p>
+              <strong>
+                Total: {formatINR(items.reduce((s, it) => s + tenderItemAmount(it.qty, Math.round(Number(itemBidFor.rates[it.id] || 0) * 100)), 0), { paise: false })}
+              </strong>
+            </p>
+            {recordItemBid.error && <InlineNotification kind="error" title="Could not save rates" subtitle={recordItemBid.error.message} hideCloseButton lowContrast />}
           </Stack>
         )}
       </Modal>

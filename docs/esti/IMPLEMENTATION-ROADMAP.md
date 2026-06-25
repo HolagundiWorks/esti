@@ -35,11 +35,38 @@ non-breaking; nothing overwrites a frozen estimate.
 | **2. Component + IFC execution detail** | `esti_component` (AORMS code) master + `esti_ifc_mapping` catalog + `esti_component_related` templates; `esti_estimate_component` expands to BOQ items via the contracts formula registry (auto-BOQ). | **Active** |
 | **3. Ratebook + Rate Analysis** | Complete `esti_rate_analysis` build-up; link `componentId`; a component's rate is sourced from a rate analysis or the rate book. | **Active** |
 | **4. Work packages + running bills** | Group frozen BOQ into contractor packages (`esti_work_package`/`esti_work_package_item`); running bills link to package items and check previously-billed qty across the project (double-billing prevention, spec Rule 9). Office + contractor-portal balances. | **Done** |
-| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. (Phase 4 ships a manual `variationQty` allowance only.) | Next |
-| **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. | Next |
+| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. (Phase 4 ships a manual `variationQty` allowance only.) Now folded into **Construction Cost OS Phase D**. | Next |
+| **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. Now folded into **Construction Cost OS Future**. | Next |
 
 Phases 4–6 overlap the existing PMC/site-delivery modules (`programme`, `pmc`,
 `progressReports`, `snags`) and are sequenced as a separate increment.
+
+## Construction Cost Management OS (the umbrella over Estimation OS)
+
+Estimation OS is the *pre-construction + billing core* of a wider lifecycle:
+estimate → BOQ → rate analysis → BBS → **tender → award → site measurement →
+running bill → deviation/variation → final account**. Spec:
+[CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md) — the
+ESTI-adapted map of the reference architecture (what's built, changed, created).
+
+| CC phase | What | State |
+|---|---|---|
+| **A. BOQ tendering** | Tender BOQ line items carved from a frozen estimate version (or manual); item-wise contractor quoting (`esti_tender_bid_item`, office `recordItemBid` + portal `submitItemBid`) with addendum-ack guard; item-wise comparison (`compareItems`, sealed→revealed, lowest-per-line + ranked totals + XLSX). Migration `0089`. *Deferred:* tender-doc PDF generation; `TenderStatus` not widened. | **Done** (2026-06-25) |
+| **B. Award → Work Order** | `tenders.award` populates an `esti_work_package` (+ items) from the winning bid's rates; `work_package.tender_id` ↔ `tender.estimate_version_id`; one-shot (double-award → CONFLICT); audit + activity. The work package **is** the award artifact (one spine). *Deferred:* contract-condition columns + WO PDF. | **Done** (2026-06-25) |
+| **C. Site Measurement Book** | `esti_measurement_record` (location/floor/zone/photo-key/measure→approve→bill) feeding running bills; double-billing guard moved onto approved measurements (consumed = billed + approved-unbilled); bill **types** + **deduction block** (retention/advance/tax-TDS/other → `net_payable_paise`, gross unchanged); running-bill PDF target. Strict — only approved records feed BOQ lines; free-text extras stay. Migration `0090`. *Deferred:* photo capture/upload UI. | **Done** (2026-06-25) |
+| **D. Controls** ← **next** | Quantity + rate deviations, **variation orders** (additions), extra items, approval queue. **Subsumes Estimation OS Phase 5.** | Planned |
+| **E. BBS into the spine** | Link `esti_bbs` → BOQ item / work order / drawing revision; diameter-/floor-wise summaries; steel reconciliation (issued vs measured). | Planned |
+| **F. Final Account** | `esti_final_account` + closure checklist + closure PDF. | Planned |
+| **G. Cost dashboard + reports** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes. | Planned |
+| **Future** | Procurement forecast, material reconciliation, IFC/CAD extraction (Estimation OS Phase 6). | Deferred |
+
+Named priorities map to **A+B (tendering)**, **D (additions/variations)**, **E
+(BBS)**. **Phases A+B (tender management) and C (site Measurement Book) shipped
+2026-06-25 — next increment: Phase D (Controls — deviations + variations).** **UI decision (owner, 2026-06-25, revised):**
+**Pure Carbon everywhere** — the earlier Material-UI exception for external/site
+portals was retired; portals are built in Carbon with mobile-first layout
+discipline (no `@mui/*` dependency — see
+[CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md)).
 
 ## Phase 1 — deliverables (this pass)
 1. `orgSettings.plan` (`LITE|CORE|ENTERPRISE`, default `LITE`) + migration.

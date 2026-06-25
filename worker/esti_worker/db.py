@@ -307,6 +307,36 @@ def fetch_progress_report_full(rid: str) -> dict[str, Any] | None:
         return conn.execute(sql, [rid]).fetchone()
 
 
+def update_running_bill(rid: str, **fields: Any) -> None:
+    _patch("esti_running_bill", rid, set(), fields)
+
+
+def fetch_running_bill_full(rid: str) -> dict[str, Any] | None:
+    """A running bill + its items + project / contractor headers (Phase C). Carries
+    the deduction block and net payable so the PDF can print the payment summary."""
+    sql = """
+        select rb.ref, rb.title, rb.bill_type, rb.status, rb.measurement_date, rb.notes,
+               rb.total_paise, rb.retention_paise, rb.advance_recovery_paise,
+               rb.tax_tds_paise, rb.other_recovery_paise, rb.net_payable_paise,
+               p.ref as project_ref, p.title as project_title,
+               c.name as contractor_name
+        from esti_running_bill rb
+        join esti_projectoffice p on p.id = rb.project_id
+        left join esti_contractor c on c.id = rb.contractor_id
+        where rb.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [rid]).fetchone()
+        if row is None:
+            return None
+        row["items"] = conn.execute(
+            "select description, unit, qty, rate_paise, amount_paise "
+            "from esti_running_bill_item where running_bill_id = %s order by sort_order, created_at",
+            [rid],
+        ).fetchall()
+        return row
+
+
 def update_site_instruction(sid: str, **fields: Any) -> None:
     _patch("esti_site_instruction", sid, set(), fields)
 

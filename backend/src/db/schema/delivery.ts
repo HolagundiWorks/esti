@@ -56,9 +56,34 @@ export const tenders = pgTable("esti_tender", {
   dueDate: date("due_date"),
   instructions: text("instructions"),
   awardedContractorId: uuid("awarded_contractor_id").references(() => contractors.id),
+  // Frozen estimate version this tender's BOQ lines were carved from (Construction
+  // Cost OS Phase A). Plain uuid — FK added in the migration to avoid a
+  // schema-module import cycle with estimation.ts.
+  estimateVersionId: uuid("estimate_version_id"),
   createdById: uuid("created_by_id").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/**
+ * Tender BOQ line (Construction Cost OS Phase A). Carved from a frozen estimate
+ * version or added manually. `estRatePaise` is the office baseline rate — never
+ * exposed to contractors. `boqItemId` / `componentId` are plain uuids (FK added
+ * in the migration) to avoid a schema-module import cycle.
+ */
+export const tenderItems = pgTable("esti_tender_item", {
+  id: id(),
+  tenderId: uuid("tender_id")
+    .notNull()
+    .references(() => tenders.id, { onDelete: "cascade" }),
+  boqItemId: uuid("boq_item_id"),
+  componentId: uuid("component_id"),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  qty: doublePrecision("qty").notNull().default(0),
+  estRatePaise: bigint("est_rate_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
 });
 
 /** A contractor invited to a tender; accessToken isolates the contractor portal. */
@@ -88,6 +113,25 @@ export const tenderBids = pgTable("esti_tender_bid", {
   submittedById: uuid("submitted_by_id").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/**
+ * A contractor's rate against a single tender BOQ line (Construction Cost OS
+ * Phase A). The header `tenderBids.amountPaise` is the sum of these line amounts
+ * for item-wise tenders. Unique on (invitation, item) — enforced by an index in
+ * the migration; the code upserts manually.
+ */
+export const tenderBidItems = pgTable("esti_tender_bid_item", {
+  id: id(),
+  invitationId: uuid("invitation_id")
+    .notNull()
+    .references(() => tenderInvitations.id, { onDelete: "cascade" }),
+  tenderItemId: uuid("tender_item_id")
+    .notNull()
+    .references(() => tenderItems.id, { onDelete: "cascade" }),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  createdAt: createdAt(),
 });
 
 /** Controlled tender document or addendum (Phase 7). */

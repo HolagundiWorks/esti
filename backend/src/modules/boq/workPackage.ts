@@ -22,6 +22,7 @@ import type { DB } from "../../db/index.js";
 import {
   estimateItems,
   estimateVersions,
+  measurementRecords,
   runningBillItems,
   runningBills,
   workPackageItems,
@@ -58,6 +59,40 @@ export async function previouslyBilledQty(
     .innerJoin(runningBills, eq(runningBillItems.runningBillId, runningBills.id))
     .where(and(eq(runningBills.projectId, projectId), inArray(runningBillItems.boqItemId, ids)))
     .groupBy(runningBillItems.boqItemId);
+  for (const r of rows) if (r.boqItemId) map.set(r.boqItemId, Number(r.qty));
+  return map;
+}
+
+/**
+ * Project-wide approved-but-unbilled quantity per BOQ item (Construction Cost OS
+ * Phase C). Sums every APPROVED measurement record against each `boqItemId` —
+ * these have passed the double-billing guard at approval time but haven't yet
+ * been pulled into a running bill, so they reserve balance just like billed qty.
+ * A record moves out of this bucket (→ a `runningBillItem`) the moment it's
+ * billed, so it's never counted twice.
+ */
+export async function approvedUnbilledQty(
+  db: DB,
+  projectId: string,
+  boqItemIds: string[],
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  const ids = boqItemIds.filter(Boolean);
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select({
+      boqItemId: measurementRecords.boqItemId,
+      qty: sql<number>`coalesce(sum(${measurementRecords.qty}), 0)`,
+    })
+    .from(measurementRecords)
+    .where(
+      and(
+        eq(measurementRecords.projectId, projectId),
+        eq(measurementRecords.status, "APPROVED"),
+        inArray(measurementRecords.boqItemId, ids),
+      ),
+    )
+    .groupBy(measurementRecords.boqItemId);
   for (const r of rows) if (r.boqItemId) map.set(r.boqItemId, Number(r.qty));
   return map;
 }
@@ -344,12 +379,16 @@ export const workPackageRouter = router({
         .orderBy(asc(workPackageItems.sortOrder), asc(workPackageItems.createdAt));
       const boqIds = items.map((i) => i.boqItemId).filter((x): x is string => Boolean(x));
       const billed = await previouslyBilledQty(ctx.db, pkg.projectId, boqIds);
+      // Phase C: approved-but-unbilled measurements also reserve balance, so the
+      // remaining balance subtracts both billed and committed-pending quantities.
+      const committed = await approvedUnbilledQty(ctx.db, pkg.projectId, boqIds);
       return items.map((i) => {
         const billedQty = i.boqItemId ? (billed.get(i.boqItemId) ?? 0) : 0;
+        const approvedUnbilled = i.boqItemId ? (committed.get(i.boqItemId) ?? 0) : 0;
         const balanceQty = billableBalance({
           approvedQty: i.approvedQty,
           variationQty: i.variationQty,
-          previousBilledQty: billedQty,
+          previousBilledQty: billedQty + approvedUnbilled,
         });
         return {
           id: i.id,
@@ -360,6 +399,8 @@ export const workPackageRouter = router({
           variationQty: i.variationQty,
           ratePaise: i.ratePaise,
           billedQty,
+          /** APPROVED measurements not yet pulled into a bill (reserves balance). */
+          approvedUnbilledQty: approvedUnbilled,
           balanceQty,
         };
       });

@@ -23,7 +23,8 @@ direction. Point-in-time audits and superseded specs live in
 | [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
-| [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) | **Target** — component-based estimation engine: component master, design-stage estimate, auto-BOQ, rate analysis, billing, deviations (phased build) |
+| [CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md) | **Target umbrella** — full cost lifecycle (estimate→tender→award→measurement→bill→deviation/variation→final account); ESTI-adapted map of the reference spec (built/change/create) |
+| [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) | **Target** — component-based estimation engine: component master, design-stage estimate, auto-BOQ, rate analysis, billing, deviations (phased build); the pre-construction + billing core of Construction Cost OS |
 | [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md) | IFC→AORMS component-code mapping standard, quantity formulas, and dependency templates underpinning the component master |
 | [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | **Current-state** — DSR, takeoff, estimate, BOQ, provenance, and output boundaries that ship today (superseded section-by-section by ESTIMATION-OS-ARCHITECTURE) |
 | ~~STEELFLOW-BBS-FLOW~~ | _Superseded_ — SteelFlow workshop was removed; only shared BBS (`esti_bbs`) remains |

@@ -624,6 +624,20 @@
       "when": 1782201400000,
       "tag": "0088_work_packages_bills",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1782201500000,
+      "tag": "0089_tender_boq",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1782201600000,
+      "tag": "0090_measurement_book",
+      "breakpoints": true
     }
   ]
 }

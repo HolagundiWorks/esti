@@ -7,9 +7,39 @@
 **Theme rules 1–8:** `.carbon-kit/knowledge/theme_implementation.md`  
 **Search / refresh:** `pnpm carbon:search` · `pnpm carbon:index`
 
-The ESTI frontend uses only IBM Carbon Design System components, icons,
-pictograms, charts, layout, typography, and design tokens. This is an
-implementation constraint, not a visual suggestion.
+The ESTI application — **office workspace *and* external/site portals** — uses
+only IBM Carbon Design System components, icons, pictograms, charts, layout,
+typography, and design tokens. This is an implementation constraint, not a visual
+suggestion.
+
+## Scope — Pure Carbon everywhere, mobile-first for portals
+
+**Owner decision, 2026-06-25 (revised, Construction Cost Management OS).** ESTI
+runs **one design system across all surfaces**. An earlier same-day exception that
+would have used **Material Design 3 / MUI** for external/site portals was
+**retired**: there is no second component library, and **no `@mui/*` / `@emotion`
+dependency** is installed.
+
+External/site portals (contractor; later client / consultant / vendor /
+site-supervisor — e.g. `ContractorPortal.tsx` and successors) are built in Carbon
+with **mobile-first layout discipline**, because they are forms + tables Carbon
+renders responsively:
+
+- single-column on `sm` (stack `Column`s full-width; avoid horizontal-scroll-only
+  layouts);
+- `Button size="lg"` / `"xl"` and `size="lg"` form controls for 48 px+ touch
+  targets;
+- full-screen `Modal` (`size` / `fullWidth`) on small viewports;
+- colourless structural helpers only (e.g. `.esti-portal-logo`) — no custom visual
+  CSS, so `check-carbon` stays clean on the portal tree too.
+
+A native field app (PWA) is reconsidered only if a later phase needs genuinely
+native field interactions (offline, camera/GPS, gestures) — not now. See
+[CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md) §4.
+
+**Hard boundary (enforced by review and `check-carbon`):** no route — office or
+portal — imports `@mui/*`; every surface is 100% Pure Carbon. The API/data layer
+(tRPC) is shared; so is the presentation system.
 
 Reference specs used in this document:
 - Components: https://carbondesignsystem.com/components/overview/components/
