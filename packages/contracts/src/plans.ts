@@ -18,19 +18,47 @@ const PLAN_RANK: Record<Plan, number> = { LITE: 0, CORE: 1, ENTERPRISE: 2 };
 
 /** Quota caps per plan. `null` = unlimited. */
 export interface PlanLimits {
+  /** Non-OWNER staff seats. The single OWNER (admin) is counted separately. */
   teamMembers: number | null;
   clients: number | null;
   contractors: number | null;
   consultants: number | null;
   projects: number | null;
+  /** Total object-store usage cap, in bytes. `null` = unlimited. */
+  storageBytes: number | null;
 }
 
+/** 5 GB, the AORMS-Lite storage cap. */
+export const LITE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  LITE: { teamMembers: 3, clients: 10, contractors: 10, consultants: 5, projects: 5 },
-  CORE: { teamMembers: 25, clients: null, contractors: null, consultants: null, projects: null },
-  ENTERPRISE: { teamMembers: null, clients: null, contractors: null, consultants: null, projects: null },
+  LITE: {
+    teamMembers: 3,
+    clients: 5,
+    contractors: 5,
+    consultants: 5,
+    projects: 5,
+    storageBytes: LITE_STORAGE_BYTES,
+  },
+  CORE: {
+    teamMembers: 25,
+    clients: null,
+    contractors: null,
+    consultants: null,
+    projects: null,
+    storageBytes: null,
+  },
+  ENTERPRISE: {
+    teamMembers: null,
+    clients: null,
+    contractors: null,
+    consultants: null,
+    projects: null,
+    storageBytes: null,
+  },
 };
-export type PlanQuota = keyof PlanLimits;
+/** Count-based quotas (storageBytes is enforced separately via `withinStorage`). */
+export type PlanQuota = "teamMembers" | "clients" | "contractors" | "consultants" | "projects";
 
 /** Feature flags gated by a minimum plan. */
 export const PLAN_FEATURES = [
@@ -65,7 +93,8 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   hr: "CORE",
   performance: "CORE",
   consultantPortal: "CORE",
-  contractorPortal: "CORE",
+  contractorPortal: "LITE", // Lite gets a view-only contractor portal; writes gated to Core+
+
   ai: "CORE",
   esticad: "CORE",
   auditLog: "CORE",
@@ -99,4 +128,19 @@ export function withinQuota(
 ): boolean {
   const cap = planQuota(plan, kind);
   return cap == null || current < cap;
+}
+
+/** The object-store cap for this plan, in bytes, or null when unlimited. */
+export function storageCapBytes(plan: Plan | string | null | undefined): number | null {
+  return PLAN_LIMITS[asPlan(plan)].storageBytes;
+}
+
+/** Would storing `incomingBytes` more keep the firm within its storage cap? */
+export function withinStorage(
+  plan: Plan | string | null | undefined,
+  usedBytes: number,
+  incomingBytes: number,
+): boolean {
+  const cap = storageCapBytes(plan);
+  return cap == null || usedBytes + incomingBytes <= cap;
 }

@@ -80,6 +80,8 @@ export function ContractorPortal() {
 
   const d = q.data;
   const firm = d?.firmName ?? "ESTI";
+  // On the firm's Lite plan the portal is view-only — hide every write control.
+  const readOnly = d?.readOnly ?? false;
 
   return (
     <>
@@ -115,6 +117,15 @@ export function ContractorPortal() {
           </Stack>
         ) : (
           <Stack gap={6}>
+            {readOnly && (
+              <InlineNotification
+                kind="info"
+                title="View-only access"
+                subtitle="You can review your tender, documents and bills here. Bidding and acknowledgements are managed directly with the firm."
+                hideCloseButton
+                lowContrast
+              />
+            )}
             <Stack gap={2}>
               <h2>{d.tender.title}</h2>
               <p>
@@ -160,7 +171,7 @@ export function ContractorPortal() {
                       {doc.downloadUrl && (
                         <a href={doc.downloadUrl} target="_blank" rel="noreferrer">Download</a>
                       )}
-                      {doc.requiresAck && !doc.acknowledged && (
+                      {!readOnly && doc.requiresAck && !doc.acknowledged && (
                         <Button size="sm" kind="tertiary" disabled={ackDoc.isPending} onClick={() => ackDoc.mutate({ documentId: doc.id })}>
                           Acknowledge addendum
                         </Button>
@@ -185,6 +196,7 @@ export function ContractorPortal() {
               />
             ) : null}
 
+            {!readOnly && (
             <Tile>
               <Stack gap={5}>
                 <h4>{bid ? "Your bid" : "Submit your bid"}</h4>
@@ -217,6 +229,7 @@ export function ContractorPortal() {
                 {submit.error && <InlineNotification kind="error" title="Could not submit" subtitle={submit.error.message} hideCloseButton lowContrast />}
               </Stack>
             </Tile>
+            )}
 
             <Tile>
               <Stack gap={4}>
@@ -287,7 +300,7 @@ export function ContractorPortal() {
                             </Stack>
                           ))}
                           <p><strong>Total: {formatINR(b.totalPaise, { paise: false })}</strong></p>
-                          {canVerify && (
+                          {!readOnly && canVerify && (
                             <div>
                               <Button
                                 size="sm"
@@ -298,7 +311,7 @@ export function ContractorPortal() {
                               </Button>
                             </div>
                           )}
-                          {canInvoice && (
+                          {!readOnly && canInvoice && (
                             <div>
                               <Button
                                 size="sm"
@@ -309,7 +322,7 @@ export function ContractorPortal() {
                               </Button>
                             </div>
                           )}
-                          {!canVerify && !canInvoice && (
+                          {(readOnly || (!canVerify && !canInvoice)) && (
                             <p className="esti-label esti-label--secondary">
                               Waiting on the office — no action needed from you right now.
                             </p>
@@ -328,24 +341,28 @@ export function ContractorPortal() {
             <Tile>
               <Stack gap={4}>
                 <h4>Site coordination</h4>
-                <p className="esti-label">Raise a query, RFI, submittal, inspection request, snag, or NCR to the firm.</p>
+                <p className="esti-label">{readOnly ? "Coordination items raised with the firm." : "Raise a query, RFI, submittal, inspection request, snag, or NCR to the firm."}</p>
                 {(coordQ.data ?? []).slice(0, 5).map((c) => (
                   <p key={c.id}>
                     <Tag size="sm">{CONSTRUCTION_KIND_LABEL[c.kind as ConstructionKindT] ?? c.kind}</Tag> {c.subject} — {c.status}
                   </p>
                 ))}
-                <Select id="coord-kind" labelText="Kind" value={coordForm.kind} onChange={(e) => setCoordForm((f) => ({ ...f, kind: e.target.value as ConstructionKindT }))}>
-                  {ConstructionKind.options.map((k) => <SelectItem key={k} value={k} text={CONSTRUCTION_KIND_LABEL[k]} />)}
-                </Select>
-                <TextInput id="coord-subj" labelText="Subject" value={coordForm.subject} onChange={(e) => setCoordForm((f) => ({ ...f, subject: e.target.value }))} />
-                <TextArea id="coord-body" labelText="Details" rows={3} value={coordForm.body} onChange={(e) => setCoordForm((f) => ({ ...f, body: e.target.value }))} />
-                <Button
-                  size="sm"
-                  disabled={!coordForm.subject.trim() || submitCoord.isPending}
-                  onClick={() => submitCoord.mutate({ kind: coordForm.kind, subject: coordForm.subject, body: coordForm.body || undefined })}
-                >
-                  Submit to firm
-                </Button>
+                {!readOnly && (
+                  <>
+                    <Select id="coord-kind" labelText="Kind" value={coordForm.kind} onChange={(e) => setCoordForm((f) => ({ ...f, kind: e.target.value as ConstructionKindT }))}>
+                      {ConstructionKind.options.map((k) => <SelectItem key={k} value={k} text={CONSTRUCTION_KIND_LABEL[k]} />)}
+                    </Select>
+                    <TextInput id="coord-subj" labelText="Subject" value={coordForm.subject} onChange={(e) => setCoordForm((f) => ({ ...f, subject: e.target.value }))} />
+                    <TextArea id="coord-body" labelText="Details" rows={3} value={coordForm.body} onChange={(e) => setCoordForm((f) => ({ ...f, body: e.target.value }))} />
+                    <Button
+                      size="sm"
+                      disabled={!coordForm.subject.trim() || submitCoord.isPending}
+                      onClick={() => submitCoord.mutate({ kind: coordForm.kind, subject: coordForm.subject, body: coordForm.body || undefined })}
+                    >
+                      Submit to firm
+                    </Button>
+                  </>
+                )}
               </Stack>
             </Tile>
           </Stack>

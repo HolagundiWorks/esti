@@ -88,6 +88,14 @@ export function Login() {
                 </Button>
                 <Button
                   as={RouterLink}
+                  to="/signup"
+                  kind="ghost"
+                  size="sm"
+                >
+                  First time? Set up your workspace
+                </Button>
+                <Button
+                  as={RouterLink}
                   to="/"
                   kind="ghost"
                   size="sm"

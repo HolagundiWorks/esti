@@ -55,6 +55,7 @@ import { UploadAuthProvider } from "./lib/uploadAuth.js";
 // chunk fetch. Every other route is code-split below so a landing visitor never
 // downloads the authenticated workspace (and its charts/xlsx) bundle.
 import { Landing } from "./routes/Landing.js";
+import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 
 // Build variant gate. The public marketing site (landing, blog, investors, one-click
@@ -206,6 +207,9 @@ function AppShell() {
   // rate books or audit-log nav. planAllows() defaults LITE until settings load.
   const plan = settingsQ.data?.plan ?? "LITE";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
+  // Lite is a fixed workspace with no consultant directory (consultants are only
+  // mapped to projects via engagements).
+  const isLite = plan === "LITE";
   const isStaff =
     !!user &&
     (isStaffRole(user.role) ||
@@ -243,6 +247,7 @@ function AppShell() {
     return (
       <Routes>
         <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
+        <Route path="/signup" element={<Theme theme="g100"><Signup /></Theme>} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>
@@ -321,8 +326,9 @@ function AppShell() {
               ...(planAllowsFeature("performance") && atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
             ]
           : []),
-        // Consultants & Contractors directories: L3+ (rank 60)
-        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
+        // Consultants & Contractors directories: L3+ (rank 60). Lite has no
+        // consultant directory page (consultants are mapped to projects only).
+        ...(atLeast(60) && !isLite ? [{ label: "Consultants", to: "/consultants" }] : []),
         ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
       ],
     },

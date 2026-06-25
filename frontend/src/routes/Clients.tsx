@@ -17,6 +17,7 @@ import {
   TableToolbar,
   TableToolbarContent,
   TableToolbarSearch,
+  Tag,
   TextInput,
 } from "@carbon/react";
 import { ClientKind } from "@esti/contracts";
@@ -31,6 +32,8 @@ const HEADERS = [
   { key: "city", header: "City" },
   { key: "gstin", header: "GSTIN" },
   { key: "email", header: "Email" },
+  { key: "status", header: "Status" },
+  { key: "actions", header: "" },
 ];
 
 const PAGE_SIZES = [10, 25, 50];
@@ -38,6 +41,11 @@ const PAGE_SIZES = [10, 25, 50];
 export function Clients() {
   const utils = trpc.useUtils();
   const list = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
+  // Lite ships a fixed client set — activate/deactivate the existing, don't add.
+  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
+  const setDisabled = trpc.clients.setDisabled.useMutation({
+    onSuccess: () => utils.clients.list.invalidate(),
+  });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -95,7 +103,11 @@ export function Clients() {
       city: c.city ?? "—",
       gstin: c.gstin ?? "—",
       email: c.email ?? "—",
+      status: c.disabled ? "Deactivated" : "Active",
+      actions: "",
     })) ?? [];
+  // Look up the disabled state by id for the per-row activate/deactivate toggle.
+  const disabledById = new Map((list.data ?? []).map((c) => [c.id, c.disabled]));
 
   return (
     <Stack gap={6}>
@@ -117,12 +129,12 @@ export function Clients() {
       <DataState
         loading={list.isLoading}
         isEmpty={allRows.length === 0}
-        columnCount={5}
+        columnCount={7}
         empty={{
           title: "No clients yet",
           description:
             "Add a client or lead to attach projects, invoices and a portal login.",
-          action: (
+          action: isLite ? undefined : (
             <Button size="sm" onClick={() => setOpen(true)}>
               New client
             </Button>
@@ -157,7 +169,9 @@ export function Clients() {
                     <Button kind="tertiary" onClick={() => setPortalOpen(true)}>
                       Create portal login
                     </Button>
-                    <Button onClick={() => setOpen(true)}>New client</Button>
+                    {!isLite && (
+                      <Button onClick={() => setOpen(true)}>New client</Button>
+                    )}
                   </TableToolbarContent>
                 </TableToolbar>
                 <Table {...getTableProps()}>
@@ -176,11 +190,37 @@ export function Clients() {
                   <TableBody>
                     {pagedRows.map((row) => {
                       const { key, ...rest } = getRowProps({ row });
+                      const off = disabledById.get(row.id) ?? false;
                       return (
                         <TableRow key={key} {...rest}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
+                          {row.cells.map((cell) => {
+                            if (cell.info.header === "status") {
+                              return (
+                                <TableCell key={cell.id}>
+                                  <Tag type={off ? "gray" : "green"} size="sm">
+                                    {off ? "Deactivated" : "Active"}
+                                  </Tag>
+                                </TableCell>
+                              );
+                            }
+                            if (cell.info.header === "actions") {
+                              return (
+                                <TableCell key={cell.id}>
+                                  <Button
+                                    size="sm"
+                                    kind="ghost"
+                                    disabled={setDisabled.isPending}
+                                    onClick={() =>
+                                      setDisabled.mutate({ id: row.id, disabled: !off })
+                                    }
+                                  >
+                                    {off ? "Activate" : "Deactivate"}
+                                  </Button>
+                                </TableCell>
+                              );
+                            }
+                            return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                          })}
                         </TableRow>
                       );
                     })}

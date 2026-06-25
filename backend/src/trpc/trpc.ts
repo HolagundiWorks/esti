@@ -1,5 +1,6 @@
 import { type Capability, can } from "@esti/contracts";
 import { initTRPC, TRPCError } from "@trpc/server";
+import { firmPlan } from "../lib/plan.js";
 import type { Context } from "./context.js";
 
 const t = initTRPC.context<Context>().create();
@@ -91,6 +92,21 @@ export const contractorProcedure = authedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "CONTRACTOR" || !ctx.user.contractorId)
     throw new TRPCError({ code: "FORBIDDEN" });
   return next({ ctx: { ...ctx, user: { ...ctx.user, contractorId: ctx.user.contractorId } } });
+});
+
+/**
+ * Contractor portal write actions (bidding, acknowledgements, coordination,
+ * running bills). On the fixed Lite plan the contractor portal is view-only,
+ * so these are blocked; Core+ allows the full two-way workflow.
+ */
+export const contractorWriteProcedure = contractorProcedure.use(async ({ ctx, next }) => {
+  if ((await firmPlan(ctx.db)) === "LITE") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "The contractor portal is view-only on the Lite plan.",
+    });
+  }
+  return next({ ctx });
 });
 
 /** ESTICAD device bearer writes — takeoff, drawing link, scale calibration. */

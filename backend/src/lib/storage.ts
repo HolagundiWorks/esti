@@ -1,5 +1,18 @@
 import { Client } from "minio";
 import { env } from "../env.js";
+import {
+  assertStorageAvailable,
+  recordStorageDelta,
+  setStorageUsed,
+} from "./storageQuota.js";
+
+/** Object size in bytes, or 0 if the key does not exist. */
+async function objectSize(key: string): Promise<number> {
+  return s3
+    .statObject(BUCKET, key)
+    .then((s) => s.size)
+    .catch(() => 0);
+}
 
 function clientFor(endpoint: string): Client {
   const url = new URL(endpoint);
@@ -51,7 +64,13 @@ export async function ensureBucketWithRetry(
 
 export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
   await ensureBucket();
+  // Overwrites only cost the size delta; enforce the plan cap before writing,
+  // then fold the delta into the running usage counter.
+  const prior = await objectSize(key);
+  const delta = body.length - prior;
+  await assertStorageAvailable(Math.max(0, delta));
   await s3.putObject(BUCKET, key, body, body.length, { "Content-Type": contentType });
+  await recordStorageDelta(delta);
 }
 
 /** Time-limited GET URL the SPA can use directly (e.g. for rendered SVG). */
@@ -61,7 +80,23 @@ export async function presignedGet(key: string, expirySeconds = 300): Promise<st
 
 /** Best-effort delete; ignores "not found" so callers can fire-and-forget. */
 export async function removeObject(key: string): Promise<void> {
+  const size = await objectSize(key);
   await s3.removeObject(BUCKET, key).catch(() => undefined);
+  if (size) await recordStorageDelta(-size);
+}
+
+/**
+ * Recompute the firm's storage usage by summing every object in the bucket.
+ * Drift-correction fallback for the running counter; safe to run any time.
+ */
+export async function recomputeStorageUsage(): Promise<number> {
+  await ensureBucket();
+  let total = 0;
+  for await (const obj of s3.listObjects(BUCKET, "", true)) {
+    total += (obj as { size?: number }).size ?? 0;
+  }
+  await setStorageUsed(total);
+  return total;
 }
 
 /** Read an object's full contents as UTF-8 text (used to proxy the SVG). */

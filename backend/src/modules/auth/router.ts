@@ -10,9 +10,10 @@ import {
   revokeSessionByToken,
   verifyPassword,
 } from "../../auth/session.js";
-import { users } from "../../db/schema.js";
+import { firm, orgSettings, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { normalizeEmail } from "../../lib/email.js";
+import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
 
@@ -26,7 +27,73 @@ const RegisterInput = Credentials.extend({
   role: z.enum(["OWNER", "CONSULTANT", "CLIENT"]).optional(),
 });
 
+const BootstrapInput = Credentials.extend({
+  companyName: z.string().min(2).max(200),
+  adminName: z.string().min(2).max(200),
+});
+
 export const authRouter = router({
+  /**
+   * First-run onboarding for a fresh single-tenant install: create the company,
+   * the OWNER (admin), a fixed AORMS-Lite workspace, and sign the admin in.
+   * Runs only when the install has no users yet — afterwards it 409s.
+   */
+  bootstrap: publicProcedure.input(BootstrapInput).mutation(async ({ ctx, input }) => {
+    await enforceRateLimit("bootstrap-ip", ctx.ip, 5, 300);
+    const email = normalizeEmail(input.email);
+    const owner = await ctx.db.transaction(async (tx) => {
+      // Serialize against a concurrent bootstrap, then refuse if already set up.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(8347292)`);
+      const rows = await tx.select({ n: count() }).from(users);
+      if (Number(rows[0]?.n ?? 0) > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This workspace is already set up — please log in.",
+        });
+      }
+
+      const passwordHash = await hashPassword(input.password);
+      const [u] = await tx
+        .insert(users)
+        .values({ email, fullName: input.adminName, role: "OWNER", passwordHash })
+        .returning({ id: users.id, email: users.email, role: users.role, fullName: users.fullName });
+
+      // Name the (single-row) firm; AORMS-Lite firms bill without GST
+      // (NOT_APPLICABLE — below the registration threshold, no tax on invoices).
+      const [f] = await tx.select({ id: firm.id }).from(firm).limit(1);
+      if (f) {
+        await tx
+          .update(firm)
+          .set({ companyName: input.companyName, gstType: "NOT_APPLICABLE" })
+          .where(eq(firm.id, f.id));
+      } else {
+        await tx.insert(firm).values({ companyName: input.companyName, gstType: "NOT_APPLICABLE" });
+      }
+
+      // Pin the plan to LITE and seed the fixed workspace.
+      const [s] = await tx.select({ id: orgSettings.id }).from(orgSettings).limit(1);
+      if (s) {
+        await tx.update(orgSettings).set({ plan: "LITE" }).where(eq(orgSettings.id, s.id));
+      } else {
+        await tx.insert(orgSettings).values({ plan: "LITE" });
+      }
+      await provisionLiteWorkspace(tx, u!.id);
+
+      await writeAudit(tx, {
+        entity: "user",
+        entityId: u!.id,
+        action: "BOOTSTRAP_OWNER",
+        actorId: u!.id,
+        after: { email: u!.email, companyName: input.companyName, plan: "LITE" },
+      });
+      return u!;
+    });
+
+    const token = await createSession(owner.id);
+    ctx.setCookie(SESSION_COOKIE, token);
+    return owner;
+  }),
+
   /**
    * Bootstrap the first user as OWNER; afterwards only an OWNER may create
    * users (single-firm — see ARCHITECTURE ADR-03/ADR-04).

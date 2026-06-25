@@ -25,7 +25,7 @@ import { verifyPassword } from "../../auth/session.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
-import { assertQuota } from "../../lib/plan.js";
+import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
@@ -45,6 +45,8 @@ export const projectOfficeRouter = router({
   listArchived: protectedProcedure.query(async ({ ctx }) => listArchivedProjects(ctx.db, ctx.user)),
 
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
+    // Lite ships 5 fixed projects — no new projects, only fill in the existing.
+    await assertNotFixedPlan(ctx.db);
     const org = await getOrgSettings(ctx.db);
     // Plan quota: count only live projects (archived ones don't take a slot).
     const cRows = await ctx.db

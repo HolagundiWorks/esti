@@ -19,6 +19,21 @@ export async function assertPlanFeature(db: DB, feature: PlanFeature): Promise<v
   }
 }
 
+/**
+ * Throw FORBIDDEN on the fixed-workspace (LITE) plan, which ships a pre-seeded
+ * set of users, clients, contractors and projects that the admin activates
+ * rather than adds to. CORE/ENTERPRISE are self-serve and pass through.
+ */
+export async function assertNotFixedPlan(db: DB): Promise<void> {
+  if ((await firmPlan(db)) === "LITE") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Your Lite workspace has a fixed set of users, clients, contractors and projects — activate an existing record instead of adding a new one.",
+    });
+  }
+}
+
 /** Throw FORBIDDEN if adding one more of `kind` exceeds the plan quota. */
 export async function assertQuota(db: DB, kind: PlanQuota, currentCount: number): Promise<void> {
   if (!withinQuota(await firmPlan(db), kind, currentCount)) {
