@@ -16,11 +16,11 @@ import {
 } from "@carbon/react";
 import {
   Building,
-  Calendar,
   Catalog,
   Dashboard as DashboardIcon,
   Document,
   Enterprise,
+  Events,
   Logout,
   Money,
   Notification,
@@ -306,16 +306,15 @@ function AppShell() {
   const rank = ROLE_RANK[user.role] ?? 0;
   const atLeast = (r: number) => rank >= r;
 
-  // Top-level links — visible by level
+  // Top-level links — the IA's standalone areas (Home, Clients, Projects, Work,
+  // Knowledge) plus the two cross-cutting Home utilities (Search, Alerts).
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
+    // Clients is its own IA area (master CRM); People keeps only internal/external staff.
+    ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients", icon: Events }] : []),
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
-    // Programme visible to L3+ (rank 60 = SENIOR and above)
-    ...(atLeast(60) ? [{ label: "Programme", to: "/programme", icon: Calendar }] : []),
-    // PMC: plan gate + module gate (L2+ can see if enabled; L3/L4 see if enabled)
-    ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "PMC", to: "/pmc", icon: Building }] : []),
-    ...(planAllowsFeature("knowledgeBank") ? [{ label: "Knowledge Bank", to: "/knowledge-bank", icon: Catalog }] : []),
+    ...(planAllowsFeature("knowledgeBank") ? [{ label: "Knowledge", to: "/knowledge-bank", icon: Catalog }] : []),
     { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
   ];
@@ -325,11 +324,6 @@ function AppShell() {
       label: "People",
       icon: UserMultiple,
       items: [
-        // Clients: L4+ (write, rank 40)
-        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
-        // Consultants & Contractors: L3+ (rank 60)
-        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
-        ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
         // Team, HR, Performance: plan gate + HR module gate + rank
         ...(planAllowsFeature("hr") && hrEnabled
           ? [
@@ -339,10 +333,13 @@ function AppShell() {
               ...(planAllowsFeature("performance") && atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
             ]
           : []),
+        // Consultants & Contractors directories: L3+ (rank 60)
+        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
+        ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
       ],
     },
     {
-      label: "Accounting",
+      label: "Accounts",
       icon: Money,
       items: [
         // Invoices, expenses, cash book, reconciliation are Lite+ (non-GST billing
@@ -366,7 +363,7 @@ function AppShell() {
       ],
     },
     {
-      label: "Office",
+      label: "Practice",
       icon: Document,
       items: [
         // Proposals: L2+
@@ -381,6 +378,12 @@ function AppShell() {
               { label: "Contracts", to: "/office/contracts" },
             ]
           : []),
+        // Office programme — read-only portfolio Gantt rollup (per-project programme
+        // lives in the project workspace). L3+ (rank 60).
+        ...(atLeast(60) ? [{ label: "Office programme", to: "/programme" }] : []),
+        // PMC portfolio — read-only rollup across PMC engagements (the per-project PM
+        // head is the master). Plan + module gate + L3+.
+        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "PMC portfolio", to: "/pmc" }] : []),
         // Tenders: PMC plan + L3+ (tenders:view, rank 60)
         ...(planAllowsFeature("pmc") && can(user.role, "tenders:view") ? [{ label: "Tenders", to: "/office/tenders" }] : []),
         ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
