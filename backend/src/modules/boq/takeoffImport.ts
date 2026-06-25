@@ -32,7 +32,7 @@ export async function importTakeoffToEstimate(
   if (!est.dsrVersionId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Link a DSR version to this estimate before importing takeoff quantities",
+      message: "Link a rate-book version to this estimate before importing takeoff quantities",
     });
   }
 

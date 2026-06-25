@@ -15,7 +15,7 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { BAR_DIAS, bbsItemTotals, applySteelFlowCatalogEntry, DEMO_BEAM_230x600_M25 } from "@esti/contracts";
+import { BAR_DIAS, bbsItemTotals, applyStructuralCatalogEntry, DEMO_BEAM_230x600_M25 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
@@ -462,14 +462,14 @@ export function ProjectBbs({ projectId }: { projectId: string }) {
 
       <Modal
         open={templateOpen}
-        modalHeading="Apply SteelFlow template"
+        modalHeading="Apply structural template"
         primaryButtonText={bulkImport.isPending ? "Applying…" : "Apply"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={!openId || !spanMm || bulkImport.isPending}
         onRequestClose={() => setTemplateOpen(false)}
         onRequestSubmit={() => {
           if (!openId) return;
-          const applied = applySteelFlowCatalogEntry(DEMO_BEAM_230x600_M25, Number(spanMm) || 6000);
+          const applied = applyStructuralCatalogEntry(DEMO_BEAM_230x600_M25, Number(spanMm) || 6000);
           const rows = applied.rebars.map((r) => ({
             barMark: r.barMark,
             member: `${applied.elementType} · ${r.barType}`,

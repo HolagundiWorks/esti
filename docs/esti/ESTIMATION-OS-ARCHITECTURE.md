@@ -1,8 +1,7 @@
 # AORMS Estimation OS Architecture
 
-**Status:** Canonical · **Target architecture** for the estimation engine — the
-current-state [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) note describes
-what ships today and is superseded section-by-section as these phases land ·
+**Status:** Canonical · **Target architecture** for the estimation engine —
+superseded section-by-section as these phases land ·
 **Reviewed:** 2026-06-25
 
 ## Document Status
@@ -490,7 +489,7 @@ ExecutionDetailLink {
 
 ## 9.1 Philosophy
 
-AORMS should use firm/project-specific ratebooks instead of hard dependency on DSR.
+AORMS should use firm/project-specific ratebooks instead of a hard dependency on a single external rate schedule.
 
 Ratebooks can be:
 

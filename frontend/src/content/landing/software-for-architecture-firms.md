@@ -56,7 +56,7 @@ For a firm, client drawings and fee data are sensitive. Self-hosting on your own
 
 Hold AORMS against that checklist and the case for purpose-built is clear: it does every item above, and it does them as one connected system rather than seven disconnected ones. A generic stack can be assembled to cover some of the list, but it will never close the seams — the invoice will not know its phase, the revision will not know its source, and someone will still be re-keying data between tools on a Friday evening.
 
-There is also a quieter benefit. A system built for Indian architecture speaks your language by default — COA, GST, SAC, the April–March year, tenders and site coordination — so onboarding is faster and there is less to configure. The knowledge bank with DSR rates, a specification catalogue and SteelFlow bar bending schedules, plus delivery tools like the office programme, PMC hub, construction schedule, snags and site instructions, and the ESTICAD desktop companion for takeoff, round out a system that follows a project from brief to site.
+There is also a quieter benefit. A system built for Indian architecture speaks your language by default — COA, GST, SAC, the April–March year, tenders and site coordination — so onboarding is faster and there is less to configure. The knowledge bank with rate books, a specification catalogue and bar bending schedules, plus delivery tools like the office programme, PMC hub, construction schedule, snags and site instructions, and the ESTICAD desktop companion for takeoff, round out a system that follows a project from brief to site.
 
 ## How to run the evaluation
 

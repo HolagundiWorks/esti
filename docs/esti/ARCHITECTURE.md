@@ -62,7 +62,7 @@ retry/backoff, dead-letter handling, and resource limits.
 Authentication uses Argon2id passwords and secure cookie sessions. Internal
 roles use capability checks from `packages/contracts/src/permissions.ts`.
 Client, consultant, and contractor portal procedures enforce row-level scope.
-See [ACCESS-MODEL](ACCESS-MODEL.md) for the L1–L5 ladder and four enforcement layers.
+See [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) for the L1–L5 ladder and four enforcement layers.
 
 The same policy applies to tRPC, REST upload/download routes, worker artifact
 access, exports, and search. “Authenticated” alone is never sufficient for an

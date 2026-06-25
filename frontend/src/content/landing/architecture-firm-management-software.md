@@ -45,7 +45,7 @@ Performance is scored with ASPRF — a fair, multi-dimensional 30-day composite 
 
 Revisions are where fixed-fee firms bleed. In AORMS every revision is tagged with a category — MINOR, MAJOR or CRITICAL — and a source — client-driven, internal error, technical query or scope change. That intelligence rolls up to the office dashboard, so the principal can see which projects are absorbing uncompensated change and which clients keep moving the brief. It turns a vague feeling that "this job is hard" into a number you can act on, and bill against. There is more on this in [architecture revision tracking](/architecture-revision-tracking).
 
-## Compliance is part of the business
+## Statutory context stays on the record
 
 Risk on the statutory side is firm risk too. AORMS keeps permit notes, authority context, project evidence and client commitments attached to the job, so regulatory assumptions are not left in a consultant's head or a forgotten spreadsheet.
 

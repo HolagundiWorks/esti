@@ -96,8 +96,9 @@ export function Legal() {
               <p>
                 We work to keep the Service reliable but provide it "as is", without warranties of
                 uninterrupted availability or fitness for a particular purpose, except as set out in
-                your subscription agreement. Compliance outputs (e.g. bylaw checks) are decision
-                support, not a substitute for professional judgement or statutory sanction.
+                your subscription agreement. Decision-support outputs (e.g. cost estimates, revision
+                and risk signals) are guidance, not a substitute for professional judgement or
+                statutory sanction.
               </p>
 
               <h2>7. Liability</h2>

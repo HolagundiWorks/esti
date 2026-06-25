@@ -1,20 +1,36 @@
 # ESTI Documentation
 
-**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
+**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-25
 
 This directory is the single source of truth for ESTI product and engineering
 direction. Point-in-time audits and superseded specs live in
 [archive/](archive/README.md); they must not compete with current requirements.
 
+## Read first
+
+New here? Read in this order:
+
+1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star: what AORMS is (the six OS pillars) + current build status.
+2. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) — the live navigation and module IA as it ships today.
+3. [ROADMAP](ROADMAP.md) — delivery history and the active increment (Construction Cost OS Phase D next).
+4. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
+5. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
+
+Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions).
+
 ## Canonical Documents
 
 | Document | Authority |
 | --- | --- |
-| [ACCESS-MODEL](ACCESS-MODEL.md) | L1–L5 access ladder, external tier, capability and information matrices |
+| [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first** — north-star product architecture: the six OS pillars (Ask / Project / Task / Construction Cost / Portals / AI) with implemented-vs-planned status |
+| [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) | Live navigation and module IA as it ships today |
+| [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) | L1–L5 access ladder, external tier, capability and information matrices (implementation: `permissions.ts`) |
+| [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | Lite / Core / Enterprise editions — module→edition matrix, quotas, `planAllows` gating |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline — what we implement and reject |
 | [PRD](PRD.md) | Functional and non-functional requirements |
 | [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) | Module registry and workflow model |
+| [HR-PROFILE-SYSTEM](HR-PROFILE-SYSTEM.md) | HR/payroll module — leaves, payroll, salary visibility, org/HR modes |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [COGNITION-ENGINE](COGNITION-ENGINE.md) | Continuous office cognition, deterministic scoring, interventions, and LLM boundary |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
@@ -26,14 +42,8 @@ direction. Point-in-time audits and superseded specs live in
 | [CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md) | **Target umbrella** — full cost lifecycle (estimate→tender→award→measurement→bill→deviation/variation→final account); ESTI-adapted map of the reference spec (built/change/create) |
 | [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) | **Target** — component-based estimation engine: component master, design-stage estimate, auto-BOQ, rate analysis, billing, deviations (phased build); the pre-construction + billing core of Construction Cost OS |
 | [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md) | IFC→AORMS component-code mapping standard, quantity formulas, and dependency templates underpinning the component master |
-| [ESTIMATION-ARCHITECTURE](ESTIMATION-ARCHITECTURE.md) | **Current-state** — DSR, takeoff, estimate, BOQ, provenance, and output boundaries that ship today (superseded section-by-section by ESTIMATION-OS-ARCHITECTURE) |
-| ~~STEELFLOW-BBS-FLOW~~ | _Superseded_ — SteelFlow workshop was removed; only shared BBS (`esti_bbs`) remains |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
-| [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants |
-| ~~BYLAW-SYSTEMS~~ | _Superseded_ — RIE/compliance rule engine removed; only the shared BBMP rule reference (`bbmpRules`) remains |
-| ~~BBMP-IMPLEMENTATION~~ | _Superseded_ — in-product bylaw calculator removed; doc retained for historical schema/API reference only |
-| ~~BYLAWS-BBMP~~ | _Superseded_ — full BBMP engine spec; reference appendix only, no live in-product engine |
-| ~~STEELFLOW-BOUNDED-CONTEXT~~ | _Superseded_ — `sf_*` SteelFlow module removed in the Knowledge Bank cleanup |
+| [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
 Build and runtime instructions live in [DEVELOPMENT.md](../../DEVELOPMENT.md).

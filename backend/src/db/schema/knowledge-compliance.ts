@@ -16,7 +16,7 @@ import {
   uuid,
 } from "./_helpers.js";
 
-/** Versioned master DSR (Schedule of Rates) — Phase 10. */
+/** Versioned rate book (Schedule of Rates) — Phase 10. */
 export const dsrVersions = pgTable("esti_dsr_version", {
   id: id(),
   label: text("label").notNull().unique(),
@@ -86,7 +86,7 @@ export const estimateItems = pgTable("esti_estimate_item", {
   dsrItemId: uuid("dsr_item_id").references(() => dsrItems.id),
   /** MANUAL, DSR_PICK, BULK_IMPORT, TAKEOFF_IMPORT. */
   sourceKind: text("source_kind").notNull().default("MANUAL"),
-  /** Snapshot fields keep issued BOQs intelligible after DSR/catalog changes. */
+  /** Snapshot fields keep issued BOQs intelligible after rate-book/catalog changes. */
   dsrItemCode: text("dsr_item_code"),
   dsrItemDescription: text("dsr_item_description"),
   dsrVersionLabel: text("dsr_version_label"),
@@ -118,7 +118,7 @@ export const estimateItems = pgTable("esti_estimate_item", {
  * Rate Analysis — composite rate build-up (Phase 6).
  * A rate is built from component lines (MATERIAL / LABOUR / MACHINERY / SUNDRY)
  * plus an overhead %. The resulting analysedRatePaise can be pushed as a
- * DSR item into any writable rate-book version.
+ * rate item into any writable rate-book version.
  */
 export const rateAnalyses = pgTable("esti_rate_analysis", {
   id: id(),

@@ -20,7 +20,7 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
 - Phase-linked invoicing under the firm's GST system (Not applicable /
   Composition 6% / Regular 18%), SAC 998321–998339, TDS u/s 194J, and exports.
 - Reconciliation of payments, TDS against 26AS/AIS, and GST output vs returns.
-- Permit and compliance tracking (BPAS, RERA, Fire/Aviation/Env NOC, OC, CC).
+- Statutory permit tracking (BPAS, RERA, Fire/Aviation/Env NOC, OC, CC).
 - Drawing and document vault: register, revision control, issue sets,
   watermarks, and approval logs.
 - Project-scoped client and consultant collaboration, with audited approvals and
@@ -31,7 +31,7 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
   **Open in ESTICAD** for quantity takeoff (ESTICAD capture only; list and
   estimate in AORMS — no browser measure tool).
 
-DSR/SOR rate reference and BOQ/quantity structures exist to support architect
+Rate-book/SOR rate reference and BOQ/quantity structures exist to support architect
 workflows such as tender costing and drawing takeoff. General-purpose ERP,
 commerce, warehouse, labour, subcontractor-accounting, and contractor execution
 systems are out of scope.

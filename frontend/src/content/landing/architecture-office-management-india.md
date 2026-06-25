@@ -1,11 +1,11 @@
 ---
 title: Run Your Architecture Office in India
 metaTitle: Architecture Office Management India
-metaDescription: Architecture office management India that ties GST, COA fee logic, tenders, site records, DSR rates, projects, teams and clients into one office system.
+metaDescription: Architecture office management India that ties GST, COA fee logic, tenders, site records, rate-book costing, projects, teams and clients into one office system.
 keyword: architecture office management india
 category: india
 updated: 2026-06-24
-intro: One system for the whole Indian office — GST, COA fee logic, tenders, site records, DSR-grounded costing, and the projects, teams and clients that run on top.
+intro: One system for the whole Indian office — GST, COA fee logic, tenders, site records, rate-book-grounded costing, and the projects, teams and clients that run on top.
 ---
 
 # Run Your Architecture Office in India
@@ -26,9 +26,9 @@ For a practice working across cities, keeping authority correspondence, permit a
 
 Estimates have to stand up to Indian scrutiny, so the knowledge bank carries the references that matter here:
 
-- **DSR** — Delhi Schedule of Rates — for rate-grounded estimates and BOQs.
+- **Rate books** — curated unit-rate references for rate-grounded estimates and BOQs.
 - A **specification catalogue** for consistent, reusable specs.
-- **SteelFlow** bar bending schedules (BBS) for reinforcement detailing.
+- **Bar bending schedules (BBS)** for reinforcement detailing.
 
 The ESTICAD desktop companion handles drawing takeoff and feeds quantities back into the system, so the numbers behind a BOQ come from the drawings rather than being re-typed.
 
@@ -60,15 +60,15 @@ It is self-hosted on your own server with role-based access, so your projects, f
 
 ### What does architecture office management India cover beyond projects?
 
-It covers the commercial and operational sides that Indian offices live with daily — DSR-based costing, tenders, contractor records, site work and India-native GST/TDS billing — alongside projects, phases, drawings, teams and client portals. AORMS keeps all of it in one self-hosted record instead of separate tools.
+It covers the commercial and operational sides that Indian offices live with daily — rate-book costing, tenders, contractor records, site work and India-native GST/TDS billing — alongside projects, phases, drawings, teams and client portals. AORMS keeps all of it in one self-hosted record instead of separate tools.
 
 ### Does it handle authority and site records?
 
 AORMS keeps authority notes, permit records, site instructions, tender documents and contractor movement attached to the project, so statutory and site context remains part of the office record.
 
-### Does it include Indian costing rates like DSR?
+### Does it include Indian costing rates?
 
-Yes. The knowledge bank carries DSR (Delhi Schedule of Rates) rates, a specification catalogue and SteelFlow bar bending schedules, and the ESTICAD desktop companion feeds drawing takeoff quantities back in, so estimates and BOQs are grounded in Indian reference data.
+Yes. The knowledge bank carries rate books, a specification catalogue and bar bending schedules, and the ESTICAD desktop companion feeds drawing takeoff quantities back in, so estimates and BOQs are grounded in Indian reference data.
 
 ### Can clients and consultants access the system?
 
@@ -80,4 +80,4 @@ AORMS is self-hosted on your own server with role-based access, so your project,
 
 ### How is this different from generic office software?
 
-Generic software has no concept of DSR rates, COA stages, GST/TDS, tenders or contractor billing, so the office patches it with spreadsheets and separate tools. Architecture office management India built natively ties costing, billing and operations into one system designed around how Indian practices actually work.
+Generic software has no concept of rate-book costing, COA stages, GST/TDS, tenders or contractor billing, so the office patches it with spreadsheets and separate tools. Architecture office management India built natively ties costing, billing and operations into one system designed around how Indian practices actually work.

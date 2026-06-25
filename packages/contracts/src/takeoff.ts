@@ -22,7 +22,7 @@ export const TakeoffElementSpec = z.object({
   depthMm: z.number().int().positive().optional(),
   boqUnit: z.string().min(1).max(12),
   boqDescription: z.string().min(1).max(400),
-  /** DSR item code in the linked master schedule (matched within estimate DSR version). */
+  /** Rate-book item code in the linked schedule (matched within the estimate's rate-book version). */
   dsrItemCode: z.string().min(1).max(40).optional(),
   defaultHeightMm: z.number().int().positive().optional(),
 });
@@ -364,7 +364,7 @@ export type TakeoffMeasurementCreate = z.infer<typeof TakeoffMeasurementCreate>;
 
 export const DEFAULT_SNAP_GRID_MM = 100;
 
-// --- DSR-linked estimation ----------------------------------------------------
+// --- Rate-book-linked estimation ----------------------------------------------
 
 export type DsrItemRef = {
   id: string;
@@ -386,7 +386,7 @@ function normDsrCode(code: string): string {
   return code.toUpperCase().replace(/[\s._-]/g, "");
 }
 
-/** Match a takeoff catalog entry to a DSR line by `dsrItemCode`. */
+/** Match a takeoff catalog entry to a rate-book line by `dsrItemCode`. */
 export function matchTakeoffToDsr(elementTypeId: string, dsrItems: DsrItemRef[]): DsrItemRef | null {
   const el = takeoffElement(elementTypeId);
   if (!el?.dsrItemCode) return null;
@@ -409,7 +409,7 @@ export type TakeoffEstimatePreviewLine = {
   measurementCount: number;
 };
 
-/** Aggregate tagged measurements into estimate lines with DSR rates when matched. */
+/** Aggregate tagged measurements into estimate lines with rate-book rates when matched. */
 export function buildTakeoffEstimateLines(
   rows: TakeoffMeasurementRef[],
   dsrItems: DsrItemRef[],

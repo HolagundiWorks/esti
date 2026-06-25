@@ -8,7 +8,7 @@ are authoritative only in [ROADMAP](ROADMAP.md). Long-term scope discipline is i
 
 ## Access Model
 
-Canonical reference: [ACCESS-MODEL](ACCESS-MODEL.md) (L1–L5 internal ladder + external tier).
+Canonical reference: [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) (L1–L5 internal ladder + external tier).
 
 - **Internal (L5–L1):** Owner, Partner, Senior, Associate, Viewer. Capabilities refine
   access for administration, finance, HR, reports, and destructive operations.
@@ -29,8 +29,8 @@ row/object scope in the backend, including REST uploads and downloads.
 | Activity Center | alerts, digest, escalations | Same surfaces — no new top-level nav |
 | Clients | register, communication log, portal provisioning | Deep links, exports |
 | Projects | overview, timeline, CRIF, health, archive, tabs | Additive fields on existing tabs |
-| Knowledge Bank | DSR, compliance/RIE, spec catalogue, SteelFlow templates, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
-| Compliance | **KB Compliance tab** (rule library + site feasibility) + **Project Info** §9 (calculate & store) | Jurisdiction rule sets only — no duplicate project calc in KB |
+| Knowledge Bank | Rate Books, rate analysis, components, spec catalogue, parametric, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
+| ~~Compliance~~ | _Removed 2026-06 — in-product RIE/compliance rule engine and KB Compliance tab retired; only the shared BBS feature and Rate Books remain_ | — |
 | Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
 | Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
 | Documents | register, specs, mood boards, inspections, transmittals, MOM | Revision/approval on existing types |
@@ -40,7 +40,7 @@ row/object scope in the backend, including REST uploads and downloads.
 | Site coordination | RFI, submittal, shop drawing, IR, instruction, snag, NCR | Same object model |
 | Fees / contracts | proposals, COA scale, contracts | Templates and activity links |
 | Accounting | invoices, GST/TDS, filing, reconciliation | Exports and mapping |
-| Estimation | DSR, BOQ, takeoff (ESTICAD capture + web read), BBS, PO with spec link | Import/export — **no web visual connector** |
+| Estimation | Rate books, BOQ, takeoff (ESTICAD capture + web read), BBS, PO with spec link | Import/export — **no web visual connector** |
 | Search | permission-aware universal search | New entity types quietly |
 | AI Studio | Ollama drafts, provenance, `/office/ai-studio` | **No new web draft kinds** — CAD kinds in ESTICAD only (Phase 13D) |
 | ESTI agent | Alt+A read-only advisor (live AORMS context) | Prompt/rules only — no execute/upload |
@@ -56,19 +56,18 @@ applicable, another source object.
 Default project stages are Initiation & Brief, Concept Design, Design
 Development, Statutory Coordination, Construction Documentation, Tender &
 Appointment, Construction Administration, and Handover & Closeout. Project
-lifecycle status and stage status are separate. Development-control results are
-saved on the **Project Info** tab and linked to the document register; office
-rule sets live in the Knowledge Bank.
+lifecycle status and stage status are separate. Statutory **permit** records
+(the `permits` feature) live on the project and link to the document register.
 
 ## Compliance Boundary
 
-The Knowledge Bank owns governed jurisdiction rule versions. The Compliance
-module selects published rules by state, district, authority, building use, and
-effective date, then runs deterministic development-control calculations.
-Required outputs are ground coverage, FAR area, setbacks, and restricted
-building lines, followed by an immutable PDF snapshot linked to the project.
-ESTI does not claim live statutory compliance tracking and does not poll
-approval portals without a supported authority API.
+The in-product compliance engine — Knowledge Bank jurisdiction rule versions, the
+Compliance module, deterministic development-control calculations (ground
+coverage / FAR / setbacks), and compliance PDFs — was **removed** in the 2026-06
+cleanup. ESTI keeps no bylaw/FAR/setback calculator and never claimed live
+statutory-compliance tracking or authority-portal polling. The regulatory
+surfaces that remain are statutory **permit** records (`permits`) and **GST/TDS**
+filing abstracts (`reports`).
 
 ## Traceability Model
 

@@ -36,7 +36,7 @@ Institutional memory is built from decisions, and decisions in AORMS are recorde
 
 ### A knowledge bank the practice shares
 
-A practice's expertise should be reusable. AORMS includes a knowledge bank holding DSR (Delhi Schedule of Rates) rates, a specification catalogue, and SteelFlow bar bending schedules. Instead of each team maintaining its own private set of specs and rates, the practice works from one curated source — so the quality of a small team's output rises to the level of the practice's best work, not the level of whoever happened to draft it.
+A practice's expertise should be reusable. AORMS includes a knowledge bank holding rate books, a specification catalogue, and bar bending schedules. Instead of each team maintaining its own private set of specs and rates, the practice works from one curated source — so the quality of a small team's output rises to the level of the practice's best work, not the level of whoever happened to draft it.
 
 ## People and standards together
 
@@ -70,7 +70,7 @@ Decisions are recorded rather than remembered. Revisions are tagged by category 
 
 ### Can different teams keep using their own specs and rates?
 
-They can, but the point of the shared knowledge bank is that they no longer need to. DSR rates, the specification catalogue and SteelFlow bar bending schedules live in one curated source the whole practice draws from, which keeps standards consistent and stops the same spec being rewritten three different ways.
+They can, but the point of the shared knowledge bank is that they no longer need to. Rate books, the specification catalogue and bar bending schedules live in one curated source the whole practice draws from, which keeps standards consistent and stops the same spec being rewritten three different ways.
 
 ### How does it help maintain quality as we add juniors?
 

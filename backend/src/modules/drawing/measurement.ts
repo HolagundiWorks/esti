@@ -79,7 +79,7 @@ export const measurementRouter = router({
       return buildCursorPage(rows, input.limit);
     }),
 
-  /** Preview takeoff quantities with DSR rates for a chosen master schedule. */
+  /** Preview takeoff quantities with rate-book rates for a chosen schedule. */
   takeoffPreview: protectedProcedure
     .input(
       z.object({
@@ -192,7 +192,7 @@ export const measurementRouter = router({
       return { ok: true };
     }),
 
-  /** Push tagged takeoff rows into a draft estimate (DSR rates applied when matched). */
+  /** Push tagged takeoff rows into a draft estimate (rate-book rates applied when matched). */
   applyToEstimate: protectedProcedure
     .input(
       z.object({

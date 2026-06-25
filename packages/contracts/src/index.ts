@@ -43,7 +43,7 @@ export * from "./workload.js";
 export * from "./schemas.js";
 export * from "./knowledge-bank.js";
 export * from "./steel-arranger.js";
-export * from "./steelflow-catalog.js";
+export * from "./structural-catalog.js";
 export * from "./asprf.js";
 export * from "./notifications.js";
 export * from "./calendar.js";

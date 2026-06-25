@@ -135,7 +135,7 @@ export function SystemAdmin() {
     {
       icon: Task,
       title: "Knowledge Bank",
-      description: "Rate-book reference, rate analysis, RIE compliance engine, spec catalogue, and SteelFlow BBS. Core reference module — always enabled.",
+      description: "Rate books, rate analysis, components, specification catalogue, parametric studies, and lessons. Core reference module — always enabled.",
       enabled: true,
       loading: false,
       onToggle: () => undefined,

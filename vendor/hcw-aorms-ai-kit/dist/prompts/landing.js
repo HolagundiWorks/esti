@@ -19,13 +19,13 @@ Primary users: solo architects and small studios in India; client, consultant, a
 
 **Dashboard** — Action Center (billing-ready phases, overdue invoices, approvals, tenders, site coordination), KPI boards, activity feed.
 
-**Projects** — One record per commission. Tabs include Overview (health, CRIF, timeline), Project Info (brief, compliance calculations), Drawings (register, transmittals; quantities via ESTICAD), Estimates/BOQ, BBS (SteelFlow), Spec sheets, CRIF/Decisions, Tasks, Documents, Team, Consultants, Invoices (role-gated), PMC (when enabled).
+**Projects** — One record per commission. Tabs include Overview (health, CRIF, timeline), Project Info (brief), Drawings (register, transmittals; quantities via ESTICAD), Estimates/BOQ, BBS, Spec sheets, CRIF/Decisions, Tasks, Documents, Team, Consultants, Invoices (role-gated), PMC (when enabled).
 
 **Work** — Tasks (Kanban, calendar, workload), activity, attendance when HR module is on.
 
 **Office** — Clients, fee proposals, invoices, GST/TDS reconcile, documents register, tenders, construction inbox, AI Studio (staff drafts with approval trail), universal search.
 
-**Knowledge Bank** — Master DSR, BBMP compliance / RIE rules, specification catalogue, SteelFlow templates, lessons learned.
+**Knowledge Bank** — rate books, specification catalogue, bar bending schedule templates, lessons learned.
 
 **Company** — Firm profile, users, numbering, escalations, AI settings (owner).
 
@@ -48,7 +48,6 @@ External portal users are not on this ladder.
 | Track client revisions | Project → CRIF / Decisions register |
 | Issue drawings | Project → Drawings → transmittal |
 | BOQ quantities | ESTICAD takeoff → project Drawings/Estimates |
-| Compliance envelope | Knowledge Bank Compliance + Project Info §9 |
 | Tender comparison | Office → Tenders |
 | Site RFI / snag | PMC module or Construction inbox |
 | Client visibility | Client portal — scoped to their projects |

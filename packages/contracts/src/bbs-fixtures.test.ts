@@ -5,7 +5,7 @@ import {
   BBS_ENGINEERING_FIXTURES,
   BBS_UNIT_WEIGHT_REFERENCE,
 } from "./fixtures/bbs-engineering.js";
-import { sfStirrupCount, sfStirrupLength, sfUnitWeight } from "./steel-arranger.js";
+import { steelStirrupCount, steelStirrupLength, steelUnitWeight } from "./steel-arranger.js";
 
 describe("BBS engineering fixtures", () => {
   for (const fx of BBS_ENGINEERING_FIXTURES) {
@@ -23,14 +23,14 @@ describe("BBS engineering fixtures", () => {
   it("matches IS unit-weight reference table (D²/162)", () => {
     for (const row of BBS_UNIT_WEIGHT_REFERENCE) {
       expect(barWeightPerM(row.diaMm)).toBeCloseTo(row.kgPerM, 2);
-      expect(sfUnitWeight(row.diaMm)).toBeCloseTo(row.kgPerM, 2);
+      expect(steelUnitWeight(row.diaMm)).toBeCloseTo(row.kgPerM, 2);
     }
   });
 
   it("derives stirrup fixture from IS:2502 closed rectangular formula", () => {
-    const cutting = sfStirrupLength(230, 600, 25, 8, 135);
+    const cutting = steelStirrupLength(230, 600, 25, 8, 135);
     expect(cutting).toBe(1556);
-    expect(sfStirrupCount(6000, 150)).toBe(41);
+    expect(steelStirrupCount(6000, 150)).toBe(41);
 
     const totals = bbsItemTotals({
       barMark: "S1",

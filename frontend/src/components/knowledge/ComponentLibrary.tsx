@@ -38,7 +38,7 @@ const RATE_SOURCES = ComponentRateSource.options;
 const FORMULAS = FormulaKey.options;
 
 const RATE_SOURCE_LABEL: Record<string, string> = {
-  RATE_BOOK: "Rate book (DSR)",
+  RATE_BOOK: "Rate book",
   RATE_ANALYSIS: "Rate analysis",
   MANUAL: "Manual",
 };

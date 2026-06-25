@@ -38,7 +38,7 @@ async function recomputeAnalysis(db: DB, id: string) {
 }
 
 export const rateAnalysisRouter = router({
-  /** List all rate analyses, optionally filtered by DSR version. */
+  /** List all rate analyses, optionally filtered by rate-book version. */
   list: protectedProcedure
     .input(z.object({ dsrVersionId: z.string().uuid().optional() }).optional())
     .query(async ({ ctx, input }) => {
@@ -212,7 +212,7 @@ export const rateAnalysisRouter = router({
     }),
 
   /**
-   * Publish an analysis — pushes a new DSR item into the linked rate-book
+   * Publish an analysis — pushes a new rate item into the linked rate-book
    * version at the analysedRatePaise, then marks the analysis as PUBLISHED.
    */
   publish: protectedProcedure
@@ -234,7 +234,7 @@ export const rateAnalysisRouter = router({
       if (!versionRow) throw new TRPCError({ code: "NOT_FOUND", message: "Rate-book version not found." });
       assertDsrVersionWritable(versionRow);
 
-      // Upsert by code within this DSR version.
+      // Upsert by code within this rate-book version.
       const [existing] = await ctx.db
         .select({ id: dsrItems.id })
         .from(dsrItems)

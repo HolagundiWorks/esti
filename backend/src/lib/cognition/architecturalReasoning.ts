@@ -152,7 +152,7 @@ function inferSequence(i: ArchitecturalReasoningInput): Sequence {
       seq: { predecessors: ["Submission package"], successors: ["Client approval"], impact: ["client", "project"], stage: null },
     },
     {
-      re: /permit|bylaw|noc|sanction|compliance/,
+      re: /permit|noc|sanction|compliance/,
       seq: { predecessors: ["Compliance submission"], successors: ["Authority approval"], impact: ["compliance", "project"], stage: null },
     },
   ];

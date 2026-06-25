@@ -3,7 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import { dsrItems } from "../../db/schema.js";
 
-/** Insert or replace DSR items on a version (merge by code unless replace). */
+/** Insert or replace rate-book items on a version (merge by code unless replace). */
 export async function applyDsrImport(
   db: DB,
   versionId: string,
@@ -31,7 +31,7 @@ export async function applyDsrImport(
   return rows.length;
 }
 
-/** Clone all items from one DSR version to another. */
+/** Clone all items from one rate-book version to another. */
 export async function copyDsrItems(db: DB, fromVersionId: string, toVersionId: string): Promise<number> {
   const source = await db.select().from(dsrItems).where(eq(dsrItems.versionId, fromVersionId));
   if (source.length === 0) return 0;

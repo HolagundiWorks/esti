@@ -15,7 +15,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hcw/india-compliance-kit": "workspace:*",
     "@hcw/master-dsr-kit": "workspace:*",
     "zod": "^3.23.8"
   },

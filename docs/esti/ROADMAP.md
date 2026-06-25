@@ -81,7 +81,7 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 - Staff auth ladder, firm/team/HR, clients, projects, tasks & Work module (Kanban, workload heatmap, attendance, activity)
 - Fee proposals, invoices, reconciliation, filing abstracts, dashboard boards & intelligence tiles
 - Project memory: CRIF decision ledger, revision source, scope drift, archive/retention
-- Knowledge Bank: Master DSR, compliance/RIE, specification catalogue, SteelFlow workshop
+- Knowledge Bank: Rate Books, rate analysis, components, specification catalogue, parametric, lessons
 - Client & consultant portals with threaded submissions and activity feeds
 - ASPRF performance scoring, escalations, leave-impact alerts
 - Contractor register, tender packages, token-scoped contractor bid portal, sealed bids, tender documents/addenda, site coordination (RFI/NCR/submittals)
@@ -90,7 +90,7 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
 - **Project programme** — per-project milestones, schedule progress, office portfolio (`/programme`); complements Work module tasks
 - **PMC module** (optional) — firm + per-project toggles; site coordination hub, construction schedule (CPM/Gantt), snags, progress reports (`/pmc`)
-- **Project Info** — structured project brief questionnaire + compliance calculator on one tab
+- **Project Info** — structured project brief questionnaire
 - **Office & project expenses** — cash book and billable project expenses (Accounting nav)
 - **Dashboard home bundle** — single `dashboard.home` round-trip for the office dashboard
 - **AORMS Cognition Engine** — deterministic domain scoring (client/finance/project/team/approval), weighted office health, intervention ranking with expected effect, confidence, and risk-if-ignored; returned as `dashboard.home.cognition`
@@ -209,8 +209,6 @@ End-to-end reinforcement member flow and BBS generation per IS:456 / IS:2502 / I
 
 **Gate met:** user can define member geometry, arrange reinforcement groups, export BBS to Excel, run IS-rule review — persisted via tRPC.
 
-See also [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md) and [STEELFLOW-BBS-FLOW.md](STEELFLOW-BBS-FLOW.md).
-
 ---
 
 ## Phase 2E-C - Cognition Engine: Event, Learning, And Priority Core [P1] — Complete 2026-06-23
@@ -249,7 +247,7 @@ Full frontend UI audit — align every screen to Dashboard reference pattern; cl
 
 ## Phase 2G - Workflow, IA & Architecture Remediation [P0–P3] — Complete 2026-06-15
 
-Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](archive/WORKFLOW-ARCHITECTURE-AUDIT.md) (archived snapshot).
+Findings from the 2026-06-15 workflow & architecture audit (snapshot retired; execution tracked below).
 
 ### P0 — Data integrity & broken navigation
 
@@ -307,7 +305,7 @@ Findings from [WORKFLOW-ARCHITECTURE-AUDIT.md](archive/WORKFLOW-ARCHITECTURE-AUD
 - [x] **RIE engines:** site input, development control, basement, sustainability, approval readiness.
 - [x] PRE_DESIGN / POST_DESIGN modes; violation engine; relaxation inputs; violations tab.
 - [x] RIE refinements (basement height, rainwater, trees, FAR-excluded area, plinth area).
-- [x] Bylaw two-system model; BBMP modular rule engine (`0033`, `0036`); see `BYLAW-SYSTEMS.md`, `BBMP-IMPLEMENTATION.md`.
+- [x] Bylaw two-system model; BBMP modular rule engine (`0033`, `0036`).
 - [x] Org mode + HR archive; attendance register (replaces timesheets for ASPRF); unified demo + HR gating.
 - [x] Branded compliance PDF via worker; jurisdiction fixtures, auth tests, PDF smoke coverage.
 
@@ -343,7 +341,7 @@ Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolid
 - [x] Shared validation contracts; governed version lifecycle for specification and structural templates (`0021_knowledge_bank_catalogs.sql`).
 - [x] `SpecCatalogManager` (+ `SteelFlowCatalogManager`); `packages/contracts/src/knowledge-bank.ts`.
 - [x] **Specification material catalogue** — `0038_spec_catalog.sql`; `SpecCatalogManager`; project spec sheets resolve from active catalogue.
-- [x] **SteelFlow structural catalogue** — `steelflow-catalog.ts`; span rules; Apply catalogue in workshop; see [STEELFLOW-BOUNDED-CONTEXT.md](STEELFLOW-BOUNDED-CONTEXT.md).
+- [x] **SteelFlow structural catalogue** — `steelflow-catalog.ts`; span rules; Apply catalogue in workshop.
 - [x] Generate editable BBS draft lines from published structural template — SteelFlow workshop + project BBS template apply (`ProjectBbs.tsx`).
 - [x] **BBS engineering fixtures** — `fixtures/bbs-engineering.ts`, `validateBbsSchedule()`; blocks PDF/XLSX export until validation passes (`bbs.validate` tRPC).
 - [x] **Procurement linkage** — PO lines link to project spec rows and catalogue items (`0052_po_spec_link.sql`); spec picker on `ProjectPurchaseOrders`.
@@ -530,7 +528,7 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 ## Phase 14 - Project Programme & Milestones [P1] — ✅ Complete (2026-06-15)
 
-Unified delivery schedule per [archived Additional Brief](archive/ESTI-Additional-Brief-RIE.md): milestones and progress alongside APBF phases and Work-module tasks.
+Unified delivery schedule: milestones and progress alongside APBF phases and Work-module tasks.
 
 - [x] `esti_project_milestone` table (migration `0059`) — title, target date, status, optional phase link
 - [x] Contracts — `MilestoneStatus`, create/update schemas
@@ -632,7 +630,7 @@ Separate **site construction scheduling** (PMC-gated) from the **office delivery
 
 ## Phase 22 — Access level documentation [P1] — ✅ Complete (2026-06-19)
 
-- [x] [ACCESS-MODEL](ACCESS-MODEL.md) — L1–L5 taxonomy, external tier, capability and information matrices, procedure ladder, demo personas
+- [x] [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) — L1–L5 taxonomy, external tier, capability and information matrices, procedure ladder, demo personas
 - [x] `accessLevelForRole`, `externalClassForUser`, `minLevelForCapability`, `accessLabelForUser` in `packages/contracts`
 - [x] `useCapabilities()` exposes `accessLevel` and `isExternal`; Users admin shows Level column
 - [x] Compliance audit log remains L5 (`ownerProcedure`); documented vs `reports:view` (L4)
@@ -727,7 +725,7 @@ Consolidate BBMP rules, site assessments, and project development-control under 
 - [x] Unified `RuleVersionManager` — single jurisdiction rule table; FAR bands in rule-set detail modal
 - [x] `ProjectBylawData` — permits + assessment PDF links; statutory permits relocated from KB
 - [x] User-facing copy — remove separate RIE/BBMP/bylaws headings; site feasibility engines label
-- [x] Docs — `ARCHITECT-PROFILE`, `BYLAW-SYSTEMS` office vs project surfaces
+- [x] Docs — `ARCHITECT-PROFILE` office vs project surfaces
 
 **Gate met:** KB Compliance is rule authoring + site feasibility only; envelope, audit, and permits live exclusively on Project Info §9.
 
@@ -758,16 +756,15 @@ Consolidate BBMP rules, site assessments, and project development-control under 
 
 Establish a canonical design law and audit trail for the Carbon-only AORMS UI, preventing future design debt accumulation.
 
-- [x] `docs/esti/design/DESIGN_LAW.md` — binding design principles (one OS, no rounded corners/shadows, Carbon tokens only)
-- [x] `docs/esti/design/COMPONENT_LIBRARY.md` — approved Carbon component catalogue with AORMS-specific usage notes
-- [x] `docs/esti/design/CARBON_MAPPING.md` — screen pattern → Carbon component → zone mapping reference
-- [x] `docs/esti/design/DESIGN_TOKENS.md` — `--cds-*` token usage rules and forbidden patterns
-- [x] `docs/esti/design/UI_CONSISTENCY_AUDIT.md` — 11-phase audit checklist; P0–P3 violation taxonomy
-- [x] `docs/esti/design/VISUAL_HIERARCHY_GUIDE.md` — type scale, spacing, zone identity colour rules
-- [x] `docs/esti/design/DASHBOARD_RULES.md` — dashboard-specific layout and cognitive display rules
-- [x] `docs/esti/design/DESIGN_SYSTEM.md` — master design system reference (aggregates all above)
+- [x] Design law, component catalogue, Carbon mapping, design tokens, visual
+  hierarchy, dashboard rules, and a master design-system reference were authored
+  under `docs/esti/design/`.
+- [x] **Consolidated 2026-06-25** into the canonical
+  [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md); the source docs were moved to
+  `deprecated_review/design/` and the point-in-time `UI_CONSISTENCY_AUDIT.md` to
+  `deprecated_review/`.
 
-**Gate met:** every future Carbon-only question has an authoritative answer in `docs/esti/design/`; P0 violations (StructuredList crash, token violations) resolved; design law document matches running code.
+**Gate met:** every Carbon-only question has an authoritative answer in [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md); P0 violations (StructuredList crash, token violations) resolved; design law matches running code.
 
 ---
 
@@ -866,8 +863,9 @@ Replace the "show all problems" dashboard pattern with a system that actively pr
 
 Turns the flat `esti_estimate` engine into the component-based **Estimation OS**.
 Specs: [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
-[IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md); sub-phase sequencing in
-[IMPLEMENTATION-ROADMAP](IMPLEMENTATION-ROADMAP.md) (restructure Phase 4 + 6).
+[IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md); sub-phase sequencing in the
+restructure / Construction Cost OS tracker (§ "AORMS restructure & Construction
+Cost OS" below; restructure Phase 4 + 6).
 Extends the existing engine — one component master, never a parallel estimate;
 every change is audited and frozen estimates are snapshotted, never overwritten.
 
@@ -990,3 +988,67 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-21 | Phase 24 — VPS first-deploy hardening; Carbon diagram canvas (ParametricCanvas); `backend/Dockerfile.prod` pnpm workspace node_modules fix |
 
 **Marketing & deploy (2026-06-14+):** card-board landing, visit counter (`0042_site_metrics`), VPS cache-bust deploy fixes, solo/studio demo URLs. Presentation polish on dashboard KPI tiles is independent of phase gates.
+
+---
+
+## AORMS restructure & Construction Cost OS
+
+_Folded 2026-06-25 from the former `IMPLEMENTATION-ROADMAP.md` (now in
+`deprecated_review/`). This is the current forward increment; the phase sections
+above are delivery history. Source designs:
+[INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) ·
+[PLANS-AND-TIERS](PLANS-AND-TIERS.md)._
+
+Sequenced to be **non-breaking at each step**, landing foundations before things
+that depend on them.
+
+| Phase | What | Risk | Depends on |
+|---|---|---|---|
+| **1. Plan & quota foundation** | `plan` on org settings; `Plan`/`PLAN_LIMITS`/`planAllows` in contracts; `settings.get` exposes plan; quota helper; seed (demo = Enterprise); `usePlan` hook. | low | — |
+| **2. Enforce tiers** | Apply `planAllows` gates to nav/features; quota checks on create (team/clients/contractors/projects) with upgrade prompts; Lite hides AI. | med | 1 |
+| **3. Project two-head refactor** | ProjectDetail → **Consultancy \| Project Management** heads; BOQ moves to PM; billing in-project. | med | — |
+| **4. Single Costing & Measurement window** | Consolidate estimates + measurement + BBS + running bills into one staged workspace on a shared item/rate spine (**Estimation OS** — see [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) + [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md)). | med-high | 3 |
+| **5. Global nav restructure** | The 9 areas; Programme/PMC become read-only **portfolio** rollups; Tenders/Construction leave "Office". | med | 3 |
+| **6. Rate analysis capability** | Composite-rate build-up (material+labour+machinery+overhead) feeding the rate-book library and the costing window. | high | 4 |
+| **7. Cleanup** | **Done (2026-06)** — the entire compliance engine (bylaw nav, RIE, BBMP calculator) **and** the public `/compliance-check` SEO tool were removed; persistent spec→rate-book mapping shipped; **"DSR" eliminated → "Rate Books"** everywhere incl. marketing/SEO. | low | — |
+
+**Locked assumptions:** demo = Enterprise, new firms default Lite; Lite keeps basic
+GST invoicing (reconciliation/filing are Core); Core = 25 seats + add-seats; the
+in-product compliance engine **and** the public `/compliance-check` SEO tool are
+**removed** (not retained); **"DSR" is eliminated everywhere → "Rate Books"**
+(product *and* marketing/SEO), keeping only the `dsr` code namespace; rate-analysis
+build-up is net-new (scaffolding tables exist, the engine does not); Estimation OS
+**extends** the existing `esti_estimate` engine — one component master, never a
+parallel estimate.
+
+### Estimation OS sub-phases (restructure Phase 4 + 6)
+
+| OS phase | What | State |
+|---|---|---|
+| **1. Design-Stage Estimation** | `esti_estimate` gains stage + wider status; cost head, calculation type, confidence, % clause parent; freeze → `esti_estimate_version` snapshot. | **Done** |
+| **2. Component + IFC execution detail** | `esti_component` master + `esti_ifc_mapping` catalog + related templates; auto-BOQ via the contracts formula registry. | **Done** |
+| **3. Ratebook + Rate Analysis** | Complete `esti_rate_analysis` build-up; link `componentId`; rate sourced from analysis or rate book. | **Done** |
+| **4. Work packages + running bills** | Group frozen BOQ into contractor packages; running bills check previously-billed qty across the project (double-billing prevention). | **Done** |
+| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. Folded into **CC Phase D**. | Next |
+| **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. Folded into **CC Future**. | Next |
+
+### Construction Cost Management OS (umbrella over Estimation OS)
+
+Lifecycle: estimate → BOQ → rate analysis → BBS → **tender → award → site
+measurement → running bill → deviation/variation → final account**. Spec:
+[CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md).
+
+| CC phase | What | State |
+|---|---|---|
+| **A. BOQ tendering** | Tender BOQ from a frozen estimate version; item-wise contractor quoting + comparison (sealed→revealed, lowest-per-line, XLSX). Migration `0089`. | **Done** (2026-06-25) |
+| **B. Award → Work Order** | `tenders.award` populates a work package from the winning bid; one-shot; audit + activity. | **Done** (2026-06-25) |
+| **C. Site Measurement Book** | `esti_measurement_record` (location/floor/zone/photo, measure→approve→bill); double-billing guard on approved measurements; bill **types** + **deduction block** (→ `net_payable_paise`); running-bill PDF. Migration `0090`. | **Done** (2026-06-25) |
+| **D. Controls** ← **next** | Quantity + rate deviations, **variation orders**, extra items, approval queue. Subsumes Estimation OS Phase 5. | Planned |
+| **E. BBS into the spine** | Link `esti_bbs` → BOQ item / work order / drawing revision; steel reconciliation (issued vs measured). | Planned |
+| **F. Final Account** | `esti_final_account` + closure checklist + closure PDF. | Planned |
+| **G. Cost dashboard + reports** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes. | Planned |
+| **Future** | Procurement forecast, material reconciliation, IFC/CAD extraction. | Deferred |
+
+**Next increment: Phase D (Controls — deviations + variations).** UI governance:
+**Pure Carbon everywhere**, mobile-first portals — see
+[CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).

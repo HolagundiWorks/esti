@@ -130,7 +130,7 @@ export function AiAgentCommand() {
                 placeholder={
                   projectId
                     ? "Ask your office manager about this project…"
-                    : "Ask your office manager — projects, invoices, tasks, compliance…"
+                    : "Ask your office manager — projects, invoices, tasks, deadlines…"
                 }
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -173,7 +173,7 @@ export function AiAgentCommand() {
 
             {turns.length === 0 && !generate.isPending && (
               <p className="esti-label esti-label--secondary">
-                Ask ESTI anything — revisions, invoices, client status, upcoming deadlines, compliance, or team workload.
+                Ask ESTI anything — revisions, invoices, client status, upcoming deadlines, fees, or team workload.
               </p>
             )}
           </Stack>

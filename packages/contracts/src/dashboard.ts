@@ -77,7 +77,6 @@ const DOMAIN_PREFIXES: Record<string, ActivityDomain> = {
   comment: "PROJECT",
   inspection: "PROJECT",
   permit: "PROJECT",
-  bylaw: "PROJECT",
   task: "TEAM",
   leave: "TEAM",
   payslip: "TEAM",

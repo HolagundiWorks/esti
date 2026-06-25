@@ -109,10 +109,10 @@
 ### Knowledge
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| DSR rates, knowledge bank | — | ✓ | ✓ |
+| Rate books, knowledge bank | — | ✓ | ✓ |
 | Analysed-rate library (rate analysis) | — | ✓ | ✓ |
 | Spec catalogue | — | ✓ | ✓ |
-| SteelFlow (BBS) | — | ◐ | ✓ |
+| BBS (Bar Bending Schedule) | — | ◐ | ✓ |
 
 ### Collaboration & portals
 | Feature | Lite | Core | Ent |

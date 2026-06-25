@@ -9,8 +9,6 @@ containers/
 # Both the directory and its contents must be explicitly un-excluded.
 !vendor/hcw-aorms-ai-kit/dist/
 !vendor/hcw-aorms-ai-kit/dist/**
-!vendor/hcw-india-compliance-kit/dist/
-!vendor/hcw-india-compliance-kit/dist/**
 !vendor/hcw-master-dsr-kit/dist/
 !vendor/hcw-master-dsr-kit/dist/**
 **/.venv/

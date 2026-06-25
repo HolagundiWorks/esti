@@ -17,7 +17,3 @@ engine that consumes these inputs is a product concern, documented canonically i
 and [`docs/esti/IFC-COMPONENT-MAPPING.md`](../esti/IFC-COMPONENT-MAPPING.md)
 (promoted here from this folder — they are product architecture, not firm
 practice).
-
-> `bylaws_compliance_engine_agent_spec.md` in this folder is **superseded**: the
-> in-product RIE/compliance engine was removed; the file remains for historical
-> reference only.

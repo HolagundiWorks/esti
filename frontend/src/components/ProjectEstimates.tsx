@@ -383,7 +383,7 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               )}
             </h4>
             {open.dsrVersionId ? (
-              <Tag type="blue">DSR: {dsrLabel ?? open.dsrVersionId}</Tag>
+              <Tag type="blue">Rate book: {dsrLabel ?? open.dsrVersionId}</Tag>
             ) : (
               open.status === "DRAFT" && (
                 <Select
@@ -533,8 +533,8 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
                   {(takeoffPreviewQ.data?.unmatchedDsrCount ?? 0) > 0 && (
                     <span style={{ color: "var(--cds-support-warning)" }}>
                       {" "}
-                      · {(takeoffPreviewQ.data?.unmatchedDsrCount ?? 0)} line(s) without DSR
-                      match (rate ₹0 until mapped in master DSR)
+                      · {(takeoffPreviewQ.data?.unmatchedDsrCount ?? 0)} line(s) without a rate book
+                      match (rate ₹0 until mapped in the rate book)
                     </span>
                   )}
                 </p>
