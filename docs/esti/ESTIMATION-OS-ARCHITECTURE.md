@@ -1626,6 +1626,35 @@ Double billing prevention
 Bill approval
 ```
 
+**Status: Implemented (additive extension of the running-bill spine).**
+
+- **Schema** (migration `0088_work_packages_bills.sql`): `esti_work_package`
+  (`ref`, `estimateId`, `estimateVersionId` frozen baseline, `contractorId`,
+  `packageType`, `status` DRAFT→ISSUED→AWARDED→ACTIVE→CLOSED, `contractValuePaise`)
+  and `esti_work_package_item` (`boqItemId` → `esti_estimate_item`, `approvedQty`,
+  `variationQty` manual allowance, `ratePaise`). `esti_running_bill` gains
+  `work_package_id`; `esti_running_bill_item` gains `work_package_item_id`,
+  `boq_item_id`, `component_id`, and the `previous_billed_qty` /
+  `cumulative_billed_qty` / `balance_qty` ledger columns (all nullable/additive —
+  free-text bills keep working).
+- **Double-billing prevention (Rule 9):** `billableBalance()` in
+  `packages/contracts/src/pmc.ts` computes `approved + variation − previously
+  billed`; `runningBills.create` sums prior billed qty per `boqItemId` across the
+  project (so the same quantity can't be billed twice, even across two packages
+  sharing a BOQ line) and throws `BAD_REQUEST` on over-bill. Unit-tested in
+  `pmc.test.ts`.
+- **Backend:** `workPackages` namespace (`backend/src/modules/boq/workPackage.ts`)
+  — `createFromEstimate` (carves measurable lines from a frozen version, optional
+  cost-head filter), item CRUD, `setStatus`/`assignContractor`, `billedSummary`
+  (approved/billed/balance ledger). `costing` plan feature + audit on every write.
+- **Frontend (Pure Carbon):** office `WorkPackages.tsx` (a "Work packages" stage
+  in the Costing & Measurement window) + package-driven running-bill creation with
+  inline over-bill blocking; the contractor portal shows the approved balance per
+  measured line.
+- **Deferred:** full deviation/escalation engine (Phase 5 — only a manual
+  `variationQty` allowance today); IFC re-sync (Phase 6); running-bill PDF (no
+  worker target exists yet, so its absence is not a regression).
+
 ## Phase 5 — Deviations + Escalation
 
 ```text

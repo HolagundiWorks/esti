@@ -106,6 +106,8 @@ export const runningBills = pgTable("esti_running_bill", {
     .notNull()
     .references(() => projectOffices.id, { onDelete: "cascade" }),
   contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "set null" }),
+  /** Work package this bill measures against (Estimation OS Phase 4). */
+  workPackageId: uuid("work_package_id").references(() => workPackages.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   status: text("status").notNull().default("MEASURED"),
   measurementDate: date("measurement_date"),
@@ -125,6 +127,60 @@ export const runningBillItems = pgTable("esti_running_bill_item", {
   description: text("description").notNull(),
   unit: text("unit").notNull(),
   qty: doublePrecision("qty").notNull().default(0),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  // Estimation OS Phase 4 — measurement-record links + cumulative tracking.
+  // Nullable: free-text lines leave these unset. FKs to the cross-module
+  // estimate/component tables are added in the migration (avoids a cycle).
+  workPackageItemId: uuid("work_package_item_id").references(() => workPackageItems.id, {
+    onDelete: "set null",
+  }),
+  boqItemId: uuid("boq_item_id"),
+  componentId: uuid("component_id"),
+  previousBilledQty: doublePrecision("previous_billed_qty").notNull().default(0),
+  cumulativeBilledQty: doublePrecision("cumulative_billed_qty").notNull().default(0),
+  balanceQty: doublePrecision("balance_qty").notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/**
+ * Estimation OS Phase 4 — work packages group approved (frozen) BOQ items into
+ * contractor packages; running bills then measure against package items with
+ * double-billing prevention. `estimate_id` / `estimate_version_id` /
+ * `boq_item_id` / `component_id` are plain uuids here (FK constraints added in
+ * the migration) to avoid a schema-module import cycle.
+ */
+export const workPackages = pgTable("esti_work_package", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  estimateId: uuid("estimate_id").notNull(),
+  estimateVersionId: uuid("estimate_version_id"),
+  contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  packageType: text("package_type").notNull().default("CIVIL"),
+  status: text("status").notNull().default("DRAFT"),
+  contractValuePaise: bigint("contract_value_paise", { mode: "number" }).notNull().default(0),
+  notes: text("notes"),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const workPackageItems = pgTable("esti_work_package_item", {
+  id: id(),
+  workPackageId: uuid("work_package_id")
+    .notNull()
+    .references(() => workPackages.id, { onDelete: "cascade" }),
+  boqItemId: uuid("boq_item_id"),
+  componentId: uuid("component_id"),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  approvedQty: doublePrecision("approved_qty").notNull().default(0),
+  variationQty: doublePrecision("variation_qty").notNull().default(0),
   ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
   amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),

@@ -68,6 +68,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [27](#phase-27---aorms-cognition-engine-and-primary-office-attention-p1) | AORMS Cognition Engine & Primary Office Attention | P1 | ✅ |
 | [28](#phase-28---executive-cognitive-load-engine-p1) | Executive Cognitive Load Engine | P1 | ✅ |
 | [29](#phase-29---estimation-os-costing-spine-p1) | Estimation OS — costing spine (OS Phases 1–3) | P1 | 🔄 |
+| [30](#phase-30---estimation-os-work-packages--running-bills-p1) | Estimation OS — work packages + running bills (OS Phase 4) | P1 | ✅ |
 
 ---
 
@@ -882,8 +883,9 @@ every change is audited and frozen estimates are snapshotted, never overwritten.
 - **Ratebook + rate analysis** — complete the existing
   `esti_rate_analysis`/`esti_rate_component` build-up and link component rates.
 
-**Deferred (OS Phases 4–6):** work packages, running bills (double-billing
-prevention), deviations/escalation, IFC re-sync — overlaps PMC/site-delivery.
+**Done (OS Phase 4 — see Phase 30):** work packages + running bills with
+double-billing prevention. **Deferred (OS Phases 5–6):** deviations/escalation,
+IFC re-sync — overlaps PMC/site-delivery.
 
 **Gate:** new `esti_component*`/`esti_estimate_version`/`esti_estimate_component`
 tables migrated; a design-stage estimate with a % clause and a non-modeled item
@@ -896,6 +898,38 @@ carbon-check + worker pytest clean.
 > tabs describe features **removed** in the 2026-06 Knowledge-Bank cleanup
 > (RIE/compliance engine, BBMP calculator, SteelFlow `sf_*`). Their phase
 > sections are retained as delivery history but no longer describe live product.
+
+---
+
+## Phase 30 — Estimation OS: work packages + running bills [P1] — ✅ Complete (2026-06-25)
+
+OS Phase 4. Closes the loop from frozen estimate to contractor billing on **one
+spine** — no parallel bill engine. Additive, non-breaking extension of the
+existing `esti_running_bill` flow (free-text bills keep working).
+
+- **Work packages** (`esti_work_package` / `esti_work_package_item`, migration
+  `0088`) — carved from a **frozen** `esti_estimate_version`; each item references
+  its `boqItemId` (→ `esti_estimate_item`) with an approved qty, a manual
+  `variationQty` allowance, and a rate. Status DRAFT→ISSUED→AWARDED→ACTIVE→CLOSED;
+  contractor assignment; `workPackages` tRPC namespace + `billedSummary` ledger.
+- **Double-billing prevention (spec Rule 9)** — `billableBalance()` in
+  `packages/contracts/src/pmc.ts` (`approved + variation − previously billed`);
+  `runningBills.create` sums prior billed qty per `boqItemId` across the project
+  and rejects an over-bill (`BAD_REQUEST`), even when two packages share a BOQ
+  line. Unit-tested in `pmc.test.ts`.
+- **UI (Pure Carbon)** — a "Work packages" stage in the project Costing &
+  Measurement window; package-driven bill creation with inline over-bill blocking;
+  the contractor portal shows the approved balance per measured line.
+
+**Gate:** migration `0088` applied (work-package tables + nullable ledger columns
+on `esti_running_bill*`); a bill against a package item at qty ≤ balance succeeds
+and qty > balance is blocked both server-side and in the UI; contractor portal
+returns balances; contracts build + `pmc.test.ts`, backend + frontend typecheck,
+and carbon-check clean.
+
+**Deferred (OS Phases 5–6):** deviation/escalation engine (only a manual
+`variationQty` allowance today); IFC re-sync; running-bill PDF (no worker target
+exists yet, so its absence is not a regression).
 
 ---
 

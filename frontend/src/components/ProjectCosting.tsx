@@ -11,6 +11,7 @@ import { ArrowRight } from "@carbon/icons-react";
 import { Fragment } from "react";
 import { ProjectEstimates } from "./ProjectEstimates.js";
 import { CostingWindow } from "./estimation/CostingWindow.js";
+import { WorkPackages } from "./estimation/WorkPackages.js";
 import { ProjectBbs } from "./ProjectBbs.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 
@@ -27,6 +28,7 @@ const SPINE: { key: string; label: string; office?: boolean }[] = [
   { key: "rate-analysis", label: "Rate analysis", office: true },
   { key: "estimation", label: "Estimation & BOQ" },
   { key: "costing", label: "Costing" },
+  { key: "packages", label: "Work packages" },
   { key: "measurement", label: "Site measurement" },
   { key: "bills", label: "RA bills" },
   { key: "submissions", label: "Submissions" },
@@ -69,6 +71,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           <Tab>Estimation &amp; BOQ</Tab>
           <Tab>Design &amp; components</Tab>
           <Tab>Bar bending schedule</Tab>
+          {showBills && <Tab>Work packages</Tab>}
           {showBills && <Tab>Site measurement &amp; RA bills</Tab>}
         </TabList>
         <TabPanels>
@@ -90,6 +93,14 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
               <ProjectBbs projectId={projectId} />
             </Stack>
           </TabPanel>
+          {showBills && (
+            <TabPanel>
+              <Stack gap={5}>
+                <SpineRail active="packages" />
+                <WorkPackages projectId={projectId} />
+              </Stack>
+            </TabPanel>
+          )}
           {showBills && (
             <TabPanel>
               <Stack gap={5}>
