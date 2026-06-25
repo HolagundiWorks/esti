@@ -162,8 +162,9 @@ GST rates, SAC codes)
 - `ruleVersions` / `siteAssessments` — RIE knowledge bank and site assessments
   (`backend/src/modules/rie/router.ts`; contracts in `packages/contracts/src/rie.ts`)
 - `knowledgeBank` — knowledge catalog
-- `bylaws` — building bylaw rules; `bylawCalc` — bylaw compliance calculator
-  (both from `backend/src/modules/bylaw/`)
+- `bbmpRules` — BBMP bye-law reference rules feeding the RIE compliance engine
+  (`backend/src/modules/bylaw/bbmpRules.ts`; the in-product bylaw calculator was
+  removed in Phase 7 — only the shared rule reference remains)
 
 **Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
