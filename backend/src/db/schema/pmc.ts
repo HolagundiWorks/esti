@@ -365,3 +365,49 @@ export const variationItems = pgTable("esti_variation_item", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });
+
+/**
+ * Construction Cost OS Phase E — steel reconciliation. Per diameter, it compares
+ * the steel SCHEDULED (auto-seeded from the linked BBS) against the steel ISSUED
+ * (store → site) and CONSUMED (measured / placed); the gap is wastage. A two-state
+ * record (DRAFT → FINALIZED); FINALIZED locks editing and is gated by
+ * `cost:approve`. `work_package_id` / `bbs_id` are plain uuids (FKs added in the
+ * migration to avoid a schema-module import cycle). Quantities are kilograms.
+ */
+export const steelReconciliations = pgTable("esti_steel_reconciliation", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workPackageId: uuid("work_package_id"),
+  bbsId: uuid("bbs_id"),
+  title: text("title").notNull(),
+  status: text("status").notNull().default("DRAFT"),
+  notes: text("notes"),
+  /** Stamped totals (Σ of line columns) refreshed on every line change. */
+  scheduledKg: doublePrecision("scheduled_kg").notNull().default(0),
+  issuedKg: doublePrecision("issued_kg").notNull().default(0),
+  consumedKg: doublePrecision("consumed_kg").notNull().default(0),
+  wastageKg: doublePrecision("wastage_kg").notNull().default(0),
+  finalizedById: uuid("finalized_by_id").references(() => users.id, { onDelete: "set null" }),
+  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const steelReconciliationItems = pgTable("esti_steel_reconciliation_item", {
+  id: id(),
+  reconciliationId: uuid("reconciliation_id")
+    .notNull()
+    .references(() => steelReconciliations.id, { onDelete: "cascade" }),
+  diaMm: integer("dia_mm").notNull(),
+  scheduledKg: doublePrecision("scheduled_kg").notNull().default(0),
+  issuedKg: doublePrecision("issued_kg").notNull().default(0),
+  consumedKg: doublePrecision("consumed_kg").notNull().default(0),
+  /** Stored: issued − consumed. */
+  wastageKg: doublePrecision("wastage_kg").notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});

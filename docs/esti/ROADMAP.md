@@ -1046,11 +1046,11 @@ measurement → running bill → deviation/variation → final account**. Spec:
 | **B. Award → Work Order** | `tenders.award` populates a work package from the winning bid; one-shot; audit + activity. | **Done** (2026-06-25) |
 | **C. Site Measurement Book** | `esti_measurement_record` (location/floor/zone/photo, measure→approve→bill); double-billing guard on approved measurements; bill **types** + **deduction block** (→ `net_payable_paise`); running-bill PDF. Migration `0090`. | **Done** (2026-06-25) |
 | **D. Controls** | Quantity + rate deviations (rate is document-and-approve only — never overwrites the contract, Rule 5); **variation orders** + extra items via a two-step ladder (Draft → Submitted → Internal → Client → **Apply** → Closed); Apply is the only writer of the `variationQty` ledger (existing lines + self-keyed extra-item lines). New `cost:approve` gate. Migration `0091`. Subsumes Estimation OS Phase 5. | **Done** (2026-06-25) |
-| **E. BBS into the spine** ← **next** | Link `esti_bbs` → BOQ item / work order / drawing revision; steel reconciliation (issued vs measured). | Planned |
-| **F. Final Account** | `esti_final_account` + closure checklist + closure PDF. | Planned |
+| **E. BBS into the spine + Steel reconciliation** | `esti_bbs` linked to work package / BOQ line (Rule 9 plain-uuid ledger key) / drawing (`bbs.link`); optional `floor` + diameter/floor summaries; `esti_steel_reconciliation` (per-diameter scheduled-from-BBS vs issued vs consumed; `wastage = issued − consumed` + severity ladder; **DRAFT → FINALIZED**, finalize `cost:approve`-gated, locks edits). Migration `0092`. *Deferred:* steel-recon PDF, full-BBS fields (shape/lap/Ld/hook/bend), measurement-book/GRN-derived consumption. | **Done** (2026-06-25) |
+| **F. Final Account** ← **next** | `esti_final_account` + closure checklist + closure PDF. | Planned |
 | **G. Cost dashboard + reports** | `dashboard.constructionCost`; package/contractor/deviation/billing summaries; AI risk notes. | Planned |
 | **Future** | Procurement forecast, material reconciliation, IFC/CAD extraction. | Deferred |
 
-**Next increment: Phase E (BBS into the spine + steel reconciliation).** UI governance:
+**Next increment: Phase F (Final Account + closure).** UI governance:
 **Pure Carbon everywhere**, mobile-first portals — see
 [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).

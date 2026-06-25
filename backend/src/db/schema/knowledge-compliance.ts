@@ -159,7 +159,13 @@ export const rateComponents = pgTable("esti_rate_component", {
   createdAt: createdAt(),
 });
 
-/** Bar Bending Schedule — Phase 10. */
+/**
+ * Bar Bending Schedule — Phase 10; linked into the Construction Cost OS spine in
+ * Phase E. `work_package_id` / `boq_item_id` / `drawing_id` tie a schedule to the
+ * package / BOQ line / drawing revision it reinforces. They are plain uuids here
+ * (FKs added in the migration) to avoid a schema-module import cycle; `boq_item_id`
+ * is a Rule 9 ledger key and stays FK-free.
+ */
 export const bbsSchedules = pgTable("esti_bbs", {
   id: id(),
   ref: text("ref").unique(),
@@ -168,6 +174,9 @@ export const bbsSchedules = pgTable("esti_bbs", {
     .references(() => projectOffices.id),
   title: text("title").notNull(),
   versionNo: integer("version_no").notNull().default(1),
+  workPackageId: uuid("work_package_id"),
+  boqItemId: uuid("boq_item_id"),
+  drawingId: uuid("drawing_id"),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
@@ -185,6 +194,8 @@ export const bbsItems = pgTable("esti_bbs_item", {
   barsPerMember: integer("bars_per_member").notNull().default(1),
   cuttingLengthMm: doublePrecision("cutting_length_mm").notNull().default(0),
   weightKg: doublePrecision("weight_kg").notNull().default(0),
+  /** Optional floor / level label for floor-wise steel roll-ups (Phase E). */
+  floor: text("floor"),
   createdAt: createdAt(),
 });
 

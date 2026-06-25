@@ -107,6 +107,7 @@ export const BbsImportRow = z.object({
   noOfMembers: z.number().int().positive().default(1),
   barsPerMember: z.number().int().positive().default(1),
   cuttingLengthMm: z.number().positive(),
+  floor: z.string().max(80).optional(),
 });
 export type BbsImportRow = z.infer<typeof BbsImportRow>;
 
@@ -211,6 +212,8 @@ export const BbsItemCreate = z.object({
   noOfMembers: z.number().int().positive().default(1),
   barsPerMember: z.number().int().positive().default(1),
   cuttingLengthMm: z.number().positive(),
+  /** Optional floor / level label for floor-wise steel roll-ups (Phase E). */
+  floor: z.string().max(80).optional(),
 });
 export type BbsItemCreate = z.infer<typeof BbsItemCreate>;
 
