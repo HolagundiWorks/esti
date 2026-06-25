@@ -44,8 +44,9 @@ export const CORE_STORAGE_BYTES = 200 * 1024 * 1024 * 1024;
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   LITE: {
-    // Lite is a fixed workspace — staff creation is blocked entirely; the seeded
-    // roster is 3 general staff and no functional (accountant/HR) seats.
+    // Lite admins create up to 3 general staff logins directly (no functional
+    // accountant/HR seats). Clients, contractors, consultants and projects stay
+    // a fixed, pre-seeded set the admin activates rather than adds to.
     accountants: 0,
     hrManagers: 0,
     staff: 3,

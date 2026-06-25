@@ -20,8 +20,9 @@ const PLANS: Array<{
     pitch: "Start with shared office memory before the practice becomes too scattered.",
     price: "Free",
     priceNote: "Forever",
-    caps: "Fixed workspace · 1 admin + 3 staff · 5 clients · 5 contractors · 5 projects · 5 GB",
+    caps: "1 admin + up to 3 staff · 5 clients · 5 contractors · 5 projects · 5 GB",
     features: [
+      "Create your own staff logins (up to 3)",
       "Clients, projects & decision log",
       "Drawings, transmittals & approval records",
       "Documents, specifications & office evidence",
