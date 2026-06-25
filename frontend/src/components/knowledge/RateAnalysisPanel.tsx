@@ -188,7 +188,7 @@ function RateAnalysisDetail({ id }: { id: string }) {
               </div>
               <div>
                 <p className="esti-label--secondary">Analysed rate</p>
-                <p style={{ fontWeight: 600 }}>{formatINR(liveAnalysed)} / {analysis.unit}</p>
+                <p><strong>{formatINR(liveAnalysed)}</strong> / {analysis.unit}</p>
               </div>
             </Stack>
           </Tile>

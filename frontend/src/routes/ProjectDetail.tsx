@@ -20,12 +20,10 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
-import { ProjectBbs } from "../components/ProjectBbs.js";
+import { ProjectCosting } from "../components/ProjectCosting.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
-import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectExpenses } from "../components/ProjectExpenses.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
-import { ProjectRunningBills } from "../components/ProjectRunningBills.js";
 import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
@@ -132,21 +130,13 @@ export function ProjectDetail() {
       pmcTabs.push({ slug: "pmc", label: "PMC control", panel: <ProjectPmc projectId={id} /> });
     }
     if (showCosting) {
-      // Phase 4 will consolidate these into one Costing & Measurement window;
-      // for now they sit together at the top of the PM head.
+      // Phase 4: single Costing & Measurement window across the delivery spine.
+      // Site-measurement / RA-bill stages only apply to PMC engagements.
       pmcTabs.push({
         slug: "costing",
-        label: "BOQ & costing",
-        panel: (
-          <>
-            <ProjectEstimates projectId={id} />
-            <ProjectBbs projectId={id} />
-          </>
-        ),
+        label: "Costing & Measurement",
+        panel: <ProjectCosting projectId={id} showBills={showPmc} />,
       });
-      if (showPmc) {
-        pmcTabs.push({ slug: "running-bills", label: "Running bills", panel: <ProjectRunningBills projectId={id} /> });
-      }
       pmcTabs.push({ slug: "expenses", label: "Expenses", panel: <ProjectExpenses projectId={id} /> });
       pmcTabs.push({ slug: "purchase-orders", label: "Purchase orders", panel: <ProjectPurchaseOrders projectId={id} /> });
     }
@@ -163,7 +153,12 @@ export function ProjectDetail() {
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
   const rawTab = searchParams.get("tab") ?? "overview";
-  const tabSlug = rawTab === "compliance" ? "info" : rawTab;
+  const tabSlug =
+    rawTab === "compliance"
+      ? "info"
+      : rawTab === "running-bills"
+        ? "costing"
+        : rawTab;
   const tabIndex = Math.max(
     0,
     projectTabs.findIndex((t) => t.slug === tabSlug),
