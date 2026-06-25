@@ -10,6 +10,12 @@ import {
   Select,
   SelectItem,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Tag,
   TextArea,
   TextInput,
@@ -23,6 +29,7 @@ import {
   RUNNING_BILL_STATUS_LABEL,
   TENDER_DOCUMENT_KIND_LABEL,
   TENDER_STATUS_TAG,
+  tenderItemAmount,
   type ConstructionKind as ConstructionKindT,
   type RunningBillStatus,
   type TenderStatus,
@@ -44,8 +51,15 @@ export function ContractorPortal() {
   const docsQ = trpc.contractorPortal.projectDocuments.useQuery(undefined, {
     enabled: !!q.data?.tender,
   });
-  const refresh = () => utils.contractorPortal.mySpace.invalidate();
+  const itemsQ = trpc.contractorPortal.tenderItems.useQuery(undefined, {
+    enabled: !!q.data?.tender,
+  });
+  const refresh = () => {
+    void utils.contractorPortal.mySpace.invalidate();
+    void utils.contractorPortal.tenderItems.invalidate();
+  };
   const submit = trpc.contractorPortal.submitBid.useMutation({ onSuccess: refresh });
+  const submitItems = trpc.contractorPortal.submitItemBid.useMutation({ onSuccess: refresh });
   const decline = trpc.contractorPortal.decline.useMutation({ onSuccess: refresh });
   const ackDoc = trpc.contractorPortal.ackDocument.useMutation({ onSuccess: refresh });
   const submitCoord = trpc.contractorPortal.submitCoordination.useMutation({
@@ -65,6 +79,8 @@ export function ContractorPortal() {
 
   const [form, setForm] = useState({ rupees: "", weeks: "", technical: "", notes: "" });
   const [coordForm, setCoordForm] = useState({ kind: "RFI" as ConstructionKindT, subject: "", body: "" });
+  // Item-wise rate entry — keyed by tenderItemId, rupee strings seeded from saved rates.
+  const [rates, setRates] = useState<Record<string, string>>({});
 
   const bid = q.data?.bid;
   useEffect(() => {
@@ -77,6 +93,24 @@ export function ContractorPortal() {
       });
     }
   }, [bid]);
+
+  const boqItems = itemsQ.data?.items ?? [];
+  const hasItems = boqItems.length > 0;
+  useEffect(() => {
+    if (boqItems.length > 0) {
+      setRates((prev) => {
+        const next = { ...prev };
+        for (const it of boqItems) {
+          if (next[it.id] === undefined) next[it.id] = it.ratePaise != null ? String(it.ratePaise / 100) : "";
+        }
+        return next;
+      });
+    }
+  }, [boqItems]);
+  const itemBidTotal = boqItems.reduce(
+    (sum, it) => sum + tenderItemAmount(it.qty, Math.round(Number(rates[it.id] || 0) * 100)),
+    0,
+  );
 
   const d = q.data;
   const firm = d?.firmName ?? "ESTI";
@@ -196,7 +230,54 @@ export function ContractorPortal() {
               />
             ) : null}
 
-            {!readOnly && (
+            {!readOnly && hasItems && (
+            <Tile>
+              <Stack gap={5}>
+                <h4>{bid ? "Your item rates" : "Quote your rates"}</h4>
+                <p className="esti-label esti-label--secondary">Enter a rate per BOQ line — your total is calculated for you.</p>
+                <Table size="lg">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Item</TableHeader>
+                      <TableHeader>Qty</TableHeader>
+                      <TableHeader>Rate (₹)</TableHeader>
+                      <TableHeader>Amount</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {boqItems.map((it) => (
+                      <TableRow key={it.id}>
+                        <TableCell>{it.description}</TableCell>
+                        <TableCell>{it.qty} {it.unit}</TableCell>
+                        <TableCell>
+                          <TextInput id={`r-${it.id}`} labelText="Rate" hideLabel type="number" size="lg" disabled={!d.tender.open}
+                            value={rates[it.id] ?? ""} onChange={(e) => setRates((p) => ({ ...p, [it.id]: e.target.value }))} />
+                        </TableCell>
+                        <TableCell>{formatINR(tenderItemAmount(it.qty, Math.round(Number(rates[it.id] || 0) * 100)), { paise: false })}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <p><strong>Total: {formatINR(itemBidTotal, { paise: false })}</strong></p>
+                <Stack gap={3}>
+                  <Button size="lg"
+                    disabled={!d.tender.open || submitItems.isPending || d.pendingAddendaCount > 0 || boqItems.every((it) => !rates[it.id])}
+                    onClick={() => submitItems.mutate({ items: boqItems.map((it) => ({ tenderItemId: it.id, ratePaise: Math.round(Number(rates[it.id] || 0) * 100) })) })}
+                  >
+                    {submitItems.isPending ? "Submitting…" : bid ? "Update rates" : "Submit rates"}
+                  </Button>
+                  {d.tender.open && (
+                    <Button size="lg" kind="danger--tertiary" disabled={decline.isPending} onClick={() => decline.mutate()}>
+                      Decline invitation
+                    </Button>
+                  )}
+                </Stack>
+                {submitItems.error && <InlineNotification kind="error" title="Could not submit" subtitle={submitItems.error.message} hideCloseButton lowContrast />}
+              </Stack>
+            </Tile>
+            )}
+
+            {!readOnly && !hasItems && (
             <Tile>
               <Stack gap={5}>
                 <h4>{bid ? "Your bid" : "Submit your bid"}</h4>

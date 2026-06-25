@@ -110,26 +110,70 @@ export const RUNNING_BILL_STATUS_LABEL: Record<RunningBillStatus, string> = {
   SENT_TO_CLIENT: "Sent to client",
 };
 
-export const RunningBillCreate = z.object({
-  projectId: z.string().uuid(),
-  contractorId: z.string().uuid().optional(),
-  /** Optional work package this bill measures against (Estimation OS Phase 4). */
-  workPackageId: z.string().uuid().nullable().optional(),
-  title: z.string().min(2).max(200),
-  measurementDate: z.string().date().optional(),
-  notes: z.string().max(4000).optional(),
-  items: z.array(z.object({
-    description: z.string().min(1).max(400),
-    unit: z.string().min(1).max(20),
-    qty: z.number().nonnegative(),
-    ratePaise: z.number().int().nonnegative().default(0),
-    /** Estimation OS links — when set, the bill is checked against the BOQ
-     * balance so nothing is billed twice. Free-text lines omit these. */
-    workPackageItemId: z.string().uuid().nullable().optional(),
-    boqItemId: z.string().uuid().nullable().optional(),
-    componentId: z.string().uuid().nullable().optional(),
-  })).min(1).max(100),
+// --- Bill types + deductions (Construction Cost OS Phase C) ------------------
+// A running bill is no longer just Σ(qty×rate): it carries a type and a
+// deduction block (retention / advance recovery / tax-TDS / other recoveries)
+// that yield the net payable to the contractor.
+
+export const BillType = z.enum([
+  "RA",
+  "FINAL",
+  "EXTRA_ITEM",
+  "VARIATION",
+  "ADVANCE_RECOVERY",
+  "RETENTION_RELEASE",
+]);
+export type BillType = z.infer<typeof BillType>;
+
+export const BILL_TYPE_LABEL: Record<BillType, string> = {
+  RA: "Running account (RA) bill",
+  FINAL: "Final bill",
+  EXTRA_ITEM: "Extra item bill",
+  VARIATION: "Variation bill",
+  ADVANCE_RECOVERY: "Advance recovery",
+  RETENTION_RELEASE: "Retention release",
+};
+
+/** Per-bill deductions (integer paise). Net payable = gross − Σ(deductions). */
+export const BillDeductions = z.object({
+  retentionPaise: z.number().int().nonnegative().default(0),
+  advanceRecoveryPaise: z.number().int().nonnegative().default(0),
+  taxTdsPaise: z.number().int().nonnegative().default(0),
+  otherRecoveryPaise: z.number().int().nonnegative().default(0),
 });
+export type BillDeductions = z.infer<typeof BillDeductions>;
+
+export const RunningBillCreate = z
+  .object({
+    projectId: z.string().uuid(),
+    contractorId: z.string().uuid().optional(),
+    /** Work package this bill measures against (Construction Cost OS Phase 4/C). */
+    workPackageId: z.string().uuid().nullable().optional(),
+    title: z.string().min(2).max(200),
+    billType: BillType.default("RA"),
+    measurementDate: z.string().date().optional(),
+    notes: z.string().max(4000).optional(),
+    deductions: BillDeductions.optional(),
+    /** Phase C (strict): BOQ/work-package quantities are billed only via an
+     * approved site-measurement record. The server resolves each record's
+     * qty/rate/BOQ link, so nothing can be billed twice. */
+    measurementRecordIds: z.array(z.string().uuid()).max(200).optional(),
+    /** Free-text (non-BOQ) lines — extras with no measurement record. */
+    items: z
+      .array(
+        z.object({
+          description: z.string().min(1).max(400),
+          unit: z.string().min(1).max(20),
+          qty: z.number().nonnegative(),
+          ratePaise: z.number().int().nonnegative().default(0),
+        }),
+      )
+      .max(100)
+      .optional(),
+  })
+  .refine((v) => (v.measurementRecordIds?.length ?? 0) > 0 || (v.items?.length ?? 0) > 0, {
+    message: "A bill needs at least one approved measurement or a free-text line.",
+  });
 export type RunningBillCreate = z.infer<typeof RunningBillCreate>;
 
 export const RunningBillAdvance = z.object({
@@ -139,6 +183,81 @@ export const RunningBillAdvance = z.object({
   note: z.string().max(2000).optional(),
 });
 export type RunningBillAdvance = z.infer<typeof RunningBillAdvance>;
+
+// --- Site Measurement Book (Construction Cost OS Phase C) --------------------
+// A measurement is taken on site against a work-package (BOQ) line — carrying
+// location/floor/zone, photo evidence, measured-by/checked-by — then approved
+// before it can be billed. The double-billing guard runs at approval time, so
+// approved measurements (not raw bill lines) are the unit of billable balance.
+
+export const MeasurementStatus = z.enum(["MEASURED", "APPROVED", "REJECTED", "BILLED"]);
+export type MeasurementStatus = z.infer<typeof MeasurementStatus>;
+
+export const MEASUREMENT_STATUS_LABEL: Record<MeasurementStatus, string> = {
+  MEASURED: "Measured",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  BILLED: "Billed",
+};
+
+export const MeasurementRecordCreate = z.object({
+  projectId: z.string().uuid(),
+  workPackageId: z.string().uuid(),
+  /** The BOQ/work-package line this measurement is against. Server derives the
+   * description, unit, BOQ item + component links from it. */
+  workPackageItemId: z.string().uuid(),
+  qty: z.number().nonnegative(),
+  location: z.string().max(200).optional(),
+  floor: z.string().max(100).optional(),
+  zone: z.string().max(100).optional(),
+  /** Object-storage key for photo evidence (upload UI is a later pass). */
+  photoKey: z.string().max(400).optional(),
+  measuredByName: z.string().max(200).optional(),
+  notes: z.string().max(2000).optional(),
+});
+export type MeasurementRecordCreate = z.infer<typeof MeasurementRecordCreate>;
+
+export const MeasurementRecordApprove = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  checkedByName: z.string().max(200).optional(),
+});
+export type MeasurementRecordApprove = z.infer<typeof MeasurementRecordApprove>;
+
+export const MeasurementRecordReject = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  reason: z.string().min(2).max(2000),
+});
+export type MeasurementRecordReject = z.infer<typeof MeasurementRecordReject>;
+
+/** Σ of a bill's deductions (paise). */
+export function billDeductionTotal(d?: Partial<BillDeductions> | null): number {
+  if (!d) return 0;
+  return (
+    (d.retentionPaise ?? 0) +
+    (d.advanceRecoveryPaise ?? 0) +
+    (d.taxTdsPaise ?? 0) +
+    (d.otherRecoveryPaise ?? 0)
+  );
+}
+
+/** Net payable to the contractor: gross − Σ(deductions). May be ≤ 0; the caller
+ * decides how to surface an over-deducted bill. */
+export function netPayable(grossPaise: number, d?: Partial<BillDeductions> | null): number {
+  return Math.round(grossPaise) - billDeductionTotal(d);
+}
+
+/** Normalised dedupe key for a measurement location (case/space-insensitive),
+ * so the same physical spot isn't measured twice on one BOQ line. */
+export function measurementLocationKey(input: {
+  location?: string | null;
+  floor?: string | null;
+  zone?: string | null;
+}): string {
+  const norm = (s?: string | null) => (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  return [norm(input.floor), norm(input.zone), norm(input.location)].join("|");
+}
 
 // --- Work packages (Estimation OS Phase 4) ----------------------------------
 // Approved (frozen) estimate items are grouped into contractor packages. A

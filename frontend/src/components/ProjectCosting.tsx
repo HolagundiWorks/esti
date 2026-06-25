@@ -13,6 +13,7 @@ import { ProjectEstimates } from "./ProjectEstimates.js";
 import { CostingWindow } from "./estimation/CostingWindow.js";
 import { WorkPackages } from "./estimation/WorkPackages.js";
 import { ProjectBbs } from "./ProjectBbs.js";
+import { ProjectMeasurementBook } from "./ProjectMeasurementBook.js";
 import { ProjectRunningBills } from "./ProjectRunningBills.js";
 
 /**
@@ -103,8 +104,9 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           )}
           {showBills && (
             <TabPanel>
-              <Stack gap={5}>
+              <Stack gap={7}>
                 <SpineRail active="measurement" />
+                <ProjectMeasurementBook projectId={projectId} />
                 <ProjectRunningBills projectId={projectId} />
               </Stack>
             </TabPanel>

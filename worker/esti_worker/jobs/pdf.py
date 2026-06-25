@@ -26,6 +26,7 @@ from ..db import (
     fetch_bbs_full,
     fetch_transmittal_full,
     fetch_progress_report_full,
+    fetch_running_bill_full,
     fetch_site_instruction_full,
     update_drawing,
     update_feeproposal,
@@ -35,6 +36,7 @@ from ..db import (
     update_payslip,
     update_progress_report,
     update_proposal,
+    update_running_bill,
     update_site_instruction,
     update_specsheet,
     update_estimate,
@@ -594,6 +596,71 @@ def _progress_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_BILL_TYPE_LABEL = {
+    "RA": "Running account (RA) bill",
+    "FINAL": "Final bill",
+    "EXTRA_ITEM": "Extra item bill",
+    "VARIATION": "Variation bill",
+    "ADVANCE_RECOVERY": "Advance recovery",
+    "RETENTION_RELEASE": "Retention release",
+}
+
+
+def _running_bill_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Construction Cost OS Phase C — running bill with a deduction → net payable
+    summary. Gross (Σ qty×rate) less retention / advance recovery / tax-TDS /
+    other recoveries gives the net payable to the contractor."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = "".join(
+        f"<tr><td>{_e(it['description'])}</td><td>{_e(it['unit'])}</td>"
+        f"<td>{it['qty']}</td><td>{_inr(int(it['rate_paise']))}</td>"
+        f"<td>{_inr(int(it['amount_paise']))}</td></tr>"
+        for it in rec.get("items", [])
+    )
+    bill_label = _BILL_TYPE_LABEL.get(rec.get("bill_type", "RA"), rec.get("bill_type"))
+    gross = int(rec.get("total_paise") or 0)
+    # Deduction rows are only shown when non-zero so a plain RA bill stays clean.
+    deductions = [
+        ("Retention", int(rec.get("retention_paise") or 0)),
+        ("Advance recovery", int(rec.get("advance_recovery_paise") or 0)),
+        ("Tax / TDS", int(rec.get("tax_tds_paise") or 0)),
+        ("Other recoveries", int(rec.get("other_recovery_paise") or 0)),
+    ]
+    ded_rows = "".join(
+        f'<tr><td colspan="4" style="text-align:right">Less: {label}</td>'
+        f"<td>-{_inr(amt)}</td></tr>"
+        for label, amt in deductions
+        if amt
+    )
+    contractor = rec.get("contractor_name")
+    contractor_row = (
+        f"<tr><td>Contractor</td><td>{_e(contractor)}</td></tr>" if contractor else ""
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+      <div class="title">{_e(bill_label)} — {_e(rec['ref'])}</div>
+      <table class="kv">
+        <tr><td>Project</td><td>{_e(rec['project_title'])} ({_e(rec['project_ref'])})</td></tr>
+        <tr><td>Title</td><td>{_e(rec['title'])}</td></tr>
+        {contractor_row}
+        <tr><td>Measurement date</td><td>{_e(rec.get('measurement_date') or '')}</td></tr>
+        <tr><td>Status</td><td>{_e(rec.get('status'))}</td></tr>
+      </table>
+      <table>
+        <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+        <tbody>{rows or '<tr><td colspan=5 class="muted">No items</td></tr>'}</tbody>
+        <tfoot>
+          <tr><td colspan="4" style="text-align:right"><b>Gross</b></td><td><b>{_inr(gross)}</b></td></tr>
+          {ded_rows}
+          <tr><td colspan="4" style="text-align:right"><b>Net payable</b></td>
+              <td><b>{_inr(int(rec.get('net_payable_paise') or 0))}</b></td></tr>
+        </tfoot>
+      </table>
+      {f'<p class="pre" style="margin-top:12px">{_e(rec.get("notes"))}</p>' if rec.get("notes") else ''}
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -606,6 +673,7 @@ _RENDERERS = {
     "bbs": (fetch_bbs_full, _bbs_html, update_bbs, "bbs"),
     "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
     "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
+    "running_bill": (fetch_running_bill_full, _running_bill_html, update_running_bill, "running_bill"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
 

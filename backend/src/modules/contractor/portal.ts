@@ -1,6 +1,6 @@
-import { ConstructionSubmit, TENDER_STATUS_LABEL } from "@esti/contracts";
+import { ConstructionSubmit, TenderItemBidSubmit, tenderItemAmount, TENDER_STATUS_LABEL } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import {
@@ -10,10 +10,12 @@ import {
   projectOffices,
   runningBills,
   runningBillItems,
+  tenderBidItems,
   tenderBids,
   tenderDocumentAcks,
   tenderDocuments,
   tenderInvitations,
+  tenderItems,
   tenders,
   transmittals,
 } from "../../db/schema.js";
@@ -208,6 +210,85 @@ export const contractorPortalRouter = router({
         .where(eq(tenderInvitations.id, inv.invitationId));
       return { ok: true as const };
     }),
+
+  /** The contractor's view of the tender BOQ lines (Construction Cost OS Phase
+   *  A). The office est-rate is never exposed; the contractor's own saved rates
+   *  are returned so the rate form can prefill. */
+  tenderItems: contractorProcedure.query(async ({ ctx }) => {
+    const inv = await loadForContractor(ctx.db, ctx.user.contractorId);
+    if (!inv) return { tenderId: null, open: false, items: [] };
+    const rows = await ctx.db
+      .select({
+        id: tenderItems.id,
+        description: tenderItems.description,
+        unit: tenderItems.unit,
+        qty: tenderItems.qty,
+        sortOrder: tenderItems.sortOrder,
+      })
+      .from(tenderItems)
+      .where(eq(tenderItems.tenderId, inv.tenderId))
+      .orderBy(asc(tenderItems.sortOrder), asc(tenderItems.createdAt));
+    const myRates = await ctx.db
+      .select({ tenderItemId: tenderBidItems.tenderItemId, ratePaise: tenderBidItems.ratePaise })
+      .from(tenderBidItems)
+      .where(eq(tenderBidItems.invitationId, inv.invitationId));
+    const rateById = new Map(myRates.map((r) => [r.tenderItemId, r.ratePaise]));
+    return {
+      tenderId: inv.tenderId,
+      open: inv.tenderStatus === "OPEN",
+      items: rows.map((i) => ({ ...i, ratePaise: rateById.get(i.id) ?? null })),
+    };
+  }),
+
+  /** Submit an item-wise bid (a rate per BOQ line). Mirrors `submitBid` but for
+   *  item-wise tenders; the header amount is rolled up from the line amounts. */
+  submitItemBid: contractorWriteProcedure.input(TenderItemBidSubmit).mutation(async ({ ctx, input }) => {
+    const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
+    if (inv.tenderStatus !== "OPEN")
+      throw new TRPCError({ code: "BAD_REQUEST", message: "This tender is not open for bids." });
+
+    const docs = await tenderDocumentsForPortal(ctx.db, inv.tenderId, inv.invitationId);
+    if (docs.some((d) => d.requiresAck && !d.acknowledged))
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Acknowledge all addenda before submitting your bid." });
+
+    const items = await ctx.db
+      .select({ id: tenderItems.id, qty: tenderItems.qty })
+      .from(tenderItems)
+      .where(eq(tenderItems.tenderId, inv.tenderId));
+    if (items.length === 0)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "This tender has no BOQ lines to quote." });
+    const qtyById = new Map(items.map((i) => [i.id, i.qty]));
+
+    for (const line of input.items) {
+      const qty = qtyById.get(line.tenderItemId);
+      if (qty === undefined)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "A quoted line is not part of this tender." });
+      const amountPaise = tenderItemAmount(qty, line.ratePaise);
+      const [existing] = await ctx.db
+        .select({ id: tenderBidItems.id })
+        .from(tenderBidItems)
+        .where(and(eq(tenderBidItems.invitationId, inv.invitationId), eq(tenderBidItems.tenderItemId, line.tenderItemId)));
+      if (existing) {
+        await ctx.db.update(tenderBidItems).set({ ratePaise: line.ratePaise, amountPaise }).where(eq(tenderBidItems.id, existing.id));
+      } else {
+        await ctx.db.insert(tenderBidItems).values({ invitationId: inv.invitationId, tenderItemId: line.tenderItemId, ratePaise: line.ratePaise, amountPaise });
+      }
+    }
+
+    const [agg] = await ctx.db
+      .select({ total: sql<number>`coalesce(sum(${tenderBidItems.amountPaise}), 0)` })
+      .from(tenderBidItems)
+      .where(eq(tenderBidItems.invitationId, inv.invitationId));
+    const total = Number(agg?.total ?? 0);
+    const [existingBid] = await ctx.db.select({ id: tenderBids.id }).from(tenderBids).where(eq(tenderBids.invitationId, inv.invitationId));
+    if (existingBid) {
+      await ctx.db.update(tenderBids).set({ amountPaise: total, updatedAt: new Date() }).where(eq(tenderBids.id, existingBid.id));
+    } else {
+      await ctx.db.insert(tenderBids).values({ invitationId: inv.invitationId, amountPaise: total });
+    }
+    await ctx.db.update(tenderInvitations).set({ status: "SUBMITTED" }).where(eq(tenderInvitations.id, inv.invitationId));
+    return { ok: true as const, amountPaise: total };
+  }),
 
   decline: contractorWriteProcedure.mutation(async ({ ctx }) => {
     const inv = await requireInvitation(ctx.db, ctx.user.contractorId);
