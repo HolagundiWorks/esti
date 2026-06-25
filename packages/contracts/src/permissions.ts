@@ -10,26 +10,54 @@ import { z } from "zod";
  *   L4 — Execution : Interns, Juniors, Site Supervisors   → VIEWER
  *
  * Internal rank (code-level, higher = more access):
- *   OWNER     100 — Everything including firm / user admin
- *   PARTNER    80 — Financial ops, HR, invoices, fees, reports
- *   SENIOR     60 — Projects, invoice drafting, drawings, tasks
- *   ASSOCIATE  40 — Projects, tasks, drawings (no invoices/fees)
- *   VIEWER     20 — Read-only across all modules
+ *   OWNER       100 — Everything including firm / user admin
+ *   PARTNER      80 — Financial ops, HR, invoices, fees, reports
+ *   ACCOUNTANT   80 — Finance only: invoices, fees, cash book, GST/TDS filing
+ *   HR_MANAGER   80 — People only: HR, payroll, leaves, salary
+ *   SENIOR       60 — Projects, invoice drafting, drawings, tasks
+ *   ASSOCIATE    40 — Projects, tasks, drawings (no invoices/fees)
+ *   VIEWER       20 — Read-only across all modules
  *
- * Portal roles (CLIENT, CONSULTANT) are external and rank 0.
+ * ACCOUNTANT and HR_MANAGER are *functional* roles — their capabilities are an
+ * explicit allow-list (see ROLE_CAPABILITIES), not the pure seniority rank, so
+ * each holds only its own domain (finance vs. people), unlike PARTNER which
+ * holds both. Portal roles (CLIENT, CONSULTANT) are external and rank 0.
  */
-export const StaffRole = z.enum(["OWNER", "PARTNER", "SENIOR", "ASSOCIATE", "VIEWER"]);
+export const StaffRole = z.enum([
+  "OWNER",
+  "PARTNER",
+  "ACCOUNTANT",
+  "HR_MANAGER",
+  "SENIOR",
+  "ASSOCIATE",
+  "VIEWER",
+]);
 export type StaffRole = z.infer<typeof StaffRole>;
 
 /** Every role that can sign into the office workspace (vs. the portals). */
 export const STAFF_ROLES: readonly StaffRole[] = StaffRole.options;
 
+/** Seniority-tier general staff (the "users" seat bucket). Excludes OWNER and the functional roles. */
+export const GENERAL_STAFF_ROLES = ["PARTNER", "SENIOR", "ASSOCIATE", "VIEWER"] as const;
+
+/** Functional single-domain roles (their own seat buckets on Core). */
+export const FUNCTIONAL_STAFF_ROLES = ["ACCOUNTANT", "HR_MANAGER"] as const;
+
 /** Roles an owner may assign when creating/editing a staff login (not OWNER). */
-export const ASSIGNABLE_STAFF_ROLES = ["PARTNER", "SENIOR", "ASSOCIATE", "VIEWER"] as const;
+export const ASSIGNABLE_STAFF_ROLES = [
+  "PARTNER",
+  "ACCOUNTANT",
+  "HR_MANAGER",
+  "SENIOR",
+  "ASSOCIATE",
+  "VIEWER",
+] as const;
 
 export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
   OWNER: "Owner / Director",
   PARTNER: "Partner / Finance & HR Lead",
+  ACCOUNTANT: "Accountant / Finance",
+  HR_MANAGER: "HR Manager",
   SENIOR: "Senior / Project Lead",
   ASSOCIATE: "Associate / Professional",
   VIEWER: "Junior / Intern",
@@ -42,6 +70,8 @@ export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
 export const ROLE_RANK: Record<string, number> = {
   OWNER: 100,
   PARTNER: 80,
+  ACCOUNTANT: 80, // management-level for rank comparisons; actual grants are an allow-list
+  HR_MANAGER: 80, // management-level for rank comparisons; actual grants are an allow-list
   SENIOR: 60,
   ASSOCIATE: 40,
   VIEWER: 20,
@@ -90,9 +120,31 @@ const MIN_RANK: Record<Capability, number> = {
   "tenders:view":        60,  // L3+: senior and above may view tenders
 };
 
+/**
+ * Functional roles whose capabilities are an explicit allow-list rather than the
+ * pure seniority rank. Each holds only its own domain — ACCOUNTANT the finance
+ * side, HR_MANAGER the people side — so neither leaks into the other even though
+ * both sit at management rank (80).
+ */
+const ROLE_CAPABILITIES: Partial<Record<string, readonly Capability[]>> = {
+  ACCOUNTANT: [
+    "workspace:view",
+    "write",
+    "project:financials",
+    "invoice:manage",
+    "invoice:delete",
+    "fees:manage",
+    "finance:ops",
+    "reports:view",
+  ],
+  HR_MANAGER: ["workspace:view", "write", "hr:manage", "salary:view"],
+};
+
 /** Whether a role grants a capability. Unknown roles get nothing. */
 export function can(role: string | null | undefined, cap: Capability): boolean {
   if (!role) return false;
+  const explicit = ROLE_CAPABILITIES[role];
+  if (explicit) return explicit.includes(cap);
   return (ROLE_RANK[role] ?? 0) >= MIN_RANK[cap];
 }
 

@@ -127,6 +127,8 @@ export const users = pgTable("esti_user", {
     enum: [
       "OWNER",
       "PARTNER",
+      "ACCOUNTANT",
+      "HR_MANAGER",
       "SENIOR",
       "ASSOCIATE",
       "VIEWER",

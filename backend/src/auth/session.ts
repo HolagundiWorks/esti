@@ -44,9 +44,20 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName: string;
-  // Staff ladder (OWNER/PARTNER/SENIOR/ASSOCIATE/VIEWER) plus the two portal
-  // roles (CONSULTANT collaborator, CLIENT). See @esti/contracts permissions.
-  role: "OWNER" | "PARTNER" | "SENIOR" | "ASSOCIATE" | "VIEWER" | "CONSULTANT" | "CLIENT" | "CONTRACTOR";
+  // Staff ladder (OWNER/PARTNER/ACCOUNTANT/HR_MANAGER/SENIOR/ASSOCIATE/VIEWER)
+  // plus the portal roles (CONSULTANT collaborator, CLIENT, CONTRACTOR).
+  // See @esti/contracts permissions.
+  role:
+    | "OWNER"
+    | "PARTNER"
+    | "ACCOUNTANT"
+    | "HR_MANAGER"
+    | "SENIOR"
+    | "ASSOCIATE"
+    | "VIEWER"
+    | "CONSULTANT"
+    | "CLIENT"
+    | "CONTRACTOR";
   clientId: string | null;
   consultantId: string | null;
   contractorId: string | null;

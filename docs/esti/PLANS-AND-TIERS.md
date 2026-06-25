@@ -17,17 +17,27 @@
 
 | Limit | Lite (free) | Core | Enterprise |
 |---|---|---|---|
-| **Team members** | **3** | 25 (add seats) | **unlimited** |
-| **Clients** | **10** | unlimited | unlimited |
-| **Contractors** | **10** | unlimited | unlimited |
-| Active projects | 5 | unlimited | unlimited |
-| Document storage | 2 GB | 100 GB | custom |
+| **Admin (owner)** | 1 | 1 | 1 |
+| **Staff seats** | 3 (fixed) | 10 | **unlimited** |
+| Accountant seats | — | 1 | unlimited |
+| HR manager seats | — | 1 | unlimited |
+| **Clients** | **5** | unlimited | unlimited |
+| **Contractors** | **5** | unlimited | unlimited |
 | Consultants | 5 | unlimited | unlimited |
+| Active projects | 5 (fixed) | unlimited | unlimited |
+| Document storage | 5 GB | 200 GB | unlimited |
 | ESTI AI requests | trial | standard | high / dedicated |
 | Support | community | standard | priority + SLA |
 
-> When a Lite firm hits a cap (4th team member, 11th client/contractor), the
-> action is blocked with an upgrade prompt — never silent data loss.
+> Lite is a **fixed workspace**: the admin activates/deactivates a pre-seeded set
+> (1 admin + 3 staff, 5 clients, 5 contractors, 5 consultants, 5 projects) — no
+> "create" buttons. Core/Enterprise are self-serve with create buttons. Core
+> staff seats split by function: 1 admin + 1 accountant + 1 HR + 10 general staff.
+> Enterprise is self-hosted (on-premises) with no caps.
+
+> On Lite, "create" is blocked outright (fixed workspace). On Core, exceeding a
+> seat cap (2nd accountant, 2nd HR, 11th staff) or the 200 GB storage cap is
+> blocked with an upgrade prompt — never silent data loss.
 
 ## Module → edition matrix
 
