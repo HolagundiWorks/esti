@@ -99,6 +99,49 @@ export const estimateItems = pgTable("esti_estimate_item", {
   createdAt: createdAt(),
 });
 
+/**
+ * Rate Analysis — composite rate build-up (Phase 6).
+ * A rate is built from component lines (MATERIAL / LABOUR / MACHINERY / SUNDRY)
+ * plus an overhead %. The resulting analysedRatePaise can be pushed as a
+ * DSR item into any writable rate-book version.
+ */
+export const rateAnalyses = pgTable("esti_rate_analysis", {
+  id: id(),
+  code: text("code").notNull(),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  /** Optional: which rate-book version this analysis belongs to. */
+  dsrVersionId: uuid("dsr_version_id").references(() => dsrVersions.id),
+  /** DRAFT while being built; PUBLISHED once committed to a rate book. */
+  status: text("status").notNull().default("DRAFT"),
+  overheadPct: doublePrecision("overhead_pct").notNull().default(0),
+  /** Sum of component amountPaise before overhead. */
+  directCostPaise: bigint("direct_cost_paise", { mode: "number" }).notNull().default(0),
+  /** directCostPaise × (1 + overheadPct / 100). */
+  analysedRatePaise: bigint("analysed_rate_paise", { mode: "number" }).notNull().default(0),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Individual line within a rate analysis (material, labour, machinery, sundry). */
+export const rateComponents = pgTable("esti_rate_component", {
+  id: id(),
+  rateAnalysisId: uuid("rate_analysis_id")
+    .notNull()
+    .references(() => rateAnalyses.id, { onDelete: "cascade" }),
+  /** MATERIAL | LABOUR | MACHINERY | SUNDRY */
+  category: text("category").notNull().default("MATERIAL"),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  qty: doublePrecision("qty").notNull().default(1),
+  ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+  /** Stored: qty × ratePaise rounded to integer paise. */
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
 /** Bar Bending Schedule — Phase 10. */
 export const bbsSchedules = pgTable("esti_bbs", {
   id: id(),

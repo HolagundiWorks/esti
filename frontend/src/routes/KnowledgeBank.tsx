@@ -27,11 +27,12 @@ import { KnowledgeSeedManager } from "../components/knowledge/KnowledgeSeedManag
 import { ComplianceHub } from "../components/knowledge/ComplianceHub.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { MasterDsr } from "../components/knowledge/MasterDsr.js";
+import { RateAnalysisPanel } from "../components/knowledge/RateAnalysisPanel.js";
 import { SteelArranger } from "../components/knowledge/SteelArranger.js";
 import { ParametricCanvas } from "../components/estimation/ParametricCanvas.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["seeds", "dsr", "compliance", "specification", "steelflow", "parametric", "lessons"] as const;
+const KB_TAB_SLUGS = ["seeds", "dsr", "rate-analysis", "compliance", "specification", "steelflow", "parametric", "lessons"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -131,6 +132,7 @@ export function KnowledgeBank() {
         <TabList aria-label="Knowledge Bank sections">
           <Tab>Seed data</Tab>
           <Tab>Rate Books</Tab>
+          <Tab>Rate Analysis</Tab>
           <Tab>Compliance</Tab>
           <Tab>Specification</Tab>
           <Tab>SteelFlow</Tab>
@@ -143,6 +145,10 @@ export function KnowledgeBank() {
           </TabPanel>
           <TabPanel>
             <MasterDsr embedded />
+          </TabPanel>
+
+          <TabPanel>
+            <RateAnalysisPanel embedded />
           </TabPanel>
 
           <TabPanel>

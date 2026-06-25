@@ -119,6 +119,66 @@ export function estimateTotals(
   return { subtotalPaise, totalPaise: Math.round(subtotalPaise * (1 + leadPct / 100)) };
 }
 
+// --- Rate Analysis (Phase 6) ------------------------------------------------
+
+export const RateComponentCategory = z.enum(["MATERIAL", "LABOUR", "MACHINERY", "SUNDRY"]);
+export type RateComponentCategory = z.infer<typeof RateComponentCategory>;
+export const RATE_COMPONENT_CATEGORY_LABEL: Record<RateComponentCategory, string> = {
+  MATERIAL: "Material",
+  LABOUR: "Labour",
+  MACHINERY: "Machinery",
+  SUNDRY: "Sundry",
+};
+
+export const RateAnalysisStatus = z.enum(["DRAFT", "PUBLISHED"]);
+export type RateAnalysisStatus = z.infer<typeof RateAnalysisStatus>;
+
+export const RateComponentInput = z.object({
+  category: RateComponentCategory.default("MATERIAL"),
+  description: z.string().min(1).max(400),
+  unit: z.string().min(1).max(20),
+  qty: z.number().positive(),
+  ratePaise: z.number().int().nonnegative(),
+  sortOrder: z.number().int().default(0),
+});
+export type RateComponentInput = z.infer<typeof RateComponentInput>;
+
+export const RateAnalysisCreate = z.object({
+  code: z.string().min(1).max(40),
+  description: z.string().min(1).max(400),
+  unit: z.string().min(1).max(20),
+  dsrVersionId: z.string().uuid().nullable().optional(),
+  overheadPct: z.number().min(0).max(100).default(0),
+  components: z.array(RateComponentInput).optional(),
+});
+export type RateAnalysisCreate = z.infer<typeof RateAnalysisCreate>;
+
+export const RateComponentCreate = RateComponentInput.extend({
+  rateAnalysisId: z.string().uuid(),
+});
+export type RateComponentCreate = z.infer<typeof RateComponentCreate>;
+
+export const RateComponentUpdate = z.object({
+  id: z.string().uuid(),
+  category: RateComponentCategory.optional(),
+  description: z.string().min(1).max(400).optional(),
+  unit: z.string().min(1).max(20).optional(),
+  qty: z.number().positive().optional(),
+  ratePaise: z.number().int().nonnegative().optional(),
+  sortOrder: z.number().int().optional(),
+});
+export type RateComponentUpdate = z.infer<typeof RateComponentUpdate>;
+
+/** Component amount in paise = qty × ratePaise. */
+export function rateComponentAmount(qty: number, ratePaise: number): number {
+  return Math.round(qty * ratePaise);
+}
+
+/** Analysed rate = direct cost × (1 + overheadPct / 100). */
+export function analysedRate(directCostPaise: number, overheadPct: number): number {
+  return Math.round(directCostPaise * (1 + overheadPct / 100));
+}
+
 // --- Bar Bending Schedule ---------------------------------------------------
 export const BbsCreate = z.object({
   projectId: z.string().uuid(),
