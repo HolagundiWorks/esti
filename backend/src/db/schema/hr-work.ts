@@ -155,6 +155,8 @@ export const tasks = pgTable("esti_task", {
   startDate: date("start_date"),
   createdById: uuid("created_by_id"),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  /** True when a blocking dependency has been unresolved for >48h. Cleared when dependency resolves. */
+  interventionRequired: boolean("intervention_required").notNull().default(false),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

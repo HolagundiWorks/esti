@@ -188,6 +188,9 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                     >
                       <TableCell>
                         {t.title}
+                        {t.interventionRequired && (
+                          <Tag type="red" size="sm">Intervention required</Tag>
+                        )}
                         {t.description && <div>{t.description}</div>}
                         {t.classification && (
                           <Tag type="cool-gray" size="sm">
