@@ -74,6 +74,13 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     env.insert("FILES_PUBLIC_BASE".into(), format!("{api_base}/files"));
     env.insert("WORKER_MODE".into(), "inproc".into());
     env.insert("COOKIE_SECURE".into(), "false".into());
+    // Licence-free LITE edition: the backend pins orgSettings.plan to FIRM_PLAN on
+    // boot (default LITE). ESTI_HUB_URL stays empty → the install is unmanaged, so
+    // the licence write-gate never engages. Override at launch to ship CORE/ENTERPRISE.
+    env.insert(
+        "FIRM_PLAN".into(),
+        std::env::var("FIRM_PLAN").unwrap_or_else(|_| "LITE".into()),
+    );
     // Licensing (Phase B): the install identity + the central hub it activates
     // against. ESTI_HUB_URL is empty by default (offline) and can be supplied at
     // launch; the firm activates a key from Company → Licence.
