@@ -24,6 +24,8 @@ import {
   Tile,
 } from "@carbon/react";
 import {
+  BOQ_VALIDATION_LABEL,
+  BOQ_VALIDATION_TAG,
   CALCULATION_TYPE_LABEL,
   COST_HEAD_LABEL,
   FORMULA_REGISTRY,
@@ -126,6 +128,11 @@ export function CostingWindow({ projectId }: { projectId: string }) {
     { estimateId: activeId ?? "" },
     { enabled: !!activeId },
   );
+  const boqCheckQ = trpc.estimates.validateBoq.useQuery(
+    { estimateId: activeId ?? "" },
+    { enabled: !!activeId },
+  );
+  const boqCheck = boqCheckQ.data ?? null;
   const placedQ = trpc.estimation.listComponents.useQuery(
     { estimateId: activeId ?? "" },
     { enabled: !!activeId },
@@ -142,6 +149,7 @@ export function CostingWindow({ projectId }: { projectId: string }) {
     if (!activeId) return;
     void utils.estimates.byId.invalidate({ id: activeId });
     void utils.estimates.items.invalidate({ estimateId: activeId });
+    void utils.estimates.validateBoq.invalidate({ estimateId: activeId });
     void utils.estimation.listComponents.invalidate({ estimateId: activeId });
     void utils.estimates.listByProject.invalidate({ projectId });
   };
@@ -257,6 +265,23 @@ export function CostingWindow({ projectId }: { projectId: string }) {
             <Tag type={detail.stage === "EXECUTION" ? "purple" : "blue"}>
               {detail.stage === "EXECUTION" ? "Execution" : "Design"} stage
             </Tag>
+            {boqCheck && (
+              <Tag
+                type={
+                  boqCheck.summary.clean
+                    ? "green"
+                    : boqCheck.summary.high > 0
+                      ? "red"
+                      : "magenta"
+                }
+              >
+                {boqCheck.summary.clean
+                  ? "Checks: clean"
+                  : `Checks: ${boqCheck.summary.total} issue${
+                      boqCheck.summary.total === 1 ? "" : "s"
+                    }`}
+              </Tag>
+            )}
             <span style={{ marginLeft: "auto" }} />
             <EstimatePdf id={detail.id} />
             {editable ? (
@@ -316,6 +341,44 @@ export function CostingWindow({ projectId }: { projectId: string }) {
                     </Button>
                   )}
                 </div>
+
+                {boqCheck && (
+                  <TableContainer
+                    title="BOQ checks"
+                    description="Automatic data-quality checks on this BOQ — advisory only; nothing is blocked."
+                  >
+                    {boqCheck.summary.clean ? (
+                      <div style={{ padding: "0 1rem 1rem" }}>
+                        <Tag type="green">No issues found</Tag>
+                      </div>
+                    ) : (
+                      <Table size="sm">
+                        <TableHead>
+                          <TableRow>
+                            <TableHeader>Line</TableHeader>
+                            <TableHeader>Check</TableHeader>
+                            <TableHeader>Detail</TableHeader>
+                            <TableHeader>Severity</TableHeader>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {boqCheck.issues.map((issue, i) => (
+                            <TableRow key={`${issue.itemId}-${issue.kind}-${i}`}>
+                              <TableCell>{issue.line}</TableCell>
+                              <TableCell>{BOQ_VALIDATION_LABEL[issue.kind]}</TableCell>
+                              <TableCell>{issue.detail}</TableCell>
+                              <TableCell>
+                                <Tag size="sm" type={BOQ_VALIDATION_TAG[issue.severity]}>
+                                  {issue.severity}
+                                </Tag>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </TableContainer>
+                )}
 
                 {designGroups.length === 0 ? (
                   <InlineNotification

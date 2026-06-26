@@ -5,7 +5,10 @@ import {
   EstimateItemUpdate,
   estimateItemAmount,
   formatINR,
+  summarizeBoqValidation,
   TAKEOFF_CATALOG,
+  validateBoqItems,
+  type BoqValidationItem,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq, inArray } from "drizzle-orm";
@@ -45,6 +48,39 @@ export const estimateRouter = router({
         .from(estimateItems)
         .where(eq(estimateItems.estimateId, input.estimateId))
         .orderBy(asc(estimateItems.sortOrder), asc(estimateItems.createdAt));
+    }),
+
+  /**
+   * BOQ-validation checklist (ref §3.3). Deterministic, advisory-only data-quality
+   * checks over an estimate's items — missing UOM, zero/negative qty, zero rate,
+   * duplicate description, missing trade/cost head, percentage/component lines
+   * without a basis/link. Pure arithmetic (the `validateBoqItems` checker), never
+   * an LLM that could "silently approve" — read-only, nothing is blocked.
+   */
+  validateBoq: protectedProcedure
+    .input(z.object({ estimateId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select()
+        .from(estimateItems)
+        .where(eq(estimateItems.estimateId, input.estimateId))
+        .orderBy(asc(estimateItems.sortOrder), asc(estimateItems.createdAt));
+      const items: BoqValidationItem[] = rows.map((r) => ({
+        id: r.id,
+        description: r.description,
+        unit: r.unit,
+        qty: r.qty,
+        ratePaise: r.ratePaise,
+        costHead: r.costHead,
+        calculationType: r.calculationType,
+        pct: r.pct,
+        basisSelector: r.basisSelector,
+        componentId: r.componentId,
+        estimateComponentId: r.estimateComponentId,
+        sortOrder: r.sortOrder,
+      }));
+      const issues = validateBoqItems(items);
+      return { issues, summary: summarizeBoqValidation(issues) };
     }),
 
   byId: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {

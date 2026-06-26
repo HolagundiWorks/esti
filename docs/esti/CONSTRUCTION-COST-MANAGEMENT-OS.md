@@ -96,11 +96,17 @@ archived`) and immutable `esti_estimate_version` snapshots already satisfy the
 versioning/approval requirements. **No work.** (Concept/Revision estimate *types*
 are a thin label add if wanted.)
 
-### 3.3 BOQ (ref 5.3) — **Built; extend validation**
-Auto-BOQ from components via the formula registry exists. **Build:** the BOQ
-*validation* checklist (missing UOM, zero/negative qty, duplicate description,
-missing spec/drawing ref, item without trade/package, stale drawing revision) as
-a `estimates.validateBoq` query surfacing warnings — currently absent.
+### 3.3 BOQ (ref 5.3) — **Built + validation checklist (2026-06-26)**
+Auto-BOQ from components via the formula registry exists. The BOQ *validation*
+checklist now ships: `estimates.validateBoq` runs the pure `validateBoqItems`
+checker (`packages/contracts/src/boq-validation.ts`) over an estimate's lines and
+surfaces advisory warnings — missing UOM, zero/negative qty, zero rate, duplicate
+description, missing trade/cost head, percentage line without a basis, component
+line without a link — each with a severity. Read-only, no writes, nothing blocked.
+Surfaced as a "BOQ checks" panel + a header count Tag in the Design-estimate tab of
+`CostingWindow.tsx`. (The reference's spec/drawing-ref + stale-drawing-revision
+checks are out of scope — estimate lines carry no such column; they would need a
+drawing-link model.) No migration, no worker.
 
 ### 3.4 Rate Analysis (ref 5.4) — **Built + rate-deviation ladder (2026-06-26)**
 `esti_rate_analysis` build-up (material/labour/equipment + wastage/overhead/
@@ -313,7 +319,8 @@ non-breaking; nothing overwrites a frozen estimate or a posted bill.
 | **G — Cost dashboard + reports + AI checks** ✅ **Done (2026-06-26)** | `dashboard.constructionCost(projectId)` read model + the `showBills`-gated **Cost dashboard** tab (`ProjectCostDashboard.tsx`): Estimated / Tendered / Awarded / Billed / Certified KPIs, cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey, deviation/variation/pending-bill exposure. The three risk checks (duplicate/over-billing, unbalanced bid, bill deviation) are **deterministic** "checker" output (pure + unit-tested in `cost-dashboard.ts`; the §9 rule that AI must not "silently approve" financial data), advisory-only with a severity. Read-only, no migration, costing-plan gated. *Deferred:* LLM narration of the notes (`ai` namespace); office-wide cross-project roll-up | ref 5.1, §9, §16 | Med |
 | **3.4 — Rate-deviation ladder** ✅ **Done (2026-06-26)** | `deviations.rateLadder` recomputes each work-package line's estimated → tendered → awarded → revised rate journey live off the spine (Rule-9 `boqItemId` join), per-hop deviation %/severity (`rateLadderHops`), active-deviation status. **Rate ladder** tab in `ProjectControls.tsx` (`ProjectRateLadder.tsx`) raises a RATE deviation via the existing Phase-D flow; create now persists the estimated/tendered rungs. No migration; Rule 5 unchanged | ref 5.4, §3.4 | Med |
 | **Cost-report PDF** ✅ **Done (2026-06-26)** | `dashboard.generateCostReport` (write + costing gated) computes the Phase-G cost-health model once and snapshots the whole result into `esti_cost_report` (one row per project, **unique** `project_id`, upserted), then enqueues the worker `render_pdf` `cost_report` target. `_cost_report_html` + `fetch_cost_report_full` render the KPIs + package/contractor tables + risk checks **straight from the stored `snapshot` jsonb** — an exact, reproducible print, no read-model SQL re-implemented in Python. `dashboard.costReport` polls the async `pdf_status`; "Generate PDF" button + `PDF:` status Tag on `ProjectCostDashboard.tsx`. Migration `0094` | ref 5.1, §16 | Med |
-| **Future** | Procurement forecast (3.16), material reconciliation (3.17), BOQ-validation checklist (3.3), AI narration, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
+| **BOQ-validation checklist** ✅ **Done (2026-06-26)** | `estimates.validateBoq` runs the pure `validateBoqItems` checker over an estimate's lines and returns advisory warnings (missing UOM, zero/negative qty, zero rate, duplicate description, missing trade/cost head, percentage-without-basis, component-without-link), each with a severity, + a `summarizeBoqValidation` roll-up. Deterministic arithmetic (§9, never an LLM), read-only, nothing blocked. Surfaced as a "BOQ checks" panel + header count Tag in the Design-estimate tab of `CostingWindow.tsx`. No migration, no worker. | ref 5.3 | Med |
+| **Future** | Procurement forecast (3.16), material reconciliation (3.17), AI narration, IFC/CAD quantity extraction | ref 5.16–5.17, §18; **Estimation OS Phase 6** | Low |
 
 Your three named priorities map to **A+B (tender management)**, **D
 (additions/variations)**, and **E (BBS)** — a natural first three.
@@ -322,10 +329,10 @@ Your three named priorities map to **A+B (tender management)**, **D
 Construction Cost OS spine is complete: `estimate → frozen BOQ → tender → award →
 work package → site measurement → running bill → deviations/variations → BBS +
 steel reconciliation → final account + closure → cost dashboard + risk checks`.
-The first two Future-row slices — the **rate-deviation ladder (3.4)** and the
-**cost-report PDF** — also shipped (2026-06-26). What remains is additive:
-procurement forecast, material reconciliation, the BOQ-validation checklist, and
-optional AI narration.
+The first three Future-row slices — the **rate-deviation ladder (3.4)**, the
+**cost-report PDF**, and the **BOQ-validation checklist (3.3)** — also shipped
+(2026-06-26). What remains is additive: procurement forecast, material
+reconciliation, and optional AI narration.
 
 ---
 
