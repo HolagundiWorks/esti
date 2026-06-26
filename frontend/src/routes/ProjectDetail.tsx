@@ -37,6 +37,7 @@ import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectProgramme } from "../components/ProjectProgramme.js";
 import { ProjectPmc } from "../components/ProjectPmc.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
+import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -133,6 +134,7 @@ export function ProjectDetail() {
     const pmcTabs: ProjectTab[] = [];
     if (showPmc) {
       pmcTabs.push({ slug: "pmc", label: "PMC control", panel: <ProjectPmc projectId={id} /> });
+      pmcTabs.push({ slug: "program-feasibility", label: "Program & feasibility", panel: <ProjectSiteReference projectId={id} /> });
       pmcTabs.push({ slug: "site-visits", label: "Site visits", panel: <ProjectSiteVisits projectId={id} /> });
     }
     if (showCosting) {

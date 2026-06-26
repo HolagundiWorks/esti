@@ -99,6 +99,51 @@ export const programRouter = router({
       return { program, ...summarizeProgram(like, envelope) };
     }),
 
+  /**
+   * The canonical upstream reference for site delivery — the feasibility envelope
+   * (assessment figures) + the latest FROZEN program (spaces + summary). Read-only:
+   * feasibility-to-site stays one source of truth. Returns nulls when not yet set.
+   */
+  siteReference: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [assessment] = await ctx.db
+        .select({
+          siteAreaSqm: preProjectAssessments.siteAreaSqm,
+          permissibleFarArea: preProjectAssessments.permissibleFarArea,
+          setbackBuildableArea: preProjectAssessments.setbackBuildableArea,
+          actualGroundCoverage: preProjectAssessments.actualGroundCoverage,
+          possibleFloors: preProjectAssessments.possibleFloors,
+          superBuiltupArea: preProjectAssessments.superBuiltupArea,
+          estimatedProjectCostPaise: preProjectAssessments.estimatedProjectCostPaise,
+        })
+        .from(preProjectAssessments)
+        .where(eq(preProjectAssessments.projectId, input.projectId));
+
+      const [frozen] = await ctx.db
+        .select()
+        .from(programs)
+        .where(and(eq(programs.projectId, input.projectId), eq(programs.status, "FROZEN")))
+        .orderBy(desc(programs.version))
+        .limit(1);
+
+      let program: (typeof frozen & ReturnType<typeof summarizeProgram>) | null = null;
+      if (frozen) {
+        const spaces = await ctx.db
+          .select()
+          .from(programSpaces)
+          .where(eq(programSpaces.programId, frozen.id))
+          .orderBy(programSpaces.floorLevel, programSpaces.sortOrder, programSpaces.createdAt);
+        const like: ProgramSpaceLike[] = spaces.map((s) => ({
+          id: s.id, name: s.name, category: s.category, floorLevel: s.floorLevel,
+          unitAreaSqm: s.unitAreaSqm, count: s.count,
+        }));
+        program = { ...frozen, ...summarizeProgram(like, frozen.maxBuiltAreaSqm) };
+      }
+
+      return { assessment: assessment ?? null, program };
+    }),
+
   /** Create the first DRAFT program (v1) if none exists; returns the latest. */
   getOrCreate: writer
     .input(z.object({ projectId: z.string().uuid() }))
