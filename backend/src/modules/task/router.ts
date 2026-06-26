@@ -48,6 +48,7 @@ export const taskRouter = router({
       if (input?.projectId) filters.push(eq(tasks.projectId, input.projectId));
 
       if (input?.workType) filters.push(eq(tasks.workType, input.workType));
+      if (input?.classification) filters.push(eq(tasks.classification, input.classification));
       if (input?.myTasks) {
         // Resolve current user's team member id.
         const [tm] = await ctx.db

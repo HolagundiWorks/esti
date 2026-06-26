@@ -52,6 +52,42 @@ export function workTabsForNav(hrEnabled: boolean): WorkTabSlug[] {
   ];
 }
 
+export type WorkCategorySlug =
+  | "all"
+  | "execution"
+  | "drawings"
+  | "documentation"
+  | "billing"
+  | "approvals"
+  | "revisions";
+
+export const WORK_CATEGORY_SLUGS: readonly WorkCategorySlug[] = [
+  "all", "execution", "drawings", "documentation", "billing", "approvals", "revisions",
+];
+
+export const WORK_CATEGORY_LABELS: Record<WorkCategorySlug, string> = {
+  all: "All",
+  execution: "Execution",
+  drawings: "Drawings",
+  documentation: "Documentation",
+  billing: "Billing",
+  approvals: "Approvals",
+  revisions: "Revisions",
+};
+
+export const WORK_CATEGORY_FILTER: Record<
+  WorkCategorySlug,
+  { workType?: string; classification?: string; status?: string }
+> = {
+  all: {},
+  execution: { workType: "CONSTRUCTION_SUPPORT" },
+  drawings: { workType: "TECHNICAL_PRODUCTION" },
+  documentation: { workType: "DESIGN_DEVELOPMENT" },
+  billing: { classification: "BILLABLE" },
+  approvals: { status: "BLOCKED" },
+  revisions: { workType: "DESIGN_COMMUNICATION" },
+};
+
 export const BOARD_COLUMNS: {
   status: (typeof TaskStatus.options)[number];
   tag: "gray" | "blue" | "red" | "green";

@@ -1,9 +1,11 @@
 import {
   Button,
+  ContentSwitcher,
   Modal,
   Select,
   SelectItem,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -32,27 +34,39 @@ import { ConfirmModal } from "../ConfirmModal.js";
 import { ContextualComments } from "../ContextualComments.js";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
-import { PRIORITY_TAG } from "./workHelpers.js";
+import {
+  PRIORITY_TAG,
+  WORK_CATEGORY_FILTER,
+  WORK_CATEGORY_LABELS,
+  WORK_CATEGORY_SLUGS,
+  type WorkCategorySlug,
+} from "./workHelpers.js";
 
 export type TasksTabHandle = { openCreate: () => void };
 
 export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref) {
   const [searchParams] = useSearchParams();
   const utils = trpc.useUtils();
-  const [openOnly,      setOpenOnly]      = useState(false);
-  const [myTasks,       setMyTasks]       = useState(false);
-  const [filterStatus,  setFilterStatus]  = useState("");
-  const [filterPriority,setFilterPriority]= useState("");
+  const [openOnly,        setOpenOnly]        = useState(false);
+  const [myTasks,         setMyTasks]         = useState(false);
+  const [filterStatus,    setFilterStatus]    = useState("");
+  const [filterPriority,  setFilterPriority]  = useState("");
+  const [filterCategory,  setFilterCategory]  = useState<WorkCategorySlug>("all");
   const targetTaskId = searchParams.get("taskId");
   const targetProjectId = searchParams.get("projectId") || undefined;
   const urlOpenOnly = searchParams.get("openOnly") === "1";
 
+  const catFilter = WORK_CATEGORY_FILTER[filterCategory];
+
   const listQ     = trpc.tasks.list.useQuery({
-    openOnly: openOnly || urlOpenOnly,
+    openOnly: (openOnly || urlOpenOnly) && !catFilter.status,
     myTasks,
     projectId: targetProjectId,
-    status:   filterStatus   ? (filterStatus   as (typeof TaskStatus.options)[number])   : undefined,
+    status:   (catFilter.status as (typeof TaskStatus.options)[number] | undefined)
+              ?? (filterStatus ? (filterStatus as (typeof TaskStatus.options)[number]) : undefined),
     priority: filterPriority ? (filterPriority as (typeof TaskPriority.options)[number]) : undefined,
+    workType: catFilter.workType as (typeof TaskWorkType.options)[number] | undefined,
+    classification: catFilter.classification as (typeof TaskClassification.options)[number] | undefined,
   });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -106,13 +120,24 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
   return (
     <>
       <Stack gap={5}>
+        <ContentSwitcher
+          selectedIndex={WORK_CATEGORY_SLUGS.indexOf(filterCategory)}
+          onChange={({ name }) => setFilterCategory((name as WorkCategorySlug) ?? "all")}
+          size="sm"
+        >
+          {WORK_CATEGORY_SLUGS.map((slug) => (
+            <Switch key={slug} name={slug} text={WORK_CATEGORY_LABELS[slug]} />
+          ))}
+        </ContentSwitcher>
         <Stack orientation="horizontal" gap={5}>
           <Checkbox id="t-open" labelText="Open only" checked={openOnly}
             onChange={(_e, { checked }) => setOpenOnly(checked)} />
           <Checkbox id="t-mine" labelText="My tasks" checked={myTasks}
             onChange={(_e, { checked }) => setMyTasks(checked)} />
           <Select id="t-status" labelText="Status" hideLabel size="sm"
-            value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            disabled={!!catFilter.status}
+            value={catFilter.status ? catFilter.status : filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}>
             <SelectItem value="" text="All statuses" />
             {TaskStatus.options.map((s) => (
               <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
