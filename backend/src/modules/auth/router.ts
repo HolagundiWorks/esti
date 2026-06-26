@@ -15,6 +15,7 @@ import {
   verifyPassword,
 } from "../../auth/session.js";
 import { firm, orgSettings, users } from "../../db/schema.js";
+import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { normalizeEmail } from "../../lib/email.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
@@ -95,7 +96,9 @@ export const authRouter = router({
 
     const token = await createSession(owner.id);
     ctx.setCookie(SESSION_COOKIE, token);
-    return owner;
+    // On desktop the webview is cross-origin to the loopback backend, so cookies
+    // aren't sent — return the token for the SPA to attach as a bearer header.
+    return env.DESKTOP ? { ...owner, token } : owner;
   }),
 
   /**
@@ -167,7 +170,8 @@ export const authRouter = router({
       action: "LOGIN",
       actorId: u.id,
     });
-    return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
+    const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
+    return env.DESKTOP ? { ...profile, token } : profile;
   }),
 
   /** ESTICAD companion — email/password → bearer token pair (no browser cookie). */

@@ -23,6 +23,7 @@ import {
 } from "@esti/contracts";
 import { useRef, useState } from "react";
 import { resolveColor, getInitials } from "../StaffAvatar.js";
+import { apiUrl, authHeaders } from "../../lib/api-base.js";
 import { trpc } from "../../lib/trpc.js";
 
 type DocType = keyof typeof HR_DOCUMENT_TYPES;
@@ -75,7 +76,7 @@ export function StaffProfilesTab() {
       if (uploadForm.issueDate) fd.append("issueDate", uploadForm.issueDate);
       if (uploadForm.expiryDate) fd.append("expiryDate", uploadForm.expiryDate);
       if (uploadForm.notes) fd.append("notes", uploadForm.notes);
-      const res = await fetch("/upload/hr-document", { method: "POST", body: fd, credentials: "include" });
+      const res = await fetch(apiUrl("/upload/hr-document"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
       if (!res.ok) {
         const e = await res.json().catch(() => ({ error: "Upload failed" }));
         setUploadMsg(`Upload failed: ${(e as { error: string }).error}`);

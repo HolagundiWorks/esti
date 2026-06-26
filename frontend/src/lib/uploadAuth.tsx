@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { apiUrl, authHeaders } from "./api-base.js";
 import { trpc } from "./trpc.js";
 import { useAuth } from "./auth.js";
 
@@ -79,7 +80,7 @@ export function UploadAuthProvider({ children }: { children: ReactNode }) {
         const fd = new FormData();
         buildFormData(fd);
         if (uploadRequired && pw) fd.append(UPLOAD_PASSWORD_FIELD, pw);
-        return fetch(url, { method: "POST", body: fd, credentials: "include" });
+        return fetch(apiUrl(url), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
       };
 
       let pw = uploadRequired ? readCached() : null;
@@ -160,7 +161,7 @@ export function useUploadAuth(): UploadAuthContextValue {
       authorizedFetch: async (url, buildFormData) => {
         const fd = new FormData();
         buildFormData(fd);
-        return fetch(url, { method: "POST", body: fd, credentials: "include" });
+        return fetch(apiUrl(url), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
       },
     };
   }

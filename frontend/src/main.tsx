@@ -14,6 +14,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { newRequestId } from "./lib/request-id.js";
+import { apiUrl, authHeaders } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
 
 function toErrorToast(error: unknown, meta?: { silent?: boolean }) {
@@ -45,13 +46,14 @@ const queryClient = new QueryClient({
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/trpc",
+      // Web: relative "/trpc" (same-origin). Desktop: absolute loopback base.
+      url: apiUrl("/trpc"),
       fetch(url, options) {
         return fetch(url, { ...options, credentials: "include" });
       },
-      // Attach a per-batch request ID so backend and worker logs can be
-      // correlated to the originating SPA interaction (audit O3).
-      headers: () => ({ "x-request-id": newRequestId() }),
+      // Per-batch request ID for backend↔worker log correlation (audit O3),
+      // plus the desktop bearer token when running in the Tauri shell.
+      headers: () => ({ "x-request-id": newRequestId(), ...authHeaders() }),
     }),
   ],
 });
