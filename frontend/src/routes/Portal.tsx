@@ -153,6 +153,11 @@ export function Portal() {
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
   });
+  const [meetingOpen, setMeetingOpen] = useState(false);
+  const [meeting, setMeeting] = useState({ preferredDate: "", mode: "IN_PERSON" as "IN_PERSON" | "VIDEO_CALL" | "PHONE", agenda: "" });
+  const requestMeeting = trpc.portal.requestMeeting.useMutation({
+    onSuccess: () => { refresh(); setMeetingOpen(false); setMeeting({ preferredDate: "", mode: "IN_PERSON", agenda: "" }); },
+  });
   const respondImpact = trpc.portal.respondToImpact.useMutation({
     onSuccess: () => { refresh(); setImpactResponse(null); },
   });
@@ -230,6 +235,7 @@ export function Portal() {
               <Stack orientation="horizontal" gap={3}>
                 <Button size="sm" onClick={() => setRequestOpen(true)}>Raise change request</Button>
                 <Button size="sm" kind="tertiary" onClick={() => setFeedbackOpen(true)}>Leave feedback</Button>
+                <Button size="sm" kind="tertiary" onClick={() => setMeetingOpen(true)}>Schedule a meeting</Button>
               </Stack>
               <InlineNotification
                 kind="info"
@@ -751,6 +757,36 @@ export function Portal() {
                 onChange={(e) => setFeedback((f) => ({ ...f, body: e.target.value }))} />
             </Stack>
           </Form>
+        </Modal>
+
+        {/* ── schedule a meeting modal ────────────────────────────────── */}
+        <Modal
+          open={meetingOpen} modalHeading="Schedule a meeting"
+          primaryButtonText={requestMeeting.isPending ? "Submitting…" : "Request meeting"}
+          secondaryButtonText="Cancel"
+          primaryButtonDisabled={requestMeeting.isPending}
+          onRequestClose={() => setMeetingOpen(false)}
+          onRequestSubmit={() => openId && requestMeeting.mutate({
+            projectId: openId,
+            preferredDate: meeting.preferredDate || undefined,
+            mode: meeting.mode,
+            agenda: meeting.agenda || undefined,
+          })}
+        >
+          <Stack gap={5}>
+            <Select id="mtg-mode" labelText="Mode" value={meeting.mode}
+              onChange={(e) => setMeeting((m) => ({ ...m, mode: e.target.value as "IN_PERSON" | "VIDEO_CALL" | "PHONE" }))}>
+              <SelectItem value="IN_PERSON" text="In person" />
+              <SelectItem value="VIDEO_CALL" text="Video call" />
+              <SelectItem value="PHONE" text="Phone call" />
+            </Select>
+            <TextInput id="mtg-date" labelText="Preferred date (optional)" type="date"
+              value={meeting.preferredDate}
+              onChange={(e) => setMeeting((m) => ({ ...m, preferredDate: e.target.value }))} />
+            <TextArea id="mtg-agenda" labelText="Agenda / notes (optional)" rows={3}
+              value={meeting.agenda}
+              onChange={(e) => setMeeting((m) => ({ ...m, agenda: e.target.value }))} />
+          </Stack>
         </Modal>
 
         {/* ── impact assessment response modal ─────────────────────────── */}

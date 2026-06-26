@@ -407,6 +407,37 @@ export const portalRouter = router({
         rating: input.rating ?? null,
         eventSummary: `Client left feedback: ${input.subject}`,
       });
+
+    }),
+
+  /**
+   * Request a meeting with the project team. Creates a MEETING_REQUEST
+   * submission that appears in the office "Client requests" Work-hub tab.
+   */
+  requestMeeting: clientProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+        preferredDate: z.string().optional(),
+        mode: z.enum(["IN_PERSON", "VIDEO_CALL", "PHONE"]).optional(),
+        agenda: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertOwnedProject(ctx, input.projectId);
+      const modeLabel = input.mode === "VIDEO_CALL" ? "Video call"
+        : input.mode === "PHONE" ? "Phone call"
+        : "In-person";
+      const subject = input.preferredDate
+        ? `Meeting request — ${modeLabel} on ${input.preferredDate}`
+        : `Meeting request — ${modeLabel}`;
+      return insertSubmission(ctx, {
+        projectId: input.projectId,
+        kind: "MEETING_REQUEST",
+        subject,
+        body: input.agenda ?? null,
+        eventSummary: subject,
+      });
     }),
 });
 
@@ -440,7 +471,7 @@ async function insertSubmission(
   ctx: { db: DB; user: { id: string; fullName: string; clientId: string } },
   entry: {
     projectId: string;
-    kind: "ACKNOWLEDGEMENT" | "CHANGE_REQUEST" | "FEEDBACK";
+    kind: "ACKNOWLEDGEMENT" | "CHANGE_REQUEST" | "FEEDBACK" | "MEETING_REQUEST";
     objectType?: string | null;
     objectId?: string | null;
     subject: string;
