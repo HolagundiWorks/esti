@@ -26,5 +26,6 @@ export * from "./project-brief.js";
 export * from "./expense.js";
 export * from "./cognition.js";
 export * from "./licensing.js";
+export * from "./sync.js";
 
 export type { ProjectOfficeRow } from "./project.js";

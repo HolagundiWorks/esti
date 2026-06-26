@@ -32,6 +32,8 @@ import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { refreshNow } from "./modules/license/consumer.js";
 import { licenseState } from "./lib/plan.js";
+import { registerSyncRoutes } from "./modules/sync/routes.js";
+import { drainOutbox } from "./lib/sync/outbox.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { userFromDeviceToken } from "./auth/device.js";
@@ -112,6 +114,18 @@ if (env.ESTI_ROLE === "node" && env.ESTI_HUB_URL) {
   };
   void refreshTick();
   setInterval(() => void refreshTick(), env.LICENSE_REFRESH_HOURS * 3600_000).unref();
+
+  // Drain the publish outbox to the hub on boot + periodically (best-effort).
+  const drainTick = async () => {
+    try {
+      const r = await drainOutbox(db);
+      if (r.sent || r.failed) app.log.info(r, "sync outbox drained");
+    } catch (err) {
+      app.log.warn(err, "sync outbox drain failed");
+    }
+  };
+  void drainTick();
+  setInterval(() => void drainTick(), 60_000).unref();
 }
 
 if (isSmtpConfigured()) {
@@ -160,8 +174,9 @@ registerProfilePhotoUpload(app);
 registerHrDocUpload(app);
 registerOnboardingDocUpload(app);
 registerCalendarFeed(app);
-// License authority REST (activate/refresh) — hub-only; no-op on node installs.
+// License authority + sync ingest REST — hub-only; no-op on node installs.
 registerLicenseRoutes(app);
+registerSyncRoutes(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
