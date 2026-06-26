@@ -29,6 +29,7 @@ import { registerProfilePhotoUpload } from "./modules/users/photoUpload.js";
 import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
 import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
+import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { userFromDeviceToken } from "./auth/device.js";
@@ -136,6 +137,8 @@ registerProfilePhotoUpload(app);
 registerHrDocUpload(app);
 registerOnboardingDocUpload(app);
 registerCalendarFeed(app);
+// License authority REST (activate/refresh) — hub-only; no-op on node installs.
+registerLicenseRoutes(app);
 
 await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",

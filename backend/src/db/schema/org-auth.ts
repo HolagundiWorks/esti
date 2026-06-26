@@ -56,6 +56,17 @@ export const orgSettings = pgTable("esti_orgsettings", {
   uploadPasswordHash: text("upload_password_hash"),
   /** Running total of object-store bytes used — enforced against the plan's storage cap. */
   storageBytesUsed: bigint("storage_bytes_used", { mode: "number" }).notNull().default(0),
+  // Licensing (Phase B) — the install's cached signed license + sync credentials.
+  // The plan is **derived from licenseToken**, not the `plan` column above (kept
+  // as a fallback for un-licensed web/dev installs).
+  /** The cached signed license token (verified offline on every boot). */
+  licenseToken: text("license_token"),
+  /** Stable per-install identity used for activation/refresh + sync auth. */
+  installId: text("install_id"),
+  /** Raw bearer this node presents to the hub for sync (the hub stores its hash). */
+  syncToken: text("sync_token"),
+  /** Last successful license refresh from the hub. */
+  licenseCheckedAt: timestamp("license_checked_at", { withTimezone: true }),
   updatedAt: updatedAt(),
 });
 
