@@ -59,7 +59,13 @@ case "$VARIANT" in
   firm) PUBLIC_SITE="false"; SEED_DEMO="false" ;;
   *) error "VARIANT must be 'demo' or 'firm' (got: '$VARIANT'). Use install-demo.sh or install-firm.sh." ;;
 esac
-info "Build variant: ${BOLD}${VARIANT}${NC} (public site: ${PUBLIC_SITE}, demo data: ${SEED_DEMO})"
+# License-free standalone install: the plan is set directly from .env (no licence
+# hub required). Default ENTERPRISE = all features unlocked; override per install
+# with FIRM_PLAN=CORE|LITE bash install-firm.sh. The base seed applies it to
+# orgSettings.plan. (When a licence hub is later configured, a licence overrides this.)
+FIRM_PLAN="${FIRM_PLAN:-ENTERPRISE}"
+case "$FIRM_PLAN" in LITE|CORE|ENTERPRISE) ;; *) error "FIRM_PLAN must be LITE|CORE|ENTERPRISE (got: '$FIRM_PLAN')." ;; esac
+info "Build variant: ${BOLD}${VARIANT}${NC} (public site: ${PUBLIC_SITE}, demo data: ${SEED_DEMO}, plan: ${FIRM_PLAN})"
 
 echo ""
 warn "Database & session secrets"
@@ -195,6 +201,13 @@ SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
 # compose for the frontend build; SEED_DEMO gates the demo workspace seed in deploy.sh.
 VITE_PUBLIC_SITE=${PUBLIC_SITE}
 SEED_DEMO=${SEED_DEMO}
+
+# Standalone, licence-free install (Phase B). The plan is set from FIRM_PLAN by the
+# base seed; ESTI_ROLE stays "node" and ESTI_HUB_URL is intentionally unset, so the
+# licence write-gate never engages (the install is unmanaged). Configure ESTI_HUB_URL
+# + a licence later to switch to managed/licensed operation.
+ESTI_ROLE=node
+FIRM_PLAN=${FIRM_PLAN}
 EOF
 chmod 600 "$DEPLOY_DIR/.env"
 info ".env written and locked to root-only (600)."
