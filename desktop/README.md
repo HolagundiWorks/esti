@@ -31,14 +31,27 @@ The app-code seams that make this possible are already in the main codebase and 
 - App icons: `cargo tauri icon path/to/logo.png` (generates `src-tauri/icons/`). The
   `bundle` step needs these; they're git-ignored binaries, not committed.
 
+## Edition — LITE, licence-free
+The desktop app ships as the **LITE, licence-free** edition: the Rust shell injects
+`FIRM_PLAN=LITE` (override at launch for CORE/ENTERPRISE) and leaves `ESTI_HUB_URL`
+empty, so the install is an **unmanaged node** — the backend's licence write-gate
+never engages and the plan is pinned from `FIRM_PLAN` on boot. The SPA is built with
+`VITE_PUBLIC_SITE=false` (manual login + signup, not the public-demo role picker) via
+`desktop/scripts/build-frontend.mjs`.
+
 ## Build (Windows installer)
+Prerequisite: a provisioned host with **pnpm + a full `pnpm install`** (so the
+workspace `.bin`/`tsc` resolve), Rust + `tauri-cli` 2.x, and Node. Then:
 ```
-pnpm desktop:assemble     # contracts + backend + frontend build, then bundle the backend sidecar
-pnpm desktop:build        # cargo tauri build → NSIS installer
+pnpm desktop:assemble     # contracts + backend + frontend(VITE_PUBLIC_SITE=false) build, then bundle the sidecar
+pnpm desktop:build        # cargo tauri build → NSIS installer in src-tauri/target/release/bundle/nsis/
 ```
-`desktop:assemble` runs `desktop/scripts/bundle-backend.mjs`, which stages
-`src-tauri/resources/backend/{dist,drizzle,node_modules}` and vendors Node as
-`src-tauri/binaries/esti-backend-<triple>`.
+`desktop:assemble` runs `desktop/scripts/build-frontend.mjs` (firm-app SPA) then
+`desktop/scripts/bundle-backend.mjs`, which stages
+`src-tauri/resources/backend/{dist,drizzle,node_modules}` (via `pnpm deploy --prod`)
+and vendors Node as `src-tauri/binaries/esti-backend-<triple>`. PostgreSQL binaries
+are NOT in the installer — `postgresql_embedded` downloads them on first launch
+(vendor under `resources/pgsql/` for a fully offline installer — P3).
 
 ## Dev run
 ```

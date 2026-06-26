@@ -16,7 +16,7 @@
     "db:migrate": "pnpm --filter @esti/backend db:migrate",
     "seed:demo": "pnpm --filter @esti/backend seed:demo",
     "desktop:bundle-backend": "node desktop/scripts/bundle-backend.mjs",
-    "desktop:assemble": "pnpm --filter @esti/contracts build && pnpm --filter @esti/backend build && pnpm --filter @esti/frontend build && pnpm desktop:bundle-backend",
+    "desktop:assemble": "pnpm --filter @esti/contracts build && pnpm --filter @esti/backend build && node desktop/scripts/build-frontend.mjs && pnpm desktop:bundle-backend",
     "desktop:dev": "cargo tauri dev --config desktop/src-tauri/tauri.conf.json",
     "desktop:build": "pnpm desktop:assemble && cargo tauri build --config desktop/src-tauri/tauri.conf.json",
     "licenses": "node scripts/licenses.mjs",
