@@ -7,6 +7,7 @@ import { listActiveDeviceSessions, revokeDeviceSession } from "../../auth/device
 import { drawings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { assertCompanionTakeoff } from "../../lib/companion/writeGate.js";
 import { resolveCompanionCapabilities } from "../../lib/companion/capabilities.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -84,6 +85,8 @@ export const companionRouter = router({
         actorName: ctx.user.fullName,
         summary: `Drawing linked from ESTICAD: ${row!.title}`,
       });
+      // Hybrid sync (Phase B): a READY drawing is portal-shared finalized data.
+      if (row!.status === "READY") await publishEntity(ctx.db, "drawing", row!.id);
 
       return row!;
     }),

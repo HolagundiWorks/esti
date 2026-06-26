@@ -5,6 +5,7 @@ import { z } from "zod";
 import { approvals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { requireApprovalInProject } from "../../lib/projectScope.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -59,6 +60,8 @@ export const approvalRouter = router({
       actorId: ctx.user.id,
       after: row,
     });
+    // Hybrid sync (Phase B): a sent approval is client-facing — publish to the hub.
+    if (row!.status !== "DRAFT") await publishEntity(ctx.db, "approval", row!.id);
     return row!;
   }),
 
@@ -82,6 +85,7 @@ export const approvalRouter = router({
       before,
       after: row,
     });
+    if (row!.status !== "DRAFT") await publishEntity(ctx.db, "approval", row!.id);
     return row!;
   }),
 });

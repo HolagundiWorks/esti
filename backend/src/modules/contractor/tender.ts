@@ -32,6 +32,7 @@ import {
   workPackages,
 } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { assertPlanFeature } from "../../lib/plan.js";
@@ -725,6 +726,8 @@ export const tenderRouter = router({
       .update(tenders)
       .set({ status: "AWARDED", awardedContractorId: input.contractorId, updatedAt: new Date() })
       .where(eq(tenders.id, input.tenderId));
+    // Hybrid sync (Phase B): an awarded tender is contractor-portal finalized data.
+    await publishEntity(ctx.db, "tender", input.tenderId);
 
     await writeAudit(ctx.db, {
       entity: "tender",
