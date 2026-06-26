@@ -119,10 +119,14 @@ async fn boot(app: AppHandle) -> Result<(), String> {
 
 fn shutdown(app: &AppHandle) {
     let state = app.state::<Supervised>();
-    if let Some(child) = state.backend.lock().unwrap().take() {
+    // Take the values out of the mutexes into locals so the guards drop before the
+    // (potentially blocking) shutdown work below — keeps no borrow of `state` alive.
+    let child = state.backend.lock().unwrap().take();
+    if let Some(child) = child {
         let _ = child.kill();
     }
-    if let Some(pg) = state.pg.lock().unwrap().take() {
+    let pg = state.pg.lock().unwrap().take();
+    if let Some(pg) = pg {
         tauri::async_runtime::block_on(async move {
             supervisor::postgres::stop(&pg).await;
         });
