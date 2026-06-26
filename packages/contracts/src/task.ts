@@ -87,6 +87,44 @@ export const TaskUpdate = z.object({
 });
 export type TaskUpdate = z.infer<typeof TaskUpdate>;
 
+/**
+ * Multi-factor priority score (0–100) for a task.
+ * Factors:
+ *   - Priority enum:  CRITICAL=40, HIGH=25, MEDIUM=15, LOW=5
+ *   - Overdue:        +20 (dueDate in the past)
+ *   - Due today:      +10
+ *   - Intervention:   +15 (dependency stale >48h)
+ *   - WorkType:       CONSTRUCTION_SUPPORT=+5, TECHNICAL_PRODUCTION=+3
+ *   - BLOCKED status: +5 (visible waiting signal)
+ * Clamped to 0–100.
+ */
+export function computeTaskPriority(task: {
+  priority: string;
+  dueDate?: string | null;
+  interventionRequired?: boolean | null;
+  workType?: string | null;
+  status?: string | null;
+}): number {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const base =
+    task.priority === "CRITICAL" ? 40
+    : task.priority === "HIGH" ? 25
+    : task.priority === "MEDIUM" ? 15
+    : 5;
+
+  const overdue = task.dueDate && task.dueDate < today ? 20 : 0;
+  const dueToday = task.dueDate && task.dueDate === today ? 10 : 0;
+  const intervention = task.interventionRequired ? 15 : 0;
+  const workTypeBonus =
+    task.workType === "CONSTRUCTION_SUPPORT" ? 5
+    : task.workType === "TECHNICAL_PRODUCTION" ? 3
+    : 0;
+  const blocked = task.status === "BLOCKED" ? 5 : 0;
+
+  return Math.min(100, Math.max(0, base + overdue + dueToday + intervention + workTypeBonus + blocked));
+}
+
 export const TaskListParams = z.object({
   openOnly: z.boolean().default(false),
   myTasks: z.boolean().default(false),
