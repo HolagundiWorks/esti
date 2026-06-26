@@ -68,7 +68,7 @@ export const AI_DRAFT_KIND_LABEL: Record<AiDraftKind, string> = {
   CAD_BOQ_DRAFT: "CAD BOQ narrative (AIBOQ)",
 };
 
-export const AiProvider = z.enum(["mock", "ollama"]);
+export const AiProvider = z.enum(["mock", "ollama", "cloud"]);
 export type AiProvider = z.infer<typeof AiProvider>;
 
 export const AiApprovalState = z.enum(["DRAFT", "APPROVED", "REJECTED", "ISSUED"]);
@@ -84,14 +84,39 @@ export type AiSourceRef = z.infer<typeof AiSourceRef>;
 
 export const AiSettings = z.object({
   enabled: z.boolean().default(false),
-  /** Ollama on the server — no cloud API keys. */
+  /** ollama = on-server (Core+); cloud = bring-your-own OpenAI-compatible API (Enterprise). */
   provider: AiProvider.default("ollama"),
   model: z.string().min(1).max(80).default("llama3.2"),
   /** Ollama HTTP base URL (no /api suffix). Falls back to OLLAMA_BASE_URL env. */
   ollamaBaseUrl: z.string().max(200).optional(),
+  // BYO-API (Enterprise) — an OpenAI-compatible cloud provider the firm supplies.
+  /** Base URL ending in /v1, e.g. https://api.openai.com/v1 or an OpenRouter/vLLM endpoint. */
+  cloudBaseUrl: z.string().max(300).optional(),
+  /** Secret API key — persisted but never returned by read APIs. */
+  cloudApiKey: z.string().max(400).optional(),
+  /** Cloud model id, e.g. gpt-4o-mini. */
+  cloudModel: z.string().max(120).optional(),
   redactPii: z.boolean().default(true),
 });
 export type AiSettings = z.infer<typeof AiSettings>;
+
+/** AI settings with the cloud secret stripped + a configured flag — for read APIs. */
+export interface AiSettingsPublic extends Omit<AiSettings, "cloudApiKey"> {
+  cloudApiKeyConfigured: boolean;
+}
+
+export function toPublicAiSettings(s: AiSettings): AiSettingsPublic {
+  const { cloudApiKey, ...rest } = s;
+  return { ...rest, cloudApiKeyConfigured: !!cloudApiKey };
+}
+
+/** Cloud BYO-API config is complete enough to use. */
+export function cloudAiConfigError(s: AiSettings): string | null {
+  if (s.provider !== "cloud") return null;
+  if (!s.cloudBaseUrl?.trim()) return "A cloud endpoint URL (…/v1) is required.";
+  if (!s.cloudModel?.trim()) return "A cloud model id is required.";
+  return null;
+}
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   enabled: false,
