@@ -79,6 +79,13 @@ export const LicenseGrant = z.object({
 });
 export type LicenseGrant = z.infer<typeof LicenseGrant>;
 
+/** What the hub returns on refresh (sync token is not rotated — node keeps its own). */
+export const LicenseRefreshResult = z.object({
+  licenseToken: z.string().min(1),
+  installId: z.string().min(1),
+});
+export type LicenseRefreshResult = z.infer<typeof LicenseRefreshResult>;
+
 /** License authority status values (hub-side `esti_license.status`). */
 export const LicenseKeyStatus = z.enum(["ACTIVE", "SUSPENDED", "REVOKED"]);
 export type LicenseKeyStatus = z.infer<typeof LicenseKeyStatus>;
