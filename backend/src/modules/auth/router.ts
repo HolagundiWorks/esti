@@ -1,7 +1,11 @@
 import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { count, eq, ilike, sql, and } from "drizzle-orm";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { z } from "zod";
+
+const execFileAsync = promisify(execFile);
 import { createDeviceSession, refreshDeviceAccessToken } from "../../auth/device.js";
 import {
   SESSION_COOKIE,
@@ -275,6 +279,30 @@ export const authRouter = router({
       ctx.setCookie(SESSION_COOKIE, token);
       return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
     }),
+
+  /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
+  resetDemo: publicProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.user?.isDemo) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only available on demo accounts" });
+    }
+    await execFileAsync("pnpm", ["seed:demo"], {
+      cwd: process.cwd(),
+      env: { ...process.env, SEED_DEMO_FORCE: "1" },
+      timeout: 90_000,
+    });
+    // Switch session to the principal demo account so the page lands cleanly.
+    const [principal] = await ctx.db
+      .select()
+      .from(users)
+      .where(and(eq(users.email, "principal@demo.aorms.in"), eq(users.isDemo, true)))
+      .limit(1);
+    if (principal) {
+      await revokeSessionByToken(ctx.db, ctx.sessionToken);
+      const token = await createSession(principal.id);
+      ctx.setCookie(SESSION_COOKIE, token);
+    }
+    return { ok: true };
+  }),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
     await revokeSessionByToken(ctx.db, ctx.sessionToken);

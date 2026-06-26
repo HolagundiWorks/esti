@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Logout } from "@carbon/icons-react";
+import { ChevronLeft, ChevronRight, Logout, Renew } from "@carbon/icons-react";
 import { trpc } from "../lib/trpc.js";
 
 const CARBON_HEADER_H = 48;
@@ -61,6 +61,9 @@ export function DemoSwitcherBar({
   const logoutMut = trpc.auth.logout.useMutation({
     onSuccess: () => { window.location.href = "/"; },
   });
+  const resetMut = trpc.auth.resetDemo.useMutation({
+    onSuccess: () => { window.location.href = "/"; },
+  });
 
   const users = [...(demoUsersQ.data ?? [])].sort(
     (a, b) => (LEVEL_ORDER[a.role] ?? 99) - (LEVEL_ORDER[b.role] ?? 99),
@@ -78,7 +81,7 @@ export function DemoSwitcherBar({
     }
   }
 
-  const busy = !!switching || logoutMut.isPending;
+  const busy = !!switching || logoutMut.isPending || resetMut.isPending;
 
   return (
     <div
@@ -231,30 +234,57 @@ export function DemoSwitcherBar({
         })}
       </div>
 
-      {/* Footer: logout */}
+      {/* Footer: reset + logout */}
       <div style={{ borderTop: "1px solid #2a2a2a", flexShrink: 0 }}>
         {expanded ? (
-          <button
-            onClick={() => logoutMut.mutate()}
-            disabled={busy}
-            title="Exit demo and return to landing page"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              width: "100%",
-              padding: "10px 12px",
-              background: "transparent",
-              border: "none",
-              color: logoutMut.isPending ? "#666" : "#e8614c",
-              cursor: busy ? "wait" : "pointer",
-              fontFamily: "'IBM Plex Sans', sans-serif",
-              fontSize: 12,
-            }}
-          >
-            <Logout size={14} aria-hidden />
-            {logoutMut.isPending ? "Signing out…" : "Exit demo"}
-          </button>
+          <>
+            <button
+              onClick={() => {
+                if (!window.confirm("Reset all demo data? This takes ~10 seconds.")) return;
+                resetMut.mutate();
+              }}
+              disabled={busy}
+              title="Wipe and re-seed all demo data"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                width: "100%",
+                padding: "10px 12px",
+                background: "transparent",
+                border: "none",
+                borderBottom: "1px solid #2a2a2a",
+                color: resetMut.isPending ? "#666" : "#8a9ba8",
+                cursor: busy ? "wait" : "pointer",
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: 12,
+              }}
+            >
+              <Renew size={14} aria-hidden style={resetMut.isPending ? { animation: "spin 1s linear infinite" } : undefined} />
+              {resetMut.isPending ? "Resetting…" : "Reset demo data"}
+            </button>
+            <button
+              onClick={() => logoutMut.mutate()}
+              disabled={busy}
+              title="Exit demo and return to landing page"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                width: "100%",
+                padding: "10px 12px",
+                background: "transparent",
+                border: "none",
+                color: logoutMut.isPending ? "#666" : "#e8614c",
+                cursor: busy ? "wait" : "pointer",
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: 12,
+              }}
+            >
+              <Logout size={14} aria-hidden />
+              {logoutMut.isPending ? "Signing out…" : "Exit demo"}
+            </button>
+          </>
         ) : (
           <button
             onClick={() => logoutMut.mutate()}
