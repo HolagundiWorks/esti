@@ -49,6 +49,26 @@ export const programRouter = router({
     .query(async ({ ctx, input }) => latestProgram(ctx.db, input.projectId)),
 
   /**
+   * Frozen program versions for a project (newest first) — the baselines a CRIF
+   * revision can be measured against (`esti_decision.program_version_id`).
+   */
+  listVersions: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select({
+          id: programs.id,
+          version: programs.version,
+          status: programs.status,
+          frozenAt: programs.frozenAt,
+          maxBuiltAreaSqm: programs.maxBuiltAreaSqm,
+        })
+        .from(programs)
+        .where(and(eq(programs.projectId, input.projectId), eq(programs.status, "FROZEN")))
+        .orderBy(desc(programs.version));
+    }),
+
+  /**
    * The latest program + its spaces + the summary against the feasibility
    * envelope. While DRAFT the envelope is read live from the assessment (the
    * single source of truth); a FROZEN program uses its snapshot. Returns null
