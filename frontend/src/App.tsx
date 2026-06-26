@@ -49,7 +49,6 @@ import { UserIdCard } from "./components/UserIdCard.js";
 import { FloatingDock } from "./components/FloatingDock.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
-import { DemoSwitcherBar } from "./components/DemoSwitcherBar.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
 // Landing + Login stay eager so the first paint (marketing / sign-in) needs no extra
@@ -264,9 +263,7 @@ function AppShell() {
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT")
     return (
-      <Theme theme="white">
-        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-        <div>
+      <Theme theme="white">        <div>
           <Routes>
             <Route path="/" element={<Portal />} />
             <Route path="/projects/:projectId" element={<Portal />} />
@@ -278,9 +275,7 @@ function AppShell() {
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId)
     return (
-      <Theme theme="white">
-        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-        <div>
+      <Theme theme="white">        <div>
           <Routes>
             <Route path="/" element={<CollaboratorPortal />} />
             <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
@@ -293,9 +288,7 @@ function AppShell() {
   // Contractors (scoped to a contractor record) get the login-based contractor portal.
   if (user.role === "CONTRACTOR" && user.contractorId)
     return (
-      <Theme theme="white">
-        {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-        <div>
+      <Theme theme="white">        <div>
           <Routes>
             <Route path="/" element={<ContractorPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -430,9 +423,7 @@ function AppShell() {
   return (
     <ThemeContext.Provider value="g100">
       <Theme theme="g100">
-        <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>
-          {user.isDemo && <DemoSwitcherBar currentUserId={user.id} />}
-          <Theme theme="g100">
+        <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>          <Theme theme="g100">
             <Header aria-label="ESTI AORMS">
               <HeaderName prefix="">
                 <img
