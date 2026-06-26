@@ -57,6 +57,7 @@ export function Invoices() {
   const [projectId, setProjectId] = useState("");
   const [taxableR, setTaxableR] = useState("");
   const [inter, setInter] = useState(false);
+  const [isAdvance, setIsAdvance] = useState(false);
   const [sac, setSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
 
   const create = trpc.invoices.create.useMutation({
@@ -66,6 +67,7 @@ export function Invoices() {
       setOpen(false);
       setTaxableR("");
       setProjectId("");
+      setIsAdvance(false);
     },
   });
   const updateStatus = trpc.invoices.updateStatus.useMutation({
@@ -200,6 +202,7 @@ export function Invoices() {
             projectId,
             taxablePaise,
             interState: inter,
+            isAdvance,
             sac: showSac ? sac : undefined,
           })
         }
@@ -251,6 +254,12 @@ export function Invoices() {
             labelText="Inter-state (IGST)"
             checked={inter}
             onChange={(_, { checked }) => setInter(checked)}
+          />
+          <Checkbox
+            id="gi-advance"
+            labelText="Advance invoice (gates project activation when paid)"
+            checked={isAdvance}
+            onChange={(_, { checked }) => setIsAdvance(checked)}
           />
           <div>
             TDS u/s 194J:{" "}

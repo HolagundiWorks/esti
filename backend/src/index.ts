@@ -22,6 +22,7 @@ import { registerMoodImageUpload } from "./modules/spec/upload.js";
 import { registerTenderDocumentUpload } from "./modules/contractor/upload.js";
 import { registerProfilePhotoUpload } from "./modules/users/photoUpload.js";
 import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
+import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
@@ -111,6 +112,7 @@ registerInspectionPhotoUpload(app);
 registerTenderDocumentUpload(app);
 registerProfilePhotoUpload(app);
 registerHrDocUpload(app);
+registerOnboardingDocUpload(app);
 registerCalendarFeed(app);
 
 await app.register(fastifyTRPCPlugin, {

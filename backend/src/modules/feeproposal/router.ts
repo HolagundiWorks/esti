@@ -1,8 +1,13 @@
-import { FeeProposalCreate, coaMinimumFee, isBelowCoaMinimum } from "@esti/contracts";
+import {
+  FeeProposalCreate,
+  FeeProposalSetClientApproval,
+  coaMinimumFee,
+  isBelowCoaMinimum,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { feeProposals, projectOffices } from "../../db/schema.js";
+import { feeProposals, leads, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -115,5 +120,52 @@ export const feeProposalRouter = router({
         after: { pdfStatus: "PENDING" },
       });
       return { ok: true };
+    }),
+
+  /**
+   * Project OS — Client Approval Gate (Slice I). Record the client's decision on
+   * a fee proposal. On REJECTED, the draft project is cancelled and the linked
+   * lead (if any) is marked LOST — closing the funnel cleanly.
+   */
+  setClientApproval: feesProcedure
+    .input(FeeProposalSetClientApproval)
+    .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(feeProposals).where(eq(feeProposals.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const result = await ctx.db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(feeProposals)
+          .set({
+            clientApprovalStatus: input.clientApprovalStatus,
+            clientApprovedAt: input.clientApprovalStatus === "APPROVED" ? new Date() : null,
+            approvalNotes: input.approvalNotes ?? null,
+            updatedAt: new Date(),
+          })
+          .where(eq(feeProposals.id, input.id))
+          .returning();
+
+        if (input.clientApprovalStatus === "REJECTED") {
+          const [proj] = await tx
+            .update(projectOffices)
+            .set({ status: "CANCELLED" })
+            .where(eq(projectOffices.id, before.projectId))
+            .returning({ leadId: projectOffices.leadId });
+          if (proj?.leadId) {
+            await tx.update(leads).set({ status: "LOST", updatedAt: new Date() }).where(eq(leads.id, proj.leadId));
+          }
+        }
+        return row!;
+      });
+
+      await writeAudit(ctx.db, {
+        entity: "feeproposal",
+        entityId: input.id,
+        action: "CLIENT_APPROVAL",
+        actorId: ctx.user.id,
+        before: { clientApprovalStatus: before.clientApprovalStatus },
+        after: { clientApprovalStatus: input.clientApprovalStatus },
+      });
+      return result;
     }),
 });

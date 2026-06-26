@@ -24,6 +24,13 @@ import { contractorPortalRouter } from "../modules/contractor/portal.js";
 import { tenderRouter } from "../modules/contractor/tender.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
+import { leadsRouter } from "../modules/projectos/leads.js";
+import { projectDnaRouter } from "../modules/projectos/dna.js";
+import { assessmentRouter } from "../modules/projectos/assessment.js";
+import { feasibilityRouter } from "../modules/projectos/feasibility.js";
+import { negotiationRouter } from "../modules/projectos/negotiation.js";
+import { onboardingRouter } from "../modules/projectos/onboarding.js";
+import { programRouter } from "../modules/projectos/program.js";
 import { documentRouter } from "../modules/document/router.js";
 import { momRouter } from "../modules/mom/router.js";
 import { measurementRouter } from "../modules/drawing/measurement.js";
@@ -195,6 +202,13 @@ export const appRouter = router({
   steelReconciliation: steelReconciliationRouter,
   finalAccount: finalAccountRouter,
   grn: grnRouter,
+  leads: leadsRouter,
+  projectDna: projectDnaRouter,
+  assessment: assessmentRouter,
+  feasibility: feasibilityRouter,
+  negotiation: negotiationRouter,
+  onboarding: onboardingRouter,
+  program: programRouter,
   constructionSchedule: constructionScheduleRouter,
   projectBrief: projectBriefRouter,
   accounts: accountsRouter,

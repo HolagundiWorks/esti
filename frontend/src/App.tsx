@@ -105,6 +105,7 @@ const Invoices = lazyRoute(() => import("./routes/Invoices.js"), "Invoices");
 const OfficeExpenses = lazyRoute(() => import("./routes/OfficeExpenses.js"), "OfficeExpenses");
 const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook");
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
+const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "KnowledgeBank");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
@@ -316,6 +317,7 @@ function AppShell() {
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
     // Clients is its own IA area (master CRM); People keeps only internal/external staff.
+    ...(can(user.role, "write") ? [{ label: "Leads", to: "/leads", icon: Events }] : []),
     ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients", icon: Events }] : []),
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
@@ -537,6 +539,9 @@ function AppShell() {
                 />
                 {can(user.role, "write") && (
                   <Route path="/clients" element={<Clients />} />
+                )}
+                {can(user.role, "write") && (
+                  <Route path="/leads" element={<Leads />} />
                 )}
                 {atLeast(60) && (
                   <Route path="/consultants" element={<Consultants />} />

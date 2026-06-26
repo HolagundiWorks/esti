@@ -45,6 +45,11 @@ export const projectOffices = pgTable("esti_projectoffice", {
   currentPhaseId: uuid("current_phase_id"),
   /** When true (and firm PMC on), project shows PMC tab and site-admin features. */
   pmcEnabled: boolean("pmc_enabled").notNull().default(false),
+  // Project OS pipeline links (Slice G). Plain uuids — FKs added by migration to
+  // avoid a circular table dependency with the project-os schema module.
+  leadId: uuid("lead_id"),
+  dnaId: uuid("dna_id"),
+  assessmentId: uuid("assessment_id"),
   /** Retention deadline: project may be purged on or after this date. */
   purgeAfter: date("purge_after"),
   /** Set when the project data has been scheduled for deletion. */
@@ -250,6 +255,8 @@ export const decisions = pgTable("esti_decision", {
   revisionCategory: text("revision_category"),
   /** Revision source: CLIENT_DRIVEN | INTERNAL_ERROR | TECHNICAL_QUERY | SCOPE_CHANGE */
   revisionSource: text("revision_source"),
+  /** Program Formulation — the frozen program version this revision is measured against. */
+  programVersionId: uuid("program_version_id"),
   ownerId: uuid("owner_id").references(() => users.id),
   ownerName: text("owner_name"),
   lockedAt: timestamp("locked_at", { withTimezone: true }),
@@ -301,6 +308,10 @@ export const feeProposals = pgTable("esti_feeproposal", {
   belowMinimum: boolean("below_minimum").notNull().default(false),
   overrideReason: text("override_reason"),
   scope: text("scope"),
+  // Project OS — Client Approval Gate (Slice I).
+  clientApprovalStatus: text("client_approval_status").notNull().default("PENDING"),
+  clientApprovedAt: timestamp("client_approved_at", { withTimezone: true }),
+  approvalNotes: text("approval_notes"),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
@@ -339,6 +350,10 @@ export const clientLogs = pgTable("esti_clientlog", {
   subject: text("subject").notNull(),
   body: text("body"),
   followUpDate: date("follow_up_date"),
+  // Project OS — Client Discussion Layer (Slice F). Post-feasibility outcome.
+  outcome: text("outcome"),
+  budgetObjections: text("budget_objections"),
+  architectComments: text("architect_comments"),
   createdById: uuid("created_by_id").references(() => users.id),
   createdAt: createdAt(),
 });

@@ -285,5 +285,7 @@ export const InvoiceCreate = z.object({
   sac: z.string().max(10).default("998322"),
   dateInvoice: z.string().date().optional(),
   notes: z.string().max(2000).optional(),
+  /** Project OS — advance invoice; a PAID advance gates project activation (Slice K). */
+  isAdvance: z.boolean().default(false),
 });
 export type InvoiceCreate = z.infer<typeof InvoiceCreate>;
