@@ -10,6 +10,7 @@ export * from "./bbs-validation.js";
 export * from "./steel-reconciliation.js";
 export * from "./final-account.js";
 export * from "./cost-dashboard.js";
+export * from "./boq-validation.js";
 export * from "./task.js";
 export * from "./transmittal.js";
 export * from "./clientlog.js";
