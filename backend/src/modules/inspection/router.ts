@@ -10,6 +10,7 @@ import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import { siteProcedure } from "./siteProcedure.js";
@@ -168,6 +169,8 @@ export const inspectionRouter = router({
       before: { pdfStatus: row.pdfStatus },
       after: { pdfStatus: "PENDING", status: "ISSUED" },
     });
+    // Hybrid sync (Phase B): an issued inspection is site-portal finalized data.
+    await publishEntity(ctx.db, "inspection", row.id);
     return { ok: true };
   }),
 

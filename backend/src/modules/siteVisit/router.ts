@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { siteVisits } from "../../db/schema.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { contractorProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import { siteProcedure } from "../inspection/siteProcedure.js";
 
@@ -108,6 +109,7 @@ export const siteVisitRouter = router({
         .update(siteVisits)
         .set({ supervisorConfirmedAt: now, status: newStatus, updatedAt: now })
         .where(eq(siteVisits.id, input.id));
+      if (newStatus === "CONFIRMED") await publishEntity(ctx.db, "siteVisit", input.id);
       return { ok: true };
     }),
 
@@ -124,6 +126,7 @@ export const siteVisitRouter = router({
         .update(siteVisits)
         .set({ contractorConfirmedAt: now, status: newStatus, updatedAt: now })
         .where(eq(siteVisits.id, input.id));
+      if (newStatus === "CONFIRMED") await publishEntity(ctx.db, "siteVisit", input.id);
       return { ok: true };
     }),
 

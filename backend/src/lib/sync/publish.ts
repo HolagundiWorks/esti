@@ -1,19 +1,27 @@
 import { type SyncEntity } from "@esti/contracts";
 import { eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
-import { invoices, transmittals } from "../../db/schema.js";
+import {
+  approvals,
+  drawings,
+  inspections,
+  invoices,
+  siteVisits,
+  tenders,
+  transmittals,
+} from "../../db/schema.js";
 import { enqueuePublish } from "./outbox.js";
 
 type Dto = { payload: Record<string, unknown>; fileKeys: string[] };
 
 /**
  * Build the portal-shaped DTO for a finalized record. The payload carries the
- * scoping keys the hub portals filter on (projectId / clientId) plus the fields
- * the portal renders; `fileKeys` are object keys to mirror to hub storage.
+ * scoping keys the hub portals filter on (projectId / clientId / contractorId)
+ * plus the fields the portal renders; `fileKeys` are object keys to mirror to
+ * hub storage.
  *
- * Only the client-portal set (invoice, transmittal) is wired so far — drawings,
- * approvals, tenders, running bills, inspections and site visits follow the
- * identical pattern and are added incrementally.
+ * Covers the publishable set; running-bill + site-reference DTOs are added with
+ * their portal cutover.
  */
 async function buildDto(db: DB, entity: SyncEntity, id: string): Promise<Dto | null> {
   switch (entity) {
@@ -50,6 +58,84 @@ async function buildDto(db: DB, entity: SyncEntity, id: string): Promise<Dto | n
           pdfStatus: r.pdfStatus,
         },
         fileKeys: r.pdfKey ? [r.pdfKey] : [],
+      };
+    }
+    case "approval": {
+      const [r] = await db.select().from(approvals).where(eq(approvals.id, id)).limit(1);
+      if (!r) return null;
+      return {
+        payload: {
+          projectId: r.projectId,
+          entityType: r.entityType,
+          title: r.title,
+          recipient: r.recipient,
+          status: r.status,
+          sentDate: r.sentDate,
+          responseDate: r.responseDate,
+          remarks: r.remarks,
+        },
+        fileKeys: [],
+      };
+    }
+    case "drawing": {
+      const [r] = await db.select().from(drawings).where(eq(drawings.id, id)).limit(1);
+      if (!r) return null;
+      return {
+        payload: {
+          ref: r.ref,
+          projectId: r.projectId,
+          title: r.title,
+          status: r.status,
+          revNo: r.revNo,
+          issuePdfStatus: r.issuePdfStatus,
+        },
+        fileKeys: r.issuePdfKey ? [r.issuePdfKey] : [],
+      };
+    }
+    case "tender": {
+      const [r] = await db.select().from(tenders).where(eq(tenders.id, id)).limit(1);
+      if (!r) return null;
+      return {
+        payload: {
+          projectId: r.projectId,
+          title: r.title,
+          category: r.category,
+          status: r.status,
+          dueDate: r.dueDate,
+          awardedContractorId: r.awardedContractorId,
+        },
+        fileKeys: [],
+      };
+    }
+    case "inspection": {
+      const [r] = await db.select().from(inspections).where(eq(inspections.id, id)).limit(1);
+      if (!r) return null;
+      return {
+        payload: {
+          ref: r.ref,
+          projectId: r.projectId,
+          dateVisit: r.dateVisit,
+          status: r.status,
+          inspectorName: r.inspectorName,
+          progress: r.progress,
+          pdfStatus: r.pdfStatus,
+        },
+        fileKeys: r.pdfKey ? [r.pdfKey] : [],
+      };
+    }
+    case "siteVisit": {
+      const [r] = await db.select().from(siteVisits).where(eq(siteVisits.id, id)).limit(1);
+      if (!r) return null;
+      return {
+        payload: {
+          projectId: r.projectId,
+          plannedDate: r.plannedDate,
+          status: r.status,
+          contractorId: r.contractorId,
+          supervisorUserId: r.supervisorUserId,
+          notes: r.notes,
+        },
+        fileKeys: [],
       };
     }
     default:
