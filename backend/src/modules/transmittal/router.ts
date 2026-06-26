@@ -6,6 +6,7 @@ import { transmittalItems, transmittals } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { buildCursorPage, cursorWhere } from "../../lib/cursorPage.js";
 import { firmPayload } from "../../lib/firm.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireDrawingsInProject } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -77,6 +78,8 @@ export const transmittalRouter = router({
       );
       return t!;
     });
+    // Hybrid sync (Phase B): an issued transmittal is finalized — publish to the hub.
+    if (row.dateIssued) await publishEntity(ctx.db, "transmittal", row.id);
     await writeAudit(ctx.db, {
       entity: "transmittal",
       entityId: row.id,

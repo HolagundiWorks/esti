@@ -10,6 +10,7 @@ import { firmPayload, getFirm } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { requireInvoiceScope } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import { invoicePeriodWhere } from "../../lib/periodFilter.js";
@@ -170,6 +171,11 @@ export const invoiceRouter = router({
           id: row!.id,
           firm: await firmPayload(ctx.db),
         }, ctx.requestId);
+      }
+      // Hybrid sync (Phase B): an issued/paid invoice is finalized client-facing
+      // data — publish it outward to the hub for the client portal.
+      if (input.status === "ISSUED" || input.status === "PAID") {
+        await publishEntity(ctx.db, "invoice", row!.id);
       }
       return row!;
     }),

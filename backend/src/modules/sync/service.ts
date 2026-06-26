@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { type SyncIngestBody } from "@esti/contracts";
-import { and, eq } from "drizzle-orm";
+import { type SyncEntity, type SyncIngestBody } from "@esti/contracts";
+import { and, desc, eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import { licenseInstalls, licenses, syncRecords } from "../../db/schema.js";
 
@@ -52,4 +52,17 @@ export async function ingestRecord(db: DB, firmId: string, body: SyncIngestBody)
     })
     .returning({ id: syncRecords.id });
   return created!.id;
+}
+
+/**
+ * Read published records for one firm (the seam the hub portals filter on). On a
+ * `node` install `firmId` is a constant so behaviour matches today; on the hub it
+ * isolates each firm's published data. Portals further filter `payload` by
+ * clientId/consultantId/contractorId.
+ */
+export async function publishedForFirm(db: DB, firmId: string, entity?: SyncEntity) {
+  const where = entity
+    ? and(eq(syncRecords.firmId, firmId), eq(syncRecords.entity, entity))
+    : eq(syncRecords.firmId, firmId);
+  return db.select().from(syncRecords).where(where).orderBy(desc(syncRecords.updatedAt));
 }
