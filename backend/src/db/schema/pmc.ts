@@ -10,6 +10,7 @@ import {
   id,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -468,6 +469,44 @@ export const finalAccounts = pgTable("esti_final_account", {
  * in Python. Carries the async pdf_status / pdf_key slot the render pipeline
  * patches (PENDING → PROCESSING → READY/FAILED).
  */
+/**
+ * Construction Cost OS 3.17 — Goods Receipt Note (GRN). Records every physical
+ * delivery of materials to site against a work package.
+ */
+export const grns = pgTable("esti_grn", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workPackageId: uuid("work_package_id").references(() => workPackages.id, { onDelete: "set null" }),
+  deliveryDate: date("delivery_date").notNull(),
+  vendorName: text("vendor_name").notNull(),
+  deliveryNoteRef: text("delivery_note_ref"),
+  status: text("status").notNull().default("DRAFT"),
+  notes: text("notes"),
+  verifiedById: uuid("verified_by_id").references(() => users.id, { onDelete: "set null" }),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** GRN line items — each links to a work-package BOQ item for reconciliation. */
+export const grnItems = pgTable("esti_grn_item", {
+  id: id(),
+  grnId: uuid("grn_id")
+    .notNull()
+    .references(() => grns.id, { onDelete: "cascade" }),
+  workPackageItemId: uuid("work_package_item_id").references(() => workPackageItems.id, {
+    onDelete: "set null",
+  }),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  qtyReceived: numeric("qty_received", { precision: 12, scale: 4 }).notNull(),
+  unitRatePaise: bigint("unit_rate_paise", { mode: "number" }),
+  createdAt: createdAt(),
+});
+
 export const costReports = pgTable("esti_cost_report", {
   id: id(),
   projectId: uuid("project_id")

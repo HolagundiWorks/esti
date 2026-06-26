@@ -20,6 +20,8 @@ import { ProjectControls } from "./ProjectControls.js";
 import { ProjectFinalAccount } from "./ProjectFinalAccount.js";
 import { ProjectCostDashboard } from "./ProjectCostDashboard.js";
 import { ProjectProcurementForecast } from "./ProjectProcurementForecast.js";
+import { ProjectGrn } from "./ProjectGrn.js";
+import { ProjectMaterialReconciliation } from "./ProjectMaterialReconciliation.js";
 
 /**
  * Single Costing & Measurement window (Phase 4). Presents the full delivery
@@ -85,6 +87,7 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
           {showBills && <Tab>Final account</Tab>}
           {showBills && <Tab>Cost dashboard</Tab>}
           {showBills && <Tab>Procurement forecast</Tab>}
+          {showBills && <Tab>GRN &amp; materials</Tab>}
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -152,6 +155,15 @@ export function ProjectCosting({ projectId, showBills }: { projectId: string; sh
               <Stack gap={5}>
                 <SpineRail active="" />
                 <ProjectProcurementForecast projectId={projectId} />
+              </Stack>
+            </TabPanel>
+          )}
+          {showBills && (
+            <TabPanel>
+              <Stack gap={7}>
+                <SpineRail active="" />
+                <ProjectGrn projectId={projectId} />
+                <ProjectMaterialReconciliation projectId={projectId} />
               </Stack>
             </TabPanel>
           )}
