@@ -30,6 +30,8 @@ import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
 import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { registerLicenseRoutes } from "./modules/licensing/routes.js";
+import { refreshNow } from "./modules/license/consumer.js";
+import { licenseState } from "./lib/plan.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { userFromDeviceToken } from "./auth/device.js";
@@ -89,6 +91,27 @@ try {
 } catch (err) {
   app.log.error(err, "migration failed");
   process.exit(1);
+}
+
+// License (Phase B): log effective state on boot. On a managed node, refresh the
+// signed token from the hub now and on an interval so the offline-grace window
+// keeps extending while the hub is reachable (offline failures are tolerated).
+try {
+  const lic = await licenseState(db);
+  app.log.info({ status: lic.status, plan: lic.plan, managed: lic.managed }, "license state");
+} catch (err) {
+  app.log.warn(err, "license state check failed");
+}
+if (env.ESTI_ROLE === "node" && env.ESTI_HUB_URL) {
+  const refreshTick = async () => {
+    try {
+      app.log.info({ refreshed: await refreshNow(db) }, "license refresh");
+    } catch (err) {
+      app.log.warn(err, "license refresh failed");
+    }
+  };
+  void refreshTick();
+  setInterval(() => void refreshTick(), env.LICENSE_REFRESH_HOURS * 3600_000).unref();
 }
 
 if (isSmtpConfigured()) {

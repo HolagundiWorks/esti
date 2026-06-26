@@ -50,6 +50,10 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     let db_password =
         paths::load_or_create(&p.secrets.join("db.pass"), || paths::rand_hex(16))
             .map_err(|e| e.to_string())?;
+    // Stable per-install identity for licence activation/refresh + sync auth.
+    let install_id =
+        paths::load_or_create(&p.secrets.join("install.id"), || paths::rand_hex(16))
+            .map_err(|e| e.to_string())?;
 
     // Local PostgreSQL (init on first run; starts on a port it picks itself).
     let pg = supervisor::postgres::start(p.pgdata.clone(), db_password).await?;
@@ -70,6 +74,14 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     env.insert("FILES_PUBLIC_BASE".into(), format!("{api_base}/files"));
     env.insert("WORKER_MODE".into(), "inproc".into());
     env.insert("COOKIE_SECURE".into(), "false".into());
+    // Licensing (Phase B): the install identity + the central hub it activates
+    // against. ESTI_HUB_URL is empty by default (offline) and can be supplied at
+    // launch; the firm activates a key from Company → Licence.
+    env.insert("INSTALL_ID".into(), install_id);
+    env.insert(
+        "ESTI_HUB_URL".into(),
+        std::env::var("ESTI_HUB_URL").unwrap_or_default(),
+    );
     env.insert(
         "ALLOWED_ORIGINS".into(),
         format!("{api_base},tauri://localhost,http://tauri.localhost"),

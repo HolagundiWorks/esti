@@ -49,6 +49,7 @@ import { clientRequestsRouter } from "../modules/portal/admin.js";
 import { portalRouter } from "../modules/portal/router.js";
 import { settingsRouter } from "../modules/settings/router.js";
 import { licensingRouter } from "../modules/licensing/router.js";
+import { licenseRouter } from "../modules/license/router.js";
 import { taskRouter } from "../modules/task/router.js";
 import { transmittalRouter } from "../modules/transmittal/router.js";
 import { userRouter } from "../modules/users/router.js";
@@ -172,6 +173,7 @@ export const appRouter = router({
   clientRequests: clientRequestsRouter,
   settings: settingsRouter,
   licensing: licensingRouter,
+  license: licenseRouter,
   firm: firmRouter,
   users: userRouter,
   tasks: taskRouter,

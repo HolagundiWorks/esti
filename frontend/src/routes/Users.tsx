@@ -40,20 +40,14 @@ const ROLE_LABEL: Record<string, string> = {
   CLIENT: "Client",
 };
 
-/** The edition a firm upgrades *into* (Enterprise is the ceiling). */
-const NEXT_PLAN: Record<Plan, Plan | null> = {
-  LITE: "CORE",
-  CORE: "ENTERPRISE",
-  ENTERPRISE: null,
-};
-
 export function Users() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const listQ = trpc.users.list.useQuery();
-  const settingsQ = trpc.settings.get.useQuery();
+  // Plan + seat caps are license-derived (Phase B) — activation lives in Company.
+  const licenseQ = trpc.license.status.useQuery();
   const invalidate = () => utils.users.list.invalidate();
-  const plan = (settingsQ.data?.plan ?? "LITE") as Plan;
+  const plan = (licenseQ.data?.plan ?? "LITE") as Plan;
   const isLite = plan === "LITE";
   // Lite only offers general staff seats (no accountant/HR functional seats).
   const roleOptions = isLite ? GENERAL_STAFF_ROLES : ASSIGNABLE_STAFF_ROLES;
@@ -63,24 +57,14 @@ export function Users() {
   const rows = listQ.data ?? [];
   const activeIn = (roles: readonly string[]) =>
     rows.filter((u) => roles.includes(u.role) && !u.disabled).length;
-  const limits = PLAN_LIMITS[plan];
+  // Seat caps come from the licence (with plan defaults as the fallback).
+  const caps = licenseQ.data?.seats ?? PLAN_LIMITS[plan];
   const seats: Array<{ label: string; used: number; cap: number | null }> = [
     { label: "Admin", used: rows.filter((u) => u.role === "OWNER").length, cap: 1 },
-    { label: "Accountant", used: activeIn(["ACCOUNTANT"]), cap: limits.accountants },
-    { label: "HR manager", used: activeIn(["HR_MANAGER"]), cap: limits.hrManagers },
-    { label: "Staff", used: activeIn(GENERAL_STAFF_ROLES), cap: limits.staff },
+    { label: "Accountant", used: activeIn(["ACCOUNTANT"]), cap: caps.accountants },
+    { label: "HR manager", used: activeIn(["HR_MANAGER"]), cap: caps.hrManagers },
+    { label: "Staff", used: activeIn(GENERAL_STAFF_ROLES), cap: caps.staff },
   ].filter((s) => s.cap === null || s.cap > 0);
-
-  const nextPlan = NEXT_PLAN[plan];
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const setPlan = trpc.settings.setPlan.useMutation({
-    onSuccess: () => {
-      utils.settings.get.invalidate();
-      invalidate();
-      setUpgradeOpen(false);
-      setMsg(nextPlan ? `Upgraded to ${PLAN_LABEL[nextPlan]}` : "Plan updated");
-    },
-  });
 
   const setDisabled = trpc.users.setDisabled.useMutation({
     onSuccess: invalidate,
@@ -126,16 +110,7 @@ export function Users() {
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={
-          <Stack orientation="horizontal" gap={3}>
-            {nextPlan && (
-              <Button kind="tertiary" onClick={() => setUpgradeOpen(true)}>
-                Upgrade plan
-              </Button>
-            )}
-            <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
-          </Stack>
-        }
+        actions={<Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
       />
 
       <Tile>
@@ -362,56 +337,6 @@ export function Users() {
         />
       </Modal>
 
-      <Modal
-        open={upgradeOpen}
-        modalHeading={nextPlan ? `Upgrade to ${PLAN_LABEL[nextPlan]}` : "Upgrade plan"}
-        primaryButtonText={setPlan.isPending ? "Applying…" : "Confirm upgrade"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!nextPlan || setPlan.isPending}
-        onRequestClose={() => setUpgradeOpen(false)}
-        onRequestSubmit={() => nextPlan && setPlan.mutate({ plan: nextPlan })}
-      >
-        {nextPlan && (
-          <Stack gap={5}>
-            <p>
-              Switch this workspace from {PLAN_LABEL[plan]} to{" "}
-              {PLAN_LABEL[nextPlan]}. Higher seat and storage caps apply
-              immediately, and gated features unlock at once.
-            </p>
-            <Grid narrow>
-              {(
-                [
-                  { label: "Staff seats", cap: PLAN_LIMITS[nextPlan].staff },
-                  { label: "Accountant seats", cap: PLAN_LIMITS[nextPlan].accountants },
-                  { label: "HR manager seats", cap: PLAN_LIMITS[nextPlan].hrManagers },
-                  { label: "Clients", cap: PLAN_LIMITS[nextPlan].clients },
-                  { label: "Projects", cap: PLAN_LIMITS[nextPlan].projects },
-                ] as const
-              ).map((c) => (
-                <Column key={c.label} sm={4} md={4} lg={8}>
-                  <Stack gap={1}>
-                    <p className="esti-label">{c.label}</p>
-                    <p>{c.cap === null ? "Unlimited" : c.cap}</p>
-                  </Stack>
-                </Column>
-              ))}
-            </Grid>
-            <p className="esti-label esti-label--helper">
-              The plan reflects your firm's licence — billing is handled
-              separately by Holagundi Consulting Works.
-            </p>
-            {setPlan.error && (
-              <InlineNotification
-                kind="error"
-                title="Could not upgrade"
-                subtitle={setPlan.error.message}
-                hideCloseButton
-                lowContrast
-              />
-            )}
-          </Stack>
-        )}
-      </Modal>
     </Stack>
   );
 }

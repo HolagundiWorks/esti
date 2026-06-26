@@ -4,6 +4,7 @@ import {
   HeaderGlobalAction,
   HeaderGlobalBar,
   HeaderName,
+  InlineNotification,
   Loading,
   SideNav,
   SideNavItems,
@@ -206,11 +207,17 @@ function AppShell() {
   const settingsQ = trpc.settings.get.useQuery(undefined, {
     enabled: !!user && user.role !== "CLIENT" && user.role !== "CONTRACTOR",
   });
+  // Plan is licence-derived (Phase B); `license.status` also tells us whether
+  // writes are currently gate-blocked (managed install with a lapsed/absent licence).
+  const licenseQ = trpc.license.status.useQuery(undefined, {
+    enabled: !!user && user.role !== "CLIENT" && user.role !== "CONTRACTOR",
+  });
+  const licenseBlocked = !!licenseQ.data?.blocked;
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const pmcEnabled = settingsQ.data?.pmcEnabled ?? false;
   // Plan gates: a Lite firm doesn't see PMC, HR, AI, GST billing, reconciliation,
-  // rate books or audit-log nav. planAllows() defaults LITE until settings load.
-  const plan = settingsQ.data?.plan ?? "LITE";
+  // rate books or audit-log nav. planAllows() defaults LITE until the licence loads.
+  const plan = licenseQ.data?.plan ?? settingsQ.data?.plan ?? "LITE";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
   const isStaff =
     !!user &&
@@ -486,6 +493,15 @@ function AppShell() {
           </SideNav>
           <Content className="esti-app-content">
             <main className="esti-grow">
+              {licenseBlocked && (
+                <InlineNotification
+                  kind="error"
+                  lowContrast
+                  hideCloseButton
+                  title="Workspace licence required"
+                  subtitle="Your licence is missing or expired — changes are blocked until it is activated. Open Company → Licence to activate a key."
+                />
+              )}
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route
