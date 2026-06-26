@@ -45,8 +45,6 @@ const PAGE_SIZES = [10, 25, 50];
 
 export function Projects() {
   const utils = trpc.useUtils();
-  // Lite ships 5 fixed projects — fill in the existing, no new projects.
-  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
   const [statusFilter, setStatusFilter] = useState("");
   const list = trpc.projectOffice.list.useQuery({
     limit: 200,
@@ -119,7 +117,7 @@ export function Projects() {
           title: "No projects yet",
           description:
             "Create your first project office to start tracking phases, fees and invoices.",
-          action: isLite ? undefined : (
+          action: (
             <Button size="sm" onClick={() => setOpen(true)}>
               New project
             </Button>
@@ -171,9 +169,7 @@ export function Projects() {
                         />
                       ))}
                     </Select>
-                    {!isLite && (
-                      <Button onClick={() => setOpen(true)}>New project</Button>
-                    )}
+                    <Button onClick={() => setOpen(true)}>New project</Button>
                   </TableToolbarContent>
                 </TableToolbar>
                 <Table {...getTableProps()}>
