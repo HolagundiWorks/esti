@@ -24,6 +24,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed": "tsx src/scripts/seed.ts",
+    "seed:demo": "tsx src/scripts/seedDemo.ts",
     "seed:dsr": "tsx src/scripts/seedBuildingDsrCli.ts",
     "seed:prod": "node dist/scripts/seed.js",
     "backfill:activity": "tsx src/scripts/backfillActivity.ts"
