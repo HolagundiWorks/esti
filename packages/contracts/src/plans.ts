@@ -102,6 +102,7 @@ export const PLAN_FEATURES = [
   "consultantPortal",
   "contractorPortal",
   "ai", // ESTI AI / cognition / LLM / ML
+  "byos", // bring-your-own-storage (NAS / S3-compatible) — Core+
   "esticad", // companion device API
   "auditLog",
   "rateBooks", // rate-book library
@@ -125,6 +126,7 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   contractorPortal: "LITE", // Lite gets a view-only contractor portal; writes gated to Core+
 
   ai: "CORE",
+  byos: "CORE",
   esticad: "CORE",
   auditLog: "CORE",
   rateBooks: "CORE",

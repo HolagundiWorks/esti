@@ -26,6 +26,7 @@
 | Consultants | unlimited | unlimited | unlimited |
 | Active projects | unlimited | unlimited | unlimited |
 | Document storage | 5 GB | 200 GB | unlimited |
+| Bring-your-own storage (BYOS) | — | ✓ NAS / S3 | ✓ NAS / S3 |
 | AI / LLM / ML | — (none) | standard (firm Ollama) | bring-your-own API |
 | Support | community | standard | priority + SLA |
 
@@ -35,7 +36,11 @@
 > count caps are **general staff seats**: Lite = 3, Core = 15, Enterprise =
 > unlimited. Accountant and HR_MANAGER are **separate extra seats** (Core: 1 each;
 > Lite: none — upgrade to Core for those roles). **AI/LLM/ML is Core+ only** — Lite
-> has no AI; Enterprise can plug in its own provider API key.
+> has no AI; Enterprise can plug in its own provider API key. **Bring-your-own-storage
+(BYOS, Core+)** lets a firm redirect object storage — drawings, documents and generated
+PDFs — to their own **NAS / mounted folder** or **S3-compatible hosting engine** from
+Company → Storage (the S3 secret is write-only). NAS mode requires the path to be mounted
+on both the backend and the worker host.
 
 > Only **active** logins consume a staff seat — disabling an account frees its
 > seat back up. On Lite, creating a 4th active general-staff login is blocked with

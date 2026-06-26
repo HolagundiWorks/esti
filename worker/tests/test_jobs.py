@@ -8,6 +8,34 @@ from esti_worker.jobs.pdf import (
     _running_bill_html,
 )
 from esti_worker.jobs.reconcile import _digits, _pick, _to_paise
+from esti_worker.storage import backend_from_settings
+
+
+def test_backend_from_settings_default() -> None:
+    assert backend_from_settings({"mode": "DEFAULT"}).kind == "default"
+    assert backend_from_settings({}).kind == "default"
+    # Incomplete S3/NAS configs fall back to default.
+    assert backend_from_settings({"mode": "S3", "s3Endpoint": "http://x"}).kind == "default"
+    assert backend_from_settings({"mode": "NAS"}).kind == "default"
+
+
+def test_backend_from_settings_nas() -> None:
+    b = backend_from_settings({"mode": "NAS", "nasPath": "/mnt/share"})
+    assert b.kind == "fs"
+    assert b.root == "/mnt/share"
+
+
+def test_backend_from_settings_s3() -> None:
+    b = backend_from_settings({
+        "mode": "S3",
+        "s3Endpoint": "https://s3.example.com",
+        "s3Bucket": "firmbucket",
+        "s3AccessKey": "a",
+        "s3SecretKey": "b",
+    })
+    assert b.kind == "s3"
+    assert b.bucket == "firmbucket"
+    assert b.client is not None
 
 
 def test_handlers_registered() -> None:

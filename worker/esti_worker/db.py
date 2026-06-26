@@ -10,6 +10,23 @@ from psycopg.rows import dict_row
 from .config import settings
 
 
+def fetch_storage_settings() -> dict[str, Any]:
+    """Read the firm's BYOS storage config (esti_orgsettings.storage_settings).
+    Returns {"mode": "DEFAULT"} when unset/unreadable so the worker falls back to
+    the env-configured store."""
+    try:
+        with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+            row = conn.execute("select storage_settings from esti_orgsettings limit 1").fetchone()
+        val = (row or {}).get("storage_settings")
+        if isinstance(val, dict):
+            return val
+        if isinstance(val, str):
+            return json.loads(val)
+    except Exception:
+        pass
+    return {"mode": "DEFAULT"}
+
+
 def _patch(table: str, row_id: str, json_cols: set[str], fields: dict[str, Any]) -> None:
     if not fields:
         return
