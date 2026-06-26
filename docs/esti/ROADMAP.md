@@ -1052,15 +1052,16 @@ measurement → running bill → deviation/variation → final account**. Spec:
 | **3.4 Rate-deviation ladder** | `deviations.rateLadder` recomputes each work-package line's estimated → tendered → awarded → revised rate journey live off the spine (Rule-9 `boqItemId` join), per-hop deviation %/severity (`rateLadderHops`), active-deviation status. **Rate ladder** tab in `ProjectControls.tsx` (`ProjectRateLadder.tsx`) raises a RATE deviation via the existing Phase-D flow; create now persists the estimated/tendered rungs. **No migration** (`esti_deviation` already carried all four rate columns); Rule 5 unchanged. | **Done** (2026-06-26) |
 | **Cost-report PDF** | `dashboard.generateCostReport` computes the Phase-G cost-health model once and snapshots the whole result into `esti_cost_report` (one row per project, **unique** `project_id`, upserted), then enqueues the worker `render_pdf` `cost_report` target (`_cost_report_html`) which prints the KPIs + package/contractor tables + the risk checks **straight from the stored snapshot** — an exact, reproducible print of the dashboard, no read-model SQL duplicated in Python. "Generate PDF" button + polled `PDF:` status Tag on `ProjectCostDashboard.tsx` (write-gated). Migration `0094`. | **Done** (2026-06-26) |
 | **3.3 BOQ-validation checklist** | `estimates.validateBoq` runs the pure `validateBoqItems` checker (`boq-validation.ts`) over an estimate's lines and returns advisory warnings — missing UOM, zero/negative qty, zero rate, duplicate description, missing trade/cost head, percentage-without-basis, component-without-link — each with a severity, + a `summarizeBoqValidation` roll-up. Deterministic arithmetic (§9 "checker", never an LLM), read-only, nothing blocked. Surfaced as a "BOQ checks" panel + a header count Tag in the Design-estimate tab of `CostingWindow.tsx`. **No migration, no worker.** | **Done** (2026-06-26) |
-| **Future** | Procurement forecast (3.16), material reconciliation (3.17), AI narration, IFC/CAD extraction. | Deferred |
+| **3.16 Procurement forecast** | `dashboard.procurementForecast(projectId)` — outstanding qty/value per WP item (`max(0, contractedQty − billedQty)` at awarded rate), rolled up by cost head + by package + totals. Pure `summarizeProcurementForecast` helper + 12 vitest. `ProjectProcurementForecast.tsx` (Pure Carbon) **Procurement forecast** tab in `ProjectCosting.tsx`. **No migration, no worker, no writes.** API E2E 21 checks. | **Done** (2026-06-26) |
+| **Future** | Material reconciliation (3.17, blocked on GRN module), AI narration, IFC/CAD extraction. | Deferred |
 
 **The Construction Cost OS spine is complete (A–G, shipped through 2026-06-26):**
 `estimate → frozen BOQ → tender → award → work package → site measurement →
 running bill → deviations/variations → BBS + steel reconciliation → final account
-+ closure → cost dashboard + risk checks`. The first three Future-row slices — the
-**rate-deviation ladder (3.4)**, the **cost-report PDF**, and the
-**BOQ-validation checklist (3.3)** — also shipped (2026-06-26). **Next increment:
-the rest of the Future row** — procurement forecast, material reconciliation, and
-optional AI narration. UI governance:
++ closure → cost dashboard + risk checks`. The first four Future-row slices — the
+**rate-deviation ladder (3.4)**, the **cost-report PDF**, the
+**BOQ-validation checklist (3.3)**, and the **procurement forecast (3.16)** — also
+shipped (2026-06-26). **Next increment:** material reconciliation (3.17, blocked
+on GRN module) and optional AI narration. UI governance:
 **Pure Carbon everywhere**, mobile-first portals — see
 [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).

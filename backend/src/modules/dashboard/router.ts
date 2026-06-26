@@ -20,6 +20,7 @@ import {
   getTeamAttendanceToday,
   getTechnicalIntelligence,
   getConstructionCostHealth,
+  getProcurementForecast,
   getDashboardHome,
 } from "./readModels/index.js";
 import {
@@ -286,6 +287,19 @@ export const dashboardRouter = router({
     .query(async ({ ctx, input }) => {
       await assertPlanFeature(ctx.db, "costing");
       return getConstructionCostHealth(ctx.db, input.projectId);
+    }),
+
+  /**
+   * Procurement forecast for one project (Cost OS, ref 5.16) — the outstanding
+   * (contracted − billed) quantity and value still to be procured / executed per
+   * work-package item, rolled up by cost head and by work package. Read-only;
+   * costing-plan gated (Core+).
+   */
+  procurementForecast: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      return getProcurementForecast(ctx.db, input.projectId);
     }),
 
   /**
