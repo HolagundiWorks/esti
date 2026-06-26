@@ -11,13 +11,39 @@
 import { eq } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
 import { db } from "../db/index.js";
-import { users } from "../db/schema.js";
+import { orgSettings, users } from "../db/schema.js";
 import {
   demoPasswordFromEnv,
   isDemoAormsEmail,
   syncDemoOwnerPassword,
 } from "../lib/demoSeeds.js";
+import { getOrgSettings } from "../lib/settings.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
+
+/**
+ * Standalone, licence-free install (Phase B): the subscription plan is set from
+ * the FIRM_PLAN env, since the plan is no longer owner-toggleable in-app. A
+ * licence (when a hub is configured) overrides this at runtime. Unset → leave the
+ * plan as-is (defaults LITE).
+ */
+async function ensureFirmPlan(): Promise<void> {
+  const raw = (process.env.FIRM_PLAN ?? "").trim().toUpperCase();
+  if (!raw) return;
+  if (raw !== "LITE" && raw !== "CORE" && raw !== "ENTERPRISE") {
+    console.warn(`FIRM_PLAN='${raw}' invalid (expected LITE|CORE|ENTERPRISE) — skipping`);
+    return;
+  }
+  const settings = await getOrgSettings(db);
+  if (settings.plan === raw) {
+    console.log(`✓ firm plan already ${raw}`);
+    return;
+  }
+  await db
+    .update(orgSettings)
+    .set({ plan: raw as "LITE" | "CORE" | "ENTERPRISE", updatedAt: new Date() })
+    .where(eq(orgSettings.id, settings.id));
+  console.log(`✓ firm plan set to ${raw} (licence-free / FIRM_PLAN)`);
+}
 
 const email = process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in";
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
