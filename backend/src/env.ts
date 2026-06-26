@@ -16,6 +16,23 @@ const Env = z.object({
   WORKER_MODE: z.enum(["redis", "inproc"]).default("redis"),
   /** When true (native desktop build), loopback HTTP + generated secrets are allowed. */
   DESKTOP: z.coerce.boolean().default(false),
+  /**
+   * Deployment role (Phase B hybrid). "node" (default) = a firm's local/office
+   * install: holds office data + drafts, derives its plan from a license, pushes
+   * finalized records to the hub. "hub" = the central vendor VPS: the licensing
+   * authority + the multi-firm store that the external portals are served from.
+   */
+  ESTI_ROLE: z.enum(["node", "hub"]).default("node"),
+  /** HUB ONLY — PKCS8 PEM Ed25519 private key used to sign licenses. Never in the repo. */
+  LICENSE_SIGNING_KEY: z.string().default(""),
+  /** NODE — base URL of the hub (e.g. https://aorms.in) for activation/refresh/sync. Empty = offline-only. */
+  ESTI_HUB_URL: z.string().default(""),
+  /** Read/write grace window (days) after a license `exp` before writes are blocked. */
+  LICENSE_GRACE_DAYS: z.coerce.number().default(14),
+  /** How often (hours) the node re-fetches a fresh license token from the hub. */
+  LICENSE_REFRESH_HOURS: z.coerce.number().default(12),
+  /** Stable per-install identifier (desktop supplies this; web derives one once). */
+  INSTALL_ID: z.string().default(""),
   BUILD_REVISION: z.string().default("dev"),
   BUILD_TIME: z.string().optional(),
   /**
