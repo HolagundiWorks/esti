@@ -52,12 +52,15 @@ cargo tauri dev --config desktop/src-tauri/tauri.conf.json
 ## What lives where (per OS)
 Windows: `%APPDATA%\in.aorms.esti\` → `pgdata/`, `files/`, `logs/`, `secrets/`.
 
+## Status
+- **Compiles cleanly** — `cargo build` in `src-tauri` succeeds (verified against
+  `tauri` 2.11.3, `postgresql_embedded` 0.18.7, `tauri-plugin-shell` 2.3.5;
+  `Cargo.lock` committed for reproducibility). The build needs `frontend/dist` to
+  exist (run `pnpm --filter @esti/frontend build` first) plus the staged sidecar +
+  `resources/backend/**` (run `pnpm desktop:bundle-backend`); the bundle/run path is
+  not yet exercised end-to-end on a clean machine.
+
 ## Known follow-ups (not in P1)
-- **Compile + run validation:** the Rust shell is authored against Tauri 2 +
-  `postgresql_embedded` 0.18 + `tauri-plugin-shell` 2; run `cargo build` in
-  `src-tauri` to validate the crate APIs in your toolchain (a few `postgresql_embedded`
-  `Settings`/method names may need a minor pin/adjust). The TypeScript seams are
-  typecheck-verified.
 - **Offline Postgres:** `postgresql_embedded` downloads PG binaries on first
   `setup()`. Vendor them under `resources/pgsql/` for an offline installer (P3).
 - **P2:** bundle the Python worker (PyInstaller) + a small Redis sidecar for PDF
