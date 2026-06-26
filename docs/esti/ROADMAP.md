@@ -1132,3 +1132,18 @@ revision is against:
   only, shown once any version exists), and decision rows show a `Program v{n}` tag.
 - **Gate met:** 4-check rolled-back API E2E (no versions before freeze → freeze surfaces a
   selectable version → decision persists `program_version_id`); tsc + Pure Carbon clean; render-200.
+
+### 31.3 — Feasibility-to-site reference (✅ 2026-06-26)
+
+Surfaces the canonical upstream truth into site delivery: **feasibility stays one source
+of truth to the site**. `program.siteReference(projectId)` returns the feasibility envelope
+(assessment figures) + the latest **FROZEN** program (spaces + summary) — drafts are never
+surfaced, so the site always sees the agreed baseline. Read-only `ProjectSiteReference.tsx`
+(feasibility-envelope KPIs + frozen program by floor + a "source of truth" notice) mounts as
+a **"Program & feasibility"** PMC tab in the project workspace and as a compact section in
+the mobile **Site Portal**. **Gate met:** 7-check rolled-back API E2E (empty → feasibility
+surfaced → draft NOT surfaced → frozen surfaced with spaces); tsc + Pure Carbon clean; render-200.
+
+**Project OS arc complete:** lead → activation (31) → program within the feasibility
+envelope (31.1) → revisions against the frozen program (31.2) → feasibility + program as the
+site source of truth (31.3).

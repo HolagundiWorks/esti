@@ -470,6 +470,16 @@ Feasibility stays canonical all the way to the site
 Over-allocation vs the feasibility envelope is **advisory** (a warning notification +
 red tag), consistent with ESTI's checker-is-advisory ethos. Ungated (LITE+).
 
+### Feasibility-to-site reference (31.3, shipped 2026-06-26)
+
+`program.siteReference(projectId)` is the read-only payload that carries the feasibility
+envelope (assessment figures) + the latest **FROZEN** program (spaces + `summarizeProgram`)
+into site delivery. Drafts are never surfaced — the site always sees the agreed baseline,
+so **feasibility-to-site stays one source of truth**. `ProjectSiteReference.tsx` renders it
+as a "Program & feasibility" PMC tab (`ProjectDetail.tsx`) and a compact section in the
+mobile Site Portal (`SitePortal.tsx`). Read-only by design — edits happen upstream in the
+Pipeline + Program tabs.
+
 ---
 
 ## 9. Key design decisions

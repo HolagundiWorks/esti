@@ -13,6 +13,7 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
@@ -122,6 +123,9 @@ export function SitePortal() {
               ))}
           </Stack>
         )}
+
+        {/* Agreed baseline (read-only source of truth) */}
+        <ProjectSiteReference projectId={projectId} compact />
 
         <Button onClick={() => setCreateOpen(true)}>New inspection report</Button>
 
