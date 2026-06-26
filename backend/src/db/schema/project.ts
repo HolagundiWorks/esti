@@ -136,6 +136,11 @@ export const inspections = pgTable("esti_inspection", {
   versionNo: integer("version_no").notNull().default(1),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
+  // Approval workflow (Slice C / §9 site supervisor portal)
+  // status lifecycle: DRAFT → SUBMITTED → APPROVED/REJECTED → ISSUED
+  submittedById: uuid("submitted_by_id"),
+  approvedById: uuid("approved_by_id"),
+  rejectionNote: text("rejection_note"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

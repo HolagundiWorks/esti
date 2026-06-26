@@ -1,13 +1,16 @@
 import {
   Button,
   FileUploaderButton,
+  InlineNotification,
   Modal,
   Stack,
   Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
+import { can } from "@esti/contracts";
 import { useState } from "react";
+import { useAuth } from "../lib/auth.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -36,6 +39,14 @@ export function ProjectInspectionDetail({
     },
   });
 
+  const { user } = useAuth();
+  const approve = trpc.inspections.approve.useMutation({
+    onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
+  });
+  const reject = trpc.inspections.reject.useMutation({
+    onSuccess: () => { inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }); setRejectOpen(false); setRejectNote(""); },
+  });
+
   const [actionText, setActionText] = useState("");
   const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -43,8 +54,11 @@ export function ProjectInspectionDetail({
   const [revisionNote, setRevisionNote] = useState("");
   const [impactNote, setImpactNote] = useState("");
   const [uploadBusy, setUploadBusy] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
 
   const row = q.data;
+  const canApprove = can(user?.role, "write");
 
   async function uploadPhoto(file: File) {
     if (!inspectionId) return;
@@ -75,12 +89,44 @@ export function ProjectInspectionDetail({
         ) : (
           <Stack gap={5}>
             <Stack orientation="horizontal" gap={3}>
-              <Tag type={row.status === "ISSUED" ? "green" : "gray"} size="sm">{row.status ?? "DRAFT"}</Tag>
+              <Tag
+                type={
+                  row.status === "ISSUED" || row.status === "APPROVED" ? "green"
+                  : row.status === "SUBMITTED" ? "blue"
+                  : row.status === "REJECTED" ? "red"
+                  : "gray"
+                }
+                size="sm"
+              >
+                {row.status ?? "DRAFT"}
+              </Tag>
               <span className="esti-label esti-label--helper">Version {row.versionNo ?? 1}</span>
               {row.status === "ISSUED" && (
                 <Button kind="ghost" size="sm" onClick={() => setRevOpen(true)}>Revise</Button>
               )}
+              {row.status === "SUBMITTED" && canApprove && (
+                <>
+                  <Button
+                    kind="primary" size="sm"
+                    disabled={approve.isPending}
+                    onClick={() => approve.mutate({ id: row.id })}
+                  >
+                    {approve.isPending ? "Approving…" : "Approve"}
+                  </Button>
+                  <Button kind="danger--ghost" size="sm" onClick={() => setRejectOpen(true)}>
+                    Reject
+                  </Button>
+                </>
+              )}
             </Stack>
+            {row.status === "REJECTED" && row.rejectionNote && (
+              <InlineNotification
+                kind="error"
+                title="Rejected"
+                subtitle={row.rejectionNote}
+                hideCloseButton
+              />
+            )}
 
             <Stack gap={3}>
               <h4>Photos</h4>
@@ -177,6 +223,29 @@ export function ProjectInspectionDetail({
           <TextArea id="rev-note" labelText="Revision note" value={revisionNote} onChange={(e) => setRevisionNote(e.target.value)} />
           <TextArea id="imp-note" labelText="Impact note (optional)" value={impactNote} onChange={(e) => setImpactNote(e.target.value)} />
         </Stack>
+      </Modal>
+
+      <Modal
+        open={rejectOpen}
+        modalHeading="Reject inspection"
+        primaryButtonText={reject.isPending ? "Rejecting…" : "Reject"}
+        secondaryButtonText="Cancel"
+        danger
+        primaryButtonDisabled={!rejectNote.trim() || reject.isPending}
+        onRequestClose={() => { setRejectOpen(false); setRejectNote(""); }}
+        onRequestSubmit={() => {
+          if (!inspectionId) return;
+          reject.mutate({ id: inspectionId, note: rejectNote });
+        }}
+      >
+        <TextArea
+          id="rej-note"
+          labelText="Rejection reason"
+          helperText="The site supervisor will see this note."
+          rows={3}
+          value={rejectNote}
+          onChange={(e) => setRejectNote(e.target.value)}
+        />
       </Modal>
     </>
   );
