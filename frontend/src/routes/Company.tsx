@@ -27,6 +27,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
+import { LicensePanel } from "../components/company/LicensePanel.js";
 import { StorageSettingsPanel } from "../components/company/StorageSettingsPanel.js";
 import { ConnectedDevicesPanel } from "../components/company/ConnectedDevicesPanel.js";
 import { DataTools } from "../components/company/DataTools.js";
@@ -98,6 +99,9 @@ export function Company() {
   const utils = trpc.useUtils();
   const firmQ = trpc.firm.get.useQuery();
   const settingsQ = trpc.settings.get.useQuery();
+  // Plan is licence-derived (Phase B) — gate feature panels off the licence.
+  const licenseQ = trpc.license.status.useQuery();
+  const licensePlan = licenseQ.data?.plan ?? "LITE";
   const hrStatusQ = trpc.settings.hrModuleStatus.useQuery();
 
   const setPmc = trpc.settings.setPmcEnabled.useMutation({
@@ -463,10 +467,11 @@ export function Company() {
         </Stack>
       </Tile>
 
+      {isOwner && <LicensePanel />}
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
-      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={settingsQ.data?.plan === "ENTERPRISE"} />}
-      {isOwner && planAllows(settingsQ.data?.plan ?? "LITE", "byos") && <StorageSettingsPanel />}
+      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={licensePlan === "ENTERPRISE"} />}
+      {isOwner && planAllows(licensePlan, "byos") && <StorageSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}

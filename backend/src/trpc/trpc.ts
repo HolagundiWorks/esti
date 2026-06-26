@@ -1,6 +1,7 @@
 import { type Capability, can } from "@esti/contracts";
 import { initTRPC, TRPCError } from "@trpc/server";
-import { firmPlan } from "../lib/plan.js";
+import { env } from "../env.js";
+import { firmPlan, licenseBlocked } from "../lib/plan.js";
 import type { Context } from "./context.js";
 
 const t = initTRPC.context<Context>().create();
@@ -20,13 +21,37 @@ const DEMO_BLOCKED_MUTATIONS = new Set([
   "users.updateProfile",
 ]);
 
+// Mutations still allowed when the install's license is lapsed/absent, so the
+// owner can recover (activate a license) and everyone can still sign out.
+const LICENSE_GATE_ALLOW = new Set([
+  "auth.logout",
+  "license.activate",
+  "license.refresh",
+  "users.changePassword",
+  "users.updateProfile",
+]);
+
 /** Any authenticated user (staff or portal client). Internal base only. */
-const authedProcedure = t.procedure.use(({ ctx, next, type, path }) => {
+const authedProcedure = t.procedure.use(async ({ ctx, next, type, path }) => {
   if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
   if (ctx.user.isDemo && type === "mutation" && DEMO_BLOCKED_MUTATIONS.has(path)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Managing users and credentials is disabled on the demo account.",
+    });
+  }
+  // License gate (Phase B, node only): block writes on a managed install whose
+  // license is expired-past-grace or absent. Unmanaged dev/CI installs pass.
+  if (
+    type === "mutation" &&
+    env.ESTI_ROLE === "node" &&
+    !LICENSE_GATE_ALLOW.has(path) &&
+    (await licenseBlocked(ctx.db))
+  ) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "This workspace is not licensed (or the licence has lapsed). Activate a licence to continue.",
     });
   }
   return next({ ctx: { ...ctx, user: ctx.user } });

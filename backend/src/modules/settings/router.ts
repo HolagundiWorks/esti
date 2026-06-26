@@ -1,7 +1,6 @@
 import {
   ArchiveTeamModuleInput,
   EscalationSettings,
-  Plan,
   StorageSettingsInput,
   UploadSecuritySettingsInput,
   parseStorageSettings,
@@ -29,11 +28,14 @@ import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 /** Strip secrets from an org-settings row before returning it over the API. */
 function publicSettings(row: typeof orgSettings.$inferSelect) {
-  const { uploadPasswordHash, storageSettings, ...safe } = row;
+  // Strip secrets: the upload-password hash, the BYOS S3 secret, and the
+  // licensing credentials (the signed token + the sync bearer never leave here).
+  const { uploadPasswordHash, storageSettings, licenseToken, syncToken, ...safe } = row;
   return {
     ...safe,
     storageSettings: toPublicStorageSettings(parseStorageSettings(storageSettings)),
     uploadPasswordConfigured: Boolean(uploadPasswordHash),
+    licenseConfigured: Boolean(licenseToken),
   };
 }
 
@@ -93,30 +95,9 @@ export const settingsRouter = router({
       return { ...publicSettings(row!), soloSummary, membersReactivated };
     }),
 
-  /**
-   * Owner switches the firm's subscription edition (self-hosted / single-firm
-   * install — the plan reflects the firm's license; billing is handled out of
-   * band). Upgrades unlock features and raise seat/quota caps immediately.
-   */
-  setPlan: ownerProcedure
-    .input(z.object({ plan: Plan }))
-    .mutation(async ({ ctx, input }) => {
-      const current = await getOrgSettings(ctx.db);
-      const [row] = await ctx.db
-        .update(orgSettings)
-        .set({ plan: input.plan, updatedAt: new Date() })
-        .where(eq(orgSettings.id, current.id))
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "settings",
-        entityId: current.id,
-        action: "UPDATE",
-        actorId: ctx.user.id,
-        before: { plan: current.plan },
-        after: { plan: input.plan },
-      });
-      return publicSettings(row!);
-    }),
+  // The plan is no longer owner-settable — it is derived from the firm's signed
+  // license (Phase B). See the `license` router (status/activate/refresh) and
+  // `lib/plan.ts` `licenseState`. `setPlan` was removed.
 
   // ── BYOS — bring-your-own-storage (Core+) ─────────────────────────────────
   /** Current storage config (owner only; the S3 secret is never returned). */

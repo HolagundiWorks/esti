@@ -62,6 +62,8 @@ export const LicenseView = z.object({
   expiresAt: z.string().nullable(),
   /** Days of read/write grace left once past `exp`; null when not in grace. */
   graceDaysLeft: z.number().int().nullable(),
+  /** Writes are currently rejected (managed install, lapsed/absent licence). */
+  blocked: z.boolean(),
 });
 export type LicenseView = z.infer<typeof LicenseView>;
 

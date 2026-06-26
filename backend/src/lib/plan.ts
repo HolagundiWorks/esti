@@ -1,12 +1,122 @@
-import { planAllows, withinQuota, type Plan, type PlanFeature, type PlanQuota } from "@esti/contracts";
+import {
+  type LicenseStatus,
+  type LicenseView,
+  type Plan,
+  type PlanFeature,
+  type PlanQuota,
+  type ResolvedSeats,
+  PLAN_LIMITS,
+  planAllows,
+  planQuota,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import type { DB } from "../db/index.js";
+import { env } from "../env.js";
+import { resolveSeats, verifyLicense } from "./license.js";
 import { getOrgSettings } from "./settings.js";
 
-/** The firm's subscription edition (single-firm install). */
+/**
+ * Effective licensing state for this install (Phase B). The plan + seat caps are
+ * **derived from the cached signed license**, not the owner-set `plan` column.
+ *
+ * Non-bricking rule: the write-gate (`blocked`) only engages on a *managed* node
+ * — one that has a license token, or that points at a hub (`ESTI_HUB_URL`). A
+ * vanilla dev/CI install (no token, no hub) is unmanaged: it is never blocked and
+ * derives its plan from the legacy `orgSettings.plan` fallback (defaults LITE).
+ */
+export interface LicenseState {
+  status: LicenseStatus;
+  plan: Plan;
+  seats: ResolvedSeats;
+  /** Managed (license present or hub configured) — gate logic applies. */
+  managed: boolean;
+  /** Mutations should be rejected (node + managed + EXPIRED/UNLICENSED). */
+  blocked: boolean;
+  firmId: string | null;
+  issuedAt: string | null;
+  expiresAt: string | null;
+  graceDaysLeft: number | null;
+}
+
+const DAY_MS = 864e5;
+
+export async function licenseState(db: DB): Promise<LicenseState> {
+  const row = await getOrgSettings(db);
+  const fallbackPlan = (row.plan === "CORE" || row.plan === "ENTERPRISE" ? row.plan : "LITE") as Plan;
+  const managed = Boolean(row.licenseToken) || Boolean(env.ESTI_HUB_URL);
+  const seatsFor = (plan: Plan): ResolvedSeats => ({
+    staff: PLAN_LIMITS[plan].staff,
+    accountants: PLAN_LIMITS[plan].accountants,
+    hrManagers: PLAN_LIMITS[plan].hrManagers,
+  });
+
+  const v = verifyLicense(row.licenseToken);
+  if (!v.ok) {
+    // No/invalid token → UNLICENSED. Blocked only on a managed node (e.g. a
+    // desktop install that has not activated yet).
+    return {
+      status: "UNLICENSED",
+      plan: fallbackPlan,
+      seats: seatsFor(fallbackPlan),
+      managed,
+      blocked: managed && env.ESTI_ROLE === "node",
+      firmId: null,
+      issuedAt: null,
+      expiresAt: null,
+      graceDaysLeft: null,
+    };
+  }
+
+  const now = Date.now();
+  const exp = new Date(v.payload.exp).getTime();
+  const graceEnds = exp + env.LICENSE_GRACE_DAYS * DAY_MS;
+  let status: LicenseStatus;
+  let graceDaysLeft: number | null = null;
+  if (now < exp) {
+    status = "VALID";
+  } else if (now < graceEnds) {
+    status = "GRACE";
+    graceDaysLeft = Math.ceil((graceEnds - now) / DAY_MS);
+  } else {
+    status = "EXPIRED";
+  }
+
+  const plan = v.payload.plan;
+  return {
+    status,
+    plan,
+    seats: resolveSeats(v.payload),
+    managed: true,
+    blocked: status === "EXPIRED" && env.ESTI_ROLE === "node",
+    firmId: v.payload.firmId,
+    issuedAt: v.payload.issuedAt,
+    expiresAt: v.payload.exp,
+    graceDaysLeft,
+  };
+}
+
+/** Should this mutation be rejected because the install's license is lapsed/absent? */
+export async function licenseBlocked(db: DB): Promise<boolean> {
+  return (await licenseState(db)).blocked;
+}
+
+/** The SPA-facing license view (no token/secret leaves the backend). */
+export function toLicenseView(s: LicenseState): LicenseView {
+  return {
+    status: s.status,
+    plan: s.plan,
+    seats: s.seats,
+    firmId: s.firmId,
+    issuedAt: s.issuedAt,
+    expiresAt: s.expiresAt,
+    graceDaysLeft: s.graceDaysLeft,
+    blocked: s.blocked,
+  };
+}
+
+/** The firm's effective subscription edition (license-derived). */
 export async function firmPlan(db: DB): Promise<Plan> {
-  const plan = (await getOrgSettings(db)).plan;
-  return plan === "CORE" || plan === "ENTERPRISE" ? plan : "LITE";
+  return (await licenseState(db)).plan;
 }
 
 /** Throw FORBIDDEN if the firm's plan does not include `feature`. (Phase 2 gates.) */
@@ -40,9 +150,19 @@ const QUOTA_LABEL: Record<PlanQuota, string> = {
   projects: "project",
 };
 
-/** Throw FORBIDDEN if adding one more of `kind` exceeds the plan quota. */
+/** The effective cap for `kind`: license seat overrides for seat kinds, else the plan. */
+function effectiveCap(state: LicenseState, kind: PlanQuota): number | null {
+  if (kind === "staff") return state.seats.staff;
+  if (kind === "accountants") return state.seats.accountants;
+  if (kind === "hrManagers") return state.seats.hrManagers;
+  return planQuota(state.plan, kind);
+}
+
+/** Throw FORBIDDEN if adding one more of `kind` exceeds the effective quota. */
 export async function assertQuota(db: DB, kind: PlanQuota, currentCount: number): Promise<void> {
-  if (!withinQuota(await firmPlan(db), kind, currentCount)) {
+  const state = await licenseState(db);
+  const cap = effectiveCap(state, kind);
+  if (cap != null && currentCount >= cap) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `You have reached your plan's ${QUOTA_LABEL[kind]} limit. Upgrade to add more.`,
