@@ -12,14 +12,7 @@ import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
-
-/** Accessible by SITE_SUPERVISOR role OR any staff with the site_portal capability. */
-const siteProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const hasSiteAccess =
-    ctx.user.role === "SITE_SUPERVISOR" || can(ctx.user.role, "site_portal");
-  if (!hasSiteAccess) throw new TRPCError({ code: "FORBIDDEN", message: "Site portal access required" });
-  return next();
-});
+import { siteProcedure } from "./siteProcedure.js";
 
 export const inspectionRouter = router({
   listByProject: protectedProcedure

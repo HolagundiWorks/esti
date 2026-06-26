@@ -48,6 +48,14 @@ export function SitePortal() {
     onSuccess: () => { invalidate(); setCreateOpen(false); resetForm(); },
   });
 
+  const visitsQ = trpc.siteVisits.listForSite.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId },
+  );
+  const confirmBySupervisor = trpc.siteVisits.confirmBySupervisor.useMutation({
+    onSuccess: () => utils.siteVisits.listForSite.invalidate({ projectId: projectId! }),
+  });
+
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({
     dateVisit: "", weather: "", attendees: "", progress: "", observations: "", instructions: "",
@@ -90,6 +98,30 @@ export function SitePortal() {
           <h2>Site Inspections</h2>
           <p className="esti-label--secondary">{user?.fullName ?? "Site Supervisor"} · Field view</p>
         </Stack>
+
+        {/* Site visits requiring supervisor confirmation */}
+        {(visitsQ.data ?? []).filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt).length > 0 && (
+          <Stack gap={3}>
+            <h3>Site visits — confirm your attendance</h3>
+            {(visitsQ.data ?? [])
+              .filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt)
+              .map((v) => (
+                <Tile key={v.id}>
+                  <Stack gap={3}>
+                    <strong>{v.plannedDate}</strong>
+                    {v.notes && <p className="esti-label--secondary">{v.notes}</p>}
+                    <Button
+                      size="sm" kind="primary"
+                      disabled={confirmBySupervisor.isPending}
+                      onClick={() => confirmBySupervisor.mutate({ id: v.id })}
+                    >
+                      Confirm attendance
+                    </Button>
+                  </Stack>
+                </Tile>
+              ))}
+          </Stack>
+        )}
 
         <Button onClick={() => setCreateOpen(true)}>New inspection report</Button>
 
