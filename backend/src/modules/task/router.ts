@@ -5,9 +5,10 @@ import {
   TaskUpdate,
   TaskWorkType,
   clampListLimit,
+  computeTaskPriority,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
@@ -35,6 +36,7 @@ const withProject = {
   dueDate: tasks.dueDate,
   completedAt: tasks.completedAt,
   interventionRequired: tasks.interventionRequired,
+  priorityScore: tasks.priorityScore,
   createdAt: tasks.createdAt,
 };
 
@@ -320,6 +322,58 @@ export const taskRouter = router({
     }
     return { flagged };
   }),
+
+  /** Recompute and store priorityScore for all active tasks using computeTaskPriority(). */
+  computeScores: protectedProcedure.mutation(async ({ ctx }) => {
+    const active = await ctx.db
+      .select({
+        id: tasks.id,
+        priority: tasks.priority,
+        dueDate: tasks.dueDate,
+        interventionRequired: tasks.interventionRequired,
+        workType: tasks.workType,
+        status: tasks.status,
+      })
+      .from(tasks)
+      .where(and(ne(tasks.status, "DONE"), ne(tasks.status, "CANCELLED")));
+
+    let updated = 0;
+    for (const t of active) {
+      const score = computeTaskPriority(t);
+      await ctx.db.update(tasks).set({ priorityScore: score }).where(eq(tasks.id, t.id));
+      updated++;
+    }
+    return { updated };
+  }),
+
+  /** Top 20 active tasks ordered by priorityScore descending — the 'Today's Work Queue'. */
+  todayQueue: protectedProcedure
+    .input(z.object({ myTasks: z.boolean().default(false), limit: z.number().int().min(1).max(50).default(20) }))
+    .query(async ({ ctx, input }) => {
+      const base = ctx.db
+        .select(withProject)
+        .from(tasks)
+        .leftJoin(projectOffices, eq(projectOffices.id, tasks.projectId));
+
+      const filters: ReturnType<typeof eq>[] = [
+        ne(tasks.status, "DONE"),
+        ne(tasks.status, "CANCELLED"),
+      ];
+
+      if (input.myTasks) {
+        const [tm] = await ctx.db
+          .select({ id: teamMembers.id })
+          .from(teamMembers)
+          .where(eq(teamMembers.userId, ctx.user.id));
+        if (tm) filters.push(eq(tasks.assigneeId, tm.id));
+        else return [];
+      }
+
+      return base
+        .where(and(...filters))
+        .orderBy(desc(tasks.priorityScore), asc(tasks.dueDate))
+        .limit(input.limit);
+    }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))

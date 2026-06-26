@@ -1735,6 +1735,102 @@ function ScreenActivity() {
 }
 
 
+// ── WORK QUEUE TAB ────────────────────────────────────────────────────────────
+
+const PRIORITY_COLOR: Record<string, string> = {
+  CRITICAL: "#fa4d56", HIGH: "#ff832b", MEDIUM: "#f1c21b", LOW: "#6f6f6f",
+};
+
+function ScreenWorkQueue() {
+  const utils       = trpc.useUtils();
+  const [myOnly, setMyOnly] = useState(false);
+  const queueQ      = trpc.tasks.todayQueue.useQuery({ myTasks: myOnly, limit: 25 }, { staleTime: 30_000 });
+  const computeM    = trpc.tasks.computeScores.useMutation({
+    onSuccess: () => void utils.tasks.todayQueue.invalidate(),
+  });
+  const rows = queueQ.data ?? [];
+
+  return (
+    <div className="esti-screen">
+      <div className="esti-screen__hdr">
+        <span className="esti-screen__hdr-title">TODAY'S WORK QUEUE</span>
+        <Tag type="gray" size="sm">{rows.length} tasks</Tag>
+        <Button
+          kind="ghost"
+          size="sm"
+          onClick={() => setMyOnly(!myOnly)}
+        >
+          {myOnly ? "All tasks" : "My tasks"}
+        </Button>
+        <Button
+          kind="ghost"
+          size="sm"
+          disabled={computeM.isPending}
+          onClick={() => computeM.mutate()}
+        >
+          {computeM.isPending ? "Refreshing…" : "Refresh scores"}
+        </Button>
+      </div>
+
+      {queueQ.isLoading ? (
+        <div style={{ padding: "var(--cds-spacing-06)" }}><InlineLoading description="Loading queue…" /></div>
+      ) : rows.length === 0 ? (
+        <div className="esti-screen__empty">
+          <span style={{ color: ZCOLOR["stable"] }}>●</span> No active tasks. Run "Refresh scores" to populate.
+        </div>
+      ) : (
+        <TableContainer>
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Score</TableHeader>
+                <TableHeader>Priority</TableHeader>
+                <TableHeader>Task</TableHeader>
+                <TableHeader>Project</TableHeader>
+                <TableHeader>Due</TableHeader>
+                <TableHeader>Status</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((t) => {
+                const score = t.priorityScore ?? 0;
+                const scoreColor = score >= 70 ? "#fa4d56" : score >= 45 ? "#ff832b" : score >= 25 ? "#f1c21b" : "var(--cds-text-secondary)";
+                return (
+                  <TableRow key={t.id}>
+                    <TableCell>
+                      <span style={{ color: scoreColor, fontWeight: 600 }}>{score}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Tag type="gray" size="sm" style={{ color: PRIORITY_COLOR[t.priority] }}>
+                        {t.priority}
+                      </Tag>
+                    </TableCell>
+                    <TableCell>
+                      <Stack gap={1}>
+                        <span>{t.title}</span>
+                        {t.interventionRequired && <Tag type="red" size="sm">Intervention</Tag>}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>{t.projectRef ?? "—"}</TableCell>
+                    <TableCell style={{ color: t.dueDate && t.dueDate < new Date().toISOString().slice(0,10) ? "#fa4d56" : "inherit" }}>
+                      {t.dueDate ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Tag type={t.status === "BLOCKED" ? "red" : t.status === "IN_PROGRESS" ? "blue" : "gray"} size="sm">
+                        {t.status}
+                      </Tag>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </div>
+  );
+}
+
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 
 export function Dashboard() {
@@ -1768,6 +1864,7 @@ export function Dashboard() {
           <Tab>PROJECTS</Tab>
           <Tab disabled={!canInvoice}>FINANCE</Tab>
           <Tab disabled={!hrEnabled}>TEAM</Tab>
+          <Tab>WORK QUEUE</Tab>
           <Tab>APPROVALS</Tab>
           <Tab>AI INSIGHTS</Tab>
           <Tab>REPORTS</Tab>
@@ -1789,6 +1886,9 @@ export function Dashboard() {
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
             <ScreenTeam ti={ti} att={att} hrEnabled={hrEnabled} />
+          </TabPanel>
+          <TabPanel style={{ padding: 0 }}>
+            <ScreenWorkQueue />
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
             <ScreenApprovals ac={ac} home={home} />

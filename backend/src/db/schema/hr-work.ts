@@ -157,6 +157,8 @@ export const tasks = pgTable("esti_task", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
   /** True when a blocking dependency has been unresolved for >48h. Cleared when dependency resolves. */
   interventionRequired: boolean("intervention_required").notNull().default(false),
+  /** Multi-factor priority score 0–100; updated by tasks.computeScores (§19). */
+  priorityScore: integer("priority_score").notNull().default(0),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
