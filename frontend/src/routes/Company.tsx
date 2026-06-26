@@ -465,7 +465,7 @@ export function Company() {
 
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
-      {isOwner && !user?.isDemo && <AiStudioSettingsPanel />}
+      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={settingsQ.data?.plan === "ENTERPRISE"} />}
       {isOwner && planAllows(settingsQ.data?.plan ?? "LITE", "byos") && <StorageSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}

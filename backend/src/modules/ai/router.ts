@@ -3,8 +3,10 @@ import {
   AiGenerateCadInput,
   AiRunUpdate,
   AiSettings,
+  cloudAiConfigError,
   isCadAiDraftKind,
   parseAiSettings,
+  toPublicAiSettings,
 } from "@esti/contracts";
 import { can } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
@@ -29,7 +31,8 @@ export const aiRouter = router({
     const org = await getOrgSettings(ctx.db);
     const parsed = parseAiSettings(org.aiSettings);
     return {
-      ...parsed,
+      // Redact the cloud BYO-API secret — expose only a configured flag.
+      ...toPublicAiSettings(parsed),
       /** ESTI agent (Alt+A) — read-only Q&A from live AORMS data. */
       agentEnabled: parsed.enabled,
       /** AI Studio document drafts — off on demo. */
@@ -48,9 +51,27 @@ export const aiRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_SETTINGS_MESSAGE });
     }
     const org = await getOrgSettings(ctx.db);
+    const prev = parseAiSettings(org.aiSettings);
+
+    // Preserve the stored cloud key when the form leaves it blank.
+    const toStore = {
+      ...input,
+      cloudApiKey: input.cloudApiKey?.trim() ? input.cloudApiKey : prev.cloudApiKey,
+    };
+
+    // The cloud (bring-your-own-API) provider is Enterprise-only and needs full config.
+    if (toStore.provider === "cloud") {
+      await assertPlanFeature(ctx.db, "aiByoApi");
+      const cerr = cloudAiConfigError(toStore);
+      if (cerr) throw new TRPCError({ code: "BAD_REQUEST", message: cerr });
+      if (!toStore.cloudApiKey?.trim()) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "An API key is required for a cloud provider." });
+      }
+    }
+
     const [row] = await ctx.db
       .update(orgSettings)
-      .set({ aiSettings: input })
+      .set({ aiSettings: toStore })
       .where(eq(orgSettings.id, org.id))
       .returning();
     await writeAudit(ctx.db, {
@@ -58,9 +79,9 @@ export const aiRouter = router({
       entityId: org.id,
       action: "AI_SETTINGS",
       actorId: ctx.user.id,
-      after: input,
+      after: { ...toPublicAiSettings(toStore) },
     });
-    return parseAiSettings(row!.aiSettings);
+    return toPublicAiSettings(parseAiSettings(row!.aiSettings));
   }),
 
   listRuns: protectedProcedure
@@ -117,6 +138,8 @@ export const aiRouter = router({
         message: "AI Studio is disabled — enable in Company settings",
       });
     }
+    // The cloud (bring-your-own-API) provider is Enterprise-only.
+    if (settings.provider === "cloud") await assertPlanFeature(ctx.db, "aiByoApi");
 
     let result;
     try {
@@ -197,6 +220,8 @@ export const aiRouter = router({
         message: "AI Studio is disabled — enable in Company settings",
       });
     }
+    // The cloud (bring-your-own-API) provider is Enterprise-only.
+    if (settings.provider === "cloud") await assertPlanFeature(ctx.db, "aiByoApi");
 
     let result;
     try {

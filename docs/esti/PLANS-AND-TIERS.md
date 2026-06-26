@@ -36,7 +36,10 @@
 > count caps are **general staff seats**: Lite = 3, Core = 15, Enterprise =
 > unlimited. Accountant and HR_MANAGER are **separate extra seats** (Core: 1 each;
 > Lite: none — upgrade to Core for those roles). **AI/LLM/ML is Core+ only** — Lite
-> has no AI; Enterprise can plug in its own provider API key. **Bring-your-own-storage
+> has no AI. **Bring-your-own AI provider (Enterprise)** — instead of the on-server
+Ollama, an Enterprise firm can point AI Studio at their own **OpenAI-compatible** cloud
+endpoint (base URL + model + key) from Company → AI Studio; the key is write-only and
+calls fall back to the template if the provider is unreachable. **Bring-your-own-storage
 (BYOS, Core+)** lets a firm redirect object storage — drawings, documents and generated
 PDFs — to their own **NAS / mounted folder** or **S3-compatible hosting engine** from
 Company → Storage (the S3 secret is write-only). NAS mode requires the path to be mounted
