@@ -12,6 +12,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { aiRuns, orgSettings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertPlanFeature } from "../../lib/plan.js";
 import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
@@ -41,6 +42,8 @@ export const aiRouter = router({
   }),
 
   setSettings: ownerProcedure.input(AiSettings).mutation(async ({ ctx, input }) => {
+    // AI/LLM/ML is Core+ only — Lite cannot enable it.
+    await assertPlanFeature(ctx.db, "ai");
     if (demoBlocksAiSettings(ctx.user)) {
       throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_SETTINGS_MESSAGE });
     }
@@ -89,6 +92,8 @@ export const aiRouter = router({
   }),
 
   generate: protectedProcedure.input(AiGenerateInput).mutation(async ({ ctx, input }) => {
+    // AI/LLM/ML is Core+ only — Lite has no AI capabilities.
+    await assertPlanFeature(ctx.db, "ai");
     if (isCadAiDraftKind(input.kind)) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -171,6 +176,8 @@ export const aiRouter = router({
 
   /** ESTICAD companion — CAD-specific Ollama drafts with JSON proposals (Phase 13D). */
   generateCad: companionWriteProcedure.input(AiGenerateCadInput).mutation(async ({ ctx, input }) => {
+    // AI/LLM/ML is Core+ only — Lite has no AI capabilities.
+    await assertPlanFeature(ctx.db, "ai");
     const caps = await resolveCompanionCapabilities(ctx.db, ctx.user);
     if (!caps.ai) {
       throw new TRPCError({

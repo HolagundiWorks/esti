@@ -45,22 +45,23 @@ export const CORE_STORAGE_BYTES = 200 * 1024 * 1024 * 1024;
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   LITE: {
     // Lite admins create up to 3 general staff logins directly (no functional
-    // accountant/HR seats). Clients, contractors, consultants and projects stay
-    // a fixed, pre-seeded set the admin activates rather than adds to.
+    // accountant/HR seats — upgrade to Core for those roles). Clients,
+    // contractors, consultants and projects are unlimited (the normal create flow).
     accountants: 0,
     hrManagers: 0,
     staff: 3,
-    clients: 5,
-    contractors: 5,
-    consultants: 5,
-    projects: 5,
+    clients: null,
+    contractors: null,
+    consultants: null,
+    projects: null,
     storageBytes: LITE_STORAGE_BYTES,
   },
   CORE: {
-    // 1 admin (OWNER, pinned) + 1 accountant + 1 HR + 10 general staff.
+    // 1 admin (OWNER, pinned) + 1 accountant + 1 HR + 15 general staff. Clients,
+    // contractors, consultants and projects are unlimited.
     accountants: 1,
     hrManagers: 1,
-    staff: 10,
+    staff: 15,
     clients: null,
     contractors: null,
     consultants: null,

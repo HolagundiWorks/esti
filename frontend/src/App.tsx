@@ -212,9 +212,6 @@ function AppShell() {
   // rate books or audit-log nav. planAllows() defaults LITE until settings load.
   const plan = settingsQ.data?.plan ?? "LITE";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
-  // Lite is a fixed workspace with no consultant directory (consultants are only
-  // mapped to projects via engagements).
-  const isLite = plan === "LITE";
   const isStaff =
     !!user &&
     (isStaffRole(user.role) ||
@@ -346,7 +343,7 @@ function AppShell() {
           : []),
         // Consultants & Contractors directories: L3+ (rank 60). Lite has no
         // consultant directory page (consultants are mapped to projects only).
-        ...(atLeast(60) && !isLite ? [{ label: "Consultants", to: "/consultants" }] : []),
+        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
         ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
       ],
     },

@@ -38,8 +38,6 @@ const HEADERS = [
 
 export function Consultants() {
   const utils = trpc.useUtils();
-  // Lite has a fixed consultant set (mapped to projects only) — no new consultants.
-  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
   const list = trpc.consultants.list.useQuery();
 
   const [open, setOpen] = useState(false);
@@ -124,7 +122,7 @@ export function Consultants() {
           title: "No consultants yet",
           description:
             "Add discipline specialists the office engages on projects.",
-          action: isLite ? undefined : (
+          action: (
             <Button size="sm" onClick={() => setOpen(true)}>
               New consultant
             </Button>
@@ -148,7 +146,7 @@ export function Consultants() {
                     persistent
                     onChange={onInputChange}
                   />
-                  {!isLite && <Button onClick={() => setOpen(true)}>New consultant</Button>}
+                  <Button onClick={() => setOpen(true)}>New consultant</Button>
                 </TableToolbarContent>
               </TableToolbar>
               <Table {...getTableProps()}>

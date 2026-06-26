@@ -20,18 +20,14 @@ export async function assertPlanFeature(db: DB, feature: PlanFeature): Promise<v
 }
 
 /**
- * Throw FORBIDDEN on the fixed-workspace (LITE) plan, which ships a pre-seeded
- * set of users, clients, contractors and projects that the admin activates
- * rather than adds to. CORE/ENTERPRISE are self-serve and pass through.
+ * Previously blocked Lite (a fixed pre-seeded workspace) from the create flow.
+ * Lite is now self-serve and unlimited on clients/contractors/consultants/
+ * projects, so no plan is "fixed" — this is a no-op kept as a seam (call sites
+ * unchanged) in case a fixed tier returns. Quotas are still enforced by
+ * `assertQuota`.
  */
-export async function assertNotFixedPlan(db: DB): Promise<void> {
-  if ((await firmPlan(db)) === "LITE") {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message:
-        "Your Lite workspace has a fixed set of users, clients, contractors and projects — activate an existing record instead of adding a new one.",
-    });
-  }
+export async function assertNotFixedPlan(_db: DB): Promise<void> {
+  // intentionally no-op — see doc comment.
 }
 
 const QUOTA_LABEL: Record<PlanQuota, string> = {

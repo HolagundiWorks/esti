@@ -49,8 +49,6 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
 
 export function Contractors() {
   const utils = trpc.useUtils();
-  // Lite ships a fixed contractor roster — manage the existing, don't add new.
-  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
   const [category, setCategory] = useState("");
   const listQ = trpc.contractors.list.useQuery({
     category: category ? (category as ContractorCategoryCode) : undefined,
@@ -88,7 +86,7 @@ export function Contractors() {
       <PageHeader
         title="Contractors"
         description="Construction contractor register — trades, statutory ids and on-site performance."
-        actions={isLite ? undefined : <Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
+        actions={<Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
       />
 
       <Stack orientation="horizontal" gap={5}>
@@ -108,7 +106,7 @@ export function Contractors() {
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={6}
-        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site.", action: isLite ? undefined : <Button size="sm" onClick={() => setForm({ ...EMPTY })}>New contractor</Button> }}
+        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site.", action: <Button size="sm" onClick={() => setForm({ ...EMPTY })}>New contractor</Button> }}
       >
         <TableContainer title="Contractors">
           <Table>

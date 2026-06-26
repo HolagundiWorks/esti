@@ -18,29 +18,29 @@
 | Limit | Lite (free) | Core | Enterprise |
 |---|---|---|---|
 | **Admin (owner)** | 1 | 1 | 1 |
-| **Staff seats** | 3 (self-created) | 10 | **unlimited** |
+| **General staff seats** | **3** | **15** | **unlimited** |
 | Accountant seats | — | 1 | unlimited |
 | HR manager seats | — | 1 | unlimited |
-| **Clients** | **5** | unlimited | unlimited |
-| **Contractors** | **5** | unlimited | unlimited |
-| Consultants | 5 | unlimited | unlimited |
-| Active projects | 5 (fixed) | unlimited | unlimited |
+| **Clients** | unlimited | unlimited | unlimited |
+| **Contractors** | unlimited | unlimited | unlimited |
+| Consultants | unlimited | unlimited | unlimited |
+| Active projects | unlimited | unlimited | unlimited |
 | Document storage | 5 GB | 200 GB | unlimited |
-| ESTI AI requests | trial | standard | high / dedicated |
+| AI / LLM / ML | — (none) | standard (firm Ollama) | bring-your-own API |
 | Support | community | standard | priority + SLA |
 
-> Lite is a **mostly-fixed workspace**: the admin activates/deactivates a
-> pre-seeded set of clients (5), contractors (5), consultants (5) and projects
-> (5) — no "create" buttons for those. **Staff logins are the exception** — the
-> Lite admin creates up to 3 staff directly from the Users page (no functional
-> accountant/HR seats). Core/Enterprise are fully self-serve. Core staff seats
-> split by function: 1 admin + 1 accountant + 1 HR + 10 general staff. Enterprise
-> is self-hosted (on-premises) with no caps.
+> Lite, Core and Enterprise are all **self-serve**: clients, contractors,
+> consultants and projects are **unlimited on every tier** (created through the
+> normal "New …" flow — Lite is no longer a fixed pre-seeded workspace). The only
+> count caps are **general staff seats**: Lite = 3, Core = 15, Enterprise =
+> unlimited. Accountant and HR_MANAGER are **separate extra seats** (Core: 1 each;
+> Lite: none — upgrade to Core for those roles). **AI/LLM/ML is Core+ only** — Lite
+> has no AI; Enterprise can plug in its own provider API key.
 
 > Only **active** logins consume a staff seat — disabling an account frees its
-> seat back up. On Lite, creating a 4th active staff login, or any
-> client/contractor/project, is blocked with an upgrade prompt. On Core,
-> exceeding a seat cap (2nd accountant, 2nd HR, 11th staff) or the 200 GB storage
+> seat back up. On Lite, creating a 4th active general-staff login is blocked with
+> an upgrade prompt (clients/contractors/consultants/projects are not capped). On
+> Core, exceeding a seat cap (16th general staff, 2nd accountant, 2nd HR) or the 200 GB storage
 > cap is blocked the same way — never silent data loss. The owner can switch the
 > firm's edition from the Users page (Upgrade plan); the plan reflects the firm's
 > licence and applies higher caps immediately.
