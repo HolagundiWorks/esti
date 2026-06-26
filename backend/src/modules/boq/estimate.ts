@@ -5,6 +5,7 @@ import {
   EstimateItemUpdate,
   estimateItemAmount,
   formatINR,
+  measurementBookQty,
   summarizeBoqValidation,
   TAKEOFF_CATALOG,
   validateBoqItems,
@@ -268,15 +269,26 @@ export const estimateRouter = router({
     const [item] = await ctx.db.select().from(estimateItems).where(eq(estimateItems.id, input.id));
     if (!item) throw new TRPCError({ code: "NOT_FOUND" });
     await assertDraft(ctx.db, item.estimateId);
-    const qty = input.qty ?? item.qty;
+    // A measurement book, when supplied, becomes the source of truth for qty: the
+    // server derives qty from it and stashes the breakdown in sourcePayload (the
+    // existing jsonb column — no schema change). Otherwise qty stays a typed field.
+    const measured = input.measurements !== undefined;
+    const qty = measured ? measurementBookQty(input.measurements!) : (input.qty ?? item.qty);
     const ratePaise = input.ratePaise ?? item.ratePaise;
     const itemLeadPct = input.itemLeadPct ?? item.itemLeadPct;
     const amountPaise = estimateItemAmount(qty, ratePaise, itemLeadPct);
+    const sourcePayload = measured
+      ? {
+          ...((item.sourcePayload as Record<string, unknown>) ?? {}),
+          measurements: input.measurements,
+        }
+      : undefined;
     await ctx.db
       .update(estimateItems)
       .set({
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.unit !== undefined ? { unit: input.unit } : {}),
+        ...(sourcePayload !== undefined ? { sourcePayload } : {}),
         qty,
         ratePaise,
         itemLeadPct,
@@ -286,6 +298,30 @@ export const estimateRouter = router({
     await recompute(ctx.db, item.estimateId);
     return { ok: true };
   }),
+
+  /** Inline rename of an estimate's title (Estimation OS keyboard flow). */
+  rename: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), title: z.string().min(1).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db
+        .select({ title: estimates.title })
+        .from(estimates)
+        .where(eq(estimates.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db
+        .update(estimates)
+        .set({ title: input.title })
+        .where(eq(estimates.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "estimate",
+        entityId: input.id,
+        action: "RENAME",
+        actorId: ctx.user.id,
+        before: { title: before.title },
+        after: { title: input.title },
+      });
+      return { ok: true };
+    }),
 
   bulkImport: protectedProcedure.input(EstimateBulkImport).mutation(async ({ ctx, input }) => {
     await assertDraft(ctx.db, input.estimateId);

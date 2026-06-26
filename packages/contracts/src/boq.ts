@@ -81,8 +81,63 @@ export const EstimateItemUpdate = z.object({
   qty: z.number().nonnegative().optional(),
   ratePaise: z.number().int().nonnegative().optional(),
   itemLeadPct: z.number().min(0).max(100).optional(),
+  /**
+   * Measurement-book rows (Estimation OS keyboard-flow). When present the server
+   * derives `qty` from them (`measurementBookQty`) and stores the breakdown in the
+   * item's `sourcePayload.measurements` — so `qty` becomes derived, not typed.
+   */
+  measurements: z.array(z.lazy(() => MeasurementBookRow)).max(500).optional(),
 });
 export type EstimateItemUpdate = z.infer<typeof EstimateItemUpdate>;
+
+// --- Measurement book (Estimation OS keyboard-first quantity entry) ----------
+// A BOQ line's quantity can be built from a measurement book: one row per element
+// (Wall A, Wall B …), each = nos × the dimensions the line's unit calls for. The
+// parent qty is the sum. Rows live in the existing `esti_estimate_item.sourcePayload`
+// jsonb — no schema change. Dimensions are entered in the project's working unit
+// (metres), consistent with FORMULA_REGISTRY.
+
+export const MeasurementBookRow = z.object({
+  label: z.string().max(120).default(""),
+  nos: z.number().nonnegative().default(1),
+  length: z.number().nonnegative().nullable().optional(),
+  breadth: z.number().nonnegative().nullable().optional(),
+  depth: z.number().nonnegative().nullable().optional(),
+});
+export type MeasurementBookRow = z.infer<typeof MeasurementBookRow>;
+
+/** Which dimension columns a unit's measurement book shows (besides Nos). */
+export type MeasurementDim = "length" | "breadth" | "depth";
+export function measurementColumnsForUnit(unit: string | null | undefined): MeasurementDim[] {
+  const u = (unit ?? "").trim().toLowerCase().replace(/\.$/, "");
+  if (["cum", "cu.m", "m3", "m³", "cubic metre", "cubic meter"].includes(u)) {
+    return ["length", "breadth", "depth"];
+  }
+  if (["sqm", "sq.m", "m2", "m²", "square metre", "square meter"].includes(u)) {
+    return ["length", "breadth"];
+  }
+  if (["m", "rm", "rmt", "metre", "meter", "running metre", "lm"].includes(u)) {
+    return ["length"];
+  }
+  if (["nos", "no", "each", "ea", "number", "pcs", "pc"].includes(u)) {
+    return [];
+  }
+  // Unknown unit → the common area book (Nos · L · B).
+  return ["length", "breadth"];
+}
+
+/** One measurement row's quantity: nos × product of the dimensions it carries. */
+export function measurementRowQty(row: MeasurementBookRow): number {
+  const dim = (v: number | null | undefined) => (v == null || v === 0 ? 1 : v);
+  const raw = row.nos * dim(row.length) * dim(row.breadth) * dim(row.depth);
+  return Number(raw.toFixed(4));
+}
+
+/** Sum of a measurement book → the parent BOQ line quantity (rounded 4dp). */
+export function measurementBookQty(rows: MeasurementBookRow[]): number {
+  const sum = rows.reduce((s, r) => s + measurementRowQty(r), 0);
+  return Number(sum.toFixed(4));
+}
 
 export const EstimateBulkImportRow = z.object({
   description: z.string().min(1).max(400),

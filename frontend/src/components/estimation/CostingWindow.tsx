@@ -1,8 +1,9 @@
 import {
   Button,
   Checkbox,
+  ComboBox,
+  Dropdown,
   InlineNotification,
-  Modal,
   Select,
   SelectItem,
   Stack,
@@ -19,10 +20,10 @@ import {
   TableHeader,
   TableRow,
   Tag,
-  TextArea,
   TextInput,
   Tile,
 } from "@carbon/react";
+import { Add, ChevronDown, ChevronUp, TrashCan } from "@carbon/icons-react";
 import {
   BOQ_VALIDATION_LABEL,
   BOQ_VALIDATION_TAG,
@@ -30,23 +31,30 @@ import {
   COST_HEAD_LABEL,
   FORMULA_REGISTRY,
   formatINR,
+  measurementBookQty,
+  measurementColumnsForUnit,
+  measurementRowQty,
   parseRupeeInput,
-  type BasisKind,
   type CalculationType,
   type ComponentParamField,
   type CostHead,
-  type EstimateConfidence,
+  type MeasurementBookRow,
 } from "@esti/contracts";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RateAnalysisPanel } from "../knowledge/RateAnalysisPanel.js";
 import { trpc } from "../../lib/trpc.js";
 import { pdfPollInterval } from "../../lib/pdfUi.js";
 
 const COST_HEADS = Object.keys(COST_HEAD_LABEL) as CostHead[];
-const CALC_TYPES = Object.keys(CALCULATION_TYPE_LABEL) as CalculationType[];
 
 /** Calc types where the line value is a fixed lump amount (qty fixed to 1). */
 const LUMP_TYPES = new Set<CalculationType>(["LUMPSUM", "NON_MODELED"]);
+
+const DIM_LABEL: Record<"length" | "breadth" | "depth", string> = {
+  length: "Length",
+  breadth: "Breadth",
+  depth: "Depth",
+};
 
 function confidenceTone(c?: string | null): "red" | "teal" | "green" | "gray" {
   if (c === "LOW") return "red";
@@ -99,14 +107,276 @@ function EstimatePdf({ id }: { id: string }) {
 }
 
 type EstimateRow = { id: string; ref: string; title: string; status: string };
+type ItemRow = {
+  id: string;
+  description: string;
+  unit: string;
+  qty: number;
+  ratePaise: number;
+  itemLeadPct: number;
+  amountPaise: number;
+  costHead: string | null;
+  calculationType: string | null;
+  confidence: string | null;
+  pct: number | null;
+  sourceKind: string | null;
+  sourcePayload?: unknown;
+};
+
+function readMeasurements(item: ItemRow): MeasurementBookRow[] {
+  const sp = item.sourcePayload as { measurements?: MeasurementBookRow[] } | null | undefined;
+  return Array.isArray(sp?.measurements) ? (sp!.measurements as MeasurementBookRow[]) : [];
+}
+
+// --- Inline estimate title (rename without a modal) -------------------------
+
+function InlineTitle({
+  id,
+  title,
+  editable,
+  onRename,
+}: {
+  id: string;
+  title: string;
+  editable: boolean;
+  onRename: (title: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(title);
+  useEffect(() => setDraft(title), [title, id]);
+  if (!editable || !editing) {
+    return (
+      <Stack orientation="horizontal" gap={3}>
+        <h4 style={{ margin: 0 }}>{title}</h4>
+        {editable && (
+          <Button kind="ghost" size="sm" onClick={() => setEditing(true)}>
+            Rename
+          </Button>
+        )}
+      </Stack>
+    );
+  }
+  const commit = () => {
+    const t = draft.trim();
+    if (t && t !== title) onRename(t);
+    setEditing(false);
+  };
+  return (
+    <TextInput
+      id={`est-title-${id}`}
+      labelText="Estimate name"
+      hideLabel
+      size="sm"
+      autoFocus
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+        if (e.key === "Escape") {
+          setDraft(title);
+          setEditing(false);
+        }
+      }}
+    />
+  );
+}
+
+// --- Inline rate-book item search (Add Item, no modal) ----------------------
+
+type RatebookItem = { id: string; code: string; description: string; unit: string; ratePaise: number };
+
+function AddItemRow({
+  versionId,
+  costHead,
+  onPick,
+  onBlank,
+  adding,
+}: {
+  versionId: string | null;
+  costHead: CostHead;
+  onPick: (it: RatebookItem) => void;
+  onBlank: () => void;
+  adding: boolean;
+}) {
+  const itemsQ = trpc.dsr.listItems.useQuery(
+    { versionId: versionId ?? "" },
+    { enabled: !!versionId },
+  );
+  const items = (itemsQ.data ?? []) as RatebookItem[];
+  return (
+    <Stack orientation="horizontal" gap={3} style={{ alignItems: "flex-end" }}>
+      <div style={{ minWidth: 360 }}>
+        <ComboBox
+          id={`add-item-${costHead}`}
+          titleText=""
+          aria-label="Search rate book"
+          placeholder={
+            versionId ? "Add item — type to search the rate book…" : "Select a rate book first →"
+          }
+          disabled={!versionId || adding}
+          items={items}
+          itemToString={(it) => (it ? `${(it as RatebookItem).code} — ${(it as RatebookItem).description}` : "")}
+          shouldFilterItem={({ item, inputValue }) => {
+            const it = item as RatebookItem;
+            const q = (inputValue ?? "").toLowerCase();
+            return (
+              it.code.toLowerCase().includes(q) || it.description.toLowerCase().includes(q)
+            );
+          }}
+          onChange={({ selectedItem }) => {
+            if (selectedItem) onPick(selectedItem as RatebookItem);
+          }}
+        />
+      </div>
+      <Button kind="tertiary" size="sm" disabled={adding} onClick={onBlank} renderIcon={Add}>
+        Blank line
+      </Button>
+    </Stack>
+  );
+}
+
+// --- Measurement book (unit-driven child table, keyboard-first) -------------
+
+function MeasurementBook({
+  itemId,
+  unit,
+  initial,
+  autoFocusFirst,
+  onSave,
+}: {
+  itemId: string;
+  unit: string;
+  initial: MeasurementBookRow[];
+  autoFocusFirst: boolean;
+  onSave: (rows: MeasurementBookRow[]) => void;
+}) {
+  const cols = measurementColumnsForUnit(unit);
+  const lastField = cols.length ? cols[cols.length - 1]! : "nos";
+  const [rows, setRows] = useState<MeasurementBookRow[]>(
+    initial.length ? initial : [{ label: "", nos: 1 }],
+  );
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queueSave = (next: MeasurementBookRow[]) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => onSave(next), 400);
+  };
+  const flush = (next: MeasurementBookRow[]) => {
+    if (timer.current) clearTimeout(timer.current);
+    onSave(next);
+  };
+  const update = (i: number, patch: Partial<MeasurementBookRow>) =>
+    setRows((rs) => {
+      const next = rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r));
+      queueSave(next);
+      return next;
+    });
+  const addRow = () =>
+    setRows((rs) => {
+      const next = [...rs, { label: "", nos: 1 } as MeasurementBookRow];
+      return next;
+    });
+  const removeRow = (i: number) =>
+    setRows((rs) => {
+      const next = rs.filter((_, idx) => idx !== i);
+      const result = next.length ? next : [{ label: "", nos: 1 } as MeasurementBookRow];
+      flush(next);
+      return result;
+    });
+
+  const focusCell = (rowIdx: number, field: string) =>
+    setTimeout(() => document.getElementById(`mb-${itemId}-${rowIdx}-${field}`)?.focus(), 0);
+
+  const cellKeyDown = (e: React.KeyboardEvent, rowIdx: number, field: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (field === lastField) {
+        if (rowIdx === rows.length - 1) addRow();
+        focusCell(rowIdx + 1, "label");
+      }
+    }
+  };
+
+  const num = (v: string) => (v.trim() === "" ? null : Number(v));
+
+  return (
+    <Table size="sm">
+      <TableHead>
+        <TableRow>
+          <TableHeader>Element</TableHeader>
+          <TableHeader>Nos</TableHeader>
+          {cols.map((c) => (
+            <TableHeader key={c}>{DIM_LABEL[c]} (m)</TableHeader>
+          ))}
+          <TableHeader>Qty ({unit})</TableHeader>
+          <TableHeader />
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {rows.map((r, i) => (
+          <TableRow key={i}>
+            <TableCell>
+              <TextInput
+                id={`mb-${itemId}-${i}-label`}
+                labelText=""
+                hideLabel
+                size="sm"
+                autoFocus={autoFocusFirst && i === 0}
+                value={r.label ?? ""}
+                placeholder={`Element ${i + 1}`}
+                onChange={(e) => update(i, { label: e.target.value })}
+              />
+            </TableCell>
+            <TableCell>
+              <TextInput
+                id={`mb-${itemId}-${i}-nos`}
+                labelText=""
+                hideLabel
+                size="sm"
+                type="number"
+                value={String(r.nos ?? 1)}
+                onChange={(e) => update(i, { nos: Number(e.target.value) || 0 })}
+                onKeyDown={(e) => cellKeyDown(e, i, "nos")}
+              />
+            </TableCell>
+            {cols.map((c) => (
+              <TableCell key={c}>
+                <TextInput
+                  id={`mb-${itemId}-${i}-${c}`}
+                  labelText=""
+                  hideLabel
+                  size="sm"
+                  type="number"
+                  value={r[c] == null ? "" : String(r[c])}
+                  onChange={(e) => update(i, { [c]: num(e.target.value) } as Partial<MeasurementBookRow>)}
+                  onKeyDown={(e) => cellKeyDown(e, i, c)}
+                />
+              </TableCell>
+            ))}
+            <TableCell>{measurementRowQty(r).toFixed(3)}</TableCell>
+            <TableCell>
+              <Button
+                kind="ghost"
+                size="sm"
+                hasIconOnly
+                iconDescription="Remove row"
+                renderIcon={TrashCan}
+                onClick={() => removeRow(i)}
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
 
 /**
- * Estimation OS — staged costing window. Operates on a single estimate across
- * three stages: a design-stage cost-head estimate (area-rate / % clause /
- * lumpsum / non-modeled), component-based execution detail (auto-BOQ from the
- * component master), and the office-wide rate-analysis build-up. Money is
- * integer paise throughout; the design and component procedures live in the
- * `estimation` tRPC namespace and write an audit entry on every change.
+ * Estimation OS — keyboard-first, no-modal costing window. A single inline
+ * workspace: rename the estimate in place, pick a rate book in the side popover,
+ * `+ Add Item` to search it, then build each line's quantity in a unit-driven
+ * measurement book (the parent qty is the sum, written to the line via
+ * `estimates.updateItem`). Components/execution and rate-analysis stay as tabs.
  */
 export function CostingWindow({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -119,10 +389,7 @@ export function CostingWindow({ projectId }: { projectId: string }) {
   const open = estimateRows.find((e) => e.id === openId) ?? estimateRows[0] ?? null;
   const activeId = open?.id ?? null;
 
-  const detailQ = trpc.estimates.byId.useQuery(
-    { id: activeId ?? "" },
-    { enabled: !!activeId },
-  );
+  const detailQ = trpc.estimates.byId.useQuery({ id: activeId ?? "" }, { enabled: !!activeId });
   const detail = detailQ.data ?? null;
   const itemsQ = trpc.estimates.items.useQuery(
     { estimateId: activeId ?? "" },
@@ -142,6 +409,8 @@ export function CostingWindow({ projectId }: { projectId: string }) {
     { enabled: !!activeId },
   );
   const componentsQ = trpc.components.list.useQuery({ projectId });
+  const ratebooksQ = trpc.dsr.listVersions.useQuery();
+  const ratebooks = (ratebooksQ.data ?? []) as { id: string; label: string; status: string }[];
 
   const editable = detail?.status === "DRAFT";
 
@@ -159,25 +428,26 @@ export function CostingWindow({ projectId }: { projectId: string }) {
     onSuccess: (row) => {
       void utils.estimates.listByProject.invalidate({ projectId });
       setOpenId(row.id);
-      setNewOpen(false);
-      setNewTitle("");
     },
   });
+  const renameEstimate = trpc.estimates.rename.useMutation({ onSuccess: invalidateActive });
+  const setDsrVersion = trpc.estimates.setDsrVersion.useMutation({ onSuccess: invalidateActive });
   const setStage = trpc.estimation.setStage.useMutation({ onSuccess: invalidateActive });
-  const addDesignItem = trpc.estimation.addItem.useMutation({
+  const addItem = trpc.estimates.addItem.useMutation({
     onSuccess: () => {
       invalidateActive();
-      setItemOpen(false);
+      setJustAdded(true);
     },
   });
-  const updateDesignItem = trpc.estimation.updateItem.useMutation({ onSuccess: invalidateActive });
+  const updateBoqItem = trpc.estimates.updateItem.useMutation({ onSuccess: invalidateActive });
   const removeItem = trpc.estimates.removeItem.useMutation({ onSuccess: invalidateActive });
+  const addDesignItem = trpc.estimation.addItem.useMutation({ onSuccess: invalidateActive });
   const freeze = trpc.estimation.freeze.useMutation({
     onSuccess: () => {
       invalidateActive();
       void utils.estimation.versions.invalidate({ estimateId: activeId ?? "" });
-      setFreezeOpen(false);
       setFreezeNote("");
+      setFreezing(false);
     },
   });
   const revise = trpc.estimates.revise.useMutation({ onSuccess: invalidateActive });
@@ -189,27 +459,23 @@ export function CostingWindow({ projectId }: { projectId: string }) {
   });
   const removeComponent = trpc.estimation.removeComponent.useMutation({ onSuccess: invalidateActive });
 
-  // --- modal / form state ---------------------------------------------------
-  const [newOpen, setNewOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [itemOpen, setItemOpen] = useState(false);
-  const [freezeOpen, setFreezeOpen] = useState(false);
+  // --- inline state ---------------------------------------------------------
+  const [addHead, setAddHead] = useState<CostHead>("OTHER");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
+  const [freezing, setFreezing] = useState(false);
   const [freezeNote, setFreezeNote] = useState("");
-  const [df, setDf] = useState({
-    costHead: "OTHER" as CostHead,
-    calculationType: "AREA_RATE" as CalculationType,
-    description: "",
-    unit: "nos",
-    qty: "",
-    rate: "",
-    lead: "0",
-    confidence: "MEDIUM" as EstimateConfidence,
-    pct: "",
-    basisKind: "SUBTOTAL" as BasisKind,
-    basisCostHead: "SUBSTRUCTURE" as CostHead,
-  });
 
-  const items = itemsQ.data ?? [];
+  const items = (itemsQ.data ?? []) as ItemRow[];
+
+  // After an Add, auto-open the newest line's measurement book and focus it.
+  useEffect(() => {
+    if (!justAdded || items.length === 0) return;
+    const newest = items[items.length - 1]!;
+    setExpandedId(newest.id);
+    setJustAdded(false);
+  }, [justAdded, items]);
+
   const designGroups = useMemo(
     () =>
       COST_HEADS.map((head) => ({
@@ -219,60 +485,80 @@ export function CostingWindow({ projectId }: { projectId: string }) {
     [items],
   );
 
-  function submitDesignItem() {
+  const activeRatebook = ratebooks.find((r) => r.id === (detail?.dsrVersionId ?? "")) ?? null;
+
+  function pickRatebookItem(it: RatebookItem) {
     if (!activeId) return;
-    const isPct = df.calculationType === "PERCENTAGE";
-    addDesignItem.mutate({
+    addItem.mutate({
       estimateId: activeId,
-      costHead: df.costHead,
-      calculationType: df.calculationType,
-      description: df.description,
-      unit: df.unit,
-      qty: Number(df.qty) || 0,
-      ratePaise: parseRupeeInput(df.rate),
-      itemLeadPct: Number(df.lead) || 0,
-      confidence: df.confidence,
-      pct: isPct ? Number(df.pct) || 0 : null,
-      basis: isPct
-        ? df.basisKind === "COST_HEAD"
-          ? { kind: "COST_HEAD" as const, costHead: df.basisCostHead }
-          : { kind: "SUBTOTAL" as const }
-        : null,
+      dsrItemId: it.id,
+      description: it.description,
+      unit: it.unit,
+      qty: 0,
+      ratePaise: it.ratePaise,
+      itemLeadPct: 0,
+      costHead: addHead,
+    });
+  }
+  function addBlankLine() {
+    if (!activeId) return;
+    addItem.mutate({
+      estimateId: activeId,
+      dsrItemId: null,
+      description: "New item",
+      unit: "nos",
+      qty: 0,
+      ratePaise: 0,
+      itemLeadPct: 0,
+      costHead: addHead,
     });
   }
 
   return (
     <Stack gap={5}>
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <Select
-          id="cw-estimate"
-          labelText="Estimate"
-          value={activeId ?? ""}
-          onChange={(e) => setOpenId(e.target.value || null)}
-          style={{ minWidth: 280 }}
+      {/* --- Workspace header (inline; no modals) --------------------------- */}
+      <Stack orientation="horizontal" gap={4} style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div style={{ minWidth: 240 }}>
+          <Dropdown
+            id="cw-estimate"
+            titleText="Estimate"
+            size="sm"
+            label="Select an estimate"
+            items={estimateRows}
+            selectedItem={open}
+            itemToString={(e) => (e ? `${(e as EstimateRow).ref} — ${(e as EstimateRow).title}` : "")}
+            onChange={({ selectedItem }) => setOpenId((selectedItem as EstimateRow | null)?.id ?? null)}
+          />
+        </div>
+        <Button
+          size="sm"
+          renderIcon={Add}
+          disabled={createEstimate.isPending}
+          onClick={() => {
+            const n = estimateRows.length + 1;
+            createEstimate.mutate({
+              projectId,
+              title: `Estimate ${String(n).padStart(3, "0")}`,
+              dsrVersionId: null,
+              leadPct: 0,
+            });
+          }}
         >
-          {estimateRows.length === 0 && <SelectItem value="" text="No estimates yet" />}
-          {estimateRows.map((e) => (
-            <SelectItem key={e.id} value={e.id} text={`${e.ref} — ${e.title}`} />
-          ))}
-        </Select>
-        <Button size="sm" onClick={() => setNewOpen(true)}>
           New estimate
         </Button>
         {detail && (
           <>
+            <InlineTitle
+              id={detail.id}
+              title={detail.title}
+              editable={!!editable}
+              onRename={(title) => renameEstimate.mutate({ id: detail.id, title })}
+            />
             <Tag type={statusTone(detail.status)}>{detail.status}</Tag>
-            <Tag type={detail.stage === "EXECUTION" ? "purple" : "blue"}>
-              {detail.stage === "EXECUTION" ? "Execution" : "Design"} stage
-            </Tag>
             {boqCheck && (
               <Tag
                 type={
-                  boqCheck.summary.clean
-                    ? "green"
-                    : boqCheck.summary.high > 0
-                      ? "red"
-                      : "magenta"
+                  boqCheck.summary.clean ? "green" : boqCheck.summary.high > 0 ? "red" : "magenta"
                 }
               >
                 {boqCheck.summary.clean
@@ -285,9 +571,36 @@ export function CostingWindow({ projectId }: { projectId: string }) {
             <span style={{ marginLeft: "auto" }} />
             <EstimatePdf id={detail.id} />
             {editable ? (
-              <Button size="sm" kind="tertiary" onClick={() => setFreezeOpen(true)}>
-                Freeze version
-              </Button>
+              freezing ? (
+                <Stack orientation="horizontal" gap={2} style={{ alignItems: "flex-end" }}>
+                  <TextInput
+                    id="cw-freeze-note"
+                    size="sm"
+                    labelText="Freeze note"
+                    hideLabel
+                    placeholder="Note (optional)…"
+                    value={freezeNote}
+                    onChange={(e) => setFreezeNote(e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    disabled={freeze.isPending}
+                    onClick={() =>
+                      activeId &&
+                      freeze.mutate({ estimateId: activeId, note: freezeNote.trim() || undefined })
+                    }
+                  >
+                    {freeze.isPending ? "Freezing…" : "Confirm freeze"}
+                  </Button>
+                  <Button size="sm" kind="ghost" onClick={() => setFreezing(false)}>
+                    Cancel
+                  </Button>
+                </Stack>
+              ) : (
+                <Button size="sm" kind="tertiary" onClick={() => setFreezing(true)}>
+                  Freeze version
+                </Button>
+              )
             ) : (
               <Button
                 size="sm"
@@ -300,7 +613,7 @@ export function CostingWindow({ projectId }: { projectId: string }) {
             )}
           </>
         )}
-      </div>
+      </Stack>
 
       {!detail ? (
         <InlineNotification
@@ -311,482 +624,404 @@ export function CostingWindow({ projectId }: { projectId: string }) {
           subtitle="Create an estimate to start a staged design / component costing."
         />
       ) : (
-        <Tabs>
-          <TabList aria-label="Costing stages" contained>
-            <Tab>Design estimate</Tab>
-            <Tab>Components / execution</Tab>
-            <Tab>Rate analysis</Tab>
-          </TabList>
-          <TabPanels>
-            {/* --- Design estimate ------------------------------------------ */}
-            <TabPanel>
-              <Stack gap={5}>
-                <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-                  <Select
-                    id="cw-stage"
-                    labelText="Stage"
-                    size="sm"
-                    disabled={!editable}
-                    value={detail.stage ?? "DESIGN"}
-                    onChange={(e) =>
-                      setStage.mutate({ id: detail.id, stage: e.target.value as "DESIGN" | "EXECUTION" })
-                    }
-                  >
-                    <SelectItem value="DESIGN" text="Design (ballpark)" />
-                    <SelectItem value="EXECUTION" text="Execution (detailed)" />
-                  </Select>
-                  {editable && (
-                    <Button size="sm" onClick={() => setItemOpen(true)}>
-                      Add line
-                    </Button>
-                  )}
-                </div>
-
-                {boqCheck && (
-                  <TableContainer
-                    title="BOQ checks"
-                    description="Automatic data-quality checks on this BOQ — advisory only; nothing is blocked."
-                  >
-                    {boqCheck.summary.clean ? (
-                      <div style={{ padding: "0 1rem 1rem" }}>
-                        <Tag type="green">No issues found</Tag>
-                      </div>
-                    ) : (
-                      <Table size="sm">
-                        <TableHead>
-                          <TableRow>
-                            <TableHeader>Line</TableHeader>
-                            <TableHeader>Check</TableHeader>
-                            <TableHeader>Detail</TableHeader>
-                            <TableHeader>Severity</TableHeader>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {boqCheck.issues.map((issue, i) => (
-                            <TableRow key={`${issue.itemId}-${issue.kind}-${i}`}>
-                              <TableCell>{issue.line}</TableCell>
-                              <TableCell>{BOQ_VALIDATION_LABEL[issue.kind]}</TableCell>
-                              <TableCell>{issue.detail}</TableCell>
-                              <TableCell>
-                                <Tag size="sm" type={BOQ_VALIDATION_TAG[issue.severity]}>
-                                  {issue.severity}
-                                </Tag>
-                              </TableCell>
-                            </TableRow>
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Tabs>
+              <TabList aria-label="Costing stages" contained>
+                <Tab>Design estimate</Tab>
+                <Tab>Components / execution</Tab>
+                <Tab>Rate analysis</Tab>
+              </TabList>
+              <TabPanels>
+                {/* --- Design estimate ------------------------------------- */}
+                <TabPanel>
+                  <Stack gap={5}>
+                    <Stack orientation="horizontal" gap={4} style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
+                      <Select
+                        id="cw-stage"
+                        labelText="Stage"
+                        size="sm"
+                        disabled={!editable}
+                        value={detail.stage ?? "DESIGN"}
+                        onChange={(e) =>
+                          setStage.mutate({
+                            id: detail.id,
+                            stage: e.target.value as "DESIGN" | "EXECUTION",
+                          })
+                        }
+                      >
+                        <SelectItem value="DESIGN" text="Design (ballpark)" />
+                        <SelectItem value="EXECUTION" text="Execution (detailed)" />
+                      </Select>
+                      {editable && (
+                        <Select
+                          id="cw-addhead"
+                          labelText="Add under"
+                          size="sm"
+                          value={addHead}
+                          onChange={(e) => setAddHead(e.target.value as CostHead)}
+                        >
+                          {COST_HEADS.map((h) => (
+                            <SelectItem key={h} value={h} text={COST_HEAD_LABEL[h]} />
                           ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </TableContainer>
-                )}
+                        </Select>
+                      )}
+                    </Stack>
 
-                {designGroups.length === 0 ? (
-                  <InlineNotification
-                    kind="info"
-                    lowContrast
-                    hideCloseButton
-                    title="No lines yet"
-                    subtitle="Add a design-stage line — an area rate, a % clause, a lumpsum, or a non-modeled allowance."
-                  />
-                ) : (
-                  designGroups.map((group) => {
-                    const subtotal = group.rows.reduce((s, it) => s + it.amountPaise, 0);
-                    return (
-                      <TableContainer key={group.head} title={COST_HEAD_LABEL[group.head]}>
+                    {editable && (
+                      <AddItemRow
+                        versionId={detail.dsrVersionId ?? null}
+                        costHead={addHead}
+                        onPick={pickRatebookItem}
+                        onBlank={addBlankLine}
+                        adding={addItem.isPending}
+                      />
+                    )}
+
+                    {boqCheck && !boqCheck.summary.clean && (
+                      <TableContainer
+                        title="BOQ checks"
+                        description="Automatic data-quality checks — advisory only; nothing is blocked."
+                      >
                         <Table size="sm">
                           <TableHead>
                             <TableRow>
-                              <TableHeader>Description</TableHeader>
-                              <TableHeader>Type</TableHeader>
-                              <TableHeader>Unit</TableHeader>
-                              <TableHeader>Qty / %</TableHeader>
-                              <TableHeader>Rate / amount</TableHeader>
-                              <TableHeader>Confidence</TableHeader>
-                              <TableHeader>Amount</TableHeader>
-                              <TableHeader></TableHeader>
+                              <TableHeader>Line</TableHeader>
+                              <TableHeader>Check</TableHeader>
+                              <TableHeader>Detail</TableHeader>
+                              <TableHeader>Severity</TableHeader>
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {group.rows.map((it) => {
-                              const isPct = it.calculationType === "PERCENTAGE";
-                              const isLump = LUMP_TYPES.has(it.calculationType as CalculationType);
-                              const isComponent = it.sourceKind === "COMPONENT";
-                              const canEdit = editable && !isComponent;
-                              return (
-                                <TableRow key={it.id}>
-                                  <TableCell>
-                                    {canEdit ? (
-                                      <TextInput
-                                        id={`d-desc-${it.id}`}
-                                        labelText=""
-                                        hideLabel
-                                        size="sm"
-                                        defaultValue={it.description}
-                                        onBlur={(e) =>
-                                          updateDesignItem.mutate({ id: it.id, description: e.target.value })
-                                        }
-                                      />
-                                    ) : (
-                                      it.description
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Tag size="sm" type={calcTone(it.calculationType)}>
-                                      {CALCULATION_TYPE_LABEL[it.calculationType as CalculationType] ??
-                                        it.calculationType ??
-                                        "—"}
-                                    </Tag>
-                                  </TableCell>
-                                  <TableCell>{it.unit}</TableCell>
-                                  <TableCell>
-                                    {isPct ? (
-                                      canEdit ? (
-                                        <TextInput
-                                          id={`d-pct-${it.id}`}
-                                          labelText=""
-                                          hideLabel
-                                          size="sm"
-                                          type="number"
-                                          defaultValue={String(it.pct ?? 0)}
-                                          onBlur={(e) =>
-                                            updateDesignItem.mutate({
-                                              id: it.id,
-                                              pct: Number(e.target.value) || 0,
-                                            })
-                                          }
-                                        />
-                                      ) : (
-                                        `${it.pct ?? 0}%`
-                                      )
-                                    ) : isLump ? (
-                                      "—"
-                                    ) : canEdit ? (
-                                      <TextInput
-                                        id={`d-qty-${it.id}`}
-                                        labelText=""
-                                        hideLabel
-                                        size="sm"
-                                        type="number"
-                                        defaultValue={String(it.qty)}
-                                        onBlur={(e) =>
-                                          updateDesignItem.mutate({ id: it.id, qty: Number(e.target.value) || 0 })
-                                        }
-                                      />
-                                    ) : (
-                                      it.qty
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {isPct ? (
-                                      "—"
-                                    ) : canEdit ? (
-                                      <TextInput
-                                        id={`d-rate-${it.id}`}
-                                        labelText=""
-                                        hideLabel
-                                        size="sm"
-                                        type="number"
-                                        defaultValue={String(it.ratePaise / 100)}
-                                        onBlur={(e) =>
-                                          updateDesignItem.mutate({
-                                            id: it.id,
-                                            ratePaise: parseRupeeInput(e.target.value),
-                                          })
-                                        }
-                                      />
-                                    ) : (
-                                      formatINR(it.ratePaise)
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {it.confidence ? (
-                                      <Tag size="sm" type={confidenceTone(it.confidence)}>
-                                        {it.confidence}
-                                      </Tag>
-                                    ) : (
-                                      "—"
-                                    )}
-                                  </TableCell>
-                                  <TableCell>{formatINR(it.amountPaise)}</TableCell>
-                                  <TableCell>
-                                    {canEdit && (
-                                      <Button
-                                        kind="ghost"
-                                        size="sm"
-                                        onClick={() => removeItem.mutate({ id: it.id })}
-                                      >
-                                        Remove
-                                      </Button>
-                                    )}
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
+                            {boqCheck.issues.map((issue, i) => (
+                              <TableRow key={`${issue.itemId}-${issue.kind}-${i}`}>
+                                <TableCell>{issue.line}</TableCell>
+                                <TableCell>{BOQ_VALIDATION_LABEL[issue.kind]}</TableCell>
+                                <TableCell>{issue.detail}</TableCell>
+                                <TableCell>
+                                  <Tag size="sm" type={BOQ_VALIDATION_TAG[issue.severity]}>
+                                    {issue.severity}
+                                  </Tag>
+                                </TableCell>
+                              </TableRow>
+                            ))}
                           </TableBody>
                         </Table>
-                        <p style={{ marginTop: 8 }}>
-                          <strong>
-                            {COST_HEAD_LABEL[group.head]} subtotal {formatINR(subtotal)}
-                          </strong>
-                        </p>
                       </TableContainer>
-                    );
-                  })
-                )}
+                    )}
 
-                <p style={{ marginTop: 8 }}>
-                  Subtotal {formatINR(detail.subtotalPaise)} · Lead {detail.leadPct}% ·{" "}
-                  <strong>Total {formatINR(detail.totalPaise)}</strong>
-                </p>
+                    {designGroups.length === 0 ? (
+                      <InlineNotification
+                        kind="info"
+                        lowContrast
+                        hideCloseButton
+                        title="No lines yet"
+                        subtitle="Pick a rate book in the panel, then + Add Item and start typing."
+                      />
+                    ) : (
+                      designGroups.map((group) => {
+                        const subtotal = group.rows.reduce((s, it) => s + it.amountPaise, 0);
+                        return (
+                          <TableContainer key={group.head} title={COST_HEAD_LABEL[group.head]}>
+                            <Table size="sm">
+                              <TableHead>
+                                <TableRow>
+                                  <TableHeader />
+                                  <TableHeader>Description</TableHeader>
+                                  <TableHeader>Type</TableHeader>
+                                  <TableHeader>Unit</TableHeader>
+                                  <TableHeader>Qty</TableHeader>
+                                  <TableHeader>Rate</TableHeader>
+                                  <TableHeader>Amount</TableHeader>
+                                  <TableHeader />
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {group.rows.flatMap((it) => {
+                                  const isPct = it.calculationType === "PERCENTAGE";
+                                  const isLump = LUMP_TYPES.has(it.calculationType as CalculationType);
+                                  const isComponent = it.sourceKind === "COMPONENT";
+                                  const canEdit = editable && !isComponent;
+                                  const canMeasure = canEdit && !isPct && !isLump;
+                                  const mRows = readMeasurements(it);
+                                  const expanded = expandedId === it.id;
+                                  const main = (
+                                    <TableRow key={it.id}>
+                                      <TableCell>
+                                        {canMeasure && (
+                                          <Button
+                                            kind="ghost"
+                                            size="sm"
+                                            hasIconOnly
+                                            iconDescription={expanded ? "Hide measurements" : "Measurements"}
+                                            renderIcon={expanded ? ChevronUp : ChevronDown}
+                                            onClick={() => setExpandedId(expanded ? null : it.id)}
+                                          />
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        {canEdit ? (
+                                          <TextInput
+                                            id={`d-desc-${it.id}`}
+                                            labelText=""
+                                            hideLabel
+                                            size="sm"
+                                            defaultValue={it.description}
+                                            onBlur={(e) =>
+                                              updateBoqItem.mutate({ id: it.id, description: e.target.value })
+                                            }
+                                          />
+                                        ) : (
+                                          it.description
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Tag size="sm" type={calcTone(it.calculationType)}>
+                                          {CALCULATION_TYPE_LABEL[it.calculationType as CalculationType] ??
+                                            it.calculationType ??
+                                            "Rate book"}
+                                        </Tag>
+                                      </TableCell>
+                                      <TableCell>
+                                        {canEdit && !isPct && !isLump ? (
+                                          <TextInput
+                                            id={`d-unit-${it.id}`}
+                                            labelText=""
+                                            hideLabel
+                                            size="sm"
+                                            defaultValue={it.unit}
+                                            style={{ maxWidth: 90 }}
+                                            onBlur={(e) =>
+                                              updateBoqItem.mutate({ id: it.id, unit: e.target.value })
+                                            }
+                                          />
+                                        ) : (
+                                          it.unit
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        {isPct ? (
+                                          `${it.pct ?? 0}%`
+                                        ) : isLump ? (
+                                          "—"
+                                        ) : mRows.length > 0 ? (
+                                          <span title="Derived from the measurement book">
+                                            {it.qty} ∑
+                                          </span>
+                                        ) : canEdit ? (
+                                          <TextInput
+                                            id={`d-qty-${it.id}`}
+                                            labelText=""
+                                            hideLabel
+                                            size="sm"
+                                            type="number"
+                                            defaultValue={String(it.qty)}
+                                            style={{ maxWidth: 110 }}
+                                            onBlur={(e) =>
+                                              updateBoqItem.mutate({ id: it.id, qty: Number(e.target.value) || 0 })
+                                            }
+                                          />
+                                        ) : (
+                                          it.qty
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        {isPct ? (
+                                          "—"
+                                        ) : canEdit ? (
+                                          <TextInput
+                                            id={`d-rate-${it.id}`}
+                                            labelText=""
+                                            hideLabel
+                                            size="sm"
+                                            type="number"
+                                            defaultValue={String(it.ratePaise / 100)}
+                                            style={{ maxWidth: 120 }}
+                                            onBlur={(e) =>
+                                              updateBoqItem.mutate({
+                                                id: it.id,
+                                                ratePaise: parseRupeeInput(e.target.value),
+                                              })
+                                            }
+                                          />
+                                        ) : (
+                                          formatINR(it.ratePaise)
+                                        )}
+                                      </TableCell>
+                                      <TableCell>{formatINR(it.amountPaise)}</TableCell>
+                                      <TableCell>
+                                        {canEdit && (
+                                          <Button
+                                            kind="ghost"
+                                            size="sm"
+                                            hasIconOnly
+                                            iconDescription="Remove line"
+                                            renderIcon={TrashCan}
+                                            onClick={() => removeItem.mutate({ id: it.id })}
+                                          />
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                  if (!expanded || !canMeasure) return [main];
+                                  return [
+                                    main,
+                                    <TableRow key={`${it.id}-mb`}>
+                                      <TableCell colSpan={8}>
+                                        <MeasurementBook
+                                          itemId={it.id}
+                                          unit={it.unit}
+                                          initial={mRows}
+                                          autoFocusFirst
+                                          onSave={(rows) =>
+                                            updateBoqItem.mutate({ id: it.id, measurements: rows })
+                                          }
+                                        />
+                                        <p className="esti-label esti-label--secondary" style={{ marginTop: 4 }}>
+                                          Tab across cells · Enter on the last dimension starts a new row · qty ={" "}
+                                          {measurementBookQty(mRows).toFixed(3)} {it.unit}
+                                        </p>
+                                      </TableCell>
+                                    </TableRow>,
+                                  ];
+                                })}
+                              </TableBody>
+                            </Table>
+                            <p style={{ marginTop: 8 }}>
+                              <strong>
+                                {COST_HEAD_LABEL[group.head]} subtotal {formatINR(subtotal)}
+                              </strong>
+                            </p>
+                          </TableContainer>
+                        );
+                      })
+                    )}
 
-                {(versionsQ.data ?? []).length > 0 && (
-                  <TableContainer
-                    title="Frozen versions"
-                    description="Each freeze snapshots the estimate; history is never overwritten."
-                  >
-                    <Table size="sm">
-                      <TableHead>
-                        <TableRow>
-                          <TableHeader>Ver</TableHeader>
-                          <TableHeader>Stage</TableHeader>
-                          <TableHeader>Status</TableHeader>
-                          <TableHeader>Total</TableHeader>
-                          <TableHeader>Frozen</TableHeader>
-                          <TableHeader>Note</TableHeader>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {(versionsQ.data ?? []).map((v) => (
-                          <TableRow key={v.id}>
-                            <TableCell>v{v.versionNo}</TableCell>
-                            <TableCell>{v.stage}</TableCell>
-                            <TableCell>
-                              <Tag size="sm" type={statusTone(v.status)}>
-                                {v.status}
-                              </Tag>
-                            </TableCell>
-                            <TableCell>{formatINR(v.totalPaise)}</TableCell>
-                            <TableCell>
-                              {v.frozenAt ? new Date(v.frozenAt).toLocaleDateString() : "—"}
-                            </TableCell>
-                            <TableCell>{v.note ?? "—"}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </Stack>
-            </TabPanel>
+                    {editable && (
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        renderIcon={Add}
+                        onClick={() =>
+                          activeId &&
+                          addDesignItem.mutate({
+                            estimateId: activeId,
+                            costHead: addHead,
+                            calculationType: "PERCENTAGE",
+                            description: "Contingency",
+                            unit: "%",
+                            qty: 0,
+                            ratePaise: 0,
+                            itemLeadPct: 0,
+                            confidence: "MEDIUM",
+                            pct: 0,
+                            basis: { kind: "SUBTOTAL" },
+                          })
+                        }
+                      >
+                        Add % / special line
+                      </Button>
+                    )}
 
-            {/* --- Components / execution ----------------------------------- */}
-            <TabPanel>
-              <ComponentsTab
-                estimateId={detail.id}
-                editable={!!editable}
-                components={componentsQ.data ?? []}
-                placed={placedQ.data ?? []}
-                items={items}
-                onAdd={(payload) => addComponent.mutate(payload)}
-                onRemove={(id) => removeComponent.mutate({ estimateComponentId: id })}
-                adding={addComponent.isPending}
-              />
-            </TabPanel>
+                    <p style={{ marginTop: 8 }}>
+                      Subtotal {formatINR(detail.subtotalPaise)} · Lead {detail.leadPct}% ·{" "}
+                      <strong>Total {formatINR(detail.totalPaise)}</strong>
+                    </p>
 
-            {/* --- Rate analysis (office-wide build-up) --------------------- */}
-            <TabPanel>
-              <RateAnalysisPanel embedded />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      )}
+                    {(versionsQ.data ?? []).length > 0 && (
+                      <TableContainer
+                        title="Frozen versions"
+                        description="Each freeze snapshots the estimate; history is never overwritten."
+                      >
+                        <Table size="sm">
+                          <TableHead>
+                            <TableRow>
+                              <TableHeader>Ver</TableHeader>
+                              <TableHeader>Stage</TableHeader>
+                              <TableHeader>Status</TableHeader>
+                              <TableHeader>Total</TableHeader>
+                              <TableHeader>Frozen</TableHeader>
+                              <TableHeader>Note</TableHeader>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {(versionsQ.data ?? []).map((v) => (
+                              <TableRow key={v.id}>
+                                <TableCell>v{v.versionNo}</TableCell>
+                                <TableCell>{v.stage}</TableCell>
+                                <TableCell>
+                                  <Tag size="sm" type={statusTone(v.status)}>
+                                    {v.status}
+                                  </Tag>
+                                </TableCell>
+                                <TableCell>{formatINR(v.totalPaise)}</TableCell>
+                                <TableCell>
+                                  {v.frozenAt ? new Date(v.frozenAt).toLocaleDateString() : "—"}
+                                </TableCell>
+                                <TableCell>{v.note ?? "—"}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    )}
+                  </Stack>
+                </TabPanel>
 
-      {/* --- New estimate modal ------------------------------------------- */}
-      <Modal
-        open={newOpen}
-        modalHeading="New estimate"
-        primaryButtonText={createEstimate.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!newTitle.trim() || createEstimate.isPending}
-        onRequestClose={() => setNewOpen(false)}
-        onRequestSubmit={() =>
-          createEstimate.mutate({ projectId, title: newTitle.trim(), dsrVersionId: null, leadPct: 0 })
-        }
-      >
-        <TextInput
-          id="cw-new-title"
-          labelText="Title"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          placeholder="e.g. Block A — design estimate"
-        />
-      </Modal>
+                {/* --- Components / execution ------------------------------- */}
+                <TabPanel>
+                  <ComponentsTab
+                    estimateId={detail.id}
+                    editable={!!editable}
+                    components={componentsQ.data ?? []}
+                    placed={placedQ.data ?? []}
+                    items={items}
+                    onAdd={(payload) => addComponent.mutate(payload)}
+                    onRemove={(id) => removeComponent.mutate({ estimateComponentId: id })}
+                    adding={addComponent.isPending}
+                  />
+                </TabPanel>
 
-      {/* --- Add design line modal ---------------------------------------- */}
-      <Modal
-        open={itemOpen}
-        modalHeading="Add design-stage line"
-        primaryButtonText={addDesignItem.isPending ? "Adding…" : "Add"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!df.description.trim() || addDesignItem.isPending}
-        onRequestClose={() => setItemOpen(false)}
-        onRequestSubmit={submitDesignItem}
-      >
-        <Stack gap={5}>
-          <div style={{ display: "flex", gap: 12 }}>
-            <Select
-              id="cw-ch"
-              labelText="Cost head"
-              value={df.costHead}
-              onChange={(e) => setDf((f) => ({ ...f, costHead: e.target.value as CostHead }))}
-            >
-              {COST_HEADS.map((h) => (
-                <SelectItem key={h} value={h} text={COST_HEAD_LABEL[h]} />
-              ))}
-            </Select>
-            <Select
-              id="cw-ct"
-              labelText="Calculation type"
-              value={df.calculationType}
-              onChange={(e) =>
-                setDf((f) => ({ ...f, calculationType: e.target.value as CalculationType }))
-              }
-            >
-              {CALC_TYPES.map((c) => (
-                <SelectItem key={c} value={c} text={CALCULATION_TYPE_LABEL[c]} />
-              ))}
-            </Select>
+                {/* --- Rate analysis --------------------------------------- */}
+                <TabPanel>
+                  <RateAnalysisPanel embedded />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </div>
-          <TextInput
-            id="cw-desc"
-            labelText="Description"
-            value={df.description}
-            onChange={(e) => setDf((f) => ({ ...f, description: e.target.value }))}
-          />
-          {df.calculationType === "PERCENTAGE" ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              <TextInput
-                id="cw-pct"
-                labelText="Percentage %"
-                type="number"
-                value={df.pct}
-                onChange={(e) => setDf((f) => ({ ...f, pct: e.target.value }))}
-              />
-              <Select
-                id="cw-basis"
-                labelText="Of basis"
-                value={df.basisKind}
-                onChange={(e) => setDf((f) => ({ ...f, basisKind: e.target.value as BasisKind }))}
-              >
-                <SelectItem value="SUBTOTAL" text="Whole subtotal" />
-                <SelectItem value="COST_HEAD" text="A cost head" />
-              </Select>
-              {df.basisKind === "COST_HEAD" && (
-                <Select
-                  id="cw-basis-ch"
-                  labelText="Cost head"
-                  value={df.basisCostHead}
-                  onChange={(e) =>
-                    setDf((f) => ({ ...f, basisCostHead: e.target.value as CostHead }))
-                  }
-                >
-                  {COST_HEADS.map((h) => (
-                    <SelectItem key={h} value={h} text={COST_HEAD_LABEL[h]} />
-                  ))}
-                </Select>
-              )}
-            </div>
-          ) : LUMP_TYPES.has(df.calculationType) ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              <TextInput
-                id="cw-unit"
-                labelText="Unit"
-                value={df.unit}
-                onChange={(e) => setDf((f) => ({ ...f, unit: e.target.value }))}
-              />
-              <TextInput
-                id="cw-amt"
-                labelText="Amount (₹)"
-                type="number"
-                value={df.rate}
-                onChange={(e) => setDf((f) => ({ ...f, rate: e.target.value }))}
-              />
-            </div>
-          ) : (
-            <div style={{ display: "flex", gap: 12 }}>
-              <TextInput
-                id="cw-unit"
-                labelText="Unit"
-                value={df.unit}
-                onChange={(e) => setDf((f) => ({ ...f, unit: e.target.value }))}
-              />
-              <TextInput
-                id="cw-qty"
-                labelText="Qty"
-                type="number"
-                value={df.qty}
-                onChange={(e) => setDf((f) => ({ ...f, qty: e.target.value }))}
-              />
-              <TextInput
-                id="cw-rate"
-                labelText="Rate (₹)"
-                type="number"
-                value={df.rate}
-                onChange={(e) => setDf((f) => ({ ...f, rate: e.target.value }))}
-              />
-              <TextInput
-                id="cw-lead"
-                labelText="Lead %"
-                type="number"
-                value={df.lead}
-                onChange={(e) => setDf((f) => ({ ...f, lead: e.target.value }))}
-              />
-            </div>
-          )}
-          <Select
-            id="cw-conf"
-            labelText="Confidence"
-            value={df.confidence}
-            onChange={(e) =>
-              setDf((f) => ({ ...f, confidence: e.target.value as EstimateConfidence }))
-            }
-          >
-            <SelectItem value="LOW" text="Low" />
-            <SelectItem value="MEDIUM" text="Medium" />
-            <SelectItem value="HIGH" text="High" />
-          </Select>
-        </Stack>
-      </Modal>
 
-      {/* --- Freeze modal -------------------------------------------------- */}
-      <Modal
-        open={freezeOpen}
-        modalHeading="Freeze this estimate"
-        primaryButtonText={freeze.isPending ? "Freezing…" : "Freeze version"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!activeId || freeze.isPending}
-        onRequestClose={() => setFreezeOpen(false)}
-        onRequestSubmit={() => activeId && freeze.mutate({ estimateId: activeId, note: freezeNote.trim() || undefined })}
-      >
-        <Stack gap={4}>
-          <p style={{ margin: 0 }} className="esti-label esti-label--secondary">
-            Snapshots the current lines as an immutable version. Revise later to reopen for editing.
-          </p>
-          <TextArea
-            id="cw-freeze-note"
-            labelText="Note (optional)"
-            rows={3}
-            value={freezeNote}
-            onChange={(e) => setFreezeNote(e.target.value)}
-            placeholder="What this version represents…"
-          />
-        </Stack>
-      </Modal>
+          {/* --- Persistent rate-book popover ------------------------------ */}
+          <Tile style={{ width: 260, flexShrink: 0 }}>
+            <Stack gap={4}>
+              <h5 style={{ margin: 0 }}>Rate book</h5>
+              <Dropdown
+                id="cw-ratebook"
+                titleText="Active rate book"
+                size="sm"
+                label="Select a rate book"
+                disabled={!editable}
+                items={ratebooks}
+                selectedItem={activeRatebook}
+                itemToString={(r) => (r ? (r as { label: string }).label : "")}
+                onChange={({ selectedItem }) =>
+                  selectedItem &&
+                  detail &&
+                  setDsrVersion.mutate({ id: detail.id, dsrVersionId: (selectedItem as { id: string }).id })
+                }
+              />
+              <p className="esti-label esti-label--helper">
+                Items added from <strong>+ Add Item</strong> are searched in this rate book; rates
+                come from it.
+              </p>
+            </Stack>
+          </Tile>
+        </div>
+      )}
     </Stack>
   );
 }
 
-// --- Components / execution tab ---------------------------------------------
+// --- Components / execution tab (unchanged) ---------------------------------
 
 type ComponentRow = {
   id: string;
@@ -804,22 +1039,12 @@ type PlacedRow = {
   uom: string | null;
   costHead: string | null;
 };
-type ItemRow = {
-  id: string;
-  description: string;
-  unit: string;
-  qty: number;
-  amountPaise: number;
-  sourceKind: string | null;
-  estimateComponentId: string | null;
-};
 
 function paramFields(component: ComponentRow): ComponentParamField[] {
   const schema = Array.isArray(component.paramSchema)
     ? (component.paramSchema as ComponentParamField[])
     : [];
   if (schema.length > 0) return schema;
-  // Fall back to the formula's required inputs as plain number fields.
   const def = FORMULA_REGISTRY[component.formulaKey as keyof typeof FORMULA_REGISTRY];
   return (def?.inputs ?? []).map((key) => ({
     key,
@@ -868,9 +1093,7 @@ function ComponentsTab({
     onAdd({
       estimateId,
       componentId: selected.id,
-      params: Object.fromEntries(
-        fields.map((f) => [f.key, Number(params[f.key]) || 0]),
-      ),
+      params: Object.fromEntries(fields.map((f) => [f.key, Number(params[f.key]) || 0])),
       costHead,
       includeRelated,
     });
@@ -978,7 +1201,7 @@ function ComponentsTab({
               <TableHeader>Component</TableHeader>
               <TableHeader>Qty</TableHeader>
               <TableHeader>Cost head</TableHeader>
-              <TableHeader></TableHeader>
+              <TableHeader />
             </TableRow>
           </TableHead>
           <TableBody>
