@@ -343,4 +343,22 @@ export const clientLogs = pgTable("esti_clientlog", {
   createdAt: createdAt(),
 });
 
+/** Planned site visits — contractor + supervisor must confirm; auto-cancel if past deadline. */
+export const siteVisits = pgTable("esti_site_visit", {
+  id: id(),
+  projectId: uuid("project_id").notNull().references(() => projectOffices.id),
+  plannedDate: date("planned_date").notNull(),
+  supervisorUserId: uuid("supervisor_user_id").references(() => users.id),
+  contractorId: uuid("contractor_id"),
+  supervisorConfirmedAt: timestamp("supervisor_confirmed_at", { withTimezone: true }),
+  contractorConfirmedAt: timestamp("contractor_confirmed_at", { withTimezone: true }),
+  status: text("status").notNull().default("PLANNED"),
+  notes: text("notes"),
+  cancelReason: text("cancel_reason"),
+  autoCancelAfter: date("auto_cancel_after"),
+  createdById: uuid("created_by_id").references(() => users.id),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 export type ProjectOfficeRow = typeof projectOffices.$inferSelect;
