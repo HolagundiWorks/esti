@@ -41,8 +41,6 @@ const PAGE_SIZES = [10, 25, 50];
 export function Clients() {
   const utils = trpc.useUtils();
   const list = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
-  // Lite ships a fixed client set — activate/deactivate the existing, don't add.
-  const isLite = (trpc.settings.get.useQuery().data?.plan ?? "LITE") === "LITE";
   const setDisabled = trpc.clients.setDisabled.useMutation({
     onSuccess: () => utils.clients.list.invalidate(),
   });
@@ -134,7 +132,7 @@ export function Clients() {
           title: "No clients yet",
           description:
             "Add a client or lead to attach projects, invoices and a portal login.",
-          action: isLite ? undefined : (
+          action: (
             <Button size="sm" onClick={() => setOpen(true)}>
               New client
             </Button>
@@ -169,9 +167,7 @@ export function Clients() {
                     <Button kind="tertiary" onClick={() => setPortalOpen(true)}>
                       Create portal login
                     </Button>
-                    {!isLite && (
-                      <Button onClick={() => setOpen(true)}>New client</Button>
-                    )}
+                    <Button onClick={() => setOpen(true)}>New client</Button>
                   </TableToolbarContent>
                 </TableToolbar>
                 <Table {...getTableProps()}>
