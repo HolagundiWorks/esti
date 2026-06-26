@@ -1,4 +1,4 @@
-import { InspectionActionCreate, InspectionCreate } from "@esti/contracts";
+import { InspectionActionCreate, InspectionCreate, can } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -12,6 +12,14 @@ import { requireUnissuedDocument } from "../../lib/retention.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
+
+/** Accessible by SITE_SUPERVISOR role OR any staff with the site_portal capability. */
+const siteProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const hasSiteAccess =
+    ctx.user.role === "SITE_SUPERVISOR" || can(ctx.user.role, "site_portal");
+  if (!hasSiteAccess) throw new TRPCError({ code: "FORBIDDEN", message: "Site portal access required" });
+  return next();
+});
 
 export const inspectionRouter = router({
   listByProject: protectedProcedure
@@ -189,4 +197,76 @@ export const inspectionRouter = router({
     });
     return { ok: true };
   }),
+
+  // --- Site portal procedures (SITE_SUPERVISOR or staff with site_portal capability) ---
+
+  /** List inspections for a project — accessible from the /site portal. */
+  listForSite: siteProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(inspections)
+        .where(eq(inspections.projectId, input.projectId))
+        .orderBy(desc(inspections.createdAt)),
+    ),
+
+  /** Create a new inspection from the /site portal. */
+  createForSite: siteProcedure.input(InspectionCreate).mutation(async ({ ctx, input }) => {
+    const { ref } = await nextRef(ctx.db, "inspection", "SIR");
+    const [row] = await ctx.db
+      .insert(inspections)
+      .values({
+        ref,
+        projectId: input.projectId,
+        dateVisit: input.dateVisit ?? null,
+        weather: input.weather ?? null,
+        attendees: input.attendees ?? null,
+        progress: input.progress ?? null,
+        observations: input.observations ?? null,
+        instructions: input.instructions ?? null,
+        nextVisit: input.nextVisit ?? null,
+        inspectorName: input.inspectorName ?? ctx.user.fullName,
+        submittedById: ctx.user.id,
+      })
+      .returning();
+    await writeAudit(ctx.db, { entity: "inspection", entityId: row!.id, action: "CREATE_SITE", actorId: ctx.user.id });
+    return row!;
+  }),
+
+  /** Submit a DRAFT inspection for office review (DRAFT → SUBMITTED). */
+  submit: siteProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(inspections).where(eq(inspections.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    if (row.status !== "DRAFT") throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT inspections can be submitted" });
+    await ctx.db.update(inspections).set({ status: "SUBMITTED", submittedById: ctx.user.id }).where(eq(inspections.id, input.id));
+    await writeAudit(ctx.db, { entity: "inspection", entityId: input.id, action: "SUBMIT", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+
+  /** Approve a SUBMITTED inspection (SUBMITTED → APPROVED). Office team only (write capability). */
+  approve: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!can(ctx.user.role, "write")) throw new TRPCError({ code: "FORBIDDEN" });
+      const [row] = await ctx.db.select().from(inspections).where(eq(inspections.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (row.status !== "SUBMITTED") throw new TRPCError({ code: "BAD_REQUEST", message: "Only SUBMITTED inspections can be approved" });
+      await ctx.db.update(inspections).set({ status: "APPROVED", approvedById: ctx.user.id }).where(eq(inspections.id, input.id));
+      await writeAudit(ctx.db, { entity: "inspection", entityId: input.id, action: "APPROVE", actorId: ctx.user.id });
+      return { ok: true };
+    }),
+
+  /** Reject a SUBMITTED inspection with a note (SUBMITTED → REJECTED). Office team only. */
+  reject: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), note: z.string().min(1).max(1000) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!can(ctx.user.role, "write")) throw new TRPCError({ code: "FORBIDDEN" });
+      const [row] = await ctx.db.select().from(inspections).where(eq(inspections.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (row.status !== "SUBMITTED") throw new TRPCError({ code: "BAD_REQUEST", message: "Only SUBMITTED inspections can be rejected" });
+      await ctx.db.update(inspections).set({ status: "REJECTED", rejectionNote: input.note }).where(eq(inspections.id, input.id));
+      await writeAudit(ctx.db, { entity: "inspection", entityId: input.id, action: "REJECT", actorId: ctx.user.id, after: { note: input.note } });
+      return { ok: true };
+    }),
 });
