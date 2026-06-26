@@ -6,6 +6,7 @@ export const PortalSubmissionKind = z.enum([
   "ACKNOWLEDGEMENT",
   "CHANGE_REQUEST",
   "FEEDBACK",
+  "MEETING_REQUEST",
 ]);
 export type PortalSubmissionKind = z.infer<typeof PortalSubmissionKind>;
 
@@ -13,6 +14,7 @@ export const PORTAL_SUBMISSION_KIND_LABEL: Record<PortalSubmissionKind, string> 
   ACKNOWLEDGEMENT: "Acknowledgement",
   CHANGE_REQUEST: "Change request",
   FEEDBACK: "Feedback",
+  MEETING_REQUEST: "Meeting request",
 };
 
 /** Firm-side triage state for a submission. */
