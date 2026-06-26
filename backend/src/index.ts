@@ -31,7 +31,7 @@ import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
 import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { refreshNow } from "./modules/license/consumer.js";
-import { licenseState } from "./lib/plan.js";
+import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
 import { createContext } from "./trpc/context.js";
@@ -93,6 +93,13 @@ try {
 } catch (err) {
   app.log.error(err, "migration failed");
   process.exit(1);
+}
+
+// Licence-free plan pin (desktop LITE / self-hosted firm). No-op when FIRM_PLAN unset.
+try {
+  await applyFirmPlanFromEnv(db);
+} catch (err) {
+  app.log.warn(err, "FIRM_PLAN apply failed");
 }
 
 // License (Phase B): log effective state on boot. On a managed node, refresh the

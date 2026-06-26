@@ -33,6 +33,12 @@ const Env = z.object({
   LICENSE_REFRESH_HOURS: z.coerce.number().default(12),
   /** Stable per-install identifier (desktop supplies this; web derives one once). */
   INSTALL_ID: z.string().default(""),
+  /**
+   * Licence-free standalone plan. When set, the backend pins `orgSettings.plan` to
+   * this on boot (desktop = LITE, self-hosted firm = its tier). A verified licence
+   * overrides it at runtime. Unset → the plan column is left as-is.
+   */
+  FIRM_PLAN: z.enum(["LITE", "CORE", "ENTERPRISE"]).optional(),
   BUILD_REVISION: z.string().default("dev"),
   BUILD_TIME: z.string().optional(),
   /**

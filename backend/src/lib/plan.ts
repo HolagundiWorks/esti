@@ -10,7 +10,9 @@ import {
   planQuota,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import type { DB } from "../db/index.js";
+import { orgSettings } from "../db/schema.js";
 import { env } from "../env.js";
 import { resolveSeats, verifyLicense } from "./license.js";
 import { getOrgSettings } from "./settings.js";
@@ -117,6 +119,23 @@ export function toLicenseView(s: LicenseState): LicenseView {
 /** The firm's effective subscription edition (license-derived). */
 export async function firmPlan(db: DB): Promise<Plan> {
   return (await licenseState(db)).plan;
+}
+
+/**
+ * Pin `orgSettings.plan` to `FIRM_PLAN` when set — the licence-free standalone
+ * mechanism for the desktop (LITE) and self-hosted firm installs, since the plan
+ * is no longer owner-toggleable in-app. Idempotent; a verified licence overrides
+ * the stored plan at runtime via {@link licenseState}.
+ */
+export async function applyFirmPlanFromEnv(db: DB): Promise<void> {
+  const plan = env.FIRM_PLAN;
+  if (!plan) return;
+  const settings = await getOrgSettings(db);
+  if (settings.plan === plan) return;
+  await db
+    .update(orgSettings)
+    .set({ plan, updatedAt: new Date() })
+    .where(eq(orgSettings.id, settings.id));
 }
 
 /** Throw FORBIDDEN if the firm's plan does not include `feature`. (Phase 2 gates.) */
