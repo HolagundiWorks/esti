@@ -21,6 +21,7 @@ export * from "./negotiation.js";
 export * from "./client-onboarding.js";
 export * from "./project-os.js";
 export * from "./program.js";
+export * from "./storage-settings.js";
 export * from "./task.js";
 export * from "./transmittal.js";
 export * from "./clientlog.js";

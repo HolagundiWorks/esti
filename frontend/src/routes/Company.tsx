@@ -23,9 +23,11 @@ import {
   PhoneType,
   STATES,
   districtsFor,
+  planAllows,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
+import { StorageSettingsPanel } from "../components/company/StorageSettingsPanel.js";
 import { ConnectedDevicesPanel } from "../components/company/ConnectedDevicesPanel.js";
 import { DataTools } from "../components/company/DataTools.js";
 import { EscalationSettingsPanel } from "../components/company/EscalationSettingsPanel.js";
@@ -464,6 +466,7 @@ export function Company() {
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
       {isOwner && !user?.isDemo && <AiStudioSettingsPanel />}
+      {isOwner && planAllows(settingsQ.data?.plan ?? "LITE", "byos") && <StorageSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}

@@ -2,7 +2,12 @@ import {
   ArchiveTeamModuleInput,
   EscalationSettings,
   Plan,
+  StorageSettingsInput,
   UploadSecuritySettingsInput,
+  parseStorageSettings,
+  storageConfigError,
+  toPublicStorageSettings,
+  type StorageSettings,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
@@ -10,6 +15,8 @@ import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { orgSettings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertPlanFeature } from "../../lib/plan.js";
+import { invalidateStorageCache, probeStorage } from "../../lib/storage.js";
 import {
   archiveTeamModule,
   assessHrModule,
@@ -20,16 +27,19 @@ import {
 import { getOrgSettings } from "../../lib/settings.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
+/** Strip secrets from an org-settings row before returning it over the API. */
+function publicSettings(row: typeof orgSettings.$inferSelect) {
+  const { uploadPasswordHash, storageSettings, ...safe } = row;
+  return {
+    ...safe,
+    storageSettings: toPublicStorageSettings(parseStorageSettings(storageSettings)),
+    uploadPasswordConfigured: Boolean(uploadPasswordHash),
+  };
+}
+
 export const settingsRouter = router({
-  /** Office feature flags — any staff member may read (upload hash never exposed). */
-  get: protectedProcedure.query(async ({ ctx }) => {
-    const row = await getOrgSettings(ctx.db);
-    const { uploadPasswordHash, ...safe } = row;
-    return {
-      ...safe,
-      uploadPasswordConfigured: Boolean(uploadPasswordHash),
-    };
-  }),
+  /** Office feature flags — any staff member may read (secrets never exposed). */
+  get: protectedProcedure.query(async ({ ctx }) => publicSettings(await getOrgSettings(ctx.db))),
 
   /** Team & HR module status — lock reasons, counts, archive history. */
   hrModuleStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -80,7 +90,7 @@ export const settingsRouter = router({
           membersReactivated,
         },
       });
-      return { ...row!, soloSummary, membersReactivated };
+      return { ...publicSettings(row!), soloSummary, membersReactivated };
     }),
 
   /**
@@ -105,9 +115,67 @@ export const settingsRouter = router({
         before: { plan: current.plan },
         after: { plan: input.plan },
       });
-      const { uploadPasswordHash, ...safe } = row!;
-      return { ...safe, uploadPasswordConfigured: Boolean(uploadPasswordHash) };
+      return publicSettings(row!);
     }),
+
+  // ── BYOS — bring-your-own-storage (Core+) ─────────────────────────────────
+  /** Current storage config (owner only; the S3 secret is never returned). */
+  getStorage: ownerProcedure.query(async ({ ctx }) => {
+    const org = await getOrgSettings(ctx.db);
+    return toPublicStorageSettings(parseStorageSettings(org.storageSettings));
+  }),
+
+  /**
+   * Point the firm's object storage at their own NAS / S3 (Core+). A NAS path or
+   * S3 endpoint+bucket must be supplied for those modes. An omitted S3 secret
+   * preserves the stored one. Invalidates the storage backend cache immediately.
+   */
+  setStorage: ownerProcedure.input(StorageSettingsInput).mutation(async ({ ctx, input }) => {
+    await assertPlanFeature(ctx.db, "byos");
+    const err = storageConfigError(input);
+    if (err) throw new TRPCError({ code: "BAD_REQUEST", message: err });
+
+    const org = await getOrgSettings(ctx.db);
+    const prev = parseStorageSettings(org.storageSettings);
+    const next: StorageSettings = {
+      mode: input.mode,
+      nasPath: input.nasPath,
+      s3Endpoint: input.s3Endpoint,
+      s3Region: input.s3Region,
+      s3Bucket: input.s3Bucket,
+      s3AccessKey: input.s3AccessKey,
+      // Preserve the existing secret when the form leaves it blank.
+      s3SecretKey: input.s3SecretKey?.trim() ? input.s3SecretKey : prev.s3SecretKey,
+    };
+
+    const [row] = await ctx.db
+      .update(orgSettings)
+      .set({ storageSettings: next, updatedAt: new Date() })
+      .where(eq(orgSettings.id, org.id))
+      .returning();
+    invalidateStorageCache();
+    await writeAudit(ctx.db, {
+      entity: "settings",
+      entityId: org.id,
+      action: "STORAGE_CONFIG",
+      actorId: ctx.user.id,
+      before: { mode: prev.mode },
+      after: { mode: next.mode, s3Bucket: next.s3Bucket, s3Endpoint: next.s3Endpoint, nasPath: next.nasPath },
+    });
+    return toPublicStorageSettings(parseStorageSettings(row!.storageSettings));
+  }),
+
+  /** Validate a candidate storage config by round-tripping a probe object. */
+  testStorage: ownerProcedure.input(StorageSettingsInput).mutation(async ({ ctx, input }) => {
+    await assertPlanFeature(ctx.db, "byos");
+    const org = await getOrgSettings(ctx.db);
+    const prev = parseStorageSettings(org.storageSettings);
+    const candidate: StorageSettings = {
+      ...input,
+      s3SecretKey: input.s3SecretKey?.trim() ? input.s3SecretKey : prev.s3SecretKey,
+    };
+    return probeStorage(candidate);
+  }),
 
   /** Toggle the optional PMC module (owner only). */
   setPmcEnabled: ownerProcedure
@@ -127,7 +195,7 @@ export const settingsRouter = router({
         before: { pmcEnabled: current.pmcEnabled },
         after: { pmcEnabled: input.pmcEnabled },
       });
-      return row!;
+      return publicSettings(row!);
     }),
 
   /**
@@ -170,7 +238,7 @@ export const settingsRouter = router({
         before: { [column]: current[column] },
         after: { [column]: input.enabled },
       });
-      return row!;
+      return publicSettings(row!);
     }),
 
   /** Owner-configured alert escalation thresholds and digest behaviour. */
@@ -191,7 +259,7 @@ export const settingsRouter = router({
         before: { escalationSettings: current.escalationSettings },
         after: { escalationSettings: input },
       });
-      return row!;
+      return publicSettings(row!);
     }),
 
   /** Require a shared password for REST file uploads (owner only). */
@@ -242,10 +310,6 @@ export const settingsRouter = router({
         },
       });
 
-      const { uploadPasswordHash: _hash, ...safe } = row!;
-      return {
-        ...safe,
-        uploadPasswordConfigured: Boolean(uploadPasswordHash),
-      };
+      return publicSettings(row!);
     }),
 });

@@ -48,6 +48,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
       model: "llama3.2",
       redactPii: true,
     }),
+  /** BYOS — bring-your-own-storage (Core+). See StorageSettings in @esti/contracts. */
+  storageSettings: jsonb("storage_settings").notNull().default({ mode: "DEFAULT" }),
   /** When true, REST file uploads require uploadPassword in multipart form data. */
   uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
   /** Argon2 hash — never expose via API. */
