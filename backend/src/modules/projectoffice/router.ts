@@ -1,27 +1,36 @@
 import {
   ListParams,
+  ProjectOfficeActivate,
   ProjectOfficeCreate,
+  ProjectSetStatus,
   ProjectSiteUpdate,
   ProjectStatus,
   ProjectWorkType,
   DEFAULT_PHASE_PLAN,
+  canTransition,
+  evaluateActivationGate,
   can,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
+  clientOnboardings,
   criticalNotes,
   decisions,
   drawings,
+  feeProposals,
   invoices,
   phases,
+  preProjectAssessments,
+  projectDnas,
   projectLogs,
   projectOffices,
   tasks,
   users,
 } from "../../db/schema.js";
 import { verifyPassword } from "../../auth/session.js";
+import type { DB } from "../../db/index.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -36,6 +45,41 @@ import {
   projectByIdInput,
   projectLogsInput,
 } from "./queries.js";
+
+/** Gather the activation-gate booleans off the spine and evaluate them (Slice K). */
+async function gatherActivationGate(db: DB, projectId: string, status: ProjectStatus) {
+  const [dna] = await db
+    .select({ id: projectDnas.id })
+    .from(projectDnas)
+    .where(eq(projectDnas.projectId, projectId));
+  const [assessment] = await db
+    .select({ id: preProjectAssessments.id })
+    .from(preProjectAssessments)
+    .where(eq(preProjectAssessments.projectId, projectId));
+  const [fee] = await db
+    .select({ id: feeProposals.id })
+    .from(feeProposals)
+    .where(and(eq(feeProposals.projectId, projectId), eq(feeProposals.clientApprovalStatus, "APPROVED")))
+    .limit(1);
+  const [onboarding] = await db
+    .select({ status: clientOnboardings.status })
+    .from(clientOnboardings)
+    .where(eq(clientOnboardings.projectId, projectId));
+  const [advance] = await db
+    .select({ id: invoices.id })
+    .from(invoices)
+    .where(and(eq(invoices.projectId, projectId), eq(invoices.isAdvance, true), eq(invoices.status, "PAID")))
+    .limit(1);
+
+  return evaluateActivationGate({
+    status,
+    hasDna: !!dna,
+    hasAssessment: !!assessment,
+    feeApproved: !!fee,
+    onboardingComplete: onboarding?.status === "COMPLETE",
+    advancePaid: !!advance,
+  });
+}
 
 export const projectOfficeRouter = router({
   list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => listProjects(ctx.db, input, ctx.user)),
@@ -221,6 +265,127 @@ export const projectOfficeRouter = router({
       });
       return row;
     }),
+
+  /**
+   * Project OS — draft-project state machine (Slice G). Enforces the legal
+   * transition graph; ENQUIRY → PROPOSAL additionally requires a DNA record.
+   * PROPOSAL → ACTIVE is intentionally not allowed here — use `activate`.
+   */
+  updateStatus: protectedProcedure.input(ProjectSetStatus).mutation(async ({ ctx, input }) => {
+    if (!can(ctx.user.role, "write"))
+      throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
+    const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    const from = before.status as ProjectStatus;
+    if (from === input.status) return before;
+    if (input.status === "ACTIVE")
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Use the activation gate to make a project ACTIVE." });
+    if (!canTransition(from, input.status))
+      throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot move a ${from} project to ${input.status}.` });
+    if (from === "ENQUIRY" && input.status === "PROPOSAL") {
+      const [dna] = await ctx.db
+        .select({ id: projectDnas.id })
+        .from(projectDnas)
+        .where(eq(projectDnas.projectId, input.id));
+      if (!dna)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Capture the Project DNA before moving to Proposal." });
+    }
+    const row = await ctx.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(projectOffices)
+        .set({ status: input.status })
+        .where(eq(projectOffices.id, input.id))
+        .returning();
+      await writeActivity(tx, {
+        projectId: input.id,
+        objectType: "projectoffice",
+        objectId: input.id,
+        eventType: "project.status_changed",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Project status ${from} → ${input.status}`,
+        metadata: { from, to: input.status },
+      });
+      await writeAudit(tx, {
+        entity: "projectoffice",
+        entityId: input.id,
+        action: "STATUS",
+        actorId: ctx.user.id,
+        before: { status: from },
+        after: { status: input.status },
+      });
+      return updated!;
+    });
+    return row;
+  }),
+
+  /**
+   * Project OS — activation gate readout (Slice K). Read-only: returns the
+   * pre-flight checklist so the UI can show what is still blocking activation.
+   */
+  activationStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [project] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
+      if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+      const gate = await gatherActivationGate(ctx.db, input.id, project.status as ProjectStatus);
+      return gate;
+    }),
+
+  /**
+   * Project OS — Project Activation Engine (Slice K). Runs the pre-flight gate
+   * (DNA + assessment + fee approval + onboarding + paid advance), flips the
+   * project to ACTIVE, and seeds a kick-off task — all atomically.
+   */
+  activate: protectedProcedure.input(ProjectOfficeActivate).mutation(async ({ ctx, input }) => {
+    if (!can(ctx.user.role, "write"))
+      throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
+    const [project] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
+    if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+
+    const gate = await gatherActivationGate(ctx.db, input.id, project.status as ProjectStatus);
+    if (!gate.ok)
+      throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot activate: ${gate.blockingReason}` });
+
+    const row = await ctx.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(projectOffices)
+        .set({ status: "ACTIVE", dateStart: project.dateStart ?? new Date().toISOString().slice(0, 10) })
+        .where(eq(projectOffices.id, input.id))
+        .returning();
+      await tx.insert(tasks).values({
+        title: "Kick-off meeting",
+        description: `Project ${project.ref} activated — schedule the kick-off and confirm the brief.`,
+        projectId: input.id,
+        classification: "BILLABLE",
+        workType: "DESIGN_COMMUNICATION",
+        status: "TODO",
+        priority: "HIGH",
+        priorityScore: 50,
+        createdById: ctx.user.id,
+      });
+      await writeActivity(tx, {
+        projectId: input.id,
+        objectType: "projectoffice",
+        objectId: input.id,
+        eventType: "project.activated",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Project ${project.ref} activated`,
+        metadata: { ref: project.ref },
+      });
+      await writeAudit(tx, {
+        entity: "projectoffice",
+        entityId: input.id,
+        action: "PROJECT_ACTIVATED",
+        actorId: ctx.user.id,
+        before: { status: project.status },
+        after: { status: "ACTIVE" },
+      });
+      return updated!;
+    });
+    return { ok: true as const, projectId: row.id };
+  }),
 
   /** Archive a project while retaining every child record and audit entry. */
   remove: protectedProcedure

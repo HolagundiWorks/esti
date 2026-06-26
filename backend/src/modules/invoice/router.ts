@@ -245,6 +245,7 @@ export const invoiceRouter = router({
         tdsPaise,
         grandTotalPaise: g.grandTotal,
         netReceivablePaise,
+        isAdvance: input.isAdvance,
         dateInvoice: input.dateInvoice ?? null,
         notes: input.notes ?? null,
       })

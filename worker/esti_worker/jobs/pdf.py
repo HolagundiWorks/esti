@@ -29,6 +29,7 @@ from ..db import (
     fetch_running_bill_full,
     fetch_final_account_full,
     fetch_cost_report_full,
+    fetch_feasibility_report_full,
     fetch_site_instruction_full,
     update_drawing,
     update_feeproposal,
@@ -41,6 +42,7 @@ from ..db import (
     update_running_bill,
     update_final_account,
     update_cost_report,
+    update_feasibility_report,
     update_site_instruction,
     update_specsheet,
     update_estimate,
@@ -839,6 +841,74 @@ def _cost_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _feasibility_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Project OS Slice D — the printable feasibility report. Renders the frozen
+    pre-project assessment straight from the stored `snapshot` jsonb: site area,
+    permissible FAR area, buildable area, possible floors, super-builtup area,
+    and the estimated project cost. The snapshot is an exact copy of what was on
+    screen at generation time, so the PDF never re-derives anything."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    snap = rec.get("snapshot") or {}
+
+    def _num(v: Any, suffix: str = "") -> str:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return "—"
+        text = f"{f:,.0f}" if abs(f - round(f)) < 1e-9 else f"{f:,.2f}"
+        return f"{text}{suffix}"
+
+    area_rows = "".join(
+        f"<tr><td>{label}</td><td>{_num(snap.get(key), suffix)}</td></tr>"
+        for label, key, suffix in (
+            ("Site area", "siteAreaSqm", " sqm"),
+            ("Permissible FAR area", "permissibleFarArea", " sqm"),
+            ("Setback-buildable area", "setbackBuildableArea", " sqm"),
+            ("Ground coverage", "actualGroundCoverage", " sqm"),
+            ("Possible floors", "possibleFloors", ""),
+            ("Estimated builtup (super)", "superBuiltupArea", " sqm"),
+        )
+    )
+    cost_rows = (
+        f"<tr><td>Construction rate</td><td>{_inr(int(snap.get('constructionRatePaise') or 0))} / sqm</td></tr>"
+        f"<tr><td>Estimated project cost</td><td>{_inr(int(snap.get('estimatedProjectCostPaise') or 0))}</td></tr>"
+    )
+    timeline = snap.get("estimatedTimeline")
+    compliance = snap.get("compliancePct")
+    meta_rows = ""
+    if timeline:
+        meta_rows += f"<tr><td>Estimated timeline</td><td>{_e(timeline)}</td></tr>"
+    if compliance is not None:
+        meta_rows += f"<tr><td>Compliance</td><td>{_num(compliance, '%')}</td></tr>"
+    breakdown = snap.get("breakdown") or {}
+    breakdown_block = ""
+    if breakdown:
+        b_rows = "".join(
+            f"<tr><td>{_e(k)}</td><td>{_num(v, '%')}</td></tr>" for k, v in breakdown.items()
+        )
+        breakdown_block = (
+            '<div class="title" style="font-size:13px">Cost-head split</div>'
+            f"<table class=\"kv\"><tbody>{b_rows}</tbody></table>"
+        )
+    generated = _e(snap.get("generatedAt") or rec.get("generated_at") or "")
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+      <div class="title">Feasibility report — {_e(rec.get('project_title'))} ({_e(rec.get('project_ref'))})</div>
+      <table class="kv" style="margin-top:8px">
+        <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+        <tbody>{area_rows}{meta_rows}</tbody>
+      </table>
+      <table class="kv" style="margin-top:8px">
+        <thead><tr><th>Cost</th><th>Amount</th></tr></thead>
+        <tbody>{cost_rows}</tbody>
+      </table>
+      {breakdown_block}
+      <p class="muted" style="margin-top:12px">Indicative feasibility for discussion only — subject to
+        statutory sanction and detailed design. Generated {generated}.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -854,6 +924,7 @@ _RENDERERS = {
     "running_bill": (fetch_running_bill_full, _running_bill_html, update_running_bill, "running_bill"),
     "final_account": (fetch_final_account_full, _final_account_html, update_final_account, "final_account"),
     "cost_report": (fetch_cost_report_full, _cost_report_html, update_cost_report, "cost_report"),
+    "feasibility_report": (fetch_feasibility_report_full, _feasibility_report_html, update_feasibility_report, "feasibility_report"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
 

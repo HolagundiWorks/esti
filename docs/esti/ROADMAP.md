@@ -69,6 +69,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [28](#phase-28---executive-cognitive-load-engine-p1) | Executive Cognitive Load Engine | P1 | ✅ |
 | [29](#phase-29---estimation-os-costing-spine-p1) | Estimation OS — costing spine (OS Phases 1–3) | P1 | 🔄 |
 | [30](#phase-30---estimation-os-work-packages--running-bills-p1) | Estimation OS — work packages + running bills (OS Phase 4) | P1 | ✅ |
+| [31](#phase-31---project-os-lead-to-active-project-pipeline-p1) | Project OS — lead → active project pipeline (Slices A–K) | P1 | ✅ |
 
 ---
 
@@ -1064,3 +1065,57 @@ running bill → deviations/variations → BBS + steel reconciliation → final 
 **procurement forecast (3.16)**, and **GRN + material reconciliation (3.17)** — all
 done 2026-06-26. UI governance: **Pure Carbon everywhere**, mobile-first portals — see
 [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).
+
+---
+
+## Phase 31 — Project OS: Lead → Active Project Pipeline [P1] — ✅ Complete (2026-06-26)
+
+Architecture doc: [PROJECT-OS-ARCHITECTURE](PROJECT-OS-ARCHITECTURE.md)
+
+Converts ESTI's flat client→project create flow into a full commercial acquisition
+pipeline. A project becomes ACTIVE only after: lead qualified → feasibility accepted
+→ fee proposal approved → client onboarded → advance payment received. All 11 slices
+extend existing tables or add new ones; no existing procedures were broken. Migration
+`0100_project_os.sql` (6 new tables + 4 table extensions). The pipeline is ungated
+(LITE+); conversion is bounded by the existing project quota.
+
+| Slice | Module | New tables | Status |
+|---|---|---|---|
+| **A** | Lead Capture Engine — `esti_lead` (LDR-YYYY-NNN ref, 7 sources, 7 statuses), `leads` tRPC namespace, `/leads` route + `Leads.tsx` + primary nav, `leads.convert` transaction creates `esti_client` + draft `esti_projectoffice` | `esti_lead` | ✅ |
+| **B** | Project DNA Engine — `esti_project_dna` (1:1 with projectOffice), 8 structured enum fields, `projectDna.upsert` (backlinks `dnaId`); DNA section in `ProjectPipeline.tsx` | `esti_project_dna` | ✅ |
+| **C** | Pre-Project Assessment Engine — `esti_pre_project_assessment` (1:1), FAR + setback + ground-coverage + super-builtup formulas all computed server-side on upsert (pure `computeAssessment`), `assessment.upsert` | `esti_pre_project_assessment` | ✅ |
+| **D** | Feasibility Report + PDF — `esti_feasibility_report` (snapshot jsonb, shareToken), WeasyPrint worker target `feasibility_report` renders from snapshot, `feasibility.generate` + `byProject`; polled PDF Tag in the pipeline tab | `esti_feasibility_report` | ✅ |
+| **E** | Risk Scoring Engine — deterministic read model `computeRiskScore` from DNA weights + complex-jurisdiction +15; 0–100 score + band; `projectDna.riskScore`; risk badge in the pipeline header; no new table | — | ✅ |
+| **F** | Client Discussion Layer — extend `esti_clientlog` with `outcome` enum + `budgetObjections` + `architectComments`; surfaced in `ProjectClientLog.tsx` (outcome select + Tag) | extend `esti_clientlog` | ✅ |
+| **G** | Draft Project State Machine — extend `esti_projectoffice` with `leadId` / `dnaId` / `assessmentId` FKs; `canTransition` graph + `projectOffice.updateStatus` (ENQUIRY→PROPOSAL needs DNA; ACTIVE only via the gate) | extend `esti_projectoffice` | ✅ |
+| **H** | Negotiation Engine — `esti_project_negotiation` (rounds, fee delta, scope/timeline, discount %, responses, outcome, deterministic `conversionProbability`); `negotiation.addRound` + `setOutcome` | `esti_project_negotiation` | ✅ |
+| **I** | Client Approval Gate — extend `esti_feeproposal` with `clientApprovalStatus` / `clientApprovedAt` / `approvalNotes`; `feeProposals.setClientApproval`; REJECTED → project auto-CANCELLED + linked lead auto-LOST | extend `esti_feeproposal` | ✅ |
+| **J** | Client Onboarding Engine — `esti_client_onboarding` (1:1; billing, GSTIN, PAN, authorized reps jsonb, comms pref, agreement + ID doc S3 keys via `/upload/onboarding-document`, PENDING→COMPLETE); `onboarding.upsert` / `complete` / `reopen` | `esti_client_onboarding` | ✅ |
+| **K** | Advance Payment Gate + Project Activation — extend `esti_invoice` with `isAdvance`; `projectOffice.activate` (distinct from updateStatus) runs the `evaluateActivationGate` pre-flight (DNA + assessment + fee-approval + onboarding + paid-advance), flips ACTIVE, seeds a kick-off task, writes a `PROJECT_ACTIVATED` audit entry; `activationStatus` readout | extend `esti_invoice` + state machine | ✅ |
+
+**Gate met:** 14 contracts vitest (risk/assessment/conversion/transition/gate);
+22-check throwaway API E2E in a rolled-back transaction (lead → convert → DNA → risk
+→ assessment → PROPOSAL → blocked gate → feasibility → negotiation → fee approval →
+onboarding → paid advance → activate → ACTIVE + kick-off task → reject cancels + loses
+lead); 11 worker pytest incl. `feasibility_report` HTML; backend + frontend typecheck
+clean; Pure Carbon check clean for the new components; render-200.
+
+### 31.1 — Program Formulation (✅ 2026-06-26)
+
+The bridge from feasibility to design. **Feasibility (`assessment.superBuiltupArea`)
+is the single source of truth for the max built extent**; the architectural program
+(space schedule) is formulated within that envelope from client requirements, and a
+frozen program is the baseline design revisions reference.
+
+- `esti_program` (versioned DRAFT→FROZEN, `max_built_area_sqm` snapshot + `assessment_id`)
+  + `esti_program_space` (name / category / floor level / unit area × count); migration
+  `0101_program.sql`; `esti_decision.program_version_id` revision hook.
+- `program` namespace — `summary` (envelope read **live** from the assessment while DRAFT,
+  snapshotted on freeze), `getOrCreate`, `addSpace`/`updateSpace`/`removeSpace` (DRAFT only),
+  `freeze`, `newVersion` (clones frozen spaces into the next DRAFT). Pure `summarizeProgram`
+  → total area, utilization %, **`overEnvelope` advisory** (never blocks), by-floor + by-category rollups.
+- `ProjectProgram.tsx` — "Program" tab: feasibility-envelope KPIs, utilization `ProgressBar`,
+  space table, rollups, freeze + new-version (Pure Carbon). Ungated (LITE+).
+- **Gate met:** 5 contracts vitest; 12-check rolled-back API E2E (getOrCreate → spaces →
+  envelope-from-feasibility → freeze snapshot → frozen rejects edits → new version clones);
+  tsc + Pure Carbon clean; render-200.

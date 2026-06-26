@@ -34,6 +34,9 @@ export const clientLogRouter = router({
         subject: input.subject,
         body: input.body ?? null,
         followUpDate: input.followUpDate ?? null,
+        outcome: input.outcome ?? null,
+        budgetObjections: input.budgetObjections ?? null,
+        architectComments: input.architectComments ?? null,
         createdById: ctx.user.id,
       })
       .returning();

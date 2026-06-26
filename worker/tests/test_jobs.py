@@ -2,6 +2,7 @@
 from esti_worker.jobs import HANDLERS
 from esti_worker.jobs.pdf import (
     _cost_report_html,
+    _feasibility_report_html,
     _final_account_html,
     _inr,
     _running_bill_html,
@@ -182,6 +183,45 @@ def test_cost_report_html_renders_kpis_packages_and_checks() -> None:
     assert "Acme Builders" in html_str  # contractor row
     assert "Billing exceeds awarded value" in html_str  # risk note
     assert "Advisory only" in html_str
+
+
+def test_feasibility_report_html_renders_metrics_and_cost() -> None:
+    rec = {
+        "snapshot": {
+            "siteAreaSqm": 108,
+            "permissibleFarArea": 189,
+            "setbackBuildableArea": 52.5,
+            "actualGroundCoverage": 52.5,
+            "possibleFloors": 3.6,
+            "superBuiltupArea": 236.25,
+            "estimatedProjectCostPaise": 472500000,  # ₹47,25,000
+            "constructionRatePaise": 2000000,  # ₹20,000 / sqm
+            "estimatedTimeline": "14–16 months",
+            "compliancePct": 95,
+            "breakdown": {"Civil": 55, "Electrical": 10},
+            "generatedAt": "2026-06-26T10:00:00.000Z",
+        },
+        "generated_at": "2026-06-26T10:00:00.000Z",
+        "project_ref": "PRJ-7",
+        "project_title": "Sharma Villa",
+    }
+    html_str = _feasibility_report_html(rec, {"legalName": "HCW", "addressLines": []})
+    assert "Feasibility report — Sharma Villa (PRJ-7)" in html_str
+    assert "₹47,25,000.00" in html_str  # estimated project cost
+    assert "3.60" in html_str  # possible floors
+    assert "14–16 months" in html_str
+    assert "Civil" in html_str  # breakdown split
+
+
+def test_feasibility_report_html_handles_minimal_snapshot() -> None:
+    rec = {
+        "snapshot": {"siteAreaSqm": 0, "estimatedProjectCostPaise": 0, "generatedAt": "x"},
+        "generated_at": "x",
+        "project_ref": "PRJ-8",
+        "project_title": "Empty",
+    }
+    html_str = _feasibility_report_html(rec, {"legalName": "HCW", "addressLines": []})
+    assert "Feasibility report — Empty (PRJ-8)" in html_str
 
 
 def test_cost_report_html_no_risks_shows_clean() -> None:

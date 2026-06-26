@@ -5,6 +5,7 @@
 
 export * from "./org-auth.js";
 export * from "./project.js";
+export * from "./project-os.js";
 export * from "./financial.js";
 export * from "./delivery.js";
 export * from "./knowledge-compliance.js";

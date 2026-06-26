@@ -347,6 +347,27 @@ def update_cost_report(report_id: str, **fields: Any) -> None:
     _patch("esti_cost_report", report_id, set(), fields)
 
 
+def update_feasibility_report(report_id: str, **fields: Any) -> None:
+    """Patch an esti_feasibility_report row (only pdf_status / pdf_key; the
+    snapshot is written by the backend and never touched here)."""
+    _patch("esti_feasibility_report", report_id, set(), fields)
+
+
+def fetch_feasibility_report_full(report_id: str) -> dict[str, Any] | None:
+    """A project feasibility report (Project OS Slice D). Carries the frozen
+    assessment `snapshot` jsonb + project header, so the PDF prints straight from
+    the snapshot taken at generation time. psycopg parses jsonb into a dict."""
+    sql = """
+        select fr.snapshot, fr.generated_at, fr.pdf_key, fr.pdf_status,
+               p.ref as project_ref, p.title as project_title
+        from esti_feasibility_report fr
+        join esti_projectoffice p on p.id = fr.project_id
+        where fr.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [report_id]).fetchone()
+
+
 def fetch_cost_report_full(report_id: str) -> dict[str, Any] | None:
     """A project cost report (Construction Cost OS Future row). Carries the
     cost-health dashboard `snapshot` jsonb + project header, so the PDF prints

@@ -8,7 +8,14 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { CLIENT_LOG_KINDS, type ClientLogKindCode } from "@esti/contracts";
+import {
+  CLIENT_DISCUSSION_OUTCOME_LABEL,
+  CLIENT_DISCUSSION_OUTCOME_TAG,
+  CLIENT_LOG_KINDS,
+  ClientDiscussionOutcome,
+  type ClientDiscussionOutcome as ClientDiscussionOutcomeT,
+  type ClientLogKindCode,
+} from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
@@ -41,6 +48,8 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [followUp, setFollowUp] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [budgetObjections, setBudgetObjections] = useState("");
 
   const create = trpc.clientLog.create.useMutation({
     onSuccess: () => {
@@ -49,6 +58,8 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
       setSubject("");
       setBody("");
       setFollowUp("");
+      setOutcome("");
+      setBudgetObjections("");
     },
   });
 
@@ -83,6 +94,11 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
               <Tag type={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}>
                 {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               </Tag>
+              {e.outcome && (
+                <Tag type={CLIENT_DISCUSSION_OUTCOME_TAG[e.outcome as ClientDiscussionOutcomeT] ?? "gray"}>
+                  {CLIENT_DISCUSSION_OUTCOME_LABEL[e.outcome as ClientDiscussionOutcomeT] ?? e.outcome}
+                </Tag>
+              )}
               <strong>{e.subject}</strong>
               <span>{e.occurredAt}</span>
               <Button
@@ -119,6 +135,8 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
             subject,
             body: body || undefined,
             followUpDate: followUp || null,
+            outcome: (outcome || undefined) as ClientDiscussionOutcomeT | undefined,
+            budgetObjections: budgetObjections || undefined,
           })
         }
       >
@@ -159,6 +177,24 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
             type="date"
             value={followUp}
             onChange={(e) => setFollowUp(e.target.value)}
+          />
+          <Select
+            id="cl-outcome"
+            labelText="Discussion outcome (optional)"
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value)}
+          >
+            <SelectItem value="" text="— None —" />
+            {ClientDiscussionOutcome.options.map((o) => (
+              <SelectItem key={o} value={o} text={CLIENT_DISCUSSION_OUTCOME_LABEL[o]} />
+            ))}
+          </Select>
+          <TextArea
+            id="cl-budget"
+            labelText="Budget objections (optional)"
+            rows={2}
+            value={budgetObjections}
+            onChange={(e) => setBudgetObjections(e.target.value)}
           />
         </Stack>
       </Modal>

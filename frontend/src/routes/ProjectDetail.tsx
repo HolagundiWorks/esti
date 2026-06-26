@@ -31,6 +31,8 @@ import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ContextualComments } from "../components/ContextualComments.js";
 import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
+import { ProjectPipeline } from "../components/ProjectPipeline.js";
+import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectProgramme } from "../components/ProjectProgramme.js";
 import { ProjectPmc } from "../components/ProjectPmc.js";
@@ -76,6 +78,8 @@ export function ProjectDetail() {
     // ── Setup (shared) — identity, info, schedule and admin live above the heads.
     const setupTabs: ProjectTab[] = [
       { slug: "overview", label: "Overview", panel: <ProjectOverview projectId={id} /> },
+      { slug: "pipeline", label: "Pipeline", panel: <ProjectPipeline projectId={id} /> },
+      { slug: "program", label: "Program", panel: <ProjectProgram projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
       { slug: "programme", label: "Programme", panel: <ProjectProgramme projectId={id} /> },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },

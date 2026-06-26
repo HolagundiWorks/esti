@@ -66,6 +66,8 @@ export const invoices = pgTable("esti_invoice", {
   sac: text("sac"),
   interState: boolean("inter_state").notNull().default(false),
   tdsApplicable: boolean("tds_applicable").notNull().default(true),
+  /** Project OS — advance invoice; a PAID advance gates project activation (Slice K). */
+  isAdvance: boolean("is_advance").notNull().default(false),
   taxablePaise: bigint("taxable_paise", { mode: "number" })
     .notNull()
     .default(0),
