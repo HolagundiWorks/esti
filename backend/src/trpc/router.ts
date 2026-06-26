@@ -79,6 +79,7 @@ import { measurementBookRouter } from "../modules/pmc/measurements.js";
 import { deviationRouter, variationRouter } from "../modules/pmc/controls.js";
 import { steelReconciliationRouter } from "../modules/pmc/steel.js";
 import { finalAccountRouter } from "../modules/pmc/finalAccount.js";
+import { grnRouter } from "../modules/pmc/grn.js";
 import { siteVisitRouter } from "../modules/siteVisit/router.js";
 import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
@@ -193,6 +194,7 @@ export const appRouter = router({
   variations: variationRouter,
   steelReconciliation: steelReconciliationRouter,
   finalAccount: finalAccountRouter,
+  grn: grnRouter,
   constructionSchedule: constructionScheduleRouter,
   projectBrief: projectBriefRouter,
   accounts: accountsRouter,
