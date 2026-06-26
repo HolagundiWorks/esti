@@ -1119,3 +1119,16 @@ frozen program is the baseline design revisions reference.
 - **Gate met:** 5 contracts vitest; 12-check rolled-back API E2E (getOrCreate → spaces →
   envelope-from-feasibility → freeze snapshot → frozen rejects edits → new version clones);
   tsc + Pure Carbon clean; render-200.
+
+### 31.2 — Revision ↔ Program linkage (✅ 2026-06-26)
+
+Closes the "revisions are measured with respect to program formulation" loop. The CRIF
+decision ledger (`esti_decision`) can now record which **frozen program version** a
+revision is against:
+
+- `decisions.create` / `update` accept `programVersionId`; `program.listVersions(projectId)`
+  returns the frozen baselines (newest first).
+- `ProjectOverview.tsx` decision modal gains an "Against program version" select (frozen
+  only, shown once any version exists), and decision rows show a `Program v{n}` tag.
+- **Gate met:** 4-check rolled-back API E2E (no versions before freeze → freeze surfaces a
+  selectable version → decision persists `program_version_id`); tsc + Pure Carbon clean; render-200.

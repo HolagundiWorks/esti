@@ -156,6 +156,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     state: "DRAFT" as DecisionState,
     revisionCategory: "" as RevisionCategory | "",
     revisionSource: "" as RevisionSource | "",
+    programVersionId: "",
     impact: "LOW",
     ownerName: "",
     reviewDeadline: "",
@@ -188,6 +189,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         state: "DRAFT",
         revisionCategory: "",
         revisionSource: "",
+        programVersionId: "",
         impact: "LOW",
         ownerName: "",
         reviewDeadline: "",
@@ -205,6 +207,10 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       await utils.activity.listByProject.invalidate({ projectId });
     },
   });
+  // Frozen program versions a revision can be measured against (Project OS 31.2).
+  const programVersionsQ = trpc.program.listVersions.useQuery({ projectId });
+  const programVersions = programVersionsQ.data ?? [];
+  const programVersionNo = new Map(programVersions.map((pv) => [pv.id, pv.version]));
 
   const tasks = tasksQ.data ?? [];
   const approvals = approvalsQ.data?.rows ?? [];
@@ -446,7 +452,16 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
                   const hint = nextActionHint(state, d.reviewDeadline, cat);
                   return (
                     <TableRow key={d.id}>
-                      <TableCell>{d.title}</TableCell>
+                      <TableCell>
+                        <Stack gap={2}>
+                          <span>{d.title}</span>
+                          {d.programVersionId && (
+                            <Tag type="cool-gray" size="sm">
+                              Program v{programVersionNo.get(d.programVersionId) ?? "?"}
+                            </Tag>
+                          )}
+                        </Stack>
+                      </TableCell>
                       <TableCell>
                         <Stack gap={2}>
                           <Tag type={DECISION_STATE_TAG[state]} size="sm">
@@ -643,6 +658,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             state: decision.state,
             revisionCategory: decision.revisionCategory || undefined,
             revisionSource: decision.revisionSource || undefined,
+            programVersionId: decision.programVersionId || undefined,
             impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
             ownerName: decision.ownerName || undefined,
             reviewDeadline: decision.reviewDeadline || undefined,
@@ -742,6 +758,22 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               ))}
             </Select>
           </Stack>
+          {programVersions.length > 0 && (
+            <Select
+              id="dc-program-version"
+              labelText="Against program version"
+              helperText="The frozen program this revision is measured against"
+              value={decision.programVersionId}
+              onChange={(e) =>
+                setDecision((f) => ({ ...f, programVersionId: e.target.value }))
+              }
+            >
+              <SelectItem value="" text="None" />
+              {programVersions.map((pv) => (
+                <SelectItem key={pv.id} value={pv.id} text={`Program v${pv.version}`} />
+              ))}
+            </Select>
+          )}
           <Stack orientation="horizontal" gap={5}>
             <TextInput
               id="dc-owner"
