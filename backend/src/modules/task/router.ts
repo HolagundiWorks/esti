@@ -7,7 +7,7 @@ import {
   clampListLimit,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { assignments, projectOffices, tasks, teamMembers } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
@@ -34,6 +34,7 @@ const withProject = {
   priority: tasks.priority,
   dueDate: tasks.dueDate,
   completedAt: tasks.completedAt,
+  interventionRequired: tasks.interventionRequired,
   createdAt: tasks.createdAt,
 };
 
@@ -271,6 +272,53 @@ export const taskRouter = router({
       return updated!;
     });
     return row;
+  }),
+
+  /**
+   * Scan all active tasks with blocking dependencies. Mark interventionRequired=true
+   * on tasks whose dependency has been unresolved for >48 hours. Clear the flag on
+   * tasks whose dependency is now DONE. Returns the count flagged.
+   */
+  flagInterventions: protectedProcedure.mutation(async ({ ctx }) => {
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+    // All tasks that have a dependency and are not themselves done/cancelled.
+    const active = await ctx.db
+      .select({ id: tasks.id, dependsOnId: tasks.dependsOnId, updatedAt: tasks.updatedAt })
+      .from(tasks)
+      .where(
+        and(
+          isNotNull(tasks.dependsOnId),
+          ne(tasks.status, "DONE"),
+          ne(tasks.status, "CANCELLED"),
+        ),
+      );
+
+    let flagged = 0;
+    for (const t of active) {
+      if (!t.dependsOnId) continue;
+      const [dep] = await ctx.db
+        .select({ status: tasks.status })
+        .from(tasks)
+        .where(eq(tasks.id, t.dependsOnId));
+      const depDone = dep?.status === "DONE";
+      if (depDone) {
+        // Clear intervention flag when dependency resolves.
+        await ctx.db
+          .update(tasks)
+          .set({ interventionRequired: false, updatedAt: new Date() })
+          .where(and(eq(tasks.id, t.id), eq(tasks.interventionRequired, true)));
+      } else if (!depDone && t.updatedAt && t.updatedAt < cutoff) {
+        // Flag tasks whose dependency has been blocking for >48h.
+        const [updated] = await ctx.db
+          .update(tasks)
+          .set({ interventionRequired: true, updatedAt: new Date() })
+          .where(and(eq(tasks.id, t.id), eq(tasks.interventionRequired, false)))
+          .returning({ id: tasks.id });
+        if (updated) flagged++;
+      }
+    }
+    return { flagged };
   }),
 
   remove: protectedProcedure
