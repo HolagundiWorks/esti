@@ -41,6 +41,7 @@ import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
 import { useAuth } from "./lib/auth.js";
+import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { UserIdCard } from "./components/UserIdCard.js";
@@ -196,7 +197,10 @@ function AppShell() {
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
-    onSuccess: () => utils.auth.me.invalidate(),
+    onSuccess: () => {
+      setDesktopToken(null);
+      return utils.auth.me.invalidate();
+    },
   });
   // Only staff read settings; portal users (CLIENT, CONTRACTOR) never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, {

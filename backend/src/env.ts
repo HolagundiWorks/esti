@@ -9,8 +9,25 @@ const Env = z.object({
   DATABASE_URL: z.string().default("postgres://esti:esti@localhost:5432/esti"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   WORKER_JOB_STREAM: z.string().default("esti:jobs"),
+  /**
+   * Job dispatch backend. "redis" (default, VPS) enqueues to Redis Streams for
+   * the Python worker; "inproc" (desktop) runs an in-process stub runner.
+   */
+  WORKER_MODE: z.enum(["redis", "inproc"]).default("redis"),
+  /** When true (native desktop build), loopback HTTP + generated secrets are allowed. */
+  DESKTOP: z.coerce.boolean().default(false),
   BUILD_REVISION: z.string().default("dev"),
   BUILD_TIME: z.string().optional(),
+  /**
+   * Object-storage backend. "s3" (default, VPS) uses MinIO/S3; "fs" (desktop)
+   * stores objects on the local filesystem under STORAGE_DIR and serves them
+   * back through the backend's GET /files route.
+   */
+  STORAGE_DRIVER: z.enum(["s3", "fs"]).default("s3"),
+  /** Filesystem object-store root when STORAGE_DRIVER=fs. */
+  STORAGE_DIR: z.string().default("./.esti-files"),
+  /** Public base the SPA uses to fetch fs-stored files, e.g. http://127.0.0.1:PORT/files. */
+  FILES_PUBLIC_BASE: z.string().default("/files"),
   S3_ENDPOINT: z.string().default("http://minio:9000"),
   // Browser-reachable endpoint used only to sign GET URLs (presign is host-bound).
   S3_PUBLIC_ENDPOINT: z.string().default("http://localhost:9000"),
@@ -39,6 +56,10 @@ const DEV_DATABASE_PREFIX = "postgres://esti:esti@";
 /** Reject known dev defaults when running in production. */
 export function assertProductionSecrets(config: Env): void {
   if (config.NODE_ENV !== "production") return;
+  // The native desktop build runs the backend on loopback HTTP with per-install
+  // generated secrets and a filesystem store — the prod-secret asserts (which assume
+  // a public TLS deployment with MinIO) don't apply.
+  if (config.DESKTOP) return;
 
   if (config.SESSION_SECRET === DEV_SESSION_SECRET || config.SESSION_SECRET.includes("change-me")) {
     throw new Error("SESSION_SECRET must be set to a strong unique value in production");

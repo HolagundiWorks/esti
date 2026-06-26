@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import { env } from "../env.js";
 import { redis } from "./redis.js";
-import { BUCKET, s3 } from "./storage.js";
+import { storageHealthy } from "./storage.js";
 
 const APP_VERSION = "0.0.0";
 
@@ -34,7 +34,7 @@ export async function buildReleaseInfo(db: DB): Promise<ReleaseInfo> {
     /* intentional */
   }
   try {
-    checks.storage = await s3.bucketExists(BUCKET);
+    checks.storage = await storageHealthy();
   } catch {
     /* intentional */
   }

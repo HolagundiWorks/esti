@@ -56,6 +56,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth.js";
+import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
 const PDF_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
@@ -484,7 +485,7 @@ function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrit
     fd.append("file", file);
     fd.append("projectId", projectId);
     fd.append("slot", slot);
-    const res = await fetch("/upload/onboarding-document", { method: "POST", body: fd, credentials: "include" });
+    const res = await fetch(apiUrl("/upload/onboarding-document"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
     if (res.ok) { setUploadMsg(`${slot === "agreement" ? "Agreement" : "ID"} uploaded`); inv(); }
     else { const e = await res.json().catch(() => ({ error: "Upload failed" })); setUploadMsg(e.error ?? "Upload failed"); }
   }

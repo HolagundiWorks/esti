@@ -10,6 +10,7 @@ import { UserAvatar } from "@carbon/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
 export function Settings() {
@@ -56,7 +57,7 @@ export function Settings() {
     try {
       const fd = new FormData();
       fd.append("photo", file);
-      const res = await fetch("/upload/profile-photo", { method: "POST", body: fd, credentials: "include" });
+      const res = await fetch(apiUrl("/upload/profile-photo"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Upload failed" }));
         setMsg(`Upload failed: ${err.error}`);

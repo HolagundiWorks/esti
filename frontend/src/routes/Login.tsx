@@ -10,6 +10,7 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
 const DEMO_PASSWORD = "demo1234";
@@ -31,7 +32,9 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = trpc.auth.login.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      // Desktop returns a session token (cookies don't cross the loopback origin).
+      setDesktopToken((data as { token?: string }).token);
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },

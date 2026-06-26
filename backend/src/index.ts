@@ -8,9 +8,14 @@ import { sql } from "drizzle-orm";
 import { db } from "./db/index.js";
 import { runMigrations } from "./db/migrate.js";
 import { env } from "./env.js";
-import { redis } from "./lib/redis.js";
+import { INPROC_WORKER, redis } from "./lib/redis.js";
 import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
-import { BUCKET, ensureBucketWithRetry, s3 } from "./lib/storage.js";
+import {
+  BUCKET,
+  ensureBucketWithRetry,
+  getObjectStream,
+  storageHealthy,
+} from "./lib/storage.js";
 import { StorageQuotaExceededError } from "./lib/storageQuota.js";
 import { isSmtpConfigured } from "./lib/mail/transport.js";
 import { buildReleaseInfo, releaseSummary } from "./lib/releaseInfo.js";
@@ -103,6 +108,23 @@ void ensureBucketWithRetry()
   );
 
 await app.register(cookie, { secret: env.SESSION_SECRET });
+
+// Desktop auth: the Tauri webview's origin (tauri://localhost) is cross-origin to
+// the loopback backend, so SameSite cookies aren't sent. The desktop SPA instead
+// sends the session token as `Authorization: Bearer`. This shim (desktop only,
+// runs after cookie parsing) copies it into the cookie slot so the tRPC context,
+// every upload route, and the /files route resolve it via the unchanged cookie path.
+if (env.DESKTOP) {
+  app.addHook("onRequest", async (req) => {
+    const h = req.headers.authorization;
+    if (h?.startsWith("Bearer ")) {
+      const token = h.slice(7).trim();
+      const r = req as unknown as { cookies?: Record<string, string> };
+      r.cookies = { ...(r.cookies ?? {}), [SESSION_COOKIE]: token };
+    }
+  });
+}
+
 await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 } });
 registerDrawingUpload(app);
 registerReconcileUpload(app);
@@ -138,17 +160,52 @@ app.get("/api/companion/takeoff-catalog", async (req, reply) => {
   return takeoffCatalogPayload();
 });
 
+// Serve filesystem-stored objects on desktop (STORAGE_DRIVER=fs). On S3 the SPA
+// fetches presigned URLs directly from MinIO, so this route is only meaningful on
+// desktop, but it's harmless to register either way. Auth: any signed-in user
+// (matches presigned-URL semantics — anyone with the link can fetch).
+const FILE_MIME: Record<string, string> = {
+  ".pdf": "application/pdf",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".json": "application/json",
+  ".csv": "text/csv",
+};
+app.get("/files/*", async (req, reply) => {
+  const cookieToken = (req as { cookies?: Record<string, string> }).cookies?.[SESSION_COOKIE];
+  const user = await userFromToken(cookieToken);
+  if (!user) return reply.code(401).send({ error: "Unauthorized" });
+  const key = (req.params as Record<string, string>)["*"];
+  if (!key) return reply.code(400).send({ error: "missing key" });
+  const ext = key.slice(key.lastIndexOf(".")).toLowerCase();
+  try {
+    const stream = await getObjectStream(key);
+    reply.header("Content-Type", FILE_MIME[ext] ?? "application/octet-stream");
+    return reply.send(stream);
+  } catch {
+    return reply.code(404).send({ error: "not found" });
+  }
+});
+
 app.get("/health", async () => {
   const info = await buildReleaseInfo(db);
   return releaseSummary(info);
 });
 
-// Liveness probe: checks all backing services are reachable.
+// Liveness probe — checks only the backing services this deployment actually uses:
+// DB always; Redis only when a real worker queue is wired (not desktop inproc);
+// object storage via the active driver (S3 bucket or local fs root).
 app.get("/readyz", async (_req, reply) => {
-  const checks = { db: false, redis: false, storage: false };
+  const checks = { db: false, redis: true, storage: false };
   try { await db.execute(sql`SELECT 1`); checks.db = true; } catch { /* intentional */ }
-  try { await redis.ping(); checks.redis = true; } catch { /* intentional */ }
-  try { await s3.bucketExists(BUCKET); checks.storage = true; } catch { /* intentional */ }
+  if (!INPROC_WORKER) {
+    checks.redis = false;
+    try { await redis.ping(); checks.redis = true; } catch { /* intentional */ }
+  }
+  try { checks.storage = await storageHealthy(); } catch { /* intentional */ }
   const ok = checks.db && checks.redis && checks.storage;
   return reply.code(ok ? 200 : 503).send({ ok, checks });
 });
