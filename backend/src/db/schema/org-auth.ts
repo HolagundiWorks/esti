@@ -132,6 +132,7 @@ export const users = pgTable("esti_user", {
       "SENIOR",
       "ASSOCIATE",
       "VIEWER",
+      "SITE_SUPERVISOR",
       "CONSULTANT",
       "CLIENT",
       "CONTRACTOR",

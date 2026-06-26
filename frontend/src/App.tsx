@@ -84,6 +84,7 @@ const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
 const ContractorPortal = lazyRoute(() => import("./routes/ContractorPortal.js"), "ContractorPortal");
+const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
 const SeoLanding = lazy(() =>
@@ -291,6 +292,18 @@ function AppShell() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
+      </Theme>
+    );
+
+  // Dedicated site supervisors get the mobile-first site portal only (no office workspace).
+  if (user.role === "SITE_SUPERVISOR")
+    return (
+      <Theme theme="white">
+        <Routes>
+          <Route path="/" element={<SitePortal />} />
+          <Route path="/projects/:projectId" element={<SitePortal />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Theme>
     );
 

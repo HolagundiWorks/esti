@@ -8,20 +8,25 @@ import { z } from "zod";
  *   L2 — Management: Partners, Finance & HR leads          → PARTNER
  *   L3 — Technical : Architects, Engineers, Project Mgrs  → SENIOR, ASSOCIATE
  *   L4 — Execution : Interns, Juniors, Site Supervisors   → VIEWER
+ *   L4 — Field     : Dedicated on-site person             → SITE_SUPERVISOR
  *
  * Internal rank (code-level, higher = more access):
- *   OWNER       100 — Everything including firm / user admin
- *   PARTNER      80 — Financial ops, HR, invoices, fees, reports
- *   ACCOUNTANT   80 — Finance only: invoices, fees, cash book, GST/TDS filing
- *   HR_MANAGER   80 — People only: HR, payroll, leaves, salary
- *   SENIOR       60 — Projects, invoice drafting, drawings, tasks
- *   ASSOCIATE    40 — Projects, tasks, drawings (no invoices/fees)
- *   VIEWER       20 — Read-only across all modules
+ *   OWNER            100 — Everything including firm / user admin
+ *   PARTNER           80 — Financial ops, HR, invoices, fees, reports
+ *   ACCOUNTANT        80 — Finance only: invoices, fees, cash book, GST/TDS filing
+ *   HR_MANAGER        80 — People only: HR, payroll, leaves, salary
+ *   SENIOR            60 — Projects, invoice drafting, drawings, tasks
+ *   ASSOCIATE         40 — Projects, tasks, drawings (no invoices/fees)
+ *   VIEWER            20 — Read-only across all modules
+ *   SITE_SUPERVISOR   20 — Field-only: site portal (no office workspace access)
  *
- * ACCOUNTANT and HR_MANAGER are *functional* roles — their capabilities are an
- * explicit allow-list (see ROLE_CAPABILITIES), not the pure seniority rank, so
- * each holds only its own domain (finance vs. people), unlike PARTNER which
- * holds both. Portal roles (CLIENT, CONSULTANT) are external and rank 0.
+ * ACCOUNTANT, HR_MANAGER, and SITE_SUPERVISOR are *functional* roles with an
+ * explicit capability allow-list (see ROLE_CAPABILITIES). Portal roles (CLIENT,
+ * CONSULTANT) are external and rank 0.
+ *
+ * Any SENIOR/ASSOCIATE/PARTNER/VIEWER may also be granted the `site_portal`
+ * capability by an owner — that person acts as site incharge and can access
+ * both the office workspace and the /site portal with the same credentials.
  */
 export const StaffRole = z.enum([
   "OWNER",
@@ -31,14 +36,28 @@ export const StaffRole = z.enum([
   "SENIOR",
   "ASSOCIATE",
   "VIEWER",
+  "SITE_SUPERVISOR",
 ]);
 export type StaffRole = z.infer<typeof StaffRole>;
 
 /** Every role that can sign into the office workspace (vs. the portals). */
 export const STAFF_ROLES: readonly StaffRole[] = StaffRole.options;
 
-/** Seniority-tier general staff (the "users" seat bucket). Excludes OWNER and the functional roles. */
-export const GENERAL_STAFF_ROLES = ["PARTNER", "SENIOR", "ASSOCIATE", "VIEWER"] as const;
+/**
+ * Roles that have full office workspace access. SITE_SUPERVISOR is excluded —
+ * it can only reach the /site portal.
+ */
+export const OFFICE_STAFF_ROLES: readonly StaffRole[] = [
+  "OWNER", "PARTNER", "ACCOUNTANT", "HR_MANAGER", "SENIOR", "ASSOCIATE", "VIEWER",
+];
+
+/**
+ * Seniority-tier + field staff (the "users" seat bucket).
+ * Excludes OWNER and the functional single-domain roles.
+ */
+export const GENERAL_STAFF_ROLES = [
+  "PARTNER", "SENIOR", "ASSOCIATE", "VIEWER", "SITE_SUPERVISOR",
+] as const;
 
 /** Functional single-domain roles (their own seat buckets on Core). */
 export const FUNCTIONAL_STAFF_ROLES = ["ACCOUNTANT", "HR_MANAGER"] as const;
@@ -51,6 +70,7 @@ export const ASSIGNABLE_STAFF_ROLES = [
   "SENIOR",
   "ASSOCIATE",
   "VIEWER",
+  "SITE_SUPERVISOR",
 ] as const;
 
 export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
@@ -61,6 +81,7 @@ export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
   SENIOR: "Senior / Project Lead",
   ASSOCIATE: "Associate / Professional",
   VIEWER: "Junior / Intern",
+  SITE_SUPERVISOR: "Site Supervisor",
 };
 
 /**
@@ -70,17 +91,19 @@ export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
 export const ROLE_RANK: Record<string, number> = {
   OWNER: 100,
   PARTNER: 80,
-  ACCOUNTANT: 80, // management-level for rank comparisons; actual grants are an allow-list
-  HR_MANAGER: 80, // management-level for rank comparisons; actual grants are an allow-list
+  ACCOUNTANT: 80,       // management-level for rank comparisons; actual grants are an allow-list
+  HR_MANAGER: 80,       // management-level for rank comparisons; actual grants are an allow-list
   SENIOR: 60,
   ASSOCIATE: 40,
   VIEWER: 20,
-  CONSULTANT: 40, // legacy internal staff (external collaborator portal uses rank 0)
+  SITE_SUPERVISOR: 20,  // field-only; actual grants are an explicit allow-list (no workspace:view)
+  CONSULTANT: 40,       // legacy internal staff (external collaborator portal uses rank 0)
   CLIENT: 0,
 };
 
 export type Capability =
-  | "workspace:view"   // see the office workspace at all (any staff)
+  | "workspace:view"   // see the office workspace at all (any office staff)
+  | "site_portal"      // access the /site supervisor portal (SITE_SUPERVISOR by default; grantable to any staff)
   | "write"            // create/update operational records
   | "project:financials" // view project budget / expense data (L3+)
   | "invoice:manage"   // draft + issue invoices (L2+)
@@ -106,9 +129,10 @@ export type Capability =
  *   rank 100 → L1 Executive (Owner)    — full firm governance
  */
 const MIN_RANK: Record<Capability, number> = {
-  "workspace:view":      20,  // L5+: any staff
-  write:                 40,  // L4+: associate and above
-  "project:financials":  40,  // L4+: project budget / expense view
+  "workspace:view":      20,  // L4+: any office staff (SITE_SUPERVISOR is excluded via allow-list)
+  site_portal:           20,  // any rank — SITE_SUPERVISOR has it by default; grantable to office staff
+  write:                 40,  // L3+: associate and above
+  "project:financials":  40,  // L3+: project budget / expense view
   "invoice:manage":      80,  // L2+: partner and above — invoices are financial instruments
   "invoice:delete":      80,  // L2+: partner and above
   "fees:manage":         80,  // L2+: partner and above
@@ -141,6 +165,8 @@ const ROLE_CAPABILITIES: Partial<Record<string, readonly Capability[]>> = {
     "cost:approve",
   ],
   HR_MANAGER: ["workspace:view", "write", "hr:manage", "salary:view"],
+  // Field-only role — no workspace:view, no write. Site portal and inspection submission only.
+  SITE_SUPERVISOR: ["site_portal"],
 };
 
 /** Whether a role grants a capability. Unknown roles get nothing. */
