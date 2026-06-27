@@ -57,7 +57,15 @@ pnpm desktop:doctor       # checks toolchain + that node_modules matches this ho
 It fails fast with guidance if the host isn't buildable. `desktop:assemble` runs it
 automatically.
 
-## Build (Windows installer)
+## Build via CI (recommended)
+`.github/workflows/desktop.yml` builds the NSIS installer on a clean
+`windows-latest` runner and uploads it as an artifact — the reproducible
+"clean machine" build, with no risk to the dev box. Trigger it from the Actions
+tab (**Run workflow**) or push a `desktop-v*` tag; download the installer from the
+run's **esti-desktop-windows-nsis** artifact. The workflow runs `desktop:doctor`,
+generates icons, and runs `desktop:build`.
+
+## Build (local Windows installer)
 Prerequisite: a native Windows host (see **Build host** above) with **pnpm + a full
 `pnpm install`** (so the workspace `.bin`/`tsc` and Windows-native addons resolve),
 Rust + `tauri-cli` 2.x, and Node. Then:
