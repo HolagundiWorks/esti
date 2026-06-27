@@ -4,13 +4,24 @@ import {
   EstimateComponentCreate,
   EstimateFreezeInput,
   EstimateStage,
+  type FormulaKey,
+  PRESET_EXPRESSION,
+  type RuleSetNode,
+  deriveRuleSet,
   estimateItemAmount,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { estimateComponents, estimateItems, estimateVersions, estimates } from "../../db/schema.js";
+import {
+  componentRelated,
+  components,
+  estimateComponents,
+  estimateItems,
+  estimateVersions,
+  estimates,
+} from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { assertPlanFeature } from "../../lib/plan.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -29,6 +40,69 @@ async function assertEditable(db: DB, estimateId: string) {
   if (!EDITABLE_STATUSES.has(est.status)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "This estimate is frozen — revise it to edit." });
   }
+}
+
+type ComponentRow = typeof components.$inferSelect;
+
+/**
+ * Build the RuleSet graph reachable from a root component (BFS over dependency
+ * edges) for the pure derivation engine. Legacy components fall back to their
+ * preset expression; legacy edges to a ratio-formula or `quantity × factor`.
+ */
+async function buildRuleSetRegistry(
+  db: DB,
+  rootId: string,
+  includeDependencies: boolean,
+): Promise<{ rootCode: string; registry: Map<string, RuleSetNode> }> {
+  const byId = new Map<string, ComponentRow>();
+  const edgesByParent = new Map<string, (typeof componentRelated.$inferSelect)[]>();
+  const queue: string[] = [rootId];
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    if (byId.has(id)) continue;
+    const [comp] = await db.select().from(components).where(eq(components.id, id));
+    if (!comp) continue;
+    byId.set(id, comp);
+    if (!includeDependencies) continue;
+    const edges = await db
+      .select()
+      .from(componentRelated)
+      .where(eq(componentRelated.parentComponentId, id))
+      .orderBy(asc(componentRelated.sequence));
+    edgesByParent.set(id, edges);
+    for (const e of edges) queue.push(e.childComponentId);
+  }
+  const root = byId.get(rootId);
+  if (!root) throw new TRPCError({ code: "NOT_FOUND", message: "RuleSet not found." });
+
+  const registry = new Map<string, RuleSetNode>();
+  for (const [id, comp] of byId) {
+    const edges = edgesByParent.get(id) ?? [];
+    registry.set(comp.code, {
+      code: comp.code,
+      name: comp.name,
+      uom: comp.uom,
+      quantityFormula: comp.quantityFormula ?? PRESET_EXPRESSION[comp.formulaKey as FormulaKey] ?? "0",
+      boqSplitters: Array.isArray(comp.boqSplitters)
+        ? (comp.boqSplitters as RuleSetNode["boqSplitters"])
+        : [],
+      materialSplitters: Array.isArray(comp.materialSplitters)
+        ? (comp.materialSplitters as RuleSetNode["materialSplitters"])
+        : [],
+      dependencies: edges
+        .map((e) => ({
+          childCode: byId.get(e.childComponentId)?.code ?? "",
+          quantityFormula:
+            e.quantityFormula ??
+            (e.ratioFormulaKey
+              ? PRESET_EXPRESSION[e.ratioFormulaKey as FormulaKey]
+              : `quantity * ${e.qtyFactor}`),
+          sequence: e.sequence,
+        }))
+        .filter((d) => d.childCode),
+    });
+  }
+  return { rootCode: root.code, registry };
 }
 
 /**
@@ -265,5 +339,35 @@ export const designEstimateRouter = router({
       await removeEstimateComponent(ctx.db, input.estimateComponentId);
       await recomputeEstimate(ctx.db, ec.estimateId);
       return { ok: true };
+    }),
+
+  /**
+   * Live RuleSet derivation preview (no persistence): primary quantity → BOQ
+   * splitters → material splitters → dependency chain. Powers the operator's
+   * "enter once, see everything derived" execution panel.
+   */
+  derivePreview: protectedProcedure
+    .input(
+      z.object({
+        componentId: z.string().uuid(),
+        params: z.record(z.string(), z.number()).default({}),
+        includeDependencies: z.boolean().default(true),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      const { rootCode, registry } = await buildRuleSetRegistry(
+        ctx.db,
+        input.componentId,
+        input.includeDependencies,
+      );
+      try {
+        return deriveRuleSet(rootCode, input.params, registry);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: e instanceof Error ? e.message : "Could not derive — complete the inputs.",
+        });
+      }
     }),
 });

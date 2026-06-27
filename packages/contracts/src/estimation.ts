@@ -184,6 +184,17 @@ export function evalFormula(key: FormulaKey, params: Record<string, number>): nu
   return Number(def.fn(params).toFixed(4));
 }
 
+/** Each legacy preset's equivalent free-form expression, so back-compat
+ *  components (formulaKey only) can be driven by the RuleSet expression engine. */
+export const PRESET_EXPRESSION: Record<FormulaKey, string> = {
+  VOLUME_LWH: "length * width * height",
+  AREA_LW: "length * width",
+  AREA_DIRECT: "area",
+  LENGTH_DIRECT: "length",
+  WEIGHT_STEEL: "length * dia * dia / 162",
+  COUNT: "count",
+};
+
 /** Amount in paise of a percentage clause against a basis. */
 export function percentageLineAmount(basisPaise: number, pct: number): number {
   return Math.round(basisPaise * (pct / 100));
