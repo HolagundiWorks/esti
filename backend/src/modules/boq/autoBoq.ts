@@ -1,4 +1,4 @@
-import { estimateItemAmount, evalFormula, type FormulaKey } from "@esti/contracts";
+import { estimateItemAmount, evalFormula, evaluate, type FormulaKey } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
@@ -18,6 +18,16 @@ type ComponentRow = typeof components.$inferSelect;
 function safeQty(formulaKey: string, params: Record<string, number>): number {
   try {
     return evalFormula(formulaKey as FormulaKey, params);
+  } catch {
+    return 0;
+  }
+}
+
+/** Quantity from a free-form RuleSet expression; 0 on any error (missing input,
+ * bad expression) so the generated line still appears for the user to complete. */
+function safeEval(expr: string, vars: Record<string, number>): number {
+  try {
+    return evaluate(expr, vars);
   } catch {
     return 0;
   }
@@ -114,10 +124,15 @@ export async function expandComponentToEstimate(
   const [component] = await db.select().from(components).where(eq(components.id, input.componentId));
   if (!component) throw new TRPCError({ code: "NOT_FOUND", message: "Component not found." });
 
+  // RuleSet quantity: prefer the free-form expression, else the legacy preset.
+  const parentQty = component.quantityFormula
+    ? safeEval(component.quantityFormula, input.params)
+    : safeQty(component.formulaKey, input.params);
+
   const parent = await placeComponent(db, {
     estimateId: input.estimateId,
     component,
-    qty: safeQty(component.formulaKey, input.params),
+    qty: parentQty,
     formulaKey: component.formulaKey,
     params: input.params,
     costHead: input.costHead ?? null,
@@ -128,6 +143,15 @@ export async function expandComponentToEstimate(
   const itemIds = [parent.itemId];
 
   if (input.includeRelated) {
+    // Variables a dependency mapping may reference: the operator inputs, the
+    // derived `quantity`, and the parent's (identifier-named) BOQ-split outputs.
+    const parentVars: Record<string, number> = { ...input.params, quantity: parentQty };
+    const boqSplitters = Array.isArray(component.boqSplitters)
+      ? (component.boqSplitters as { outputName: string; formula: string }[])
+      : [];
+    for (const s of boqSplitters) {
+      parentVars[s.outputName] = safeEval(s.formula, { ...input.params, quantity: parentQty });
+    }
     const rels = await db
       .select()
       .from(componentRelated)
@@ -138,7 +162,11 @@ export async function expandComponentToEstimate(
       const [child] = await db.select().from(components).where(eq(components.id, rel.childComponentId));
       if (!child) continue;
       const formulaKey = rel.ratioFormulaKey ?? child.formulaKey;
-      const childQty = Number((safeQty(formulaKey, input.params) * rel.qtyFactor).toFixed(4));
+      // Prefer the free-form dependency-mapping expression over the parent's
+      // exposed variables; else the legacy ratio-formula × factor.
+      const childQty = rel.quantityFormula
+        ? safeEval(rel.quantityFormula, parentVars)
+        : Number((safeQty(formulaKey, input.params) * rel.qtyFactor).toFixed(4));
       seq += 1;
       const placed = await placeComponent(db, {
         estimateId: input.estimateId,

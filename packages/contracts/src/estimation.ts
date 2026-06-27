@@ -189,6 +189,30 @@ export function percentageLineAmount(basisPaise: number, pct: number): number {
   return Math.round(basisPaise * (pct / 100));
 }
 
+// --- RuleSet: BOQ + material splitters, versioning --------------------------
+
+/** Lifecycle of a RuleSet / work item. The execution engine loads only PUBLISHED. */
+export const RuleSetLifecycle = z.enum(["DRAFT", "PUBLISHED", "DEPRECATED", "ARCHIVED"]);
+export type RuleSetLifecycle = z.infer<typeof RuleSetLifecycle>;
+
+/** One BOQ measurable output split from a work item's primary quantity. The
+ *  formula is an expression over the work item's measurement fields plus the
+ *  derived `quantity` variable. */
+export const BoqSplitter = z.object({
+  outputName: z.string().min(1).max(120),
+  formula: z.string().min(1).max(400),
+  uom: z.string().min(1).max(20),
+});
+export type BoqSplitter = z.infer<typeof BoqSplitter>;
+
+/** One material-consumption line derived from a work item's primary quantity. */
+export const MaterialSplitter = z.object({
+  materialName: z.string().min(1).max(120),
+  formula: z.string().min(1).max(400),
+  uom: z.string().min(1).max(20),
+});
+export type MaterialSplitter = z.infer<typeof MaterialSplitter>;
+
 // --- Component master --------------------------------------------------------
 
 export const ComponentKind = z.enum(["PHYSICAL", "PROCESS"]);
@@ -238,7 +262,13 @@ export const ComponentMasterCreate = z.object({
   uom: z.string().min(1).max(20),
   kind: ComponentKind.default("PHYSICAL"),
   formulaKey: FormulaKey,
+  /** Free-form quantity expression (RuleSet engine). Null → use formulaKey preset. */
+  quantityFormula: z.string().max(400).nullable().optional(),
   paramSchema: z.array(ComponentParamField).max(20).default([]),
+  /** BOQ measurable outputs split from the primary quantity. */
+  boqSplitters: z.array(BoqSplitter).max(40).default([]),
+  /** Material consumption split from the primary quantity. */
+  materialSplitters: z.array(MaterialSplitter).max(60).default([]),
   rateSource: ComponentRateSource.default("RATE_BOOK"),
   dsrItemId: z.string().uuid().nullable().optional(),
   rateAnalysisId: z.string().uuid().nullable().optional(),
@@ -251,6 +281,8 @@ export type ComponentMasterCreate = z.infer<typeof ComponentMasterCreate>;
 export const ComponentMasterUpdate = ComponentMasterCreate.partial().extend({
   id: z.string().uuid(),
   status: ComponentStatus.optional(),
+  lifecycle: RuleSetLifecycle.optional(),
+  version: z.string().min(1).max(20).optional(),
 });
 export type ComponentMasterUpdate = z.infer<typeof ComponentMasterUpdate>;
 
@@ -271,11 +303,30 @@ export const ComponentRelatedCreate = z.object({
   childComponentId: z.string().uuid(),
   /** Override formula for the child; else child uses its own formula + params. */
   ratioFormulaKey: FormulaKey.nullable().optional(),
+  /** Free-form dependency-mapping expression over parent-exposed variables
+   *  (e.g. `wall_area * 2`). Takes precedence over ratioFormulaKey/qtyFactor. */
+  quantityFormula: z.string().max(400).nullable().optional(),
   /** Multiplier applied to the child's computed quantity. */
   qtyFactor: z.number().positive().default(1),
   sequence: z.number().int().default(0),
 });
 export type ComponentRelatedCreate = z.infer<typeof ComponentRelatedCreate>;
+
+// --- RuleSet versioning inputs ----------------------------------------------
+
+export const RuleSetPublishInput = z.object({ id: z.string().uuid() });
+export type RuleSetPublishInput = z.infer<typeof RuleSetPublishInput>;
+
+export const RuleSetDeprecateInput = z.object({ id: z.string().uuid() });
+export type RuleSetDeprecateInput = z.infer<typeof RuleSetDeprecateInput>;
+
+/** Duplicate a RuleSet into a new DRAFT version (never edits a published one). */
+export const RuleSetDuplicateInput = z.object({
+  id: z.string().uuid(),
+  version: z.string().min(1).max(20),
+  name: z.string().min(1).max(200).optional(),
+});
+export type RuleSetDuplicateInput = z.infer<typeof RuleSetDuplicateInput>;
 
 // --- Execution-detail link: component instance on an estimate ----------------
 
