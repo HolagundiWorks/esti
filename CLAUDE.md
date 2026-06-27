@@ -143,6 +143,13 @@ GST rates, SAC codes)
 - `drawings` — drawing/document management; `measurements` — measurement sheets
 - `dsr` — Rate Book reference (code namespace `dsr`); `estimates` — BOQ cost estimates;
   `bbs` — Bar Bending Schedule (all three from `backend/src/modules/boq/`)
+- **RuleSet engine** (Estimation OS restructure): `esti_component` is a versioned
+  RuleSet/work item (free-form `quantity_formula` + `boq_splitters` +
+  `material_splitters` + `lifecycle`); pure engines in contracts
+  `formula-engine.ts` (safe expression evaluator) + `ruleset-engine.ts`
+  (`deriveRuleSet`). Builder UI = Knowledge Bank `ComponentLibrary.tsx`; Execution
+  = `CostingWindow.tsx` Components tab (live `estimation.derivePreview`). See
+  `docs/esti/ESTIMATION-OS-ARCHITECTURE.md` §31.
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
