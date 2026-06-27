@@ -37,8 +37,14 @@ export const components = pgTable("esti_component", {
   /** PHYSICAL (modeled object) | PROCESS (activity, e.g. curing). */
   kind: text("kind").notNull().default("PHYSICAL"),
   formulaKey: text("formula_key").notNull(),
-  /** ComponentParamField[] — the input form schema. */
+  /** Free-form quantity expression (RuleSet engine). Null → use formulaKey preset. */
+  quantityFormula: text("quantity_formula"),
+  /** ComponentParamField[] — the input form schema (measurement fields). */
   paramSchema: jsonb("param_schema").notNull().default([]),
+  /** BoqSplitter[] — `{ outputName, formula, uom }` BOQ measurable outputs. */
+  boqSplitters: jsonb("boq_splitters").notNull().default([]),
+  /** MaterialSplitter[] — `{ materialName, formula, uom }` material consumption. */
+  materialSplitters: jsonb("material_splitters").notNull().default([]),
   /** RATE_BOOK | RATE_ANALYSIS | MANUAL. */
   rateSource: text("rate_source").notNull().default("RATE_BOOK"),
   dsrItemId: uuid("dsr_item_id").references(() => dsrItems.id),
@@ -46,6 +52,11 @@ export const components = pgTable("esti_component", {
   /** null = shared library component; set = project-specific. */
   projectId: uuid("project_id").references(() => projectOffices.id),
   status: text("status").notNull().default("ACTIVE"),
+  /** RuleSet versioning. lifecycle: DRAFT | PUBLISHED | DEPRECATED | ARCHIVED. */
+  version: text("version").notNull().default("1.0"),
+  lifecycle: text("lifecycle").notNull().default("DRAFT"),
+  /** Set when duplicated from a prior version (soft ref to esti_component.id). */
+  parentVersionId: uuid("parent_version_id"),
   notes: text("notes"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -73,6 +84,8 @@ export const componentRelated = pgTable("esti_component_related", {
     .notNull()
     .references(() => components.id, { onDelete: "cascade" }),
   ratioFormulaKey: text("ratio_formula_key"),
+  /** Free-form dependency-mapping expression over parent-exposed variables. */
+  quantityFormula: text("quantity_formula"),
   qtyFactor: doublePrecision("qty_factor").notNull().default(1),
   sequence: integer("sequence").notNull().default(0),
   createdAt: createdAt(),
