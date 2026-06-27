@@ -1722,3 +1722,68 @@ Revision Intelligence
 This is not just estimation.
 
 It is cost memory for the architecture office.
+
+---
+
+# 31. RuleSet Layer (2026-06 restructure)
+
+The component model above is now framed as a **RuleSet-driven parametric engine**
+with a strict two-layer separation: a **RuleSet Builder** (expert authors reusable
+construction-intelligence templates) and an **Execution Engine** (operators enter
+measurements once; the system derives quantities, dependency chains, materials and
+BOQ). This is an *evolution of the existing component system in place*, not a new
+system — the non-negotiables (§29) all hold.
+
+## 31.1 Mapping to the existing model
+
+| RuleSet concept | Existing implementation |
+|---|---|
+| Work item / RuleSet | `esti_component` (component master) |
+| Measurement inputs | `esti_component.param_schema` (jsonb `ComponentParamField[]`) |
+| Quantity formula | `esti_component.quantity_formula` (free-form) — falls back to `formula_key` preset |
+| BOQ splitters | `esti_component.boq_splitters` jsonb `{outputName, formula, uom}[]` |
+| Material splitters | `esti_component.material_splitters` jsonb `{materialName, formula, uom}[]` |
+| Dependency chain | `esti_component_related` (parent→child) |
+| Dependency quantity mapping | `esti_component_related.quantity_formula` (free-form, over parent vars) |
+| RuleSet versioning | `esti_component.version` + `lifecycle` (DRAFT/PUBLISHED/DEPRECATED/ARCHIVED) + `parent_version_id` |
+
+Migration `0105_ruleset.sql`.
+
+## 31.2 The engines (pure, deterministic, in `@esti/contracts`)
+
+- **`formula-engine.ts`** — safe sandboxed expression evaluator (no `eval`):
+  `evaluate` / `extractVariables` / `validateExpression`. Replaces the fixed
+  `FORMULA_REGISTRY` for free-form formulas (registry kept as presets, see
+  `PRESET_EXPRESSION`). This is the §11 "controlled expression parser".
+- **`ruleset-engine.ts`** — pure recursive `deriveRuleSet(rootCode, params,
+  registry)`: primary quantity → BOQ splitters → material splitters → dependency
+  chain. A child's primary quantity is its mapping formula over the parent's
+  exposed variables: the parent's inputs, the derived `quantity`, and any
+  identifier-named BOQ output. Cycle + unknown-dependency guards.
+
+## 31.3 Backend
+
+- Builder: `modules/boq/component.ts` — create/update validate every formula via
+  `validateExpression`; `publishVersion` / `deprecate` / `duplicate` (duplicate
+  copies edges into a new DRAFT — never edits a published RuleSet).
+- Execution: `modules/boq/autoBoq.ts` uses the free-form quantity + dependency
+  formulas when present (legacy `formula_key` path unchanged → cost spine intact);
+  `estimation.derivePreview` runs `deriveRuleSet` over the DB graph for the live,
+  no-persistence preview.
+
+## 31.4 Frontend (Pure Carbon)
+
+- **Builder** (expert): `components/knowledge/ComponentLibrary.tsx` — single
+  workspace; fields → quantity formula (live-validated) → BOQ/material splits →
+  dependency mappings → versioning. Formulas visible here.
+- **Execution** (operator): `components/estimation/CostingWindow.tsx`
+  Components tab — select RuleSet → enter measurements → live, expandable
+  **DerivedTree** (parent qty → BOQ → materials → child dependency chain). No
+  formulas/modelling visible; children auto-create (UI Rules 1–7).
+
+## 31.5 Open follow-up
+
+Material splitters are derived + previewed but not yet fed into the procurement
+forecast read model (`procurement-forecast.ts`) — wiring derived material
+quantities into procurement is the remaining additive step (the billing + variance
+engines already exist; see §20–21).
