@@ -59,12 +59,24 @@ async function postHub<T>(path: string, body: unknown): Promise<T> {
 /** Activate a key against the hub, persist the grant, return the new license view. */
 export async function activate(db: DB, key: string): Promise<LicenseView> {
   const installId = await getOrCreateInstallId(db);
+  const row = await getOrgSettings(db);
+
+  if (env.ESTI_LICENSE_API_URL) {
+    // Central License Panel path: activate against /v1 and store the panel token
+    // (licenseState understands both the panel and the legacy hub formats).
+    const licenseToken = await activateViaPanel(key, installId);
+    await db
+      .update(orgSettings)
+      .set({ licenseToken, installId, licenseCheckedAt: new Date(), updatedAt: new Date() })
+      .where(eq(orgSettings.id, row.id));
+    return toLicenseView(await licenseState(db));
+  }
+
   const grant = await postHub<LicenseGrant>("/api/license/activate", {
     key: key.trim(),
     installId,
     fingerprint: null,
   });
-  const row = await getOrgSettings(db);
   await db
     .update(orgSettings)
     .set({
@@ -78,11 +90,68 @@ export async function activate(db: DB, key: string): Promise<LicenseView> {
   return toLicenseView(await licenseState(db));
 }
 
+/** Activate a key against the central License Panel `/v1/activate`; returns the
+ *  signed panel license token. Throws on a bad key or an unreachable panel. */
+export async function activateViaPanel(key: string, deviceId: string): Promise<string> {
+  const base = env.ESTI_LICENSE_API_URL.replace(/\/+$/, "");
+  let res: Response;
+  try {
+    res = await fetch(`${base}/v1/activate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ licenseKey: key.trim(), deviceId }),
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch {
+    throw new TRPCError({ code: "BAD_GATEWAY", message: "Could not reach the license service." });
+  }
+  const text = await res.text();
+  if (!res.ok) {
+    let message = "Activation failed";
+    try {
+      message = (JSON.parse(text) as { error?: string }).error ?? message;
+    } catch {
+      /* keep default */
+    }
+    throw new TRPCError({ code: "BAD_REQUEST", message });
+  }
+  return (JSON.parse(text) as { licenseToken: string }).licenseToken;
+}
+
 /** Re-fetch a fresh token from the hub (extends grace). Returns false if not possible/offline. */
 export async function refreshNow(db: DB): Promise<boolean> {
-  if (!env.ESTI_HUB_URL) return false;
   const row = await getOrgSettings(db);
   if (!row.licenseToken || !row.installId) return false;
+
+  if (env.ESTI_LICENSE_API_URL) {
+    try {
+      const base = env.ESTI_LICENSE_API_URL.replace(/\/+$/, "");
+      const res = await fetch(`${base}/v1/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+        },
+        body: JSON.stringify({ token: row.licenseToken, deviceId: row.installId }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!res.ok) return false;
+      const data = JSON.parse(await res.text()) as { licenseToken: string };
+      await db
+        .update(orgSettings)
+        .set({ licenseToken: data.licenseToken, licenseCheckedAt: new Date(), updatedAt: new Date() })
+        .where(eq(orgSettings.id, row.id));
+      return true;
+    } catch {
+      // Offline / panel down is expected — that is what the grace window is for.
+      return false;
+    }
+  }
+
+  if (!env.ESTI_HUB_URL) return false;
   try {
     const res = await postHub<{ licenseToken: string }>("/api/license/refresh", {
       installId: row.installId,
