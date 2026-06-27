@@ -38,6 +38,7 @@ import {
   type CalculationType,
   type ComponentParamField,
   type CostHead,
+  type DerivedItem,
   type MeasurementBookRow,
 } from "@esti/contracts";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1055,6 +1056,36 @@ function paramFields(component: ComponentRow): ComponentParamField[] {
   }));
 }
 
+/** Recursive, expandable view of a derived RuleSet tree (parent quantity → BOQ
+ *  outputs → materials → child dependency chain). Formulas stay hidden — the
+ *  operator sees only results (UI Rules 6 + 7). */
+function DerivedTree({ node, depth = 0 }: { node: DerivedItem; depth?: number }) {
+  return (
+    <div style={{ marginLeft: depth * 16 }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+        <span aria-hidden>{depth > 0 ? "└─" : "▼"}</span>
+        <strong>{node.name}</strong>
+        <Tag size="sm" type="green">
+          {node.quantity} {node.uom}
+        </Tag>
+      </div>
+      {node.boq.length > 0 && (
+        <p className="esti-label esti-label--helper" style={{ margin: "2px 0 2px 20px" }}>
+          BOQ: {node.boq.map((b) => `${b.outputName} ${b.quantity} ${b.uom}`).join(" · ")}
+        </p>
+      )}
+      {node.materials.length > 0 && (
+        <p className="esti-label esti-label--helper" style={{ margin: "2px 0 2px 20px" }}>
+          Materials: {node.materials.map((m) => `${m.materialName} ${m.quantity} ${m.uom}`).join(" · ")}
+        </p>
+      )}
+      {node.children.map((c) => (
+        <DerivedTree key={c.code} node={c} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
 function ComponentsTab({
   estimateId,
   editable,
@@ -1087,6 +1118,14 @@ function ComponentsTab({
   const selected = components.find((c) => c.id === componentId) ?? null;
   const fields = selected ? paramFields(selected) : [];
   const byId = new Map(components.map((c) => [c.id, c]));
+
+  // Live derivation preview — "enter once, see everything derived". Missing
+  // inputs default to 0 so the tree always renders as the operator types.
+  const numericParams = Object.fromEntries(fields.map((f) => [f.key, Number(params[f.key]) || 0]));
+  const previewQ = trpc.estimation.derivePreview.useQuery(
+    { componentId: selected?.id ?? "", params: numericParams, includeDependencies: includeRelated },
+    { enabled: !!selected, retry: false },
+  );
 
   function submit() {
     if (!selected) return;
@@ -1173,6 +1212,18 @@ function ComponentsTab({
                     ),
                   )}
                 </div>
+                {previewQ.data ? (
+                  <Tile>
+                    <Stack gap={3}>
+                      <strong>Derived — entered once, computed for you</strong>
+                      <DerivedTree node={previewQ.data} />
+                    </Stack>
+                  </Tile>
+                ) : previewQ.isError ? (
+                  <p className="esti-label esti-label--helper" style={{ margin: 0 }}>
+                    Enter all measurement inputs to preview the derivation.
+                  </p>
+                ) : null}
                 <Stack orientation="horizontal" gap={5} style={{ alignItems: "center" }}>
                   <Checkbox
                     id="cw-incl-related"
