@@ -39,11 +39,30 @@ never engages and the plan is pinned from `FIRM_PLAN` on boot. The SPA is built 
 `VITE_PUBLIC_SITE=false` (manual login + signup, not the public-demo role picker) via
 `desktop/scripts/build-frontend.mjs`.
 
-## Build (Windows installer)
-Prerequisite: a provisioned host with **pnpm + a full `pnpm install`** (so the
-workspace `.bin`/`tsc` resolve), Rust + `tauri-cli` 2.x, and Node. Then:
+## Build host (read first)
+The installer must be built on a host whose `node_modules` is a **native install
+for the target OS**. Critically: in the normal dev setup this repo's `node_modules`
+is a **Linux install bind-mounted into the podman containers** (POSIX `.bin` shims,
+Linux-ELF native addons like `@node-rs/argon2`). On a Windows/macOS host that
+install **cannot build** the desktop app — package scripts fail with
+`'tsc' is not recognized`, and the bundled sidecar's native addons are the wrong
+platform — and **reinstalling in place would break the containers**.
+
+So build on a **separate native checkout** (or CI runner) of the target OS with its
+own `pnpm install`, not the container-shared working copy. Run the preflight to
+verify the host before building:
 ```
-pnpm desktop:assemble     # contracts + backend + frontend(VITE_PUBLIC_SITE=false) build, then bundle the sidecar
+pnpm desktop:doctor       # checks toolchain + that node_modules matches this host
+```
+It fails fast with guidance if the host isn't buildable. `desktop:assemble` runs it
+automatically.
+
+## Build (Windows installer)
+Prerequisite: a native Windows host (see **Build host** above) with **pnpm + a full
+`pnpm install`** (so the workspace `.bin`/`tsc` and Windows-native addons resolve),
+Rust + `tauri-cli` 2.x, and Node. Then:
+```
+pnpm desktop:assemble     # preflight + contracts + backend + frontend(VITE_PUBLIC_SITE=false) build, then bundle the sidecar
 pnpm desktop:build        # cargo tauri build → NSIS installer in src-tauri/target/release/bundle/nsis/
 ```
 `desktop:assemble` runs `desktop/scripts/build-frontend.mjs` (firm-app SPA) then
