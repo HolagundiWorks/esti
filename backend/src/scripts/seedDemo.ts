@@ -77,6 +77,7 @@ import {
 import { firmGstSystem } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
+import { ensureDefaultAccounts } from "../modules/expense/accounts.js";
 import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
@@ -121,6 +122,12 @@ async function clearDemoWorkspace(principalId: string) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   const principalEmail = "principal@demo.aorms.in";
+
+  // Seed the default chart of accounts up front (idempotent) so the office cash
+  // book / expenses work out of the box — even on an already-seeded demo where
+  // the rest of this script short-circuits below.
+  await ensureDefaultAccounts(db);
+
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, principalEmail));
   if (exists) {
     if (!process.env.SEED_DEMO_FORCE) {
