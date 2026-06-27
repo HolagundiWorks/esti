@@ -5,7 +5,8 @@ import type { DemoKind } from "../../lib/landing-demo.js";
 const STATUS_LINES = [
   { label: "Built for Indian architecture offices", dot: "green" },
   { label: "Projects, fees, approvals and billing in one record", dot: "green" },
-  { label: "Office memory, warnings and next actions", dot: "yellow" },
+  { label: "Keyboard-first BOQ, estimation and measurement-book costing", dot: "green" },
+  { label: "Native desktop app — runs offline on your machine", dot: "yellow" },
   { label: "Working demo office available", dot: "green" },
 ] as const;
 
@@ -31,7 +32,7 @@ export function MarketingHero({
       </h1>
 
       <p className="esti-lp-hero__sub">
-        Projects · Client revisions · Approvals · Fees · GST · Team load · Portals
+        Projects · Revisions · Approvals · Fees · GST · Estimation · Costing · Portals
       </p>
 
       <p className="esti-lp-hero__lead">
