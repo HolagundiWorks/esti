@@ -36,6 +36,7 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
 | `tests/navigation-personas.spec.ts` | **Every role** — Project Lead + Jr Architect sweep every office route crash-free (role-gated screens may redirect, never blow up); Client + Site Supervisor reach their portal cleanly. |
 | `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
 | `tests/crud.spec.ts` | **Each item entered** — a real create round-trip per module (clients, leads, consultants, contractors, contracts, tenders, invoices, fee proposals, proposals, letters): opens the New-X modal, fills it via `fixtures/crud.ts`, submits, and verifies either the `E2E …`-stamped record lands in the list or (for auto-numbered docs) the modal closes cleanly. |
+| `tests/crud-estimate.spec.ts` | **Each measurement entered** — the deepest path: inside a project's Costing window (`/projects/:id?tab=costing`), creates a fresh DRAFT estimate, enters a BOQ line's quantity + rate, and asserts the system *derives* the amount (qty 10 × ₹100 = ₹1,000) onto the estimate. |
 | `tests/pdf.spec.ts` | **PDF generation** — asserts each PDF-owning screen exposes a generated-PDF artifact and that Regenerate is safe. |
 
 ## Extending toward exhaustive coverage
