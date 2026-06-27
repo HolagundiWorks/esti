@@ -30,7 +30,7 @@ export default defineConfig({
     // Auth / navigation / PDF specs sign in fresh themselves.
     {
       name: "office",
-      testMatch: /(auth|navigation|pdf)\.spec\.ts$/,
+      testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
     // The button crawler + CRUD item-entry specs reuse the saved session.
@@ -42,7 +42,7 @@ export default defineConfig({
     },
     {
       name: "crud",
-      testMatch: /crud\.spec\.ts$/,
+      testMatch: /crud.*\.spec\.ts$/,
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
     },
