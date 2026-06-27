@@ -41,6 +41,8 @@ export const LANDING_SLUGS = [
   "architect-document-approval-system",
   "contractor-billing-software-for-architects",
   "esti-ai-assistant-for-architects",
+  // Phase 14 — estimation / BOQ / costing intent.
+  "architecture-estimation-software",
 ] as const;
 
 const SET: ReadonlySet<string> = new Set(LANDING_SLUGS);
@@ -72,6 +74,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "construction-client-management-software", label: "Construction client management" },
       { slug: "architecture-erp-india", label: "Architecture ERP India" },
       { slug: "architect-fee-proposal-software", label: "Fee proposal software" },
+      { slug: "architecture-estimation-software", label: "Estimation & BOQ software" },
     ],
   },
   {
