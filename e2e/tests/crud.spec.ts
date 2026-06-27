@@ -31,10 +31,7 @@ const MODULES: {
   { name: "fee-proposal", route: "/accounting/fees", open: /new fee proposal/i, submit: /^create$/i, verify: "closed" },
   { name: "proposal", route: "/office/proposals", open: /new proposal/i, submit: /^create$/i, verify: "closed" },
   { name: "letter", route: "/office/letters", open: /new letter/i, submit: /^create$/i, verify: "closed" },
-  // NOTE: office-expense create is intentionally omitted — it 500s with
-  // "Account not seeded" (backend/src/modules/expense/expenses.ts defaultAccountId)
-  // because the demo firm has no default cash account. A real demo-seed gap, not a
-  // test issue; re-add once the demo seeds a cash account.
+  { name: "expense", route: "/accounting/office-expenses", open: /new expense/i, submit: /save draft/i, verify: "closed" },
 ];
 
 for (const m of MODULES) {

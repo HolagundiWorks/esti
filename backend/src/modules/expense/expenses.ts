@@ -12,7 +12,7 @@ import { accounts, expenses, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
-import { getAccountByCode } from "./accounts.js";
+import { ensureAccountByCode, getAccountByCode } from "./accounts.js";
 
 const manageExpense = capabilityProcedure("invoice:manage");
 const auditExpense = capabilityProcedure("reports:view");
@@ -28,14 +28,13 @@ async function defaultAccountId(
   scope: string,
   paymentMethod: string,
 ) {
+  // Lazily provision the default account so a firm that never seeded its chart
+  // of accounts can still record an expense (instead of a 500 "Account not seeded").
   if (paymentMethod === "CASH") {
-    const cash = await getAccountByCode(db, "CASH");
-    if (cash) return cash.id;
+    return (await ensureAccountByCode(db, "CASH")).id;
   }
   const code = scope === "PROJECT" ? "PROJECT_EXPENSE" : "OFFICE_EXPENSE";
-  const acct = await getAccountByCode(db, code);
-  if (!acct) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Account not seeded" });
-  return acct.id;
+  return (await ensureAccountByCode(db, code)).id;
 }
 
 function recoveryForCreate(scope: string, billingClass: string) {
