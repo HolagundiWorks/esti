@@ -1,0 +1,40 @@
+/**
+ * Canonical authenticated office routes (principal sees them all). Keep in sync
+ * with the router in frontend/src/App.tsx. The navigation + button sweeps iterate
+ * this list, so adding a route here automatically extends coverage.
+ */
+export const OFFICE_ROUTES: string[] = [
+  "/",
+  "/activity",
+  "/alerts",
+  "/projects",
+  "/knowledge-bank",
+  "/search",
+  "/invoices",
+  "/accounting/office-expenses",
+  "/accounting/cash-book",
+  "/accounting/fees",
+  "/office/proposals",
+  "/office/documents",
+  "/office/letters",
+  "/office/contracts",
+  "/office/ai-studio",
+  "/office/tenders",
+  "/office/construction",
+  "/tasks",
+  "/programme",
+  "/pmc",
+  "/work",
+  "/workload",
+  "/clients",
+  "/leads",
+  "/consultants",
+  "/contractors",
+  "/client-requests",
+  "/consultant-requests",
+  "/reconcile",
+  "/team",
+  "/hr",
+  "/dsr",
+  "/filing",
+];
