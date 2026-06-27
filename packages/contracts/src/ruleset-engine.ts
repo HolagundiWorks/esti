@@ -106,3 +106,22 @@ export function deriveRuleSet(
   const quantity = evaluate(root.quantityFormula, params);
   return deriveNode(root, quantity, params, registry, new Set([rootCode]));
 }
+
+/** Flatten every material line across a derived tree (parent + all descendants). */
+export function collectMaterials(node: DerivedItem): DerivedMaterial[] {
+  const out: DerivedMaterial[] = [...node.materials];
+  for (const c of node.children) out.push(...collectMaterials(c));
+  return out;
+}
+
+/** Sum material lines by (materialName, uom) — the procurement-facing rollup. */
+export function aggregateMaterials(mats: DerivedMaterial[]): DerivedMaterial[] {
+  const map = new Map<string, DerivedMaterial>();
+  for (const m of mats) {
+    const key = `${m.materialName}|${m.uom}`;
+    const cur = map.get(key);
+    if (cur) cur.quantity = Number((cur.quantity + m.quantity).toFixed(4));
+    else map.set(key, { ...m });
+  }
+  return [...map.values()];
+}

@@ -4,9 +4,12 @@ import {
   EstimateComponentCreate,
   EstimateFreezeInput,
   EstimateStage,
+  type DerivedMaterial,
   type FormulaKey,
   PRESET_EXPRESSION,
   type RuleSetNode,
+  aggregateMaterials,
+  collectMaterials,
   deriveRuleSet,
   estimateItemAmount,
 } from "@esti/contracts";
@@ -369,5 +372,31 @@ export const designEstimateRouter = router({
           message: e instanceof Error ? e.message : "Could not derive — complete the inputs.",
         });
       }
+    }),
+
+  /**
+   * Aggregated material requirements derived from the placed RuleSets on this
+   * estimate (parent + dependency-chain material splitters), summed by material
+   * + unit — the procurement-facing rollup.
+   */
+  materialForecast: protectedProcedure
+    .input(z.object({ estimateId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertPlanFeature(ctx.db, "costing");
+      const placed = await ctx.db
+        .select()
+        .from(estimateComponents)
+        .where(eq(estimateComponents.estimateId, input.estimateId));
+      const all: DerivedMaterial[] = [];
+      for (const p of placed) {
+        try {
+          const { rootCode, registry } = await buildRuleSetRegistry(ctx.db, p.componentId, true);
+          const tree = deriveRuleSet(rootCode, (p.params ?? {}) as Record<string, number>, registry);
+          all.push(...collectMaterials(tree));
+        } catch {
+          // Skip a placement whose RuleSet inputs are incomplete.
+        }
+      }
+      return aggregateMaterials(all);
     }),
 });

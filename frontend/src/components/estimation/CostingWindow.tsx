@@ -1126,6 +1126,7 @@ function ComponentsTab({
     { componentId: selected?.id ?? "", params: numericParams, includeDependencies: includeRelated },
     { enabled: !!selected, retry: false },
   );
+  const materialsQ = trpc.estimation.materialForecast.useQuery({ estimateId });
 
   function submit() {
     if (!selected) return;
@@ -1312,6 +1313,32 @@ function ComponentsTab({
                   <TableCell>{it.unit}</TableCell>
                   <TableCell>{it.qty}</TableCell>
                   <TableCell>{formatINR(it.amountPaise)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {(materialsQ.data?.length ?? 0) > 0 && (
+        <TableContainer
+          title="Materials required"
+          description="Aggregated from placed RuleSets (parent + dependencies) — for procurement."
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Material</TableHeader>
+                <TableHeader>Qty</TableHeader>
+                <TableHeader>Unit</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {materialsQ.data!.map((m, i) => (
+                <TableRow key={i}>
+                  <TableCell>{m.materialName}</TableCell>
+                  <TableCell>{m.quantity}</TableCell>
+                  <TableCell>{m.uom}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { deriveRuleSet, type RuleSetNode } from "./ruleset-engine.js";
+import {
+  aggregateMaterials,
+  collectMaterials,
+  deriveRuleSet,
+  type RuleSetNode,
+} from "./ruleset-engine.js";
 
 function registry(nodes: RuleSetNode[]): Map<string, RuleSetNode> {
   return new Map(nodes.map((n) => [n.code, n]));
@@ -78,6 +83,31 @@ describe("ruleset-engine: Brick Wall → Plaster → Primer → Paint", () => {
     const paint = primer.children[0]!;
     expect(paint.code).toBe("PAINT");
     expect(paint.quantity).toBe(120); // primer quantity * 2 coats
+  });
+});
+
+describe("ruleset-engine: material rollup", () => {
+  const reg = registry([BRICK_WALL, PLASTER, PRIMER, PAINT]);
+  const tree = deriveRuleSet("BW-230", { nos: 2, length: 5, height: 3, thickness: 0.23 }, reg);
+
+  it("collects materials across the whole tree", () => {
+    expect(collectMaterials(tree)).toEqual([
+      { materialName: "Bricks", uom: "nos", quantity: 3450 },
+      { materialName: "Cement", uom: "bags", quantity: 10.35 },
+      { materialName: "Sand", uom: "cum", quantity: 2.07 },
+    ]);
+  });
+
+  it("aggregates duplicate materials by name + unit", () => {
+    const agg = aggregateMaterials([
+      { materialName: "Cement", uom: "bags", quantity: 10.35 },
+      { materialName: "Cement", uom: "bags", quantity: 5 },
+      { materialName: "Bricks", uom: "nos", quantity: 100 },
+    ]);
+    expect(agg).toEqual([
+      { materialName: "Cement", uom: "bags", quantity: 15.35 },
+      { materialName: "Bricks", uom: "nos", quantity: 100 },
+    ]);
   });
 });
 
