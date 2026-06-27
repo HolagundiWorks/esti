@@ -9,6 +9,7 @@
     "test:auth": "playwright test auth",
     "test:nav": "playwright test navigation",
     "test:buttons": "playwright test buttons",
+    "test:crud": "playwright test crud",
     "report": "playwright show-report",
     "install:browser": "playwright install chromium"
   },

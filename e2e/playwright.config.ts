@@ -33,10 +33,16 @@ export default defineConfig({
       testMatch: /(auth|navigation|pdf)\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
-    // The button crawler (one test per route) reuses the saved session.
+    // The button crawler + CRUD item-entry specs reuse the saved session.
     {
       name: "buttons",
       testMatch: /buttons\.spec\.ts$/,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
+    },
+    {
+      name: "crud",
+      testMatch: /crud\.spec\.ts$/,
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
     },
