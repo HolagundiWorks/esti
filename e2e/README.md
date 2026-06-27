@@ -33,8 +33,9 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
 |---|---|
 | `tests/auth.spec.ts` | **All logins** — each of the 5 demo personas (principal/lead/site/junior/client) signs in. |
 | `tests/navigation.spec.ts` | **Every screen** — visits each route in `utils/routes.ts` and asserts it renders (no crash fallback, no bounce to /login). |
-| `tests/buttons.spec.ts` | **Every button** — on each screen, clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
-| `tests/pdf.spec.ts` | **PDF generation** — triggers the PDF control on PDF-owning screens and waits for a download or a `READY` status (worker round-trip). |
+| `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
+| `tests/crud.spec.ts` | **Each item entered** — a real create round-trip per module (client/lead/consultant/contractor): opens the New-X modal, fills it via `fixtures/crud.ts`, submits, and asserts the new `E2E …`-stamped record lands in the list. |
+| `tests/pdf.spec.ts` | **PDF generation** — asserts each PDF-owning screen exposes a generated-PDF artifact and that Regenerate is safe. |
 
 ## Extending toward exhaustive coverage
 
