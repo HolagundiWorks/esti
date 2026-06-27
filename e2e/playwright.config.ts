@@ -24,5 +24,21 @@ export default defineConfig({
     video: "retain-on-failure",
     actionTimeout: 12_000,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Logs in once and saves the session so the button crawler can reuse it.
+    { name: "setup", testMatch: /auth\.setup\.ts$/ },
+    // Auth / navigation / PDF specs sign in fresh themselves.
+    {
+      name: "office",
+      testMatch: /(auth|navigation|pdf)\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    // The button crawler (one test per route) reuses the saved session.
+    {
+      name: "buttons",
+      testMatch: /buttons\.spec\.ts$/,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
+    },
+  ],
 });
