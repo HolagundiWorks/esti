@@ -15,6 +15,7 @@ import type { DB } from "../db/index.js";
 import { orgSettings } from "../db/schema.js";
 import { env } from "../env.js";
 import { resolveSeats, verifyLicense } from "./license.js";
+import { panelDerived, verifyPanelToken } from "./panelLicense.js";
 import { getOrgSettings } from "./settings.js";
 
 /**
@@ -52,8 +53,36 @@ export async function licenseState(db: DB): Promise<LicenseState> {
     hrManagers: PLAN_LIMITS[plan].hrManagers,
   });
 
-  const v = verifyLicense(row.licenseToken);
-  if (!v.ok) {
+  // Accept either the legacy ESTI hub token or a central License Panel token.
+  const esti = verifyLicense(row.licenseToken);
+  let derived:
+    | {
+        plan: Plan;
+        seats: ResolvedSeats;
+        firmId: string | null;
+        issuedAtIso: string | null;
+        expiresAtIso: string;
+        expMs: number;
+      }
+    | null = null;
+  if (esti.ok) {
+    derived = {
+      plan: esti.payload.plan,
+      seats: resolveSeats(esti.payload),
+      firmId: esti.payload.firmId,
+      issuedAtIso: esti.payload.issuedAt,
+      expiresAtIso: esti.payload.exp,
+      expMs: new Date(esti.payload.exp).getTime(),
+    };
+  } else {
+    const panel = verifyPanelToken(row.licenseToken);
+    if (panel.ok) {
+      const d = panelDerived(panel.payload);
+      if (d) derived = d;
+    }
+  }
+
+  if (!derived) {
     // No/invalid token → UNLICENSED. Blocked only on a managed node (e.g. a
     // desktop install that has not activated yet).
     return {
@@ -70,7 +99,7 @@ export async function licenseState(db: DB): Promise<LicenseState> {
   }
 
   const now = Date.now();
-  const exp = new Date(v.payload.exp).getTime();
+  const exp = derived.expMs;
   const graceEnds = exp + env.LICENSE_GRACE_DAYS * DAY_MS;
   let status: LicenseStatus;
   let graceDaysLeft: number | null = null;
@@ -83,16 +112,15 @@ export async function licenseState(db: DB): Promise<LicenseState> {
     status = "EXPIRED";
   }
 
-  const plan = v.payload.plan;
   return {
     status,
-    plan,
-    seats: resolveSeats(v.payload),
+    plan: derived.plan,
+    seats: derived.seats,
     managed: true,
     blocked: status === "EXPIRED" && env.ESTI_ROLE === "node",
-    firmId: v.payload.firmId,
-    issuedAt: v.payload.issuedAt,
-    expiresAt: v.payload.exp,
+    firmId: derived.firmId,
+    issuedAt: derived.issuedAtIso,
+    expiresAt: derived.expiresAtIso,
     graceDaysLeft,
   };
 }

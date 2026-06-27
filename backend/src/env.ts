@@ -27,6 +27,14 @@ const Env = z.object({
   LICENSE_SIGNING_KEY: z.string().default(""),
   /** NODE — base URL of the hub (e.g. https://aorms.in) for activation/refresh/sync. Empty = offline-only. */
   ESTI_HUB_URL: z.string().default(""),
+  /**
+   * NODE — base URL of the central Holagundi License Panel (e.g.
+   * https://license.holagundi.com). When set, license activation/refresh use the
+   * panel's `/v1` Product License API instead of the legacy hub. Empty = use the hub.
+   */
+  ESTI_LICENSE_API_URL: z.string().default(""),
+  /** NODE — AORMS product API key for the License Panel `/v1` API (Bearer). */
+  ESTI_PRODUCT_API_KEY: z.string().default(""),
   /** Read/write grace window (days) after a license `exp` before writes are blocked. */
   LICENSE_GRACE_DAYS: z.coerce.number().default(14),
   /** How often (hours) the node re-fetches a fresh license token from the hub. */
