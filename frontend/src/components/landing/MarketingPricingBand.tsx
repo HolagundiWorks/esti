@@ -1,5 +1,6 @@
 import { ArrowRight, Checkmark } from "@carbon/icons-react";
 import { Button, Tag } from "@carbon/react";
+import { createAccountUrl } from "../../lib/onboarding.js";
 import type { LandingTrialPlanContext } from "../LandingTrialForm.js";
 
 const PLANS: Array<{
@@ -133,14 +134,27 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
               ))}
             </ul>
             <p className="esti-lp-note">{p.hosting}</p>
-            <Button
-              kind={p.featured ? "primary" : "tertiary"}
-              size="md"
-              onClick={() => onSelectPlan(p.ctx)}
-              renderIcon={ArrowRight}
-            >
-              {p.cta}
-            </Button>
+            {p.ctx === "LITE" ? (
+              // Instant self-serve: hand off to the licensing cloud to create an
+              // account + AORMS trial, rather than the personal lead form.
+              <Button
+                kind="primary"
+                size="md"
+                href={createAccountUrl("AORMS")}
+                renderIcon={ArrowRight}
+              >
+                Create free account
+              </Button>
+            ) : (
+              <Button
+                kind={p.featured ? "primary" : "tertiary"}
+                size="md"
+                onClick={() => onSelectPlan(p.ctx)}
+                renderIcon={ArrowRight}
+              >
+                {p.cta}
+              </Button>
+            )}
           </div>
           </div>
         ))}
