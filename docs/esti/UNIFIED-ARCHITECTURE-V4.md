@@ -1,15 +1,55 @@
-# AORMS — Unified Architecture v4.0 (north-star)
+# AORMS — Unified Architecture v4.1 (north-star)
 
-> **Status:** Forward-vision / north-star · **Authored:** 2026-06-25 · Owner: Holagundi Consulting Works
+> **Status:** North-star + **single source of truth for current system state** ·
+> **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · Owner: Holagundi Consulting Works
 >
-> This is the **one-architecture** view future agents should read first to
-> understand *what AORMS is becoming*. It is deliberately product-shaped (the OS
-> pillars), not a code map. For the **current** implementation state read
-> [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md) (live IA + nav),
-> [ROADMAP.md](ROADMAP.md) (delivery history + the active increment), and
-> [ARCHITECTURE.md](ARCHITECTURE.md) (system/stack). Access control:
+> Future agents read this **first**. The "System state" section below is the
+> **authoritative record of what exists today** — where any other doc (ROADMAP, PRD,
+> INFORMATION-ARCHITECTURE, ARCHITECT-PROFILE, PRODUCT-VISION) disagrees about what is
+> built, **this doc wins**; those still carry planning detail written *before* the
+> 2026-06-28 teardown and are being reconciled. Access control:
 > [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md). UI law:
-> [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md).
+> [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md). Stack:
+> [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## System state (current reality — read this first)
+
+> Last reconciled **2026-06-28**. This is the source of truth for what is live, removed,
+> and being rebuilt. Verified against the live tRPC router.
+
+**Live** (shipping, in the router): Project OS (`projectOffice`, `phases`, `drawings`,
+`transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`,
+`purchaseOrders`, `reconcile`, `reports`), the pre-project **Pipeline** (`leads` →
+`projectDna` → `assessment` → `feasibility` → `negotiation` → `onboarding`), **Task/Work
+OS** (`tasks`, `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`), **HR**
+(`leaves`, `payroll`, `hrProfile`), **Clients/CRM** (`clients`, `clientLog`), **Consultants**
+(`consultants`, `engagements`, `collab`), **PMC + site delivery** (`pmc`, `programme`,
+`constructionSchedule`, `snags`, `siteInstructions`, `progressReports`, `phaseProgress`,
+`siteVisits`, `inspections`), **Knowledge Bank** (`knowledgeBank`, `specCatalog`, `lessons`,
+and the new `kb`), **Office** (`letters`, `contracts`, `accounts`, `expenses`), **AI**
+(`ai`, `companion`), **Portals** (`portal`, `collab`, contractor), **Licensing/Sync**
+(`licensing`, `license`, `sync`), plus `dashboard`, `audit`, `search`, `notifications`,
+`settings`, `firm`, `users`, `system`.
+
+**Removed** (torn down 2026-06-28 — do NOT treat any of these as existing; no namespace,
+table, route, or doc remains):
+- **Estimation OS** — estimates/BOQ, component master + RuleSet engine, `formula-engine`,
+  `autoBoq`, CostingWindow, ParametricCanvas, Component Library, IFC component mapping.
+- **Construction Cost spine** — tenders + contractor item-bidding, work packages, running
+  bills, measurement book, deviations/variations, final accounts, cost dashboard,
+  procurement forecast, GRN, BBS + steel reconciliation.
+- **Rate Books** (`dsr`) and **Rate Analysis** (`rateAnalysis`).
+- **RIE / compliance engine** — bylaw nav, site assessments, BBMP calculator. *(GST / TDS /
+  permit / COA compliance stay live; only the bylaw/RIE engine was retired.)*
+
+**Rebuilding** (the active increment — a ground-up replacement of the removed cost/estimation
+stack on a cleaner model):
+1. **Construction Knowledge Bank** (`kb`) — the reference foundation. **Live:** Material /
+   Labour / Item libraries, item-mapped Specifications, consumption Recipes, CSV import/export.
+   **Planned:** Brand layer, Vendor rates, Formula + Derivation engines.
+   Canonical: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md).
+2. **Estimation OS** — turns Knowledge Bank intelligence into project estimates + BOQ
+   (planned). Canonical: [ESTIMATION-OS.md](ESTIMATION-OS.md).
 
 ## What AORMS is
 
@@ -35,7 +75,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 | **1. Ask OS** | Conversational + cognition layer — ask the office anything, AI-assisted decisions, AI Studio, public "Ask ESTI" | `ai.*` (`ai.run`, `ai.generateCad`), `dashboard` cognition/Action Center, `companion`, public `marketing.askEsti` | ◐ |
 | **2. Project OS** | The project as the unit of work — two heads: **Consultancy** (design) and **Project Management** (construction) | `projectOffice`, `phases`, `projectBrief`, `drawings`, `transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`; `ProjectDetail.tsx` | ✅ |
 | **3. Task OS** | Everyone's work surface — tasks (billable/work-type/difficulty dimensions), assignments, workload, attendance, ASPRF | `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`; `Work.tsx` hub | ◐ |
-| **4. Construction Cost Management OS** | Money on a job, end to end: estimate → BOQ → rate analysis → BBS → tender → award → site measurement → running bill → deviation → final account | `estimation`, `estimates`, `components`, `rateAnalysis`, `dsr`, `bbs`, `tenders`, `contractorPortal`, `workPackages`, `measurementBook`, `runningBills`, `construction`, `constructionSchedule`, `pmc` | ◐ |
+| **4. Construction Cost Management OS** | Money on a job, end to end — **being rebuilt ground-up** after the 2026-06-28 teardown, on the Knowledge Bank foundation | `kb.*` (Knowledge Bank — live); Estimation OS + BOQ (planned). PMC site delivery (`pmc`, `constructionSchedule`, `programme`) + office costing (`accounts`, `expenses`, `purchaseOrders`) stay live | ○→◐ |
 | **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (contractor bids + running bills); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
 | **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `companion` (ESTICAD takeoff), `ai.generateCad`, `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine | ◐ |
 
@@ -54,10 +94,20 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 - **Implemented:** Work hub (tasks/board/calendar/activity), assignments, workload, attendance, ASPRF scoring with live `TaskClassification` + `TaskWorkType` + `difficultyCoefficient` + `estimatedHours`.
 - **Needs mapping / creation:** the unified **Task OS spine** — one task model that consistently links project ↔ phase ↔ assignment ↔ time ↔ ASPRF across every surface (flagged as the next build after the cleanup pass).
 
-### 4. Construction Cost Management OS — ◐
-- **Implemented:** Estimation OS phases 1–4 (design-stage estimate + freeze/version, component + IFC catalog + auto-BOQ, rate analysis build-up, work packages + running bills with double-billing guard); CC phases **A** (tender BOQ + item-wise bids), **B** (award → work order), **C** (site Measurement Book: measure→approve→bill, bill types + deductions → net payable, running-bill PDF).
-- **Needs creation (the active increment):** **CC Phase D — Controls** (quantity/rate deviations, variation orders, extra items, approval queue), then **E** (BBS into the spine), **F** (final account + closure), **G** (cost dashboard + reports). See [ROADMAP.md](ROADMAP.md) § "AORMS restructure & Construction Cost OS" and [CONSTRUCTION-COST-MANAGEMENT-OS.md](CONSTRUCTION-COST-MANAGEMENT-OS.md).
-- **Needs mapping:** consolidate estimates + measurement + BBS + running bills into one staged **Costing & Measurement window** on a shared item/rate spine (restructure Phase 4).
+### 4. Construction Cost Management OS — ○ (rebuilding)
+- **Removed (2026-06-28):** the entire prior spine — Estimation OS (component master /
+  RuleSet / auto-BOQ / IFC mapping), tenders + contractor bidding, work packages, running
+  bills, measurement book, deviations/variations, final accounts, cost dashboard, procurement
+  forecast, GRN, BBS + steel reconciliation, Rate Books, Rate Analysis. See "System state".
+- **Live:** PMC + site delivery (`pmc`, `constructionSchedule`, `snags`, `siteInstructions`,
+  `progressReports`, `phaseProgress`), office cash book + expenses (`accounts`, `expenses`),
+  purchase orders (`purchaseOrders`).
+- **Rebuilding (active increment):** **Construction Knowledge Bank** (`kb`) is the new
+  foundation (libraries + specifications + recipes live; brands / vendor rates / formula /
+  derivation engine planned), then the **Estimation OS** (estimate → derivation → BOQ → cost)
+  on top of it. Canonical: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+  [ESTIMATION-OS.md](ESTIMATION-OS.md). The earlier "one Costing & Measurement window" idea is
+  superseded by this layered KB → Estimation split.
 
 ### 5. Portals — ◐
 - **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor bid + running-bills portal (`contractorPortal`). All Pure Carbon, mobile-first.
@@ -69,15 +119,16 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 
 ## Reading order for a new agent
 
-1. **This doc** — what AORMS is becoming (the six pillars + status).
-2. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md) — current nav/IA.
-3. [ROADMAP.md](ROADMAP.md) — delivery history + the active increment (CC Phase D next).
-4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
-5. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
-6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
+1. **This doc** — the six pillars + the **System state** (what's live / removed / rebuilding). Authoritative on current state.
+2. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS.md](ESTIMATION-OS.md) — the active rebuild (cost/estimation domain).
+3. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
+4. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
+5. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
+6. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — nav/history/requirements; **defer to the System state above where they describe the removed estimation/cost stack.**
 
 ## Document control
 
 | Version | Date | Change |
 |---|---|---|
 | 4.0 | 2026-06-25 | Initial unified north-star — six pillars, status against live router, reading order |
+| 4.1 | 2026-06-28 | Reconciled to the 2026-06-28 teardown — added the **System state** source-of-truth section; rewrote pillar 4 (Estimation OS + Construction Cost spine + Rate Books removed, rebuilding via Knowledge Bank → Estimation OS); fixed reading order. This doc is now authoritative on current state. |

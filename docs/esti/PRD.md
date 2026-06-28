@@ -1,5 +1,13 @@
 # ESTI Product Requirements
 
+> **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
+> spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
+> estimation / BOQ / BBS / rate-book requirements below are **historical**. The
+> authoritative record of what exists today is
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the active
+> rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+
 **Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 This PRD aligns the supplied ESI-AORMS requirements with ESTI's agreed product
@@ -167,8 +175,7 @@ accounting systems.
   frozen/versioned estimates (OS Phases 1–3, in progress); plus contractor
   **work packages** carved from a frozen estimate and running bills with
   cross-project double-billing prevention (OS Phase 4, shipped). Specs:
-  [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
-  [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md).
+  [ESTIMATION-OS](ESTIMATION-OS.md).
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case

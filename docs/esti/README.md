@@ -10,11 +10,11 @@ direction. Point-in-time audits and superseded specs live in
 
 New here? Read in this order:
 
-1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star: what AORMS is (the six OS pillars) + current build status.
-2. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) — the live navigation and module IA as it ships today.
-3. [ROADMAP](ROADMAP.md) — delivery history and the active increment (Construction Cost OS Phase D next).
-4. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
-5. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
+1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star **and the single source of truth for current system state** (its "System state" section lists what's live / removed / rebuilding). Where any other doc disagrees about what exists, this one wins.
+2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS](ESTIMATION-OS.md) — the active rebuild (the Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28 and are being rebuilt on the Knowledge Bank foundation).
+3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
+4. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
+5. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — nav / delivery history / requirements; **defer to the System state in (1)** where they describe the removed estimation/cost stack.
 
 Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions).
 
@@ -53,6 +53,8 @@ Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
 
 When documents appear inconsistent, use this order:
 
+0. **`UNIFIED-ARCHITECTURE-V4.md` § "System state"** for **what currently exists**
+   (live / removed / rebuilding) — authoritative; overrides any other doc on current state.
 1. `PRODUCT-VISION.md` for product boundary.
 2. `STABILITY-CHARTER.md` for long-term scope and IA discipline.
 3. `PRD.md` for required behaviour.

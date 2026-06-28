@@ -1,5 +1,13 @@
 # ESTI Implementation Roadmap
 
+> **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
+> spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — large
+> parts of this roadmap still describe them as delivered/target and are **historical**.
+> The authoritative record of what exists today is
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the active
+> rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+
 **Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23 (Phase 28)
 
 Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](README.md).
@@ -863,8 +871,7 @@ Replace the "show all problems" dashboard pattern with a system that actively pr
 ## Phase 29 — Estimation OS: costing spine [P1] — 🔄 In progress (2026-06-25)
 
 Turns the flat `esti_estimate` engine into the component-based **Estimation OS**.
-Specs: [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) +
-[IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md); sub-phase sequencing in the
+Specs: [ESTIMATION-OS](ESTIMATION-OS.md); sub-phase sequencing in the
 restructure / Construction Cost OS tracker (§ "AORMS restructure & Construction
 Cost OS" below; restructure Phase 4 + 6).
 Extends the existing engine — one component master, never a parallel estimate;
@@ -1010,7 +1017,7 @@ that depend on them.
 | **1. Plan & quota foundation** | `plan` on org settings; `Plan`/`PLAN_LIMITS`/`planAllows` in contracts; `settings.get` exposes plan; quota helper; seed (demo = Enterprise); `usePlan` hook. | low | — |
 | **2. Enforce tiers** | Apply `planAllows` gates to nav/features; quota checks on create (team/clients/contractors/projects) with upgrade prompts; Lite hides AI. | med | 1 |
 | **3. Project two-head refactor** | ProjectDetail → **Consultancy \| Project Management** heads; BOQ moves to PM; billing in-project. | med | — |
-| **4. Single Costing & Measurement window** | Consolidate estimates + measurement + BBS + running bills into one staged workspace on a shared item/rate spine (**Estimation OS** — see [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) + [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md)). | med-high | 3 |
+| **4. Single Costing & Measurement window** | Consolidate estimates + measurement + BBS + running bills into one staged workspace on a shared item/rate spine (**Estimation OS** — see [ESTIMATION-OS](ESTIMATION-OS.md)). | med-high | 3 |
 | **5. Global nav restructure** | The 9 areas; Programme/PMC become read-only **portfolio** rollups; Tenders/Construction leave "Office". | med | 3 |
 | **6. Rate analysis capability** | Composite-rate build-up (material+labour+machinery+overhead) feeding the rate-book library and the costing window. | high | 4 |
 | **7. Cleanup** | **Done (2026-06)** — the entire compliance engine (bylaw nav, RIE, BBMP calculator) **and** the public `/compliance-check` SEO tool were removed; persistent spec→rate-book mapping shipped; **"DSR" eliminated → "Rate Books"** everywhere incl. marketing/SEO. | low | — |
@@ -1039,7 +1046,7 @@ parallel estimate.
 
 Lifecycle: estimate → BOQ → rate analysis → BBS → **tender → award → site
 measurement → running bill → deviation/variation → final account**. Spec:
-[CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md).
+[ESTIMATION-OS](ESTIMATION-OS.md).
 
 | CC phase | What | State |
 |---|---|---|

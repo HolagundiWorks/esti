@@ -1,5 +1,13 @@
 # AORMS — Information Architecture
 
+> **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
+> spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
+> Costing / Measurement / estimation IA below is **historical**. The authoritative record
+> of what exists today is [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
+> § "System state"; the active rebuild is
+> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+
 > Status: **implemented.** Backend (tRPC namespaces, DB) is unchanged — this is a
 > navigation / information-architecture map. The goal is one home per module, a
 > clear flow, and a project surfaced under two delivery heads.
