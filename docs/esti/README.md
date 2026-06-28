@@ -40,6 +40,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | **Target (rebuild foundation)** — the layered construction-intelligence reference layer: Material / Labor / Item / Specification libraries, consumption recipes, brand + vendor-rate layer, dependencies, and the formula + derivation engine. Supersedes the removed Estimation OS + Construction Cost spine; everything downstream (BOQ, Estimation, Procurement, Tendering, AI) reads from it |
+| [ESTIMATION-OS](ESTIMATION-OS.md) | **Target (fresh rebuild)** — turns Knowledge Bank intelligence into project estimates: the deterministic derivation engine (measurement → quantity → materials/labour → rates → cost), the Excel-like estimation grid, BOQ rollup, and versioning/freeze. Ground-up rebuild on the KB model; retires all prior estimation docs |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
