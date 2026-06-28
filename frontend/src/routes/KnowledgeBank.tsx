@@ -27,9 +27,17 @@ import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.j
 import { MaterialLibrary } from "../components/knowledge/kb/MaterialLibrary.js";
 import { LaborLibrary } from "../components/knowledge/kb/LaborLibrary.js";
 import { ItemLibrary } from "../components/knowledge/kb/ItemLibrary.js";
+import { SpecificationLibrary } from "../components/knowledge/kb/SpecificationLibrary.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["materials", "labour", "items", "specification", "lessons"] as const;
+const KB_TAB_SLUGS = [
+  "materials",
+  "labour",
+  "items",
+  "specifications",
+  "brand-catalogue",
+  "lessons",
+] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -130,7 +138,8 @@ export function KnowledgeBank() {
           <Tab>Materials</Tab>
           <Tab>Labour</Tab>
           <Tab>Items</Tab>
-          <Tab>Specification</Tab>
+          <Tab>Specifications</Tab>
+          <Tab>Brand Catalogue</Tab>
           <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
@@ -144,6 +153,10 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <ItemLibrary />
+          </TabPanel>
+
+          <TabPanel>
+            <SpecificationLibrary />
           </TabPanel>
 
           <TabPanel>

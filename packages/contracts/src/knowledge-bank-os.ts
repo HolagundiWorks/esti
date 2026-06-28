@@ -50,5 +50,22 @@ export const KbItemUpdate = KbItemCreate.partial().extend({
 });
 export type KbItemUpdate = z.infer<typeof KbItemUpdate>;
 
+// ── Specification library (method/mix variants, mapped to an item) ──────────
+export const KbSpecificationCreate = z.object({
+  itemId: z.string().uuid(),
+  name: z.string().min(1).max(160),
+  description: z.string().max(1000).optional(),
+  isDefault: z.boolean().default(false),
+});
+export type KbSpecificationCreate = z.infer<typeof KbSpecificationCreate>;
+
+export const KbSpecificationUpdate = KbSpecificationCreate.partial().extend({
+  id: z.string().uuid(),
+});
+export type KbSpecificationUpdate = z.infer<typeof KbSpecificationUpdate>;
+
+export const KbByItemInput = z.object({ itemId: z.string().uuid() });
+export type KbByItemInput = z.infer<typeof KbByItemInput>;
+
 export const KbIdInput = z.object({ id: z.string().uuid() });
 export type KbIdInput = z.infer<typeof KbIdInput>;

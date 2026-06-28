@@ -72,11 +72,12 @@ These were settled before build so the model is stable:
    here is a *different concept* — **item-scoped method/mix specs carrying resource
    recipes** (Brickwork → 1:6 → 500 bricks + 1.5 bags + 0.42 cum + 0.8 mason-day).
    They serve different audiences (finishes selection vs estimation derivation), so:
-   - The new estimation specs are called **Method Specifications** in the UI.
-   - The existing `specCatalog` tab is renamed **Materials & Finishes** (frees the word
-     "Specification"). No data change — label + tab-title only.
-   - A later cross-link (a finish referencing a method spec) is possible but **not** in
-     the initial build.
+   - The new item-mapped specs live in a **Specifications** tab (table
+     `esti_kb_specification`, `item_id` FK, one default per item).
+   - The existing `specCatalog` becomes the **Brand Catalogue** tab — it already captures
+     makes / brands + finishes. No data change — label + tab-title only.
+   - A later cross-link (a brand/finish referencing a method spec) is possible but **not**
+     in the initial build.
 
 3. **Formulas are stored, evaluated safely.** Quantity formulas are persisted strings,
    evaluated by a **sandboxed expression engine** — a recursive-descent parser supporting
@@ -182,7 +183,8 @@ Carbon check, render-200) → commit**. Built on a fresh branch off `main`.
 | Phase | Scope | Deliverable |
 | --- | --- | --- |
 | **1 — Core Libraries** ✅ | `material`, `labor`, `item` tables + CRUD + three KB tabs | **Shipped** — migration `0109`, `kb.{materials,labor,items}.*` namespace, Materials/Labour/Items tabs in the Knowledge Bank |
-| **2 — Specifications + Recipes** | `specification`, `spec_material`, `spec_labor`; spec versioning + `is_default` | Define method specs and their resource recipes under an item |
+| **2a — Specifications** ✅ | `specification` table mapped to item + `is_default` | **Shipped** — migration `0110`, `kb.specifications.*`, item-scoped Specifications tab (one default per item); existing specCatalog relabelled **Brand Catalogue** |
+| **2b — Recipes** | `spec_material`, `spec_labor` consumption recipes | Attach material + labour quantity-per-unit to a specification |
 | **3 — Brand Layer** | `brand`, `material_brand` (grade/variant, preferred) | Map generic materials to approved branded variants |
 | **4 — Rate Intelligence** | `vendor`, `vendor_rate` (time-bounded, by location) | Capture live procurement rates; latest-rate resolution |
 | **5 — Dependencies** | `item_dependency` (mandatory / optional / sequence) | Items trigger related items |

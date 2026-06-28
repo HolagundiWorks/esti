@@ -1,4 +1,5 @@
 import {
+  KbByItemInput,
   KbIdInput,
   KbItemCreate,
   KbItemUpdate,
@@ -6,10 +7,12 @@ import {
   KbLaborUpdate,
   KbMaterialCreate,
   KbMaterialUpdate,
+  KbSpecificationCreate,
+  KbSpecificationUpdate,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
-import { kbItems, kbLabor, kbMaterials } from "../../db/schema.js";
+import { kbItems, kbLabor, kbMaterials, kbSpecifications } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -212,9 +215,92 @@ const items = router({
     }),
 });
 
-/** Construction Knowledge Bank router — foundation libraries (Phase 1). */
+// ── Specification library (method/mix variants mapped to an item) ───────────
+const specifications = router({
+  listByItem: protectedProcedure
+    .input(KbByItemInput)
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(kbSpecifications)
+        .where(eq(kbSpecifications.itemId, input.itemId))
+        .orderBy(desc(kbSpecifications.isDefault), asc(kbSpecifications.name)),
+    ),
+  create: protectedProcedure
+    .input(KbSpecificationCreate)
+    .mutation(async ({ ctx, input }) => {
+      // Only one default per item.
+      if (input.isDefault) {
+        await ctx.db
+          .update(kbSpecifications)
+          .set({ isDefault: false })
+          .where(eq(kbSpecifications.itemId, input.itemId));
+      }
+      const [row] = await ctx.db
+        .insert(kbSpecifications)
+        .values({
+          itemId: input.itemId,
+          name: input.name,
+          description: input.description ?? null,
+          isDefault: input.isDefault,
+        })
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "kb_specification",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
+      return row!;
+    }),
+  update: protectedProcedure
+    .input(KbSpecificationUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [existing] = await ctx.db
+        .select()
+        .from(kbSpecifications)
+        .where(eq(kbSpecifications.id, id));
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (rest.isDefault === true) {
+        await ctx.db
+          .update(kbSpecifications)
+          .set({ isDefault: false })
+          .where(eq(kbSpecifications.itemId, existing.itemId));
+      }
+      const [row] = await ctx.db
+        .update(kbSpecifications)
+        .set(definedOnly(rest))
+        .where(eq(kbSpecifications.id, id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "kb_specification",
+        entityId: id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
+      return row!;
+    }),
+  remove: protectedProcedure
+    .input(KbIdInput)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.delete(kbSpecifications).where(eq(kbSpecifications.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "kb_specification",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
+});
+
+/** Construction Knowledge Bank router — foundation libraries + specifications. */
 export const kbRouter = router({
   materials,
   labor,
   items,
+  specifications,
 });

@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Modal,
   Stack,
   Table,
@@ -18,7 +19,7 @@ import { formatINR } from "@esti/contracts";
 import { ConfirmModal } from "../../ConfirmModal.js";
 import { DataState } from "../../DataState.js";
 
-export type KbFieldType = "text" | "textarea" | "number" | "money";
+export type KbFieldType = "text" | "textarea" | "number" | "money" | "boolean";
 
 export interface KbField {
   key: string;
@@ -45,6 +46,7 @@ interface Props {
 
 function display(row: KbRow, f: KbField): string {
   const v = row[f.key];
+  if (f.type === "boolean") return v ? "Yes" : "—";
   if (v === null || v === undefined || v === "") return "—";
   if (f.type === "money") return formatINR(Number(v));
   return String(v);
@@ -54,7 +56,8 @@ function toForm(row: KbRow | null, fields: KbField[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const f of fields) {
     const v = row?.[f.key];
-    if (v === null || v === undefined) out[f.key] = "";
+    if (f.type === "boolean") out[f.key] = v ? "true" : "";
+    else if (v === null || v === undefined) out[f.key] = "";
     else out[f.key] = f.type === "money" ? String(Number(v) / 100) : String(v);
   }
   return out;
@@ -96,6 +99,10 @@ export function KbLibraryTable({
   function submit() {
     const values: Record<string, unknown> = {};
     for (const f of fields) {
+      if (f.type === "boolean") {
+        values[f.key] = (form[f.key] ?? "") === "true";
+        continue;
+      }
       const raw = (form[f.key] ?? "").trim();
       if (f.type === "money") values[f.key] = raw === "" ? 0 : Math.round(Number(raw) * 100);
       else if (f.type === "number") {
@@ -189,7 +196,17 @@ export function KbLibraryTable({
       >
         <Stack gap={5}>
           {fields.map((f) =>
-            f.type === "textarea" ? (
+            f.type === "boolean" ? (
+              <Checkbox
+                key={f.key}
+                id={`kb-${f.key}`}
+                labelText={f.label}
+                checked={(form[f.key] ?? "") === "true"}
+                onChange={(_evt, { checked }) =>
+                  setForm((s) => ({ ...s, [f.key]: checked ? "true" : "" }))
+                }
+              />
+            ) : f.type === "textarea" ? (
               <TextArea
                 key={f.key}
                 id={`kb-${f.key}`}

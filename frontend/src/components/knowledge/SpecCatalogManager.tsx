@@ -85,10 +85,10 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
     <Stack gap={5}>
       <Stack orientation="horizontal" gap={4}>
         <Stack gap={2} className="esti-grow">
-          {embedded ? <h2>Specification catalogue</h2> : <h1>Specification catalogue</h1>}
+          {embedded ? <h2>Brand catalogue</h2> : <h1>Brand catalogue</h1>}
           <p>
-            Versioned material schedule rows used when creating project
-            specification sheets.
+            Versioned make / brand and finish schedule rows used when creating
+            project spec sheets.
           </p>
         </Stack>
         <Button onClick={() => setVOpen(true)}>New version</Button>

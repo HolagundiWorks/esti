@@ -11,6 +11,7 @@ import {
   integer,
   pgTable,
   text,
+  uuid,
 } from "./_helpers.js";
 
 /** Material library — generic raw materials (Cement, Sand, Steel…). */
@@ -47,6 +48,21 @@ export const kbItems = pgTable("esti_kb_item", {
   category: text("category"),
   unit: text("unit").notNull(),
   description: text("description"),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Specification library — method/mix variants of an item (Brickwork → 1:6;
+ *  Concrete → M25). Each specification belongs to one item; an item has many.
+ *  Material + labour consumption recipes attach to a specification (next phase). */
+export const kbSpecifications = pgTable("esti_kb_specification", {
+  id: id(),
+  itemId: uuid("item_id")
+    .notNull()
+    .references(() => kbItems.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  isDefault: boolean("is_default").notNull().default(false),
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
