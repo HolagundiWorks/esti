@@ -527,8 +527,6 @@ function AppShell() {
                 {atLeast(60) && (
                   <Route path="/office/ai-studio" element={<AiStudioPage />} />
                 )}
-                {can(user.role, "tenders:view") && (
-                )}
                 {pmcEnabled && atLeast(60) && (
                   <Route path="/office/construction" element={<Construction />} />
                 )}

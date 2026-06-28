@@ -17,7 +17,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { Launch } from "@carbon/icons-react";
-import { can, takeoffElement } from "@esti/contracts";
+import { can } from "@esti/contracts";
 import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
 import { useAuth } from "../lib/auth.js";
@@ -39,10 +39,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const canTakeoff = canUpload;
   const utils = trpc.useUtils();
   const [esticadHint, setEsticadHint] = useState<string | null>(null);
-  const takeoffQ = trpc.measurements.listByProject.useQuery(
-    { projectId },
-    { enabled: !!projectId },
-  );
   const drawingsQ = trpc.drawings.listByProject.useQuery(
     { projectId },
     {
@@ -65,21 +61,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [revFile, setRevFile] = useState<File | null>(null);
   const [revNote, setRevNote] = useState("");
   const [histId, setHistId] = useState<string | null>(null);
-  const [takeoffEstOpen, setTakeoffEstOpen] = useState(false);
-  const [takeoffEstForm, setTakeoffEstForm] = useState({
-    title: "Takeoff estimate",
-    dsrVersionId: "",
-    leadPct: "0",
-  });
-  const dsrVersionsQ = trpc.dsr.listVersions.useQuery(undefined, {
-    enabled: takeoffEstOpen,
-  });
-  const createFromTakeoff = trpc.estimates.createFromTakeoff.useMutation({
-    onSuccess: () => {
-      setTakeoffEstOpen(false);
-      setTakeoffEstForm({ title: "Takeoff estimate", dsrVersionId: "", leadPct: "0" });
-    },
-  });
   const versionsQ = trpc.drawings.versions.useQuery(
     { id: histId ?? "" },
     { enabled: !!histId },
@@ -336,118 +317,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </Table>
       </TableContainer>
 
-      {canTakeoff && readyDrawings.length > 0 && (takeoffQ.data?.rows ?? []).length === 0 && (
-        <InlineNotification
-          kind="info"
-          title="No measurements yet"
-          subtitle="Use Open in ESTICAD on a ready drawing to capture quantity takeoff. Results appear here when synced from the desktop app."
-          lowContrast
-          hideCloseButton
-          style={{ marginTop: 16 }}
-        />
-      )}
-
-      {(takeoffQ.data?.rows ?? []).length > 0 && (
-        <TableContainer
-          title="Measured quantities (from ESTICAD)"
-          description="Read-only — captured in ESTICAD desktop; used for BOQ and estimates in AORMS"
-          style={{ marginTop: 16 }}
-        >
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-            <Button size="sm" kind="tertiary" onClick={() => setTakeoffEstOpen(true)}>
-              Prepare draft cost estimate
-            </Button>
-          </div>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Measured</TableHeader>
-                <TableHeader>BOQ qty</TableHeader>
-                <TableHeader>Drawing</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(takeoffQ.data?.rows ?? []).map((m) => {
-                const el = m.elementTypeId ? takeoffElement(m.elementTypeId) : undefined;
-                return (
-                  <TableRow key={m.id}>
-                    <TableCell>{m.label}</TableCell>
-                    <TableCell>{el?.label ?? m.elementCategory ?? "—"}</TableCell>
-                    <TableCell>
-                      {m.kind === "COUNT"
-                        ? `${m.itemCount ?? 1} nos`
-                        : `${m.realLength.toFixed(1)} ${m.unit}`}
-                    </TableCell>
-                    <TableCell>
-                      {m.boqQty != null
-                        ? `${Number(m.boqQty).toFixed(3)} ${m.boqUnit ?? ""}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell>{m.drawingRef}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-
-      <Modal
-        open={takeoffEstOpen}
-        modalHeading="Prepare draft estimate from takeoff"
-        primaryButtonText={createFromTakeoff.isPending ? "Preparing…" : "Create draft estimate"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !takeoffEstForm.title || !takeoffEstForm.dsrVersionId || createFromTakeoff.isPending
-        }
-        onRequestClose={() => setTakeoffEstOpen(false)}
-        onRequestSubmit={() =>
-          createFromTakeoff.mutate({
-            projectId,
-            title: takeoffEstForm.title,
-            dsrVersionId: takeoffEstForm.dsrVersionId,
-            leadPct: Number(takeoffEstForm.leadPct) || 0,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <InlineNotification
-            kind="info"
-            lowContrast
-            hideCloseButton
-            title="Rate-book-linked costing"
-            subtitle="Quantities are grouped by element type, matched to rate-book item codes (e.g. BM-230), and rated from the selected schedule. Open Estimation / BOQ to review the draft."
-          />
-          <TextInput
-            id="dwg-to-title"
-            labelText="Estimate title"
-            value={takeoffEstForm.title}
-            onChange={(e) => setTakeoffEstForm((f) => ({ ...f, title: e.target.value }))}
-          />
-          <Select
-            id="dwg-to-dsr"
-            labelText="Rate book"
-            value={takeoffEstForm.dsrVersionId}
-            onChange={(e) =>
-              setTakeoffEstForm((f) => ({ ...f, dsrVersionId: e.target.value }))
-            }
-          >
-            <SelectItem value="" text="Select rate book…" />
-            {(dsrVersionsQ.data ?? []).filter((v) => v.status !== "DRAFT").map((v) => (
-              <SelectItem key={v.id} value={v.id} text={v.label} />
-            ))}
-          </Select>
-          <TextInput
-            id="dwg-to-lead"
-            labelText="Whole-estimate lead %"
-            type="number"
-            value={takeoffEstForm.leadPct}
-            onChange={(e) => setTakeoffEstForm((f) => ({ ...f, leadPct: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
 
       <Modal
         open={!!revFor}
