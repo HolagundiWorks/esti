@@ -21,9 +21,7 @@ import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
-import { ProjectExpenses } from "../components/ProjectExpenses.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
-import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
@@ -33,8 +31,6 @@ import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
-import { ProjectProgramme } from "../components/ProjectProgramme.js";
-import { ProjectPmc } from "../components/ProjectPmc.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -58,20 +54,15 @@ type ProjectGroup = { slug: string; label: string; tabs: ProjectTab[] };
 export function ProjectDetail() {
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canInvoice, canHr } = useCapabilities();
+  const { canHr } = useCapabilities();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  const firmPmcEnabled = settingsQ.data?.pmcEnabled ?? false;
   const phasesQ = trpc.phases.listByProject.useQuery(
     { projectId: id },
     { enabled: !!id },
   );
 
-  const showPmc =
-    firmPmcEnabled &&
-    ((project.data as { pmcEnabled?: boolean } | undefined)?.pmcEnabled ?? false);
-  const showCosting = canInvoice;
   const showTeam = hrEnabled && canHr;
 
   const projectGroups = useMemo((): ProjectGroup[] => {
@@ -81,7 +72,6 @@ export function ProjectDetail() {
       { slug: "pipeline", label: "Pipeline", panel: <ProjectPipeline projectId={id} /> },
       { slug: "program", label: "Program", panel: <ProjectProgram projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
-      { slug: "programme", label: "Programme", panel: <ProjectProgramme projectId={id} /> },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
 
@@ -112,16 +102,19 @@ export function ProjectDetail() {
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
+    // Site Progress — architect site supervision (consultancy): visits + feasibility.
     consultancyTabs.push(
+      { slug: "program-feasibility", label: "Program & feasibility", panel: <ProjectSiteReference projectId={id} /> },
+      { slug: "site-visits", label: "Site Progress", panel: <ProjectSiteVisits projectId={id} /> },
       {
         slug: "comments",
-        label: "Comments",
+        label: "Discussions",
         panel: (
           <ContextualComments
             projectId={id}
             objectType="projectoffice"
             objectId={id}
-            heading="Project comments"
+            heading="Project discussions"
             description="Contextual discussion linked directly to this project."
           />
         ),
@@ -129,26 +122,11 @@ export function ProjectDetail() {
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 
-    // ── Project Management — construction delivery (only when this is a PMC engagement).
-    const pmcTabs: ProjectTab[] = [];
-    if (showPmc) {
-      pmcTabs.push({ slug: "pmc", label: "PMC control", panel: <ProjectPmc projectId={id} /> });
-      pmcTabs.push({ slug: "program-feasibility", label: "Program & feasibility", panel: <ProjectSiteReference projectId={id} /> });
-      pmcTabs.push({ slug: "site-visits", label: "Site visits", panel: <ProjectSiteVisits projectId={id} /> });
-    }
-    if (showCosting) {
-      pmcTabs.push({ slug: "expenses", label: "Expenses", panel: <ProjectExpenses projectId={id} /> });
-      pmcTabs.push({ slug: "purchase-orders", label: "Purchase orders", panel: <ProjectPurchaseOrders projectId={id} /> });
-    }
-
     return [
       { slug: "setup", label: "Setup", tabs: setupTabs },
-      { slug: "consultancy", label: "Consultancy — design", tabs: consultancyTabs },
-      ...(pmcTabs.length > 0
-        ? [{ slug: "pm", label: "Project Management — construction", tabs: pmcTabs }]
-        : []),
+      { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
     ];
-  }, [id, showPmc, showCosting, showTeam]);
+  }, [id, showTeam]);
 
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
