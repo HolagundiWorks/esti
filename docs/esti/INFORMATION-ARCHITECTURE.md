@@ -1,11 +1,12 @@
 # AORMS — Information Architecture
 
-> **⚠ Navigation superseded (2026-06-28).** The canonical sidebar / module
-> placement is now [NAVIGATION.md](NAVIGATION.md) (the **V2 five-pillar** IA:
-> HOME / GROWTH OS / STUDIO / LEOS / OFFICE, with per-module live/planned status).
-> The "Global navigation" section below is the **prior** IA, kept for the
-> module-placement rationale (two delivery heads, one-home-per-module) — **defer to
-> NAVIGATION.md for what the sidebar contains.**
+> **⚠ Navigation superseded (2026-06-29).** The canonical sidebar / module
+> placement is now [NAVIGATION.md](NAVIGATION.md) — the **Canonical V3** IA
+> (consultancy-only: Dashboard · Projects · Tasks · Studio · Third Parties · Office ·
+> Finance · LXOS · Admin). The "Global navigation" section below is the **prior** IA,
+> kept only for module-placement rationale (one-home-per-module) — **defer to
+> NAVIGATION.md for what the sidebar contains.** Construction-delivery (PMC,
+> Construction, Programme, tenders) and mood boards are **removed**.
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
@@ -19,9 +20,8 @@
 > navigation / information-architecture map. The goal is one home per module, a
 > clear flow, and a project surfaced under two delivery heads.
 >
-> - **Sidebar:** see [NAVIGATION.md](NAVIGATION.md) — the canonical V2 five-pillar
->   IA (HOME / GROWTH OS / STUDIO / LEOS / OFFICE). The flat-links + Accounts /
->   Practice / Admin layout described below is the **prior** structure.
+> - **Sidebar:** see [NAVIGATION.md](NAVIGATION.md) — the canonical **Canonical V3**
+>   IA (consultancy-only). The layout described below is the **prior** structure.
 > - Programme and PMC moved from top-level links into **Practice** as read-only
 >   portfolio rollups; the per-project Programme and PM head remain the masters.
 > - The two-head project workspace is live (`ProjectDetail.tsx`). The single
@@ -57,12 +57,12 @@ unchanged) — the split is purely how the work is presented.
 | Area | Contains (existing modules) |
 |---|---|
 | **Home** | Dashboard, Action Center, Alerts, Search |
-| **Clients** | Client CRM, client log, portal access — *(V2: OFFICE › External Network)* |
+| **Clients** | Client CRM, client log, portal access — *(V3: Third Parties)* |
 | **Projects** | Project list → **project workspace** (two heads, below) · Archived projects |
 | **Work** | Tasks, workload, my work |
 | **Practice** | Proposals pipeline, Letters, Contracts, Document register, **Office programme & PMC portfolios** (read-only rollups), AI Studio |
 | **Accounts** | Invoices (cross-project rollup), Reconciliation, Expenses & cash book, GST/TDS filing |
-| **People** *(retired)* | Team, HR, Performance → *(V2: OFFICE › Internal Operations)*; Consultants, Contractors → *(V2: OFFICE › External Network)* |
+| **People** *(retired)* | Team, HR, Performance → *(V3: Studio)*; Consultants, Contractors → *(V3: Third Parties)* |
 | **Knowledge** | Rate books (rate schedules), Rate-analysis library, Spec catalogue (with persisted rate-book mapping), BBS reference |
 | **Admin** | Company, Users, Audit log, System, My profile |
 
@@ -193,7 +193,7 @@ under **Project Management**; design under **Consultancy**.
 | **Clients & pipeline** | `clients`, `clientLog` (CRM master), `proposals`, `feeProposals` (pre-award) | winning work, *before* it is a project |
 | **Practice / Office** | `letters`, `contracts`, document register (office-wide), Programme + PMC **portfolios** (read-only rollups), AI Studio | office documents + cross-project overview |
 | **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
-| **People** *(V2: OFFICE › Internal Operations + External Network)* | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`) → Internal Operations; `consultants` + `contractors` **directories** → External Network | the firm's roster + capability; engagements live in the project |
+| **People** *(V3: Studio + Third Parties)* | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`) → Studio; `consultants` + `contractors` **directories** → Third Parties | the firm's roster + capability; engagements live in the project |
 | **Knowledge** | `dsr` (rates), `knowledgeBank`, analysed-rate library, `specCatalog` | **reference data**, not project instances |
 | **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `companion` (ESTICAD devices), `marketing` | run the installation |
 

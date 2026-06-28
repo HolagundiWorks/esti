@@ -1,216 +1,143 @@
-# AORMS — Navigation Architecture (V2, canonical)
+# AORMS — Navigation Architecture (Canonical V3)
 
 **Status:** Canonical navigation IA · **Owner:** Holagundi Consulting Works ·
-**Adopted:** 2026-06-28
+**Adopted:** 2026-06-29
 
-> This document is the **single source of truth for navigation**. Where any other
-> doc describes the sidebar / module placement differently, **this one wins**.
-> For *what code exists today* the authority remains
-> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the
-> two are reconciled here via the **Status** column.
-
-## Design philosophy
-
-AORMS must not feel like traditional ERP or office-management software. The
-navigation reflects how an architecture practice naturally operates:
-
-> Growth drives business · Studio drives execution · Learning drives better
-> professionals · Office supports operations.
-
-Principles: architecture-native terminology; minimise enterprise complexity; keep
-frequently-used modules primary; push configuration and infrastructure deeper;
-work and learning coexist in one ecosystem.
-
-## Five permanent pillars
-
-```
-HOME · GROWTH OS · STUDIO · LEOS · OFFICE
-```
+> This document is the **single source of truth for navigation** — the sidebar,
+> module placement, and naming. Where any other doc disagrees, **this wins**. For
+> *what code exists today* the authority remains
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the two
+> are reconciled here via the **Status** column.
+>
+> **AORMS is a consultancy-only practice system.** Construction-delivery modules
+> (PMC, Construction, Programme, Tenders) and mood boards are **removed**.
 
 ## Status legend
-
 | Tag | Meaning |
 |---|---|
-| ✅ | **Live** — code exists and passes the roadmap gate |
-| 🚧 | **Partial / rebuilding** — exists in a different shape, or under active rebuild |
-| 🔲 | **Planned** — not built yet |
+| ✅ | **Built** — code exists, reachable in its V3 home |
+| 🚧 | **Partial / rebuilding** — exists in a different shape or under active rebuild |
+| 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
-> The V2 five-pillar sidebar (HOME · GROWTH OS · STUDIO · LEOS · OFFICE with nested
-> OFFICE sub-sections) is **✅ implemented** in `frontend/src/App.tsx` (Phase 32,
-> 2026-06-28). Search / Alerts / AI Studio are now **header** utilities. Individual
-> module pages are reached directly from the nested sidebar (the interim Team /
-> External-Network tab-hubs were retired). Modules tagged 🚧/🔲 below are reachable
-> where a page exists; unbuilt ones (LEOS sub-modules) are not yet present.
+## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
+`Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
+Header utilities (not sidebar): **Global Search · Notifications · AI Assistant · User Profile**.
 
 ---
 
-## 1. HOME
-
-System overview and daily operational pulse.
-
-| Module | Status | Where it lives today |
+## 1. Dashboard ✅ (tabs)
+| Tab | Status | Where |
 |---|---|---|
-| Dashboard | ✅ | `/` (`Dashboard.tsx`, `dashboard.home` bundle) |
+| Overview | ✅ | `dashboard.home` |
+| Leads Pipeline | ✅ | Dashboard "LEADS PIPELINE" tab (`Leads`) |
+| Daily Activities | ✅ | `activity` |
+| Notifications | ✅ | `notifications` / `/alerts` |
+| Pending Approvals | ✅ | dashboard Approvals |
+| Critical Deadlines | 🚧 | from tasks/phases due-soon |
+| ESTI AI Insights | ✅ | dashboard AI |
 
-## 2. GROWTH OS
+## 2. Projects ✅
+Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`): Drawings ✅ ·
+Documents ✅ · Site Progress ✅ · Project Timeline ✅. **Project Workspace tabs:**
+Drawings ✅ · Documents ✅ · **Estimation OS 🔲 · BOQ 🔲** · Site Progress ✅ ·
+Project Discussions ✅ · Transmittals ✅ *(project-only — no office-wide view)*.
 
-Practice growth and business acquisition.
+## 3. Tasks ✅
+Assigned ✅ · Site Visits ✅ · Documentation ✅ · Revisions ✅ · Deadlines ✅ ·
+Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 
-| Module | Status | Where it lives today |
+## 4. Studio
+| Group → Module | Status | Where |
 |---|---|---|
-| Leads | ✅ | `/leads` (`Leads.tsx`, `esti_lead`) |
-| Fee Proposals | ✅ | `/accounting/fees` (`FeeProposals.tsx`) |
-| Contracts | ✅ | `/office/contracts` (`Contracts.tsx`) |
-| Client Onboarding | 🚧 | exists inside the project pipeline (`ProjectPipeline.tsx`, `esti_client_onboarding`, Project OS Phase 31), not a standalone GROWTH OS nav module |
+| **Libraries › Item Library** | ✅ | `/knowledge-bank` (Materials · Labor · Specifications · **Rate Books 🔲 · Estimation Intelligence 🔲**) |
+| **Libraries › Compliance Library** | 🔲 | NBC Rules · FAR Rules · Setbacks · Fire Compliance · Regulations |
+| **Libraries › Master Plan Library** | 🔲 | PDF · DWG · Zoning Plans · Development Plans |
+| **Libraries › Standards Library** | 🔲 | Interiors · Plumbing · Electrical · Lighting (Technical Notes · Drawings · Standard Details) |
+| Teams | ✅ | `/team` |
+| Performance | ✅ | `/performance` |
+| HR | ✅ | `/hr` |
 
-Workflow: Lead → Proposal → Contract → Client Onboarding → Project created.
-
-## 3. STUDIO
-
-Core execution environment — where project work happens.
-
-| Module | Status | Where it lives today |
+## 5. Third Parties
+| Module | Status | Where |
 |---|---|---|
-| Projects | ✅ | `/projects` → `/projects/:id` (`Projects.tsx`, `ProjectDetail.tsx`) |
-| Tasks | ✅ | `/tasks` (Work hub — `Work.tsx`) |
-| Programme | ✅ | `/programme` (office portfolio rollup) + per-project programme |
-| Construction | ✅ | `/office/construction` (plan `pmc` + `pmcEnabled` + rank ≥ 60) |
-| PMC | ✅ | `/pmc` (plan `pmc` + `pmcEnabled` + rank ≥ 60) |
+| Clients | ✅ | `/clients` (profile · projects · contracts · consultancy fees · invoices · comm log) |
+| Consultants | ✅ | `/consultants` (discipline · projects · deliverables · fees · payments · coordination) |
+| Contractors | ✅ | `/contractors` (profile · projects · site coordination · billing · payments · performance) |
+| Vendors | 🔲 | vendor categories · material categories · pricing history · quotations · supplier DB |
 
-Inside each project (V2): Estimation OS · BOQ · Drawings · Documents · Site
-Progress · Construction Tracking.
-
-| In-project module | Status | Note |
+## 6. Office
+| Module | Status | Where |
 |---|---|---|
-| Drawings, Documents, Site progress, Construction tracking | ✅ | live in `ProjectDetail.tsx` / PMC site ops |
-| Estimation OS, BOQ | 🚧 | **removed in the 2026-06-28 teardown, being rebuilt** — see [ESTIMATION-OS.md](ESTIMATION-OS.md) |
-
-## 4. LEOS — Learning Environment Operating System
-
-Continuous professional development inside the practice (not a traditional LMS).
-Certificates are **not** stored here — they sync externally.
-
-| Module | Status |
-|---|---|
-| Learning Sessions (weekly / Saturday / vendor / team) | 🔲 |
-| Presentations (team, case studies, research, reviews) | 🔲 |
-| Research & Knowledge (papers, building case studies, code/standards/material discussions) | 🔲 |
-| Whiteboard Studio (design/detail discussions, markups, sketch sessions) | 🔲 |
-| Personal Learning (notes, flashcards, saved references, bookmarks) | 🔲 |
-| Assessments (practical exercises, competency tests, simulations) | 🔲 |
-| Learning Progress (hours logged, attendance, assessment history, tracker) | 🔲 |
-
-> **LEOS pillar = a navigational placeholder** (`/leos`, `Leos.tsx`) listing the
-> planned modules. The pillar is ✅ reachable; **every module inside it is 🔲 — no
-> feature code exists yet.**
-
-## 5. OFFICE
-
-Operational backbone. All secondary modules consolidate here under five
-sub-sections.
-
-### 5.1 External Network — outside relationships
-
-| Module | Status | Where it lives today |
-|---|---|---|
-| Clients | ✅ | `/clients` (`Clients.tsx`) |
-| Consultants | ✅ | `/consultants` (`Consultants.tsx`) |
-| Contractors | ✅ | `/contractors` (`Contractors.tsx`) |
-| Site Supervisors (directory) | 🔲 | `SITE_SUPERVISOR` role + site portal exist, but no directory nav module |
-
-### 5.2 Finance
-
-| Module | Status | Where it lives today |
-|---|---|---|
-| Invoices | ✅ | `/invoices` |
-| Office Expenses | ✅ | `/accounting/office-expenses` |
-| Cash Book | ✅ | `/accounting/cash-book` |
-| Reconciliation | ✅ | `/reconcile` |
-| GST Filing | ✅ | `/filing` (plan `gstFiling` + `reports:view`) |
-
-### 5.3 Internal Operations
-
-| Module | Status | Where it lives today |
-|---|---|---|
-| Team | ✅ | `/team` (`Team.tsx`; plan `hr` + `hrEnabled`) |
-| HR | ✅ | `/hr` (`Hr.tsx`; `hr:manage` + `hrEnabled`) |
-| Performance | ✅ | `/performance` (`Performance.tsx`; plan `performance` + rank ≥ 60 + `hrEnabled`) |
-| Documents Register | ✅ | `/office/documents` |
+| Proposals | ✅ | `/office/proposals` — **unified** COA fee proposals + scope agreements (one `esti_proposal` model) |
+| Contracts | ✅ | `/office/contracts` (firm↔client; not shown in the project workspace) |
 | Letters | ✅ | `/office/letters` |
 
-### 5.4 Standards Library *(was "Knowledge Bank")*
-
-System-configuration / reference layer — not a daily-use module; restricted access.
-
-| Group → Module | Status | Note |
+## 7. Finance
+| Module | Status | Where |
 |---|---|---|
-| Construction Standards (Items, Categories, Specification Books, Specifications) | 🚧 | Knowledge Bank rebuild in progress (`specCatalog`, library CSV import/recipes) — see [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md). Today `/knowledge-bank` ships Specification + Lessons |
-| Estimation Intelligence (Rules Engine, Recipes Engine, Rate Books, Formula Engine) | 🚧 | **Rate Books removed (migration 0108); Estimation OS torn down 2026-06-28.** Recipes data-mapper landing (KB Phase 2b). Target: [ESTIMATION-OS.md](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) |
+| Consultancy Invoices | ✅ | `/invoices` |
+| Cashbook | ✅ | `/accounting/cash-book` |
+| Office Expenses | ✅ | `/accounting/office-expenses` |
+| Payroll | 🚧 | from `team/hr.ts` payroll → `/finance/payroll` (planned) |
+| Financial Reports | 🚧 | `/filing` (GST/TDS) + reports |
 
-### 5.5 Administration
-
-| Module | Status | Where it lives today |
+## 8. LXOS — Learning Exchange Operating System
+Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 4 layers:
+| Layer | Status | Contents |
 |---|---|---|
-| Company | ✅ | `/company` (`firm:admin`) |
-| Users | ✅ | `/users` (`firm:admin`) |
-| Audit Log | ✅ | `/audit` (plan `auditLog` + `firm:admin`) |
-| License Management | 🚧 | lives inside Company (`LicensePanel`); not a separate nav module |
+| Internal Exchange (firm-private) | 🔲 | Project Learnings (site · design decisions · revisions · **Lessons Learned — wire `LessonsBank` ✅**) · Documentation Exchange · Internal Blogs · Whiteboard Studio · Knowledge Notes |
+| Community Exchange (cross-firm) | 🔲 | Case studies · documentation showcase · architecture blogs · technical/standards discussions · vendor reviews · templates exchange · research papers · open discussions |
+| Professional Identity | 🔲 | AORMS ID · role · knowledge contributions · community reputation · articles · templates · contribution history *(shared with User Profile)* |
+| Certification & Growth | 🔲 | AORMS certification (Architect/HR/Finance/Operations) · skill assessments · levels (Foundation/Practitioner/Specialist/Master) · learning history *(shared with User Profile)* |
+
+## 9. Admin
+| Module | Status | Where |
+|---|---|---|
+| Company | ✅ | `/company` |
+| Users | ✅ | `/users` |
+| Licensing | 🚧 | in Company (`LicensePanel`) |
+| Audit Logs | ✅ | `/audit` |
 | Settings | ✅ | `/settings` |
 
 ---
 
-## Header utilities *(not in the sidebar)*
+## Header utilities
 
 | Utility | Status | Today |
 |---|---|---|
-| Global Search | ✅ | header Search action → `/search` (`SearchPage`) |
-| Notifications | ✅ | `AlertsBell` in header → `/alerts` |
-| Pomodoro Timer | ✅ | `HeaderPomodoro` |
-| AI Assistant | ✅ | "Ask ESTI" floating action + header AI Studio action → `/office/ai-studio` |
-| User Profile | ✅ | `UserIdCard` in header |
+| Global Search | ✅ | header Search action → `/search` |
+| Notifications | ✅ | `AlertsBell` → `/alerts` |
+| AI Assistant | ✅ | "Ask ESTI" + header AI Studio action → `/office/ai-studio` |
+| User Profile | 🚧 | see below |
 
-## Removed from the dedicated sidebar (V2)
-
-These no longer get top-level navigation; they are integrated elsewhere:
-
-| Today | V2 home |
-|---|---|
-| Search (top-level link) | Header utility |
-| Alerts (top-level link) | Header utility (Notifications) |
-| AI Studio (Practice group) | Integrated (header AI assistant / project AI) |
-| Knowledge Bank (top-level link) | **Renamed → OFFICE › Standards Library** |
-| Admin (group) | OFFICE › Administration |
-| Accounts (group) | OFFICE › Finance |
-| Practice (group) | split: GROWTH OS (proposals/contracts) + STUDIO (programme/PMC/construction) + OFFICE (documents/letters/AI) |
+### User Profile (AORMS Identity Layer)
+Opened from the header; expands today's `Settings.tsx`.
+| Section | Status | Notes |
+|---|---|---|
+| Personal Profile | ✅ | name · photo · email · mobile · department · designation · joining date |
+| AORMS Identity | 🔲 | AORMS Unique ID (e.g. `AORMS-IND-000245`) · professional role · firm mapping |
+| AORMS Certification | 🔲 | tracks ACA/ACE/ACC/ACOM/ACFM/ACO × levels (Foundation→Master) · history *(shared with LXOS)* |
+| AORMS Index | 🔲 | overall · knowledge contribution · skill · platform competency · community reputation scores |
+| Work Profile | 🚧 | assigned projects · active/completed tasks · attendance/work-hours · performance (aggregate existing) |
+| LXOS Profile | 🔲 | blogs · learnings shared · contributions · templates · discussions |
+| Notifications · Activity History · Preferences (Theme · Dashboard Layout · Notification prefs · Security) · Logout | ✅ | current `Settings.tsx` + header |
 
 ---
 
-## Current vs V2 (gap summary)
+## Removed (consultancy-only)
+Not in V3; routes redirect or are gone: **PMC**, **Construction**, **Programme**,
+**Tenders**, **Mood boards** (`/pmc`,`/programme`,`/office/construction` → `/projects`).
+Growth OS dissolved (Leads → Dashboard tab). Fee proposals + the thin proposal →
+unified **Proposals**.
 
-**Implemented (Phase 32, 2026-06-28):** the five-pillar nested sidebar is live in
-`frontend/src/App.tsx` — HOME (Dashboard) · GROWTH OS (Leads, Fee proposals,
-Proposals, Contracts) · STUDIO (Projects, Tasks, Programme, Construction, PMC) ·
-LEOS (placeholder) · OFFICE → nested External Network / Finance / Internal
-Operations / Standards Library / Administration. Each module is its own page reached
-from the nested sidebar; the interim Team / External-Network **tab-hubs were retired**
-(individual routes restored). Search + AI Studio moved to **header** actions; Alerts
-stays the header bell. Knowledge Bank is relabelled **Standards Library** in the nav.
-
-**Still to do (🔲 unless noted):**
-1. Build the **LEOS** pillar for real (greenfield) — today it is a `/leos` placeholder.
-2. Rename the Knowledge Bank **page** content to "Standards Library" (only the nav
-   label is renamed so far; `KnowledgeBank.tsx` still titles itself "Knowledge Bank").
-3. Add a **Site Supervisors** directory; surface **Client Onboarding** and
-   **License Management** as their own modules.
-4. Land the Estimation OS / BOQ / Standards-Library rebuild (tracked separately).
-
-**Legacy redirects kept:** `/external-network` and `/third-parties` → `/clients`;
-`/work` → `/tasks`; `/dsr` → `/knowledge-bank`. The `Team`/`Hr`/`Performance`/
-`Clients`/`Consultants`/`Contractors` page components retain an unused `embedded`
-prop (harmless) from the retired-hub era.
+## Build-vs-placeholder policy
+**Built/wired:** the V3 menu, Dashboard Leads tab, Proposals merge, removals, LXOS
+rename. **Build fully (Stage 2):** the 3 new Libraries (Compliance, Master Plan,
+Standards). **Placeholder / follow-on builds:** Estimation OS · BOQ · Rate Books ·
+Estimation Intelligence (the separate Estimation-OS rebuild), Vendors, Payroll,
+LXOS exchange layers, and the User-Profile/LXOS identity·certification·index
+subsystems. See [ROADMAP.md](ROADMAP.md) Phase 32 and the implementation plan.
 
 ## Closing philosophy
-
-AORMS is not architecture-office-management software — it is an **operating system
-for design studios**: work and learning coexist, knowledge becomes infrastructure,
-growth becomes measurable, professional development becomes continuous.
+AORMS is an **operating system for design studios**: work and learning coexist,
+knowledge becomes infrastructure (LXOS), growth becomes measurable.

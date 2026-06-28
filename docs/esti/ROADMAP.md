@@ -78,32 +78,47 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | 29 | ~~Estimation OS — costing spine~~ — **REMOVED 2026-06-28** (rebuilding, see banner) | P1 | ⛔ |
 | 30 | ~~Estimation OS — work packages + running bills~~ — **REMOVED 2026-06-28** | P1 | ⛔ |
 | [31](#phase-31---project-os-lead-to-active-project-pipeline-p1) | Project OS — lead → active project pipeline (Slices A–K) | P1 | ✅ |
-| 32 | **Navigation V2 — five-pillar IA** (HOME · GROWTH OS · STUDIO · LEOS · OFFICE). Spec: [NAVIGATION.md](NAVIGATION.md). Sidebar shell shipped; LEOS feature + page renames pending. | P2 | 🔄 |
+| 32 | **Canonical V3 nav (consultancy-only)** — 9 pillars; Spec: [NAVIGATION.md](NAVIGATION.md). Menu + proposals merge + removals shipped; Libraries/LXOS/Vendors/Profile pending. | P1 | 🔄 |
 
 ---
 
-## Phase 32 — Navigation V2 (five-pillar IA) (P2)
+## Phase 32 — Canonical V3 navigation (consultancy-only) (P1)
 
-**Canonical spec:** [NAVIGATION.md](NAVIGATION.md).
+**Canonical spec:** [NAVIGATION.md](NAVIGATION.md). AORMS narrows to a
+**consultancy-only** practice system on the V3 nine-pillar menu (Dashboard · Projects
+· Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin).
 
-**Shipped (🔄 2026-06-28):** the five-pillar **nested sidebar** is live in
-`frontend/src/App.tsx` — HOME · GROWTH OS · STUDIO · LEOS · OFFICE (OFFICE nests
-External Network / Finance / Internal Operations / Standards Library / Administration).
-Each module is its own page reached from the nested sidebar; the interim Team /
-External-Network tab-hubs were retired (individual routes restored). **Search + AI
-Studio moved to header** actions; Alerts stays the header bell. Knowledge Bank
-relabelled **Standards Library** in the nav. Verified: frontend tsc 0, eslint clean,
-in-browser (nested menus, individual pages, LEOS placeholder, no console errors).
+**Shipped (🔄 2026-06-29):**
+- V3 nine-pillar nested sidebar in `App.tsx`; Leads → Dashboard "LEADS PIPELINE" tab
+  (Growth OS dissolved); Search + AI Studio are header actions.
+- **Consultancy-only removals:** PMC, Construction, Programme removed from nav (routes
+  redirect to `/projects`); tenders already gone; mood boards dropped from the document
+  register (full mood-board teardown pending).
+- **Proposals unified** into one `esti_proposal` model (fee proposal + thin scope doc;
+  migration 0116; one `proposals` namespace incl. the client-approval gate).
+- **LXOS** (renamed from LEOS) placeholder pillar with 4 layers (Internal Exchange,
+  Community Exchange, Professional Identity, Certification & Growth).
+- Verified: contracts/backend/frontend tsc 0, migration applied, browser (V3 menu,
+  unified Proposals listing PRP+FEE, Leads tab, LXOS, no console errors).
 
-**Still planned (⬜ unless noted):**
-- **LEOS** pillar — greenfield feature build (today `/leos` is a placeholder listing planned modules: learning sessions, presentations, research, whiteboard, personal learning, assessments, progress).
-- Rename the Knowledge Bank **page** content → "Standards Library" (only the nav label changed so far).
-- Surface **Client Onboarding**, **Site Supervisors** directory, **License Management** as their own modules.
-- Land the Estimation OS / BOQ / Standards-Library rebuild (tracked separately: [ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
+**Still to build (staged; ⬜ unless noted):**
+- **Stage 1 finish:** full mood-board teardown; project-workspace cleanup (drop PMC
+  tab group; hide fee/contracts from the project view).
+- **Stage 2 — Studio › Libraries (build fully):** Compliance Library (NBC/FAR/Setbacks/
+  Fire/Regulations), Master Plan Library (PDF/DWG/Zoning/Development), Standards Library
+  (Interiors/Plumbing/Electrical/Lighting). Item Library = KB minus Lessons.
+- **Stage 3:** Finance Payroll page; Third Parties › Vendors placeholder.
+- **Stage 4:** LXOS exchange layers + wire Lessons in; finish docs reconcile.
+- **Stage 5:** User Profile (AORMS Identity Layer) — Personal/Work profile wired;
+  AORMS Identity/Certification/Index + LXOS Profile placeholders (identity + cert data
+  shared with LXOS).
+- Estimation OS · BOQ · Rate Books · Estimation Intelligence — the separate rebuild
+  ([ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
 
-**Gate (sidebar — met):** the live sidebar matches NAVIGATION.md (every ✅ module
-reachable under its V2 pillar); no module appears in two places; LEOS pillar
-reachable. **Remaining for phase close:** LEOS feature build.
+**Gate (menu — met):** the live sidebar matches NAVIGATION.md (every ✅ module
+reachable under its V3 pillar); no module appears twice; consultancy-only removals
+done. **Remaining for phase close:** Stages 1-finish → 5 (mood-board teardown +
+project cleanup, the 3 Libraries, Finance/Vendors, LXOS + Lessons, User Profile).
 
 ## Product snapshot
 

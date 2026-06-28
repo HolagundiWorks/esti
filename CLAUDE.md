@@ -130,7 +130,10 @@ GST rates, SAC codes)
 **Clients & projects:**
 - `clients` — client CRM; `clientLog` — interaction history
 - `projectOffice` — project-level admin data; `phases` — project phase management
-- `proposals` — project proposals; `feeProposals` — fee proposals (`fees:manage`)
+- `proposals` — **unified** proposals: COA fee proposals + scope agreements in one
+  `esti_proposal` model (`fees:manage`); includes the Project OS client-approval gate
+  (`setClientApproval`). *(The separate `feeProposals` namespace + thin `esti_proposal`
+  were merged here — migration 0116.)*
 - `invoices` — GST invoicing (`invoice:manage`/`invoice:delete`); `reconcile` —
   financial reconciliation; `purchaseOrders` — PO management
 - `permits` — building permit tracking; `approvals` — internal approval workflows
@@ -197,13 +200,13 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 ## Frontend routes (`frontend/src/routes/`)
 
 > **Sidebar / module placement** is canonically defined in
-> [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **V2 five-pillar** IA
-> (HOME / GROWTH OS / STUDIO / LEOS / OFFICE) with per-module live/planned status.
-> The nested sidebar is implemented in `App.tsx` (a recursive `NavNode` tree:
-> `link` | `menu`; OFFICE nests External Network / Finance / Internal Operations /
-> Standards Library / Administration). Search + AI Studio are **header** actions.
-> Each module is its own page (the earlier Team / External-Network tab-hubs were
-> retired). Edit nav by changing the `nav` tree, and keep NAVIGATION.md in sync.
+> [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **Canonical V3** IA
+> (Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS ·
+> Admin), consultancy-only, with per-module ✅/🚧/🔲 status. The nested sidebar is a
+> recursive `NavNode` tree (`link` | `menu`) in `App.tsx`; Studio nests Libraries.
+> Search + AI Studio are **header** actions. **Removed (consultancy-only):** PMC,
+> Construction, Programme, Tenders, mood boards. Edit nav via the `nav` tree and keep
+> NAVIGATION.md in sync.
 
 Key routes by area:
 
@@ -213,14 +216,14 @@ Key routes by area:
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |
-| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); OFFICE › External Network (`/clients`) |
-| `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias); STUDIO › Tasks |
-| `Leos.tsx` | **LEOS** pillar placeholder (`/leos`) — lists planned learning modules; no feature code yet |
-| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated); OFFICE › Internal Operations (`/team`, `/hr`) |
-| `FeeProposals.tsx` / `Invoices.tsx` | Financial documents |
-| `Proposals.tsx` | Project proposals |
-| `Reconcile.tsx` | Financial reconciliation |
-| `Consultants.tsx` / `Contractors.tsx` | External consultants / contractors (OFFICE › External Network) |
+| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); Third Parties (`/clients`) |
+| `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias); Tasks pillar |
+| `Lxos.tsx` | **LXOS** pillar placeholder (`/lxos`; `/leos` redirects) — 4 exchange layers, greenfield |
+| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated); Studio (`/team`, `/hr`) |
+| `Invoices.tsx` | Consultancy invoices (Finance) |
+| `Proposals.tsx` | **Unified Proposals** (Office, `/office/proposals`) — COA fee + scope; `trpc.proposals` |
+| `Reconcile.tsx` | Financial reconciliation (route kept; not in V3 menu) |
+| `Consultants.tsx` / `Contractors.tsx` | Consultants / contractors (Third Parties) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
 | `KnowledgeBank.tsx` | Specification, Lessons tabs |

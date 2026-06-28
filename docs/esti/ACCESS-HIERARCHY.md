@@ -140,63 +140,55 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 
 ## 7. Navigation sidebar
 
-> Module placement and naming follow [NAVIGATION.md](NAVIGATION.md) (the canonical
-> V2 five-pillar IA, implemented as the nested sidebar in `App.tsx`). This section
-> lists **what each level sees**, by pillar / section. Each module is its own page
-> (`/clients`, `/team`, `/hr`, …); the LEOS pillar is a placeholder (`/leos`) until
-> its feature build lands.
+> Module placement and naming follow [NAVIGATION.md](NAVIGATION.md) (the **Canonical
+> V3** IA, consultancy-only, implemented as the nested sidebar in `App.tsx`). This
+> section lists **what each level sees**, by V3 pillar. Each module is its own page
+> (`/clients`, `/team`, `/hr`, …); LXOS is a placeholder (`/lxos`) until its feature
+> build lands. Construction-delivery (PMC/Construction/Programme/tenders) is removed.
 
 ### Always visible (L5+)
 
-- HOME → Dashboard
-- STUDIO → Projects (list), Tasks (Board / Calendar / Activity)
-- OFFICE → Standards Library *(Knowledge Bank)*
-- OFFICE → Administration → My profile / Settings
-- OFFICE → Internal Operations → Team (names and roles only)
-- Header → Notifications (Alerts), Global Search
+- Dashboard (Overview, Leads Pipeline, Daily Activities, …)
+- Projects · Tasks
+- Studio → Libraries (Item Library), Teams (names and roles only)
+- Admin → Settings (My profile)
+- Header → Global Search, Notifications, User Profile
 
 ### L4+ (ASSOCIATE and above)
 
-- STUDIO → Tasks → Client requests / Consultant requests tabs
-- OFFICE → External Network → Clients (view only for L4)
-- OFFICE → Internal Operations → Documents Register, Letters
-- GROWTH OS → Contracts (view only for L4)
+- Tasks → Client requests / Consultant requests tabs
+- Third Parties → Clients (view only for L4)
+- Office → Contracts (view only for L4), Letters
 
 ### L3+ (SENIOR and above)
 
-- STUDIO → Tasks (full write access)
-- OFFICE → External Network → Clients (full), Consultants, Contractors
-- STUDIO → Programme, Construction, PMC
-- OFFICE → Internal Operations → Performance (own ASPRF card only)
+- Tasks (full write access)
+- Third Parties → Clients (full), Consultants, Contractors
+- Studio → Performance (own ASPRF card only)
 - (AI assistant — header)
 
 ### L2+ (PARTNER and above)
 
-- **OFFICE → Finance:**
-  - Invoices
-  - Office expenses
-  - Cash book
-  - Reconciliation
-  - GST / TDS filing
-- GROWTH OS → Fee Proposals, Proposals
-- OFFICE → Internal Operations → HR / Payroll
-- OFFICE → Internal Operations → Performance (full team view)
-- STUDIO → Tasks → Workload, Attendance
-- OFFICE → Administration → Archived projects
+- **Finance:** Consultancy Invoices · Cashbook · Office Expenses · Payroll · Financial Reports
+- Office → Proposals
+- Studio → HR / Payroll
+- Studio → Performance (full team view)
+- Tasks → Workload, Attendance
+- Admin → Archived projects
 
 ### L1 only (OWNER)
 
-- OFFICE → Administration → Company settings (edit)
-- OFFICE → Administration → Users
-- OFFICE → Administration → Audit log
-- OFFICE → Administration → License Management
-- OFFICE → Internal Operations → HR → Salary amounts (read)
+- Admin → Company settings (edit)
+- Admin → Users
+- Admin → Audit Logs
+- Admin → Licensing
+- Studio → HR → Salary amounts (read)
 
 ### System Admin overlay only
 
-- OFFICE → Administration → Import demo data
-- OFFICE → Administration → Purge / reset installation
-- OFFICE → Administration → System release metadata
+- Admin → Import demo data
+- Admin → Purge / reset installation
+- Admin → System release metadata
 
 ---
 

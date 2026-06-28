@@ -18,7 +18,8 @@
 > and being rebuilt. Verified against the live tRPC router.
 >
 > **Navigation / sidebar** is defined canonically in [NAVIGATION.md](NAVIGATION.md)
-> (the V2 five-pillar IA: HOME / GROWTH OS / STUDIO / LEOS / OFFICE). This section
+> (the Canonical V3 IA, consultancy-only: Dashboard · Projects · Tasks · Studio ·
+> Third Parties · Office · Finance · LXOS · Admin). This section
 > stays authoritative for *what code exists*; NAVIGATION.md is authoritative for
 > *where it appears*.
 
@@ -125,7 +126,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 ## Reading order for a new agent
 
 1. **This doc** — the six pillars + the **System state** (what's live / removed / rebuilding). Authoritative on current state.
-2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (V2 five-pillar IA).
+2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (Canonical V3, consultancy-only).
 3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS.md](ESTIMATION-OS.md) — the active rebuild (cost/estimation domain).
 4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
 5. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
