@@ -75,8 +75,8 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [26](#phase-26---dark-theme-lock-and-landing-operational-grid-p2) | Dark theme lock & landing operational grid | P2 | ✅ |
 | [27](#phase-27---aorms-cognition-engine-and-primary-office-attention-p1) | AORMS Cognition Engine & Primary Office Attention | P1 | ✅ |
 | [28](#phase-28---executive-cognitive-load-engine-p1) | Executive Cognitive Load Engine | P1 | ✅ |
-| [29](#phase-29---estimation-os-costing-spine-p1) | Estimation OS — costing spine (OS Phases 1–3) | P1 | 🔄 |
-| [30](#phase-30---estimation-os-work-packages--running-bills-p1) | Estimation OS — work packages + running bills (OS Phase 4) | P1 | ✅ |
+| 29 | ~~Estimation OS — costing spine~~ — **REMOVED 2026-06-28** (rebuilding, see banner) | P1 | ⛔ |
+| 30 | ~~Estimation OS — work packages + running bills~~ — **REMOVED 2026-06-28** | P1 | ⛔ |
 | [31](#phase-31---project-os-lead-to-active-project-pipeline-p1) | Project OS — lead → active project pipeline (Slices A–K) | P1 | ✅ |
 
 ---
@@ -90,10 +90,10 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 - Staff auth ladder, firm/team/HR, clients, projects, tasks & Work module (Kanban, workload heatmap, attendance, activity)
 - Fee proposals, invoices, reconciliation, filing abstracts, dashboard boards & intelligence tiles
 - Project memory: CRIF decision ledger, revision source, scope drift, archive/retention
-- Knowledge Bank: Rate Books, rate analysis, components, specification catalogue, parametric, lessons
+- Knowledge Bank (`kb`): Material / Labour / Item libraries, item Specifications, consumption Recipes (with CSV import/export), Brand Catalogue, lessons. *(Rate Books, rate analysis, components, parametric — **removed** 2026-06-28.)*
 - Client & consultant portals with threaded submissions and activity feeds
 - ASPRF performance scoring, escalations, leave-impact alerts
-- Contractor register, tender packages, token-scoped contractor bid portal, sealed bids, tender documents/addenda, site coordination (RFI/NCR/submittals)
+- Contractor register + site coordination (RFI/NCR/submittals). *(Tender packages, contractor bid portal, sealed bids — **removed** 2026-06-28 with the Construction Cost spine.)*
 - **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
 - **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
@@ -868,78 +868,14 @@ Replace the "show all problems" dashboard pattern with a system that actively pr
 
 ---
 
-## Phase 29 — Estimation OS: costing spine [P1] — 🔄 In progress (2026-06-25)
+## Phase 29–30 — Estimation OS (costing spine + work packages) — REMOVED 2026-06-28
 
-Turns the flat `esti_estimate` engine into the component-based **Estimation OS**.
-Specs: [ESTIMATION-OS](ESTIMATION-OS.md); sub-phase sequencing in the
-restructure / Construction Cost OS tracker (§ "AORMS restructure & Construction
-Cost OS" below; restructure Phase 4 + 6).
-Extends the existing engine — one component master, never a parallel estimate;
-every change is audited and frozen estimates are snapshotted, never overwritten.
-
-**Active increment (OS Phases 1–3):**
-- **Design-stage estimation** — `esti_estimate` gains stage + wider status;
-  items gain cost head, calculation type (AREA_RATE/PERCENTAGE/LUMPSUM/
-  NON_MODELED), confidence, and % clause parent; freeze writes an
-  `esti_estimate_version` snapshot.
-- **Component + IFC execution detail** — `esti_component` (AORMS code) master,
-  `esti_ifc_mapping` catalog, `esti_component_related` templates, and
-  `esti_estimate_component` expansion to BOQ items via a deterministic formula
-  registry (auto-BOQ).
-- **Ratebook + rate analysis** — complete the existing
-  `esti_rate_analysis`/`esti_rate_component` build-up and link component rates.
-
-**Done (OS Phase 4 — see Phase 30):** work packages + running bills with
-double-billing prevention. **Deferred at the time (OS Phases 5–6):**
-deviations/escalation (shipped CC Phase D, 2026-06-25), IFC re-sync — overlaps
-PMC/site-delivery.
-
-**Gate:** new `esti_component*`/`esti_estimate_version`/`esti_estimate_component`
-tables migrated; a design-stage estimate with a % clause and a non-modeled item
-computes correct paise totals; a component expands to auto-BOQ lines; freeze
-produces a version snapshot; Pure Carbon costing window renders; typecheck +
-carbon-check + worker pytest clean.
-
-> **Superseded references:** Phase 2E (SteelFlow AI), Phase 4A (RIE/compliance),
-> Phase 21 (Unified compliance IA), and Knowledge Bank SteelFlow/compliance
-> tabs describe features **removed** in the 2026-06 Knowledge-Bank cleanup
-> (RIE/compliance engine, BBMP calculator, SteelFlow `sf_*`). Their phase
-> sections are retained as delivery history but no longer describe live product.
-
----
-
-## Phase 30 — Estimation OS: work packages + running bills [P1] — ✅ Complete (2026-06-25)
-
-OS Phase 4. Closes the loop from frozen estimate to contractor billing on **one
-spine** — no parallel bill engine. Additive, non-breaking extension of the
-existing `esti_running_bill` flow (free-text bills keep working).
-
-- **Work packages** (`esti_work_package` / `esti_work_package_item`, migration
-  `0088`) — carved from a **frozen** `esti_estimate_version`; each item references
-  its `boqItemId` (→ `esti_estimate_item`) with an approved qty, a manual
-  `variationQty` allowance, and a rate. Status DRAFT→ISSUED→AWARDED→ACTIVE→CLOSED;
-  contractor assignment; `workPackages` tRPC namespace + `billedSummary` ledger.
-- **Double-billing prevention (spec Rule 9)** — `billableBalance()` in
-  `packages/contracts/src/pmc.ts` (`approved + variation − previously billed`);
-  `runningBills.create` sums prior billed qty per `boqItemId` across the project
-  and rejects an over-bill (`BAD_REQUEST`), even when two packages share a BOQ
-  line. Unit-tested in `pmc.test.ts`.
-- **UI (Pure Carbon)** — a "Work packages" stage in the project Costing &
-  Measurement window; package-driven bill creation with inline over-bill blocking;
-  the contractor portal shows the approved balance per measured line.
-
-**Gate:** migration `0088` applied (work-package tables + nullable ledger columns
-on `esti_running_bill*`); a bill against a package item at qty ≤ balance succeeds
-and qty > balance is blocked both server-side and in the UI; contractor portal
-returns balances; contracts build + `pmc.test.ts`, backend + frontend typecheck,
-and carbon-check clean.
-
-**Deferred at the time (OS Phases 5–6):** deviation/escalation engine (then only a
-manual `variationQty` allowance — shipped CC Phase D, 2026-06-25, where governed
-variations are the sole writer of that ledger); IFC re-sync; running-bill PDF
-(shipped CC Phase C worker target).
-
----
+> These phases built the component-based Estimation OS (design-stage estimate, component
+> master + IFC + auto-BOQ, rate analysis, work packages + running bills). The **entire
+> Estimation OS was torn down on 2026-06-28** and is being rebuilt ground-up — see
+> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+> [ESTIMATION-OS.md](ESTIMATION-OS.md). Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ## Deferred ideas [P3]
 
@@ -1001,77 +937,21 @@ Condensed session notes — detail lives in phase sections above.
 
 ---
 
-## AORMS restructure & Construction Cost OS
+## AORMS restructure & Construction Cost OS — REMOVED (superseded)
 
-_Folded 2026-06-25 from the former `IMPLEMENTATION-ROADMAP.md` (now in
-`deprecated_review/`). This is the current forward increment; the phase sections
-above are delivery history. Source designs:
-[INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) ·
-[PLANS-AND-TIERS](PLANS-AND-TIERS.md)._
-
-Sequenced to be **non-breaking at each step**, landing foundations before things
-that depend on them.
-
-| Phase | What | Risk | Depends on |
-|---|---|---|---|
-| **1. Plan & quota foundation** | `plan` on org settings; `Plan`/`PLAN_LIMITS`/`planAllows` in contracts; `settings.get` exposes plan; quota helper; seed (demo = Enterprise); `usePlan` hook. | low | — |
-| **2. Enforce tiers** | Apply `planAllows` gates to nav/features; quota checks on create (team/clients/contractors/projects) with upgrade prompts; Lite hides AI. | med | 1 |
-| **3. Project two-head refactor** | ProjectDetail → **Consultancy \| Project Management** heads; BOQ moves to PM; billing in-project. | med | — |
-| **4. Single Costing & Measurement window** | Consolidate estimates + measurement + BBS + running bills into one staged workspace on a shared item/rate spine (**Estimation OS** — see [ESTIMATION-OS](ESTIMATION-OS.md)). | med-high | 3 |
-| **5. Global nav restructure** | The 9 areas; Programme/PMC become read-only **portfolio** rollups; Tenders/Construction leave "Office". | med | 3 |
-| **6. Rate analysis capability** | Composite-rate build-up (material+labour+machinery+overhead) feeding the rate-book library and the costing window. | high | 4 |
-| **7. Cleanup** | **Done (2026-06)** — the entire compliance engine (bylaw nav, RIE, BBMP calculator) **and** the public `/compliance-check` SEO tool were removed; persistent spec→rate-book mapping shipped; **"DSR" eliminated → "Rate Books"** everywhere incl. marketing/SEO. | low | — |
-
-**Locked assumptions:** demo = Enterprise, new firms default Lite; Lite keeps basic
-GST invoicing (reconciliation/filing are Core); Core = 25 seats + add-seats; the
-in-product compliance engine **and** the public `/compliance-check` SEO tool are
-**removed** (not retained); **"DSR" is eliminated everywhere → "Rate Books"**
-(product *and* marketing/SEO), keeping only the `dsr` code namespace; rate-analysis
-build-up is net-new (scaffolding tables exist, the engine does not); Estimation OS
-**extends** the existing `esti_estimate` engine — one component master, never a
-parallel estimate.
-
-### Estimation OS sub-phases (restructure Phase 4 + 6)
-
-| OS phase | What | State |
-|---|---|---|
-| **1. Design-Stage Estimation** | `esti_estimate` gains stage + wider status; cost head, calculation type, confidence, % clause parent; freeze → `esti_estimate_version` snapshot. | **Done** |
-| **2. Component + IFC execution detail** | `esti_component` master + `esti_ifc_mapping` catalog + related templates; auto-BOQ via the contracts formula registry. | **Done** |
-| **3. Ratebook + Rate Analysis** | Complete `esti_rate_analysis` build-up; link `componentId`; rate sourced from analysis or rate book. | **Done** |
-| **4. Work packages + running bills** | Group frozen BOQ into contractor packages; running bills check previously-billed qty across the project (double-billing prevention). | **Done** |
-| **5. Deviations + escalation** | Deviation records vs frozen baseline; escalation clauses. Folded into **CC Phase D**. | **Done** (CC Phase D, 2026-06-25) |
-| **6. IFC sync + intelligence** | Re-sync from updated IFC models; dependency intelligence. Folded into **CC Future**. | Next |
-
-### Construction Cost Management OS (umbrella over Estimation OS)
-
-Lifecycle: estimate → BOQ → rate analysis → BBS → **tender → award → site
-measurement → running bill → deviation/variation → final account**. Spec:
-[ESTIMATION-OS](ESTIMATION-OS.md).
-
-| CC phase | What | State |
-|---|---|---|
-| **A. BOQ tendering** | Tender BOQ from a frozen estimate version; item-wise contractor quoting + comparison (sealed→revealed, lowest-per-line, XLSX). Migration `0089`. | **Done** (2026-06-25) |
-| **B. Award → Work Order** | `tenders.award` populates a work package from the winning bid; one-shot; audit + activity. | **Done** (2026-06-25) |
-| **C. Site Measurement Book** | `esti_measurement_record` (location/floor/zone/photo, measure→approve→bill); double-billing guard on approved measurements; bill **types** + **deduction block** (→ `net_payable_paise`); running-bill PDF. Migration `0090`. | **Done** (2026-06-25) |
-| **D. Controls** | Quantity + rate deviations (rate is document-and-approve only — never overwrites the contract, Rule 5); **variation orders** + extra items via a two-step ladder (Draft → Submitted → Internal → Client → **Apply** → Closed); Apply is the only writer of the `variationQty` ledger (existing lines + self-keyed extra-item lines). New `cost:approve` gate. Migration `0091`. Subsumes Estimation OS Phase 5. | **Done** (2026-06-25) |
-| **E. BBS into the spine + Steel reconciliation** | `esti_bbs` linked to work package / BOQ line (Rule 9 plain-uuid ledger key) / drawing (`bbs.link`); optional `floor` + diameter/floor summaries; `esti_steel_reconciliation` (per-diameter scheduled-from-BBS vs issued vs consumed; `wastage = issued − consumed` + severity ladder; **DRAFT → FINALIZED**, finalize `cost:approve`-gated, locks edits). Migration `0092`. *Deferred:* steel-recon PDF, full-BBS fields (shape/lap/Ld/hook/bend), measurement-book/GRN-derived consumption. | **Done** (2026-06-25) |
-| **F. Final Account** | `esti_final_account` — **per work package**; reconciliation snapshot auto-rolled off the spine (original contract + variations/extra items + gross billed − retention/advance/TDS/other = net paid), recomputed live while DRAFT; manual closing adjustments (final certified, retention released, no-claim cert, client approval); `balanceDue = finalCertified − netPaid`. Rule-6 closure checklist (no open deviations/variations **enforced server-side**, + no-claim + client approval block; measurements/steel advisory); **DRAFT → CLOSED**, `close` `cost:approve`-gated, sets parent work package `CLOSED`; closure PDF (`final_account`). Migration `0093`. *Deferred:* project-level rollup, retention-release bill auto-gen, XLSX. | **Done** (2026-06-26) |
-| **G. Cost dashboard + reports + AI checks** | `dashboard.constructionCost(projectId)` rolls the whole spine into one calm Carbon panel (`ProjectCostDashboard.tsx`, `showBills`-gated tab): Estimated / Tendered / Awarded / Billed / Certified KPIs, cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey, deviation/variation/pending-bill exposure. Three **deterministic** risk checks (duplicate/over-billing, unbalanced bid, bill deviation) — pure + unit-tested in `cost-dashboard.ts`, advisory-only (the §9 "checker"; nothing auto-approved). Read-only, **no migration**, costing-plan gated. *Deferred:* LLM narration (`ai`), `cost_report` PDF, office-wide roll-up. | **Done** (2026-06-26) |
-| **3.4 Rate-deviation ladder** | `deviations.rateLadder` recomputes each work-package line's estimated → tendered → awarded → revised rate journey live off the spine (Rule-9 `boqItemId` join), per-hop deviation %/severity (`rateLadderHops`), active-deviation status. **Rate ladder** tab in `ProjectControls.tsx` (`ProjectRateLadder.tsx`) raises a RATE deviation via the existing Phase-D flow; create now persists the estimated/tendered rungs. **No migration** (`esti_deviation` already carried all four rate columns); Rule 5 unchanged. | **Done** (2026-06-26) |
-| **Cost-report PDF** | `dashboard.generateCostReport` computes the Phase-G cost-health model once and snapshots the whole result into `esti_cost_report` (one row per project, **unique** `project_id`, upserted), then enqueues the worker `render_pdf` `cost_report` target (`_cost_report_html`) which prints the KPIs + package/contractor tables + the risk checks **straight from the stored snapshot** — an exact, reproducible print of the dashboard, no read-model SQL duplicated in Python. "Generate PDF" button + polled `PDF:` status Tag on `ProjectCostDashboard.tsx` (write-gated). Migration `0094`. | **Done** (2026-06-26) |
-| **3.3 BOQ-validation checklist** | `estimates.validateBoq` runs the pure `validateBoqItems` checker (`boq-validation.ts`) over an estimate's lines and returns advisory warnings — missing UOM, zero/negative qty, zero rate, duplicate description, missing trade/cost head, percentage-without-basis, component-without-link — each with a severity, + a `summarizeBoqValidation` roll-up. Deterministic arithmetic (§9 "checker", never an LLM), read-only, nothing blocked. Surfaced as a "BOQ checks" panel + a header count Tag in the Design-estimate tab of `CostingWindow.tsx`. **No migration, no worker.** | **Done** (2026-06-26) |
-| **3.16 Procurement forecast** | `dashboard.procurementForecast(projectId)` — outstanding qty/value per WP item (`max(0, contractedQty − billedQty)` at awarded rate), rolled up by cost head + by package + totals. Pure `summarizeProcurementForecast` helper + 12 vitest. `ProjectProcurementForecast.tsx` (Pure Carbon) **Procurement forecast** tab in `ProjectCosting.tsx`. **No migration, no worker, no writes.** API E2E 21 checks. | **Done** (2026-06-26) |
-| **3.17 GRN + material reconciliation** | `esti_grn` (header) + `esti_grn_item` (lines) — delivery DRAFT→VERIFIED (`cost:approve`-gated). `grn.materialReconciliation(projectId)` read model: contracted qty vs received (Σ verified GRN items) vs billed (Σ measurement records) per WP item → on-site stock + pending-delivery qty; `summarizeMaterialRecon` pure helper + 7 vitest. `ProjectGrn.tsx` + `ProjectMaterialReconciliation.tsx` (Pure Carbon) as **GRN & materials** tab in `ProjectCosting.tsx`. Migration `0099`. **No worker.** | **Done** (2026-06-26) |
-| **Future** | AI narration, IFC/CAD extraction. | Deferred |
-
-**The Construction Cost OS spine is complete (A–G, shipped through 2026-06-26):**
-`estimate → frozen BOQ → tender → award → work package → site measurement →
-running bill → deviations/variations → BBS + steel reconciliation → final account
-+ closure → cost dashboard + risk checks`. Five Future-row slices also shipped:
-**rate-deviation ladder (3.4)**, **cost-report PDF**, **BOQ-validation checklist (3.3)**,
-**procurement forecast (3.16)**, and **GRN + material reconciliation (3.17)** — all
-done 2026-06-26. UI governance: **Pure Carbon everywhere**, mobile-first portals — see
-[CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).
+> **The entire Estimation OS + Construction Cost spine that this section used to track
+> was torn down on 2026-06-28** — component master, RuleSet / auto-BOQ, tenders +
+> contractor bidding, work packages, running bills, measurement book, deviations /
+> variations, BBS + steel reconciliation, final accounts, cost dashboard, procurement
+> forecast, GRN, Rate Books, Rate Analysis. The detailed "Done (A–G)" tracker that lived
+> here is **obsolete and has been deleted** so agents don't read it as current.
+>
+> Replacement (ground-up rebuild on a cleaner model):
+> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) — the reference
+> foundation (Material / Labour / Item libraries, Specifications, Recipes live) →
+> [ESTIMATION-OS.md](ESTIMATION-OS.md) — estimate → derivation → BOQ → cost (planned).
+> Current system state is authoritative in
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ---
 
