@@ -181,7 +181,7 @@ Carbon check, render-200) → commit**. Built on a fresh branch off `main`.
 
 | Phase | Scope | Deliverable |
 | --- | --- | --- |
-| **1 — Core Libraries** | `material`, `labor`, `item` tables + CRUD + three KB tabs | Author the raw vocabulary |
+| **1 — Core Libraries** ✅ | `material`, `labor`, `item` tables + CRUD + three KB tabs | **Shipped** — migration `0109`, `kb.{materials,labor,items}.*` namespace, Materials/Labour/Items tabs in the Knowledge Bank |
 | **2 — Specifications + Recipes** | `specification`, `spec_material`, `spec_labor`; spec versioning + `is_default` | Define method specs and their resource recipes under an item |
 | **3 — Brand Layer** | `brand`, `material_brand` (grade/variant, preferred) | Map generic materials to approved branded variants |
 | **4 — Rate Intelligence** | `vendor`, `vendor_rate` (time-bounded, by location) | Capture live procurement rates; latest-rate resolution |

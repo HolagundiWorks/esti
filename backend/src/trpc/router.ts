@@ -53,6 +53,7 @@ import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
+import { kbRouter } from "../modules/knowledgebank/kb.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
@@ -162,6 +163,7 @@ export const appRouter = router({
   payroll: payrollRouter,
   hrProfile: hrProfileRouter,
   knowledgeBank: knowledgeBankRouter,
+  kb: kbRouter,
   specCatalog: specCatalogRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,
