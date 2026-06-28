@@ -195,3 +195,6 @@ export const appRouter = router({
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */
 export type AppRouter = typeof appRouter;
+
+// Re-exported so the merged platform-admin frontend can type its tRPC client.
+export type { PlatformRouter } from "../licensing-platform/register.js";
