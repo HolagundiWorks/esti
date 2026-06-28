@@ -20,7 +20,6 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
 import { ProjectClientLog } from "../components/ProjectClientLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
-import { ProjectCosting } from "../components/ProjectCosting.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
 import { ProjectExpenses } from "../components/ProjectExpenses.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
@@ -138,13 +137,6 @@ export function ProjectDetail() {
       pmcTabs.push({ slug: "site-visits", label: "Site visits", panel: <ProjectSiteVisits projectId={id} /> });
     }
     if (showCosting) {
-      // Phase 4: single Costing & Measurement window across the delivery spine.
-      // Site-measurement / RA-bill stages only apply to PMC engagements.
-      pmcTabs.push({
-        slug: "costing",
-        label: "Costing & Measurement",
-        panel: <ProjectCosting projectId={id} showBills={showPmc} />,
-      });
       pmcTabs.push({ slug: "expenses", label: "Expenses", panel: <ProjectExpenses projectId={id} /> });
       pmcTabs.push({ slug: "purchase-orders", label: "Purchase orders", panel: <ProjectPurchaseOrders projectId={id} /> });
     }

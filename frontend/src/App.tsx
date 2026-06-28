@@ -84,7 +84,6 @@ const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.j
 const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
-const ContractorPortal = lazyRoute(() => import("./routes/ContractorPortal.js"), "ContractorPortal");
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
@@ -94,7 +93,6 @@ const SeoLanding = lazy(() =>
 const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
-const Tenders = lazyRoute(() => import("./routes/Tenders.js"), "Tenders");
 const Construction = lazyRoute(() => import("./routes/Construction.js"), "Construction");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
@@ -290,7 +288,7 @@ function AppShell() {
     return (
       <Theme theme="white">        <div>
           <Routes>
-            <Route path="/" element={<ContractorPortal />} />
+            <Route path="/" element={<p>Contractor access is being rebuilt.</p>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
@@ -393,8 +391,6 @@ function AppShell() {
         // PMC portfolio — read-only rollup across PMC engagements (the per-project PM
         // head is the master). Plan + module gate + L3+.
         ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "PMC portfolio", to: "/pmc" }] : []),
-        // Tenders: PMC plan + L3+ (tenders:view, rank 60)
-        ...(planAllowsFeature("pmc") && can(user.role, "tenders:view") ? [{ label: "Tenders", to: "/office/tenders" }] : []),
         ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
         // AI Studio: needs `ai` plan feature (Core+) + L3+
         ...(planAllowsFeature("ai") && atLeast(60) ? [{ label: "AI Studio", to: "/office/ai-studio" }] : []),
@@ -532,7 +528,6 @@ function AppShell() {
                   <Route path="/office/ai-studio" element={<AiStudioPage />} />
                 )}
                 {can(user.role, "tenders:view") && (
-                  <Route path="/office/tenders" element={<Tenders />} />
                 )}
                 {pmcEnabled && atLeast(60) && (
                   <Route path="/office/construction" element={<Construction />} />
