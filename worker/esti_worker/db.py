@@ -257,56 +257,6 @@ def fetch_specsheet_full(sid: str) -> dict[str, Any] | None:
         return row
 
 
-def update_estimate(eid: str, **fields: Any) -> None:
-    _patch("esti_estimate", eid, set(), fields)
-
-
-def fetch_estimate_full(eid: str) -> dict[str, Any] | None:
-    sql = """
-        select e.ref, e.title, e.lead_pct, e.subtotal_paise, e.total_paise, e.version_no,
-               e.stage, e.status,
-               p.ref as project_ref, p.title as project_title
-        from esti_estimate e
-        join esti_projectoffice p on p.id = e.project_id
-        where e.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        row = conn.execute(sql, [eid]).fetchone()
-        if row is None:
-            return None
-        row["items"] = conn.execute(
-            "select description, unit, qty, rate_paise, item_lead_pct, amount_paise, "
-            "cost_head, calculation_type, confidence "
-            "from esti_estimate_item where estimate_id = %s order by sort_order, created_at",
-            [eid],
-        ).fetchall()
-        return row
-
-
-def update_bbs(bid: str, **fields: Any) -> None:
-    _patch("esti_bbs", bid, set(), fields)
-
-
-def fetch_bbs_full(bid: str) -> dict[str, Any] | None:
-    sql = """
-        select b.ref, b.title, b.version_no,
-               p.ref as project_ref, p.title as project_title
-        from esti_bbs b
-        join esti_projectoffice p on p.id = b.project_id
-        where b.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        row = conn.execute(sql, [bid]).fetchone()
-        if row is None:
-            return None
-        row["items"] = conn.execute(
-            "select bar_mark, member, dia_mm, no_of_members, bars_per_member, cutting_length_mm, weight_kg "
-            "from esti_bbs_item where bbs_id = %s order by created_at",
-            [bid],
-        ).fetchall()
-        return row
-
-
 def update_progress_report(rid: str, **fields: Any) -> None:
     _patch("esti_progress_report", rid, set(), fields)
 
@@ -322,46 +272,6 @@ def fetch_progress_report_full(rid: str) -> dict[str, Any] | None:
     """
     with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
         return conn.execute(sql, [rid]).fetchone()
-
-
-def update_running_bill(rid: str, **fields: Any) -> None:
-    _patch("esti_running_bill", rid, set(), fields)
-
-
-def fetch_running_bill_full(rid: str) -> dict[str, Any] | None:
-    """A running bill + its items + project / contractor headers (Phase C). Carries
-    the deduction block and net payable so the PDF can print the payment summary."""
-    sql = """
-        select rb.ref, rb.title, rb.bill_type, rb.status, rb.measurement_date, rb.notes,
-               rb.total_paise, rb.retention_paise, rb.advance_recovery_paise,
-               rb.tax_tds_paise, rb.other_recovery_paise, rb.net_payable_paise,
-               p.ref as project_ref, p.title as project_title,
-               c.name as contractor_name
-        from esti_running_bill rb
-        join esti_projectoffice p on p.id = rb.project_id
-        left join esti_contractor c on c.id = rb.contractor_id
-        where rb.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        row = conn.execute(sql, [rid]).fetchone()
-        if row is None:
-            return None
-        row["items"] = conn.execute(
-            "select description, unit, qty, rate_paise, amount_paise "
-            "from esti_running_bill_item where running_bill_id = %s order by sort_order, created_at",
-            [rid],
-        ).fetchall()
-        return row
-
-
-def update_final_account(faid: str, **fields: Any) -> None:
-    _patch("esti_final_account", faid, set(), fields)
-
-
-def update_cost_report(report_id: str, **fields: Any) -> None:
-    """Patch an esti_cost_report row (only pdf_status / pdf_key; the snapshot is
-    written by the backend and never touched here)."""
-    _patch("esti_cost_report", report_id, set(), fields)
 
 
 def update_feasibility_report(report_id: str, **fields: Any) -> None:
@@ -383,44 +293,6 @@ def fetch_feasibility_report_full(report_id: str) -> dict[str, Any] | None:
     """
     with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
         return conn.execute(sql, [report_id]).fetchone()
-
-
-def fetch_cost_report_full(report_id: str) -> dict[str, Any] | None:
-    """A project cost report (Construction Cost OS Future row). Carries the
-    cost-health dashboard `snapshot` jsonb + project header, so the PDF prints
-    straight from the snapshot taken at generation time — no read-model SQL is
-    re-implemented here. psycopg parses the jsonb into a Python dict."""
-    sql = """
-        select cr.snapshot, cr.generated_at, cr.pdf_key, cr.pdf_status,
-               p.ref as project_ref, p.title as project_title
-        from esti_cost_report cr
-        join esti_projectoffice p on p.id = cr.project_id
-        where cr.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        return conn.execute(sql, [report_id]).fetchone()
-
-
-def fetch_final_account_full(faid: str) -> dict[str, Any] | None:
-    """A final account + project / work-package headers (Construction Cost OS
-    Phase F). Carries the reconciliation snapshot + closure attestations so the
-    PDF can print the closing certificate."""
-    sql = """
-        select fa.ref, fa.title, fa.status, fa.notes,
-               fa.original_contract_paise, fa.variation_paise, fa.gross_billed_paise,
-               fa.retention_held_paise, fa.retention_released_paise,
-               fa.advance_recovered_paise, fa.tax_tds_paise, fa.other_recovery_paise,
-               fa.net_paid_paise, fa.final_certified_paise, fa.balance_due_paise,
-               fa.no_claim_received, fa.client_final_approval, fa.closed_at,
-               p.ref as project_ref, p.title as project_title,
-               wp.ref as wp_ref, wp.name as wp_name
-        from esti_final_account fa
-        join esti_projectoffice p on p.id = fa.project_id
-        left join esti_work_package wp on wp.id = fa.work_package_id
-        where fa.id = %s
-    """
-    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
-        return conn.execute(sql, [faid]).fetchone()
 
 
 def update_site_instruction(sid: str, **fields: Any) -> None:

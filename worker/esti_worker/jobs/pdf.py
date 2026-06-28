@@ -22,13 +22,8 @@ from ..db import (
     fetch_payslip_full,
     fetch_proposal_full,
     fetch_specsheet_full,
-    fetch_estimate_full,
-    fetch_bbs_full,
     fetch_transmittal_full,
     fetch_progress_report_full,
-    fetch_running_bill_full,
-    fetch_final_account_full,
-    fetch_cost_report_full,
     fetch_feasibility_report_full,
     fetch_site_instruction_full,
     update_drawing,
@@ -39,14 +34,9 @@ from ..db import (
     update_payslip,
     update_progress_report,
     update_proposal,
-    update_running_bill,
-    update_final_account,
-    update_cost_report,
     update_feasibility_report,
     update_site_instruction,
     update_specsheet,
-    update_estimate,
-    update_bbs,
     update_transmittal,
 )
 from ..storage import get_bytes, put_bytes
@@ -476,84 +466,6 @@ _CALC_TYPE_LABEL = {
 }
 
 
-def _estimate_row(it: dict[str, Any]) -> str:
-    calc = it.get("calculation_type") or "RATE_BOOK"
-    tag = (
-        ""
-        if calc == "RATE_BOOK"
-        else f' <span class="muted">[{_e(_CALC_TYPE_LABEL.get(calc, calc))}]</span>'
-    )
-    return (
-        f"<tr><td>{_e(it['description'])}{tag}</td><td>{_e(it['unit'])}</td>"
-        f"<td>{it['qty']}</td><td>{_inr(int(it['rate_paise']))}</td>"
-        f"<td>{it.get('item_lead_pct', 0)}%</td><td>{_inr(int(it['amount_paise']))}</td></tr>"
-    )
-
-
-def _estimate_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
-    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
-    items = e.get("items", [])
-    # Group by cost head when any line carries one (design-stage estimate);
-    # otherwise render a flat table, exactly as before.
-    if any(it.get("cost_head") for it in items):
-        groups: dict[str, list[dict[str, Any]]] = {}
-        for it in items:
-            groups.setdefault(it.get("cost_head") or "OTHER", []).append(it)
-        parts: list[str] = []
-        for head in _COST_HEAD_LABEL:
-            grp = groups.get(head)
-            if not grp:
-                continue
-            sub = sum(int(i["amount_paise"]) for i in grp)
-            parts.append(
-                f'<tr><td colspan="6" style="background:#f4f4f4"><b>{_e(_COST_HEAD_LABEL[head])}</b></td></tr>'
-            )
-            parts.append("".join(_estimate_row(it) for it in grp))
-            parts.append(
-                f'<tr><td colspan="5" style="text-align:right"><b>{_e(_COST_HEAD_LABEL[head])} subtotal</b></td>'
-                f"<td><b>{_inr(sub)}</b></td></tr>"
-            )
-        rows = "".join(parts)
-    else:
-        rows = "".join(_estimate_row(it) for it in items)
-    stage = e.get("stage") or "DESIGN"
-    stage_label = "Design estimate" if stage == "DESIGN" else "Execution estimate"
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
-      {_firm_heading(firm)}
-      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
-      <div class="title">Estimate / BOQ — {_e(e['title'])}</div>
-      <div class="muted">{_e(e['project_title'])} ({_e(e['project_ref'])}) · {_e(e['ref'])} · v{e.get('version_no', 1)} · {_e(stage_label)}</div>
-      <table>
-        <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Lead</th><th>Amount</th></tr></thead>
-        <tbody>{rows or '<tr><td colspan=6 class="muted">No items</td></tr>'}</tbody>
-      </table>
-      <p style="margin-top:12px"><b>Subtotal:</b> {_inr(int(e.get('subtotal_paise') or 0))} ·
-      <b>Lead {e.get('lead_pct', 0)}%:</b> <b>Total {_inr(int(e.get('total_paise') or 0))}</b></p>
-    </body></html>"""
-
-
-def _bbs_html(b: dict[str, Any], firm: dict[str, Any]) -> str:
-    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
-    rows = "".join(
-        f"<tr><td>{_e(it['bar_mark'])}</td><td>{_e(it.get('member'))}</td>"
-        f"<td>{it['dia_mm']}</td><td>{it['no_of_members']}</td><td>{it['bars_per_member']}</td>"
-        f"<td>{it['cutting_length_mm']}</td><td>{it.get('weight_kg', 0)}</td></tr>"
-        for it in b.get("items", [])
-    )
-    total_kg = sum(float(it.get("weight_kg") or 0) for it in b.get("items", []))
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
-      {_firm_heading(firm)}
-      <div class="muted">{addr}</div>
-      <div class="title">Bar Bending Schedule — {_e(b['title'])}</div>
-      <div class="muted">{_e(b['project_title'])} ({_e(b['project_ref'])}) · {_e(b['ref'])}</div>
-      <table>
-        <thead><tr><th>Mark</th><th>Member</th><th>Dia mm</th><th>Members</th><th>Bars</th><th>Cut mm</th><th>kg</th></tr></thead>
-        <tbody>{rows or '<tr><td colspan=7 class="muted">No bars</td></tr>'}</tbody>
-      </table>
-      <p style="margin-top:12px"><b>Total steel:</b> {total_kg:.2f} kg</p>
-    </body></html>"""
-
-
 def _letter_html(l: dict[str, Any], firm: dict[str, Any]) -> str:
     addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
     proj = (
@@ -612,233 +524,12 @@ _BILL_TYPE_LABEL = {
 }
 
 
-def _running_bill_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
-    """Construction Cost OS Phase C — running bill with a deduction → net payable
-    summary. Gross (Σ qty×rate) less retention / advance recovery / tax-TDS /
-    other recoveries gives the net payable to the contractor."""
-    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
-    rows = "".join(
-        f"<tr><td>{_e(it['description'])}</td><td>{_e(it['unit'])}</td>"
-        f"<td>{it['qty']}</td><td>{_inr(int(it['rate_paise']))}</td>"
-        f"<td>{_inr(int(it['amount_paise']))}</td></tr>"
-        for it in rec.get("items", [])
-    )
-    bill_label = _BILL_TYPE_LABEL.get(rec.get("bill_type", "RA"), rec.get("bill_type"))
-    gross = int(rec.get("total_paise") or 0)
-    # Deduction rows are only shown when non-zero so a plain RA bill stays clean.
-    deductions = [
-        ("Retention", int(rec.get("retention_paise") or 0)),
-        ("Advance recovery", int(rec.get("advance_recovery_paise") or 0)),
-        ("Tax / TDS", int(rec.get("tax_tds_paise") or 0)),
-        ("Other recoveries", int(rec.get("other_recovery_paise") or 0)),
-    ]
-    ded_rows = "".join(
-        f'<tr><td colspan="4" style="text-align:right">Less: {label}</td>'
-        f"<td>-{_inr(amt)}</td></tr>"
-        for label, amt in deductions
-        if amt
-    )
-    contractor = rec.get("contractor_name")
-    contractor_row = (
-        f"<tr><td>Contractor</td><td>{_e(contractor)}</td></tr>" if contractor else ""
-    )
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
-      {_firm_heading(firm)}
-      <div class="muted">{addr}</div>
-      <div class="title">{_e(bill_label)} — {_e(rec['ref'])}</div>
-      <table class="kv">
-        <tr><td>Project</td><td>{_e(rec['project_title'])} ({_e(rec['project_ref'])})</td></tr>
-        <tr><td>Title</td><td>{_e(rec['title'])}</td></tr>
-        {contractor_row}
-        <tr><td>Measurement date</td><td>{_e(rec.get('measurement_date') or '')}</td></tr>
-        <tr><td>Status</td><td>{_e(rec.get('status'))}</td></tr>
-      </table>
-      <table>
-        <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-        <tbody>{rows or '<tr><td colspan=5 class="muted">No items</td></tr>'}</tbody>
-        <tfoot>
-          <tr><td colspan="4" style="text-align:right"><b>Gross</b></td><td><b>{_inr(gross)}</b></td></tr>
-          {ded_rows}
-          <tr><td colspan="4" style="text-align:right"><b>Net payable</b></td>
-              <td><b>{_inr(int(rec.get('net_payable_paise') or 0))}</b></td></tr>
-        </tfoot>
-      </table>
-      {f'<p class="pre" style="margin-top:12px">{_e(rec.get("notes"))}</p>' if rec.get("notes") else ''}
-    </body></html>"""
-
-
-def _final_account_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
-    """Construction Cost OS Phase F — final-account closing certificate. Rolls the
-    contract value (original + variations) into the billed-vs-paid reconciliation,
-    states the final certified amount and balance due, and prints the closure
-    attestations (no-claim cert, client final approval)."""
-    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
-    original = int(rec.get("original_contract_paise") or 0)
-    variation = int(rec.get("variation_paise") or 0)
-    adjusted = original + variation
-    gross = int(rec.get("gross_billed_paise") or 0)
-    net_paid = int(rec.get("net_paid_paise") or 0)
-    final_certified = int(rec.get("final_certified_paise") or 0)
-    balance = int(rec.get("balance_due_paise") or 0)
-    # Deduction rows are shown only when non-zero so a clean account stays clean.
-    deductions = [
-        ("Retention held", int(rec.get("retention_held_paise") or 0)),
-        ("Advances recovered", int(rec.get("advance_recovered_paise") or 0)),
-        ("Tax / TDS", int(rec.get("tax_tds_paise") or 0)),
-        ("Other recoveries", int(rec.get("other_recovery_paise") or 0)),
-    ]
-    ded_rows = "".join(
-        f'<tr><td style="text-align:right">Less: {label}</td><td>-{_inr(amt)}</td></tr>'
-        for label, amt in deductions
-        if amt
-    )
-    wp_row = (
-        f"<tr><td>Work package</td><td>{_e(rec.get('wp_name'))} ({_e(rec.get('wp_ref'))})</td></tr>"
-        if rec.get("wp_ref")
-        else ""
-    )
-    yes_no = lambda v: "Yes" if v else "No"  # noqa: E731
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
-      {_firm_heading(firm)}
-      <div class="muted">{addr}</div>
-      <div class="title">Final account — {_e(rec['ref'])}</div>
-      <table class="kv">
-        <tr><td>Project</td><td>{_e(rec['project_title'])} ({_e(rec['project_ref'])})</td></tr>
-        <tr><td>Title</td><td>{_e(rec['title'])}</td></tr>
-        {wp_row}
-        <tr><td>Status</td><td>{_e(rec.get('status'))}</td></tr>
-        <tr><td>Closed</td><td>{_e(rec.get('closed_at') or '—')}</td></tr>
-      </table>
-      <table>
-        <thead><tr><th>Head</th><th>Amount</th></tr></thead>
-        <tbody>
-          <tr><td>Original contract value</td><td>{_inr(original)}</td></tr>
-          <tr><td>Add: approved variations / extra items</td><td>{_inr(variation)}</td></tr>
-          <tr><td><b>Adjusted contract value</b></td><td><b>{_inr(adjusted)}</b></td></tr>
-          <tr><td>Gross billed (all RA bills)</td><td>{_inr(gross)}</td></tr>
-          {ded_rows}
-          <tr><td><b>Net paid to date</b></td><td><b>{_inr(net_paid)}</b></td></tr>
-        </tbody>
-        <tfoot>
-          <tr><td style="text-align:right">Final certified amount</td><td>{_inr(final_certified)}</td></tr>
-          <tr><td style="text-align:right">Less: net paid to date</td><td>-{_inr(net_paid)}</td></tr>
-          <tr><td style="text-align:right"><b>Balance due to contractor</b></td><td><b>{_inr(balance)}</b></td></tr>
-        </tfoot>
-      </table>
-      <table class="kv" style="margin-top:12px">
-        <tr><td>Retention released</td><td>{_inr(int(rec.get('retention_released_paise') or 0))}</td></tr>
-        <tr><td>No-claim certificate received</td><td>{yes_no(rec.get('no_claim_received'))}</td></tr>
-        <tr><td>Client final approval received</td><td>{yes_no(rec.get('client_final_approval'))}</td></tr>
-      </table>
-      {f'<p class="pre" style="margin-top:12px">{_e(rec.get("notes"))}</p>' if rec.get("notes") else ''}
-    </body></html>"""
-
-
 _COST_STATUS_LABEL = {
     "GREEN": "Within budget",
     "AMBER": "Watch",
     "RED": "Overrun or approval required",
     "GREY": "Not started / no data",
 }
-
-
-def _cost_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
-    """Construction Cost OS Future row — the printable cost report. Renders the
-    Phase-G cost-health dashboard straight from the stored `snapshot` jsonb:
-    estimated → certified KPIs, cost-overrun %, deviation/variation exposure,
-    package- and contractor-wise status, and the deterministic risk checks. The
-    snapshot is an exact copy of what was on screen at generation time, so the PDF
-    never re-derives anything. Advisory only — nothing here approves anything."""
-    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
-    snap = rec.get("snapshot") or {}
-    kpis = snap.get("kpis") or {}
-    g = lambda k: int(kpis.get(k) or 0)  # noqa: E731
-    overrun = snap.get("overrunPct")
-    overrun_text = (
-        "No estimate baseline yet"
-        if overrun is None
-        else f"{'+' if overrun >= 0 else ''}{overrun:.1f}% vs estimate"
-    )
-    kpi_rows = "".join(
-        f"<tr><td>{label}</td><td>{_inr(g(key))}</td></tr>"
-        for label, key in (
-            ("Estimated", "estimatedPaise"),
-            ("Tendered", "tenderedPaise"),
-            ("Awarded", "awardedPaise"),
-            ("Billed (gross)", "billedGrossPaise"),
-            ("Certified (net payable)", "certifiedNetPaise"),
-        )
-    )
-    approved = kpis.get("approvedDeviations") or {}
-    unapproved = kpis.get("unapprovedDeviations") or {}
-    exposure_rows = (
-        f"<tr><td>Approved deviations</td><td>{int(approved.get('count') or 0)} · "
-        f"{_inr(int(approved.get('valuePaise') or 0))}</td></tr>"
-        f"<tr><td>Unapproved deviations</td><td>{int(unapproved.get('count') or 0)} · "
-        f"{_inr(int(unapproved.get('valuePaise') or 0))}</td></tr>"
-        f"<tr><td>Variation value</td><td>{_inr(g('variationValuePaise'))}</td></tr>"
-        f"<tr><td>Pending bills</td><td>{int(kpis.get('pendingBillsCount') or 0)} · "
-        f"{_inr(g('pendingBillsPaise'))}</td></tr>"
-    )
-    pkg_rows = "".join(
-        f"<tr><td>{_e(p.get('ref'))}</td><td>{_e(p.get('name'))}</td>"
-        f"<td>{_e(p.get('contractor') or '—')}</td>"
-        f"<td>{_inr(int(p.get('awardedPaise') or 0))}</td>"
-        f"<td>{_inr(int(p.get('variationPaise') or 0))}</td>"
-        f"<td>{_inr(int(p.get('billedPaise') or 0))}</td>"
-        f"<td>{_e(_COST_STATUS_LABEL.get(p.get('status'), p.get('status')))}</td></tr>"
-        for p in snap.get("packages", [])
-    )
-    con_rows = "".join(
-        f"<tr><td>{_e(c.get('name'))}</td>"
-        f"<td>{_inr(int(c.get('billedPaise') or 0))}</td>"
-        f"<td>{_inr(int(c.get('certifiedPaise') or 0))}</td>"
-        f"<td>{int(c.get('pendingBills') or 0)}</td></tr>"
-        for c in snap.get("contractors", [])
-    )
-    contractor_block = (
-        f"""<div class="title" style="font-size:13px">Contractor-wise</div>
-      <table>
-        <thead><tr><th>Contractor</th><th>Billed (gross)</th><th>Certified (net)</th><th>Pending bills</th></tr></thead>
-        <tbody>{con_rows}</tbody>
-      </table>"""
-        if con_rows
-        else ""
-    )
-    notes = snap.get("riskNotes", [])
-    if notes:
-        note_items = "".join(
-            f'<li><b>{_e(n.get("label"))}</b> ({_e(n.get("severity"))}) — '
-            f'{_e(n.get("detail"))} <span class="muted">[{_e(n.get("ref"))}]</span></li>'
-            for n in notes
-        )
-        notes_html = f"<ul>{note_items}</ul>"
-    else:
-        notes_html = '<p class="muted">No cost risks detected.</p>'
-    generated = _e(snap.get("generatedAt") or rec.get("generated_at") or "")
-    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}</style></head><body>
-      {_firm_heading(firm)}
-      <div class="muted">{addr}</div>
-      <div class="title">Cost report — {_e(rec.get('project_title'))} ({_e(rec.get('project_ref'))})</div>
-      <div class="muted">{_e(overrun_text)}</div>
-      <table class="kv" style="margin-top:8px">
-        <thead><tr><th>Cost head</th><th>Amount</th></tr></thead>
-        <tbody>{kpi_rows}</tbody>
-      </table>
-      <table class="kv" style="margin-top:8px">
-        <tbody>{exposure_rows}</tbody>
-      </table>
-      <div class="title" style="font-size:13px">Package-wise status</div>
-      <table>
-        <thead><tr><th>Ref</th><th>Package</th><th>Contractor</th><th>Awarded</th><th>Variations</th><th>Billed</th><th>Status</th></tr></thead>
-        <tbody>{pkg_rows or '<tr><td colspan=7 class="muted">No work packages yet</td></tr>'}</tbody>
-      </table>
-      {contractor_block}
-      <div class="title" style="font-size:13px">Automated cost checks</div>
-      {notes_html}
-      <p class="muted" style="margin-top:12px">Advisory only — these are arithmetic checks over the
-        delivery spine; nothing here is auto-approved. Generated {generated}.</p>
-    </body></html>"""
 
 
 def _feasibility_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
@@ -917,13 +608,8 @@ _RENDERERS = {
     "proposal": (fetch_proposal_full, _proposal_html, update_proposal, "proposal"),
     "inspection": (fetch_inspection_full, _inspection_html, update_inspection, "inspection"),
     "specsheet": (fetch_specsheet_full, _specsheet_html, update_specsheet, "specsheet"),
-    "estimate": (fetch_estimate_full, _estimate_html, update_estimate, "estimate"),
-    "bbs": (fetch_bbs_full, _bbs_html, update_bbs, "bbs"),
     "letter": (fetch_letter_full, _letter_html, update_letter, "letter"),
     "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
-    "running_bill": (fetch_running_bill_full, _running_bill_html, update_running_bill, "running_bill"),
-    "final_account": (fetch_final_account_full, _final_account_html, update_final_account, "final_account"),
-    "cost_report": (fetch_cost_report_full, _cost_report_html, update_cost_report, "cost_report"),
     "feasibility_report": (fetch_feasibility_report_full, _feasibility_report_html, update_feasibility_report, "feasibility_report"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
 }
