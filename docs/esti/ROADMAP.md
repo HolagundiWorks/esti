@@ -78,26 +78,32 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | 29 | ~~Estimation OS — costing spine~~ — **REMOVED 2026-06-28** (rebuilding, see banner) | P1 | ⛔ |
 | 30 | ~~Estimation OS — work packages + running bills~~ — **REMOVED 2026-06-28** | P1 | ⛔ |
 | [31](#phase-31---project-os-lead-to-active-project-pipeline-p1) | Project OS — lead → active project pipeline (Slices A–K) | P1 | ✅ |
-| 32 | **Navigation V2 — five-pillar IA** (HOME · GROWTH OS · STUDIO · LEOS · OFFICE). Spec: [NAVIGATION.md](NAVIGATION.md). | P2 | ⬜ |
+| 32 | **Navigation V2 — five-pillar IA** (HOME · GROWTH OS · STUDIO · LEOS · OFFICE). Spec: [NAVIGATION.md](NAVIGATION.md). Sidebar shell shipped; LEOS feature + page renames pending. | P2 | 🔄 |
 
 ---
 
 ## Phase 32 — Navigation V2 (five-pillar IA) (P2)
 
-**Canonical spec:** [NAVIGATION.md](NAVIGATION.md). **Not yet visible in AORMS** —
-the doc defines the target; the live sidebar is still the flat-links + Accounts /
-Practice / Admin layout. Only the interim **Team** hub (OFFICE › Internal Operations)
-and **External Network** hub (OFFICE › External Network) ship today.
+**Canonical spec:** [NAVIGATION.md](NAVIGATION.md).
 
-Planned (⬜ unless noted):
-- Five-pillar sidebar shell: HOME · GROWTH OS · STUDIO · LEOS · OFFICE (with OFFICE sub-sections).
-- **LEOS** pillar — greenfield (learning sessions, presentations, research, whiteboard, personal learning, assessments, progress). No code today.
-- Move Search + Alerts into the header; rename Knowledge Bank → **Standards Library**.
+**Shipped (🔄 2026-06-28):** the five-pillar **nested sidebar** is live in
+`frontend/src/App.tsx` — HOME · GROWTH OS · STUDIO · LEOS · OFFICE (OFFICE nests
+External Network / Finance / Internal Operations / Standards Library / Administration).
+Each module is its own page reached from the nested sidebar; the interim Team /
+External-Network tab-hubs were retired (individual routes restored). **Search + AI
+Studio moved to header** actions; Alerts stays the header bell. Knowledge Bank
+relabelled **Standards Library** in the nav. Verified: frontend tsc 0, eslint clean,
+in-browser (nested menus, individual pages, LEOS placeholder, no console errors).
+
+**Still planned (⬜ unless noted):**
+- **LEOS** pillar — greenfield feature build (today `/leos` is a placeholder listing planned modules: learning sessions, presentations, research, whiteboard, personal learning, assessments, progress).
+- Rename the Knowledge Bank **page** content → "Standards Library" (only the nav label changed so far).
 - Surface **Client Onboarding**, **Site Supervisors** directory, **License Management** as their own modules.
 - Land the Estimation OS / BOQ / Standards-Library rebuild (tracked separately: [ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
 
-**Gate:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under its
-V2 pillar); no module appears in two places; LEOS reachable with at least one live tab.
+**Gate (sidebar — met):** the live sidebar matches NAVIGATION.md (every ✅ module
+reachable under its V2 pillar); no module appears in two places; LEOS pillar
+reachable. **Remaining for phase close:** LEOS feature build.
 
 ## Product snapshot
 

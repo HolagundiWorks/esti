@@ -141,11 +141,10 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 ## 7. Navigation sidebar
 
 > Module placement and naming follow [NAVIGATION.md](NAVIGATION.md) (the canonical
-> V2 five-pillar IA). This section lists **what each level sees**, by pillar /
-> section. Where a V2 module is not built yet (e.g. LEOS), it does not appear.
-> Interim implementation note: Internal Operations (Team/HR/Performance) ships
-> today as the `/team` hub; External Network (Clients/Consultants/Contractors) as
-> the `/external-network` hub.
+> V2 five-pillar IA, implemented as the nested sidebar in `App.tsx`). This section
+> lists **what each level sees**, by pillar / section. Each module is its own page
+> (`/clients`, `/team`, `/hr`, …); the LEOS pillar is a placeholder (`/leos`) until
+> its feature build lands.
 
 ### Always visible (L5+)
 

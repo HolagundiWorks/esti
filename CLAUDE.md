@@ -199,10 +199,11 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 > **Sidebar / module placement** is canonically defined in
 > [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **V2 five-pillar** IA
 > (HOME / GROWTH OS / STUDIO / LEOS / OFFICE) with per-module live/planned status.
-> People are split into **OFFICE › Internal Operations** (Team · HR · Performance,
-> the `/team` hub) and **OFFICE › External Network** (Clients · Consultants ·
-> Contractors, the `/external-network` hub). Build the full pillar sidebar against
-> that doc, not the legacy nav comments in `App.tsx`.
+> The nested sidebar is implemented in `App.tsx` (a recursive `NavNode` tree:
+> `link` | `menu`; OFFICE nests External Network / Finance / Internal Operations /
+> Standards Library / Administration). Search + AI Studio are **header** actions.
+> Each module is its own page (the earlier Team / External-Network tab-hubs were
+> retired). Edit nav by changing the `nav` tree, and keep NAVIGATION.md in sync.
 
 Key routes by area:
 
@@ -212,15 +213,14 @@ Key routes by area:
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |
-| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); rendered as the Clients tab of `ExternalNetworkHub` |
-| `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias) |
-| `TeamHub.tsx` | **OFFICE › Internal Operations** hub (`/team`) — tabs Team · HR · Performance; renders `Team`/`Hr`/`Performance` with `embedded` |
-| `ExternalNetworkHub.tsx` | **OFFICE › External Network** hub (`/external-network`) — tabs Clients · Consultants · Contractors; legacy `/clients`,`/consultants`,`/contractors`,`/third-parties` redirect here |
-| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated); both take an `embedded` prop (header-less in the hub) |
+| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); OFFICE › External Network (`/clients`) |
+| `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias); STUDIO › Tasks |
+| `Leos.tsx` | **LEOS** pillar placeholder (`/leos`) — lists planned learning modules; no feature code yet |
+| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated); OFFICE › Internal Operations (`/team`, `/hr`) |
 | `FeeProposals.tsx` / `Invoices.tsx` | Financial documents |
 | `Proposals.tsx` | Project proposals |
 | `Reconcile.tsx` | Financial reconciliation |
-| `Consultants.tsx` / `Contractors.tsx` | External consultants / contractors (External Network tabs; `embedded` prop) |
+| `Consultants.tsx` / `Contractors.tsx` | External consultants / contractors (OFFICE › External Network) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
 | `KnowledgeBank.tsx` | Specification, Lessons tabs |

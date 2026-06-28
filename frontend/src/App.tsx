@@ -15,18 +15,18 @@ import {
   Theme,
 } from "@carbon/react";
 import {
+  Bot,
   Building,
   Catalog,
   Dashboard as DashboardIcon,
-  Document,
+  Education,
   Enterprise,
-  Events,
+  Growth,
   Logout,
   Money,
-  Notification,
   Partnership,
   Search as SearchIcon,
-  TaskComplete,
+  Settings as SettingsIcon,
   UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
@@ -38,7 +38,7 @@ import {
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
@@ -68,7 +68,6 @@ const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 // Lazily import a named export as a route component (Vite splits each into its own chunk).
 // Loader is typed loosely so modules that also export types/constants still satisfy it.
 function lazyRoute(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   loader: () => Promise<any>,
   name: string,
 ): LazyExoticComponent<ComponentType<unknown>> {
@@ -114,8 +113,13 @@ const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
 const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
 const Settings = lazyRoute(() => import("./routes/Settings.js"), "Settings");
 const Work = lazyRoute(() => import("./routes/Work.js"), "Work");
-const TeamHub = lazyRoute(() => import("./routes/TeamHub.js"), "TeamHub");
-const ExternalNetworkHub = lazyRoute(() => import("./routes/ExternalNetworkHub.js"), "ExternalNetworkHub");
+const Team = lazyRoute(() => import("./routes/Team.js"), "Team");
+const Hr = lazyRoute(() => import("./routes/Hr.js"), "Hr");
+const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performance");
+const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
+const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
+const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
+const Leos = lazyRoute(() => import("./routes/Leos.js"), "Leos");
 const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
@@ -190,6 +194,7 @@ export function App() {
 function AppShell() {
   const { user, isLoading } = useAuth();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -304,101 +309,193 @@ function AppShell() {
       </Theme>
     );
 
+  // Navigation tree — the V2 five-pillar IA (HOME · GROWTH OS · STUDIO · LEOS ·
+  // OFFICE). Canonical spec: docs/esti/NAVIGATION.md. A node is either a leaf
+  // `link` or a `menu` (collapsible; may nest, e.g. OFFICE › sub-sections).
+  // Search / Alerts / AI Studio are header utilities, not sidebar entries.
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
+  type NavNode =
+    | (NavLink & { kind?: "link" })
+    | { kind: "menu"; label: string; icon?: CarbonIconType; items: NavNode[] };
   const rank = ROLE_RANK[user.role] ?? 0;
   const atLeast = (r: number) => rank >= r;
 
-  // Top-level links — the IA's standalone areas (Home, Clients, Projects, Work,
-  // Knowledge) plus the two cross-cutting Home utilities (Search, Alerts).
-  const links: NavLink[] = [
-    { label: "Dashboard", to: "/", icon: DashboardIcon },
-    ...(can(user.role, "write") ? [{ label: "Leads", to: "/leads", icon: Events }] : []),
-    { label: "Projects", to: "/projects", icon: Building },
-    { label: "Work", to: "/tasks", icon: TaskComplete },
-    // Internal office staff hub (Team · HR · Performance).
-    ...(planAllowsFeature("hr") && hrEnabled
-      ? [{ label: "Team", to: "/team", icon: UserMultiple }]
-      : []),
-    // OFFICE › External Network (V2): Clients · Consultants · Contractors.
-    ...(can(user.role, "write") || atLeast(60)
-      ? [{ label: "External Network", to: "/external-network", icon: Partnership }]
-      : []),
-    ...(planAllowsFeature("knowledgeBank") ? [{ label: "Knowledge", to: "/knowledge-bank", icon: Catalog }] : []),
-    { label: "Search", to: "/search", icon: SearchIcon },
-    { label: "Alerts", to: "/alerts", icon: Notification },
-  ];
+  // Prune empty menus recursively so a section with no permitted items disappears.
+  const prune = (nodes: NavNode[]): NavNode[] =>
+    nodes
+      .map((n) =>
+        "items" in n ? { ...n, items: prune(n.items) } : n,
+      )
+      .filter((n) => !("items" in n) || n.items.length > 0);
 
-  const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
+  const nav: NavNode[] = prune([
+    { label: "Dashboard", to: "/", icon: DashboardIcon },
     {
-      label: "Accounts",
-      icon: Money,
+      kind: "menu",
+      label: "Growth OS",
+      icon: Growth,
       items: [
-        // Invoices, expenses, cash book, reconciliation are Lite+ (non-GST billing
-        // and basic bank reconciliation work below the GST registration threshold).
-        ...(can(user.role, "invoice:manage")
+        ...(can(user.role, "write") ? [{ label: "Leads", to: "/leads" }] : []),
+        ...(can(user.role, "fees:manage")
           ? [
-              { label: "Invoices", to: "/invoices" },
-              { label: "Office expenses", to: "/accounting/office-expenses" },
-              { label: "Cash book", to: "/accounting/cash-book" },
-              { label: "Reconciliation", to: "/reconcile" },
+              { label: "Fee proposals", to: "/accounting/fees" },
+              { label: "Proposals", to: "/office/proposals" },
             ]
           : []),
-        // Fee proposals stay on Lite (basic flat fee).
-        ...(can(user.role, "fees:manage")
-          ? [{ label: "Fee proposals", to: "/accounting/fees" }]
-          : []),
-        // GST / TDS filing abstracts (returns): Core+ only.
-        ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
-          ? [{ label: "GST / TDS filing", to: "/filing" }]
-          : []),
+        ...(can(user.role, "write") ? [{ label: "Contracts", to: "/office/contracts" }] : []),
       ],
     },
     {
-      label: "Practice",
-      icon: Document,
+      kind: "menu",
+      label: "Studio",
+      icon: Building,
       items: [
-        // Proposals: L2+
-        ...(can(user.role, "fees:manage")
-          ? [{ label: "Proposals", to: "/office/proposals" }]
-          : []),
-        // Documents, Letters, Contracts: L4+ (write)
-        ...(can(user.role, "write")
+        { label: "Projects", to: "/projects" },
+        { label: "Tasks", to: "/tasks" },
+        ...(atLeast(60) ? [{ label: "Programme", to: "/programme" }] : []),
+        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60)
           ? [
-              { label: "Document register", to: "/office/documents" },
-              { label: "Letters", to: "/office/letters" },
-              { label: "Contracts", to: "/office/contracts" },
+              { label: "Construction", to: "/office/construction" },
+              { label: "PMC", to: "/pmc" },
             ]
           : []),
-        // Office programme — read-only portfolio Gantt rollup (per-project programme
-        // lives in the project workspace). L3+ (rank 60).
-        ...(atLeast(60) ? [{ label: "Office programme", to: "/programme" }] : []),
-        // PMC portfolio — read-only rollup across PMC engagements (the per-project PM
-        // head is the master). Plan + module gate + L3+.
-        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "PMC portfolio", to: "/pmc" }] : []),
-        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60) ? [{ label: "Construction", to: "/office/construction" }] : []),
-        // AI Studio: needs `ai` plan feature (Core+) + L3+
-        ...(planAllowsFeature("ai") && atLeast(60) ? [{ label: "AI Studio", to: "/office/ai-studio" }] : []),
       ],
     },
+    // LEOS — learning environment. Navigational placeholder; the modules below it
+    // are not built yet (see docs/esti/NAVIGATION.md § LEOS + ROADMAP Phase 32).
+    { label: "LEOS", to: "/leos", icon: Education },
     {
-      label: "Admin",
+      kind: "menu",
+      label: "Office",
       icon: Enterprise,
       items: [
-        // Company settings: L1 only (firm:admin)
-        ...(can(user.role, "firm:admin") ? [{ label: "Company", to: "/company" }] : []),
-        ...(can(user.role, "firm:admin") ? [{ label: "Users", to: "/users" }] : []),
-        ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin") ? [{ label: "Audit log", to: "/audit" }] : []),
-        // Archived projects: L2+ (project:delete)
-        ...(can(user.role, "project:delete")
-          ? [{ label: "Archived projects", to: "/archived-projects" }]
+        {
+          kind: "menu",
+          label: "External Network",
+          icon: Partnership,
+          items: [
+            ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
+            ...(atLeast(60)
+              ? [
+                  { label: "Consultants", to: "/consultants" },
+                  { label: "Contractors", to: "/contractors" },
+                ]
+              : []),
+          ],
+        },
+        {
+          kind: "menu",
+          label: "Finance",
+          icon: Money,
+          items: [
+            ...(can(user.role, "invoice:manage")
+              ? [
+                  { label: "Invoices", to: "/invoices" },
+                  { label: "Office expenses", to: "/accounting/office-expenses" },
+                  { label: "Cash book", to: "/accounting/cash-book" },
+                  { label: "Reconciliation", to: "/reconcile" },
+                ]
+              : []),
+            ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
+              ? [{ label: "GST / TDS filing", to: "/filing" }]
+              : []),
+          ],
+        },
+        {
+          kind: "menu",
+          label: "Internal Operations",
+          icon: UserMultiple,
+          items: [
+            ...(planAllowsFeature("hr") && hrEnabled
+              ? [
+                  { label: "Team", to: "/team" },
+                  ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
+                  ...(planAllowsFeature("performance") && atLeast(60)
+                    ? [{ label: "Performance", to: "/performance" }]
+                    : []),
+                ]
+              : []),
+            ...(can(user.role, "write")
+              ? [
+                  { label: "Documents register", to: "/office/documents" },
+                  { label: "Letters", to: "/office/letters" },
+                ]
+              : []),
+          ],
+        },
+        // Standards Library (was "Knowledge Bank"). Leaf — the construction-standards
+        // / estimation-intelligence sub-modules are mid-rebuild (see NAVIGATION.md).
+        ...(planAllowsFeature("knowledgeBank")
+          ? [{ label: "Standards Library", to: "/knowledge-bank", icon: Catalog }]
           : []),
-        // System Admin panel: is_system_admin overlay only
-        ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
-        // My profile: all staff
-        { label: "My profile", to: "/settings" },
+        {
+          kind: "menu",
+          label: "Administration",
+          icon: SettingsIcon,
+          items: [
+            ...(can(user.role, "firm:admin")
+              ? [
+                  { label: "Company", to: "/company" },
+                  { label: "Users", to: "/users" },
+                ]
+              : []),
+            ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin")
+              ? [{ label: "Audit log", to: "/audit" }]
+              : []),
+            ...(can(user.role, "project:delete")
+              ? [{ label: "Archived projects", to: "/archived-projects" }]
+              : []),
+            ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
+            { label: "My profile", to: "/settings" },
+          ],
+        },
       ],
     },
-  ].filter((g) => g.items.length > 0);
+  ]);
+
+  // Is this node (or any descendant) the active route? Used to auto-expand menus.
+  const navNodeActive = (node: NavNode): boolean =>
+    "items" in node ? node.items.some(navNodeActive) : navPathActive(pathname, node.to);
+
+  // Recursive sidebar renderer: top-level leaves are SideNavLink (icon rail),
+  // nested leaves are SideNavMenuItem, menus are (nestable) SideNavMenu.
+  const renderNavNode = (node: NavNode, depth: number) => {
+    if ("items" in node) {
+      return (
+        <SideNavMenu
+          key={node.label}
+          title={node.label}
+          renderIcon={node.icon}
+          defaultExpanded={node.items.some(navNodeActive)}
+        >
+          {node.items.map((c) => renderNavNode(c, depth + 1))}
+        </SideNavMenu>
+      );
+    }
+    if (depth === 0) {
+      return (
+        <SideNavLink
+          key={node.to}
+          as={Link}
+          to={node.to}
+          renderIcon={node.icon ?? DashboardIcon}
+          isActive={navPathActive(pathname, node.to)}
+        >
+          {node.label}
+        </SideNavLink>
+      );
+    }
+    return (
+      <SideNavMenuItem
+        key={node.to}
+        as={Link}
+        to={node.to}
+        isActive={navPathActive(pathname, node.to)}
+      >
+        {node.label}
+      </SideNavMenuItem>
+    );
+  };
 
   return (
     <ThemeContext.Provider value="g100">
@@ -417,6 +514,22 @@ function AppShell() {
                 <HeaderClock />
                 <HeaderPomodoro />
                 <PlanChip plan={plan} />
+                <HeaderGlobalAction
+                  aria-label="Search"
+                  isActive={navPathActive(pathname, "/search")}
+                  onClick={() => navigate("/search")}
+                >
+                  <SearchIcon size={20} />
+                </HeaderGlobalAction>
+                {planAllowsFeature("ai") && atLeast(60) && (
+                  <HeaderGlobalAction
+                    aria-label="AI Studio"
+                    isActive={navPathActive(pathname, "/office/ai-studio")}
+                    onClick={() => navigate("/office/ai-studio")}
+                  >
+                    <Bot size={20} />
+                  </HeaderGlobalAction>
+                )}
                 <AlertsBell />
                 <UserIdCard />
                 <HeaderGlobalAction
@@ -430,36 +543,7 @@ function AppShell() {
           </Theme>
           <SideNav aria-label="Side navigation" isRail>
             <SideNavItems>
-              {links.map((n) => (
-                <SideNavLink
-                  key={n.to}
-                  as={Link}
-                  to={n.to}
-                  renderIcon={n.icon ?? DashboardIcon}
-                  isActive={navPathActive(pathname, n.to)}
-                >
-                  {n.label}
-                </SideNavLink>
-              ))}
-              {groups.map((g) => (
-                <SideNavMenu
-                  key={g.label}
-                  title={g.label}
-                  renderIcon={g.icon}
-                  defaultExpanded={g.items.some((it) => navPathActive(pathname, it.to))}
-                >
-                  {g.items.map((it) => (
-                    <SideNavMenuItem
-                      key={it.to}
-                      as={Link}
-                      to={it.to}
-                      isActive={navPathActive(pathname, it.to)}
-                    >
-                      {it.label}
-                    </SideNavMenuItem>
-                  ))}
-                </SideNavMenu>
-              ))}
+              {nav.map((n) => renderNavNode(n, 0))}
             </SideNavItems>
           </SideNav>
           <Content className="esti-app-content">
@@ -483,6 +567,7 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
+                <Route path="/leos" element={<Leos />} />
                 <Route path="/search" element={<SearchPage />} />
                 {can(user.role, "invoice:manage") && (
                   <Route path="/invoices" element={<Invoices />} />
@@ -522,33 +607,19 @@ function AppShell() {
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
                 />
-                {/* OFFICE › External Network (V2): Clients · Consultants · Contractors. */}
-                {(can(user.role, "write") || atLeast(60)) && (
-                  <Route path="/external-network" element={<ExternalNetworkHub />} />
-                )}
-                {/* Legacy paths → External Network tabs (preserve bookmarks). */}
-                <Route
-                  path="/third-parties"
-                  element={<Navigate to="/external-network" replace />}
-                />
+                {/* OFFICE › External Network — individual module pages (V2). */}
                 {can(user.role, "write") && (
-                  <Route
-                    path="/clients"
-                    element={<Navigate to="/external-network?tab=clients" replace />}
-                  />
+                  <Route path="/clients" element={<Clients />} />
                 )}
                 {atLeast(60) && (
-                  <Route
-                    path="/consultants"
-                    element={<Navigate to="/external-network?tab=consultants" replace />}
-                  />
+                  <Route path="/consultants" element={<Consultants />} />
                 )}
                 {atLeast(60) && (
-                  <Route
-                    path="/contractors"
-                    element={<Navigate to="/external-network?tab=contractors" replace />}
-                  />
+                  <Route path="/contractors" element={<Contractors />} />
                 )}
+                {/* Legacy hub paths → first External Network module. */}
+                <Route path="/external-network" element={<Navigate to="/clients" replace />} />
+                <Route path="/third-parties" element={<Navigate to="/clients" replace />} />
                 {can(user.role, "write") && (
                   <Route path="/leads" element={<Leads />} />
                 )}
@@ -563,11 +634,9 @@ function AppShell() {
                 {can(user.role, "invoice:manage") && (
                   <Route path="/reconcile" element={<Reconcile />} />
                 )}
-                {/* Team hub (Team · HR · Performance). */}
-                {hrEnabled && <Route path="/team" element={<TeamHub />} />}
-                {hrEnabled && (
-                  <Route path="/hr" element={<Navigate to="/team?tab=hr" replace />} />
-                )}
+                {/* OFFICE › Internal Operations — individual module pages (V2). */}
+                {hrEnabled && <Route path="/team" element={<Team />} />}
+                {hrEnabled && <Route path="/hr" element={<Hr />} />}
                 <Route
                   path="/dsr"
                   element={<Navigate to="/knowledge-bank" replace />}
@@ -595,10 +664,7 @@ function AppShell() {
                 )}
                 <Route path="/settings" element={<Settings />} />
                 {hrEnabled && atLeast(60) && (
-                  <Route
-                    path="/performance"
-                    element={<Navigate to="/team?tab=performance" replace />}
-                  />
+                  <Route path="/performance" element={<Performance />} />
                 )}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

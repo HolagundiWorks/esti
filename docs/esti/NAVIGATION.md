@@ -35,11 +35,12 @@ HOME · GROWTH OS · STUDIO · LEOS · OFFICE
 | 🚧 | **Partial / rebuilding** — exists in a different shape, or under active rebuild |
 | 🔲 | **Planned** — not built yet |
 
-> The V2 *grouping* (five pillars, OFFICE sub-sections) is itself **🔲 planned** —
-> the implemented sidebar today is the flat-links-plus-`Accounts`/`Practice`/`Admin`
-> layout in `frontend/src/App.tsx`. The "Where it lives today" column maps each
-> module to its current route so the doc stays truthful until the pillar sidebar
-> is implemented. See **Current vs V2** below.
+> The V2 five-pillar sidebar (HOME · GROWTH OS · STUDIO · LEOS · OFFICE with nested
+> OFFICE sub-sections) is **✅ implemented** in `frontend/src/App.tsx` (Phase 32,
+> 2026-06-28). Search / Alerts / AI Studio are now **header** utilities. Individual
+> module pages are reached directly from the nested sidebar (the interim Team /
+> External-Network tab-hubs were retired). Modules tagged 🚧/🔲 below are reachable
+> where a page exists; unbuilt ones (LEOS sub-modules) are not yet present.
 
 ---
 
@@ -99,7 +100,9 @@ Certificates are **not** stored here — they sync externally.
 | Assessments (practical exercises, competency tests, simulations) | 🔲 |
 | Learning Progress (hours logged, attendance, assessment history, tracker) | 🔲 |
 
-> **The entire LEOS pillar is 🔲 planned — no code exists today.**
+> **LEOS pillar = a navigational placeholder** (`/leos`, `Leos.tsx`) listing the
+> planned modules. The pillar is ✅ reachable; **every module inside it is 🔲 — no
+> feature code exists yet.**
 
 ## 5. OFFICE
 
@@ -110,9 +113,9 @@ sub-sections.
 
 | Module | Status | Where it lives today |
 |---|---|---|
-| Clients | ✅ | `/external-network?tab=clients` (`Clients.tsx`, `ExternalNetworkHub.tsx`) |
-| Consultants | ✅ | `/external-network?tab=consultants` (`Consultants.tsx`) |
-| Contractors | ✅ | `/external-network?tab=contractors` (`Contractors.tsx`) |
+| Clients | ✅ | `/clients` (`Clients.tsx`) |
+| Consultants | ✅ | `/consultants` (`Consultants.tsx`) |
+| Contractors | ✅ | `/contractors` (`Contractors.tsx`) |
 | Site Supervisors (directory) | 🔲 | `SITE_SUPERVISOR` role + site portal exist, but no directory nav module |
 
 ### 5.2 Finance
@@ -129,9 +132,9 @@ sub-sections.
 
 | Module | Status | Where it lives today |
 |---|---|---|
-| Team | ✅ | `/team?tab=team` (`Team.tsx`, `TeamHub.tsx`; plan `hr` + `hrEnabled`) |
-| HR | ✅ | `/team?tab=hr` (`Hr.tsx`; `hr:manage`) |
-| Performance | ✅ | `/team?tab=performance` (`Performance.tsx`; plan `performance` + rank ≥ 60) |
+| Team | ✅ | `/team` (`Team.tsx`; plan `hr` + `hrEnabled`) |
+| HR | ✅ | `/hr` (`Hr.tsx`; `hr:manage` + `hrEnabled`) |
+| Performance | ✅ | `/performance` (`Performance.tsx`; plan `performance` + rank ≥ 60 + `hrEnabled`) |
 | Documents Register | ✅ | `/office/documents` |
 | Letters | ✅ | `/office/letters` |
 
@@ -160,10 +163,10 @@ System-configuration / reference layer — not a daily-use module; restricted ac
 
 | Utility | Status | Today |
 |---|---|---|
-| Global Search | ✅ | currently a top-level sidebar link `/search` → moves to header in V2 |
-| Notifications | ✅ | `AlertsBell` in header + `/alerts` link |
+| Global Search | ✅ | header Search action → `/search` (`SearchPage`) |
+| Notifications | ✅ | `AlertsBell` in header → `/alerts` |
 | Pomodoro Timer | ✅ | `HeaderPomodoro` |
-| AI Assistant | ✅ | "Ask ESTI" floating action |
+| AI Assistant | ✅ | "Ask ESTI" floating action + header AI Studio action → `/office/ai-studio` |
 | User Profile | ✅ | `UserIdCard` in header |
 
 ## Removed from the dedicated sidebar (V2)
@@ -184,28 +187,27 @@ These no longer get top-level navigation; they are integrated elsewhere:
 
 ## Current vs V2 (gap summary)
 
-**Implemented sidebar today** (`frontend/src/App.tsx`):
-flat links — Dashboard · Leads · Projects · Work · **Team** · **External Network** ·
-Knowledge · Search · Alerts — plus collapsible groups **Accounts** · **Practice** ·
-**Admin**.
+**Implemented (Phase 32, 2026-06-28):** the five-pillar nested sidebar is live in
+`frontend/src/App.tsx` — HOME (Dashboard) · GROWTH OS (Leads, Fee proposals,
+Proposals, Contracts) · STUDIO (Projects, Tasks, Programme, Construction, PMC) ·
+LEOS (placeholder) · OFFICE → nested External Network / Finance / Internal
+Operations / Standards Library / Administration. Each module is its own page reached
+from the nested sidebar; the interim Team / External-Network **tab-hubs were retired**
+(individual routes restored). Search + AI Studio moved to **header** actions; Alerts
+stays the header bell. Knowledge Bank is relabelled **Standards Library** in the nav.
 
-**To reach V2** (🔲 not started unless noted):
-1. Introduce the five-pillar sidebar (HOME / GROWTH OS / STUDIO / LEOS / OFFICE)
-   with OFFICE sub-sections.
-2. Build the **LEOS** pillar (greenfield).
-3. Move Search + Alerts into the header; rename Knowledge Bank → Standards Library.
-4. Add **Site Supervisors** directory and surface **Client Onboarding** /
+**Still to do (🔲 unless noted):**
+1. Build the **LEOS** pillar for real (greenfield) — today it is a `/leos` placeholder.
+2. Rename the Knowledge Bank **page** content to "Standards Library" (only the nav
+   label is renamed so far; `KnowledgeBank.tsx` still titles itself "Knowledge Bank").
+3. Add a **Site Supervisors** directory; surface **Client Onboarding** and
    **License Management** as their own modules.
-5. Land the Estimation OS / BOQ / Standards-Library rebuild (in progress).
+4. Land the Estimation OS / BOQ / Standards-Library rebuild (tracked separately).
 
-**Realigned 2026-06-28 (this session):** the interim **External Network** hub
-(`/external-network`, `ExternalNetworkHub.tsx`) replaces the short-lived
-"Third Parties" hub — tabs Clients · Consultants · Contractors, matching OFFICE ›
-External Network. The **Team** hub (`/team`) bundles Team · HR · Performance,
-matching OFFICE › Internal Operations. Legacy paths (`/clients`, `/consultants`,
-`/contractors`, `/third-parties`, `/hr`, `/performance`) redirect into the hubs.
-These two hubs are an **interim** step; both fold under the OFFICE pillar when the
-full V2 sidebar is built.
+**Legacy redirects kept:** `/external-network` and `/third-parties` → `/clients`;
+`/work` → `/tasks`; `/dsr` → `/knowledge-bank`. The `Team`/`Hr`/`Performance`/
+`Clients`/`Consultants`/`Contractors` page components retain an unused `embedded`
+prop (harmless) from the retired-hub era.
 
 ## Closing philosophy
 
