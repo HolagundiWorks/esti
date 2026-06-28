@@ -52,6 +52,18 @@ export const kbItems = pgTable("esti_kb_item", {
   createdAt: createdAt(),
 });
 
+/** Brand library — manufacturers, kept independent of the generic material
+ *  (Cement ≠ UltraTech). Material → brand variants are mapped separately. */
+export const kbBrands = pgTable("esti_kb_brand", {
+  id: id(),
+  name: text("name").notNull(),
+  category: text("category"),
+  website: text("website"),
+  notes: text("notes"),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
 /** Specification library — method/mix variants of an item (Brickwork → 1:6;
  *  Concrete → M25). Each specification belongs to one item; an item has many.
  *  Material + labour consumption recipes attach to a specification (next phase). */

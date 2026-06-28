@@ -27,6 +27,7 @@ import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.j
 import { MaterialLibrary } from "../components/knowledge/kb/MaterialLibrary.js";
 import { LaborLibrary } from "../components/knowledge/kb/LaborLibrary.js";
 import { ItemLibrary } from "../components/knowledge/kb/ItemLibrary.js";
+import { BrandLibrary } from "../components/knowledge/kb/BrandLibrary.js";
 import { SpecificationLibrary } from "../components/knowledge/kb/SpecificationLibrary.js";
 import { RecipeMapper } from "../components/knowledge/kb/RecipeMapper.js";
 import { trpc } from "../lib/trpc.js";
@@ -35,6 +36,7 @@ const KB_TAB_SLUGS = [
   "materials",
   "labour",
   "items",
+  "brands",
   "specifications",
   "recipes",
   "brand-catalogue",
@@ -140,6 +142,7 @@ export function KnowledgeBank() {
           <Tab>Materials</Tab>
           <Tab>Labour</Tab>
           <Tab>Items</Tab>
+          <Tab>Brands</Tab>
           <Tab>Specifications</Tab>
           <Tab>Recipes</Tab>
           <Tab>Brand Catalogue</Tab>
@@ -156,6 +159,10 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <ItemLibrary />
+          </TabPanel>
+
+          <TabPanel>
+            <BrandLibrary />
           </TabPanel>
 
           <TabPanel>

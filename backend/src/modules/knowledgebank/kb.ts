@@ -1,4 +1,6 @@
 import {
+  KbBrandCreate,
+  KbBrandUpdate,
   KbByItemInput,
   KbBySpecInput,
   KbIdInput,
@@ -19,6 +21,7 @@ import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
+  kbBrands,
   kbItems,
   kbLabor,
   kbMaterials,
@@ -275,6 +278,82 @@ const items = router({
     }),
 });
 
+// ── Brand library (manufacturers) ───────────────────────────────────────────
+const brands = router({
+  list: protectedProcedure.query(({ ctx }) =>
+    ctx.db
+      .select()
+      .from(kbBrands)
+      .orderBy(desc(kbBrands.active), asc(kbBrands.name)),
+  ),
+  create: protectedProcedure
+    .input(KbBrandCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .insert(kbBrands)
+        .values({
+          name: input.name,
+          category: input.category ?? null,
+          website: input.website ?? null,
+          notes: input.notes ?? null,
+        })
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "kb_brand",
+        entityId: row!.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
+      return row!;
+    }),
+  bulkCreate: protectedProcedure
+    .input(z.array(KbBrandCreate).max(5000))
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) return { inserted: 0 };
+      await ctx.db.insert(kbBrands).values(
+        input.map((b) => ({
+          name: b.name,
+          category: b.category ?? null,
+          website: b.website ?? null,
+          notes: b.notes ?? null,
+        })),
+      );
+      return { inserted: input.length };
+    }),
+  update: protectedProcedure
+    .input(KbBrandUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [row] = await ctx.db
+        .update(kbBrands)
+        .set(definedOnly(rest))
+        .where(eq(kbBrands.id, id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      await writeAudit(ctx.db, {
+        entity: "kb_brand",
+        entityId: id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
+      return row;
+    }),
+  remove: protectedProcedure
+    .input(KbIdInput)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.delete(kbBrands).where(eq(kbBrands.id, input.id));
+      await writeAudit(ctx.db, {
+        entity: "kb_brand",
+        entityId: input.id,
+        action: "DELETE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
+});
+
 // ── Specification library (method/mix variants mapped to an item) ───────────
 const specifications = router({
   listByItem: protectedProcedure
@@ -468,6 +547,7 @@ export const kbRouter = router({
   materials,
   labor,
   items,
+  brands,
   specifications,
   recipes,
 });

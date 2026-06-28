@@ -50,6 +50,20 @@ export const KbItemUpdate = KbItemCreate.partial().extend({
 });
 export type KbItemUpdate = z.infer<typeof KbItemUpdate>;
 
+// ── Brand library (manufacturers, independent of the generic material) ──────
+export const KbBrandCreate = z.object({
+  name: z.string().min(1).max(160),
+  category: z.string().max(80).optional(),
+  website: z.string().max(300).optional(),
+  notes: z.string().max(1000).optional(),
+});
+export type KbBrandCreate = z.infer<typeof KbBrandCreate>;
+
+export const KbBrandUpdate = KbBrandCreate.partial().extend({
+  id: z.string().uuid(),
+});
+export type KbBrandUpdate = z.infer<typeof KbBrandUpdate>;
+
 // ── Specification library (method/mix variants, mapped to an item) ──────────
 export const KbSpecificationCreate = z.object({
   itemId: z.string().uuid(),

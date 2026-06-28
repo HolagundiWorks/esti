@@ -185,7 +185,8 @@ Carbon check, render-200) → commit**. Built on a fresh branch off `main`.
 | **1 — Core Libraries** ✅ | `material`, `labor`, `item` tables + CRUD + three KB tabs | **Shipped** — migration `0109`, `kb.{materials,labor,items}.*` namespace, Materials/Labour/Items tabs in the Knowledge Bank |
 | **2a — Specifications** ✅ | `specification` table mapped to item + `is_default` | **Shipped** — migration `0110`, `kb.specifications.*`, item-scoped Specifications tab (one default per item); existing specCatalog relabelled **Brand Catalogue** |
 | **2b — Recipes** ✅ | `spec_material`, `spec_labor` consumption recipes | **Shipped** — migration `0111`, `kb.recipes.{materials,labor}.*`, **Recipes** data-mapper tab (pick item → spec → connect materials + labour at quantity-per-item-unit) |
-| **3 — Brand Layer** | `brand`, `material_brand` (grade/variant, preferred) | Map generic materials to approved branded variants |
+| **3a — Brand library** ✅ | `brand` (manufacturers) | **Shipped** — migration `0112`, `kb.brands.*`, Brands tab (CSV import/export) |
+| **3b — Material→brand mapping** | `material_brand` (grade/variant, preferred) | Map generic materials to approved branded variants |
 | **4 — Rate Intelligence** | `vendor`, `vendor_rate` (time-bounded, by location) | Capture live procurement rates; latest-rate resolution |
 | **5 — Dependencies** | `item_dependency` (mandatory / optional / sequence) | Items trigger related items |
 | **6 — Formula Engine** | sandboxed evaluator in contracts (+ vitest); `item_formula` | Stored, safe quantity expressions |
