@@ -9,6 +9,8 @@ import { KbLibraryTable, type KbField, type KbRow } from "./KbLibraryTable.js";
 
 const FIELDS: KbField[] = [
   { key: "name", label: "Specification", type: "text", required: true, placeholder: "e.g. 1:6 Mortar" },
+  { key: "unit", label: "Unit", type: "text", placeholder: "e.g. Cum" },
+  { key: "ratePaise", label: "Rate", type: "money" },
   { key: "isDefault", label: "Default for this item", type: "boolean" },
   { key: "description", label: "Description", type: "textarea" },
 ];

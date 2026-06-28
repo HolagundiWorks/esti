@@ -90,6 +90,10 @@ export const kbSpecifications = pgTable("esti_kb_specification", {
     .references(() => kbItems.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
+  /** Unit of measurement for this specification (often the item's unit, e.g. Cum). */
+  unit: text("unit"),
+  /** Analysed / applied rate for this specification, in integer paise per unit. */
+  ratePaise: integer("rate_paise").notNull().default(0),
   isDefault: boolean("is_default").notNull().default(false),
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),

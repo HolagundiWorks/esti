@@ -385,6 +385,8 @@ const specifications = router({
           itemId: input.itemId,
           name: input.name,
           description: input.description ?? null,
+          unit: input.unit ?? null,
+          ratePaise: input.ratePaise,
           isDefault: input.isDefault,
         })
         .returning();
@@ -406,6 +408,8 @@ const specifications = router({
           itemId: s.itemId,
           name: s.name,
           description: s.description ?? null,
+          unit: s.unit ?? null,
+          ratePaise: s.ratePaise,
           isDefault: s.isDefault,
         })),
       );

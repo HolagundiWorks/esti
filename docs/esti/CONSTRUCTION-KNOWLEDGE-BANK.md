@@ -117,7 +117,7 @@ All tables `esti_kb_*`, UUID PKs, `created_at`, soft `active` flags where useful
 
 | Table | Key fields |
 | --- | --- |
-| `esti_kb_specification` | item_id → item, name, description, version, is_default |
+| `esti_kb_specification` | item_id → item, name, description, **unit** (UOM), **rate_paise** (₹/unit), is_default |
 | `esti_kb_spec_material` | specification_id, material_id, quantity_per_unit, wastage_factor |
 | `esti_kb_spec_labor` | specification_id, labor_id, quantity_per_unit |
 

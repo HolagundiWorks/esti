@@ -90,6 +90,8 @@ export const KbSpecificationCreate = z.object({
   itemId: z.string().uuid(),
   name: z.string().min(1).max(160),
   description: z.string().max(1000).optional(),
+  unit: z.string().max(40).optional(),
+  ratePaise: z.number().int().min(0).default(0),
   isDefault: z.boolean().default(false),
 });
 export type KbSpecificationCreate = z.infer<typeof KbSpecificationCreate>;
