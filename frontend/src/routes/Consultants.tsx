@@ -36,7 +36,7 @@ const HEADERS = [
   { key: "portal", header: "Portal" },
 ];
 
-export function Consultants() {
+export function Consultants({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const list = trpc.consultants.list.useQuery();
 
@@ -99,10 +99,12 @@ export function Consultants() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="Consultants"
-        description="Discipline specialists the office engages on projects."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Consultants"
+          description="Discipline specialists the office engages on projects."
+        />
+      )}
 
       {loginMsg && (
         <InlineNotification

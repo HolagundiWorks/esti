@@ -230,7 +230,7 @@ function RecognitionTab() {
 
 // ─── Performance page ─────────────────────────────────────────────────────────
 
-export function Performance() {
+export function Performance({ embedded = false }: { embedded?: boolean }) {
   const chartTheme = useAppTheme();
   const utils = trpc.useUtils();
   const scoresQ = trpc.aspRf.teamScores.useQuery();
@@ -272,10 +272,12 @@ export function Performance() {
 
   return (
     <Stack gap={7}>
-      <PageHeader
-        title="Performance"
-        description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Performance"
+          description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
+        />
+      )}
 
       {myScoreQ.data && (
         <Tile className="esti-form-panel">

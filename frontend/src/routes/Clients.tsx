@@ -38,7 +38,7 @@ const HEADERS = [
 
 const PAGE_SIZES = [10, 25, 50];
 
-export function Clients() {
+export function Clients({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const list = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
   const setDisabled = trpc.clients.setDisabled.useMutation({
@@ -109,10 +109,12 @@ export function Clients() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="Clients"
-        description="Clients and leads — attach projects, invoices and portal logins."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Clients"
+          description="Clients and leads — attach projects, invoices and portal logins."
+        />
+      )}
 
       {portalMsg && (
         <InlineNotification

@@ -36,7 +36,7 @@ const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
 };
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
-export function Hr() {
+export function Hr({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { canSalary } = useCapabilities();
   const utils = trpc.useUtils();
@@ -103,10 +103,12 @@ export function Hr() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="HR"
-        description="Leave management, payroll, staff profiles, and the hiring pipeline."
-      />
+      {!embedded && (
+        <PageHeader
+          title="HR"
+          description="Leave management, payroll, staff profiles, and the hiring pipeline."
+        />
+      )}
 
       <Tabs>
         <TabList aria-label="HR sections">

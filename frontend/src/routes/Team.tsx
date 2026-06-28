@@ -27,7 +27,7 @@ import { getInitials, resolveColor } from "../components/StaffAvatar.js";
 import { STAFF_LEVEL_LABEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
-export function Team() {
+export function Team({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const list = trpc.team.list.useQuery();
   const update = trpc.team.update.useMutation({
@@ -70,10 +70,12 @@ export function Team() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="Team"
-        description="Office team members, roles, employment type and monthly salary."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Team"
+          description="Office team members, roles, employment type and monthly salary."
+        />
+      )}
 
       {/* Toolbar */}
       <div className="esti-team-bar">

@@ -14,7 +14,8 @@ New here? Read in this order:
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS](ESTIMATION-OS.md) — the active rebuild (the Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28 and are being rebuilt on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
 4. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
-5. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — nav / delivery history / requirements; **defer to the System state in (1)** where they describe the removed estimation/cost stack.
+5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the V2 five-pillar sidebar: HOME / GROWTH OS / STUDIO / LEOS / OFFICE) with live/planned status per module. Authoritative for the sidebar and module placement.
+6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery history / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe the removed estimation/cost stack.
 
 Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions).
 
@@ -23,7 +24,8 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | Document | Authority |
 | --- | --- |
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first** — north-star product architecture: the six OS pillars (Ask / Project / Task / Construction Cost / Portals / AI) with implemented-vs-planned status |
-| [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) | Live navigation and module IA as it ships today |
+| [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — the V2 five-pillar sidebar (HOME / GROWTH OS / STUDIO / LEOS / OFFICE) with per-module live/planned status; wins over any other doc on the sidebar and module placement |
+| [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) | Module-placement rationale (two delivery heads, one-home-per-module). **Superseded for the sidebar by [NAVIGATION](NAVIGATION.md)**; estimation/cost sections are historical |
 | [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) | L1–L5 access ladder, external tier, capability and information matrices (implementation: `permissions.ts`) |
 | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | Lite / Core / Enterprise editions — module→edition matrix, quotas, `planAllows` gating |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |
@@ -55,6 +57,7 @@ When documents appear inconsistent, use this order:
 
 0. **`UNIFIED-ARCHITECTURE-V4.md` § "System state"** for **what currently exists**
    (live / removed / rebuilding) — authoritative; overrides any other doc on current state.
+0b. **`NAVIGATION.md`** for the **sidebar and module placement** (the V2 five-pillar IA).
 1. `PRODUCT-VISION.md` for product boundary.
 2. `STABILITY-CHARTER.md` for long-term scope and IA discipline.
 3. `PRD.md` for required behaviour.

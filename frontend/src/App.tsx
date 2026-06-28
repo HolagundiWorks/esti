@@ -24,6 +24,7 @@ import {
   Logout,
   Money,
   Notification,
+  Partnership,
   Search as SearchIcon,
   TaskComplete,
   UserMultiple,
@@ -79,11 +80,8 @@ function lazyRoute(
 const Alerts = lazyRoute(() => import("./routes/Alerts.js"), "Alerts");
 const ArchivedProjects = lazyRoute(() => import("./routes/ArchivedProjects.js"), "ArchivedProjects");
 const AuditLog = lazyRoute(() => import("./routes/AuditLog.js"), "AuditLog");
-const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
 const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.js"), "CollaboratorPortal");
 const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
-const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
-const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
@@ -112,13 +110,12 @@ const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
 const Programme = lazyRoute(() => import("./routes/Programme.js"), "Programme");
 const Pmc = lazyRoute(() => import("./routes/Pmc.js"), "Pmc");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
-const Hr = lazyRoute(() => import("./routes/Hr.js"), "Hr");
 const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
 const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
 const Settings = lazyRoute(() => import("./routes/Settings.js"), "Settings");
 const Work = lazyRoute(() => import("./routes/Work.js"), "Work");
-const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performance");
-const Team = lazyRoute(() => import("./routes/Team.js"), "Team");
+const TeamHub = lazyRoute(() => import("./routes/TeamHub.js"), "TeamHub");
+const ExternalNetworkHub = lazyRoute(() => import("./routes/ExternalNetworkHub.js"), "ExternalNetworkHub");
 const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
@@ -315,36 +312,23 @@ function AppShell() {
   // Knowledge) plus the two cross-cutting Home utilities (Search, Alerts).
   const links: NavLink[] = [
     { label: "Dashboard", to: "/", icon: DashboardIcon },
-    // Clients is its own IA area (master CRM); People keeps only internal/external staff.
     ...(can(user.role, "write") ? [{ label: "Leads", to: "/leads", icon: Events }] : []),
-    ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients", icon: Events }] : []),
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Work", to: "/tasks", icon: TaskComplete },
+    // Internal office staff hub (Team · HR · Performance).
+    ...(planAllowsFeature("hr") && hrEnabled
+      ? [{ label: "Team", to: "/team", icon: UserMultiple }]
+      : []),
+    // OFFICE › External Network (V2): Clients · Consultants · Contractors.
+    ...(can(user.role, "write") || atLeast(60)
+      ? [{ label: "External Network", to: "/external-network", icon: Partnership }]
+      : []),
     ...(planAllowsFeature("knowledgeBank") ? [{ label: "Knowledge", to: "/knowledge-bank", icon: Catalog }] : []),
     { label: "Search", to: "/search", icon: SearchIcon },
     { label: "Alerts", to: "/alerts", icon: Notification },
   ];
 
   const groups: { label: string; icon: CarbonIconType; items: NavLink[] }[] = [
-    {
-      label: "People",
-      icon: UserMultiple,
-      items: [
-        // Team, HR, Performance: plan gate + HR module gate + rank
-        ...(planAllowsFeature("hr") && hrEnabled
-          ? [
-              { label: "Team", to: "/team" },
-              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
-              // Performance: L3+ within HR module
-              ...(planAllowsFeature("performance") && atLeast(60) ? [{ label: "Performance", to: "/performance" }] : []),
-            ]
-          : []),
-        // Consultants & Contractors directories: L3+ (rank 60). Lite has no
-        // consultant directory page (consultants are mapped to projects only).
-        ...(atLeast(60) ? [{ label: "Consultants", to: "/consultants" }] : []),
-        ...(atLeast(60) ? [{ label: "Contractors", to: "/contractors" }] : []),
-      ],
-    },
     {
       label: "Accounts",
       icon: Money,
@@ -538,17 +522,35 @@ function AppShell() {
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
                 />
+                {/* OFFICE › External Network (V2): Clients · Consultants · Contractors. */}
+                {(can(user.role, "write") || atLeast(60)) && (
+                  <Route path="/external-network" element={<ExternalNetworkHub />} />
+                )}
+                {/* Legacy paths → External Network tabs (preserve bookmarks). */}
+                <Route
+                  path="/third-parties"
+                  element={<Navigate to="/external-network" replace />}
+                />
                 {can(user.role, "write") && (
-                  <Route path="/clients" element={<Clients />} />
+                  <Route
+                    path="/clients"
+                    element={<Navigate to="/external-network?tab=clients" replace />}
+                  />
+                )}
+                {atLeast(60) && (
+                  <Route
+                    path="/consultants"
+                    element={<Navigate to="/external-network?tab=consultants" replace />}
+                  />
+                )}
+                {atLeast(60) && (
+                  <Route
+                    path="/contractors"
+                    element={<Navigate to="/external-network?tab=contractors" replace />}
+                  />
                 )}
                 {can(user.role, "write") && (
                   <Route path="/leads" element={<Leads />} />
-                )}
-                {atLeast(60) && (
-                  <Route path="/consultants" element={<Consultants />} />
-                )}
-                {atLeast(60) && (
-                  <Route path="/contractors" element={<Contractors />} />
                 )}
                 <Route
                   path="/client-requests"
@@ -561,8 +563,11 @@ function AppShell() {
                 {can(user.role, "invoice:manage") && (
                   <Route path="/reconcile" element={<Reconcile />} />
                 )}
-                {hrEnabled && <Route path="/team" element={<Team />} />}
-                {hrEnabled && <Route path="/hr" element={<Hr />} />}
+                {/* Team hub (Team · HR · Performance). */}
+                {hrEnabled && <Route path="/team" element={<TeamHub />} />}
+                {hrEnabled && (
+                  <Route path="/hr" element={<Navigate to="/team?tab=hr" replace />} />
+                )}
                 <Route
                   path="/dsr"
                   element={<Navigate to="/knowledge-bank" replace />}
@@ -589,7 +594,12 @@ function AppShell() {
                   />
                 )}
                 <Route path="/settings" element={<Settings />} />
-                {hrEnabled && atLeast(60) && <Route path="/performance" element={<Performance />} />}
+                {hrEnabled && atLeast(60) && (
+                  <Route
+                    path="/performance"
+                    element={<Navigate to="/team?tab=performance" replace />}
+                  />
+                )}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

@@ -140,63 +140,64 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 
 ## 7. Navigation sidebar
 
+> Module placement and naming follow [NAVIGATION.md](NAVIGATION.md) (the canonical
+> V2 five-pillar IA). This section lists **what each level sees**, by pillar /
+> section. Where a V2 module is not built yet (e.g. LEOS), it does not appear.
+> Interim implementation note: Internal Operations (Team/HR/Performance) ships
+> today as the `/team` hub; External Network (Clients/Consultants/Contractors) as
+> the `/external-network` hub.
+
 ### Always visible (L5+)
 
-- Dashboard
-- Projects (list)
-- Work → Tasks / Board / Calendar / Activity
-- Knowledge Bank
-- Alerts
-- Admin → My profile / Settings
-- People → Team (names and roles only)
+- HOME → Dashboard
+- STUDIO → Projects (list), Tasks (Board / Calendar / Activity)
+- OFFICE → Standards Library *(Knowledge Bank)*
+- OFFICE → Administration → My profile / Settings
+- OFFICE → Internal Operations → Team (names and roles only)
+- Header → Notifications (Alerts), Global Search
 
 ### L4+ (ASSOCIATE and above)
 
-- Work → Client requests tab
-- Work → Consultant requests tab
-- People → Clients (view only for L4)
-- Office → Documents, Letters, Contracts (view only for L4)
+- STUDIO → Tasks → Client requests / Consultant requests tabs
+- OFFICE → External Network → Clients (view only for L4)
+- OFFICE → Internal Operations → Documents Register, Letters
+- GROWTH OS → Contracts (view only for L4)
 
 ### L3+ (SENIOR and above)
 
-- Work → (full write access on tasks)
-- People → Clients (full)
-- People → Consultants
-- People → Contractors
-- Programme
-- Office → Tenders (view only for L3; write for L2+)
-- Office → AI Studio
-- People → Performance (own ASPRF card only)
+- STUDIO → Tasks (full write access)
+- OFFICE → External Network → Clients (full), Consultants, Contractors
+- STUDIO → Programme, Construction, PMC
+- OFFICE → Internal Operations → Performance (own ASPRF card only)
+- (AI assistant — header)
 
 ### L2+ (PARTNER and above)
 
-- **Accounting group:**
+- **OFFICE → Finance:**
   - Invoices
   - Office expenses
   - Cash book
   - Reconciliation
-  - Fee proposals
   - GST / TDS filing
-- Office → Proposals
-- Office → Tenders (full write)
-- People → HR / Payroll
-- People → Performance (full team view)
-- Work → Workload
-- Work → Attendance
-- Admin → Archived projects
+- GROWTH OS → Fee Proposals, Proposals
+- OFFICE → Internal Operations → HR / Payroll
+- OFFICE → Internal Operations → Performance (full team view)
+- STUDIO → Tasks → Workload, Attendance
+- OFFICE → Administration → Archived projects
 
 ### L1 only (OWNER)
 
-- Admin → Company settings (edit)
-- Admin → Users
-- Admin → Audit log
-- People → HR → Salary amounts (read)
+- OFFICE → Administration → Company settings (edit)
+- OFFICE → Administration → Users
+- OFFICE → Administration → Audit log
+- OFFICE → Administration → License Management
+- OFFICE → Internal Operations → HR → Salary amounts (read)
 
 ### System Admin overlay only
 
-- Admin → Import demo data
-- Admin → Purge / reset installation
-- Admin → System release metadata
+- OFFICE → Administration → Import demo data
+- OFFICE → Administration → Purge / reset installation
+- OFFICE → Administration → System release metadata
 
 ---
 

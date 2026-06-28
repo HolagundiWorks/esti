@@ -16,6 +16,11 @@
 
 > Last reconciled **2026-06-28**. This is the source of truth for what is live, removed,
 > and being rebuilt. Verified against the live tRPC router.
+>
+> **Navigation / sidebar** is defined canonically in [NAVIGATION.md](NAVIGATION.md)
+> (the V2 five-pillar IA: HOME / GROWTH OS / STUDIO / LEOS / OFFICE). This section
+> stays authoritative for *what code exists*; NAVIGATION.md is authoritative for
+> *where it appears*.
 
 **Live** (shipping, in the router): Project OS (`projectOffice`, `phases`, `drawings`,
 `transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`,
@@ -120,11 +125,12 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 ## Reading order for a new agent
 
 1. **This doc** — the six pillars + the **System state** (what's live / removed / rebuilding). Authoritative on current state.
-2. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS.md](ESTIMATION-OS.md) — the active rebuild (cost/estimation domain).
-3. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
-4. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
-5. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
-6. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — nav/history/requirements; **defer to the System state above where they describe the removed estimation/cost stack.**
+2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (V2 five-pillar IA).
+3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS.md](ESTIMATION-OS.md) — the active rebuild (cost/estimation domain).
+4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
+5. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
+6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
+7. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — module rationale/history/requirements; **defer to NAVIGATION.md for the sidebar and to the System state above where they describe the removed estimation/cost stack.**
 
 ## Document control
 

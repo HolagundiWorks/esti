@@ -196,7 +196,15 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 
 ## Frontend routes (`frontend/src/routes/`)
 
-29 route files total. Key routes by area:
+> **Sidebar / module placement** is canonically defined in
+> [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **V2 five-pillar** IA
+> (HOME / GROWTH OS / STUDIO / LEOS / OFFICE) with per-module live/planned status.
+> People are split into **OFFICE › Internal Operations** (Team · HR · Performance,
+> the `/team` hub) and **OFFICE › External Network** (Clients · Consultants ·
+> Contractors, the `/external-network` hub). Build the full pillar sidebar against
+> that doc, not the legacy nav comments in `App.tsx`.
+
+Key routes by area:
 
 | File | Purpose |
 |---|---|
@@ -204,13 +212,15 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |
-| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked) |
+| `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); rendered as the Clients tab of `ExternalNetworkHub` |
 | `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias) |
-| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated) |
+| `TeamHub.tsx` | **OFFICE › Internal Operations** hub (`/team`) — tabs Team · HR · Performance; renders `Team`/`Hr`/`Performance` with `embedded` |
+| `ExternalNetworkHub.tsx` | **OFFICE › External Network** hub (`/external-network`) — tabs Clients · Consultants · Contractors; legacy `/clients`,`/consultants`,`/contractors`,`/third-parties` redirect here |
+| `Team.tsx` / `Hr.tsx` | Team roster and HR/payroll (hrEnabled gated); both take an `embedded` prop (header-less in the hub) |
 | `FeeProposals.tsx` / `Invoices.tsx` | Financial documents |
 | `Proposals.tsx` | Project proposals |
 | `Reconcile.tsx` | Financial reconciliation |
-| `Consultants.tsx` | External consultants |
+| `Consultants.tsx` / `Contractors.tsx` | External consultants / contractors (External Network tabs; `embedded` prop) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
 | `KnowledgeBank.tsx` | Specification, Lessons tabs |

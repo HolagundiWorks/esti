@@ -47,7 +47,7 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
   return "gray";
 }
 
-export function Contractors() {
+export function Contractors({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const [category, setCategory] = useState("");
   const listQ = trpc.contractors.list.useQuery({
@@ -83,11 +83,18 @@ export function Contractors() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="Contractors"
-        description="Construction contractor register — trades, statutory ids and on-site performance."
-        actions={<Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
-      />
+      {embedded ? (
+        <Stack orientation="horizontal" gap={5} className="esti-page-header">
+          <div className="esti-grow" />
+          <Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
+        </Stack>
+      ) : (
+        <PageHeader
+          title="Contractors"
+          description="Construction contractor register — trades, statutory ids and on-site performance."
+          actions={<Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
+        />
+      )}
 
       <Stack orientation="horizontal" gap={5}>
         <Select id="ct-cat" labelText="Category" hideLabel size="sm" value={category} onChange={(e) => setCategory(e.target.value)}>
