@@ -15,7 +15,6 @@ import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
 import { constructionRouter } from "../modules/contractor/construction.js";
-import { contractorPortalRouter } from "../modules/contractor/portal.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { leadsRouter } from "../modules/projectos/leads.js";
@@ -27,7 +26,6 @@ import { onboardingRouter } from "../modules/projectos/onboarding.js";
 import { programRouter } from "../modules/projectos/program.js";
 import { documentRouter } from "../modules/document/router.js";
 import { momRouter } from "../modules/mom/router.js";
-import { measurementRouter } from "../modules/drawing/measurement.js";
 import { drawingRouter } from "../modules/drawing/router.js";
 import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { firmRouter } from "../modules/firm/router.js";
@@ -129,13 +127,11 @@ export const appRouter = router({
   transmittals: transmittalRouter,
   consultants: consultantRouter,
   contractors: contractorRouter,
-  contractorPortal: contractorPortalRouter,
   construction: constructionRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,
   drawings: drawingRouter,
-  measurements: measurementRouter,
   reconcile: reconcileRouter,
   reports: reportsRouter,
   admin: adminRouter,

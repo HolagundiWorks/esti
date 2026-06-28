@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { CompanionLinkDrawing, TAKEOFF_CATALOG } from "@esti/contracts";
+import { CompanionLinkDrawing } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -22,14 +22,6 @@ import {
 export const companionRouter = router({
   capabilities: protectedProcedure.query(async ({ ctx }) => {
     return resolveCompanionCapabilities(ctx.db, ctx.user!);
-  }),
-
-  takeoffCatalog: protectedProcedure.query(() => {
-    return {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      items: TAKEOFF_CATALOG,
-    };
   }),
 
   /** Create or return a drawing record without DXF upload (ESTILINK). */
@@ -118,12 +110,3 @@ export const companionRouter = router({
       return { ok: true };
     }),
 });
-
-/** JSON payload for REST clients (ESTICAD C++ HTTP). */
-export function takeoffCatalogPayload() {
-  return {
-    version: 1,
-    updatedAt: new Date().toISOString(),
-    items: TAKEOFF_CATALOG,
-  };
-}
