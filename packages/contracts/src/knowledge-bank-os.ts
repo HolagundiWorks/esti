@@ -64,6 +64,27 @@ export const KbBrandUpdate = KbBrandCreate.partial().extend({
 });
 export type KbBrandUpdate = z.infer<typeof KbBrandUpdate>;
 
+// ── Material → brand mapping ────────────────────────────────────────────────
+export const KbByMaterialInput = z.object({ materialId: z.string().uuid() });
+export type KbByMaterialInput = z.infer<typeof KbByMaterialInput>;
+
+export const KbMaterialBrandAdd = z.object({
+  materialId: z.string().uuid(),
+  brandId: z.string().uuid(),
+  gradeOrVariant: z.string().max(160).optional(),
+  qualityLevel: z.string().max(80).optional(),
+  preferred: z.boolean().default(false),
+});
+export type KbMaterialBrandAdd = z.infer<typeof KbMaterialBrandAdd>;
+
+export const KbMaterialBrandUpdate = z.object({
+  id: z.string().uuid(),
+  gradeOrVariant: z.string().max(160).nullable().optional(),
+  qualityLevel: z.string().max(80).nullable().optional(),
+  preferred: z.boolean().optional(),
+});
+export type KbMaterialBrandUpdate = z.infer<typeof KbMaterialBrandUpdate>;
+
 // ── Specification library (method/mix variants, mapped to an item) ──────────
 export const KbSpecificationCreate = z.object({
   itemId: z.string().uuid(),

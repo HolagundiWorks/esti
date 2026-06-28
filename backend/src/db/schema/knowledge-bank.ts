@@ -64,6 +64,22 @@ export const kbBrands = pgTable("esti_kb_brand", {
   createdAt: createdAt(),
 });
 
+/** Material → brand mapping — which branded variants supply a generic material
+ *  (Cement → UltraTech OPC 53; Steel → Tata Tiscon Fe500D). One preferred per material. */
+export const kbMaterialBrands = pgTable("esti_kb_material_brand", {
+  id: id(),
+  materialId: uuid("material_id")
+    .notNull()
+    .references(() => kbMaterials.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => kbBrands.id, { onDelete: "cascade" }),
+  gradeOrVariant: text("grade_or_variant"),
+  qualityLevel: text("quality_level"),
+  preferred: boolean("preferred").notNull().default(false),
+  createdAt: createdAt(),
+});
+
 /** Specification library — method/mix variants of an item (Brickwork → 1:6;
  *  Concrete → M25). Each specification belongs to one item; an item has many.
  *  Material + labour consumption recipes attach to a specification (next phase). */

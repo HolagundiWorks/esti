@@ -2,12 +2,15 @@ import {
   KbBrandCreate,
   KbBrandUpdate,
   KbByItemInput,
+  KbByMaterialInput,
   KbBySpecInput,
   KbIdInput,
   KbItemCreate,
   KbItemUpdate,
   KbLaborCreate,
   KbLaborUpdate,
+  KbMaterialBrandAdd,
+  KbMaterialBrandUpdate,
   KbMaterialCreate,
   KbMaterialUpdate,
   KbSpecificationCreate,
@@ -24,6 +27,7 @@ import {
   kbBrands,
   kbItems,
   kbLabor,
+  kbMaterialBrands,
   kbMaterials,
   kbSpecifications,
   kbSpecLabor,
@@ -542,12 +546,81 @@ const recipeLabor = router({
 
 const recipes = router({ materials: recipeMaterials, labor: recipeLabor });
 
+// ── Material → brand mapping (which branded variants supply a material) ──────
+const materialBrands = router({
+  listByMaterial: protectedProcedure
+    .input(KbByMaterialInput)
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select({
+          id: kbMaterialBrands.id,
+          brandId: kbMaterialBrands.brandId,
+          gradeOrVariant: kbMaterialBrands.gradeOrVariant,
+          qualityLevel: kbMaterialBrands.qualityLevel,
+          preferred: kbMaterialBrands.preferred,
+          brandName: kbBrands.name,
+        })
+        .from(kbMaterialBrands)
+        .innerJoin(kbBrands, eq(kbMaterialBrands.brandId, kbBrands.id))
+        .where(eq(kbMaterialBrands.materialId, input.materialId))
+        .orderBy(desc(kbMaterialBrands.preferred), asc(kbBrands.name)),
+    ),
+  add: protectedProcedure
+    .input(KbMaterialBrandAdd)
+    .mutation(async ({ ctx, input }) => {
+      if (input.preferred) {
+        await ctx.db
+          .update(kbMaterialBrands)
+          .set({ preferred: false })
+          .where(eq(kbMaterialBrands.materialId, input.materialId));
+      }
+      const [row] = await ctx.db
+        .insert(kbMaterialBrands)
+        .values({
+          materialId: input.materialId,
+          brandId: input.brandId,
+          gradeOrVariant: input.gradeOrVariant ?? null,
+          qualityLevel: input.qualityLevel ?? null,
+          preferred: input.preferred,
+        })
+        .returning();
+      return row!;
+    }),
+  update: protectedProcedure
+    .input(KbMaterialBrandUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [existing] = await ctx.db
+        .select()
+        .from(kbMaterialBrands)
+        .where(eq(kbMaterialBrands.id, id));
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (rest.preferred === true) {
+        await ctx.db
+          .update(kbMaterialBrands)
+          .set({ preferred: false })
+          .where(eq(kbMaterialBrands.materialId, existing.materialId));
+      }
+      const [row] = await ctx.db
+        .update(kbMaterialBrands)
+        .set(definedOnly(rest))
+        .where(eq(kbMaterialBrands.id, id))
+        .returning();
+      return row!;
+    }),
+  remove: protectedProcedure.input(KbIdInput).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(kbMaterialBrands).where(eq(kbMaterialBrands.id, input.id));
+    return { ok: true };
+  }),
+});
+
 /** Construction Knowledge Bank router — libraries + specifications + recipes. */
 export const kbRouter = router({
   materials,
   labor,
   items,
   brands,
+  materialBrands,
   specifications,
   recipes,
 });
