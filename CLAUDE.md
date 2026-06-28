@@ -139,17 +139,17 @@ GST rates, SAC codes)
 - `spec` — project specifications; `inspections` — site inspections (PDF generation)
 - `reports` — GST/TDS filing abstracts (`reports:view`)
 
-**Drawings / BOQ / Steel:**
-- `drawings` — drawing/document management; `measurements` — measurement sheets
-- `dsr` — Rate Book reference (code namespace `dsr`); `estimates` — BOQ cost estimates;
-  `bbs` — Bar Bending Schedule (all three from `backend/src/modules/boq/`)
-- **RuleSet engine** (Estimation OS restructure): `esti_component` is a versioned
-  RuleSet/work item (free-form `quantity_formula` + `boq_splitters` +
-  `material_splitters` + `lifecycle`); pure engines in contracts
-  `formula-engine.ts` (safe expression evaluator) + `ruleset-engine.ts`
-  (`deriveRuleSet`). Builder UI = Knowledge Bank `ComponentLibrary.tsx`; Execution
-  = `CostingWindow.tsx` Components tab (live `estimation.derivePreview`). See
-  `docs/esti/ESTIMATION-OS-ARCHITECTURE.md` §31.
+**Drawings / Rate Books:**
+- `drawings` — drawing/document management (DXF register + ESTICAD launch)
+- `dsr` — Rate Book reference (code namespace `dsr`); `rateAnalysis` — analysed
+  composite rates. Both are reference data surfaced in the Knowledge Bank.
+
+> The **Estimation OS** (estimates/BOQ, `esti_component`/RuleSet engine,
+> `formula-engine`/`ruleset-engine`, CostingWindow, ParametricCanvas, ComponentLibrary)
+> and the **Construction Cost spine** (tenders, work packages, running bills,
+> measurement book, deviations/variations, final accounts, cost dashboard, GRN,
+> procurement forecast, BBS + steel reconciliation) were **removed** in the 2026-06-28
+> teardown — to be rebuilt from the ground up. Rate Books + Rate Analysis remain.
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
@@ -165,15 +165,15 @@ GST rates, SAC codes)
   (all three from `backend/src/modules/consultant/`)
 
 **Knowledge:**
-- `knowledgeBank` — knowledge catalog (Rate Books, rate analysis, components,
-  specification, parametric, and lessons surfaced in `KnowledgeBank.tsx`)
+- `knowledgeBank` — knowledge catalog (Rate Books, Rate Analysis, Specification,
+  and Lessons surfaced in `KnowledgeBank.tsx`)
 - `specCatalog` — specification material catalogue (Knowledge Bank)
 
 > The in-product RIE/compliance rule engine, site assessments (`ruleVersions` /
-> `siteAssessments`), and the BBMP bylaw calculator (`bbmpRules`) were **removed**
-> in the 2026-06 Knowledge-Bank cleanup; their modules and contracts no longer
-> exist. The shared BBS feature (`bbs` / `esti_bbs`) and Rate Books (the `dsr`
-> namespace, surfaced as "Rate Books") remain.
+> `siteAssessments`), and the BBMP bylaw calculator (`bbmpRules`) were removed in the
+> 2026-06 Knowledge-Bank cleanup. The Estimation OS + Construction Cost spine
+> (incl. BBS / `esti_bbs`, the Components + Parametric KB tabs) were removed in the
+> 2026-06-28 teardown. **Rate Books** (`dsr`) and **Rate Analysis** remain.
 
 **Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
@@ -211,7 +211,7 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 | `Consultants.tsx` | External consultants |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
-| `KnowledgeBank.tsx` | Rate Books, Rate Analysis, Components, Specification, Parametric, Lessons tabs |
+| `KnowledgeBank.tsx` | Rate Books, Rate Analysis, Specification, Lessons tabs |
 | `components/knowledge/MasterDsr.tsx` | Rate Book panel (embedded in Knowledge Bank) |
 | `Performance.tsx` | ASPRF performance dashboard |
 | `AuditLog.tsx` | Audit trail (firm:admin gated) |
