@@ -7,12 +7,7 @@ import { criticalNoteRouter } from "../modules/criticalNote/router.js";
 import { decisionRouter } from "../modules/decision/router.js";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
-import { bbsRouter } from "../modules/boq/bbs.js";
-import { componentRouter } from "../modules/boq/component.js";
-import { designEstimateRouter } from "../modules/boq/designEstimate.js";
-import { workPackageRouter } from "../modules/boq/workPackage.js";
 import { dsrRouter } from "../modules/boq/dsr.js";
-import { estimateRouter } from "../modules/boq/estimate.js";
 import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
@@ -21,7 +16,6 @@ import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
 import { constructionRouter } from "../modules/contractor/construction.js";
 import { contractorPortalRouter } from "../modules/contractor/portal.js";
-import { tenderRouter } from "../modules/contractor/tender.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { leadsRouter } from "../modules/projectos/leads.js";
@@ -84,12 +78,6 @@ import { snagsRouter } from "../modules/pmc/snags.js";
 import { siteInstructionsRouter } from "../modules/pmc/siteInstructions.js";
 import { progressReportsRouter } from "../modules/pmc/progressReports.js";
 import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
-import { runningBillsRouter } from "../modules/pmc/runningBills.js";
-import { measurementBookRouter } from "../modules/pmc/measurements.js";
-import { deviationRouter, variationRouter } from "../modules/pmc/controls.js";
-import { steelReconciliationRouter } from "../modules/pmc/steel.js";
-import { finalAccountRouter } from "../modules/pmc/finalAccount.js";
-import { grnRouter } from "../modules/pmc/grn.js";
 import { siteVisitRouter } from "../modules/siteVisit/router.js";
 import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
@@ -136,17 +124,11 @@ export const appRouter = router({
   invoices: invoiceRouter,
   permits: permitRouter,
   dsr: dsrRouter,
-  estimates: estimateRouter,
-  estimation: designEstimateRouter,
-  workPackages: workPackageRouter,
-  components: componentRouter,
-  bbs: bbsRouter,
   rateAnalysis: rateAnalysisRouter,
   approvals: approvalRouter,
   transmittals: transmittalRouter,
   consultants: consultantRouter,
   contractors: contractorRouter,
-  tenders: tenderRouter,
   contractorPortal: contractorPortalRouter,
   construction: constructionRouter,
   engagements: engagementRouter,
@@ -201,13 +183,6 @@ export const appRouter = router({
   siteInstructions: siteInstructionsRouter,
   progressReports: progressReportsRouter,
   phaseProgress: phaseProgressRouter,
-  runningBills: runningBillsRouter,
-  measurementBook: measurementBookRouter,
-  deviations: deviationRouter,
-  variations: variationRouter,
-  steelReconciliation: steelReconciliationRouter,
-  finalAccount: finalAccountRouter,
-  grn: grnRouter,
   leads: leadsRouter,
   projectDna: projectDnaRouter,
   assessment: assessmentRouter,
