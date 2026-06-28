@@ -114,7 +114,7 @@ const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performa
 const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
-const Leos = lazyRoute(() => import("./routes/Leos.js"), "Leos");
+const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
 const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
@@ -303,10 +303,10 @@ function AppShell() {
       </Theme>
     );
 
-  // Navigation tree — the V2 five-pillar IA (HOME · GROWTH OS · STUDIO · LEOS ·
-  // OFFICE). Canonical spec: docs/esti/NAVIGATION.md. A node is either a leaf
-  // `link` or a `menu` (collapsible; may nest, e.g. OFFICE › sub-sections).
-  // Search / Alerts / AI Studio are header utilities, not sidebar entries.
+  // Navigation tree — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio ·
+  // Third Parties · Office · Finance · LXOS · Admin). Spec: docs/esti/NAVIGATION.md.
+  // A node is either a leaf `link` or a `menu` (collapsible; may nest, e.g. Studio ›
+  // Libraries). Search / AI Studio are header utilities, not sidebar entries.
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
   type NavNode =
     | (NavLink & { kind?: "link" })
@@ -398,7 +398,7 @@ function AppShell() {
           : []),
       ],
     },
-    { label: "LEOS", to: "/leos", icon: Education },
+    { label: "LXOS", to: "/lxos", icon: Education },
     {
       kind: "menu",
       label: "Admin",
@@ -536,7 +536,8 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
-                <Route path="/leos" element={<Leos />} />
+                <Route path="/lxos" element={<Lxos />} />
+                <Route path="/leos" element={<Navigate to="/lxos" replace />} />
                 <Route path="/search" element={<SearchPage />} />
                 {can(user.role, "invoice:manage") && (
                   <Route path="/invoices" element={<Invoices />} />
