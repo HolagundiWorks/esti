@@ -26,11 +26,9 @@ import { PageHeader } from "../components/PageHeader.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { MasterDsr } from "../components/knowledge/MasterDsr.js";
 import { RateAnalysisPanel } from "../components/knowledge/RateAnalysisPanel.js";
-import { ComponentLibrary } from "../components/knowledge/ComponentLibrary.js";
-import { ParametricCanvas } from "../components/estimation/ParametricCanvas.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = ["dsr", "rate-analysis", "components", "specification", "parametric", "lessons"] as const;
+const KB_TAB_SLUGS = ["dsr", "rate-analysis", "specification", "lessons"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -130,9 +128,7 @@ export function KnowledgeBank() {
         <TabList aria-label="Knowledge Bank sections">
           <Tab>Rate Books</Tab>
           <Tab>Rate Analysis</Tab>
-          <Tab>Components</Tab>
           <Tab>Specification</Tab>
-          <Tab>Parametric</Tab>
           <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
@@ -145,17 +141,7 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <ComponentLibrary embedded />
-          </TabPanel>
-
-          <TabPanel>
             <SpecCatalogManager embedded />
-          </TabPanel>
-
-          <TabPanel>
-            <div className="esti-chart-canvas">
-              <ParametricCanvas />
-            </div>
           </TabPanel>
 
           <TabPanel>
