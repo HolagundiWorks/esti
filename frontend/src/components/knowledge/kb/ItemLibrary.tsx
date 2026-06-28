@@ -16,6 +16,7 @@ export function ItemLibrary() {
   const create = trpc.kb.items.create.useMutation({ onSuccess: inval });
   const update = trpc.kb.items.update.useMutation({ onSuccess: inval });
   const remove = trpc.kb.items.remove.useMutation({ onSuccess: inval });
+  const bulk = trpc.kb.items.bulkCreate.useMutation({ onSuccess: inval });
 
   return (
     <KbLibraryTable
@@ -32,6 +33,7 @@ export function ItemLibrary() {
           : create.mutate(values as KbItemCreate)
       }
       onRemove={(id) => remove.mutate({ id })}
+      onImport={(rows) => bulk.mutate(rows as KbItemCreate[])}
     />
   );
 }

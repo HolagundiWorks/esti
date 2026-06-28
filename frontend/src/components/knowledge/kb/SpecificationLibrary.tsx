@@ -32,6 +32,7 @@ export function SpecificationLibrary() {
   const create = trpc.kb.specifications.create.useMutation({ onSuccess: inval });
   const update = trpc.kb.specifications.update.useMutation({ onSuccess: inval });
   const remove = trpc.kb.specifications.remove.useMutation({ onSuccess: inval });
+  const bulk = trpc.kb.specifications.bulkCreate.useMutation({ onSuccess: inval });
 
   const items = itemsQ.data ?? [];
 
@@ -73,6 +74,11 @@ export function SpecificationLibrary() {
               : create.mutate({ itemId, ...values } as KbSpecificationCreate)
           }
           onRemove={(id) => remove.mutate({ id })}
+          onImport={(rows) =>
+            bulk.mutate(
+              rows.map((r) => ({ itemId, ...r })) as KbSpecificationCreate[],
+            )
+          }
         />
       ) : null}
     </Stack>

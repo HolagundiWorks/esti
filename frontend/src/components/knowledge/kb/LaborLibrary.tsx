@@ -18,6 +18,7 @@ export function LaborLibrary() {
   const create = trpc.kb.labor.create.useMutation({ onSuccess: inval });
   const update = trpc.kb.labor.update.useMutation({ onSuccess: inval });
   const remove = trpc.kb.labor.remove.useMutation({ onSuccess: inval });
+  const bulk = trpc.kb.labor.bulkCreate.useMutation({ onSuccess: inval });
 
   return (
     <KbLibraryTable
@@ -34,6 +35,7 @@ export function LaborLibrary() {
           : create.mutate(values as KbLaborCreate)
       }
       onRemove={(id) => remove.mutate({ id })}
+      onImport={(rows) => bulk.mutate(rows as KbLaborCreate[])}
     />
   );
 }

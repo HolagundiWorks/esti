@@ -12,6 +12,7 @@ import {
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
+import { z } from "zod";
 import { kbItems, kbLabor, kbMaterials, kbSpecifications } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -55,6 +56,23 @@ const materials = router({
         after: row,
       });
       return row!;
+    }),
+  bulkCreate: protectedProcedure
+    .input(z.array(KbMaterialCreate).max(5000))
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) return { inserted: 0 };
+      await ctx.db.insert(kbMaterials).values(
+        input.map((m) => ({
+          name: m.name,
+          unit: m.unit,
+          category: m.category ?? null,
+          wastageFactor: m.wastageFactor,
+          density: m.density ?? null,
+          defaultRatePaise: m.defaultRatePaise,
+          notes: m.notes ?? null,
+        })),
+      );
+      return { inserted: input.length };
     }),
   update: protectedProcedure
     .input(KbMaterialUpdate)
@@ -120,6 +138,22 @@ const labor = router({
       });
       return row!;
     }),
+  bulkCreate: protectedProcedure
+    .input(z.array(KbLaborCreate).max(5000))
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) return { inserted: 0 };
+      await ctx.db.insert(kbLabor).values(
+        input.map((m) => ({
+          name: m.name,
+          unit: m.unit,
+          rateType: m.rateType ?? null,
+          productivityFactor: m.productivityFactor ?? null,
+          defaultRatePaise: m.defaultRatePaise,
+          notes: m.notes ?? null,
+        })),
+      );
+      return { inserted: input.length };
+    }),
   update: protectedProcedure
     .input(KbLaborUpdate)
     .mutation(async ({ ctx, input }) => {
@@ -181,6 +215,20 @@ const items = router({
         after: row,
       });
       return row!;
+    }),
+  bulkCreate: protectedProcedure
+    .input(z.array(KbItemCreate).max(5000))
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) return { inserted: 0 };
+      await ctx.db.insert(kbItems).values(
+        input.map((m) => ({
+          name: m.name,
+          category: m.category ?? null,
+          unit: m.unit,
+          description: m.description ?? null,
+        })),
+      );
+      return { inserted: input.length };
     }),
   update: protectedProcedure
     .input(KbItemUpdate)
@@ -253,6 +301,20 @@ const specifications = router({
         after: row,
       });
       return row!;
+    }),
+  bulkCreate: protectedProcedure
+    .input(z.array(KbSpecificationCreate).max(5000))
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) return { inserted: 0 };
+      await ctx.db.insert(kbSpecifications).values(
+        input.map((s) => ({
+          itemId: s.itemId,
+          name: s.name,
+          description: s.description ?? null,
+          isDefault: s.isDefault,
+        })),
+      );
+      return { inserted: input.length };
     }),
   update: protectedProcedure
     .input(KbSpecificationUpdate)

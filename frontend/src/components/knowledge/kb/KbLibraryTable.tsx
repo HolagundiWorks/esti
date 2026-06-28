@@ -1,6 +1,7 @@
 import {
   Button,
   Checkbox,
+  FileUploaderButton,
   Modal,
   Stack,
   Table,
@@ -13,11 +14,12 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { Add, Edit, TrashCan } from "@carbon/icons-react";
-import { useState } from "react";
+import { Add, Download, Edit, TrashCan } from "@carbon/icons-react";
+import { useState, type ChangeEvent } from "react";
 import { formatINR } from "@esti/contracts";
 import { ConfirmModal } from "../../ConfirmModal.js";
 import { DataState } from "../../DataState.js";
+import { csvToRows, downloadCsv, rowsToCsv } from "./csv.js";
 
 export type KbFieldType = "text" | "textarea" | "number" | "money" | "boolean";
 
@@ -42,6 +44,8 @@ interface Props {
   saving?: boolean;
   onSubmit: (values: Record<string, unknown>, id: string | null) => void;
   onRemove: (id: string) => void;
+  /** When provided, an "Import CSV" button bulk-creates the parsed rows. */
+  onImport?: (rows: Record<string, unknown>[]) => void;
 }
 
 function display(row: KbRow, f: KbField): string {
@@ -75,11 +79,28 @@ export function KbLibraryTable({
   saving,
   onSubmit,
   onRemove,
+  onImport,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const csvName = `${title.toLowerCase().replace(/\s+/g, "-")}.csv`;
+  function exportCsv() {
+    downloadCsv(csvName, rowsToCsv(fields, rows));
+  }
+  function handleImportFile(evt: ChangeEvent<HTMLInputElement>) {
+    const file = evt.target.files?.[0];
+    if (!file || !onImport) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = csvToRows(fields, String(reader.result ?? ""));
+      if (parsed.length > 0) onImport(parsed);
+    };
+    reader.readAsText(file);
+    evt.target.value = "";
+  }
 
   function openNew() {
     setEditId(null);
@@ -120,9 +141,29 @@ export function KbLibraryTable({
           <h2>{title}</h2>
           {description ? <p>{description}</p> : null}
         </Stack>
-        <Button renderIcon={Add} onClick={openNew}>
-          {newLabel}
-        </Button>
+        <Stack orientation="horizontal" gap={3}>
+          <Button
+            kind="ghost"
+            renderIcon={Download}
+            onClick={exportCsv}
+            disabled={rows.length === 0}
+          >
+            Export CSV
+          </Button>
+          {onImport ? (
+            <FileUploaderButton
+              labelText="Import CSV"
+              accept={[".csv"]}
+              buttonKind="ghost"
+              size="md"
+              disableLabelChanges
+              onChange={handleImportFile}
+            />
+          ) : null}
+          <Button renderIcon={Add} onClick={openNew}>
+            {newLabel}
+          </Button>
+        </Stack>
       </Stack>
 
       <DataState

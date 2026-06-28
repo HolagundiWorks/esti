@@ -19,6 +19,7 @@ export function MaterialLibrary() {
   const create = trpc.kb.materials.create.useMutation({ onSuccess: inval });
   const update = trpc.kb.materials.update.useMutation({ onSuccess: inval });
   const remove = trpc.kb.materials.remove.useMutation({ onSuccess: inval });
+  const bulk = trpc.kb.materials.bulkCreate.useMutation({ onSuccess: inval });
 
   return (
     <KbLibraryTable
@@ -35,6 +36,7 @@ export function MaterialLibrary() {
           : create.mutate(values as KbMaterialCreate)
       }
       onRemove={(id) => remove.mutate({ id })}
+      onImport={(rows) => bulk.mutate(rows as KbMaterialCreate[])}
     />
   );
 }
