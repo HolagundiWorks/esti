@@ -67,5 +67,37 @@ export type KbSpecificationUpdate = z.infer<typeof KbSpecificationUpdate>;
 export const KbByItemInput = z.object({ itemId: z.string().uuid() });
 export type KbByItemInput = z.infer<typeof KbByItemInput>;
 
+// ── Consumption recipes (specification → material / labour) ─────────────────
+export const KbBySpecInput = z.object({ specificationId: z.string().uuid() });
+export type KbBySpecInput = z.infer<typeof KbBySpecInput>;
+
+export const KbSpecMaterialAdd = z.object({
+  specificationId: z.string().uuid(),
+  materialId: z.string().uuid(),
+  quantityPerUnit: z.number().min(0).default(0),
+  wastageFactor: z.number().min(0).max(10).default(0),
+});
+export type KbSpecMaterialAdd = z.infer<typeof KbSpecMaterialAdd>;
+
+export const KbSpecMaterialUpdate = z.object({
+  id: z.string().uuid(),
+  quantityPerUnit: z.number().min(0).optional(),
+  wastageFactor: z.number().min(0).max(10).optional(),
+});
+export type KbSpecMaterialUpdate = z.infer<typeof KbSpecMaterialUpdate>;
+
+export const KbSpecLaborAdd = z.object({
+  specificationId: z.string().uuid(),
+  laborId: z.string().uuid(),
+  quantityPerUnit: z.number().min(0).default(0),
+});
+export type KbSpecLaborAdd = z.infer<typeof KbSpecLaborAdd>;
+
+export const KbSpecLaborUpdate = z.object({
+  id: z.string().uuid(),
+  quantityPerUnit: z.number().min(0),
+});
+export type KbSpecLaborUpdate = z.infer<typeof KbSpecLaborUpdate>;
+
 export const KbIdInput = z.object({ id: z.string().uuid() });
 export type KbIdInput = z.infer<typeof KbIdInput>;

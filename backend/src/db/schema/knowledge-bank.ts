@@ -66,3 +66,32 @@ export const kbSpecifications = pgTable("esti_kb_specification", {
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
 });
+
+/** Consumption recipe — material quantity-per-item-unit for a specification
+ *  (Brickwork 1:6 → 500 bricks/cum, 1.5 bags cement/cum…). */
+export const kbSpecMaterials = pgTable("esti_kb_spec_material", {
+  id: id(),
+  specificationId: uuid("specification_id")
+    .notNull()
+    .references(() => kbSpecifications.id, { onDelete: "cascade" }),
+  materialId: uuid("material_id")
+    .notNull()
+    .references(() => kbMaterials.id, { onDelete: "cascade" }),
+  quantityPerUnit: doublePrecision("quantity_per_unit").notNull().default(0),
+  wastageFactor: doublePrecision("wastage_factor").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Consumption recipe — labour quantity-per-item-unit for a specification
+ *  (Brickwork → 0.8 mason-day/cum, 1 helper-day/cum…). */
+export const kbSpecLabor = pgTable("esti_kb_spec_labor", {
+  id: id(),
+  specificationId: uuid("specification_id")
+    .notNull()
+    .references(() => kbSpecifications.id, { onDelete: "cascade" }),
+  laborId: uuid("labor_id")
+    .notNull()
+    .references(() => kbLabor.id, { onDelete: "cascade" }),
+  quantityPerUnit: doublePrecision("quantity_per_unit").notNull().default(0),
+  createdAt: createdAt(),
+});

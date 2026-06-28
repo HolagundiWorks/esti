@@ -1,5 +1,6 @@
 import {
   KbByItemInput,
+  KbBySpecInput,
   KbIdInput,
   KbItemCreate,
   KbItemUpdate,
@@ -9,11 +10,22 @@ import {
   KbMaterialUpdate,
   KbSpecificationCreate,
   KbSpecificationUpdate,
+  KbSpecLaborAdd,
+  KbSpecLaborUpdate,
+  KbSpecMaterialAdd,
+  KbSpecMaterialUpdate,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { kbItems, kbLabor, kbMaterials, kbSpecifications } from "../../db/schema.js";
+import {
+  kbItems,
+  kbLabor,
+  kbMaterials,
+  kbSpecifications,
+  kbSpecLabor,
+  kbSpecMaterials,
+} from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -359,10 +371,103 @@ const specifications = router({
     }),
 });
 
-/** Construction Knowledge Bank router — foundation libraries + specifications. */
+// ── Recipes (data mapper: specification → material / labour consumption) ─────
+const recipeMaterials = router({
+  listBySpec: protectedProcedure.input(KbBySpecInput).query(({ ctx, input }) =>
+    ctx.db
+      .select({
+        id: kbSpecMaterials.id,
+        materialId: kbSpecMaterials.materialId,
+        quantityPerUnit: kbSpecMaterials.quantityPerUnit,
+        wastageFactor: kbSpecMaterials.wastageFactor,
+        materialName: kbMaterials.name,
+        materialUnit: kbMaterials.unit,
+      })
+      .from(kbSpecMaterials)
+      .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
+      .where(eq(kbSpecMaterials.specificationId, input.specificationId))
+      .orderBy(asc(kbMaterials.name)),
+  ),
+  add: protectedProcedure.input(KbSpecMaterialAdd).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .insert(kbSpecMaterials)
+      .values({
+        specificationId: input.specificationId,
+        materialId: input.materialId,
+        quantityPerUnit: input.quantityPerUnit,
+        wastageFactor: input.wastageFactor,
+      })
+      .returning();
+    return row!;
+  }),
+  update: protectedProcedure
+    .input(KbSpecMaterialUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [row] = await ctx.db
+        .update(kbSpecMaterials)
+        .set(definedOnly(rest))
+        .where(eq(kbSpecMaterials.id, id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      return row;
+    }),
+  remove: protectedProcedure.input(KbIdInput).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(kbSpecMaterials).where(eq(kbSpecMaterials.id, input.id));
+    return { ok: true };
+  }),
+});
+
+const recipeLabor = router({
+  listBySpec: protectedProcedure.input(KbBySpecInput).query(({ ctx, input }) =>
+    ctx.db
+      .select({
+        id: kbSpecLabor.id,
+        laborId: kbSpecLabor.laborId,
+        quantityPerUnit: kbSpecLabor.quantityPerUnit,
+        laborName: kbLabor.name,
+        laborUnit: kbLabor.unit,
+      })
+      .from(kbSpecLabor)
+      .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
+      .where(eq(kbSpecLabor.specificationId, input.specificationId))
+      .orderBy(asc(kbLabor.name)),
+  ),
+  add: protectedProcedure.input(KbSpecLaborAdd).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .insert(kbSpecLabor)
+      .values({
+        specificationId: input.specificationId,
+        laborId: input.laborId,
+        quantityPerUnit: input.quantityPerUnit,
+      })
+      .returning();
+    return row!;
+  }),
+  update: protectedProcedure
+    .input(KbSpecLaborUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .update(kbSpecLabor)
+        .set({ quantityPerUnit: input.quantityPerUnit })
+        .where(eq(kbSpecLabor.id, input.id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      return row;
+    }),
+  remove: protectedProcedure.input(KbIdInput).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(kbSpecLabor).where(eq(kbSpecLabor.id, input.id));
+    return { ok: true };
+  }),
+});
+
+const recipes = router({ materials: recipeMaterials, labor: recipeLabor });
+
+/** Construction Knowledge Bank router — libraries + specifications + recipes. */
 export const kbRouter = router({
   materials,
   labor,
   items,
   specifications,
+  recipes,
 });

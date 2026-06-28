@@ -184,12 +184,15 @@ Carbon check, render-200) → commit**. Built on a fresh branch off `main`.
 | --- | --- | --- |
 | **1 — Core Libraries** ✅ | `material`, `labor`, `item` tables + CRUD + three KB tabs | **Shipped** — migration `0109`, `kb.{materials,labor,items}.*` namespace, Materials/Labour/Items tabs in the Knowledge Bank |
 | **2a — Specifications** ✅ | `specification` table mapped to item + `is_default` | **Shipped** — migration `0110`, `kb.specifications.*`, item-scoped Specifications tab (one default per item); existing specCatalog relabelled **Brand Catalogue** |
-| **2b — Recipes** | `spec_material`, `spec_labor` consumption recipes | Attach material + labour quantity-per-unit to a specification |
+| **2b — Recipes** ✅ | `spec_material`, `spec_labor` consumption recipes | **Shipped** — migration `0111`, `kb.recipes.{materials,labor}.*`, **Recipes** data-mapper tab (pick item → spec → connect materials + labour at quantity-per-item-unit) |
 | **3 — Brand Layer** | `brand`, `material_brand` (grade/variant, preferred) | Map generic materials to approved branded variants |
 | **4 — Rate Intelligence** | `vendor`, `vendor_rate` (time-bounded, by location) | Capture live procurement rates; latest-rate resolution |
 | **5 — Dependencies** | `item_dependency` (mandatory / optional / sequence) | Items trigger related items |
 | **6 — Formula Engine** | sandboxed evaluator in contracts (+ vitest); `item_formula` | Stored, safe quantity expressions |
 | **7 — Derivation Engine** | pure read model + vitest: item + spec + measurements → costed breakdown | The deterministic API downstream engines consume |
+
+**Tooling:** every library tab supports **CSV import + export** (field-driven; money
+columns round-trip as rupees) via a shared `bulkCreate` endpoint per type.
 
 **Out of scope (later, separate docs):** BOQ Engine, Estimation OS, Procurement OS,
 Tendering OS, Construction Cost Management OS, AI Quantity Prediction. Future Rate Books
