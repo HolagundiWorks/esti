@@ -39,9 +39,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
-| [CONSTRUCTION-COST-MANAGEMENT-OS](CONSTRUCTION-COST-MANAGEMENT-OS.md) | **Target umbrella** — full cost lifecycle (estimate→tender→award→measurement→bill→deviation/variation→final account); ESTI-adapted map of the reference spec (built/change/create) |
-| [ESTIMATION-OS-ARCHITECTURE](ESTIMATION-OS-ARCHITECTURE.md) | **Target** — component-based estimation engine: component master, design-stage estimate, auto-BOQ, rate analysis, billing, deviations (phased build); the pre-construction + billing core of Construction Cost OS |
-| [IFC-COMPONENT-MAPPING](IFC-COMPONENT-MAPPING.md) | IFC→AORMS component-code mapping standard, quantity formulas, and dependency templates underpinning the component master |
+| [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | **Target (rebuild foundation)** — the layered construction-intelligence reference layer: Material / Labor / Item / Specification libraries, consumption recipes, brand + vendor-rate layer, dependencies, and the formula + derivation engine. Supersedes the removed Estimation OS + Construction Cost spine; everything downstream (BOQ, Estimation, Procurement, Tendering, AI) reads from it |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
