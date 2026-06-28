@@ -7,8 +7,6 @@ import { criticalNoteRouter } from "../modules/criticalNote/router.js";
 import { decisionRouter } from "../modules/decision/router.js";
 import { approvalRouter } from "../modules/approval/router.js";
 import { authRouter } from "../modules/auth/router.js";
-import { dsrRouter } from "../modules/boq/dsr.js";
-import { rateAnalysisRouter } from "../modules/boq/rate-analysis.js";
 import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
@@ -121,8 +119,6 @@ export const appRouter = router({
   feeProposals: feeProposalRouter,
   invoices: invoiceRouter,
   permits: permitRouter,
-  dsr: dsrRouter,
-  rateAnalysis: rateAnalysisRouter,
   approvals: approvalRouter,
   transmittals: transmittalRouter,
   consultants: consultantRouter,

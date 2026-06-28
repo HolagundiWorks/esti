@@ -25,14 +25,12 @@
     "db:migrate": "drizzle-kit migrate",
     "seed": "tsx src/scripts/seed.ts",
     "seed:demo": "tsx src/scripts/seedDemo.ts",
-    "seed:dsr": "tsx src/scripts/seedBuildingDsrCli.ts",
     "seed:prod": "node dist/scripts/seed.js",
     "backfill:activity": "tsx src/scripts/backfillActivity.ts"
   },
   "dependencies": {
     "@esti/contracts": "workspace:*",
     "@hcw/aorms-ai-kit": "workspace:*",
-    "@hcw/master-dsr-kit": "workspace:*",
     "@fastify/cookie": "^9.4.0",
     "@fastify/multipart": "^8.3.0",
     "@fastify/rate-limit": "^9.1.0",

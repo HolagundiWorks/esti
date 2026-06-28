@@ -18,16 +18,14 @@ import {
   syncDemoOwnerPassword,
 } from "../lib/demoSeeds.js";
 import { applyFirmPlanFromEnv } from "../lib/plan.js";
-import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
+import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 
 const email = process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in";
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
 const fullName = process.env.SEED_OWNER_NAME ?? "HCW Owner";
 
 async function main(): Promise<void> {
-  const dsr = await ensureBuildingDsrCatalog(db);
   await ensureAiStudioEnabled(db);
-  console.log(`✓ building DSR: ${dsr.itemsTotal} items (${dsr.itemsSeeded} new)`);
 
   // Licence-free standalone plan (no-op when FIRM_PLAN is unset).
   await applyFirmPlanFromEnv(db);

@@ -27,15 +27,6 @@ export * from "./attendance.js";
 export * from "./timesheet.js";
 export * from "./daily-update.js";
 export * from "./drawing.js";
-export * from "./building-dsr-catalog.js";
-export * from "./rate-book.js";
-export {
-  KA_BUILDING_DSR_REF,
-  CPWD_BUILDING_DSR_REF,
-  cpwdBuildingDsrItems,
-  type DsrCatalogRef,
-  type DsrSourceKind,
-} from "@hcw/master-dsr-kit";
 export * from "./reconcile.js";
 export * from "./ai.js";
 export * from "./firm.js";

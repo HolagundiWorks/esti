@@ -78,7 +78,7 @@ import { firmGstSystem } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
 import { ensureDefaultAccounts } from "../modules/expense/accounts.js";
-import { ensureBuildingDsrCatalog, ensureAiStudioEnabled } from "./seedBuildingDsr.js";
+import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
@@ -142,7 +142,6 @@ async function main() {
   const pwHash = await hashPassword(DEMO_PASSWORD);
   const settings = await getOrgSettings(db);
   await db.update(orgSettings).set({ hrEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
-  await ensureBuildingDsrCatalog(db);
   await ensureAiStudioEnabled(db);
 
   // ── Users ─────────────────────────────────────────────────────────────────

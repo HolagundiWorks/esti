@@ -75,8 +75,6 @@ Cross-project task management:
 - **Search** — permission-aware universal search across all project objects.
 
 ### Knowledge Bank
-- **Rate Books** — reference rate libraries (published schedules of rates and firm rates) for cost estimation.
-- **Rate analysis** — build up item rates from labour, material, and machinery.
 - **Components** — reusable component master linked to BOQ quantities.
 - **Specification catalogue** — standard material and product specifications that can be linked to project drawings.
 - **Bar bending schedules (BBS)** — reinforcement schedules and structural standards.

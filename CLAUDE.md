@@ -139,17 +139,18 @@ GST rates, SAC codes)
 - `spec` — project specifications; `inspections` — site inspections (PDF generation)
 - `reports` — GST/TDS filing abstracts (`reports:view`)
 
-**Drawings / Rate Books:**
+**Drawings:**
 - `drawings` — drawing/document management (DXF register + ESTICAD launch)
-- `dsr` — Rate Book reference (code namespace `dsr`); `rateAnalysis` — analysed
-  composite rates. Both are reference data surfaced in the Knowledge Bank.
 
 > The **Estimation OS** (estimates/BOQ, `esti_component`/RuleSet engine,
 > `formula-engine`/`ruleset-engine`, CostingWindow, ParametricCanvas, ComponentLibrary)
 > and the **Construction Cost spine** (tenders, work packages, running bills,
 > measurement book, deviations/variations, final accounts, cost dashboard, GRN,
 > procurement forecast, BBS + steel reconciliation) were **removed** in the 2026-06-28
-> teardown — to be rebuilt from the ground up. Rate Books + Rate Analysis remain.
+> teardown — to be rebuilt from the ground up. **Rate Books** (`dsr` / `esti_dsr_*` /
+> `@hcw/master-dsr-kit` / MasterDsr) and **Rate Analysis** (`rateAnalysis` /
+> `esti_rate_*`) were also removed (migration `0108`); the spec-catalogue's optional
+> spec → rate-book link went with them.
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
@@ -165,15 +166,16 @@ GST rates, SAC codes)
   (all three from `backend/src/modules/consultant/`)
 
 **Knowledge:**
-- `knowledgeBank` — knowledge catalog (Rate Books, Rate Analysis, Specification,
-  and Lessons surfaced in `KnowledgeBank.tsx`)
+- `knowledgeBank` — knowledge catalog (Specification and Lessons surfaced in
+  `KnowledgeBank.tsx`)
 - `specCatalog` — specification material catalogue (Knowledge Bank)
 
 > The in-product RIE/compliance rule engine, site assessments (`ruleVersions` /
 > `siteAssessments`), and the BBMP bylaw calculator (`bbmpRules`) were removed in the
 > 2026-06 Knowledge-Bank cleanup. The Estimation OS + Construction Cost spine
 > (incl. BBS / `esti_bbs`, the Components + Parametric KB tabs) were removed in the
-> 2026-06-28 teardown. **Rate Books** (`dsr`) and **Rate Analysis** remain.
+> 2026-06-28 teardown, **followed by Rate Books (`dsr`) and Rate Analysis
+> (`rateAnalysis`)** — the Knowledge Bank now holds only Specification + Lessons.
 
 **Supplementary:** `comments` — threaded comments on records; `criticalNotes` —
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
@@ -211,8 +213,7 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 | `Consultants.tsx` | External consultants |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts |
-| `KnowledgeBank.tsx` | Rate Books, Rate Analysis, Specification, Lessons tabs |
-| `components/knowledge/MasterDsr.tsx` | Rate Book panel (embedded in Knowledge Bank) |
+| `KnowledgeBank.tsx` | Specification, Lessons tabs |
 | `Performance.tsx` | ASPRF performance dashboard |
 | `AuditLog.tsx` | Audit trail (firm:admin gated) |
 | `Alerts.tsx` | Notification/alert center |

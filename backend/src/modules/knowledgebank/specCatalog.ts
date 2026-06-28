@@ -1,33 +1,13 @@
 import {
   SpecCatalogItemCreate,
-  SpecCatalogItemSetRate,
   SpecCatalogVersionCreate,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { dsrItems, specCatalogItems, specCatalogVersions } from "../../db/schema.js";
+import { specCatalogItems, specCatalogVersions } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
-
-/** Spec catalogue item columns plus the joined rate-book item it maps to. */
-const itemWithRate = {
-  id: specCatalogItems.id,
-  versionId: specCatalogItems.versionId,
-  category: specCatalogItems.category,
-  item: specCatalogItems.item,
-  make: specCatalogItems.make,
-  specification: specCatalogItems.specification,
-  finish: specCatalogItems.finish,
-  remarks: specCatalogItems.remarks,
-  rateItemId: specCatalogItems.rateItemId,
-  sortOrder: specCatalogItems.sortOrder,
-  createdAt: specCatalogItems.createdAt,
-  rateCode: dsrItems.code,
-  rateDescription: dsrItems.description,
-  rateUnit: dsrItems.unit,
-  ratePaise: dsrItems.ratePaise,
-} as const;
 
 export const specCatalogRouter = router({
   listVersions: protectedProcedure.query(async ({ ctx }) =>
@@ -86,9 +66,8 @@ export const specCatalogRouter = router({
     .input(z.object({ versionId: z.string().uuid() }))
     .query(async ({ ctx, input }) =>
       ctx.db
-        .select(itemWithRate)
+        .select()
         .from(specCatalogItems)
-        .leftJoin(dsrItems, eq(specCatalogItems.rateItemId, dsrItems.id))
         .where(eq(specCatalogItems.versionId, input.versionId))
         .orderBy(asc(specCatalogItems.sortOrder), asc(specCatalogItems.item)),
     ),
@@ -113,7 +92,6 @@ export const specCatalogRouter = router({
           specification: input.specification ?? null,
           finish: input.finish ?? null,
           remarks: input.remarks ?? null,
-          rateItemId: input.rateItemId ?? null,
           sortOrder,
         })
         .returning();
@@ -123,39 +101,6 @@ export const specCatalogRouter = router({
         action: "CREATE",
         actorId: ctx.user.id,
         after: row,
-      });
-      return row!;
-    }),
-
-  /** Set or clear the persisted spec → rate-book mapping for one catalogue item. */
-  setRateItem: protectedProcedure
-    .input(SpecCatalogItemSetRate)
-    .mutation(async ({ ctx, input }) => {
-      const [before] = await ctx.db
-        .select()
-        .from(specCatalogItems)
-        .where(eq(specCatalogItems.id, input.id));
-      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
-      if (input.rateItemId) {
-        const [rate] = await ctx.db
-          .select({ id: dsrItems.id })
-          .from(dsrItems)
-          .where(eq(dsrItems.id, input.rateItemId));
-        if (!rate)
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Rate item not found" });
-      }
-      const [row] = await ctx.db
-        .update(specCatalogItems)
-        .set({ rateItemId: input.rateItemId })
-        .where(eq(specCatalogItems.id, input.id))
-        .returning();
-      await writeAudit(ctx.db, {
-        entity: "spec_catalog_item",
-        entityId: input.id,
-        action: "MAP_RATE",
-        actorId: ctx.user.id,
-        before: { rateItemId: before.rateItemId },
-        after: { rateItemId: row!.rateItemId },
       });
       return row!;
     }),
@@ -187,16 +132,10 @@ export const specCatalogRouter = router({
       .where(eq(specCatalogVersions.active, true))
       .limit(1);
     if (!version)
-      return { version: null, items: [] as (typeof specCatalogItems.$inferSelect & {
-        rateCode: string | null;
-        rateDescription: string | null;
-        rateUnit: string | null;
-        ratePaise: number | null;
-      })[] };
+      return { version: null, items: [] as (typeof specCatalogItems.$inferSelect)[] };
     const items = await ctx.db
-      .select(itemWithRate)
+      .select()
       .from(specCatalogItems)
-      .leftJoin(dsrItems, eq(specCatalogItems.rateItemId, dsrItems.id))
       .where(eq(specCatalogItems.versionId, version.id))
       .orderBy(asc(specCatalogItems.sortOrder), asc(specCatalogItems.item));
     return { version, items };

@@ -106,7 +106,6 @@ export const PLAN_FEATURES = [
   "byos", // bring-your-own-storage (NAS / S3-compatible) — Core+
   "esticad", // companion device API
   "auditLog",
-  "rateBooks", // rate-book library
   "knowledgeBank",
   "sso",
   "apiAccess",
@@ -131,7 +130,6 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   byos: "CORE",
   esticad: "CORE",
   auditLog: "CORE",
-  rateBooks: "CORE",
   knowledgeBank: "CORE",
   sso: "ENTERPRISE",
   apiAccess: "ENTERPRISE",

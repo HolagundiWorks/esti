@@ -12,16 +12,14 @@ const KEEP_TABLES = new Set([
   "esti_orgsettings",
   "esti_user",
   "esti_session",
-  "esti_dsr_version",
-  "esti_dsr_item",
   "esti_audit",
 ]);
 
 export const adminRouter = router({
   /**
    * Owner-only: irreversibly wipe ALL operational data (projects, clients,
-   * invoices, drawings, HR, etc.), keeping the firm profile, owner login and
-   * rate-book reference data. Requires the owner's password.
+   * invoices, drawings, HR, etc.), keeping the firm profile and owner login.
+   * Requires the owner's password.
    */
   purge: ownerProcedure
     .input(z.object({ password: z.string().min(1) }))
