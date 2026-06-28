@@ -2,10 +2,9 @@ import { DashboardLayout } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { costReports, users } from "../../db/schema.js";
+import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
-import { enqueueJob } from "../../lib/redis.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getActionCenter,
@@ -19,8 +18,6 @@ import {
   getTeamIntelligence,
   getTeamAttendanceToday,
   getTechnicalIntelligence,
-  getConstructionCostHealth,
-  getProcurementForecast,
   getDashboardHome,
 } from "./readModels/index.js";
 import {
@@ -276,88 +273,4 @@ export const dashboardRouter = router({
    */
   technicalIntelligence: protectedProcedure.query(({ ctx }) => getTechnicalIntelligence(ctx.db)),
 
-  /**
-   * Construction cost-health for one project (Cost OS Phase G, ref 5.1) —
-   * estimated/tendered/awarded/billed/certified, deviation + variation exposure,
-   * cost-overrun %, package- and contractor-wise Green/Amber/Red/Grey status, and
-   * the deterministic risk checks. Read-only; costing-plan gated (Core+).
-   */
-  constructionCost: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertPlanFeature(ctx.db, "costing");
-      return getConstructionCostHealth(ctx.db, input.projectId);
-    }),
-
-  /**
-   * Procurement forecast for one project (Cost OS, ref 5.16) — the outstanding
-   * (contracted − billed) quantity and value still to be procured / executed per
-   * work-package item, rolled up by cost head and by work package. Read-only;
-   * costing-plan gated (Core+).
-   */
-  procurementForecast: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertPlanFeature(ctx.db, "costing");
-      return getProcurementForecast(ctx.db, input.projectId);
-    }),
-
-  /**
-   * Generate (or refresh) the printable cost report for one project. Computes the
-   * Phase-G cost-health model once, snapshots the whole result into esti_cost_report
-   * (one row per project, upserted), and enqueues the worker render_pdf job. The
-   * worker renders the PDF straight from the stored snapshot — an exact, reproducible
-   * print of the dashboard at generation time. Write-capability + costing gated.
-   */
-  generateCostReport: capabilityProcedure("write")
-    .input(z.object({ projectId: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      await assertPlanFeature(ctx.db, "costing");
-      const health = await getConstructionCostHealth(ctx.db, input.projectId);
-      const now = new Date();
-      const [row] = await ctx.db
-        .insert(costReports)
-        .values({
-          projectId: input.projectId,
-          snapshot: health,
-          generatedAt: now,
-          pdfStatus: "PENDING",
-          createdById: ctx.user.id,
-        })
-        .onConflictDoUpdate({
-          target: costReports.projectId,
-          set: { snapshot: health, generatedAt: now, pdfStatus: "PENDING", updatedAt: now },
-        })
-        .returning();
-      if (!row) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      await enqueueJob(
-        "render_pdf",
-        { target: "cost_report", id: row.id, firm: await firmPayload(ctx.db) },
-        ctx.requestId,
-      );
-      await writeAudit(ctx.db, {
-        entity: "cost_report",
-        entityId: row.id,
-        action: "GENERATE_PDF",
-        actorId: ctx.user.id,
-      });
-      return { ok: true as const };
-    }),
-
-  /** Poll the cost-report PDF status for one project. Read-only; costing gated. */
-  costReport: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertPlanFeature(ctx.db, "costing");
-      const [row] = await ctx.db
-        .select({
-          pdfStatus: costReports.pdfStatus,
-          pdfKey: costReports.pdfKey,
-          generatedAt: costReports.generatedAt,
-        })
-        .from(costReports)
-        .where(eq(costReports.projectId, input.projectId))
-        .limit(1);
-      return row ?? { pdfStatus: "NONE", pdfKey: null, generatedAt: null };
-    }),
 });
