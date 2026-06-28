@@ -145,16 +145,11 @@ manager-only visibility.
 The contractor module supports architect-side coordination only:
 
 - contractor company, GST/PAN, contacts, categories, and performance;
-- tender creation, controlled issue, invitation, queries, addenda, sealed bid
-  receipt, comparison, scoring, and award recommendation;
 - RFIs, material submittals, shop drawings, inspection requests, site
   instructions, snags, and NCRs;
-- PMC running-bill measurement workflow: site in-charge measurement, contractor
-  verification, office measurement verification, approved measurement back to
-  contractor, item-wise contractor invoice, office approval, and client
-  forwarding; bills can be raised against a frozen-estimate **work package**, in
-  which case the approved/previously-billed/balance ledger is tracked per BOQ
-  item and over-billing is blocked (double-billing prevention);
+- *(Tendering — creation / issue / sealed bids / comparison / award — and the
+  work-package running-bill measurement workflow were **removed** 2026-06-28 with the
+  Construction Cost spine; being rebuilt, see [ESTIMATION-OS](ESTIMATION-OS.md).)*
 - strict portal isolation between contractors.
 
 It does not provide inventory, labour, subcontractor, GRN, or contractor
@@ -165,17 +160,14 @@ accounting systems.
 - COA-aware fee proposals, scope, deliverables, exclusions, versions, approval.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
-- PMC commercial control: costing, running bills, purchase orders, and
-  specification sheets under the project PMC group.
-- Rate book/SOR, BOQ, drawing takeoff (capture in ESTICAD only; list and estimate in AORMS), BBS, and exports. Estimate lines keep source provenance and rate-book/takeoff snapshots so issued BOQs remain explainable after rate or drawing changes.
-- **Estimation OS** (Phases 29–30): a progressive, component-based
-  estimation engine extending the above — design-stage cost-head estimate
-  (area-rate / percentage / lumpsum / non-modeled), component master with
-  IFC→AORMS code mapping and auto-BOQ, completed composite rate analysis, and
-  frozen/versioned estimates (OS Phases 1–3, in progress); plus contractor
-  **work packages** carved from a frozen estimate and running bills with
-  cross-project double-billing prevention (OS Phase 4, shipped). Specs:
-  [ESTIMATION-OS](ESTIMATION-OS.md).
+- PMC commercial control: purchase orders and specification sheets under the
+  project PMC group. *(Costing + running bills **removed** 2026-06-28; rebuilding.)*
+- ~~Rate book / SOR, BOQ, BBS, and the component-based **Estimation OS** (design-stage
+  estimate, IFC→code mapping + auto-BOQ, rate analysis, frozen/versioned estimates,
+  contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
+  ground-up on the Knowledge Bank. Spec:
+  [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+  [ESTIMATION-OS](ESTIMATION-OS.md). (ESTICAD takeoff capture stays — see below.)
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case

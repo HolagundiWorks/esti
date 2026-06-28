@@ -17,8 +17,9 @@
 >   collapsible groups Practice · Accounts · People · Admin.
 > - Programme and PMC moved from top-level links into **Practice** as read-only
 >   portfolio rollups; the per-project Programme and PM head remain the masters.
-> - The two-head project workspace and the single Costing & Measurement window
->   are live (`ProjectDetail.tsx`, `ProjectCosting.tsx`).
+> - The two-head project workspace is live (`ProjectDetail.tsx`). The single
+>   Costing & Measurement window was **removed** in the 2026-06-28 teardown (see the
+>   reconciliation note above); estimation/costing is being rebuilt on the Knowledge Bank.
 > - 2026-06 cleanup: the entire in-product compliance engine is **removed** — the
 >   BBMP bylaw calculator, the RIE/site-feasibility rule engine
 >   (`ruleVersions`/`siteAssessments`/`bbmpRules`), the KB Compliance tab, and the
@@ -79,30 +80,17 @@ unchanged) — the split is purely how the work is presented.
 - Purchase orders
 - Specification sheets
 
-## Costing & Measurement — the single window
+## Costing & Measurement — REMOVED (rebuilding)
 
-The biggest source of "scattered + relinking" today is that rates, quantities,
-the BOQ, site measurement and bills live in separate screens that re-key the same
-items. They should be **one workspace on one shared item/rate spine** — quantities
-and rates flow forward, nothing is re-entered:
-
-```
-Rate analysis ─▶ Estimation ─▶ BOQ ─▶ Costing ─▶ Site measurement ─▶ Running bills (RA) ─▶ Submissions
-```
-
-| Step | What it is | Source / sink |
-|---|---|---|
-| **Rate analysis** | composite rate build-up (material + labour + machinery + overhead), or pull a rate-book rate | the analysed-rate library (Knowledge) seeds it |
-| **Estimation** | apply rates to *estimated* quantities (takeoff from the Consultancy drawings) | reads `measurements` (takeoff) |
-| **BOQ** | the formal bill of quantities — the tender/contract document | priced by **Tenders** |
-| **Costing** | project cost roll-up, budget vs estimate, lead % | summary rolls to **Accounts** |
-| **Site measurement** | *actual* measured quantities recorded on site (measurement sheet / abstract) | the as-built quantities |
-| **Running bills (RA)** | measured qty × analysed/BOQ rate → RA bill; the measure→verify→approve→bill lifecycle | contractor portal |
-| **Submissions** | contractor submits the bill against approved quantities | closes the loop |
-
-One item carries its rate from analysis all the way to the running bill — so the
-RA bill is **rate-analysis-based by construction**, not re-keyed. This window is
-the heart of the **Project Management** head.
+> The "single Costing & Measurement window" (rate analysis → estimation → BOQ → costing →
+> site measurement → running bills) described here was part of the Estimation OS +
+> Construction Cost spine **torn down on 2026-06-28**. It is being rebuilt ground-up on a
+> cleaner model: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) (the
+> reference foundation — libraries, specifications, recipes live) →
+> [ESTIMATION-OS.md](ESTIMATION-OS.md) (estimate → derivation → BOQ → cost, planned). The
+> nav-mapping tables below that still reference `estimates`/`bbs`/`dsr`/`runningBills` are
+> historical; current state is authoritative in
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ## What this fixes (current → proposed)
 
