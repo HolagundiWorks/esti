@@ -46,7 +46,12 @@ export default defineConfig({
       // The vendored Rate Book kit imports "zod", but its dist files live
       // under vendor/ — outside frontend/ — so Rollup can't resolve "zod" from that
       // location. Pin every "zod" import to the frontend's installed copy.
-      { find: /^zod$/, replacement: require.resolve("zod") },
+      // zod is not a direct frontend dep, so it isn't symlinked into
+      // frontend/node_modules; resolve it via @esti/contracts (which depends on it).
+      {
+        find: /^zod$/,
+        replacement: createRequire(path.join(estiRoot, "packages/contracts/package.json")).resolve("zod"),
+      },
       {
         find: "@hcw/master-dsr-kit/schemas",
         replacement: kitFile("hcw-master-dsr-kit", "dist/schemas/dsr-import.js"),
