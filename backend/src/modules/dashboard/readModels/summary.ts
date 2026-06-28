@@ -1,7 +1,7 @@
 import { and, count, eq, isNull, sql } from "drizzle-orm";
 import type { DB } from "../../../db/index.js";
 import {
-  feeProposals,
+  proposals,
   invoices,
   leaves,
   payslips,
@@ -43,9 +43,9 @@ export async function getDashboardSummary(db: DB) {
   const [feeAgg] = await db
     .select({
       total: count(),
-      belowMin: sql<string>`coalesce(sum(case when ${feeProposals.belowMinimum} then 1 else 0 end), 0)`,
+      belowMin: sql<string>`coalesce(sum(case when ${proposals.belowMinimum} then 1 else 0 end), 0)`,
     })
-    .from(feeProposals);
+    .from(proposals);
 
   const byStatus: Record<string, number> = {};
   let projectTotal = 0;
@@ -106,7 +106,7 @@ export async function getDashboardSummary(db: DB) {
       open: Number(permitAgg?.open ?? 0),
       overdue: Number(permitAgg?.overdue ?? 0),
     },
-    feeProposals: {
+    proposals: {
       total: Number(feeAgg?.total ?? 0),
       belowMinimum: Number(feeAgg?.belowMin ?? 0),
     },

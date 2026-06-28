@@ -1,5 +1,6 @@
 import {
   Button,
+  InlineNotification,
   Modal,
   Select,
   SelectItem,
@@ -11,106 +12,72 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
 import {
-  COA_SCOPE_TEMPLATE,
-  PROJECT_WORK_TYPE_LABEL,
+  COA_MIN_FEE_PCT,
+  CoaWorkCategory,
   ProjectWorkType,
+  coaMinimumFee,
   formatINR,
+  isBelowCoaMinimum,
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
-function ProposalPdf({ id, initial }: { id: string; initial: string }) {
-  const utils = trpc.useUtils();
-  const q = trpc.proposals.byId.useQuery(
-    { id },
-    {
-      enabled: initial !== "NONE",
-      refetchInterval: (query) =>
-        query.state.data &&
-        (query.state.data.pdfStatus === "PENDING" ||
-          query.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
-    },
-  );
-  const gen = trpc.proposals.generatePdf.useMutation({
-    onSuccess: () => utils.proposals.byId.invalidate({ id }),
-  });
-  const status = q.data?.pdfStatus ?? initial;
-  const url = q.data?.pdfUrl ?? null;
-  if (status === "READY" && url)
-    return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open PDF
-      </Button>
-    );
-  if (status === "PENDING" || status === "PROCESSING")
-    return <span>Generating…</span>;
-  return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={gen.isPending}
-      onClick={() => gen.mutate({ id })}
-    >
-      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
-    </Button>
-  );
-}
-
+/** Office › Proposals — unified COA fee proposals + scope/agreements (one model). */
 export function Proposals() {
   const utils = trpc.useUtils();
   const listQ = trpc.proposals.listAll.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
-  const templatesQ = trpc.documents.listTemplates.useQuery();
-  const scopeTemplates = (templatesQ.data ?? []).filter(
-    (t) => t.kind === "SCOPE" || t.kind === "COA",
-  );
-  const inv = () => utils.proposals.listAll.invalidate();
 
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState("");
-  const [workType, setWorkType] = useState<string>("ARCHITECTURE");
-  const [scope, setScope] = useState(COA_SCOPE_TEMPLATE.ARCHITECTURE);
+  const [category, setCategory] = useState<string>(
+    Object.values(CoaWorkCategory)[0] as string,
+  );
+  const [workType, setWorkType] = useState<string>(ProjectWorkType.options[0] as string);
+  const [cost, setCost] = useState("");
   const [fee, setFee] = useState("");
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [docComm, setDocComm] = useState("10");
+  const [scope, setScope] = useState("");
+  const [notes, setNotes] = useState("");
+  const [override, setOverride] = useState("");
+
   const create = trpc.proposals.create.useMutation({
     onSuccess: () => {
-      inv();
+      utils.proposals.listAll.invalidate();
       setOpen(false);
       setProjectId("");
+      setCost("");
       setFee("");
+      setOverride("");
+      setScope("");
+      setNotes("");
     },
   });
-  const remove = trpc.proposals.remove.useMutation({ onSuccess: inv });
+
+  const costPaise = Math.round(Number(cost || "0") * 100);
+  const feePaise = Math.round(Number(fee || "0") * 100);
+  const coaMin =
+    costPaise > 0
+      ? coaMinimumFee(category as keyof typeof COA_MIN_FEE_PCT, costPaise)
+      : 0;
+  const below =
+    feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
 
   return (
     <Stack gap={6}>
       <PageHeader
-        title="Proposals & agreements"
-        description="COA-based engagement proposals across all projects."
-        actions={
-          <Stack orientation="horizontal" gap={3}>
-            <Link to="/office/documents">
-              <Button kind="ghost" size="sm">Document register</Button>
-            </Link>
-            <Button onClick={() => setOpen(true)}>New proposal</Button>
-          </Stack>
-        }
+        title="Proposals"
+        description="COA fee proposals and scope agreements across all projects."
+        actions={<Button onClick={() => setOpen(true)}>New proposal</Button>}
       />
 
       <DataState
@@ -119,7 +86,7 @@ export function Proposals() {
         columnCount={6}
         empty={{
           title: "No proposals",
-          description: "Draft a COA proposal with scope and fee for a project.",
+          description: "Prepare a COA-benchmarked proposal for a project.",
           action: (
             <Button size="sm" onClick={() => setOpen(true)}>
               New proposal
@@ -133,10 +100,10 @@ export function Proposals() {
               <TableRow>
                 <TableHeader>Ref</TableHeader>
                 <TableHeader>Project</TableHeader>
-                <TableHeader>Discipline</TableHeader>
+                <TableHeader>Work category</TableHeader>
                 <TableHeader>Fee</TableHeader>
+                <TableHeader>COA</TableHeader>
                 <TableHeader>Document</TableHeader>
-                <TableHeader></TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -147,25 +114,21 @@ export function Proposals() {
                     <Link to={`/projects/${p.projectId}`}>{p.projectRef}</Link>
                     <div>{p.projectTitle}</div>
                   </TableCell>
+                  <TableCell>{p.workCategory}</TableCell>
+                  <TableCell>{formatINR(p.feePaise, { paise: false })}</TableCell>
                   <TableCell>
-                    {PROJECT_WORK_TYPE_LABEL[
-                      p.workType as keyof typeof PROJECT_WORK_TYPE_LABEL
-                    ] ?? p.workType}
+                    {p.belowMinimum ? (
+                      <Tag type="magenta" size="sm">
+                        Below COA min
+                      </Tag>
+                    ) : (
+                      <Tag type="green" size="sm">
+                        OK
+                      </Tag>
+                    )}
                   </TableCell>
                   <TableCell>
-                    {formatINR(p.feePaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>
-                    <ProposalPdf id={p.id} initial={p.pdfStatus} />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(p.id)}
-                    >
-                      Delete
-                    </Button>
+                    <FeeProposalPdfCell feeId={p.id} initialStatus={p.pdfStatus} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -174,97 +137,124 @@ export function Proposals() {
         </TableContainer>
       </DataState>
 
-      <ConfirmModal
-        open={!!confirmId}
-        heading="Delete proposal?"
-        body="This permanently removes the proposal."
-        confirmText="Delete"
-        pending={remove.isPending}
-        onConfirm={() => {
-          if (confirmId) remove.mutate({ id: confirmId });
-          setConfirmId(null);
-        }}
-        onClose={() => setConfirmId(null)}
-      />
-
       <Modal
         open={open}
         modalHeading="New proposal"
         primaryButtonText={create.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={!projectId || create.isPending}
+        primaryButtonDisabled={
+          !projectId || !cost || !fee || (below && !override) || create.isPending
+        }
         size="lg"
         onRequestClose={() => setOpen(false)}
         onRequestSubmit={() =>
           create.mutate({
             projectId,
+            workCategory: category as CoaWorkCategory,
             workType: workType as (typeof ProjectWorkType.options)[number],
-            scope,
-            feePaise: Math.round(Number(fee || "0") * 100),
+            costOfWorksPaise: costPaise,
+            feePaise,
+            docCommPct: Number(docComm || "10"),
+            scope: scope || undefined,
+            notes: notes || undefined,
+            overrideReason: override || undefined,
           })
         }
       >
         <Stack gap={5}>
           <Select
-            id="pr-tpl"
-            labelText="Start from office template (optional)"
-            value=""
-            onChange={(e) => {
-              const t = scopeTemplates.find((x) => x.id === e.target.value);
-              if (t) setScope(t.body);
-            }}
-          >
-            <SelectItem value="" text="— COA discipline default —" />
-            {scopeTemplates.map((t) => (
-              <SelectItem key={t.id} value={t.id} text={`${t.kind === "COA" ? "COA" : "Scope"} · ${t.title}`} />
-            ))}
-          </Select>
-          <Select
-            id="pr-proj"
+            id="fp-proj"
             labelText="Project"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
           >
             <SelectItem value="" text="Select a project…" />
             {(projectsQ.data ?? []).map((p) => (
-              <SelectItem
-                key={p.id}
-                value={p.id}
-                text={`${p.ref} — ${p.title}`}
-              />
+              <SelectItem key={p.id} value={p.id} text={`${p.ref} — ${p.title}`} />
             ))}
           </Select>
-          <Select
-            id="pr-work"
-            labelText="Discipline"
-            value={workType}
-            onChange={(e) => {
-              setWorkType(e.target.value);
-              setScope(
-                COA_SCOPE_TEMPLATE[
-                  e.target.value as keyof typeof COA_SCOPE_TEMPLATE
-                ],
-              );
-            }}
-          >
-            {ProjectWorkType.options.map((t) => (
-              <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />
-            ))}
-          </Select>
-          <TextInput
-            id="pr-fee"
-            labelText="Professional fee (₹)"
-            type="number"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-          />
+          <Stack orientation="horizontal" gap={4}>
+            <Select
+              id="fp-cat"
+              labelText="Work category (COA)"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {Object.values(CoaWorkCategory).map((c) => (
+                <SelectItem key={c} value={c} text={c} />
+              ))}
+            </Select>
+            <Select
+              id="fp-wt"
+              labelText="Work type"
+              value={workType}
+              onChange={(e) => setWorkType(e.target.value)}
+            >
+              {ProjectWorkType.options.map((w) => (
+                <SelectItem key={w} value={w} text={w} />
+              ))}
+            </Select>
+          </Stack>
+          <Stack orientation="horizontal" gap={4}>
+            <TextInput
+              id="fp-cost"
+              labelText="Cost of works (₹)"
+              type="number"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+            />
+            <TextInput
+              id="fp-fee"
+              labelText="Professional fee (₹)"
+              type="number"
+              value={fee}
+              onChange={(e) => setFee(e.target.value)}
+            />
+            <TextInput
+              id="fp-dc"
+              labelText="Doc & comm %"
+              type="number"
+              value={docComm}
+              onChange={(e) => setDocComm(e.target.value)}
+            />
+          </Stack>
+          {coaMin > 0 && (
+            <div>
+              COA minimum ≈ {formatINR(coaMin, { paise: false })}
+              {below ? " — quoted fee is below the COA minimum." : ""}
+            </div>
+          )}
+          {below && (
+            <TextInput
+              id="fp-or"
+              labelText="Override reason (required below COA minimum)"
+              value={override}
+              onChange={(e) => setOverride(e.target.value)}
+            />
+          )}
           <TextArea
-            id="pr-scope"
-            labelText="Scope of work (COA template — edit as needed)"
-            rows={10}
+            id="fp-scope"
+            labelText="Scope (optional)"
+            rows={3}
             value={scope}
             onChange={(e) => setScope(e.target.value)}
           />
+          <TextArea
+            id="fp-notes"
+            labelText="Notes (optional)"
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+          {create.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not create"
+              subtitle={create.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
         </Stack>
       </Modal>
     </Stack>

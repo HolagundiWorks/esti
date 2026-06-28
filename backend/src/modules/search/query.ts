@@ -17,7 +17,6 @@ import {
   decisions,
   drawings,
   dsrItems,
-  feeProposals,
   inspections,
   invoices,
   lessonsLearned,
@@ -673,39 +672,6 @@ async function searchFinancials(
         snippet: r.projectRef ?? "",
         href: searchResultHref("INVOICE", r.id, r.projectId),
         rank: rank(r.ref, r.ref, q),
-        projectId: r.projectId,
-        projectRef: r.projectRef,
-      })),
-    );
-  }
-
-  if (caps.fees) {
-    const feeRows = await db
-      .select({
-        id: feeProposals.id,
-        ref: feeProposals.ref,
-        projectId: feeProposals.projectId,
-        projectRef: projectOffices.ref,
-        projectTitle: projectOffices.title,
-      })
-      .from(feeProposals)
-      .innerJoin(projectOffices, eq(feeProposals.projectId, projectOffices.id))
-      .where(
-        and(
-          activeProjectFilter(caps),
-          projectId ? eq(feeProposals.projectId, projectId) : undefined,
-          ilike(feeProposals.ref, like),
-        ),
-      )
-      .limit(PER_TYPE_LIMIT);
-    hits.push(
-      ...feeRows.map((r) => ({
-        entityType: "FEE_PROPOSAL" as const,
-        entityId: r.id,
-        title: `${r.ref} · ${r.projectTitle}`,
-        snippet: snippet(r.projectTitle, 120),
-        href: searchResultHref("FEE_PROPOSAL", r.id, r.projectId),
-        rank: rank(r.ref, r.projectTitle, q),
         projectId: r.projectId,
         projectRef: r.projectRef,
       })),

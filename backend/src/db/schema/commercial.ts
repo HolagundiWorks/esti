@@ -1,4 +1,4 @@
-import { letters, projectOffices, feeProposals } from "./project.js";
+import { letters, projectOffices, proposals } from "./project.js";
 import {
   createdAt,
   date,
@@ -19,7 +19,7 @@ export const appointments = pgTable("esti_appointment", {
   siteVisitDate: date("site_visit_date"),
   scopeSummary: text("scope_summary"),
   letterId: uuid("letter_id").references(() => letters.id),
-  feeProposalId: uuid("fee_proposal_id").references(() => feeProposals.id),
+  feeProposalId: uuid("fee_proposal_id").references(() => proposals.id),
   status: text("status").notNull().default("DRAFT"),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   createdAt: createdAt(),

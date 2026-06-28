@@ -21,13 +21,12 @@ import {
   Dashboard as DashboardIcon,
   Education,
   Enterprise,
-  Growth,
   Logout,
   Money,
   Partnership,
   Search as SearchIcon,
   Settings as SettingsIcon,
-  UserMultiple,
+  TaskComplete,
   type CarbonIconType,
 } from "@carbon/icons-react";
 import {
@@ -90,12 +89,10 @@ const SeoLanding = lazy(() =>
 const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
-const Construction = lazyRoute(() => import("./routes/Construction.js"), "Construction");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
 const Dashboard = lazyRoute(() => import("./routes/Dashboard.js"), "Dashboard");
-const FeeProposals = lazyRoute(() => import("./routes/FeeProposals.js"), "FeeProposals");
 const Filing = lazyRoute(() => import("./routes/Filing.js"), "Filing");
 const Invoices = lazyRoute(() => import("./routes/Invoices.js"), "Invoices");
 const OfficeExpenses = lazyRoute(() => import("./routes/OfficeExpenses.js"), "OfficeExpenses");
@@ -106,8 +103,6 @@ const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "Know
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
-const Programme = lazyRoute(() => import("./routes/Programme.js"), "Programme");
-const Pmc = lazyRoute(() => import("./routes/Pmc.js"), "Pmc");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
 const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
 const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
@@ -213,8 +208,7 @@ function AppShell() {
   });
   const licenseBlocked = !!licenseQ.data?.blocked;
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  const pmcEnabled = settingsQ.data?.pmcEnabled ?? false;
-  // Plan gates: a Lite firm doesn't see PMC, HR, AI, GST billing, reconciliation,
+  // Plan gates: a Lite firm doesn't see HR, AI, GST billing, reconciliation,
   // rate books or audit-log nav. planAllows() defaults LITE until the licence loads.
   const plan = licenseQ.data?.plan ?? settingsQ.data?.plan ?? "LITE";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
@@ -328,127 +322,102 @@ function AppShell() {
       )
       .filter((n) => !("items" in n) || n.items.length > 0);
 
+  // Canonical V3 nav (consultancy-only). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Dashboard", to: "/", icon: DashboardIcon },
-    {
-      kind: "menu",
-      label: "Growth OS",
-      icon: Growth,
-      items: [
-        ...(can(user.role, "write") ? [{ label: "Leads", to: "/leads" }] : []),
-        ...(can(user.role, "fees:manage")
-          ? [
-              { label: "Fee proposals", to: "/accounting/fees" },
-              { label: "Proposals", to: "/office/proposals" },
-            ]
-          : []),
-        ...(can(user.role, "write") ? [{ label: "Contracts", to: "/office/contracts" }] : []),
-      ],
-    },
+    { label: "Projects", to: "/projects", icon: Building },
+    { label: "Tasks", to: "/tasks", icon: TaskComplete },
     {
       kind: "menu",
       label: "Studio",
-      icon: Building,
+      icon: Catalog,
       items: [
-        { label: "Projects", to: "/projects" },
-        { label: "Tasks", to: "/tasks" },
-        ...(atLeast(60) ? [{ label: "Programme", to: "/programme" }] : []),
-        ...(planAllowsFeature("pmc") && pmcEnabled && atLeast(60)
+        {
+          kind: "menu",
+          label: "Libraries",
+          icon: Catalog,
+          items: [
+            ...(planAllowsFeature("knowledgeBank")
+              ? [{ label: "Item Library", to: "/knowledge-bank" }]
+              : []),
+          ],
+        },
+        ...(planAllowsFeature("hr") && hrEnabled
           ? [
-              { label: "Construction", to: "/office/construction" },
-              { label: "PMC", to: "/pmc" },
+              { label: "Teams", to: "/team" },
+              ...(planAllowsFeature("performance") && atLeast(60)
+                ? [{ label: "Performance", to: "/performance" }]
+                : []),
+              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
             ]
           : []),
       ],
     },
-    // LEOS — learning environment. Navigational placeholder; the modules below it
-    // are not built yet (see docs/esti/NAVIGATION.md § LEOS + ROADMAP Phase 32).
-    { label: "LEOS", to: "/leos", icon: Education },
+    {
+      kind: "menu",
+      label: "Third Parties",
+      icon: Partnership,
+      items: [
+        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
+        ...(atLeast(60)
+          ? [
+              { label: "Consultants", to: "/consultants" },
+              { label: "Contractors", to: "/contractors" },
+            ]
+          : []),
+      ],
+    },
     {
       kind: "menu",
       label: "Office",
       icon: Enterprise,
       items: [
-        {
-          kind: "menu",
-          label: "External Network",
-          icon: Partnership,
-          items: [
-            ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
-            ...(atLeast(60)
-              ? [
-                  { label: "Consultants", to: "/consultants" },
-                  { label: "Contractors", to: "/contractors" },
-                ]
-              : []),
-          ],
-        },
-        {
-          kind: "menu",
-          label: "Finance",
-          icon: Money,
-          items: [
-            ...(can(user.role, "invoice:manage")
-              ? [
-                  { label: "Invoices", to: "/invoices" },
-                  { label: "Office expenses", to: "/accounting/office-expenses" },
-                  { label: "Cash book", to: "/accounting/cash-book" },
-                  { label: "Reconciliation", to: "/reconcile" },
-                ]
-              : []),
-            ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
-              ? [{ label: "GST / TDS filing", to: "/filing" }]
-              : []),
-          ],
-        },
-        {
-          kind: "menu",
-          label: "Internal Operations",
-          icon: UserMultiple,
-          items: [
-            ...(planAllowsFeature("hr") && hrEnabled
-              ? [
-                  { label: "Team", to: "/team" },
-                  ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
-                  ...(planAllowsFeature("performance") && atLeast(60)
-                    ? [{ label: "Performance", to: "/performance" }]
-                    : []),
-                ]
-              : []),
-            ...(can(user.role, "write")
-              ? [
-                  { label: "Documents register", to: "/office/documents" },
-                  { label: "Letters", to: "/office/letters" },
-                ]
-              : []),
-          ],
-        },
-        // Standards Library (was "Knowledge Bank"). Leaf — the construction-standards
-        // / estimation-intelligence sub-modules are mid-rebuild (see NAVIGATION.md).
-        ...(planAllowsFeature("knowledgeBank")
-          ? [{ label: "Standards Library", to: "/knowledge-bank", icon: Catalog }]
+        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
+        ...(can(user.role, "write")
+          ? [
+              { label: "Contracts", to: "/office/contracts" },
+              { label: "Letters", to: "/office/letters" },
+            ]
           : []),
-        {
-          kind: "menu",
-          label: "Administration",
-          icon: SettingsIcon,
-          items: [
-            ...(can(user.role, "firm:admin")
-              ? [
-                  { label: "Company", to: "/company" },
-                  { label: "Users", to: "/users" },
-                ]
-              : []),
-            ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin")
-              ? [{ label: "Audit log", to: "/audit" }]
-              : []),
-            ...(can(user.role, "project:delete")
-              ? [{ label: "Archived projects", to: "/archived-projects" }]
-              : []),
-            ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
-            { label: "My profile", to: "/settings" },
-          ],
-        },
+      ],
+    },
+    {
+      kind: "menu",
+      label: "Finance",
+      icon: Money,
+      items: [
+        ...(can(user.role, "invoice:manage")
+          ? [
+              { label: "Consultancy Invoices", to: "/invoices" },
+              { label: "Cashbook", to: "/accounting/cash-book" },
+              { label: "Office Expenses", to: "/accounting/office-expenses" },
+            ]
+          : []),
+        ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
+          ? [{ label: "Financial Reports", to: "/filing" }]
+          : []),
+      ],
+    },
+    { label: "LEOS", to: "/leos", icon: Education },
+    {
+      kind: "menu",
+      label: "Admin",
+      icon: SettingsIcon,
+      items: [
+        ...(can(user.role, "firm:admin")
+          ? [
+              { label: "Company", to: "/company" },
+              { label: "Users", to: "/users" },
+            ]
+          : []),
+        ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin")
+          ? [{ label: "Audit Logs", to: "/audit" }]
+          : []),
+        ...(can(user.role, "project:delete")
+          ? [{ label: "Archived projects", to: "/archived-projects" }]
+          : []),
+        ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
+        { label: "Settings", to: "/settings" },
       ],
     },
   ]);
@@ -578,9 +547,11 @@ function AppShell() {
                 {can(user.role, "invoice:manage") && (
                   <Route path="/accounting/cash-book" element={<CashBook />} />
                 )}
-                {can(user.role, "fees:manage") && (
-                  <Route path="/accounting/fees" element={<FeeProposals />} />
-                )}
+                {/* Unified Proposals (Office); legacy fee-proposal path redirects. */}
+                <Route
+                  path="/accounting/fees"
+                  element={<Navigate to="/office/proposals" replace />}
+                />
                 {can(user.role, "fees:manage") && (
                   <Route path="/office/proposals" element={<Proposals />} />
                 )}
@@ -596,13 +567,12 @@ function AppShell() {
                 {atLeast(60) && (
                   <Route path="/office/ai-studio" element={<AiStudioPage />} />
                 )}
-                {pmcEnabled && atLeast(60) && (
-                  <Route path="/office/construction" element={<Construction />} />
-                )}
                 <Route path="/tasks" element={<Work />} />
-                {atLeast(60) && <Route path="/programme" element={<Programme />} />}
-                {pmcEnabled && atLeast(60) && <Route path="/pmc" element={<Pmc />} />}
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
+                {/* Consultancy-only: PMC / Construction / Programme removed. */}
+                <Route path="/pmc" element={<Navigate to="/projects" replace />} />
+                <Route path="/programme" element={<Navigate to="/projects" replace />} />
+                <Route path="/office/construction" element={<Navigate to="/projects" replace />} />
                 <Route
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}

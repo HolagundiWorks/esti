@@ -38,7 +38,7 @@ import {
   engagements,
   estimateItems,
   estimates,
-  feeProposals,
+  proposals,
   finalAccounts,
   grnItems,
   grns,
@@ -386,7 +386,7 @@ async function main() {
     })));
 
     const { ref: feeRef } = await nextRef(db, "feeproposal", "FEE");
-    await db.insert(feeProposals).values({
+    await db.insert(proposals).values({
       ref: feeRef, projectId, workCategory: "ARCHITECTURE",
       costOfWorksPaise: def.value, feePaise: Math.round(def.value * 0.08),
       docCommPct: 10, coaMinimumPaise: 0, belowMinimum: false,

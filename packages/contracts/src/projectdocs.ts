@@ -3,15 +3,6 @@ import { ProjectWorkType } from "./schemas.js";
 
 // --- Proposal / agreement ---------------------------------------------------
 
-export const ProposalCreate = z.object({
-  projectId: z.string().uuid(),
-  workType: ProjectWorkType.default("ARCHITECTURE"),
-  scope: z.string().max(8000).optional(),
-  feePaise: z.number().int().nonnegative().default(0),
-  notes: z.string().max(2000).optional(),
-});
-export type ProposalCreate = z.infer<typeof ProposalCreate>;
-
 /**
  * Default COA Conditions-of-Engagement scope text per discipline. Seeds the
  * proposal's scope field; the architect edits before issuing.

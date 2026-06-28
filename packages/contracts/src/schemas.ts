@@ -258,10 +258,12 @@ export type FeeProposalStatus = z.infer<typeof FeeProposalStatus>;
 export const FeeProposalCreate = z.object({
   projectId: z.string().uuid(),
   workCategory: z.nativeEnum(CoaWorkCategory),
+  workType: ProjectWorkType.default("ARCHITECTURE"),
   costOfWorksPaise: z.number().int().nonnegative(),
   feePaise: z.number().int().nonnegative(),
   docCommPct: z.number().min(0).max(100).default(10),
-  scope: z.string().max(4000).optional(),
+  scope: z.string().max(8000).optional(),
+  notes: z.string().max(2000).optional(),
   /** Required when the quoted fee is below the COA minimum (compliance override). */
   overrideReason: z.string().max(500).optional(),
 });

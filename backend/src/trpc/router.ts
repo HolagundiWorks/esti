@@ -25,7 +25,6 @@ import { programRouter } from "../modules/projectos/program.js";
 import { documentRouter } from "../modules/document/router.js";
 import { momRouter } from "../modules/mom/router.js";
 import { drawingRouter } from "../modules/drawing/router.js";
-import { feeProposalRouter } from "../modules/feeproposal/router.js";
 import { firmRouter } from "../modules/firm/router.js";
 import { invoiceRouter } from "../modules/invoice/router.js";
 import { notificationsRouter } from "../modules/notifications/router.js";
@@ -118,7 +117,6 @@ export const appRouter = router({
   clientLog: clientLogRouter,
   projectOffice: projectOfficeRouter,
   phases: phaseRouter,
-  feeProposals: feeProposalRouter,
   invoices: invoiceRouter,
   permits: permitRouter,
   approvals: approvalRouter,

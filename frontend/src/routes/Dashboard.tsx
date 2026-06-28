@@ -45,6 +45,7 @@ import {
 } from "../components/dashboard/dashboardUi.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { Leads } from "./Leads.js";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
@@ -1853,6 +1854,7 @@ export function Dashboard() {
 
   const canInvoice = can(user?.role, "invoice:manage");
   const canFees    = can(user?.role, "fees:manage");
+  const canWrite   = can(user?.role, "write");
 
   const billingReady = ac?.billingReadyPhases ?? [];
 
@@ -1861,6 +1863,7 @@ export function Dashboard() {
       <Tabs>
         <TabList aria-label="Dashboard navigation">
           <Tab>OVERVIEW</Tab>
+          <Tab disabled={!canWrite}>LEADS PIPELINE</Tab>
           <Tab>PROJECTS</Tab>
           <Tab disabled={!canInvoice}>FINANCE</Tab>
           <Tab disabled={!hrEnabled}>TEAM</Tab>
@@ -1877,6 +1880,9 @@ export function Dashboard() {
               home={home} fh={fh} ac={ac} ph={ph} ti={ti} att={att} ri={ri}
               canInvoice={canInvoice} hrEnabled={hrEnabled}
             />
+          </TabPanel>
+          <TabPanel style={{ padding: 0 }}>
+            {canWrite ? <Leads /> : null}
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
             <ScreenProjects ph={ph} ti={ti} att={att} billingReady={billingReady} canInvoice={canInvoice} />

@@ -4,10 +4,8 @@ import type { DB } from "../../db/index.js";
 import {
   contracts,
   estimates,
-  feeProposals,
   inspections,
   letters,
-  moodBoards,
   moms,
   projectOffices,
   proposals,
@@ -50,7 +48,7 @@ export async function listDocumentRegister(
     rows.push(r);
   };
 
-  const [letterRows, contractRows, proposalRows, txRows, inspRows, specRows, moodRows, estRows, momRows, feeRows] =
+  const [letterRows, contractRows, proposalRows, txRows, inspRows, specRows, estRows, momRows] =
     await Promise.all([
       db.select().from(letters).orderBy(desc(letters.createdAt)).limit(limit),
       db.select().from(contracts).orderBy(desc(contracts.createdAt)).limit(limit),
@@ -79,12 +77,6 @@ export async function listDocumentRegister(
         .orderBy(desc(specSheets.createdAt))
         .limit(limit),
       db
-        .select({ m: moodBoards, pr: projectOffices })
-        .from(moodBoards)
-        .innerJoin(projectOffices, eq(moodBoards.projectId, projectOffices.id))
-        .orderBy(desc(moodBoards.createdAt))
-        .limit(limit),
-      db
         .select({ e: estimates, pr: projectOffices })
         .from(estimates)
         .innerJoin(projectOffices, eq(estimates.projectId, projectOffices.id))
@@ -96,7 +88,6 @@ export async function listDocumentRegister(
         .innerJoin(projectOffices, eq(moms.projectId, projectOffices.id))
         .orderBy(desc(moms.createdAt))
         .limit(limit),
-      db.select().from(feeProposals).orderBy(desc(feeProposals.createdAt)).limit(limit),
     ]);
 
   for (const l of letterRows) {
@@ -189,22 +180,6 @@ export async function listDocumentRegister(
       createdAt: s.createdAt,
     });
   }
-  for (const { m, pr } of moodRows) {
-    if (!m.ref) continue;
-    push({
-      id: m.id,
-      entityType: "MOOD_BOARD",
-      ref: m.ref,
-      title: m.title,
-      projectId: m.projectId,
-      projectRef: pr.ref,
-      projectTitle: pr.title,
-      versionNo: m.versionNo ?? 1,
-      status: issuedStatus(m.pdfStatus, m.status),
-      pdfStatus: m.pdfStatus,
-      createdAt: m.createdAt,
-    });
-  }
   for (const { e, pr } of estRows) {
     push({
       id: e.id,
@@ -233,21 +208,6 @@ export async function listDocumentRegister(
       status: issuedStatus(m.pdfStatus, m.status),
       pdfStatus: m.pdfStatus,
       createdAt: m.createdAt,
-    });
-  }
-  for (const f of feeRows) {
-    push({
-      id: f.id,
-      entityType: "FEE_PROPOSAL",
-      ref: f.ref,
-      title: `${f.workCategory} fee proposal`,
-      projectId: f.projectId,
-      projectRef: null,
-      projectTitle: null,
-      versionNo: f.revisionNo ?? 1,
-      status: issuedStatus(f.pdfStatus, f.status),
-      pdfStatus: f.pdfStatus,
-      createdAt: f.createdAt,
     });
   }
 

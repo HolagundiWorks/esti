@@ -14,7 +14,7 @@ export function FeeProposalPdfCell({
   const utils = trpc.useUtils();
   const [active, setActive] = useState(initialStatus !== "NONE");
 
-  const byId = trpc.feeProposals.byId.useQuery(
+  const byId = trpc.proposals.byId.useQuery(
     { id: feeId },
     {
       enabled: active,
@@ -22,10 +22,10 @@ export function FeeProposalPdfCell({
     },
   );
 
-  const generate = trpc.feeProposals.generatePdf.useMutation({
+  const generate = trpc.proposals.generatePdf.useMutation({
     onSuccess: () => {
       setActive(true);
-      utils.feeProposals.byId.invalidate({ id: feeId });
+      utils.proposals.byId.invalidate({ id: feeId });
     },
   });
 

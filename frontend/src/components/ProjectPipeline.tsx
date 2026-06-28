@@ -583,7 +583,7 @@ function ActivationSection({ projectId, canWrite }: { projectId: string; canWrit
     },
   });
   // Also surface the fee-proposal approval gate inline.
-  const feesQ = trpc.feeProposals.listByProject.useQuery({ projectId }, { retry: false });
+  const feesQ = trpc.proposals.listByProject.useQuery({ projectId }, { retry: false });
   const fees = feesQ.data ?? [];
 
   return (
@@ -639,9 +639,9 @@ function FeeApprovalRows({
   canWrite: boolean;
 }) {
   const utils = trpc.useUtils();
-  const setApproval = trpc.feeProposals.setClientApproval.useMutation({
+  const setApproval = trpc.proposals.setClientApproval.useMutation({
     onSuccess: () => {
-      utils.feeProposals.listByProject.invalidate({ projectId });
+      utils.proposals.listByProject.invalidate({ projectId });
       utils.projectOffice.activationStatus.invalidate({ id: projectId });
     },
   });

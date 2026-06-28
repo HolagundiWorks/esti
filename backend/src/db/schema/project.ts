@@ -104,23 +104,6 @@ export const contracts = pgTable("esti_contract", {
   updatedAt: updatedAt(),
 });
 
-/** Project proposal / agreement (COA scope template) — rendered to PDF. */
-export const proposals = pgTable("esti_proposal", {
-  id: id(),
-  ref: text("ref").notNull().unique(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projectOffices.id),
-  workType: text("work_type").notNull().default("ARCHITECTURE"),
-  scope: text("scope"),
-  feePaise: bigint("fee_paise", { mode: "number" }).notNull().default(0),
-  notes: text("notes"),
-  status: text("status").notNull().default("DRAFT"),
-  pdfKey: text("pdf_key"),
-  pdfStatus: text("pdf_status").notNull().default("NONE"),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
 
 /** Site inspection report — rendered to PDF. */
 export const inspections = pgTable("esti_inspection", {
@@ -288,7 +271,12 @@ export const criticalNotes = pgTable("esti_critical_note", {
 });
 
 /** Fee proposals — COA scale benchmark + below-minimum compliance snapshot. */
-export const feeProposals = pgTable("esti_feeproposal", {
+/**
+ * Unified project Proposal (COA fee proposal + scope/agreement). Single model —
+ * the former `esti_proposal` (thin scope doc) was merged in and dropped (migration
+ * 0116); this table was renamed esti_feeproposal → esti_proposal. Rendered to PDF.
+ */
+export const proposals = pgTable("esti_proposal", {
   id: id(),
   ref: text("ref").notNull().unique(),
   projectId: uuid("project_id")
@@ -297,6 +285,7 @@ export const feeProposals = pgTable("esti_feeproposal", {
   status: text("status").notNull().default("DRAFT"),
   revisionNo: integer("revision_no").notNull().default(0),
   workCategory: text("work_category").notNull(),
+  workType: text("work_type").notNull().default("ARCHITECTURE"),
   costOfWorksPaise: bigint("cost_of_works_paise", { mode: "number" })
     .notNull()
     .default(0),
@@ -308,6 +297,7 @@ export const feeProposals = pgTable("esti_feeproposal", {
   belowMinimum: boolean("below_minimum").notNull().default(false),
   overrideReason: text("override_reason"),
   scope: text("scope"),
+  notes: text("notes"),
   // Project OS — Client Approval Gate (Slice I).
   clientApprovalStatus: text("client_approval_status").notNull().default("PENDING"),
   clientApprovedAt: timestamp("client_approved_at", { withTimezone: true }),

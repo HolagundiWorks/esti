@@ -19,7 +19,7 @@ import {
   criticalNotes,
   decisions,
   drawings,
-  feeProposals,
+  proposals,
   invoices,
   phases,
   preProjectAssessments,
@@ -57,9 +57,9 @@ async function gatherActivationGate(db: DB, projectId: string, status: ProjectSt
     .from(preProjectAssessments)
     .where(eq(preProjectAssessments.projectId, projectId));
   const [fee] = await db
-    .select({ id: feeProposals.id })
-    .from(feeProposals)
-    .where(and(eq(feeProposals.projectId, projectId), eq(feeProposals.clientApprovalStatus, "APPROVED")))
+    .select({ id: proposals.id })
+    .from(proposals)
+    .where(and(eq(proposals.projectId, projectId), eq(proposals.clientApprovalStatus, "APPROVED")))
     .limit(1);
   const [onboarding] = await db
     .select({ status: clientOnboardings.status })
