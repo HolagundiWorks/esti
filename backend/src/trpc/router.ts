@@ -54,6 +54,7 @@ import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
 import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
 import { kbRouter } from "../modules/knowledgebank/kb.js";
+import { estimationRouter } from "../modules/estimation/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
@@ -164,6 +165,7 @@ export const appRouter = router({
   hrProfile: hrProfileRouter,
   knowledgeBank: knowledgeBankRouter,
   kb: kbRouter,
+  estimation: estimationRouter,
   specCatalog: specCatalogRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,

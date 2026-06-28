@@ -160,7 +160,7 @@ backend tRPC → Pure Carbon / Excel-like UI → verify → commit).
 
 | Phase | Scope | Deliverable |
 | --- | --- | --- |
-| **E1 — Engine** | `esti_est_*` schema + the deterministic derivation engine (contracts, vitest) | Headless item + spec + measurements → costed breakdown |
+| **E1 — Engine** ✅ | `esti_est_*` schema + deterministic line computation (contracts, vitest) | **Shipped** — migration `0115`, `esti_est_estimate` + `esti_est_line`, `estimation.*` router (estimate CRUD + lines + total; a line snapshots the spec's description/unit/rate; amount = qty × rate). `computeLineAmount` + 5 vitest |
 | **E2 — Estimate grid** | Excel-like estimation grid (inline item/spec/measurements, expandable derived rows) | Operators estimate by typing measurements once |
 | **E3 — Rates & cost** | Rate resolution wired to the KB vendor/default rates; per-line + estimate totals | Live cost, explainable to source |
 | **E4 — BOQ** | BOQ rollup view + CSV / PDF export | The hand-off artifact |

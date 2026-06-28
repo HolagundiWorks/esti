@@ -43,6 +43,7 @@ export * from "./workload.js";
 export * from "./schemas.js";
 export * from "./knowledge-bank.js";
 export * from "./knowledge-bank-os.js";
+export * from "./estimation-os.js";
 export * from "./asprf.js";
 export * from "./notifications.js";
 export * from "./calendar.js";
