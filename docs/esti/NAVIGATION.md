@@ -63,7 +63,7 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 | Clients | ✅ | `/clients` (profile · projects · contracts · consultancy fees · invoices · comm log) |
 | Consultants | ✅ | `/consultants` (discipline · projects · deliverables · fees · payments · coordination) |
 | Contractors | ✅ | `/contractors` (profile · projects · site coordination · billing · payments · performance) |
-| Vendors | 🔲 | vendor categories · material categories · pricing history · quotations · supplier DB |
+| Vendors | 🚧 | `/vendors` placeholder page (greenfield): vendor categories · material categories · pricing history · quotations · supplier DB |
 
 ## 6. Office
 | Module | Status | Where |
@@ -108,7 +108,7 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 | Global Search | ✅ | header Search action → `/search` |
 | Notifications | ✅ | `AlertsBell` → `/alerts` |
 | AI Assistant | ✅ | "Ask ESTI" + header AI Studio action → `/office/ai-studio` |
-| User Profile | 🚧 | see below |
+| User Profile | 🚧 | `/profile` (`Profile.tsx`) — opened from the header ID card; see below |
 
 ### User Profile (AORMS Identity Layer)
 Opened from the header; expands today's `Settings.tsx`.
@@ -118,7 +118,7 @@ Opened from the header; expands today's `Settings.tsx`.
 | AORMS Identity | 🔲 | AORMS Unique ID (e.g. `AORMS-IND-000245`) · professional role · firm mapping |
 | AORMS Certification | 🔲 | tracks ACA/ACE/ACC/ACOM/ACFM/ACO × levels (Foundation→Master) · history *(shared with LXOS)* |
 | AORMS Index | 🔲 | overall · knowledge contribution · skill · platform competency · community reputation scores |
-| Work Profile | 🚧 | assigned projects · active/completed tasks · attendance/work-hours · performance (aggregate existing) |
+| Work Profile | ✅ | `userProfile.workSummary` — assigned projects · open/done tasks · days-present (30d) |
 | LXOS Profile | 🔲 | blogs · learnings shared · contributions · templates · discussions |
 | Notifications · Activity History · Preferences (Theme · Dashboard Layout · Notification prefs · Security) · Logout | ✅ | current `Settings.tsx` + header |
 

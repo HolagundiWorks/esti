@@ -24,25 +24,34 @@
 > *where it appears*.
 
 **Live** (shipping, in the router): Project OS (`projectOffice`, `phases`, `drawings`,
-`transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`,
-`purchaseOrders`, `reconcile`, `reports`), the pre-project **Pipeline** (`leads` →
-`projectDna` → `assessment` → `feasibility` → `negotiation` → `onboarding`), **Task/Work
-OS** (`tasks`, `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`), **HR**
-(`leaves`, `payroll`, `hrProfile`), **Clients/CRM** (`clients`, `clientLog`), **Consultants**
-(`consultants`, `engagements`, `collab`), **PMC + site delivery** (`pmc`, `programme`,
-`constructionSchedule`, `snags`, `siteInstructions`, `progressReports`, `phaseProgress`,
-`siteVisits`, `inspections`), **Knowledge Bank** (`knowledgeBank`, `specCatalog`, `lessons`,
-and the new `kb`), **Office** (`letters`, `contracts`, `accounts`, `expenses`), **AI**
+`transmittals`, `approvals`, `permits`, `proposals`, `invoices`, `purchaseOrders`,
+`reconcile`, `reports`), the pre-project **Pipeline** (`leads` → `projectDna` →
+`assessment` → `feasibility` → `negotiation` → `onboarding`), **Task/Work OS** (`tasks`,
+`team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`, `userProfile`), **HR**
+(`leaves`, `payroll`, `hrProfile`), **Clients/CRM** (`clients`, `clientLog`), **Consultants
+& Contractors** (`consultants`, `engagements`, `collab`, `contractors`), **Site delivery**
+(`snags`, `siteInstructions`, `progressReports`, `phaseProgress`, `siteVisits`,
+`inspections`), **Studio Libraries** — Item Library (`knowledgeBank`, `specCatalog`,
+`kb`) + **`compliance`** (far/setback/nbc/fire/regulation) + **`masterPlans`** +
+**`standards`**, **Office** (`letters`, `contracts`, `accounts`, `expenses`), **AI**
 (`ai`, `companion`), **Portals** (`portal`, `collab`, contractor), **Licensing/Sync**
 (`licensing`, `license`, `sync`), plus `dashboard`, `audit`, `search`, `notifications`,
-`settings`, `firm`, `users`, `system`.
+`lessons`, `settings`, `firm`, `users`, `system`.
 
-**Removed** (torn down 2026-06-28 — do NOT treat any of these as existing; no namespace,
-table, route, or doc remains):
-- **Estimation OS** — estimates/BOQ, component master + RuleSet engine, `formula-engine`,
-  `autoBoq`, CostingWindow, ParametricCanvas, Component Library, IFC component mapping.
-- **Construction Cost spine** — tenders + contractor item-bidding, work packages, running
-  bills, measurement book, deviations/variations, final accounts, cost dashboard,
+> **Proposals unified (2026-06-29):** the `feeProposals` namespace + thin `esti_proposal`
+> were merged into one **`proposals`** model (migration 0116). `lessons` now lives under
+> **LXOS** (Internal Exchange), removed from the Item Library.
+
+**Removed** (no namespace, table, route, or doc remains):
+- **Consultancy-only teardown (2026-06-29, migration 0117):** `pmc` (hub/portfolio),
+  `programme` (delivery Gantt / `esti_project_milestone`), `constructionSchedule` (CPM),
+  `construction` (contractor coordination), the **tenders** spine (`esti_tender*`), and
+  **mood boards** (`esti_moodboard`). AORMS is now consultancy-only; site supervision
+  (snags/inspections/progress) is kept under Projects.
+- **Estimation OS** (2026-06-28) — estimates/BOQ, component master + RuleSet engine,
+  `formula-engine`, `autoBoq`, CostingWindow, ParametricCanvas, Component Library.
+- **Construction Cost spine** (2026-06-28) — contractor item-bidding, work packages,
+  running bills, measurement book, deviations/variations, final accounts, cost dashboard,
   procurement forecast, GRN, BBS + steel reconciliation.
 - **Rate Books** (`dsr`) and **Rate Analysis** (`rateAnalysis`).
 - **RIE / compliance engine** — bylaw nav, site assessments, BBMP calculator. *(GST / TDS /

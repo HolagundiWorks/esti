@@ -78,7 +78,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | 29 | ~~Estimation OS — costing spine~~ — **REMOVED 2026-06-28** (rebuilding, see banner) | P1 | ⛔ |
 | 30 | ~~Estimation OS — work packages + running bills~~ — **REMOVED 2026-06-28** | P1 | ⛔ |
 | [31](#phase-31---project-os-lead-to-active-project-pipeline-p1) | Project OS — lead → active project pipeline (Slices A–K) | P1 | ✅ |
-| 32 | **Canonical V3 nav (consultancy-only)** — 9 pillars; Spec: [NAVIGATION.md](NAVIGATION.md). Menu + proposals merge + removals shipped; Libraries/LXOS/Vendors/Profile pending. | P1 | 🔄 |
+| 32 | **Canonical V3 nav (consultancy-only)** — 9 pillars; Spec: [NAVIGATION.md](NAVIGATION.md). All 5 stages shipped (menu · proposals merge · teardown · 3 Libraries · Finance/Vendors · LXOS Lessons · User Profile). | P1 | ✅ |
 
 ---
 
@@ -88,37 +88,32 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 **consultancy-only** practice system on the V3 nine-pillar menu (Dashboard · Projects
 · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin).
 
-**Shipped (🔄 2026-06-29):**
-- V3 nine-pillar nested sidebar in `App.tsx`; Leads → Dashboard "LEADS PIPELINE" tab
-  (Growth OS dissolved); Search + AI Studio are header actions.
-- **Consultancy-only removals:** PMC, Construction, Programme removed from nav (routes
-  redirect to `/projects`); tenders already gone; mood boards dropped from the document
-  register (full mood-board teardown pending).
-- **Proposals unified** into one `esti_proposal` model (fee proposal + thin scope doc;
-  migration 0116; one `proposals` namespace incl. the client-approval gate).
-- **LXOS** (renamed from LEOS) placeholder pillar with 4 layers (Internal Exchange,
-  Community Exchange, Professional Identity, Certification & Growth).
-- Verified: contracts/backend/frontend tsc 0, migration applied, browser (V3 menu,
-  unified Proposals listing PRP+FEE, Leads tab, LXOS, no console errors).
+**✅ Shipped — all 5 stages (2026-06-29):**
+- **Stage 1:** V3 nine-pillar nested sidebar; Leads → Dashboard "LEADS PIPELINE" tab
+  (Growth OS dissolved); Search + AI Studio as header actions. **Proposals unified**
+  into one `esti_proposal` (migration 0116; `proposals` namespace incl. client-approval
+  gate). **LEOS → LXOS.** **Full consultancy-only teardown** (migration 0117): PMC,
+  Construction, Programme, tenders (`esti_tender*`), mood boards (`esti_moodboard`) —
+  tables dropped + modules/namespaces deleted; site supervision kept under Projects.
+- **Stage 2 — Studio › Libraries (built fully):** **Compliance** (5 structured tables,
+  migration 0118), **Master Plan** (file uploads, 0119), **Standards** (by discipline +
+  files, 0120). Item Library = KB (Lessons moved to LXOS).
+- **Stage 3:** Finance **Payroll** page; Third Parties **Vendors** placeholder.
+- **Stage 4:** LXOS Internal Exchange wires the live **Lessons** bank; other layers placeholder.
+- **Stage 5:** **User Profile** (`/profile`) — Personal + Work Profile
+  (`userProfile.workSummary`) live; AORMS Identity / Certification / Index placeholders.
+- **Fix:** dashboard Action Center raw-SQL `esti_tender` query removed (post-teardown 500).
+- Verified per stage: contracts/backend/frontend tsc 0, migrations 0116–0120 applied,
+  in-browser round-trips (V3 menu, unified Proposals, Compliance/Standards CRUD, dashboard).
 
-**Still to build (staged; ⬜ unless noted):**
-- **Stage 1 finish:** full mood-board teardown; project-workspace cleanup (drop PMC
-  tab group; hide fee/contracts from the project view).
-- **Stage 2 — Studio › Libraries (build fully):** Compliance Library (NBC/FAR/Setbacks/
-  Fire/Regulations), Master Plan Library (PDF/DWG/Zoning/Development), Standards Library
-  (Interiors/Plumbing/Electrical/Lighting). Item Library = KB minus Lessons.
-- **Stage 3:** Finance Payroll page; Third Parties › Vendors placeholder.
-- **Stage 4:** LXOS exchange layers + wire Lessons in; finish docs reconcile.
-- **Stage 5:** User Profile (AORMS Identity Layer) — Personal/Work profile wired;
-  AORMS Identity/Certification/Index + LXOS Profile placeholders (identity + cert data
-  shared with LXOS).
-- Estimation OS · BOQ · Rate Books · Estimation Intelligence — the separate rebuild
-  ([ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
+**Still planned (🔲 — separate efforts):**
+- Estimation OS · BOQ · Rate Books · Estimation Intelligence — the cost/estimation
+  rebuild ([ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
+- Greenfield feature builds behind placeholders: Vendors, the LXOS Community/Identity/
+  Certification layers, and the AORMS Identity/Certification/Index subsystems.
 
-**Gate (menu — met):** the live sidebar matches NAVIGATION.md (every ✅ module
-reachable under its V3 pillar); no module appears twice; consultancy-only removals
-done. **Remaining for phase close:** Stages 1-finish → 5 (mood-board teardown +
-project cleanup, the 3 Libraries, Finance/Vendors, LXOS + Lessons, User Profile).
+**Gate — MET:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under
+its V3 pillar); no module appears twice; consultancy-only removals complete.
 
 ## Product snapshot
 

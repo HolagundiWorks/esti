@@ -184,10 +184,24 @@ GST rates, SAC codes)
 project critical notes; `activity` — immutable activity timeline; `dashboard` —
 computed KPIs, Action Center, health modules (`dashboard.home` bundles the office home view); `portal` — client portal access
 
-**Programme, PMC, and site delivery (Phases 14–16):**
-- `programme` — office delivery programme and Gantt milestones
-- `pmc` — PMC hub, portfolio, progress reports; `constructionSchedule` — site CPM/Gantt
-- `snags` / `siteInstructions` / `progressReports` / `phaseProgress` — PMC site ops
+**Site delivery (consultancy site supervision):**
+- `snags` / `siteInstructions` / `progressReports` / `phaseProgress` / `siteVisits` /
+  `inspections` — architect site supervision ("Site Progress" under Projects).
+
+> **Removed in the 2026-06-29 consultancy-only teardown** (migration 0117 dropped the
+> tables): `pmc` (hub/portfolio), `programme` (delivery Gantt / milestones),
+> `constructionSchedule` (CPM), `construction` (contractor coordination), the **tenders**
+> spine (`esti_tender*`), and **mood boards** (`esti_moodboard`). Do not reference these.
+
+**Studio › Libraries (2026-06-29):**
+- `compliance` — structured compliance library: `far` / `setback` / `nbc` / `fire` /
+  `regulation` sub-routers (each CRUD; tables `esti_compliance_*`, migration 0118)
+- `masterPlans` — master-plan file library (`esti_master_plan`, migration 0119; upload
+  route `/upload/master-plan`)
+- `standards` — design standards by discipline + attached files (`esti_standard` +
+  `esti_standard_file`, migration 0120; upload route `/upload/standard-file`)
+- `userProfile` — current user's Work Profile aggregate (`workSummary`); distinct from
+  the public India-config `profile` namespace
 
 **Project brief, expenses, and system (Phases 17–20):**
 - `projectBrief` — Project Info questionnaire sections
@@ -225,16 +239,22 @@ Key routes by area:
 | `Reconcile.tsx` | Financial reconciliation (route kept; not in V3 menu) |
 | `Consultants.tsx` / `Contractors.tsx` | Consultants / contractors (Third Parties) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
-| `Filing.tsx` | GST/TDS filing abstracts |
-| `KnowledgeBank.tsx` | Specification, Lessons tabs |
+| `Filing.tsx` | GST/TDS filing abstracts (Finance › Financial Reports) |
+| `KnowledgeBank.tsx` | **Item Library** (Studio › Libraries, `/knowledge-bank`) — Materials/Labour/Items/Brands/Specifications/Recipes/Brand Catalogue (Lessons moved to LXOS) |
+| `ComplianceLibrary.tsx` | Studio › Libraries › Compliance (`/libraries/compliance`) — NBC/FAR/Setbacks/Fire/Regulations CRUD |
+| `MasterPlanLibrary.tsx` | Studio › Libraries › Master Plan (`/libraries/master-plans`) — PDF/DWG file uploads |
+| `StandardsLibrary.tsx` | Studio › Libraries › Standards (`/libraries/standards`) — by discipline + files |
+| `Payroll.tsx` | Finance › Payroll (`/finance/payroll`) — payslips (reuses `payroll` namespace) |
+| `Vendors.tsx` | Third Parties › Vendors (`/vendors`) — placeholder |
+| `Profile.tsx` | User Profile (`/profile`) — Personal + Work Profile + identity/cert placeholders |
 | `Performance.tsx` | ASPRF performance dashboard |
 | `AuditLog.tsx` | Audit trail (firm:admin gated) |
-| `Alerts.tsx` | Notification/alert center |
+| `Alerts.tsx` | Notification/alert center (header bell) |
 | `Portal.tsx` | Client portal — `/` and `/projects/:projectId` |
 | `CollaboratorPortal.tsx` | Consultant portal — `/` and `/projects/:projectId` |
 | `Company.tsx` | Firm profile (firm:admin) |
 | `Users.tsx` | User management (firm:admin) |
-| `Settings.tsx` | User profile and password |
+| `Settings.tsx` | Preferences & password (Profile › Preferences links here) |
 | `Landing.tsx` / `Login.tsx` | Unauthenticated pages |
 
 ## Domain conventions
