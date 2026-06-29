@@ -20,7 +20,7 @@ import {
   formatINR,
   parseRupeeInput,
 } from "@esti/contracts";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { PageHeader } from "../components/PageHeader.js";
 import { TeamsPanel } from "../components/TeamsPanel.js";
 import { getInitials, resolveColor } from "../components/StaffAvatar.js";
@@ -117,21 +117,18 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
             const contact = m.email ?? m.phone ?? null;
             return (
               <Column key={m.id} lg={3} md={2} sm={2}>
-                <Tile className="esti-staff-tile">
+                <Tile className="esti-staff-tile" style={{ "--esti-staff-color": color } as CSSProperties}>
                   {/* Portrait photo area — color fill + large initials */}
-                  <div className="esti-staff-tile__photo" style={{ background: color }}>
+                  <div className="esti-staff-tile__photo">
                     <span className="esti-staff-tile__initials">{initials}</span>
                     {/* Diagonal accent strip at bottom-left */}
-                    <div className="esti-staff-tile__accent" style={{ background: color }} />
+                    <div className="esti-staff-tile__accent" />
                   </div>
 
                   {/* Info panel */}
                   <div className="esti-staff-tile__info">
                     <div className="esti-staff-tile__top-row">
-                      <span
-                        className="esti-staff-tile__dot"
-                        style={{ background: color }}
-                      />
+                      <span className="esti-staff-tile__dot" />
                       <span className="esti-label esti-label--secondary">
                         {EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
                           m.employmentType}
@@ -146,7 +143,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
                       {m.jobTitle || (TEAM_ROLES[m.role as TeamRoleCode] ?? m.role)}
                     </p>
                     {levelLabel && (
-                      <span className="esti-staff-tile__level-badge" style={{ background: color }}>
+                      <span className="esti-staff-tile__level-badge">
                         {m.staffLevel}
                       </span>
                     )}

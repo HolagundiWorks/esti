@@ -1,3 +1,4 @@
+import type React from "react";
 import { ROLE_TO_DISPLAY_LEVEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
 
 /** Stable hash color from STAFF_LEVEL_COLOR palette — single source of truth in contracts. */
@@ -55,7 +56,7 @@ export function StaffAvatar({ name, photoUrl, staffLevel, authRole, size = "md",
   return (
     <span
       className={`esti-staff-avatar${className ? ` ${className}` : ""}`}
-      style={{ width: px, height: px, minWidth: px, background: bg, fontSize: fp }}
+      style={{ width: px, height: px, minWidth: px, "--esti-staff-color": bg, "--esti-staff-fs": fp } as React.CSSProperties}
       title={name}
       aria-label={name}
     >

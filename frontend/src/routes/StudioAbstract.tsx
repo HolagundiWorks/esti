@@ -63,23 +63,23 @@ const SHAPE: Record<ZoneState, string> = {
 const ZCOLOR: Record<ZoneState, string> = {
   stable:   "var(--cds-support-success)",
   watch:    "var(--cds-support-warning)",
-  friction: "var(--cds-support-warning-minor, #ff832b)",
+  friction: "var(--cds-support-warning-minor)",
   critical: "var(--cds-support-error)",
   inactive: "var(--cds-text-disabled)",
 };
 
-// Identity colours per tile — Carbon tokens where available, brand hex fallback otherwise
+// Identity colours per tile — Carbon tag-background tokens
 const TILE_COLOR: Record<string, string> = {
   CLIENT:  "var(--cds-interactive)",
-  FINANCE: "var(--cds-tag-background-purple, #6929c4)",
-  PROJECT: "var(--cds-tag-background-teal, #009d9a)",
-  TEAM:    "var(--cds-tag-background-cyan, #1192e8)",
+  FINANCE: "var(--cds-tag-background-purple)",
+  PROJECT: "var(--cds-tag-background-teal)",
+  TEAM:    "var(--cds-tag-background-cyan)",
 };
 
 // Team load colours and capacity bar mapping — shared by DetailRow / ScreenProjects / ScreenTeam
 const LOAD_COLOR: Record<string, string> = {
   OVERLOADED: "var(--cds-support-error)",
-  HIGH:       "var(--cds-support-warning-minor, #ff832b)",
+  HIGH:       "var(--cds-support-warning-minor)",
   MODERATE:   "var(--cds-support-warning)",
   AVAILABLE:  "var(--cds-support-success)",
 };
@@ -141,7 +141,7 @@ function healthBand(score: number): { label: string; color: string } {
   if (score >= 88) return { label: "Stable",              color: "var(--cds-support-success)" };
   if (score >= 72) return { label: "Flowing",             color: "var(--cds-interactive)" };
   if (score >= 55) return { label: "Review soon",         color: "var(--cds-support-warning)" };
-  if (score >= 38) return { label: "Needs attention",     color: "var(--cds-support-warning-minor, #ff832b)" };
+  if (score >= 38) return { label: "Needs attention",     color: "var(--cds-support-warning-minor)" };
   return               { label: "Owner action needed", color: "var(--cds-support-error)" };
 }
 
@@ -303,10 +303,10 @@ function AlertStrip({ attn, score }: { attn: AttnResult; score: number }) {
     : attn.chainColor === ZCOLOR["watch"]    ? "watch" : "stable";
   return (
     <div className="esti-av-strip">
-      <span className="esti-av-strip__shape" style={{ color: attn.chainColor }}>{SHAPE[st]}</span>
+      <span className="esti-av-strip__shape" style={{ color: attn.chainColor || "var(--cds-text-primary)" }}>{SHAPE[st]}</span>
       <span className="esti-av-strip__issue">{attn.issue}</span>
       <span className="esti-av-strip__action">→ {attn.action}</span>
-      <span className="esti-av-strip__health" style={{ color: band.color }}>STATE · {band.label}</span>
+      <span className="esti-av-strip__health" style={{ color: band.color || "var(--cds-text-primary)" }}>STATE · {band.label}</span>
     </div>
   );
 }
@@ -335,7 +335,7 @@ function TelemGauge({ pct, state, sz = 32 }: { pct: number; state: ZoneState; sz
 // AORMS geometry state language — three shapes, two colours only.
 //   ● Handled (white)     — system handling internally, no owner attention
 //   ▲ Monitoring (white)  — system monitoring internally
-//   ■ Act (blue #0F62FE)  — AI requesting owner intervention (ONE per dashboard, in evidence)
+//   ■ Act (interactive)   — AI requesting owner intervention (ONE per dashboard, in evidence)
 // StatusSymbol never emits ■: the single Act marker is rendered explicitly in the evidence layer.
 const GEO_WORD: Record<string, string> = {
   stable: "Handled",
@@ -404,7 +404,7 @@ function StatusSymbol({ state, label }: { state: ZoneState | "info" | "inactive"
 function MacroHdr({ name, label, nameColor }: { name: string; label: string; nameColor?: string }) {
   return (
     <div className="esti-macro-hdr">
-      <span className="esti-macro-hdr__name" style={nameColor ? { color: nameColor } : undefined}>{name}</span>
+      <span className="esti-macro-hdr__name" style={nameColor ? { color: nameColor || "var(--cds-text-primary)" } : undefined}>{name}</span>
       <span className="esti-macro-hdr__status">{label}</span>
     </div>
   );
@@ -439,7 +439,7 @@ function DetailRow({
           </div>
           {overdueInvs.length === 0 && billingReady.length === 0 ? (
             <div className="esti-detail-empty">
-              <span style={{ color: ZCOLOR["stable"] }}>●</span> No billing items pending
+              <span style={{ color: "var(--cds-support-success)" }}>●</span> No billing items pending
             </div>
           ) : (
             <>
@@ -447,14 +447,14 @@ function DetailRow({
                 <div key={inv.id} className="esti-detail-item">
                   <span className="esti-detail-item__ref">{inv.ref}</span>
                   <span className="esti-detail-item__val">{formatINRShort(inv.netReceivablePaise)}</span>
-                  <span className="esti-detail-item__tag" style={{ color: ZCOLOR["critical"] }}>{inv.daysOverdue}d</span>
+                  <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-error)" }}>{inv.daysOverdue}d</span>
                 </div>
               ))}
               {billingReady.length > 0 && (
                 <div className="esti-detail-item">
                   <span className="esti-detail-item__ref">Ready to invoice</span>
                   <span className="esti-detail-item__val">{billingReady.length} phases</span>
-                  <span className="esti-detail-item__tag" style={{ color: ZCOLOR["watch"] }}>QUEUE</span>
+                  <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-warning)" }}>QUEUE</span>
                 </div>
               )}
             </>
@@ -494,10 +494,10 @@ function DetailRow({
           {items.length > 0 && <Tag type="red" size="sm">{items.length}</Tag>}
         </div>
         {items.length === 0
-          ? <div className="esti-detail-empty"><span style={{ color: ZCOLOR["stable"] }}>●</span> No interventions required</div>
+          ? <div className="esti-detail-empty"><span style={{ color: "var(--cds-support-success)" }}>●</span> No interventions required</div>
           : items.slice(0,7).map((item) => (
               <div key={item.priority} className="esti-detail-item">
-                <span className="esti-label" style={{ color: ZCOLOR[item.severity], flexShrink: 0 }}>{SHAPE[item.severity]}</span>
+                <span className="esti-label" style={{ color: ZCOLOR[item.severity] || "var(--cds-text-primary)", flexShrink: 0 }}>{SHAPE[item.severity]}</span>
                 <span className="esti-detail-item__ref">{item.title}</span>
               </div>
             ))
@@ -549,7 +549,7 @@ function QualityRow({ ri }: { ri: any }) {
         ].map((row) => (
           <div key={row.ref} className="esti-detail-item">
             <span className="esti-detail-item__ref">{row.ref}</span>
-            <span className="esti-detail-item__val" style={{ color: row.ref === "Revision health score" ? riskColor : undefined }}>
+            <span className="esti-detail-item__val" style={row.ref === "Revision health score" ? { color: riskColor || "var(--cds-text-primary)" } : undefined}>
               {row.val}
             </span>
           </div>
@@ -561,7 +561,7 @@ function QualityRow({ ri }: { ri: any }) {
           <span className="esti-detail-hdr__title">ASPRF ENGINE</span>
         </div>
         <div className="esti-detail-empty">
-          <span style={{ color: ZCOLOR["inactive"] }}>○</span>
+          <span style={{ color: "var(--cds-text-disabled)" }}>○</span>
           Performance metrics — see ASPRF module
         </div>
       </div>
@@ -1459,14 +1459,14 @@ function ScreenFinance({
         {!home ? <InlineLoading description="Loading…" /> : (
           <div className="esti-mini-grid">
             {[
-              { k: "OUTSTANDING", v: formatINRShort(outstanding), st: outstanding > 20_000_000 ? ZCOLOR["friction"] : undefined },
-              { k: "OVERDUE 30D+", v: formatINRShort(overdue),    st: overdue > 0 ? ZCOLOR["critical"] : undefined },
-              { k: "READY BILL",   v: formatINRShort(ready),      st: ready > 0 ? ZCOLOR["watch"] : undefined },
-              { k: "GST STATUS",   v: gst.label,                  st: gst.state !== "stable" ? ZCOLOR[gst.state] : undefined },
+              { k: "OUTSTANDING", v: formatINRShort(outstanding), st: outstanding > 20_000_000 ? "var(--cds-support-warning-minor)" : undefined },
+              { k: "OVERDUE 30D+", v: formatINRShort(overdue),    st: overdue > 0 ? "var(--cds-support-error)" : undefined },
+              { k: "READY BILL",   v: formatINRShort(ready),      st: ready > 0 ? "var(--cds-support-warning)" : undefined },
+              { k: "GST STATUS",   v: gst.label,                  st: gst.state !== "stable" ? ZCOLOR[gst.state] || "var(--cds-text-primary)" : undefined },
             ].map(({ k, v, st }) => (
               <div key={k} className="esti-mini-grid__cell">
                 <div className="esti-cockpit__zone-name">{k}</div>
-                <div className="esti-mini-grid__val" style={st ? { color: st } : undefined}>{v}</div>
+                <div className="esti-mini-grid__val" style={st ? { color: st || "var(--cds-text-primary)" } : undefined}>{v}</div>
               </div>
             ))}
           </div>
@@ -1482,7 +1482,7 @@ function ScreenFinance({
             <div key={inv.id} className="esti-detail-item" style={{ borderBottom: "1px solid var(--cds-border-subtle)" }}>
               <span className="esti-detail-item__ref">{inv.ref}</span>
               <span className="esti-detail-item__val">{formatINRShort(inv.netReceivablePaise)}</span>
-              <span className="esti-detail-item__tag" style={{ color: ZCOLOR["critical"] }}>{inv.daysOverdue}d</span>
+              <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-error)" }}>{inv.daysOverdue}d</span>
             </div>
           ))
         )}
@@ -1496,7 +1496,7 @@ function ScreenFinance({
           billingReady.map((ph: any, i: number) => (
             <div key={i} className="esti-detail-item" style={{ borderBottom: "1px solid var(--cds-border-subtle)" }}>
               <span className="esti-detail-item__ref">{ph.projectRef} — {ph.phaseName}</span>
-              <span className="esti-detail-item__tag" style={{ color: ZCOLOR["watch"] }}>READY</span>
+              <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-warning)" }}>READY</span>
             </div>
           ))
         )}
@@ -1590,7 +1590,7 @@ function ScreenApprovals({ ac, home }: { ac: any; home: any }) {
         <div style={{ padding: "var(--cds-spacing-06)" }}><InlineLoading description="Loading…" /></div>
       ) : pending.length === 0 ? (
         <div className="esti-screen__empty">
-          <span style={{ color: ZCOLOR["stable"] }}>●</span>
+          <span style={{ color: "var(--cds-support-success)" }}>●</span>
           No approvals pending. All client responses received.
         </div>
       ) : (
@@ -1598,12 +1598,12 @@ function ScreenApprovals({ ac, home }: { ac: any; home: any }) {
           const urgent = (ap.daysWaiting ?? 0) > 10;
           return (
             <div key={ap.id} className="esti-appr-row">
-              <div className="esti-appr-row__accent" style={{ background: urgent ? ZCOLOR["friction"] : ZCOLOR["watch"] }} />
+              <div className="esti-appr-row__accent" style={{ background: urgent ? "var(--cds-support-warning-minor)" : "var(--cds-support-warning)" }} />
               <div className="esti-appr-row__body">
                 <div className="esti-appr-row__title">{ap.title}</div>
                 <div className="esti-appr-row__ref">{ap.projectRef}</div>
               </div>
-              <div className="esti-appr-row__days" style={{ color: urgent ? ZCOLOR["friction"] : ZCOLOR["watch"] }}>
+              <div className="esti-appr-row__days" style={{ color: urgent ? "var(--cds-support-warning-minor)" : "var(--cds-support-warning)" }}>
                 {ap.daysWaiting}d
               </div>
             </div>
@@ -1648,12 +1648,12 @@ function ScreenAI({ ac, ph, ti, canInvoice, canFees }: {
 
         {items.length === 0 ? (
           <div className="esti-ai-panel__empty">
-            <span style={{ color: ZCOLOR["stable"] }}>●</span>
+            <span style={{ color: "var(--cds-support-success)" }}>●</span>
             No interventions required. Practice operating normally.
           </div>
         ) : items.map((item) => (
           <div key={item.priority} className="esti-ai-panel__row">
-            <div className="esti-ai-panel__row__icon" style={{ color: ZCOLOR[item.severity] }}>
+            <div className="esti-ai-panel__row__icon" style={{ color: ZCOLOR[item.severity] || "var(--cds-text-primary)" }}>
               {SHAPE[item.severity]}
             </div>
             <div className="esti-ai-panel__row__title">{item.title}</div>
@@ -1837,7 +1837,7 @@ function ScreenWorkQueue() {
         <div style={{ padding: "var(--cds-spacing-06)" }}><InlineLoading description="Loading queue…" /></div>
       ) : rows.length === 0 ? (
         <div className="esti-screen__empty">
-          <span style={{ color: ZCOLOR["stable"] }}>●</span> No active tasks. Run "Refresh scores" to populate.
+          <span style={{ color: "var(--cds-support-success)" }}>●</span> No active tasks. Run "Refresh scores" to populate.
         </div>
       ) : (
         <TableContainer>
@@ -1855,11 +1855,11 @@ function ScreenWorkQueue() {
             <TableBody>
               {rows.map((t) => {
                 const score = t.priorityScore ?? 0;
-                const scoreColor = score >= 70 ? "var(--cds-support-error)" : score >= 45 ? "var(--cds-support-warning-minor, #ff832b)" : score >= 25 ? "var(--cds-support-warning)" : "var(--cds-text-secondary)";
+                const scoreColor = score >= 70 ? "var(--cds-support-error)" : score >= 45 ? "var(--cds-support-warning-minor)" : score >= 25 ? "var(--cds-support-warning)" : "var(--cds-text-secondary)";
                 return (
                   <TableRow key={t.id}>
                     <TableCell>
-                      <strong style={{ color: scoreColor }}>{score}</strong>
+                      <strong style={{ color: scoreColor || "var(--cds-text-primary)" }}>{score}</strong>
                     </TableCell>
                     <TableCell>
                       <Tag type={PRIORITY_TAG[t.priority] ?? "gray"} size="sm">

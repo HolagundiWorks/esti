@@ -7,7 +7,7 @@ import {
   Tile,
 } from "@carbon/react";
 import { UserAvatar } from "@carbon/icons-react";
-import { useEffect, useRef, useState } from "react";
+import React, { createElement, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { apiUrl, authHeaders } from "../lib/api-base.js";
@@ -112,17 +112,17 @@ export function Settings() {
               <p className="esti-label esti-label--helper">JPG, PNG or WebP, max 2 MB</p>
             </Stack>
           </Stack>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.webp"
-            style={{ display: "none" }}
-            onChange={(e) => {
+          {createElement("input", {
+            ref: fileRef,
+            type: "file",
+            accept: ".jpg,.jpeg,.png,.webp",
+            style: { display: "none" },
+            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               const f = e.target.files?.[0];
               if (f) uploadPhoto(f);
               e.target.value = "";
-            }}
-          />
+            },
+          })}
         </Stack>
       </Tile>
 

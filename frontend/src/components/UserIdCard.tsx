@@ -1,6 +1,6 @@
 import { UserAvatar } from "@carbon/icons-react";
 import { HeaderGlobalAction, Link } from "@carbon/react";
-import { useRef, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -53,19 +53,20 @@ export function UserIdCard() {
       </HeaderGlobalAction>
 
       {open && (
-        <div className="esti-id-card" role="dialog" aria-label="ID card">
+        <div className="esti-id-card" role="dialog" aria-label="ID card"
+          style={{ "--esti-staff-color": roleColor } as CSSProperties}>
           {/* Photo / initials area with role-colour overlay */}
           <div className="esti-id-card__photo-area">
             {p?.photoUrl ? (
               <img src={p.photoUrl} alt={user.fullName} className="esti-id-card__photo" />
             ) : (
-              <div className="esti-id-card__initials-bg" style={{ background: roleColor }}>
+              <div className="esti-id-card__initials-bg">
                 <span className="esti-id-card__initials">{initials}</span>
               </div>
             )}
             {/* Diagonal colour swatch + code badge (always shown over photo) */}
             {p?.photoUrl && (
-              <div className="esti-id-card__overlay" style={{ background: roleColor }} />
+              <div className="esti-id-card__overlay" />
             )}
             <div className="esti-id-card__badge">
               <span className="esti-id-card__badge-label">ESTI</span>
@@ -82,11 +83,11 @@ export function UserIdCard() {
               <p className="esti-id-card__designation">{p.designation}</p>
             )}
             <div className="esti-id-card__meta">
-              <span className="esti-id-card__role-dot" style={{ background: roleColor }} />
+              <span className="esti-id-card__role-dot" />
               <span className="esti-label">{roleLabel}</span>
             </div>
             {levelLabel && (
-              <span className="esti-id-card__level-badge" style={{ background: roleColor }}>
+              <span className="esti-id-card__level-badge">
                 {displayLevel} — {levelLabel.split("—")[1]?.trim()}
               </span>
             )}

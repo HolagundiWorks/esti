@@ -21,7 +21,7 @@ import {
   TEAM_ROLES,
   type TeamRoleCode,
 } from "@esti/contracts";
-import { useRef, useState } from "react";
+import React, { createElement, type CSSProperties, useRef, useState } from "react";
 import { StaffAvatar, resolveColor } from "../StaffAvatar.js";
 import { apiUrl, authHeaders } from "../../lib/api-base.js";
 import { trpc } from "../../lib/trpc.js";
@@ -105,6 +105,7 @@ export function StaffProfilesTab() {
                 key={m.id}
                 className={`esti-profile-member-tile${isSelected ? " esti-profile-member-tile--active" : ""}`}
                 onClick={() => setSelectedId(m.id)}
+                style={{ "--esti-staff-color": color } as CSSProperties}
               >
                 <div className="esti-avatar-name-cell">
                   <StaffAvatar name={m.name} staffLevel={m.staffLevel} authRole={m.role} size="md" />
@@ -115,7 +116,7 @@ export function StaffProfilesTab() {
                     </p>
                   </span>
                   {m.staffLevel && (
-                    <span className="esti-staff-tile__level-badge" style={{ background: color, marginInlineStart: "auto" }}>
+                    <span className="esti-staff-tile__level-badge" style={{ marginInlineStart: "auto" }}>
                       {m.staffLevel}
                     </span>
                   )}
@@ -306,17 +307,17 @@ export function StaffProfilesTab() {
             <Button kind="secondary" size="sm" onClick={() => fileRef.current?.click()}>
               {selectedFile ? selectedFile.name : "Choose file (PDF, JPG, PNG — max 10 MB)"}
             </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
-              style={{ display: "none" }}
-              onChange={(e) => {
+            {createElement("input", {
+              ref: fileRef,
+              type: "file",
+              accept: ".pdf,.jpg,.jpeg,.png,.webp",
+              style: { display: "none" },
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
                 const f = e.target.files?.[0];
                 if (f) setSelectedFile(f);
                 e.target.value = "";
-              }}
-            />
+              },
+            })}
           </Stack>
           {uploadMsg && (
             <InlineNotification kind="error" title="Upload error" subtitle={uploadMsg} hideCloseButton lowContrast />
