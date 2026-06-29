@@ -180,10 +180,10 @@ function FeatureTile({ header, dot, title, bullets, meta }: {
 // ── Revision intelligence tile ─────────────────────────────────────
 
 const REVISIONS = [
-  { label: "Client Driven", pct: 42, color: "#6929c4" },
-  { label: "Internal Error", pct: 18, color: "#fa4d56" },
-  { label: "Technical Query", pct: 27, color: "#1192e8" },
-  { label: "Scope Change", pct: 13, color: "#f1c21b" },
+  { label: "Client Driven",   pct: 42, color: "var(--cds-tag-background-purple, #6929c4)" },
+  { label: "Internal Error",  pct: 18, color: "var(--cds-support-error)" },
+  { label: "Technical Query", pct: 27, color: "var(--cds-interactive)" },
+  { label: "Scope Change",    pct: 13, color: "var(--cds-support-warning)" },
 ] as const;
 
 function RevisionTile() {
@@ -215,7 +215,7 @@ function DemoTile({
 }) {
   const acct = DEMO_ACCOUNTS[kind];
   const isActive = loading && activeKind === kind;
-  const accentColor = "#1192e8";
+  const accentColor = "var(--cds-interactive)";
 
   return (
     <Tile span="2x1" id="demo">
@@ -277,8 +277,13 @@ const LEVEL_ORDER: Record<string, number> = {
 };
 
 const LEVEL_BG: Record<string, string> = {
-  L1: "#6929c4", L2: "#1192e8", L3: "#005d5d",
-  L4: "#9f1853", L5: "#b28600", CL: "#198038", CO: "#520408",
+  L1: "var(--cds-tag-background-purple, #6929c4)",
+  L2: "var(--cds-interactive)",
+  L3: "var(--cds-tag-background-teal, #005d5d)",
+  L4: "var(--cds-support-error-inverse, #9f1853)",
+  L5: "var(--cds-support-warning-minor, #b28600)",
+  CL: "var(--cds-support-success)",
+  CO: "var(--cds-tag-background-red, #520408)",
 };
 
 function RoleTile({
@@ -290,7 +295,7 @@ function RoleTile({
   onSwitch: (email: string) => void;
 }) {
   const level = ROLE_LEVEL[user.role] ?? "?";
-  const levelBg = LEVEL_BG[level] ?? "#444";
+  const levelBg = LEVEL_BG[level] ?? "var(--cds-background-inverse)";
   const name = user.fullName.split("(")[0]?.trim() ?? user.fullName;
   const roleLabel = ROLE_LABEL[user.role] ?? user.role;
   const desc = ROLE_DESC[user.role] ?? "";

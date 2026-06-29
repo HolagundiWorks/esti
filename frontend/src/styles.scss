@@ -31,61 +31,6 @@
   --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
 }
 
-// Drawing viewer: single SVG viewport with pan/zoom + measurement overlay.
-.dwg-base svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.dwg-viewport {
-  width: 100%;
-  border: 1px solid var(--cds-border-subtle);
-  background: var(--cds-layer-01);
-  overflow: hidden;
-  border-radius: 4px;
-}
-
-.dwg-viewport__svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  user-select: none;
-}
-
-.dwg-viewport-fs {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  grid-template-rows: auto 1fr;
-  background: var(--cds-background);
-}
-
-.dwg-viewport-fs__bar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--cds-border-subtle);
-}
-
-.dwg-viewport-fs__main {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 0 12px 12px;
-  overflow: hidden;
-}
-
-.dwg-viewport-fs__side {
-  border-left: 1px solid var(--cds-border-subtle);
-  padding: 12px;
-  overflow: auto;
-}
-
 // Let the themed app shell fill the viewport (no unstyled strip in dark theme).
 html,
 body,
@@ -716,19 +661,19 @@ html:has(.esti-studio-abstract-page) body {
 // `.esti-lp-carbon` for dashboard-faithful previews only (documented exception).
 
 .esti-lp {
-  --lp-bg: #fafafa;
-  --lp-bg-muted: #f2f2f2;
-  --lp-bg-dark: #161616;
-  --lp-ink: #161616;
-  --lp-ink-muted: #525252;
-  --lp-ink-faint: #6f6f6f;
-  --lp-ink-invert: #f4f4f4;
-  --lp-accent: #0f62fe;
-  --lp-accent-hover: #0353e9;
-  --lp-accent-glow: rgba(15, 98, 254, 0.35);
-  --lp-border: #e0e0e0;
-  --lp-border-dark: #393939;
-  --lp-bg-soft: #f4f4f4;
+  --lp-bg: var(--cds-background);
+  --lp-bg-muted: var(--cds-layer-02);
+  --lp-bg-dark: var(--cds-background-inverse);
+  --lp-ink: var(--cds-text-primary);
+  --lp-ink-muted: var(--cds-text-secondary);
+  --lp-ink-faint: var(--cds-text-disabled);
+  --lp-ink-invert: var(--cds-text-inverse);
+  --lp-accent: var(--cds-interactive);
+  --lp-accent-hover: var(--cds-interactive-hover, #0353e9);
+  --lp-accent-glow: rgba(15, 98, 254, 0.35); /* alpha glow — no token equivalent */
+  --lp-border: var(--cds-border-subtle);
+  --lp-border-dark: var(--cds-border-strong);
+  --lp-bg-soft: var(--cds-layer-01);
   --lp-max: min(80vw, 100rem);
   --lp-radius: 2px;
   --lp-font: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
@@ -833,7 +778,7 @@ html:has(.esti-studio-abstract-page) body {
   white-space: nowrap;
 
   &:hover {
-    color: #78a9ff;
+    color: var(--cds-link-inverse);
   }
 }
 
@@ -1020,7 +965,7 @@ html:has(.esti-studio-abstract-page) body {
 .esti-lp-note {
   margin: 1rem 0 0;
   font-size: 0.8125rem;
-  color: #da1e28;
+  color: var(--cds-support-error);
 }
 
 .esti-lp-pullquote {
@@ -1139,7 +1084,7 @@ html:has(.esti-studio-abstract-page) body {
 }
 
 .esti-lp-text-link--invert {
-  color: #78a9ff;
+  color: var(--cds-link-inverse);
 }
 
 // ── Card board (bento layout)
@@ -1168,7 +1113,7 @@ html:has(.esti-studio-abstract-page) body {
 
 .esti-lp-panel {
   padding: 1.5rem;
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
   height: 100%;
@@ -1219,7 +1164,7 @@ html:has(.esti-studio-abstract-page) body {
   background: color-mix(in srgb, var(--lp-accent) 10%, #fff);
 
   &--on-dark {
-    color: #78a9ff;
+    color: var(--cds-link-inverse);
     background: color-mix(in srgb, var(--lp-accent) 18%, transparent);
     border: 1px solid color-mix(in srgb, var(--lp-accent) 35%, var(--lp-border-dark));
   }
@@ -1260,7 +1205,7 @@ html:has(.esti-studio-abstract-page) body {
     width: auto;
     min-width: 2.5rem;
     max-width: 100%;
-    background: #fff;
+    background: var(--cds-layer-01);
 
     img {
       display: block;
@@ -1468,7 +1413,7 @@ html:has(.esti-studio-abstract-page) body {
 }
 
 .esti-lp-note--error {
-  color: #da1e28;
+  color: var(--cds-support-error);
 }
 
 @media (min-width: 672px) {
@@ -1519,7 +1464,7 @@ html:has(.esti-studio-abstract-page) body {
   }
 
   .esti-lp-text-link {
-    color: #78a9ff;
+    color: var(--cds-link-inverse);
   }
 }
 
@@ -1564,7 +1509,7 @@ html:has(.esti-studio-abstract-page) body {
 
 .esti-lp-card {
   padding: 1.75rem;
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
   height: 100%;
@@ -1696,7 +1641,7 @@ html:has(.esti-studio-abstract-page) body {
   text-transform: uppercase;
   border-radius: 999px;
   background: color-mix(in srgb, var(--lp-accent) 22%, transparent);
-  color: #78a9ff;
+  color: var(--cds-link-inverse);
 }
 
 .esti-lp-demo-card__sub {
@@ -1728,7 +1673,7 @@ html:has(.esti-studio-abstract-page) body {
 .esti-lp-demo-card__tick {
   flex-shrink: 0;
   margin-top: 0.125rem;
-  color: #78a9ff;
+  color: var(--cds-link-inverse);
 }
 
 .esti-lp-demo-card__tour {
@@ -1787,7 +1732,7 @@ html:has(.esti-studio-abstract-page) body {
   margin: 1.25rem 0 0;
   text-align: center;
   font-size: 0.875rem;
-  color: #ff8389;
+  color: var(--cds-support-error);
 }
 
 .esti-lp-demo-showcase__foot {
@@ -1822,7 +1767,7 @@ html:has(.esti-studio-abstract-page) body {
   gap: 1rem 1.25rem;
   align-items: start;
   padding: 1.5rem;
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
 
@@ -1876,7 +1821,7 @@ html:has(.esti-studio-abstract-page) body {
   gap: 0.75rem;
   padding: 1.5rem;
   height: 100%;
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
 
@@ -1933,7 +1878,7 @@ html:has(.esti-studio-abstract-page) body {
 }
 
 .esti-lp-revision__dialog {
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
   overflow: hidden;
@@ -2116,7 +2061,7 @@ html:has(.esti-studio-abstract-page) body {
   padding: 1.25rem 1.375rem;
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
-  background: #fff;
+  background: var(--cds-layer-01);
 }
 
 .esti-lp-esticad__cloud {
@@ -2396,7 +2341,7 @@ html:has(.esti-studio-abstract-page) body {
   font-size: 0.8125rem;
   font-weight: 500;
   text-decoration: none;
-  color: #78a9ff;
+  color: var(--cds-link-inverse);
 
   &:hover {
     text-decoration: underline;
@@ -2451,7 +2396,7 @@ html:has(.esti-studio-abstract-page) body {
 
 // ── Carbon dashboard island (real AORMS dashboard components)
 .esti-lp-carbon {
-  background: #fff;
+  background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius);
   padding: var(--cds-spacing-07);
@@ -3598,7 +3543,7 @@ h1.esti-landing-lead-title {
     height: 3rem;
     border-radius: 50%;
     border: 1px solid var(--cds-border-subtle);
-    background: #fff;
+    background: var(--cds-layer-01);
     color: var(--cds-text-primary);
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(22, 22, 22, 0.12);
