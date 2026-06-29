@@ -33,7 +33,7 @@ slice:
 
 - **Clients** see issued drawings, transmittals, invoices, and their own
   approvals — never internal tasks or finances.
-- **Contractors** get tender documents, issued drawings and transmittals, and a
+- **Contractors** get issued drawings and transmittals, site instructions, and a
   channel to raise queries — scoped to their project.
 - **Consultants** get the collaborator portal for their engagement.
 

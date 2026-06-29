@@ -9,6 +9,7 @@ export * from "./project-os.js";
 export * from "./financial.js";
 export * from "./delivery.js";
 export * from "./knowledge-compliance.js";
+export * from "./compliance.js";
 export * from "./estimation.js";
 export * from "./spec-catalog.js";
 export * from "./knowledge-bank.js";

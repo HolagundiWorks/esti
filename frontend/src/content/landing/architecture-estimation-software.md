@@ -1,7 +1,7 @@
 ---
 title: Estimate Like a Measurement Book, Not a Form
 metaTitle: Architecture Estimation & BOQ Software
-metaDescription: Keyboard-first BOQ estimation and measurement-book costing software for Indian architecture and construction practices — rate books, element-wise quantities, auto totals, tenders and running-account bills on one record.
+metaDescription: Keyboard-first BOQ estimation and measurement-book costing for Indian architecture practices — element-wise quantities, rate references, and auto totals built into the project record.
 keyword: architecture estimation software
 category: solution
 updated: 2026-06-27

@@ -5,6 +5,7 @@ excerpt: Estimators think in elements and dimensions, not dialog boxes. Here is 
 tags: Product, Estimation
 author: Holagundi Consulting Works
 coverImage: /esti-logo.png
+draft: true
 ---
 
 Ask any estimator who has spent years with an Excel sheet and a measurement book what slows them down in "modern" software, and the answer is always the same: the forms. Open a dialog, type a description, choose a unit, enter a quantity, click save, repeat. It looks tidy. It is also slower than the paper it replaced.

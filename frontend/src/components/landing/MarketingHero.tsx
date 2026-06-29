@@ -3,9 +3,9 @@ import { Button } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
 
 const STATUS_LINES = [
-  { label: "Built for Indian architecture offices", dot: "green" },
+  { label: "Built for Indian architecture consultancies", dot: "green" },
   { label: "Projects, fees, approvals and billing in one record", dot: "green" },
-  { label: "Keyboard-first BOQ, estimation and measurement-book costing", dot: "green" },
+  { label: "GST invoicing and 26AS / AIS / GSTR reconciliation built in", dot: "green" },
   { label: "Native desktop app — runs offline on your machine", dot: "yellow" },
   { label: "Working demo office available", dot: "green" },
 ] as const;
@@ -32,7 +32,7 @@ export function MarketingHero({
       </h1>
 
       <p className="esti-lp-hero__sub">
-        Projects · Revisions · Approvals · Fees · GST · Estimation · Costing · Portals
+        Projects · Revisions · Approvals · Fees · GST · Reconciliation · Team · Portals
       </p>
 
       <p className="esti-lp-hero__lead">

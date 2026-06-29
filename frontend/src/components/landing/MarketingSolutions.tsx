@@ -9,7 +9,7 @@ export function MarketingSolutions() {
           <p className="esti-lp-section-break__eyebrow">06 / Where Work Lands</p>
           <h2 id="solutions-title">Where the office record opens</h2>
           <p>
-            Follow enquiry, drawings, approvals, billing, tenders, site work, and client
+            Follow enquiry, drawings, approvals, billing, site progress, and client
             decisions into the part of AORMS that holds them.
           </p>
         </div>

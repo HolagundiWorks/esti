@@ -4,7 +4,7 @@ export const LANDING_SEO = {
   description:
     "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination, and office operations in one platform.",
   keywords:
-    "AORMS, architecture office management software, architecture practice management software, architecture firm management software, architecture ERP India, client revision management for architects, architecture project management software, architect fee proposal software, architect document approval system, contractor billing software for architects, ESTI AI assistant for architects",
+    "AORMS, architecture office management software, architecture practice management software, architecture firm management software, architecture consultancy management software, architecture ERP India, client revision management for architects, architecture project management software, architect fee proposal software, architect document approval system, GST billing and reconciliation for architects, consultant and contractor coordination software, ESTI AI assistant for architects",
   ogTitle: "AORMS — Architecture Office Resource Management System",
   ogDescription:
     "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination and office operations.",

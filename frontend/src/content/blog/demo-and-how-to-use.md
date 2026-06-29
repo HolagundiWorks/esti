@@ -26,10 +26,10 @@ you are dropped straight into a live workspace as the principal architect:
   of fourteen projects.
 - **The client portal** — switch into the client view to see issued drawings,
   transmittals, invoices and approvals from the client's side.
-- **The contractor portal** — open the contractor link to see a tender, issued
-  documents, and the "raise a query" flow.
-- **Knowledge bank** — rate books, specification catalogues, project standards,
-  and steel scheduling.
+- **The contractor portal** — open the contractor link to see issued drawings,
+  transmittals, and the "raise a query" flow.
+- **Knowledge bank** — specification catalogues, materials and labour libraries,
+  and project standards.
 
 A demo switcher in the corner lets you hop between roles — principal, project
 lead, site coordinator, junior, intern, and client — so you can see exactly how

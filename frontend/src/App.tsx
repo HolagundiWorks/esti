@@ -100,6 +100,7 @@ const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "KnowledgeBank");
+const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
@@ -338,7 +339,10 @@ function AppShell() {
           icon: Catalog,
           items: [
             ...(planAllowsFeature("knowledgeBank")
-              ? [{ label: "Item Library", to: "/knowledge-bank" }]
+              ? [
+                  { label: "Item Library", to: "/knowledge-bank" },
+                  { label: "Compliance Library", to: "/libraries/compliance" },
+                ]
               : []),
           ],
         },
@@ -536,6 +540,7 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
+                <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/lxos" element={<Lxos />} />
                 <Route path="/leos" element={<Navigate to="/lxos" replace />} />
                 <Route path="/search" element={<SearchPage />} />

@@ -265,7 +265,7 @@ const ROLE_LABEL: Record<string, string> = {
 const ROLE_DESC: Record<string, string> = {
   OWNER: "Whole office view — projects, money, people, risk, and audit trail.",
   PARTNER: "Fee proposals, GST, billing, reconciliation, HR, and reporting.",
-  SENIOR: "Project delivery, drawings, tenders, site work, and approvals.",
+  SENIOR: "Project delivery, drawings, site progress, and approvals.",
   ASSOCIATE: "Assigned tasks, clients, site notes, and daily project movement.",
   VIEWER: "Personal work, calendar, and activity without sensitive office data.",
   CLIENT: "One project only — drawings, approvals, revisions, and fee status.",
@@ -319,19 +319,19 @@ function RoleTile({
   );
 }
 
-// ── Bid portal tile ────────────────────────────────────────────────
+// ── Contractor portal tile ─────────────────────────────────────────
 
-function BidPortalTile() {
+function ContractorPortalTile() {
   return (
     <Tile span="2x1">
-      <TileHead label="BP · Bid Portal" dot="white" />
+      <TileHead label="CO · Contractor Portal" dot="white" />
       <TileBody>
         <p className="esti-lp-note" style={{ marginBottom: "var(--cds-spacing-04)" }}>
-          Contractors enter only the tender or bid scope shared with them.
+          Contractors enter only the project scope shared with them.
         </p>
         <ul className="esti-lp-bullets">
-          <li>Tender documents, BOQ, and bid instructions</li>
-          <li>Submission movement recorded against the project</li>
+          <li>Issued drawings, transmittals, and site instructions</li>
+          <li>Coordination and billing movement recorded against the project</li>
           <li>No visibility beyond the issued scope</li>
         </ul>
       </TileBody>
@@ -373,7 +373,7 @@ export function LandingOperationalGrid({
       <div className="esti-lp-grid" id="platform">
         <ProductStoryTile />
         <BuyerOutcomeTile />
-        <KpiTile header="Office Record" dot="green" value="9+" sub="Projects, revisions, fees, GST, teams, tenders, portals, and approvals held together" />
+        <KpiTile header="Office Record" dot="green" value="9+" sub="Projects, revisions, fees, GST, teams, portals, and approvals held together" />
         <KpiTile header="Next Action" dot="yellow" value="Owner" sub="Every warning points to the person responsible for moving the work forward" />
       </div>
 
@@ -384,7 +384,7 @@ export function LandingOperationalGrid({
       />
 
       <div className="esti-lp-grid">
-        <KpiTile header="Indian Practice" dot="green" value="GST" sub="GST, COA, tenders, site work, client approvals, and authority context stay in the record" />
+        <KpiTile header="Indian Practice" dot="green" value="GST" sub="GST, COA, fee proposals, client approvals, and authority context stay in the record" />
         <KpiTile header="ESTI" dot="yellow" value="AI" sub="Reads the office state, explains risk, and suggests the next responsible action" />
         <FeatureTile
           header="Project Control"
@@ -425,7 +425,7 @@ export function LandingOperationalGrid({
           meta="PORTALS"
           title="Let clients decide inside a record, not inside WhatsApp noise"
           bullets={[
-            "Approvals, drawings, RFIs, tenders, and fee status move through scoped portals",
+            "Approvals, drawings, RFIs, and fee status move through scoped portals",
             "Clients, consultants, and contractors see only what belongs to them",
             "Decisions stop disappearing into screenshots and forwarded messages",
           ]}
@@ -470,18 +470,18 @@ export function LandingOperationalGrid({
       <SectionBreak
         eyebrow="04 / People Enter"
         title="Controlled visibility for every person around the project"
-        body="The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see approvals. Contractors see only tender or bid scope."
+        body="The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see approvals. Contractors see only their issued scope."
       />
 
       <div className="esti-lp-grid">
-        <BidPortalTile />
+        <ContractorPortalTile />
         {demoUsersQ.isLoading ? (
           <Tile span="2x1">
             <TileHead label="Loading Role Entry" dot="yellow" meta="Access model" />
             <TileBody>
               <h3 className="esti-lp-feature-title">Preparing controlled views.</h3>
               <p className="esti-lp-note">
-                Owner, finance, team, client, consultant, contractor, and bidder access will appear here.
+                Owner, finance, team, client, consultant, and contractor access will appear here.
               </p>
             </TileBody>
           </Tile>
@@ -501,7 +501,7 @@ export function LandingOperationalGrid({
             <TileBody>
               <h3 className="esti-lp-feature-title">Role-based visibility is configured inside the live workspace.</h3>
               <p className="esti-lp-note">
-                Request access and we will provision owner, finance, team, client, consultant, contractor, and bidder views.
+                Request access and we will provision owner, finance, team, client, consultant, and contractor views.
               </p>
             </TileBody>
           </Tile>
