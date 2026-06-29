@@ -92,11 +92,11 @@ export function UserIdCard() {
             )}
             <Link
               as={RouterLink}
-              to="/settings"
+              to="/profile"
               onClick={() => setOpen(false)}
               className="esti-id-card__link"
             >
-              Manage profile →
+              View profile →
             </Link>
           </div>
         </div>

@@ -105,6 +105,7 @@ const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
 const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
+const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
@@ -655,6 +656,7 @@ function AppShell() {
                   />
                 )}
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
                 {hrEnabled && atLeast(60) && (
                   <Route path="/performance" element={<Performance />} />
                 )}
