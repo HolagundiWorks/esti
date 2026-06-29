@@ -77,7 +77,19 @@ sub-classes), `esti-chart-sm/md/lg`, `esti-login-shell/panel`, `esti-toast-host`
 `esti-float-widget` / `esti-float-panel-shell` / `esti-float-settings` /
 `esti-float-calc` / `esti-float-pom-header` / `esti-scroll-affordance` (floating panel),
 `esti-av-strip` (audio-video header strip),
-`esti-geo--sm/circle/triangle/square/act` (geo-marker glyph sizing).
+`esti-geo--sm/circle/triangle/square/act` (geo-marker glyph sizing),
+`esti-staff-tile__photo` / `esti-staff-tile__accent` / `esti-staff-tile__dot` /
+`esti-staff-tile__level-badge` (staff tile colour elements — `background` stays dynamic
+inline from `resolveColor()`; same pattern as `esti-kpi-fill`),
+`esti-id-card__initials-bg` / `esti-id-card__overlay` / `esti-id-card__role-dot` /
+`esti-id-card__level-badge` (ID card colour elements — same dynamic `background` pattern),
+`esti-staff-avatar` (circular avatar — `width/height/minWidth/background/fontSize` all
+computed from props; no fixed visual values).
+
+Permitted functional animations in `styles.scss` (state-indicator keyframes — not decorative;
+Carbon provides no equivalent pulse/breathe keyframes):
+`esti-pom-pulse` (Pomodoro ring), `esti-zone-pulse` (dashboard zone attention indicator),
+`esti-calm-breathe` (wellbeing breathing exercise), `esti-qpulse` (quick status pulse).
 
 ## Python worker (`worker/`)
 
