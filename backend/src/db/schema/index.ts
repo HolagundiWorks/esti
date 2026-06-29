@@ -15,7 +15,7 @@ export * from "./standards.js";
 export * from "./estimation.js";
 export * from "./spec-catalog.js";
 export * from "./knowledge-bank.js";
-export * from "./estimation-os.js";
+export * from "./cms.js";
 export * from "./collaboration.js";
 export * from "./hr-work.js";
 export * from "./memory-activity.js";

@@ -35,9 +35,11 @@ from ..db import (
     update_progress_report,
     update_proposal,
     update_feasibility_report,
+    update_estimation_set,
     update_site_instruction,
     update_specsheet,
     update_transmittal,
+    fetch_estimation_set,
 )
 from ..storage import get_bytes, put_bytes
 
@@ -600,6 +602,72 @@ def _feasibility_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+def _estimation_set_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    snap = rec.get("snapshot_json") or {}
+    elements = snap.get("elements", [])
+    boq = snap.get("boq", [])
+    total_paise = rec.get("total_paise", 0)
+    firm_name = html.escape(firm.get("name", "AORMS"))
+    project_ref = html.escape(rec.get("project_ref") or "")
+    project_title = html.escape(rec.get("project_title") or "")
+    rev_no = rec.get("revision_no", 1)
+    title = html.escape(rec.get("title") or f"Estimate Rev {rev_no}")
+    generated = (rec.get("created_at") or "")
+
+    def paise_to_inr(p: int | float) -> str:
+        return f"₹{p / 100:,.2f}"
+
+    el_rows = "".join(
+        f"<tr><td>{html.escape(e.get('code',''))}</td>"
+        f"<td>{html.escape(e.get('description',''))}</td>"
+        f"<td>{html.escape(e.get('locationName') or '')}</td>"
+        f"<td style='text-align:right'>{e.get('quantity',0)}</td>"
+        f"<td>{html.escape(e.get('unit') or '')}</td>"
+        f"<td style='text-align:right'>{paise_to_inr(e.get('ratePaise',0))}</td>"
+        f"<td style='text-align:right'>{paise_to_inr(e.get('amountPaise',0))}</td></tr>"
+        for e in elements
+    )
+    boq_rows = "".join(
+        f"<tr><td>{html.escape(b.get('description',''))}</td>"
+        f"<td>{html.escape(b.get('unit') or '')}</td>"
+        f"<td style='text-align:right'>{b.get('totalQuantity',0)}</td>"
+        f"<td style='text-align:right'>{paise_to_inr(b.get('ratePaise',0))}</td>"
+        f"<td style='text-align:right'>{paise_to_inr(b.get('totalAmountPaise',0))}</td></tr>"
+        for b in boq
+    )
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+body{{font-family:Arial,sans-serif;font-size:11px;margin:24px}}
+h1{{font-size:16px;margin-bottom:4px}} h2{{font-size:13px;margin:16px 0 6px}}
+table{{width:100%;border-collapse:collapse;margin-bottom:16px}}
+th{{background:#1a1a1a;color:#fff;padding:5px 8px;text-align:left}}
+td{{padding:4px 8px;border-bottom:1px solid #ddd}}
+.total{{font-weight:bold;text-align:right;font-size:13px;margin-top:8px}}
+.muted{{color:#666;font-size:10px}}
+</style></head><body>
+<h1>{firm_name}</h1>
+<p class="muted">{project_ref} — {project_title}</p>
+<h1>{title}</h1>
+<p class="muted">Revision {rev_no} &nbsp;|&nbsp; Generated {generated}</p>
+
+<h2>Element List</h2>
+<table><thead><tr>
+  <th>Code</th><th>Description</th><th>Location</th>
+  <th>Qty</th><th>Unit</th><th>Rate</th><th>Amount</th>
+</tr></thead><tbody>{el_rows}</tbody></table>
+
+<h2>Bill of Quantities (BOQ)</h2>
+<table><thead><tr>
+  <th>Description</th><th>Unit</th><th>Total Qty</th><th>Rate</th><th>Total Amount</th>
+</tr></thead><tbody>{boq_rows}</tbody></table>
+
+<div class="total">Total Estimate: {paise_to_inr(total_paise)}</div>
+<p class="muted" style="margin-top:20px">
+  FINAL — Frozen cost record. Generated {generated}. For revision history see AORMS.
+</p>
+</body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
@@ -612,6 +680,7 @@ _RENDERERS = {
     "progress_report": (fetch_progress_report_full, _progress_report_html, update_progress_report, "progress_report"),
     "feasibility_report": (fetch_feasibility_report_full, _feasibility_report_html, update_feasibility_report, "feasibility_report"),
     "site_instruction": (fetch_site_instruction_full, _site_instruction_html, update_site_instruction, "site_instruction"),
+    "estimation_set": (fetch_estimation_set, _estimation_set_html, update_estimation_set, "estimation_set"),
 }
 
 

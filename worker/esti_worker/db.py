@@ -327,3 +327,21 @@ def fetch_open_invoices() -> list[dict[str, Any]]:
             }
             for r in cur.fetchall()
         ]
+
+
+def fetch_estimation_set(set_id: str) -> dict | None:
+    """Fetch a Final Estimation Set row; snapshot_json is parsed by psycopg."""
+    sql = """
+        select fs.id, fs.revision_no, fs.title, fs.status, fs.snapshot_json,
+               fs.total_paise, fs.pdf_status, fs.pdf_key, fs.created_at,
+               p.ref as project_ref, p.title as project_title
+        from esti_cms_final_set fs
+        join esti_projectoffice p on p.id = fs.project_id
+        where fs.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [set_id]).fetchone()
+
+
+def update_estimation_set(set_id: str, **fields) -> None:
+    _patch("esti_cms_final_set", set_id, set(), fields)

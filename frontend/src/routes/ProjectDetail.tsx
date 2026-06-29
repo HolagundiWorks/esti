@@ -32,6 +32,8 @@ import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
+import { ProjectEstimate } from "../components/cms/ProjectEstimate.js";
+import { ProjectBoq } from "../components/cms/ProjectBoq.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -121,9 +123,16 @@ export function ProjectDetail() {
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 
+    // ── Cost Management System — Element-centric cost control (consultancy).
+    const cmsTabs: ProjectTab[] = [
+      { slug: "estimate", label: "Estimate", panel: <ProjectEstimate projectId={id} /> },
+      { slug: "boq", label: "BOQ", panel: <ProjectBoq projectId={id} /> },
+    ];
+
     return [
       { slug: "setup", label: "Setup", tabs: setupTabs },
       { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
+      { slug: "cost", label: "Cost Management", tabs: cmsTabs },
     ];
   }, [id, showTeam]);
 
