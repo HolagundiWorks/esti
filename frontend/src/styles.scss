@@ -1041,7 +1041,7 @@ html:has(.esti-studio-abstract-page) body {
 
 .esti-lp-btn--primary {
   background: var(--lp-accent);
-  color: #fff;
+  color: var(--cds-text-inverse);
 
   &:hover:not(:disabled) {
     background: var(--lp-accent-hover);
@@ -1161,7 +1161,7 @@ html:has(.esti-studio-abstract-page) body {
   flex-shrink: 0;
   border-radius: var(--lp-radius);
   color: var(--lp-accent);
-  background: color-mix(in srgb, var(--lp-accent) 10%, #fff);
+  background: color-mix(in srgb, var(--lp-accent) 10%, var(--cds-background));
 
   &--on-dark {
     color: var(--cds-link-inverse);
@@ -1806,7 +1806,7 @@ html:has(.esti-studio-abstract-page) body {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--lp-radius);
-  background: color-mix(in srgb, var(--lp-accent) 10%, #fff);
+  background: color-mix(in srgb, var(--lp-accent) 10%, var(--cds-background));
   color: var(--lp-accent);
 }
 
@@ -1919,8 +1919,8 @@ html:has(.esti-studio-abstract-page) body {
   border-radius: var(--lp-radius);
 
   &--review {
-    background: #d0e2ff;
-    color: #0043ce;
+    background: var(--cds-tag-background-blue);
+    color: var(--cds-interactive);
   }
 }
 
@@ -1939,7 +1939,7 @@ html:has(.esti-studio-abstract-page) body {
     padding: 0.625rem 0.75rem;
     border: 1px solid var(--lp-border);
     border-radius: var(--lp-radius);
-    background: #f4f4f4;
+    background: var(--cds-layer-01);
     color: var(--lp-ink);
   }
 }
@@ -1947,8 +1947,8 @@ html:has(.esti-studio-abstract-page) body {
 .esti-lp-revision__warn {
   padding: 0.875rem 1rem;
   margin-bottom: 1rem;
-  background: #fff8e1;
-  border-left: 3px solid #f1c21b;
+  background: var(--cds-notification-warning-background, #fcf4d6);
+  border-left: 3px solid var(--cds-support-warning);
 
   strong {
     display: block;
@@ -2012,7 +2012,7 @@ html:has(.esti-studio-abstract-page) body {
   align-items: flex-start;
   margin: 0 0 1.375rem;
   padding: 1.25rem 1.375rem;
-  background: color-mix(in srgb, var(--lp-accent) 7%, #fff);
+  background: color-mix(in srgb, var(--lp-accent) 7%, var(--cds-background));
   border: 1px solid color-mix(in srgb, var(--lp-accent) 22%, var(--lp-border));
   border-radius: var(--lp-radius);
 
@@ -2066,7 +2066,7 @@ html:has(.esti-studio-abstract-page) body {
 
 .esti-lp-esticad__cloud {
   border-color: color-mix(in srgb, var(--lp-accent) 35%, var(--lp-border));
-  background: color-mix(in srgb, var(--lp-accent) 6%, #fff);
+  background: color-mix(in srgb, var(--lp-accent) 6%, var(--cds-background));
 }
 
 .esti-lp-esticad__label {
@@ -2123,7 +2123,7 @@ html:has(.esti-studio-abstract-page) body {
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--lp-accent) 14%, #fff);
+  background: color-mix(in srgb, var(--lp-accent) 14%, var(--cds-background));
   color: var(--lp-ink);
 }
 
@@ -3572,7 +3572,7 @@ h1.esti-landing-lead-title {
 
 .esti-lp-request-modal {
   .cds--modal-container {
-    background: #262626 !important;
+    background: var(--cds-layer-02) !important;
     border: 1px solid var(--cds-border-subtle);
     inline-size: min(760px, calc(100vw - 2rem));
     opacity: 1;
@@ -3581,7 +3581,7 @@ h1.esti-landing-lead-title {
 
   .cds--modal-header,
   .cds--modal-content {
-    background: #262626 !important;
+    background: var(--cds-layer-02) !important;
   }
 
   .cds--modal-content {
@@ -3659,7 +3659,7 @@ h1.esti-landing-lead-title {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  color: #fff;
+  color: var(--cds-text-inverse);
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -3717,7 +3717,7 @@ h1.esti-landing-lead-title {
   &__initials {
     font-size: 3rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--cds-text-inverse);
     letter-spacing: 0.02em;
     line-height: 1;
     opacity: 0.9;
@@ -3750,7 +3750,7 @@ h1.esti-landing-lead-title {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--cds-text-inverse);
     line-height: 1;
   }
 
@@ -3909,7 +3909,7 @@ h1.esti-landing-lead-title {
   height: 18px;
   padding: 0 var(--cds-spacing-03);
   border-radius: 9px;
-  color: #fff;
+  color: var(--cds-text-inverse);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4032,10 +4032,10 @@ h1.esti-landing-lead-title {
 
 // Status dots — semantic only
 .esti-lp-dot { font-size: 8px; flex-shrink: 0; line-height: 1; }
-.esti-lp-dot--green  { color: #42be65; }
-.esti-lp-dot--yellow { color: #f1c21b; }
-.esti-lp-dot--red    { color: #fa4d56; }
-.esti-lp-dot--white  { color: #a8a8a8; }
+.esti-lp-dot--green  { color: var(--cds-support-success); }
+.esti-lp-dot--yellow { color: var(--cds-support-warning); }
+.esti-lp-dot--red    { color: var(--cds-support-error); }
+.esti-lp-dot--white  { color: var(--cds-text-disabled); }
 
 // Grid container — shared borders create the grid lines (no gap)
 .esti-lp-grid {
@@ -4164,7 +4164,7 @@ h1.esti-landing-lead-title {
   align-items: center;
   gap: var(--cds-spacing-03);
   padding: 0 var(--cds-spacing-06);
-  border-bottom: 1px solid #262626;
+  border-bottom: 1px solid var(--cds-border-strong);
   background: none;
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
   font-size: 12px;
@@ -4519,7 +4519,7 @@ h1.esti-landing-lead-title {
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
+  color: var(--cds-text-inverse);
   flex-shrink: 0;
   letter-spacing: 0.05em;
 }
@@ -5496,7 +5496,7 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
 // The single owner-intervention marker — the only blue on the dashboard.
 .esti-geo--act {
-  color: #0f62fe;
+  color: var(--cds-interactive);
 }
 
 @keyframes esti-calm-breathe {
