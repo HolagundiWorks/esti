@@ -108,7 +108,6 @@ export const runningBills = pgTable("esti_running_bill", {
     .notNull()
     .references(() => projectOffices.id, { onDelete: "cascade" }),
   contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "set null" }),
-  /** Work package this bill measures against (Estimation OS Phase 4). */
   workPackageId: uuid("work_package_id").references(() => workPackages.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   /** Bill type (Construction Cost OS Phase C): RA / FINAL / EXTRA_ITEM /
@@ -143,9 +142,7 @@ export const runningBillItems = pgTable("esti_running_bill_item", {
   qty: doublePrecision("qty").notNull().default(0),
   ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
   amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
-  // Estimation OS Phase 4 — measurement-record links + cumulative tracking.
-  // Nullable: free-text lines leave these unset. FKs to the cross-module
-  // estimate/component tables are added in the migration (avoids a cycle).
+  // Nullable: free-text lines leave these unset. FKs added in the migration.
   workPackageItemId: uuid("work_package_item_id").references(() => workPackageItems.id, {
     onDelete: "set null",
   }),
@@ -161,13 +158,7 @@ export const runningBillItems = pgTable("esti_running_bill_item", {
   createdAt: createdAt(),
 });
 
-/**
- * Estimation OS Phase 4 — work packages group approved (frozen) BOQ items into
- * contractor packages; running bills then measure against package items with
- * double-billing prevention. `estimate_id` / `estimate_version_id` /
- * `boq_item_id` / `component_id` are plain uuids here (FK constraints added in
- * the migration) to avoid a schema-module import cycle.
- */
+/** Work packages group contracted BOQ items into contractor packages; running bills measure against items with double-billing prevention. */
 export const workPackages = pgTable("esti_work_package", {
   id: id(),
   ref: text("ref").notNull().unique(),

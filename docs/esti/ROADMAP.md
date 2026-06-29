@@ -6,7 +6,7 @@
 > The authoritative record of what exists today is
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the active
 > rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 **Status:** Active · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23 (Phase 28)
 
@@ -108,7 +108,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 
 **Still planned (🔲 — separate efforts):**
 - Estimation OS · BOQ · Rate Books · Estimation Intelligence — the cost/estimation
-  rebuild ([ESTIMATION-OS](ESTIMATION-OS.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
+  rebuild ([COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
 - Greenfield feature builds behind placeholders: Vendors, the LXOS Community/Identity/
   Certification layers, and the AORMS Identity/Certification/Index subsystems.
 
@@ -908,7 +908,7 @@ Replace the "show all problems" dashboard pattern with a system that actively pr
 > master + IFC + auto-BOQ, rate analysis, work packages + running bills). The **entire
 > Estimation OS was torn down on 2026-06-28** and is being rebuilt ground-up — see
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [ESTIMATION-OS.md](ESTIMATION-OS.md). Current state:
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md). Current state:
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ## Deferred ideas [P3]
@@ -983,7 +983,7 @@ Condensed session notes — detail lives in phase sections above.
 > Replacement (ground-up rebuild on a cleaner model):
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) — the reference
 > foundation (Material / Labour / Item libraries, Specifications, Recipes live) →
-> [ESTIMATION-OS.md](ESTIMATION-OS.md) — estimate → derivation → BOQ → cost (planned).
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — estimate → derivation → BOQ → cost (planned).
 > Current system state is authoritative in
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 

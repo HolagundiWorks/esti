@@ -48,12 +48,12 @@
   `construction` (contractor coordination), the **tenders** spine (`esti_tender*`), and
   **mood boards** (`esti_moodboard`). AORMS is now consultancy-only; site supervision
   (snags/inspections/progress) is kept under Projects.
-- **Estimation OS** (2026-06-28) — estimates/BOQ, component master + RuleSet engine,
-  `formula-engine`, `autoBoq`, CostingWindow, ParametricCanvas, Component Library.
-- **Construction Cost spine** (2026-06-28) — contractor item-bidding, work packages,
-  running bills, measurement book, deviations/variations, final accounts, cost dashboard,
-  procurement forecast, GRN, BBS + steel reconciliation.
-- **Rate Books** (`dsr`) and **Rate Analysis** (`rateAnalysis`).
+- **Old Estimation OS + Construction Cost spine** (2026-06-28) — component master,
+  RuleSet engine, `formula-engine`, `autoBoq`, CostingWindow, ParametricCanvas, Component
+  Library, contractor item-bidding, work packages, running bills, measurement book,
+  deviations/variations, final accounts, cost dashboard, procurement forecast, GRN,
+  BBS + steel reconciliation, Rate Books (`dsr`), Rate Analysis (`rateAnalysis`).
+  Replaced by the unified **Cost Management System (CMS)**.
 - **RIE / compliance engine** — bylaw nav, site assessments, BBMP calculator. *(GST / TDS /
   permit / COA compliance stay live; only the bylaw/RIE engine was retired.)*
 
@@ -63,8 +63,11 @@ stack on a cleaner model):
    Labour / Item libraries, item-mapped Specifications, consumption Recipes, CSV import/export.
    **Planned:** Brand layer, Vendor rates, Formula + Derivation engines.
    Canonical: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md).
-2. **Estimation OS** — turns Knowledge Bank intelligence into project estimates + BOQ
-   (planned). Canonical: [ESTIMATION-OS.md](ESTIMATION-OS.md).
+2. **Cost Management System** (`cms`) — the unified project cost lifecycle: Element spine
+   (EL-001 permanent identity), Estimate, BOQ, Final Estimation Set (Documents), Site
+   Measurement Book, Work Orders, Contractor Bill Certification, Material Intelligence,
+   Cost Dashboard. **CMS-1 + CMS-2 live**; CMS-3–8 planned.
+   Canonical: [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ## What AORMS is
 
@@ -90,7 +93,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 | **1. Ask OS** | Conversational + cognition layer — ask the office anything, AI-assisted decisions, AI Studio, public "Ask ESTI" | `ai.*` (`ai.run`, `ai.generateCad`), `dashboard` cognition/Action Center, `companion`, public `marketing.askEsti` | ◐ |
 | **2. Project OS** | The project as the unit of work — two heads: **Consultancy** (design) and **Project Management** (construction) | `projectOffice`, `phases`, `projectBrief`, `drawings`, `transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`; `ProjectDetail.tsx` | ✅ |
 | **3. Task OS** | Everyone's work surface — tasks (billable/work-type/difficulty dimensions), assignments, workload, attendance, ASPRF | `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`; `Work.tsx` hub | ◐ |
-| **4. Construction Cost Management OS** | Money on a job, end to end — **being rebuilt ground-up** after the 2026-06-28 teardown, on the Knowledge Bank foundation | `kb.*` (Knowledge Bank — live); Estimation OS + BOQ (planned). PMC site delivery (`pmc`, `constructionSchedule`, `programme`) + office costing (`accounts`, `expenses`, `purchaseOrders`) stay live | ○→◐ |
+| **4. Cost Management System** | Architect cost control from estimate to certified bill — unified CMS on the Knowledge Bank foundation | `kb.*` (Knowledge Bank — live); `cms.*` (CMS-1+2 live: Element spine, Estimate, BOQ, Final Estimation Set; CMS-3–8 planned). Office costing (`accounts`, `expenses`, `purchaseOrders`) stays live | ◐ |
 | **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (contractor bids + running bills); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
 | **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `companion` (ESTICAD takeoff), `ai.generateCad`, `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine | ◐ |
 
@@ -119,10 +122,11 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
   purchase orders (`purchaseOrders`).
 - **Rebuilding (active increment):** **Construction Knowledge Bank** (`kb`) is the new
   foundation (libraries + specifications + recipes live; brands / vendor rates / formula /
-  derivation engine planned), then the **Estimation OS** (estimate → derivation → BOQ → cost)
-  on top of it. Canonical: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-  [ESTIMATION-OS.md](ESTIMATION-OS.md). The earlier "one Costing & Measurement window" idea is
-  superseded by this layered KB → Estimation split.
+  derivation engine planned), then the **Cost Management System** (`cms`) on top of it
+  (Element spine + Estimate + BOQ + Final Set live as CMS-1/2; Measurement, Work Orders,
+  Bill Certification planned as CMS-3–8). Canonical:
+  [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+  [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ### 5. Portals — ◐
 - **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor bid + running-bills portal (`contractorPortal`). All Pure Carbon, mobile-first.
@@ -136,7 +140,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 
 1. **This doc** — the six pillars + the **System state** (what's live / removed / rebuilding). Authoritative on current state.
 2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (Canonical V3, consultancy-only).
-3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS.md](ESTIMATION-OS.md) — the active rebuild (cost/estimation domain).
+3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (cost/estimation domain).
 4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
 5. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
 6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.

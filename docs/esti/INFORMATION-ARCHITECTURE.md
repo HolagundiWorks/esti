@@ -14,7 +14,7 @@
 > of what exists today is [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
 > § "System state"; the active rebuild is
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 > Status: **implemented.** Backend (tRPC namespaces, DB) is unchanged — this is a
 > navigation / information-architecture map. The goal is one home per module, a
@@ -94,7 +94,7 @@ unchanged) — the split is purely how the work is presented.
 > Construction Cost spine **torn down on 2026-06-28**. It is being rebuilt ground-up on a
 > cleaner model: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) (the
 > reference foundation — libraries, specifications, recipes live) →
-> [ESTIMATION-OS.md](ESTIMATION-OS.md) (estimate → derivation → BOQ → cost, planned). The
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) (estimate → derivation → BOQ → cost, planned). The
 > nav-mapping tables below that still reference `estimates`/`bbs`/`dsr`/`runningBills` are
 > historical; current state is authoritative in
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".

@@ -6,7 +6,7 @@
 > what exists today is [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
 > § "System state"; the rebuild is
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [ESTIMATION-OS.md](ESTIMATION-OS.md). The new Knowledge Bank is Core+.
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md). The new Knowledge Bank is Core+.
 
 > Proposal. Maps every module (see [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md))
 > to a plan. Backend is one codebase; the plan is a **firm-level flag** that gates

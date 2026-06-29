@@ -12,7 +12,6 @@ export * from "./knowledge-compliance.js";
 export * from "./compliance.js";
 export * from "./master-plan.js";
 export * from "./standards.js";
-export * from "./estimation.js";
 export * from "./spec-catalog.js";
 export * from "./knowledge-bank.js";
 export * from "./cms.js";

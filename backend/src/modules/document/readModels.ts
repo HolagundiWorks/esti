@@ -2,8 +2,8 @@ import type { DocumentEntityType, DocumentRegisterFilter } from "@esti/contracts
 import { desc, eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import {
+  cmsFinalSets,
   contracts,
-  estimates,
   inspections,
   letters,
   moms,
@@ -76,11 +76,12 @@ export async function listDocumentRegister(
         .innerJoin(projectOffices, eq(specSheets.projectId, projectOffices.id))
         .orderBy(desc(specSheets.createdAt))
         .limit(limit),
+      // CMS Final Estimation Sets replace the old esti_estimate in the document register.
       db
-        .select({ e: estimates, pr: projectOffices })
-        .from(estimates)
-        .innerJoin(projectOffices, eq(estimates.projectId, projectOffices.id))
-        .orderBy(desc(estimates.createdAt))
+        .select({ e: cmsFinalSets, pr: projectOffices })
+        .from(cmsFinalSets)
+        .innerJoin(projectOffices, eq(cmsFinalSets.projectId, projectOffices.id))
+        .orderBy(desc(cmsFinalSets.createdAt))
         .limit(limit),
       db
         .select({ m: moms, pr: projectOffices })
@@ -184,14 +185,14 @@ export async function listDocumentRegister(
     push({
       id: e.id,
       entityType: "ESTIMATE",
-      ref: e.ref,
+      ref: `CMS-REV-${String(e.revisionNo).padStart(3, "0")}`,
       title: e.title,
       projectId: e.projectId,
       projectRef: pr.ref,
       projectTitle: pr.title,
-      versionNo: e.versionNo ?? 1,
-      status: e.status === "APPROVED" ? "ISSUED" : "DRAFT",
-      pdfStatus: "NONE",
+      versionNo: e.revisionNo,
+      status: e.status === "FINAL" ? "ISSUED" : "DRAFT",
+      pdfStatus: e.pdfStatus,
       createdAt: e.createdAt,
     });
   }

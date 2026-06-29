@@ -35,7 +35,7 @@ renders responsively:
 
 A native field app (PWA) is reconsidered only if a later phase needs genuinely
 native field interactions (offline, camera/GPS, gestures) — not now. See
-[ESTIMATION-OS](ESTIMATION-OS.md).
+[COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md).
 
 **Hard boundary (enforced by review and `check-carbon`):** no route — office or
 portal — imports `@mui/*`; every surface is 100% Pure Carbon. The API/data layer

@@ -39,7 +39,7 @@ Header utilities (not sidebar): **Global Search · Notifications · AI Assistant
 ## 2. Projects ✅
 Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`): Drawings ✅ ·
 Documents ✅ · Site Progress ✅ · Project Timeline ✅. **Project Workspace tabs:**
-Drawings ✅ · Documents ✅ · **Estimation OS 🔲 · BOQ 🔲** · Site Progress ✅ ·
+Drawings ✅ · Documents ✅ · **Cost Management 🚧** (Estimate ✅ · BOQ ✅ · Site Measurement 🔲 · Work Orders 🔲 · Contractor Bills 🔲 · Cost Dashboard 🔲) · Site Progress ✅ ·
 Project Discussions ✅ · Transmittals ✅ *(project-only — no office-wide view)*.
 
 ## 3. Tasks ✅
@@ -133,10 +133,9 @@ unified **Proposals**.
 ## Build-vs-placeholder policy
 **Built/wired:** the V3 menu, Dashboard Leads tab, Proposals merge, removals, LXOS
 rename. **Build fully (Stage 2):** the 3 new Libraries (Compliance, Master Plan,
-Standards). **Placeholder / follow-on builds:** Estimation OS · BOQ · Rate Books ·
-Estimation Intelligence (the separate Estimation-OS rebuild), Vendors, Payroll,
+Standards). **Placeholder / follow-on builds:** Cost Management (CMS-3–8) · Vendors · Payroll ·
 LXOS exchange layers, and the User-Profile/LXOS identity·certification·index
-subsystems. See [ROADMAP.md](ROADMAP.md) Phase 32 and the implementation plan.
+subsystems. See [ROADMAP.md](ROADMAP.md) and [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ## Closing philosophy
 AORMS is an **operating system for design studios**: work and learning coexist,

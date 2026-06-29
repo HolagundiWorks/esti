@@ -6,7 +6,7 @@
 > authoritative record of what exists today is
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the active
 > rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [ESTIMATION-OS.md](ESTIMATION-OS.md).
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 **Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
@@ -149,7 +149,7 @@ The contractor module supports architect-side coordination only:
   instructions, snags, and NCRs;
 - *(Tendering — creation / issue / sealed bids / comparison / award — and the
   work-package running-bill measurement workflow were **removed** 2026-06-28 with the
-  Construction Cost spine; being rebuilt, see [ESTIMATION-OS](ESTIMATION-OS.md).)*
+  Construction Cost spine; being rebuilt, see [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md).)*
 - strict portal isolation between contractors.
 
 It does not provide inventory, labour, subcontractor, GRN, or contractor
@@ -167,7 +167,7 @@ accounting systems.
   contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
   ground-up on the Knowledge Bank. Spec:
   [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-  [ESTIMATION-OS](ESTIMATION-OS.md). (ESTICAD takeoff capture stays — see below.)
+  [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md). (ESTICAD takeoff capture stays — see below.)
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case

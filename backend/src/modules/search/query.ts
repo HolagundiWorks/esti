@@ -16,7 +16,6 @@ import {
   criticalNotes,
   decisions,
   drawings,
-  dsrItems,
   inspections,
   invoices,
   lessonsLearned,
@@ -460,21 +459,6 @@ async function searchKnowledge(db: DB, q: string): Promise<SearchHit[]> {
     })),
   );
 
-  const dsrRows = await db
-    .select({ id: dsrItems.id, code: dsrItems.code, description: dsrItems.description })
-    .from(dsrItems)
-    .where(or(ilike(dsrItems.code, like), ilike(dsrItems.description, like)))
-    .limit(PER_TYPE_LIMIT);
-  hits.push(
-    ...dsrRows.map((r) => ({
-      entityType: "DSR_ITEM" as const,
-      entityId: r.id,
-      title: `${r.code} · ${r.description.slice(0, 60)}`,
-      snippet: snippet(r.description, 120),
-      href: searchResultHref("DSR_ITEM", r.id),
-      rank: rank(r.code, r.description, q),
-    })),
-  );
 
   const specCatRows = await db
     .select({

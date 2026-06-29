@@ -11,7 +11,7 @@ direction. Point-in-time audits and superseded specs live in
 New here? Read in this order:
 
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star **and the single source of truth for current system state** (its "System state" section lists what's live / removed / rebuilding). Where any other doc disagrees about what exists, this one wins.
-2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [ESTIMATION-OS](ESTIMATION-OS.md) — the active rebuild (the Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28 and are being rebuilt on the Knowledge Bank foundation).
+2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
 4. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
 5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the Canonical V3 nav: Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin — consultancy-only) with live/planned status per module. Authoritative for the sidebar and module placement.
@@ -41,8 +41,8 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) | Team mode rules and legacy HR archive workflow |
 | [WORKER-LIMITS.md](WORKER-LIMITS.md) | PDF worker idempotency, retries, resource limits |
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
-| [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | **Target (rebuild foundation)** — the layered construction-intelligence reference layer: Material / Labor / Item / Specification libraries, consumption recipes, brand + vendor-rate layer, dependencies, and the formula + derivation engine. Supersedes the removed Estimation OS + Construction Cost spine; everything downstream (BOQ, Estimation, Procurement, Tendering, AI) reads from it |
-| [ESTIMATION-OS](ESTIMATION-OS.md) | **Target (fresh rebuild)** — turns Knowledge Bank intelligence into project estimates: the deterministic derivation engine (measurement → quantity → materials/labour → rates → cost), the Excel-like estimation grid, BOQ rollup, and versioning/freeze. Ground-up rebuild on the KB model; retires all prior estimation docs |
+| [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | **Target (rebuild foundation)** — the layered construction-intelligence reference layer: Material / Labor / Item / Specification libraries, consumption recipes, and the formula + derivation engine. Everything downstream (CMS estimate, BOQ, bills) reads from it |
+| [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) | **Active build** — unified CMS: Element spine (permanent identity EL-001), Estimate, BOQ, Final Estimation Set, Site Measurement Book, Work Orders, Contractor Bill Certification, Material Intelligence, Cost Dashboard. Supersedes the former "Estimation OS" concept entirely |
 | [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
