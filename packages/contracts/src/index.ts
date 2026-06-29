@@ -3,6 +3,7 @@ export * from "./money.js";
 export * from "./gst.js";
 export * from "./compliance.js";
 export * from "./master-plan.js";
+export * from "./standards.js";
 export * from "./coa.js";
 export * from "./fy.js";
 export * from "./permits.js";
