@@ -103,6 +103,8 @@ const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "Know
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
+const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
+const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
@@ -373,6 +375,7 @@ function AppShell() {
               { label: "Contractors", to: "/contractors" },
             ]
           : []),
+        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors" }] : []),
       ],
     },
     {
@@ -400,6 +403,9 @@ function AppShell() {
               { label: "Cashbook", to: "/accounting/cash-book" },
               { label: "Office Expenses", to: "/accounting/office-expenses" },
             ]
+          : []),
+        ...(planAllowsFeature("hr") && hrEnabled && can(user.role, "hr:manage")
+          ? [{ label: "Payroll", to: "/finance/payroll" }]
           : []),
         ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
           ? [{ label: "Financial Reports", to: "/filing" }]
@@ -547,6 +553,10 @@ function AppShell() {
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
+                {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
+                {hrEnabled && can(user.role, "hr:manage") && (
+                  <Route path="/finance/payroll" element={<Payroll />} />
+                )}
                 <Route path="/lxos" element={<Lxos />} />
                 <Route path="/leos" element={<Navigate to="/lxos" replace />} />
                 <Route path="/search" element={<SearchPage />} />
