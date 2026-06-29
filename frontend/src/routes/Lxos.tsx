@@ -1,33 +1,40 @@
-import { Column, Grid, Stack, Tag, Tile } from "@carbon/react";
+import {
+  Column,
+  Grid,
+  Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tag,
+  Tile,
+} from "@carbon/react";
 import { PageHeader } from "../components/PageHeader.js";
+import { LessonsBank } from "../components/ProjectLessons.js";
 
 /**
  * LXOS — Learning Exchange Operating System (AORMS knowledge & professional exchange
- * layer). Navigational placeholder for the V3 pillar; the layers below are greenfield
- * (see docs/esti/NAVIGATION.md § LXOS). Lessons Learned wires in once built.
+ * layer). Internal Exchange surfaces the live Lessons Learned bank; the other layers
+ * are greenfield (see docs/esti/NAVIGATION.md § LXOS).
  */
-const LAYERS: { title: string; description: string }[] = [
-  {
-    title: "Internal Exchange",
-    description:
-      "Firm-private: Project Learnings (site, design decisions, revisions, lessons), Documentation Exchange, Internal Blogs, Whiteboard Studio, Knowledge Notes.",
-  },
-  {
-    title: "Community Exchange",
-    description:
-      "Across firms: case studies, documentation showcase, architecture blogs, technical & standards discussions, vendor reviews, templates, research papers.",
-  },
-  {
-    title: "Professional Identity",
-    description:
-      "AORMS ID, professional role, knowledge contributions, community reputation, articles, shared templates, contribution history.",
-  },
-  {
-    title: "Certification & Growth",
-    description:
-      "AORMS certification tracks (Architect / HR / Finance / Operations), skill assessments, levels (Foundation → Master), learning history.",
-  },
-];
+function PlannedGrid({ items }: { items: { title: string; description: string }[] }) {
+  return (
+    <Grid narrow>
+      {items.map((m) => (
+        <Column key={m.title} lg={4} md={4} sm={4}>
+          <Tile className="esti-fill">
+            <Stack gap={3}>
+              <h4>{m.title}</h4>
+              <p className="esti-label esti-label--secondary">{m.description}</p>
+              <Tag type="gray" size="sm">Planned</Tag>
+            </Stack>
+          </Tile>
+        </Column>
+      ))}
+    </Grid>
+  );
+}
 
 export function Lxos() {
   return (
@@ -36,22 +43,57 @@ export function Lxos() {
         title="LXOS"
         description="Learning Exchange Operating System — AORMS knowledge & professional exchange layer. Work and learning coexist; knowledge becomes infrastructure."
       />
-
-      <Tag type="purple">Coming soon — exchange layers in planning</Tag>
-
-      <Grid narrow>
-        {LAYERS.map((m) => (
-          <Column key={m.title} lg={4} md={4} sm={4}>
-            <Tile className="esti-fill">
-              <Stack gap={3}>
-                <h4>{m.title}</h4>
-                <p className="esti-label esti-label--secondary">{m.description}</p>
-                <Tag type="gray" size="sm">Planned</Tag>
-              </Stack>
-            </Tile>
-          </Column>
-        ))}
-      </Grid>
+      <Tabs>
+        <TabList aria-label="LXOS layers" contained>
+          <Tab>Internal Exchange</Tab>
+          <Tab>Community Exchange</Tab>
+          <Tab>Professional Identity</Tab>
+          <Tab>Certification &amp; Growth</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <Stack gap={6}>
+              <LessonsBank />
+              <PlannedGrid
+                items={[
+                  { title: "Documentation Exchange", description: "Standard / detail / working drawings + documentation standards." },
+                  { title: "Internal Blogs", description: "Technical notes, material learnings, compliance and research." },
+                  { title: "Whiteboard Studio", description: "Team discussions, sketch sessions, design and technical reviews." },
+                  { title: "Knowledge Notes", description: "Standards, site-issue, vendor and internal reference notes." },
+                ]}
+              />
+            </Stack>
+          </TabPanel>
+          <TabPanel>
+            <PlannedGrid
+              items={[
+                { title: "Case Studies", description: "Cross-firm project case studies and documentation showcase." },
+                { title: "Architecture Blogs", description: "Public architecture and technical writing." },
+                { title: "Discussions", description: "Technical, standards and open professional discussions." },
+                { title: "Templates & Research", description: "Templates exchange, vendor reviews, research papers." },
+              ]}
+            />
+          </TabPanel>
+          <TabPanel>
+            <PlannedGrid
+              items={[
+                { title: "AORMS ID & Role", description: "Professional identity and role across the platform." },
+                { title: "Contributions", description: "Knowledge contributions, articles and shared templates." },
+                { title: "Reputation", description: "Community reputation score and contribution history." },
+              ]}
+            />
+          </TabPanel>
+          <TabPanel>
+            <PlannedGrid
+              items={[
+                { title: "Certification Tracks", description: "AORMS Certified Architect / HR / Finance / Operations." },
+                { title: "Skill Assessments", description: "Competency tests and practical exercises." },
+                { title: "Levels & History", description: "Foundation → Master levels and learning history." },
+              ]}
+            />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </Stack>
   );
 }

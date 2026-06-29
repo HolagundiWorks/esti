@@ -19,7 +19,6 @@ import {
 } from "@carbon/react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { LessonsBank } from "../components/ProjectLessons.js";
 import { DataState } from "../components/DataState.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
 import { PageHeader } from "../components/PageHeader.js";
@@ -41,7 +40,6 @@ const KB_TAB_SLUGS = [
   "specifications",
   "recipes",
   "brand-catalogue",
-  "lessons",
 ] as const;
 
 function KnowledgeBankSearch() {
@@ -147,7 +145,6 @@ export function KnowledgeBank() {
           <Tab>Specifications</Tab>
           <Tab>Recipes</Tab>
           <Tab>Brand Catalogue</Tab>
-          <Tab>Lessons</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -179,10 +176,6 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <SpecCatalogManager embedded />
-          </TabPanel>
-
-          <TabPanel>
-            <LessonsBank />
           </TabPanel>
         </TabPanels>
       </Tabs>

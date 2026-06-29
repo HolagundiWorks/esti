@@ -50,9 +50,9 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 | Group → Module | Status | Where |
 |---|---|---|
 | **Libraries › Item Library** | ✅ | `/knowledge-bank` (Materials · Labor · Specifications · **Rate Books 🔲 · Estimation Intelligence 🔲**) |
-| **Libraries › Compliance Library** | 🔲 | NBC Rules · FAR Rules · Setbacks · Fire Compliance · Regulations |
-| **Libraries › Master Plan Library** | 🔲 | PDF · DWG · Zoning Plans · Development Plans |
-| **Libraries › Standards Library** | 🔲 | Interiors · Plumbing · Electrical · Lighting (Technical Notes · Drawings · Standard Details) |
+| **Libraries › Compliance Library** | ✅ | `/libraries/compliance` — structured: NBC · FAR · Setbacks · Fire · Regulations (CRUD) |
+| **Libraries › Master Plan Library** | ✅ | `/libraries/master-plans` — PDF / DWG / zoning / development file uploads |
+| **Libraries › Standards Library** | ✅ | `/libraries/standards` — by discipline (Interiors/Plumbing/Electrical/Lighting) + notes + files |
 | Teams | ✅ | `/team` |
 | Performance | ✅ | `/performance` |
 | HR | ✅ | `/hr` |
@@ -78,14 +78,14 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 | Consultancy Invoices | ✅ | `/invoices` |
 | Cashbook | ✅ | `/accounting/cash-book` |
 | Office Expenses | ✅ | `/accounting/office-expenses` |
-| Payroll | 🚧 | from `team/hr.ts` payroll → `/finance/payroll` (planned) |
+| Payroll | ✅ | `/finance/payroll` (payslip list / generate / mark-paid; `payroll` namespace) |
 | Financial Reports | 🚧 | `/filing` (GST/TDS) + reports |
 
 ## 8. LXOS — Learning Exchange Operating System
 Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 4 layers:
 | Layer | Status | Contents |
 |---|---|---|
-| Internal Exchange (firm-private) | 🔲 | Project Learnings (site · design decisions · revisions · **Lessons Learned — wire `LessonsBank` ✅**) · Documentation Exchange · Internal Blogs · Whiteboard Studio · Knowledge Notes |
+| Internal Exchange (firm-private) | 🚧 | **Lessons Learned ✅ live** (`LessonsBank` in the LXOS Internal Exchange tab; moved out of Item Library). Documentation Exchange · Internal Blogs · Whiteboard Studio · Knowledge Notes still 🔲 |
 | Community Exchange (cross-firm) | 🔲 | Case studies · documentation showcase · architecture blogs · technical/standards discussions · vendor reviews · templates exchange · research papers · open discussions |
 | Professional Identity | 🔲 | AORMS ID · role · knowledge contributions · community reputation · articles · templates · contribution history *(shared with User Profile)* |
 | Certification & Growth | 🔲 | AORMS certification (Architect/HR/Finance/Operations) · skill assessments · levels (Foundation/Practitioner/Specialist/Master) · learning history *(shared with User Profile)* |
