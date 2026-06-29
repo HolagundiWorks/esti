@@ -1176,10 +1176,10 @@ function ScreenOverview({
   if (afterLines.length === 0) afterLines.push("The office stays steady and on track.");
 
   return (
-    <div className="esti-cognitive-dashboard">
+    <Stack gap={6} style={{ padding: "var(--cds-spacing-05)" }}>
 
       {/* Section 1 — STUDIO STATE */}
-      <section aria-label="Studio state" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+      <section aria-label="Studio state">
         <Stack orientation="horizontal" gap={4} style={{ marginBottom: "var(--cds-spacing-04)", alignItems: "center" }}>
           <span className="esti-label">STUDIO STATE</span>
           <Tag type={zoneTagType(officeState)} size="sm">{healthBand(score).label}</Tag>
@@ -1213,7 +1213,7 @@ function ScreenOverview({
       </section>
 
       {/* Section 2 — AI REMARKS */}
-      <section aria-label="AI remarks" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+      <section aria-label="AI remarks">
         <Stack orientation="horizontal" gap={4} style={{ marginBottom: "var(--cds-spacing-04)", alignItems: "center" }}>
           <span className="esti-label">AI REMARKS</span>
           <span className="esti-label--secondary">Based on live office signals</span>
@@ -1265,7 +1265,7 @@ function ScreenOverview({
       </section>
 
       {/* Section 3 — SUPPORTING REGISTERS */}
-      <section aria-label="Supporting registers" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+      <section aria-label="Supporting registers">
         <span className="esti-label" style={{ display: "block", marginBottom: "var(--cds-spacing-04)" }}>
           SUPPORTING REGISTERS
         </span>
@@ -1322,7 +1322,7 @@ function ScreenOverview({
           hideCloseButton
         />
       </section>
-    </div>
+    </Stack>
   );
 }
 
