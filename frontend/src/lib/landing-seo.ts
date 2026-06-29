@@ -1,19 +1,19 @@
 /** Landing-page SEO copy — keep in sync with index.html meta tags. */
 export const LANDING_SEO = {
-  title: "AORMS | Architecture Office Management Software for Indian Architects",
+  title: "AORMS | India's Standardized Operational Framework for Architectural Consultancy Practices",
   description:
-    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination, and office operations in one platform.",
+    "AORMS is India's first standardized operational framework for managing architectural consultancy practices — client revisions, project workflows, fee proposals, drawing approvals, GST billing and reconciliation, consultant and contractor coordination, and team performance, in one system.",
   keywords:
-    "AORMS, architecture office management software, architecture practice management software, architecture firm management software, architecture consultancy management software, architecture ERP India, client revision management for architects, architecture project management software, architect fee proposal software, architect document approval system, GST billing and reconciliation for architects, consultant and contractor coordination software, ESTI AI assistant for architects",
-  ogTitle: "AORMS — Architecture Office Resource Management System",
+    "AORMS, architectural consultancy management software, architectural practice management software, architecture practice management software, architecture firm management software, architecture office management software, architecture ERP India, client revision management for architects, architecture project management software, architect fee proposal software, architect document approval system, GST billing and reconciliation for architects, consultant and contractor coordination software, ESTI AI assistant for architects",
+  ogTitle: "AORMS — India's First Operational Framework for Architectural Consultancy Practices",
   ogDescription:
-    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination and office operations.",
-  twitterTitle: "AORMS — Architecture Office Management Software",
+    "AORMS is India's first standardized operational framework for managing architectural consultancy practices — client revisions, projects, fee proposals, drawing approvals, GST billing and reconciliation, and consultant and contractor coordination.",
+  twitterTitle: "AORMS — India's Framework for Architectural Consultancies",
   twitterDescription:
-    "Client revisions, project workflows, fee proposals, approvals, billing, contractor coordination and office operations for Indian architects.",
-  headline: "The architecture office intelligence system.",
+    "India's first standardized operational framework for architectural consultancy practices — client revisions, projects, fee proposals, approvals, GST billing and reconciliation, and team performance.",
+  headline: "India's first standardized operational framework for managing architectural consultancy practices.",
   footerBlurb:
-    "AORMS is built by Holagundi Consulting Works in Hospet, Karnataka, for architecture practices that want their office to run with the same discipline as their drawings.",
+    "AORMS is India's first standardized operational framework for managing architectural consultancy practices — built by Holagundi Consulting Works in Hospet, Karnataka, for offices that want to run with the same discipline as their drawings.",
   canonical: "https://aorms.in/",
   siteName: "ESTI",
 } as const;

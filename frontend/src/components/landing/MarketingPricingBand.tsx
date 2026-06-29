@@ -18,7 +18,7 @@ const PLANS: Array<{
   {
     ctx: "LITE",
     name: "AORMS-Lite",
-    pitch: "Start with one shared office memory — and a native desktop app that runs offline on your machine.",
+    pitch: "Get your practice out of spreadsheets — free, with an offline desktop app.",
     price: "Free",
     priceNote: "Forever · licence-free",
     caps: "1 admin + up to 3 staff · unlimited clients, contractors & projects · 5 GB",
@@ -38,7 +38,7 @@ const PLANS: Array<{
   {
     ctx: "CORE",
     name: "AORMS-Core",
-    pitch: "Run the full architecture consultancy: delivery, money, people, and clients.",
+    pitch: "Run the whole practice to one standard — delivery, fees, people, and clients.",
     price: "Contact for pricing",
     priceNote: "Cloud, billed annually",
     featured: true,
@@ -49,7 +49,7 @@ const PLANS: Array<{
       "Client revision intelligence",
       "GST invoicing (CGST/SGST/IGST split, SAC, FY-sequential)",
       "26AS / AIS / GSTR reconciliation + GST/TDS filing abstracts",
-      "HR, payroll & ASPRF performance",
+      "HR, payroll & team performance scoring",
       "Consultant & contractor portals",
       "ESTI office intelligence & AI Studio",
       "Bring-your-own-storage (NAS / S3) · audit log",
@@ -60,7 +60,7 @@ const PLANS: Array<{
   {
     ctx: "ENTERPRISE",
     name: "AORMS-Enterprise",
-    pitch: "Deploy the architecture office record inside your own infrastructure, with your own AI and storage.",
+    pitch: "Your framework, on your servers, with your own AI.",
     price: "Contact for pricing",
     priceNote: "On-premises, custom terms",
     caps: "Self-hosted · unlimited seats, storage, clients & projects",
@@ -91,14 +91,14 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
           <span className="esti-lp-tile__hdr-meta">Adoption path</span>
         </div>
         <div className="esti-lp-pricing-intro__body">
-          <p className="esti-lp-section-label">Choose how much office memory you need</p>
+          <p className="esti-lp-section-label">Choose how much of the framework you need</p>
           <h3 id="pricing-title" className="esti-lp-cta-h">
-            Begin with a shared record, then grow into the full operating system when the office is ready.
+            Begin with a shared record, then adopt the full framework as the practice grows.
           </h3>
           <p className="esti-lp-note">
-            Lite gives a small practice one memory. Core carries the full architecture office:
-            projects, GST, billing, revisions, site work, portals, and team load. Enterprise
-            keeps the same discipline inside your own infrastructure.
+            Lite gives a small practice one shared record. Core runs the whole practice to one
+            standard — projects, GST, billing, revisions, site visits, portals, and team load.
+            Enterprise keeps the same discipline inside your own infrastructure.
           </p>
         </div>
         </div>

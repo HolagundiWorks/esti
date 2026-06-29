@@ -88,7 +88,7 @@ export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: (
               <span>ESTI AORMS</span>
               <span>Architecture Office Resource Management System</span>
               <span>© Holagundi Consulting Works</span>
-              <span>Built in Hospet for architecture offices that value disciplined records.</span>
+              <span>Built in Hospet for architectural practices that value disciplined records.</span>
             </div>
           </footer>
         </LandingEditorial>

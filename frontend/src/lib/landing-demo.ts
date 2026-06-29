@@ -22,14 +22,14 @@ export const DEMO_PASSWORD = "demo1234";
 export const DEMO_ACCOUNTS: Record<DemoKind, DemoAccount> = {
   team: {
     kind: "team",
-    title: "A working architecture office",
-    subtitle: "A busy Indian practice with live projects, client approvals, fee follow-up, team load, portals, and site work already in motion.",
+    title: "A working architectural practice",
+    subtitle: "A busy Indian practice with live projects, client approvals, fee follow-up, team load, portals, and site visits already in motion.",
     email: "principal@demo.aorms.in",
     password: DEMO_PASSWORD,
     cta: "Open team demo",
     featured: true,
     highlights: [
-      "Live residential, commercial, interiors, and PMC work",
+      "Live residential, commercial, and interiors projects",
       "Client revisions recorded with scope, fee impact, and approval trail",
       "GST invoices, receivables, contractor movement, and team assignments",
       "Client portal on an active project with issued drawings",
@@ -37,7 +37,7 @@ export const DEMO_ACCOUNTS: Record<DemoKind, DemoAccount> = {
     tour: [
       { label: "Projects → Decisions", hint: "Open Sharma Villa — see revisions logged with scope impact and client approval" },
       { label: "Fees & Invoices", hint: "Go to Fees — see a proposal, GST invoice, and receivable trail" },
-      { label: "Site coordination", hint: "Explore PMC — site schedule, RFIs, snag list, and inspection records" },
+      { label: "Site progress", hint: "Open a project — site visits, RFIs, and inspection records" },
     ],
     caseStudy: {
       eyebrow: "Working office",

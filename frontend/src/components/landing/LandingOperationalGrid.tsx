@@ -98,7 +98,7 @@ function KpiTile({ header, dot, value, sub }: {
 // ── Story tiles ────────────────────────────────────────────────────
 
 const COGNITION_SIGNALS = [
-  { id: "PROJECTS", score: "14", state: "PHASES, DRAWINGS AND SITE WORK MOVING", dot: "green" as Dot },
+  { id: "PROJECTS", score: "14", state: "PHASES, DRAWINGS AND SITE VISITS MOVING", dot: "green" as Dot },
   { id: "FEES", score: "₹80K", state: "COMPLETED WORK WAITING TO BE BILLED", dot: "yellow" as Dot },
   { id: "TEAM", score: "22", state: "LOAD, ABSENCE AND BLOCKED TASKS VISIBLE", dot: "green" as Dot },
   { id: "CLIENTS", score: "4", state: "APPROVALS NEED A PRINCIPAL DECISION", dot: "yellow" as Dot },
@@ -107,7 +107,7 @@ const COGNITION_SIGNALS = [
 function ProductStoryTile() {
   return (
     <Tile span="2x2" className="esti-lp-tile--pitch">
-      <TileHead label="Morning View" dot="green" meta="Principal's desk" />
+      <TileHead label="Principal's Desk" dot="green" meta="Morning view" />
       <TileBody>
         <div className="esti-lp-cognition-signals">
           {COGNITION_SIGNALS.map((s) => (
@@ -146,9 +146,9 @@ function ProductStoryTile() {
 function BuyerOutcomeTile() {
   return (
     <Tile span="2x1" className="esti-lp-tile--outcome">
-      <TileHead label="What changes" dot="yellow" meta="Office memory" />
+      <TileHead label="What changes" dot="yellow" meta="Practice memory" />
       <TileBody>
-        <h3 className="esti-lp-feature-title">The office stops depending on someone's memory to protect time, fees, and approvals.</h3>
+        <h3 className="esti-lp-feature-title">The practice stops depending on someone's memory to protect time, fees, and approvals.</h3>
         <ul className="esti-lp-bullets">
           <li>Principals see risk before it becomes cost.</li>
           <li>Teams see blocked work and the person responsible for the handoff.</li>
@@ -366,7 +366,7 @@ export function LandingOperationalGrid({
     <>
       <SectionBreak
         eyebrow="01 / Morning View"
-        title="The principal opens the office before the office opens"
+        title="The principal sees the whole practice before the day begins"
         body="AORMS shows what moved overnight, what is blocked, what needs approval, what can be billed, and who owns the next action."
       />
 
@@ -378,9 +378,9 @@ export function LandingOperationalGrid({
       </div>
 
       <SectionBreak
-        eyebrow="02 / Work In Motion"
-        title="Architecture work should not break into fragments"
-        body="Every enquiry, drawing, revision, approval, site note, bill, and client decision stays attached to the project record."
+        eyebrow="02 / One Standard"
+        title="What 'standardized' actually means"
+        body="Enquiry → proposal → drawings → approvals → billing → handover. Every project follows the same path, every decision lands on the record, and every fee ties back to work done — new intern or twentieth project, the office runs the same way."
       />
 
       <div className="esti-lp-grid">
@@ -401,7 +401,7 @@ export function LandingOperationalGrid({
           header="Fee Recovery"
           dot="white"
           meta="FINANCE"
-          title="Completed work should not wait quietly in a folder"
+          title="Get paid for work you've already done"
           bullets={[
             "Fee proposals, invoices, receipts, GST records, and reconciliation stay connected",
             "Ready-to-bill stages and overdue follow-ups remain visible",
@@ -412,7 +412,7 @@ export function LandingOperationalGrid({
           header="Team Visibility"
           dot="green"
           meta="HR + LOAD"
-          title="See workload, absence, blocked tasks, and quiet overload"
+          title="Stop being the only person who knows everything"
           bullets={[
             "Attendance, task ownership, and project pressure are visible together",
             "Leads can rebalance work before deadlines begin to slip",
@@ -456,7 +456,7 @@ export function LandingOperationalGrid({
           header="Revision Memory"
           dot="yellow"
           meta="FEE + TIME IMPACT"
-          title="Client changes, internal corrections, technical queries, and scope shifts stay visible"
+          title="Never absorb a free revision again"
           bullets={[
             "Client-driven changes can carry fee and time impact",
             "Approval records show who accepted what and when",
@@ -526,8 +526,8 @@ export function LandingFinalCta({ children }: LandingFinalCtaProps) {
     <>
       <SectionBreak
         eyebrow="05 / Choose"
-        title="Choose the depth of office memory you need"
-        body="Start with shared office memory, run the full architecture office system, or deploy AORMS inside your own infrastructure."
+        title="Choose the depth of the framework you need"
+        body="Start with a shared record, run the full framework across your practice, or deploy AORMS inside your own infrastructure."
       />
 
       {children}

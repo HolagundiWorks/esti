@@ -40,7 +40,7 @@ export function LandingInsights() {
           <p className="esti-lp-section-break__eyebrow">07 / Practice Notes</p>
           <h2 id="insights-title">Read after the product has introduced itself</h2>
           <p>
-            Essays grouped by how an architecture office thinks: practice, revisions,
+            Essays grouped by how an architectural practice thinks: practice, revisions,
             approvals, and Indian operating context.
           </p>
           <Link to="/blog" className="esti-lp-inline-link">All articles →</Link>
