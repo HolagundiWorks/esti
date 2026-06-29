@@ -13,6 +13,7 @@ import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
 import { complianceRouter } from "../modules/compliance/router.js";
+import { masterPlanRouter } from "../modules/masterplan/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { leadsRouter } from "../modules/projectos/leads.js";
@@ -121,6 +122,7 @@ export const appRouter = router({
   consultants: consultantRouter,
   contractors: contractorRouter,
   compliance: complianceRouter,
+  masterPlans: masterPlanRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,

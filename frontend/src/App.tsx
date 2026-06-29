@@ -101,6 +101,7 @@ const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "KnowledgeBank");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
+const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
@@ -342,6 +343,7 @@ function AppShell() {
               ? [
                   { label: "Item Library", to: "/knowledge-bank" },
                   { label: "Compliance Library", to: "/libraries/compliance" },
+                  { label: "Master Plan Library", to: "/libraries/master-plans" },
                 ]
               : []),
           ],
@@ -541,6 +543,7 @@ function AppShell() {
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
+                <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/lxos" element={<Lxos />} />
                 <Route path="/leos" element={<Navigate to="/lxos" replace />} />
                 <Route path="/search" element={<SearchPage />} />
