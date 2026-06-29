@@ -1,4 +1,4 @@
-import { Select, SelectItem, Stack } from "@carbon/react";
+import { Select, SelectItem, Stack, TextInput } from "@carbon/react";
 import type { PeriodFilterInput, PeriodPreset } from "@esti/contracts";
 import { financialYear } from "@esti/contracts";
 
@@ -62,9 +62,10 @@ export function PeriodFilter({ value, onChange }: Props) {
       )}
 
       {preset === "MONTH" && (
-        <input
+        <TextInput
+          id="period-month"
           type="month"
-          aria-label="Month"
+          labelText="Month"
           value={value.month ?? ""}
           onChange={(e) => onChange({ ...value, month: e.target.value })}
         />
@@ -86,15 +87,17 @@ export function PeriodFilter({ value, onChange }: Props) {
 
       {preset === "CUSTOM" && (
         <>
-          <input
+          <TextInput
+            id="period-from"
             type="date"
-            aria-label="From"
+            labelText="From"
             value={value.fromDate ?? ""}
             onChange={(e) => onChange({ ...value, fromDate: e.target.value })}
           />
-          <input
+          <TextInput
+            id="period-to"
             type="date"
-            aria-label="To"
+            labelText="To"
             value={value.toDate ?? ""}
             onChange={(e) => onChange({ ...value, toDate: e.target.value })}
           />

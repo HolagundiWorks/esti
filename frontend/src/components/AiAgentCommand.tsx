@@ -181,7 +181,8 @@ export function AiAgentCommand() {
       )}
 
       <div className="esti-landing-ai">
-        <button
+        <Button
+          kind="ghost"
           className="esti-landing-ai__fab"
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? "Close ESTI" : "Ask ESTI (Alt+A)"}
@@ -197,7 +198,7 @@ export function AiAgentCommand() {
               className="esti-landing-ai__fab-logo"
             />
           )}
-        </button>
+        </Button>
       </div>
     </>
   );

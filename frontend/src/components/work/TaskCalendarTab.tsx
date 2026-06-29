@@ -142,9 +142,9 @@ export function TaskCalendarTab() {
               const selected = iso === selectedDate;
               const isToday = iso === today;
               return (
-                <button
+                <Button
                   key={iso}
-                  type="button"
+                  kind="ghost"
                   className={`esti-cal-cell esti-cal-cell--task${selected ? " esti-cal-cell--selected" : ""}${isToday ? " esti-cal-cell--today" : ""}`}
                   onClick={() => setSelectedDate(iso)}
                   aria-label={`${iso}, ${dayTasks.length} tasks`}
@@ -164,7 +164,7 @@ export function TaskCalendarTab() {
                       <span className="esti-cal-task esti-cal-task--more">+{dayTasks.length - 3}</span>
                     )}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>

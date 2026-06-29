@@ -56,6 +56,17 @@ elements.**
 
 When in doubt, reach for an existing Carbon component before inventing markup.
 
+**Hidden file inputs** (`<input type="file" style={{ display: "none" }}` triggered via
+`ref.current.click()`) are a permitted structural pattern — they are not visible UI; the
+Carbon `Button` that triggers them is the visible element. Do not replace with
+`FileUploaderButton` when the filename must display in a separate Button label.
+
+**StudioAbstract semantic color layer** — `ZCOLOR`, `TILE_COLOR`, `LOAD_COLOR` in
+`StudioAbstract.tsx` are JS maps of `var(--cds-*)` token strings (with optional hex
+fallback inside `var()`). `style={{ color: ZCOLOR[state] }}` / `style={{ background: ... }}`
+applied inline from these maps is a permitted data-driven pattern — the value IS a Carbon
+token string, just applied dynamically. Do not replace with static classes.
+
 Permitted structural helpers in `styles.scss` (colourless layout/sizing only):
 `esti-fill`, `esti-grow`, `esti-dash`, `esti-cal`, `esti-cal-hdr`, `esti-cal-cell`,
 `esti-label` / `esti-label--secondary` / `esti-label--helper` (Carbon `label-01`
