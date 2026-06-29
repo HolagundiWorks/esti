@@ -46,8 +46,13 @@ elements.**
   styling in custom CSS.
 - Prefer semantic HTML (`h1`–`h4`, `p`) inside Carbon containers over styled
   `div`s. Let Carbon/Plex typography apply.
-- Keep `styles.scss` minimal: the `@carbon/react` import (with the IBM Plex CDN
+- Keep `styles.scss` app-only: the `@carbon/react` import (with the IBM Plex CDN
   `$font-path`), the viewport min-height fix, and colourless structural helpers only.
+- **`landing.scss`** is the separate editorial design system for unauthenticated
+  marketing surfaces (Landing, Blog, Investors, DemoAutoLogin). It lives alongside
+  `styles.scss` and is imported in `main.tsx`. It is a **documented exception** — it
+  uses IBM Plex + Carbon tokens but not Carbon React components. Do not add app-screen
+  CSS to `landing.scss`, and do not add `esti-lp-*` classes to `styles.scss`.
 
 When in doubt, reach for an existing Carbon component before inventing markup.
 

@@ -1,4 +1,5 @@
 import "./styles.scss";
+import "./landing.scss";
 import {
   MutationCache,
   QueryCache,
