@@ -17,21 +17,19 @@ import {
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
-import { ProjectClientLog } from "../components/ProjectClientLog.js";
+import { ProjectCommunicationsLog } from "../components/ProjectCommunicationsLog.js";
 import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
-import { ContextualComments } from "../components/ContextualComments.js";
 import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
-import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { ProjectEstimate } from "../components/cms/ProjectEstimate.js";
 import { ProjectBoq } from "../components/cms/ProjectBoq.js";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -73,12 +71,12 @@ export function ProjectDetail() {
       { slug: "pipeline", label: "Pipeline", panel: <ProjectPipeline projectId={id} /> },
       { slug: "program", label: "Program", panel: <ProjectProgram projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
+      { slug: "permits", label: "Permits", panel: <ProjectPermits projectId={id} /> },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
 
     // ── Consultancy — design delivery.
     const consultancyTabs: ProjectTab[] = [
-      { slug: "clientlog", label: "Client log", panel: <ProjectClientLog projectId={id} /> },
       {
         slug: "drawings",
         label: "Drawings & approvals",
@@ -95,30 +93,17 @@ export function ProjectDetail() {
         label: "Documents",
         panel: <ProjectDocuments projectId={id} includeSpecs={false} />,
       },
-      // Specifications: design output — the *instance* of the firm-wide spec catalogue.
       { slug: "spec-sheets", label: "Specifications", panel: <ProjectSpecSheets projectId={id} /> },
-      // Statutory permits belong to design (sanction with authorities).
-      { slug: "permits", label: "Permits", panel: <ProjectPermits projectId={id} /> },
     ];
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
-    // Site Progress — architect site supervision (consultancy): visits + feasibility.
     consultancyTabs.push(
-      { slug: "program-feasibility", label: "Program & feasibility", panel: <ProjectSiteReference projectId={id} /> },
       { slug: "site-visits", label: "Site Progress", panel: <ProjectSiteVisits projectId={id} /> },
       {
-        slug: "comments",
-        label: "Discussions",
-        panel: (
-          <ContextualComments
-            projectId={id}
-            objectType="projectoffice"
-            objectId={id}
-            heading="Project discussions"
-            description="Contextual discussion linked directly to this project."
-          />
-        ),
+        slug: "communications",
+        label: "Communications",
+        panel: <ProjectCommunicationsLog projectId={id} />,
       },
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
