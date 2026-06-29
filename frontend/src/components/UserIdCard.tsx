@@ -36,7 +36,7 @@ export function UserIdCard() {
 
   const p = profileQ.data;
   const displayLevel = ROLE_TO_DISPLAY_LEVEL[user.role] ?? null;
-  const roleColor = displayLevel ? (STAFF_LEVEL_COLOR[displayLevel] ?? "#525252") : "#525252";
+  const roleColor = STAFF_LEVEL_COLOR[displayLevel ?? "T3"] ?? STAFF_LEVEL_COLOR["T3"]!;
   const initials = getInitials(user.fullName);
   const roleLabel = ROLE_LABEL[user.role] ?? user.role;
   const levelLabel = displayLevel ? STAFF_LEVEL_LABEL[displayLevel as keyof typeof STAFF_LEVEL_LABEL] : null;

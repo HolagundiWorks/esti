@@ -1,15 +1,12 @@
 import { ROLE_TO_DISPLAY_LEVEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
 
-/** Color for a team member card — level-based when available, else stable hash. */
-const HASH_PALETTE = [
-  "#0f62fe", "#6929c4", "#005d5d", "#198038",
-  "#9f1853", "#b45309", "#1192e8", "#007d79",
-];
+/** Stable hash color from STAFF_LEVEL_COLOR palette — single source of truth in contracts. */
+const LEVEL_COLORS = Object.values(STAFF_LEVEL_COLOR);
 
 export function nameColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return HASH_PALETTE[h % HASH_PALETTE.length]!;
+  return LEVEL_COLORS[h % LEVEL_COLORS.length]!;
 }
 
 /** Resolve card colour: prefer staffLevel, fall back to auth role, then hash. */
@@ -24,7 +21,7 @@ export function resolveColor(opts: {
     const level = ROLE_TO_DISPLAY_LEVEL[opts.authRole];
     if (level && STAFF_LEVEL_COLOR[level]) return STAFF_LEVEL_COLOR[level]!;
   }
-  return opts.name ? nameColor(opts.name) : HASH_PALETTE[0]!;
+  return opts.name ? nameColor(opts.name) : LEVEL_COLORS[0]!;
 }
 
 export function getInitials(name: string): string {

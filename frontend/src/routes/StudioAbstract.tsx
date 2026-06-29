@@ -61,24 +61,27 @@ const SHAPE: Record<ZoneState, string> = {
 };
 
 const ZCOLOR: Record<ZoneState, string> = {
-  stable:   "#42be65",
-  watch:    "#f1c21b",
-  friction: "#ff832b",
-  critical: "#fa4d56",
-  inactive: "#6f6f6f",
+  stable:   "var(--cds-support-success)",
+  watch:    "var(--cds-support-warning)",
+  friction: "var(--cds-support-warning-minor, #ff832b)",
+  critical: "var(--cds-support-error)",
+  inactive: "var(--cds-text-disabled)",
 };
 
-// Identity colours per tile — matches zone border-top in styles.scss
+// Identity colours per tile — Carbon tokens where available, brand hex fallback otherwise
 const TILE_COLOR: Record<string, string> = {
-  CLIENT:  "#0f62fe",
-  FINANCE: "#6929c4",
-  PROJECT: "#009d9a",
-  TEAM:    "#1192e8",
+  CLIENT:  "var(--cds-interactive)",
+  FINANCE: "var(--cds-tag-background-purple, #6929c4)",
+  PROJECT: "var(--cds-tag-background-teal, #009d9a)",
+  TEAM:    "var(--cds-tag-background-cyan, #1192e8)",
 };
 
 // Team load colours and capacity bar mapping — shared by DetailRow / ScreenProjects / ScreenTeam
 const LOAD_COLOR: Record<string, string> = {
-  OVERLOADED: "#fa4d56", HIGH: "#ff832b", MODERATE: "#f1c21b", AVAILABLE: "#42be65",
+  OVERLOADED: "var(--cds-support-error)",
+  HIGH:       "var(--cds-support-warning-minor, #ff832b)",
+  MODERATE:   "var(--cds-support-warning)",
+  AVAILABLE:  "var(--cds-support-success)",
 };
 const loadPct = (c: string): number =>
   ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[c] ?? 50);
@@ -135,11 +138,11 @@ function officeHealth(cs: ZoneState, fs: ZoneState, ps: ZoneState, ts: ZoneState
 }
 
 function healthBand(score: number): { label: string; color: string } {
-  if (score >= 88) return { label: "Stable",              color: "#42be65" };
-  if (score >= 72) return { label: "Flowing",             color: "#4589ff" };
-  if (score >= 55) return { label: "Review soon",         color: "#f1c21b" };
-  if (score >= 38) return { label: "Needs attention",     color: "#ff832b" };
-  return               { label: "Owner action needed", color: "#fa4d56" };
+  if (score >= 88) return { label: "Stable",              color: "var(--cds-support-success)" };
+  if (score >= 72) return { label: "Flowing",             color: "var(--cds-interactive)" };
+  if (score >= 55) return { label: "Review soon",         color: "var(--cds-support-warning)" };
+  if (score >= 38) return { label: "Needs attention",     color: "var(--cds-support-warning-minor, #ff832b)" };
+  return               { label: "Owner action needed", color: "var(--cds-support-error)" };
 }
 
 // ── Health percentages ────────────────────────────────────────────────────────
@@ -1793,7 +1796,10 @@ function ScreenActivity() {
 // ── WORK QUEUE TAB ────────────────────────────────────────────────────────────
 
 const PRIORITY_COLOR: Record<string, string> = {
-  CRITICAL: "#fa4d56", HIGH: "#ff832b", MEDIUM: "#f1c21b", LOW: "#6f6f6f",
+  CRITICAL: "var(--cds-support-error)",
+  HIGH:     "var(--cds-support-warning-minor, #ff832b)",
+  MEDIUM:   "var(--cds-support-warning)",
+  LOW:      "var(--cds-text-disabled)",
 };
 
 function ScreenWorkQueue() {
@@ -1849,7 +1855,7 @@ function ScreenWorkQueue() {
             <TableBody>
               {rows.map((t) => {
                 const score = t.priorityScore ?? 0;
-                const scoreColor = score >= 70 ? "#fa4d56" : score >= 45 ? "#ff832b" : score >= 25 ? "#f1c21b" : "var(--cds-text-secondary)";
+                const scoreColor = score >= 70 ? "var(--cds-support-error)" : score >= 45 ? "var(--cds-support-warning-minor, #ff832b)" : score >= 25 ? "var(--cds-support-warning)" : "var(--cds-text-secondary)";
                 return (
                   <TableRow key={t.id}>
                     <TableCell>
@@ -1867,7 +1873,7 @@ function ScreenWorkQueue() {
                       </Stack>
                     </TableCell>
                     <TableCell>{t.projectRef ?? "—"}</TableCell>
-                    <TableCell style={{ color: t.dueDate && t.dueDate < new Date().toISOString().slice(0,10) ? "#fa4d56" : "inherit" }}>
+                    <TableCell style={{ color: t.dueDate && t.dueDate < new Date().toISOString().slice(0,10) ? "var(--cds-support-error)" : "inherit" }}>
                       {t.dueDate ?? "—"}
                     </TableCell>
                     <TableCell>
