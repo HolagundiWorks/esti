@@ -109,22 +109,15 @@ export async function getActionCenter(db: DB) {
     contractor_name: string;
   }[];
 
-  const openTenderRows = (await db.execute(sql`
-    select t.id, t.title, t.due_date,
-           po.id as project_id, po.ref as project_ref, po.title as project_title
-    from esti_tender t
-    join esti_projectoffice po on po.id = t.project_id
-    where t.status = 'OPEN'
-    order by t.due_date asc nulls last
-    limit 12
-  `)) as unknown as {
+  // Tenders removed (consultancy-only) — kept as an empty list for output shape.
+  const openTenderRows: {
     id: string;
     title: string;
     due_date: string | null;
     project_id: string;
     project_ref: string;
     project_title: string;
-  }[];
+  }[] = [];
 
   const meetingRows = (await db.execute(sql`
     select
