@@ -22,7 +22,7 @@ import {
   type TeamRoleCode,
 } from "@esti/contracts";
 import { useRef, useState } from "react";
-import { resolveColor, getInitials } from "../StaffAvatar.js";
+import { StaffAvatar, resolveColor } from "../StaffAvatar.js";
 import { apiUrl, authHeaders } from "../../lib/api-base.js";
 import { trpc } from "../../lib/trpc.js";
 
@@ -107,14 +107,9 @@ export function StaffProfilesTab() {
                 onClick={() => setSelectedId(m.id)}
               >
                 <div className="esti-avatar-name-cell">
-                  <span
-                    className="esti-staff-avatar"
-                    style={{ width: 36, height: 36, minWidth: 36, background: color, fontSize: 13 }}
-                  >
-                    <span aria-hidden>{getInitials(m.name)}</span>
-                  </span>
+                  <StaffAvatar name={m.name} staffLevel={m.staffLevel} authRole={m.role} size="md" />
                   <span>
-                    <p style={{ fontWeight: 600, fontSize: "0.875rem" }}>{m.name}</p>
+                    <p><strong>{m.name}</strong></p>
                     <p className="esti-label esti-label--secondary">
                       {m.jobTitle || (TEAM_ROLES[m.role as TeamRoleCode] ?? m.role)}
                     </p>
@@ -210,7 +205,7 @@ export function StaffProfilesTab() {
                           {doc.verifiedAt ? "Verified" : "Unverified"}
                         </Tag>
                       </div>
-                      <p style={{ fontWeight: 600, fontSize: "0.8125rem" }}>{doc.documentName}</p>
+                      <p className="esti-label"><strong>{doc.documentName}</strong></p>
                       <p className="esti-label esti-label--secondary">
                         {HR_DOCUMENT_TYPES[doc.documentType as DocType] ?? doc.documentType}
                       </p>

@@ -47,7 +47,7 @@ export function PdfActionButtons({
     );
   }
   if (ui === "generating") {
-    return <span style={{ fontSize: "0.875rem" }}>{generatingLabel}</span>;
+    return <span className="esti-label">{generatingLabel}</span>;
   }
   if (!canManage) {
     return <span>—</span>;

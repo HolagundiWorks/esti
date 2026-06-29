@@ -1795,11 +1795,11 @@ function ScreenActivity() {
 
 // ── WORK QUEUE TAB ────────────────────────────────────────────────────────────
 
-const PRIORITY_COLOR: Record<string, string> = {
-  CRITICAL: "var(--cds-support-error)",
-  HIGH:     "var(--cds-support-warning-minor, #ff832b)",
-  MEDIUM:   "var(--cds-support-warning)",
-  LOW:      "var(--cds-text-disabled)",
+const PRIORITY_TAG: Record<string, "red" | "magenta" | "warm-gray" | "gray"> = {
+  CRITICAL: "red",
+  HIGH:     "magenta",
+  MEDIUM:   "warm-gray",
+  LOW:      "gray",
 };
 
 function ScreenWorkQueue() {
@@ -1859,10 +1859,10 @@ function ScreenWorkQueue() {
                 return (
                   <TableRow key={t.id}>
                     <TableCell>
-                      <span style={{ color: scoreColor, fontWeight: 600 }}>{score}</span>
+                      <strong style={{ color: scoreColor }}>{score}</strong>
                     </TableCell>
                     <TableCell>
-                      <Tag type="gray" size="sm" style={{ color: PRIORITY_COLOR[t.priority] }}>
+                      <Tag type={PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
                         {t.priority}
                       </Tag>
                     </TableCell>

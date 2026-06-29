@@ -148,7 +148,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         style={{ marginBottom: 12 }}
       />
       {canTakeoff && (
-        <p style={{ margin: "0 0 12px", fontSize: "0.875rem" }}>
+        <p className="esti-label">
           <a href={ESTICAD_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
             Download ESTICAD
           </a>
@@ -209,7 +209,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </Button>
       </div>
       {canUpload && (
-        <p style={{ margin: "0 0 8px", opacity: 0.85, fontSize: "0.875rem" }}>
+        <p className="esti-label esti-label--secondary">
           AutoCAD / Revit / SketchUp: export or Save As <strong>DXF</strong> (.dxf), not DWG.
           Processing runs in the background — status updates in a few seconds.
         </p>

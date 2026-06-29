@@ -87,7 +87,7 @@ export function ApplicationsTab() {
             <Tile className="esti-app-tile">
               <Stack gap={3}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <p style={{ fontWeight: 600, fontSize: "0.9375rem" }}>{a.name}</p>
+                  <p><strong>{a.name}</strong></p>
                   <Tag
                     type={APPLICATION_STATUS_TAG[a.status as AppStatus] ?? "gray"}
                     size="sm"
