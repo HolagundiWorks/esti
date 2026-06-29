@@ -78,7 +78,7 @@ export function SitePortal() {
           <Stack gap={3}>
             {(projectsQ.data ?? []).map((p) => (
               <ClickableTile key={p.id} onClick={() => navigate(`/projects/${p.id}`)}>
-                <Stack gap={1}>
+                <Stack gap={3}>
                   <p><strong>{p.ref}</strong> — {p.title}</p>
                   <p className="esti-label--secondary">{p.status}</p>
                 </Stack>

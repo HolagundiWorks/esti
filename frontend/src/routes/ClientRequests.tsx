@@ -178,12 +178,12 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
                   </TableCell>
                   <TableCell>{r.clientName ?? "—"}</TableCell>
                   <TableCell>
-                    <Stack gap={1}>
+                    <Stack gap={3}>
                       <Tag type={PORTAL_SUBMISSION_STATUS_TAG[r.status as PortalSubmissionStatusT] ?? "blue"}>
                         {PORTAL_SUBMISSION_STATUS_LABEL[r.status as PortalSubmissionStatusT] ?? r.status}
                       </Tag>
                       {(r.affectsCosting || r.affectsTimeline || r.isBillable) && (
-                        <Stack orientation="horizontal" gap={1}>
+                        <Stack orientation="horizontal" gap={3}>
                           {r.affectsCosting && <Tag type="red" size="sm">Cost</Tag>}
                           {r.affectsTimeline && <Tag type="magenta" size="sm">Time</Tag>}
                           {r.isBillable && <Tag type="purple" size="sm">Billable</Tag>}

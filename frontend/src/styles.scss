@@ -208,7 +208,7 @@ html:has(.esti-studio-abstract-page) body {
 .esti-login-mark {
   display: inline-flex;
   padding: 0;
-  background: transparent;
+  background: var(--cds-background-inverse);
 }
 .esti-login-mark img {
   height: 2rem;
@@ -1033,7 +1033,7 @@ html:has(.esti-studio-abstract-page) body {
 // Floating dock pinned to the bottom of the left nav rail (Pomodoro + calculator).
 // Sizing/position only; colour from Carbon layer token.
 // Sits on top of the Carbon side-nav rail (z-index 8000) so the icons show.
-.esti-dock {
+.esti-floating-dock {
   position: fixed;
   inset-inline-start: 0;
   inset-block-end: 0;

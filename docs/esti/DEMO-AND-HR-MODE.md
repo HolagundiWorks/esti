@@ -21,9 +21,7 @@ After seed, open any project → **Project Info** tab (§9 Compliance) for pre-c
 | Area | Where to look |
 | --- | --- |
 | Drawings + takeoff | **Sharma Villa** or **Verde Commercial Block** → Drawings tab — linked GFC plan, ESTICAD-synced quantities, **Open in ESTICAD** |
-| Estimation | **Sharma Villa** → Estimates tab — draft BOQ linked to Rate Books |
 | CRIF + comments | **Sharma / Verde / Patel HQ** → Overview or Decisions — threaded decision comments |
-| PMC portfolio | **PMC** nav → Sharma Villa, Verde Block, GreenField Factory, Rao House — schedules, snags, RFIs, progress reports |
 | Client portal | `client@demo.aorms.in` — Kapoor Residence |
 
 Re-run `seed:demo` on an existing workspace to **backfill** missing records (idempotent). Legacy browser takeoff rows (`source: WEB`) are purged on each run.

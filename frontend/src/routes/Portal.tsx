@@ -467,7 +467,7 @@ export function Portal() {
                         </TableCell>
                         <TableCell>
                           {s.status === "IMPACT_SENT" ? (
-                            <Stack gap={1}>
+                            <Stack gap={3}>
                               {s.affectsCosting && <Tag type="red" size="sm">Affects costing</Tag>}
                               {s.affectsTimeline && <Tag type="magenta" size="sm">Affects timeline</Tag>}
                               {s.isBillable && <Tag type="purple" size="sm">Billable</Tag>}

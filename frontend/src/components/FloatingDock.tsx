@@ -28,7 +28,7 @@ export function FloatingDock() {
 
   return (
     <>
-      <div className="esti-dock">
+      <div className="esti-floating-dock">
         <Button
           ref={settingsTriggerRef}
           hasIconOnly renderIcon={Settings} size="sm"

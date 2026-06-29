@@ -79,7 +79,7 @@ export function WorkloadTab() {
                     className="esti-heat-swatch"
                     style={{ backgroundColor: l.style.backgroundColor === "transparent" ? "var(--cds-layer-accent)" : l.style.backgroundColor }}
                   />
-                  <Stack gap={1}>
+                  <Stack gap={3}>
                     <p>{l.label}</p>
                     <p>{l.range} tasks</p>
                   </Stack>

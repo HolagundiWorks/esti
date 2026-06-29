@@ -18,7 +18,7 @@ import { trpc } from "../lib/trpc.js";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <Stack gap={1}>
+    <Stack gap={3}>
       <span className="esti-label esti-label--secondary">{label}</span>
       <span>{value}</span>
     </Stack>

@@ -96,7 +96,7 @@ must not spread to staff workspace routes without an explicit policy update.
 | Workload heatmap cell colours | `Work.tsx` | Inline `--cds-tag-background-*` / `--cds-tag-color-*` token pairs per cell intensity; Carbon charts cannot express this calendar grid. || Floating dock glass panel | `.esti-floating-dock` | Semi-transparent dock chrome over the workspace; uses `--cds-*` blur/background tokens only. |
 | Quality intelligence layout | `.esti-qi-*` | Shared grid for radar + meter + metrics on Dashboard and landing preview; global scope. |
 | Login brand mark | `.esti-login-mark` | Inverse background chip for the white ESTI mark on the login tile; uses `--cds-background-inverse`, not hard-coded hex. |
-| Landing layout | `.esti-landing-content`, `.esti-landing-*` | UI Shell chrome plus expressive editorial typography and 2x Grid tile layout. Marketing sections use Carbon `Grid`, `Column`, `Stack`, and `Tile`. |
+| Landing layout | `.esti-landing-content`, `.esti-landing-*`, `.esti-lp-*` | UI Shell chrome plus expressive editorial typography and 2x Grid tile layout. Marketing sections use Carbon `Grid`, `Column`, `Stack`, and `Tile`. The `.esti-lp-*` prefix is the implemented form of the `.esti-landing-*` convention — both are permitted. |
 | Landing case-study border | `.esti-case-study-card`, `@property --esti-case-study-angle` | Landing-only IBM-style rotating conic border using `--cds-*` tokens only; `prefers-reduced-motion: reduce` disables animation. |
 | Landing ESTI AI | `.esti-landing-ai` | Fixed corner FAB + panel positioning for public marketing AI; Carbon controls only. |
 | Portal logo sizing | `.esti-portal-logo` | Structural max-height for firm logo in external portal headers. |

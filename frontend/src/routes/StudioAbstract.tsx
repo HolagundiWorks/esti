@@ -1861,7 +1861,7 @@ function ScreenWorkQueue() {
                       </Tag>
                     </TableCell>
                     <TableCell>
-                      <Stack gap={1}>
+                      <Stack gap={3}>
                         <span>{t.title}</span>
                         {t.interventionRequired && <Tag type="red" size="sm">Intervention</Tag>}
                       </Stack>

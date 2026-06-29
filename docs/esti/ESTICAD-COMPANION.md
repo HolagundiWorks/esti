@@ -1,5 +1,7 @@
 # ESTICAD Companion Integration
 
+> **⚠ Partial teardown (2026-06-28).** The downstream consumers of ESTICAD takeoff data — the Estimation OS, BOQ, Rate Books, and Rate Analysis — were **removed** in the consultancy-only rebuild. The companion's takeoff capture, `esti_measurement` storage, and AI gateway remain live. References below to "estimates", "BOQ/rate book", or `computeTakeoffBoq()` describe the original design and are no longer implemented.
+
 **Status:** Delivered · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
 Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **ESTI AORMS** (web office platform). ESTICAD mirror: [ESTI-COMPANION.md](../../../esticad/docs/ESTI-COMPANION.md).

@@ -164,7 +164,7 @@ const ROLE_CAPABILITIES: Partial<Record<string, readonly Capability[]>> = {
     "reports:view",
     "cost:approve",
   ],
-  HR_MANAGER: ["workspace:view", "write", "hr:manage", "salary:view"],
+  HR_MANAGER: ["workspace:view", "write", "hr:manage"],
   // Field-only role — no workspace:view, no write. Site portal and inspection submission only.
   SITE_SUPERVISOR: ["site_portal"],
 };

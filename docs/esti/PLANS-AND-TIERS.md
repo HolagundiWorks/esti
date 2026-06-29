@@ -94,15 +94,13 @@ on both the backend and the worker host.
 | Invoices (non-GST simple invoice) | ✓ | ✓ | ✓ |
 | GST invoicing (CGST/SGST split, SAC, FY-sequential) | **—** | ✓ | ✓ |
 
-### Projects — Project Management (construction / PMC)
+### Projects — Site Delivery (consultancy supervision)
+> **Note:** The former PMC / Costing & Measurement / Tenders spine was **removed 2026-06-28** (consultancy-only teardown). The rows below reflect what remains.
+
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| PMC control + construction schedule (CPM) | — | ✓ | ✓ |
-| **Costing & Measurement** — single window: rate analysis → estimation → BOQ → costing → site measurement → RA bills → submissions | — | ✓ | ✓ |
-| Tenders & contractor bids | — | ✓ | ✓ |
 | Site ops (snags, instructions, progress, inspections) | — | ✓ | ✓ |
 | Purchase orders | — | ✓ | ✓ |
-| Multi-project PMC portfolio | — | ◐ | ✓ |
 
 ### Accounts
 | Feature | Lite | Core | Ent |

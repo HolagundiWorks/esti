@@ -62,25 +62,25 @@ export function LicensePanel() {
         {view && view.status !== "UNLICENSED" && (
           <Grid narrow>
             <Column sm={2} md={2} lg={4}>
-              <Stack gap={1}>
+              <Stack gap={3}>
                 <p className="esti-label esti-label--secondary">Staff seats</p>
                 <p>{cap(view.seats.staff)}</p>
               </Stack>
             </Column>
             <Column sm={2} md={2} lg={4}>
-              <Stack gap={1}>
+              <Stack gap={3}>
                 <p className="esti-label esti-label--secondary">Accountant seats</p>
                 <p>{cap(view.seats.accountants)}</p>
               </Stack>
             </Column>
             <Column sm={2} md={2} lg={4}>
-              <Stack gap={1}>
+              <Stack gap={3}>
                 <p className="esti-label esti-label--secondary">HR seats</p>
                 <p>{cap(view.seats.hrManagers)}</p>
               </Stack>
             </Column>
             <Column sm={2} md={2} lg={4}>
-              <Stack gap={1}>
+              <Stack gap={3}>
                 <p className="esti-label esti-label--secondary">Valid until</p>
                 <p>{fmtDate(view.expiresAt)}</p>
               </Stack>

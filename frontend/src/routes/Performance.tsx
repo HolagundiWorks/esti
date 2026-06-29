@@ -104,7 +104,7 @@ function MemberScoreCard({
       <Tile>
         <Stack gap={5}>
           <Stack orientation="horizontal" gap={4}>
-            <Stack gap={1} className="esti-grow">
+            <Stack gap={3} className="esti-grow">
               <Tag type="gray" size="sm">{member.memberRole}</Tag>
               <h3>{member.memberName}</h3>
             </Stack>
@@ -137,23 +137,23 @@ function MemberScoreCard({
           </Stack>
 
           <Stack orientation="horizontal" gap={5}>
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p>Tasks</p>
               <p><strong>{member.totalTasks}</strong></p>
             </Stack>
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p>On time</p>
               <p><strong>{member.completedOnTime}</strong></p>
             </Stack>
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p>Overdue</p>
               <div><strong>{member.overdueCount > 0 ? <Tag type="red" size="sm">{member.overdueCount}</Tag> : 0}</strong></div>
             </Stack>
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p>Training</p>
               <p><strong>{member.trainingCount}</strong></p>
             </Stack>
-            <Stack gap={1}>
+            <Stack gap={3}>
               <p>Points</p>
               <p><strong>{member.totalPoints}</strong></p>
             </Stack>
