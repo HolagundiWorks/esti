@@ -3,10 +3,17 @@ import {
   Column,
   FileUploaderButton,
   Grid,
+  InlineLoading,
   InlineNotification,
   Modal,
   Stack,
   Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   TabList,
   TabPanel,
   TabPanels,
@@ -135,7 +142,69 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
   );
 }
 
-/** Studio › Libraries › Standards Library — Interiors · Plumbing · Electrical · Lighting. */
+/** Flat list of all files attached to standards across all disciplines. No backend change. */
+function DocumentsTab() {
+  const q1 = trpc.standards.listByDiscipline.useQuery({ discipline: "INTERIORS" as never });
+  const q2 = trpc.standards.listByDiscipline.useQuery({ discipline: "PLUMBING" as never });
+  const q3 = trpc.standards.listByDiscipline.useQuery({ discipline: "ELECTRICAL" as never });
+  const q4 = trpc.standards.listByDiscipline.useQuery({ discipline: "LIGHTING" as never });
+
+  const isLoading = q1.isLoading || q2.isLoading || q3.isLoading || q4.isLoading;
+  const allFiles = [q1, q2, q3, q4].flatMap((q) =>
+    (q.data ?? []).flatMap((s) =>
+      (s.files ?? []).map((f) => ({
+        ...f,
+        standardTitle: s.title,
+        discipline: (s as { discipline: string }).discipline,
+      })),
+    ),
+  );
+
+  if (isLoading) {
+    return <InlineLoading description="Loading documents…" />;
+  }
+
+  if (allFiles.length === 0) {
+    return (
+      <InlineNotification
+        kind="info"
+        title="No documents yet"
+        subtitle="Attach files to standards in the Standards tab — they will appear here for quick reference."
+        lowContrast
+        hideCloseButton
+      />
+    );
+  }
+
+  return (
+    <Table size="sm">
+      <TableHead>
+        <TableRow>
+          <TableHeader>File</TableHeader>
+          <TableHeader>Standard</TableHeader>
+          <TableHeader>Discipline</TableHeader>
+          <TableHeader>Kind</TableHeader>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {allFiles.map((f) => (
+          <TableRow key={f.id}>
+            <TableCell>
+              {f.url
+                ? <a href={f.url} target="_blank" rel="noreferrer">{f.fileName}</a>
+                : f.fileName}
+            </TableCell>
+            <TableCell>{f.standardTitle}</TableCell>
+            <TableCell>{f.discipline}</TableCell>
+            <TableCell>{f.kind}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+/** Studio › Libraries › Standards Library — Documents tab (all attached files) + Standards tab (by discipline). */
 export function StandardsLibrary() {
   return (
     <Stack gap={6}>
@@ -144,13 +213,24 @@ export function StandardsLibrary() {
         description="Office design standards by discipline — technical notes, drawings and standard details."
       />
       <Tabs>
-        <TabList aria-label="Disciplines" contained>
-          {DISCIPLINES.map((d) => <Tab key={d.id}>{d.label}</Tab>)}
+        <TabList aria-label="Standards library sections" contained>
+          <Tab>Documents</Tab>
+          <Tab>Standards</Tab>
         </TabList>
         <TabPanels>
-          {DISCIPLINES.map((d) => (
-            <TabPanel key={d.id}><DisciplinePanel discipline={d.id} /></TabPanel>
-          ))}
+          <TabPanel><DocumentsTab /></TabPanel>
+          <TabPanel>
+            <Tabs>
+              <TabList aria-label="Disciplines" contained>
+                {DISCIPLINES.map((d) => <Tab key={d.id}>{d.label}</Tab>)}
+              </TabList>
+              <TabPanels>
+                {DISCIPLINES.map((d) => (
+                  <TabPanel key={d.id}><DisciplinePanel discipline={d.id} /></TabPanel>
+                ))}
+              </TabPanels>
+            </Tabs>
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </Stack>

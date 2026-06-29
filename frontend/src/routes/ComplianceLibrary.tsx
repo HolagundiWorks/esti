@@ -1,5 +1,7 @@
 import {
   Button,
+  FileUploaderButton,
+  InlineNotification,
   Modal,
   Stack,
   Tab,
@@ -14,11 +16,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
   TextInput,
 } from "@carbon/react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
 type Field = { key: string; label: string; type?: "text" | "number"; required?: boolean };
@@ -261,7 +265,143 @@ function RegulationPanel() {
   );
 }
 
-/** Studio › Libraries › Compliance Library — NBC · FAR · Setbacks · Fire · Regulations. */
+const DOC_CATEGORIES = ["NBC", "FAR", "SETBACK", "FIRE", "REGULATION", "OTHER"] as const;
+
+function DocumentsTab() {
+  const utils = trpc.useUtils();
+  const q = trpc.compliance.listDocuments.useQuery();
+  const remove = trpc.compliance.removeDocument.useMutation({
+    onSuccess: () => utils.compliance.listDocuments.invalidate(),
+  });
+  const { authorizedFetch } = useUploadAuth();
+
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadCategory, setUploadCategory] = useState<string>("NBC");
+  const [showUpload, setShowUpload] = useState(false);
+
+  async function upload(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await authorizedFetch("/upload/compliance-doc", (fd) => {
+        fd.append("title", uploadTitle.trim() || file.name);
+        fd.append("category", uploadCategory);
+        fd.append("file", file);
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+      void utils.compliance.listDocuments.invalidate();
+      setShowUpload(false);
+      setUploadTitle("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Stack gap={5}>
+      <div className="esti-page-header">
+        <div className="esti-grow" />
+        <Button onClick={() => setShowUpload((v) => !v)}>
+          {showUpload ? "Cancel" : "Upload document"}
+        </Button>
+      </div>
+
+      {showUpload && (
+        <Stack gap={4} style={{ padding: "var(--cds-spacing-05)", background: "var(--cds-layer-01)" }}>
+          <TextInput
+            id="cdoc-title"
+            labelText="Title"
+            placeholder="e.g. NBC 2016 Part 3"
+            value={uploadTitle}
+            onChange={(e) => setUploadTitle(e.target.value)}
+          />
+          <Stack gap={2}>
+            <span className="esti-label">Category</span>
+            <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap" }}>
+              {DOC_CATEGORIES.map((c) => (
+                <Tag
+                  key={c}
+                  type={uploadCategory === c ? "blue" : "gray"}
+                  size="sm"
+                  onClick={() => setUploadCategory(c)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {c}
+                </Tag>
+              ))}
+            </Stack>
+          </Stack>
+          <FileUploaderButton
+            labelText={busy ? "Uploading…" : "Choose file (PDF / DWG / DXF / image)"}
+            size="sm"
+            accept={[".pdf", ".dwg", ".dxf", ".png", ".jpg"]}
+            disableLabelChanges
+            disabled={busy}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) void upload(file);
+            }}
+          />
+        </Stack>
+      )}
+
+      {error && (
+        <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast onCloseButtonClick={() => setError(null)} />
+      )}
+
+      <DataState
+        loading={q.isLoading}
+        isEmpty={(q.data ?? []).length === 0}
+        columnCount={4}
+        empty={{ title: "No documents", description: "Upload NBC books, FAR notifications, fire NOC drawings, and other compliance reference documents." }}
+      >
+        <TableContainer>
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Title</TableHeader>
+                <TableHeader>Category</TableHeader>
+                <TableHeader>File</TableHeader>
+                <TableHeader />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(q.data ?? []).map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell>{d.title}</TableCell>
+                  <TableCell>
+                    <Tag type="blue" size="sm">{d.category}</Tag>
+                  </TableCell>
+                  <TableCell>
+                    {d.url
+                      ? <a href={d.url} target="_blank" rel="noreferrer">{d.fileName}</a>
+                      : d.fileName}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      kind="danger--ghost"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onClick={() => remove.mutate({ id: d.id })}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DataState>
+    </Stack>
+  );
+}
+
+/** Studio › Libraries › Compliance Library — Documents tab (uploaded PDFs) + Rules tab (NBC · FAR · Setbacks · Fire · Regulations). */
 export function ComplianceLibrary() {
   return (
     <Stack gap={6}>
@@ -270,19 +410,30 @@ export function ComplianceLibrary() {
         description="Statutory reference data — NBC rules, FAR, setbacks, fire compliance, and regulations."
       />
       <Tabs>
-        <TabList aria-label="Compliance areas" contained>
-          <Tab>NBC Rules</Tab>
-          <Tab>FAR Rules</Tab>
-          <Tab>Setbacks</Tab>
-          <Tab>Fire Compliance</Tab>
-          <Tab>Regulations</Tab>
+        <TabList aria-label="Compliance library sections" contained>
+          <Tab>Documents</Tab>
+          <Tab>Rules</Tab>
         </TabList>
         <TabPanels>
-          <TabPanel><NbcPanel /></TabPanel>
-          <TabPanel><FarPanel /></TabPanel>
-          <TabPanel><SetbackPanel /></TabPanel>
-          <TabPanel><FirePanel /></TabPanel>
-          <TabPanel><RegulationPanel /></TabPanel>
+          <TabPanel><DocumentsTab /></TabPanel>
+          <TabPanel>
+            <Tabs>
+              <TabList aria-label="Compliance areas" contained>
+                <Tab>NBC Rules</Tab>
+                <Tab>FAR Rules</Tab>
+                <Tab>Setbacks</Tab>
+                <Tab>Fire Compliance</Tab>
+                <Tab>Regulations</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel><NbcPanel /></TabPanel>
+                <TabPanel><FarPanel /></TabPanel>
+                <TabPanel><SetbackPanel /></TabPanel>
+                <TabPanel><FirePanel /></TabPanel>
+                <TabPanel><RegulationPanel /></TabPanel>
+              </TabPanels>
+            </Tabs>
+          </TabPanel>
         </TabPanels>
       </Tabs>
     </Stack>

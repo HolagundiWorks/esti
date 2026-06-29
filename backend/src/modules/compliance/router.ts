@@ -8,6 +8,7 @@ import {
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
+  complianceDocs,
   complianceFar,
   complianceSetback,
   complianceNbc,
@@ -15,6 +16,7 @@ import {
   complianceRegulation,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { presignedGet, removeObject } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 // Compliance reference data — editable by L4+ (write); readable by any staff.
@@ -61,4 +63,25 @@ export const complianceRouter = router({
   nbc: router(crudFor(complianceNbc, NbcRuleCreate, "compliance_nbc")),
   fire: router(crudFor(complianceFire, FireRuleCreate, "compliance_fire")),
   regulation: router(crudFor(complianceRegulation, RegulationCreate, "compliance_regulation")),
+
+  listDocuments: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select()
+      .from(complianceDocs)
+      .orderBy(desc(complianceDocs.createdAt));
+    return Promise.all(
+      rows.map(async (r) => ({
+        ...r,
+        url: await presignedGet(r.fileKey).catch(() => null),
+      })),
+    );
+  }),
+
+  removeDocument: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [doc] = await ctx.db.select().from(complianceDocs).where(eq(complianceDocs.id, input.id));
+    if (doc?.fileKey) await removeObject(doc.fileKey).catch(() => {});
+    await ctx.db.delete(complianceDocs).where(eq(complianceDocs.id, input.id));
+    await writeAudit(ctx.db, { entity: "compliance_doc", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
 });

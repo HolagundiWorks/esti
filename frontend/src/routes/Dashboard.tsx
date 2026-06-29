@@ -8,14 +8,20 @@
  * The telemetry panel never changes between tabs. It is the office nervous system —
  * peripheral awareness without requiring active reading.
  *
- * Tabs: OVERVIEW · PROJECTS · FINANCE · TEAM · APPROVALS · AI INSIGHTS · REPORTS · ACTIVITY
+ * Tabs: STUDIO ABSTRACT · LEAD REGISTER · PROJECT ABSTRACT · FINANCIAL ABSTRACT · TEAM ABSTRACT · WORK REGISTER · APPROVAL REGISTER · AI REMARKS · SUMMARY SHEETS · OFFICE LOG
  */
 import {
   Button,
+  Column,
+  Grid,
   InlineNotification,
   InlineLoading,
   ProgressBar,
   Stack,
+  StructuredListBody,
+  StructuredListCell,
+  StructuredListRow,
+  StructuredListWrapper,
   Tab,
   TabList,
   TabPanel,
@@ -30,6 +36,7 @@ import {
   TableHeader,
   TableRow,
   TextInput,
+  Tile,
 } from "@carbon/react";
 import { can, formatINRShort } from "@esti/contracts";
 import { Send } from "@carbon/icons-react";
@@ -570,6 +577,14 @@ function nextState(s: ZoneState): ZoneState {
 }
 function stateTagType(s: ZoneState): string {
   return s === "critical" ? "red" : s === "friction" ? "orange" : s === "watch" ? "yellow" : "green";
+}
+
+function zoneTagType(s: ZoneState): "red" | "purple" | "blue" | "green" | "gray" {
+  if (s === "critical") return "red";
+  if (s === "friction") return "purple";
+  if (s === "watch") return "blue";
+  if (s === "stable") return "green";
+  return "gray";
 }
 
 // ── Cognitive load protection helpers ─────────────────────────────────────────
@@ -1163,109 +1178,150 @@ function ScreenOverview({
   return (
     <div className="esti-cognitive-dashboard">
 
-      <section className="esti-cognitive-layer esti-office-state" aria-label="Office state">
-        <MacroHdr name="OFFICE STATE" label={healthBand(score).label} />
-        <div className="esti-state-row">
-          {[
-            { name: "CLIENT",   state: cs,              count: clientFlow.length,   copy: clientCopy },
-            { name: "FINANCE",  state: fs,              count: billingFlow.length,  copy: financeCopy },
-            { name: "PROJECTS", state: ps,              count: projectFlow.length,  copy: projectCopy },
-            { name: "TEAM",     state: ts,              count: teamFlow.length,     copy: teamCopy },
-            { name: "MEETING",  state: meeting.state,   count: meetingFocus.length, copy: { detail: meeting.detail } },
-            { name: "PREPARED", state: primarySeverity, count: interventions.length, copy: preparedCopy },
-          ].map((c) => (
-            <div key={c.name} className="esti-state-line">
-              <span className="esti-state-line__name">{c.name}</span>
-              <span className="esti-state-line__icon">
-                {loading ? "—" : <GeoMark glyph={shapeFor(c.state as ZoneState)} />}
-                <span className="esti-state-line__count">{loading ? "" : c.count}</span>
-              </span>
-              <span className="esti-state-line__detail">{c.copy.detail}</span>
-            </div>
-          ))}
-        </div>
+      {/* Section 1 — STUDIO STATE */}
+      <section aria-label="Studio state" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+        <Stack orientation="horizontal" gap={4} style={{ marginBottom: "var(--cds-spacing-04)", alignItems: "center" }}>
+          <span className="esti-label">STUDIO STATE</span>
+          <Tag type={zoneTagType(officeState)} size="sm">{healthBand(score).label}</Tag>
+        </Stack>
+        <StructuredListWrapper>
+          <StructuredListBody>
+            {[
+              { name: "CLIENT",   state: cs,              count: clientFlow.length,    copy: clientCopy },
+              { name: "FINANCE",  state: fs,              count: billingFlow.length,   copy: financeCopy },
+              { name: "PROJECTS", state: ps,              count: projectFlow.length,   copy: projectCopy },
+              { name: "TEAM",     state: ts,              count: teamFlow.length,      copy: teamCopy },
+              { name: "MEETING",  state: meeting.state,   count: meetingFocus.length,  copy: { detail: meeting.detail } },
+              { name: "PREPARED", state: primarySeverity, count: interventions.length, copy: preparedCopy },
+            ].map((c) => (
+              <StructuredListRow key={c.name}>
+                <StructuredListCell>{c.name}</StructuredListCell>
+                <StructuredListCell>
+                  {loading ? (
+                    <Tag type="gray" size="sm">—</Tag>
+                  ) : (
+                    <Tag type={zoneTagType(c.state as ZoneState)} size="sm">
+                      {shapeFor(c.state as ZoneState)} {c.count}
+                    </Tag>
+                  )}
+                </StructuredListCell>
+                <StructuredListCell>{c.copy.detail}</StructuredListCell>
+              </StructuredListRow>
+            ))}
+          </StructuredListBody>
+        </StructuredListWrapper>
       </section>
 
-      <section className="esti-cognitive-layer esti-cognitive-brain-layer" aria-label="Today's focus and outcome">
-        <div className="esti-cognitive-main" aria-label="Today's focus">
-          <div className="esti-focus-header">
-            <span className="esti-focus-calmness__label">TODAY'S FOCUS</span>
-            <span className="esti-focus-calmness__band">AI recommendation · do this now</span>
-          </div>
-
-          {appliedMsg && (
-            <InlineNotification kind="info" lowContrast title="Done" subtitle={appliedMsg}
-              onCloseButtonClick={() => setAppliedMsg(null)} />
-          )}
-          {applyIntervention.error && (
-            <InlineNotification kind="error" lowContrast title="Could not apply"
-              subtitle={applyIntervention.error.message} />
-          )}
-
-          {interventions.length === 0 ? (
-            <div className="esti-focus-empty">
-              <GeoMark glyph="●" />
-              <div>
-                <span className="esti-label">Everything is under control</span>
-                <p className="esti-focus-box__desc">No place needs your attention.</p>
-              </div>
-            </div>
-          ) : (
-            <TableContainer className="esti-focus-table">
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>#</TableHeader>
-                    <TableHeader>State</TableHeader>
-                    <TableHeader>Task</TableHeader>
-                    <TableHeader>AI suggests</TableHeader>
+      {/* Section 2 — AI REMARKS */}
+      <section aria-label="AI remarks" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+        <Stack orientation="horizontal" gap={4} style={{ marginBottom: "var(--cds-spacing-04)", alignItems: "center" }}>
+          <span className="esti-label">AI REMARKS</span>
+          <span className="esti-label--secondary">Based on live office signals</span>
+        </Stack>
+        {appliedMsg && (
+          <InlineNotification kind="info" lowContrast title="Done" subtitle={appliedMsg}
+            onCloseButtonClick={() => setAppliedMsg(null)} />
+        )}
+        {applyIntervention.error && (
+          <InlineNotification kind="error" lowContrast title="Could not apply"
+            subtitle={applyIntervention.error.message} />
+        )}
+        {interventions.length === 0 ? (
+          <InlineNotification kind="success" title="All clear" subtitle="No interventions required." lowContrast hideCloseButton />
+        ) : (
+          <TableContainer>
+            <Table size="sm">
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Status</TableHeader>
+                  <TableHeader>Particular</TableHeader>
+                  <TableHeader>Remarks</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {interventions.slice(0, 3).map((item: any, idx: number) => (
+                  <TableRow
+                    key={item.id}
+                    className="esti-focus-row"
+                    onClick={() => !applyIntervention.isPending && applyIntervention.mutate({ action: interventionAction(item.id) })}
+                  >
+                    <TableCell>
+                      <Tag type={idx === 0 ? "red" : idx === 1 ? "blue" : "green"} size="sm">
+                        {idx === 0 ? "■" : idx === 1 ? "▲" : "●"}
+                      </Tag>
+                    </TableCell>
+                    <TableCell>{item.title}</TableCell>
+                    <TableCell>
+                      {applyIntervention.isPending
+                        ? "Applying…"
+                        : (item.suggestedAction ?? item.riskIfIgnored ?? "Apply this action.")}
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {interventions.slice(0, 3).map((item: any, idx: number) => (
-                    <TableRow
-                      key={item.id}
-                      className="esti-focus-row"
-                      onClick={() => !applyIntervention.isPending && applyIntervention.mutate({ action: interventionAction(item.id) })}
-                    >
-                      <TableCell className="esti-focus-row__num">{idx + 1}</TableCell>
-                      <TableCell>
-                        <GeoMark glyph={idx === 0 ? "■" : idx === 1 ? "▲" : "●"} act={idx === 0} />
-                      </TableCell>
-                      <TableCell>{item.title}</TableCell>
-                      <TableCell>
-                        {applyIntervention.isPending
-                          ? "Applying…"
-                          : (item.suggestedAction ?? item.riskIfIgnored ?? "Apply this action.")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </div>
-
-        <div className="esti-cognitive-after" aria-label="After this action">
-          <div className="esti-cognitive-section-title">AFTER THIS ACTION</div>
-          <div className="esti-after-list">
-            {afterLines.map((line) => <p key={line}>{line}</p>)}
-          </div>
-        </div>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </section>
 
-      <section className="esti-cognitive-layer esti-cognitive-evidence-grid" aria-label="Office flow">
-        <CognitiveEvidence title="BILLING FLOW" empty="Finance moving normally" items={billingFlow} />
-        <CognitiveEvidence title="TEAM FLOW" empty="Team workload balanced" items={teamFlow} />
-        <CognitiveEvidence title="PROJECT FLOW" empty="Delivery on track" items={projectFlow} />
-        <CognitiveEvidence title="CLIENT FLOW" empty="Client approvals flowing" items={clientFlow} />
+      {/* Section 3 — SUPPORTING REGISTERS */}
+      <section aria-label="Supporting registers" style={{ marginBottom: "var(--cds-spacing-06)" }}>
+        <span className="esti-label" style={{ display: "block", marginBottom: "var(--cds-spacing-04)" }}>
+          SUPPORTING REGISTERS
+        </span>
+        <Grid narrow>
+          {[
+            { title: "Billing Register",  items: billingFlow,  empty: "Finance moving normally" },
+            { title: "Team Register",     items: teamFlow,     empty: "Team workload balanced"  },
+            { title: "Project Register",  items: projectFlow,  empty: "Delivery on track"       },
+            { title: "Client Register",   items: clientFlow,   empty: "Client approvals flowing" },
+          ].map(({ title, items, empty }) => (
+            <Column lg={4} md={4} sm={4} key={title}>
+              <Tile style={{ height: "100%" }}>
+                <p className="esti-label" style={{ marginBottom: "var(--cds-spacing-03)" }}>{title}</p>
+                {items.length === 0 ? (
+                  <p className="esti-label--secondary">{empty}</p>
+                ) : (
+                  <StructuredListWrapper>
+                    <StructuredListBody>
+                      {items.slice(0, 5).map((item, i) => (
+                        <StructuredListRow key={`${item.ref}-${i}`}>
+                          <StructuredListCell>
+                            <Tag type={zoneTagType(item.state ?? "stable")} size="sm">
+                              {shapeFor(item.state ?? "stable")}
+                            </Tag>
+                          </StructuredListCell>
+                          <StructuredListCell>
+                            {item.href
+                              ? <Link to={item.href}>{item.ref}</Link>
+                              : item.ref}
+                          </StructuredListCell>
+                          {item.val && <StructuredListCell>{item.val}</StructuredListCell>}
+                        </StructuredListRow>
+                      ))}
+                    </StructuredListBody>
+                  </StructuredListWrapper>
+                )}
+              </Tile>
+            </Column>
+          ))}
+        </Grid>
       </section>
 
-      <div className="esti-shape-legend">
-        <span><GeoMark sm glyph="●" /> Running Smoothly</span>
-        <span><GeoMark sm glyph="▲" /> Attention Required</span>
-        <span><GeoMark sm glyph="■" /> Urgent Action</span>
-      </div>
+      {/* Section 4 — ACTION NOTE */}
+      <section aria-label="Action note">
+        <InlineNotification
+          kind={
+            attn.chainColor === ZCOLOR["critical"] ? "error"
+            : (attn.chainColor === ZCOLOR["friction"] || attn.chainColor === ZCOLOR["watch"]) ? "warning"
+            : "info"
+          }
+          title="ACTION NOTE"
+          subtitle={`${attn.issue} → ${attn.action}`}
+          lowContrast
+          hideCloseButton
+        />
+      </section>
     </div>
   );
 }
@@ -1862,16 +1918,16 @@ export function Dashboard() {
     <div className="esti-dashboard-page">
       <Tabs>
         <TabList aria-label="Dashboard navigation">
-          <Tab>OVERVIEW</Tab>
-          <Tab disabled={!canWrite}>LEADS PIPELINE</Tab>
-          <Tab>PROJECTS</Tab>
-          <Tab disabled={!canInvoice}>FINANCE</Tab>
-          <Tab disabled={!hrEnabled}>TEAM</Tab>
-          <Tab>WORK QUEUE</Tab>
-          <Tab>APPROVALS</Tab>
-          <Tab>AI INSIGHTS</Tab>
-          <Tab>REPORTS</Tab>
-          <Tab>ACTIVITY</Tab>
+          <Tab>STUDIO ABSTRACT</Tab>
+          <Tab disabled={!canWrite}>LEAD REGISTER</Tab>
+          <Tab>PROJECT ABSTRACT</Tab>
+          <Tab disabled={!canInvoice}>FINANCIAL ABSTRACT</Tab>
+          <Tab disabled={!hrEnabled}>TEAM ABSTRACT</Tab>
+          <Tab>WORK REGISTER</Tab>
+          <Tab>APPROVAL REGISTER</Tab>
+          <Tab>AI REMARKS</Tab>
+          <Tab>SUMMARY SHEETS</Tab>
+          <Tab>OFFICE LOG</Tab>
         </TabList>
 
         <TabPanels>

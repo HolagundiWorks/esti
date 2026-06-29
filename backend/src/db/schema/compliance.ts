@@ -11,7 +11,9 @@ import {
   pgTable,
   text,
   updatedAt,
+  uuid,
 } from "./_helpers.js";
+import { users } from "./org-auth.js";
 
 /** FAR rules — buildable ratio by zone / plot band. */
 export const complianceFar = pgTable("esti_compliance_far", {
@@ -78,6 +80,20 @@ export const complianceRegulation = pgTable("esti_compliance_regulation", {
   summary: text("summary"),
   link: text("link"),
   notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Compliance reference documents — uploaded PDFs/DWGs for NBC, FAR, fire etc. */
+export const complianceDocs = pgTable("esti_compliance_doc", {
+  id: id(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  fileName: text("file_name").notNull(),
+  fileKey: text("file_key").notNull(),
+  fileType: text("file_type").notNull().default("PDF"),
+  notes: text("notes"),
+  uploadedById: uuid("uploaded_by_id").references(() => users.id),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
