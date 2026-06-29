@@ -20,21 +20,26 @@
 | 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
 ## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
-`Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
+`Studio Abstract · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
 Header utilities (not sidebar): **Global Search · Notifications · AI Assistant · User Profile**.
 
 ---
 
-## 1. Dashboard ✅ (tabs)
+## 1. Studio Abstract ✅ (tabs)
+Route `/` · File `StudioAbstract.tsx` · tRPC `dashboard.*` (bundle stays named `dashboard`)
+
 | Tab | Status | Where |
 |---|---|---|
-| Overview | ✅ | `dashboard.home` |
-| Leads Pipeline | ✅ | Dashboard "LEADS PIPELINE" tab (`Leads`) |
-| Daily Activities | ✅ | `activity` |
-| Notifications | ✅ | `notifications` / `/alerts` |
-| Pending Approvals | ✅ | dashboard Approvals |
-| Critical Deadlines | 🚧 | from tasks/phases due-soon |
-| ESTI AI Insights | ✅ | dashboard AI |
+| Studio Abstract | ✅ | `dashboard.home` — STUDIO STATE + AI REMARKS + SUPPORTING REGISTERS + ACTION NOTE |
+| Lead Register | ✅ | Studio Abstract "LEAD REGISTER" tab (`Leads`) |
+| Project Abstract | ✅ | `dashboard.projectHealth` |
+| Financial Abstract | ✅ | `dashboard.financialHealth` |
+| Team Abstract | ✅ | `dashboard.teamIntelligence` |
+| Work Register | ✅ | tasks today queue |
+| Approval Register | ✅ | pending approvals |
+| AI Remarks | ✅ | AI interventions panel |
+| Summary Sheets | ✅ | reports summary |
+| Office Log | ✅ | `activity.listOffice` |
 
 ## 2. Projects ✅
 Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`): Drawings ✅ ·
@@ -127,11 +132,11 @@ Opened from the header; expands today's `Settings.tsx`.
 ## Removed (consultancy-only)
 Not in V3; routes redirect or are gone: **PMC**, **Construction**, **Programme**,
 **Tenders**, **Mood boards** (`/pmc`,`/programme`,`/office/construction` → `/projects`).
-Growth OS dissolved (Leads → Dashboard tab). Fee proposals + the thin proposal →
+Growth OS dissolved (Leads → Studio Abstract "Lead Register" tab). Fee proposals + the thin proposal →
 unified **Proposals**.
 
 ## Build-vs-placeholder policy
-**Built/wired:** the V3 menu, Dashboard Leads tab, Proposals merge, removals, LXOS
+**Built/wired:** the V3 menu, Studio Abstract Lead Register tab, Proposals merge, removals, LXOS
 rename. **Build fully (Stage 2):** the 3 new Libraries (Compliance, Master Plan,
 Standards). **Placeholder / follow-on builds:** Cost Management (CMS-3–8) · Vendors · Payroll ·
 LXOS exchange layers, and the User-Profile/LXOS identity·certification·index

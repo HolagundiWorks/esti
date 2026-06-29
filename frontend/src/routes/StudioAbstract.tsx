@@ -1,14 +1,12 @@
 /**
- * AORMS Dashboard — Command Center
+ * AORMS Studio Abstract — home screen of the system.
  *
- * Permanent two-column layout:
- *   Left  (flex: 1)            — alert strip + horizontal tabs + tab content
- *   Right (min(20%, 25vh) wide) — always-visible telemetry panel (4 square tiles)
+ * Tabs: STUDIO ABSTRACT · LEAD REGISTER · PROJECT ABSTRACT · FINANCIAL ABSTRACT ·
+ *       TEAM ABSTRACT · WORK REGISTER · APPROVAL REGISTER · AI REMARKS ·
+ *       SUMMARY SHEETS · OFFICE LOG
  *
- * The telemetry panel never changes between tabs. It is the office nervous system —
- * peripheral awareness without requiring active reading.
- *
- * Tabs: STUDIO ABSTRACT · LEAD REGISTER · PROJECT ABSTRACT · FINANCIAL ABSTRACT · TEAM ABSTRACT · WORK REGISTER · APPROVAL REGISTER · AI REMARKS · SUMMARY SHEETS · OFFICE LOG
+ * Route: /  (root)
+ * tRPC: dashboard.home bundle (KPIs, Action Center, financial/project health)
  */
 import {
   Button,
@@ -1888,9 +1886,9 @@ function ScreenWorkQueue() {
   );
 }
 
-// ── Dashboard shell ───────────────────────────────────────────────────────────
+// ── Studio Abstract shell ─────────────────────────────────────────────────────
 
-export function Dashboard() {
+export function StudioAbstract() {
   const { user } = useAuth();
 
   const homeQ     = trpc.dashboard.home.useQuery(undefined, { staleTime: 60_000 });
@@ -1915,9 +1913,9 @@ export function Dashboard() {
   const billingReady = ac?.billingReadyPhases ?? [];
 
   return (
-    <div className="esti-dashboard-page">
+    <div className="esti-studio-abstract-page">
       <Tabs>
-        <TabList aria-label="Dashboard navigation">
+        <TabList aria-label="Studio Abstract navigation">
           <Tab>STUDIO ABSTRACT</Tab>
           <Tab disabled={!canWrite}>LEAD REGISTER</Tab>
           <Tab>PROJECT ABSTRACT</Tab>

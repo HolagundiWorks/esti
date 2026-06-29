@@ -92,7 +92,7 @@ const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
-const Dashboard = lazyRoute(() => import("./routes/Dashboard.js"), "Dashboard");
+const StudioAbstract = lazyRoute(() => import("./routes/StudioAbstract.js"), "StudioAbstract");
 const Filing = lazyRoute(() => import("./routes/Filing.js"), "Filing");
 const Invoices = lazyRoute(() => import("./routes/Invoices.js"), "Invoices");
 const OfficeExpenses = lazyRoute(() => import("./routes/OfficeExpenses.js"), "OfficeExpenses");
@@ -330,7 +330,7 @@ function AppShell() {
 
   // Canonical V3 nav (consultancy-only). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
-    { label: "Dashboard", to: "/", icon: DashboardIcon },
+    { label: "Studio Abstract", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
     {
@@ -542,7 +542,7 @@ function AppShell() {
                 />
               )}
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<StudioAbstract />} />
                 <Route
                   path="/activity"
                   element={<Navigate to="/tasks?tab=activity" replace />}

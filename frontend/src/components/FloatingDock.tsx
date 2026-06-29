@@ -93,7 +93,7 @@ function FloatingSettings({
             <h4>Settings</h4>
             {isAdmin && (
               <Stack gap={4}>
-                <h4>Dashboard sections</h4>
+                <h4>Studio Abstract sections</h4>
                 <Stack gap={4}>
                   <Toggle
                     id="dock-db-financial"

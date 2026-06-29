@@ -155,8 +155,8 @@ html:has(.esti-landing-shell) body {
   }
 }
 
-html:has(.esti-dashboard-page),
-html:has(.esti-dashboard-page) body {
+html:has(.esti-studio-abstract-page),
+html:has(.esti-studio-abstract-page) body {
   height: 100dvh;
   overflow: hidden;
 }
@@ -3423,22 +3423,22 @@ html:has(.esti-dashboard-page) body {
   }
 }
 
-.esti-dashboard-page {
+.esti-studio-abstract-page {
   width: 80%;
   height: calc(100dvh - 3rem);
   margin: 0 auto;
   overflow: hidden;
 }
 
-.esti-dashboard-page .cds--tabs,
-.esti-dashboard-page .cds--tab-content,
-.esti-dashboard-page .cds--tab-content > div {
+.esti-studio-abstract-page .cds--tabs,
+.esti-studio-abstract-page .cds--tab-content,
+.esti-studio-abstract-page .cds--tab-content > div {
   min-height: 0;
 }
 
-.esti-dashboard-page .cds--tab-content {
+.esti-studio-abstract-page .cds--tab-content {
   height: calc(100dvh - 6rem);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .esti-task-row--target td {
