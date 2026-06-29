@@ -59,7 +59,20 @@ type-style for hint text — use instead of `fontSize: "0.75rem"` inline),
 `background` stay dynamic inline), `esti-heat-swatch` (heatmap legend swatch —
 `backgroundColor` stays dynamic), `esti-bar-palette`, `esti-personal-panel` (and
 sub-classes), `esti-chart-sm/md/lg`, `esti-login-shell/panel`, `esti-toast-host`,
-`esti-pomodoro-float`, `esti-header-clock`, `esti-footer`.
+`esti-pomodoro-float`, `esti-header-clock`, `esti-footer`,
+`esti-app-shell`, `esti-app-content`, `esti-app-mark` (app shell + brand mark sizing),
+`esti-landing-shell` (landing page shell), `esti-page-header` (page header bar),
+`esti-portal-logo`, `esti-login-brand/mark` (portal/login identity sizing),
+`esti-row` / `esti-row-between` (horizontal flex layout rows),
+`esti-form-panel` / `esti-form-panel--wide` (constrained form containers),
+`esti-firm-logo`, `esti-input-md` / `esti-input-sm` (sizing constraints),
+`esti-zone-head` (dashboard zone header flex row),
+`esti-ai-explain__*` / `esti-ai-studio__*` / `esti-ai-settings-tile` / `esti-ai-panel`
+(AI assistant layout/type-style helpers),
+`esti-float-widget` / `esti-float-panel-shell` / `esti-float-settings` /
+`esti-float-calc` / `esti-float-pom-header` / `esti-scroll-affordance` (floating panel),
+`esti-av-strip` (audio-video header strip),
+`esti-geo--sm/circle/triangle/square/act` (geo-marker glyph sizing).
 
 ## Python worker (`worker/`)
 

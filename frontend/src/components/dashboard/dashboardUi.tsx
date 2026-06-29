@@ -150,7 +150,7 @@ export function ZoneHead({
     <div className="esti-zone-head">
       <div className="esti-grow">
         <h2>{title}</h2>
-        {sub && <p>{sub}</p>}
+        {sub && <p style={{ color: "var(--cds-text-secondary)" }}>{sub}</p>}
       </div>
       {statusTag && (
         <Tag type={statusTag.type} size="sm">

@@ -171,10 +171,8 @@ html:has(.esti-studio-abstract-page) body {
 }
 
 .esti-chart-sm  { min-height: 10rem; }   /* ≥160 px — compact inline chart */
-.esti-chart-medium,
 .esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
 .esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
-.esti-chart-canvas { height: calc(100vh - 280px); min-height: 500px; } /* viewport-fill interactive canvas */
 
 
 .esti-form-panel      { max-width: 640px; }   /* constrained form tile — matches Column lg=8  */
@@ -205,7 +203,6 @@ html:has(.esti-studio-abstract-page) body {
   gap: 1rem;
   margin-block-start: 1.25rem;
 }
-.esti-zone-head p { color: var(--cds-text-secondary); }
 
 // Structural-only: a 7-column month calendar grid (Carbon's Grid is 16 columns
 // and cannot express 7 equal day columns). Layout/spacing only — the day cells
@@ -297,22 +294,6 @@ html:has(.esti-studio-abstract-page) body {
   box-sizing: border-box;
 }
 
-// Full-viewport click-catcher behind the panel: closing it on any outside
-// click. Transparent (no scrim) — layout/interaction only, no colour.
-.esti-panel-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 5999;
-}
-
-// Type scale for elements outside .cds--content (e.g. the personal panel).
-// Uses only Carbon type mixins — no custom values.
-.esti-panel-shell {
-  h1 { @include type.type-style("productive-heading-04"); }
-  h2 { @include type.type-style("productive-heading-03"); }
-  h3 { @include type.type-style("productive-heading-02"); }
-  h4 { @include type.type-style("heading-compact-01"); }
-}
 
 // Header clock: flex-aligned span inside HeaderGlobalBar — structural only.
 // Color inherits from the g100 Theme wrapper around the Header.
@@ -368,81 +349,6 @@ html:has(.esti-studio-abstract-page) body {
   z-index: 8500;
 }
 
-// ESTI assistant — Carbon for AI command bar (TextInput + IconButton + Tile).
-.esti-ai-agent {
-  position: fixed;
-  inset-inline-end: 1rem;
-  inset-block-end: 1rem;
-  z-index: 8800;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--cds-spacing-03);
-  max-width: calc(100vw - 2rem);
-
-  &__row {
-    flex-direction: row-reverse;
-    align-items: flex-end;
-  }
-
-  &__fab {
-    border-radius: 50%;
-    transition: transform var(--esti-motion-duration-fast-02) var(--esti-motion-easing-standard);
-
-    &:hover {
-      transform: scale(1.04);
-    }
-  }
-
-  &__mark {
-    display: block;
-    width: 1.25rem;
-    height: 1.25rem;
-    object-fit: contain;
-  }
-
-  &__bar {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--cds-spacing-02);
-    overflow: hidden;
-    max-width: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      max-width var(--esti-motion-duration-moderate-02) var(--esti-motion-easing-entrance),
-      opacity var(--esti-motion-duration-fast-02) var(--esti-motion-easing-entrance);
-
-    &--open {
-      max-width: min(72vw, 32rem);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .cds--text-input-wrapper {
-      flex: 1 1 auto;
-      min-width: 12rem;
-    }
-  }
-
-  &__reply {
-    width: 100%;
-    max-width: min(72vw, 36rem);
-    max-height: min(40vh, 18rem);
-    overflow: auto;
-
-    &--error .cds--inline-notification {
-      max-width: none;
-    }
-  }
-
-  &__reply-text {
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    @include type.type-style("body-compact-01");
-  }
-}
 
 .esti-ai-explain__summary {
   margin: 0;
@@ -624,37 +530,6 @@ html:has(.esti-studio-abstract-page) body {
   border-block-start: 1px solid var(--cds-border-subtle-00);
 }
 
-// Landing page layout helpers (legacy — superseded by .esti-lp-* in esti-lp block).
-
-.esti-card-col { margin-block-end: var(--cds-spacing-05); }
-.esti-stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--cds-spacing-07);
-  align-items: baseline;
-}
-.esti-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--cds-spacing-05);
-}
-.esti-mockup-frame {
-  border: 1px solid var(--cds-border-subtle);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.esti-pricing-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--cds-spacing-04);
-  margin-block: var(--cds-spacing-06);
-}
-.esti-new-tag {
-  display: inline-flex;
-  gap: var(--cds-spacing-03);
-  align-items: center;
-  margin-block-end: var(--cds-spacing-04);
-}
 
 // ── Marketing landing (esti-lp) ───────────────────────────────────────────────
 // Editorial design system — custom tokens & layout. Carbon is isolated to
@@ -3179,12 +3054,6 @@ h1.esti-landing-lead-title {
   min-height: 90svh;
 }
 
-// Legacy per-section topo wrapper (kept for backwards compat, no longer used).
-.esti-landing-hero-topo,
-.esti-landing-pillars-topo {
-  position: relative;
-  overflow: hidden;
-}
 
 // Resolver list inside the topo hero — small checkmark rows.
 .esti-lp-hero-resolvers {
