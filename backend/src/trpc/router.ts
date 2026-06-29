@@ -12,7 +12,6 @@ import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
-import { constructionRouter } from "../modules/contractor/construction.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { leadsRouter } from "../modules/projectos/leads.js";
@@ -69,14 +68,11 @@ import { searchRouter } from "../modules/search/router.js";
 import { aiRouter } from "../modules/ai/router.js";
 import { companionRouter } from "../modules/companion/router.js";
 import { marketingRouter } from "../modules/marketing/router.js";
-import { programmeRouter } from "../modules/programme/router.js";
-import { pmcRouter } from "../modules/pmc/router.js";
 import { snagsRouter } from "../modules/pmc/snags.js";
 import { siteInstructionsRouter } from "../modules/pmc/siteInstructions.js";
 import { progressReportsRouter } from "../modules/pmc/progressReports.js";
 import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
 import { siteVisitRouter } from "../modules/siteVisit/router.js";
-import { constructionScheduleRouter } from "../modules/construction-schedule/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
 import { accountsRouter } from "../modules/expense/accounts.js";
 import { expensesRouter } from "../modules/expense/expenses.js";
@@ -123,7 +119,6 @@ export const appRouter = router({
   transmittals: transmittalRouter,
   consultants: consultantRouter,
   contractors: contractorRouter,
-  construction: constructionRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,
@@ -171,8 +166,6 @@ export const appRouter = router({
   ai: aiRouter,
   companion: companionRouter,
   marketing: marketingRouter,
-  programme: programmeRouter,
-  pmc: pmcRouter,
   snags: snagsRouter,
   siteInstructions: siteInstructionsRouter,
   progressReports: progressReportsRouter,
@@ -184,7 +177,6 @@ export const appRouter = router({
   negotiation: negotiationRouter,
   onboarding: onboardingRouter,
   program: programRouter,
-  constructionSchedule: constructionScheduleRouter,
   projectBrief: projectBriefRouter,
   accounts: accountsRouter,
   expenses: expensesRouter,

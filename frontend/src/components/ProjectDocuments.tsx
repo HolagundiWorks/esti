@@ -1,6 +1,5 @@
 import {
   Button,
-  FileUploaderButton,
   InlineNotification,
   Modal,
   Select,
@@ -19,7 +18,6 @@ import {
 } from "@carbon/react";
 import { Add, TrashCan } from "@carbon/icons-react";
 import { useState } from "react";
-import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { ConfirmModal } from "./ConfirmModal.js";
@@ -106,7 +104,6 @@ export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
       {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
-      <MoodBoards projectId={projectId} />
     </Stack>
   );
 }
@@ -579,207 +576,5 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
         </Stack>
       </Modal>
     </div>
-  );
-}
-
-// --- Mood boards ------------------------------------------------------------
-function MoodBoards({ projectId }: { projectId: string }) {
-  const utils = trpc.useUtils();
-  const boardsQ = trpc.spec.listBoards.useQuery({ projectId });
-  const inv = () => utils.spec.listBoards.invalidate({ projectId });
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const create = trpc.spec.createBoard.useMutation({
-    onSuccess: () => {
-      inv();
-      setOpen(false);
-      setTitle("");
-    },
-  });
-  const removeBoard = trpc.spec.removeBoard.useMutation({ onSuccess: inv });
-  const issueBoard = trpc.spec.issueBoard.useMutation({ onSuccess: inv });
-
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h3>Mood boards</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>
-          New mood board
-        </Button>
-      </div>
-      <DataState
-        loading={boardsQ.isLoading}
-        isEmpty={(boardsQ.data ?? []).length === 0}
-        columnCount={1}
-        empty={{
-          title: "No mood boards",
-          description: "Create a board and upload reference images.",
-        }}
-      >
-        <Stack gap={5}>
-          {(boardsQ.data ?? []).map((b) => (
-            <MoodBoardCard
-              key={b.id}
-              board={b}
-              onDelete={() => setConfirmId(b.id)}
-              onIssue={() => issueBoard.mutate({ id: b.id })}
-              issuePending={issueBoard.isPending}
-              onRevise={inv}
-            />
-          ))}
-        </Stack>
-      </DataState>
-      <ConfirmModal
-        open={!!confirmId}
-        heading="Delete mood board?"
-        body="This removes the board and all its images."
-        confirmText="Delete"
-        pending={removeBoard.isPending}
-        onConfirm={() => {
-          if (confirmId) removeBoard.mutate({ id: confirmId });
-          setConfirmId(null);
-        }}
-        onClose={() => setConfirmId(null)}
-      />
-      <Modal
-        open={open}
-        modalHeading="New mood board"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!title || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => create.mutate({ projectId, title })}
-      >
-        <TextInput
-          id="mb-title"
-          labelText="Board title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </Modal>
-    </div>
-  );
-}
-
-function MoodBoardCard({
-  board,
-  onDelete,
-  onIssue,
-  issuePending,
-  onRevise,
-}: {
-  board: {
-    id: string;
-    title: string;
-    ref: string | null;
-    versionNo: number;
-    status: string;
-  };
-  onDelete: () => void;
-  onIssue: () => void;
-  issuePending: boolean;
-  onRevise: () => void;
-}) {
-  const utils = trpc.useUtils();
-  const { authorizedFetch } = useUploadAuth();
-  const imgsQ = trpc.spec.boardImages.useQuery({ boardId: board.id });
-  const removeImage = trpc.spec.removeImage.useMutation({
-    onSuccess: () => utils.spec.boardImages.invalidate({ boardId: board.id }),
-  });
-  const [busy, setBusy] = useState(false);
-
-  async function uploadImage(file: File) {
-    setBusy(true);
-    try {
-      const res = await authorizedFetch("/upload/mood-image", (fd) => {
-        fd.append("boardId", board.id);
-        fd.append("file", file);
-      });
-      if (res.ok) utils.spec.boardImages.invalidate({ boardId: board.id });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <TableContainer title={`${board.ref ?? "—"} · ${board.title}`}>
-      <div
-        style={{
-          padding: "8px 0",
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <Tag type={board.status === "ISSUED" ? "green" : "gray"} size="sm">
-          {board.status} · v{board.versionNo ?? 1}
-        </Tag>
-        {board.status === "DRAFT" && (
-          <Button kind="tertiary" size="sm" disabled={issuePending} onClick={onIssue}>
-            Issue
-          </Button>
-        )}
-        {board.status === "ISSUED" && (
-          <DocumentReviseButton entityType="MOOD_BOARD" entityId={board.id} onDone={onRevise} />
-        )}
-        <FileUploaderButton
-          labelText={busy ? "Uploading…" : "Add image"}
-          accept={[".png", ".jpg", ".jpeg", ".webp"]}
-          disableLabelChanges
-          buttonKind="tertiary"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const f = e.target.files?.[0];
-            if (f) uploadImage(f);
-          }}
-        />
-        <Button
-          kind="danger--ghost"
-          size="sm"
-          disabled={board.status === "ISSUED"}
-          onClick={onDelete}
-        >
-          Delete board
-        </Button>
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-        {(imgsQ.data ?? []).length === 0 && <span>No images yet.</span>}
-        {(imgsQ.data ?? []).map((im) => (
-          <div key={im.id} style={{ width: 160 }}>
-            {im.url && (
-              <img
-                src={im.url}
-                alt={im.caption ?? ""}
-                style={{ width: 160, height: 120, objectFit: "cover" }}
-              />
-            )}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span>{im.caption ?? ""}</span>
-              <Button
-                kind="ghost"
-                size="sm"
-                hasIconOnly
-                iconDescription="Remove image"
-                renderIcon={TrashCan}
-                onClick={() => removeImage.mutate({ id: im.id })}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </TableContainer>
   );
 }

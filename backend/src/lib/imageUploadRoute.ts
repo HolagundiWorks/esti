@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { extname } from "node:path";
-import { MOOD_IMAGE_EXTENSIONS, MOOD_IMAGE_MAX_BYTES } from "@esti/contracts";
 import type { FastifyInstance } from "fastify";
 import type { AuthUser } from "../auth/session.js";
 import { SESSION_COOKIE, userFromToken } from "../auth/session.js";
@@ -10,6 +9,10 @@ import { writeAudit } from "./audit.js";
 import { imageMatchesExt } from "./filetype.js";
 import { putObject } from "./storage.js";
 import { verifyUploadPassword } from "./uploadSecurity.js";
+
+/** Shared image-upload limits (was the mood-image rules; mirrors firm-logo). */
+const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"] as const;
 
 type ParentLookup = { projectId?: string | null };
 
@@ -71,10 +74,10 @@ export function registerImageUploadRoute(app: FastifyInstance, config: ImageUplo
       if (!parent) return reply.code(404).send({ error: config.notFoundError });
 
       if (!buf || buf.length === 0) return reply.code(400).send({ error: "no file" });
-      if (buf.length > MOOD_IMAGE_MAX_BYTES) return reply.code(413).send({ error: "file too large" });
+      if (buf.length > IMAGE_MAX_BYTES) return reply.code(413).send({ error: "file too large" });
 
       const ext = extname(fileName).toLowerCase();
-      if (!MOOD_IMAGE_EXTENSIONS.includes(ext as (typeof MOOD_IMAGE_EXTENSIONS)[number])) {
+      if (!IMAGE_EXTENSIONS.includes(ext as (typeof IMAGE_EXTENSIONS)[number])) {
         return reply.code(415).send({ error: `unsupported type ${ext}` });
       }
       if (!imageMatchesExt(buf, ext)) {

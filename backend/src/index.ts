@@ -23,7 +23,6 @@ import { registerDrawingUpload } from "./modules/drawing/upload.js";
 import { registerFirmLogoUpload } from "./modules/firm/upload.js";
 import { registerReconcileUpload } from "./modules/reconcile/upload.js";
 import { registerInspectionPhotoUpload } from "./modules/inspection/upload.js";
-import { registerMoodImageUpload } from "./modules/spec/upload.js";
 import { registerProfilePhotoUpload } from "./modules/users/photoUpload.js";
 import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
 import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
@@ -172,7 +171,6 @@ await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 
 registerDrawingUpload(app);
 registerReconcileUpload(app);
 registerFirmLogoUpload(app);
-registerMoodImageUpload(app);
 registerInspectionPhotoUpload(app);
 registerProfilePhotoUpload(app);
 registerHrDocUpload(app);

@@ -11,7 +11,6 @@ import { z } from "zod";
 import {
   documentIssues,
   inspections,
-  moodBoards,
   officeTemplates,
   orgSettings,
   specSheets,
@@ -174,34 +173,6 @@ export const documentRouter = router({
       });
       await writeAudit(ctx.db, {
         entity: "specsheet",
-        entityId,
-        action: "REVISE",
-        actorId: ctx.user.id,
-        after: { versionNo, revisionNote, impactNote },
-      });
-      return { versionNo };
-    }
-
-    if (entityType === "MOOD_BOARD") {
-      const [row] = await ctx.db.select().from(moodBoards).where(eq(moodBoards.id, entityId));
-      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-      const versionNo = (row.versionNo ?? 1) + 1;
-      await ctx.db
-        .update(moodBoards)
-        .set({ versionNo, status: "DRAFT", pdfStatus: "NONE", pdfKey: null })
-        .where(eq(moodBoards.id, entityId));
-      await recordDocumentIssue(ctx.db, {
-        entityType,
-        entityId,
-        projectId: row.projectId,
-        ref: row.ref ?? row.id.slice(0, 8),
-        versionNo,
-        revisionNote,
-        impactNote,
-        issuedById: ctx.user.id,
-      });
-      await writeAudit(ctx.db, {
-        entity: "moodboard",
         entityId,
         action: "REVISE",
         actorId: ctx.user.id,

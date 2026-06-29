@@ -3,7 +3,6 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   appointments,
-  moodBoards,
   permits,
   projectBriefs,
   projectOffices,
@@ -31,18 +30,12 @@ export const projectBriefRouter = router({
         .from(permits)
         .where(eq(permits.projectId, input.projectId));
 
-      const [moodCount] = await ctx.db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(moodBoards)
-        .where(eq(moodBoards.projectId, input.projectId));
-
       return {
         ...brief,
         aggregates: {
           appointmentScope: appointment?.scopeSummary ?? null,
           appointmentStatus: appointment?.status ?? null,
           permitCount: permitCount?.count ?? 0,
-          moodBoardCount: moodCount?.count ?? 0,
         },
       };
     }),

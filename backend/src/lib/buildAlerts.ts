@@ -13,7 +13,6 @@ import {
   projectOffices,
   tasks,
   teamMembers,
-  tenders,
 } from "../db/schema.js";
 
 export type Severity = "high" | "medium" | "low";
@@ -24,7 +23,6 @@ export type AlertKind =
   | "submission"
   | "task"
   | "leave"
-  | "tender"
   | "construction";
 
 export interface Alert {
@@ -59,7 +57,6 @@ export const ALERT_KINDS: readonly AlertKind[] = [
   "submission",
   "task",
   "leave",
-  "tender",
   "construction",
 ];
 
@@ -91,29 +88,6 @@ function sortAlerts(alerts: Alert[]): Alert[] {
     if (rank(a.severity) !== rank(b.severity)) return rank(a.severity) - rank(b.severity);
     return (a.date ?? "").localeCompare(b.date ?? "");
   });
-}
-
-export function mapTenderAlert(
-  t: {
-    id: string;
-    title: string;
-    dueDate: string | null;
-    projectId: string;
-    projectRef: string;
-  },
-  today: string,
-): Alert {
-  return {
-    id: `tender:${t.id}`,
-    kind: "tender",
-    severity: "medium",
-    title: `Tender closing: ${t.title}`,
-    detail: `Bids due ${t.dueDate}`,
-    projectId: t.projectId,
-    projectRef: t.projectRef,
-    date: t.dueDate,
-    immediate: t.dueDate != null && t.dueDate <= today,
-  };
 }
 
 export function mapConstructionAlert(c: {
@@ -243,24 +217,6 @@ export async function buildAlerts(db: DB, rules: EscalationSettings): Promise<Al
       ),
     );
 
-  const openTendersDue = await db
-    .select({
-      id: tenders.id,
-      title: tenders.title,
-      dueDate: tenders.dueDate,
-      projectId: tenders.projectId,
-      projectRef: projectOffices.ref,
-    })
-    .from(tenders)
-    .innerJoin(projectOffices, eq(projectOffices.id, tenders.projectId))
-    .where(
-      and(
-        eq(tenders.status, "OPEN"),
-        isNotNull(tenders.dueDate),
-        lte(tenders.dueDate, daysAheadIso(7)),
-      ),
-    );
-
   const openConstruction = await db
     .select({
       id: contractorSubmissions.id,
@@ -363,7 +319,6 @@ export async function buildAlerts(db: DB, rules: EscalationSettings): Promise<Al
       date: t.dueDate,
       immediate: true,
     })),
-    ...openTendersDue.map((t) => mapTenderAlert(t, today)),
     ...openConstruction.map((c) => mapConstructionAlert(c)),
   ];
 

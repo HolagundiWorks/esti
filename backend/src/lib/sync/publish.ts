@@ -7,7 +7,6 @@ import {
   inspections,
   invoices,
   siteVisits,
-  tenders,
   transmittals,
 } from "../../db/schema.js";
 import { enqueuePublish } from "./outbox.js";
@@ -90,21 +89,6 @@ async function buildDto(db: DB, entity: SyncEntity, id: string): Promise<Dto | n
           issuePdfStatus: r.issuePdfStatus,
         },
         fileKeys: r.issuePdfKey ? [r.issuePdfKey] : [],
-      };
-    }
-    case "tender": {
-      const [r] = await db.select().from(tenders).where(eq(tenders.id, id)).limit(1);
-      if (!r) return null;
-      return {
-        payload: {
-          projectId: r.projectId,
-          title: r.title,
-          category: r.category,
-          status: r.status,
-          dueDate: r.dueDate,
-          awardedContractorId: r.awardedContractorId,
-        },
-        fileKeys: [],
       };
     }
     case "inspection": {

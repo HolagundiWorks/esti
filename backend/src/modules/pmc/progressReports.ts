@@ -1,15 +1,13 @@
 import { ProgressReportCreate, ProgressReportUpdate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-import { progressReports } from "../../db/schema.js";
+import { progressReports, snags } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { assertProjectPmcEnabled } from "../../lib/settings.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
-import { buildConstructionScheduleSummary } from "../construction-schedule/readModels.js";
-import { buildPmcSummary } from "./readModels.js";
 
 const manage = capabilityProcedure("write");
 
@@ -27,10 +25,10 @@ export const progressReportsRouter = router({
 
   createDraft: manage.input(ProgressReportCreate).mutation(async ({ ctx, input }) => {
     await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const summary = await buildPmcSummary(ctx.db, input.projectId);
-    const cs = await buildConstructionScheduleSummary(ctx.db, input.projectId);
-    const schedulePct =
-      cs && cs.activityCount > 0 ? cs.percentComplete : (summary?.programme?.scheduleProgressPct ?? 0);
+    const openSnags = await ctx.db
+      .select({ id: snags.id })
+      .from(snags)
+      .where(and(eq(snags.projectId, input.projectId), ne(snags.status, "CLOSED")));
     const [row] = await ctx.db
       .insert(progressReports)
       .values({
@@ -39,9 +37,9 @@ export const progressReportsRouter = router({
         periodEnd: input.periodEnd,
         narrative: input.narrative ?? null,
         physicalProgressPct: input.physicalProgressPct ?? null,
-        scheduleProgressPct: schedulePct,
-        openSnagCount: summary?.snags.open ?? 0,
-        openRfiCount: summary?.construction.openByKind.RFI ?? 0,
+        scheduleProgressPct: input.physicalProgressPct ?? 0,
+        openSnagCount: openSnags.length,
+        openRfiCount: 0,
         status: "DRAFT",
         createdById: ctx.user.id,
       })

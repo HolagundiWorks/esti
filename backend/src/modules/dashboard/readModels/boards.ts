@@ -6,7 +6,6 @@ import {
   leaves,
   projectOffices,
   tasks,
-  tenders,
 } from "../../../db/schema.js";
 import { getOrgSettings } from "../../../lib/settings.js";
 
@@ -44,32 +43,10 @@ export async function getDashboardBoards(db: DB) {
     .from(tasks)
     .where(and(sql`${tasks.status} <> 'DONE'`, sql`${tasks.dueDate} is not null and ${tasks.dueDate} <= ${today}`));
 
-  const [openTendersRow] = await db
-    .select({ n: count() })
-    .from(tenders)
-    .where(eq(tenders.status, "OPEN"));
-
   const [constructionOpenRow] = await db
     .select({ n: count() })
     .from(contractorSubmissions)
     .where(eq(contractorSubmissions.status, "OPEN"));
-
-  const tenderDueSoon = (await db.execute(sql`
-    select t.id, t.title, t.due_date, po.ref as project_ref, po.id as project_id
-    from esti_tender t
-    join esti_projectoffice po on po.id = t.project_id
-    where t.status = 'OPEN'
-      and t.due_date is not null
-      and t.due_date <= current_date + 7
-    order by t.due_date asc
-    limit 8
-  `)) as unknown as {
-    id: string;
-    title: string;
-    due_date: string;
-    project_ref: string;
-    project_id: string;
-  }[];
 
   const workload = hrEnabled
     ? await db
@@ -146,14 +123,6 @@ export async function getDashboardBoards(db: DB) {
       d31_60: Number(aging?.d31_60 ?? 0),
       d60p: Number(aging?.d60p ?? 0),
     },
-    openTenders: Number(openTendersRow?.n ?? 0),
     constructionOpen: Number(constructionOpenRow?.n ?? 0),
-    tenderDueSoon: tenderDueSoon.map((r) => ({
-      id: r.id,
-      title: r.title,
-      dueDate: r.due_date,
-      projectRef: r.project_ref,
-      projectId: r.project_id,
-    })),
   };
 }

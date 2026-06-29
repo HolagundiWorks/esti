@@ -190,33 +190,6 @@ export const specItems = pgTable("esti_specitem", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
-/** Mood board — a captioned collection of uploaded reference images. */
-export const moodBoards = pgTable("esti_moodboard", {
-  id: id(),
-  ref: text("ref").unique(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projectOffices.id),
-  title: text("title").notNull(),
-  versionNo: integer("version_no").notNull().default(1),
-  status: text("status").notNull().default("DRAFT"),
-  pdfKey: text("pdf_key"),
-  pdfStatus: text("pdf_status").notNull().default("NONE"),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
-
-export const moodImages = pgTable("esti_moodimage", {
-  id: id(),
-  moodBoardId: uuid("mood_board_id")
-    .notNull()
-    .references(() => moodBoards.id),
-  storageKey: text("storage_key").notNull(),
-  caption: text("caption"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: createdAt(),
-});
-
 /** Project decision register with CRIF state machine. */
 export const decisions = pgTable("esti_decision", {
   id: id(),

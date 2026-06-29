@@ -66,15 +66,3 @@ export const SpecSheetCreate = z.object({
   items: z.array(SpecItemInput).min(1, "Add at least one specification row"),
 });
 export type SpecSheetCreate = z.infer<typeof SpecSheetCreate>;
-
-// --- Mood board -------------------------------------------------------------
-
-export const MoodBoardCreate = z.object({
-  projectId: z.string().uuid(),
-  title: z.string().min(1).max(200),
-});
-export type MoodBoardCreate = z.infer<typeof MoodBoardCreate>;
-
-/** Mood-board image upload limits (mirrors the firm-logo image rules). */
-export const MOOD_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
-export const MOOD_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"] as const;

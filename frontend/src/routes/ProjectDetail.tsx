@@ -13,7 +13,6 @@ import {
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_WORK_TYPE_LABEL,
-  formatINR,
 } from "@esti/contracts";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";

@@ -29,7 +29,6 @@ import {
   specSheets,
   specificationStandards,
   tasks,
-  tenders,
 } from "../../db/schema.js";
 
 export type SearchCaps = {
@@ -600,37 +599,6 @@ async function searchPeopleAndTenders(
       snippet: snippet(r.category, 120),
       href: searchResultHref("CONTRACTOR", r.id),
       rank: rank(null, r.name, q),
-    })),
-  );
-
-  const tenderRows = await db
-    .select({
-      id: tenders.id,
-      title: tenders.title,
-      scope: tenders.scope,
-      projectId: tenders.projectId,
-      projectRef: projectOffices.ref,
-    })
-    .from(tenders)
-    .innerJoin(projectOffices, eq(tenders.projectId, projectOffices.id))
-    .where(
-      and(
-        activeProjectFilter(caps),
-        projectId ? eq(tenders.projectId, projectId) : undefined,
-        or(ilike(tenders.title, like), ilike(tenders.scope, like)),
-      ),
-    )
-    .limit(PER_TYPE_LIMIT);
-  hits.push(
-    ...tenderRows.map((r) => ({
-      entityType: "TENDER" as const,
-      entityId: r.id,
-      title: r.title,
-      snippet: snippet(r.scope, 120),
-      href: searchResultHref("TENDER", r.id, r.projectId),
-      rank: rank(null, r.title, q),
-      projectId: r.projectId,
-      projectRef: r.projectRef,
     })),
   );
 

@@ -5,7 +5,6 @@ import {
   buildDigest,
   isAlertKind,
   mapConstructionAlert,
-  mapTenderAlert,
   type Alert,
 } from "./buildAlerts.js";
 
@@ -35,7 +34,7 @@ describe("buildDigest", () => {
   it("excludes immediate high-priority alerts when digest is enabled", () => {
     const alerts = [
       sampleAlert(),
-      sampleAlert({ id: "tender:1", kind: "tender", severity: "medium", immediate: false }),
+      sampleAlert({ id: "followup:2", kind: "followup", severity: "medium", immediate: false }),
     ];
     expect(buildDigest(alerts, true)).toEqual([alerts[1]]);
   });
@@ -46,28 +45,6 @@ describe("buildDigest", () => {
   });
 });
 
-describe("mapTenderAlert", () => {
-  const row = {
-    id: "00000000-0000-0000-0000-000000000001",
-    title: "Civil works",
-    dueDate: "2026-06-20",
-    projectId: "00000000-0000-0000-0000-000000000010",
-    projectRef: "HCW-001",
-  };
-
-  it("marks future due dates as non-immediate", () => {
-    const alert = mapTenderAlert(row, today);
-    expect(alert.kind).toBe("tender");
-    expect(alert.severity).toBe("medium");
-    expect(alert.immediate).toBe(false);
-    assertValidAlert(alert);
-  });
-
-  it("marks due-today tenders as immediate", () => {
-    const alert = mapTenderAlert({ ...row, dueDate: today }, today);
-    expect(alert.immediate).toBe(true);
-  });
-});
 
 describe("mapConstructionAlert", () => {
   const base = {
@@ -97,10 +74,8 @@ describe("mapConstructionAlert", () => {
 });
 
 describe("alert kinds", () => {
-  it("includes tender and construction kinds", () => {
-    expect(ALERT_KINDS).toContain("tender");
+  it("includes construction kind", () => {
     expect(ALERT_KINDS).toContain("construction");
-    expect(isAlertKind("tender")).toBe(true);
     expect(isAlertKind("construction")).toBe(true);
     expect(isAlertKind("unknown")).toBe(false);
   });
