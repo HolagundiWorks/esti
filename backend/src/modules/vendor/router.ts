@@ -5,13 +5,17 @@ import {
   VendorPriceCreate,
   VendorPriceHistoryInput,
   VendorPricesByVendorInput,
+  VendorQuoteCompareInput,
+  VendorQuoteCreate,
+  VendorQuotesByVendorInput,
   VendorRating,
   VendorUpdate,
+  type VendorQuoteComparisonRow,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { vendorPrices, vendors } from "../../db/schema.js";
+import { vendorPrices, vendorQuoteLines, vendorQuotes, vendors } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -173,4 +177,151 @@ export const vendorRouter = router({
         .where(filter)
         .orderBy(desc(vendorPrices.effectiveDate));
     }),
+
+  // ── Quotations ──────────────────────────────────────────────────────────────
+  quotes: router({
+    listByVendor: protectedProcedure
+      .input(VendorQuotesByVendorInput)
+      .query(async ({ ctx, input }) => {
+        const quotes = await ctx.db
+          .select()
+          .from(vendorQuotes)
+          .where(eq(vendorQuotes.vendorId, input.vendorId))
+          .orderBy(desc(vendorQuotes.quoteDate), desc(vendorQuotes.createdAt));
+        // line count + total per quote
+        const counts = await ctx.db
+          .select({
+            quoteId: vendorQuoteLines.quoteId,
+            lineCount: sql<number>`count(*)::int`,
+            totalPaise: sql<number>`coalesce(sum(${vendorQuoteLines.ratePaise}), 0)::int`,
+          })
+          .from(vendorQuoteLines)
+          .groupBy(vendorQuoteLines.quoteId);
+        const byId = new Map(counts.map((c) => [c.quoteId, c]));
+        return quotes.map((q) => ({
+          ...q,
+          lineCount: byId.get(q.id)?.lineCount ?? 0,
+          totalPaise: byId.get(q.id)?.totalPaise ?? 0,
+        }));
+      }),
+
+    byId: protectedProcedure.input(VendorByIdInput).query(async ({ ctx, input }) => {
+      const [quote] = await ctx.db.select().from(vendorQuotes).where(eq(vendorQuotes.id, input.id));
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND" });
+      const lines = await ctx.db
+        .select()
+        .from(vendorQuoteLines)
+        .where(eq(vendorQuoteLines.quoteId, input.id))
+        .orderBy(asc(vendorQuoteLines.createdAt));
+      return { ...quote, lines };
+    }),
+
+    create: manage.input(VendorQuoteCreate).mutation(async ({ ctx, input }) => {
+      const [vendor] = await ctx.db.select({ id: vendors.id }).from(vendors).where(eq(vendors.id, input.vendorId));
+      if (!vendor) throw new TRPCError({ code: "NOT_FOUND", message: "Vendor not found." });
+      const [quote] = await ctx.db
+        .insert(vendorQuotes)
+        .values({
+          vendorId: input.vendorId,
+          ref: input.ref,
+          quoteDate: input.quoteDate,
+          validUntil: input.validUntil ?? null,
+          notes: blank(input.notes),
+          status: "RECEIVED",
+          createdById: ctx.user.id,
+        })
+        .returning();
+      await ctx.db.insert(vendorQuoteLines).values(
+        input.lines.map((l) => ({
+          quoteId: quote!.id,
+          materialId: l.materialId ?? null,
+          materialName: l.materialName,
+          unit: l.unit,
+          ratePaise: l.ratePaise,
+        })),
+      );
+      return quote!;
+    }),
+
+    /** Accept a quote → snapshot every line into the vendor pricing history. */
+    accept: manage.input(VendorByIdInput).mutation(async ({ ctx, input }) => {
+      const [quote] = await ctx.db.select().from(vendorQuotes).where(eq(vendorQuotes.id, input.id));
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND" });
+      if (quote.status === "ACCEPTED") return { ok: true as const, priced: 0 };
+      const lines = await ctx.db.select().from(vendorQuoteLines).where(eq(vendorQuoteLines.quoteId, input.id));
+      if (lines.length > 0) {
+        await ctx.db.insert(vendorPrices).values(
+          lines.map((l) => ({
+            vendorId: quote.vendorId,
+            materialId: l.materialId ?? null,
+            materialName: l.materialName,
+            unit: l.unit,
+            ratePaise: l.ratePaise,
+            effectiveDate: quote.quoteDate,
+            source: "QUOTE",
+            notes: `From quote ${quote.ref}`,
+            createdById: ctx.user.id,
+          })),
+        );
+      }
+      await ctx.db.update(vendorQuotes).set({ status: "ACCEPTED" }).where(eq(vendorQuotes.id, input.id));
+      return { ok: true as const, priced: lines.length };
+    }),
+
+    reject: manage.input(VendorByIdInput).mutation(async ({ ctx, input }) => {
+      const [quote] = await ctx.db.select({ id: vendorQuotes.id }).from(vendorQuotes).where(eq(vendorQuotes.id, input.id));
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db.update(vendorQuotes).set({ status: "REJECTED" }).where(eq(vendorQuotes.id, input.id));
+      return { ok: true as const };
+    }),
+
+    remove: manage.input(VendorByIdInput).mutation(async ({ ctx, input }) => {
+      const [quote] = await ctx.db.select({ id: vendorQuotes.id }).from(vendorQuotes).where(eq(vendorQuotes.id, input.id));
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND" });
+      await ctx.db.delete(vendorQuotes).where(eq(vendorQuotes.id, input.id));
+      return { ok: true as const };
+    }),
+
+    /** Cross-vendor comparison for one material — latest quoted rate per vendor, cheapest first. */
+    compare: protectedProcedure
+      .input(VendorQuoteCompareInput)
+      .query(async ({ ctx, input }): Promise<VendorQuoteComparisonRow[]> => {
+        if (!input.materialId && !input.materialName) return [];
+        const filter = input.materialId
+          ? eq(vendorQuoteLines.materialId, input.materialId)
+          : eq(vendorQuoteLines.materialName, input.materialName!);
+        const rows = await ctx.db
+          .select({
+            vendorId: vendorQuotes.vendorId,
+            vendorName: vendors.name,
+            quoteId: vendorQuotes.id,
+            quoteRef: vendorQuotes.ref,
+            quoteDate: vendorQuotes.quoteDate,
+            unit: vendorQuoteLines.unit,
+            ratePaise: vendorQuoteLines.ratePaise,
+          })
+          .from(vendorQuoteLines)
+          .innerJoin(vendorQuotes, eq(vendorQuoteLines.quoteId, vendorQuotes.id))
+          .leftJoin(vendors, eq(vendorQuotes.vendorId, vendors.id))
+          .where(filter);
+        // keep the latest quote per vendor
+        const latestByVendor = new Map<string, (typeof rows)[number]>();
+        for (const r of rows) {
+          const cur = latestByVendor.get(r.vendorId);
+          if (!cur || r.quoteDate > cur.quoteDate) latestByVendor.set(r.vendorId, r);
+        }
+        const result = [...latestByVendor.values()].sort((a, b) => a.ratePaise - b.ratePaise);
+        const min = result.length ? result[0]!.ratePaise : 0;
+        return result.map((r) => ({
+          vendorId: r.vendorId,
+          vendorName: r.vendorName ?? "—",
+          quoteId: r.quoteId,
+          quoteRef: r.quoteRef,
+          quoteDate: r.quoteDate,
+          unit: r.unit,
+          ratePaise: r.ratePaise,
+          isLowest: r.ratePaise === min,
+        }));
+      }),
+  }),
 });

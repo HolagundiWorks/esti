@@ -115,3 +115,46 @@ export const VendorPriceHistoryInput = z.object({
   materialName: z.string().trim().min(1).max(200).optional(),
 });
 export type VendorPriceHistoryInput = z.infer<typeof VendorPriceHistoryInput>;
+
+// ── Vendor quotations (quote document + lines + comparison) ──────────────────
+export const VendorQuoteStatus = z.enum(["RECEIVED", "ACCEPTED", "REJECTED"]);
+export type VendorQuoteStatus = z.infer<typeof VendorQuoteStatus>;
+
+export const VendorQuoteLineInput = z.object({
+  materialId: z.string().uuid().optional(),
+  materialName: z.string().trim().min(1).max(200),
+  unit: z.string().trim().min(1).max(40),
+  ratePaise: z.number().int().min(0),
+});
+export type VendorQuoteLineInput = z.infer<typeof VendorQuoteLineInput>;
+
+export const VendorQuoteCreate = z.object({
+  vendorId: z.string().uuid(),
+  ref: z.string().trim().min(1).max(80),
+  quoteDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes: z.string().trim().max(1000).optional(),
+  lines: z.array(VendorQuoteLineInput).min(1).max(2000),
+});
+export type VendorQuoteCreate = z.infer<typeof VendorQuoteCreate>;
+
+export const VendorQuotesByVendorInput = z.object({ vendorId: z.string().uuid() });
+export type VendorQuotesByVendorInput = z.infer<typeof VendorQuotesByVendorInput>;
+
+export const VendorQuoteCompareInput = z.object({
+  materialId: z.string().uuid().optional(),
+  materialName: z.string().trim().min(1).max(200).optional(),
+});
+export type VendorQuoteCompareInput = z.infer<typeof VendorQuoteCompareInput>;
+
+/** One row of the cross-vendor comparison — cheapest first. */
+export type VendorQuoteComparisonRow = {
+  vendorId: string;
+  vendorName: string;
+  quoteId: string;
+  quoteRef: string;
+  quoteDate: string;
+  unit: string;
+  ratePaise: number;
+  isLowest: boolean;
+};

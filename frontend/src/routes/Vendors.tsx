@@ -29,6 +29,8 @@ import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { VendorQuotes } from "../components/vendor/VendorQuotes.js";
+import { VendorRateCompare } from "../components/vendor/VendorRateCompare.js";
 import { trpc } from "../lib/trpc.js";
 
 type FormState = {
@@ -243,8 +245,12 @@ export function Vendors() {
               </Table>
             </TableContainer>
           </DataState>
+
+          <VendorQuotes vendorId={selected.id} />
         </Stack>
       )}
+
+      <VendorRateCompare />
 
       {/* create / edit vendor */}
       <Modal
