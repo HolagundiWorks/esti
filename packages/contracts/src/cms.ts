@@ -183,6 +183,51 @@ export type CmsWoByProjectInput = z.infer<typeof CmsWoByProjectInput>;
 export const CmsWoIssueInput = z.object({ id: z.string().uuid() });
 export type CmsWoIssueInput = z.infer<typeof CmsWoIssueInput>;
 
+// ── Contractor Bills + Certification (CMS-6) ─────────────────────────────────
+export const CmsBillStatus = z.enum([
+  "DRAFT",
+  "SUBMITTED",
+  "CERTIFIED",
+  "HELD",
+  "REJECTED",
+]);
+export type CmsBillStatus = z.infer<typeof CmsBillStatus>;
+
+export const CmsBillCreate = z.object({
+  projectId: z.string().uuid(),
+  workOrderId: z.string().uuid(),
+  billNo: z.string().min(1).max(80),
+  periodFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  periodTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  remarks: z.string().max(1000).optional(),
+});
+export type CmsBillCreate = z.infer<typeof CmsBillCreate>;
+
+export const CmsBillLineCreate = z.object({
+  billId: z.string().uuid(),
+  elementId: z.string().uuid(),
+  woItemId: z.string().uuid(),
+  claimedQty: z.number().min(0),
+});
+export type CmsBillLineCreate = z.infer<typeof CmsBillLineCreate>;
+
+export const CmsBillLineUpdate = z.object({
+  id: z.string().uuid(),
+  claimedQty: z.number().min(0).optional(),
+  certifiedQty: z.number().min(0).optional(),
+  holdReason: z.string().max(500).nullable().optional(),
+});
+export type CmsBillLineUpdate = z.infer<typeof CmsBillLineUpdate>;
+
+export const CmsBillCertifyInput = z.object({
+  id: z.string().uuid(),
+  remarks: z.string().max(1000).optional(),
+});
+export type CmsBillCertifyInput = z.infer<typeof CmsBillCertifyInput>;
+
+export const CmsBillByProjectInput = z.object({ projectId: z.string().uuid() });
+export type CmsBillByProjectInput = z.infer<typeof CmsBillByProjectInput>;
+
 // ── Site Measurement Book ────────────────────────────────────────────────────
 export const CmsMeasurementStatus = z.enum(["DRAFT", "VERIFIED"]);
 export type CmsMeasurementStatus = z.infer<typeof CmsMeasurementStatus>;

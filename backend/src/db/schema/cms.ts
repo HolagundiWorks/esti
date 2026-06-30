@@ -119,6 +119,53 @@ export const cmsWoItems = pgTable("esti_cms_wo_item", {
   createdAt: createdAt(),
 });
 
+/** Contractor Bill — invoice from a contractor against a work order.
+ *  DRAFT → SUBMITTED (by contractor) → CERTIFIED / HELD / REJECTED (by architect). */
+export const cmsBills = pgTable("esti_cms_bill", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  workOrderId: uuid("work_order_id")
+    .notNull()
+    .references(() => cmsWorkOrders.id, { onDelete: "restrict" }),
+  contractorId: uuid("contractor_id")
+    .notNull()
+    .references(() => contractors.id, { onDelete: "restrict" }),
+  billNo: text("bill_no").notNull(),
+  periodFrom: text("period_from").notNull(), // YYYY-MM-DD
+  periodTo: text("period_to").notNull(), // YYYY-MM-DD
+  status: text("status").notNull().default("DRAFT"), // DRAFT|SUBMITTED|CERTIFIED|HELD|REJECTED
+  claimedAmountPaise: integer("claimed_amount_paise").notNull().default(0),
+  certifiedAmountPaise: integer("certified_amount_paise").notNull().default(0),
+  remarks: text("remarks"),
+  certifiedById: uuid("certified_by_id").references(() => users.id, { onDelete: "set null" }),
+  certifiedAt: timestamp("certified_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+/** Bill Line — element + WO item (rate source) + claimed/certified qty.
+ *  Rate is locked to the WO item's agreedRatePaise; no rate override. */
+export const cmsBillLines = pgTable("esti_cms_bill_line", {
+  id: id(),
+  billId: uuid("bill_id")
+    .notNull()
+    .references(() => cmsBills.id, { onDelete: "cascade" }),
+  elementId: uuid("element_id")
+    .notNull()
+    .references(() => cmsElements.id, { onDelete: "restrict" }),
+  woItemId: uuid("wo_item_id")
+    .notNull()
+    .references(() => cmsWoItems.id, { onDelete: "restrict" }),
+  claimedQty: doublePrecision("claimed_qty").notNull().default(0),
+  ratePaise: integer("rate_paise").notNull().default(0), // snapshot from WO item
+  claimedAmountPaise: integer("claimed_amount_paise").notNull().default(0), // qty × rate
+  certifiedQty: doublePrecision("certified_qty"),
+  certifiedAmountPaise: integer("certified_amount_paise"),
+  holdReason: text("hold_reason"),
+  createdAt: createdAt(),
+});
+
 /** Site Measurement Book — records of executed work at site, per element.
  *  DRAFT until verified by a cost:approve user; cumulative VERIFIED qty feeds bill certification. */
 export const cmsMeasurements = pgTable("esti_cms_measurement", {

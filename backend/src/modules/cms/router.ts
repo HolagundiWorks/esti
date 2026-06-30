@@ -10,6 +10,11 @@ import {
   CmsMeasurementByElement,
   CmsMeasurementCreate,
   CmsMeasurementType,
+  CmsBillByProjectInput,
+  CmsBillCertifyInput,
+  CmsBillCreate,
+  CmsBillLineCreate,
+  CmsBillLineUpdate,
   CmsWoByProjectInput,
   CmsWoIssueInput,
   CmsWoItemCreate,
@@ -25,6 +30,8 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, isNull, max, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import {
+  cmsBillLines,
+  cmsBills,
   cmsElements,
   cmsFinalSets,
   cmsLocations,
@@ -750,5 +757,270 @@ const workOrders = router({
     }),
 });
 
-/** Cost Management System router — CMS-1 through CMS-5. */
-export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders });
+// ── Contractor Bills + Certification (CMS-6) ─────────────────────────────────
+const costApproveProcedure2 = capabilityProcedure("cost:approve");
+
+const bills = router({
+  listByProject: protectedProcedure
+    .input(CmsBillByProjectInput)
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select({
+          id: cmsBills.id,
+          billNo: cmsBills.billNo,
+          periodFrom: cmsBills.periodFrom,
+          periodTo: cmsBills.periodTo,
+          status: cmsBills.status,
+          claimedAmountPaise: cmsBills.claimedAmountPaise,
+          certifiedAmountPaise: cmsBills.certifiedAmountPaise,
+          remarks: cmsBills.remarks,
+          createdAt: cmsBills.createdAt,
+          workOrderId: cmsBills.workOrderId,
+          contractorId: cmsBills.contractorId,
+          contractorName: contractors.name,
+        })
+        .from(cmsBills)
+        .leftJoin(contractors, eq(cmsBills.contractorId, contractors.id))
+        .where(eq(cmsBills.projectId, input.projectId))
+        .orderBy(desc(cmsBills.createdAt));
+      return rows;
+    }),
+
+  byId: protectedProcedure
+    .input(CmsIdInput)
+    .query(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({
+          id: cmsBills.id,
+          projectId: cmsBills.projectId,
+          billNo: cmsBills.billNo,
+          periodFrom: cmsBills.periodFrom,
+          periodTo: cmsBills.periodTo,
+          status: cmsBills.status,
+          claimedAmountPaise: cmsBills.claimedAmountPaise,
+          certifiedAmountPaise: cmsBills.certifiedAmountPaise,
+          remarks: cmsBills.remarks,
+          workOrderId: cmsBills.workOrderId,
+          contractorId: cmsBills.contractorId,
+          contractorName: contractors.name,
+        })
+        .from(cmsBills)
+        .leftJoin(contractors, eq(cmsBills.contractorId, contractors.id))
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const lines = await ctx.db
+        .select({
+          id: cmsBillLines.id,
+          elementId: cmsBillLines.elementId,
+          elementCode: cmsElements.code,
+          elementDescription: cmsElements.description,
+          woItemId: cmsBillLines.woItemId,
+          woItemDescription: cmsWoItems.description,
+          woItemUnit: cmsWoItems.unit,
+          claimedQty: cmsBillLines.claimedQty,
+          ratePaise: cmsBillLines.ratePaise,
+          claimedAmountPaise: cmsBillLines.claimedAmountPaise,
+          certifiedQty: cmsBillLines.certifiedQty,
+          certifiedAmountPaise: cmsBillLines.certifiedAmountPaise,
+          holdReason: cmsBillLines.holdReason,
+        })
+        .from(cmsBillLines)
+        .leftJoin(cmsElements, eq(cmsBillLines.elementId, cmsElements.id))
+        .leftJoin(cmsWoItems, eq(cmsBillLines.woItemId, cmsWoItems.id))
+        .where(eq(cmsBillLines.billId, input.id))
+        .orderBy(asc(cmsBillLines.createdAt));
+
+      return { ...bill, lines };
+    }),
+
+  create: protectedProcedure
+    .input(CmsBillCreate)
+    .mutation(async ({ ctx, input }) => {
+      // Derive contractorId from WO
+      const [wo] = await ctx.db
+        .select({ contractorId: cmsWorkOrders.contractorId, status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, input.workOrderId));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND", message: "Work order not found." });
+      if (wo.status === "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Work order must be ISSUED before billing." });
+      }
+      const [row] = await ctx.db
+        .insert(cmsBills)
+        .values({
+          projectId: input.projectId,
+          workOrderId: input.workOrderId,
+          contractorId: wo.contractorId,
+          billNo: input.billNo,
+          periodFrom: input.periodFrom,
+          periodTo: input.periodTo,
+          remarks: input.remarks ?? null,
+          status: "DRAFT",
+        })
+        .returning();
+      return row!;
+    }),
+
+  addLine: protectedProcedure
+    .input(CmsBillLineCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status, workOrderId: cmsBills.workOrderId })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.billId));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only add lines to a DRAFT bill." });
+      }
+      // Fetch WO item to snapshot rate
+      const [woItem] = await ctx.db
+        .select({ agreedRatePaise: cmsWoItems.agreedRatePaise, workOrderId: cmsWoItems.workOrderId })
+        .from(cmsWoItems)
+        .where(eq(cmsWoItems.id, input.woItemId));
+      if (!woItem) throw new TRPCError({ code: "NOT_FOUND", message: "WO item not found." });
+      if (woItem.workOrderId !== bill.workOrderId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "WO item does not belong to the bill's work order." });
+      }
+      const rate = woItem.agreedRatePaise;
+      const claimedAmt = Math.round(input.claimedQty * rate);
+      const [line] = await ctx.db
+        .insert(cmsBillLines)
+        .values({
+          billId: input.billId,
+          elementId: input.elementId,
+          woItemId: input.woItemId,
+          claimedQty: input.claimedQty,
+          ratePaise: rate,
+          claimedAmountPaise: claimedAmt,
+        })
+        .returning();
+      // Update bill claimed total
+      await ctx.db
+        .update(cmsBills)
+        .set({ claimedAmountPaise: sql`claimed_amount_paise + ${claimedAmt}` })
+        .where(eq(cmsBills.id, input.billId));
+      return line!;
+    }),
+
+  updateLine: costApproveProcedure2
+    .input(CmsBillLineUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const [line] = await ctx.db
+        .select({ billId: cmsBillLines.billId, certifiedQty: cmsBillLines.certifiedQty, ratePaise: cmsBillLines.ratePaise })
+        .from(cmsBillLines)
+        .where(eq(cmsBillLines.id, input.id));
+      if (!line) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const updates: Record<string, unknown> = {};
+      if (input.certifiedQty !== undefined) {
+        updates.certifiedQty = input.certifiedQty;
+        updates.certifiedAmountPaise = Math.round(input.certifiedQty * line.ratePaise);
+      }
+      if (input.holdReason !== undefined) updates.holdReason = input.holdReason;
+
+      await ctx.db.update(cmsBillLines).set(updates).where(eq(cmsBillLines.id, input.id));
+      return { ok: true };
+    }),
+
+  submit: protectedProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT bills can be submitted." });
+      }
+      await ctx.db.update(cmsBills).set({ status: "SUBMITTED" }).where(eq(cmsBills.id, input.id));
+      return { ok: true };
+    }),
+
+  certify: costApproveProcedure2
+    .input(CmsBillCertifyInput)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "SUBMITTED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only SUBMITTED bills can be certified." });
+      }
+      // Sum certified amounts from lines
+      const lineAmts = await ctx.db
+        .select({ certAmt: cmsBillLines.certifiedAmountPaise })
+        .from(cmsBillLines)
+        .where(eq(cmsBillLines.billId, input.id));
+      const certTotal = lineAmts.reduce((s, l) => s + (l.certAmt ?? 0), 0);
+      await ctx.db
+        .update(cmsBills)
+        .set({
+          status: "CERTIFIED",
+          certifiedAmountPaise: certTotal,
+          certifiedById: ctx.user.id,
+          certifiedAt: new Date(),
+          ...(input.remarks ? { remarks: input.remarks } : {}),
+        })
+        .where(eq(cmsBills.id, input.id));
+      return { ok: true, certifiedAmountPaise: certTotal };
+    }),
+
+  hold: costApproveProcedure2
+    .input(CmsBillCertifyInput)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "SUBMITTED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only SUBMITTED bills can be held." });
+      }
+      await ctx.db
+        .update(cmsBills)
+        .set({ status: "HELD", certifiedById: ctx.user.id, certifiedAt: new Date(),
+          ...(input.remarks ? { remarks: input.remarks } : {}) })
+        .where(eq(cmsBills.id, input.id));
+      return { ok: true };
+    }),
+
+  reject: costApproveProcedure2
+    .input(CmsBillCertifyInput)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "SUBMITTED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only SUBMITTED bills can be rejected." });
+      }
+      await ctx.db
+        .update(cmsBills)
+        .set({ status: "REJECTED", certifiedById: ctx.user.id, certifiedAt: new Date(),
+          ...(input.remarks ? { remarks: input.remarks } : {}) })
+        .where(eq(cmsBills.id, input.id));
+      return { ok: true };
+    }),
+
+  remove: protectedProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [bill] = await ctx.db
+        .select({ status: cmsBills.status })
+        .from(cmsBills)
+        .where(eq(cmsBills.id, input.id));
+      if (!bill) throw new TRPCError({ code: "NOT_FOUND" });
+      if (bill.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT bills can be removed." });
+      }
+      await ctx.db.delete(cmsBills).where(eq(cmsBills.id, input.id));
+      return { ok: true };
+    }),
+});
+
+/** Cost Management System router — CMS-1 through CMS-6. */
+export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders, bills });
