@@ -44,7 +44,7 @@ Route `/` · File `StudioAbstract.tsx` · tRPC `dashboard.*` (bundle stays named
 ## 2. Projects ✅
 Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`): Drawings ✅ ·
 Documents ✅ · Site Progress ✅ · Project Timeline ✅. **Project Workspace tabs:**
-Drawings ✅ · Documents ✅ · **Cost Management 🚧** (Estimate ✅ · BOQ ✅ · Site Measurement 🔲 · Work Orders 🔲 · Contractor Bills 🔲 · Cost Dashboard 🔲) · Site Progress ✅ ·
+Drawings ✅ · Documents ✅ (incl. **Final Estimation Records** ✅ — frozen CMS sets + PDF) · **Cost Management ✅** (Estimate ✅ · BOQ ✅ · Site Measurement ✅ · Work Orders ✅ · Contractor Bills ✅ · Cost Intelligence ✅ — material forecast + cost dashboard) · Site Progress ✅ ·
 Project Discussions ✅ · Transmittals ✅ *(project-only — no office-wide view)*.
 
 ## 3. Tasks ✅
@@ -54,7 +54,7 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 ## 4. Studio
 | Group → Module | Status | Where |
 |---|---|---|
-| **Libraries › Item Library** | ✅ | `/knowledge-bank` (Materials · Labor · Specifications · **Rate Books 🔲 · Estimation Intelligence 🔲**) |
+| **Libraries › Item Library** | ✅ | `/knowledge-bank` (Materials · Labour · Items · Brands · Specifications · Recipes · Brand Catalogue · **Import ✅** — paste/parse unstructured rate text, see `IMPORT_SPEC.md`) |
 | **Libraries › Compliance Library** | ✅ | `/libraries/compliance` — structured: NBC · FAR · Setbacks · Fire · Regulations (CRUD) |
 | **Libraries › Master Plan Library** | ✅ | `/libraries/master-plans` — PDF / DWG / zoning / development file uploads |
 | **Libraries › Standards Library** | ✅ | `/libraries/standards` — by discipline (Interiors/Plumbing/Electrical/Lighting) + notes + files |
@@ -138,7 +138,8 @@ unified **Proposals**.
 ## Build-vs-placeholder policy
 **Built/wired:** the V3 menu, Studio Abstract Lead Register tab, Proposals merge, removals, LXOS
 rename. **Build fully (Stage 2):** the 3 new Libraries (Compliance, Master Plan,
-Standards). **Placeholder / follow-on builds:** Cost Management (CMS-3–8) · Vendors · Payroll ·
+Standards). **Now built:** Cost Management (CMS-1→8) · Vendors (directory + pricing + quotations) ·
+KB text-import (`docs/esti/IMPORT_SPEC.md`). **Placeholder / follow-on builds:** Payroll ·
 LXOS exchange layers, and the User-Profile/LXOS identity·certification·index
 subsystems. See [ROADMAP.md](ROADMAP.md) and [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 

@@ -17,6 +17,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { Add, TrashCan } from "@carbon/icons-react";
+import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
@@ -104,7 +105,65 @@ export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
       {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
+      <FinalEstimationRecords projectId={projectId} />
     </Stack>
+  );
+}
+
+// --- Final estimation records (frozen CMS sets, archived from the BOQ tab) ---
+function FinalEstimationRecords({ projectId }: { projectId: string }) {
+  const setsQ = trpc.cms.finalSet.listByProject.useQuery({ projectId });
+  const sets = setsQ.data ?? [];
+  return (
+    <div>
+      <h3>Final estimation records</h3>
+      <DataState
+        loading={setsQ.isLoading}
+        isEmpty={!setsQ.isLoading && sets.length === 0}
+        columnCount={5}
+        empty={{
+          title: "No final estimation records",
+          description: "Freeze an estimate in Cost Management → BOQ to archive a revision here.",
+        }}
+      >
+        <TableContainer title="Final estimation records">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Rev</TableHeader>
+                <TableHeader>Title</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Total</TableHeader>
+                <TableHeader>Document</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sets.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>Rev {s.revisionNo}</TableCell>
+                  <TableCell>{s.title}</TableCell>
+                  <TableCell>
+                    <Tag type={s.status === "FINAL" ? "green" : "gray"} size="sm">{s.status}</Tag>
+                  </TableCell>
+                  <TableCell>{formatINR(s.totalPaise)}</TableCell>
+                  <TableCell>
+                    {s.pdfStatus === "READY" && s.pdfKey ? (
+                      <Button kind="ghost" size="sm" href={`/files/${s.pdfKey}`} target="_blank" rel="noreferrer">
+                        Open PDF
+                      </Button>
+                    ) : s.pdfStatus === "PENDING" || s.pdfStatus === "PROCESSING" ? (
+                      <span>Generating…</span>
+                    ) : (
+                      <Tag type="gray" size="sm">{s.pdfStatus}</Tag>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DataState>
+    </div>
   );
 }
 

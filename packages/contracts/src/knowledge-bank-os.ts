@@ -138,3 +138,19 @@ export type KbSpecLaborUpdate = z.infer<typeof KbSpecLaborUpdate>;
 
 export const KbIdInput = z.object({ id: z.string().uuid() });
 export type KbIdInput = z.infer<typeof KbIdInput>;
+
+// ── Item dependencies (KB Phase 5 / CMS-3) ───────────────────────────────────
+export const KbDependencyType = z.enum(["MANDATORY", "OPTIONAL", "SEQUENCE"]);
+export type KbDependencyType = z.infer<typeof KbDependencyType>;
+
+export const KbItemDependencyCreate = z.object({
+  parentItemId: z.string().uuid(),
+  childItemId: z.string().uuid(),
+  ratio: z.number().min(0).default(1),
+  dependencyType: KbDependencyType.default("MANDATORY"),
+  notes: z.string().max(500).optional(),
+});
+export type KbItemDependencyCreate = z.infer<typeof KbItemDependencyCreate>;
+
+export const KbByParentItemInput = z.object({ parentItemId: z.string().uuid() });
+export type KbByParentItemInput = z.infer<typeof KbByParentItemInput>;

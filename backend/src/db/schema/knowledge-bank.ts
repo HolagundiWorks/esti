@@ -127,3 +127,20 @@ export const kbSpecLabor = pgTable("esti_kb_spec_labor", {
   quantityPerUnit: doublePrecision("quantity_per_unit").notNull().default(0),
   createdAt: createdAt(),
 });
+
+/** Item dependency (KB Phase 5 / CMS-3) — a parent activity implies a child
+ *  activity at a derived quantity (e.g. Brickwork → Plastering at ratio 2.0).
+ *  Drives the Component auto-generation: parent element → suggested children. */
+export const kbItemDependencies = pgTable("esti_kb_item_dependency", {
+  id: id(),
+  parentItemId: uuid("parent_item_id")
+    .notNull()
+    .references(() => kbItems.id, { onDelete: "cascade" }),
+  childItemId: uuid("child_item_id")
+    .notNull()
+    .references(() => kbItems.id, { onDelete: "cascade" }),
+  ratio: doublePrecision("ratio").notNull().default(1), // child qty = parent qty × ratio
+  dependencyType: text("dependency_type").notNull().default("MANDATORY"), // MANDATORY|OPTIONAL|SEQUENCE
+  notes: text("notes"),
+  createdAt: createdAt(),
+});

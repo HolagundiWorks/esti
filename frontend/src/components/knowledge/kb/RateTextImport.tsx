@@ -23,6 +23,7 @@ import {
   parseRateText,
   type ImportFormat,
   type ImportItemRow,
+  type ImportLabourRow,
   type ImportMaterialRow,
 } from "@esti/contracts";
 import { trpc } from "../../../lib/trpc.js";
@@ -36,7 +37,7 @@ type EditRow = {
   flags: string[];
 };
 
-type Target = "materials" | "items";
+type Target = "materials" | "items" | "labour";
 
 const SAMPLE = `1. AC sheet 6 mm thick corrugated    Sqm   160.00
 2. Acrylic Exterior Paint             Ltr   250.00
@@ -59,8 +60,12 @@ export function RateTextImport() {
       utils.kb.specifications.invalidate();
     },
   });
-  const result = target === "materials" ? commitMaterials.data : commitItems.data;
-  const committing = commitMaterials.isPending || commitItems.isPending;
+  const commitLabour = trpc.kb.import.commitLabour.useMutation({
+    onSuccess: () => utils.kb.labor.list.invalidate(),
+  });
+  const result =
+    target === "materials" ? commitMaterials.data : target === "labour" ? commitLabour.data : commitItems.data;
+  const committing = commitMaterials.isPending || commitItems.isPending || commitLabour.isPending;
 
   function parse() {
     const res = parseRateText(text, format === "auto" ? undefined : format);
@@ -78,6 +83,7 @@ export function RateTextImport() {
     );
     commitMaterials.reset();
     commitItems.reset();
+    commitLabour.reset();
   }
 
   function setRow(i: number, patch: Partial<EditRow>) {
@@ -95,6 +101,13 @@ export function RateTextImport() {
         category: null,
       }));
       commitMaterials.mutate({ rows: payload });
+    } else if (target === "labour") {
+      const payload: ImportLabourRow[] = usable.map((r) => ({
+        name: r.description.trim(),
+        unit: r.unit.trim() || null,
+        ratePaise: r.rateRupees == null ? null : Math.round(r.rateRupees * 100),
+      }));
+      commitLabour.mutate({ rows: payload });
     } else {
       const payload: ImportItemRow[] = usable.map((r) => ({
         name: r.description.trim(),
@@ -163,6 +176,7 @@ export function RateTextImport() {
               onChange={(e) => setTarget(e.target.value as Target)}
             >
               <SelectItem value="materials" text="→ Material library" />
+              <SelectItem value="labour" text="→ Labour library" />
               <SelectItem value="items" text="→ Item library (+ rate spec)" />
             </Select>
           </Stack>
@@ -269,11 +283,11 @@ export function RateTextImport() {
               hideCloseButton
             />
           )}
-          {(commitMaterials.error || commitItems.error) && (
+          {(commitMaterials.error || commitItems.error || commitLabour.error) && (
             <InlineNotification
               kind="error"
               title="Import failed"
-              subtitle={(commitMaterials.error || commitItems.error)?.message}
+              subtitle={(commitMaterials.error || commitItems.error || commitLabour.error)?.message}
               lowContrast
               hideCloseButton
             />

@@ -290,10 +290,20 @@ export const ImportItemRow = z.object({
 });
 export type ImportItemRow = z.infer<typeof ImportItemRow>;
 
+export const ImportLabourRow = z.object({
+  name: z.string().min(1).max(160),
+  unit: z.string().max(40).nullable(),
+  ratePaise: z.number().int().min(0).nullable(),
+});
+export type ImportLabourRow = z.infer<typeof ImportLabourRow>;
+
 export const ImportCommitMaterials = z.object({ rows: z.array(ImportMaterialRow).max(5000) });
 export type ImportCommitMaterials = z.infer<typeof ImportCommitMaterials>;
 
 export const ImportCommitItems = z.object({ rows: z.array(ImportItemRow).max(5000) });
 export type ImportCommitItems = z.infer<typeof ImportCommitItems>;
+
+export const ImportCommitLabour = z.object({ rows: z.array(ImportLabourRow).max(5000) });
+export type ImportCommitLabour = z.infer<typeof ImportCommitLabour>;
 
 export type ImportCommitResult = { inserted: number; updated: number; skipped: number };

@@ -3,8 +3,10 @@ import {
   KbBrandUpdate,
   KbByItemInput,
   KbByMaterialInput,
+  KbByParentItemInput,
   KbBySpecInput,
   KbIdInput,
+  KbItemDependencyCreate,
   KbItemCreate,
   KbItemUpdate,
   KbLaborCreate,
@@ -20,6 +22,7 @@ import {
   KbSpecMaterialAdd,
   KbSpecMaterialUpdate,
   ImportCommitItems,
+  ImportCommitLabour,
   ImportCommitMaterials,
   canonicalUnit,
   normName,
@@ -30,6 +33,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   kbBrands,
+  kbItemDependencies,
   kbItems,
   kbLabor,
   kbMaterialBrands,
@@ -38,6 +42,7 @@ import {
   kbSpecLabor,
   kbSpecMaterials,
 } from "../../db/schema.js";
+import { alias } from "drizzle-orm/pg-core";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -623,6 +628,59 @@ const materialBrands = router({
   }),
 });
 
+// ── Item dependencies (KB Phase 5 / CMS-3) ──────────────────────────────────
+const childItem = alias(kbItems, "child_item");
+const parentItem = alias(kbItems, "parent_item");
+const dependencies = router({
+  list: protectedProcedure.query(({ ctx }) =>
+    ctx.db
+      .select({
+        id: kbItemDependencies.id,
+        parentItemId: kbItemDependencies.parentItemId,
+        parentItemName: parentItem.name,
+        childItemId: kbItemDependencies.childItemId,
+        childItemName: childItem.name,
+        ratio: kbItemDependencies.ratio,
+        dependencyType: kbItemDependencies.dependencyType,
+        notes: kbItemDependencies.notes,
+      })
+      .from(kbItemDependencies)
+      .leftJoin(parentItem, eq(kbItemDependencies.parentItemId, parentItem.id))
+      .leftJoin(childItem, eq(kbItemDependencies.childItemId, childItem.id))
+      .orderBy(asc(parentItem.name), asc(childItem.name)),
+  ),
+  listByParent: protectedProcedure
+    .input(KbByParentItemInput)
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(kbItemDependencies)
+        .where(eq(kbItemDependencies.parentItemId, input.parentItemId)),
+    ),
+  create: protectedProcedure
+    .input(KbItemDependencyCreate)
+    .mutation(async ({ ctx, input }) => {
+      if (input.parentItemId === input.childItemId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "An item cannot depend on itself." });
+      }
+      const [row] = await ctx.db
+        .insert(kbItemDependencies)
+        .values({
+          parentItemId: input.parentItemId,
+          childItemId: input.childItemId,
+          ratio: input.ratio,
+          dependencyType: input.dependencyType,
+          notes: input.notes ?? null,
+        })
+        .returning();
+      return row!;
+    }),
+  remove: protectedProcedure.input(KbIdInput).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(kbItemDependencies).where(eq(kbItemDependencies.id, input.id));
+    return { ok: true };
+  }),
+});
+
 // ── Text import — upsert reviewed rows by normName + canonical unit ──────────
 // Dedup so re-importing the same schedule refreshes rates in place, never
 // duplicates. See docs/esti/IMPORT_SPEC.md. The name portion is additionally
@@ -669,6 +727,42 @@ const importRouter = router({
             .insert(kbMaterials)
             .values({ name, unit, category: r.category ?? null, defaultRatePaise: r.ratePaise ?? 0 })
             .returning({ id: kbMaterials.id });
+          seen.set(k, { id: row!.id, rate: r.ratePaise ?? 0 });
+          inserted++;
+        }
+      }
+      return { inserted, updated, skipped };
+    }),
+
+  commitLabour: protectedProcedure
+    .input(ImportCommitLabour)
+    .mutation(async ({ ctx, input }): Promise<ImportCommitResult> => {
+      const existing = await ctx.db
+        .select({ id: kbLabor.id, name: kbLabor.name, unit: kbLabor.unit, rate: kbLabor.defaultRatePaise })
+        .from(kbLabor);
+      const seen = new Map(existing.map((m) => [matchKey(m.name, m.unit), { id: m.id, rate: m.rate }]));
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+      for (const r of input.rows) {
+        const name = r.name.trim();
+        const unit = canonicalUnit(r.unit) ?? (r.unit?.trim() || null);
+        if (!name || !unit) {
+          skipped++;
+          continue;
+        }
+        const k = matchKey(name, unit);
+        const hit = seen.get(k);
+        if (hit) {
+          if (r.ratePaise != null && r.ratePaise !== hit.rate) {
+            await ctx.db.update(kbLabor).set({ defaultRatePaise: r.ratePaise }).where(eq(kbLabor.id, hit.id));
+            updated++;
+          } else skipped++;
+        } else {
+          const [row] = await ctx.db
+            .insert(kbLabor)
+            .values({ name, unit, defaultRatePaise: r.ratePaise ?? 0 })
+            .returning({ id: kbLabor.id });
           seen.set(k, { id: row!.id, rate: r.ratePaise ?? 0 });
           inserted++;
         }
@@ -746,5 +840,6 @@ export const kbRouter = router({
   materialBrands,
   specifications,
   recipes,
+  dependencies,
   import: importRouter,
 });

@@ -15,6 +15,9 @@ import {
   CmsBillCreate,
   CmsBillLineCreate,
   CmsBillLineUpdate,
+  CmsGenerateComponentsInput,
+  CmsSuggestComponentsInput,
+  type CmsComponentSuggestion,
   type CmsCostDashboard,
   type CmsMaterialForecastLine,
   CmsWoByProjectInput,
@@ -41,6 +44,7 @@ import {
   cmsWoItems,
   cmsWorkOrders,
   contractors,
+  kbItemDependencies,
   kbItems,
   kbLabor,
   kbMaterials,
@@ -269,6 +273,131 @@ const elements = router({
         actorId: ctx.user.id,
       });
       return { ok: true };
+    }),
+
+  // ── Components auto-gen (CMS-3) ────────────────────────────────────────────
+  /** Suggest child elements for a parent, from its item's KB dependencies. */
+  suggestComponents: protectedProcedure
+    .input(CmsSuggestComponentsInput)
+    .query(async ({ ctx, input }): Promise<CmsComponentSuggestion[]> => {
+      const [parent] = await ctx.db
+        .select({ id: cmsElements.id, itemId: cmsElements.itemId, quantity: cmsElements.quantity })
+        .from(cmsElements)
+        .where(eq(cmsElements.id, input.parentElementId));
+      if (!parent || !parent.itemId) return [];
+
+      const deps = await ctx.db
+        .select({
+          childItemId: kbItemDependencies.childItemId,
+          childItemName: kbItems.name,
+          ratio: kbItemDependencies.ratio,
+          dependencyType: kbItemDependencies.dependencyType,
+        })
+        .from(kbItemDependencies)
+        .leftJoin(kbItems, eq(kbItemDependencies.childItemId, kbItems.id))
+        .where(eq(kbItemDependencies.parentItemId, parent.itemId));
+      if (deps.length === 0) return [];
+
+      // existing children of this parent (by childItemId) — to flag already-generated
+      const existingKids = await ctx.db
+        .select({ itemId: cmsElements.itemId })
+        .from(cmsElements)
+        .where(eq(cmsElements.parentElementId, parent.id));
+      const existingItemIds = new Set(existingKids.map((k) => k.itemId).filter(Boolean));
+
+      const out: CmsComponentSuggestion[] = [];
+      for (const d of deps) {
+        // default spec of the child item → unit + rate snapshot
+        const [spec] = await ctx.db
+          .select({
+            id: kbSpecifications.id,
+            name: kbSpecifications.name,
+            unit: kbSpecifications.unit,
+            ratePaise: kbSpecifications.ratePaise,
+          })
+          .from(kbSpecifications)
+          .where(
+            and(eq(kbSpecifications.itemId, d.childItemId), eq(kbSpecifications.isDefault, true)),
+          )
+          .limit(1);
+        const ratePaise = spec?.ratePaise ?? 0;
+        const suggestedQty = Math.round(parent.quantity * d.ratio * 10000) / 10000;
+        out.push({
+          childItemId: d.childItemId,
+          childItemName: d.childItemName ?? "Item",
+          specificationId: spec?.id ?? null,
+          description: spec ? `${d.childItemName} — ${spec.name}` : (d.childItemName ?? "Component"),
+          unit: spec?.unit ?? null,
+          ratePaise,
+          ratio: d.ratio,
+          suggestedQty,
+          suggestedAmountPaise: cmsAmountPaise(suggestedQty, ratePaise),
+          dependencyType: d.dependencyType,
+          alreadyExists: existingItemIds.has(d.childItemId),
+        });
+      }
+      return out;
+    }),
+
+  /** Create child elements (EL-001A, EL-001B…) from confirmed suggestions. */
+  generateComponents: protectedProcedure
+    .input(CmsGenerateComponentsInput)
+    .mutation(async ({ ctx, input }) => {
+      const [parent] = await ctx.db
+        .select()
+        .from(cmsElements)
+        .where(eq(cmsElements.id, input.parentElementId));
+      if (!parent) throw new TRPCError({ code: "NOT_FOUND", message: "Parent element" });
+
+      const kids = await ctx.db
+        .select({ id: cmsElements.id })
+        .from(cmsElements)
+        .where(eq(cmsElements.parentElementId, parent.id));
+      let letterIdx = kids.length;
+      let created = 0;
+
+      for (const pick of input.picks) {
+        // resolve child item's default spec for unit + rate + description
+        const [spec] = await ctx.db
+          .select({
+            id: kbSpecifications.id,
+            name: kbSpecifications.name,
+            unit: kbSpecifications.unit,
+            ratePaise: kbSpecifications.ratePaise,
+          })
+          .from(kbSpecifications)
+          .where(and(eq(kbSpecifications.itemId, pick.childItemId), eq(kbSpecifications.isDefault, true)))
+          .limit(1);
+        const [item] = await ctx.db
+          .select({ name: kbItems.name })
+          .from(kbItems)
+          .where(eq(kbItems.id, pick.childItemId));
+        const ratePaise = spec?.ratePaise ?? 0;
+        const description = spec ? `${item?.name ?? "Item"} — ${spec.name}` : (item?.name ?? "Component");
+        const code = `${parent.code}${String.fromCharCode(65 + letterIdx)}`;
+        letterIdx++;
+        await ctx.db.insert(cmsElements).values({
+          projectId: parent.projectId,
+          code,
+          seq: parent.seq,
+          parentElementId: parent.id,
+          isComponent: true,
+          dependencyType: "MANDATORY",
+          locationId: parent.locationId,
+          itemId: pick.childItemId,
+          specificationId: spec?.id ?? null,
+          description,
+          measurementType: "COUNT",
+          dimensions: {},
+          quantity: pick.quantity,
+          unit: spec?.unit ?? null,
+          ratePaise,
+          amountPaise: cmsAmountPaise(pick.quantity, ratePaise),
+          sortOrder: parent.seq * 10 + letterIdx,
+        });
+        created++;
+      }
+      return { created };
     }),
 });
 

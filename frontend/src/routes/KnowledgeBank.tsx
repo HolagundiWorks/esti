@@ -26,6 +26,7 @@ import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.j
 import { MaterialLibrary } from "../components/knowledge/kb/MaterialLibrary.js";
 import { LaborLibrary } from "../components/knowledge/kb/LaborLibrary.js";
 import { ItemLibrary } from "../components/knowledge/kb/ItemLibrary.js";
+import { ItemDependencyMapper } from "../components/knowledge/kb/ItemDependencyMapper.js";
 import { BrandLibrary } from "../components/knowledge/kb/BrandLibrary.js";
 import { MaterialBrandMapper } from "../components/knowledge/kb/MaterialBrandMapper.js";
 import { SpecificationLibrary } from "../components/knowledge/kb/SpecificationLibrary.js";
@@ -159,7 +160,10 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <ItemLibrary />
+            <Stack gap={8}>
+              <ItemLibrary />
+              <ItemDependencyMapper />
+            </Stack>
           </TabPanel>
 
           <TabPanel>

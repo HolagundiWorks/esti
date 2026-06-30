@@ -15,7 +15,7 @@ import {
   Tag,
   TextInput,
 } from "@carbon/react";
-import { Add, Edit, TrashCan } from "@carbon/icons-react";
+import { Add, Edit, FlowConnection, TrashCan } from "@carbon/icons-react";
 import {
   cmsAmountPaise,
   computeQuantity,
@@ -25,6 +25,7 @@ import {
 } from "@esti/contracts";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
+import { ProjectElementComponents } from "./ProjectElementComponents.js";
 import { trpc } from "../../lib/trpc.js";
 
 const MEASURE_TYPES: CmsMeasurementType[] = ["VOLUME", "AREA", "LENGTH", "COUNT"];
@@ -55,6 +56,7 @@ type ElementRow = {
   unit: string | null;
   ratePaise: number;
   amountPaise: number;
+  isComponent: boolean;
 };
 
 export function ProjectEstimate({ projectId }: { projectId: string }) {
@@ -67,6 +69,7 @@ export function ProjectEstimate({ projectId }: { projectId: string }) {
   const createEl = trpc.cms.elements.create.useMutation({ onSuccess: invalEl });
   const updateEl = trpc.cms.elements.update.useMutation({ onSuccess: invalEl });
   const removeEl = trpc.cms.elements.remove.useMutation({ onSuccess: invalEl });
+  const [compFor, setCompFor] = useState<{ id: string; code: string } | null>(null);
   const createLoc = trpc.cms.locations.create.useMutation({
     onSuccess: () => utils.cms.locations.listByProject.invalidate({ projectId }),
   });
@@ -238,6 +241,17 @@ export function ProjectEstimate({ projectId }: { projectId: string }) {
                           setOpen(true);
                         }}
                       />
+                      {!el.isComponent && (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          hasIconOnly
+                          renderIcon={FlowConnection}
+                          iconDescription="Components"
+                          tooltipPosition="left"
+                          onClick={() => setCompFor({ id: el.id, code: el.code })}
+                        />
+                      )}
                       <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={TrashCan} iconDescription="Remove" tooltipPosition="left" onClick={() => setConfirmId(el.id)} />
                     </Stack>
                   </TableCell>
@@ -296,6 +310,14 @@ export function ProjectEstimate({ projectId }: { projectId: string }) {
         confirmText="Remove"
         onConfirm={() => { if (confirmId) removeEl.mutate({ id: confirmId }); setConfirmId(null); }}
         onClose={() => setConfirmId(null)}
+      />
+
+      <ProjectElementComponents
+        parentElementId={compFor?.id ?? null}
+        parentCode={compFor?.code ?? ""}
+        open={!!compFor}
+        onClose={() => setCompFor(null)}
+        onGenerated={invalEl}
       />
     </Stack>
   );

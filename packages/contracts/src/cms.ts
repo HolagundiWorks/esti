@@ -183,6 +183,38 @@ export type CmsWoByProjectInput = z.infer<typeof CmsWoByProjectInput>;
 export const CmsWoIssueInput = z.object({ id: z.string().uuid() });
 export type CmsWoIssueInput = z.infer<typeof CmsWoIssueInput>;
 
+// ── Components auto-gen (CMS-3) ──────────────────────────────────────────────
+export const CmsSuggestComponentsInput = z.object({ parentElementId: z.string().uuid() });
+export type CmsSuggestComponentsInput = z.infer<typeof CmsSuggestComponentsInput>;
+
+/** A suggested child element derived from a parent element's item dependencies. */
+export type CmsComponentSuggestion = {
+  childItemId: string;
+  childItemName: string;
+  specificationId: string | null;
+  description: string;
+  unit: string | null;
+  ratePaise: number;
+  ratio: number;
+  suggestedQty: number;
+  suggestedAmountPaise: number;
+  dependencyType: string;
+  alreadyExists: boolean;
+};
+
+export const CmsGenerateComponentsInput = z.object({
+  parentElementId: z.string().uuid(),
+  picks: z
+    .array(
+      z.object({
+        childItemId: z.string().uuid(),
+        quantity: z.number().min(0),
+      }),
+    )
+    .min(1),
+});
+export type CmsGenerateComponentsInput = z.infer<typeof CmsGenerateComponentsInput>;
+
 // ── Material Intelligence (CMS-7) ───────────────────────────────────────────
 /** Per-material/labour forecast line derived from element qty × spec recipe. */
 export type CmsMaterialForecastLine = {
