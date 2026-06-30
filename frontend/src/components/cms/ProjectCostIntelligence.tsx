@@ -81,13 +81,13 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                   <p>
                     {formatINR(Math.max(0, d.estimatedTotalPaise - d.certifiedTotalPaise))}
                   </p>
-                  <p className="esti-label--helper">
+                  <div className="esti-label--helper">
                     {d.certifiedTotalPaise >= d.estimatedTotalPaise ? (
                       <Tag type="green" size="sm">Fully certified</Tag>
                     ) : (
                       <Tag type="cool-gray" size="sm">Pending</Tag>
                     )}
-                  </p>
+                  </div>
                 </Tile>
               </Column>
             </Grid>

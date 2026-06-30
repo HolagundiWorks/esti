@@ -2,11 +2,11 @@ import { ArrowRight, Download } from "@carbon/icons-react";
 import { Button } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
 
-/** Where the AORMS Lite installer is hosted. Override at build via
- *  VITE_LITE_DOWNLOAD_URL; defaults to a static path the host can drop the
- *  signed installer into (see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md). */
-const LITE_DOWNLOAD_URL =
-  import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "/downloads/aorms-lite-setup.exe";
+/** Where the AORMS Lite installer is hosted. The download button only appears
+ *  once this is set — point it at the built installer (e.g.
+ *  /downloads/aorms-lite-setup.exe after dropping the file in frontend/public,
+ *  or a CDN URL). See docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md. */
+const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
 
 const STATUS_LINES = [
   { label: "Built only for Indian architectural practices", dot: "green" },
@@ -62,14 +62,16 @@ export function MarketingHero({
             Request Workspace
           </Button>
         )}
-        <Button
-          kind="tertiary"
-          size="lg"
-          renderIcon={Download}
-          href={LITE_DOWNLOAD_URL}
-        >
-          Download AORMS Lite
-        </Button>
+        {LITE_DOWNLOAD_URL && (
+          <Button
+            kind="tertiary"
+            size="lg"
+            renderIcon={Download}
+            href={LITE_DOWNLOAD_URL}
+          >
+            Download AORMS Lite
+          </Button>
+        )}
       </div>
 
       <div className="esti-lp-hero__status" aria-label="System status">
