@@ -196,21 +196,27 @@ Then open `https://your-domain.com` and log in with the owner account.
 
 ---
 
-## 8. Finish Google sign-in (licensing only)
+## 8. Platform admin sign-in (licensing only)
 
-The code is wired; it needs your OAuth client (the assistant can't create it). In
-**Google Cloud → APIs & Services → Credentials**, create an OAuth 2.0 Web client,
-add redirect URI `https://your-domain.com/platform/auth/google/callback`, then:
+The licensing console at `/platform-admin` uses **email + password** — no Google,
+nothing to configure. The admin allowlist is `PLATFORM_ADMIN_EMAILS` (you set it
+during install). To get in:
+
+1. Open `https://your-domain.com/platform-admin`.
+2. Click **"Need an account? Create one"** and register with an email that is in
+   `PLATFORM_ADMIN_EMAILS`, plus a password (≥8 chars). That account is granted
+   platform admin automatically on first sign-up.
+3. You land in the console — **Licenses · Organizations · Products & plans · API
+   keys**. The licensing install auto-seeds one demo licence per tier
+   (`demo.lite1@aorms.in` / `demo.core1` / `demo.enterprise1`, password `demo1234`).
+
+To change the admin allowlist later:
 
 ```bash
 cd /opt/esti
-# edit .env — add:
-#   GOOGLE_CLIENT_ID=…
-#   GOOGLE_CLIENT_SECRET=…
+# edit .env → PLATFORM_ADMIN_EMAILS=you@firm.in,ops@firm.in
 bash deploy/update.sh
 ```
-
-Until set, `/platform-admin` shows "Google login not configured"; everything else works.
 
 ---
 

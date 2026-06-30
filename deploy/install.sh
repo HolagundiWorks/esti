@@ -126,11 +126,10 @@ else
   DEMO_PASSWORD="demo1234"   # unused unless SEED_DEMO=true
 fi
 
-# Licensing & Account overlay: platform admins + Google sign-in.
+# Licensing & Account overlay: platform-admin allowlist (email+password sign-in).
 if [[ "$PLATFORM_ENABLED" == "true" ]]; then
   [[ -n "${PLATFORM_ADMIN_EMAILS:-}" ]] || ask "Platform admin emails (comma-separated):" PLATFORM_ADMIN_EMAILS
-  warn "Google sign-in: set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env after install"
-  warn "(redirect URI https://${DOMAIN}/platform/auth/google/callback) — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md."
+  info "Platform admin: register at /platform-admin with one of those emails (email + password)."
 fi
 
 export DOMAIN POSTGRES_PASSWORD SESSION_SECRET MINIO_USER MINIO_PASSWORD
@@ -149,7 +148,7 @@ echo -e "  URL    : ${BOLD}https://${DOMAIN}${NC}"
 echo -e "  Login  : ${BOLD}${OWNER_EMAIL}${NC}"
 [[ "$PROFILE" == "demo" ]]        && echo -e "  Demo   : ${BOLD}https://${DOMAIN}/demo${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD} (no manual login)"
 [[ "$PROFILE" == "landing" ]]     && echo -e "  Site   : public marketing landing at ${BOLD}https://${DOMAIN}${NC}"
-[[ "$PLATFORM_ENABLED" == "true" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (Google sign-in once GOOGLE_* env set)"
+[[ "$PLATFORM_ENABLED" == "true" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (register with a PLATFORM_ADMIN_EMAILS address) · demo licences: demo.lite1@aorms.in / demo1234"
 echo ""
 echo -e "  Update later: ${CYAN}bash ${DEPLOY_DIR}/deploy/update.sh${NC}"
 echo ""
