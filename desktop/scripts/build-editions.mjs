@@ -56,8 +56,12 @@ function newestSetupExe() {
 
 const base = JSON.parse(readFileSync(CONF, "utf8"));
 
-console.log("== assembling shared frontend + backend sidecar (once) ==");
-sh("pnpm desktop:assemble");
+if (process.env.SKIP_ASSEMBLE) {
+  console.log("== SKIP_ASSEMBLE set — reusing the already-assembled frontend/dist + sidecar ==");
+} else {
+  console.log("== assembling shared frontend + backend sidecar (once) ==");
+  sh("pnpm desktop:assemble");
+}
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
