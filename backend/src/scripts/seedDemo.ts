@@ -24,7 +24,6 @@ import { db } from "../db/index.js";
 import {
   approvals,
   assignments,
-  attendance,
   clientLogs,
   clients,
   comments,
@@ -40,7 +39,6 @@ import {
   grns,
   inspections,
   invoices,
-  leaves,
   measurementRecords,
   orgSettings,
   permits,
@@ -48,7 +46,6 @@ import {
   poItems,
   projectOffices,
   purchaseOrders,
-  rewardPoints,
   runningBillItems,
   runningBills,
   specItems,
@@ -78,23 +75,11 @@ function dayOffset(n: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function recentWeekdays(count: number): number[] {
-  const result: number[] = [];
-  let offset = -1;
-  while (result.length < count) {
-    const d = new Date();
-    d.setDate(d.getDate() + offset);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) result.push(offset);
-    offset--;
-  }
-  return result;
-}
-
 async function clearDemoWorkspace(principalId: string) {
   const demoEmails = [
     "principal@demo.aorms.in", "lead@demo.aorms.in", "site@demo.aorms.in",
     "junior@demo.aorms.in", "intern@demo.aorms.in", "accounts@demo.aorms.in", "client@demo.aorms.in",
+    "contractor@demo.aorms.in",
   ];
   // Bypass FK trigger checks so we can delete in any order within the session.
   await db.execute(rawSql`SET session_replication_role = 'replica'`);
@@ -142,35 +127,12 @@ async function main() {
   if (!principalMaybe) throw new Error("principal insert failed");
   const principal = principalMaybe;
 
-  const staffUsers = await db.insert(users).values([
-    { email: "lead@demo.aorms.in",     fullName: "Ar. Aarav Mehta (Project Lead)", role: "PARTNER",         passwordHash: pwHash, isDemo: true },
-    { email: "site@demo.aorms.in",     fullName: "Rahul Nair (Site Supervisor)",   role: "SITE_SUPERVISOR", passwordHash: pwHash, isDemo: true },
-    { email: "junior@demo.aorms.in",   fullName: "Sneha Rao (Jr Architect)",       role: "VIEWER",          passwordHash: pwHash, isDemo: true },
-    { email: "intern@demo.aorms.in",   fullName: "Kiran Patel (Intern)",           role: "VIEWER",          passwordHash: pwHash, isDemo: true },
-    { email: "accounts@demo.aorms.in", fullName: "Priya Kumar (Accounts)",         role: "ACCOUNTANT",      passwordHash: pwHash, isDemo: true },
-  ]).returning();
-
-  const userByEmail = new Map<string, string>([
-    [principalEmail, principal.id],
-    ...staffUsers.map((u): [string, string] => [u.email, u.id]),
-  ]);
-
-  // ── Team members ─────────────────────────────────────────────────────────
+  // ── Team member (principal only — lean single-account demo) ────────────────
   const staff = await db.insert(teamMembers).values([
-    { name: "Vihaan Sharma",  role: "Principal Architect", employmentType: "FULL_TIME", email: principalEmail,          userId: userByEmail.get(principalEmail)!,          monthlySalaryPaise: 2_50_000_00, dateJoined: dayOffset(-1500), active: true },
-    { name: "Aarav Mehta",    role: "Project Lead",        employmentType: "FULL_TIME", email: "lead@demo.aorms.in",    userId: userByEmail.get("lead@demo.aorms.in")!,    monthlySalaryPaise: 1_20_000_00, dateJoined: dayOffset(-900),  active: true },
-    { name: "Rahul Nair",     role: "Site Supervisor",     employmentType: "FULL_TIME", email: "site@demo.aorms.in",    userId: userByEmail.get("site@demo.aorms.in")!,    monthlySalaryPaise:   70_000_00, dateJoined: dayOffset(-500),  active: true },
-    { name: "Sneha Rao",      role: "Jr Architect",        employmentType: "FULL_TIME", email: "junior@demo.aorms.in",  userId: userByEmail.get("junior@demo.aorms.in")!,  monthlySalaryPaise:   45_000_00, dateJoined: dayOffset(-200),  active: true },
-    { name: "Kiran Patel",    role: "Intern",              employmentType: "INTERN",    email: "intern@demo.aorms.in",  userId: userByEmail.get("intern@demo.aorms.in")!,  monthlySalaryPaise:   15_000_00, dateJoined: dayOffset(-60),   active: true },
+    { name: "Vihaan Sharma", role: "Principal Architect", employmentType: "FULL_TIME", email: principalEmail, userId: principal.id, monthlySalaryPaise: 2_50_000_00, dateJoined: dayOffset(-1500), active: true },
   ]).returning();
 
   const mid = new Map(staff.map((m) => [m.name, m.id]));
-
-  await db.insert(leaves).values([
-    { teamMemberId: mid.get("Rahul Nair")!,  type: "CASUAL", fromDate: dayOffset(0),   toDate: dayOffset(1),   days: 2, reason: "Family function", status: "APPROVED" },
-    { teamMemberId: mid.get("Sneha Rao")!,   type: "SICK",   fromDate: dayOffset(-10), toDate: dayOffset(-10), days: 1, reason: "Fever",          status: "APPROVED" },
-    { teamMemberId: mid.get("Aarav Mehta")!, type: "EARNED", fromDate: dayOffset(15),  toDate: dayOffset(19),  days: 5, reason: "Annual vacation", status: "PENDING" },
-  ]);
 
   // ── Clients ───────────────────────────────────────────────────────────────
   const clientRows = await db.insert(clients).values([
@@ -189,12 +151,6 @@ async function main() {
     { name: "Meghana Foundation Trust",                  kind: "COMPANY",    city: "Bengaluru", state: "Karnataka",     email: "office@meghanatrust.in",     phone: "+91 80471 99005" },
     { name: "Tanvi Desai",                               kind: "INDIVIDUAL", city: "Belagavi",  state: "Karnataka",     email: "tanvi.desai@example.in",     phone: "+91 98450 99006" },
   ]).returning();
-
-  const kapoor = clientRows[3]!;
-  await db.insert(users).values({
-    email: "client@demo.aorms.in", fullName: "Divya Kapoor (Client)", role: "CLIENT",
-    passwordHash: pwHash, isDemo: true, clientId: kapoor.id,
-  });
 
   // ── Consultants ───────────────────────────────────────────────────────────
   const consultantRows = await db.insert(consultants).values([
@@ -228,7 +184,7 @@ async function main() {
     { client: clientRows[0]!,  title: "Sharma Villa — Whitefield",              projectType: "Residential Architecture",  value: 45_00_00_000,  status: "ACTIVE",    phaseProgress: 3 },
     { client: clientRows[1]!,  title: "Rao House — Mysuru",                     projectType: "Residential Architecture",  value:  1_20_00_000,  status: "ACTIVE",    phaseProgress: 1 },
     { client: clientRows[2]!,  title: "Verde Commercial Block",                  projectType: "Commercial Architecture",   value:  8_50_00_000,  status: "ACTIVE",    phaseProgress: 2 },
-    { client: kapoor,          title: "Kapoor Residence — Sarjapur",             projectType: "Residential Architecture",  value:  2_10_00_000,  status: "ACTIVE",    phaseProgress: 0 },
+    { client: clientRows[3]!,  title: "Kapoor Residence — Sarjapur",             projectType: "Residential Architecture",  value:  2_10_00_000,  status: "ACTIVE",    phaseProgress: 0 },
     { client: clientRows[4]!,  title: "Patel Corp HQ — Pune",                   projectType: "Commercial Architecture",   value: 22_50_00_000,  status: "ACTIVE",    phaseProgress: 2 },
     { client: clientRows[5]!,  title: "St. Francis School Expansion",            projectType: "Institutional Architecture",value:  6_80_00_000,  status: "ACTIVE",    phaseProgress: 1 },
     { client: clientRows[6]!,  title: "Reddy Beach Retreat — Goa",              projectType: "Residential Architecture",  value:  3_40_00_000,  status: "ON_HOLD",   phaseProgress: 1 },
@@ -248,96 +204,96 @@ async function main() {
   }>> = [
     // 0 — Sharma Villa (construction active → intervention on some tasks)
     [
-      { title: "Issue GFC drawings — ground floor",         assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "8.00" },
-      { title: "Site visit — RCC slab reinforcement check", assignee: "Rahul Nair",   priority: "HIGH",   due: dayOffset(0),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "4.00", interventionRequired: true },
-      { title: "Coordinate structural consultant: column schedule", assignee: "Aarav Mehta", priority: "MEDIUM", due: dayOffset(2), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 3, hours: "6.00" },
-      { title: "Finalise BOQ for Variation Order #2",       assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(-3), status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 4, hours: "12.00", interventionRequired: true },
-      { title: "Prepare client progress presentation",      assignee: "Sneha Rao",    priority: "MEDIUM", due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "5.00" },
-      { title: "Update AORMS project timeline",             assignee: "Sneha Rao",    priority: "LOW",    due: dayOffset(3),  status: "TODO",        classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "2.00" },
+      { title: "Issue GFC drawings — ground floor",         assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "8.00" },
+      { title: "Site visit — RCC slab reinforcement check", assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(0),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "4.00", interventionRequired: true },
+      { title: "Coordinate structural consultant: column schedule", assignee: "Vihaan Sharma", priority: "MEDIUM", due: dayOffset(2), status: "TODO", classification: "BILLABLE", workType: "DESIGN_DEVELOPMENT", difficulty: 3, hours: "6.00" },
+      { title: "Finalise BOQ for Variation Order #2",       assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(-3), status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 4, hours: "12.00", interventionRequired: true },
+      { title: "Prepare client progress presentation",      assignee: "Vihaan Sharma",    priority: "MEDIUM", due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "5.00" },
+      { title: "Update AORMS project timeline",             assignee: "Vihaan Sharma",    priority: "LOW",    due: dayOffset(3),  status: "TODO",        classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "2.00" },
     ],
     // 1 — Rao House
     [
-      { title: "Schematic design options — A & B",          assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(1),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "16.00" },
-      { title: "Client meeting — finalize scheme",          assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "3.00" },
-      { title: "Submit permit drawings to MUDA",            assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(8),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "10.00" },
+      { title: "Schematic design options — A & B",          assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(1),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "16.00" },
+      { title: "Client meeting — finalize scheme",          assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "3.00" },
+      { title: "Submit permit drawings to MUDA",            assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(8),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "10.00" },
       { title: "Prepare GST invoice — Milestone 1",         assignee: "Vihaan Sharma",priority: "MEDIUM", due: dayOffset(0),  status: "TODO",        classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "1.00" },
     ],
     // 2 — Verde Commercial Block
     [
-      { title: "GFC drawing set — typical floor",           assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(-2), status: "IN_PROGRESS", classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 5, hours: "24.00" },
-      { title: "Facade mock-up review on site",             assignee: "Rahul Nair",   priority: "HIGH",   due: dayOffset(1),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 3, hours: "6.00" },
-      { title: "MEP coordination meeting",                  assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(0),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "4.00" },
-      { title: "Issue revised parking layout",              assignee: "Sneha Rao",    priority: "MEDIUM", due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "6.00" },
-      { title: "BBMP occupancy certificate follow-up",      assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "3.00" },
+      { title: "GFC drawing set — typical floor",           assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(-2), status: "IN_PROGRESS", classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 5, hours: "24.00" },
+      { title: "Facade mock-up review on site",             assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(1),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 3, hours: "6.00" },
+      { title: "MEP coordination meeting",                  assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(0),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "4.00" },
+      { title: "Issue revised parking layout",              assignee: "Vihaan Sharma",    priority: "MEDIUM", due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "6.00" },
+      { title: "BBMP occupancy certificate follow-up",      assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "3.00" },
     ],
     // 3 — Kapoor Residence
     [
-      { title: "Inception meeting — site visit",            assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(0),  status: "DONE",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "4.00" },
-      { title: "Site measurement and survey notes",         assignee: "Rahul Nair",   priority: "HIGH",   due: dayOffset(-3), status: "DONE",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "6.00" },
-      { title: "Brief & design programme document",         assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(2),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "4.00" },
+      { title: "Inception meeting — site visit",            assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(0),  status: "DONE",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "4.00" },
+      { title: "Site measurement and survey notes",         assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(-3), status: "DONE",        classification: "BILLABLE",     workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "6.00" },
+      { title: "Brief & design programme document",         assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(2),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "4.00" },
       { title: "Fee proposal — architecture scope",         assignee: "Vihaan Sharma",priority: "MEDIUM", due: dayOffset(4),  status: "TODO",        classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "3.00" },
     ],
     // 4 — Patel Corp HQ
     [
-      { title: "Concept design — board review presentation",assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(-1), status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 4, hours: "12.00" },
-      { title: "Structural grid coordination",              assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "8.00" },
-      { title: "Fire NOC documentation",                    assignee: "Sneha Rao",    priority: "MEDIUM", due: dayOffset(7),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "6.00" },
-      { title: "Landscape design brief to Canopy Works",    assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 2, hours: "3.00" },
+      { title: "Concept design — board review presentation",assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(-1), status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 4, hours: "12.00" },
+      { title: "Structural grid coordination",              assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "8.00" },
+      { title: "Fire NOC documentation",                    assignee: "Vihaan Sharma",    priority: "MEDIUM", due: dayOffset(7),  status: "TODO",        classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "6.00" },
+      { title: "Landscape design brief to Canopy Works",    assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 2, hours: "3.00" },
       { title: "Geotechnical report review",                assignee: "Vihaan Sharma",priority: "HIGH",   due: dayOffset(1),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "4.00" },
     ],
     // 5 — St. Francis School
     [
-      { title: "Site context study — existing building survey", assignee: "Sneha Rao", priority: "HIGH",  due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "8.00" },
-      { title: "Educational space programming brief",        assignee: "Aarav Mehta", priority: "HIGH",   due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 3, hours: "6.00" },
-      { title: "Classroom block schematic options",          assignee: "Sneha Rao",   priority: "MEDIUM", due: dayOffset(8),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "16.00" },
+      { title: "Site context study — existing building survey", assignee: "Vihaan Sharma", priority: "HIGH",  due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "8.00" },
+      { title: "Educational space programming brief",        assignee: "Vihaan Sharma", priority: "HIGH",   due: dayOffset(4),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 3, hours: "6.00" },
+      { title: "Classroom block schematic options",          assignee: "Vihaan Sharma",   priority: "MEDIUM", due: dayOffset(8),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "16.00" },
       { title: "Diocese board presentation",                 assignee: "Vihaan Sharma",priority: "HIGH",  due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 3, hours: "4.00" },
     ],
     // 6 — Reddy Beach Retreat
     [
-      { title: "CRZ compliance assessment",                  assignee: "Aarav Mehta", priority: "HIGH",   due: dayOffset(-15), status: "DONE",       classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 5, hours: "10.00" },
-      { title: "Schematic design — beach-facing elevation",  assignee: "Sneha Rao",   priority: "HIGH",   due: dayOffset(-5),  status: "DONE",       classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "14.00" },
+      { title: "CRZ compliance assessment",                  assignee: "Vihaan Sharma", priority: "HIGH",   due: dayOffset(-15), status: "DONE",       classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 5, hours: "10.00" },
+      { title: "Schematic design — beach-facing elevation",  assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(-5),  status: "DONE",       classification: "BILLABLE",     workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "14.00" },
       { title: "ON HOLD — resume after client confirms budget", assignee: "Vihaan Sharma", priority: "LOW", due: dayOffset(30), status: "TODO",      classification: "BILLABLE",     workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "1.00" },
     ],
     // 7 — Nexus Co-working (COMPLETE)
     [
-      { title: "As-built drawings archive",                  assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(-10), status: "DONE",      classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "8.00" },
+      { title: "As-built drawings archive",                  assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(-10), status: "DONE",      classification: "BILLABLE",     workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "8.00" },
       { title: "Final invoice and project closure",          assignee: "Vihaan Sharma",priority: "HIGH",   due: dayOffset(-7),  status: "DONE",      classification: "NON_BILLABLE", workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "2.00" },
     ],
     // 8 — Sunrise Boutique Hotel
     [
-      { title: "Guest-room module design study",             assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "14.00" },
-      { title: "Lobby & F&B concept presentation",           assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 3, hours: "8.00" },
-      { title: "Fire & life-safety strategy",                assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(6),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "6.00" },
-      { title: "Site visit — basement excavation review",    assignee: "Rahul Nair",   priority: "HIGH",   due: dayOffset(-1), status: "TODO",        classification: "BILLABLE",    workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "4.00" },
+      { title: "Guest-room module design study",             assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "14.00" },
+      { title: "Lobby & F&B concept presentation",           assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 3, hours: "8.00" },
+      { title: "Fire & life-safety strategy",                assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(6),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "6.00" },
+      { title: "Site visit — basement excavation review",    assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(-1), status: "TODO",        classification: "BILLABLE",    workType: "CONSTRUCTION_SUPPORT",  difficulty: 2, hours: "4.00" },
     ],
     // 9 — Nair Wellness Clinic
     [
-      { title: "Functional brief — consulting & diagnostics",assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(1),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "5.00" },
-      { title: "Schematic plan — ground floor",              assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "10.00" },
-      { title: "Accessibility & ramp compliance check",      assignee: "Sneha Rao",    priority: "MEDIUM", due: dayOffset(7),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "4.00" },
+      { title: "Functional brief — consulting & diagnostics",assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(1),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "5.00" },
+      { title: "Schematic plan — ground floor",              assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "10.00" },
+      { title: "Accessibility & ramp compliance check",      assignee: "Vihaan Sharma",    priority: "MEDIUM", due: dayOffset(7),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 2, hours: "4.00" },
     ],
     // 10 — GreenField Factory Shed (construction showcase project #2)
     [
-      { title: "Pre-engineered building grid layout",        assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(-2), status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "12.00" },
-      { title: "Crane gantry structural coordination",       assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(1),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 5, hours: "10.00" },
-      { title: "GFC roofing & cladding details",             assignee: "Sneha Rao",    priority: "MEDIUM", due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 4, hours: "16.00" },
-      { title: "Procure reinforcement steel — Gr. Fe 500",   assignee: "Rahul Nair",   priority: "HIGH",   due: dayOffset(-4), status: "TODO",        classification: "BILLABLE",    workType: "CONSTRUCTION_SUPPORT",  difficulty: 3, hours: "4.00", interventionRequired: true },
-      { title: "Steel BBS for primary columns",              assignee: "Kiran Patel",  priority: "LOW",    due: dayOffset(6),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "8.00" },
+      { title: "Pre-engineered building grid layout",        assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(-2), status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "12.00" },
+      { title: "Crane gantry structural coordination",       assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(1),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 5, hours: "10.00" },
+      { title: "GFC roofing & cladding details",             assignee: "Vihaan Sharma",    priority: "MEDIUM", due: dayOffset(3),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 4, hours: "16.00" },
+      { title: "Procure reinforcement steel — Gr. Fe 500",   assignee: "Vihaan Sharma",   priority: "HIGH",   due: dayOffset(-4), status: "TODO",        classification: "BILLABLE",    workType: "CONSTRUCTION_SUPPORT",  difficulty: 3, hours: "4.00", interventionRequired: true },
+      { title: "Steel BBS for primary columns",              assignee: "Vihaan Sharma",  priority: "LOW",    due: dayOffset(6),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "8.00" },
     ],
     // 11 — Lakeview Apartments (PROPOSAL)
     [
-      { title: "Feasibility massing study — FAR check",     assignee: "Aarav Mehta",  priority: "HIGH",   due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "8.00" },
+      { title: "Feasibility massing study — FAR check",     assignee: "Vihaan Sharma",  priority: "HIGH",   due: dayOffset(2),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 4, hours: "8.00" },
       { title: "Fee proposal & COA benchmarking",           assignee: "Vihaan Sharma",priority: "HIGH",   due: dayOffset(1),  status: "IN_PROGRESS", classification: "NON_BILLABLE",workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "3.00" },
     ],
     // 12 — Meghana Community Centre
     [
-      { title: "Multipurpose hall acoustic study",          assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "8.00" },
-      { title: "Community needs workshop with trust",       assignee: "Aarav Mehta",  priority: "MEDIUM", due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "4.00" },
-      { title: "Sustainable materials specification",       assignee: "Kiran Patel",  priority: "MEDIUM", due: dayOffset(9),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "6.00" },
+      { title: "Multipurpose hall acoustic study",          assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(0),  status: "IN_PROGRESS", classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "8.00" },
+      { title: "Community needs workshop with trust",       assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(5),  status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 2, hours: "4.00" },
+      { title: "Sustainable materials specification",       assignee: "Vihaan Sharma",  priority: "MEDIUM", due: dayOffset(9),  status: "TODO",        classification: "BILLABLE",    workType: "TECHNICAL_PRODUCTION",  difficulty: 3, hours: "6.00" },
     ],
     // 13 — Desai Villa (ON_HOLD)
     [
-      { title: "Concept design — courtyard villa",          assignee: "Sneha Rao",    priority: "HIGH",   due: dayOffset(-8), status: "DONE",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "12.00" },
+      { title: "Concept design — courtyard villa",          assignee: "Vihaan Sharma",    priority: "HIGH",   due: dayOffset(-8), status: "DONE",        classification: "BILLABLE",    workType: "DESIGN_DEVELOPMENT",    difficulty: 3, hours: "12.00" },
       { title: "ON HOLD — await site finalisation",         assignee: "Vihaan Sharma",priority: "LOW",    due: dayOffset(25), status: "TODO",        classification: "BILLABLE",    workType: "DESIGN_COMMUNICATION",  difficulty: 1, hours: "1.00" },
     ],
   ];
@@ -422,10 +378,7 @@ async function main() {
     });
 
     await db.insert(assignments).values([
-      { projectId, teamMemberId: mid.get("Aarav Mehta")!, role: "Project Lead" },
-      { projectId, teamMemberId: mid.get("Rahul Nair")!,  role: "Site Supervisor" },
-      { projectId, teamMemberId: mid.get("Sneha Rao")!,   role: "Design" },
-      ...(pi >= 2 ? [{ projectId, teamMemberId: mid.get("Kiran Patel")!, role: "Intern" }] : []),
+      { projectId, teamMemberId: mid.get("Vihaan Sharma")!, role: "Principal Architect" },
     ]);
 
     await db.insert(engagements).values([
@@ -457,7 +410,7 @@ async function main() {
     await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: def.client.name, channel: "Client portal", status: pi % 2 === 0 ? "SENT" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6 - pi) : null, responseDate: pi === 0 ? dayOffset(-2) : null, remarks: pi === 0 ? "Approved with facade comments." : null, createdById: principal.id });
 
     const { ref: insRef } = await nextRef(db, "inspection", "SIR");
-    await db.insert(inspections).values({ ref: insRef, projectId, dateVisit: dayOffset(-2 + pi), weather: "Clear", attendees: "Site supervisor, contractor, project lead", progress: "Masonry work in progress at ground floor.", observations: "Site housekeeping acceptable.", instructions: "Submit bar bending schedule before next slab pour.", nextVisit: dayOffset(5 + pi), inspectorName: "Rahul Nair" });
+    await db.insert(inspections).values({ ref: insRef, projectId, dateVisit: dayOffset(-2 + pi), weather: "Clear", attendees: "Site supervisor, contractor, project lead", progress: "Masonry work in progress at ground floor.", observations: "Site housekeeping acceptable.", instructions: "Submit bar bending schedule before next slab pour.", nextVisit: dayOffset(5 + pi), inspectorName: "Vihaan Sharma" });
 
     // Tasks
     const taskDefs = taskDefsByProject[pi] ?? [];
@@ -480,8 +433,8 @@ async function main() {
     // Decisions
     const decisionTitles = ["Switch facade material to ACM cladding", "Relocate staircase to east core", "Increase floor-to-floor height", "Add basement level-2 parking", "Adopt unitised facade system", "Include covered sports court", "Reduce built-up area (CRZ)", "Open-plan vs cellular layout", "Guest room module reconfiguration", "Ramp vs lift for accessibility", "PEB grid vs conventional RCC", "Revise FAR calc after survey", "Hall partition system change", "Courtyard pool addition request"];
     await db.insert(decisions).values([
-      { projectId, title: decisionTitles[pi % decisionTitles.length]!, rationale: "Client preference after presentation; engineering review in progress.", approval: "PENDING", impact: pi >= 4 ? "HIGH" : "MEDIUM", status: "OPEN", state: pi % 3 === 0 ? "CLIENT_REVIEW" : "OPEN", revisionCategory: pi < 2 ? "MAJOR" : "MINOR", revisionSource: pi % 2 === 0 ? "CLIENT_DRIVEN" : "TECHNICAL_QUERY", ownerName: "Aarav Mehta", actorName: "Vihaan Sharma", reviewDeadline: dayOffset(5 + pi) },
-      { projectId, title: "MEP shaft coordination — revised drawing issued", rationale: "Coordination clash with lift lobby resolved by shifting shaft 600mm.", approval: pi % 2 === 0 ? "APPROVED" : "PENDING", impact: "LOW", status: pi % 2 === 0 ? "CLOSED" : "OPEN", state: pi % 2 === 0 ? "LOCKED" : "OPEN", revisionCategory: "MINOR", revisionSource: "INTERNAL_ERROR", ownerName: "Sneha Rao", actorName: "Aarav Mehta", reviewDeadline: dayOffset(10) },
+      { projectId, title: decisionTitles[pi % decisionTitles.length]!, rationale: "Client preference after presentation; engineering review in progress.", approval: "PENDING", impact: pi >= 4 ? "HIGH" : "MEDIUM", status: "OPEN", state: pi % 3 === 0 ? "CLIENT_REVIEW" : "OPEN", revisionCategory: pi < 2 ? "MAJOR" : "MINOR", revisionSource: pi % 2 === 0 ? "CLIENT_DRIVEN" : "TECHNICAL_QUERY", ownerName: "Vihaan Sharma", actorName: "Vihaan Sharma", reviewDeadline: dayOffset(5 + pi) },
+      { projectId, title: "MEP shaft coordination — revised drawing issued", rationale: "Coordination clash with lift lobby resolved by shifting shaft 600mm.", approval: pi % 2 === 0 ? "APPROVED" : "PENDING", impact: "LOW", status: pi % 2 === 0 ? "CLOSED" : "OPEN", state: pi % 2 === 0 ? "LOCKED" : "OPEN", revisionCategory: "MINOR", revisionSource: "INTERNAL_ERROR", ownerName: "Vihaan Sharma", actorName: "Vihaan Sharma", reviewDeadline: dayOffset(10) },
     ]);
 
     await db.insert(criticalNotes).values([{
@@ -491,7 +444,7 @@ async function main() {
       priority: pi < 3 ? "HIGH" : pi < 6 ? "MEDIUM" : "LOW",
       status: pi === 7 ? "CLOSED" : "OPEN",
       visibility: "STAFF",
-      owner: "Aarav Mehta",
+      owner: "Vihaan Sharma",
       dueDate: dayOffset(7 + pi),
       body: "This issue requires immediate attention and coordination before the next billing milestone.",
     }]);
@@ -505,49 +458,17 @@ async function main() {
     pi++;
   }
 
-  // ── Attendance ────────────────────────────────────────────────────────────
-  const weekdays = recentWeekdays(20);
-  const attendanceRows: (typeof attendance.$inferInsert)[] = [];
-  for (let i = 0; i < weekdays.length; i++) {
-    const d = dayOffset(weekdays[i]!);
-    attendanceRows.push(
-      { teamMemberId: mid.get("Vihaan Sharma")!, attendanceDate: d, status: "PRESENT",  markedById: principal.id },
-      { teamMemberId: mid.get("Aarav Mehta")!,   attendanceDate: d, status: i % 7 === 0 ? "WFH" : "PRESENT", markedById: principal.id },
-      { teamMemberId: mid.get("Rahul Nair")!,    attendanceDate: d, status: i % 9 === 0 ? "ABSENT" : "PRESENT", markedById: principal.id },
-      { teamMemberId: mid.get("Sneha Rao")!,     attendanceDate: d, status: i % 11 === 0 ? "HALF_DAY" : "PRESENT", markedById: principal.id },
-    );
-    if (i < 15) attendanceRows.push({ teamMemberId: mid.get("Kiran Patel")!, attendanceDate: d, status: "PRESENT", markedById: principal.id });
-  }
-  for (let i = 0; i < attendanceRows.length; i += 50) {
-    await db.insert(attendance).values(attendanceRows.slice(i, i + 50));
-  }
-
-  // ── Reward points ─────────────────────────────────────────────────────────
-  await db.insert(rewardPoints).values([
-    { teamMemberId: mid.get("Aarav Mehta")!,    points: 50, reason: "Excellent client presentation for Patel HQ — design approved first time.", awardType: "CLIENT_IMPACT",  createdById: principal.id },
-    { teamMemberId: mid.get("Aarav Mehta")!,    points: 30, reason: "Resolved structural coordination clash at Verde without project delay.",    awardType: "QUALITY",        createdById: principal.id },
-    { teamMemberId: mid.get("Sneha Rao")!,      points: 40, reason: "Delivered GFC drawing set for Verde one week ahead of schedule.",           awardType: "RELIABILITY",    createdById: principal.id },
-    { teamMemberId: mid.get("Sneha Rao")!,      points: 25, reason: "Highest drawing accuracy this quarter — zero returned drawings.",           awardType: "QUALITY",        createdById: principal.id },
-    { teamMemberId: mid.get("Rahul Nair")!,     points: 35, reason: "Proactive slab quality check averted a pour failure at Sharma Villa.",      awardType: "RELIABILITY",    createdById: principal.id },
-    { teamMemberId: mid.get("Rahul Nair")!,     points: 20, reason: "Completed 30-day site diary without a single missed entry.",               awardType: "RELIABILITY",    createdById: principal.id },
-    { teamMemberId: mid.get("Vihaan Sharma")!,  points: 60, reason: "Landed Patel Corp HQ — largest project by value in firm history.",         awardType: "CLIENT_IMPACT",  createdById: principal.id },
-    { teamMemberId: mid.get("Kiran Patel")!,    points: 20, reason: "BOQ for Verde completed with zero quantity errors on first check.",         awardType: "QUALITY",        createdById: principal.id },
-    { teamMemberId: mid.get("Aarav Mehta")!,    points: 15, reason: "Mentored Kiran on AORMS BOQ workflow.",                                    awardType: "COLLABORATION",  createdById: principal.id },
-    { teamMemberId: mid.get("Sneha Rao")!,      points: 15, reason: "Took initiative on St. Francis site survey outside scheduled hours.",       awardType: "RELIABILITY",    createdById: principal.id },
-  ]);
-
   // ── Comments ──────────────────────────────────────────────────────────────
   if (allProjectIds[0] && allProjectRefs[0]) {
     await db.insert(comments).values([
-      { projectId: allProjectIds[0]!, objectType: "decision", objectId: allProjectRefs[0]!, body: "Structural team has reviewed ACM anchor loads — within slab capacity. Moving to contractor shortlist.", actorName: "Aarav Mehta", visibility: "STAFF" },
-      { projectId: allProjectIds[2]!, objectType: "decision", objectId: allProjectRefs[2]!, body: "Verde client confirmed the +150mm floor height — cost impact accepted. Updating drawings.", actorName: "Sneha Rao", visibility: "STAFF" },
+      { projectId: allProjectIds[0]!, objectType: "decision", objectId: allProjectRefs[0]!, body: "Structural team has reviewed ACM anchor loads — within slab capacity. Moving to contractor shortlist.", actorName: "Vihaan Sharma", visibility: "STAFF" },
+      { projectId: allProjectIds[2]!, objectType: "decision", objectId: allProjectRefs[2]!, body: "Verde client confirmed the +150mm floor height — cost impact accepted. Updating drawings.", actorName: "Vihaan Sharma", visibility: "STAFF" },
     ]);
   }
 
-  console.log("✓ seeded demo workspace v2");
+  console.log("✓ seeded lean demo workspace (principal only)");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
-  console.log("    lead@ / site@ / junior@ / intern@ / accounts@ / client@demo.aorms.in (same password)");
-  console.log(`    ${projectDefs.length} projects, ${attendanceRows.length} attendance rows`);
+  console.log(`    ${projectDefs.length} projects, ${clientRows.length} clients`);
 }
 
 main()
