@@ -133,12 +133,12 @@ Out of scope: rate-vs-contract comparison, advances, payments, retention
 | --- | --- | --- |
 | **CMS-1 — Element spine + Estimate** | ✅ | `esti_cms_location` + `esti_cms_element`; `computeQuantity` vitest 7/7; Element CRUD; "Cost Management" tab |
 | **CMS-2 — BOQ + Final Estimation Set** | ✅ | BOQ read-model; `esti_cms_final_set`; "Mark as Final" → snapshot → PDF; Documents register |
-| **CMS-3 — Components (auto-gen)** | 🔲 | `esti_kb_item_dependency`; parent element → suggested child elements |
-| **CMS-4 — Site Measurement Book** | 🔲 | `esti_cms_measurement`; cumulative executed qty per element |
-| **CMS-5 — Work Orders** | 🔲 | `esti_cms_work_order` + items; contractor agreement |
-| **CMS-6 — Contractor Bills + Certification** | 🔲 | `esti_cms_bill` + lines; measurement + arithmetic certification |
-| **CMS-7 — Material Intelligence** | 🔲 | Read-model: element qty × KB recipe → forecast |
-| **CMS-8 — Cost Dashboard** | 🔲 | Read-model: Estimated vs BOQ vs Executed vs Certified + variance |
+| **CMS-3 — Components (auto-gen)** | 🔲 | `esti_kb_item_dependency`; parent element → suggested child elements. **Deliberately skipped** to ship 4→8 directly. |
+| **CMS-4 — Site Measurement Book** | ✅ | `esti_cms_measurement` (mig 0124); element-keyed DRAFT→VERIFIED records, `measuredById`/`verifiedById`; `cms.measurements.*` (listByElement, summaryByProject, create, verify [`cost:approve`], remove); Site Measurement tab |
+| **CMS-5 — Work Orders** | ✅ | `esti_cms_work_order` + `esti_cms_wo_item` (mig 0125); DRAFT→ISSUED→CLOSED; `cms.workOrders.*` (9 procs); rate locked at WO-item level; Work Orders tab |
+| **CMS-6 — Contractor Bills + Certification** | ✅ | `esti_cms_bill` + `esti_cms_bill_line` (mig 0126); rate auto-snapshot from WO item; DRAFT→SUBMITTED→CERTIFIED/HELD/REJECTED; `cms.bills.*` (10 procs); certify sums certified line amounts; Contractor Bills tab |
+| **CMS-7 — Material Intelligence** | ✅ | `cms.intelligence.materialForecast` read-model: Σ(element qty × spec recipe × wastage) → material + labour forecast; no new tables |
+| **CMS-8 — Cost Dashboard** | ✅ | `cms.intelligence.costDashboard` read-model: Estimated / Executed (verified qty × rate) / Certified + %; Cost Intelligence tab; no new tables |
 
 ---
 
