@@ -58,6 +58,15 @@ services:
       SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL:-owner@hcw.in}
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD:-ChangeMe123}
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-HCW Owner}
+      # Licensing platform — Google sign-in for /platform/onboard ("Create account").
+      # Supply GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET via a gitignored root .env;
+      # without them /platform/auth/google/start returns google_oauth_not_configured.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:5173/platform/auth/google/callback}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      ONBOARD_RETURN_ORIGINS: ${ONBOARD_RETURN_ORIGINS:-http://localhost:5173}
+      PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:-}
     # Dev hot-reload: host source is mounted over the image; node_modules stays.
     # vendor/ supplies the HCW kit packages — pnpm workspace symlinks point here.
     volumes:
