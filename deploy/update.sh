@@ -35,6 +35,8 @@ docker create --name esti-fe-tmp esti-frontend:prod
 rm -rf "$DEPLOY_DIR/frontend/dist.new"; mkdir -p "$DEPLOY_DIR/frontend/dist.new"
 docker cp esti-fe-tmp:/usr/share/nginx/html/. "$DEPLOY_DIR/frontend/dist.new/"
 docker rm esti-fe-tmp
+# Preserve hosted desktop installers across the swap (see deploy/fetch-installers.sh).
+[[ -d "$DEPLOY_DIR/frontend/dist/downloads" ]] && cp -r "$DEPLOY_DIR/frontend/dist/downloads" "$DEPLOY_DIR/frontend/dist.new/"
 chown -R www-data:www-data "$DEPLOY_DIR/frontend/dist.new"
 rm -rf "$DEPLOY_DIR/frontend/dist.old"
 [[ -d "$DEPLOY_DIR/frontend/dist" ]] && mv "$DEPLOY_DIR/frontend/dist" "$DEPLOY_DIR/frontend/dist.old"

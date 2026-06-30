@@ -33,8 +33,25 @@ sudo bash deploy/install.sh        # ← pick a profile from the menu
 | `deploy/install.sh` | **The installer.** Menu → sets profile env → runs `install_core` |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
+| `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
 | `deploy/backup.sh` / `restore.sh` | Postgres + MinIO backup / restore |
 | `deploy/nginx-proxy.conf` | nginx vhost template |
+
+## Desktop installers on /download
+
+Windows `.exe` installers can't be built on a Linux VPS. GitHub Actions
+(`.github/workflows/desktop.yml`, **windows-latest**) builds all three editions and
+publishes them on a `desktop-v*` tag; the VPS just hosts them:
+
+```bash
+# 1. Build (once): GitHub → Actions → desktop-installer → Run workflow,
+#    or push a tag:  git tag desktop-v1.0.0 && git push origin desktop-v1.0.0
+# 2. On the VPS (needs gh authed for a private repo: `gh auth login`):
+cd /opt/esti && bash deploy/fetch-installers.sh        # latest desktop-v* release
+```
+It downloads the 3 `.exe`, sets `VITE_*_DOWNLOAD_URL` in `.env`, rebuilds the SPA so
+the buttons go live, and serves them under `/downloads/`. `update.sh` preserves them
+across future deploys.
 
 ## Before a first install
 

@@ -1,9 +1,10 @@
 name: desktop-installer
 
-# Builds the ESTI desktop app (Tauri) on a clean Windows runner and uploads the
-# NSIS installer as an artifact. Manual (workflow_dispatch) or on a `desktop-v*`
-# tag. This is the reproducible "clean machine" build — the dev box can't build
-# it (its node_modules is the Linux/container install). See desktop/README.md.
+# Builds the AORMS desktop app (Tauri) on a clean Windows runner — all three
+# editions (Lite/Core/Enterprise) — and uploads the NSIS installers as artifacts.
+# Manual (workflow_dispatch) or on a `desktop-v*` tag (which also publishes them to
+# a GitHub Release). This is the reproducible "clean machine" build — a Linux box
+# (dev container or VPS) cannot build Windows installers. See desktop/README.md.
 #
 # The @hcw/* kits are vendored in-repo under vendor/ (lockfile links them as
 # link:vendor/hcw-*), so a single checkout is self-contained — no sibling repos.
@@ -53,21 +54,22 @@ jobs:
           mkdir -p desktop/src-tauri/icons
           cargo tauri icon frontend/public/android-chrome-512x512.png -o desktop/src-tauri/icons
 
-      - name: Build installer (assemble + cargo tauri build)
-        run: pnpm desktop:build
+      - name: Build installers (Lite + Core + Enterprise)
+        run: pnpm desktop:build-editions
 
       - uses: actions/upload-artifact@v4
         with:
-          name: esti-desktop-windows-nsis
-          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          name: aorms-desktop-installers
+          path: desktop/dist-installers/*.exe
           if-no-files-found: error
 
-      # On a desktop-v* tag, also publish the installer to a GitHub Release so it
-      # has a stable download URL (the dev box can then host it on aorms.in).
-      - name: Publish installer to GitHub Release
+      # On a desktop-v* tag, publish all three installers to a GitHub Release so
+      # they have stable download URLs (deploy/fetch-installers.sh pulls them onto
+      # the VPS /download page).
+      - name: Publish installers to GitHub Release
         if: startsWith(github.ref, 'refs/tags/desktop-v')
         uses: softprops/action-gh-release@v2
         with:
-          name: AORMS Lite ${{ github.ref_name }}
+          name: AORMS Desktop ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          files: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          files: desktop/dist-installers/*.exe
