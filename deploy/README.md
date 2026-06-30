@@ -55,9 +55,13 @@ PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in \
 `PROFILE` ∈ `landing | demo | core | enterprise | licensing | learning`. Any value
 you don't pass as an env var is prompted for.
 
-## Profile 5 — Licensing & Google sign-in
+## Licensing & Account — base profile 5 *or* an add-on
 
-The licensing platform is mounted at `/platform` (admin UI `/platform-admin`).
+The licensing platform (`/platform`, admin `/platform-admin`) is mounted in **every**
+deployment, so it can layer onto any profile. The installer offers it as a `y/N`
+add-on after you pick profile 2/3/4 — e.g. **2 + licensing = Landing + Demo +
+Licensing** on one box. Non-interactive: add `WITH_LICENSING=true`.
+
 Google sign-in needs an OAuth client — set in `.env` after install (no code change):
 
 ```

@@ -37,6 +37,9 @@ cat <<'MENU'
     5) Licensing & Account       — licensing platform + admin (/platform-admin)
     6) Learning & Certification  — (in pipeline — not yet available)
 
+  Licensing & Account is also offered as an add-on after picking 2/3/4
+  (e.g. 2 + licensing = Landing + Demo + Licensing on one box).
+
 MENU
 
 CHOICE="${PROFILE_CHOICE:-}"
@@ -63,9 +66,20 @@ case "$CHOICE" in
     ;;
   *) error "Invalid choice '$CHOICE' — pick 1-6." ;;
 esac
-export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS
 
-info "Profile: ${BOLD}${PROFILE}${NC}  (public site: ${PUBLIC_SITE}, demo: ${SEED_DEMO}, plan: ${FIRM_PLAN})"
+# Licensing & Account is an OVERLAY, not a separate base: the /platform backend is
+# mounted in every deployment, so it can layer onto any profile. Enabling it just
+# registers platform admins (+ Google sign-in). Auto-on for the licensing base;
+# offered as a y/N add-on on demo/core/enterprise. Non-interactive: WITH_LICENSING=true.
+PLATFORM_ENABLED="${WITH_LICENSING:-}"
+[[ "$PROFILE" == "licensing" ]] && PLATFORM_ENABLED="true"
+if [[ -z "$PLATFORM_ENABLED" && "$PROFILE" != "landing" ]]; then
+  ask "Also enable the Licensing & Account platform (/platform-admin)? [y/N]:" _lic
+  [[ "${_lic,,}" == y* ]] && PLATFORM_ENABLED="true"
+fi
+export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS PLATFORM_ENABLED
+
+info "Profile: ${BOLD}${PROFILE}${NC}  (public site: ${PUBLIC_SITE}, demo: ${SEED_DEMO}, plan: ${FIRM_PLAN}, licensing: ${PLATFORM_ENABLED:-false})"
 
 # ── Collect inputs (env vars skip the prompt — non-interactive friendly) ──────
 section "Configuration"
@@ -106,8 +120,8 @@ else
   DEMO_PASSWORD="demo1234"   # unused unless SEED_DEMO=true
 fi
 
-# Licensing profile: platform admins + Google sign-in.
-if [[ "$PROFILE" == "licensing" ]]; then
+# Licensing & Account overlay: platform admins + Google sign-in.
+if [[ "$PLATFORM_ENABLED" == "true" ]]; then
   [[ -n "${PLATFORM_ADMIN_EMAILS:-}" ]] || ask "Platform admin emails (comma-separated):" PLATFORM_ADMIN_EMAILS
   warn "Google sign-in: set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env after install"
   warn "(redirect URI https://${DOMAIN}/platform/auth/google/callback) — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md."
@@ -127,9 +141,9 @@ echo -e "${GREEN}${BOLD}  ESTI AORMS — '${PROFILE}' is live!${NC}"
 echo -e "${GREEN}${BOLD}============================================${NC}"
 echo -e "  URL    : ${BOLD}https://${DOMAIN}${NC}"
 echo -e "  Login  : ${BOLD}${OWNER_EMAIL}${NC}"
-[[ "$PROFILE" == "demo" ]]      && echo -e "  Demo   : ${BOLD}https://${DOMAIN}/demo${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD} (no manual login)"
-[[ "$PROFILE" == "landing" ]]   && echo -e "  Site   : public marketing landing at ${BOLD}https://${DOMAIN}${NC}"
-[[ "$PROFILE" == "licensing" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (Google sign-in once GOOGLE_* env set)"
+[[ "$PROFILE" == "demo" ]]        && echo -e "  Demo   : ${BOLD}https://${DOMAIN}/demo${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD} (no manual login)"
+[[ "$PROFILE" == "landing" ]]     && echo -e "  Site   : public marketing landing at ${BOLD}https://${DOMAIN}${NC}"
+[[ "$PLATFORM_ENABLED" == "true" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (Google sign-in once GOOGLE_* env set)"
 echo ""
 echo -e "  Update later: ${CYAN}bash ${DEPLOY_DIR}/deploy/update.sh${NC}"
 echo ""
