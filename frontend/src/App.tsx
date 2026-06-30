@@ -89,6 +89,7 @@ const SeoLanding = lazy(() =>
 const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
+const Download = lazyRoute(() => import("./routes/Download.js"), "Download");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
@@ -250,6 +251,10 @@ function AppShell() {
   // Legal — terms, privacy, acceptable use, licensing.
   if (PUBLIC_SITE && pathname === "/legal")
     return <Legal />;
+
+  // Download portal — Lite / Core / Enterprise desktop installers.
+  if (PUBLIC_SITE && pathname === "/download")
+    return <Download />;
 
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)

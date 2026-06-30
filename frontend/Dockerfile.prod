@@ -31,9 +31,13 @@ ENV VITE_FULL_DEMO_URL=${VITE_FULL_DEMO_URL}
 # "false" = firm product (no marketing; unauthenticated users go to /login).
 ARG VITE_PUBLIC_SITE="true"
 ENV VITE_PUBLIC_SITE=${VITE_PUBLIC_SITE}
-# AORMS Lite installer download URL (landing CTA). Empty = button hidden.
+# AORMS installer download URLs (/download portal CTAs). Empty = "Coming soon".
 ARG VITE_LITE_DOWNLOAD_URL=""
 ENV VITE_LITE_DOWNLOAD_URL=${VITE_LITE_DOWNLOAD_URL}
+ARG VITE_CORE_DOWNLOAD_URL=""
+ENV VITE_CORE_DOWNLOAD_URL=${VITE_CORE_DOWNLOAD_URL}
+ARG VITE_ENTERPRISE_DOWNLOAD_URL=""
+ENV VITE_ENTERPRISE_DOWNLOAD_URL=${VITE_ENTERPRISE_DOWNLOAD_URL}
 ARG BUILD_REVISION=dev
 
 # Carbon SCSS compilation is memory-heavy; give Node.js a generous heap.

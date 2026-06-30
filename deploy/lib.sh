@@ -125,9 +125,12 @@ SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
 # SEED_DEMO gates the demo workspace seed, FIRM_PLAN sets the plan tier.
 DEPLOY_PROFILE=${PROFILE}
 VITE_PUBLIC_SITE=${PUBLIC_SITE}
-# AORMS Lite installer download (landing CTA). Set to /downloads/aorms-lite-setup.exe
-# once you host the built installer under frontend/dist/downloads/; empty = button hidden.
+# AORMS installer download URLs (/download portal). Set each to e.g.
+# /downloads/aorms-lite-setup.exe once you host the built installers under
+# frontend/dist/downloads/; empty = that edition shows "Coming soon".
 VITE_LITE_DOWNLOAD_URL=${VITE_LITE_DOWNLOAD_URL:-}
+VITE_CORE_DOWNLOAD_URL=${VITE_CORE_DOWNLOAD_URL:-}
+VITE_ENTERPRISE_DOWNLOAD_URL=${VITE_ENTERPRISE_DOWNLOAD_URL:-}
 SEED_DEMO=${SEED_DEMO}
 ESTI_ROLE=node
 FIRM_PLAN=${FIRM_PLAN}
