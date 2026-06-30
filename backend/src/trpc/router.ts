@@ -12,6 +12,7 @@ import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
+import { vendorRouter } from "../modules/vendor/router.js";
 import { complianceRouter } from "../modules/compliance/router.js";
 import { masterPlanRouter } from "../modules/masterplan/router.js";
 import { standardsRouter } from "../modules/standards/router.js";
@@ -123,6 +124,7 @@ export const appRouter = router({
   transmittals: transmittalRouter,
   consultants: consultantRouter,
   contractors: contractorRouter,
+  vendors: vendorRouter,
   compliance: complianceRouter,
   masterPlans: masterPlanRouter,
   standards: standardsRouter,
