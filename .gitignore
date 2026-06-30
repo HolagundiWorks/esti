@@ -44,3 +44,6 @@ data/
 # pnpm postinstall (setup-carbon-kit.mjs) creates this as a symlink into
 # node_modules, so match it with no trailing slash (dir-only pattern misses symlinks).
 .carbon-kit
+
+# Desktop edition installers (build output)
+desktop/dist-installers/

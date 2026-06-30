@@ -74,12 +74,15 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     env.insert("FILES_PUBLIC_BASE".into(), format!("{api_base}/files"));
     env.insert("WORKER_MODE".into(), "inproc".into());
     env.insert("COOKIE_SECURE".into(), "false".into());
-    // Licence-free LITE edition: the backend pins orgSettings.plan to FIRM_PLAN on
-    // boot (default LITE). ESTI_HUB_URL stays empty → the install is unmanaged, so
-    // the licence write-gate never engages. Override at launch to ship CORE/ENTERPRISE.
+    // Edition is baked at compile time via AORMS_EDITION — the Lite / Core /
+    // Enterprise installers each compile their own value. The backend pins
+    // orgSettings.plan to FIRM_PLAN on boot; ESTI_HUB_URL stays empty → the install
+    // is unmanaged, so the licence write-gate never engages. A runtime FIRM_PLAN env
+    // still overrides (dev); default LITE when neither is set.
+    let baked_edition = option_env!("AORMS_EDITION").unwrap_or("LITE");
     env.insert(
         "FIRM_PLAN".into(),
-        std::env::var("FIRM_PLAN").unwrap_or_else(|_| "LITE".into()),
+        std::env::var("FIRM_PLAN").unwrap_or_else(|_| baked_edition.to_string()),
     );
     // Licensing (Phase B): the install identity + the central hub it activates
     // against. ESTI_HUB_URL is empty by default (offline) and can be supplied at
