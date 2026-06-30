@@ -35,6 +35,7 @@ import { ProjectBoq } from "../components/cms/ProjectBoq.js";
 import { ProjectSiteMeasurement } from "../components/cms/ProjectSiteMeasurement.js";
 import { ProjectWorkOrders } from "../components/cms/ProjectWorkOrders.js";
 import { ProjectContractorBills } from "../components/cms/ProjectContractorBills.js";
+import { ProjectCostIntelligence } from "../components/cms/ProjectCostIntelligence.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -118,6 +119,7 @@ export function ProjectDetail() {
       { slug: "site-measurement", label: "Site Measurement", panel: <ProjectSiteMeasurement projectId={id} /> },
       { slug: "work-orders", label: "Work Orders", panel: <ProjectWorkOrders projectId={id} /> },
       { slug: "contractor-bills", label: "Contractor Bills", panel: <ProjectContractorBills projectId={id} /> },
+      { slug: "cost-intelligence", label: "Cost Intelligence", panel: <ProjectCostIntelligence projectId={id} /> },
     ];
 
     return [

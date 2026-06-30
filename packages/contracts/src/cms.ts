@@ -183,6 +183,27 @@ export type CmsWoByProjectInput = z.infer<typeof CmsWoByProjectInput>;
 export const CmsWoIssueInput = z.object({ id: z.string().uuid() });
 export type CmsWoIssueInput = z.infer<typeof CmsWoIssueInput>;
 
+// ── Material Intelligence (CMS-7) ───────────────────────────────────────────
+/** Per-material/labour forecast line derived from element qty × spec recipe. */
+export type CmsMaterialForecastLine = {
+  itemId: string | null;
+  itemCode: string | null;
+  itemName: string;
+  unit: string | null;
+  forecastQty: number;
+  type: "MATERIAL" | "LABOUR";
+};
+
+/** Cost breakdown line types for the cost dashboard. */
+export type CmsCostDashboard = {
+  estimatedTotalPaise: number;
+  certifiedTotalPaise: number;
+  executedEstimatedPaise: number; // Σ(verifiedQty × elementRatePaise)
+  percentExecuted: number; // executedEstimated / estimated × 100
+  percentCertified: number; // certified / estimated × 100
+  elementCount: number;
+};
+
 // ── Contractor Bills + Certification (CMS-6) ─────────────────────────────────
 export const CmsBillStatus = z.enum([
   "DRAFT",

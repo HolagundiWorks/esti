@@ -15,6 +15,8 @@ import {
   CmsBillCreate,
   CmsBillLineCreate,
   CmsBillLineUpdate,
+  type CmsCostDashboard,
+  type CmsMaterialForecastLine,
   CmsWoByProjectInput,
   CmsWoIssueInput,
   CmsWoItemCreate,
@@ -40,6 +42,10 @@ import {
   cmsWorkOrders,
   contractors,
   kbItems,
+  kbLabor,
+  kbMaterials,
+  kbSpecLabor,
+  kbSpecMaterials,
   kbSpecifications,
 } from "../../db/schema.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -1022,5 +1028,179 @@ const bills = router({
     }),
 });
 
-/** Cost Management System router — CMS-1 through CMS-6. */
-export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders, bills });
+// ── Intelligence: Material Forecast (CMS-7) + Cost Dashboard (CMS-8) ─────────
+const intelligence = router({
+  /** CMS-7 — material + labour forecast per project (read-model, no writes).
+   *  For each element with a specification, Σ(element.quantity × recipe.quantityPerUnit × wastage). */
+  materialForecast: protectedProcedure
+    .input(CmsByProjectInput)
+    .query(async ({ ctx, input }): Promise<CmsMaterialForecastLine[]> => {
+      // All elements with a spec in this project
+      const elements = await ctx.db
+        .select({
+          quantity: cmsElements.quantity,
+          specificationId: cmsElements.specificationId,
+        })
+        .from(cmsElements)
+        .where(eq(cmsElements.projectId, input.projectId));
+
+      if (elements.length === 0) return [];
+
+      const specIds = [...new Set(elements.map((e) => e.specificationId).filter(Boolean))] as string[];
+      if (specIds.length === 0) return [];
+
+      // Build element qty by spec
+      const qtyBySpec: Record<string, number> = {};
+      for (const el of elements) {
+        if (el.specificationId) {
+          qtyBySpec[el.specificationId] = (qtyBySpec[el.specificationId] ?? 0) + el.quantity;
+        }
+      }
+
+      // Fetch material recipes
+      const matRecipes = await ctx.db
+        .select({
+          specificationId: kbSpecMaterials.specificationId,
+          materialId: kbSpecMaterials.materialId,
+          quantityPerUnit: kbSpecMaterials.quantityPerUnit,
+          wastageFactor: kbSpecMaterials.wastageFactor,
+          materialName: kbMaterials.name,
+          materialUnit: kbMaterials.unit,
+        })
+        .from(kbSpecMaterials)
+        .leftJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
+        .where(sql`${kbSpecMaterials.specificationId} = ANY(${specIds})`);
+
+      // Fetch labour recipes
+      const labRecipes = await ctx.db
+        .select({
+          specificationId: kbSpecLabor.specificationId,
+          laborId: kbSpecLabor.laborId,
+          quantityPerUnit: kbSpecLabor.quantityPerUnit,
+          laborName: kbLabor.name,
+          laborUnit: kbLabor.unit,
+        })
+        .from(kbSpecLabor)
+        .leftJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
+        .where(sql`${kbSpecLabor.specificationId} = ANY(${specIds})`);
+
+      // Roll up material forecast
+      const matMap = new Map<string, CmsMaterialForecastLine>();
+      for (const r of matRecipes) {
+        const elQty = qtyBySpec[r.specificationId] ?? 0;
+        const forecast = elQty * r.quantityPerUnit * (1 + r.wastageFactor);
+        const key = r.materialId;
+        const existing = matMap.get(key);
+        if (existing) {
+          existing.forecastQty += forecast;
+        } else {
+          matMap.set(key, {
+            itemId: r.materialId,
+            itemCode: null,
+            itemName: r.materialName ?? r.materialId,
+            unit: r.materialUnit ?? null,
+            forecastQty: forecast,
+            type: "MATERIAL",
+          });
+        }
+      }
+
+      // Roll up labour forecast
+      const labMap = new Map<string, CmsMaterialForecastLine>();
+      for (const r of labRecipes) {
+        const elQty = qtyBySpec[r.specificationId] ?? 0;
+        const forecast = elQty * r.quantityPerUnit;
+        const key = r.laborId;
+        const existing = labMap.get(key);
+        if (existing) {
+          existing.forecastQty += forecast;
+        } else {
+          labMap.set(key, {
+            itemId: r.laborId,
+            itemCode: null,
+            itemName: r.laborName ?? r.laborId,
+            unit: r.laborUnit ?? null,
+            forecastQty: forecast,
+            type: "LABOUR",
+          });
+        }
+      }
+
+      const lines = [
+        ...[...matMap.values()].sort((a, b) => a.itemName.localeCompare(b.itemName)),
+        ...[...labMap.values()].sort((a, b) => a.itemName.localeCompare(b.itemName)),
+      ];
+      return lines.map((l) => ({ ...l, forecastQty: Math.round(l.forecastQty * 1000) / 1000 }));
+    }),
+
+  /** CMS-8 — cost dashboard: Estimated vs Executed vs Certified (read-model, no writes). */
+  costDashboard: protectedProcedure
+    .input(CmsByProjectInput)
+    .query(async ({ ctx, input }): Promise<CmsCostDashboard> => {
+      // 1. Estimated total (sum of element amounts)
+      const [estRow] = await ctx.db
+        .select({
+          total: sql<number>`COALESCE(SUM(amount_paise), 0)`,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(cmsElements)
+        .where(eq(cmsElements.projectId, input.projectId));
+
+      const estimatedTotal = Number(estRow?.total ?? 0);
+      const elementCount = Number(estRow?.count ?? 0);
+
+      // 2. Executed estimate: Σ(verifiedQty × element.ratePaise) per element
+      const verifiedQtyRows = await ctx.db
+        .select({
+          elementId: cmsMeasurements.elementId,
+          verifiedQty: sum(cmsMeasurements.executedQty),
+        })
+        .from(cmsMeasurements)
+        .where(
+          and(
+            eq(cmsMeasurements.projectId, input.projectId),
+            sql`${cmsMeasurements.status} = 'VERIFIED'`,
+          ),
+        )
+        .groupBy(cmsMeasurements.elementId);
+
+      let executedEstimatedPaise = 0;
+      if (verifiedQtyRows.length > 0) {
+        const elementIds = verifiedQtyRows.map((r) => r.elementId);
+        const rates = await ctx.db
+          .select({ id: cmsElements.id, ratePaise: cmsElements.ratePaise })
+          .from(cmsElements)
+          .where(sql`${cmsElements.id} = ANY(${elementIds})`);
+        const rateById = new Map(rates.map((r) => [r.id, r.ratePaise]));
+        for (const row of verifiedQtyRows) {
+          const rate = rateById.get(row.elementId) ?? 0;
+          executedEstimatedPaise += Math.round(Number(row.verifiedQty ?? 0) * rate);
+        }
+      }
+
+      // 3. Certified total (from CERTIFIED bills)
+      const [certRow] = await ctx.db
+        .select({ total: sql<number>`COALESCE(SUM(certified_amount_paise), 0)` })
+        .from(cmsBills)
+        .where(
+          and(
+            eq(cmsBills.projectId, input.projectId),
+            sql`${cmsBills.status} = 'CERTIFIED'`,
+          ),
+        );
+
+      const certifiedTotal = Number(certRow?.total ?? 0);
+
+      return {
+        estimatedTotalPaise: estimatedTotal,
+        executedEstimatedPaise,
+        certifiedTotalPaise: certifiedTotal,
+        percentExecuted: estimatedTotal > 0 ? Math.round((executedEstimatedPaise / estimatedTotal) * 1000) / 10 : 0,
+        percentCertified: estimatedTotal > 0 ? Math.round((certifiedTotal / estimatedTotal) * 1000) / 10 : 0,
+        elementCount,
+      };
+    }),
+});
+
+/** Cost Management System router — CMS-1 through CMS-8. */
+export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders, bills, intelligence });
