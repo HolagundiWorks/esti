@@ -313,7 +313,7 @@ function AppShell() {
   // Navigation tree — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio ·
   // Third Parties · Office · Finance · LXOS · Admin). Spec: docs/esti/NAVIGATION.md.
   // A node is either a leaf `link` or a `menu` (collapsible; may nest, e.g. Studio ›
-  // Libraries). Search / AI Studio are header utilities, not sidebar entries.
+  // Libraries). Search is a header utility; AI Studio is a top-level sidebar entry.
   type NavLink = { label: string; to: string; icon?: CarbonIconType };
   type NavNode =
     | (NavLink & { kind?: "link" })
@@ -334,6 +334,9 @@ function AppShell() {
     { label: "Studio Abstract", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
+    ...(planAllowsFeature("ai") && atLeast(60)
+      ? [{ label: "AI Studio", to: "/office/ai-studio", icon: Bot }]
+      : []),
     {
       kind: "menu",
       label: "Library",
@@ -511,15 +514,6 @@ function AppShell() {
                 >
                   <SearchIcon size={20} />
                 </HeaderGlobalAction>
-                {planAllowsFeature("ai") && atLeast(60) && (
-                  <HeaderGlobalAction
-                    aria-label="AI Studio"
-                    isActive={navPathActive(pathname, "/office/ai-studio")}
-                    onClick={() => navigate("/office/ai-studio")}
-                  >
-                    <Bot size={20} />
-                  </HeaderGlobalAction>
-                )}
                 <AlertsBell />
                 <UserIdCard />
                 <HeaderGlobalAction
