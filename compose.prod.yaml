@@ -150,6 +150,8 @@ services:
         # "true" = public demo site (landing/blog/investors/legal). Override with
         # compose.firm.yaml (or VITE_PUBLIC_SITE=false) for the firm product.
         VITE_PUBLIC_SITE: ${VITE_PUBLIC_SITE:-true}
+        # AORMS Lite installer download URL — baked into the landing "Download" CTA.
+        VITE_LITE_DOWNLOAD_URL: ${VITE_LITE_DOWNLOAD_URL:-}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ESTI",
+  "productName": "AORMS Lite",
   "version": "0.1.0",
   "identifier": "in.aorms.esti",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "ESTI AORMS",
+        "title": "AORMS Lite",
         "width": 1440,
         "height": 900,
         "minWidth": 1024,
