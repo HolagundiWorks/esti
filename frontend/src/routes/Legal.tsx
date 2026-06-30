@@ -19,7 +19,7 @@ export function Legal() {
   }, []);
 
   return (
-    <MarketingShell visitCount={null}>
+    <MarketingShell>
       <Theme theme="g100" className="esti-blog-theme">
         <main id="main-content" className="esti-blog">
           <header className="esti-blog__head">

@@ -21,7 +21,7 @@ export function BlogPost() {
   }, [post]);
 
   return (
-    <MarketingShell visitCount={null}>
+    <MarketingShell>
       <Theme theme="g100" className="esti-blog-theme">
       <main id="main-content" className="esti-blog">
         <Link to="/blog" className="esti-blog__back">← All posts</Link>

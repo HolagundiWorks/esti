@@ -13,7 +13,6 @@ import {
   Theme,
 } from "@carbon/react";
 import { useState, type ReactNode } from "react";
-import { formatVisitCount } from "../../lib/landing-visit.js";
 
 // Absolute "/#section" links so the nav works from any route (e.g. /blog), not
 // just the landing page where the in-page anchors live.
@@ -56,13 +55,7 @@ function LandingStatusBar() {
   );
 }
 
-export function MarketingShell({
-  children,
-  visitCount,
-}: {
-  children: ReactNode;
-  visitCount: number | null | undefined;
-}) {
+export function MarketingShell({ children }: { children: ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
 
   return (
@@ -82,12 +75,6 @@ export function MarketingShell({
                 alt="AORMS"
                 className="esti-landing-brand-logo"
               />
-              <img
-                src="/esti-logo.png"
-                alt=""
-                aria-hidden
-                className="esti-landing-mark"
-              />
             </span>
           </HeaderName>
           <HeaderNavigation aria-label="Page sections">
@@ -98,11 +85,9 @@ export function MarketingShell({
             ))}
           </HeaderNavigation>
           <HeaderGlobalBar>
-            {visitCount != null && visitCount > 0 ? (
-              <span className="esti-landing-visit-count">
-                {formatVisitCount(visitCount)} visits
-              </span>
-            ) : null}
+            <a className="esti-landing-signin" href="/login">
+              Log in
+            </a>
           </HeaderGlobalBar>
           <SideNav
             aria-label="Mobile navigation"

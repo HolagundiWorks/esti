@@ -490,12 +490,15 @@ function AppShell() {
               className={`esti-app-header ${planHeaderClass}`}
             >
               <HeaderName prefix="">
-                <img
-                  src="/aorms-logo-white.png"
-                  alt="AORMS"
-                  className="esti-app-logo"
-                />
-                {firmName}
+                <span className="esti-app-brand">
+                  <img
+                    src="/aorms-logo-white.png"
+                    alt="AORMS"
+                    className="esti-app-brand__logo"
+                  />
+                  <span className="esti-app-brand__tier">{plan}</span>
+                </span>
+                <span className="esti-app-brand__firm">{firmName}</span>
               </HeaderName>
               <HeaderGlobalBar>
                 <HeaderClock />

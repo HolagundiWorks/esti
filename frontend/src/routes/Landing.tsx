@@ -66,7 +66,7 @@ export function Landing() {
 
   return (
     <Theme theme="g100">
-      <MarketingShell visitCount={visitCount}>
+      <MarketingShell>
         {demoLogin.error && (
           <LandingEditorial className="esti-landing-alert">
             <InlineNotification
@@ -96,7 +96,7 @@ export function Landing() {
           <LandingInsights />
         </LandingFinalCta>
 
-        <MarketingFooter onRequestWorkspace={scrollToTrial} />
+        <MarketingFooter onRequestWorkspace={scrollToTrial} visitCount={visitCount} />
 
         <Modal
           open={requestOpen}

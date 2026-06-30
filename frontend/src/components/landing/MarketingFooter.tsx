@@ -1,6 +1,7 @@
 import { ArrowRight } from "@carbon/icons-react";
 import { Button, Link, Stack, Theme } from "@carbon/react";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
+import { formatVisitCount } from "../../lib/landing-visit.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
 const PRODUCT_LINKS = [
@@ -19,7 +20,13 @@ const CONTACT_LINKS = [
   { href: "/login", label: "Workspace sign in" },
 ] as const;
 
-export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: () => void }) {
+export function MarketingFooter({
+  onRequestWorkspace,
+  visitCount,
+}: {
+  onRequestWorkspace?: () => void;
+  visitCount?: number | null;
+}) {
   return (
     <Theme theme="g100">
       <LandingBand className="esti-landing-footer">
@@ -85,10 +92,15 @@ export function MarketingFooter({ onRequestWorkspace }: { onRequestWorkspace?: (
             </div>
 
             <div className="esti-landing-footer__bottom">
-              <span>ESTI AORMS</span>
+              <span>AORMS</span>
               <span>Architecture Office Resource Management System</span>
               <span>© Holagundi Consulting Works</span>
               <span>Built in Hospet for architectural practices that value disciplined records.</span>
+              {visitCount != null && visitCount > 0 ? (
+                <span className="esti-landing-footer__visits">
+                  {formatVisitCount(visitCount)} visits
+                </span>
+              ) : null}
             </div>
           </footer>
         </LandingEditorial>

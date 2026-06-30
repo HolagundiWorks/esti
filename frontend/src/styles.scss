@@ -166,13 +166,32 @@ html:has(.esti-studio-abstract-page) body {
   vertical-align: middle;
   margin-inline-end: 0.5rem;
 }
-// AORMS wordmark in the workspace header (replaces the square ESTI mark).
-.esti-app-logo {
-  height: 1.5rem;
+// Header brand: stacked AORMS wordmark + plan tier (all-caps) → then the firm
+// name, matched to the brand-block height.
+.esti-app-brand {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  line-height: 1;
+  margin-inline-end: 0.625rem;
+}
+.esti-app-brand__logo {
+  height: 1.125rem;
   width: auto;
-  display: inline-block;
-  vertical-align: middle;
-  margin-inline-end: 0.5rem;
+  display: block;
+}
+.esti-app-brand__tier {
+  margin-block-start: 0.125rem;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+.esti-app-brand__firm {
+  display: inline-flex;
+  align-items: center;
 }
 
 // Plan-tier header tint (replaces the plan Tag). `.cds--header` raises specificity
@@ -194,7 +213,7 @@ html:has(.esti-studio-abstract-page) body {
     fill: colors.$gray-100;
   }
   // white AORMS wordmark → dark on the light yellow header.
-  .esti-app-logo { filter: brightness(0); }
+  .esti-app-brand__logo { filter: brightness(0); }
 }
 .esti-login-brand h3 {
   margin: 0;
