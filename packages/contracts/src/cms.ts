@@ -139,6 +139,50 @@ export const CmsFinalSetCreate = z.object({
 });
 export type CmsFinalSetCreate = z.infer<typeof CmsFinalSetCreate>;
 
+// ── Work Orders (CMS-5) ──────────────────────────────────────────────────────
+export const CmsWorkOrderStatus = z.enum(["DRAFT", "ISSUED", "CLOSED"]);
+export type CmsWorkOrderStatus = z.infer<typeof CmsWorkOrderStatus>;
+
+export const CmsWorkOrderCreate = z.object({
+  projectId: z.string().uuid(),
+  contractorId: z.string().uuid(),
+  ref: z.string().min(1).max(80),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  scope: z.string().max(1000).optional(),
+});
+export type CmsWorkOrderCreate = z.infer<typeof CmsWorkOrderCreate>;
+
+export const CmsWorkOrderUpdate = z.object({
+  id: z.string().uuid(),
+  ref: z.string().min(1).max(80).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  scope: z.string().max(1000).nullable().optional(),
+});
+export type CmsWorkOrderUpdate = z.infer<typeof CmsWorkOrderUpdate>;
+
+export const CmsWoItemCreate = z.object({
+  workOrderId: z.string().uuid(),
+  description: z.string().min(1).max(300),
+  unit: z.string().max(40),
+  agreedRatePaise: z.number().int().min(0),
+  specificationId: z.string().uuid().optional(),
+});
+export type CmsWoItemCreate = z.infer<typeof CmsWoItemCreate>;
+
+export const CmsWoItemUpdate = z.object({
+  id: z.string().uuid(),
+  description: z.string().min(1).max(300).optional(),
+  unit: z.string().max(40).optional(),
+  agreedRatePaise: z.number().int().min(0).optional(),
+});
+export type CmsWoItemUpdate = z.infer<typeof CmsWoItemUpdate>;
+
+export const CmsWoByProjectInput = z.object({ projectId: z.string().uuid() });
+export type CmsWoByProjectInput = z.infer<typeof CmsWoByProjectInput>;
+
+export const CmsWoIssueInput = z.object({ id: z.string().uuid() });
+export type CmsWoIssueInput = z.infer<typeof CmsWoIssueInput>;
+
 // ── Site Measurement Book ────────────────────────────────────────────────────
 export const CmsMeasurementStatus = z.enum(["DRAFT", "VERIFIED"]);
 export type CmsMeasurementStatus = z.infer<typeof CmsMeasurementStatus>;

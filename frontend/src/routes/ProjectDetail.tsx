@@ -33,6 +33,7 @@ import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
 import { ProjectEstimate } from "../components/cms/ProjectEstimate.js";
 import { ProjectBoq } from "../components/cms/ProjectBoq.js";
 import { ProjectSiteMeasurement } from "../components/cms/ProjectSiteMeasurement.js";
+import { ProjectWorkOrders } from "../components/cms/ProjectWorkOrders.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -114,6 +115,7 @@ export function ProjectDetail() {
       { slug: "estimate", label: "Estimate", panel: <ProjectEstimate projectId={id} /> },
       { slug: "boq", label: "BOQ", panel: <ProjectBoq projectId={id} /> },
       { slug: "site-measurement", label: "Site Measurement", panel: <ProjectSiteMeasurement projectId={id} /> },
+      { slug: "work-orders", label: "Work Orders", panel: <ProjectWorkOrders projectId={id} /> },
     ];
 
     return [

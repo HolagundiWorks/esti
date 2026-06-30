@@ -10,6 +10,12 @@ import {
   CmsMeasurementByElement,
   CmsMeasurementCreate,
   CmsMeasurementType,
+  CmsWoByProjectInput,
+  CmsWoIssueInput,
+  CmsWoItemCreate,
+  CmsWoItemUpdate,
+  CmsWorkOrderCreate,
+  CmsWorkOrderUpdate,
   cmsAmountPaise,
   computeQuantity,
   type CmsElementMeasurementSummary,
@@ -23,6 +29,9 @@ import {
   cmsFinalSets,
   cmsLocations,
   cmsMeasurements,
+  cmsWoItems,
+  cmsWorkOrders,
+  contractors,
   kbItems,
   kbSpecifications,
 } from "../../db/schema.js";
@@ -549,5 +558,197 @@ const measurements = router({
     }),
 });
 
-/** Cost Management System router — CMS-1 through CMS-4. */
-export const cmsRouter = router({ locations, elements, boq, finalSet, measurements });
+// ── Work Orders (CMS-5) ─────────────────────────────────────────────────────
+const workOrders = router({
+  listByProject: protectedProcedure
+    .input(CmsWoByProjectInput)
+    .query(async ({ ctx, input }) => {
+      const wos = await ctx.db
+        .select({
+          id: cmsWorkOrders.id,
+          ref: cmsWorkOrders.ref,
+          date: cmsWorkOrders.date,
+          scope: cmsWorkOrders.scope,
+          status: cmsWorkOrders.status,
+          createdAt: cmsWorkOrders.createdAt,
+          contractorId: cmsWorkOrders.contractorId,
+          contractorName: contractors.name,
+        })
+        .from(cmsWorkOrders)
+        .leftJoin(contractors, eq(cmsWorkOrders.contractorId, contractors.id))
+        .where(eq(cmsWorkOrders.projectId, input.projectId))
+        .orderBy(desc(cmsWorkOrders.createdAt));
+      return wos;
+    }),
+
+  byId: protectedProcedure
+    .input(CmsIdInput)
+    .query(async ({ ctx, input }) => {
+      const [wo] = await ctx.db
+        .select({
+          id: cmsWorkOrders.id,
+          projectId: cmsWorkOrders.projectId,
+          ref: cmsWorkOrders.ref,
+          date: cmsWorkOrders.date,
+          scope: cmsWorkOrders.scope,
+          status: cmsWorkOrders.status,
+          createdAt: cmsWorkOrders.createdAt,
+          contractorId: cmsWorkOrders.contractorId,
+          contractorName: contractors.name,
+        })
+        .from(cmsWorkOrders)
+        .leftJoin(contractors, eq(cmsWorkOrders.contractorId, contractors.id))
+        .where(eq(cmsWorkOrders.id, input.id));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const items = await ctx.db
+        .select()
+        .from(cmsWoItems)
+        .where(eq(cmsWoItems.workOrderId, input.id))
+        .orderBy(asc(cmsWoItems.sortOrder), asc(cmsWoItems.createdAt));
+
+      return { ...wo, items };
+    }),
+
+  create: protectedProcedure
+    .input(CmsWorkOrderCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .insert(cmsWorkOrders)
+        .values({
+          projectId: input.projectId,
+          contractorId: input.contractorId,
+          ref: input.ref,
+          date: input.date,
+          scope: input.scope ?? null,
+          status: "DRAFT",
+        })
+        .returning();
+      return row!;
+    }),
+
+  update: protectedProcedure
+    .input(CmsWorkOrderUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, id));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND" });
+      if (wo.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT work orders can be edited." });
+      }
+      const [row] = await ctx.db
+        .update(cmsWorkOrders)
+        .set(definedOnly(rest))
+        .where(eq(cmsWorkOrders.id, id))
+        .returning();
+      return row!;
+    }),
+
+  issue: protectedProcedure
+    .input(CmsWoIssueInput)
+    .mutation(async ({ ctx, input }) => {
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, input.id));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND" });
+      if (wo.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT work orders can be issued." });
+      }
+      await ctx.db
+        .update(cmsWorkOrders)
+        .set({ status: "ISSUED" })
+        .where(eq(cmsWorkOrders.id, input.id));
+      return { ok: true };
+    }),
+
+  remove: protectedProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, input.id));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND" });
+      if (wo.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT work orders can be removed." });
+      }
+      await ctx.db.delete(cmsWorkOrders).where(eq(cmsWorkOrders.id, input.id));
+      return { ok: true };
+    }),
+
+  // ── WO items ──────────────────────────────────────────────────────────────
+  addItem: protectedProcedure
+    .input(CmsWoItemCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, input.workOrderId));
+      if (!wo) throw new TRPCError({ code: "NOT_FOUND" });
+      if (wo.status === "CLOSED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot add items to a CLOSED work order." });
+      }
+      const [row] = await ctx.db
+        .insert(cmsWoItems)
+        .values({
+          workOrderId: input.workOrderId,
+          specificationId: input.specificationId ?? null,
+          description: input.description,
+          unit: input.unit,
+          agreedRatePaise: input.agreedRatePaise,
+        })
+        .returning();
+      return row!;
+    }),
+
+  updateItem: protectedProcedure
+    .input(CmsWoItemUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      const [item] = await ctx.db
+        .select({ workOrderId: cmsWoItems.workOrderId })
+        .from(cmsWoItems)
+        .where(eq(cmsWoItems.id, id));
+      if (!item) throw new TRPCError({ code: "NOT_FOUND" });
+      // Guard: WO must not be CLOSED
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, item.workOrderId));
+      if (wo?.status === "CLOSED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot edit items of a CLOSED work order." });
+      }
+      const [row] = await ctx.db
+        .update(cmsWoItems)
+        .set(definedOnly(rest))
+        .where(eq(cmsWoItems.id, id))
+        .returning();
+      return row!;
+    }),
+
+  removeItem: protectedProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [item] = await ctx.db
+        .select({ workOrderId: cmsWoItems.workOrderId })
+        .from(cmsWoItems)
+        .where(eq(cmsWoItems.id, input.id));
+      if (!item) throw new TRPCError({ code: "NOT_FOUND" });
+      const [wo] = await ctx.db
+        .select({ status: cmsWorkOrders.status })
+        .from(cmsWorkOrders)
+        .where(eq(cmsWorkOrders.id, item.workOrderId));
+      if (wo?.status === "CLOSED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot remove items from a CLOSED work order." });
+      }
+      await ctx.db.delete(cmsWoItems).where(eq(cmsWoItems.id, input.id));
+      return { ok: true };
+    }),
+});
+
+/** Cost Management System router — CMS-1 through CMS-5. */
+export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders });

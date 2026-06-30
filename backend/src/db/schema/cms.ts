@@ -18,6 +18,7 @@ import {
 import { projectOffices } from "./project.js";
 import { kbItems, kbSpecifications } from "./knowledge-bank.js";
 import { users } from "./org-auth.js";
+import { contractors } from "./delivery.js";
 
 /** Spatial hierarchy — a flexible self-referencing tree per project
  *  (Zone → Building → Floor → Room → Section). Grid is a field on the element. */
@@ -80,6 +81,40 @@ export const cmsElements = pgTable("esti_cms_element", {
   ratePaise: integer("rate_paise").notNull().default(0), // snapshot from spec
   amountPaise: integer("amount_paise").notNull().default(0), // quantity × rate
   notes: text("notes"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Work Order — contractor agreement for a project scope; line items carry agreed rates.
+ *  Bills reference items here; rate is locked at WO level. */
+export const cmsWorkOrders = pgTable("esti_cms_work_order", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  contractorId: uuid("contractor_id")
+    .notNull()
+    .references(() => contractors.id, { onDelete: "restrict" }),
+  ref: text("ref").notNull(),
+  date: text("date").notNull(), // YYYY-MM-DD
+  scope: text("scope"),
+  status: text("status").notNull().default("DRAFT"), // DRAFT | ISSUED | CLOSED
+  createdAt: createdAt(),
+});
+
+/** Work Order Line Item — category-keyed (description+unit+rate).
+ *  Optional link to a KB specification for auto-populating description/unit. */
+export const cmsWoItems = pgTable("esti_cms_wo_item", {
+  id: id(),
+  workOrderId: uuid("work_order_id")
+    .notNull()
+    .references(() => cmsWorkOrders.id, { onDelete: "cascade" }),
+  specificationId: uuid("specification_id").references(() => kbSpecifications.id, {
+    onDelete: "set null",
+  }),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  agreedRatePaise: integer("agreed_rate_paise").notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });
