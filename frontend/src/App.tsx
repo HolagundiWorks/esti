@@ -26,6 +26,7 @@ import {
   Search as SearchIcon,
   Settings as SettingsIcon,
   TaskComplete,
+  UserMultiple,
   type CarbonIconType,
 } from "@carbon/icons-react";
 import {
@@ -335,24 +336,24 @@ function AppShell() {
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
     {
       kind: "menu",
-      label: "Studio",
+      label: "Library",
       icon: Catalog,
       items: [
-        {
-          kind: "menu",
-          label: "Libraries",
-          icon: Catalog,
-          items: [
-            ...(planAllowsFeature("knowledgeBank")
-              ? [
-                  { label: "Item Library", to: "/knowledge-bank" },
-                  { label: "Compliance Library", to: "/libraries/compliance" },
-                  { label: "Master Plan Library", to: "/libraries/master-plans" },
-                  { label: "Standards Library", to: "/libraries/standards" },
-                ]
-              : []),
-          ],
-        },
+        ...(planAllowsFeature("knowledgeBank")
+          ? [
+              { label: "Item Library", to: "/knowledge-bank" },
+              { label: "Compliance Library", to: "/libraries/compliance" },
+              { label: "Master Plan Library", to: "/libraries/master-plans" },
+              { label: "Standards Library", to: "/libraries/standards" },
+            ]
+          : []),
+      ],
+    },
+    {
+      kind: "menu",
+      label: "Studio",
+      icon: UserMultiple,
+      items: [
         ...(planAllowsFeature("hr") && hrEnabled
           ? [
               { label: "Teams", to: "/team" },
