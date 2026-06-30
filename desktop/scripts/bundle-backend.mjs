@@ -64,18 +64,20 @@ function main() {
   rmSync(stage, { recursive: true, force: true });
   mkdirSync(tgzDir, { recursive: true });
 
-  function packWorkspace(filter) {
+  function packWorkspace(pkgDir) {
     const before = new Set(readdirSync(tgzDir));
-    execSync(`pnpm --filter ${filter} pack --pack-destination "${tgzDir}"`, {
-      cwd: repo,
+    // npm pack in the package dir (dist is already built by assemble; --ignore-scripts
+    // skips any prepack). `pnpm --filter <pkg> pack` is rejected as a recursive op.
+    execSync(`npm pack --pack-destination "${tgzDir}" --ignore-scripts`, {
+      cwd: join(repo, pkgDir),
       stdio: "inherit",
     });
     const added = readdirSync(tgzDir).filter((f) => f.endsWith(".tgz") && !before.has(f));
-    if (added.length !== 1) throw new Error(`pack ${filter} produced ${added.length} tarball(s)`);
+    if (added.length !== 1) throw new Error(`pack ${pkgDir} produced ${added.length} tarball(s)`);
     return join(tgzDir, added[0]).replace(/\\/g, "/");
   }
-  const contractsTgz = packWorkspace("@esti/contracts");
-  const aiKitTgz = packWorkspace("@hcw/aorms-ai-kit");
+  const contractsTgz = packWorkspace("packages/contracts");
+  const aiKitTgz = packWorkspace("vendor/hcw-aorms-ai-kit");
 
   const pkg = JSON.parse(readFileSync(join(backend, "package.json"), "utf8"));
   delete pkg.devDependencies;
