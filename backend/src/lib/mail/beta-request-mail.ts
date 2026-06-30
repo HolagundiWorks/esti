@@ -14,6 +14,7 @@ const ROLE_LABELS: Record<TrialRequestInput["role"], string> = {
 };
 
 const PRACTICE_LABELS: Record<NonNullable<TrialRequestInput["practiceType"]>, string> = {
+  ARCHITECTURE: "Architecture",
   RESIDENTIAL: "Residential architecture",
   COMMERCIAL: "Commercial architecture",
   INTERIOR: "Interior design",

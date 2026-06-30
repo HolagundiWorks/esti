@@ -12,6 +12,7 @@ export const TrialRequestRole = z.enum([
 ]);
 
 export const TrialPracticeType = z.enum([
+  "ARCHITECTURE",
   "RESIDENTIAL",
   "COMMERCIAL",
   "INTERIOR",
@@ -68,7 +69,7 @@ export const TrialRequestInput = z.object({
   practiceType: TrialPracticeType.optional(),
   teamSize: TrialTeamSize.optional(),
   locations: TrialLocations.optional(),
-  interestedModules: z.array(TrialModuleInterest).min(1).max(10),
+  interestedModules: z.array(TrialModuleInterest).max(10).default([]),
   currentTools: z.array(TrialCurrentTool).max(6).default([]),
   painPoints: z.array(TrialPainPoint).max(8).default([]),
   improvementNotes: z.string().trim().max(4000).optional(),
