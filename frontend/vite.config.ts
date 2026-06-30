@@ -72,6 +72,9 @@ export default defineConfig({
       "/calendar": { target: proxyTarget, changeOrigin: true },
       "/health": { target: proxyTarget, changeOrigin: true },
       "/api": { target: proxyTarget, changeOrigin: true },
+      // Licensing platform (Google onboard / "Create free account", /platform/trpc,
+      // /platform/v1) — without this the onboard link falls through to the SPA.
+      "/platform": { target: proxyTarget, changeOrigin: true },
     },
   },
 });

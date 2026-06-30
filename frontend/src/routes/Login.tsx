@@ -10,7 +10,12 @@ import {
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
+import { createAccountUrl } from "../lib/onboarding.js";
 import { trpc } from "../lib/trpc.js";
+
+// Public marketing build: account creation goes through the licensing cloud
+// (Google sign-in). A private firm install uses the local first-run setup.
+const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 
 export function Login() {
   const navigate = useNavigate();
@@ -76,9 +81,15 @@ export function Login() {
                 <Button type="submit" disabled={login.isPending}>
                   {login.isPending ? "Signing in..." : "Sign in"}
                 </Button>
-                <Button as={RouterLink} to="/signup" kind="tertiary">
-                  Create account
-                </Button>
+                {PUBLIC_SITE ? (
+                  <Button href={createAccountUrl()} kind="tertiary">
+                    Create account
+                  </Button>
+                ) : (
+                  <Button as={RouterLink} to="/signup" kind="tertiary">
+                    Create account
+                  </Button>
+                )}
               </Stack>
             </Form>
 
