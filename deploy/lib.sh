@@ -132,6 +132,9 @@ FIRM_PLAN=${FIRM_PLAN}
 # Licensing & account platform (mounted at /platform; admin UI at /platform-admin).
 # Set GOOGLE_* to enable Google sign-in — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md.
 FRONTEND_ORIGIN=https://${DOMAIN}
+# Allowlist for product "Create account" return URLs (/platform/onboard?return=…).
+# Single-box deploy: the product and platform share this domain.
+ONBOARD_RETURN_ORIGINS=https://${DOMAIN}
 PLATFORM_ADMIN_EMAILS=${PLATFORM_ADMIN_EMAILS:-}
 GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
 GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
