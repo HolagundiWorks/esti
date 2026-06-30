@@ -8,6 +8,9 @@
 );
 // Access the forwarded Carbon type module for the type-style() mixin.
 @use "@carbon/react/scss/type" as type;
+// Raw Carbon palette (yellow-40 / blue-80 / purple-70 etc.) for the plan-tier
+// header tint — sourced from Carbon, never hand-picked hex.
+@use "@carbon/react/scss/colors" as colors;
 @use "./scss/carbon-motion";
 
 // Carbon spacing tokens emitted as CSS custom properties.
@@ -162,6 +165,36 @@ html:has(.esti-studio-abstract-page) body {
   display: inline-block;
   vertical-align: middle;
   margin-inline-end: 0.5rem;
+}
+// AORMS wordmark in the workspace header (replaces the square ESTI mark).
+.esti-app-logo {
+  height: 1.5rem;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 0.5rem;
+}
+
+// Plan-tier header tint (replaces the plan Tag). `.cds--header` raises specificity
+// above Carbon's default header background. CORE (blue-80) / ENTERPRISE (purple-70)
+// are dark, so Carbon's white header foreground stays readable; LITE (yellow-40)
+// is light, so the foreground (logo, firm name, action icons) flips to dark.
+.cds--header.esti-app-header--lite { background-color: colors.$yellow-40; }
+.cds--header.esti-app-header--core { background-color: colors.$blue-80; }
+.cds--header.esti-app-header--enterprise { background-color: colors.$purple-70; }
+
+.esti-app-header--lite {
+  .cds--header__name,
+  .cds--header__action,
+  .esti-header-clock {
+    color: colors.$gray-100;
+  }
+  .cds--header__action svg,
+  .cds--header__menu-trigger svg {
+    fill: colors.$gray-100;
+  }
+  // white AORMS wordmark → dark on the light yellow header.
+  .esti-app-logo { filter: brightness(0); }
 }
 .esti-login-brand h3 {
   margin: 0;

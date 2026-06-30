@@ -11,7 +11,6 @@ import {
   SideNavLink,
   SideNavMenu,
   SideNavMenuItem,
-  Tag,
   Theme,
 } from "@carbon/react";
 import {
@@ -165,19 +164,6 @@ function HeaderClock() {
   );
 }
 
-/** Small edition badge in the workspace header (LITE | CORE | ENTERPRISE). */
-function PlanChip({ plan }: { plan: string }) {
-  const label = plan === "ENTERPRISE" ? "Enterprise" : plan === "CORE" ? "Core" : "Lite";
-  const type = plan === "ENTERPRISE" ? "purple" : plan === "CORE" ? "blue" : "green";
-  return (
-    <span title={`AORMS-${label} subscription`}>
-      <Tag size="sm" type={type as "purple" | "blue" | "green"}>
-        {label}
-      </Tag>
-    </span>
-  );
-}
-
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -219,6 +205,14 @@ function AppShell() {
   // Plan gates: a Lite firm doesn't see HR, AI, GST billing, reconciliation,
   // rate books or audit-log nav. planAllows() defaults LITE until the licence loads.
   const plan = licenseQ.data?.plan ?? settingsQ.data?.plan ?? "LITE";
+  // Plan tier tints the workspace header (replaces the old plan Tag):
+  // LITE → yellow-40, CORE → blue-80, ENTERPRISE → purple-70.
+  const planHeaderClass =
+    plan === "ENTERPRISE"
+      ? "esti-app-header--enterprise"
+      : plan === "CORE"
+        ? "esti-app-header--core"
+        : "esti-app-header--lite";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
   const isStaff =
     !!user &&
@@ -491,19 +485,21 @@ function AppShell() {
     <ThemeContext.Provider value="g100">
       <Theme theme="g100">
         <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>          <Theme theme="g100">
-            <Header aria-label="ESTI AORMS">
+            <Header
+              aria-label="AORMS"
+              className={`esti-app-header ${planHeaderClass}`}
+            >
               <HeaderName prefix="">
                 <img
-                  src="/esti-logo.png"
-                  alt="ESTI"
-                  className="esti-app-mark"
+                  src="/aorms-logo-white.png"
+                  alt="AORMS"
+                  className="esti-app-logo"
                 />
                 {firmName}
               </HeaderName>
               <HeaderGlobalBar>
                 <HeaderClock />
                 <HeaderPomodoro />
-                <PlanChip plan={plan} />
                 <HeaderGlobalAction
                   aria-label="Search"
                   isActive={navPathActive(pathname, "/search")}
