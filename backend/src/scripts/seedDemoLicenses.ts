@@ -1,9 +1,9 @@
 /**
- * Seed 30 demo licences in the Holagundi licensing platform — 10 each for AORMS
- * Lite / Core / Enterprise. Accounts: demo.lite1@aorms.in … demo.lite10,
- * demo.core1 … demo.core10, demo.enterprise1 … demo.enterprise10. Each gets a
- * personal org + an ACTIVE licence on the matching plan. Idempotent (re-runs skip
- * accounts that already hold an AORMS licence).
+ * Seed demo licences in the Holagundi licensing platform — PER_TIER accounts for
+ * each of AORMS Lite / Core / Enterprise (default 1 each: demo.lite1 / demo.core1 /
+ * demo.enterprise1 @aorms.in). Each gets a personal org + an ACTIVE licence on the
+ * matching plan + the demo password. Idempotent (re-runs skip accounts that already
+ * hold an AORMS licence). Mint more on demand from the admin panel's Licenses tab.
  *
  *   pnpm --filter @esti/backend seed:demo-licenses
  *   (or: podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo-licenses")
@@ -18,6 +18,8 @@ const PRODUCT = { code: "AORMS", name: "AORMS", kind: "APP" };
 // Shared sign-in password for every demo account (so the licensing panel is
 // usable in the demo). Matches the AORMS app demo convention.
 const DEMO_PASSWORD = "demo1234";
+// How many demo accounts to seed per tier (demo.<tier>1 … demo.<tier>N).
+const PER_TIER = 1;
 
 const PLANS = [
   { code: "LITE", name: "AORMS Lite", seats: 3, deviceLimit: 3, featureCodes: [] as string[] },
@@ -76,7 +78,7 @@ async function main() {
     const tier = def.code.toLowerCase();
     const planId = await ensurePlan(productId, def);
 
-    for (let n = 1; n <= 10; n++) {
+    for (let n = 1; n <= PER_TIER; n++) {
       const email = `demo.${tier}${n}@aorms.in`;
       const account = await upsertAccount({ email, name: `Demo ${def.code} ${n}` });
 
@@ -146,7 +148,9 @@ async function main() {
       created++;
     }
   }
-  console.log(`✓ demo licences: ${created} created, ${skipped} existing (Lite/Core/Enterprise × 10)`);
+  console.log(
+    `✓ demo licences: ${created} created, ${skipped} existing (Lite/Core/Enterprise × ${PER_TIER})`,
+  );
   console.log(`  sign-in password for every demo.* account: ${DEMO_PASSWORD}`);
 }
 
