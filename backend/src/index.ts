@@ -37,6 +37,7 @@ import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
+import { registerLicensingPlatform } from "./licensing-platform/register.js";
 import { userFromDeviceToken } from "./auth/device.js";
 import { SESSION_COOKIE, userFromToken } from "./auth/session.js";
 
@@ -190,6 +191,10 @@ await app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
   trpcOptions: { router: appRouter, createContext },
 });
+
+// Merged Holagundi licensing platform: /platform/auth/*, /platform/onboard,
+// /platform/v1/*, and its own tRPC at /platform/trpc (separate Google session).
+await registerLicensingPlatform(app);
 
 // Serve filesystem-stored objects on desktop (STORAGE_DRIVER=fs). On S3 the SPA
 // fetches presigned URLs directly from MinIO, so this route is only meaningful on

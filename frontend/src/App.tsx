@@ -107,6 +107,8 @@ const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
+// Merged Holagundi licensing platform admin (its own Google login + tRPC).
+const PlatformAdmin = lazyRoute(() => import("./platform-admin/Panel.js"), "default");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
@@ -224,6 +226,10 @@ function AppShell() {
       (user.role === "CONSULTANT" && !user.consultantId));
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
+
+  // Merged licensing platform admin — self-contained (its own Google login +
+  // tRPC at /platform/trpc), reachable regardless of AORMS firm auth.
+  if (pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
