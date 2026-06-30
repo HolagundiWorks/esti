@@ -128,7 +128,7 @@ services:
 
   # ── Frontend build container ──────────────────────────────────────────────────
   # Under the `build-only` profile so `docker compose up -d` never starts it.
-  # deploy.sh (and bootstrap.sh) build this image, create a temporary container,
+  # install.sh / update.sh build this image, create a temporary container,
   # use `docker cp` to copy the compiled dist out to the host filesystem, then
   # remove the container.  The host nginx (deploy/nginx-proxy.conf) serves the
   # static files directly from DEPLOY_DIR/frontend/dist — no nginx container

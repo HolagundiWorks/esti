@@ -1,8 +1,22 @@
-#!/bin/bash
-# Shared helpers for ESTI deploy scripts (source from setup-vps.sh / bootstrap.sh).
+#!/usr/bin/env bash
+# Shared helpers + the parameterized installer core for ESTI AORMS deployments.
+# Sourced by install.sh (the menu) — not run directly. One install flow, many
+# profiles: the profile only changes a handful of env vars (see install.sh).
 
-# Load KEY=VALUE pairs from a dotenv file without executing shell (unlike `source`).
-# Handles unquoted values with spaces, e.g. SEED_OWNER_NAME=HCW Owner
+# ── Logging ──────────────────────────────────────────────────────────────────
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
+info()    { echo -e "${GREEN}[✔]${NC} $*"; }
+section() { echo -e "\n${CYAN}${BOLD}▶ $*${NC}"; }
+warn()    { echo -e "${YELLOW}[!]${NC} $*"; }
+error()   { echo -e "${RED}[✘] ERROR:${NC} $*"; exit 1; }
+ask()     { echo -en "${BOLD}$1${NC} "; read -r "$2"; }
+askpass() { echo -en "${BOLD}$1${NC} "; read -rs "$2"; echo; }
+
+REPO_URL="${REPO_URL:-https://github.com/HolagundiWorks/esti.git}"
+DEPLOY_DIR="${DEPLOY_DIR:-/opt/esti}"
+
+# ── dotenv loader (no shell execution) ───────────────────────────────────────
 load_dotenv() {
   local env_file="${1:-.env}"
   [[ -f "$env_file" ]] || return 0
@@ -12,97 +26,211 @@ load_dotenv() {
     [[ -z "$line" || "$line" == \#* ]] && continue
     line="${line#export }"
     [[ "$line" == *"="* ]] || continue
-    key="${line%%=*}"
-    val="${line#*=}"
-    key="${key%"${key##*[![:space:]]}"}"
-    key="${key#"${key%%[![:space:]]*}"}"
+    key="${line%%=*}"; val="${line#*=}"
+    key="${key%"${key##*[![:space:]]}"}"; key="${key#"${key%%[![:space:]]*}"}"
     if (( ${#val} >= 2 )); then
-      if [[ "${val:0:1}" == '"' && "${val: -1}" == '"' ]]; then
-        val="${val:1:${#val}-2}"
-      elif [[ "${val:0:1}" == "'" && "${val: -1}" == "'" ]]; then
-        val="${val:1:${#val}-2}"
-      fi
+      if [[ "${val:0:1}" == '"' && "${val: -1}" == '"' ]]; then val="${val:1:${#val}-2}";
+      elif [[ "${val:0:1}" == "'" && "${val: -1}" == "'" ]]; then val="${val:1:${#val}-2}"; fi
     fi
     export "${key}=${val}"
   done < "$env_file"
 }
 
-# Strip scheme, path, commas, whitespace — nginx server_name wants a bare hostname.
+# ── Domain / nginx / storage / health helpers ────────────────────────────────
 normalize_domain() {
-  local d="${1:-}"
-  d="${d#https://}"
-  d="${d#http://}"
-  d="${d%%/*}"
-  d="${d%%,*}"
-  d="$(printf '%s' "$d" | tr -d '[:space:]')"
-  printf '%s' "$d"
+  local d="${1:-}"; d="${d#https://}"; d="${d#http://}"; d="${d%%/*}"; d="${d%%,*}"
+  printf '%s' "$(printf '%s' "$d" | tr -d '[:space:]')"
 }
-
 validate_domain() {
   local d="$1"
-  if [[ -z "$d" ]]; then
-    echo "Domain name is required (hostname only, e.g. aorms.in)." >&2
-    return 1
-  fi
-  if [[ "$d" == *"/"* ]] || [[ "$d" == *":"* ]]; then
-    echo "Domain must be a hostname only — no https://, ports, or paths (got: '$d')." >&2
-    return 1
-  fi
-  if ! [[ "$d" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]]; then
-    echo "Invalid domain hostname: '$d'." >&2
-    return 1
-  fi
+  [[ -z "$d" ]] && { echo "Domain is required (hostname only, e.g. aorms.in)." >&2; return 1; }
+  [[ "$d" == *"/"* || "$d" == *":"* ]] && { echo "Domain must be a hostname only — no scheme/port/path (got '$d')." >&2; return 1; }
+  [[ "$d" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || { echo "Invalid domain '$d'." >&2; return 1; }
   return 0
 }
-
 install_nginx_site() {
-  local domain="$1"
-  local deploy_dir="$2"
-  local nginx_conf="/etc/nginx/sites-available/esti"
-
+  local domain="$1" deploy_dir="$2" nginx_conf="/etc/nginx/sites-available/esti"
   validate_domain "$domain" || return 1
-
   cp "$deploy_dir/deploy/nginx-proxy.conf" "$nginx_conf"
   sed -i "s|DOMAIN_PLACEHOLDER|${domain}|g" "$nginx_conf"
   sed -i "s|DEPLOY_DIR_PLACEHOLDER|${deploy_dir}|g" "$nginx_conf"
   ln -sf "$nginx_conf" /etc/nginx/sites-enabled/esti
   rm -f /etc/nginx/sites-enabled/default
-  nginx -t
-  systemctl reload nginx
+  nginx -t && systemctl reload nginx
 }
-
-# Docker Compose project name from compose.prod.yaml (name: esti-aorms-prod).
-esti_compose_network() {
-  printf '%s' "esti-aorms-prod_esti-network"
-}
-
-# Create the documents bucket before backend startup (idempotent).
+esti_compose_network() { printf '%s' "esti-aorms-prod_esti-network"; }
 ensure_minio_bucket() {
-  local deploy_dir="${1:-.}"
-  local bucket="${S3_BUCKET:-esti-documents}"
-  local access="${S3_ACCESS_KEY:-esti}"
-  local secret="${S3_SECRET_KEY:-}"
-
-  [[ -n "$secret" ]] || { echo "S3_SECRET_KEY is empty — cannot configure MinIO." >&2; return 1; }
-
-  cd "$deploy_dir"
-  sleep 3
-  docker run --rm --network "$(esti_compose_network)" \
-    minio/mc:latest sh -c "
-      mc alias set local http://esti-minio:9000 '${access}' '${secret}' --quiet &&
-      mc mb --ignore-existing local/${bucket}
-    "
+  local deploy_dir="${1:-.}" bucket="${S3_BUCKET:-esti-documents}"
+  local access="${S3_ACCESS_KEY:-esti}" secret="${S3_SECRET_KEY:-}"
+  [[ -n "$secret" ]] || { echo "S3_SECRET_KEY empty — cannot configure MinIO." >&2; return 1; }
+  cd "$deploy_dir"; sleep 3
+  docker run --rm --network "$(esti_compose_network)" minio/mc:latest sh -c "
+    mc alias set local http://esti-minio:9000 '${access}' '${secret}' --quiet &&
+    mc mb --ignore-existing local/${bucket}"
 }
-
 wait_for_backend_health() {
-  local attempts="${1:-30}"
-  local delay="${2:-2}"
-  local code="000"
+  local attempts="${1:-30}" delay="${2:-2}" code="000"
   for _ in $(seq 1 "$attempts"); do
     code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4000/health 2>/dev/null || echo "000")
     [[ "$code" == "200" ]] && return 0
     sleep "$delay"
   done
-  echo "Backend /health returned HTTP ${code} after ${attempts} attempts." >&2
-  return 1
+  echo "Backend /health returned HTTP ${code} after ${attempts} attempts." >&2; return 1
+}
+
+# ── .env writer — one file, profile-driven ───────────────────────────────────
+# Expects the caller (install.sh) to have exported: DOMAIN, PUBLIC_SITE, SEED_DEMO,
+# FIRM_PLAN, OWNER_EMAIL, OWNER_PASSWORD, DEMO_PASSWORD, SESSION_SECRET,
+# POSTGRES_PASSWORD, MINIO_USER, MINIO_PASSWORD, and (licensing profile)
+# PLATFORM_ENABLED, PLATFORM_ADMIN_EMAILS.
+write_env() {
+  cat > "$DEPLOY_DIR/.env" <<EOF
+# Generated by deploy/install.sh — profile: ${PROFILE} — $(date -u +"%Y-%m-%d %H:%M UTC")
+NODE_ENV=production
+BACKEND_PORT=4000
+SESSION_SECRET=${SESSION_SECRET}
+COOKIE_SECURE=true
+ALLOWED_ORIGINS=https://${DOMAIN}
+
+POSTGRES_USER=esti
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+POSTGRES_DB=esti
+DATABASE_URL=postgresql://esti:${POSTGRES_PASSWORD}@esti-db:5432/esti
+
+REDIS_URL=redis://esti-redis:6379
+
+S3_ENDPOINT=http://esti-minio:9000
+S3_PUBLIC_ENDPOINT=https://${DOMAIN}/storage
+S3_BUCKET=esti-documents
+S3_ACCESS_KEY=${MINIO_USER}
+S3_SECRET_KEY=${MINIO_PASSWORD}
+S3_REGION=ap-south-1
+
+WORKER_JOB_STREAM=esti:jobs
+WORKER_GROUP=esti-workers
+
+SEED_OWNER_EMAIL=${OWNER_EMAIL}
+SEED_OWNER_NAME="Firm Owner"
+SEED_OWNER_PASSWORD=${OWNER_PASSWORD}
+SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
+
+# Profile knobs — VITE_PUBLIC_SITE drives the frontend build (marketing site),
+# SEED_DEMO gates the demo workspace seed, FIRM_PLAN sets the plan tier.
+DEPLOY_PROFILE=${PROFILE}
+VITE_PUBLIC_SITE=${PUBLIC_SITE}
+SEED_DEMO=${SEED_DEMO}
+ESTI_ROLE=node
+FIRM_PLAN=${FIRM_PLAN}
+
+# Licensing & account platform (mounted at /platform; admin UI at /platform-admin).
+# Set GOOGLE_* to enable Google sign-in — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md.
+FRONTEND_ORIGIN=https://${DOMAIN}
+PLATFORM_ADMIN_EMAILS=${PLATFORM_ADMIN_EMAILS:-}
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+GOOGLE_REDIRECT_URI=https://${DOMAIN}/platform/auth/google/callback
+EOF
+  chmod 600 "$DEPLOY_DIR/.env"
+  info ".env written for profile '${PROFILE}' (public site: ${PUBLIC_SITE}, demo: ${SEED_DEMO}, plan: ${FIRM_PLAN})."
+}
+
+# ── The single install flow — used by every (non-placeholder) profile ────────
+install_core() {
+  local ADMIN_EMAIL="$1" GIT_BRANCH="${2:-main}"
+
+  section "System update"
+  apt-get update -qq && apt-get upgrade -y -qq
+  apt-get install -y -qq curl git openssl ufw
+  info "System packages up to date."
+
+  section "Docker"
+  if ! command -v docker &>/dev/null; then
+    curl -fsSL https://get.docker.com | sh && systemctl enable --now docker
+  fi
+  docker compose version &>/dev/null || apt-get install -y docker-compose-plugin
+  info "Docker + Compose ready."
+
+  section "nginx + certbot"
+  apt-get install -y -qq nginx certbot python3-certbot-nginx
+
+  section "UFW firewall"
+  ufw --force reset; ufw default deny incoming; ufw default allow outgoing
+  ufw allow 22/tcp comment 'SSH'; ufw allow 80/tcp comment 'HTTP'; ufw allow 443/tcp comment 'HTTPS'
+  ufw --force enable
+  info "Firewall: 22, 80, 443 open."
+
+  section "Repository"
+  if [[ -d "$DEPLOY_DIR/.git" ]]; then
+    git -C "$DEPLOY_DIR" fetch origin && git -C "$DEPLOY_DIR" checkout "$GIT_BRANCH" && git -C "$DEPLOY_DIR" pull origin "$GIT_BRANCH"
+  else
+    git clone --branch "$GIT_BRANCH" "$REPO_URL" "$DEPLOY_DIR"
+  fi
+  cd "$DEPLOY_DIR"
+
+  section ".env file"
+  write_env
+
+  section "Docker build (3–5 minutes)"
+  docker compose -f compose.prod.yaml build
+  info "Images built."
+
+  section "Starting database, Redis, MinIO"
+  docker compose -f compose.prod.yaml up -d esti-db esti-redis esti-minio
+  echo -n "  Waiting for esti-db"
+  for _ in $(seq 1 24); do
+    [[ "$(docker inspect --format='{{.State.Health.Status}}' esti-db 2>/dev/null || echo starting)" == "healthy" ]] && { echo ""; break; }
+    echo -n "."; sleep 5
+  done
+  info "Database healthy."
+
+  set -a; load_dotenv "$DEPLOY_DIR/.env"; set +a
+  ensure_minio_bucket "$DEPLOY_DIR" && info "MinIO bucket ready." || warn "MinIO bucket creation skipped — backend will retry."
+
+  section "Starting backend and worker"
+  docker compose -f compose.prod.yaml up -d backend worker
+  wait_for_backend_health 30 2 && info "Backend running." || warn "Backend /health failed — docker logs esti-backend --tail 80"
+
+  section "Seeding initial data"
+  docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seed.js \
+    && info "Owner/base data seeded." || warn "Base seed failed — docker logs esti-backend"
+  if [[ "$SEED_DEMO" == "true" ]]; then
+    docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemo.js \
+      && info "Demo workspace seeded." || warn "Demo seed failed — docker logs esti-backend"
+  else
+    info "Demo workspace seed skipped (profile '${PROFILE}')."
+  fi
+
+  section "Building frontend"
+  docker compose -f compose.prod.yaml --profile build-only build frontend
+  docker create --name esti-fe-tmp esti-frontend:prod
+  mkdir -p "$DEPLOY_DIR/frontend/dist"
+  docker cp esti-fe-tmp:/usr/share/nginx/html/. "$DEPLOY_DIR/frontend/dist/"
+  docker rm esti-fe-tmp
+  chown -R www-data:www-data "$DEPLOY_DIR/frontend/dist"
+  info "Frontend built."
+
+  section "nginx + TLS"
+  install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || error "nginx configuration failed."
+  certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$ADMIN_EMAIL" --redirect
+  systemctl reload nginx
+  info "TLS issued for https://${DOMAIN}"
+
+  section "Systemd auto-start"
+  cat > /etc/systemd/system/esti.service <<EOF
+[Unit]
+Description=ESTI AORMS
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=${DEPLOY_DIR}
+ExecStart=/usr/bin/docker compose -f compose.prod.yaml up -d
+ExecStop=/usr/bin/docker compose -f compose.prod.yaml down
+TimeoutStartSec=300
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl daemon-reload && systemctl enable esti
+  info "Auto-start on reboot enabled."
 }

@@ -108,10 +108,10 @@ Summary before exposing a live firm instance:
 - [ ] Enable TLS — host nginx + Certbot; `COOKIE_SECURE=true`; `ALLOWED_ORIGINS=https://your-domain`.
 - [ ] Point `S3_PUBLIC_ENDPOINT` at a real, TLS-served object-store host.
 - [ ] Put the API and SPA behind your domain; restrict Postgres/Redis/MinIO to internal network.
-- [ ] Run `deploy/restore-drill.sh` on a staging clone and record sign-off.
+- [ ] Take a backup before go-live (`deploy/backup.sh`); rehearse `deploy/restore.sh` on a staging clone.
 - [ ] Rate limiting and upload validation are built in; review limits in `backend/src/index.ts`.
 
-VPS deploy: `bash deploy/deploy.sh` (the script does `git pull` itself). Fresh host: clone the repo first then run `bash /opt/esti/deploy/bootstrap.sh` — the script sources `lib.sh` relative to its location and cannot be piped directly via `curl | bash`.
+VPS deploy: clone the repo to `/opt/esti`, then `sudo bash deploy/install.sh` and pick a profile (1 landing · 2 demo · 3 Core · 4 Enterprise · 5 Licensing). It sources `deploy/lib.sh` relative to its location, so clone first — it cannot be piped via `curl | bash`. Update later with `bash deploy/update.sh` (profile is remembered in `.env`).
 
 See [ROADMAP](docs/esti/ROADMAP.md#status-at-a-glance) for delivered engineering scope (Phases 0–20).
 

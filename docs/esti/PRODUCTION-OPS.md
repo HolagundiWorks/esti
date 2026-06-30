@@ -37,16 +37,18 @@ ESTI terminates TLS on **host nginx** (not inside Docker). Docker runs the API o
 ### Fresh VPS (SSL included)
 
 ```bash
+git clone https://github.com/HolagundiWorks/esti.git /opt/esti
 cd /opt/esti
-bash deploy/setup-vps.sh
+sudo bash deploy/install.sh
+# menu: 1 landing · 2 demo · 3 Core · 4 Enterprise · 5 Licensing
 # prompts for domain + admin email; runs certbot at the end
 ```
 
-Or one-shot bootstrap (clone first — the script sources `lib.sh` and cannot be piped via `curl | bash`):
+Non-interactive (pass the profile + inputs as env vars):
 
 ```bash
-git clone https://github.com/HolagundiWorks/esti.git /opt/esti
-DOMAIN=aorms.in bash /opt/esti/deploy/bootstrap.sh
+PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in \
+  OWNER_EMAIL=owner@firm.in OWNER_PASSWORD=… sudo -E bash deploy/install.sh
 ```
 
 ### Enable SSL on an existing HTTP-only VPS
@@ -228,15 +230,9 @@ Run on a **staging clone** before production cutover.
 # 1. Backup (PostgreSQL + optional MinIO volume)
 bash deploy/backup.sh /opt/esti/backups
 
-# 2. Automated drill (stops backend/worker, restores latest pg dump, waits for /health)
-bash deploy/restore-drill.sh /opt/esti/backups
-```
-
-Manual restore:
-
-```bash
+# 2. Restore drill on a staging clone: stop app, restore latest dump, verify /health
 docker compose -f compose.prod.yaml stop backend worker
-bash deploy/restore.sh /opt/esti/backups/esti-pg-YYYYMMDD-HHMMSS.sql.gz
+bash deploy/restore.sh "$(ls -t /opt/esti/backups/esti-pg-*.sql.gz | head -1)"
 docker compose -f compose.prod.yaml up -d backend worker
 curl -s http://127.0.0.1:4000/health | jq .
 curl -s http://127.0.0.1:4000/readyz | jq .
@@ -253,7 +249,7 @@ Run on the **staging VPS clone** before production cutover. Record in your ops l
 | Date | YYYY-MM-DD |
 | Operator | Name |
 | Backup path | e.g. `/opt/esti/backups/esti-pg-…` |
-| `restore-drill.sh` exit code | 0 |
+| `restore.sh` exit code | 0 |
 | `/health` after drill | `ok: true` |
 | Spot check | Login, project open, PDF download |
 
@@ -293,8 +289,7 @@ Office-wide queries use `clampListLimit()` (default 100, max 500). Activity feed
 
 ```bash
 cd /opt/esti
-git pull
-bash deploy/deploy.sh
+bash deploy/update.sh        # pulls, rebuilds, atomic dist swap, idempotent seeds
 ```
 
 `deploy.sh` rebuilds images, extracts frontend `dist/` for host nginx, refreshes nginx config, and waits for `/health`.
