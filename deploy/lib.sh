@@ -63,10 +63,17 @@ ensure_minio_bucket() {
   local deploy_dir="${1:-.}" bucket="${S3_BUCKET:-esti-documents}"
   local access="${S3_ACCESS_KEY:-esti}" secret="${S3_SECRET_KEY:-}"
   [[ -n "$secret" ]] || { echo "S3_SECRET_KEY empty — cannot configure MinIO." >&2; return 1; }
-  cd "$deploy_dir"; sleep 3
-  docker run --rm --network "$(esti_compose_network)" minio/mc:latest sh -c "
-    mc alias set local http://esti-minio:9000 '${access}' '${secret}' --quiet &&
-    mc mb --ignore-existing local/${bucket}"
+  cd "$deploy_dir"
+  # The minio/mc image entrypoint is `mc`, so we must override it to `sh`.
+  # Wait for MinIO to accept connections — a fixed sleep races on slow (1-vCPU) boxes.
+  local net; net="$(esti_compose_network)"
+  for _ in $(seq 1 20); do
+    docker run --rm --network "$net" --entrypoint sh minio/mc:latest -c \
+      "mc alias set local http://esti-minio:9000 '${access}' '${secret}' --quiet" 2>/dev/null && break
+    sleep 3
+  done
+  docker run --rm --network "$net" --entrypoint sh minio/mc:latest -c \
+    "mc alias set local http://esti-minio:9000 '${access}' '${secret}' --quiet && mc mb --ignore-existing local/${bucket}"
 }
 wait_for_backend_health() {
   local attempts="${1:-30}" delay="${2:-2}" code="000"
