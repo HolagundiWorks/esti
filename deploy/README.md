@@ -1,5 +1,9 @@
 # ESTI AORMS — Deployment
 
+> **Full step-by-step guide:** [`docs/esti/VPS-INSTALL.md`](../docs/esti/VPS-INSTALL.md)
+> (specs, DNS, swap, prompts, verification, day-2 ops, troubleshooting). This file
+> is the quick reference.
+
 One menu installer, six profiles. The install flow is identical for every profile
 (`deploy/lib.sh` → `install_core`); a profile only changes a few `.env` knobs
 (`VITE_PUBLIC_SITE`, `SEED_DEMO`, `FIRM_PLAN`, and the licensing/Google vars).
