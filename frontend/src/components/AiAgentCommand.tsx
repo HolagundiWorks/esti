@@ -192,7 +192,7 @@ export function AiAgentCommand() {
             <Close size={20} aria-hidden />
           ) : (
             <img
-              src="/esti-logo-inverted.png"
+              src="/esti-logo.png"
               alt=""
               aria-hidden
               className="esti-landing-ai__fab-logo"
