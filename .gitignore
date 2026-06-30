@@ -21,6 +21,12 @@ build/
 .env
 .env.*
 !.env.example
+# signing keys / certificates — must never be committed
+*.pem
+*.key
+*.p12
+*.pfx
+.keys/
 !deploy/.env.production.example
 
 # python
