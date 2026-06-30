@@ -37,8 +37,9 @@ cat <<'MENU'
     5) Licensing & Account       — licensing platform + admin (/platform-admin)
     6) Learning & Certification  — (in pipeline — not yet available)
 
-  Licensing & Account is also offered as an add-on after picking 2/3/4
-  (e.g. 2 + licensing = Landing + Demo + Licensing on one box).
+  Licensing & Account lives on the AORMS site: pick 5, or add it onto the
+  demo (2) — e.g. 2 + licensing = Landing + Demo + Licensing on one box.
+  Customer Core (3) / Enterprise (4) installs never bundle licensing.
 
 MENU
 
@@ -73,7 +74,12 @@ esac
 # offered as a y/N add-on on demo/core/enterprise. Non-interactive: WITH_LICENSING=true.
 PLATFORM_ENABLED="${WITH_LICENSING:-}"
 [[ "$PROFILE" == "licensing" ]] && PLATFORM_ENABLED="true"
-if [[ -z "$PLATFORM_ENABLED" && "$PROFILE" != "landing" ]]; then
+# Licensing & Account is centralised on the AORMS site (its own `licensing` profile,
+# optionally alongside the `demo` showcase). A customer's Core/Enterprise install
+# NEVER bundles it — force it off even if WITH_LICENSING was passed by mistake.
+if [[ "$PROFILE" == "core" || "$PROFILE" == "enterprise" ]]; then
+  PLATFORM_ENABLED=""
+elif [[ -z "$PLATFORM_ENABLED" && "$PROFILE" == "demo" ]]; then
   ask "Also enable the Licensing & Account platform (/platform-admin)? [y/N]:" _lic
   [[ "${_lic,,}" == y* ]] && PLATFORM_ENABLED="true"
 fi
