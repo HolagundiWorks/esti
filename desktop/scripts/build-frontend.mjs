@@ -8,6 +8,13 @@
  */
 import { execSync } from "node:child_process";
 
-process.env.VITE_PUBLIC_SITE = "false";
 console.log("• building frontend (VITE_PUBLIC_SITE=false — firm app) …");
-execSync("pnpm --filter @esti/frontend build", { stdio: "inherit" });
+// Build the SPA with vite directly — mirrors the prod image build. We deliberately
+// skip the `tsc` and blog-prerender steps of the package's `build` script: types are
+// checked in CI / the dev container, the blog prerender is irrelevant to the firm
+// desktop app, and tsc's exported-declaration-name inference for the tRPC client is
+// non-portable across native checkouts (TS2742) — vite/esbuild strips types anyway.
+execSync("pnpm --filter @esti/frontend exec vite build", {
+  stdio: "inherit",
+  env: { ...process.env, VITE_PUBLIC_SITE: "false" },
+});
