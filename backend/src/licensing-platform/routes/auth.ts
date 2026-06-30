@@ -49,6 +49,10 @@ async function completeOnboarding(
 
 /** Account auth: Google OAuth 2.0 + a dev-login fallback + session endpoints. */
 export function registerAuthRoutes(app: FastifyInstance): void {
+  // Same-app redirects must carry the plugin's mount prefix (e.g. "/platform").
+  // A bare "/auth/..." would resolve against the origin root and 404 into the SPA.
+  const BASE = app.prefix || "";
+
   // --- Current session ---
   app.get("/auth/me", async (req, reply) => {
     const s = readSession(req);
@@ -93,7 +97,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       maxAge: 600,
       secure: isProd,
     });
-    return reply.redirect("/auth/google/start");
+    return reply.redirect(`${BASE}/auth/google/start`);
   });
 
   // --- Google OAuth ---
