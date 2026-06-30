@@ -12,6 +12,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Tag,
   TextArea,
   TextInput,
@@ -30,6 +35,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { ComplianceCalculator } from "../components/compliance/ComplianceCalculator.js";
 import { trpc } from "../lib/trpc.js";
 
 const SOURCE_OPTIONS = LeadSource.options;
@@ -78,16 +84,23 @@ export function Leads() {
         actions={<Button onClick={() => setOpen(true)}>New lead</Button>}
       />
 
-      <DataState
-        loading={listQ.isLoading}
-        isEmpty={leads.length === 0}
-        columnCount={6}
-        empty={{
-          title: "No leads yet",
-          description: "Capture an enquiry to start the acquisition funnel.",
-          action: <Button size="sm" onClick={() => setOpen(true)}>New lead</Button>,
-        }}
-      >
+      <Tabs>
+        <TabList aria-label="Lead development sections" contained>
+          <Tab>Lead register</Tab>
+          <Tab>Permissible development</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <DataState
+              loading={listQ.isLoading}
+              isEmpty={leads.length === 0}
+              columnCount={6}
+              empty={{
+                title: "No leads yet",
+                description: "Capture an enquiry to start the acquisition funnel.",
+                action: <Button size="sm" onClick={() => setOpen(true)}>New lead</Button>,
+              }}
+            >
         <TableContainer title={`${leads.length} leads`}>
           <Table>
             <TableHead>
@@ -164,7 +177,13 @@ export function Leads() {
             </TableBody>
           </Table>
         </TableContainer>
-      </DataState>
+            </DataState>
+          </TabPanel>
+          <TabPanel>
+            <ComplianceCalculator />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
 
       {/* Create lead */}
       <Modal

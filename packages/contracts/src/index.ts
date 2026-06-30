@@ -59,6 +59,7 @@ export * from "./consultant-portal.js";
 export * from "./contractor.js";
 export * from "./vendor.js";
 export * from "./rate-import.js";
+export * from "./nbc-compliance.js";
 export * from "./construction.js";
 export * from "./list-limits.js";
 export * from "./companion.js";
