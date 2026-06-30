@@ -12,7 +12,16 @@
  * Node is vendored from the current `process.execPath` for the host triple; for
  * cross-OS installers, vendor the matching Node per target.
  */
-import { cpSync, existsSync, mkdirSync, rmSync, copyFileSync } from "node:fs";
+import {
+  cpSync,
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -43,15 +52,44 @@ function main() {
   cpSync(join(backend, "dist"), join(out, "dist"), { recursive: true });
   cpSync(join(backend, "drizzle"), join(out, "drizzle"), { recursive: true });
 
-  // 2. Production node_modules (self-contained, includes the argon2 native).
-  //    `pnpm deploy` flattens the workspace package into a portable directory.
-  console.log("• pnpm deploy --prod (backend) …");
-  execSync(`pnpm --filter @esti/backend deploy --prod --legacy "${join(out, "_deploy")}"`, {
-    cwd: repo,
+  // 2. Production node_modules — FLAT + portable. pnpm 9's `deploy` emits absolute
+  //    symlinks into a `.pnpm` store, which break once this tree is copied into the
+  //    installer and unpacked on another machine. Instead, pack the two workspace
+  //    deps (@esti/contracts, @hcw/aorms-ai-kit — both zod-only) as tarballs and let
+  //    `npm install --omit=dev` resolve a flat tree (incl. the @node-rs/argon2 win32
+  //    prebuilt) — no symlinks, fully relocatable.
+  console.log("• staging production node_modules (npm, flat) …");
+  const stage = join(out, "_stage");
+  const tgzDir = join(stage, "_tgz");
+  rmSync(stage, { recursive: true, force: true });
+  mkdirSync(tgzDir, { recursive: true });
+
+  function packWorkspace(filter) {
+    const before = new Set(readdirSync(tgzDir));
+    execSync(`pnpm --filter ${filter} pack --pack-destination "${tgzDir}"`, {
+      cwd: repo,
+      stdio: "inherit",
+    });
+    const added = readdirSync(tgzDir).filter((f) => f.endsWith(".tgz") && !before.has(f));
+    if (added.length !== 1) throw new Error(`pack ${filter} produced ${added.length} tarball(s)`);
+    return join(tgzDir, added[0]).replace(/\\/g, "/");
+  }
+  const contractsTgz = packWorkspace("@esti/contracts");
+  const aiKitTgz = packWorkspace("@hcw/aorms-ai-kit");
+
+  const pkg = JSON.parse(readFileSync(join(backend, "package.json"), "utf8"));
+  delete pkg.devDependencies;
+  delete pkg.scripts;
+  pkg.dependencies["@esti/contracts"] = `file:${contractsTgz}`;
+  pkg.dependencies["@hcw/aorms-ai-kit"] = `file:${aiKitTgz}`;
+  writeFileSync(join(stage, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
+
+  execSync("npm install --omit=dev --no-audit --no-fund --ignore-scripts", {
+    cwd: stage,
     stdio: "inherit",
   });
-  cpSync(join(out, "_deploy", "node_modules"), join(out, "node_modules"), { recursive: true });
-  rmSync(join(out, "_deploy"), { recursive: true, force: true });
+  cpSync(join(stage, "node_modules"), join(out, "node_modules"), { recursive: true });
+  rmSync(stage, { recursive: true, force: true });
 
   // 3. Vendor Node as the triple-suffixed sidecar binary.
   mkdirSync(binaries, { recursive: true });
