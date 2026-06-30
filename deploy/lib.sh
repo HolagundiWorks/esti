@@ -215,6 +215,13 @@ install_core() {
   else
     info "Demo workspace seed skipped (profile '${PROFILE}')."
   fi
+  # Licensing platform on → seed the AORMS product + plans + 1 demo licence per
+  # tier (demo.lite1/core1/enterprise1 @aorms.in, password demo1234).
+  if [[ "${PLATFORM_ENABLED:-}" == "true" ]]; then
+    docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seedDemoLicenses.js \
+      && info "Demo licences seeded (Lite/Core/Enterprise · demo1234)." \
+      || warn "Licence seed failed — docker logs esti-backend"
+  fi
 
   section "Building frontend"
   docker compose -f compose.prod.yaml --profile build-only build frontend

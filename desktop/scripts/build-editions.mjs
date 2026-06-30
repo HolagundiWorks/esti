@@ -11,6 +11,7 @@
 import { execSync } from "node:child_process";
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -55,6 +56,13 @@ function newestSetupExe() {
 }
 
 const base = JSON.parse(readFileSync(CONF, "utf8"));
+
+// Tauri icons are gitignored (generated). Regenerate from the committed app mark
+// if absent, so a fresh clone builds — mirrors .github/workflows/desktop.yml.
+if (!existsSync(path.join(ROOT, "desktop/src-tauri/icons/icon.ico"))) {
+  console.log("== generating Tauri icons (none present) ==");
+  sh("cargo tauri icon frontend/public/android-chrome-512x512.png -o desktop/src-tauri/icons");
+}
 
 if (process.env.SKIP_ASSEMBLE) {
   console.log("== SKIP_ASSEMBLE set — reusing the already-assembled frontend/dist + sidecar ==");
