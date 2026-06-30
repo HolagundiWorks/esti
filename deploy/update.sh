@@ -43,6 +43,14 @@ info "Frontend swapped."
 
 if [[ "${REFRESH_NGINX:-false}" == "true" ]]; then
   section "Refreshing nginx vhost"
-  install_nginx_site "$(normalize_domain "${ALLOWED_ORIGINS:-}")" "$DEPLOY_DIR" || warn "nginx refresh failed"
+  _dom="$(normalize_domain "${ALLOWED_ORIGINS:-}")"
+  install_nginx_site "$_dom" "$DEPLOY_DIR" || warn "nginx refresh failed"
+  # install_nginx_site re-copies the HTTP-only template, which drops the SSL
+  # server block certbot had appended. Re-assert TLS so HTTPS survives a refresh.
+  if command -v certbot >/dev/null 2>&1 && [[ -n "$_dom" && -d "/etc/letsencrypt/live/$_dom" ]]; then
+    certbot --nginx -d "$_dom" --redirect --non-interactive --keep-until-expiring \
+      && nginx -t && systemctl reload nginx \
+      || warn "certbot TLS re-assert failed — run: certbot --nginx -d $_dom --redirect"
+  fi
 fi
 info "Update complete."
