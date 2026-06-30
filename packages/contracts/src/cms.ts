@@ -138,3 +138,31 @@ export const CmsFinalSetCreate = z.object({
   title: z.string().min(1).max(200),
 });
 export type CmsFinalSetCreate = z.infer<typeof CmsFinalSetCreate>;
+
+// ── Site Measurement Book ────────────────────────────────────────────────────
+export const CmsMeasurementStatus = z.enum(["DRAFT", "VERIFIED"]);
+export type CmsMeasurementStatus = z.infer<typeof CmsMeasurementStatus>;
+
+export const CmsMeasurementCreate = z.object({
+  projectId: z.string().uuid(),
+  elementId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  description: z.string().max(300).optional(),
+  executedQty: z.number().min(0),
+  remarks: z.string().max(1000).optional(),
+});
+export type CmsMeasurementCreate = z.infer<typeof CmsMeasurementCreate>;
+
+export const CmsMeasurementByElement = z.object({ elementId: z.string().uuid() });
+export type CmsMeasurementByElement = z.infer<typeof CmsMeasurementByElement>;
+
+/** Per-element cumulative read-model (VERIFIED measurements only). */
+export type CmsElementMeasurementSummary = {
+  elementId: string;
+  elementCode: string;
+  elementDescription: string;
+  estimatedQty: number;
+  unit: string | null;
+  cumulativeVerifiedQty: number;
+  percentComplete: number;
+};

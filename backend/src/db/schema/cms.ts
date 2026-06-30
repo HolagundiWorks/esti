@@ -12,10 +12,12 @@ import {
   jsonb,
   pgTable,
   text,
+  timestamp,
   uuid,
 } from "./_helpers.js";
 import { projectOffices } from "./project.js";
 import { kbItems, kbSpecifications } from "./knowledge-bank.js";
+import { users } from "./org-auth.js";
 
 /** Spatial hierarchy — a flexible self-referencing tree per project
  *  (Zone → Building → Floor → Room → Section). Grid is a field on the element. */
@@ -79,5 +81,26 @@ export const cmsElements = pgTable("esti_cms_element", {
   amountPaise: integer("amount_paise").notNull().default(0), // quantity × rate
   notes: text("notes"),
   sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Site Measurement Book — records of executed work at site, per element.
+ *  DRAFT until verified by a cost:approve user; cumulative VERIFIED qty feeds bill certification. */
+export const cmsMeasurements = pgTable("esti_cms_measurement", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  elementId: uuid("element_id")
+    .notNull()
+    .references(() => cmsElements.id, { onDelete: "cascade" }),
+  date: text("date").notNull(), // YYYY-MM-DD
+  description: text("description"),
+  executedQty: doublePrecision("executed_qty").notNull().default(0),
+  measuredById: uuid("measured_by_id").references(() => users.id, { onDelete: "set null" }),
+  verifiedById: uuid("verified_by_id").references(() => users.id, { onDelete: "set null" }),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  remarks: text("remarks"),
+  status: text("status").notNull().default("DRAFT"), // DRAFT | VERIFIED
   createdAt: createdAt(),
 });

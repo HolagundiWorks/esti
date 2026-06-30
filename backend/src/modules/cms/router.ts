@@ -7,24 +7,28 @@ import {
   CmsIdInput,
   CmsLocationCreate,
   CmsLocationUpdate,
+  CmsMeasurementByElement,
+  CmsMeasurementCreate,
   CmsMeasurementType,
   cmsAmountPaise,
   computeQuantity,
+  type CmsElementMeasurementSummary,
   type CmsFinalSetSnapshot,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, isNull, max } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, max, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import {
   cmsElements,
   cmsFinalSets,
   cmsLocations,
+  cmsMeasurements,
   kbItems,
   kbSpecifications,
 } from "../../db/schema.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { writeAudit } from "../../lib/audit.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 function definedOnly<T extends Record<string, unknown>>(obj: T): Partial<T> {
   return Object.fromEntries(
@@ -425,5 +429,125 @@ const finalSet = router({
     }),
 });
 
-/** Cost Management System router — CMS-1 + CMS-2 (Element spine + Estimate + BOQ + Final Set). */
-export const cmsRouter = router({ locations, elements, boq, finalSet });
+// ── Site Measurement Book (CMS-4) ────────────────────────────────────────────
+const costApproveProcedure = capabilityProcedure("cost:approve");
+
+const measurements = router({
+  /** All measurement records for one element, newest first. */
+  listByElement: protectedProcedure
+    .input(CmsMeasurementByElement)
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(cmsMeasurements)
+        .where(eq(cmsMeasurements.elementId, input.elementId))
+        .orderBy(desc(cmsMeasurements.date), desc(cmsMeasurements.createdAt)),
+    ),
+
+  /** Per-element cumulative verified qty for every element in the project. */
+  summaryByProject: protectedProcedure
+    .input(CmsByProjectInput)
+    .query(async ({ ctx, input }): Promise<CmsElementMeasurementSummary[]> => {
+      const elements = await ctx.db
+        .select({
+          id: cmsElements.id,
+          code: cmsElements.code,
+          description: cmsElements.description,
+          quantity: cmsElements.quantity,
+          unit: cmsElements.unit,
+        })
+        .from(cmsElements)
+        .where(eq(cmsElements.projectId, input.projectId))
+        .orderBy(asc(cmsElements.seq), asc(cmsElements.code));
+
+      if (elements.length === 0) return [];
+
+      const verified = await ctx.db
+        .select({
+          elementId: cmsMeasurements.elementId,
+          total: sum(cmsMeasurements.executedQty),
+        })
+        .from(cmsMeasurements)
+        .where(
+          and(
+            eq(cmsMeasurements.projectId, input.projectId),
+            eq(cmsMeasurements.status, "VERIFIED"),
+          ),
+        )
+        .groupBy(cmsMeasurements.elementId);
+
+      const verifiedMap = new Map(verified.map((r) => [r.elementId, Number(r.total ?? 0)]));
+
+      return elements.map((el) => {
+        const cumQty = verifiedMap.get(el.id) ?? 0;
+        const pct = el.quantity > 0 ? Math.min(100, (cumQty / el.quantity) * 100) : 0;
+        return {
+          elementId: el.id,
+          elementCode: el.code,
+          elementDescription: el.description,
+          estimatedQty: el.quantity,
+          unit: el.unit ?? null,
+          cumulativeVerifiedQty: cumQty,
+          percentComplete: Math.round(pct * 10) / 10,
+        };
+      });
+    }),
+
+  create: protectedProcedure
+    .input(CmsMeasurementCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .insert(cmsMeasurements)
+        .values({
+          projectId: input.projectId,
+          elementId: input.elementId,
+          date: input.date,
+          description: input.description ?? null,
+          executedQty: input.executedQty,
+          measuredById: ctx.user.id,
+          remarks: input.remarks ?? null,
+          status: "DRAFT",
+        })
+        .returning();
+      return row!;
+    }),
+
+  verify: costApproveProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ status: cmsMeasurements.status })
+        .from(cmsMeasurements)
+        .where(eq(cmsMeasurements.id, input.id));
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.status === "VERIFIED") return { ok: true };
+
+      await ctx.db
+        .update(cmsMeasurements)
+        .set({
+          status: "VERIFIED",
+          verifiedById: ctx.user.id,
+          verifiedAt: new Date(),
+        })
+        .where(eq(cmsMeasurements.id, input.id));
+      return { ok: true };
+    }),
+
+  remove: protectedProcedure
+    .input(CmsIdInput)
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await ctx.db
+        .select({ status: cmsMeasurements.status })
+        .from(cmsMeasurements)
+        .where(eq(cmsMeasurements.id, input.id));
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.status !== "DRAFT") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only DRAFT measurements can be removed." });
+      }
+      await ctx.db.delete(cmsMeasurements).where(eq(cmsMeasurements.id, input.id));
+      return { ok: true };
+    }),
+});
+
+/** Cost Management System router — CMS-1 through CMS-4. */
+export const cmsRouter = router({ locations, elements, boq, finalSet, measurements });
