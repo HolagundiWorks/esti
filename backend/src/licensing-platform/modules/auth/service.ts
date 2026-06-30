@@ -1,4 +1,5 @@
 import { eq, or } from "drizzle-orm";
+import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
 import { newId } from "../../lib/ids.js";
@@ -78,4 +79,59 @@ export async function upsertAccount(input: UpsertInput): Promise<AccountView> {
     })
     .returning();
   return view(created!);
+}
+
+/** Register a new account with email + password. Throws "email_taken" if used. */
+export async function registerWithPassword(input: {
+  email: string;
+  password: string;
+  name?: string | null;
+}): Promise<AccountView> {
+  const email = input.email.toLowerCase();
+  const [existing] = await db
+    .select({ id: schema.accounts.id })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  if (existing) throw new Error("email_taken");
+
+  const passwordHash = await hashPassword(input.password);
+  const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
+  const [created] = await db
+    .insert(schema.accounts)
+    .values({
+      id: newId("acc"),
+      email,
+      name: input.name ?? null,
+      passwordHash,
+      isPlatformAdmin: grantAdmin,
+    })
+    .returning();
+  return view(created!);
+}
+
+/** Verify email + password. Returns the account on success, else null. Upgrades
+ *  to platform admin if the email is now in PLATFORM_ADMIN_EMAILS. */
+export async function loginWithPassword(
+  emailRaw: string,
+  password: string,
+): Promise<AccountView | null> {
+  const email = emailRaw.toLowerCase();
+  const [a] = await db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  if (!a || !a.passwordHash) return null;
+  if (!(await verifyPassword(a.passwordHash, password))) return null;
+
+  if (!a.isPlatformAdmin && env.PLATFORM_ADMIN_EMAILS.includes(email)) {
+    const [updated] = await db
+      .update(schema.accounts)
+      .set({ isPlatformAdmin: true, updatedAt: new Date() })
+      .where(eq(schema.accounts.id, a.id))
+      .returning();
+    return view(updated!);
+  }
+  return view(a);
 }

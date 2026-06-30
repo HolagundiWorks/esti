@@ -28,6 +28,7 @@ export const accounts = pgTable(
     email: text("email").notNull(),
     name: text("name"),
     avatarUrl: text("avatar_url"),
+    passwordHash: text("password_hash"),
     isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
     createdAt,
     updatedAt,

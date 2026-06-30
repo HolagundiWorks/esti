@@ -918,6 +918,13 @@
       "when": 1782205600000,
       "tag": "0130_nbc_compliance_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 131,
+      "version": "7",
+      "when": 1782205700000,
+      "tag": "0131_hlp_account_password",
+      "breakpoints": true
     }
   ]
 }

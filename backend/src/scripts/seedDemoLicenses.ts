@@ -8,12 +8,16 @@
  *   pnpm --filter @esti/backend seed:demo-licenses
  *   (or: podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo-licenses")
  */
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
+import { hashPassword } from "../auth/session.js";
 import { db, schema } from "../licensing-platform/db/client.js";
 import { newId, newLicenseKey } from "../licensing-platform/lib/ids.js";
 import { upsertAccount } from "../licensing-platform/modules/auth/service.js";
 
 const PRODUCT = { code: "AORMS", name: "AORMS", kind: "APP" };
+// Shared sign-in password for every demo account (so the licensing panel is
+// usable in the demo). Matches the AORMS app demo convention.
+const DEMO_PASSWORD = "demo1234";
 
 const PLANS = [
   { code: "LITE", name: "AORMS Lite", seats: 3, deviceLimit: 3, featureCodes: [] as string[] },
@@ -64,6 +68,7 @@ async function ensurePlan(productId: string, def: (typeof PLANS)[number]): Promi
 
 async function main() {
   const productId = await ensureProduct();
+  const demoPasswordHash = await hashPassword(DEMO_PASSWORD);
 
   let created = 0;
   let skipped = 0;
@@ -74,6 +79,12 @@ async function main() {
     for (let n = 1; n <= 10; n++) {
       const email = `demo.${tier}${n}@aorms.in`;
       const account = await upsertAccount({ email, name: `Demo ${def.code} ${n}` });
+
+      // Give the account a sign-in password if it has none yet.
+      await db
+        .update(schema.accounts)
+        .set({ passwordHash: demoPasswordHash })
+        .where(and(eq(schema.accounts.id, account.id), isNull(schema.accounts.passwordHash)));
 
       // Personal org — reuse the one they own, else create it.
       let [org] = await db
@@ -136,6 +147,7 @@ async function main() {
     }
   }
   console.log(`✓ demo licences: ${created} created, ${skipped} existing (Lite/Core/Enterprise × 10)`);
+  console.log(`  sign-in password for every demo.* account: ${DEMO_PASSWORD}`);
 }
 
 main()
