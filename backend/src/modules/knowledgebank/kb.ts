@@ -19,6 +19,11 @@ import {
   KbSpecLaborUpdate,
   KbSpecMaterialAdd,
   KbSpecMaterialUpdate,
+  ImportCommitItems,
+  ImportCommitMaterials,
+  canonicalUnit,
+  normName,
+  type ImportCommitResult,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
@@ -618,7 +623,121 @@ const materialBrands = router({
   }),
 });
 
-/** Construction Knowledge Bank router — libraries + specifications + recipes. */
+// ── Text import — upsert reviewed rows by normName + canonical unit ──────────
+// Dedup so re-importing the same schedule refreshes rates in place, never
+// duplicates. See docs/esti/IMPORT_SPEC.md. The name portion is additionally
+// whitespace-stripped so "6 mm" and "6mm" resolve to the same key.
+const nameKey = (name: string): string => normName(name).replace(/\s+/g, "");
+const matchKey = (name: string, unit: string | null): string =>
+  `${nameKey(name)}|${canonicalUnit(unit) ?? (unit ?? "").toLowerCase().trim()}`;
+
+const importRouter = router({
+  commitMaterials: protectedProcedure
+    .input(ImportCommitMaterials)
+    .mutation(async ({ ctx, input }): Promise<ImportCommitResult> => {
+      const existing = await ctx.db
+        .select({
+          id: kbMaterials.id,
+          name: kbMaterials.name,
+          unit: kbMaterials.unit,
+          rate: kbMaterials.defaultRatePaise,
+        })
+        .from(kbMaterials);
+      const seen = new Map(existing.map((m) => [matchKey(m.name, m.unit), { id: m.id, rate: m.rate }]));
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+      for (const r of input.rows) {
+        const name = r.name.trim();
+        const unit = canonicalUnit(r.unit) ?? (r.unit?.trim() || null);
+        if (!name || !unit) {
+          skipped++;
+          continue;
+        }
+        const k = matchKey(name, unit);
+        const hit = seen.get(k);
+        if (hit) {
+          if (r.ratePaise != null && r.ratePaise !== hit.rate) {
+            await ctx.db
+              .update(kbMaterials)
+              .set({ defaultRatePaise: r.ratePaise })
+              .where(eq(kbMaterials.id, hit.id));
+            updated++;
+          } else skipped++;
+        } else {
+          const [row] = await ctx.db
+            .insert(kbMaterials)
+            .values({ name, unit, category: r.category ?? null, defaultRatePaise: r.ratePaise ?? 0 })
+            .returning({ id: kbMaterials.id });
+          seen.set(k, { id: row!.id, rate: r.ratePaise ?? 0 });
+          inserted++;
+        }
+      }
+      return { inserted, updated, skipped };
+    }),
+
+  commitItems: protectedProcedure
+    .input(ImportCommitItems)
+    .mutation(async ({ ctx, input }): Promise<ImportCommitResult> => {
+      const existingItems = await ctx.db
+        .select({ id: kbItems.id, name: kbItems.name, unit: kbItems.unit })
+        .from(kbItems);
+      const itemMap = new Map(existingItems.map((i) => [matchKey(i.name, i.unit), i.id]));
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      for (const r of input.rows) {
+        const name = r.name.trim();
+        const unit = canonicalUnit(r.unit) ?? (r.unit?.trim() || null);
+        if (!name || !unit) {
+          skipped++;
+          continue;
+        }
+        const ik = matchKey(name, unit);
+        let itemId = itemMap.get(ik);
+        if (!itemId) {
+          const [row] = await ctx.db
+            .insert(kbItems)
+            .values({ name, unit, category: r.category ?? null })
+            .returning({ id: kbItems.id });
+          itemId = row!.id;
+          itemMap.set(ik, itemId);
+          inserted++;
+        }
+        // Attach / refresh a specification when a rate is present.
+        if (r.ratePaise != null) {
+          const specName = r.specName?.trim() || name;
+          const specs = await ctx.db
+            .select({ id: kbSpecifications.id, name: kbSpecifications.name, rate: kbSpecifications.ratePaise })
+            .from(kbSpecifications)
+            .where(eq(kbSpecifications.itemId, itemId));
+          const hit = specs.find((s) => nameKey(s.name) === nameKey(specName));
+          if (hit) {
+            if (r.ratePaise !== hit.rate) {
+              await ctx.db
+                .update(kbSpecifications)
+                .set({ ratePaise: r.ratePaise, unit })
+                .where(eq(kbSpecifications.id, hit.id));
+              updated++;
+            } else skipped++;
+          } else {
+            await ctx.db.insert(kbSpecifications).values({
+              itemId,
+              name: specName,
+              unit,
+              ratePaise: r.ratePaise,
+              isDefault: specs.length === 0,
+            });
+            inserted++;
+          }
+        }
+      }
+      return { inserted, updated, skipped };
+    }),
+});
+
+/** Construction Knowledge Bank router — libraries + specifications + recipes + text import. */
 export const kbRouter = router({
   materials,
   labor,
@@ -627,4 +746,5 @@ export const kbRouter = router({
   materialBrands,
   specifications,
   recipes,
+  import: importRouter,
 });

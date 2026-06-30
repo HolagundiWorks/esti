@@ -30,6 +30,7 @@ import { BrandLibrary } from "../components/knowledge/kb/BrandLibrary.js";
 import { MaterialBrandMapper } from "../components/knowledge/kb/MaterialBrandMapper.js";
 import { SpecificationLibrary } from "../components/knowledge/kb/SpecificationLibrary.js";
 import { RecipeMapper } from "../components/knowledge/kb/RecipeMapper.js";
+import { RateTextImport } from "../components/knowledge/kb/RateTextImport.js";
 import { trpc } from "../lib/trpc.js";
 
 const KB_TAB_SLUGS = [
@@ -40,6 +41,7 @@ const KB_TAB_SLUGS = [
   "specifications",
   "recipes",
   "brand-catalogue",
+  "import",
 ] as const;
 
 function KnowledgeBankSearch() {
@@ -145,6 +147,7 @@ export function KnowledgeBank() {
           <Tab>Specifications</Tab>
           <Tab>Recipes</Tab>
           <Tab>Brand Catalogue</Tab>
+          <Tab>Import</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -176,6 +179,10 @@ export function KnowledgeBank() {
 
           <TabPanel>
             <SpecCatalogManager embedded />
+          </TabPanel>
+
+          <TabPanel>
+            <RateTextImport />
           </TabPanel>
         </TabPanels>
       </Tabs>
