@@ -2885,7 +2885,9 @@ h1.esti-landing-lead-title {
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border-radius: 50%;
+    // Square launcher (matches the square ESTI mark + Carbon's sharp corners) —
+    // not a circle.
+    border-radius: 0;
     border: 1px solid var(--cds-border-subtle);
     background: var(--cds-layer-01);
     color: var(--cds-text-primary);
