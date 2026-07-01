@@ -42,7 +42,7 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | URL | What it is | Auth |
 |---|---|---|
 | `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
-| `/login` | **Firm login** (`esti_user`) — **and**, on public-site builds, the merged customer account portal: a "Create account" flow to sign up + request a plan (Lite/Core/Enterprise), backed by the central platform. One URL, no separate `/account` page. | firm session, or platform session (customer) |
+| `/login` | **Firm workspace login** (`esti_user`) — the only form shown by default, on every build. On public-site builds also hosts an explicit "Create account" flow to sign up + request a plan (Lite/Core/Enterprise), backed by the central platform — a separate action, not a second default. Managing an existing account lives at Profile → Account (inside the workspace) instead. No separate `/account` page. | firm session |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
 | `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
 | `/platform` | Platform backend root (not a page) | — |
@@ -60,19 +60,25 @@ Internal-only (never exposed): Postgres, Redis, MinIO. Backend binds `127.0.0.1:
 
 ## 3. Login flows (two distinct surfaces)
 
-**A. Firm app / customer account — `/login` (merged).** The primary "Sign in" form is
-plain email + password against the firm's local `esti_user` — what a firm's staff use
-day-to-day. **Optional delegation is now shipped** (opt-in, `ESTI_IDENTITY_DELEGATE=true`):
-the firm app verifies credentials against the central platform, with **offline-grace**
-fallback to the cached local password when it's unreachable — see §5 "Delegated login".
-Default off = local login only.
+**A. Firm app / customer account — `/login` (merged).** The **only** form shown by default
+is plain email + password against the firm's local `esti_user` — what a firm's staff use
+day-to-day, and what a visitor lands on regardless of whether this is a public-site or
+self-hosted build. **Optional delegation is now shipped** (opt-in,
+`ESTI_IDENTITY_DELEGATE=true`): the firm app verifies credentials against the central
+platform, with **offline-grace** fallback to the cached local password when it's
+unreachable — see §5 "Delegated login". Default off = local login only.
 
-On public-site builds, `/login` also hosts a **"Create account"** flow (a toggle on the
-same page, or land directly on it via `/login?mode=create`) — this is the merged customer
-account portal: create a central platform account (`hlp_account`) and raise a **plan
-request** (§8). If that browser already holds a platform session with no firm session, the
-page shows the account dashboard (request status, companies, 2FA, credentials) instead of
-either sign-in form. There is no separate `/account` URL.
+On public-site builds, `/login` also hosts a **"Create account"** button — an explicit,
+separate action (a toggle on the same page, or land directly on it via
+`/login?mode=create`) for someone with no account yet: it creates a central platform
+account (`hlp_account`) and raises a **plan request** (§8). This is a one-way door into
+sign-up only — it does not become the default view, and it is not where an existing
+account is managed. There is no separate `/account` URL.
+
+Managing an already-created account (plan/request status, companies, 2FA, credentials) is
+a **workspace** feature, not a `/login` one: once signed in to the firm workspace, it's the
+**Account** tab under Profile (`/profile`) — sign in there once (a separate `hlp_session`
+cookie from the workspace's own session) to link it for that browser, same as any other tab.
 
 **B. Licensing console — `/platform-admin` (admin only, single step).** Plain email +
 password, no company step, no "Create account" flow for customers. "Create account" only
@@ -260,19 +266,23 @@ licensing install auto-seeds one demo licence per tier: `demo.lite1@aorms.in` / 
 
 ## 8. AORMS Identity operations
 
-**Merged account portal (`/login`, public-site builds) — self-serve, for the signed-in
-person:** once a platform (`hlp_account`) session exists in the browser (just registered, or
-returning), `/login` shows the account dashboard instead of a sign-in form:
-- **Request a workspace** — pick Lite/Core/Enterprise; see pending/approved status (§7).
-- **Two-factor authentication** — enable an authenticator app (TOTP; Google Authenticator,
-  Authy, 1Password…). Scan the `otpauth://` URI or enter the secret, confirm a 6-digit code;
-  thereafter login requires that code. Disable needs a current code.
-- **Active company** switcher (multiple ACTIVE memberships).
-- **Your companies** — create / join / leave a company. Joining **auto-activates** if your
-  email domain matches the company's login-domain, else it's INVITED pending approval.
-- **My credentials** — your portable certifications + growth (keyed to `AORMS-U-`).
-- A **platform admin's own account** lives here too (same session, same account row) — from
-  `/platform-admin` click **"My account (2FA, profile)"** to reach it without signing in again.
+**Account management (`hlp_account` — plan, companies, 2FA, credentials) — two entry
+points, no dedicated URL of its own:**
+- **Inside the firm workspace:** Profile → **Account** tab. Sign in with the account's
+  email/password there once (a separate `hlp_session` cookie from the workspace's own
+  session) — the tab then shows:
+  - **Request a workspace** — pick Lite/Core/Enterprise; see pending/approved status (§7).
+  - **Two-factor authentication** — enable an authenticator app (TOTP; Google Authenticator,
+    Authy, 1Password…). Scan the `otpauth://` URI or enter the secret, confirm a 6-digit
+    code; thereafter login requires that code. Disable needs a current code.
+  - **Active company** switcher (multiple ACTIVE memberships).
+  - **Your companies** — create / join / leave a company. Joining **auto-activates** if your
+    email domain matches the company's login-domain, else it's INVITED pending approval.
+  - **My credentials** — your portable certifications + growth (keyed to `AORMS-U-`).
+- **From `/platform-admin`:** the same panels appear inline via **"My account (2FA,
+  profile)"** — a toggle on the console itself, for a platform admin (or any signed-in
+  account without a firm workspace to reach Profile from) to manage their own account
+  without leaving the console or signing in again.
 
 **Admin console (`/platform-admin`), platform admins only:** Requests · Licenses ·
 Organizations · Products & plans · API keys · **Accounts** (manual password reset). Inside

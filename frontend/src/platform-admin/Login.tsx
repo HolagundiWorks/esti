@@ -52,6 +52,7 @@ export default function Login({
   onLogin,
   portal = false,
   onBack,
+  initialMode,
 }: {
   onLogin: (me: Me) => void;
   /** Customer user-portal: skip the tenant company step + always allow sign-up. */
@@ -60,6 +61,9 @@ export default function Login({
    *  own workspace sign-in), for when this component is embedded rather than
    *  the whole page. */
   onBack?: () => void;
+  /** Force the starting mode (e.g. a caller's own "Create account" button
+   *  landing straight on the register form) instead of the default inference. */
+  initialMode?: "signin" | "register";
 }) {
   // Onboarding (?onboard=PRODUCT) only ever applies to the customer portal.
   const product = portal ? onboardProduct() : null;
@@ -67,7 +71,9 @@ export default function Login({
   // Customer portal: company-first (name / email / AORMS-C id), unless arriving
   // via a product "create account" deep link (register mode, no company needed).
   const skipCompany = !portal || Boolean(product);
-  const [mode, setMode] = useState<"signin" | "register">(product ? "register" : "signin");
+  const [mode, setMode] = useState<"signin" | "register">(
+    initialMode ?? (product ? "register" : "signin"),
+  );
   const [step, setStep] = useState<"company" | "credentials">(skipCompany ? "credentials" : "company");
   const [company, setCompany] = useState("");
   const [resolved, setResolved] = useState<CompanyResolution | null>(null);

@@ -5,43 +5,38 @@ import {
   InlineNotification,
   Loading,
   Stack,
-  Tag,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
-import { fetchMe, logout, type Me } from "../platform-admin/lib/auth.js";
 
-// The merged account-portal pieces (registration, plan requests, companies,
-// 2FA, credentials) are heavier Carbon UI only reached once someone actually
-// signs into an account — code-split so a first, unauthenticated page load
-// (whichever sign-in form it lands on) stays light.
-const Companies = lazy(() => import("../platform-admin/Companies.js"));
-const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
+// Account/licence signup (hlp_account) is heavier Carbon UI only reached via
+// the explicit "Create account" action — code-split so the default sign-in
+// (the common case) stays light.
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
-const RequestPlan = lazy(() => import("../platform-admin/RequestPlan.js"));
-const Security = lazy(() => import("../platform-admin/Security.js"));
 
-// Public marketing build: this page also hosts the merged customer account
-// portal — create an account / request a plan — as a "Create account" flow,
-// backed by the central licensing platform (hlp_account). There is no separate
-// /account URL; only /platform-admin (the licence/admin console) stays distinct.
-// A private/self-hosted firm install has no such platform to reach, so it keeps
-// the plain first-run /signup bootstrap instead.
+// Public marketing build: /login also hosts customer account/licence signup
+// ("Create account", backed by hlp_account) as a distinct, explicit flow —
+// there is no separate /account URL, only /platform-admin (the licence/admin
+// console) stays distinct. A private/self-hosted firm install has no such
+// platform to reach, so it keeps the plain first-run /signup bootstrap
+// instead. Managing an already-created account (companies, plan, security,
+// credentials) is a workspace feature (Profile → Account), not a /login one —
+// signing in here always means the firm workspace.
 const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
-  // --- Firm workspace sign-in (esti_user) — unchanged ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [needCode, setNeedCode] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       // Desktop returns a session token (cookies don't cross the loopback origin).
@@ -61,82 +56,19 @@ export function Login() {
       : login.error?.message;
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
-  // --- Merged customer account portal (hlp_account) — public-site builds only ---
-  // Default to the account/licence sign-in on a public-site build (e.g. aorms.in):
-  // that's the credential store a visiting customer actually has. The firm
-  // workspace sign-in below (esti_user, a separate table) only applies to an
-  // install that hosts its own real firm workspace — reachable via "Looking for
-  // your AORMS workspace sign-in instead?" (PlatformLogin's onBack).
-  const [showPlatform, setShowPlatform] = useState(PUBLIC_SITE);
-  const [platformMe, setPlatformMe] = useState<Me | null>(null);
-  const [checkingPlatform, setCheckingPlatform] = useState(PUBLIC_SITE);
-
-  useEffect(() => {
-    if (!PUBLIC_SITE) return;
-    fetchMe().then((m) => {
-      setPlatformMe(m);
-      setCheckingPlatform(false);
-    });
-  }, []);
-
-  async function refreshPlatformMe() {
-    setPlatformMe(await fetchMe());
-  }
-
-  async function handlePlatformSignOut() {
-    await logout();
-    setPlatformMe(null);
-    setShowPlatform(false);
-  }
-
-  if (PUBLIC_SITE && checkingPlatform) {
-    return (
-      <main style={{ padding: "var(--cds-spacing-06)" }}>
-        <Loading withOverlay={false} description="Loading" />
-      </main>
-    );
-  }
-
-  // A signed-in platform (licence/account) session with no firm session yet —
-  // show the account dashboard instead of any sign-in form.
-  if (PUBLIC_SITE && platformMe?.account) {
-    const account = platformMe.account;
-    return (
-      <main style={{ padding: "var(--cds-spacing-06)" }}>
-        <Stack gap={6}>
-          <Stack gap={3} orientation="horizontal">
-            <h1 className="esti-grow">AORMS Account</h1>
-            <span>{account.email}</span>
-            {account.publicId && (
-              <Tag type="cool-gray" size="md">
-                {account.publicId}
-              </Tag>
-            )}
-            <Button as={RouterLink} to="/" kind="ghost" size="sm">
-              Home
-            </Button>
-            <Button kind="ghost" size="sm" onClick={handlePlatformSignOut}>
-              Sign out
-            </Button>
-          </Stack>
-
-          <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
-            <RequestPlan />
-            <Companies me={platformMe} onChange={setPlatformMe} />
-            <Security me={platformMe} onChange={refreshPlatformMe} />
-            <Credentials />
-          </Suspense>
-        </Stack>
-      </main>
-    );
-  }
-
-  // Create-account / platform sign-in — a full self-contained view (its own
-  // page shell), reached via the "Create account" button or a ?mode=create link.
-  if (PUBLIC_SITE && showPlatform) {
+  // Explicit "Create account" — a brand-new licence/account signup is its own
+  // action, distinct from signing in to a firm workspace. Once created, an
+  // owner manages it (plan, companies, security, credentials) from inside the
+  // workspace at Profile → Account, not from this page.
+  if (PUBLIC_SITE && showRegister) {
     return (
       <Suspense fallback={<Loading withOverlay description="Loading" />}>
-        <PlatformLogin portal onLogin={setPlatformMe} onBack={() => setShowPlatform(false)} />
+        <PlatformLogin
+          portal
+          initialMode="register"
+          onLogin={() => navigate("/", { replace: true })}
+          onBack={() => setShowRegister(false)}
+        />
       </Suspense>
     );
   }
@@ -204,7 +136,7 @@ export function Login() {
                   {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
                 {PUBLIC_SITE ? (
-                  <Button type="button" kind="tertiary" onClick={() => setShowPlatform(true)}>
+                  <Button type="button" kind="tertiary" onClick={() => setShowRegister(true)}>
                     Create account
                   </Button>
                 ) : (

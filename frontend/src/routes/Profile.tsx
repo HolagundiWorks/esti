@@ -13,6 +13,7 @@ import {
 } from "@carbon/react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader.js";
+import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -75,6 +76,7 @@ export function Profile() {
           <Tab>Personal</Tab>
           <Tab>Work Profile</Tab>
           <Tab>AORMS Identity</Tab>
+          <Tab>Account</Tab>
           <Tab>Certification</Tab>
           <Tab>AORMS Index</Tab>
           <Tab>Preferences</Tab>
@@ -123,6 +125,10 @@ export function Profile() {
                 ]}
               />
             </Stack>
+          </TabPanel>
+
+          <TabPanel>
+            <AccountTab />
           </TabPanel>
 
           <TabPanel>
