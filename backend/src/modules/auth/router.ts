@@ -1,6 +1,6 @@
 import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { count, eq, ilike, sql, and } from "drizzle-orm";
+import { count, eq, sql, and } from "drizzle-orm";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { z } from "zod";
@@ -17,7 +17,7 @@ import {
 import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
-import { normalizeEmail } from "../../lib/email.js";
+import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
@@ -150,7 +150,7 @@ export const authRouter = router({
     const rows = await ctx.db
       .select()
       .from(users)
-      .where(ilike(users.email, email))
+      .where(emailMatches(users.email, email))
       .limit(1);
     const u = rows[0];
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
@@ -183,7 +183,7 @@ export const authRouter = router({
     const rows = await ctx.db
       .select()
       .from(users)
-      .where(ilike(users.email, email))
+      .where(emailMatches(users.email, email))
       .limit(1);
     const u = rows[0];
     if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
@@ -273,7 +273,7 @@ export const authRouter = router({
       const rows = await ctx.db
         .select()
         .from(users)
-        .where(and(ilike(users.email, input.email), eq(users.isDemo, true), eq(users.disabled, false)))
+        .where(and(emailMatches(users.email, input.email), eq(users.isDemo, true), eq(users.disabled, false)))
         .limit(1);
       const u = rows[0];
       if (!u) throw new TRPCError({ code: "NOT_FOUND", message: "Demo user not found" });
