@@ -8,6 +8,7 @@ import {
   TextInput,
   Tile,
 } from "@carbon/react";
+import { QRCodeSVG } from "qrcode.react";
 import { type Me, totpDisable, totpEnable, totpSetup } from "./lib/auth";
 
 /** Two-factor authenticator (TOTP) enrollment for the signed-in account. */
@@ -80,15 +81,16 @@ export default function Security({ me, onChange }: { me: Me; onChange: () => voi
           <Form onSubmit={confirm}>
             <Stack gap={4}>
               <p>
-                Add this account to your authenticator app — scan the URI below, or enter the
-                secret key manually — then type the 6-digit code to confirm.
+                Scan this QR with your authenticator app — or enter the secret key manually —
+                then type the 6-digit code to confirm.
               </p>
+              <QRCodeSVG value={setup.otpauthUrl} size={180} marginSize={4} />
               <TextInput
                 id="totp-secret"
                 labelText="Secret key"
                 value={setup.secret}
                 readOnly
-                helperText="Enter this in your app if you can't scan."
+                helperText="Enter this in your app if you can't scan the QR."
               />
               <TextInput id="totp-uri" labelText="otpauth URI" value={setup.otpauthUrl} readOnly />
               <TextInput

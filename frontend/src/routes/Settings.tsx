@@ -8,6 +8,7 @@ import {
   Tile,
 } from "@carbon/react";
 import { UserAvatar } from "@carbon/icons-react";
+import { QRCodeSVG } from "qrcode.react";
 import React, { createElement, useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -266,7 +267,8 @@ export function Settings() {
 
           {totpSetup && (
             <>
-              <p>Scan the URI in your app (or enter the secret), then enter the 6-digit code.</p>
+              <p>Scan this QR in your authenticator app (or enter the secret), then enter the 6-digit code.</p>
+              <QRCodeSVG value={totpSetup.otpauthUrl} size={180} marginSize={4} />
               <TextInput id="totp-secret" labelText="Secret key" value={totpSetup.secret} readOnly />
               <TextInput id="totp-uri" labelText="otpauth URI" value={totpSetup.otpauthUrl} readOnly />
               <TextInput
