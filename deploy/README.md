@@ -15,6 +15,12 @@ cd /opt/esti
 sudo bash deploy/install.sh        # ← pick a profile from the menu
 ```
 
+> **Customer self-hosting Core / Enterprise?** Use the focused, firm-only installer
+> instead: `sudo bash deploy/install-firm.sh` (edition prompt, licence-key activation,
+> no landing/demo/licensing console). See
+> [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md). `install.sh`
+> below is Holagundi's own multi-profile deployment.
+
 ## Profiles
 
 | # | Profile | Public site | Demo data | Plan | Notes |
@@ -31,6 +37,7 @@ sudo bash deploy/install.sh        # ← pick a profile from the menu
 | File | Role |
 |---|---|
 | `deploy/install.sh` | **The installer.** Menu → sets profile env → runs `install_core` |
+| `deploy/install-firm.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
