@@ -2,10 +2,12 @@ import { eq, or } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
-import { newId } from "../../lib/ids.js";
+import { newId, newPublicId } from "../../lib/ids.js";
 
 export interface AccountView {
   id: string;
+  /** Portable personal handle — AORMS-U-XXXX. */
+  publicId: string | null;
   email: string;
   name: string | null;
   avatarUrl: string | null;
@@ -17,6 +19,7 @@ type AccountRow = typeof schema.accounts.$inferSelect;
 function view(a: AccountRow): AccountView {
   return {
     id: a.id,
+    publicId: a.publicId,
     email: a.email,
     name: a.name,
     avatarUrl: a.avatarUrl,
@@ -71,6 +74,7 @@ export async function upsertAccount(input: UpsertInput): Promise<AccountView> {
     .insert(schema.accounts)
     .values({
       id: newId("acc"),
+      publicId: newPublicId("U"),
       email,
       googleSub: input.googleSub ?? null,
       name: input.name ?? null,
@@ -101,6 +105,7 @@ export async function registerWithPassword(input: {
     .insert(schema.accounts)
     .values({
       id: newId("acc"),
+      publicId: newPublicId("U"),
       email,
       name: input.name ?? null,
       passwordHash,

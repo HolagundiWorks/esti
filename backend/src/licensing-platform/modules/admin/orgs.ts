@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.js";
-import { newId } from "../../lib/ids.js";
+import { newId, newPublicId } from "../../lib/ids.js";
 import { platformAdminProcedure, router } from "../../trpc/trpc.js";
 
 function slugify(s: string): string {
@@ -40,6 +40,7 @@ export const orgsRouter = router({
         .insert(schema.organizations)
         .values({
           id: newId("org"),
+          publicId: newPublicId("C"),
           name: input.name,
           slug,
           billingEmail: input.billingEmail ?? null,

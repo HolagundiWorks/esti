@@ -46,6 +46,11 @@ export default function Panel() {
               {account.isPlatformAdmin ? "Platform admin" : "Member"}
             </Tag>
             <span>{account.email}</span>
+            {account.publicId && (
+              <Tag type="cool-gray" size="md">
+                {account.publicId}
+              </Tag>
+            )}
             <Button kind="ghost" size="sm" onClick={backToSite}>
               Back to site
             </Button>

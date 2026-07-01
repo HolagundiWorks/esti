@@ -1,5 +1,7 @@
 export interface Account {
   id: string;
+  /** Portable personal handle — AORMS-U-XXXX. */
+  publicId: string | null;
   email: string;
   name: string | null;
   avatarUrl: string | null;

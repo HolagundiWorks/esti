@@ -58,6 +58,7 @@ export default function OrgsTab() {
         <TableHead>
           <TableRow>
             <TableHeader>Name</TableHeader>
+            <TableHeader>AORMS ID</TableHeader>
             <TableHeader>Slug</TableHeader>
             <TableHeader>Billing email</TableHeader>
           </TableRow>
@@ -66,6 +67,7 @@ export default function OrgsTab() {
           {orgs.map((o) => (
             <TableRow key={o.id}>
               <TableCell>{o.name}</TableCell>
+              <TableCell>{o.publicId ?? "—"}</TableCell>
               <TableCell>{o.slug}</TableCell>
               <TableCell>{o.billingEmail ?? "—"}</TableCell>
             </TableRow>

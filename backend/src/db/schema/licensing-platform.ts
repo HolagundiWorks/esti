@@ -24,6 +24,8 @@ export const accounts = pgTable(
   "hlp_account",
   {
     id: text("id").primaryKey(),
+    /** Portable personal identity — AORMS-U-XXXX. Never changes; certs/growth key to it. */
+    publicId: text("public_id"),
     googleSub: text("google_sub"),
     email: text("email").notNull(),
     name: text("name"),
@@ -36,6 +38,7 @@ export const accounts = pgTable(
   (t) => ({
     emailIdx: uniqueIndex("hlp_account_email_idx").on(t.email),
     googleSubIdx: uniqueIndex("hlp_account_google_sub_idx").on(t.googleSub),
+    publicIdIdx: uniqueIndex("hlp_account_public_id_idx").on(t.publicId),
   }),
 );
 
@@ -44,6 +47,8 @@ export const organizations = pgTable(
   "hlp_organization",
   {
     id: text("id").primaryKey(),
+    /** Company handle — AORMS-C-XXXX. Stable, human-quotable; used for Step-1 login resolution. */
+    publicId: text("public_id"),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     billingEmail: text("billing_email"),
@@ -51,7 +56,10 @@ export const organizations = pgTable(
     createdAt,
     updatedAt,
   },
-  (t) => ({ slugIdx: uniqueIndex("hlp_organization_slug_idx").on(t.slug) }),
+  (t) => ({
+    slugIdx: uniqueIndex("hlp_organization_slug_idx").on(t.slug),
+    publicIdIdx: uniqueIndex("hlp_organization_public_id_idx").on(t.publicId),
+  }),
 );
 
 /** Account ↔ organization membership + role. */

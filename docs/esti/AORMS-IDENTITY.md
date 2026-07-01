@@ -1,6 +1,9 @@
 # AORMS Identity — account model & login
 
-> **Status:** design (proposed). Owner: Holagundi. Supersedes the ad-hoc split between
+> **Status:** in build — **I-1 (portable IDs) shipped**; I-2…I-5 pending. Owner: Holagundi.
+> Delivery: phased to `main`, each phase additive so existing logins keep working.
+> Desktop stays offline-capable (hybrid: online identity, locally-cached session).
+> Supersedes the ad-hoc split between
 > the licensing-platform accounts (`hlp_*`) and the firm-app users (`esti_user`).
 > Related: [`ACCESS-HIERARCHY.md`](ACCESS-HIERARCHY.md), the licensing platform
 > (`backend/src/licensing-platform/`), LXOS (learning/certification pillar).
@@ -160,7 +163,7 @@ logins keep working during the transition (the two-step UI wraps the existing au
 
 | Phase | Scope |
 |---|---|
-| **I-1 — IDs** | `public_id` on `hlp_account`/`hlp_organization` (`AORMS-U/C-`), generator, backfill, show in Profile/Company. |
+| **I-1 — IDs** ✅ | `public_id` on `hlp_account`/`hlp_organization` (`AORMS-U/C-`), generator (`newPublicId`, Crockford base32), backfill (migration 0132), surfaced in the platform-admin console (account chip + Organizations table). *Profile/Company display arrives with the I-5 firm-user projection.* |
 | **I-2 — Tenant-first login** | Step-1 company resolver (domain/email/id) + `aorms.in`→admin branch; Step-2 user login with membership check; session scoped to (account, org). Wraps existing auth. |
 | **I-3 — Company + personal sign-up** | Company create (domain + owner); personal create + **activate into company** (`hlp_org_member` status); leave/re-activate. |
 | **I-4 — Portable certs/growth** | `hlp_certification` + `hlp_growth_event` keyed to `AORMS-U-id`; Profile shows them across companies; wire ASPRF/LXOS. |
