@@ -1639,9 +1639,20 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   transform: scale(0.92);
 }
 
+.esti-geo--x {
+  transform: scale(0.92);
+}
+
 // The single owner-intervention marker — the only blue on the dashboard.
 .esti-geo--act {
   color: var(--cds-interactive);
+}
+
+// Studio Abstract universal shell — vertical rhythm between the Carbon Grid rows.
+// Structural + colourless only (spacing tokens); all colour lives in ZONE_COLOR inline.
+.esti-abstract {
+  padding: var(--cds-spacing-05);
+  row-gap: var(--cds-spacing-05);
 }
 
 @keyframes esti-calm-breathe {
