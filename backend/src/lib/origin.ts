@@ -17,6 +17,18 @@ export function parseAllowedOrigins(value: string): Set<string> {
   );
 }
 
+/** If the request Origin is trusted, return it verbatim (to reflect back as
+ *  `Access-Control-Allow-Origin`); otherwise null. Needed for the desktop webview
+ *  (`tauri://localhost`), which is cross-origin to the loopback backend. */
+export function corsAllowOrigin(
+  origin: string | undefined,
+  allowedOrigins: ReadonlySet<string>,
+): string | null {
+  if (!origin) return null;
+  const normalized = normalizeOrigin(origin);
+  return normalized && allowedOrigins.has(normalized) ? origin : null;
+}
+
 /** Browser unsafe requests must identify an explicitly trusted application origin. */
 export function originDenial(
   method: string,

@@ -9,7 +9,7 @@ import { db } from "./db/index.js";
 import { runMigrations } from "./db/migrate.js";
 import { env } from "./env.js";
 import { INPROC_WORKER, redis } from "./lib/redis.js";
-import { originDenial, parseAllowedOrigins } from "./lib/origin.js";
+import { corsAllowOrigin, originDenial, parseAllowedOrigins } from "./lib/origin.js";
 import {
   BUCKET,
   ensureBucketWithRetry,
@@ -74,6 +74,25 @@ app.addHook("onRequest", (req, reply, done) => {
   if (denial) {
     void reply.code(403).send({ error: denial });
     return;
+  }
+  // CORS for trusted cross-origin clients — the desktop webview (tauri://localhost)
+  // is cross-origin to the loopback backend, so fetch() needs these headers + a
+  // preflight response. Same-origin web/VPS traffic sends no Origin, so this is inert.
+  const allowOrigin = corsAllowOrigin(req.headers.origin, allowedOrigins);
+  if (allowOrigin) {
+    reply
+      .header("access-control-allow-origin", allowOrigin)
+      .header("access-control-allow-credentials", "true")
+      .header("vary", "Origin");
+    if (req.method === "OPTIONS") {
+      void reply
+        .header("access-control-allow-methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+        .header("access-control-allow-headers", "content-type,authorization")
+        .header("access-control-max-age", "600")
+        .code(204)
+        .send();
+      return;
+    }
   }
   done();
 });
