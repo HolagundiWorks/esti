@@ -154,6 +154,34 @@ export async function fetchRegistrationStatus(): Promise<{ adminExists: boolean 
   return { adminExists: Boolean(j.adminExists) };
 }
 
+export interface PlanRequest {
+  id: string;
+  email: string;
+  planCode: string;
+  status: string;
+  note: string | null;
+  licenseId: string | null;
+  createdAt: string;
+}
+
+export async function fetchMyRequest(): Promise<PlanRequest | null> {
+  const r = await fetch("/platform/auth/my-request", { credentials: "include" });
+  if (!r.ok) return null;
+  const j = (await r.json()) as { request: PlanRequest | null };
+  return j.request ?? null;
+}
+
+export async function requestPlan(plan: string): Promise<{ ok: boolean; error?: string; request?: PlanRequest }> {
+  const r = await fetch("/platform/auth/request-plan", {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ plan }),
+  });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; request?: PlanRequest };
+  return { ok: Boolean(j.ok), error: j.error, request: j.request };
+}
+
 export async function fetchCredentials(): Promise<Credentials> {
   const r = await fetch("/platform/auth/my-credentials", { credentials: "include" });
   if (!r.ok) return { certifications: [], growth: [] };

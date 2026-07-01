@@ -11,6 +11,7 @@ import {
 import Login from "./Login";
 import Companies from "./Companies";
 import Credentials from "./Credentials";
+import RequestPlan from "./RequestPlan";
 import Security from "./Security";
 import AdminApp from "./admin/AdminApp";
 import { fetchMe, logout, switchCompany, type Me, type Membership } from "./lib/auth";
@@ -104,6 +105,7 @@ export default function Panel() {
             </div>
           )}
 
+          <RequestPlan />
           {me && <Security me={me} onChange={refreshMe} />}
           {me && <Companies me={me} onChange={setMe} />}
           <Credentials />

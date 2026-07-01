@@ -244,6 +244,34 @@ export const growthEvents = pgTable(
   (t) => ({ accountIdx: index("hlp_growth_event_account_idx").on(t.accountPublicId) }),
 );
 
+/**
+ * A self-serve plan request: a person asks for a tier (LITE/CORE/ENTERPRISE); a
+ * platform admin fulfils it from the portal (creates the licence + mails the key).
+ */
+export const planRequests = pgTable(
+  "hlp_plan_request",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id),
+    orgId: text("org_id").references(() => organizations.id),
+    email: text("email").notNull(),
+    productCode: text("product_code").notNull().default("AORMS"),
+    planCode: text("plan_code").notNull(), // LITE | CORE | ENTERPRISE
+    status: text("status").notNull().default("PENDING"), // PENDING | FULFILLED | REJECTED
+    note: text("note"),
+    licenseId: text("license_id").references(() => licenses.id),
+    decidedBy: text("decided_by"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt,
+  },
+  (t) => ({
+    statusIdx: index("hlp_plan_request_status_idx").on(t.status),
+    accountIdx: index("hlp_plan_request_account_idx").on(t.accountId),
+  }),
+);
+
 /** Per-product machine keys for the Product License API (`/v1`). */
 export const apiKeys = pgTable(
   "hlp_api_key",

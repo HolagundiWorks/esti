@@ -9,7 +9,6 @@ import {
   upsertAccount,
   type AccountView,
 } from "../modules/auth/service.js";
-import { provisionTrial } from "../modules/onboarding/service.js";
 import {
   type OrgHandle,
   membership,
@@ -31,6 +30,7 @@ import {
   startEnrollment,
   totpEnabled,
 } from "../modules/auth/totp.js";
+import { PLAN_CODES, type PlanCode, createPlanRequest, myRequest } from "../modules/request/service.js";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
@@ -57,36 +57,6 @@ const isProd = process.env.NODE_ENV === "production";
 // The admin panel SPA is served at /platform-admin on the frontend origin.
 const PANEL_URL = `${env.FRONTEND_ORIGIN}/platform-admin`;
 
-/** Only redirect back to product origins on the configured allowlist. */
-function isAllowedReturn(ret: string): boolean {
-  try {
-    return env.ONBOARD_RETURN_ORIGINS.includes(new URL(ret).origin.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-/** Provision the trial and build the post-onboarding redirect URL (the product
- *  return URL carrying the issued license, or the admin panel). */
-async function buildOnboardRedirect(
-  account: AccountView,
-  product: string,
-  ret: string,
-): Promise<string> {
-  const result = await provisionTrial(account, product);
-  if (ret && isAllowedReturn(ret)) {
-    const u = new URL(ret);
-    if (result) {
-      u.searchParams.set("license", result.key);
-      u.searchParams.set("status", result.status);
-      u.searchParams.set("email", account.email);
-    } else {
-      u.searchParams.set("onboard_error", "unknown_product");
-    }
-    return u.toString();
-  }
-  return PANEL_URL;
-}
 
 /** Read + clear a pending onboard intent cookie (set by GET /onboard). */
 function takeOnboardIntent(
@@ -137,6 +107,37 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   // once the first platform admin exists (product onboarding is unaffected).
   app.get("/auth/registration-status", async () => {
     return { adminExists: await hasPlatformAdmin() };
+  });
+
+  // --- Plan requests: sign up, ask for a tier; an admin fulfils it in the portal ---
+  app.get("/auth/my-request", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { request: null };
+    }
+    return { request: await myRequest(s.accountId) };
+  });
+
+  app.post("/auth/request-plan", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const plan = (req.body as { plan?: string } | undefined)?.plan?.toUpperCase() ?? "";
+    if (!PLAN_CODES.includes(plan as PlanCode)) {
+      reply.code(400);
+      return { error: "invalid_plan" };
+    }
+    const request = await createPlanRequest(account, plan as PlanCode);
+    return { ok: true, request };
   });
 
   // --- Two-factor authenticator (TOTP) enrollment ---
@@ -343,7 +344,9 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     writeSession(reply, account.id);
 
     const intent = takeOnboardIntent(req, reply);
-    const redirect = intent ? await buildOnboardRedirect(account, intent.product, intent.ret) : null;
+    // Onboarding no longer auto-grants a licence — land the new account in the
+    // console, where they raise a plan request an admin fulfils.
+    const redirect = intent ? PANEL_URL : null;
     return { ok: true, account, redirect };
   });
 
@@ -404,7 +407,9 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     writeSession(reply, account.id, orgId);
 
     const intent = takeOnboardIntent(req, reply);
-    const redirect = intent ? await buildOnboardRedirect(account, intent.product, intent.ret) : null;
+    // Onboarding no longer auto-grants a licence — land the new account in the
+    // console, where they raise a plan request an admin fulfils.
+    const redirect = intent ? PANEL_URL : null;
     const activeOrg = orgId ? await orgHandleById(orgId) : null;
     return { ok: true, account, redirect, activeOrg };
   });
@@ -420,7 +425,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const s = readSession(req);
     if (s) {
       const account = await getAccountById(s.accountId);
-      if (account) return reply.redirect(await buildOnboardRedirect(account, product, ret));
+      if (account) return reply.redirect(PANEL_URL);
     }
 
     // Otherwise stash the intent and send the visitor to the sign-up form; the

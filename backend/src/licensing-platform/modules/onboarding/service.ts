@@ -20,7 +20,7 @@ function slugify(s: string): string {
 }
 
 /** The account's own org — reuse the one they own, else create one. */
-async function ensurePersonalOrg(account: AccountView): Promise<string> {
+export async function ensurePersonalOrg(account: AccountView): Promise<string> {
   const [owned] = await db
     .select()
     .from(schema.organizations)
