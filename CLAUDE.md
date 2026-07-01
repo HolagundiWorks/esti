@@ -256,7 +256,7 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 
 > **Sidebar / module placement** is canonically defined in
 > [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **Canonical V3** IA
-> (Studio Abstract · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS ·
+> (Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS ·
 > Admin), consultancy-only, with per-module ✅/🚧/🔲 status. The nested sidebar is a
 > recursive `NavNode` tree (`link` | `menu`) in `App.tsx`; Studio nests Libraries.
 > Search + AI Studio are **header** actions. **Removed (consultancy-only):** PMC,
@@ -267,7 +267,7 @@ Key routes by area:
 
 | File | Purpose |
 |---|---|
-| `StudioAbstract.tsx` | Studio Abstract home screen — STUDIO STATE · AI REMARKS · SUPPORTING REGISTERS · ACTION NOTE (uses `dashboard.home` bundle; route `/`) |
+| `StudioAbstract.tsx` | **Studio Intelligence** home screen (route `/`; component/file name kept as StudioAbstract) — tabs Overview · Lead · Project · Financial · Team · Work · Approval, each one shell: header + **4 KPI cards** + a **DataTable** that scrolls inside its Tile (page never scrolls, 100% width). Overview merges Studio + Summary and carries the right **sidebar** (AI recommendation over last-10 Office Log). Shell + zone-state vocab in `components/dashboard/abstractShell.tsx` + `zoneState.ts`; uses `dashboard.home`. |
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
 | `ArchivedProjects.tsx` | Archived project browser |

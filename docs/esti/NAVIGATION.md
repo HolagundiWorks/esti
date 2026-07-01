@@ -20,26 +20,30 @@
 | 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
 ## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
-`Studio Abstract · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
+`Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
 Header utilities (not sidebar): **Global Search · Notifications · AI Assistant · User Profile**.
 
 ---
 
-## 1. Studio Abstract ✅ (tabs)
-Route `/` · File `StudioAbstract.tsx` · tRPC `dashboard.*` (bundle stays named `dashboard`)
+## 1. Studio Intelligence ✅ (tabs)
+Route `/` · File `StudioAbstract.tsx` (component `StudioAbstract` — file/component name kept)
+· tRPC `dashboard.*` (bundle stays named `dashboard`). Every tab shares one structure — a
+header, **4 KPI cards**, then a **DataTable** that scrolls inside its Tile (the page never
+scrolls; 100% width). Alert glyphs: ● circle (stable) · ▲ triangle (watch/friction) · ■
+square (critical), each rendered in its alert colour (`zoneState.ts` + `abstractShell.tsx`).
 
 | Tab | Status | Where |
 |---|---|---|
-| Studio Abstract | ✅ | `dashboard.home` — STUDIO STATE + AI REMARKS + SUPPORTING REGISTERS + ACTION NOTE |
-| Lead Register | ✅ | Studio Abstract "LEAD REGISTER" tab (`Leads`) |
-| Project Abstract | ✅ | `dashboard.projectHealth` |
-| Financial Abstract | ✅ | `dashboard.financialHealth` |
-| Team Abstract | ✅ | `dashboard.teamIntelligence` |
-| Work Register | ✅ | tasks today queue |
-| Approval Register | ✅ | pending approvals |
-| AI Remarks | ✅ | AI interventions panel |
-| Summary Sheets | ✅ | reports summary |
-| Office Log | ✅ | `activity.listOffice` |
+| Overview | ✅ | `dashboard.home` — Studio + Summary **merged**; 4 KPIs + action-items table + right sidebar (**AI recommendation** over the **last-10 Office Log**) |
+| Lead | ✅ | `Leads` route (the full lead register) |
+| Project | ✅ | `dashboard.projectHealth` |
+| Financial | ✅ | `dashboard.financialHealth` |
+| Team | ✅ | `dashboard.teamIntelligence` |
+| Work | ✅ | tasks today queue |
+| Approval | ✅ | pending approvals |
+
+Office Log is the **right sidebar** on Overview (not a tab); the old AI Remarks + Summary
+Sheets tabs were folded into Overview.
 
 ## 2. Projects ✅
 Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`): Drawings ✅ ·

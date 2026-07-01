@@ -1,26 +1,19 @@
 /**
- * AORMS Studio Abstract — home screen of the system.
+ * AORMS Studio Intelligence — home screen of the system.
  *
- * Tabs: STUDIO ABSTRACT · LEAD REGISTER · PROJECT ABSTRACT · FINANCIAL ABSTRACT ·
- *       TEAM ABSTRACT · WORK REGISTER · APPROVAL REGISTER · SUMMARY SHEETS ·
- *       OFFICE LOG   (ESTI is embedded per-screen as "ESTI Observation", not a tab)
+ * Tabs: OVERVIEW (Studio + Summary merged) · LEAD · PROJECT · FINANCIAL · TEAM ·
+ *       WORK · APPROVAL. Office Log is a right sidebar (not a tab); ESTI is
+ *       embedded per-screen as "ESTI Observation".
  *
  * Route: /  (root)
  * tRPC: dashboard.home bundle (KPIs, Action Center, financial/project health)
  */
-import { Column, Grid, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tile } from "@carbon/react";
+import { Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tile } from "@carbon/react";
 import { can, formatINRShort } from "@esti/contracts";
 import {
   AbstractScreenShell,
-  ActivePressureList,
-  CurrentStateBlock,
-  EstiObservationPanel,
-  EvidenceActionBlock,
-  RegisterSnapshot,
-  ScreenHeader,
-  type EvidenceRow,
-  type Pressure,
-  type SnapshotRow,
+  type Kpi,
+  type TableRowData,
 } from "../components/dashboard/abstractShell.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { useAuth } from "../lib/auth.js";
@@ -78,41 +71,7 @@ function teamState(overloaded: number, total: number, hrEnabled: boolean): ZoneS
   return "stable";
 }
 
-function officeHealth(cs: ZoneState, fs: ZoneState, ps: ZoneState, ts: ZoneState): number {
-  const p: Record<ZoneState, number> = { critical: 50, friction: 30, watch: 15, stable: 0, inactive: 0 };
-  return Math.max(0, Math.round(100 - (p[cs] * 0.25 + p[fs] * 0.30 + p[ps] * 0.25 + p[ts] * 0.20)));
-}
-
-function healthBand(score: number): { label: string; color: string } {
-  if (score >= 88) return { label: "Stable",              color: "var(--cds-support-success)" };
-  if (score >= 72) return { label: "Flowing",             color: "var(--cds-interactive)" };
-  if (score >= 55) return { label: "Review soon",         color: "var(--cds-support-warning)" };
-  if (score >= 38) return { label: "Needs attention",     color: "var(--cds-support-warning-minor)" };
-  return               { label: "Owner action needed", color: "var(--cds-support-error)" };
-}
-
 // ── Health percentages ────────────────────────────────────────────────────────
-
-function clientHealthPct(pendingCount: number, maxWaitDays: number, blocked: number): number {
-  if (pendingCount === 0 && blocked === 0) return 92;
-  let score = 100;
-  score -= Math.min(pendingCount * 7, 25);
-  score -= Math.min(maxWaitDays * 1.5, 30);
-  score -= blocked * 12;
-  return Math.max(8, Math.round(score));
-}
-
-function financeHealthPct(outstandingPaise: number, overduePaise: number, canSee: boolean): number {
-  if (!canSee) return 0;
-  if (outstandingPaise === 0) return 95;
-  const overdueRatio = overduePaise / Math.max(outstandingPaise, 1);
-  return Math.max(8, Math.round(100 - overdueRatio * 75 - (outstandingPaise > 20_000_000 ? 15 : 0)));
-}
-
-function projectHealthPct(total: number, atRisk: number, delayed: number): number {
-  if (total === 0) return 0;
-  return Math.max(8, Math.round(100 - (atRisk / total) * 60 - (delayed / total) * 25));
-}
 
 // ── GST status ────────────────────────────────────────────────────────────────
 
@@ -205,14 +164,6 @@ function deriveAttn({
 
 // Neutral by design — recovery readout stays white, not colour-coded.
 
-function calmnessLabel(score: number): string {
-  if (score >= 88) return "Everything under control";
-  if (score >= 72) return "Operations running smoothly";
-  if (score >= 55) return "Small delays detected";
-  if (score >= 38) return "Dependencies slowing progress";
-  return "Multiple workflows blocked";
-}
-
 type SignalCopy = {
   value: string;
   detail: string;
@@ -264,15 +215,6 @@ function cognitionState(severity?: string): ZoneState {
     : "inactive";
 }
 
-function domainLabel(domain?: string): string {
-  if (domain === "finance") return "FINANCE";
-  if (domain === "client") return "CLIENT";
-  if (domain === "project") return "PROJECT";
-  if (domain === "team") return "TEAM";
-  if (domain === "approval") return "APPROVAL";
-  return "OFFICE";
-}
-
 function taskHref(taskId?: string | null, projectId?: string | null): string {
   const params = new URLSearchParams({ tab: "tasks" });
   if (taskId) params.set("taskId", taskId);
@@ -289,109 +231,10 @@ function projectIssueHref(p: any): string {
   return `/projects/${p.id}?tab=overview`;
 }
 
-function fallbackCognitiveInterventions(input: {
-  pendingCount: number;
-  maxWaitDays: number;
-  overduePaise: number;
-  billingReadyCount: number;
-  meetingCount: number;
-  riskProjects: number;
-  delayedProjects: number;
-  overloadedCount: number;
-}): any[] {
-  const items: any[] = [];
-  if (input.meetingCount > 0 && (input.pendingCount > 0 || input.riskProjects > 0 || input.delayedProjects > 0)) {
-    items.push({
-      id: "meeting-focus-prep",
-      source: "project",
-      severity: "watch",
-      recoveryLevel: 1,
-      impactPct: 7,
-      title: "Prepare meeting context before switching attention",
-      suggestedAction: "Review only meeting-relevant project notes, approvals, and blockers before the next meeting.",
-      howTo: ["Open the meeting project evidence.", "Read unresolved blockers only.", "Hide finance and HR items until the meeting is complete."],
-      confidence: 0.76,
-      riskIfIgnored: "Unrelated operational pressure can create attentional residue before the meeting.",
-    });
-  }
-  if (input.maxWaitDays > 7 || input.pendingCount >= 2) {
-    items.push({
-      id: "approval-escalation",
-      source: "approval",
-      severity: input.maxWaitDays > 14 ? "critical" : "friction",
-      recoveryLevel: 1,
-      impactPct: input.maxWaitDays > 14 ? 14 : 10,
-      title: "Escalate stale client approvals",
-      suggestedAction: "Clear the oldest waiting approvals first so project and billing pressure can reduce.",
-      howTo: ["Open client approvals.", "Send one decision-focused escalation.", "Record the response or escalation outcome."],
-      confidence: 0.78,
-      riskIfIgnored: "Client response delay will keep project and billing signals under pressure.",
-    });
-  }
-  if (input.overduePaise > 0) {
-    items.push({
-      id: "finance-recovery",
-      source: "finance",
-      severity: input.overduePaise > 5_000_000 ? "critical" : "friction",
-      recoveryLevel: 4,
-      impactPct: input.overduePaise > 5_000_000 ? 16 : 10,
-      title: "Run collection recovery on overdue invoices",
-      suggestedAction: "Recover overdue invoice status after client follow-up is complete.",
-      howTo: ["Open billing evidence.", "Follow up on the overdue invoice reference.", "Mark recovered invoices as paid."],
-      confidence: 0.74,
-      riskIfIgnored: "Aging receivables will continue to lower office calmness.",
-    });
-  }
-  if (input.overloadedCount > 0) {
-    items.push({
-      id: "team-load-redistribution",
-      source: "team",
-      severity: input.overloadedCount > 2 ? "critical" : "friction",
-      recoveryLevel: 2,
-      impactPct: input.overloadedCount > 2 ? 15 : 9,
-      title: "Redistribute overloaded staff tasks",
-      suggestedAction: "Move overdue or overloaded work to the most available active team member.",
-      howTo: ["Find the most overloaded assignee.", "Move selected overdue tasks.", "Review the new workload before stand-up."],
-      confidence: 0.72,
-      riskIfIgnored: "Work will stay concentrated around overloaded people and project health will degrade.",
-    });
-  }
-  if (input.riskProjects > 0 || input.delayedProjects > 0) {
-    items.push({
-      id: "project-owner-review",
-      source: "project",
-      severity: input.riskProjects > 2 ? "critical" : "friction",
-      recoveryLevel: 5,
-      impactPct: input.riskProjects > 2 ? 16 : 11,
-      title: "Run owner review for delayed projects",
-      suggestedAction: "Close completed overdue tasks and assign one recovery owner for remaining blockers.",
-      howTo: ["Open red project evidence.", "Close already-finished overdue tasks.", "Assign one owner to the recovery path."],
-      confidence: 0.7,
-      riskIfIgnored: "Schedule pressure will move from preventive recovery into correction.",
-    });
-  }
-  if (input.billingReadyCount > 0) {
-    items.push({
-      id: "billing-ready",
-      source: "finance",
-      severity: "watch",
-      recoveryLevel: 4,
-      impactPct: 6,
-      title: "Convert billing-ready phases into invoices",
-      suggestedAction: "Turn completed phases into invoices before they become hidden finance load.",
-      howTo: ["Review ready-to-bill phases.", "Confirm scope completion.", "Generate and send invoices."],
-      confidence: 0.72,
-      riskIfIgnored: "Earned work remains outside the receivables pipeline.",
-    });
-  }
-  const rank = { critical: 3, friction: 2, watch: 1 };
-  return items.sort((a, b) => rank[b.severity as keyof typeof rank] - rank[a.severity as keyof typeof rank] || b.impactPct - a.impactPct).slice(0, 6);
-}
-
 // ── OVERVIEW TAB — cognitive command flow ────────────────────────────────────
 
 function ScreenOverview({
-  home, fh, ac, ph, ti, canInvoice, hrEnabled,
+  home, fh, ac, ph, ti, ri, canInvoice, hrEnabled,
 }: {
   home: any; fh: any; ac: any; ph: any[]; ti: any[]; att: any; ri: any;
   canInvoice: boolean; hrEnabled: boolean;
@@ -411,7 +254,6 @@ function ScreenOverview({
   const ts = teamState(overloaded.length, ti.length, hrEnabled);
 
   const office = home?.cognition?.office;
-  const score  = office?.score ?? officeHealth(cs, fs, ps, ts);
   const attn   = deriveAttn({ cs, fs, ps, ts, pendingCount, maxWaitDays, riskProjects, overduePaise, billingReadyCount: billingReady.length, overloadedCount: overloaded.length });
   const officeState: ZoneState =
     cognitionState(office?.severity) !== "inactive"
@@ -420,85 +262,51 @@ function ScreenOverview({
       : attn.chainColor === ZCOLOR["friction"] ? "friction"
       : attn.chainColor === ZCOLOR["watch"] ? "watch" : "stable";
 
-  const backendInterventions = home?.cognition?.interventions ?? [];
-  const interventions = backendInterventions.length > 0
-    ? backendInterventions
-    : fallbackCognitiveInterventions({
-        pendingCount, maxWaitDays, overduePaise,
-        billingReadyCount: billingReady.length,
-        meetingCount: (ac?.meetingFocus ?? []).length,
-        riskProjects: riskProjects.length,
-        delayedProjects: ph.filter((p: any) => (p.overdueTasks ?? 0) > 0).length,
-        overloadedCount: overloaded.length,
-      });
-  const primary = interventions[0];
-
-  // Active Pressures — max 3, highest impact first (the shell caps + places the one ■).
-  const pressures: Pressure[] = interventions.slice(0, 3).map((item: any) => ({
-    domain: domainLabel(item.source),
-    issue: item.title,
-    impact: item.riskIfIgnored,
-    action: item.suggestedAction ?? "Review and act.",
-    state: cognitionState(item.severity),
-  }));
-
-  // Register snapshot — plain counts, no charts (spec §7).
   const tasksOverdue = ph.reduce((s: number, p: any) => s + (p.overdueTasks ?? 0), 0);
-  const teamLoadPct  = ti.length > 0 ? Math.round(ti.reduce((s: number, m: any) => s + loadPct(m.capacity), 0) / ti.length) : 0;
-  const snapshot: SnapshotRow[] = [
+  const gst = gstStatus();
+
+  // Top 4 KPI cards.
+  const kpis: Kpi[] = [
     { label: "Projects Active",   value: ph.length },
     { label: "Invoices Pending",  value: overdueInvs.length, state: overdueInvs.length > 0 ? "friction" : "stable" },
     { label: "Approvals Pending", value: pendingCount,       state: pendingCount > 0 ? "watch" : "stable" },
     { label: "Tasks Overdue",     value: tasksOverdue,       state: tasksOverdue > 0 ? "friction" : "stable" },
-    ...(hrEnabled
-      ? [{ label: "Team Load", value: `${teamLoadPct}%`, state: (teamLoadPct > 85 ? "friction" : teamLoadPct > 70 ? "watch" : "stable") as ZoneState }]
-      : []),
   ];
 
-  // Evidence — the facts behind the signal.
-  const evidenceRows: EvidenceRow[] = [
-    ...overdueInvs.slice(0, 2).map((inv: any) => ({
-      fact: `Overdue invoice ${inv.ref}`,
-      value: formatINRShort(inv.netReceivablePaise),
+  // Action-items table (folds Summary's GST + revisions rows in too).
+  const rows: TableRowData[] = [
+    ...overdueInvs.slice(0, 4).map((inv: any) => ({
       state: "critical" as ZoneState,
-      age: `${inv.daysOverdue}d`,
+      cells: [`Overdue invoice ${inv.ref}`, formatINRShort(inv.netReceivablePaise), `${inv.daysOverdue}d`],
       href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
     })),
-    ...pending.slice(0, 2).map((ap: any) => ({
-      fact: `${ap.projectRef} — ${ap.title}`,
+    ...pending.slice(0, 5).map((ap: any) => ({
       state: (ap.daysWaiting > 14 ? "critical" : "friction") as ZoneState,
-      age: `${ap.daysWaiting}d`,
+      cells: [`${ap.projectRef} — ${ap.title}`, "Approval pending", `${ap.daysWaiting}d`],
       href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
     })),
-    ...riskProjects.slice(0, 2).map((p: any) => ({
-      fact: `${p.ref} at delivery risk`,
-      value: p.title,
+    ...riskProjects.slice(0, 5).map((p: any) => ({
       state: "critical" as ZoneState,
+      cells: [`${p.ref} — ${p.title}`, "Delivery risk", "—"],
       href: projectIssueHref(p),
     })),
+    ...(billingReady.length > 0
+      ? [{ state: "watch" as ZoneState, cells: [`${billingReady.length} phase(s) ready to invoice`, "Billing", "—"], href: "/invoices" }]
+      : []),
+    { state: (gst.state === "stable" ? "stable" : gst.state) as ZoneState, cells: ["GST filing", gst.label, "—"], href: "/filing" },
+    { state: "stable" as ZoneState, cells: ["Revisions logged", String(ri?.totalDecisions ?? 0), "—"], href: "/projects?tab=revisions" },
   ];
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Studio Abstract" state={officeState} signal={officeSignal(officeState).detail} />}
-      currentState={
-        <CurrentStateBlock
-          condition={officeSignal(officeState).value}
-          state={officeState}
-          band={healthBand(score).label}
-          balancePct={score}
-          signal={attn.issue}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={<EvidenceActionBlock cause={attn.issue} action={attn.action} rows={evidenceRows} />}
-      observation={
-        <EstiObservationPanel
-          observation={`${calmnessLabel(score)}. ${officeSignal(officeState).detail}`}
-          action={primary?.suggestedAction ?? "Review weekly performance and plan the next sprint."}
-        />
-      }
+      title="Overview"
+      state={officeState}
+      signal={officeSignal(officeState).detail}
+      kpis={kpis}
+      tableTitle="ACTION ITEMS"
+      headers={["Item", "Detail", "When"]}
+      rows={rows}
+      empty="No action items — the office is operating normally."
     />
   );
 }
@@ -506,82 +314,47 @@ function ScreenOverview({
 // ── PROJECTS TAB ──────────────────────────────────────────────────────────────
 
 function ScreenProjects({
-  ph, ti, canInvoice,
+  ph, canInvoice,
 }: {
   ph: any[]; ti: any[]; att: any; billingReady: any[]; canInvoice: boolean;
 }) {
   const risk    = ph.filter((p: any) => p.health === "RED");
   const watch   = ph.filter((p: any) => p.health === "YELLOW");
   const delayed = ph.filter((p: any) => (p.overdueTasks ?? 0) > 0).length;
-  const stale   = ph.reduce((s: number, p: any) => s + (p.staleApprovals ?? 0), 0);
   const state   = projectState(ph.length, risk.length);
-  const overloaded = ti.filter((m: any) => m.capacity === "OVERLOADED").length;
 
-  const pressures: Pressure[] = risk.slice(0, 3).map((p: any) => ({
-    domain: "Project",
-    issue: `${p.ref} — ${p.title}`,
-    impact:
-      [
-        p.overdueTasks > 0 ? `${p.overdueTasks} late tasks` : null,
-        p.staleApprovals > 0 ? `${p.staleApprovals} stale approvals` : null,
-        canInvoice && p.overdueInvoices > 0 ? `${p.overdueInvoices} invoices overdue` : null,
-      ]
-        .filter(Boolean)
-        .join(" · ") || undefined,
-    action: "Owner review — clear the blocker on the critical path",
-    state: "critical",
-    href: projectIssueHref(p),
-  }));
-
-  const snapshot: SnapshotRow[] = [
+  const kpis: Kpi[] = [
     { label: "Projects Active", value: ph.length },
-    { label: "Delayed Projects", value: delayed, state: delayed > 0 ? "friction" : "stable" },
-    { label: "Critical Projects", value: risk.length, state: risk.length > 0 ? "critical" : "stable" },
-    { label: "Watch Projects", value: watch.length, state: watch.length > 0 ? "watch" : "stable" },
-    { label: "Stale Approvals", value: stale, state: stale > 0 ? "friction" : "stable" },
+    { label: "Critical", value: risk.length, state: risk.length > 0 ? "critical" : "stable" },
+    { label: "Watch", value: watch.length, state: watch.length > 0 ? "watch" : "stable" },
+    { label: "Delayed", value: delayed, state: delayed > 0 ? "friction" : "stable" },
   ];
 
-  const evidenceRows: EvidenceRow[] = [...risk, ...watch].slice(0, 6).map((p: any) => ({
-    fact: `${p.ref} — ${p.title}`,
-    value: p.currentPhase ?? undefined,
+  const rows: TableRowData[] = [...risk, ...watch].slice(0, 20).map((p: any) => ({
     state: (p.health === "RED" ? "critical" : "watch") as ZoneState,
-    age: `${p.progressPct ?? 0}%`,
+    cells: [
+      `${p.ref} — ${p.title}`,
+      p.currentPhase ?? "—",
+      [
+        p.overdueTasks > 0 ? `${p.overdueTasks} late` : null,
+        p.staleApprovals > 0 ? `${p.staleApprovals} stale appr.` : null,
+        canInvoice && p.overdueInvoices > 0 ? `${p.overdueInvoices} inv. overdue` : null,
+      ].filter(Boolean).join(" · ") || "—",
+      `${p.progressPct ?? 0}%`,
+    ],
     href: projectIssueHref(p),
   }));
-
-  const observation =
-    risk.length > 0
-      ? `${risk.length} project${risk.length > 1 ? "s are" : " is"} at delivery risk${overloaded > 0 ? `, with ${overloaded} member${overloaded > 1 ? "s" : ""} overloaded` : ""}.`
-      : "Delivery is on track across the active portfolio.";
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Project Abstract" state={state} signal={`${ph.length} active · ${risk.length} critical · ${watch.length} watch`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={projectSignal(state).value}
-          state={state}
-          band={`${delayed} delayed`}
-          balancePct={projectHealthPct(ph.length, risk.length, delayed)}
-          signal={projectSignal(state).detail}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={
-        <EvidenceActionBlock
-          cause={risk.length > 0 ? `${risk.length} project${risk.length > 1 ? "s" : ""} at delivery risk` : undefined}
-          action="Clear the blocker on each critical path before delivery deadlines."
-          rows={evidenceRows}
-          empty="No projects at risk. Delivery on track."
-        />
-      }
-      observation={
-        <EstiObservationPanel
-          observation={observation}
-          action={risk.length > 0 ? "Assign one recovery owner per critical project." : undefined}
-        />
-      }
+      title="Project"
+      state={state}
+      signal={projectSignal(state).detail}
+      kpis={kpis}
+      tableTitle="PROJECTS NEEDING ATTENTION"
+      headers={["Project", "Phase", "Signals", "Progress"]}
+      rows={rows}
+      empty="No projects at risk. Delivery on track."
     />
   );
 }
@@ -595,15 +368,9 @@ function ScreenFinance({
 }) {
   if (!canInvoice) {
     return (
-      <Grid fullWidth className="esti-abstract">
-        <Column lg={16} md={8} sm={4}>
-          <Tile>
-            <Stack gap={3}>
-              <span className="esti-label--secondary">Finance data requires the invoice:manage permission.</span>
-            </Stack>
-          </Tile>
-        </Column>
-      </Grid>
+      <div className="esti-abstract">
+        <Tile><span className="esti-label--secondary">Finance data requires the invoice:manage permission.</span></Tile>
+      </div>
     );
   }
 
@@ -615,71 +382,34 @@ function ScreenFinance({
   const ready        = fh?.readyToBillPaise ?? 0;
   const state        = financeState(outstanding, overdue, canInvoice);
 
-  const pressures: Pressure[] = [
-    ...overdueInvs.slice(0, 2).map((inv: any) => ({
-      domain: "Finance",
-      issue: `Overdue invoice ${inv.ref}`,
-      impact: `${formatINRShort(inv.netReceivablePaise)} · ${inv.daysOverdue}d`,
-      action: "Contact the client on the overdue payment before the billing cycle closes.",
-      state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState,
-      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-    })),
-    ...(billingReady.length > 0
-      ? [{
-          domain: "Finance",
-          issue: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
-          impact: ready > 0 ? formatINRShort(ready) : undefined,
-          action: "Convert billing-ready phases into invoices.",
-          state: "watch" as ZoneState,
-          href: "/invoices",
-        }]
-      : []),
-  ];
-
-  const snapshot: SnapshotRow[] = [
+  const kpis: Kpi[] = [
     { label: "Receivables", value: formatINRShort(outstanding) },
     { label: "Overdue Invoices", value: overdueInvs.length, state: overdueInvs.length > 0 ? "critical" : "stable" },
     { label: "Billing Ready", value: formatINRShort(ready), state: ready > 0 ? "watch" : "stable" },
-    { label: "Ready Phases", value: billingReady.length },
-    { label: "GST Status", value: gst.label, state: gst.state },
+    { label: "GST", value: gst.label, state: gst.state },
   ];
 
-  const evidenceRows: EvidenceRow[] = overdueInvs.slice(0, 6).map((inv: any) => ({
-    fact: `Overdue invoice ${inv.ref}`,
-    value: formatINRShort(inv.netReceivablePaise),
-    state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState,
-    age: `${inv.daysOverdue}d`,
-    href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-  }));
+  const rows: TableRowData[] = [
+    ...overdueInvs.slice(0, 20).map((inv: any) => ({
+      state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState,
+      cells: [`Overdue invoice ${inv.ref}`, formatINRShort(inv.netReceivablePaise), `${inv.daysOverdue}d`],
+      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
+    })),
+    ...(billingReady.length > 0
+      ? [{ state: "watch" as ZoneState, cells: [`${billingReady.length} phase(s) ready to invoice`, ready > 0 ? formatINRShort(ready) : "—", "—"], href: "/invoices" }]
+      : []),
+  ];
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Financial Abstract" state={state} signal={`${formatINRShort(outstanding)} receivable · ${overdueInvs.length} overdue`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={financeSignal(state).value}
-          state={state}
-          band={overdue > 0 ? `${formatINRShort(overdue)} overdue 30d+` : "No overdue"}
-          balancePct={financeHealthPct(outstanding, overdue, canInvoice)}
-          signal={financeSignal(state).detail}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={
-        <EvidenceActionBlock
-          cause={overdue > 0 ? `${formatINRShort(overdue)} in receivables is 30+ days overdue` : undefined}
-          action="Recover overdue invoices before generating the next billing set."
-          rows={evidenceRows}
-          empty="No invoices overdue. Collections on track."
-        />
-      }
-      observation={
-        <EstiObservationPanel
-          observation={financeSignal(state).detail}
-          action={ready > 0 ? "Bill the ready phases so earned work enters the receivables pipeline." : undefined}
-        />
-      }
+      title="Financial"
+      state={state}
+      signal={financeSignal(state).detail}
+      kpis={kpis}
+      tableTitle="OVERDUE & BILLING"
+      headers={["Item", "Amount", "Age"]}
+      rows={rows}
+      empty="No invoices overdue. Collections on track."
     />
   );
 }
@@ -693,15 +423,9 @@ function ScreenTeam({
 }) {
   if (!hrEnabled) {
     return (
-      <Grid fullWidth className="esti-abstract">
-        <Column lg={16} md={8} sm={4}>
-          <Tile>
-            <Stack gap={3}>
-              <span className="esti-label--secondary">Team module requires HR to be enabled in settings.</span>
-            </Stack>
-          </Tile>
-        </Column>
-      </Grid>
+      <div className="esti-abstract">
+        <Tile><span className="esti-label--secondary">Team module requires HR to be enabled in settings.</span></Tile>
+      </div>
     );
   }
 
@@ -709,59 +433,29 @@ function ScreenTeam({
   const teamLoadPct = ti.length > 0 ? Math.round(ti.reduce((s: number, m: any) => s + loadPct(m.capacity), 0) / ti.length) : 0;
   const state = teamState(overloaded.length, ti.length, hrEnabled);
 
-  const pressures: Pressure[] = overloaded.slice(0, 3).map((m: any) => ({
-    domain: "Team",
-    issue: `${m.assignee} is overloaded`,
-    impact: `${m.totalOpen} open · ${m.overdueCount ?? 0} late`,
-    action: "Redistribute overdue work to an available member.",
-    state: "critical",
-    href: taskHref(m.focusTaskId, m.focusProjectId),
-  }));
-
-  const snapshot: SnapshotRow[] = [
+  const kpis: Kpi[] = [
     { label: "Present Today", value: att?.present ?? "—" },
     { label: "Absent Today", value: att ? `${att.absent}/${att.headcount}` : "—" },
-    { label: "WFH Today", value: att?.wfh ?? "—" },
-    { label: "Overloaded Members", value: overloaded.length, state: overloaded.length > 0 ? "critical" : "stable" },
+    { label: "Overloaded", value: overloaded.length, state: overloaded.length > 0 ? "critical" : "stable" },
     { label: "Team Load", value: `${teamLoadPct}%`, state: teamLoadPct > 85 ? "friction" : teamLoadPct > 70 ? "watch" : "stable" },
   ];
 
-  const evidenceRows: EvidenceRow[] = ti.slice(0, 6).map((m: any) => ({
-    fact: m.assignee,
-    value: `${m.totalOpen} open`,
+  const rows: TableRowData[] = ti.slice(0, 20).map((m: any) => ({
     state: (m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable") as ZoneState,
-    age: CAPACITY_LABEL[m.capacity] ?? m.capacity,
+    cells: [m.assignee, `${m.totalOpen} open`, `${m.overdueCount ?? 0} late`, CAPACITY_LABEL[m.capacity] ?? m.capacity],
     href: taskHref(m.focusTaskId, m.focusProjectId),
   }));
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Team Abstract" state={state} signal={`${ti.length} members · ${overloaded.length} overloaded`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={teamSignal(state).value}
-          state={state}
-          band={`${teamLoadPct}% load`}
-          balancePct={100 - teamLoadPct}
-          signal={teamSignal(state).detail}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={
-        <EvidenceActionBlock
-          cause={overloaded.length > 0 ? `${overloaded.length} member${overloaded.length > 1 ? "s" : ""} overloaded` : undefined}
-          action="Move overdue work away from overloaded members before stand-up."
-          rows={evidenceRows}
-          empty="No team data available."
-        />
-      }
-      observation={
-        <EstiObservationPanel
-          observation={teamSignal(state).detail}
-          action={overloaded.length > 0 ? "Rebalance the workload to protect delivery." : undefined}
-        />
-      }
+      title="Team"
+      state={state}
+      signal={teamSignal(state).detail}
+      kpis={kpis}
+      tableTitle="CAPACITY"
+      headers={["Member", "Open", "Late", "Capacity"]}
+      rows={rows}
+      empty="No team data available."
     />
   );
 }
@@ -775,106 +469,34 @@ function ScreenApprovals({ ac }: { ac: any; home: any }) {
   const stale        = pending.filter((a: any) => (a.daysWaiting ?? 0) > 10).length;
   const state        = clientState(pendingCount, maxWait);
 
-  const pressures: Pressure[] = pending
-    .filter((a: any) => (a.daysWaiting ?? 0) > 10)
-    .slice(0, 3)
-    .map((ap: any) => ({
-      domain: "Approval",
-      issue: `${ap.projectRef} — ${ap.title}`,
-      impact: `waiting ${ap.daysWaiting}d`,
-      action: "Escalate the decision so project and billing can move.",
-      state: (ap.daysWaiting > 14 ? "critical" : "friction") as ZoneState,
-      href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
-    }));
-
-  const snapshot: SnapshotRow[] = [
-    { label: "Approvals Pending", value: pendingCount, state: pendingCount > 0 ? "watch" : "stable" },
+  const kpis: Kpi[] = [
+    { label: "Pending", value: pendingCount, state: pendingCount > 0 ? "watch" : "stable" },
     { label: "Stale (>10d)", value: stale, state: stale > 0 ? "friction" : "stable" },
     { label: "Oldest Wait", value: `${maxWait}d`, state: maxWait > 14 ? "critical" : maxWait > 7 ? "friction" : "stable" },
+    { label: "All Clear", value: pendingCount === 0 ? "Yes" : "No", state: pendingCount === 0 ? "stable" : "watch" },
   ];
 
-  const evidenceRows: EvidenceRow[] = pending.slice(0, 6).map((ap: any) => ({
-    fact: `${ap.projectRef} — ${ap.title}`,
+  const rows: TableRowData[] = pending.slice(0, 20).map((ap: any) => ({
     state: (ap.daysWaiting > 14 ? "critical" : ap.daysWaiting > 7 ? "friction" : "watch") as ZoneState,
-    age: `${ap.daysWaiting}d`,
+    cells: [`${ap.projectRef} — ${ap.title}`, `${ap.daysWaiting}d`],
     href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
   }));
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Approval Register" state={state} signal={`${pendingCount} pending · oldest ${maxWait}d`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={clientSignal(state).value}
-          state={state}
-          band={stale > 0 ? `${stale} stale` : "None stale"}
-          balancePct={clientHealthPct(pendingCount, maxWait, stale)}
-          signal={clientSignal(state).detail}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={
-        <EvidenceActionBlock
-          cause={stale > 0 ? `${stale} approval${stale > 1 ? "s" : ""} waiting over 10 days` : undefined}
-          action="Clear the oldest waiting approvals first."
-          rows={evidenceRows}
-          empty="No approvals pending. All client responses received."
-        />
-      }
-      observation={
-        <EstiObservationPanel
-          observation={clientSignal(state).detail}
-          action={pendingCount > 0 ? "One decision-focused escalation per stale approval." : undefined}
-        />
-      }
+      title="Approval"
+      state={state}
+      signal={clientSignal(state).detail}
+      kpis={kpis}
+      tableTitle="PENDING APPROVALS"
+      headers={["Approval", "Waiting"]}
+      rows={rows}
+      empty="No approvals pending. All client responses received."
     />
   );
 }
 
 // ── REPORTS TAB ───────────────────────────────────────────────────────────────
-
-function ScreenReports({ fh, ph, ri, canInvoice }: {
-  fh: any; ph: any[]; ri: any; canInvoice: boolean; home: any;
-}) {
-  const red      = ph.filter((p: any) => p.health === "RED").length;
-  const delayed  = ph.filter((p: any) => (p.overdueTasks ?? 0) > 0).length;
-  const gst      = gstStatus();
-
-  // Report & export center — utility-driven, no pressure section (spec §8.7).
-  const snapshot: SnapshotRow[] = [
-    { label: "Projects", value: ph.length },
-    { label: "At Risk", value: red, state: red > 0 ? "critical" : "stable" },
-    { label: "Delayed", value: delayed, state: delayed > 0 ? "friction" : "stable" },
-    ...(canInvoice ? [{ label: "Receivables", value: formatINRShort(fh?.outstandingPaise ?? 0) }] : []),
-    { label: "Revisions", value: ri?.totalDecisions ?? 0 },
-    { label: "GST Status", value: gst.label, state: gst.state },
-  ];
-
-  const evidenceRows: EvidenceRow[] = [
-    ...(canInvoice ? [{ fact: "GST / TDS filing abstracts", state: "stable" as ZoneState, href: "/filing" }] : []),
-    { fact: "Team performance", state: "stable", href: "/performance" },
-    { fact: "Office activity log", state: "stable", href: "/tasks?tab=activity" },
-  ];
-
-  return (
-    <AbstractScreenShell
-      header={<ScreenHeader title="Summary Sheets" state="stable" signal="Report & export center" />}
-      currentState={
-        <CurrentStateBlock
-          condition="Reports ready"
-          state="stable"
-          band={`${ph.length} projects`}
-          balancePct={100}
-          signal="Delivery, financial and revision summaries are up to date."
-        />
-      }
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={<EvidenceActionBlock action="Open a report to review or export." rows={evidenceRows} empty="No reports available." />}
-      observation={<EstiObservationPanel observation="A calm, utility screen — no action pressure. Open a report when you need to review or export." />}
-    />
-  );
-}
 
 // ── ACTIVITY TAB ──────────────────────────────────────────────────────────────
 
@@ -889,42 +511,52 @@ function relTime(input: string | Date): string {
   return `${Math.round(h / 24)}d ago`;
 }
 
-function ScreenActivity() {
-  const q = trpc.activity.listOffice.useQuery({ limit: 30, visibility: "STAFF" }, { staleTime: 30_000 });
-  const rows = q.data?.rows ?? [];
-  const userActions  = rows.filter((a) => a.actorName).length;
-  const systemEvents = rows.length - userActions;
-
-  // Audit / activity trail — record history, not an action center (spec §8.8).
-  const snapshot: SnapshotRow[] = [
-    { label: "Recent Changes", value: rows.length },
-    { label: "User Actions", value: userActions },
-    { label: "System Events", value: systemEvents },
-  ];
-
-  const evidenceRows: EvidenceRow[] = rows.slice(0, 6).map((a) => ({
-    fact: a.summary,
-    value: `${a.actorName ?? "System"}${a.projectRef ? ` · ${a.projectRef}` : ""}`,
-    state: "stable" as ZoneState,
-    age: relTime(a.createdAt),
-  }));
+// Dashboard sidebar (STUDIO screen only): AI recommendation on top (~30%) over the
+// last 10 office-log events (record history, spec §8.8). Not a tab.
+function DashboardSidebar({ home }: { home: any }) {
+  const interventions = home?.cognition?.interventions ?? [];
+  const primary = interventions[0];
+  const logQ = trpc.activity.listOffice.useQuery({ limit: 10, visibility: "STAFF" }, { staleTime: 30_000 });
+  const rows = logQ.data?.rows ?? [];
 
   return (
-    <AbstractScreenShell
-      header={<ScreenHeader title="Office Log" state="stable" signal={`${rows.length} recent events`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={q.isLoading ? "Loading…" : "Activity timeline"}
-          state="stable"
-          band="Record history"
-          balancePct={100}
-          signal="Immutable audit and activity trail — record history, not an action center."
-        />
-      }
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={<EvidenceActionBlock rows={evidenceRows} empty="No recent office activity." />}
-      observation={<EstiObservationPanel observation="A running record of what changed in the office. No pressure — this is history." />}
-    />
+    <div className="esti-dash-aside">
+      <Tile className="esti-dash-aside__ai">
+        <Stack gap={3}>
+          <span className="esti-label esti-label--secondary">AI RECOMMENDATION</span>
+          {primary ? (
+            <>
+              <p>{primary.title}</p>
+              {primary.suggestedAction && (
+                <span className="esti-label--secondary">{primary.suggestedAction}</span>
+              )}
+            </>
+          ) : (
+            <span className="esti-label--secondary">No recommendation — the office is operating normally.</span>
+          )}
+        </Stack>
+      </Tile>
+      <Tile className="esti-dash-aside__log">
+        <Stack gap={4}>
+          <span className="esti-label esti-label--secondary">OFFICE LOG · LAST 10</span>
+          {rows.length === 0 ? (
+            <span className="esti-label--secondary">No recent office activity.</span>
+          ) : (
+            <Stack gap={3}>
+              {rows.slice(0, 10).map((a) => (
+                <div key={a.id} className="esti-log-item">
+                  <span>{a.summary}</span>
+                  <span className="esti-label--helper">
+                    {a.actorName ?? "System"}
+                    {a.projectRef ? ` · ${a.projectRef}` : ""} · {relTime(a.createdAt)}
+                  </span>
+                </div>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Tile>
+    </div>
   );
 }
 
@@ -932,63 +564,36 @@ function ScreenActivity() {
 
 function ScreenWorkQueue() {
   const queueQ = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 25 }, { staleTime: 30_000 });
-  const rows   = queueQ.data ?? [];
+  const tasks  = queueQ.data ?? [];
   const today  = new Date().toISOString().slice(0, 10);
-  const overdue  = rows.filter((t) => t.dueDate && t.dueDate < today).length;
-  const dueToday = rows.filter((t) => t.dueDate === today).length;
-  const blocked  = rows.filter((t) => t.status === "BLOCKED").length;
-  const highPri  = rows.filter((t) => t.priority === "CRITICAL" || t.priority === "HIGH").length;
+  const overdue  = tasks.filter((t) => t.dueDate && t.dueDate < today).length;
+  const dueToday = tasks.filter((t) => t.dueDate === today).length;
+  const blocked  = tasks.filter((t) => t.status === "BLOCKED").length;
   const state: ZoneState = blocked > 0 || overdue > 5 ? "friction" : overdue > 0 ? "watch" : "stable";
 
-  const pressures: Pressure[] = rows
-    .filter((t) => t.interventionRequired || t.status === "BLOCKED")
-    .slice(0, 3)
-    .map((t) => ({
-      domain: "Work",
-      issue: t.title,
-      impact: t.projectRef ? `${t.projectRef}${t.dueDate ? ` · due ${t.dueDate}` : ""}` : undefined,
-      action: t.status === "BLOCKED" ? "Unblock this task to release dependent project movement." : "Prioritize — intervention required.",
-      state: (t.status === "BLOCKED" ? "critical" : "friction") as ZoneState,
-      href: taskHref(t.id),
-    }));
-
-  const snapshot: SnapshotRow[] = [
-    { label: "Open Tasks", value: rows.length },
+  const kpis: Kpi[] = [
+    { label: "Open Tasks", value: tasks.length },
     { label: "Due Today", value: dueToday, state: dueToday > 0 ? "watch" : "stable" },
     { label: "Overdue", value: overdue, state: overdue > 0 ? "friction" : "stable" },
-    { label: "Blocked Tasks", value: blocked, state: blocked > 0 ? "critical" : "stable" },
-    { label: "High Priority", value: highPri, state: highPri > 0 ? "watch" : "stable" },
+    { label: "Blocked", value: blocked, state: blocked > 0 ? "critical" : "stable" },
   ];
 
-  const evidenceRows: EvidenceRow[] = rows.slice(0, 6).map((t) => ({
-    fact: t.title,
-    value: t.projectRef ?? undefined,
+  const rows: TableRowData[] = tasks.slice(0, 25).map((t) => ({
     state: (t.status === "BLOCKED" ? "critical" : t.priority === "CRITICAL" || t.priority === "HIGH" ? "friction" : "watch") as ZoneState,
-    age: t.dueDate ?? undefined,
+    cells: [t.title, t.projectRef ?? "—", t.dueDate ?? "—", t.status],
     href: taskHref(t.id),
   }));
 
   return (
     <AbstractScreenShell
-      header={<ScreenHeader title="Work Register" state={state} signal={`${rows.length} tasks · ${overdue} overdue`} />}
-      currentState={
-        <CurrentStateBlock
-          condition={overdue > 0 ? "Overdue building" : blocked > 0 ? "Blocked work" : "Queue clear"}
-          state={state}
-          band={`${blocked} blocked`}
-          balancePct={rows.length > 0 ? Math.round(((rows.length - overdue) / rows.length) * 100) : 100}
-          signal={overdue > 0 ? "Overdue work is accumulating in the queue." : "The work queue is moving normally."}
-        />
-      }
-      activePressures={<ActivePressureList pressures={pressures} />}
-      registerSnapshot={<RegisterSnapshot rows={snapshot} />}
-      evidence={<EvidenceActionBlock action="Clear blocked and overdue tasks first." rows={evidenceRows} empty="No active tasks in the queue." />}
-      observation={
-        <EstiObservationPanel
-          observation={overdue > 0 || blocked > 0 ? "Blocked and overdue tasks are holding queue movement." : "The execution queue is healthy."}
-          action={blocked > 0 ? "Unblock the blocked tasks to release dependent work." : undefined}
-        />
-      }
+      title="Work"
+      state={state}
+      signal={`${tasks.length} tasks · ${overdue} overdue · ${blocked} blocked`}
+      kpis={kpis}
+      tableTitle="TASK QUEUE"
+      headers={["Task", "Project", "Due", "Status"]}
+      rows={rows}
+      empty="No active tasks in the queue."
     />
   );
 }
@@ -1022,24 +627,30 @@ export function StudioAbstract() {
   return (
     <div className="esti-studio-abstract-page">
       <Tabs>
-        <TabList aria-label="Studio Abstract navigation">
-          <Tab>STUDIO ABSTRACT</Tab>
-          <Tab disabled={!canWrite}>LEAD REGISTER</Tab>
-          <Tab>PROJECT ABSTRACT</Tab>
-          <Tab disabled={!canInvoice}>FINANCIAL ABSTRACT</Tab>
-          <Tab disabled={!hrEnabled}>TEAM ABSTRACT</Tab>
-          <Tab>WORK REGISTER</Tab>
-          <Tab>APPROVAL REGISTER</Tab>
-          <Tab>SUMMARY SHEETS</Tab>
-          <Tab>OFFICE LOG</Tab>
+        <TabList contained aria-label="Studio Intelligence navigation">
+          <Tab>OVERVIEW</Tab>
+          <Tab disabled={!canWrite}>LEAD</Tab>
+          <Tab>PROJECT</Tab>
+          <Tab disabled={!canInvoice}>FINANCIAL</Tab>
+          <Tab disabled={!hrEnabled}>TEAM</Tab>
+          <Tab>WORK</Tab>
+          <Tab>APPROVAL</Tab>
         </TabList>
 
         <TabPanels>
+          {/* OVERVIEW (Studio + Summary merged) — the only screen with the sidebar (AI + log) */}
           <TabPanel style={{ padding: 0 }}>
-            <ScreenOverview
-              home={home} fh={fh} ac={ac} ph={ph} ti={ti} att={att} ri={ri}
-              canInvoice={canInvoice} hrEnabled={hrEnabled}
-            />
+            <div className="esti-dash-split">
+              <div className="esti-dash-main">
+                <ScreenOverview
+                  home={home} fh={fh} ac={ac} ph={ph} ti={ti} att={att} ri={ri}
+                  canInvoice={canInvoice} hrEnabled={hrEnabled}
+                />
+              </div>
+              <aside className="esti-dash-log">
+                <DashboardSidebar home={home} />
+              </aside>
+            </div>
           </TabPanel>
           <TabPanel style={{ padding: 0 }}>
             {canWrite ? <Leads /> : null}
@@ -1059,15 +670,8 @@ export function StudioAbstract() {
           <TabPanel style={{ padding: 0 }}>
             <ScreenApprovals ac={ac} home={home} />
           </TabPanel>
-          <TabPanel style={{ padding: 0 }}>
-            <ScreenReports fh={fh} ph={ph} ri={ri} canInvoice={canInvoice} home={home} />
-          </TabPanel>
-          <TabPanel style={{ padding: 0 }}>
-            <ScreenActivity />
-          </TabPanel>
         </TabPanels>
       </Tabs>
-
     </div>
   );
 }

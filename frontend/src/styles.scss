@@ -103,12 +103,6 @@ html:has(.esti-landing-shell) body {
   }
 }
 
-html:has(.esti-studio-abstract-page),
-html:has(.esti-studio-abstract-page) body {
-  height: 100dvh;
-  overflow: hidden;
-}
-
 .esti-app-content {
   display: flex;
   flex-direction: column;
@@ -1648,11 +1642,87 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   color: var(--cds-interactive);
 }
 
-// Studio Abstract universal shell — vertical rhythm between the Carbon Grid rows.
-// Structural + colourless only (spacing tokens); all colour lives in ZONE_COLOR inline.
+// Studio Intelligence — full width, fits the viewport (the page never scrolls; the
+// table Tile scrolls inside). Structural + colourless only.
+html:has(.esti-studio-abstract-page),
+html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
+.esti-app-content:has(.esti-studio-abstract-page) { padding: 0; }
+
+.esti-studio-abstract-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.esti-studio-abstract-page .cds--tabs { flex: 0 0 auto; }
+.esti-studio-abstract-page .cds--tab-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+// Every screen: header · 4 KPI cards · scrollable table. Fills its panel.
 .esti-abstract {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-05);
   padding: var(--cds-spacing-05);
-  row-gap: var(--cds-spacing-05);
+  overflow: hidden;
+}
+.esti-abstract__head { flex: 0 0 auto; }
+
+.esti-kpi-row {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cds-spacing-05);
+}
+.esti-kpi-card { display: flex; flex-direction: column; gap: var(--cds-spacing-02); }
+
+.esti-abstract-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-03);
+}
+.esti-abstract-table__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.esti-row-clickable { cursor: pointer; }
+
+// OVERVIEW tab: main screen beside the AI-over-log sidebar; both fit, each scrolls
+// inside its own Tile. The split supplies padding, so the inner grid drops its own.
+.esti-dash-split {
+  display: flex;
+  gap: var(--cds-spacing-05);
+  height: 100%;
+  min-height: 0;
+  padding: var(--cds-spacing-05);
+}
+.esti-dash-main { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; }
+.esti-dash-main .esti-abstract { padding: 0; }
+.esti-dash-log { flex: 0 0 22rem; min-height: 0; display: flex; }
+.esti-dash-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-05);
+  min-height: 0;
+  width: 100%;
+}
+.esti-dash-aside__ai { flex: 0 0 auto; }
+.esti-dash-aside__log { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.esti-log-item { display: flex; flex-direction: column; }
+
+.esti-card-link { display: block; text-decoration: none; color: inherit; }
+
+@media (max-width: 1055px) {
+  .esti-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .esti-dash-split { flex-direction: column; }
+  .esti-dash-log { flex-basis: auto; }
 }
 
 @keyframes esti-calm-breathe {
