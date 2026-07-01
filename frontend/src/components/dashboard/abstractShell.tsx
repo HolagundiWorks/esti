@@ -17,7 +17,7 @@ import {
 } from "@carbon/react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { GLYPH_CLASS, glyphFor, STATE_WORD, ZONE_COLOR } from "./zoneState.js";
+import { GLYPH_CLASS, glyphFor, STATE_WORD } from "./zoneState.js";
 import type { ZoneState } from "./zoneState.js";
 
 export type { ZoneState } from "./zoneState.js";
@@ -36,8 +36,7 @@ export function StatusSymbol({
   const glyph = glyphFor(state);
   return (
     <span
-      className={`esti-geo ${GLYPH_CLASS[glyph]}${sm ? " esti-geo--sm" : ""}`}
-      style={{ color: ZONE_COLOR[state] }}
+      className={`esti-geo ${GLYPH_CLASS[glyph]} esti-state-${state}${sm ? " esti-geo--sm" : ""}`}
       aria-label={label ?? STATE_WORD[state]}
     >
       {glyph}
@@ -52,9 +51,9 @@ function ScreenHeader({ title, state, signal }: { title: string; state: ZoneStat
     <div className="esti-zone-head esti-abstract__head">
       <div className="esti-grow">
         <h2>{title}</h2>
-        {signal && <p style={{ color: "var(--cds-text-secondary)" }}>{signal}</p>}
+        {signal && <p className="esti-label--secondary">{signal}</p>}
       </div>
-      <span className="esti-label" style={{ color: ZONE_COLOR[state] }}>
+      <span className={`esti-label esti-state-${state}`}>
         <StatusSymbol state={state} sm /> {STATE_WORD[state]}
       </span>
     </div>
@@ -96,7 +95,7 @@ export function AbstractScreenShell({
         {kpis.slice(0, 4).map((k) => (
           <Tile key={k.label} className="esti-kpi-card">
             <span className="esti-label--helper">{k.label}</span>
-            <h3 style={{ color: k.state ? ZONE_COLOR[k.state] : undefined }}>{k.value}</h3>
+            <h3 className={k.state ? `esti-state-${k.state}` : undefined}>{k.value}</h3>
           </Tile>
         ))}
       </div>
@@ -105,7 +104,7 @@ export function AbstractScreenShell({
         {tableTitle && <span className="esti-label esti-label--secondary">{tableTitle}</span>}
         <div className="esti-abstract-table__scroll">
           {rows.length === 0 ? (
-            <p className="esti-label--secondary" style={{ padding: "var(--cds-spacing-03) 0" }}>
+            <p className="esti-label--secondary esti-abstract-empty">
               <StatusSymbol state="stable" sm /> {empty}
             </p>
           ) : (

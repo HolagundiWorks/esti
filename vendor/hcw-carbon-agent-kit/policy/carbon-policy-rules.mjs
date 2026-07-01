@@ -6,6 +6,7 @@
 /** Files skipped entirely (marketing landing, special widgets). */
 export const EXCLUDED_FILES = [
   /[/\\]routes[/\\]Landing\.tsx$/,
+  /[/\\]frontend[/\\]src[/\\]landing\.scss$/,
   /[/\\]components[/\\]landing[/\\]/,
   /[/\\]components[/\\]LandingTrialForm\.tsx$/,
   /[/\\]components[/\\]LandingCarbonZone\.tsx$/,

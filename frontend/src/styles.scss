@@ -1694,6 +1694,7 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   gap: var(--cds-spacing-03);
 }
 .esti-abstract-table__scroll { min-height: 0; }
+.esti-abstract-empty { padding: var(--cds-spacing-03) 0; }
 .esti-row-clickable { cursor: pointer; }
 
 // OVERVIEW tab: main screen beside the AI-over-log sidebar; both fit, each scrolls
@@ -1909,7 +1910,7 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
 
   p {
     margin: 0;
-    font-size: 13px;
+    @include type.type-style("body-compact-01");
     line-height: 1.4;
     color: var(--cds-text-secondary);
     overflow: hidden;
@@ -1922,20 +1923,20 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: var(--cds-spacing-06);
   padding: var(--cds-spacing-04) 0 0;
 
   span {
     display: inline-flex;
     align-items: center;
     gap: var(--cds-spacing-02);
-    font-size: 12px;
-    color: var(--cds-text-helper); // #8d8d8d
+    @include type.type-style("label-01");
+    color: var(--cds-text-helper);
   }
 
   .esti-geo {
     color: var(--cds-text-helper); // legend stays gray — the only live blue is on focus box #1
-    font-size: 13px;
+    @include type.type-style("body-compact-01");
   }
 }
 
@@ -1947,6 +1948,12 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   min-height: 0;
   overflow: hidden;
 }
+
+.esti-state-stable { color: var(--cds-support-success); }
+.esti-state-watch { color: var(--cds-support-info); }
+.esti-state-friction { color: var(--cds-support-warning); }
+.esti-state-critical { color: var(--cds-support-error); }
+.esti-state-inactive { color: var(--cds-text-secondary); }
 
 .esti-cognitive-chain {
   display: grid;
