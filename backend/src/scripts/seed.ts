@@ -17,10 +17,11 @@ import {
   isDemoAormsEmail,
   syncDemoOwnerPassword,
 } from "../lib/demoSeeds.js";
+import { normalizeEmail } from "../lib/email.js";
 import { applyFirmPlanFromEnv } from "../lib/plan.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 
-const email = process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in";
+const email = normalizeEmail(process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in");
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
 const fullName = process.env.SEED_OWNER_NAME ?? "HCW Owner";
 

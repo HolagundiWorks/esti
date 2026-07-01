@@ -12,6 +12,7 @@ import { z } from "zod";
 import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -50,10 +51,11 @@ export const userRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const email = normalizeEmail(input.email);
       const [taken] = await ctx.db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, input.email));
+        .where(emailMatches(users.email, email));
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
       // Every edition — including Lite — creates its own staff logins directly,
       // capped per functional seat bucket. The single OWNER (admin) is pinned
@@ -76,7 +78,7 @@ export const userRouter = router({
       const [u] = await ctx.db
         .insert(users)
         .values({
-          email: input.email,
+          email,
           fullName: input.fullName,
           role: input.role,
           passwordHash: await hashPassword(input.password),

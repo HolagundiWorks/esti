@@ -5,6 +5,7 @@ import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { clients, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { sql } from "drizzle-orm";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -67,16 +68,17 @@ export const clientRouter = router({
       const [client] = await ctx.db.select().from(clients).where(eq(clients.id, input.clientId));
       if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "client not found" });
 
+      const email = normalizeEmail(input.email);
       const [taken] = await ctx.db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, input.email));
+        .where(emailMatches(users.email, email));
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
 
       const [u] = await ctx.db
         .insert(users)
         .values({
-          email: input.email,
+          email,
           fullName: client.name,
           role: "CLIENT",
           clientId: input.clientId,
@@ -88,7 +90,7 @@ export const clientRouter = router({
         entityId: u!.id,
         action: "CREATE_PORTAL",
         actorId: ctx.user.id,
-        after: { email: input.email, clientId: input.clientId },
+        after: { email, clientId: input.clientId },
       });
       return u!;
     }),

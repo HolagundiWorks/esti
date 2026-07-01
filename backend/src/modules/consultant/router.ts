@@ -5,6 +5,7 @@ import { z } from "zod";
 import { hashPassword } from "../../auth/session.js";
 import { consultants, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -54,16 +55,17 @@ export const consultantRouter = router({
         .where(eq(consultants.id, input.consultantId));
       if (!consultant) throw new TRPCError({ code: "NOT_FOUND", message: "consultant not found" });
 
+      const email = normalizeEmail(input.email);
       const [taken] = await ctx.db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, input.email));
+        .where(emailMatches(users.email, email));
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "email already in use" });
 
       const [u] = await ctx.db
         .insert(users)
         .values({
-          email: input.email,
+          email,
           fullName: consultant.name,
           role: "CONSULTANT",
           consultantId: input.consultantId,
@@ -75,7 +77,7 @@ export const consultantRouter = router({
         entityId: u!.id,
         action: "CREATE_COLLAB",
         actorId: ctx.user.id,
-        after: { email: input.email, consultantId: input.consultantId },
+        after: { email, consultantId: input.consultantId },
       });
       return u!;
     }),
