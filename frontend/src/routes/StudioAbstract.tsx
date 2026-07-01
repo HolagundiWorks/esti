@@ -598,7 +598,7 @@ function ScreenWorkQueue() {
   );
 }
 
-// ── Studio Abstract shell ─────────────────────────────────────────────────────
+// ── Studio Intelligence shell ───────────────────────────────────────────────
 
 export function StudioAbstract() {
   const { user } = useAuth();

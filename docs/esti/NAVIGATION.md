@@ -31,6 +31,7 @@ Route `/` · File `StudioAbstract.tsx` (component `StudioAbstract` — file/comp
 header, **4 KPI cards**, then a **DataTable** that scrolls inside its Tile (the page never
 scrolls; 100% width). Alert glyphs: ● circle (stable) · ▲ triangle (watch/friction) · ■
 square (critical), each rendered in its alert colour (`zoneState.ts` + `abstractShell.tsx`).
+**Overview is the default (first) tab** — the landing view whenever you open `/`.
 
 | Tab | Status | Where |
 |---|---|---|
@@ -136,11 +137,11 @@ Opened from the header; expands today's `Settings.tsx`.
 ## Removed (consultancy-only)
 Not in V3; routes redirect or are gone: **PMC**, **Construction**, **Programme**,
 **Tenders**, **Mood boards** (`/pmc`,`/programme`,`/office/construction` → `/projects`).
-Growth OS dissolved (Leads → Studio Abstract "Lead Register" tab). Fee proposals + the thin proposal →
+Growth OS dissolved (Leads → Studio Intelligence **Lead** tab). Fee proposals + the thin proposal →
 unified **Proposals**.
 
 ## Build-vs-placeholder policy
-**Built/wired:** the V3 menu, Studio Abstract Lead Register tab, Proposals merge, removals, LXOS
+**Built/wired:** the V3 menu, Studio Intelligence Lead tab, Proposals merge, removals, LXOS
 rename. **Build fully (Stage 2):** the 3 new Libraries (Compliance, Master Plan,
 Standards). **Now built:** Cost Management (CMS-1→8) · Vendors (directory + pricing + quotations) ·
 KB text-import (`docs/esti/IMPORT_SPEC.md`). **Placeholder / follow-on builds:** Payroll ·
