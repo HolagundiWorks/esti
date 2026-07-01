@@ -64,6 +64,15 @@ roles use capability checks from `packages/contracts/src/permissions.ts`.
 Client, consultant, and contractor portal procedures enforce row-level scope.
 See [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) for the L1–L5 ladder and four enforcement layers.
 
+Email is the login handle and has one canonical form: **trim + lowercase**
+(`normalizeEmail`, `backend/src/lib/email.ts`). Every account-creating path
+(`users.createStaff`, `consultants.createLogin`, `clients.createPortalUser`,
+`auth.register`/`bootstrap`, the owner seed) normalizes before insert, and every
+lookup/uniqueness check compares case-insensitively via `emailMatches`
+(`lower(email) = <normalized>` — not `ilike`, so `_`/`%` in an address are never
+treated as wildcards). This keeps a hand-created login from being un-loginnable
+or silently duplicated by case, and still matches legacy rows stored mixed-case.
+
 The same policy applies to tRPC, REST upload/download routes, worker artifact
 access, exports, and search. “Authenticated” alone is never sufficient for an
 operational write.

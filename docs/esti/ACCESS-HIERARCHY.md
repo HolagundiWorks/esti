@@ -268,3 +268,5 @@ Visible to L3+ (`rank >= 60`). CRIF revision ledger contains architectural decis
 | Date | Change | Author |
 |---|---|---|
 | 2026-06-21 | Initial document — 5-level hierarchy confirmed | HCW / ESTI team |
+| 2026-07-01 | Login email canonicalised on every account-creating path (`normalizeEmail` on write, `emailMatches` for case-insensitive lookup/uniqueness) — owner-created staff/portal/consultant logins can no longer be un-loginnable or case-duplicated. See ARCHITECTURE › Authorization. | HCW / ESTI team |
+| 2026-07-01 | AORMS Identity **I-1** shipped: portable `AORMS-U-` (person) / `AORMS-C-` (company) handles on the licensing platform. Cross-company identity model lives in [AORMS-IDENTITY](AORMS-IDENTITY.md); this ladder (per-firm `esti_user`) is unaffected until the I-5 firm-user projection. | HCW / ESTI team |
