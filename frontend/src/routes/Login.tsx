@@ -5,18 +5,24 @@ import {
   InlineNotification,
   Loading,
   Stack,
+  Tag,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
+import { fetchMe, logout, type Me } from "../platform-admin/lib/auth.js";
 
 // Account/licence signup (hlp_account) is heavier Carbon UI only reached via
 // the explicit "Create account" action — code-split so the default sign-in
 // (the common case) stays light.
+const Companies = lazy(() => import("../platform-admin/Companies.js"));
+const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
+const RequestPlan = lazy(() => import("../platform-admin/RequestPlan.js"));
+const Security = lazy(() => import("../platform-admin/Security.js"));
 
 // Public marketing build: /login also hosts customer account/licence signup
 // ("Create account", backed by hlp_account) as a distinct, explicit flow —
@@ -36,7 +42,6 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [needCode, setNeedCode] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       // Desktop returns a session token (cookies don't cross the loopback origin).
@@ -56,20 +61,120 @@ export function Login() {
       : login.error?.message;
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
-  // Explicit "Create account" — a brand-new licence/account signup is its own
-  // action, distinct from signing in to a firm workspace. Once created, an
-  // owner manages it (plan, companies, security, credentials) from inside the
-  // workspace at Profile → Account, not from this page.
-  if (PUBLIC_SITE && showRegister) {
+
+  // --- Merged customer account portal (hlp_account) — public-site builds only ---
+  const wantsCreate =
+    PUBLIC_SITE && new URLSearchParams(window.location.search).get("mode") === "create";
+  const [portalMode, setPortalMode] = useState<"workspace" | "account">(
+    PUBLIC_SITE ? (wantsCreate ? "account" : "workspace") : "workspace",
+  );
+  const [platformMe, setPlatformMe] = useState<Me | null>(null);
+  const [checkingPlatform, setCheckingPlatform] = useState(PUBLIC_SITE);
+
+  useEffect(() => {
+    if (!PUBLIC_SITE) return;
+    fetchMe().then((m) => {
+      setPlatformMe(m);
+      setCheckingPlatform(false);
+    });
+  }, []);
+
+  async function refreshPlatformMe() {
+    setPlatformMe(await fetchMe());
+  }
+
+  async function handlePlatformSignOut() {
+    await logout();
+    setPlatformMe(null);
+    setPortalMode("workspace");
+  }
+
+  if (PUBLIC_SITE && checkingPlatform) {
     return (
-      <Suspense fallback={<Loading withOverlay description="Loading" />}>
-        <PlatformLogin
-          portal
-          initialMode="register"
-          onLogin={() => navigate("/", { replace: true })}
-          onBack={() => setShowRegister(false)}
-        />
-      </Suspense>
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
+        <Loading withOverlay={false} description="Loading" />
+      </main>
+    );
+  }
+
+  const accountPortalActive = PUBLIC_SITE && portalMode === "account";
+  const workspacePortalActive = portalMode === "workspace";
+  const hasPlatformAccount = Boolean(platformMe?.account);
+
+  if (accountPortalActive && hasPlatformAccount) {
+    const account = platformMe.account;
+    return (
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
+        <Stack gap={6}>
+          <Stack gap={2} orientation="horizontal">
+            <Button
+              kind={workspacePortalActive ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setPortalMode("workspace")}
+            >
+              Workspace login
+            </Button>
+            <Button
+              kind={accountPortalActive ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setPortalMode("account")}
+            >
+              Account portal
+            </Button>
+          </Stack>
+          <Stack gap={3} orientation="horizontal">
+            <h1 className="esti-grow">AORMS Account</h1>
+            <span>{account.email}</span>
+            {account.publicId && (
+              <Tag type="cool-gray" size="md">
+                {account.publicId}
+              </Tag>
+            )}
+            <Button as={RouterLink} to="/" kind="ghost" size="sm">
+              Home
+            </Button>
+            <Button kind="ghost" size="sm" onClick={handlePlatformSignOut}>
+              Sign out
+            </Button>
+          </Stack>
+
+          <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
+            <RequestPlan />
+            <Companies me={platformMe} onChange={setPlatformMe} />
+            <Security me={platformMe} onChange={refreshPlatformMe} />
+            <Credentials />
+          </Suspense>
+        </Stack>
+      </main>
+    );
+  }
+
+  if (accountPortalActive && !hasPlatformAccount) {
+    return (
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
+        <Stack gap={6}>
+          <Stack gap={2} orientation="horizontal">
+            <Button
+              kind={workspacePortalActive ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setPortalMode("workspace")}
+            >
+              Workspace login
+            </Button>
+            <Button
+              kind={accountPortalActive ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setPortalMode("account")}
+            >
+              Account portal
+            </Button>
+          </Stack>
+          <Suspense fallback={<Loading withOverlay description="Loading" />}>
+            <PlatformLogin portal onLogin={setPlatformMe} onBack={() => setPortalMode("workspace")} />
+          </Suspense>
+        </Stack>
+      </main>
+
     );
   }
 
@@ -78,6 +183,22 @@ export function Login() {
       <Stack gap={5} className="esti-login-panel">
         <Tile>
           <Stack gap={5}>
+            <Stack gap={2} orientation="horizontal">
+              <Button
+                kind={workspacePortalActive ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setPortalMode("workspace")}
+              >
+                Workspace login
+              </Button>
+              <Button
+                kind={accountPortalActive ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setPortalMode("account")}
+              >
+                Account portal
+              </Button>
+            </Stack>
             <Stack gap={3}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
@@ -136,8 +257,10 @@ export function Login() {
                   {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
                 {PUBLIC_SITE ? (
-                  <Button type="button" kind="tertiary" onClick={() => setShowRegister(true)}>
-                    Create account
+
+                  <Button type="button" kind="tertiary" onClick={() => setPortalMode("account")}>
+                    Account portal
+
                   </Button>
                 ) : (
                   <Button as={RouterLink} to="/signup" kind="tertiary">
