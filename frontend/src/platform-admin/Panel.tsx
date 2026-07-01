@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
-import {
-  Button,
-  Dropdown,
-  InlineNotification,
-  Loading,
-  Stack,
-  Tag,
-  Theme,
-} from "@carbon/react";
+import { Button, InlineNotification, Loading, Stack, Tag, Theme } from "@carbon/react";
 import Login from "./Login";
-import Companies from "./Companies";
-import Credentials from "./Credentials";
-import RequestPlan from "./RequestPlan";
-import Security from "./Security";
 import AdminApp from "./admin/AdminApp";
-import { fetchMe, logout, switchCompany, type Me, type Membership } from "./lib/auth";
+import { fetchMe, logout, type Me } from "./lib/auth";
 
 function backToSite() {
   window.location.hash = "";
 }
 
+function goToAccount() {
+  window.location.pathname = "/account";
+}
+
+/**
+ * Licence / admin console (`/platform-admin`) — platform admins only. Customer
+ * accounts (sign-up, plan requests, companies, credentials, 2FA) live separately
+ * at /account.
+ */
 export default function Panel() {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,17 +46,6 @@ export default function Panel() {
     setMe(null);
   }
 
-  async function handleSwitch(company: string) {
-    const next = await switchCompany(company);
-    if (next.account) setMe(next);
-  }
-
-  async function refreshMe() {
-    setMe(await fetchMe());
-  }
-
-  const memberships = me?.memberships ?? [];
-
   return (
     <Theme theme="g100">
       <main style={{ padding: "var(--cds-spacing-06)" }}>
@@ -70,11 +56,6 @@ export default function Panel() {
               {account.isPlatformAdmin ? "Platform admin" : "Member"}
             </Tag>
             <span>{account.email}</span>
-            {account.publicId && (
-              <Tag type="cool-gray" size="md">
-                {account.publicId}
-              </Tag>
-            )}
             <Button kind="ghost" size="sm" onClick={backToSite}>
               Back to site
             </Button>
@@ -83,43 +64,23 @@ export default function Panel() {
             </Button>
           </Stack>
 
-          {memberships.length > 0 && (
-            <div style={{ maxWidth: "20rem" }}>
-              <Dropdown
-                id="active-company"
-                titleText="Active company"
-                label="Select a company"
-                size="sm"
-                items={memberships}
-                selectedItem={
-                  memberships.find((m) => m.org.publicId === me?.activeOrg?.publicId) ?? null
-                }
-                itemToString={(m: Membership | null) =>
-                  m ? `${m.org.name}${m.org.publicId ? ` (${m.org.publicId})` : ""}` : ""
-                }
-                onChange={({ selectedItem }: { selectedItem: Membership | null }) => {
-                  const handle = selectedItem?.org.publicId ?? selectedItem?.org.slug;
-                  if (handle) void handleSwitch(handle);
-                }}
-              />
-            </div>
-          )}
-
-          <RequestPlan />
-          {me && <Security me={me} onChange={refreshMe} />}
-          {me && <Companies me={me} onChange={setMe} />}
-          <Credentials />
-
           {account.isPlatformAdmin ? (
             <AdminApp />
           ) : (
-            <InlineNotification
-              kind="info"
-              lowContrast
-              hideCloseButton
-              title="No access"
-              subtitle="This account is not a platform administrator."
-            />
+            <Stack gap={4}>
+              <InlineNotification
+                kind="info"
+                lowContrast
+                hideCloseButton
+                title="Admin console"
+                subtitle="This account isn't a platform administrator. Manage your account and licences at your account portal."
+              />
+              <div>
+                <Button kind="tertiary" onClick={goToAccount}>
+                  Go to my account
+                </Button>
+              </div>
+            </Stack>
           )}
         </Stack>
       </main>

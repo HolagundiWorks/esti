@@ -48,11 +48,19 @@ function companyLabel(r: CompanyResolution | null): string {
   return "";
 }
 
-export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
+export default function Login({
+  onLogin,
+  portal = false,
+}: {
+  onLogin: (me: Me) => void;
+  /** Customer user-portal: skip the tenant company step + always allow sign-up. */
+  portal?: boolean;
+}) {
   const product = onboardProduct();
-  // Onboarding (product "Create account") is account-level — skip the company step.
+  // Onboarding + the customer portal are account-level — skip the company step.
+  const skipCompany = Boolean(product) || portal;
   const [mode, setMode] = useState<"signin" | "register">(product ? "register" : "signin");
-  const [step, setStep] = useState<"company" | "credentials">(product ? "credentials" : "company");
+  const [step, setStep] = useState<"company" | "credentials">(skipCompany ? "credentials" : "company");
   const [company, setCompany] = useState("");
   const [resolved, setResolved] = useState<CompanyResolution | null>(null);
   const [name, setName] = useState("");
@@ -70,7 +78,7 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
   useEffect(() => {
     void fetchRegistrationStatus().then((s) => setAdminExists(s.adminExists));
   }, []);
-  const registrationOpen = !adminExists || Boolean(product);
+  const registrationOpen = portal || !adminExists || Boolean(product);
 
   async function handleCompany(e: React.FormEvent) {
     e.preventDefault();
@@ -100,8 +108,8 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
     setError(null);
     const res =
       mode === "register"
-        ? await register({ email, password, name: name || undefined })
-        : await login(email, password, product ? undefined : company, needCode ? code : undefined);
+        ? await register({ email, password, name: name || undefined, portal })
+        : await login(email, password, skipCompany ? undefined : company, needCode ? code : undefined);
     if (res.error) {
       setBusy(false);
       if (res.error === "totp_required") {
@@ -131,7 +139,7 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
     setBusy(false);
   }
 
-  const showCompanyStep = mode === "signin" && step === "company" && !product;
+  const showCompanyStep = mode === "signin" && step === "company" && !skipCompany;
 
   return (
     <Theme theme="g100">
@@ -141,15 +149,19 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
             <Tile>
               <Stack gap={6}>
                 <Stack gap={2}>
-                  <h2>Holagundi License Cloud</h2>
+                  <h2>{portal ? "AORMS Account" : "Holagundi License Cloud"}</h2>
                   <p>
                     {product
                       ? `Create your account to activate ${product}.`
                       : mode === "register"
-                        ? "Create an account to manage your products and licences."
+                        ? portal
+                          ? "Create your AORMS account and request a workspace."
+                          : "Create an account to manage your products and licences."
                         : showCompanyStep
                           ? "Sign in — start with your company."
-                          : `Signing in to ${companyLabel(resolved)}.`}
+                          : portal
+                            ? "Sign in to your AORMS account."
+                            : `Signing in to ${companyLabel(resolved)}.`}
                   </p>
                 </Stack>
 

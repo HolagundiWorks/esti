@@ -193,6 +193,8 @@ export function register(input: {
   email: string;
   password: string;
   name?: string;
+  /** Customer user-portal sign-up (bypasses the admin-console signup lockdown). */
+  portal?: boolean;
 }): Promise<AuthResult> {
   return postAuth("/platform/auth/register", input);
 }

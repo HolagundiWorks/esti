@@ -129,6 +129,8 @@ const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 // Merged Holagundi licensing platform admin (its own Google login + tRPC).
 const PlatformAdmin = lazyRoute(() => import("./platform-admin/Panel.js"), "default");
+// Customer account portal — separate from the admin console above.
+const AccountPortal = lazyRoute(() => import("./platform-admin/Account.js"), "default");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
@@ -245,6 +247,11 @@ function AppShell() {
   // Merged licensing platform admin — self-contained (its own Google login +
   // tRPC at /platform/trpc), reachable regardless of AORMS firm auth.
   if (pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
+
+  // Customer account portal — sign up, request a workspace, manage account.
+  // Separate surface from the admin/licence console above. (Exact match so it
+  // doesn't swallow firm routes like /accounting.)
+  if (pathname === "/account" || pathname.startsWith("/account/")) return <AccountPortal />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))

@@ -313,7 +313,9 @@ export function registerAuthRoutes(app: FastifyInstance): void {
 
   // --- Register with email + password ---
   app.post("/auth/register", async (req, reply) => {
-    const body = req.body as { email?: string; password?: string; name?: string } | undefined;
+    const body = req.body as
+      | { email?: string; password?: string; name?: string; portal?: boolean }
+      | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
     const name = body?.name?.trim() || null;
@@ -326,10 +328,12 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { error: "weak_password" };
     }
     // Admin-console self-signup is a one-time bootstrap: once a platform admin
-    // exists it is closed. Product onboarding (carrying the onboard-intent cookie)
-    // still creates ordinary company/personal accounts.
+    // exists it is closed. Customer sign-up on the user portal (`portal: true`)
+    // and product onboarding (the onboard cookie) create ordinary accounts and
+    // are always open — they never grant admin (that's PLATFORM_ADMIN_EMAILS).
     const onboarding = Boolean(req.cookies?.[ONBOARD_COOKIE]);
-    if (!onboarding && (await hasPlatformAdmin())) {
+    const portal = Boolean(body?.portal);
+    if (!onboarding && !portal && (await hasPlatformAdmin())) {
       reply.code(403);
       return { error: "registration_closed" };
     }
