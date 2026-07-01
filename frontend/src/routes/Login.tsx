@@ -16,8 +16,9 @@ import { trpc } from "../lib/trpc.js";
 import { fetchMe, logout, type Me } from "../platform-admin/lib/auth.js";
 
 // The merged account-portal pieces (registration, plan requests, companies,
-// 2FA, credentials) are heavier Carbon UI that most /login visits never touch
-// (a plain workspace sign-in) — code-split so the default sign-in stays light.
+// 2FA, credentials) are heavier Carbon UI only reached once someone actually
+// signs into an account — code-split so a first, unauthenticated page load
+// (whichever sign-in form it lands on) stays light.
 const Companies = lazy(() => import("../platform-admin/Companies.js"));
 const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
@@ -61,9 +62,12 @@ export function Login() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   // --- Merged customer account portal (hlp_account) — public-site builds only ---
-  const wantsCreate =
-    PUBLIC_SITE && new URLSearchParams(window.location.search).get("mode") === "create";
-  const [showPlatform, setShowPlatform] = useState(wantsCreate);
+  // Default to the account/licence sign-in on a public-site build (e.g. aorms.in):
+  // that's the credential store a visiting customer actually has. The firm
+  // workspace sign-in below (esti_user, a separate table) only applies to an
+  // install that hosts its own real firm workspace — reachable via "Looking for
+  // your AORMS workspace sign-in instead?" (PlatformLogin's onBack).
+  const [showPlatform, setShowPlatform] = useState(PUBLIC_SITE);
   const [platformMe, setPlatformMe] = useState<Me | null>(null);
   const [checkingPlatform, setCheckingPlatform] = useState(PUBLIC_SITE);
 
