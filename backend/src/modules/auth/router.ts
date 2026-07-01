@@ -18,6 +18,7 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { verifyTotp } from "../../lib/totp.js";
 import {
   delegationEnabled,
   isLoginable,
@@ -31,6 +32,8 @@ import { publicProcedure, router } from "../../trpc/trpc.js";
 const Credentials = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(200),
+  /** Authenticator (TOTP) code — required only when the account has 2FA enabled. */
+  code: z.string().optional(),
 });
 
 const RegisterInput = Credentials.extend({
@@ -187,6 +190,16 @@ export const authRouter = router({
       }
       u = local;
     }
+
+    // Second factor: if this login has an authenticator, require a valid code.
+    if (u.totpSecret) {
+      const code = input.code?.trim();
+      if (!code) throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_required" });
+      if (!verifyTotp(u.totpSecret, code)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_invalid" });
+      }
+    }
+
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
     // Successful login clears the per-email counter so it can't lock out a

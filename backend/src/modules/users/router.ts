@@ -13,6 +13,7 @@ import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -198,12 +199,66 @@ export const userRouter = router({
   /** Self-service: fetch own profile with a short-lived photo URL. */
   myProfile: protectedProcedure.query(async ({ ctx }) => {
     const [u] = await ctx.db
-      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role, accountPublicId: users.accountPublicId })
+      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role, accountPublicId: users.accountPublicId, totpSecret: users.totpSecret })
       .from(users)
       .where(eq(users.id, ctx.user.id));
     const photoUrl = u?.photoKey ? await presignedGet(u.photoKey).catch(() => null) : null;
-    return { ...(u ?? {}), photoUrl };
+    // Build the view explicitly so the TOTP secret never leaves the backend.
+    return {
+      userCode: u?.userCode ?? null,
+      designation: u?.designation ?? null,
+      photoKey: u?.photoKey ?? null,
+      fullName: u?.fullName ?? null,
+      email: u?.email ?? null,
+      role: u?.role ?? null,
+      accountPublicId: u?.accountPublicId ?? null,
+      totpEnabled: Boolean(u?.totpSecret),
+      photoUrl,
+    };
   }),
+
+  /** Self-service: begin authenticator (TOTP) enrollment — secret + otpauth URI. */
+  totpSetup: protectedProcedure.mutation(async ({ ctx }) => {
+    const secret = generateTotpSecret();
+    return { secret, otpauthUrl: otpauthUri(secret, ctx.user.email) };
+  }),
+
+  /** Self-service: confirm + enable 2FA (the code must validate the issued secret). */
+  totpEnable: protectedProcedure
+    .input(z.object({ secret: z.string().min(16), code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!verifyTotp(input.secret, input.code.trim()))
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That code didn't match" });
+      await ctx.db.update(users).set({ totpSecret: input.secret }).where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "TOTP_ENABLE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
+
+  /** Self-service: disable 2FA — requires a current code. */
+  totpDisable: protectedProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [u] = await ctx.db
+        .select({ totpSecret: users.totpSecret })
+        .from(users)
+        .where(eq(users.id, ctx.user.id));
+      if (!u?.totpSecret) return { ok: true };
+      if (!verifyTotp(u.totpSecret, input.code.trim()))
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That code didn't match" });
+      await ctx.db.update(users).set({ totpSecret: null }).where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "TOTP_DISABLE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
 
   /** Self-service: update own display name and/or designation. */
   updateProfile: protectedProcedure

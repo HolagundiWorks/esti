@@ -3,6 +3,7 @@ import {
   InlineLoading,
   InlineNotification,
   Stack,
+  Tag,
   TextInput,
   Tile,
 } from "@carbon/react";
@@ -49,6 +50,34 @@ export function Settings() {
     onSuccess: () => {
       setPw({ current: "", next: "", confirm: "" });
       setMsg("Password changed");
+    },
+  });
+
+  // Two-factor authenticator (TOTP).
+  const totpEnabled = Boolean(profileQ.data?.totpEnabled);
+  const [totpSetup, setTotpSetup] = useState<{ secret: string; otpauthUrl: string } | null>(null);
+  const [totpCode, setTotpCode] = useState("");
+  const [totpDisabling, setTotpDisabling] = useState(false);
+  const beginTotp = trpc.users.totpSetup.useMutation({
+    onSuccess: (d) => {
+      setTotpSetup(d);
+      setTotpCode("");
+    },
+  });
+  const enableTotp = trpc.users.totpEnable.useMutation({
+    onSuccess: async () => {
+      setTotpSetup(null);
+      setTotpCode("");
+      await utils.users.myProfile.invalidate();
+      setMsg("Two-factor authentication enabled");
+    },
+  });
+  const disableTotp = trpc.users.totpDisable.useMutation({
+    onSuccess: async () => {
+      setTotpDisabling(false);
+      setTotpCode("");
+      await utils.users.myProfile.invalidate();
+      setMsg("Two-factor authentication disabled");
     },
   });
 
@@ -213,6 +242,86 @@ export function Settings() {
               hideCloseButton
               lowContrast
             />
+          )}
+        </Stack>
+      </Tile>
+
+      <Tile className="esti-form-panel">
+        <Stack gap={5}>
+          <Stack orientation="horizontal" gap={3}>
+            <h2>Two-factor authentication</h2>
+            <Tag type={totpEnabled ? "green" : "gray"}>{totpEnabled ? "On" : "Off"}</Tag>
+          </Stack>
+
+          {!totpEnabled && !totpSetup && (
+            <>
+              <p className="esti-label esti-label--secondary">
+                Protect your login with an authenticator app (Google Authenticator, Authy, 1Password…).
+              </p>
+              <Button kind="tertiary" disabled={beginTotp.isPending} onClick={() => beginTotp.mutate()}>
+                Enable authenticator
+              </Button>
+            </>
+          )}
+
+          {totpSetup && (
+            <>
+              <p>Scan the URI in your app (or enter the secret), then enter the 6-digit code.</p>
+              <TextInput id="totp-secret" labelText="Secret key" value={totpSetup.secret} readOnly />
+              <TextInput id="totp-uri" labelText="otpauth URI" value={totpSetup.otpauthUrl} readOnly />
+              <TextInput
+                id="totp-confirm"
+                labelText="6-digit code"
+                placeholder="123456"
+                inputMode="numeric"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+              />
+              <Stack orientation="horizontal" gap={3}>
+                <Button
+                  disabled={totpCode.length < 6 || enableTotp.isPending}
+                  onClick={() => enableTotp.mutate({ secret: totpSetup.secret, code: totpCode })}
+                >
+                  {enableTotp.isPending ? "Saving…" : "Confirm"}
+                </Button>
+                <Button kind="ghost" onClick={() => setTotpSetup(null)}>
+                  Cancel
+                </Button>
+              </Stack>
+              {enableTotp.error && (
+                <InlineNotification kind="error" title="Could not enable" subtitle={enableTotp.error.message} hideCloseButton lowContrast />
+              )}
+            </>
+          )}
+
+          {totpEnabled && !totpDisabling && (
+            <Button kind="danger--ghost" size="sm" onClick={() => { setTotpDisabling(true); setTotpCode(""); }}>
+              Disable
+            </Button>
+          )}
+
+          {totpEnabled && totpDisabling && (
+            <>
+              <TextInput
+                id="totp-off"
+                labelText="Current code to disable"
+                placeholder="123456"
+                inputMode="numeric"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+              />
+              <Stack orientation="horizontal" gap={3}>
+                <Button kind="danger" disabled={totpCode.length < 6 || disableTotp.isPending} onClick={() => disableTotp.mutate({ code: totpCode })}>
+                  Confirm disable
+                </Button>
+                <Button kind="ghost" onClick={() => setTotpDisabling(false)}>
+                  Cancel
+                </Button>
+              </Stack>
+              {disableTotp.error && (
+                <InlineNotification kind="error" title="Could not disable" subtitle={disableTotp.error.message} hideCloseButton lowContrast />
+              )}
+            </>
           )}
         </Stack>
       </Tile>

@@ -22,6 +22,8 @@ export function Login() {
   const utils = trpc.useUtils();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needCode, setNeedCode] = useState(false);
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       // Desktop returns a session token (cookies don't cross the loopback origin).
@@ -29,7 +31,17 @@ export function Login() {
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },
+    onError: (err) => {
+      // Password accepted — now collect the authenticator code.
+      if (err.message === "totp_required") setNeedCode(true);
+    },
   });
+
+  const errorText =
+    login.error?.message === "totp_invalid"
+      ? "That authenticator code is incorrect."
+      : login.error?.message;
+  const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
     <main className="esti-login-shell">
@@ -49,7 +61,7 @@ export function Login() {
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                login.mutate({ email, password });
+                login.mutate({ email, password, code: needCode ? code : undefined });
               }}
             >
               <Stack gap={5}>
@@ -69,17 +81,29 @@ export function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                {login.error && (
+                {needCode && (
+                  <TextInput
+                    id="totp-code"
+                    labelText="Authenticator code"
+                    placeholder="123456"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    helperText="6-digit code from your authenticator app."
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                )}
+                {showError && (
                   <InlineNotification
                     kind="error"
                     title="Sign-in failed"
-                    subtitle={login.error.message}
+                    subtitle={errorText}
                     hideCloseButton
                     lowContrast
                   />
                 )}
-                <Button type="submit" disabled={login.isPending}>
-                  {login.isPending ? "Signing in..." : "Sign in"}
+                <Button type="submit" disabled={login.isPending || (needCode && code.length < 6)}>
+                  {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
                 {PUBLIC_SITE ? (
                   <Button href={createAccountUrl()} kind="tertiary">
