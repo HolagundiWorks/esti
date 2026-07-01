@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Column,
@@ -16,6 +16,7 @@ import {
   type Me,
   devLogin,
   fetchMe,
+  fetchRegistrationStatus,
   login,
   register,
   resolveCompany,
@@ -26,6 +27,7 @@ const ERRORS: Record<string, string> = {
   weak_password: "Password must be at least 8 characters.",
   email_taken: "An account with that email already exists — sign in instead.",
   invalid_credentials: "Email or password is incorrect.",
+  registration_closed: "Account creation is closed — please sign in.",
   company_not_found: "We couldn't find that company. Check the domain or AORMS-C id.",
   not_a_member: "This account isn't a member of that company.",
   register_failed: "Could not create the account. Please try again.",
@@ -58,6 +60,14 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
   const [devEmail, setDevEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState(false);
+
+  // Admin-console self-signup is a one-time bootstrap: hide "Create account" once
+  // a platform admin exists. Product onboarding (?onboard=…) keeps registration.
+  useEffect(() => {
+    void fetchRegistrationStatus().then((s) => setAdminExists(s.adminExists));
+  }, []);
+  const registrationOpen = !adminExists || Boolean(product);
 
   async function handleCompany(e: React.FormEvent) {
     e.preventDefault();
@@ -209,20 +219,22 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
                   </Form>
                 )}
 
-                <Button
-                  kind="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const next = mode === "register" ? "signin" : "register";
-                    setMode(next);
-                    setStep(next === "register" ? "credentials" : "company");
-                    setError(null);
-                  }}
-                >
-                  {mode === "register"
-                    ? "Already have an account? Sign in"
-                    : "Need an account? Create one"}
-                </Button>
+                {registrationOpen && (
+                  <Button
+                    kind="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const next = mode === "register" ? "signin" : "register";
+                      setMode(next);
+                      setStep(next === "register" ? "credentials" : "company");
+                      setError(null);
+                    }}
+                  >
+                    {mode === "register"
+                      ? "Already have an account? Sign in"
+                      : "Need an account? Create one"}
+                  </Button>
+                )}
 
                 {error && (
                   <InlineNotification

@@ -3,6 +3,7 @@ import { env } from "../env.js";
 import { clearSession, readSession, type SessionData, writeSession } from "../lib/session.js";
 import {
   getAccountById,
+  hasPlatformAdmin,
   loginWithPassword,
   registerWithPassword,
   upsertAccount,
@@ -121,6 +122,12 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   app.post("/auth/logout", async (_req, reply) => {
     clearSession(reply);
     return { ok: true };
+  });
+
+  // Whether self-serve account creation is still open on the admin console. Closes
+  // once the first platform admin exists (product onboarding is unaffected).
+  app.get("/auth/registration-status", async () => {
+    return { adminExists: await hasPlatformAdmin() };
   });
 
   // --- The signed-in person's portable credentials (certs + growth), AORMS-U keyed ---
@@ -254,6 +261,14 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     if (password.length < 8) {
       reply.code(400);
       return { error: "weak_password" };
+    }
+    // Admin-console self-signup is a one-time bootstrap: once a platform admin
+    // exists it is closed. Product onboarding (carrying the onboard-intent cookie)
+    // still creates ordinary company/personal accounts.
+    const onboarding = Boolean(req.cookies?.[ONBOARD_COOKIE]);
+    if (!onboarding && (await hasPlatformAdmin())) {
+      reply.code(403);
+      return { error: "registration_closed" };
     }
     let account: AccountView;
     try {

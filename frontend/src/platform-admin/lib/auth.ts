@@ -144,6 +144,14 @@ export interface Credentials {
   growth: GrowthEvent[];
 }
 
+/** Whether admin-console self-signup is still open (closes after the first admin). */
+export async function fetchRegistrationStatus(): Promise<{ adminExists: boolean }> {
+  const r = await fetch("/platform/auth/registration-status", { credentials: "include" });
+  if (!r.ok) return { adminExists: false };
+  const j = (await r.json()) as { adminExists?: boolean };
+  return { adminExists: Boolean(j.adminExists) };
+}
+
 export async function fetchCredentials(): Promise<Credentials> {
   const r = await fetch("/platform/auth/my-credentials", { credentials: "include" });
   if (!r.ok) return { certifications: [], growth: [] };

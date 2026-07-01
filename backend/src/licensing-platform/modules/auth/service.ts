@@ -33,6 +33,16 @@ export async function getAccountById(id: string): Promise<AccountView | null> {
   return a ? view(a) : null;
 }
 
+/** True once at least one platform-admin account exists (first-admin bootstrap done). */
+export async function hasPlatformAdmin(): Promise<boolean> {
+  const [a] = await db
+    .select({ id: schema.accounts.id })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.isPlatformAdmin, true))
+    .limit(1);
+  return Boolean(a);
+}
+
 export interface UpsertInput {
   email: string;
   googleSub?: string;
