@@ -180,6 +180,8 @@ export const users = pgTable("esti_user", {
   photoKey: text("photo_key"),
   /** Installation-level super-user: seeds, purges, and system metadata only. */
   isSystemAdmin: boolean("is_system_admin").notNull().default(false),
+  /** Portable AORMS-U handle of the central person this firm login projects (I-5). */
+  accountPublicId: text("account_public_id"),
   createdAt: createdAt(),
 });
 

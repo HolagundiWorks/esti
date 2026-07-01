@@ -61,6 +61,8 @@ export function Profile() {
   const { user } = useAuth();
   const workQ = trpc.userProfile.workSummary.useQuery();
   const w = workQ.data;
+  const meQ = trpc.users.myProfile.useQuery();
+  const aormsId = meQ.data?.accountPublicId ?? null;
 
   return (
     <Stack gap={6}>
@@ -105,13 +107,22 @@ export function Profile() {
           </TabPanel>
 
           <TabPanel>
-            <PlannedGrid
-              items={[
-                { title: "AORMS Unique ID", description: "Platform identity, e.g. AORMS-IND-000245." },
-                { title: "Professional Role", description: "Architect / Engineer / Consultant / Manager / Admin." },
-                { title: "Firm Mapping", description: "Registered office / firm association." },
-              ]}
-            />
+            <Stack gap={5}>
+              <Tile className="esti-fill">
+                <Stack gap={5}>
+                  <Field
+                    label="AORMS Unique ID"
+                    value={aormsId ?? "Not linked — an owner can link this login from Users."}
+                  />
+                  <Field label="Professional role" value={user?.role ?? "—"} />
+                </Stack>
+              </Tile>
+              <PlannedGrid
+                items={[
+                  { title: "Firm Mapping", description: "Registered office / firm association." },
+                ]}
+              />
+            </Stack>
           </TabPanel>
 
           <TabPanel>

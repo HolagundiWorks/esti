@@ -28,6 +28,7 @@ const publicUser = {
   userCode: users.userCode,
   designation: users.designation,
   photoKey: users.photoKey,
+  accountPublicId: users.accountPublicId,
 };
 
 export const userRouter = router({
@@ -163,10 +164,41 @@ export const userRouter = router({
       return { ok: true };
     }),
 
+  /** Owner links a firm login to a central person's portable AORMS-U handle (I-5). */
+  linkIdentity: ownerProcedure
+    .input(z.object({ id: z.string().uuid(), accountPublicId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const handle = input.accountPublicId?.trim().toUpperCase() || null;
+      if (handle) {
+        if (!/^AORMS-U-[0-9A-HJKMNP-TV-Z]{4,}$/.test(handle))
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Not a valid AORMS-U handle" });
+        // The person must exist on the central identity platform (same database).
+        const rows = await ctx.db.execute(
+          sql`SELECT 1 FROM hlp_account WHERE public_id = ${handle} LIMIT 1`,
+        );
+        const found = Array.isArray(rows) ? rows.length > 0 : ((rows as { rows?: unknown[] }).rows?.length ?? 0) > 0;
+        if (!found) throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+      }
+      const [u] = await ctx.db
+        .update(users)
+        .set({ accountPublicId: handle })
+        .where(eq(users.id, input.id))
+        .returning(publicUser);
+      if (!u) throw new TRPCError({ code: "NOT_FOUND" });
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: input.id,
+        action: "LINK_IDENTITY",
+        actorId: ctx.user.id,
+        after: { accountPublicId: handle },
+      });
+      return u;
+    }),
+
   /** Self-service: fetch own profile with a short-lived photo URL. */
   myProfile: protectedProcedure.query(async ({ ctx }) => {
     const [u] = await ctx.db
-      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role })
+      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role, accountPublicId: users.accountPublicId })
       .from(users)
       .where(eq(users.id, ctx.user.id));
     const photoUrl = u?.photoKey ? await presignedGet(u.photoKey).catch(() => null) : null;

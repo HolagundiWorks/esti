@@ -105,6 +105,18 @@ export function Users() {
     },
   });
 
+  // Link a firm login to a central AORMS-U identity (portable person).
+  const [link, setLink] = useState<{ id: string; email: string } | null>(null);
+  const [linkVal, setLinkVal] = useState("");
+  const linkIdentity = trpc.users.linkIdentity.useMutation({
+    onSuccess: () => {
+      invalidate();
+      setLink(null);
+      setLinkVal("");
+      setMsg("Identity linked");
+    },
+  });
+
   return (
     <Stack gap={6}>
       <PageHeader
@@ -159,6 +171,7 @@ export function Users() {
               <TableHeader>Name</TableHeader>
               <TableHeader>Level</TableHeader>
               <TableHeader>Role</TableHeader>
+              <TableHeader>AORMS ID</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Actions</TableHeader>
             </TableRow>
@@ -213,6 +226,7 @@ export function Users() {
                       </>
                     )}
                   </TableCell>
+                  <TableCell>{u.accountPublicId ?? "—"}</TableCell>
                   <TableCell>
                     <Tag type={u.disabled ? "red" : "green"}>
                       {u.disabled ? "Disabled" : "Active"}
@@ -227,6 +241,18 @@ export function Users() {
                       >
                         Reset password
                       </Button>
+                      {!u.clientId && !u.consultantId && (
+                        <Button
+                          kind="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setLink({ id: u.id, email: u.email });
+                            setLinkVal(u.accountPublicId ?? "");
+                          }}
+                        >
+                          Link ID
+                        </Button>
+                      )}
                       {!isSelf && (
                         <Button
                           kind="ghost"
@@ -335,6 +361,41 @@ export function Users() {
           value={resetPw}
           onChange={(e) => setResetPw(e.target.value)}
         />
+      </Modal>
+
+      <Modal
+        open={link !== null}
+        modalHeading={`Link identity — ${link?.email ?? ""}`}
+        primaryButtonText={linkIdentity.isPending ? "Saving…" : "Save"}
+        secondaryButtonText="Cancel"
+        onRequestClose={() => setLink(null)}
+        onRequestSubmit={() =>
+          link &&
+          linkIdentity.mutate({ id: link.id, accountPublicId: linkVal.trim() || null })
+        }
+      >
+        <Stack gap={4}>
+          <p>
+            Link this firm login to a person&apos;s portable AORMS-U identity so their
+            certifications and growth follow them. Leave blank to unlink.
+          </p>
+          <TextInput
+            id="u-link"
+            labelText="AORMS-U handle"
+            placeholder="AORMS-U-2K4P9F"
+            value={linkVal}
+            onChange={(e) => setLinkVal(e.target.value)}
+          />
+          {linkIdentity.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not link"
+              subtitle={linkIdentity.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
+        </Stack>
       </Modal>
 
     </Stack>
