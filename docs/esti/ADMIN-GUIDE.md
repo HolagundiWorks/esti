@@ -158,6 +158,9 @@ Written by the installer; edit + `bash deploy/update.sh` to apply. Key groups:
 | `ESTI_ROLE` | `node` | a firm install is a licence *consumer* (node), not the hub |
 | `ESTI_LICENSE_API_URL` | `https://aorms.in/platform` | where the node activates/refreshes its licence (`/platform/v1`). Override **only** if you self-host the platform |
 | `ESTI_PRODUCT_API_KEY` | *(empty)* | **empty = node stays unmanaged on `FIRM_PLAN`** (cannot brick a running install). Set the key from Holagundi to activate a real licence |
+| `ESTI_IDENTITY_DELEGATE` | `false` | **opt-in.** `true` = firm login is verified against the central platform, then falls back to the cached local password if it's unreachable. Default off = local login only |
+| `ESTI_IDENTITY_URL` | *(empty → uses `ESTI_LICENSE_API_URL`)* | base URL of the identity platform for delegated login |
+| `ESTI_COMPANY` | *(empty)* | this firm's `AORMS-C-` handle — membership in it is enforced on delegated login |
 
 **Licensing & account platform**
 | Key | Meaning |
@@ -254,6 +257,29 @@ simply *unlinked* until an owner links them — nothing breaks.
 **Portability:** leave a company → membership `LEFT`, the `esti_user` deactivates, but certs
 + growth stay on the person. Re-activate elsewhere → the **same** `AORMS-U-id` joins the new
 company; the growth timeline shows both firms.
+
+### Delegated login — "all users online" (opt-in, default off)
+
+By default each firm install verifies logins against its **local** `esti_user` table. Turn on
+delegation and the firm app instead verifies credentials against the central platform, then
+projects the person onto a local user — so one identity works across web + desktop, with an
+**offline grace** fallback to the last cached password when the platform is unreachable.
+
+**Enable (pilot one install first):**
+1. `https://aorms.in/platform-admin` → **API keys** → mint a product key for AORMS.
+2. On the firm install's `/opt/esti/.env`:
+   ```
+   ESTI_IDENTITY_DELEGATE=true
+   ESTI_PRODUCT_API_KEY=<the key>
+   ESTI_COMPANY=AORMS-C-XXXX        # this firm's company handle
+   # ESTI_IDENTITY_URL defaults to https://aorms.in/platform
+   ```
+3. `bash deploy/update.sh`, then sign in as a person who is an **ACTIVE member** of that company.
+
+**Behaviour:** valid central credentials + membership → in (a new person is projected as
+**ASSOCIATE**, never auto-OWNER); invalid → rejected; platform unreachable → falls back to the
+cached local password so the app still opens offline. Flip it off (`false` + update) to revert
+to local login at any time — no data changes.
 
 ---
 
