@@ -137,10 +137,9 @@ export async function pendingRequestCount(): Promise<number> {
 }
 
 function licenseEmail(planCode: string, key: string) {
-  // /account is the customer account portal (this hlp_account) — NOT /login,
-  // which is the separate firm-app workspace login (esti_user). Sending a
-  // customer to /login here would always fail with "invalid credentials".
-  const accountUrl = `${env.FRONTEND_ORIGIN}/account`;
+  // The account portal is merged into /login (a "Create account" tab there) —
+  // there is no separate /account URL to send someone to.
+  const accountUrl = `${env.FRONTEND_ORIGIN}/login`;
   const subject = `Your AORMS ${planCode} licence`;
   const text = `Your AORMS ${planCode} licence is ready.
 

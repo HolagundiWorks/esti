@@ -9,13 +9,13 @@ function backToSite() {
 }
 
 function goToAccount() {
-  window.location.pathname = "/account";
+  window.location.pathname = "/login";
 }
 
 /**
  * Licence / admin console (`/platform-admin`) — platform admins only. Customer
- * accounts (sign-up, plan requests, companies, credentials, 2FA) live separately
- * at /account.
+ * accounts (sign-up, plan requests, companies, credentials, 2FA) are merged into
+ * the firm app's own /login page — there is no separate account portal URL.
  */
 export default function Panel() {
   const [me, setMe] = useState<Me | null>(null);
@@ -78,7 +78,7 @@ export default function Panel() {
                 lowContrast
                 hideCloseButton
                 title="Admin console"
-                subtitle="This account isn't a platform administrator. Manage your account and licences at your account portal."
+                subtitle="This account isn't a platform administrator. Manage your account and licences at /login."
               />
               <div>
                 <Button kind="tertiary" onClick={goToAccount}>

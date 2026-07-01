@@ -3,23 +3,40 @@ import {
   Button,
   Form,
   InlineNotification,
+  Loading,
   Stack,
+  Tag,
   TextInput,
   Tile,
 } from "@carbon/react";
-import { useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
-import { createAccountUrl } from "../lib/onboarding.js";
 import { trpc } from "../lib/trpc.js";
+import { fetchMe, logout, type Me } from "../platform-admin/lib/auth.js";
 
-// Public marketing build: account creation goes through the licensing cloud
-// (Google sign-in). A private firm install uses the local first-run setup.
+// The merged account-portal pieces (registration, plan requests, companies,
+// 2FA, credentials) are heavier Carbon UI that most /login visits never touch
+// (a plain workspace sign-in) — code-split so the default sign-in stays light.
+const Companies = lazy(() => import("../platform-admin/Companies.js"));
+const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
+const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
+const RequestPlan = lazy(() => import("../platform-admin/RequestPlan.js"));
+const Security = lazy(() => import("../platform-admin/Security.js"));
+
+// Public marketing build: this page also hosts the merged customer account
+// portal — create an account / request a plan — as a "Create account" flow,
+// backed by the central licensing platform (hlp_account). There is no separate
+// /account URL; only /platform-admin (the licence/admin console) stays distinct.
+// A private/self-hosted firm install has no such platform to reach, so it keeps
+// the plain first-run /signup bootstrap instead.
 const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+
+  // --- Firm workspace sign-in (esti_user) — unchanged ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -42,6 +59,83 @@ export function Login() {
       ? "That authenticator code is incorrect."
       : login.error?.message;
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
+
+  // --- Merged customer account portal (hlp_account) — public-site builds only ---
+  const wantsCreate =
+    PUBLIC_SITE && new URLSearchParams(window.location.search).get("mode") === "create";
+  const [showPlatform, setShowPlatform] = useState(wantsCreate);
+  const [platformMe, setPlatformMe] = useState<Me | null>(null);
+  const [checkingPlatform, setCheckingPlatform] = useState(PUBLIC_SITE);
+
+  useEffect(() => {
+    if (!PUBLIC_SITE) return;
+    fetchMe().then((m) => {
+      setPlatformMe(m);
+      setCheckingPlatform(false);
+    });
+  }, []);
+
+  async function refreshPlatformMe() {
+    setPlatformMe(await fetchMe());
+  }
+
+  async function handlePlatformSignOut() {
+    await logout();
+    setPlatformMe(null);
+    setShowPlatform(false);
+  }
+
+  if (PUBLIC_SITE && checkingPlatform) {
+    return (
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
+        <Loading withOverlay={false} description="Loading" />
+      </main>
+    );
+  }
+
+  // A signed-in platform (licence/account) session with no firm session yet —
+  // show the account dashboard instead of any sign-in form.
+  if (PUBLIC_SITE && platformMe?.account) {
+    const account = platformMe.account;
+    return (
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
+        <Stack gap={6}>
+          <Stack gap={3} orientation="horizontal">
+            <h1 className="esti-grow">AORMS Account</h1>
+            <span>{account.email}</span>
+            {account.publicId && (
+              <Tag type="cool-gray" size="md">
+                {account.publicId}
+              </Tag>
+            )}
+            <Button as={RouterLink} to="/" kind="ghost" size="sm">
+              Home
+            </Button>
+            <Button kind="ghost" size="sm" onClick={handlePlatformSignOut}>
+              Sign out
+            </Button>
+          </Stack>
+
+          <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
+            <RequestPlan />
+            <Companies me={platformMe} onChange={setPlatformMe} />
+            <Security me={platformMe} onChange={refreshPlatformMe} />
+            <Credentials />
+          </Suspense>
+        </Stack>
+      </main>
+    );
+  }
+
+  // Create-account / platform sign-in — a full self-contained view (its own
+  // page shell), reached via the "Create account" button or a ?mode=create link.
+  if (PUBLIC_SITE && showPlatform) {
+    return (
+      <Suspense fallback={<Loading withOverlay description="Loading" />}>
+        <PlatformLogin portal onLogin={setPlatformMe} onBack={() => setShowPlatform(false)} />
+      </Suspense>
+    );
+  }
 
   return (
     <main className="esti-login-shell">
@@ -106,17 +200,9 @@ export function Login() {
                   {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
                 {PUBLIC_SITE ? (
-                  <>
-                    <Button href={createAccountUrl()} kind="tertiary">
-                      Create account
-                    </Button>
-                    {/* This is the firm workspace login (esti_user). A licence/company
-                        account (hlp_account) signs in at /account, not here. */}
-                    <p className="esti-label--helper">
-                      Managing a licence or requesting a plan?{" "}
-                      <a href="/account">Sign in to your account</a>.
-                    </p>
-                  </>
+                  <Button type="button" kind="tertiary" onClick={() => setShowPlatform(true)}>
+                    Create account
+                  </Button>
                 ) : (
                   <Button as={RouterLink} to="/signup" kind="tertiary">
                     Create account

@@ -51,10 +51,15 @@ function companyLabel(r: CompanyResolution | null): string {
 export default function Login({
   onLogin,
   portal = false,
+  onBack,
 }: {
   onLogin: (me: Me) => void;
   /** Customer user-portal: skip the tenant company step + always allow sign-up. */
   portal?: boolean;
+  /** Optional: renders a link back to the caller's own view (e.g. the firm's
+   *  own workspace sign-in), for when this component is embedded rather than
+   *  the whole page. */
+  onBack?: () => void;
 }) {
   // Onboarding (?onboard=PRODUCT) only ever applies to the customer portal.
   const product = portal ? onboardProduct() : null;
@@ -285,6 +290,12 @@ export default function Login({
                     {mode === "register"
                       ? "Already have an account? Sign in"
                       : "Need an account? Create one"}
+                  </Button>
+                )}
+
+                {onBack && (
+                  <Button kind="ghost" size="sm" onClick={onBack}>
+                    Looking for your AORMS workspace sign-in instead?
                   </Button>
                 )}
 

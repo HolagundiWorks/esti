@@ -54,10 +54,11 @@ async function buildMe(s: SessionData): Promise<MeView | null> {
 const ONBOARD_COOKIE = "hlp_onboard";
 const isProd = process.env.NODE_ENV === "production";
 
-// Two distinct SPA surfaces: the admin/licensing console (/platform-admin) and
-// the customer account portal. Onboarding + customer sign-in always land in the
-// account portal — never the admin console.
-const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/account`;
+// The customer account portal is merged into the firm app's own /login page
+// (a "Create account" tab there) — there is no separate /account URL. Only the
+// admin/licensing console (/platform-admin) remains a distinct surface.
+// Onboarding + customer sign-in always land on /login, never the admin console.
+const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/login`;
 
 /** Read + clear a pending onboard intent cookie (set by GET /onboard). */
 function takeOnboardIntent(

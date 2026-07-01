@@ -42,10 +42,9 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | URL | What it is | Auth |
 |---|---|---|
 | `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
-| `/login` | **Firm login** — classic email + password (the firm's `esti_user`) | — |
+| `/login` | **Firm login** (`esti_user`) — **and**, on public-site builds, the merged customer account portal: a "Create account" flow to sign up + request a plan (Lite/Core/Enterprise), backed by the central platform. One URL, no separate `/account` page. | firm session, or platform session (customer) |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
 | `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
-| `/account` | **Customer account portal** — sign up, request a plan (Lite/Core/Enterprise), manage companies/credentials/2FA; company-first tenant login | platform session (customer) |
 | `/platform` | Platform backend root (not a page) | — |
 | `/platform/trpc` | Platform API (tRPC) | platform session |
 | `/platform/auth/*` | Platform auth: `resolve-company`, `login`, `switch-company`, `create/join/leave-company`, `request-plan`, `my-request`, `my-credentials` | — |
@@ -59,38 +58,34 @@ Internal-only (never exposed): Postgres, Redis, MinIO. Backend binds `127.0.0.1:
 
 ---
 
-## 3. Login flows (three distinct surfaces)
+## 3. Login flows (two distinct surfaces)
 
-**A. Firm app — `/login` (classic by default).** Email + password against the firm's local
-`esti_user` — what a firm's staff use day-to-day. **Optional delegation is now shipped**
-(opt-in, `ESTI_IDENTITY_DELEGATE=true`): the firm app verifies credentials against the central
-platform, with **offline-grace** fallback to the cached local password when it's unreachable —
-see §5 "Delegated login". Default off = local login only.
+**A. Firm app / customer account — `/login` (merged).** The primary "Sign in" form is
+plain email + password against the firm's local `esti_user` — what a firm's staff use
+day-to-day. **Optional delegation is now shipped** (opt-in, `ESTI_IDENTITY_DELEGATE=true`):
+the firm app verifies credentials against the central platform, with **offline-grace**
+fallback to the cached local password when it's unreachable — see §5 "Delegated login".
+Default off = local login only.
+
+On public-site builds, `/login` also hosts a **"Create account"** flow (a toggle on the
+same page, or land directly on it via `/login?mode=create`) — this is the merged customer
+account portal: create a central platform account (`hlp_account`) and raise a **plan
+request** (§8). If that browser already holds a platform session with no firm session, the
+page shows the account dashboard (request status, companies, 2FA, credentials) instead of
+either sign-in form. There is no separate `/account` URL.
 
 **B. Licensing console — `/platform-admin` (admin only, single step).** Plain email +
-password, no company step. "Create account" only appears **before the first admin
-exists** (one-time bootstrap — closes itself afterward); after that, this URL is
-sign-in only. A non-admin account that signs in here is redirected to `/account`. This
-is where Holagundi issues/edits licences, approves plan requests, and manually resets a
-customer's password.
+password, no company step, no "Create account" flow for customers. "Create account" only
+appears **before the first admin exists** (one-time bootstrap — closes itself afterward);
+after that, this URL is sign-in only. A non-admin account that signs in here is redirected
+to `/login`. This is where Holagundi issues/edits licences, approves plan requests, and
+manually resets a customer's password.
 
-**C. Customer account portal — `/account` (self-serve, tenant-first two-step).**
-```
-Step 1  "Company name, email, or ID"   → e.g. acme.in / contact@acme.in / AORMS-C-2K4P
-          │ resolve
-          ▼
-Step 2  Your email + password
-          → verifies ACTIVE membership of that company (if one was named)
-          → account portal — request a plan, companies, credentials, 2FA
-```
-- "Create account" is **always** available here (customers can always sign up).
-- A **solo** practitioner uses the same email in both steps — no special case.
-- Unknown company → "Company not found" + **Create a company** (sign-up).
-- The platform session cookie is scoped to `(account, org)` = the active company; a
-  company **switcher** appears when a person has multiple ACTIVE memberships.
-- After signing up (or via a product's "Create account" link), the person lands here —
-  never in the admin console — and raises a **plan request** (§8) instead of getting an
-  instant licence.
+The tenant-first, company-scoped login (name/email/AORMS-C ID → verifies ACTIVE membership)
+still exists as an internal building block (`resolveCompany`/`/platform/auth/login`'s
+optional `company` param) — the merged `/login` "Create account" flow uses it with a "no
+company yet? sign in with just your email" skip, since most customers are solo/personal
+accounts with no company to name.
 
 ---
 
@@ -231,11 +226,13 @@ installer version.
    + seats from the signed licence.
 
 **How a customer gets licensed (self-serve → admin fulfils):**
-1. Customer signs up at `/account` → **Request a workspace** → picks Lite / Core / Enterprise.
+1. Customer opens `/login` → **Create account** → creates a platform account and picks
+   Lite / Core / Enterprise (the merged account portal — see §3).
 2. Holagundi admin sees it in `/platform-admin` → **Requests** (tab badge shows the pending
    count) → **Approve & email**. This creates a perpetual `ACTIVE` licence on the requested
-   plan and emails the key to the customer via SMTP (§5 mail config). If SMTP isn't configured,
-   the key is shown on screen to send manually — nothing is blocked.
+   plan and emails the key to the customer via SMTP (§5 mail config), with a link back to
+   `/login`. If SMTP isn't configured, the key is shown on screen to send manually — nothing
+   is blocked.
 3. Admin can later **upgrade/downgrade** the licence from **Licenses** → "Change plan…".
 
 **Issuing/editing licences directly (Holagundi platform admin):** `/platform-admin` →
@@ -251,18 +248,21 @@ licensing install auto-seeds one demo licence per tier: `demo.lite1@aorms.in` / 
 - **Self-signup then closes** — for `/platform-admin` only. Once *any* platform admin exists,
   the "Create one" toggle disappears there and `POST /platform/auth/register` (without
   `portal: true`) returns `registration_closed` — the console is **sign-in only**.
-  Status: `GET /platform/auth/registration-status`. **Customer sign-up at `/account` is never
-  affected** — it's always open (`portal: true` on register).
+  Status: `GET /platform/auth/registration-status`. **Customer sign-up at `/login` (the
+  merged "Create account" flow) is never affected** — it's always open (`portal: true` on
+  register).
 - **Add more admins later:** add the email to `PLATFORM_ADMIN_EMAILS` + `deploy/update.sh`;
   that account is **auto-promoted to admin on its next sign-in** (`loginWithPassword`). It must
-  already exist — create it at `/account` first, then sign in at `/platform-admin` once
-  promoted.
+  already exist — create it at `/login` (Create account) first, then sign in at
+  `/platform-admin` once promoted.
 
 ---
 
 ## 8. AORMS Identity operations
 
-**Customer account portal (`/account`) — self-serve, for the signed-in person:**
+**Merged account portal (`/login`, public-site builds) — self-serve, for the signed-in
+person:** once a platform (`hlp_account`) session exists in the browser (just registered, or
+returning), `/login` shows the account dashboard instead of a sign-in form:
 - **Request a workspace** — pick Lite/Core/Enterprise; see pending/approved status (§7).
 - **Two-factor authentication** — enable an authenticator app (TOTP; Google Authenticator,
   Authy, 1Password…). Scan the `otpauth://` URI or enter the secret, confirm a 6-digit code;
