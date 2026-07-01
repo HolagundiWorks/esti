@@ -88,16 +88,38 @@ export async function resolveCompany(company: string): Promise<CompanyResolution
   return (await r.json()) as CompanyResolution;
 }
 
-export async function switchCompany(company: string): Promise<Me> {
-  const r = await fetch("/platform/auth/switch-company", {
+async function postMe(path: string, body: unknown): Promise<Me & { status?: string; error?: string }> {
+  const r = await fetch(path, {
     method: "POST",
     credentials: "include",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ company }),
+    body: JSON.stringify(body),
   });
-  if (!r.ok) return EMPTY_ME;
-  const j = (await r.json()) as Partial<Me>;
-  return { account: j.account ?? null, activeOrg: j.activeOrg ?? null, memberships: j.memberships ?? [] };
+  const j = (await r.json().catch(() => ({}))) as Partial<Me> & { status?: string; error?: string };
+  if (!r.ok) return { ...EMPTY_ME, error: j.error ?? "request_failed" };
+  return {
+    account: j.account ?? null,
+    activeOrg: j.activeOrg ?? null,
+    memberships: j.memberships ?? [],
+    status: j.status,
+  };
+}
+
+export function switchCompany(company: string): Promise<Me> {
+  return postMe("/platform/auth/switch-company", { company });
+}
+
+export function createCompany(name: string, loginDomain?: string): Promise<Me & { error?: string }> {
+  return postMe("/platform/auth/create-company", { name, loginDomain });
+}
+
+/** Join / request access to a company. `status` is ACTIVE (auto) or INVITED (pending). */
+export function joinCompany(company: string): Promise<Me & { status?: string; error?: string }> {
+  return postMe("/platform/auth/join-company", { company });
+}
+
+export function leaveCompany(company: string): Promise<Me & { error?: string }> {
+  return postMe("/platform/auth/leave-company", { company });
 }
 
 export function register(input: {

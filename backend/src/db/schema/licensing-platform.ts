@@ -79,6 +79,10 @@ export const orgMembers = pgTable(
       .notNull()
       .references(() => accounts.id),
     role: text("role").notNull(), // OrgRole
+    /** Activation lifecycle: INVITED → ACTIVE → LEFT. Only ACTIVE may sign in. */
+    status: text("status").notNull().default("ACTIVE"),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    leftAt: timestamp("left_at", { withTimezone: true }),
     createdAt,
   },
   (t) => ({ memberIdx: uniqueIndex("hlp_org_member_idx").on(t.orgId, t.accountId) }),

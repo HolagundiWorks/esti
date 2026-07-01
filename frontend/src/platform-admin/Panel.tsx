@@ -9,6 +9,7 @@ import {
   Theme,
 } from "@carbon/react";
 import Login from "./Login";
+import Companies from "./Companies";
 import AdminApp from "./admin/AdminApp";
 import { fetchMe, logout, switchCompany, type Me, type Membership } from "./lib/auth";
 
@@ -96,6 +97,8 @@ export default function Panel() {
               />
             </div>
           )}
+
+          {me && <Companies me={me} onChange={setMe} />}
 
           {account.isPlatformAdmin ? (
             <AdminApp />

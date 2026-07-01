@@ -100,7 +100,10 @@ export async function orgIdFromHandle(inputRaw: string): Promise<string | null> 
   return null;
 }
 
-/** The account's membership of an org (with role), or null if not a member. */
+/**
+ * The account's **active** membership of an org (with role), or null. Only ACTIVE
+ * memberships may sign in / switch — INVITED (not yet accepted) and LEFT are excluded.
+ */
 export async function membership(
   accountId: string,
   orgId: string,
@@ -108,12 +111,18 @@ export async function membership(
   const [row] = await db
     .select({ role: schema.orgMembers.role })
     .from(schema.orgMembers)
-    .where(and(eq(schema.orgMembers.accountId, accountId), eq(schema.orgMembers.orgId, orgId)))
+    .where(
+      and(
+        eq(schema.orgMembers.accountId, accountId),
+        eq(schema.orgMembers.orgId, orgId),
+        eq(schema.orgMembers.status, "ACTIVE"),
+      ),
+    )
     .limit(1);
   return row ?? null;
 }
 
-/** Every company the account is a member of, for the switcher + `me`. */
+/** Every company the account can currently enter (ACTIVE only), for the switcher + `me`. */
 export async function membershipsFor(
   accountId: string,
 ): Promise<Array<{ org: OrgHandle; role: string }>> {
@@ -126,7 +135,7 @@ export async function membershipsFor(
     })
     .from(schema.orgMembers)
     .innerJoin(schema.organizations, eq(schema.organizations.id, schema.orgMembers.orgId))
-    .where(eq(schema.orgMembers.accountId, accountId));
+    .where(and(eq(schema.orgMembers.accountId, accountId), eq(schema.orgMembers.status, "ACTIVE")));
   return rows.map((r) => ({
     role: r.role,
     org: { publicId: r.publicId, name: r.name, slug: r.slug },

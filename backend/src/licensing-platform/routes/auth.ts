@@ -17,6 +17,11 @@ import {
   orgIdFromHandle,
   resolveCompany,
 } from "../modules/auth/tenant.js";
+import {
+  createCompany,
+  joinCompany,
+  leaveCompany,
+} from "../modules/membership/service.js";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
@@ -148,6 +153,74 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
     writeSession(reply, s.accountId, orgId);
     const me = await buildMe({ accountId: s.accountId, orgId });
+    return { ok: true, ...me };
+  });
+
+  // --- Create a company (the signed-in account becomes its OWNER) ---
+  app.post("/auth/create-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { name?: string; loginDomain?: string } | undefined;
+    const name = body?.name?.trim() ?? "";
+    if (name.length < 2) {
+      reply.code(400);
+      return { error: "invalid_name" };
+    }
+    const org = await createCompany(s.accountId, { name, loginDomain: body?.loginDomain });
+    const orgId = org.publicId ? await orgIdFromHandle(org.publicId) : null;
+    writeSession(reply, s.accountId, orgId ?? undefined);
+    const me = await buildMe({ accountId: s.accountId, orgId: orgId ?? undefined });
+    return { ok: true, ...me };
+  });
+
+  // --- Join / request access to a company ---
+  app.post("/auth/join-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const company = body?.company?.trim() ?? "";
+    const res = await joinCompany(s.accountId, account.email, company);
+    if ("error" in res) {
+      reply.code(404);
+      return { error: res.error };
+    }
+    // Auto-activated → make it the active tenant; otherwise stay where we are.
+    const activeOrgId =
+      res.status === "ACTIVE" ? (await orgIdFromHandle(company)) ?? s.orgId : s.orgId;
+    writeSession(reply, s.accountId, activeOrgId);
+    const me = await buildMe({ accountId: s.accountId, orgId: activeOrgId });
+    return { ok: true, status: res.status, ...me };
+  });
+
+  // --- Leave a company ---
+  app.post("/auth/leave-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const orgId = body?.company ? await orgIdFromHandle(body.company) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    await leaveCompany(s.accountId, orgId);
+    const nextOrg = s.orgId === orgId ? undefined : s.orgId;
+    writeSession(reply, s.accountId, nextOrg);
+    const me = await buildMe({ accountId: s.accountId, orgId: nextOrg });
     return { ok: true, ...me };
   });
 
