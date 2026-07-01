@@ -150,6 +150,32 @@ export const authRouter = router({
     });
   }),
 
+  /**
+   * Step 1 of the two-step login: resolve which workspaces are active for a
+   * given email on this install. Returns at most one workspace (the firm) if
+   * the email exists in esti_user, plus the firm name so the UI can show it.
+   * Rate-limited gently (not a password check — no secret material returned).
+   */
+  resolveEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ ctx, input }) => {
+      await enforceRateLimit("resolve-email-ip", ctx.ip, 30, 60);
+      const email = normalizeEmail(input.email);
+      const [user] = await ctx.db
+        .select({ id: users.id, disabled: users.disabled })
+        .from(users)
+        .where(emailMatches(users.email, email))
+        .limit(1);
+      const [f] = await ctx.db.select({ companyName: firm.companyName }).from(firm).limit(1);
+      const firmName = f?.companyName ?? "Workspace";
+      // Return the workspace option only when a non-disabled user exists here.
+      const workspaces =
+        user && !user.disabled
+          ? [{ id: "local", name: firmName }]
+          : [];
+      return { workspaces };
+    }),
+
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
     const email = normalizeEmail(input.email);
     // Throttle brute-force: cap attempts per IP and per targeted email.

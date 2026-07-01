@@ -1,9 +1,11 @@
-import { ArrowLeft } from "@carbon/icons-react";
+import { ArrowLeft, ArrowRight } from "@carbon/icons-react";
 import {
   Button,
   Form,
   InlineNotification,
   Loading,
+  Select,
+  SelectItem,
   Stack,
   Tag,
   TextInput,
@@ -38,19 +40,41 @@ export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
+  // ── Two-step login state ──────────────────────────────────────────────────
+  // Step 1: email entry + workspace resolution.
+  // Step 2: workspace/account picker + password.
   const [email, setEmail] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [workspaces, setWorkspaces] = useState<{ id: string; name: string }[]>([]);
+  // "local" = this firm's workspace; "" = account portal (no workspace selected)
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string>("local");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [needCode, setNeedCode] = useState(false);
+
+  const resolveEmail = trpc.auth.resolveEmail.useQuery(
+    { email },
+    { enabled: false },
+  );
+
+  async function handleEmailNext(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    const result = await resolveEmail.refetch();
+    const ws = result.data?.workspaces ?? [];
+    setWorkspaces(ws);
+    // Default selection: first workspace if found, else account portal
+    setSelectedWorkspace(ws.length > 0 ? ws[0]!.id : "");
+    setStep(2);
+  }
+
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
-      // Desktop returns a session token (cookies don't cross the loopback origin).
       setDesktopToken((data as { token?: string }).token);
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },
     onError: (err) => {
-      // Password accepted — now collect the authenticator code.
       if (err.message === "totp_required") setNeedCode(true);
     },
   });
@@ -183,22 +207,6 @@ export function Login() {
       <Stack gap={5} className="esti-login-panel">
         <Tile>
           <Stack gap={5}>
-            <Stack gap={2} orientation="horizontal">
-              <Button
-                kind={workspacePortalActive ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setPortalMode("workspace")}
-              >
-                Workspace login
-              </Button>
-              <Button
-                kind={accountPortalActive ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setPortalMode("account")}
-              >
-                Account portal
-              </Button>
-            </Stack>
             <Stack gap={3}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
@@ -209,66 +217,134 @@ export function Login() {
               <p>Architectural Office Resource Management System</p>
             </Stack>
 
-            <Form
-              onSubmit={(e) => {
-                e.preventDefault();
-                login.mutate({ email, password, code: needCode ? code : undefined });
-              }}
-            >
-              <Stack gap={5}>
-                <TextInput
-                  id="email"
-                  labelText="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <TextInput
-                  id="password"
-                  labelText="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                {needCode && (
+            {/* ── Step 1: Email ───────────────────────────────────────────── */}
+            {step === 1 && (
+              <Form onSubmit={handleEmailNext}>
+                <Stack gap={5}>
                   <TextInput
-                    id="totp-code"
-                    labelText="Authenticator code"
-                    placeholder="123456"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    helperText="6-digit code from your authenticator app."
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
+                    id="email"
+                    labelText="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    helperText="Enter your email to see your workspaces."
+                    autoComplete="email"
+                    required
                   />
-                )}
-                {showError && (
-                  <InlineNotification
-                    kind="error"
-                    title="Sign-in failed"
-                    subtitle={errorText}
-                    hideCloseButton
-                    lowContrast
-                  />
-                )}
-                <Button type="submit" disabled={login.isPending || (needCode && code.length < 6)}>
-                  {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
-                </Button>
-                {PUBLIC_SITE ? (
-
-                  <Button type="button" kind="tertiary" onClick={() => setPortalMode("account")}>
-                    Account portal
-
+                  <Button
+                    type="submit"
+                    renderIcon={ArrowRight}
+                    disabled={resolveEmail.isFetching}
+                  >
+                    {resolveEmail.isFetching ? "Looking up…" : "Next"}
                   </Button>
-                ) : (
-                  <Button as={RouterLink} to="/signup" kind="tertiary">
-                    Create account
+                </Stack>
+              </Form>
+            )}
+
+            {/* ── Step 2: Workspace + password ────────────────────────────── */}
+            {step === 2 && (
+              <Form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (selectedWorkspace === "") {
+                    // No workspace selected → go to account portal
+                    setPortalMode("account");
+                    return;
+                  }
+                  login.mutate({ email, password, code: needCode ? code : undefined });
+                }}
+              >
+                <Stack gap={5}>
+                  <p className="esti-label--secondary">{email}</p>
+
+                  <Select
+                    id="workspace"
+                    labelText="Sign in to"
+                    value={selectedWorkspace}
+                    onChange={(e) => setSelectedWorkspace(e.target.value)}
+                  >
+                    {workspaces.map((ws) => (
+                      <SelectItem key={ws.id} value={ws.id} text={ws.name} />
+                    ))}
+                    {PUBLIC_SITE && (
+                      <SelectItem value="" text="My AORMS account (no workspace)" />
+                    )}
+                  </Select>
+
+                  {selectedWorkspace !== "" && (
+                    <>
+                      <TextInput
+                        id="password"
+                        labelText="Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                      />
+                      {needCode && (
+                        <TextInput
+                          id="totp-code"
+                          labelText="Authenticator code"
+                          placeholder="123456"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          helperText="6-digit code from your authenticator app."
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {showError && (
+                    <InlineNotification
+                      kind="error"
+                      title="Sign-in failed"
+                      subtitle={errorText}
+                      hideCloseButton
+                      lowContrast
+                    />
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={
+                      login.isPending ||
+                      (needCode && code.length < 6) ||
+                      (selectedWorkspace !== "" && !password)
+                    }
+                  >
+                    {login.isPending
+                      ? "Signing in…"
+                      : needCode
+                        ? "Verify"
+                        : selectedWorkspace === ""
+                          ? "Go to account"
+                          : "Sign in"}
                   </Button>
-                )}
-              </Stack>
-            </Form>
+
+                  <Button
+                    kind="ghost"
+                    size="sm"
+                    onClick={() => { setStep(1); setNeedCode(false); login.reset(); }}
+                  >
+                    ← Change email
+                  </Button>
+                </Stack>
+              </Form>
+            )}
+
+            {!PUBLIC_SITE && step === 1 && (
+              <Button as={RouterLink} to="/signup" kind="tertiary">
+                Create account
+              </Button>
+            )}
+
+            <Button as={RouterLink} to="/access" kind="ghost" size="sm">
+              Client / contractor portal login
+            </Button>
 
             <Button
               as={RouterLink}

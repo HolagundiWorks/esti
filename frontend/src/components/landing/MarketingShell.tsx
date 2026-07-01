@@ -1,4 +1,5 @@
 import {
+  Button,
   Header,
   HeaderGlobalBar,
   HeaderMenuButton,
@@ -86,9 +87,9 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             ))}
           </HeaderNavigation>
           <HeaderGlobalBar>
-            <a className="esti-landing-signin" href="/login">
+            <Button kind="primary" size="sm" href="/login" as="a" className="esti-landing-signin">
               Log in
-            </a>
+            </Button>
           </HeaderGlobalBar>
           <SideNav
             aria-label="Mobile navigation"

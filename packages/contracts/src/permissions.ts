@@ -184,11 +184,36 @@ export function isStaffRole(role: string | null | undefined): boolean {
 
 /**
  * Internal access level (1 = lowest/Viewer, 5 = highest/Owner).
- * Note: the public display hierarchy inverts this — see STAFF_LEVEL_LABEL in hr-profile.ts.
+ *
+ * Display hierarchy (document-aligned, L1 = highest / most senior):
+ *   L1 — Executive : Owner / Director                    → level 5
+ *   L2 — Management: Partner, Accountant, HR Manager     → level 4
+ *   L3 — Technical : Senior (Lead), Associate (Pro)      → level 3 / 2
+ *   L4 — Execution : Junior / Intern (view-only)         → level 1
+ *   L5 — Field     : Site Supervisor (site-only access)  → level 1 (field)
  */
 export type AccessLevel = 1 | 2 | 3 | 4 | 5;
 
-export type ExternalAccessClass = "CLIENT" | "CONSULTANT" | "CONTRACTOR";
+/**
+ * Two-bucket user classification:
+ *   IN_USER — internal office staff on the L1–L5 hierarchy
+ *   EX_USER — external parties (clients, contractors, vendors, consultants)
+ */
+export type UserKind = "IN_USER" | "EX_USER";
+
+export function getUserKind(role: string | null | undefined): UserKind {
+  if (!role) return "EX_USER";
+  return (STAFF_ROLES as readonly string[]).includes(role) ? "IN_USER" : "EX_USER";
+}
+
+export type ExternalAccessClass = "CLIENT" | "CONSULTANT" | "CONTRACTOR" | "VENDOR";
+
+export const EXTERNAL_CLASS_LABEL: Record<ExternalAccessClass, string> = {
+  CLIENT:     "Client",
+  CONSULTANT: "Consultant",
+  CONTRACTOR: "Contractor",
+  VENDOR:     "Vendor",
+};
 
 /**
  * Human-facing labels aligned with the dashboard access hierarchy document.
@@ -201,6 +226,9 @@ export const ACCESS_LEVEL_LABEL: Record<AccessLevel, string> = {
   4: "L2 — Management",
   5: "L1 — Executive",
 };
+
+/** Human label for the field-only L5 tier (SITE_SUPERVISOR). */
+export const FIELD_LEVEL_LABEL = "L5 — Field (site-only)";
 
 const RANK_TO_LEVEL: Record<number, AccessLevel> = {
   20: 1,
@@ -223,7 +251,7 @@ export function accessLevelForRole(
   return RANK_TO_LEVEL[rank] ?? null;
 }
 
-/** External portal class for non-staff logins. */
+/** External portal class for non-staff logins. Returns VENDOR only from entity lookups, not session roles. */
 export function externalClassForUser(user: {
   role: string;
   clientId?: string | null;
@@ -250,14 +278,15 @@ export function minLevelForCapability(cap: Capability): AccessLevel {
  * five-way taxonomy. OWNER is the one staff role that is also the firm's
  * account-holder, so it reports as COMPANY rather than STAFF.
  */
-export type UserType = "STAFF" | "COMPANY" | "CLIENT" | "CONSULTANT" | "CONTRACTOR";
+export type UserType = "STAFF" | "COMPANY" | "CLIENT" | "CONSULTANT" | "CONTRACTOR" | "VENDOR";
 
 export const USER_TYPE_LABEL: Record<UserType, string> = {
-  STAFF: "Staff",
-  COMPANY: "Company",
-  CLIENT: "Client",
-  CONSULTANT: "Consultant",
-  CONTRACTOR: "Contractor",
+  STAFF:      "Staff (IN_USER)",
+  COMPANY:    "Company",
+  CLIENT:     "Client (EX_USER)",
+  CONSULTANT: "Consultant (EX_USER)",
+  CONTRACTOR: "Contractor (EX_USER)",
+  VENDOR:     "Vendor (EX_USER)",
 };
 
 /** Unified account type for any login — staff ladder collapses to STAFF/COMPANY. */
@@ -280,9 +309,10 @@ export function accessLabelForUser(user: {
   contractorId?: string | null;
 }): string {
   const external = externalClassForUser(user);
-  if (external === "CLIENT") return "External — Client";
-  if (external === "CONSULTANT") return "External — Consultant";
-  if (external === "CONTRACTOR") return "External — Contractor";
+  if (external === "CLIENT") return "External — Client (EX_USER)";
+  if (external === "CONSULTANT") return "External — Consultant (EX_USER)";
+  if (external === "CONTRACTOR") return "External — Contractor (EX_USER)";
+  if (user.role === "SITE_SUPERVISOR") return FIELD_LEVEL_LABEL;
   const level = accessLevelForRole(user.role, user);
   if (level) return ACCESS_LEVEL_LABEL[level];
   if (user.role === "CONSULTANT") return ACCESS_LEVEL_LABEL[2];

@@ -21,6 +21,7 @@ import {
   verifyIdentityAtPlatform,
 } from "../../lib/identityDelegate.js";
 import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -92,6 +93,8 @@ export const userRouter = router({
           fullName: input.fullName,
           role: input.role,
           passwordHash: await hashPassword(input.password),
+          // Portable IN_USER identity handle — generated once, never changes.
+          accountPublicId: newPublicId("U"),
         })
         .returning(publicUser);
       await writeAudit(ctx.db, {

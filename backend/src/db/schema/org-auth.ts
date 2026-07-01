@@ -214,6 +214,8 @@ export const deviceSessions = pgTable("esti_device_session", {
 
 export const clients = pgTable("esti_client", {
   id: id(),
+  /** Human-readable portable ID, e.g. AORMS-X-4K9R (EX_USER / client). */
+  publicId: text("public_id").unique(),
   name: text("name").notNull(),
   kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY"] })
     .notNull()

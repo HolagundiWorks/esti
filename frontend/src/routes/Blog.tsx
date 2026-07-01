@@ -1,6 +1,7 @@
 import { ClickableTile, Column, Grid, Tag, Theme } from "@carbon/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { formatPostDate, listPosts } from "../lib/blog.js";
 import { applyBlogListSeo } from "../lib/blog-seo.js";
@@ -24,8 +25,8 @@ export function Blog() {
   }, []);
 
   return (
-    <MarketingShell>
-      <Theme theme="g100" className="esti-blog-theme">
+    <Theme theme="g100">
+      <MarketingShell>
       <main id="main-content" className="esti-blog">
         <header className="esti-blog__head">
           <h1>Blog</h1>
@@ -68,7 +69,8 @@ export function Blog() {
           </ul>
         </section>
       </main>
-      </Theme>
-    </MarketingShell>
+      <MarketingFooter />
+      </MarketingShell>
+    </Theme>
   );
 }

@@ -1,5 +1,5 @@
 import { Download as DownloadIcon, Checkmark, Information } from "@carbon/icons-react";
-import { Button, Column, Grid, Stack, Tag, Tile } from "@carbon/react";
+import { Button, Column, Grid, Stack, Tag, Theme, Tile } from "@carbon/react";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { LandingBand, LandingEditorial } from "../components/landing/LandingBand.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
@@ -69,10 +69,11 @@ const EDITIONS: Edition[] = [
 
 export function Download() {
   return (
-    <MarketingShell>
-      <LandingBand>
-        <LandingEditorial>
-          <Stack gap={7}>
+    <Theme theme="g100">
+      <MarketingShell>
+        <LandingBand>
+          <LandingEditorial>
+            <Stack gap={7}>
             <Stack gap={4}>
               <Tag type="cool-gray" size="md">
                 Windows desktop app
@@ -138,8 +139,9 @@ export function Download() {
             </p>
           </Stack>
         </LandingEditorial>
-      </LandingBand>
-      <MarketingFooter />
-    </MarketingShell>
+        </LandingBand>
+        <MarketingFooter />
+      </MarketingShell>
+    </Theme>
   );
 }

@@ -76,6 +76,7 @@ import { UploadAuthProvider } from "./lib/uploadAuth.js";
 import { Landing } from "./routes/Landing.js";
 import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
+import { ExternalLogin } from "./routes/ExternalLogin.js";
 
 // Build variant gate. The public marketing site (landing, blog, investors, one-click
 // demo) is included only when VITE_PUBLIC_SITE !== "false". Set it to "false" for the
@@ -244,7 +245,9 @@ function AppShell() {
 
   // Merged licensing platform admin — self-contained (its own Google login +
   // tRPC at /platform/trpc), reachable regardless of AORMS firm auth.
-  if (pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
+  // Licensing Console — served at admin.DOMAIN or /platform-admin (path fallback).
+  const isAdminSubdomain = /^admin\./.test(window.location.hostname);
+  if (isAdminSubdomain || pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
@@ -280,6 +283,7 @@ function AppShell() {
     return (
       <Routes>
         <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
+        <Route path="/access" element={<Theme theme="g100"><ExternalLogin /></Theme>} />
         <Route path="/signup" element={<Theme theme="g100"><Signup /></Theme>} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />

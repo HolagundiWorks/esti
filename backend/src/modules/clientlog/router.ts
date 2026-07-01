@@ -6,6 +6,7 @@ import { hashPassword } from "../../auth/session.js";
 import { clients, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { sql } from "drizzle-orm";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -35,6 +36,7 @@ export const clientRouter = router({
     const [row] = await ctx.db
       .insert(clients)
       .values({
+        publicId: newPublicId("X"),
         name: input.name,
         kind: input.kind,
         gstin: input.gstin ?? null,

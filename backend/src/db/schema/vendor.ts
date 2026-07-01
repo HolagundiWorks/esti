@@ -20,6 +20,8 @@ import { kbMaterials } from "./knowledge-bank.js";
 
 export const vendors = pgTable("esti_vendor", {
   id: id(),
+  /** Human-readable portable ID, e.g. AORMS-X-2B5P (EX_USER / vendor). */
+  publicId: text("public_id").unique(),
   name: text("name").notNull(),
   category: text("category").notNull(),
   companyName: text("company_name"),

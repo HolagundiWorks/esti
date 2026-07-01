@@ -4,6 +4,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { contractors } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -35,6 +36,7 @@ export const contractorRouter = router({
     const [row] = await ctx.db
       .insert(contractors)
       .values({
+        publicId: newPublicId("X"),
         name: input.name,
         category: input.category,
         companyName: blank(input.companyName),
