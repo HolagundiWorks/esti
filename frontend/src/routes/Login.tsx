@@ -106,9 +106,17 @@ export function Login() {
                   {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
                 {PUBLIC_SITE ? (
-                  <Button href={createAccountUrl()} kind="tertiary">
-                    Create account
-                  </Button>
+                  <>
+                    <Button href={createAccountUrl()} kind="tertiary">
+                      Create account
+                    </Button>
+                    {/* This is the firm workspace login (esti_user). A licence/company
+                        account (hlp_account) signs in at /account, not here. */}
+                    <p className="esti-label--helper">
+                      Managing a licence or requesting a plan?{" "}
+                      <a href="/account">Sign in to your account</a>.
+                    </p>
+                  </>
                 ) : (
                   <Button as={RouterLink} to="/signup" kind="tertiary">
                     Create account

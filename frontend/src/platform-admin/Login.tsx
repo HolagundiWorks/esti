@@ -184,6 +184,20 @@ export default function Login({
                       <Button type="submit" kind="primary" size="lg" disabled={busy || !company}>
                         Continue
                       </Button>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => {
+                          // Solo / personal accounts have no company to name here —
+                          // sign in with just email + password (unscoped session).
+                          setCompany("");
+                          setResolved(null);
+                          setError(null);
+                          setStep("credentials");
+                        }}
+                      >
+                        No company yet? Sign in with just your email
+                      </Button>
                     </Stack>
                   </Form>
                 ) : (

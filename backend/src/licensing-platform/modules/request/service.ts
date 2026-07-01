@@ -137,18 +137,23 @@ export async function pendingRequestCount(): Promise<number> {
 }
 
 function licenseEmail(planCode: string, key: string) {
-  const loginUrl = `${env.FRONTEND_ORIGIN}/login`;
+  // /account is the customer account portal (this hlp_account) — NOT /login,
+  // which is the separate firm-app workspace login (esti_user). Sending a
+  // customer to /login here would always fail with "invalid credentials".
+  const accountUrl = `${env.FRONTEND_ORIGIN}/account`;
   const subject = `Your AORMS ${planCode} licence`;
-  const text = `Your AORMS ${planCode} workspace is ready.
+  const text = `Your AORMS ${planCode} licence is ready.
 
 Licence key: ${key}
 
-Activate it in your AORMS install (Company → Licence → Activate), or sign in at ${loginUrl}.
+Activate it in your AORMS install (Company → Licence → Activate). Manage your account,
+companies, and credentials at ${accountUrl}.
 
 — AORMS`;
-  const html = `<p>Your AORMS <strong>${planCode}</strong> workspace is ready.</p>
+  const html = `<p>Your AORMS <strong>${planCode}</strong> licence is ready.</p>
 <p><strong>Licence key:</strong> <code>${key}</code></p>
-<p>Activate it in your AORMS install (Company → Licence → Activate), or sign in at <a href="${loginUrl}">${loginUrl}</a>.</p>
+<p>Activate it in your AORMS install (Company → Licence → Activate). Manage your account,
+companies, and credentials at <a href="${accountUrl}">${accountUrl}</a>.</p>
 <p>— AORMS</p>`;
   return { subject, text, html };
 }
