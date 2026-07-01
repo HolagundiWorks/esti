@@ -1,4 +1,4 @@
-import { ActivateInput, RefreshInput, ValidateInput } from "@esti/contracts";
+import { ActivateInput, RefreshInput, ValidateInput, VerifyIdentityInput } from "@esti/contracts";
 import { and, eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { db, schema } from "../db/client.js";
@@ -80,6 +80,33 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "invalid_credentials" };
     }
     return { ok: true, ...result };
+  });
+
+  // Machine identity lookup — a node's own `hlp_account` is an unpopulated
+  // per-install shadow table; real accounts live only on the hub, so a node
+  // asks here (rather than querying its own DB) to validate an AORMS-U handle
+  // before linking it to a local firm login (I-5 `users.linkIdentity`).
+  app.post("/v1/verify-identity", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const parsed = VerifyIdentityInput.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const [account] = await db
+      .select({ publicId: schema.accounts.publicId, email: schema.accounts.email, name: schema.accounts.name })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.publicId, parsed.data.publicId))
+      .limit(1);
+    if (!account?.publicId) {
+      reply.code(404);
+      return { error: "not_found" };
+    }
+    return { ok: true, account };
   });
 
   app.post("/v1/validate", async (req, reply) => {

@@ -119,3 +119,22 @@ export const RefreshInput = z.object({
   deviceId: z.string().min(1),
 });
 export type RefreshInput = z.infer<typeof RefreshInput>;
+
+/**
+ * Looks up a portable AORMS-U handle on the hub — the machine-to-machine half of
+ * the U-3 "sync protocol" (see docs/esti/AORMS-IDENTITY.md §11). A node's own
+ * local `hlp_account` table is a per-install schema shadow, not the real store —
+ * real accounts live only on the hub, so linking a firm login to one has to ask
+ * the hub over `/v1`, the same way license activation and delegated login already do.
+ */
+export const VerifyIdentityInput = z.object({ publicId: z.string().min(1) });
+export type VerifyIdentityInput = z.infer<typeof VerifyIdentityInput>;
+
+export const VerifyIdentityResult = z.object({
+  account: z.object({
+    publicId: z.string(),
+    email: z.string(),
+    name: z.string().nullable(),
+  }),
+});
+export type VerifyIdentityResult = z.infer<typeof VerifyIdentityResult>;

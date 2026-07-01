@@ -13,6 +13,7 @@ import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { identityLookupConfigured, verifyIdentityAtPlatform } from "../../lib/identityDelegate.js";
 import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -174,12 +175,25 @@ export const userRouter = router({
       if (handle) {
         if (!/^AORMS-U-[0-9A-HJKMNP-TV-Z]{4,}$/.test(handle))
           throw new TRPCError({ code: "BAD_REQUEST", message: "Not a valid AORMS-U handle" });
-        // The person must exist on the central identity platform (same database).
-        const rows = await ctx.db.execute(
-          sql`SELECT 1 FROM hlp_account WHERE public_id = ${handle} LIMIT 1`,
-        );
-        const found = Array.isArray(rows) ? rows.length > 0 : ((rows as { rows?: unknown[] }).rows?.length ?? 0) > 0;
-        if (!found) throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+        // A hub-configured node (the normal case for a customer install) asks the hub —
+        // its own hlp_account table is an unpopulated per-install shadow, not the real
+        // account store (AORMS-IDENTITY.md §11, U-3). Only the hub itself (no
+        // ESTI_LICENSE_API_URL/ESTI_PRODUCT_API_KEY configured) — or local dev, which
+        // shares one DB for both — falls back to the same-database check.
+        if (identityLookupConfigured()) {
+          const result = await verifyIdentityAtPlatform(handle);
+          if (result.kind === "not_found")
+            throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+          if (result.kind === "unreachable")
+            throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Could not reach the identity platform" });
+        } else {
+          const rows = await ctx.db.execute(
+            sql`SELECT 1 FROM hlp_account WHERE public_id = ${handle} LIMIT 1`,
+          );
+          const found =
+            Array.isArray(rows) ? rows.length > 0 : ((rows as { rows?: unknown[] }).rows?.length ?? 0) > 0;
+          if (!found) throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+        }
       }
       const [u] = await ctx.db
         .update(users)

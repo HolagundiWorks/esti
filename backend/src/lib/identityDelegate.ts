@@ -14,6 +14,54 @@ function identityBase(): string {
   return (env.ESTI_IDENTITY_URL || env.ESTI_LICENSE_API_URL).replace(/\/+$/, "");
 }
 
+/** Is a hub reachable to resolve AORMS-U handles against (the real account store)? */
+export function identityLookupConfigured(): boolean {
+  return Boolean(identityBase()) && Boolean(env.ESTI_PRODUCT_API_KEY);
+}
+
+export interface VerifiedAccount {
+  publicId: string;
+  email: string;
+  name: string | null;
+}
+
+export type VerifyIdentityResult =
+  | { kind: "ok"; account: VerifiedAccount }
+  | { kind: "not_found" }
+  | { kind: "unreachable" };
+
+/**
+ * Look up an AORMS-U handle on the hub's `/v1/verify-identity`. A node's own
+ * local `hlp_account` table is an unpopulated per-install schema shadow, not
+ * the real account store — this is the machine-to-machine call `linkIdentity`
+ * needs instead of querying its own DB (see AORMS-IDENTITY.md §11, U-3).
+ */
+export async function verifyIdentityAtPlatform(publicId: string): Promise<VerifyIdentityResult> {
+  const base = identityBase();
+  if (!base || !env.ESTI_PRODUCT_API_KEY) return { kind: "unreachable" };
+  let res: Response;
+  try {
+    res = await fetch(`${base}/v1/verify-identity`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ publicId }),
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    return { kind: "unreachable" };
+  }
+  if (res.status === 404) return { kind: "not_found" };
+  if (!res.ok) return { kind: "unreachable" };
+  const body = (await res.json().catch(() => null)) as
+    | { ok?: boolean; account?: VerifiedAccount }
+    | null;
+  if (!body?.ok || !body.account) return { kind: "not_found" };
+  return { kind: "ok", account: body.account };
+}
+
 export interface DelegatedIdentity {
   account: { publicId: string | null; email: string; name: string | null };
   role: string | null;
