@@ -258,18 +258,16 @@ export function Users() {
                       >
                         Reset password
                       </Button>
-                      {!u.clientId && !u.consultantId && (
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setLink({ id: u.id, email: u.email });
-                            setLinkVal(u.accountPublicId ?? "");
-                          }}
-                        >
-                          Link ID
-                        </Button>
-                      )}
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setLink({ id: u.id, email: u.email });
+                          setLinkVal(u.accountPublicId ?? "");
+                        }}
+                      >
+                        Link ID
+                      </Button>
                       {!isSelf && (
                         <Button
                           kind="ghost"

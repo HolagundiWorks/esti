@@ -1,9 +1,12 @@
 # AORMS Identity — account model & login
 
 > **Status:** **I-1…I-5 shipped** (IDs · tenant-first login · sign-up/activation · portable
-> certs/growth · firm-user projection). Remaining runtime work: point the firm app / desktop
-> at the live platform as the identity authority, and the hybrid desktop offline-cache
-> (needs the deployed platform base URL + a desktop change) — tracked as follow-ups below.
+> certs/growth · firm-user projection). **U-1/U-2 in progress** — collapsing every local
+> login (`esti_user` staff + CLIENT/CONSULTANT/CONTRACTOR portal roles) and the central
+> `hlp_account`/`hlp_org_member` into one account-type vocabulary; see §11. Remaining
+> runtime work: point the firm app / desktop at the live platform as the identity
+> authority, and the hybrid desktop offline-cache (needs the deployed platform base URL +
+> a desktop change) — tracked as follow-ups below.
 > Delivery: phased to `main`, each phase additive so existing logins keep working.
 > Desktop target is hybrid: online identity, locally-cached session for offline open.
 > Supersedes the ad-hoc split between
@@ -201,3 +204,28 @@ which needs a deployed platform + a couple of product decisions:
 - **ASPRF → growth** — call `recordGrowth(accountPublicId, …)` from the firm ASPRF/LXOS
   pipelines so performance + learning accrue to the linked person. The seam exists
   (`modules/portable/service.ts`); wiring it touches ASPRF hot paths, deferred deliberately.
+
+## 11. Unifying every login under one account-type vocabulary
+
+Today's separate stores — `hlp_account`/`hlp_org_member` (central) and `esti_user` with its
+staff ladder plus `CLIENT`/`CONSULTANT`(+`consultantId`)/`CONTRACTOR`(+`contractorId`) roles
+(per-install) — are five different-shaped things a person can be. The goal: **one** account
+system where `type` — `STAFF` / `COMPANY` / `CLIENT` / `CONSULTANT` / `CONTRACTOR` — is the
+only classification vocabulary, not a maze of tables and role checks. Confirmed scope:
+**every install, product-wide**; `COMPANY` = the firm owner/admin (the `OWNER` staff row),
+every other staff seniority tier is `STAFF`.
+
+This is a multi-week redesign (shared schema, a sync protocol between each install and the
+hub, a migration path for existing installs) — phased the same way as I-1…I-5 so no
+install's login ever breaks mid-transition.
+
+| Phase | Scope |
+|---|---|
+| **U-1 — Derived `UserType`** ✅ | `userType()` in `packages/contracts/src/permissions.ts` — a computed, non-persisted classification built on the existing role + `clientId`/`consultantId`/`contractorId` columns (no schema change). Surfaced as a Tag in the Users admin table. Fixed a gap found along the way: `users.list`'s select was missing `contractorId`, so CONTRACTOR logins fell through `externalClassForUser`/`accessLabelForUser` unclassified. |
+| **U-2 — Projection open to every type** ✅ | The I-5 firm-user projection (`esti_user.account_public_id` / `users.linkIdentity`) was already role-agnostic at the schema and tRPC layers — only the Users admin UI hid the "Link ID" action for CLIENT/CONSULTANT rows. Removed that gate: every login row, regardless of `type`, can now be linked to a portable `AORMS-U-` identity the same way staff already could. |
+| **U-3 — Shared schema + sync protocol** 🔲 | Design a single central identity that every install's login types resolve to (extend the `hlp_account`/`hlp_org_member` model or fold `esti_user` into it), plus the protocol by which each per-install `esti_user` row stays in sync with its central record. Needs its own design doc before build — this is the schema-changing, cross-install part. |
+| **U-4 — Migration path** 🔲 | Backfill existing installs' CLIENT/CONSULTANT/CONTRACTOR rows (and any staff rows never linked under I-5) onto the unified identity, without breaking any live login. |
+
+Each phase: contracts → migration → backend → Pure-Carbon UI → verify → commit — same
+discipline as I-1…I-5. U-3/U-4 are deliberately not started until a design doc is reviewed,
+since they touch every deployed install's schema.
