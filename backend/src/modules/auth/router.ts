@@ -159,8 +159,15 @@ export const authRouter = router({
     let u: typeof users.$inferSelect | undefined;
 
     // Delegated identity (opt-in): verify against the central platform and project
-    // the person onto a local firm user. If the platform is unreachable, fall back
-    // to the locally-cached password below (hybrid offline grace).
+    // the person onto a local firm user. The hub's "invalid" covers three cases a
+    // node can't tell apart — wrong central password, no central account at all
+    // (e.g. a staff login created purely locally, which never touches hlp_account),
+    // or a real central account that isn't an ACTIVE member of this company yet.
+    // Only cases 2/3 are normal for ordinary local staff, so we never hard-fail
+    // here — same as when the platform is unreachable, fall through and let the
+    // local password (below) decide. This keeps delegation additive: it can only
+    // let a login succeed that the local password check would have rejected
+    // anyway, never the reverse.
     if (delegationEnabled()) {
       const res = await verifyAtPlatform(email, input.password);
       if (res.kind === "ok") {
@@ -169,10 +176,8 @@ export const authRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
         }
         u = projected!;
-      } else if (res.kind === "invalid") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
       }
-      // res.kind === "unreachable" → leave u undefined and try local verify.
+      // res.kind === "invalid" or "unreachable" → leave u undefined and try local verify.
     }
 
     if (!u) {

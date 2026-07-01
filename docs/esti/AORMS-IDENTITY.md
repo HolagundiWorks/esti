@@ -200,7 +200,14 @@ which needs a deployed platform + a couple of product decisions:
   (`provisionLocalUser` — links by AORMS-U/email, new users land as ASSOCIATE, never
   auto-OWNER). **Hybrid offline grace:** if the platform is unreachable the last
   successful password is cached locally and login falls back to it, so the app still
-  opens offline. Default off = unchanged local login. *To enable: mint a product API key
+  opens offline. Default off = unchanged local login. **Fixed:** the hub's generic
+  "invalid" response covers three cases a node can't tell apart — wrong central
+  password, no central account at all (an ordinary staff login created purely
+  locally never has one), or a real account that isn't an ACTIVE member of this
+  company yet. Early code hard-rejected the login on any of the three; now it
+  falls through to the local password check the same way an unreachable hub
+  already did, so a locally-created staff login keeps working once delegation is
+  turned on (`backend/src/modules/auth/router.ts`). *To enable: mint a product API key
   at `/platform-admin`, set the three env vars, pilot on one install before flipping it
   on widely.*
 - **Hybrid desktop offline cache** — cache the last successful online login so the desktop
