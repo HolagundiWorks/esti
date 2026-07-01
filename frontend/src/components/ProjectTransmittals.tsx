@@ -128,7 +128,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: "var(--cds-spacing-07)",
         }}
       >
         <h3>Transmittals</h3>
@@ -204,7 +204,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
               setForm((f) => ({ ...f, recipient: e.target.value }))
             }
           />
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: "var(--cds-spacing-04)" }}>
             <Select
               id="tr-purpose"
               labelText="Purpose"
@@ -245,13 +245,13 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
           </div>
 
           <div>
-            <p style={{ marginBottom: 4 }}>Drawings to include</p>
+            <p style={{ marginBottom: "var(--cds-spacing-02)" }}>Drawings to include</p>
             {ready.map((d) => {
               const checked = d.id in picked;
               return (
                 <div
                   key={d.id}
-                  style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}
                 >
                   <Checkbox
                     id={`tr-d-${d.id}`}

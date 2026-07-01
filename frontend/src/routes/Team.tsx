@@ -22,9 +22,11 @@ import {
 } from "@esti/contracts";
 import { type CSSProperties, useState } from "react";
 import { PageHeader } from "../components/PageHeader.js";
+import { DataState } from "../components/DataState.js";
+import { CardGridSkeleton } from "../components/CardGridSkeleton.js";
 import { TeamsPanel } from "../components/TeamsPanel.js";
 import { getInitials, resolveColor } from "../components/StaffAvatar.js";
-import { STAFF_LEVEL_LABEL, STAFF_LEVEL_COLOR } from "@esti/contracts";
+import { STAFF_LEVEL_LABEL } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
 export function Team({ embedded = false }: { embedded?: boolean }) {
@@ -90,24 +92,22 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Portrait tile grid */}
-      {list.isLoading ? (
-        <p className="esti-label esti-label--secondary">Loading…</p>
-      ) : members.length === 0 ? (
-        <Tile>
-          <Stack gap={3}>
-            <p>
-              {search
-                ? `No staff match "${search}".`
-                : "No team members yet. Add staff to enable HR, payroll and project team tracking."}
-            </p>
-            {!search && (
-              <Button size="sm" onClick={() => setOpen(true)}>
-                New member
-              </Button>
-            )}
-          </Stack>
-        </Tile>
-      ) : (
+      <DataState
+        loading={list.isLoading}
+        isEmpty={members.length === 0}
+        skeleton={<CardGridSkeleton />}
+        empty={{
+          title: search ? "No matches" : "No team members yet",
+          description: search
+            ? `No staff match "${search}".`
+            : "Add staff to enable HR, payroll and project team tracking.",
+          action: !search ? (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              New member
+            </Button>
+          ) : undefined,
+        }}
+      >
         <Grid narrow>
           {members.map((m) => {
             const color = resolveColor({ staffLevel: m.staffLevel ?? null, name: m.name });
@@ -172,7 +172,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
             );
           })}
         </Grid>
-      )}
+      </DataState>
 
       <TeamsPanel />
 

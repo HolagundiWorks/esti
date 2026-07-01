@@ -22,7 +22,7 @@ export default function Panel() {
   if (loading) {
     return (
       <Theme theme="g100">
-        <main style={{padding:"1.5rem"}}>
+        <main style={{ padding: "var(--cds-spacing-06)" }}>
           <Loading withOverlay={false} description="Loading" />
         </main>
       </Theme>
@@ -38,7 +38,7 @@ export default function Panel() {
 
   return (
     <Theme theme="g100">
-      <main style={{padding:"1.5rem"}}>
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
         <Stack gap={6}>
           <Stack gap={3} orientation="horizontal">
             <h1 className="esti-grow">License Cloud</h1>

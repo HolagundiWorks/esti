@@ -134,7 +134,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <h3 style={{ marginTop: 32 }}>Drawings</h3>
+      <h3 style={{ marginTop: "var(--cds-spacing-07)" }}>Drawings</h3>
       <InlineNotification
         kind="info"
         title="Quantity takeoff in ESTICAD"
@@ -145,7 +145,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         }
         lowContrast
         hideCloseButton
-        style={{ marginBottom: 12 }}
+        style={{ marginBottom: "var(--cds-spacing-04)" }}
       />
       {canTakeoff && (
         <p className="esti-label">
@@ -172,15 +172,15 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           subtitle="This demo has upload protection enabled — enter the upload password when prompted, same as a live firm."
           lowContrast
           hideCloseButton
-          style={{ marginBottom: 12 }}
+          style={{ marginBottom: "var(--cds-spacing-04)" }}
         />
       )}
       <div
         style={{
           display: "flex",
-          gap: 12,
+          gap: "var(--cds-spacing-04)",
           alignItems: "flex-end",
-          margin: "12px 0",
+          margin: "var(--cds-spacing-04) 0",
         }}
       >
         <TextInput
@@ -293,7 +293,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <div style={{ display: "flex", gap: "var(--cds-spacing-02)" }}>
                       <Button
                         kind="ghost"
                         size="sm"

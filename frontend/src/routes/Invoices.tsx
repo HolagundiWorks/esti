@@ -13,11 +13,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Tag,
   TextInput,
 } from "@carbon/react";
 import {
   GstSystem,
+  INVOICE_STATUS_TAG,
   InvoiceStatus,
   SAC_CODES,
   can,
@@ -25,22 +25,16 @@ import {
   computeTds194j,
   formatINR,
 } from "@esti/contracts";
-import type { PeriodFilterInput } from "@esti/contracts";
+import type { InvoiceStatus as InvoiceStatusT, PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
-
-const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
-  DRAFT: "gray",
-  ISSUED: "blue",
-  PAID: "green",
-  CANCELLED: "red",
-};
 
 export function Invoices() {
   const { user } = useAuth();
@@ -169,12 +163,10 @@ export function Invoices() {
                         <SelectItem key={st} value={st} text={st} />
                       ))}
                     </Select>
-                    <Tag
-                      type={STATUS_TAG[iv.status] ?? "gray"}
-                      size="sm"
-                    >
-                      {iv.status}
-                    </Tag>
+                    <StatusTag
+                      value={iv.status as InvoiceStatusT}
+                      map={INVOICE_STATUS_TAG}
+                    />
                   </TableCell>
                   <TableCell>
                     <InvoicePdfCell

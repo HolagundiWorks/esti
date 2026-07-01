@@ -426,3 +426,69 @@ the table records what each covered so nothing is lost.
 
 Full originals remain readable under `deprecated_review/design/` until a future
 pass confirms every durable rule is captured here, after which they can be deleted.
+
+---
+
+## 7 — 2026-07 Carbon audit standards
+
+Enforced outcomes of the [`CARBON-UI-AUDIT.md`](./CARBON-UI-AUDIT.md) pass. These are
+binding going forward.
+
+### Navigation — one nav-item contract
+
+Every sidebar **leaf** (top-level or nested) renders as a `SideNavLink` **with a
+`renderIcon`** — one row/width/height/hover/active/focus contract, full-row click.
+Grouping is expressed **only** through `SideNavMenu`; nested leaves are never a
+different variant (no icon-less `SideNavMenuItem`). See `renderNavNode` in
+`frontend/src/App.tsx`. `isRail` is retained (the floating dock is pinned to the 3 rem
+rail). Do not mix rail and non-rail items, and do not add a leaf without an icon.
+
+### Status badges — one `<StatusTag>`
+
+Never re-derive a status→colour map inline. Add the map to `@esti/contracts`
+(typed `Record<Status, TagColor>`; e.g. `INVOICE_STATUS_TAG`, `PROJECT_STATUS_TAG`,
+`LEAD_STATUS_TAG`) and render through `frontend/src/components/StatusTag.tsx`:
+
+```tsx
+<StatusTag value={iv.status} map={INVOICE_STATUS_TAG} />
+<StatusTag value={p.status} map={PROJECT_STATUS_TAG} label={PROJECT_STATUS_LABEL[p.status]} />
+```
+
+`TagColor` (in `@esti/contracts`) is the single source of truth for the Carbon Tag
+colour set. Tags always carry a text label (never colour-only status).
+
+### Tables — `DataTable` vs. primitives rule
+
+- **Interactive lists** (sort / search / select / toolbar) → Carbon `DataTable` with
+  `TableToolbar` + `TableToolbarSearch` (see Consultants, Clients, Projects).
+- **Read-only or embedded dense tables** (e.g. the Studio shell's action table) → raw
+  `Table`/`TableHead`/`TableBody` primitives at `size="sm"`.
+
+New interactive lists must use `DataTable`. Existing primitive-based interactive lists
+(Invoices, Proposals, Payroll) are a documented migration backlog — convert when next
+edited; do not add new ones.
+
+### Loading / empty states — always shared
+
+- Table screens → `DataState` (wraps `DataTableSkeleton` + empty `Tile`).
+- Card/tile-grid screens → `DataState` with `skeleton={<CardGridSkeleton />}`
+  (`frontend/src/components/CardGridSkeleton.tsx`).
+
+No bespoke "Loading…" text or ad-hoc spinners.
+
+### Inline spacing — tokens only
+
+Numeric `px`/`rem` values for `margin` / `padding` / `gap` (and their long-hands) are
+**prohibited** inside inline `style={}` — use `var(--cds-spacing-*)` or, preferably,
+`<Stack gap>` / `<Grid>`. Zero (`margin: 0`) and `auto` are allowed. Sizing/positioning
+(`width`, `height`, `maxWidth`, `top`, …) is out of scope for this rule.
+
+Grep guard (expects **no** output):
+
+```sh
+grep -rEn 'style=\{\{[^}]*(margin|padding|gap|rowGap|columnGap)[A-Za-z]*:\s*("?[1-9]|"0?\.[0-9]+rem"|"[1-9][0-9.]*rem")' \
+  --include='*.tsx' frontend/src | grep -vE 'var\(--cds-spacing|auto'
+```
+
+The repo's `frontend/scripts/check-carbon.mjs` (`@hcw/carbon-agent-kit` policy) remains
+the colour/visual guard; `landing.scss` is its documented editorial exception.

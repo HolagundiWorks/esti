@@ -10,23 +10,42 @@ import {
   SideNavItems,
   SideNavLink,
   SideNavMenu,
-  SideNavMenuItem,
   Theme,
 } from "@carbon/react";
 import {
+  Analytics,
+  Archive,
+  Book,
   Bot,
   Building,
   Catalog,
   Dashboard as DashboardIcon,
+  Document,
   Education,
+  Email,
   Enterprise,
+  Events,
+  Identification,
+  License,
+  ListChecked,
   Logout,
+  Map as MapIcon,
   Money,
   Partnership,
+  Purchase,
+  Receipt,
+  Report,
+  Rule,
   Search as SearchIcon,
   Settings as SettingsIcon,
+  Store,
   TaskComplete,
+  Terminal,
+  Tools,
+  User,
   UserMultiple,
+  UserProfile,
+  Wallet,
   type CarbonIconType,
 } from "@carbon/icons-react";
 import {
@@ -349,10 +368,10 @@ function AppShell() {
       items: [
         ...(planAllowsFeature("knowledgeBank")
           ? [
-              { label: "Item Library", to: "/knowledge-bank" },
-              { label: "Compliance Library", to: "/libraries/compliance" },
-              { label: "Master Plan Library", to: "/libraries/master-plans" },
-              { label: "Standards Library", to: "/libraries/standards" },
+              { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
+              { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
+              { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
+              { label: "Standards Library", to: "/libraries/standards", icon: Book },
             ]
           : []),
       ],
@@ -364,11 +383,11 @@ function AppShell() {
       items: [
         ...(planAllowsFeature("hr") && hrEnabled
           ? [
-              { label: "Teams", to: "/team" },
+              { label: "Teams", to: "/team", icon: Events },
               ...(planAllowsFeature("performance") && atLeast(60)
-                ? [{ label: "Performance", to: "/performance" }]
+                ? [{ label: "Performance", to: "/performance", icon: Analytics }]
                 : []),
-              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr" }] : []),
+              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr", icon: Identification }] : []),
             ]
           : []),
       ],
@@ -378,14 +397,14 @@ function AppShell() {
       label: "Third Parties",
       icon: Partnership,
       items: [
-        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients" }] : []),
+        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients", icon: User }] : []),
         ...(atLeast(60)
           ? [
-              { label: "Consultants", to: "/consultants" },
-              { label: "Contractors", to: "/contractors" },
+              { label: "Consultants", to: "/consultants", icon: UserProfile },
+              { label: "Contractors", to: "/contractors", icon: Tools },
             ]
           : []),
-        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors" }] : []),
+        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
       ],
     },
     {
@@ -393,11 +412,11 @@ function AppShell() {
       label: "Office",
       icon: Enterprise,
       items: [
-        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals" }] : []),
+        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
         ...(can(user.role, "write")
           ? [
-              { label: "Contracts", to: "/office/contracts" },
-              { label: "Letters", to: "/office/letters" },
+              { label: "Contracts", to: "/office/contracts", icon: License },
+              { label: "Letters", to: "/office/letters", icon: Email },
             ]
           : []),
       ],
@@ -409,16 +428,16 @@ function AppShell() {
       items: [
         ...(can(user.role, "invoice:manage")
           ? [
-              { label: "Consultancy Invoices", to: "/invoices" },
-              { label: "Cashbook", to: "/accounting/cash-book" },
-              { label: "Office Expenses", to: "/accounting/office-expenses" },
+              { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
+              { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
+              { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
             ]
           : []),
         ...(planAllowsFeature("hr") && hrEnabled && can(user.role, "hr:manage")
-          ? [{ label: "Payroll", to: "/finance/payroll" }]
+          ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
           : []),
         ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
-          ? [{ label: "Financial Reports", to: "/filing" }]
+          ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
           : []),
       ],
     },
@@ -430,18 +449,18 @@ function AppShell() {
       items: [
         ...(can(user.role, "firm:admin")
           ? [
-              { label: "Company", to: "/company" },
-              { label: "Users", to: "/users" },
+              { label: "Company", to: "/company", icon: Building },
+              { label: "Users", to: "/users", icon: UserMultiple },
             ]
           : []),
         ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin")
-          ? [{ label: "Audit Logs", to: "/audit" }]
+          ? [{ label: "Audit Logs", to: "/audit", icon: Book }]
           : []),
         ...(can(user.role, "project:delete")
-          ? [{ label: "Archived projects", to: "/archived-projects" }]
+          ? [{ label: "Archived projects", to: "/archived-projects", icon: Archive }]
           : []),
-        ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin" }] : []),
-        { label: "Settings", to: "/settings" },
+        ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin", icon: Terminal }] : []),
+        { label: "Settings", to: "/settings", icon: SettingsIcon },
       ],
     },
   ]);
@@ -450,9 +469,13 @@ function AppShell() {
   const navNodeActive = (node: NavNode): boolean =>
     "items" in node ? node.items.some(navNodeActive) : navPathActive(pathname, node.to);
 
-  // Recursive sidebar renderer: top-level leaves are SideNavLink (icon rail),
-  // nested leaves are SideNavMenuItem, menus are (nestable) SideNavMenu.
-  const renderNavNode = (node: NavNode, depth: number) => {
+  // Recursive sidebar renderer. ONE nav-item contract: every leaf — top-level or
+  // nested — is a `SideNavLink` with an icon, so all items share the same row
+  // width, height, icon+label gap, hover/active/focus, and full-row click target.
+  // Grouping is expressed only through the (nestable) `SideNavMenu`; nested leaves
+  // are never a different variant. This keeps every item representable in the icon
+  // rail and removes the width/indent divergence that `SideNavMenuItem` introduced.
+  const renderNavNode = (node: NavNode) => {
     if ("items" in node) {
       return (
         <SideNavMenu
@@ -461,32 +484,20 @@ function AppShell() {
           renderIcon={node.icon}
           defaultExpanded={node.items.some(navNodeActive)}
         >
-          {node.items.map((c) => renderNavNode(c, depth + 1))}
+          {node.items.map((c) => renderNavNode(c))}
         </SideNavMenu>
       );
     }
-    if (depth === 0) {
-      return (
-        <SideNavLink
-          key={node.to}
-          as={Link}
-          to={node.to}
-          renderIcon={node.icon ?? DashboardIcon}
-          isActive={navPathActive(pathname, node.to)}
-        >
-          {node.label}
-        </SideNavLink>
-      );
-    }
     return (
-      <SideNavMenuItem
+      <SideNavLink
         key={node.to}
         as={Link}
         to={node.to}
+        renderIcon={node.icon ?? DashboardIcon}
         isActive={navPathActive(pathname, node.to)}
       >
         {node.label}
-      </SideNavMenuItem>
+      </SideNavLink>
     );
   };
 
@@ -532,7 +543,7 @@ function AppShell() {
           </Theme>
           <SideNav aria-label="Side navigation" isRail>
             <SideNavItems>
-              {nav.map((n) => renderNavNode(n, 0))}
+              {nav.map((n) => renderNavNode(n))}
             </SideNavItems>
           </SideNav>
           <Content className="esti-app-content">

@@ -141,7 +141,7 @@ export function ProjectInspectionDetail({
                   if (f) void uploadPhoto(f);
                 }}
               />
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--cds-spacing-04)" }}>
                 {(row.photos ?? []).length === 0 && <span>No photos yet.</span>}
                 {(row.photos ?? []).map((p) => (
                   <div key={p.id} style={{ width: 140 }}>

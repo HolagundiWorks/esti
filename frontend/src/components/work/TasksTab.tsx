@@ -204,7 +204,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                           : "—"}
                       </TableCell>
                       <TableCell>
-                        <span className="esti-row" style={{ gap: "0.5rem", alignItems: "center" }}>
+                        <span className="esti-row" style={{ gap: "var(--cds-spacing-03)", alignItems: "center" }}>
                           {t.assignee ?? "—"}
                           {hrEnabled && t.projectId && (
                             <Button

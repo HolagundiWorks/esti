@@ -71,7 +71,7 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: "var(--cds-spacing-07)",
         }}
       >
         <h3>Approvals &amp; issues</h3>

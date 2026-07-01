@@ -70,7 +70,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: "var(--cds-spacing-07)",
         }}
       >
         <h3>Client communication</h3>
@@ -79,18 +79,18 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
         </Button>
       </div>
 
-      <div style={{ marginTop: 8 }}>
+      <div style={{ marginTop: "var(--cds-spacing-03)" }}>
         {(logQ.data ?? []).length === 0 && <p>No interactions logged yet.</p>}
         {(logQ.data ?? []).map((e) => (
           <div
             key={e.id}
             style={{
-              padding: "8px 0 8px 16px",
-              marginLeft: 8,
+              padding: "var(--cds-spacing-03) 0 var(--cds-spacing-03) var(--cds-spacing-05)",
+              marginLeft: "var(--cds-spacing-03)",
               position: "relative",
             }}
           >
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center" }}>
               <Tag type={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}>
                 {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               </Tag>
@@ -111,7 +111,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
               </Button>
             </div>
             {e.body && (
-              <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>
+              <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>
                 {e.body}
               </p>
             )}

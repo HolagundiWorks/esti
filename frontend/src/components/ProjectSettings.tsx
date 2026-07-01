@@ -103,7 +103,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const p = projectQ.data;
 
   return (
-    <div style={{ marginTop: 16 }}>
+    <div style={{ marginTop: "var(--cds-spacing-05)" }}>
       {msg && (
         <InlineNotification
           kind="success"
@@ -149,7 +149,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       </Tile>
       )}
 
-      <Tile style={{ maxWidth: 760, marginTop: 16 }}>
+      <Tile style={{ maxWidth: 760, marginTop: "var(--cds-spacing-05)" }}>
         <Stack gap={4}>
           <h4>Project stages</h4>
           <p>
@@ -217,11 +217,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         </Stack>
       </Tile>
 
-      <div style={{ maxWidth: 760, marginTop: 16 }}>
+      <div style={{ maxWidth: 760, marginTop: "var(--cds-spacing-05)" }}>
         <ProjectEngagements projectId={projectId} />
       </div>
 
-      <Tile style={{ maxWidth: 640, marginTop: 16 }}>
+      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
         <Stack gap={5}>
           <h4>Internal log (audit)</h4>
           <p>Office-internal notes for audit — not visible to clients.</p>
@@ -243,7 +243,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             {(logsQ.data ?? []).map((l) => (
               <div
                 key={l.id}
-                style={{ padding: "4px 0 4px 12px", marginTop: 8 }}
+                style={{ padding: "var(--cds-spacing-02) 0 var(--cds-spacing-02) var(--cds-spacing-04)", marginTop: "var(--cds-spacing-03)" }}
               >
                 <div style={{ whiteSpace: "pre-wrap" }}>{l.note}</div>
                 <div>
@@ -256,7 +256,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         </Stack>
       </Tile>
 
-      <Tile style={{ maxWidth: 640, marginTop: 16 }}>
+      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
         <Stack gap={5}>
           <h4>Activity feed</h4>
           <p>
@@ -267,12 +267,12 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             {(activityQ.data ?? []).map((item) => (
               <div
                 key={item.id}
-                style={{ padding: "4px 0 4px 12px", marginTop: 8 }}
+                style={{ padding: "var(--cds-spacing-02) 0 var(--cds-spacing-02) var(--cds-spacing-04)", marginTop: "var(--cds-spacing-03)" }}
               >
                 <div
                   style={{
                     display: "flex",
-                    gap: 8,
+                    gap: "var(--cds-spacing-03)",
                     alignItems: "center",
                     flexWrap: "wrap",
                   }}
@@ -295,9 +295,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       </Tile>
 
       {canProjectDelete && (
-        <Tile style={{ maxWidth: 640, marginTop: 16 }}>
+        <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
           <h4>Danger zone</h4>
-          <p style={{ margin: "8px 0 12px" }}>
+          <p style={{ margin: "var(--cds-spacing-03) 0 var(--cds-spacing-04)" }}>
             Archive this project from active work while retaining its phases,
             fees, invoices, drawings, estimates, and audit history. Authorized
             managers can restore it later.

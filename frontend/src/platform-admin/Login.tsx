@@ -69,7 +69,7 @@ export default function Login({ onLogin }: { onLogin: (a: Account) => void }) {
 
   return (
     <Theme theme="g100">
-      <main style={{ padding: "1.5rem" }}>
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
         <Grid>
           <Column sm={4} md={5} lg={6}>
             <Tile>

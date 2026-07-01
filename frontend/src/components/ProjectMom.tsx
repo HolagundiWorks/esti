@@ -48,11 +48,11 @@ export function ProjectMom({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: 8 }}>
+      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: "var(--cds-spacing-03)" }}>
         <h3>Meeting minutes</h3>
         <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>New MOM</Button>
       </Stack>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: "var(--cds-spacing-05)" }}>
         <AiDraftPanel projectId={projectId} defaultKind="MOM" compact />
       </div>
       <DataState loading={listQ.isLoading} isEmpty={(listQ.data ?? []).length === 0} columnCount={4} empty={{ title: "No meeting minutes", description: "Record decisions and convert action items to tasks." }}>
