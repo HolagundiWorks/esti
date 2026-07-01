@@ -242,6 +242,36 @@ export function minLevelForCapability(cap: Capability): AccessLevel {
   return RANK_TO_LEVEL[rank] ?? 1;
 }
 
+/**
+ * Unified account "type" — the single classification vocabulary across every
+ * login surface (local `esti_user` roles today; the central `hlp_account` /
+ * `hlp_org_member` platform accounts eventually). Derived, not stored: it
+ * folds the office seniority ladder and the external portal roles into one
+ * five-way taxonomy. OWNER is the one staff role that is also the firm's
+ * account-holder, so it reports as COMPANY rather than STAFF.
+ */
+export type UserType = "STAFF" | "COMPANY" | "CLIENT" | "CONSULTANT" | "CONTRACTOR";
+
+export const USER_TYPE_LABEL: Record<UserType, string> = {
+  STAFF: "Staff",
+  COMPANY: "Company",
+  CLIENT: "Client",
+  CONSULTANT: "Consultant",
+  CONTRACTOR: "Contractor",
+};
+
+/** Unified account type for any login — staff ladder collapses to STAFF/COMPANY. */
+export function userType(user: {
+  role: string;
+  clientId?: string | null;
+  consultantId?: string | null;
+  contractorId?: string | null;
+}): UserType {
+  const external = externalClassForUser(user);
+  if (external) return external;
+  return user.role === "OWNER" ? "COMPANY" : "STAFF";
+}
+
 /** Display label for Users admin — e.g. "L2 — Management" or "External — Client". */
 export function accessLabelForUser(user: {
   role: string;

@@ -26,6 +26,7 @@ const publicUser = {
   disabled: users.disabled,
   clientId: users.clientId,
   consultantId: users.consultantId,
+  contractorId: users.contractorId,
   userCode: users.userCode,
   designation: users.designation,
   photoKey: users.photoKey,

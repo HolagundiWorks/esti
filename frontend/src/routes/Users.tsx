@@ -26,8 +26,10 @@ import {
   PLAN_LIMITS,
   type Plan,
   STAFF_ROLE_LABEL,
+  USER_TYPE_LABEL,
   accessLabelForUser,
   isStaffRole,
+  userType,
 } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
@@ -38,6 +40,14 @@ const ROLE_LABEL: Record<string, string> = {
   ...STAFF_ROLE_LABEL,
   CONSULTANT: "Staff / Consultant",
   CLIENT: "Client",
+};
+
+const TYPE_TAG_COLOR: Record<string, "purple" | "gray" | "blue" | "teal" | "cyan"> = {
+  COMPANY: "purple",
+  STAFF: "gray",
+  CLIENT: "blue",
+  CONSULTANT: "teal",
+  CONTRACTOR: "cyan",
 };
 
 export function Users() {
@@ -169,6 +179,7 @@ export function Users() {
             <TableRow>
               <TableHeader>Email</TableHeader>
               <TableHeader>Name</TableHeader>
+              <TableHeader>Type</TableHeader>
               <TableHeader>Level</TableHeader>
               <TableHeader>Role</TableHeader>
               <TableHeader>AORMS ID</TableHeader>
@@ -185,10 +196,16 @@ export function Users() {
                   : u.consultantId
                     ? " (consultant portal)"
                     : "";
+              const type = userType(u);
               return (
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.fullName}</TableCell>
+                  <TableCell>
+                    <Tag type={TYPE_TAG_COLOR[type]} size="sm">
+                      {USER_TYPE_LABEL[type]}
+                    </Tag>
+                  </TableCell>
                   <TableCell>
                     {accessLabelForUser(u)}
                   </TableCell>
