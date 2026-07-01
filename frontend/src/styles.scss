@@ -1647,35 +1647,34 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 
 // Studio Intelligence — full width, fits the viewport (the page never scrolls; the
 // table Tile scrolls inside). Structural + colourless only.
+// Studio Intelligence no longer hard-locks to the viewport. The page fills the
+// area below the 3rem header, but content flows naturally and the page scrolls
+// when it is taller than the viewport — a scrollbar appears only when required,
+// instead of the old `overflow: hidden` that clipped anything past one screen.
 html:has(.esti-studio-abstract-page),
-html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
+html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
 .esti-app-content:has(.esti-studio-abstract-page) { padding: 0; }
 
 .esti-studio-abstract-page {
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  min-height: calc(100dvh - 3rem);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 .esti-studio-abstract-page .cds--tabs { flex: 0 0 auto; }
 .esti-studio-abstract-page .cds--tab-content {
   flex: 1 1 auto;
   min-height: 0;
   padding: 0;
-  overflow: hidden;
 }
 
-// Every screen: header · 4 KPI cards · scrollable table. Fills its panel.
+// Every screen: header · 4 KPI cards · table. Flows naturally; the page (not the
+// table) scrolls when the table is taller than the viewport.
 .esti-abstract {
-  height: 100%;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--cds-spacing-05);
   padding: var(--cds-spacing-05);
-  overflow: hidden;
 }
 .esti-abstract__head { flex: 0 0 auto; }
 
@@ -1694,7 +1693,7 @@ html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
   flex-direction: column;
   gap: var(--cds-spacing-03);
 }
-.esti-abstract-table__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.esti-abstract-table__scroll { min-height: 0; }
 .esti-row-clickable { cursor: pointer; }
 
 // OVERVIEW tab: main screen beside the AI-over-log sidebar; both fit, each scrolls
