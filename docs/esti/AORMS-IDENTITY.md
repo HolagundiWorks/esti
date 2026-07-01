@@ -185,11 +185,16 @@ which needs a deployed platform + a couple of product decisions:
   Step-1 already routes `aorms.in` → platform-admin (`PLATFORM_ADMIN_DOMAINS` default).
   *Still local:* firm **credential** verification (`esti_user` password) is not yet
   delegated to the platform — that's the login-path change below.
-- **Delegate firm login to the platform** — make `auth.login` verify against the central
-  account + membership (like the platform's tenant-first login) instead of the local
-  `esti_user` password, behind an opt-in flag so existing installs are unaffected. Needs
-  the platform reachable (aorms.in) + a product API key, and careful testing of the
-  login path before it goes on by default.
+- **Delegate firm login to the platform** — ✅ *shipped (opt-in, default off).* With
+  `ESTI_IDENTITY_DELEGATE=true`, `auth.login` verifies against the platform's machine
+  endpoint `POST /platform/v1/verify-login` (Bearer `ESTI_PRODUCT_API_KEY`, enforcing
+  `ESTI_COMPANY` membership), then projects the verified person onto a local `esti_user`
+  (`provisionLocalUser` — links by AORMS-U/email, new users land as ASSOCIATE, never
+  auto-OWNER). **Hybrid offline grace:** if the platform is unreachable the last
+  successful password is cached locally and login falls back to it, so the app still
+  opens offline. Default off = unchanged local login. *To enable: mint a product API key
+  at `/platform-admin`, set the three env vars, pilot on one install before flipping it
+  on widely.*
 - **Hybrid desktop offline cache** — cache the last successful online login so the desktop
   opens offline after first sign-in (a `desktop/src-tauri` change). Chosen model: online
   identity, locally-cached session.

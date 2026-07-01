@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { db, schema } from "../db/client.js";
 import { hashApiKey } from "../lib/apikey.js";
+import { verifyLogin } from "../modules/auth/service.js";
 import { activate, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
 
 interface ProductAuth {
@@ -56,6 +57,29 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: r.error };
     }
     return r.data;
+  });
+
+  // Machine login verification — a product node delegates firm auth to the
+  // platform. Returns the portable identity (AORMS-U) + company role on success.
+  app.post("/v1/verify-login", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const body = req.body as { email?: string; password?: string; company?: string } | undefined;
+    const email = body?.email?.trim().toLowerCase() ?? "";
+    const password = body?.password ?? "";
+    if (!email || !password) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const result = await verifyLogin({ email, password, company: body?.company?.trim() || undefined });
+    if (!result) {
+      reply.code(401);
+      return { error: "invalid_credentials" };
+    }
+    return { ok: true, ...result };
   });
 
   app.post("/v1/validate", async (req, reply) => {

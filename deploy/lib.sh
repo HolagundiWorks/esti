@@ -141,6 +141,12 @@ FIRM_PLAN=${FIRM_PLAN}
 # the node unmanaged (runs on FIRM_PLAN) until a licence is actually activated.
 ESTI_LICENSE_API_URL=${ESTI_LICENSE_API_URL:-https://aorms.in/platform}
 ESTI_PRODUCT_API_KEY=${ESTI_PRODUCT_API_KEY:-}
+# Delegate firm login to the platform (opt-in; default off keeps local login).
+# When true, credentials verify against the platform and fall back to the cached
+# local password if it is unreachable. Set ESTI_COMPANY to this firm's AORMS-C-
+# handle to enforce company membership.
+ESTI_IDENTITY_DELEGATE=${ESTI_IDENTITY_DELEGATE:-false}
+ESTI_COMPANY=${ESTI_COMPANY:-}
 
 # Licensing & account platform (mounted at /platform; admin UI at /platform-admin).
 # Set GOOGLE_* to enable Google sign-in — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md.

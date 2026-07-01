@@ -35,6 +35,17 @@ const Env = z.object({
   ESTI_LICENSE_API_URL: z.string().default(""),
   /** NODE — AORMS product API key for the License Panel `/v1` API (Bearer). */
   ESTI_PRODUCT_API_KEY: z.string().default(""),
+  /**
+   * NODE — when true, firm login is verified against the central identity platform
+   * (`ESTI_IDENTITY_URL`) instead of only the local password. Default false keeps the
+   * existing local `esti_user` login. If the platform is unreachable, login falls back
+   * to the locally-cached password (hybrid offline grace).
+   */
+  ESTI_IDENTITY_DELEGATE: z.coerce.boolean().default(false),
+  /** NODE — base URL of the identity platform for delegated login. Empty → use ESTI_LICENSE_API_URL. */
+  ESTI_IDENTITY_URL: z.string().default(""),
+  /** NODE — this firm's company handle (AORMS-C-…) — membership is checked against it on delegated login. */
+  ESTI_COMPANY: z.string().default(""),
   /** Read/write grace window (days) after a license `exp` before writes are blocked. */
   LICENSE_GRACE_DAYS: z.coerce.number().default(14),
   /** How often (hours) the node re-fetches a fresh license token from the hub. */

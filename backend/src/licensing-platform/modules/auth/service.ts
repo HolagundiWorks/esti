@@ -3,6 +3,7 @@ import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
 import { newId, newPublicId } from "../../lib/ids.js";
+import { membership, orgIdFromHandle, resolveCompany } from "./tenant.js";
 
 export interface AccountView {
   id: string;
@@ -139,4 +140,42 @@ export async function loginWithPassword(
     return view(updated!);
   }
   return view(a);
+}
+
+export interface VerifiedLogin {
+  account: { publicId: string | null; email: string; name: string | null };
+  /** The person's role in the named company (ACTIVE membership), else null. */
+  role: string | null;
+}
+
+/**
+ * Machine login verification for a product node (the firm app delegating auth to
+ * the platform). Verifies the central account password and, when a company is
+ * named, requires an ACTIVE membership of it. Returns the portable identity +
+ * company role, or null on any failure. Never issues a platform session.
+ */
+export async function verifyLogin(input: {
+  email: string;
+  password: string;
+  company?: string;
+}): Promise<VerifiedLogin | null> {
+  const account = await loginWithPassword(input.email, input.password);
+  if (!account) return null;
+  let role: string | null = null;
+  if (input.company) {
+    const res = await resolveCompany(input.company);
+    if (res.mode === "not_found") return null;
+    if (res.mode === "company") {
+      const orgId = await orgIdFromHandle(input.company);
+      if (!orgId) return null;
+      const m = await membership(account.id, orgId);
+      if (!m) return null; // not an ACTIVE member of the named company
+      role = m.role;
+    }
+    // res.mode === "admin" → an AORMS-owner login; no firm company role.
+  }
+  return {
+    account: { publicId: account.publicId, email: account.email, name: account.name },
+    role,
+  };
 }

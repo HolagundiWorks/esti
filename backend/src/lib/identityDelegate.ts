@@ -1,0 +1,117 @@
+import { hashPassword } from "../auth/session.js";
+import type { DB } from "../db/index.js";
+import { users } from "../db/schema.js";
+import { env } from "../env.js";
+import { emailMatches } from "./email.js";
+import { eq } from "drizzle-orm";
+
+/** Is firm login delegated to the central identity platform? */
+export function delegationEnabled(): boolean {
+  return env.ESTI_IDENTITY_DELEGATE && Boolean(identityBase());
+}
+
+function identityBase(): string {
+  return (env.ESTI_IDENTITY_URL || env.ESTI_LICENSE_API_URL).replace(/\/+$/, "");
+}
+
+export interface DelegatedIdentity {
+  account: { publicId: string | null; email: string; name: string | null };
+  role: string | null;
+}
+
+export type DelegateResult =
+  | { kind: "ok"; identity: DelegatedIdentity }
+  | { kind: "invalid" } // reached the platform; credentials/membership rejected
+  | { kind: "unreachable" }; // network/timeout — caller may use offline grace
+
+/**
+ * Verify a firm login against the central platform's `/v1/verify-login` using the
+ * product API key. Passes this firm's company handle so membership is enforced.
+ */
+export async function verifyAtPlatform(email: string, password: string): Promise<DelegateResult> {
+  const base = identityBase();
+  if (!base || !env.ESTI_PRODUCT_API_KEY) return { kind: "unreachable" };
+  let res: Response;
+  try {
+    res = await fetch(`${base}/v1/verify-login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ email, password, company: env.ESTI_COMPANY || undefined }),
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    return { kind: "unreachable" };
+  }
+  if (res.status === 401 || res.status === 400) return { kind: "invalid" };
+  if (!res.ok) return { kind: "unreachable" };
+  const body = (await res.json().catch(() => null)) as
+    | { ok?: boolean; account?: DelegatedIdentity["account"]; role?: string | null }
+    | null;
+  if (!body?.ok || !body.account) return { kind: "invalid" };
+  return { kind: "ok", identity: { account: body.account, role: body.role ?? null } };
+}
+
+/**
+ * Project a verified central identity onto a local firm user (I-5). Links an
+ * existing row by AORMS-U handle or email, else creates a fresh staff login. The
+ * password is cached locally (hashed) so the account still opens offline. Never
+ * grants OWNER automatically — new delegated users land as ASSOCIATE.
+ */
+export async function provisionLocalUser(
+  db: DB,
+  identity: DelegatedIdentity,
+  plainPassword: string,
+): Promise<typeof users.$inferSelect | null> {
+  const publicId = identity.account.publicId;
+  const email = identity.account.email.trim().toLowerCase();
+  const passwordHash = await hashPassword(plainPassword);
+
+  // 1) Existing row already linked to this person.
+  if (publicId) {
+    const [linked] = await db
+      .select()
+      .from(users)
+      .where(eq(users.accountPublicId, publicId))
+      .limit(1);
+    if (linked) {
+      const [u] = await db
+        .update(users)
+        .set({ passwordHash })
+        .where(eq(users.id, linked.id))
+        .returning();
+      return u ?? null;
+    }
+  }
+
+  // 2) Existing row by email → link it (and cache the password).
+  const [byEmail] = await db.select().from(users).where(emailMatches(users.email, email)).limit(1);
+  if (byEmail) {
+    const [u] = await db
+      .update(users)
+      .set({ accountPublicId: publicId ?? byEmail.accountPublicId, passwordHash })
+      .where(eq(users.id, byEmail.id))
+      .returning();
+    return u ?? null;
+  }
+
+  // 3) New staff login projected from the central identity.
+  const [created] = await db
+    .insert(users)
+    .values({
+      email,
+      fullName: identity.account.name ?? email,
+      role: "ASSOCIATE",
+      passwordHash,
+      accountPublicId: publicId,
+    })
+    .returning();
+  return created ?? null;
+}
+
+/** Guard used by delegated login: a disabled projection cannot sign in. */
+export function isLoginable(u: { disabled: boolean } | null | undefined): boolean {
+  return !!u && !u.disabled;
+}

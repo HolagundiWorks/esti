@@ -18,6 +18,12 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import {
+  delegationEnabled,
+  isLoginable,
+  provisionLocalUser,
+  verifyAtPlatform,
+} from "../../lib/identityDelegate.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
@@ -147,17 +153,39 @@ export const authRouter = router({
     await enforceRateLimit("login-ip", ctx.ip, 10, 60);
     await enforceRateLimit("login-email", email, 10, 300);
 
-    const rows = await ctx.db
-      .select()
-      .from(users)
-      .where(emailMatches(users.email, email))
-      .limit(1);
-    const u = rows[0];
-    if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+    let u: typeof users.$inferSelect | undefined;
+
+    // Delegated identity (opt-in): verify against the central platform and project
+    // the person onto a local firm user. If the platform is unreachable, fall back
+    // to the locally-cached password below (hybrid offline grace).
+    if (delegationEnabled()) {
+      const res = await verifyAtPlatform(email, input.password);
+      if (res.kind === "ok") {
+        const projected = await provisionLocalUser(ctx.db, res.identity, input.password);
+        if (!isLoginable(projected)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+        }
+        u = projected!;
+      } else if (res.kind === "invalid") {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+      }
+      // res.kind === "unreachable" → leave u undefined and try local verify.
     }
-    if (u.disabled) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+
+    if (!u) {
+      const rows = await ctx.db
+        .select()
+        .from(users)
+        .where(emailMatches(users.email, email))
+        .limit(1);
+      const local = rows[0];
+      if (!local || !local.passwordHash || !(await verifyPassword(local.passwordHash, input.password))) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+      }
+      if (local.disabled) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+      }
+      u = local;
     }
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
