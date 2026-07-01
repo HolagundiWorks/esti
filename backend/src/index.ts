@@ -38,7 +38,6 @@ import { drainOutbox } from "./lib/sync/outbox.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { registerLicensingPlatform } from "./licensing-platform/register.js";
-import { userFromDeviceToken } from "./auth/device.js";
 import { SESSION_COOKIE, userFromToken } from "./auth/session.js";
 
 // trustProxy lets req.ip reflect X-Forwarded-For behind the dev/prod proxy so
@@ -70,7 +69,12 @@ app.setErrorHandler((err, _req, reply) => {
 const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
 
 app.addHook("onRequest", (req, reply, done) => {
-  const denial = originDenial(req.method, req.headers.origin, allowedOrigins);
+  const denial = originDenial(
+    req.method,
+    req.headers.origin,
+    allowedOrigins,
+    Boolean(req.headers.authorization),
+  );
   if (denial) {
     void reply.code(403).send({ error: denial });
     return;

@@ -22,4 +22,11 @@ describe("origin protection", () => {
     expect(originDenial("PATCH", "not-a-url", allowed)).toBe("origin not allowed");
     expect(originDenial("DELETE", "https://attacker.example", allowed)).toBe("origin not allowed");
   });
+
+  it("exempts token-authenticated (Bearer) machine requests with no Origin", () => {
+    // Firm node → /platform/v1/* and the ESTICAD device API send no Origin but
+    // carry an Authorization header; they must not be 403'd.
+    expect(originDenial("POST", undefined, allowed, true)).toBeNull();
+    expect(originDenial("POST", "https://attacker.example", allowed, true)).toBeNull();
+  });
 });
