@@ -47,3 +47,6 @@ data/
 
 # Desktop edition installers (build output)
 desktop/dist-installers/
+
+# Locally-staged desktop installers for the /download page (large binaries)
+frontend/public/downloads/
