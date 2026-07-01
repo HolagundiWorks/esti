@@ -62,9 +62,11 @@ Internal-only (never exposed): Postgres, Redis, MinIO. Backend binds `127.0.0.1:
 
 There are **two** logins, and today they behave differently:
 
-**A. Firm app — `/login` (classic).** Email + password against the firm's local `esti_user`.
-This is what a firm's staff use day-to-day. *(Delegating this to the central platform is a
-planned follow-up — see AORMS-IDENTITY §10 — so for now firm credentials are local.)*
+**A. Firm app — `/login` (classic by default).** Email + password against the firm's local
+`esti_user` — what a firm's staff use day-to-day. **Optional delegation is now shipped**
+(opt-in, `ESTI_IDENTITY_DELEGATE=true`): the firm app verifies credentials against the central
+platform, with **offline-grace** fallback to the cached local password when it's unreachable —
+see §5 "Delegated login". Default off = local login only.
 
 **B. Platform console — `/platform-admin` (tenant-first, two-step).**
 ```
@@ -227,10 +229,17 @@ installer version.
 auto-seeds one demo licence per tier: `demo.lite1@aorms.in` / `demo.core1` /
 `demo.enterprise1`, password `demo1234`.
 
-**First platform-admin sign-in:** open `/platform-admin` → "Need an account? Create one" →
-register with an email that is in `PLATFORM_ADMIN_EMAILS` (≥8-char password). That account
-is auto-granted platform admin. Change the allowlist later by editing `.env` +
-`deploy/update.sh`.
+**Platform-admin accounts — one-time bootstrap, then closed:**
+- **First admin:** open `/platform-admin` → "Need an account? Create one" → register with an
+  email in `PLATFORM_ADMIN_EMAILS` (≥8-char password). That account is auto-granted admin.
+- **Self-signup then closes.** Once *any* platform admin exists, the "Create one" toggle is
+  hidden and `POST /platform/auth/register` returns `registration_closed` — the console is
+  **sign-in only**. (Product onboarding, which carries the onboard-intent cookie, still
+  creates ordinary company/personal accounts.) Status: `GET /platform/auth/registration-status`.
+- **Add more admins later:** add the email to `PLATFORM_ADMIN_EMAILS` + `deploy/update.sh`;
+  that account is **auto-promoted to admin on its next sign-in** (`loginWithPassword`). It must
+  already exist — since console self-signup is closed, new admin accounts otherwise only arrive
+  via product onboarding.
 
 ---
 
