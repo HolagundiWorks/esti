@@ -127,12 +127,35 @@ export function Users() {
     },
   });
 
+  // U-4 migration path: one-time (re-runnable) push of every linked login's
+  // unified type to the hub, for accounts linked before U-3b shipped.
+  const resync = trpc.users.resyncIdentityTypes.useMutation({
+    onSuccess: (r) => setMsg(`Synced ${r.synced} of ${r.total} linked identities to the hub`),
+    onError: (err) =>
+      setMsg(
+        err.message === "No identity hub configured"
+          ? "No identity hub is configured on this install — nothing to sync."
+          : `Sync failed: ${err.message}`,
+      ),
+  });
+
   return (
     <Stack gap={6}>
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={<Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
+        actions={
+          <Stack orientation="horizontal" gap={3}>
+            <Button
+              kind="tertiary"
+              onClick={() => resync.mutate()}
+              disabled={resync.isPending}
+            >
+              {resync.isPending ? "Syncing…" : "Resync identity types"}
+            </Button>
+            <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
+          </Stack>
+        }
       />
 
       <Tile>

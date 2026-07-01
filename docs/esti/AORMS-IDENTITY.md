@@ -1,9 +1,14 @@
 # AORMS Identity — account model & login
 
 > **Status:** **I-1…I-5 shipped** (IDs · tenant-first login · sign-up/activation · portable
-> certs/growth · firm-user projection). **U-1/U-2 in progress** — collapsing every local
-> login (`esti_user` staff + CLIENT/CONSULTANT/CONTRACTOR portal roles) and the central
-> `hlp_account`/`hlp_org_member` into one account-type vocabulary; see §11. Remaining
+> certs/growth · firm-user projection). **U-1…U-4 shipped** — every local login
+> (`esti_user` staff + CLIENT/CONSULTANT/CONTRACTOR portal roles) now classifies under one
+> `type` vocabulary, can be linked to a portable identity, and that link's type is synced
+> to the hub; see §11. **Deliberately not attempted:** a literal single-table merge of
+> `hlp_account`/`hlp_org_member` and `esti_user` across every deployed install — U-1…U-4
+> keep the "projection" model (linked, not merged) that AORMS Identity chose from the
+> start (§8, open decision 4); a real merge is a live-data migration across every
+> customer's database and needs its own sign-off before any build starts. Remaining
 > runtime work: point the firm app / desktop at the live platform as the identity
 > authority, and the hybrid desktop offline-cache (needs the deployed platform base URL +
 > a desktop change) — tracked as follow-ups below.
@@ -224,9 +229,9 @@ install's login ever breaks mid-transition.
 | **U-1 — Derived `UserType`** ✅ | `userType()` in `packages/contracts/src/permissions.ts` — a computed, non-persisted classification built on the existing role + `clientId`/`consultantId`/`contractorId` columns (no schema change). Surfaced as a Tag in the Users admin table. Fixed a gap found along the way: `users.list`'s select was missing `contractorId`, so CONTRACTOR logins fell through `externalClassForUser`/`accessLabelForUser` unclassified. |
 | **U-2 — Projection open to every type** ✅ | The I-5 firm-user projection (`esti_user.account_public_id` / `users.linkIdentity`) was already role-agnostic at the schema and tRPC layers — only the Users admin UI hid the "Link ID" action for CLIENT/CONSULTANT rows. Removed that gate: every login row, regardless of `type`, can now be linked to a portable `AORMS-U-` identity the same way staff already could. |
 | **U-3a — Fix the I-5 lookup for real (non-hub) installs** ✅ | Auditing U-2 surfaced a real bug: `linkIdentity`'s "the person must exist on the central identity platform (same database)" check ran `SELECT ... FROM hlp_account` against the **node's own** Postgres. `hlp_account` is schema-migrated into every install (`registerLicensingPlatform` mounts unconditionally, `backend/src/index.ts`), but only the hub's copy is ever populated — a customer node's local `hlp_account` is an empty shadow table, so every real `AORMS-U-` handle was silently rejected on every non-hub install. Fixed by adding a machine endpoint, `POST /platform/v1/verify-identity` (product-API-key auth, `backend/src/licensing-platform/routes/v1.ts`), and `verifyIdentityAtPlatform()` (`backend/src/lib/identityDelegate.ts`, mirrors the existing `verifyAtPlatform` login-delegation call). `linkIdentity` now calls the hub over `/v1` whenever `ESTI_LICENSE_API_URL`+`ESTI_PRODUCT_API_KEY` are configured (every real customer node), and only falls back to the local same-DB check when they aren't (the hub itself, and single-DB local dev). |
-| **U-3b — Shared schema + sync protocol** 🔲 | Design a single central identity that every install's login types resolve to (extend the `hlp_account`/`hlp_org_member` model or fold `esti_user` into it), plus a fuller sync protocol beyond one-off handle verification — e.g. pushing profile/role changes, not just validating a handle at link time. Needs its own design doc before build — this is the schema-changing, cross-install part. |
-| **U-4 — Migration path** 🔲 | Backfill existing installs' CLIENT/CONSULTANT/CONTRACTOR rows (and any staff rows never linked under I-5) onto the unified identity, without breaking any live login. |
+| **U-3b — Shared schema + sync protocol** ✅ | Extended (not merged — see the "projection now, unify later" decision, §8.4) `hlp_org_member` with `account_type` (migration `0139_hlp_org_member_account_type`, additive/nullable) so the hub's membership record carries the same `STAFF`/`COMPANY`/`CLIENT`/`CONSULTANT`/`CONTRACTOR` value as the node's `userType()`. New machine endpoint `POST /platform/v1/sync-membership` (`backend/src/licensing-platform/routes/v1.ts`, product-API-key auth) resolves the account by `publicId` and the org by the node's `ESTI_COMPANY` handle, then stamps `account_type` on that membership row. Node-side `syncMembershipAtPlatform()` (`backend/src/lib/identityDelegate.ts`) is called from `linkIdentity` right after a successful link — best-effort, never blocks or fails the local link if the hub is unreachable. |
+| **U-4 — Migration path** ✅ | `users.resyncIdentityTypes` (owner-only mutation, `backend/src/modules/users/router.ts`) retroactively pushes every already-linked login's `userType()` to the hub — covers accounts linked under I-5 before U-3b existed. Idempotent (safe to re-run) and best-effort per row (one failed sync doesn't abort the batch). A "Resync identity types" button surfaces it in the Users admin screen. |
 
 Each phase: contracts → migration → backend → Pure-Carbon UI → verify → commit — same
-discipline as I-1…I-5. U-3b/U-4 are deliberately not started until a design doc is reviewed,
-since they touch every deployed install's schema.
+discipline as I-1…I-5. A literal single-table merge of `hlp_account`/`esti_user` (rather
+than this linked "projection" model) remains out of scope — see the status note above.

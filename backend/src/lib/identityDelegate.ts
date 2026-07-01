@@ -1,3 +1,4 @@
+import type { UserType } from "@esti/contracts";
 import { hashPassword } from "../auth/session.js";
 import type { DB } from "../db/index.js";
 import { users } from "../db/schema.js";
@@ -60,6 +61,37 @@ export async function verifyIdentityAtPlatform(publicId: string): Promise<Verify
     | null;
   if (!body?.ok || !body.account) return { kind: "not_found" };
   return { kind: "ok", account: body.account };
+}
+
+/** Is a hub configured to stamp this node's memberships with a `userType()`? */
+export function membershipSyncConfigured(): boolean {
+  return identityLookupConfigured() && Boolean(env.ESTI_COMPANY);
+}
+
+/**
+ * Best-effort push of a linked person's derived `userType()` onto their hub
+ * membership row (U-3b, the other half of the sync protocol). Never throws —
+ * this is supplementary central bookkeeping, not required for the local link
+ * to succeed; a failure here just leaves the hub's `hlp_org_member.account_type`
+ * unset until the next successful sync.
+ */
+export async function syncMembershipAtPlatform(publicId: string, accountType: UserType): Promise<boolean> {
+  const base = identityBase();
+  if (!base || !env.ESTI_PRODUCT_API_KEY || !env.ESTI_COMPANY) return false;
+  try {
+    const res = await fetch(`${base}/v1/sync-membership`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ publicId, company: env.ESTI_COMPANY, accountType }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export interface DelegatedIdentity {

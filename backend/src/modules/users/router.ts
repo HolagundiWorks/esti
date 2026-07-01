@@ -5,6 +5,7 @@ import {
   type PlanQuota,
   type StaffRole,
   clampListLimit,
+  userType,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
@@ -13,7 +14,12 @@ import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
-import { identityLookupConfigured, verifyIdentityAtPlatform } from "../../lib/identityDelegate.js";
+import {
+  identityLookupConfigured,
+  membershipSyncConfigured,
+  syncMembershipAtPlatform,
+  verifyIdentityAtPlatform,
+} from "../../lib/identityDelegate.js";
 import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
@@ -208,8 +214,34 @@ export const userRouter = router({
         actorId: ctx.user.id,
         after: { accountPublicId: handle },
       });
+      // Best-effort: stamp this membership's unified type on the hub (U-3b).
+      // Never blocks/fails the link — the hub side is supplementary bookkeeping.
+      if (handle && membershipSyncConfigured()) {
+        await syncMembershipAtPlatform(handle, userType(u));
+      }
       return u;
     }),
+
+  /**
+   * U-4 migration path: retroactively push every already-linked login's
+   * userType() to the hub. Only needed once per install after upgrading to
+   * U-3b — logins linked under I-5 before this shipped never had their type
+   * synced. Safe to re-run any time (idempotent upsert of the same value).
+   */
+  resyncIdentityTypes: ownerProcedure.mutation(async ({ ctx }) => {
+    if (!membershipSyncConfigured())
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "No identity hub configured" });
+    const linked = await ctx.db
+      .select(publicUser)
+      .from(users)
+      .where(sql`${users.accountPublicId} IS NOT NULL`);
+    let synced = 0;
+    for (const row of linked) {
+      const ok = await syncMembershipAtPlatform(row.accountPublicId as string, userType(row));
+      if (ok) synced += 1;
+    }
+    return { total: linked.length, synced };
+  }),
 
   /** Self-service: fetch own profile with a short-lived photo URL. */
   myProfile: protectedProcedure.query(async ({ ctx }) => {

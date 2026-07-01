@@ -138,3 +138,16 @@ export const VerifyIdentityResult = z.object({
   }),
 });
 export type VerifyIdentityResult = z.infer<typeof VerifyIdentityResult>;
+
+/**
+ * Pushes a node's derived `userType()` for a linked person up to the hub
+ * membership record — the other half of the U-3b sync protocol. `company` is
+ * the node's own AORMS-C handle (same field `verify-login` already takes),
+ * used to find the (account, org) membership row to stamp.
+ */
+export const SyncMembershipInput = z.object({
+  publicId: z.string().min(1),
+  company: z.string().min(1),
+  accountType: z.enum(["STAFF", "COMPANY", "CLIENT", "CONSULTANT", "CONTRACTOR"]),
+});
+export type SyncMembershipInput = z.infer<typeof SyncMembershipInput>;

@@ -82,6 +82,14 @@ export const orgMembers = pgTable(
       .notNull()
       .references(() => accounts.id),
     role: text("role").notNull(), // OrgRole
+    /**
+     * Unified account type (U-3b) — STAFF/COMPANY/CLIENT/CONSULTANT/CONTRACTOR,
+     * mirroring the linked esti_user row's derived `userType()`. Null until a
+     * node syncs it via POST /v1/sync-membership (see AORMS-IDENTITY.md §11).
+     * Distinct from `role` above, which is this hub membership's own OWNER/MEMBER
+     * admin level, not the firm-side classification.
+     */
+    accountType: text("account_type"),
     /** Activation lifecycle: INVITED → ACTIVE → LEFT. Only ACTIVE may sign in. */
     status: text("status").notNull().default("ACTIVE"),
     activatedAt: timestamp("activated_at", { withTimezone: true }),

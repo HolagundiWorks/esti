@@ -1,9 +1,16 @@
-import { ActivateInput, RefreshInput, ValidateInput, VerifyIdentityInput } from "@esti/contracts";
+import {
+  ActivateInput,
+  RefreshInput,
+  SyncMembershipInput,
+  ValidateInput,
+  VerifyIdentityInput,
+} from "@esti/contracts";
 import { and, eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { db, schema } from "../db/client.js";
 import { hashApiKey } from "../lib/apikey.js";
 import { verifyLogin } from "../modules/auth/service.js";
+import { orgIdFromHandle } from "../modules/auth/tenant.js";
 import { activate, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
 
 interface ProductAuth {
@@ -107,6 +114,46 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "not_found" };
     }
     return { ok: true, account };
+  });
+
+  // Machine membership sync — the other half of U-3b: a node stamps the linked
+  // person's derived userType() onto their hub membership row, so the hub's
+  // idea of "what is this person to this company" matches the node's.
+  app.post("/v1/sync-membership", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const parsed = SyncMembershipInput.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const [account] = await db
+      .select({ id: schema.accounts.id })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.publicId, parsed.data.publicId))
+      .limit(1);
+    if (!account) {
+      reply.code(404);
+      return { error: "not_found" };
+    }
+    const orgId = await orgIdFromHandle(parsed.data.company);
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    const [updated] = await db
+      .update(schema.orgMembers)
+      .set({ accountType: parsed.data.accountType })
+      .where(and(eq(schema.orgMembers.accountId, account.id), eq(schema.orgMembers.orgId, orgId)))
+      .returning({ id: schema.orgMembers.id });
+    if (!updated) {
+      reply.code(404);
+      return { error: "not_a_member" };
+    }
+    return { ok: true };
   });
 
   app.post("/v1/validate", async (req, reply) => {
