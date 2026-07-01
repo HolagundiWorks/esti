@@ -54,9 +54,10 @@ async function buildMe(s: SessionData): Promise<MeView | null> {
 const ONBOARD_COOKIE = "hlp_onboard";
 const isProd = process.env.NODE_ENV === "production";
 
-// The admin panel SPA is served at /platform-admin on the frontend origin.
-const PANEL_URL = `${env.FRONTEND_ORIGIN}/platform-admin`;
-
+// Two distinct SPA surfaces: the admin/licensing console (/platform-admin) and
+// the customer account portal. Onboarding + customer sign-in always land in the
+// account portal — never the admin console.
+const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/account`;
 
 /** Read + clear a pending onboard intent cookie (set by GET /onboard). */
 function takeOnboardIntent(
@@ -347,11 +348,10 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
     writeSession(reply, account.id);
 
-    const intent = takeOnboardIntent(req, reply);
-    // Onboarding no longer auto-grants a licence — land the new account in the
-    // console, where they raise a plan request an admin fulfils.
-    const redirect = intent ? PANEL_URL : null;
-    return { ok: true, account, redirect };
+    // Customer (portal) sign-ups stay in the user portal; never bounce to the
+    // admin console. The onboard cookie is still consumed to clear it.
+    takeOnboardIntent(req, reply);
+    return { ok: true, account, redirect: null };
   });
 
   // --- Log in with email + password (optionally company-scoped) ---
@@ -411,9 +411,9 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     writeSession(reply, account.id, orgId);
 
     const intent = takeOnboardIntent(req, reply);
-    // Onboarding no longer auto-grants a licence — land the new account in the
-    // console, where they raise a plan request an admin fulfils.
-    const redirect = intent ? PANEL_URL : null;
+    // Onboarding lands the account in the customer portal, where they raise a
+    // plan request an admin fulfils — never the admin/licensing console.
+    const redirect = intent ? ACCOUNT_URL : null;
     const activeOrg = orgId ? await orgHandleById(orgId) : null;
     return { ok: true, account, redirect, activeOrg };
   });
@@ -425,11 +425,11 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const product = (q.product || "AORMS").toUpperCase();
     const ret = typeof q.return === "string" ? q.return : "";
 
-    // Already signed in → provision now and bounce straight back.
+    // Already signed in → straight to the account portal.
     const s = readSession(req);
     if (s) {
       const account = await getAccountById(s.accountId);
-      if (account) return reply.redirect(PANEL_URL);
+      if (account) return reply.redirect(ACCOUNT_URL);
     }
 
     // Otherwise stash the intent and send the visitor to the sign-up form; the
@@ -442,7 +442,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       maxAge: 600,
       secure: isProd,
     });
-    return reply.redirect(`${PANEL_URL}?onboard=${encodeURIComponent(product)}`);
+    return reply.redirect(`${ACCOUNT_URL}?onboard=${encodeURIComponent(product)}`);
   });
 
   // --- Dev login (local only; gated by DEV_LOGIN=1) ---

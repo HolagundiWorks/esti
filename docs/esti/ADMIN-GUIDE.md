@@ -44,10 +44,11 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
 | `/login` | **Firm login** — classic email + password (the firm's `esti_user`) | — |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
-| `/platform-admin` | **Platform console** — tenant-first login; Holagundi admin + company/personal self-serve | platform session |
+| `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
+| `/account` | **Customer account portal** — sign up, request a plan (Lite/Core/Enterprise), manage companies/credentials/2FA; company-first tenant login | platform session (customer) |
 | `/platform` | Platform backend root (not a page) | — |
 | `/platform/trpc` | Platform API (tRPC) | platform session |
-| `/platform/auth/*` | Platform auth: `resolve-company`, `login`, `switch-company`, `create/join/leave-company`, `my-credentials` | — |
+| `/platform/auth/*` | Platform auth: `resolve-company`, `login`, `switch-company`, `create/join/leave-company`, `request-plan`, `my-request`, `my-credentials` | — |
 | `/platform/v1` | **Product Licence API** — a firm node activates/refreshes its licence here | product API key |
 | `/platform/auth/google/callback` | Google OAuth redirect (if Google sign-in enabled) | — |
 | `/download` | Desktop installer portal (Lite/Core/Enterprise `.exe`) | public |
@@ -58,9 +59,7 @@ Internal-only (never exposed): Postgres, Redis, MinIO. Backend binds `127.0.0.1:
 
 ---
 
-## 3. Login flows (important distinction)
-
-There are **two** logins, and today they behave differently:
+## 3. Login flows (three distinct surfaces)
 
 **A. Firm app — `/login` (classic by default).** Email + password against the firm's local
 `esti_user` — what a firm's staff use day-to-day. **Optional delegation is now shipped**
@@ -68,23 +67,30 @@ There are **two** logins, and today they behave differently:
 platform, with **offline-grace** fallback to the cached local password when it's unreachable —
 see §5 "Delegated login". Default off = local login only.
 
-**B. Platform console — `/platform-admin` (tenant-first, two-step).**
+**B. Licensing console — `/platform-admin` (admin only, single step).** Plain email +
+password, no company step. "Create account" only appears **before the first admin
+exists** (one-time bootstrap — closes itself afterward); after that, this URL is
+sign-in only. A non-admin account that signs in here is redirected to `/account`. This
+is where Holagundi issues/edits licences, approves plan requests, and manually resets a
+customer's password.
+
+**C. Customer account portal — `/account` (self-serve, tenant-first two-step).**
 ```
-Step 1  "Company email or domain"   → e.g. acme.in / contact@acme.in / AORMS-C-2K4P
+Step 1  "Company name, email, or ID"   → e.g. acme.in / contact@acme.in / AORMS-C-2K4P
           │ resolve
-   ┌──────┴───────────────┐
- domain = aorms.in?     a customer company?
-   │ yes                   │ yes
-   ▼                       ▼
-Step 2a  Platform admin   Step 2b  Your email + password
-  (email+password)          → verifies ACTIVE membership of that company
-  → /platform-admin           → company workspace / switcher
+          ▼
+Step 2  Your email + password
+          → verifies ACTIVE membership of that company (if one was named)
+          → account portal — request a plan, companies, credentials, 2FA
 ```
+- "Create account" is **always** available here (customers can always sign up).
 - A **solo** practitioner uses the same email in both steps — no special case.
-- `aorms.in` (the platform-owner domain) routes Step 2 to the **platform-admin** login.
 - Unknown company → "Company not found" + **Create a company** (sign-up).
 - The platform session cookie is scoped to `(account, org)` = the active company; a
   company **switcher** appears when a person has multiple ACTIVE memberships.
+- After signing up (or via a product's "Create account" link), the person lands here —
+  never in the admin console — and raises a **plan request** (§8) instead of getting an
+  instant licence.
 
 ---
 
@@ -224,39 +230,54 @@ installer version.
    `bash deploy/update.sh`. The node activates against `/platform/v1` and derives its plan
    + seats from the signed licence.
 
-**Issuing licences (Holagundi platform admin):** at `/platform-admin` → **Licenses**
-(also **Organizations**, **Products & plans**, **API keys**). A licensing install
-auto-seeds one demo licence per tier: `demo.lite1@aorms.in` / `demo.core1` /
-`demo.enterprise1`, password `demo1234`.
+**How a customer gets licensed (self-serve → admin fulfils):**
+1. Customer signs up at `/account` → **Request a workspace** → picks Lite / Core / Enterprise.
+2. Holagundi admin sees it in `/platform-admin` → **Requests** (tab badge shows the pending
+   count) → **Approve & email**. This creates a perpetual `ACTIVE` licence on the requested
+   plan and emails the key to the customer via SMTP (§5 mail config). If SMTP isn't configured,
+   the key is shown on screen to send manually — nothing is blocked.
+3. Admin can later **upgrade/downgrade** the licence from **Licenses** → "Change plan…".
+
+**Issuing/editing licences directly (Holagundi platform admin):** `/platform-admin` →
+**Licenses** (create, change plan, extend/suspend/revoke, manage devices) · **Organizations**
+· **Products & plans** · **API keys** · **Accounts** (search any customer account, manually
+reset their password — for support/lockout, not a self-serve "forgot password" flow). A
+licensing install auto-seeds one demo licence per tier: `demo.lite1@aorms.in` / `demo.core1`
+/ `demo.enterprise1`, password `demo1234`.
 
 **Platform-admin accounts — one-time bootstrap, then closed:**
 - **First admin:** open `/platform-admin` → "Need an account? Create one" → register with an
   email in `PLATFORM_ADMIN_EMAILS` (≥8-char password). That account is auto-granted admin.
-- **Self-signup then closes.** Once *any* platform admin exists, the "Create one" toggle is
-  hidden and `POST /platform/auth/register` returns `registration_closed` — the console is
-  **sign-in only**. (Product onboarding, which carries the onboard-intent cookie, still
-  creates ordinary company/personal accounts.) Status: `GET /platform/auth/registration-status`.
+- **Self-signup then closes** — for `/platform-admin` only. Once *any* platform admin exists,
+  the "Create one" toggle disappears there and `POST /platform/auth/register` (without
+  `portal: true`) returns `registration_closed` — the console is **sign-in only**.
+  Status: `GET /platform/auth/registration-status`. **Customer sign-up at `/account` is never
+  affected** — it's always open (`portal: true` on register).
 - **Add more admins later:** add the email to `PLATFORM_ADMIN_EMAILS` + `deploy/update.sh`;
   that account is **auto-promoted to admin on its next sign-in** (`loginWithPassword`). It must
-  already exist — since console self-signup is closed, new admin accounts otherwise only arrive
-  via product onboarding.
+  already exist — create it at `/account` first, then sign in at `/platform-admin` once
+  promoted.
 
 ---
 
 ## 8. AORMS Identity operations
 
-**Platform console (`/platform-admin`) top of page, for the signed-in person:**
+**Customer account portal (`/account`) — self-serve, for the signed-in person:**
+- **Request a workspace** — pick Lite/Core/Enterprise; see pending/approved status (§7).
 - **Two-factor authentication** — enable an authenticator app (TOTP; Google Authenticator,
   Authy, 1Password…). Scan the `otpauth://` URI or enter the secret, confirm a 6-digit code;
-  thereafter login requires that code. Disable needs a current code. Strongly recommended for
-  admin accounts.
+  thereafter login requires that code. Disable needs a current code.
 - **Active company** switcher (multiple ACTIVE memberships).
 - **Your companies** — create / join / leave a company. Joining **auto-activates** if your
   email domain matches the company's login-domain, else it's INVITED pending approval.
 - **My credentials** — your portable certifications + growth (keyed to `AORMS-U-`).
-- **Admin sections** (platform admins only): Licenses · Organizations · Products & plans ·
-  API keys. Inside **Organizations** → a **Members** manager: invite / set-status / issue a
-  certification to a member.
+- A **platform admin's own account** lives here too (same session, same account row) — from
+  `/platform-admin` click **"My account (2FA, profile)"** to reach it without signing in again.
+
+**Admin console (`/platform-admin`), platform admins only:** Requests · Licenses ·
+Organizations · Products & plans · API keys · **Accounts** (manual password reset). Inside
+**Organizations** → a **Members** manager: invite / set-status / issue a certification to a
+member.
 
 **Company lifecycle:** sign-up creates `hlp_organization` (+ `AORMS-C-id`, login-domain),
 the owner account, an OWNER membership, and a licence. Members are `hlp_org_member` with

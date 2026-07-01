@@ -1,3 +1,4 @@
+import { accountsRouter } from "../modules/admin/accounts.js";
 import { apiKeysRouter } from "../modules/admin/apiKeys.js";
 import { certificationsRouter } from "../modules/admin/certifications.js";
 import { licensesRouter } from "../modules/admin/licenses.js";
@@ -12,6 +13,7 @@ export const appRouter = router({
     me: publicProcedure.query(({ ctx }) => ({ account: ctx.account })),
   }),
   admin: router({
+    accounts: accountsRouter,
     orgs: orgsRouter,
     products: productsRouter,
     licenses: licensesRouter,

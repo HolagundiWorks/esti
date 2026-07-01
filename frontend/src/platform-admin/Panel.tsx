@@ -51,11 +51,16 @@ export default function Panel() {
       <main style={{ padding: "var(--cds-spacing-06)" }}>
         <Stack gap={6}>
           <Stack gap={3} orientation="horizontal">
-            <h1 className="esti-grow">License Cloud</h1>
+            <h1 className="esti-grow">AORMS Licensing Console</h1>
             <Tag type={account.isPlatformAdmin ? "green" : "gray"} size="md">
               {account.isPlatformAdmin ? "Platform admin" : "Member"}
             </Tag>
             <span>{account.email}</span>
+            {account.isPlatformAdmin && (
+              <Button kind="ghost" size="sm" onClick={goToAccount}>
+                My account (2FA, profile)
+              </Button>
+            )}
             <Button kind="ghost" size="sm" onClick={backToSite}>
               Back to site
             </Button>

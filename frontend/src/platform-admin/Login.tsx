@@ -56,9 +56,12 @@ export default function Login({
   /** Customer user-portal: skip the tenant company step + always allow sign-up. */
   portal?: boolean;
 }) {
-  const product = onboardProduct();
-  // Onboarding + the customer portal are account-level — skip the company step.
-  const skipCompany = Boolean(product) || portal;
+  // Onboarding (?onboard=PRODUCT) only ever applies to the customer portal.
+  const product = portal ? onboardProduct() : null;
+  // Admin console: no company step, ever — it's a single admin realm.
+  // Customer portal: company-first (name / email / AORMS-C id), unless arriving
+  // via a product "create account" deep link (register mode, no company needed).
+  const skipCompany = !portal || Boolean(product);
   const [mode, setMode] = useState<"signin" | "register">(product ? "register" : "signin");
   const [step, setStep] = useState<"company" | "credentials">(skipCompany ? "credentials" : "company");
   const [company, setCompany] = useState("");
@@ -156,12 +159,14 @@ export default function Login({
                       : mode === "register"
                         ? portal
                           ? "Create your AORMS account and request a workspace."
-                          : "Create an account to manage your products and licences."
-                        : showCompanyStep
-                          ? "Sign in — start with your company."
-                          : portal
-                            ? "Sign in to your AORMS account."
-                            : `Signing in to ${companyLabel(resolved)}.`}
+                          : "Create the platform admin account."
+                        : portal
+                          ? showCompanyStep
+                            ? "Sign in — start with your company."
+                            : resolved
+                              ? `Signing in to ${companyLabel(resolved)}.`
+                              : "Sign in to your AORMS account."
+                          : "Sign in to manage licences."}
                   </p>
                 </Stack>
 
@@ -170,9 +175,9 @@ export default function Login({
                     <Stack gap={5}>
                       <TextInput
                         id="auth-company"
-                        labelText="Company"
+                        labelText="Company name, email, or ID"
                         placeholder="acme.in · you@acme.in · AORMS-C-2K4P"
-                        helperText="Platform admins: enter aorms.in (or your admin email)."
+                        helperText="Your company's domain, an email at that company, or its AORMS-C ID."
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
                       />
