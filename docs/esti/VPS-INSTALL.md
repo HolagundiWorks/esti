@@ -135,6 +135,12 @@ sudo bash deploy/install.sh
 
 All secrets are written to `/opt/esti/.env` (chmod 600, root-only).
 
+> **Licence authority.** A firm install (`ESTI_ROLE=node`) points at the central
+> Holagundi platform for licences — `ESTI_LICENSE_API_URL=https://aorms.in/platform`
+> by default. The node stays unmanaged (runs on its `FIRM_PLAN`) until a licence is
+> activated, so an empty `ESTI_PRODUCT_API_KEY` is safe; set the key to activate a
+> real licence. Override `ESTI_LICENSE_API_URL` only if you self-host the platform.
+
 ### The Landing + Demo + Licensing recipe
 
 ```

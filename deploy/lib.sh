@@ -135,6 +135,13 @@ SEED_DEMO=${SEED_DEMO}
 ESTI_ROLE=node
 FIRM_PLAN=${FIRM_PLAN}
 
+# Central AORMS identity + licence authority (the Holagundi platform at aorms.in).
+# A firm node activates/refreshes its licence against ${ESTI_LICENSE_API_URL}/v1;
+# needs a product API key from Holagundi to activate. Leaving the key empty keeps
+# the node unmanaged (runs on FIRM_PLAN) until a licence is actually activated.
+ESTI_LICENSE_API_URL=${ESTI_LICENSE_API_URL:-https://aorms.in/platform}
+ESTI_PRODUCT_API_KEY=${ESTI_PRODUCT_API_KEY:-}
+
 # Licensing & account platform (mounted at /platform; admin UI at /platform-admin).
 # Set GOOGLE_* to enable Google sign-in — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md.
 FRONTEND_ORIGIN=https://${DOMAIN}
