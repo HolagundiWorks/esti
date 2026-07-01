@@ -14,7 +14,10 @@ pub struct Pg {
 pub async fn start(pgdata: PathBuf, password: String) -> Result<Pg, String> {
     let mut settings = Settings::default();
     settings.data_dir = pgdata;
-    settings.username = "esti".to_string();
+    // NB: postgresql_embedded ALWAYS initdb's the superuser as "postgres"
+    // (BOOTSTRAP_SUPERUSER) and ignores settings.username — so the connection URL
+    // below must use "postgres", not a custom name, or the backend gets
+    // `role "esti" does not exist`. The password IS applied to postgres (--pwfile).
     settings.password = password.clone();
     settings.temporary = false; // persist across launches
 
@@ -33,7 +36,7 @@ pub async fn start(pgdata: PathBuf, password: String) -> Result<Pg, String> {
     }
 
     let port = pg.settings().port;
-    let url = format!("postgres://esti:{password}@127.0.0.1:{port}/esti");
+    let url = format!("postgres://postgres:{password}@127.0.0.1:{port}/esti");
     Ok(Pg { inner: pg, url })
 }
 

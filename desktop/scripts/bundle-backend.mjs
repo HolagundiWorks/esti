@@ -93,6 +93,20 @@ function main() {
   cpSync(join(stage, "node_modules"), join(out, "node_modules"), { recursive: true });
   rmSync(stage, { recursive: true, force: true });
 
+  // @esti/contracts ships dev-mode main/exports → ./src/index.ts (so tsx/Vite load
+  // the TS source in the monorepo). The bundled sidecar runs plain Node, which can't
+  // load .ts under node_modules (ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING) — repoint
+  // it at the built JS (dist ships inside the pack).
+  const contractsPkg = join(out, "node_modules", "@esti", "contracts", "package.json");
+  if (existsSync(contractsPkg)) {
+    const cj = JSON.parse(readFileSync(contractsPkg, "utf8"));
+    cj.main = "./dist/index.js";
+    cj.types = "./dist/index.d.ts";
+    cj.exports = { ".": "./dist/index.js" };
+    writeFileSync(contractsPkg, `${JSON.stringify(cj, null, 2)}\n`);
+    console.log("• repointed @esti/contracts → dist/index.js");
+  }
+
   // 3. Vendor Node as the triple-suffixed sidecar binary.
   mkdirSync(binaries, { recursive: true });
   const triple = rustTargetTriple();

@@ -35,6 +35,7 @@
     "externalBin": ["binaries/esti-backend"],
     "resources": ["resources/backend/**/*"],
     "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
       "nsis": {
         "installMode": "currentUser"
       }
