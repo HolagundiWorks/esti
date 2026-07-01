@@ -86,7 +86,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             ))}
           </HeaderNavigation>
           <HeaderGlobalBar>
-            <a className="esti-landing-signin" href="/account">
+            <a className="esti-landing-signin" href="/login">
               Log in
             </a>
           </HeaderGlobalBar>
