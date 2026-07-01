@@ -11,6 +11,7 @@ import {
 import Login from "./Login";
 import Companies from "./Companies";
 import Credentials from "./Credentials";
+import Security from "./Security";
 import AdminApp from "./admin/AdminApp";
 import { fetchMe, logout, switchCompany, type Me, type Membership } from "./lib/auth";
 
@@ -50,6 +51,10 @@ export default function Panel() {
   async function handleSwitch(company: string) {
     const next = await switchCompany(company);
     if (next.account) setMe(next);
+  }
+
+  async function refreshMe() {
+    setMe(await fetchMe());
   }
 
   const memberships = me?.memberships ?? [];
@@ -99,6 +104,7 @@ export default function Panel() {
             </div>
           )}
 
+          {me && <Security me={me} onChange={refreshMe} />}
           {me && <Companies me={me} onChange={setMe} />}
           <Credentials />
 

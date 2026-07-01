@@ -24,22 +24,31 @@ import {
   leaveCompany,
 } from "../modules/membership/service.js";
 import { listCertifications, listGrowth } from "../modules/portable/service.js";
+import {
+  checkTotpForLogin,
+  disableTotp,
+  enableTotp,
+  startEnrollment,
+  totpEnabled,
+} from "../modules/auth/totp.js";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
   account: AccountView;
   activeOrg: OrgHandle | null;
   memberships: Array<{ org: OrgHandle; role: string }>;
+  totpEnabled: boolean;
 }
 
 async function buildMe(s: SessionData): Promise<MeView | null> {
   const account = await getAccountById(s.accountId);
   if (!account) return null;
-  const [activeOrg, memberships] = await Promise.all([
+  const [activeOrg, memberships, twoFactor] = await Promise.all([
     s.orgId ? orgHandleById(s.orgId) : Promise.resolve(null),
     membershipsFor(s.accountId),
+    totpEnabled(s.accountId),
   ]);
-  return { account, activeOrg, memberships };
+  return { account, activeOrg, memberships, totpEnabled: twoFactor };
 }
 
 const ONBOARD_COOKIE = "hlp_onboard";
@@ -108,13 +117,13 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const s = readSession(req);
     if (!s) {
       reply.code(401);
-      return { account: null, activeOrg: null, memberships: [] };
+      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
     }
     const me = await buildMe(s);
     if (!me) {
       clearSession(reply);
       reply.code(401);
-      return { account: null, activeOrg: null, memberships: [] };
+      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
     }
     return me;
   });
@@ -128,6 +137,59 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   // once the first platform admin exists (product onboarding is unaffected).
   app.get("/auth/registration-status", async () => {
     return { adminExists: await hasPlatformAdmin() };
+  });
+
+  // --- Two-factor authenticator (TOTP) enrollment ---
+  // Begin: issue a fresh secret + otpauth URI to scan (not stored until confirmed).
+  app.post("/auth/totp/setup", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    return startEnrollment(account.email);
+  });
+
+  // Confirm: the code must validate against the issued secret to turn 2FA on.
+  app.post("/auth/totp/enable", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { secret?: string; code?: string } | undefined;
+    if (!body?.secret || !body?.code) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const ok = await enableTotp(s.accountId, body.secret.trim(), body.code.trim());
+    if (!ok) {
+      reply.code(400);
+      return { error: "totp_invalid" };
+    }
+    return { ok: true };
+  });
+
+  // Turn off — requires a current code so a hijacked session can't disable 2FA.
+  app.post("/auth/totp/disable", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { code?: string } | undefined;
+    const ok = await disableTotp(s.accountId, body?.code?.trim() ?? "");
+    if (!ok) {
+      reply.code(400);
+      return { error: "totp_invalid" };
+    }
+    return { ok: true };
   });
 
   // --- The signed-in person's portable credentials (certs + growth), AORMS-U keyed ---
@@ -289,7 +351,9 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   // `company` is the resolved Step-1 handle. Omitted → the legacy single-step
   // login (unscoped session), so existing platform-admin sign-in is unchanged.
   app.post("/auth/login", async (req, reply) => {
-    const body = req.body as { email?: string; password?: string; company?: string } | undefined;
+    const body = req.body as
+      | { email?: string; password?: string; company?: string; code?: string }
+      | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
     const company = body?.company?.trim() ?? "";
@@ -301,6 +365,17 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     if (!account) {
       reply.code(401);
       return { error: "invalid_credentials" };
+    }
+
+    // Second factor: if this account has an authenticator, a valid code is required.
+    const totp = await checkTotpForLogin(account.id, body?.code?.trim());
+    if (totp === "required") {
+      reply.code(401);
+      return { error: "totp_required" };
+    }
+    if (totp === "invalid") {
+      reply.code(401);
+      return { error: "totp_invalid" };
     }
 
     // Tenant-first: when a company is named, only the admin branch or a verified

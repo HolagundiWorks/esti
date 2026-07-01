@@ -27,6 +27,7 @@ const ERRORS: Record<string, string> = {
   weak_password: "Password must be at least 8 characters.",
   email_taken: "An account with that email already exists — sign in instead.",
   invalid_credentials: "Email or password is incorrect.",
+  totp_invalid: "That authenticator code is incorrect.",
   registration_closed: "Account creation is closed — please sign in.",
   company_not_found: "We couldn't find that company. Check the domain or AORMS-C id.",
   not_a_member: "This account isn't a member of that company.",
@@ -57,6 +58,8 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needCode, setNeedCode] = useState(false);
   const [devEmail, setDevEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,9 +101,15 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
     const res =
       mode === "register"
         ? await register({ email, password, name: name || undefined })
-        : await login(email, password, product ? undefined : company);
+        : await login(email, password, product ? undefined : company, needCode ? code : undefined);
     if (res.error) {
       setBusy(false);
+      if (res.error === "totp_required") {
+        // Password was accepted — now ask for the authenticator code.
+        setNeedCode(true);
+        setError(null);
+        return;
+      }
       setError(ERRORS[res.error] ?? res.error);
       return;
     }
@@ -207,13 +216,25 @@ export default function Login({ onLogin }: { onLogin: (me: Me) => void }) {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
+                      {mode === "signin" && needCode && (
+                        <TextInput
+                          id="auth-code"
+                          labelText="Authenticator code"
+                          placeholder="123456"
+                          autoComplete="one-time-code"
+                          inputMode="numeric"
+                          helperText="6-digit code from your authenticator app."
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                        />
+                      )}
                       <Button
                         type="submit"
                         kind="primary"
                         size="lg"
-                        disabled={busy || !email || !password}
+                        disabled={busy || !email || !password || (needCode && code.length < 6)}
                       >
-                        {mode === "register" ? "Create account" : "Sign in"}
+                        {mode === "register" ? "Create account" : needCode ? "Verify" : "Sign in"}
                       </Button>
                     </Stack>
                   </Form>

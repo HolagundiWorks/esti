@@ -25,6 +25,7 @@ export interface Me {
   account: Account | null;
   activeOrg: OrgHandle | null;
   memberships: Membership[];
+  totpEnabled: boolean;
 }
 
 /** Step-1 resolution of a typed company handle. */
@@ -67,13 +68,13 @@ async function postAuth(path: string, body: unknown): Promise<AuthResult> {
   };
 }
 
-const EMPTY_ME: Me = { account: null, activeOrg: null, memberships: [] };
+const EMPTY_ME: Me = { account: null, activeOrg: null, memberships: [], totpEnabled: false };
 
 export async function fetchMe(): Promise<Me> {
   const r = await fetch("/platform/auth/me", { credentials: "include" });
   if (!r.ok) return EMPTY_ME;
   const j = (await r.json()) as Partial<Me>;
-  return { account: j.account ?? null, activeOrg: j.activeOrg ?? null, memberships: j.memberships ?? [] };
+  return { account: j.account ?? null, activeOrg: j.activeOrg ?? null, memberships: j.memberships ?? [], totpEnabled: Boolean(j.totpEnabled) };
 }
 
 /** Step 1: resolve what the person typed into the tenant to sign in under. */
@@ -101,6 +102,7 @@ async function postMe(path: string, body: unknown): Promise<Me & { status?: stri
     account: j.account ?? null,
     activeOrg: j.activeOrg ?? null,
     memberships: j.memberships ?? [],
+    totpEnabled: Boolean(j.totpEnabled),
     status: j.status,
   };
 }
@@ -167,8 +169,13 @@ export function register(input: {
   return postAuth("/platform/auth/register", input);
 }
 
-export function login(email: string, password: string, company?: string): Promise<AuthResult> {
-  return postAuth("/platform/auth/login", { email, password, company });
+export function login(
+  email: string,
+  password: string,
+  company?: string,
+  code?: string,
+): Promise<AuthResult> {
+  return postAuth("/platform/auth/login", { email, password, company, code });
 }
 
 export async function devLogin(email: string): Promise<Account | null> {
@@ -178,4 +185,30 @@ export async function devLogin(email: string): Promise<Account | null> {
 
 export async function logout(): Promise<void> {
   await fetch("/platform/auth/logout", { method: "POST", credentials: "include" });
+}
+
+// --- Two-factor authenticator (TOTP) ---
+async function postJson(path: string, body?: unknown): Promise<Record<string, unknown>> {
+  const r = await fetch(path, {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  });
+  return (await r.json().catch(() => ({}))) as Record<string, unknown>;
+}
+
+export async function totpSetup(): Promise<{ secret: string; otpauthUrl: string }> {
+  const j = await postJson("/platform/auth/totp/setup");
+  return { secret: String(j.secret ?? ""), otpauthUrl: String(j.otpauthUrl ?? "") };
+}
+
+export async function totpEnable(secret: string, code: string): Promise<{ ok: boolean; error?: string }> {
+  const j = await postJson("/platform/auth/totp/enable", { secret, code });
+  return { ok: Boolean(j.ok), error: j.error as string | undefined };
+}
+
+export async function totpDisable(code: string): Promise<{ ok: boolean; error?: string }> {
+  const j = await postJson("/platform/auth/totp/disable", { code });
+  return { ok: Boolean(j.ok), error: j.error as string | undefined };
 }

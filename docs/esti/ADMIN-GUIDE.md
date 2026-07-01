@@ -237,6 +237,10 @@ is auto-granted platform admin. Change the allowlist later by editing `.env` +
 ## 8. AORMS Identity operations
 
 **Platform console (`/platform-admin`) top of page, for the signed-in person:**
+- **Two-factor authentication** — enable an authenticator app (TOTP; Google Authenticator,
+  Authy, 1Password…). Scan the `otpauth://` URI or enter the secret, confirm a 6-digit code;
+  thereafter login requires that code. Disable needs a current code. Strongly recommended for
+  admin accounts.
 - **Active company** switcher (multiple ACTIVE memberships).
 - **Your companies** — create / join / leave a company. Joining **auto-activates** if your
   email domain matches the company's login-domain, else it's INVITED pending approval.

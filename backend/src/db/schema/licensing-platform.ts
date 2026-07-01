@@ -32,6 +32,8 @@ export const accounts = pgTable(
     name: text("name"),
     avatarUrl: text("avatar_url"),
     passwordHash: text("password_hash"),
+    /** Base32 TOTP secret — null = 2FA off; set = an authenticator code is required at login. */
+    totpSecret: text("totp_secret"),
     isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
     createdAt,
     updatedAt,
