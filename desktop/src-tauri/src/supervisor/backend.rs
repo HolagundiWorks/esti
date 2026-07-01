@@ -22,18 +22,25 @@ pub async fn spawn(
         .map_err(|e| format!("sidecar spawn: {e}"))?;
 
     tauri::async_runtime::spawn(async move {
+        use std::io::Write;
+        // Also tee the sidecar's output to a file — the app has no log sink, so this
+        // is the only way to see a backend boot crash on a user's machine.
+        let mut file = std::fs::File::create(std::env::temp_dir().join("aorms-sidecar.log")).ok();
         while let Some(event) = rx.recv().await {
-            match event {
+            let entry = match event {
                 CommandEvent::Stdout(line) => {
-                    log::info!("[backend] {}", String::from_utf8_lossy(&line).trim_end())
+                    format!("[out] {}", String::from_utf8_lossy(&line).trim_end())
                 }
                 CommandEvent::Stderr(line) => {
-                    log::warn!("[backend] {}", String::from_utf8_lossy(&line).trim_end())
+                    format!("[err] {}", String::from_utf8_lossy(&line).trim_end())
                 }
-                CommandEvent::Terminated(payload) => {
-                    log::warn!("[backend] terminated: {:?}", payload.code)
-                }
-                _ => {}
+                CommandEvent::Terminated(payload) => format!("[terminated] code={:?}", payload.code),
+                _ => continue,
+            };
+            log::info!("[backend] {entry}");
+            if let Some(f) = file.as_mut() {
+                let _ = writeln!(f, "{entry}");
+                let _ = f.flush();
             }
         }
     });

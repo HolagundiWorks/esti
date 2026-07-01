@@ -63,7 +63,10 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     let backend_port = portpicker::pick_unused_port().ok_or("no free port for backend")?;
     let api_base = format!("http://127.0.0.1:{backend_port}");
 
-    let mut env = HashMap::new();
+    // Seed from the parent environment so the Node sidecar inherits SystemRoot,
+    // PATH, TEMP, etc. — without them node.exe / native addons can't load on Windows
+    // (tauri-plugin-shell does not guarantee an inherited env). App vars override below.
+    let mut env: HashMap<String, String> = std::env::vars().collect();
     env.insert("NODE_ENV".into(), "production".into());
     env.insert("DESKTOP".into(), "1".into());
     env.insert("BACKEND_PORT".into(), backend_port.to_string());
@@ -102,12 +105,17 @@ async fn boot(app: AppHandle) -> Result<(), String> {
         app.path()
             .resource_dir()
             .map(|r| {
-                r.join("resources")
+                let p = r
+                    .join("resources")
                     .join("backend")
                     .join("dist")
                     .join("index.js")
                     .to_string_lossy()
-                    .to_string()
+                    .to_string();
+                // Strip the Windows \\?\ extended-length prefix that resource_dir()
+                // returns — Node's main-module resolver chokes on it (`lstat 'C:'` →
+                // EISDIR) and never runs the entry script.
+                p.strip_prefix(r"\\?\").map(str::to_string).unwrap_or(p)
             })
             .unwrap_or_else(|_| "resources/backend/dist/index.js".to_string())
     });
@@ -129,7 +137,7 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     // (initialization_script runs before the page's own scripts on every load).
     let init = format!("window.__ESTI__ = {{ apiBase: '{api_base}' }};");
     WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
-        .title("ESTI AORMS")
+        .title("AORMS")
         .inner_size(1440.0, 900.0)
         .min_inner_size(1024.0, 680.0)
         .initialization_script(&init)
