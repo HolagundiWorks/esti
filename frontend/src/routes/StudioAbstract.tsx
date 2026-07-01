@@ -8,39 +8,8 @@
  * Route: /  (root)
  * tRPC: dashboard.home bundle (KPIs, Action Center, financial/project health)
  */
-import {
-  Button,
-  Column,
-  Grid,
-  InlineNotification,
-  InlineLoading,
-  ProgressBar,
-  Stack,
-  StructuredListBody,
-  StructuredListCell,
-  StructuredListRow,
-  StructuredListWrapper,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Tag,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+import { Column, Grid, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tile } from "@carbon/react";
 import { can, formatINRShort } from "@esti/contracts";
-import { Send } from "@carbon/icons-react";
-import { useState, Fragment, type FormEvent } from "react";
-import { Link } from "react-router-dom";
-import { AiDraftPanel } from "../components/AiStudio.js";
 import {
   AbstractScreenShell,
   ActivePressureList,
@@ -53,13 +22,7 @@ import {
   type Pressure,
   type SnapshotRow,
 } from "../components/dashboard/abstractShell.js";
-import {
-  CAPACITY_LABEL,
-  CAPACITY_TAG,
-  HEALTH_LABEL,
-  HEALTH_TAG,
-  nextTdsReturnDue,
-} from "../components/dashboard/dashboardUi.js";
+import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { Leads } from "./Leads.js";
@@ -67,10 +30,6 @@ import { Leads } from "./Leads.js";
 // ── Zone state ────────────────────────────────────────────────────────────────
 
 type ZoneState = "stable" | "watch" | "friction" | "critical" | "inactive";
-
-const SHAPE: Record<ZoneState, string> = {
-  stable: "●", watch: "▲", friction: "◆", critical: "■", inactive: "○",
-};
 
 const ZCOLOR: Record<ZoneState, string> = {
   stable:   "var(--cds-support-success)",
@@ -81,35 +40,10 @@ const ZCOLOR: Record<ZoneState, string> = {
 };
 
 // Identity colours per tile — Carbon tag-background tokens
-const TILE_COLOR: Record<string, string> = {
-  CLIENT:  "var(--cds-interactive)",
-  FINANCE: "var(--cds-tag-background-purple)",
-  PROJECT: "var(--cds-tag-background-teal)",
-  TEAM:    "var(--cds-tag-background-cyan)",
-};
 
 // Team load colours and capacity bar mapping — shared by DetailRow / ScreenProjects / ScreenTeam
-const LOAD_COLOR: Record<string, string> = {
-  OVERLOADED: "var(--cds-support-error)",
-  HIGH:       "var(--cds-support-warning-minor)",
-  MODERATE:   "var(--cds-support-warning)",
-  AVAILABLE:  "var(--cds-support-success)",
-};
 const loadPct = (c: string): number =>
   ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[c] ?? 50);
-
-const CLIENT_LABEL:  Record<ZoneState, string> = {
-  stable: "RESPONSIVE",  watch: "WAITING",    friction: "BLOCKED",           critical: "INTERVENTION REQUIRED", inactive: "NO SIGNAL",
-};
-const FINANCE_LABEL: Record<ZoneState, string> = {
-  stable: "HEALTHY",     watch: "WATCH",       friction: "RECOVERY REQUIRED", critical: "AT RISK",               inactive: "RESTRICTED",
-};
-const PROJECT_LABEL: Record<ZoneState, string> = {
-  stable: "STABLE",      watch: "WATCH",       friction: "SLIPPING",          critical: "CRITICAL",              inactive: "NO PROJECTS",
-};
-const TEAM_LABEL:    Record<ZoneState, string> = {
-  stable: "BALANCED",    watch: "UNDER LOAD",  friction: "OVERLOADED",        critical: "CAPACITY EXHAUSTED",    inactive: "NO DATA",
-};
 
 // ── State derivation ──────────────────────────────────────────────────────────
 
@@ -178,11 +112,6 @@ function financeHealthPct(outstandingPaise: number, overduePaise: number, canSee
 function projectHealthPct(total: number, atRisk: number, delayed: number): number {
   if (total === 0) return 0;
   return Math.max(8, Math.round(100 - (atRisk / total) * 60 - (delayed / total) * 25));
-}
-
-function teamHealthPct(overloaded: number, total: number, leaveCount: number, hrEnabled: boolean): number {
-  if (!hrEnabled || total === 0) return 0;
-  return Math.max(8, Math.round(100 - (overloaded / total) * 70 - Math.min(leaveCount / total, 0.5) * 20));
 }
 
 // ── GST status ────────────────────────────────────────────────────────────────
@@ -270,352 +199,11 @@ function deriveAttn({
   };
 }
 
-// ── Interventions ─────────────────────────────────────────────────────────────
-
-interface Intervention { priority: number; title: string; severity: ZoneState; }
-
-function deriveInterventions({
-  pendingApprovals, overdueInvoices, riskProjects,
-  overloaded, billingReady, canInvoice,
-}: {
-  pendingApprovals: any[]; overdueInvoices: any[]; riskProjects: any[];
-  overloaded: any[]; billingReady: any[]; canInvoice: boolean;
-}): Intervention[] {
-  const items: Intervention[] = [];
-  let r = 1;
-  overdueInvoices.slice(0,3).forEach((inv: any) => items.push({
-    priority: r++, severity: inv.daysOverdue > 30 ? "critical" : "friction",
-    title: `Recover overdue invoice ${inv.ref} (${inv.daysOverdue}d) — ${formatINRShort(inv.netReceivablePaise)}`,
-  }));
-  pendingApprovals.slice(0,3).forEach((ap: any) => items.push({
-    priority: r++, severity: (ap.daysWaiting ?? 0) > 10 ? "friction" : "watch",
-    title: `Escalate approval: ${ap.title} (${ap.projectRef}, ${ap.daysWaiting}d)`,
-  }));
-  riskProjects.slice(0,2).forEach((p: any) => items.push({
-    priority: r++, severity: "friction",
-    title: `Owner review: ${p.ref} — ${p.title}`,
-  }));
-  overloaded.slice(0,2).forEach((m: any) => items.push({
-    priority: r++, severity: "watch",
-    title: `Redistribute tasks from ${m.assignee} (${m.totalOpen} open, ${m.overdueCount} late)`,
-  }));
-  if (canInvoice && billingReady.length > 0) items.push({
-    priority: r++, severity: "watch",
-    title: `Generate invoice for ${billingReady.length} ready phase${billingReady.length > 1 ? "s" : ""}`,
-  });
-  return items;
-}
-
-// ── Alert strip ───────────────────────────────────────────────────────────────
-
-function AlertStrip({ attn, score }: { attn: AttnResult; score: number }) {
-  const band = healthBand(score);
-  const st: ZoneState = attn.chainColor === ZCOLOR["critical"] ? "critical"
-    : attn.chainColor === ZCOLOR["friction"] ? "friction"
-    : attn.chainColor === ZCOLOR["watch"]    ? "watch" : "stable";
-  return (
-    <div className="esti-av-strip">
-      <span className="esti-av-strip__shape" style={{ color: attn.chainColor || "var(--cds-text-primary)" }}>{SHAPE[st]}</span>
-      <span className="esti-av-strip__issue">{attn.issue}</span>
-      <span className="esti-av-strip__action">→ {attn.action}</span>
-      <span className="esti-av-strip__health" style={{ color: band.color || "var(--cds-text-primary)" }}>STATE · {band.label}</span>
-    </div>
-  );
-}
-
-// ── Telemetry gauge ───────────────────────────────────────────────────────────
-
-function TelemGauge({ pct, state, sz = 32 }: { pct: number; state: ZoneState; sz?: number }) {
-  const r    = sz * 0.36;
-  const cx   = sz / 2;
-  const circ = 2 * Math.PI * r;
-  const fill = circ * Math.min(Math.max(pct / 100, 0), 1);
-  return (
-    <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`}
-      style={{ transform: "rotate(-90deg)", flexShrink: 0 }} aria-hidden>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke="var(--cds-border-subtle)" strokeWidth="3" />
-      {pct > 0 && (
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke={ZCOLOR[state]} strokeWidth="3"
-          strokeDasharray={`${fill} ${circ}`} strokeLinecap="round" />
-      )}
-    </svg>
-  );
-}
-
-// ── Quad cell primitives ──────────────────────────────────────────────────────
-
-// AORMS geometry state language — three shapes, two colours only.
-//   ● Handled (white)     — system handling internally, no owner attention
-//   ▲ Monitoring (white)  — system monitoring internally
-//   ■ Act (interactive)   — AI requesting owner intervention (ONE per dashboard, in evidence)
-// StatusSymbol never emits ■: the single Act marker is rendered explicitly in the evidence layer.
-const GEO_WORD: Record<string, string> = {
-  stable: "Handled",
-  info: "Handled",
-  watch: "Monitoring",
-  friction: "Monitoring",
-  critical: "Monitoring",
-  inactive: "Handled",
-};
-
-function geoGlyph(state: ZoneState | "info" | "inactive"): "●" | "▲" {
-  if (state === "stable" || state === "info" || state === "inactive") return "●";
-  return "▲"; // watch / friction / critical → monitoring
-}
-
-// Three-way shape for flow tasks: ● Running · ▲ Attention · ■ Urgent.
-function shapeFor(state?: ZoneState): "●" | "▲" | "■" {
-  if (state === "critical") return "■";
-  if (state === "watch" || state === "friction") return "▲";
-  return "●";
-}
-
-// Priority weight for ranking flow tasks (highest first).
-const FLOW_PRIORITY: Record<string, number> = { critical: 3, friction: 2, watch: 1, stable: 0, inactive: 0 };
-const rankFlow = (a: { state?: ZoneState }, b: { state?: ZoneState }) =>
-  (FLOW_PRIORITY[b.state ?? "stable"] ?? 0) - (FLOW_PRIORITY[a.state ?? "stable"] ?? 0);
-
-// The three glyphs have different optical sizes in the font; a per-shape class scales them
-// to equal visual height (the circle is drawn smaller, so it gets scaled up).
-const GEO_SHAPE_CLASS: Record<string, string> = {
-  "●": "esti-geo--circle",
-  "▲": "esti-geo--triangle",
-  "■": "esti-geo--square",
-};
-
-function GeoMark({
-  glyph,
-  sm,
-  act,
-  className = "",
-  label,
-  style,
-}: {
-  glyph: "●" | "▲" | "■";
-  sm?: boolean;
-  act?: boolean;
-  className?: string;
-  label?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <span
-      className={`esti-geo ${GEO_SHAPE_CLASS[glyph]}${sm ? " esti-geo--sm" : ""}${act ? " esti-geo--act" : ""}${className ? ` ${className}` : ""}`}
-      aria-label={label}
-      style={style}
-    >
-      {glyph}
-    </span>
-  );
-}
-
-function StatusSymbol({ state, label }: { state: ZoneState | "info" | "inactive"; label: string }) {
-  return <GeoMark glyph={geoGlyph(state)} label={label || GEO_WORD[state]} />;
-}
-
-function MacroHdr({ name, label, nameColor }: { name: string; label: string; nameColor?: string }) {
-  return (
-    <div className="esti-macro-hdr">
-      <span className="esti-macro-hdr__name" style={nameColor ? { color: nameColor || "var(--cds-text-primary)" } : undefined}>{name}</span>
-      <span className="esti-macro-hdr__status">{label}</span>
-    </div>
-  );
-}
-
-// ── Detail row (Overview bottom section) ──────────────────────────────────────
-
-function DetailRow({
-  ac, ph, ti, canInvoice, canFees, hrEnabled,
-}: {
-  ac: any; ph: any[]; ti: any[]; canInvoice: boolean; canFees: boolean; hrEnabled: boolean;
-}) {
-  const pending      = ac?.pendingApprovals  ?? [];
-  const overdueInvs  = ac?.overdueInvoices   ?? [];
-  const billingReady = ac?.billingReadyPhases ?? [];
-  const riskProjects = ph.filter((p: any) => p.health === "RED");
-  const overloaded   = ti.filter((m: any) => m.capacity === "OVERLOADED");
-
-  const items = deriveInterventions({
-    pendingApprovals: pending, overdueInvoices: overdueInvs,
-    riskProjects, overloaded, billingReady, canInvoice,
-  });
-
-  return (
-    <div className="esti-detail-grid">
-
-      {canInvoice && (
-        <div className="esti-detail-cell">
-          <div className="esti-detail-hdr">
-            <span className="esti-detail-hdr__title">BILLING QUEUE</span>
-            {overdueInvs.length > 0 && <Tag type="red" size="sm">{overdueInvs.length} overdue</Tag>}
-          </div>
-          {overdueInvs.length === 0 && billingReady.length === 0 ? (
-            <div className="esti-detail-empty">
-              <span style={{ color: "var(--cds-support-success)" }}>●</span> No billing items pending
-            </div>
-          ) : (
-            <>
-              {overdueInvs.slice(0,4).map((inv: any) => (
-                <div key={inv.id} className="esti-detail-item">
-                  <span className="esti-detail-item__ref">{inv.ref}</span>
-                  <span className="esti-detail-item__val">{formatINRShort(inv.netReceivablePaise)}</span>
-                  <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-error)" }}>{inv.daysOverdue}d</span>
-                </div>
-              ))}
-              {billingReady.length > 0 && (
-                <div className="esti-detail-item">
-                  <span className="esti-detail-item__ref">Ready to invoice</span>
-                  <span className="esti-detail-item__val">{billingReady.length} phases</span>
-                  <span className="esti-detail-item__tag" style={{ color: "var(--cds-support-warning)" }}>QUEUE</span>
-                </div>
-              )}
-            </>
-          )}
-          {canFees && (
-            <div style={{ padding: "var(--cds-spacing-04) var(--cds-spacing-05)", borderTop: "1px solid var(--cds-border-subtle)", marginTop: "auto" }}>
-              <AiDraftPanel defaultKind="BILLING_ASSISTANT" compact />
-            </div>
-          )}
-        </div>
-      )}
-
-      {hrEnabled && (
-        <div className="esti-detail-cell">
-          <div className="esti-detail-hdr">
-            <span className="esti-detail-hdr__title">TEAM CAPACITY</span>
-            {overloaded.length > 0 && <Tag type="red" size="sm">{overloaded.length} overloaded</Tag>}
-          </div>
-          {ti.length === 0
-            ? <div className="esti-detail-empty"><InlineLoading description="Loading…" /></div>
-            : ti.slice(0,7).map((m: any) => (
-                <div key={m.assignee} className="esti-detail-item">
-                  <span className="esti-detail-item__ref">{m.assignee}</span>
-                  <span className="esti-detail-item__val">{m.totalOpen}</span>
-                  <span className="esti-detail-item__tag" style={{ color: LOAD_COLOR[m.capacity] ?? "var(--cds-text-helper)" }}>
-                    {CAPACITY_LABEL[m.capacity] ?? m.capacity}
-                  </span>
-                </div>
-              ))
-          }
-        </div>
-      )}
-
-      <div className="esti-detail-cell">
-        <div className="esti-detail-hdr">
-          <span className="esti-detail-hdr__title">INTERVENTION QUEUE</span>
-          {items.length > 0 && <Tag type="red" size="sm">{items.length}</Tag>}
-        </div>
-        {items.length === 0
-          ? <div className="esti-detail-empty"><span style={{ color: "var(--cds-support-success)" }}>●</span> No interventions required</div>
-          : items.slice(0,7).map((item) => (
-              <div key={item.priority} className="esti-detail-item">
-                <span className="esti-label" style={{ color: ZCOLOR[item.severity] || "var(--cds-text-primary)", flexShrink: 0 }}>{SHAPE[item.severity]}</span>
-                <span className="esti-detail-item__ref">{item.title}</span>
-              </div>
-            ))
-        }
-      </div>
-
-    </div>
-  );
-}
-
-// ── Quality / Revision row (Overview bottom) ──────────────────────────────────
-
-function QualityRow({ ri }: { ri: any }) {
-  if (!ri || ri.totalDecisions === 0) return null;
-
-  const riskColor = ri.revisionRiskBand === "HIGH" ? ZCOLOR["critical"]
-    : ri.revisionRiskBand === "MEDIUM" ? ZCOLOR["friction"] : ZCOLOR["stable"];
-  const riskType  = ri.revisionRiskBand === "HIGH" ? "red"
-    : ri.revisionRiskBand === "MEDIUM" ? "magenta" : "green";
-
-  return (
-    <div className="esti-detail-grid esti-detail-grid--3col">
-      <div className="esti-detail-cell">
-        <div className="esti-detail-hdr">
-          <span className="esti-detail-hdr__title">REVISION INTELLIGENCE</span>
-          <Tag type={riskType as any} size="sm">{ri.revisionRiskBand} RISK</Tag>
-        </div>
-        {[
-          { ref: "Client Requested",    val: ri.clientDriven  },
-          { ref: "Internal Error",      val: ri.internalError },
-          { ref: "Technical Query",     val: ri.technicalQuery },
-          { ref: "Scope Change",        val: ri.scopeChange   },
-        ].map((row) => (
-          <div key={row.ref} className="esti-detail-item">
-            <span className="esti-detail-item__ref">{row.ref}</span>
-            <span className="esti-detail-item__val">{row.val}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="esti-detail-cell">
-        <div className="esti-detail-hdr">
-          <span className="esti-detail-hdr__title">QUALITY INDEX</span>
-        </div>
-        {[
-          { ref: "Revision health score", val: ri.healthScore    },
-          { ref: "Scope drift",           val: `${ri.scopeDriftPct}%` },
-          { ref: "Total decisions",       val: ri.totalDecisions },
-        ].map((row) => (
-          <div key={row.ref} className="esti-detail-item">
-            <span className="esti-detail-item__ref">{row.ref}</span>
-            <span className="esti-detail-item__val" style={row.ref === "Revision health score" ? { color: riskColor || "var(--cds-text-primary)" } : undefined}>
-              {row.val}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="esti-detail-cell">
-        <div className="esti-detail-hdr">
-          <span className="esti-detail-hdr__title">ASPRF ENGINE</span>
-        </div>
-        <div className="esti-detail-empty">
-          <span style={{ color: "var(--cds-text-disabled)" }}>○</span>
-          Performance metrics — see ASPRF module
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Cognitive overview primitives ────────────────────────────────────────────
-
-const STATE_LADDER: ZoneState[] = ["inactive", "stable", "watch", "friction", "critical"];
-function nextState(s: ZoneState): ZoneState {
-  const idx = STATE_LADDER.indexOf(s);
-  return (idx > 1 ? STATE_LADDER[idx - 1] : STATE_LADDER[1]) as ZoneState;
-}
-function stateTagType(s: ZoneState): string {
-  return s === "critical" ? "red" : s === "friction" ? "orange" : s === "watch" ? "yellow" : "green";
-}
-
-function zoneTagType(s: ZoneState): "red" | "purple" | "blue" | "green" | "gray" {
-  if (s === "critical") return "red";
-  if (s === "friction") return "purple";
-  if (s === "watch") return "blue";
-  if (s === "stable") return "green";
-  return "gray";
-}
 
 // ── Cognitive load protection helpers ─────────────────────────────────────────
 
 // Neutral by design — recovery readout stays white, not colour-coded.
-function calmnessColor(_score: number): string {
-  return "var(--cds-text-primary)";
-}
-
-function focusContext(items: any[]): string {
-  const hasCritical = items.some((i: any) => i.severity === "critical");
-  if (hasCritical) return "This needs owner attention now.";
-  const h = new Date().getHours();
-  if (h < 10) return "Plan this into the day before work spreads.";
-  if (h < 13) return "Handle this before midday.";
-  if (h < 17) return "Close this before end of day.";
-  return "This remains the useful action for today.";
-}
 
 function calmnessLabel(score: number): string {
   if (score >= 88) return "Everything under control";
@@ -670,92 +258,10 @@ function teamSignal(state: ZoneState): SignalCopy {
   return { value: "No team signal", detail: "Team capacity data is not available." };
 }
 
-function domainSignal(domain: string, state: ZoneState): SignalCopy {
-  if (domain === "client" || domain === "approval") return clientSignal(state);
-  if (domain === "finance") return financeSignal(state);
-  if (domain === "project") return projectSignal(state);
-  if (domain === "team") return teamSignal(state);
-  return officeSignal(state);
-}
-
-function preparedSignal(state: ZoneState, hasAction: boolean): SignalCopy {
-  if (state === "stable" && !hasAction) return { value: "Ready for today", detail: "Everything important is arranged." };
-  if (state === "stable") return { value: "Priorities arranged", detail: "The day has a clear order." };
-  if (state === "watch") return { value: "Review in progress", detail: "The system is processing new updates." };
-  return { value: "Needs review", detail: "Human judgment is recommended before proceeding." };
-}
-
-function forecastSignal(value: number): string {
-  if (value >= 78) return "Action required";
-  if (value >= 58) return "Review recommended";
-  if (value >= 36) return "Watch only";
-  return "Moving normally";
-}
-
-function effortLabel(item: any): string {
-  const steps = Array.isArray(item?.howTo) ? item.howTo.length : 0;
-  if (cognitionState(item?.severity) === "critical") return "Owner attention";
-  if (steps <= 2) return "Quick action";
-  return "Focused review";
-}
-
-function actionOutcome(item: any): string {
-  const source = item?.source ?? "";
-  if (source === "finance") return "Billing can resume and cash-flow pressure should reduce.";
-  if (source === "approval" || source === "client") return "The project team can continue without waiting on the client.";
-  if (source === "team") return "Work moves away from overloaded people and delivery risk reduces.";
-  if (source === "project") return "The project has a clearer recovery path and owner.";
-  return "The office should return to a calmer operating state.";
-}
-
 function cognitionState(severity?: string): ZoneState {
   return severity === "critical" || severity === "friction" || severity === "watch" || severity === "stable" || severity === "inactive"
     ? severity
     : "inactive";
-}
-
-type DashboardInterventionAction =
-  | "complete-overdue-tasks"
-  | "rebalance-team-load"
-  | "clear-stale-approvals"
-  | "settle-overdue-invoices"
-  | "close-critical-notes"
-  | "stabilize-office";
-
-function interventionAction(id?: string): DashboardInterventionAction {
-  if (id === "finance-recovery") return "settle-overdue-invoices";
-  if (id === "approval-escalation") return "clear-stale-approvals";
-  if (id === "project-owner-review") return "complete-overdue-tasks";
-  if (id === "team-load-redistribution") return "rebalance-team-load";
-  if (id === "client-project-causal-chain") return "stabilize-office";
-  return "stabilize-office";
-}
-
-function forecastPct(score: number | undefined, signal = 0): number {
-  const base = score == null ? 50 : 100 - score;
-  return Math.max(4, Math.min(96, Math.round(base + signal)));
-}
-
-function recoveryForecast(score: number, interventions: any[]): number {
-  const lift = interventions
-    .slice(0, 3)
-    .reduce((sum: number, item: any) => sum + Number(item.impactPct ?? 6), 0);
-  return Math.max(score, Math.min(96, Math.round(score + lift)));
-}
-
-function meetingAwareness(meetings: any[]): { label: string; detail: string; state: ZoneState } {
-  const next = meetings[0];
-  if (!next) {
-    return { label: "OPEN", detail: "No meeting lock active", state: "stable" };
-  }
-  const days = Number(next.daysUntil ?? 999);
-  if (days <= 0) {
-    return { label: "FOCUS MODE", detail: `${next.projectRef ?? "Meeting"} today`, state: "watch" };
-  }
-  if (days === 1) {
-    return { label: "PREP", detail: `${next.projectRef ?? "Meeting"} tomorrow`, state: "watch" };
-  }
-  return { label: "AWARE", detail: `${meetings.length} meeting signals`, state: "stable" };
 }
 
 function domainLabel(domain?: string): string {
@@ -880,97 +386,6 @@ function fallbackCognitiveInterventions(input: {
   }
   const rank = { critical: 3, friction: 2, watch: 1 };
   return items.sort((a, b) => rank[b.severity as keyof typeof rank] - rank[a.severity as keyof typeof rank] || b.impactPct - a.impactPct).slice(0, 6);
-}
-
-function CognitiveAskAi() {
-  const [prompt, setPrompt] = useState("");
-  const [answer, setAnswer] = useState("");
-  const generate = trpc.ai.generate.useMutation({
-    onSuccess: (res) => setAnswer(res.output),
-    onError: (err) => setAnswer(`Could not answer: ${err.message}`),
-  });
-
-  function submit(e?: FormEvent) {
-    e?.preventDefault();
-    const q = prompt.trim();
-    if (!q || generate.isPending) return;
-    setAnswer("");
-    generate.mutate({ kind: "SUMMARY", mode: "agent", prompt: q });
-  }
-
-  return (
-    <form className="esti-cognitive-ask" onSubmit={submit}>
-      <TextInput
-        id="aorms-dashboard-ask-ai"
-        labelText="Ask AORMS AI"
-        hideLabel
-        size="sm"
-        placeholder="Ask why a project is delayed, who is overloaded, or which client is blocking billing"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        disabled={generate.isPending}
-      />
-      <Button
-        type="submit"
-        size="sm"
-        kind="primary"
-        renderIcon={Send}
-        iconDescription="Ask"
-        hasIconOnly
-        disabled={!prompt.trim() || generate.isPending}
-      />
-      {(generate.isPending || answer) && (
-        <div className="esti-cognitive-ask__answer">
-          {generate.isPending ? <InlineLoading description="Thinking..." /> : answer}
-        </div>
-      )}
-    </form>
-  );
-}
-
-function CognitiveEvidence({
-  title,
-  empty,
-  items,
-}: {
-  title: string;
-  empty: string;
-  items: Array<{ ref: string; val?: string; tag?: string; state?: ZoneState; href?: string; act?: boolean }>;
-}) {
-  return (
-    <div className="esti-cognitive-evidence">
-      <div className="esti-cognitive-section-title">{title}</div>
-      {items.length === 0 ? (
-        <div className="esti-detail-empty">
-          <GeoMark sm glyph="●" /> {empty}
-        </div>
-      ) : items.slice(0, 5).map((item, i) => {
-        const content = (
-          <>
-            <span className="esti-detail-item__ref">
-              <GeoMark sm glyph={shapeFor(item.state)} />{" "}
-              {item.ref}
-            </span>
-            {item.val && <span className="esti-detail-item__val">{item.val}</span>}
-            {item.tag && (
-              <span className="esti-detail-item__tag" style={{ color: "var(--cds-text-secondary)" }}>
-                {item.tag}
-              </span>
-            )}
-          </>
-        );
-        return item.href ? (
-          <Link key={`${item.ref}-${i}`} to={item.href} className="esti-detail-item esti-detail-item--link">
-            {content}
-          </Link>
-        ) : (
-          <div key={`${item.ref}-${i}`} className="esti-detail-item">
-            {content}
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 // ── OVERVIEW TAB — cognitive command flow ────────────────────────────────────
@@ -1512,7 +927,6 @@ function ScreenActivity() {
     />
   );
 }
-
 
 // ── WORK QUEUE TAB ────────────────────────────────────────────────────────────
 
