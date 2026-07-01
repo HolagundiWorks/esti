@@ -85,9 +85,18 @@ app.addHook("onRequest", (req, reply, done) => {
       .header("access-control-allow-credentials", "true")
       .header("vary", "Origin");
     if (req.method === "OPTIONS") {
+      // Reflect the browser's requested headers so anything the SPA attaches
+      // (content-type, authorization, x-request-id) clears preflight — the origin
+      // is already allow-listed above. Fall back to the known set when absent.
+      const reqHeaders = req.headers["access-control-request-headers"];
       void reply
         .header("access-control-allow-methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
-        .header("access-control-allow-headers", "content-type,authorization")
+        .header(
+          "access-control-allow-headers",
+          typeof reqHeaders === "string" && reqHeaders.length > 0
+            ? reqHeaders
+            : "content-type,authorization,x-request-id",
+        )
         .header("access-control-max-age", "600")
         .code(204)
         .send();
