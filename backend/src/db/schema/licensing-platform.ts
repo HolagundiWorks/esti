@@ -3,6 +3,7 @@
 // const names collide with ESTI's; the licensing modules import tables from here directly.
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -205,6 +206,41 @@ export const licenseEvents = pgTable("hlp_license_event", {
   meta: jsonb("meta").$type<Record<string, unknown>>(),
   at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/**
+ * Portable certification earned by a **person** (keyed to `hlp_account.public_id`,
+ * the AORMS-U handle). Visible across every company the person joins; the record
+ * stays owned by the individual.
+ */
+export const certifications = pgTable(
+  "hlp_certification",
+  {
+    id: text("id").primaryKey(),
+    accountPublicId: text("account_public_id").notNull(),
+    title: text("title").notNull(),
+    issuer: text("issuer"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }),
+    evidenceKey: text("evidence_key"),
+    status: text("status").notNull().default("ACTIVE"), // ACTIVE | REVOKED
+    createdAt,
+  },
+  (t) => ({ accountIdx: index("hlp_certification_account_idx").on(t.accountPublicId) }),
+);
+
+/** Portable growth / learning signal accruing to a person (ASPRF, LXOS, …). */
+export const growthEvents = pgTable(
+  "hlp_growth_event",
+  {
+    id: text("id").primaryKey(),
+    accountPublicId: text("account_public_id").notNull(),
+    kind: text("kind").notNull(),
+    value: jsonb("value").$type<Record<string, unknown>>().default({}).notNull(),
+    /** The company (AORMS-C) the signal came from, when relevant. */
+    orgPublicId: text("org_public_id"),
+    at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({ accountIdx: index("hlp_growth_event_account_idx").on(t.accountPublicId) }),
+);
 
 /** Per-product machine keys for the Product License API (`/v1`). */
 export const apiKeys = pgTable(

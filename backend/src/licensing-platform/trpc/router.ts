@@ -1,4 +1,5 @@
 import { apiKeysRouter } from "../modules/admin/apiKeys.js";
+import { certificationsRouter } from "../modules/admin/certifications.js";
 import { licensesRouter } from "../modules/admin/licenses.js";
 import { orgsRouter } from "../modules/admin/orgs.js";
 import { productsRouter } from "../modules/admin/products.js";
@@ -14,6 +15,7 @@ export const appRouter = router({
     products: productsRouter,
     licenses: licensesRouter,
     apiKeys: apiKeysRouter,
+    certifications: certificationsRouter,
   }),
 });
 

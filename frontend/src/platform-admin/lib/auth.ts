@@ -122,6 +122,35 @@ export function leaveCompany(company: string): Promise<Me & { error?: string }> 
   return postMe("/platform/auth/leave-company", { company });
 }
 
+export interface Certification {
+  id: string;
+  title: string;
+  issuer: string | null;
+  issuedAt: string | null;
+  evidenceKey: string | null;
+  status: string;
+}
+
+export interface GrowthEvent {
+  id: string;
+  kind: string;
+  value: Record<string, unknown>;
+  orgPublicId: string | null;
+  at: string;
+}
+
+export interface Credentials {
+  certifications: Certification[];
+  growth: GrowthEvent[];
+}
+
+export async function fetchCredentials(): Promise<Credentials> {
+  const r = await fetch("/platform/auth/my-credentials", { credentials: "include" });
+  if (!r.ok) return { certifications: [], growth: [] };
+  const j = (await r.json()) as Partial<Credentials>;
+  return { certifications: j.certifications ?? [], growth: j.growth ?? [] };
+}
+
 export function register(input: {
   email: string;
   password: string;

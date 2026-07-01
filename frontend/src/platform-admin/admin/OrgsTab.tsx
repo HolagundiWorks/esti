@@ -3,6 +3,8 @@ import {
   Button,
   InlineNotification,
   Modal,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -38,6 +40,11 @@ export default function OrgsTab() {
   const [members, setMembers] = useState<Members>([]);
   const [inviteEmail, setInviteEmail] = useState("");
   const [memberError, setMemberError] = useState<string | null>(null);
+  // Issue a portable certification to a member.
+  const [certWho, setCertWho] = useState("");
+  const [certTitle, setCertTitle] = useState("");
+  const [certIssuer, setCertIssuer] = useState("");
+  const [certNote, setCertNote] = useState<string | null>(null);
 
   async function load() {
     setOrgs(await trpc.admin.orgs.list.query());
@@ -74,6 +81,25 @@ export default function OrgsTab() {
       setMemberError((e as Error).message);
     }
   }
+
+  async function issueCert() {
+    setCertNote(null);
+    if (!certWho || !certTitle) return;
+    try {
+      await trpc.admin.certifications.issue.mutate({
+        accountPublicId: certWho,
+        title: certTitle,
+        issuer: certIssuer || undefined,
+      });
+      setCertTitle("");
+      setCertIssuer("");
+      setCertNote("Certification issued.");
+    } catch (e) {
+      setCertNote((e as Error).message);
+    }
+  }
+
+  const certifiable = members.filter((m) => m.publicId);
 
   async function create() {
     setError(null);
@@ -231,6 +257,43 @@ export default function OrgsTab() {
               lowContrast
             />
           )}
+
+          <Stack gap={3}>
+            <h4 className="esti-label">Issue a certification</h4>
+            <Stack gap={3} orientation="horizontal">
+              <Select
+                id="cert-who"
+                labelText="To member"
+                value={certWho}
+                onChange={(e) => setCertWho(e.target.value)}
+              >
+                <SelectItem value="" text="Select a member…" />
+                {certifiable.map((m) => (
+                  <SelectItem key={m.accountId} value={m.publicId ?? ""} text={m.email} />
+                ))}
+              </Select>
+              <TextInput
+                id="cert-title"
+                labelText="Title"
+                placeholder="Registered Architect"
+                value={certTitle}
+                onChange={(e) => setCertTitle(e.target.value)}
+              />
+              <TextInput
+                id="cert-issuer"
+                labelText="Issuer (optional)"
+                placeholder="Council of Architecture"
+                value={certIssuer}
+                onChange={(e) => setCertIssuer(e.target.value)}
+              />
+              <Button kind="tertiary" disabled={!certWho || !certTitle} onClick={issueCert}>
+                Issue
+              </Button>
+            </Stack>
+            {certNote && (
+              <InlineNotification kind="info" title="Certification" subtitle={certNote} lowContrast />
+            )}
+          </Stack>
         </Stack>
       </Modal>
     </Stack>

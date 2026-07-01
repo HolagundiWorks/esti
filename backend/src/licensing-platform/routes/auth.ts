@@ -22,6 +22,7 @@ import {
   joinCompany,
   leaveCompany,
 } from "../modules/membership/service.js";
+import { listCertifications, listGrowth } from "../modules/portable/service.js";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
@@ -120,6 +121,22 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   app.post("/auth/logout", async (_req, reply) => {
     clearSession(reply);
     return { ok: true };
+  });
+
+  // --- The signed-in person's portable credentials (certs + growth), AORMS-U keyed ---
+  app.get("/auth/my-credentials", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { certifications: [], growth: [] };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account?.publicId) return { certifications: [], growth: [] };
+    const [certifications, growth] = await Promise.all([
+      listCertifications(account.publicId),
+      listGrowth(account.publicId),
+    ]);
+    return { certifications, growth };
   });
 
   // --- Step 1: resolve the company (tenant) from what the person typed ---
