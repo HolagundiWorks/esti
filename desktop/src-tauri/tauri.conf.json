@@ -16,16 +16,24 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/esti-backend"],
-    "resources": ["resources/backend/**/*"],
+    "externalBin": [
+      "binaries/esti-backend"
+    ],
+    "resources": [
+      "resources/backend/**/*"
+    ],
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
       "nsis": {
         "installMode": "currentUser"
       }
