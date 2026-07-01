@@ -22,6 +22,7 @@ export default function OrgsTab() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
+  const [loginDomain, setLoginDomain] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -38,11 +39,13 @@ export default function OrgsTab() {
         name,
         slug: slug || undefined,
         billingEmail: email || undefined,
+        loginDomain: loginDomain || undefined,
       });
       setOpen(false);
       setName("");
       setSlug("");
       setEmail("");
+      setLoginDomain("");
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -59,6 +62,7 @@ export default function OrgsTab() {
           <TableRow>
             <TableHeader>Name</TableHeader>
             <TableHeader>AORMS ID</TableHeader>
+            <TableHeader>Login domain</TableHeader>
             <TableHeader>Slug</TableHeader>
             <TableHeader>Billing email</TableHeader>
           </TableRow>
@@ -68,6 +72,7 @@ export default function OrgsTab() {
             <TableRow key={o.id}>
               <TableCell>{o.name}</TableCell>
               <TableCell>{o.publicId ?? "—"}</TableCell>
+              <TableCell>{o.loginDomain ?? "—"}</TableCell>
               <TableCell>{o.slug}</TableCell>
               <TableCell>{o.billingEmail ?? "—"}</TableCell>
             </TableRow>
@@ -97,6 +102,14 @@ export default function OrgsTab() {
             labelText="Billing email (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextInput
+            id="org-login-domain"
+            labelText="Login domain (optional)"
+            placeholder="acme.in"
+            helperText="Lets members sign in by typing this domain at Step 1."
+            value={loginDomain}
+            onChange={(e) => setLoginDomain(e.target.value)}
           />
           {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast />}
         </Stack>

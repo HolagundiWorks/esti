@@ -26,6 +26,8 @@ export const orgsRouter = router({
         name: z.string().min(1),
         slug: z.string().optional(),
         billingEmail: z.string().email().optional(),
+        /** Company login domain for tenant-first Step-1 (e.g. acme.in). */
+        loginDomain: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -36,6 +38,7 @@ export const orgsRouter = router({
         .where(eq(schema.organizations.slug, slug))
         .limit(1);
       if (clash) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+      const loginDomain = input.loginDomain?.trim().toLowerCase().replace(/^@/, "") || null;
       const [created] = await db
         .insert(schema.organizations)
         .values({
@@ -44,6 +47,7 @@ export const orgsRouter = router({
           name: input.name,
           slug,
           billingEmail: input.billingEmail ?? null,
+          loginDomain,
         })
         .returning();
       return created!;

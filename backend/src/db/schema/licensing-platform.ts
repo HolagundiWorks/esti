@@ -51,6 +51,10 @@ export const organizations = pgTable(
     publicId: text("public_id"),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    /** Optional company login domain (e.g. acme.in) — Step-1 tenant resolution. Unique when set. */
+    loginDomain: text("login_domain"),
+    /** Optional alternate Step-1 handle (a company contact email). */
+    loginEmail: text("login_email"),
     billingEmail: text("billing_email"),
     ownerAccountId: text("owner_account_id").references(() => accounts.id),
     createdAt,
@@ -59,6 +63,7 @@ export const organizations = pgTable(
   (t) => ({
     slugIdx: uniqueIndex("hlp_organization_slug_idx").on(t.slug),
     publicIdIdx: uniqueIndex("hlp_organization_public_id_idx").on(t.publicId),
+    loginDomainIdx: uniqueIndex("hlp_organization_login_domain_idx").on(t.loginDomain),
   }),
 );
 

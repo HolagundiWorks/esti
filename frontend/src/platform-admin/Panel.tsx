@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
-import { Button, InlineNotification, Loading, Stack, Tag, Theme } from "@carbon/react";
+import {
+  Button,
+  Dropdown,
+  InlineNotification,
+  Loading,
+  Stack,
+  Tag,
+  Theme,
+} from "@carbon/react";
 import Login from "./Login";
 import AdminApp from "./admin/AdminApp";
-import { fetchMe, logout, type Account } from "./lib/auth";
+import { fetchMe, logout, switchCompany, type Me, type Membership } from "./lib/auth";
 
 function backToSite() {
   window.location.hash = "";
 }
 
 export default function Panel() {
-  const [account, setAccount] = useState<Account | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMe().then((a) => {
-      setAccount(a);
+    fetchMe().then((m) => {
+      setMe(m);
       setLoading(false);
     });
   }, []);
@@ -29,12 +37,20 @@ export default function Panel() {
     );
   }
 
-  if (!account) return <Login onLogin={setAccount} />;
+  const account = me?.account ?? null;
+  if (!account) return <Login onLogin={setMe} />;
 
   async function handleLogout() {
     await logout();
-    setAccount(null);
+    setMe(null);
   }
+
+  async function handleSwitch(company: string) {
+    const next = await switchCompany(company);
+    if (next.account) setMe(next);
+  }
+
+  const memberships = me?.memberships ?? [];
 
   return (
     <Theme theme="g100">
@@ -58,6 +74,28 @@ export default function Panel() {
               Sign out
             </Button>
           </Stack>
+
+          {memberships.length > 0 && (
+            <div style={{ maxWidth: "20rem" }}>
+              <Dropdown
+                id="active-company"
+                titleText="Active company"
+                label="Select a company"
+                size="sm"
+                items={memberships}
+                selectedItem={
+                  memberships.find((m) => m.org.publicId === me?.activeOrg?.publicId) ?? null
+                }
+                itemToString={(m: Membership | null) =>
+                  m ? `${m.org.name}${m.org.publicId ? ` (${m.org.publicId})` : ""}` : ""
+                }
+                onChange={({ selectedItem }: { selectedItem: Membership | null }) => {
+                  const handle = selectedItem?.org.publicId ?? selectedItem?.org.slug;
+                  if (handle) void handleSwitch(handle);
+                }}
+              />
+            </div>
+          )}
 
           {account.isPlatformAdmin ? (
             <AdminApp />

@@ -8,14 +8,46 @@ export interface Account {
   isPlatformAdmin: boolean;
 }
 
+/** A company (tenant) handle as surfaced to the login UI + switcher. */
+export interface OrgHandle {
+  publicId: string | null;
+  name: string;
+  slug: string;
+}
+
+export interface Membership {
+  org: OrgHandle;
+  role: string;
+}
+
+/** The `me` view: person + active company + every company they can enter. */
+export interface Me {
+  account: Account | null;
+  activeOrg: OrgHandle | null;
+  memberships: Membership[];
+}
+
+/** Step-1 resolution of a typed company handle. */
+export type CompanyResolution =
+  | { mode: "admin" }
+  | { mode: "company"; org: OrgHandle }
+  | { mode: "not_found" };
+
 export interface AuthResult {
   account: Account | null;
   /** Set when the flow began from a product "Create account" — navigate here. */
   redirect: string | null;
+  activeOrg: OrgHandle | null;
   error: string | null;
 }
 
-type AuthBody = { ok?: boolean; account?: Account | null; redirect?: string | null; error?: string };
+type AuthBody = {
+  ok?: boolean;
+  account?: Account | null;
+  redirect?: string | null;
+  activeOrg?: OrgHandle | null;
+  error?: string;
+};
 
 async function postAuth(path: string, body: unknown): Promise<AuthResult> {
   const r = await fetch(path, {
@@ -25,15 +57,47 @@ async function postAuth(path: string, body: unknown): Promise<AuthResult> {
     body: JSON.stringify(body),
   });
   const j = (await r.json().catch(() => ({}))) as AuthBody;
-  if (!r.ok) return { account: null, redirect: null, error: j.error ?? "request_failed" };
-  return { account: j.account ?? null, redirect: j.redirect ?? null, error: null };
+  if (!r.ok)
+    return { account: null, redirect: null, activeOrg: null, error: j.error ?? "request_failed" };
+  return {
+    account: j.account ?? null,
+    redirect: j.redirect ?? null,
+    activeOrg: j.activeOrg ?? null,
+    error: null,
+  };
 }
 
-export async function fetchMe(): Promise<Account | null> {
+const EMPTY_ME: Me = { account: null, activeOrg: null, memberships: [] };
+
+export async function fetchMe(): Promise<Me> {
   const r = await fetch("/platform/auth/me", { credentials: "include" });
-  if (!r.ok) return null;
-  const j = (await r.json()) as { account: Account | null };
-  return j.account ?? null;
+  if (!r.ok) return EMPTY_ME;
+  const j = (await r.json()) as Partial<Me>;
+  return { account: j.account ?? null, activeOrg: j.activeOrg ?? null, memberships: j.memberships ?? [] };
+}
+
+/** Step 1: resolve what the person typed into the tenant to sign in under. */
+export async function resolveCompany(company: string): Promise<CompanyResolution> {
+  const r = await fetch("/platform/auth/resolve-company", {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ company }),
+  });
+  if (!r.ok) return { mode: "not_found" };
+  return (await r.json()) as CompanyResolution;
+}
+
+export async function switchCompany(company: string): Promise<Me> {
+  const r = await fetch("/platform/auth/switch-company", {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ company }),
+  });
+  if (!r.ok) return EMPTY_ME;
+  const j = (await r.json()) as Partial<Me>;
+  return { account: j.account ?? null, activeOrg: j.activeOrg ?? null, memberships: j.memberships ?? [] };
 }
 
 export function register(input: {
@@ -44,8 +108,8 @@ export function register(input: {
   return postAuth("/platform/auth/register", input);
 }
 
-export function login(email: string, password: string): Promise<AuthResult> {
-  return postAuth("/platform/auth/login", { email, password });
+export function login(email: string, password: string, company?: string): Promise<AuthResult> {
+  return postAuth("/platform/auth/login", { email, password, company });
 }
 
 export async function devLogin(email: string): Promise<Account | null> {

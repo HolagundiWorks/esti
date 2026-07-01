@@ -1,6 +1,6 @@
 # AORMS Identity — account model & login
 
-> **Status:** in build — **I-1 (portable IDs) shipped**; I-2…I-5 pending. Owner: Holagundi.
+> **Status:** in build — **I-1 (portable IDs) + I-2 (tenant-first login) shipped**; I-3…I-5 pending. Owner: Holagundi.
 > Delivery: phased to `main`, each phase additive so existing logins keep working.
 > Desktop stays offline-capable (hybrid: online identity, locally-cached session).
 > Supersedes the ad-hoc split between
@@ -164,7 +164,7 @@ logins keep working during the transition (the two-step UI wraps the existing au
 | Phase | Scope |
 |---|---|
 | **I-1 — IDs** ✅ | `public_id` on `hlp_account`/`hlp_organization` (`AORMS-U/C-`), generator (`newPublicId`, Crockford base32), backfill (migration 0132), surfaced in the platform-admin console (account chip + Organizations table). *Profile/Company display arrives with the I-5 firm-user projection.* |
-| **I-2 — Tenant-first login** | Step-1 company resolver (domain/email/id) + `aorms.in`→admin branch; Step-2 user login with membership check; session scoped to (account, org). Wraps existing auth. |
+| **I-2 — Tenant-first login** ✅ | Step-1 company resolver (`resolveCompany`: `AORMS-C-` handle / company login-domain / slug, `aorms.in`+admin-email → admin branch) at `POST /platform/auth/resolve-company`; Step-2 `POST /platform/auth/login` takes an optional `company` and, for a customer tenant, requires a verified `hlp_org_member` membership; the `hlp_session` cookie is scoped to `(account, org)`; `/switch-company` + a Panel company switcher for the active tenant. Migration 0133 adds `login_domain`/`login_email`; org create sets the login domain. **Additive** — omitting `company` keeps the legacy single-step platform-admin login. |
 | **I-3 — Company + personal sign-up** | Company create (domain + owner); personal create + **activate into company** (`hlp_org_member` status); leave/re-activate. |
 | **I-4 — Portable certs/growth** | `hlp_certification` + `hlp_growth_event` keyed to `AORMS-U-id`; Profile shows them across companies; wire ASPRF/LXOS. |
 | **I-5 — Firm-user projection** | `esti_user.account_public_id`; activation creates/links the firm user; company switcher. |

@@ -13,6 +13,11 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL ?? "postgres://esti:esti@localhost:5432/esti",
   FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173",
   PLATFORM_ADMIN_EMAILS: list("PLATFORM_ADMIN_EMAILS"),
+  /** Company handles that route Step-1 to the platform-admin login (the AORMS team). */
+  PLATFORM_ADMIN_DOMAINS: (() => {
+    const v = list("PLATFORM_ADMIN_DOMAINS");
+    return v.length ? v : ["aorms.in"];
+  })(),
   DEV_LOGIN: process.env.DEV_LOGIN === "1",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",

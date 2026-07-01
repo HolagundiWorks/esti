@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { env } from "../env.js";
-import { clearSession, readSession, writeSession } from "../lib/session.js";
+import { clearSession, readSession, type SessionData, writeSession } from "../lib/session.js";
 import {
   getAccountById,
   loginWithPassword,
@@ -9,6 +9,31 @@ import {
   type AccountView,
 } from "../modules/auth/service.js";
 import { provisionTrial } from "../modules/onboarding/service.js";
+import {
+  type OrgHandle,
+  membership,
+  membershipsFor,
+  orgHandleById,
+  orgIdFromHandle,
+  resolveCompany,
+} from "../modules/auth/tenant.js";
+
+/** The `me` view: the person + their active company + every company they can enter. */
+interface MeView {
+  account: AccountView;
+  activeOrg: OrgHandle | null;
+  memberships: Array<{ org: OrgHandle; role: string }>;
+}
+
+async function buildMe(s: SessionData): Promise<MeView | null> {
+  const account = await getAccountById(s.accountId);
+  if (!account) return null;
+  const [activeOrg, memberships] = await Promise.all([
+    s.orgId ? orgHandleById(s.orgId) : Promise.resolve(null),
+    membershipsFor(s.accountId),
+  ]);
+  return { account, activeOrg, memberships };
+}
 
 const ONBOARD_COOKIE = "hlp_onboard";
 const isProd = process.env.NODE_ENV === "production";
@@ -76,20 +101,54 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const s = readSession(req);
     if (!s) {
       reply.code(401);
-      return { account: null };
+      return { account: null, activeOrg: null, memberships: [] };
     }
-    const account = await getAccountById(s.accountId);
-    if (!account) {
+    const me = await buildMe(s);
+    if (!me) {
       clearSession(reply);
       reply.code(401);
-      return { account: null };
+      return { account: null, activeOrg: null, memberships: [] };
     }
-    return { account };
+    return me;
   });
 
   app.post("/auth/logout", async (_req, reply) => {
     clearSession(reply);
     return { ok: true };
+  });
+
+  // --- Step 1: resolve the company (tenant) from what the person typed ---
+  app.post("/auth/resolve-company", async (req, reply) => {
+    const body = req.body as { company?: string } | undefined;
+    const input = body?.company?.trim() ?? "";
+    if (!input) {
+      reply.code(400);
+      return { mode: "not_found" as const };
+    }
+    return resolveCompany(input);
+  });
+
+  // --- Switch the active company (must be a member) ---
+  app.post("/auth/switch-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const input = body?.company?.trim() ?? "";
+    const orgId = input ? await orgIdFromHandle(input) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    if (!(await membership(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_a_member" };
+    }
+    writeSession(reply, s.accountId, orgId);
+    const me = await buildMe({ accountId: s.accountId, orgId });
+    return { ok: true, ...me };
   });
 
   // --- Register with email + password ---
@@ -121,11 +180,14 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     return { ok: true, account, redirect };
   });
 
-  // --- Log in with email + password ---
+  // --- Log in with email + password (optionally company-scoped) ---
+  // `company` is the resolved Step-1 handle. Omitted → the legacy single-step
+  // login (unscoped session), so existing platform-admin sign-in is unchanged.
   app.post("/auth/login", async (req, reply) => {
-    const body = req.body as { email?: string; password?: string } | undefined;
+    const body = req.body as { email?: string; password?: string; company?: string } | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
+    const company = body?.company?.trim() ?? "";
     if (!emailValid(email) || !password) {
       reply.code(400);
       return { error: "invalid_credentials" };
@@ -135,11 +197,36 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(401);
       return { error: "invalid_credentials" };
     }
-    writeSession(reply, account.id);
+
+    // Tenant-first: when a company is named, only the admin branch or a verified
+    // membership may sign in, and the session is scoped to that active company.
+    let orgId: string | undefined;
+    if (company) {
+      const res = await resolveCompany(company);
+      if (res.mode === "not_found") {
+        reply.code(404);
+        return { error: "company_not_found" };
+      }
+      if (res.mode === "company") {
+        const id = await orgIdFromHandle(company);
+        if (!id) {
+          reply.code(404);
+          return { error: "company_not_found" };
+        }
+        if (!(await membership(account.id, id))) {
+          reply.code(403);
+          return { error: "not_a_member" };
+        }
+        orgId = id;
+      }
+      // res.mode === "admin" → unscoped session; the Panel gates on isPlatformAdmin.
+    }
+    writeSession(reply, account.id, orgId);
 
     const intent = takeOnboardIntent(req, reply);
     const redirect = intent ? await buildOnboardRedirect(account, intent.product, intent.ret) : null;
-    return { ok: true, account, redirect };
+    const activeOrg = orgId ? await orgHandleById(orgId) : null;
+    return { ok: true, account, redirect, activeOrg };
   });
 
   // --- Self-serve onboarding (a product's "Create account") ---
