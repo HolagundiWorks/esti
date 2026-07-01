@@ -105,6 +105,48 @@ export const licensesRouter = router({
       return { ok: true };
     }),
 
+  /** Upgrade / downgrade: move a licence to another plan of the same product and
+   *  adopt that plan's seat/device/meter caps. The node picks it up on its next
+   *  licence refresh. */
+  changePlan: platformAdminProcedure
+    .input(z.object({ licenseId: z.string(), planId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const [license] = await db
+        .select()
+        .from(schema.licenses)
+        .where(eq(schema.licenses.id, input.licenseId))
+        .limit(1);
+      if (!license) throw new TRPCError({ code: "NOT_FOUND" });
+      const [plan] = await db
+        .select()
+        .from(schema.plans)
+        .where(eq(schema.plans.id, input.planId))
+        .limit(1);
+      if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "plan not found" });
+      if (plan.productId !== license.productId)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Plan belongs to a different product" });
+      const [fromPlan] = await db
+        .select({ code: schema.plans.code })
+        .from(schema.plans)
+        .where(eq(schema.plans.id, license.planId))
+        .limit(1);
+      await db
+        .update(schema.licenses)
+        .set({
+          planId: plan.id,
+          seats: plan.seats,
+          deviceLimit: plan.deviceLimit,
+          meterLimit: plan.meterLimit,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.licenses.id, license.id));
+      await writeEvent(license.id, "CHANGE_PLAN", ctx.account.email, {
+        from: fromPlan?.code ?? null,
+        to: plan.code,
+      });
+      return { ok: true };
+    }),
+
   /** A single license with its devices + immutable event log. */
   get: platformAdminProcedure
     .input(z.object({ licenseId: z.string() }))
