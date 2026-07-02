@@ -202,7 +202,7 @@ is rebuilding as the Cost Management System.)*
 | Area | Modules | Role |
 |---|---|---|
 | **Home / Work** | `dashboard`, `notifications` (Alerts), `workload`, search | the firm's pulse + my tasks |
-| **Clients & pipeline** | `clients`, `clientLog` (CRM master), `proposals`, `feeProposals` (pre-award) | winning work, *before* it is a project |
+| **Clients & pipeline** | `clients`, `clientLog` (CRM master), `proposals` (unified — absorbed `feeProposals`, migration 0116) | winning work, *before* it is a project |
 | **Practice / Office** | `letters`, `contracts`, document register (office-wide), AI Studio | office documents + cross-project overview |
 | **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
 | **People** *(V3: Studio + Third Parties)* | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`) → Studio; `consultants` + `contractors` **directories** → Third Parties | the firm's roster + capability; engagements live in the project |

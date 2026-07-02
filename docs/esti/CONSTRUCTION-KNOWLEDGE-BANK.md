@@ -90,9 +90,9 @@ These were settled before build so the model is stable:
    integer **paise**, formatted with `formatINR`. Consumption factors, density,
    productivity, and wastage are decimals.
 
-5. **Plan tier.** The Knowledge Bank is a **Core+** feature (a new `knowledgeBank`-class
-   `PlanFeature`); Lite firms don't author it. (The old `rateBooks` feature flag was
-   removed; this replaces that gate.)
+5. **Plan tier.** The Construction Knowledge Bank is a **Pro** feature (a new
+   `knowledgeBank`-class `PlanFeature`); Lite firms don't author it. (The old
+   `rateBooks` feature flag was removed; this replaces that gate.)
 
 6. **Recipe & rate history.** Vendor rates are time-bounded (`effective_from/to`) — the
    engine resolves the *current* rate. Consumption recipes themselves are **versioned by

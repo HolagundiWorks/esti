@@ -131,7 +131,7 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 - ASPRF performance scoring, escalations, leave-impact alerts
 - Contractor register (`contractors`). *(Tender packages, contractor bid portal, sealed bids — **removed** 2026-06-28 with the Construction Cost spine; contractor site coordination (RFI/NCR/submittals, `construction`) — **removed** 2026-06-29 with the consultancy-only teardown. Site supervision — snags/inspections/progress — is kept under Projects.)*
 - **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
-- **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
+- **Universal search** — permission-aware office + Item Library search, lessons register (LXOS)
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
 - **Project Info** — structured project brief questionnaire
 - **Office & project expenses** — cash book and billable project expenses (Accounting nav)

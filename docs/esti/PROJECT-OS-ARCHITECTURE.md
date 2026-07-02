@@ -296,10 +296,11 @@ Extend `esti_feeproposal`:
 - Add `clientApprovedAt` timestamptz
 - Add `approvalNotes` text
 
-tRPC: `feeProposals.setClientApproval` (write-gated). On REJECTED:
+tRPC: `proposals.setClientApproval` (write-gated; lives in the unified `proposals`
+namespace since the `feeProposals` merge, migration 0116). On REJECTED:
 draft project status auto-moves to CANCELLED; lead status auto-moves to LOST.
 
-Frontend: add approval action row in `FeeProposals.tsx` and in the project fee panel.
+Frontend: approval action row in `Proposals.tsx` and in the project fee panel.
 
 ---
 

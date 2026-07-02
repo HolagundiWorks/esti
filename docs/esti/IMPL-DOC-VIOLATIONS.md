@@ -183,6 +183,10 @@ Owner-only.
 
 ## Category E — Documentation Not Updated After Estimation OS Removal
 
+> **Resolved 2026-07-02.** The doc-wide cleanup struck the removed-feature
+> references from every file flagged below (and PLANS-AND-TIERS was rewritten to
+> the Lite/Pro edition model). E-1–E-6 are kept as the historical audit record.
+
 **Background:**  
 `CLAUDE.md` (project instructions, authoritative):
 > The **Estimation OS** (estimates/BOQ, `esti_component`/RuleSet engine,
@@ -263,7 +267,7 @@ The following areas were checked and found to match their documentation:
 | Two-head project model (Consultancy + Project Management) | `ProjectDetail.tsx`, `INFORMATION-ARCHITECTURE.md` §3 | ✅ Conformant |
 | `can(role, capability)` interface | `permissions.ts` | ✅ Matches ACCESS-HIERARCHY §2–§7 |
 | `salary:view` rank in `MIN_RANK` | `permissions.ts:145` | ✅ rank 100 (L1 only) — see D-1 for allow-list override |
-| Plan enum `LITE / CORE / ENTERPRISE` | `plans.ts`, `PLANS-AND-TIERS.md` | ✅ Exact match |
+| Plan enum `LITE / CORE / ENTERPRISE` | `plans.ts`, `PLANS-AND-TIERS.md` | ✅ at audit time — docs since canonicalized to the **Lite/Pro** merge (contracts collapse `LITE/PRO` + `asPlan()` lands via main) |
 | LITE seat caps (staff=3, accountants=0, hrManagers=0) | `plans.ts:46–58` | ✅ Conformant |
 | CORE seat caps (staff=15, accountants=1, hrManagers=1) | `plans.ts:59–70` | ✅ Conformant |
 | `assertPlanFeature()` / `withinQuota()` backend enforcement | `backend/src/lib/plan.ts` | ✅ Conformant |
