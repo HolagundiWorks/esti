@@ -25,19 +25,18 @@ podman compose up -d --build
 # MinIO    → http://localhost:9001 (console)
 ```
 
-> On Windows, build dev images from the **repos parent** (sibling `hcw-*-kit` packages),
-> then start compose:
+> All dev images build from the **repo root** — `@hcw/aorms-ai-kit` is vendored
+> under `vendor/`, so no sibling repos are needed. On Windows:
 > ```sh
 > ./scripts/build-dev-images.ps1
 > podman compose -f compose.yaml up -d
 > ```
 > Or manually:
 > ```sh
-> cd ..   # repos parent (esti + hcw-aorms-ai-kit)
-> podman build -t localhost/esti-backend:dev  -f esti/backend/Dockerfile .
-> podman build -t localhost/esti-worker:dev   -f esti/worker/Dockerfile.dev esti/worker
-> podman build -t localhost/esti-frontend:dev -f esti/frontend/Dockerfile.dev .
-> podman compose -f esti/compose.yaml up -d
+> podman build -t localhost/esti-backend:dev  -f backend/Dockerfile .
+> podman build -t localhost/esti-worker:dev   -f worker/Dockerfile.dev .
+> podman build -t localhost/esti-frontend:dev -f frontend/Dockerfile.dev .
+> podman compose -f compose.yaml up -d
 > ```
 > The backend/frontend mount `src/` from the host, so most code edits are picked
 > up live (`podman restart esti-backend` if a change isn't detected) — no rebuild.

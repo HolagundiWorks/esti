@@ -7,22 +7,17 @@ on:
 
 jobs:
   node:
-    name: TypeScript (contracts · backend · frontend · kits)
+    name: TypeScript (contracts · backend · frontend)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: esti
+    # @hcw/aorms-ai-kit is vendored under vendor/ (resolved by pnpm workspace) —
+    # a single checkout is self-contained. The private sibling-repo checkouts used
+    # to fail here (default token can't read them), which was breaking CI.
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: esti
-      # All HCW kits are vendored under esti/vendor/ (resolved by pnpm workspace) —
-      # no external kit checkouts needed. The private sibling-repo checkouts used to
-      # fail here (default token can't read them), which was breaking CI.
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm, cache-dependency-path: esti/pnpm-lock.yaml }
+        with: { node-version: 20, cache: pnpm }
       - run: pnpm install
       - run: pnpm typecheck
       - run: pnpm lint

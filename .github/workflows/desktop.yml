@@ -39,9 +39,7 @@ jobs:
         run: cargo install tauri-cli --version "^2.0" --locked
 
       - name: Install dependencies (native Windows)
-        # --no-frozen-lockfile: re-resolve after removed workspace deps
-        # (@hcw/carbon-agent-kit, @hcw/master-dsr-kit) so a stale lockfile can't fail the build.
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       - name: Preflight — host buildability
         run: pnpm desktop:doctor

@@ -21,8 +21,8 @@ disk. Everything needed to run is inside this repository.
 pnpm install          # links the workspace package + resolves deps
 ```
 
-The AI kit builds to `dist/` on install. The Podman dev backend image runs an explicit
-`pnpm --filter @hcw/aorms-ai-kit build`.
+The vendored AI kit ships a pre-built `dist/` (committed) — there is no build step.
+All Docker images (dev and prod) copy `vendor/` from the repo-root build context.
 
 ## Dev volume mounts
 
@@ -32,7 +32,8 @@ served in dev.
 
 ## Updating the vendored kit
 
-1. Copy the new release into `vendor/hcw-aorms-ai-kit/` (keep the directory name).
+1. Build the release in the kit repo and copy it (incl. `dist/`) into
+   `vendor/hcw-aorms-ai-kit/` (keep the directory name).
 2. Confirm `vendor/hcw-aorms-ai-kit/package.json` shows the new version.
 3. `pnpm install` at the repo root to re-link.
 4. Rebuild the backend image (compiled SDK).
@@ -43,8 +44,9 @@ committed source.
 
 ## CI
 
-- `pnpm install` resolves the workspace package from `vendor/` (non-frozen).
-- `pnpm --filter @hcw/aorms-ai-kit test` — landing AI unit tests.
+CI uses a **single checkout** — no sibling kit repos are cloned.
+
+- `pnpm install` resolves the workspace package from `vendor/`.
 - `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks.
 - `pnpm --filter @esti/frontend lint` — runs `check-carbon.mjs` (internalised Carbon policy)
   and the `carbon-policy.test.ts` vitest guard.
