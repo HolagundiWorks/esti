@@ -1,6 +1,7 @@
 import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { count, eq, sql, and } from "drizzle-orm";
+import { and, count, eq, gt, sql } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { z } from "zod";
@@ -18,6 +19,7 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
   delegationEnabled,
@@ -245,6 +247,76 @@ export const authRouter = router({
     const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
     return env.DESKTOP ? { ...profile, token } : profile;
   }),
+
+  /**
+   * Self-serve "forgot password" — step 1. Always returns { ok: true } (never
+   * reveals whether the email exists) and only emails a reset link when a
+   * matching, non-disabled login actually exists. Token is stored hashed with a
+   * 1-hour expiry.
+   */
+  requestPasswordReset: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const email = normalizeEmail(input.email);
+      await enforceRateLimit("pwreset-ip", ctx.ip, 5, 300);
+      await enforceRateLimit("pwreset-email", email, 5, 900);
+      const [u] = await ctx.db
+        .select({ id: users.id, disabled: users.disabled })
+        .from(users)
+        .where(emailMatches(users.email, email))
+        .limit(1);
+      if (u && !u.disabled) {
+        const token = randomBytes(24).toString("base64url");
+        const tokenHash = createHash("sha256").update(token).digest("hex");
+        await ctx.db
+          .update(users)
+          .set({
+            passwordResetToken: tokenHash,
+            passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000),
+          })
+          .where(eq(users.id, u.id));
+        const origin = env.ALLOWED_ORIGINS.split(",")[0]?.trim() || "http://localhost:5173";
+        const link = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
+        await sendMail({
+          to: email,
+          subject: "Reset your AORMS password",
+          text: `Reset your AORMS password using this link (valid 1 hour):\n\n${link}\n\nIf you didn't request this, ignore this email.`,
+          html: `<p>Reset your AORMS password using this link (valid 1 hour):</p><p><a href="${link}">Reset my password</a></p><p>If you didn't request this, ignore this email.</p>`,
+        }).catch(() => undefined);
+      }
+      return { ok: true };
+    }),
+
+  /** Self-serve "forgot password" — step 2: consume the token, set a new password. */
+  resetPassword: publicProcedure
+    .input(z.object({ token: z.string().min(1), password: z.string().min(8).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      await enforceRateLimit("pwreset-consume-ip", ctx.ip, 10, 300);
+      const tokenHash = createHash("sha256").update(input.token.trim()).digest("hex");
+      const [u] = await ctx.db
+        .update(users)
+        .set({
+          passwordHash: await hashPassword(input.password),
+          passwordResetToken: null,
+          passwordResetExpires: null,
+        })
+        .where(
+          and(
+            eq(users.passwordResetToken, tokenHash),
+            gt(users.passwordResetExpires, new Date()),
+            eq(users.disabled, false),
+          ),
+        )
+        .returning({ id: users.id });
+      if (!u) throw new TRPCError({ code: "BAD_REQUEST", message: "This reset link is invalid or has expired." });
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: u.id,
+        action: "RESET_PASSWORD_SELF",
+        actorId: u.id,
+      });
+      return { ok: true };
+    }),
 
   /** ESTICAD companion — email/password → bearer token pair (no browser cookie). */
   loginDevice: publicProcedure.input(DeviceLoginInput).mutation(async ({ ctx, input }) => {

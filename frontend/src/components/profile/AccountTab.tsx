@@ -127,7 +127,7 @@ export function AccountTab() {
             </Stack>
           </Form>
           <p className="esti-label esti-label--secondary">
-            Don&apos;t have an account? <RouterLink to="/login?mode=create">Create one</RouterLink>.
+            Don&apos;t have an account? <RouterLink to="/account?mode=create">Create one</RouterLink>.
           </p>
         </Stack>
       </Tile>

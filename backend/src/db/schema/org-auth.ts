@@ -155,6 +155,9 @@ export const users = pgTable("esti_user", {
     .default("ASSOCIATE"),
   passwordHash: text("password_hash"), // null for magic-link-only client users
   totpSecret: text("totp_secret"),
+  // Self-serve password reset — one-shot hashed token + expiry, cleared on use.
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires", { withTimezone: true }),
   disabled: boolean("disabled").notNull().default(false),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),

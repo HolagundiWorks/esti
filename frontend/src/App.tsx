@@ -77,6 +77,8 @@ import { Landing } from "./routes/Landing.js";
 import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
+import { ForgotPassword } from "./routes/ForgotPassword.js";
+import { ResetPassword } from "./routes/ResetPassword.js";
 
 // Build variant gate. The public marketing site (landing, blog, investors, one-click
 // demo) is included only when VITE_PUBLIC_SITE !== "false". Set it to "false" for the
@@ -130,6 +132,8 @@ const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 // Merged Holagundi licensing platform admin (its own Google login + tRPC).
 const PlatformAdmin = lazyRoute(() => import("./platform-admin/Panel.js"), "default");
+// AORMS account + licence portal (hlp_account) — its own hub destination.
+const AccountPortal = lazyRoute(() => import("./routes/AccountPortal.js"), "AccountPortal");
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
@@ -278,6 +282,11 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/download")
     return <Download />;
 
+  // AORMS account + licence portal (hlp_account) — its own hub destination,
+  // independent of any firm workspace session.
+  if (PUBLIC_SITE && pathname === "/account")
+    return <Theme theme="g100"><AccountPortal /></Theme>;
+
   if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
   if (!user)
     return (
@@ -285,6 +294,8 @@ function AppShell() {
         <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
         <Route path="/access" element={<Theme theme="g100"><ExternalLogin /></Theme>} />
         <Route path="/signup" element={<Theme theme="g100"><Signup /></Theme>} />
+        <Route path="/forgot-password" element={<Theme theme="g100"><ForgotPassword /></Theme>} />
+        <Route path="/reset-password" element={<Theme theme="g100"><ResetPassword /></Theme>} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>

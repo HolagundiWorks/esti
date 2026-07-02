@@ -58,11 +58,10 @@ async function buildMe(s: SessionData): Promise<MeView | null> {
 const ONBOARD_COOKIE = "hlp_onboard";
 const isProd = process.env.NODE_ENV === "production";
 
-// The customer account portal is merged into the firm app's own /login page
-// (a "Create account" tab there) — there is no separate /account URL. Only the
-// admin/licensing console (/platform-admin) remains a distinct surface.
-// Onboarding + customer sign-in always land on /login, never the admin console.
-const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/login`;
+// The AORMS account + licence portal has its own hub destination at /account
+// (distinct from the firm workspace /login and the /platform-admin console).
+// Onboarding, email verification, and customer sign-in all land there.
+const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/account`;
 
 /** Mint a verification token and email the confirmation link (best-effort). */
 async function sendEmailVerification(accountId: string, email: string): Promise<void> {
