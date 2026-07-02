@@ -1,4 +1,4 @@
-# ESTI AORMS — Deployment
+# AORMS — Deployment
 
 > **Full step-by-step guide:** [`docs/esti/VPS-INSTALL.md`](../docs/esti/VPS-INSTALL.md)
 > (specs, DNS, swap, prompts, verification, day-2 ops, troubleshooting). This file

@@ -1,4 +1,4 @@
-# ESTI UI Audit — Carbon Design System Violations
+# AORMS UI Audit — Carbon Design System Violations
 
 **Date:** 2026-06-29  
 **Audited by:** Claude Code (automated scan)  

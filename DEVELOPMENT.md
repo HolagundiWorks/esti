@@ -1,6 +1,6 @@
-# ESTI AORMS — Development
+# AORMS — Development
 
-Greenfield monorepo for ESTI, the **Architectural Office Resource Management
+Greenfield monorepo for AORMS, the **Architecture Office Resource Management
 System** by Holagundi Consulting Works. See
 [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 

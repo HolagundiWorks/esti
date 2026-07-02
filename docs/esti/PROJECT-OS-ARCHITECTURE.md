@@ -2,8 +2,8 @@
 
 **Status:** Canonical · **Reviewed:** 2026-06-26 · **Owner:** Holagundi Consulting Works
 
-This document maps the Project OS specification onto ESTI's existing architecture.
-Where the spec conflicts with ESTI law (money in paise, `esti_*` tables,
+This document maps the Project OS specification onto AORMS's existing architecture.
+Where the spec conflicts with AORMS law (money in paise, `esti_*` tables,
 **Pure Carbon only**, existing capability/plan model), **this doc wins**.
 
 ---
@@ -44,9 +44,9 @@ Advance Payment Validated  →  Project Activation  →  Task OS + Cost Manageme
 
 ---
 
-## 3. What ESTI already ships vs what Project OS adds
+## 3. What AORMS already ships vs what Project OS adds
 
-| Pipeline stage | ESTI today | Gap |
+| Pipeline stage | AORMS today | Gap |
 |---|---|---|
 | Lead capture | None — starts at `esti_client` | New `esti_lead` table |
 | Project DNA | Partial — `projectBrief.designPrefs` (JSONB) | New `esti_project_dna` table (structured fields) |
@@ -397,9 +397,9 @@ After `projectOffice.activate`, the following are created automatically:
 
 ---
 
-## 7. Navigation — mapped to ESTI routes
+## 7. Navigation — mapped to AORMS routes
 
-| Project OS surface | ESTI route |
+| Project OS surface | AORMS route |
 |---|---|
 | Leads hub | `/leads` (new) — `Leads.tsx` |
 | Lead detail + DNA capture | `/leads/:id` (new) — `LeadDetail.tsx` |
@@ -469,7 +469,7 @@ Feasibility stays canonical all the way to the site
 | UI | `ProjectProgram.tsx` — "Program" tab in the project workspace: feasibility-envelope KPIs, utilization `ProgressBar`, space table, rollups, freeze + new-version (Pure Carbon) |
 
 Over-allocation vs the feasibility envelope is **advisory** (a warning notification +
-red tag), consistent with ESTI's checker-is-advisory ethos. Ungated (LITE+).
+red tag), consistent with AORMS's checker-is-advisory ethos. Ungated (LITE+).
 
 ### Feasibility-to-site reference (31.3, shipped 2026-06-26)
 

@@ -1,6 +1,6 @@
 # AORMS UI/UX Carbon Audit
 
-_Deep-dive audit of the ESTI/AORMS frontend (`frontend/src/`) against the
+_Deep-dive audit of the AORMS frontend (`frontend/src/`) against the
 **PURE CARBON ONLY** mandate (see `CLAUDE.md`). Grounded by reading `styles.scss`,
 `landing.scss`, `App.tsx`, `main.tsx`, the shared shells
 (`components/dashboard/abstractShell.tsx`, `zoneState.ts`, `dashboardUi.tsx`), the

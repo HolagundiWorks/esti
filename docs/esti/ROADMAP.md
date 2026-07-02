@@ -1,4 +1,4 @@
-# ESTI Implementation Roadmap
+# AORMS Implementation Roadmap
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — large
@@ -147,7 +147,7 @@ notification can be emitted.
 
 ## Product snapshot
 
-ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
+AORMS is **production-engineered through Phase 28** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).
 
 **Live today**
 
@@ -984,7 +984,7 @@ Condensed session notes — detail lives in phase sections above.
 
 Architecture doc: [PROJECT-OS-ARCHITECTURE](PROJECT-OS-ARCHITECTURE.md)
 
-Converts ESTI's flat client→project create flow into a full commercial acquisition
+Converts AORMS's flat client→project create flow into a full commercial acquisition
 pipeline. A project becomes ACTIVE only after: lead qualified → feasibility accepted
 → fee proposal approved → client onboarded → advance payment received. All 11 slices
 extend existing tables or add new ones; no existing procedures were broken. Migration

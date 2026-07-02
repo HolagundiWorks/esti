@@ -62,7 +62,7 @@ Canonical product and engineering docs: **[docs/esti/README.md](docs/esti/README
 
 ## License
 
-ESTI is original software owned by Holagundi Consulting Works. HCW chooses the
+AORMS is original software owned by Holagundi Consulting Works. HCW chooses the
 license — see [docs/esti/LICENSE-NOTICE.md](docs/esti/LICENSE-NOTICE.md).
 
 ## Repository

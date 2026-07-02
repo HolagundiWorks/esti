@@ -1,20 +1,20 @@
-# ESTI Pure Carbon UI Policy
+# AORMS Pure Carbon UI Policy
 
 **Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15
 
-**Carbon agent kit:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after `pnpm install`) — design-intelligence, pattern-library, knowledge index. This document is the **ESTI-specific** enforcement layer only.
+**Carbon agent kit:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after `pnpm install`) — design-intelligence, pattern-library, knowledge index. This document is the **AORMS-specific** enforcement layer only.
 
 **Theme rules 1–8:** `.carbon-kit/knowledge/theme_implementation.md`  
 **Search / refresh:** `pnpm carbon:search` · `pnpm carbon:index`
 
-The ESTI application — **office workspace *and* external/site portals** — uses
+The AORMS application — **office workspace *and* external/site portals** — uses
 only IBM Carbon Design System components, icons, pictograms, charts, layout,
 typography, and design tokens. This is an implementation constraint, not a visual
 suggestion.
 
 ## Scope — Pure Carbon everywhere, mobile-first for portals
 
-**Owner decision, 2026-06-25 (revised, Construction Cost Management OS).** ESTI
+**Owner decision, 2026-06-25 (revised, Construction Cost Management OS).** AORMS
 runs **one design system across all surfaces**. An earlier same-day exception that
 would have used **Material Design 3 / MUI** for external/site portals was
 **retired**: there is no second component library, and **no `@mui/*` / `@emotion`
@@ -124,7 +124,7 @@ Always use `<Grid fullWidth>` at the page root to reach the shell edges.
 ### Column widths
 
 Use the 16-column (lg), 8-column (md), 4-column (sm) breakpoints. Common
-patterns for ESTI screens:
+patterns for AORMS screens:
 
 | Content | lg | md | sm |
 |---|---|---|---|

@@ -4,7 +4,7 @@
 
 This guide defines how HOLAGUNDI Architects welcomes a new client, collects
 pre-design information, and prepares the project for the **Initiation & Brief**
-stage in ESTI AORMS.
+stage in AORMS.
 
 The master data-capture form is the [Pre-Design Questionnaire](PROJECT-BRIEFING.md#pre-design-questionnaire)
 in `PROJECT-BRIEFING.md`.
@@ -25,7 +25,7 @@ Onboarding is **not** statutory approval, tendering, or construction administrat
 
 ## When to use
 
-| Stage | ESTI phase | Onboarding activity |
+| Stage | AORMS phase | Onboarding activity |
 | --- | --- | --- |
 | Enquiry received | — | Create client record; log first communication |
 | Fee discussion | — | Draft fee proposal; share COA scope |
@@ -41,7 +41,7 @@ Send the questionnaire **after** the client accepts the proposal in principle an
 
 ```mermaid
 flowchart LR
-  A[Enquiry] --> B[Client record in ESTI]
+  A[Enquiry] --> B[Client record in AORMS]
   B --> C[Fee proposal and COA scope]
   C --> D[Letter of appointment]
   D --> E[Pre-design questionnaire]
@@ -72,7 +72,7 @@ flowchart LR
 1. Send the client the questionnaire from [PROJECT-BRIEFING.md](PROJECT-BRIEFING.md#pre-design-questionnaire).
 2. Preferred delivery:
    - **PDF or print** for in-person briefing (recommended for first residential projects).
-   - **Editable document** returned by email; staff transcribe into ESTI.
+   - **Editable document** returned by email; staff transcribe into AORMS.
    - **Briefing meeting** — walk through sections 1–11 together; complete room templates (sections 12+) in a second session if needed.
 3. Set expectation: incomplete sections delay Concept Design; critical gaps (site dimensions, budget, occupant count, Vastu stance) must be filled before brief sign-off.
 
@@ -100,7 +100,7 @@ Record discrepancies in the project **internal notes** and update the questionna
 
 Follow [PROJECT-BRIEFING.md — Compiling the design brief](PROJECT-BRIEFING.md#compiling-the-design-brief).
 
-Store the approved brief in ESTI using the [PROJECT-BRIEFING ESTI mapping](PROJECT-BRIEFING.md#esti-mapping):
+Store the approved brief in AORMS using the [PROJECT-BRIEFING AORMS mapping](PROJECT-BRIEFING.md#aorms-mapping):
 
 - **Project Info** tab — questionnaire sections §1–§11, assumptions, and client approval note.
 - **Appointment → scope summary** — executive summary for proposals.
@@ -119,7 +119,7 @@ Use this checklist before closing onboarding:
 - [ ] Site address distinct from correspondence address if different
 - [ ] Fee proposal issued and accepted
 - [ ] Letter of appointment signed
-- [ ] Appointment phase marked complete in ESTI
+- [ ] Appointment phase marked complete in AORMS
 - [ ] Pre-design questionnaire returned (all mandatory sections)
 - [ ] Site visit completed; site notes reconciled with form
 - [ ] Occupant and staff table completed
@@ -138,22 +138,22 @@ Use this checklist before closing onboarding:
 | --- | --- |
 | **Owner / Partner** | Appointment, fee acceptance, brief sign-off |
 | **Senior architect** | Questionnaire review, briefing meeting, design brief authorship |
-| **Associate** | Transcription into ESTI, room template collation, site visit notes |
+| **Associate** | Transcription into AORMS, room template collation, site visit notes |
 | **Admin** | Client record, questionnaire dispatch, appointment scheduling |
 
 ---
 
 ## Privacy and records
 
-- Questionnaires contain personal and financial data — restrict to project team and **STAFF** visibility in ESTI.
+- Questionnaires contain personal and financial data — restrict to project team and **STAFF** visibility in AORMS.
 - Do not share one client’s preferences or budget with other clients or contractors.
 - Retain signed questionnaires with the project archive per firm retention policy.
 
 ---
 
-## Related ESTI locations
+## Related AORMS locations
 
-| Onboarding artefact | ESTI module |
+| Onboarding artefact | AORMS module |
 | --- | --- |
 | Client identity | **Clients** |
 | First contact | Client **communication log** |

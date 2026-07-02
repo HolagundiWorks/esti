@@ -1,6 +1,6 @@
 # Org mode and Team / HR archive
 
-How ESTI distinguishes **solo practice** from **studio (team)** operation in production,
+How AORMS distinguishes **solo practice** from **studio (team)** operation in production,
 and how demo workspaces are kept separate.
 
 Related: [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) · [PRD](PRD.md) · [ROADMAP](ROADMAP.md)
@@ -36,7 +36,7 @@ Turning Team & HR **off** is allowed **only when no team-module records exist**:
 - No attendance register entries, leaves, or reward points, **and**
 - Project assignments involve at most one person
 
-In that case ESTI maps open tasks to the principal and sets solo mode — no snapshot required.
+In that case AORMS maps open tasks to the principal and sets solo mode — no snapshot required.
 
 ### 3. Archive required (real studio downgrade)
 
@@ -95,7 +95,7 @@ The Company settings page no longer exposes a switch to disable Team & HR.
 
 ## HR time tracking (architecture firms)
 
-Indian architecture studios track **daily attendance** (present / absent / WFH / half-day), not hourly project timesheets or agile stand-ups. ESTI reflects this:
+Indian architecture studios track **daily attendance** (present / absent / WFH / half-day), not hourly project timesheets or agile stand-ups. AORMS reflects this:
 
 | Removed from product | Replaced with |
 | -------------------- | ------------- |

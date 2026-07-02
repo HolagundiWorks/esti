@@ -1,10 +1,10 @@
-# ESTI System Architecture
+# AORMS System Architecture
 
 **Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
 
 ## System Shape
 
-ESTI is a single-firm, India-first application:
+AORMS is a single-firm, India-first application:
 
 ```text
 Carbon React SPA
@@ -108,7 +108,7 @@ only minimal colourless structural CSS is permitted. See
 
 ### Contextual Collaboration
 
-Communication is attached to domain objects through activity and comments. ESTI
+Communication is attached to domain objects through activity and comments. AORMS
 does not implement an unrelated general chat service. Portal writes create
 normal domain records and pass the same authorization, state, audit, and
 notification rules as internal writes.

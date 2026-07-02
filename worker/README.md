@@ -1,4 +1,4 @@
-# ESTI AORMS — Python worker
+# AORMS — Python worker
 
 Consumes the Redis Streams job bus (`esti:jobs`) published by the TypeScript
 backend and runs the document/data-heavy jobs where Python is strongest:

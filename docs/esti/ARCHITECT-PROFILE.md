@@ -1,4 +1,4 @@
-# ESTI Architect Practice Profile
+# AORMS Architect Practice Profile
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — any
@@ -9,7 +9,7 @@
 
 **Status:** Canonical module registry · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-18
 
-This document maps ESTI requirements to modules. Delivery status and sequence
+This document maps AORMS requirements to modules. Delivery status and sequence
 are authoritative only in [ROADMAP](ROADMAP.md). Long-term scope discipline is in
 [STABILITY-CHARTER](STABILITY-CHARTER.md).
 
@@ -71,7 +71,7 @@ lifecycle status and stage status are separate. Statutory **permit** records
 The in-product compliance engine — Knowledge Bank jurisdiction rule versions, the
 Compliance module, deterministic development-control calculations (ground
 coverage / FAR / setbacks), and compliance PDFs — was **removed** in the 2026-06
-cleanup. ESTI keeps no bylaw/FAR/setback calculator and never claimed live
+cleanup. AORMS keeps no bylaw/FAR/setback calculator and never claimed live
 statutory-compliance tracking or authority-portal polling. The regulatory
 surfaces that remain are statutory **permit** records (`permits`) and **GST/TDS**
 filing abstracts (`reports`).
@@ -102,7 +102,7 @@ Audit, activity, comments, and notifications are related but not interchangeable
 
 Contractor capabilities exist to support the architect's professional role:
 design/technical clarification, document issue,
-inspection, quality observations, and recommendation. ESTI does not become the
+inspection, quality observations, and recommendation. AORMS does not become the
 contractor's inventory, labour, subcontractor, or accounting system.
 
 ## India And Money

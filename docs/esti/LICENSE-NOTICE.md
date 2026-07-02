@@ -1,27 +1,27 @@
-# ESTI License and Notice Policy
+# AORMS License and Notice Policy
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
-> _Part of the [ESTI documentation set](README.md). Canonical source for license,
+> _Part of the [AORMS documentation set](README.md). Canonical source for license,
 > trademark, and attribution policy. This is an engineering policy, not legal
 > advice — get a legal review before public/commercial distribution._
 
 ## Ownership
 
-ESTI is **original software authored and owned by Holagundi Consulting Works
+AORMS is **original software authored and owned by Holagundi Consulting Works
 (HCW)**. There is no third-party application code in the product; the codebase is
 HCW's own work across `backend/`, `frontend/`, `worker/`, and `packages/`.
 
 ## License
 
-HCW chooses ESTI's license — proprietary, source-available, or open-source — at
+HCW chooses AORMS's license — proprietary, source-available, or open-source — at
 its discretion. Add the chosen terms as a top-level `LICENSE` file and keep it
 consistent across the repository and container images. Until a `LICENSE` file is
 added, the code is "all rights reserved" by default.
 
 ## Third-party dependencies
 
-ESTI builds on open-source libraries (e.g. Carbon, React, Fastify, tRPC,
+AORMS builds on open-source libraries (e.g. Carbon, React, Fastify, tRPC,
 Drizzle, ezdxf, WeasyPrint, pandas). Their licenses (MIT / Apache-2.0 / BSD /
 LGPL, etc.) are permissive and compatible with HCW's options, but:
 
@@ -34,12 +34,13 @@ LGPL, etc.) are permissive and compatible with HCW's options, but:
 
 ## Trademark
 
-- Product name is **ESTI** / **ESTI AORMS**.
+- Product name is **AORMS**; **ESTI** names the embedded intelligence layer
+  (code/repo keep the `esti` codename).
 - Use HCW's own branding, logo, and favicon.
 
 ## Links
 
-ESTI source, issues, releases, and docs:
+AORMS source, issues, releases, and docs:
 `https://github.com/HolagundiWorks/esti`.
 
 ## Distribution checklist

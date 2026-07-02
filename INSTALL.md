@@ -1,6 +1,6 @@
-# ESTI AORMS — Installation
+# AORMS — Installation
 
-ESTI is a containerised Architectural Office Resource Management System. Every
+AORMS is a containerised Architecture Office Resource Management System. Every
 component (PostgreSQL, Redis, MinIO, the TypeScript backend, the Python worker
 and the React SPA) runs in a container — nothing is installed on the host
 except a container engine.

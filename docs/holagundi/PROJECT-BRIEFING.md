@@ -8,7 +8,7 @@ This document contains:
 2. The **Pre-Design Questionnaire** (client-facing)
 3. **Room design templates** for detailed space programming
 
-For process and ESTI workflow, see [CLIENT-ONBOARDING.md](CLIENT-ONBOARDING.md).
+For process and AORMS workflow, see [CLIENT-ONBOARDING.md](CLIENT-ONBOARDING.md).
 
 ---
 
@@ -30,9 +30,9 @@ After the client returns the questionnaire, the lead architect produces a **Proj
 | **8. Assumptions and exclusions** | Staff notes | Survey pending, authority constraints, items deferred to Concept |
 | **9. Approval** | — | Client sign-off date and name |
 
-### ESTI mapping
+### AORMS mapping
 
-| Brief section | Where to record in ESTI |
+| Brief section | Where to record in AORMS |
 | --- | --- |
 | §1 Basic information, §2 Project information, §3 Occupants | Project **Info** tab — questionnaire sections |
 | §4–§11 Design drivers, accommodation, materials, room detail | Project **Info** tab — accordion sections |

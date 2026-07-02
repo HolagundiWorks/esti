@@ -8,7 +8,7 @@ Full lifecycle management for internal staff: job applications â†’ onboarding â†
 
 ## Overview
 
-ESTI maintains four separate but linked records for each staff member:
+AORMS maintains four separate but linked records for each staff member:
 
 | Record | Table | Purpose |
 |---|---|---|

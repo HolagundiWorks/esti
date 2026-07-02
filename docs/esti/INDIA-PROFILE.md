@@ -1,12 +1,12 @@
-# ESTI India Profile — Fixed Constants, GST, TDS
+# AORMS India Profile — Fixed Constants, GST, TDS
 
 **Status:** Current · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-06
 
-> _Part of the [ESTI documentation set](README.md). Canonical source for the
+> _Part of the [AORMS documentation set](README.md). Canonical source for the
 > **hardcoded, non-configurable** India profile and all GST / TDS policy. Other
 > documents reference this rather than restating tax rules._
 
-ESTI is single-firm software for one Indian architecture practice. The values
+AORMS is single-firm software for one Indian architecture practice. The values
 below are **fixed in code, not user-configurable** — there is deliberately no
 settings screen to change them. They are validated once, at the data layer and
 in the UI, and never exposed as options.
@@ -86,7 +86,7 @@ The fee-proposal and invoice line picks the SAC per the work type; default
 
 - **Section 194J** — 10% on professional/architectural fees; the client deducts
   and deposits it.
-- ESTI tracks **expected TDS per invoice** and a pending-certificate state, and
+- AORMS tracks **expected TDS per invoice** and a pending-certificate state, and
   reconciles against **Form 26AS / AIS** at year-end (see the **reconcile
   module** in [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md)).
 - TDS receivables are exportable for the CA.
@@ -107,7 +107,7 @@ The fee-proposal and invoice line picks the SAC per the work type; default
 
 ## COA — Scale of Charges And Conduct
 
-ESTI benchmarks fees against the Council of Architecture (COA) scale. The rates below are **effective-dated reference
+AORMS benchmarks fees against the Council of Architecture (COA) scale. The rates below are **effective-dated reference
 data** (encoded in `@esti/contracts` `coa.ts`); the COA scale is revised
 periodically — verify against the current official COA circular before relying on
 it for billing.
@@ -128,7 +128,7 @@ it for billing.
 - The fee % is on the **cost of works** (construction) — land is excluded.
 - **Documentation & Communication @ 10%** of the professional fee (all stages).
 - **Contractor payment-certificate verification @ 1%** of cost (optional).
-- A fee **below the COA minimum** for its category is a compliance risk; ESTI
+- A fee **below the COA minimum** for its category is a compliance risk; AORMS
   warns and records an audited override rather than hard-blocking.
 
 Project stages are deliberately general and are defined in the PRD and module
@@ -142,7 +142,7 @@ are client-borne unless the project agreement states otherwise.
   proposal, invoice, and certificate.
 - No advertising of services beyond the narrow permitted exceptions.
 - Do not solicit or accept a commission another architect holds without written
-  notice and termination — ESTI prompts a conflict-of-interest check on
+  notice and termination — AORMS prompts a conflict-of-interest check on
   enquiry→project conversion.
 - No trade commissions or discounts from suppliers/contractors.
 
@@ -156,13 +156,13 @@ are client-borne unless the project agreement states otherwise.
 
 ## Tax Storage (native)
 
-ESTI stores GST natively — taxable value, CGST/SGST/IGST, cess, TDS, SAC, place
+AORMS stores GST natively — taxable value, CGST/SGST/IGST, cess, TDS, SAC, place
 of supply, and the active GST system — in its own `esti_invoice` /
 `esti_gst_detail` tables; the domain, UI, and documents speak **GST** end to end.
 
 ## Expense vouchers (studio bookkeeping)
 
-Separate from client **GST invoices** (`esti_invoice`), ESTI tracks firm and project
+Separate from client **GST invoices** (`esti_invoice`), AORMS tracks firm and project
 spends in `esti_expense` with lightweight accounts (`MAIN`, `OFFICE_EXPENSE`,
 `CASH`, `PROJECT_EXPENSE`). Amounts are stored in **paise** (same as invoices).
 

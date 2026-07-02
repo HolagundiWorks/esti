@@ -1,4 +1,4 @@
-# ESTI Product Requirements
+# AORMS Product Requirements
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
@@ -10,7 +10,7 @@
 
 **Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
-This PRD aligns the supplied ESI-AORMS requirements with ESTI's agreed product
+This PRD aligns the supplied ESI-AORMS requirements with AORMS's agreed product
 boundary. It distinguishes existing capabilities from work still required. The
 complete delivery sequence is maintained in [ROADMAP](ROADMAP.md).
 
@@ -216,7 +216,7 @@ All money is integer paise and formatted through shared `formatINR` utilities.
 
 ## Revision Intelligence And Rewards
 
-ESTI keeps revision intelligence and studio performance separate but linked to
+AORMS keeps revision intelligence and studio performance separate but linked to
 the same project and task context.
 
 - CRIF-style revision intelligence reduces revision cycles, improves approval
@@ -224,7 +224,7 @@ the same project and task context.
 - ASPRF-style performance and rewards improve delivery predictability, quality,
   collaboration, learning, and wellbeing while supporting recognition.
 - Reward and recognition surfaces must remain transparent and opt-in where
-  wellbeing is concerned; ESTI must not become a covert surveillance tool.
+  wellbeing is concerned; AORMS must not become a covert surveillance tool.
 
 ## Non-Functional Requirements
 

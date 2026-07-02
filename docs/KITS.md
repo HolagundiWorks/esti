@@ -1,6 +1,6 @@
 # External kit packages
 
-ESTI consumes two HCW workspace packages vendored inside the monorepo under
+AORMS consumes two HCW workspace packages vendored inside the monorepo under
 `vendor/`. They are pnpm workspace members (`vendor/*` in `pnpm-workspace.yaml`)
 and are **not** sibling repos on disk — everything needed to run is inside this
 repository.

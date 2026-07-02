@@ -2,7 +2,7 @@
 
 **Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
-Long-term product discipline for ESTI AORMS. Architects use CAD, BIM, modeling,
+Long-term product discipline for AORMS. Architects use CAD, BIM, modeling,
 and rendering tools as their **primary** workspace. AORMS is the **secondary**
 office record — projects, fees, CRIF, documents, coordination, and traceability.
 
@@ -17,7 +17,7 @@ See also [PRODUCT-VISION](PRODUCT-VISION.md), [ROADMAP](ROADMAP.md), and
 | --- | --- | --- |
 | Primary | Revit, SketchUp, Rhino, AutoCAD, Blender, etc. | None — do not compete |
 | Bridge | ESTICAD desktop (takeoff + CAD AI) | Thin companion only |
-| Secondary | ESTI AORMS web | Record, coordinate, bill, search, advise |
+| Secondary | AORMS web | Record, coordinate, bill, search, advise |
 
 Design geometry, rendering, and mark-up stay in primary tools. AORMS stores
 decisions, issued documents, commercial records, and synced takeoff quantities.

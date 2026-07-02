@@ -1,4 +1,4 @@
-# ESTI Product Vision
+# AORMS Product Vision
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — any
@@ -31,7 +31,7 @@ revision belongs to its drawing and project; an approval belongs to the item
 being approved; an instruction, RFI, task, decision, or risk remains linked to
 the source object that created it.
 
-ESTI should reduce dependence on disconnected messaging groups, email chains,
+AORMS should reduce dependence on disconnected messaging groups, email chains,
 spreadsheets, and isolated file stores without attempting to replace normal
 email or messaging applications.
 
@@ -44,7 +44,7 @@ email or messaging applications.
 
 ## Product Boundary
 
-ESTI is not a general ERP or contractor execution-accounting system. It does
+AORMS is not a general ERP or contractor execution-accounting system. It does
 include the contractor-facing coordination needed by an architect:
 
 - contractor register and project invitations;
@@ -100,27 +100,28 @@ out of scope.
 - Universal search, notifications, audit review, administration, and AI Studio
 
 The in-product bylaw/development-control compliance engine was **removed** in the
-2026-06 cleanup — ESTI no longer calculates ground-coverage/FAR/setback envelopes
+2026-06 cleanup — AORMS no longer calculates ground-coverage/FAR/setback envelopes
 or issues compliance PDFs. Regulatory awareness is limited to statutory **permit**
-records and **GST/TDS** filing; ESTI never implied a live BPAS/AutoPlan
+records and **GST/TDS** filing; AORMS never implied a live BPAS/AutoPlan
 connection.
 
-CRIF-style revision intelligence is part of ESTI's project memory: decision
+CRIF-style revision intelligence is part of AORMS's project memory: decision
 states, revision budgets, impact previews, feedback structure, and closure
 signals are attached to the project instead of living in isolated comment
 threads.
 
-ASPRF-style performance and rewards are part of ESTI's studio operations:
+ASPRF-style performance and rewards are part of AORMS's studio operations:
 delivery reliability, quality, client impact, collaboration, learning, and
 wellbeing are used to support coaching, recognition, and team health. These
 signals must not become covert surveillance or punitive monitoring.
 
 ## Naming
 
-- Product name: **ESTI** or **ESTI AORMS**.
+- Product name: **AORMS** (Architecture Office Resource Management System); **ESTI**
+  (Embedded Studio Intelligence) is the embedded intelligence layer.
 - Company: **Holagundi Consulting Works (HCW)**.
 - The supplied ESI-AORMS document is treated as product input; repository and
-  application naming remains ESTI.
+  code naming keeps the `esti` codename.
 - PostgreSQL tables use the `esti_*` prefix.
 
 Detailed requirements are in [PRD](PRD.md), current/future module boundaries in

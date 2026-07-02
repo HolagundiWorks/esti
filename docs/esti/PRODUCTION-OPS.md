@@ -26,7 +26,7 @@ for a live firm instance (secrets, TLS, backup/restore drill).
 
 ## TLS and nginx
 
-ESTI terminates TLS on **host nginx** (not inside Docker). Docker runs the API on `127.0.0.1:4000` only.
+AORMS terminates TLS on **host nginx** (not inside Docker). Docker runs the API on `127.0.0.1:4000` only.
 
 ### Prerequisites
 

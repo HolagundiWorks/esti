@@ -1,15 +1,15 @@
-# ESTI AORMS — Access Hierarchy
+# AORMS — Access Hierarchy
 
 > **Version:** 1.0 · **Date:** 2026-06-21  
 > **Status:** Canonical — single source of truth (HCW) · **Reviewed:** 2026-06-25  
-> This document is the single source of truth for role-based access control across all ESTI modules. Code changes to permissions must be reflected here first.
+> This document is the single source of truth for role-based access control across all AORMS modules. Code changes to permissions must be reflected here first.
 > **Implementation source:** [`packages/contracts/src/permissions.ts`](../../packages/contracts/src/permissions.ts). Supersedes the former `ACCESS-MODEL.md` (moved to `deprecated_review/`, 2026-06-25).
 
 ---
 
 ## 1. Role ladder
 
-ESTI uses five internal staff levels plus a System Admin overlay. External portal users (CLIENT, CONSULTANT, CONTRACTOR) are outside this ladder and have their own portal-scoped access.
+AORMS uses five internal staff levels plus a System Admin overlay. External portal users (CLIENT, CONSULTANT, CONTRACTOR) are outside this ladder and have their own portal-scoped access.
 
 | Level | Role constant | Rank | Display title | Typical holder |
 |---|---|---|---|---|

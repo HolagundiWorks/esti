@@ -4,7 +4,7 @@
 
 **Status:** Delivered · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
 
-Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **ESTI AORMS** (web office platform). ESTICAD mirror: [ESTI-COMPANION.md](../../../esticad/docs/ESTI-COMPANION.md).
+Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **AORMS** (web office platform). ESTICAD mirror: [ESTI-COMPANION.md](../../../esticad/docs/ESTI-COMPANION.md).
 
 ---
 
@@ -12,7 +12,7 @@ Canonical integration spec for connecting **ESTICAD** (native Windows CAD) to **
 
 | Product | Role |
 |---------|------|
-| **ESTI AORMS** (`aorms.in`) | System of record — auth, projects, takeoff measurements, BOQ/rate book, estimates, AI gateway (Ollama), audit |
+| **AORMS** (`aorms.in`) | System of record — auth, projects, takeoff measurements, BOQ/rate book, estimates, AI gateway (Ollama), audit |
 | **ESTICAD** (desktop, free) | **Only** takeoff capture client — native 2D drafting, measurement UI, AI reconciliation |
 
 ESTICAD remains free and closed source. Cloud takeoff and cloud AI require an active **paying AORMS firm** account.
@@ -27,11 +27,11 @@ ESTICAD remains free and closed source. Cloud takeoff and cloud AI require an ac
 | Takeoff | **Online only** — blocked when offline or unauthenticated |
 | Takeoff storage | **No local measurement data** — all units in `esti_measurement` (PostgreSQL) |
 | License gate | Paying AORMS firm; staff with `write` capability |
-| Local quant/BOQ in ESTICAD | **Deferred** — cloud-only via ESTI |
+| Local quant/BOQ in ESTICAD | **Deferred** — cloud-only via AORMS |
 | Drawing upload per takeoff | **Not required** — measurements carry world coordinates + entity refs |
 | Takeoff catalog | **Server-published JSON** (same semantics as `packages/contracts/src/takeoff.ts`) |
 | Takeoff capture UI | **ESTICAD only** — web AORMS lists results and builds estimates; no browser measure tool |
-| AI provider | ESTI Ollama gateway via ESTICAD — full CAD `AI_USE_CASES`; no local Ollama |
+| AI provider | AORMS Ollama gateway via ESTICAD — full CAD `AI_USE_CASES`; no local Ollama |
 
 ---
 
@@ -45,7 +45,7 @@ ESTICAD (Win32 / C++)
        |
        | HTTPS — device token / bearer auth
        v
-ESTI Fastify backend
+AORMS Fastify backend
   companion.* procedures (REST or tRPC adapter)
   measurements.* (extended schema)
   ai.generateCad (new draft kinds)
@@ -66,7 +66,7 @@ ESTICAD is the **only** takeoff capture client. AORMS web lists synced measureme
 Browser clients use the `esti_session` cookie. ESTICAD uses **device tokens**:
 
 1. User signs in from ESTICAD (email + password) or pairs via AORMS web UI.
-2. ESTI issues a long-lived **device refresh token** and short-lived **access token**.
+2. AORMS issues a long-lived **device refresh token** and short-lived **access token**.
 3. ESTICAD stores secrets in **Windows Credential Manager** — not in `.esti` project files.
 4. `companion.capabilities` returns `{ takeoff, ai, firmName, subscriptionActive }` on each session start and before takeoff commands.
 
@@ -170,9 +170,9 @@ ESTICAD does not host the rate-book SQLite or local BOQ generation.
 
 | Action | Where |
 |--------|-------|
-| Aggregate takeoff → estimate lines | ESTI `measurements.takeoffPreview`, `applyToEstimate` |
-| Rate-book rate matching | ESTI `buildTakeoffEstimateLines` |
-| Excel/PDF export | ESTI worker + office routes |
+| Aggregate takeoff → estimate lines | AORMS `measurements.takeoffPreview`, `applyToEstimate` |
+| Rate-book rate matching | AORMS `buildTakeoffEstimateLines` |
+| Excel/PDF export | AORMS worker + office routes |
 
 ESTICAD may show read-only preview fetched from API or deep-link to AORMS project estimation tab.
 Estimate lines created from takeoff are stamped with source provenance and rate-book/takeoff snapshots in AORMS.
@@ -183,7 +183,7 @@ Estimate lines created from takeoff are stamped with source provenance and rate-
 
 ESTICAD `ai_engine` builds local context (selection, layers, blocks, quantities context, revision metadata) but **never calls Ollama directly**.
 
-New ESTI draft kinds (extend `AiDraftKind`):
+New AORMS draft kinds (extend `AiDraftKind`):
 
 | Kind | Maps to AI_USE_CASES |
 |------|----------------------|
@@ -201,7 +201,7 @@ Flow:
 ```text
 ESTICAD context_builder
   → companion.aiGenerateCad (permission-filtered)
-  → ESTI runAiGateway → firm Ollama
+  → AORMS runAiGateway → firm Ollama
   → esti_ai_run row + sources
   → proposal JSON back to ESTICAD
   → validation_engine → reconciliation_panel
@@ -212,7 +212,7 @@ AI cannot mutate drawings or BOQ without reconciliation — unchanged from ESTIC
 
 ---
 
-## API surface (ESTI additions)
+## API surface (AORMS additions)
 
 | Procedure / route | Auth | Purpose |
 |-------------------|------|---------|
@@ -258,7 +258,7 @@ No local measurement queue — aligns with “no local takeoff data”.
 
 Tracked in [ROADMAP](ROADMAP.md) Phase 13. ESTICAD side in [DEVELOPMENT_ROADMAP.md](../../../esticad/docs/DEVELOPMENT_ROADMAP.md) Phase 3 (redefined).
 
-| Sub-phase | ESTI | ESTICAD |
+| Sub-phase | AORMS | ESTICAD |
 |-----------|------|---------|
 | 13A | Device auth, capabilities, catalog JSON | Login dialog, credential storage |
 | 13B | Extended measurement schema + companion create/list | Takeoff commands, online-only overlay |

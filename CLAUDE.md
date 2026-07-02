@@ -1,4 +1,4 @@
-# ESTI — agent instructions
+# AORMS (`esti`) — agent instructions
 
 **AORMS** (Architecture Office Resource Management System) is the workspace —
 the product for Indian architecture practices, by Holagundi Consulting Works.
@@ -18,7 +18,7 @@ podman (`compose.yaml`).
 **Design thinking (first):** `.carbon-kit/design-intelligence/` — senior product designer playbook.  
 **Screen patterns (before code):** `.carbon-kit/pattern-library/`  
 **Carbon implementation:** `.carbon-kit/knowledge/` — rules, index, theme rules 1–8.  
-**ESTI exceptions:** [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md)
+**AORMS exceptions:** [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md)
 
 ### UI task order
 
@@ -26,7 +26,7 @@ podman (`compose.yaml`).
 2. `.carbon-kit/pattern-library/` — select screen pattern, zones, Carbon map
 3. `.carbon-kit/knowledge/theme_implementation.md` — theme rules 1–8
 4. `.carbon-kit/knowledge/` — index search, implementation rules
-5. `docs/esti/CARBON-UI-DIRECTION.md` — ESTI exceptions
+5. `docs/esti/CARBON-UI-DIRECTION.md` — AORMS exceptions
 
 Refresh Carbon index: `pnpm carbon:index` · Search: `pnpm carbon:search <terms>`
 

@@ -1,4 +1,4 @@
-# ESTI Desktop (Tauri shell)
+# AORMS Desktop (Tauri shell)
 
 Native desktop app: a Tauri 2 (Rust) shell that boots a **local PostgreSQL**, runs
 the existing **Node backend as a bundled sidecar**, and serves the existing
