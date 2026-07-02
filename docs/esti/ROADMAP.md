@@ -436,9 +436,10 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 > (migration 0117); the contractor **site coordination** module (`construction`: RFIs,
 > submittals, shop drawings, NCRs, `/office/construction`) was **removed** in the same
 > teardown. Architect site supervision (snags / inspections / progress) is kept under
-> Projects. The struck items below are historical.
+> Projects. The checked items below are the historical delivery record — only the
+> contractor register still exists.
 
-- [x] **Contractor register** — `esti_contractor` (`0029`); `/contractors` CRUD + ratings; linked to tender invitations.
+- [x] **Contractor register** — `esti_contractor` (`0029`); `/contractors` CRUD + ratings.
 - [x] **Tender packages** — `esti_tender` + invitations (`0030`); `/office/tenders`; controlled documents + addenda (`esti_tender_document`, migration `0050`).
 - [x] **Bid comparison** — `esti_tender_bid` (`0031`); staff record bids; award from comparison; contractor-submitted sealed bids until tender close.
 - [x] **Contractor bid portal** — `/bid/:token`; token-scoped; document download, addendum acknowledgement, decline; satisfies isolation gate.
