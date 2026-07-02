@@ -36,8 +36,8 @@ row/object scope in the backend, including REST uploads and downloads.
 | Activity Center | alerts, digest, escalations | Same surfaces — no new top-level nav |
 | Clients | register, communication log, portal provisioning | Deep links, exports |
 | Projects | overview, timeline, CRIF, health, archive, tabs | Additive fields on existing tabs |
-| Knowledge Bank | Spec catalogue, lessons | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
-| ~~Compliance / Estimation / Rate Books~~ | _Removed — RIE/compliance engine (2026-06), then the Estimation OS + Construction Cost spine and Rate Books + Rate Analysis (2026-06-28); KB now holds only Spec catalogue + Lessons_ | — |
+| Item Library (the former Knowledge Bank screen, `KnowledgeBank.tsx`) | Spec catalogue (Lessons moved to LXOS) | New catalogue rows — **not** CAD/BIM vendor libraries (charter-rejected) |
+| ~~Compliance / Estimation / Rate Books~~ | _Removed — RIE/compliance engine (2026-06), then the Estimation OS + Construction Cost spine and Rate Books + Rate Analysis (2026-06-28); the Item Library now holds only the Spec catalogue — Lessons moved to LXOS_ | — |
 | Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
 | Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
 | Documents | register, specs, inspections, transmittals, MOM | Revision/approval on existing types |

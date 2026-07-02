@@ -39,7 +39,7 @@ Draft Project Created  →  Proposal + Fee Proposal
       ↓
 Negotiation  →  Client Approval Gate  →  Client Onboarding
       ↓
-Advance Payment Validated  →  Project Activation  →  Task OS + Cost OS + Portal
+Advance Payment Validated  →  Project Activation  →  Task OS + Cost Management System (CMS) + Portal
 ```
 
 ---
@@ -61,7 +61,7 @@ Advance Payment Validated  →  Project Activation  →  Task OS + Cost OS + Por
 | Client onboarding | None | New `esti_client_onboarding` |
 | Advance payment | `esti_invoice` exists | Add `isAdvance` flag; activation gate checks for paid advance |
 | Project activation | `projectOffice.create` (no gates) | State machine with pre-flight checks; auto-init triggers |
-| Integration (Task OS, Cost OS, Portal) | All three live | Wire auto-creation on `projectOffice.activate` |
+| Integration (Task OS, Cost Management System, Portal) | All three live | Wire auto-creation on `projectOffice.activate` |
 
 ---
 
@@ -413,7 +413,7 @@ After `projectOffice.activate`, the following are created automatically:
 
 No new top-level OS shell. Everything lives inside the existing project workspace
 plus the new `/leads` hub. Plan gate: `leads` and `assessment` features require
-**Core+** (same as `costing`).
+**Pro** (same as `costing`).
 
 ---
 
@@ -436,7 +436,7 @@ plus the new `/leads` hub. Plan gate: `leads` and `assessment` features require
 Slices A–E are the "pre-project" half (new tables, new route).
 Slices F–K are the "commercial funnel" half (extending existing modules + adding gates).
 **All 11 slices shipped 2026-06-26** in migration `0100_project_os.sql`. Note: the
-pipeline is ungated (LITE+) rather than Core+ — lead acquisition is core to any
+pipeline is ungated (LITE+) rather than Pro — lead acquisition is core to any
 practice, and conversion is naturally bounded by the existing project quota.
 
 ---

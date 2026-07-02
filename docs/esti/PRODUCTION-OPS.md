@@ -40,7 +40,7 @@ ESTI terminates TLS on **host nginx** (not inside Docker). Docker runs the API o
 git clone https://github.com/HolagundiWorks/esti.git /opt/esti
 cd /opt/esti
 sudo bash deploy/install.sh
-# menu: 1 landing · 2 demo · 3 Core · 4 Enterprise · 5 Licensing
+# menu: 1 landing · 2 demo · 3 AORMS Pro (cloud, legacy core profile) · 4 AORMS Pro (self-hosted, legacy enterprise profile) · 5 Licensing
 # prompts for domain + admin email; runs certbot at the end
 ```
 

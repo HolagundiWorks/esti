@@ -12,7 +12,7 @@
 
 ## 1. Purpose
 
-The CMS turns **Knowledge Bank intelligence into project cost control**. The
+The CMS turns **Construction Knowledge Bank intelligence into project cost control**. The
 operating principle:
 
 > **Enter each physical element once → the system tracks its cost from estimate
@@ -60,7 +60,7 @@ Every estimable physical object in a project gets a **permanent Element code**
 
 The Element holds:
 - Spatial location (Zone / Building / Floor / Room / Section)
-- Knowledge Bank item + specification (with rate snapshot)
+- Construction Knowledge Bank item + specification (with rate snapshot)
 - Measurement type (VOLUME / AREA / LENGTH / COUNT) + dimensions (in mm)
 - Derived quantity and amount (deterministic, no re-keying)
 
@@ -97,7 +97,7 @@ COUNT   = nos
 
 `cmsAmountPaise(quantity, ratePaise) = Math.round(quantity × ratePaise)`
 
-Rate is snapshotted from the chosen Knowledge Bank Specification at element creation.
+Rate is snapshotted from the chosen Construction Knowledge Bank Specification at element creation.
 
 ---
 

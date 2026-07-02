@@ -7,7 +7,7 @@
 ## 1. Purpose
 
 Bring unstructured rate-schedule text (copied from PDFs, OCR, vendor quotes) into the
-**existing** Knowledge Bank tables, cleanly categorised, **without creating duplicate rows
+**existing** Construction Knowledge Bank tables, cleanly categorised, **without creating duplicate rows
 from nomenclature mismatch**. This is in addition to the per-library CSV import that already
 exists (materials, items, specifications).
 
@@ -94,7 +94,7 @@ A re-import of the same schedule therefore **refreshes rates in place** — zero
 - **Pure helpers** (`packages/contracts`): `canonicalUnit()`, `normName()`, the parser
   (`parseRateText`) and the row→payload mappers. Pure, vitest-covered, no I/O.
 - **Backend** (`kb.import.*`): accept reviewed rows, run the §4 upsert against the KB tables.
-- **Frontend**: a "Paste & import" panel on the Knowledge Bank — textarea → parse → review
+- **Frontend**: a "Paste & import" panel on the Item Library — textarea → parse → review
   table (Pure Carbon) → commit. Sits beside the existing per-library CSV import.
 
 ## 6. Versioning
