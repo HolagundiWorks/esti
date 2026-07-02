@@ -92,8 +92,8 @@ out of scope.
 - Contractor register and architect-side site coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
 - BOQ, takeoff, and estimation with simple purchase orders (rebuilding as the CMS)
-- Knowledge Bank for specification/procurement standards and reusable
-  material/labour/item libraries
+- Item Library and the Construction Knowledge Bank for specification/procurement
+  standards and reusable material/labour/item libraries
 - Office correspondence, MOM, templates, CAD/BIM resources, and lessons learned
 - Client and contractor portals
 - Universal search, notifications, audit review, administration, and AI Studio

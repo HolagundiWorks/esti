@@ -166,7 +166,7 @@ accounting systems.
 - ~~Rate book / SOR, BOQ, BBS, and the component-based **Estimation OS** (design-stage
   estimate, IFC→code mapping + auto-BOQ, rate analysis, frozen/versioned estimates,
   contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
-  ground-up on the Knowledge Bank. Spec:
+  ground-up on the Construction Knowledge Bank. Spec:
   [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) +
   [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md). (ESTICAD takeoff capture stays — see below.)
 - **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
@@ -179,9 +179,10 @@ accounting systems.
 
 All money is integer paise and formatted through shared `formatINR` utilities.
 
-## Knowledge Bank, AI, And Administration
+## Item Library, AI, And Administration
 
-- The former Resources area is named **Knowledge Bank** and is the governed,
+- The former Resources area is now the **Item Library** (the former Knowledge Bank
+  screen, `KnowledgeBank.tsx`) and is the governed,
   versioned source for specification and procurement standards. *(Rate Books and
   structural BBS templates were **removed**; the reference foundation is being rebuilt
   as the Construction Knowledge Bank — Material/Labour/Item libraries, item-mapped
@@ -189,8 +190,9 @@ All money is integer paise and formatted through shared `formatINR` utilities.
   [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md).)*
 - Specification standards carry project tags, reusable clauses,
   approved alternatives, units, and purchase-order wording.
-- The Knowledge Bank expands to searchable templates and closure lessons learned.
-  CAD/BIM vendor asset libraries remain **out of scope** ([STABILITY-CHARTER](STABILITY-CHARTER.md)).
+- The Item Library expands to searchable templates; closure lessons learned live
+  under LXOS (Internal Exchange). CAD/BIM vendor asset libraries remain **out of
+  scope** ([STABILITY-CHARTER](STABILITY-CHARTER.md)).
 - AI Studio drafts proposals, scopes, agreements, specifications, reports, MOM,
   and RFI responses. Outputs are editable, source-linked, permission-aware,
   auditable, and never auto-issued.
