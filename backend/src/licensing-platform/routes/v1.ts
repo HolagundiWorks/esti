@@ -1,5 +1,6 @@
 import {
   ActivateInput,
+  ManifestRequest,
   RefreshInput,
   SyncMembershipInput,
   ValidateInput,
@@ -8,10 +9,13 @@ import {
 import { and, eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { db, schema } from "../db/client.js";
+import { loadSigningKey } from "../env.js";
 import { hashApiKey } from "../lib/apikey.js";
+import { signManifest } from "../lib/license.js";
 import { verifyLogin } from "../modules/auth/service.js";
 import { orgIdFromHandle } from "../modules/auth/tenant.js";
-import { activate, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
+import { latestManifest } from "../modules/components/service.js";
+import { activate, editionForKey, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
 
 interface ProductAuth {
   productId: string;
@@ -227,5 +231,37 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: r.error };
     }
     return r.data;
+  });
+
+  // Desktop Manager: given a licence key, return the signed component manifest
+  // for that licence's edition (LITE/PRO) — the list of artifacts to download +
+  // their SHA-256s. Signed with the licence key so the Manager verifies offline.
+  app.post("/v1/manifest", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const parsed = ManifestRequest.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const edition = await editionForKey(auth.productId, parsed.data.licenseKey);
+    if (!edition) {
+      reply.code(404);
+      return { error: "license_not_found" };
+    }
+    const signingKey = loadSigningKey();
+    if (!signingKey) {
+      reply.code(503);
+      return { error: "signing_key_unavailable" };
+    }
+    const manifest = await latestManifest(edition, new Date().toISOString());
+    if (!manifest) {
+      reply.code(404);
+      return { error: "no_release" };
+    }
+    return { manifest, signed: signManifest(manifest, signingKey) };
   });
 }

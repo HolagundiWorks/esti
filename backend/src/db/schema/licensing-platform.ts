@@ -309,3 +309,23 @@ export const apiKeys = pgTable(
   },
   (t) => ({ keyHashIdx: uniqueIndex("hlp_api_key_hash_idx").on(t.keyHash) }),
 );
+
+/**
+ * A published desktop component set for an edition — what the Manager pulls and
+ * verifies. The build pipeline publishes a row per (edition, appVersion) with
+ * each artifact's URL + SHA-256; `/v1/manifest` serves the latest `active` row
+ * for the caller's edition, signed. `components` is a ManifestComponent[].
+ */
+export const componentReleases = pgTable(
+  "hlp_component_release",
+  {
+    id: text("id").primaryKey(),
+    edition: text("edition", { enum: ["LITE", "PRO"] }).notNull(),
+    appVersion: text("app_version").notNull(),
+    components: jsonb("components").$type<unknown[]>().notNull().default([]),
+    /** The latest active release per edition is the one served; older rows kept for history. */
+    active: boolean("active").notNull().default(true),
+    createdAt,
+  },
+  (t) => ({ editionActiveIdx: index("hlp_component_release_edition_active_idx").on(t.edition, t.active) }),
+);

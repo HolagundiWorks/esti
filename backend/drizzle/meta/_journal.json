@@ -1009,6 +1009,13 @@
       "when": 1782206900000,
       "tag": "0143_esti_user_password_reset",
       "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1782207000000,
+      "tag": "0144_hlp_component_release",
+      "breakpoints": true
     }
   ]
 }
