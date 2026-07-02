@@ -251,7 +251,7 @@ State machine rules (enforced server-side on `projectOffice.updateStatus`):
 | ENQUIRY | PROPOSAL | DNA record exists |
 | PROPOSAL | ACTIVE | fee proposal APPROVED + client onboarding complete + at least one advance invoice PAID |
 | ACTIVE | ON_HOLD | write-gated |
-| ACTIVE / ON_HOLD | COMPLETED | `cost:approve`-gated |
+| ACTIVE / ON_HOLD | COMPLETED | `finance:ops`-gated |
 | any | CANCELLED | write-gated |
 
 Rejected flow: if fee proposal set to REJECTED → project auto-moves to CANCELLED.
@@ -349,7 +349,7 @@ Extend `esti_invoice`:
 On activation (in a single transaction):
 1. Set `projectOffice.status = ACTIVE`
 2. Create initial kick-off `esti_task` (BILLABLE, DESIGN_COMMUNICATION, "Kick-off meeting")
-3. If `pmcEnabled`: create default `esti_estimate` skeleton
+3. Create default `esti_estimate` skeleton (Cost Management System)
 4. Write audit entry `PROJECT_ACTIVATED`
 5. Return `{ ok: true, projectId }`
 
@@ -390,7 +390,7 @@ After `projectOffice.activate`, the following are created automatically:
 | System | Auto-created record |
 |---|---|
 | Task OS | `esti_task` — "Kick-off meeting", BILLABLE, DESIGN_COMMUNICATION, priority 50 |
-| Cost OS | `esti_estimate` skeleton (if `pmcEnabled`) |
+| Cost Management System | `esti_estimate` skeleton |
 | Client Portal | No action needed — portal access is already scoped by `esti_projectoffice.id` |
 | Revision OS | `revision_count = 0` is implicit (no table; counted from `esti_decision`) |
 
@@ -476,7 +476,7 @@ red tag), consistent with ESTI's checker-is-advisory ethos. Ungated (LITE+).
 envelope (assessment figures) + the latest **FROZEN** program (spaces + `summarizeProgram`)
 into site delivery. Drafts are never surfaced — the site always sees the agreed baseline,
 so **feasibility-to-site stays one source of truth**. `ProjectSiteReference.tsx` renders it
-as a "Program & feasibility" PMC tab (`ProjectDetail.tsx`) and a compact section in the
+as a "Program & feasibility" tab in the project workspace (`ProjectDetail.tsx`) and a compact section in the
 mobile Site Portal (`SitePortal.tsx`). Read-only by design — edits happen upstream in the
 Pipeline + Program tabs.
 

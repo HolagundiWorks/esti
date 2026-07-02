@@ -17,8 +17,8 @@
 
 | Edition | For | One line |
 |---|---|---|
-| **AORMS-Lite** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no tenders/PMC, no AI.* |
-| **AORMS-Core** (paid · contact for pricing) | established firms | The full office OS: construction/PMC, tenders/bidding, revision intelligence, HR, GST invoicing + reconciliation + filing, portals, ESTI cognition. Cloud-hosted with dedicated infrastructure. |
+| **AORMS-Lite** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no AI.* |
+| **AORMS-Core** (paid · contact for pricing) | established firms | The full office OS: revision intelligence, HR, GST invoicing + reconciliation + filing, portals, ESTI cognition. Cloud-hosted with dedicated infrastructure. |
 | **AORMS-Enterprise** (contact for pricing) | multi-office / scale | Core at scale — unlimited seats, **on-premises deployment**, SSO, API/ESTICAD, governance, integrations, white-label. |
 
 ## Quotas
@@ -83,7 +83,6 @@ on both the backend and the worker host.
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
 | Project info, brief, phases | ✓ | ✓ | ✓ |
-| Programme (per-project Gantt) | ◐ | ✓ | ✓ |
 | Drawings & transmittals register | ✓ | ✓ | ✓ |
 | ESTICAD takeoff capture (companion) | — | ✓ | ✓ |
 | Approvals / issue log | ✓ | ✓ | ✓ |
@@ -123,10 +122,8 @@ on both the backend and the worker host.
 ### Knowledge
 | Feature | Lite | Core | Ent |
 |---|---|---|---|
-| Rate books, knowledge bank | — | ✓ | ✓ |
-| Analysed-rate library (rate analysis) | — | ✓ | ✓ |
+| Knowledge Bank / Item Library | — | ✓ | ✓ |
 | Spec catalogue | — | ✓ | ✓ |
-| BBS (Bar Bending Schedule) | — | ◐ | ✓ |
 
 ### Collaboration & portals
 | Feature | Lite | Core | Ent |
@@ -169,11 +166,10 @@ on both the backend and the worker host.
 
 ## The upgrade story (what pulls Lite → Core → Enterprise)
 
-- **Lite → Core** when the firm crosses the **GST threshold or starts to build**:
+- **Lite → Core** when the firm crosses the **GST threshold**:
   the moment they need GST-correct invoices (CGST/SGST/IGST, SAC, filing
-  abstracts) and 26AS/AIS/GSTR reconciliation, a project goes to tender or site
-  (PMC), they need revision intelligence to defend fees, HR/payroll, or a 4th
-  team member / 11th client.
+  abstracts) and 26AS/AIS/GSTR reconciliation, revision intelligence to defend
+  fees, HR/payroll, or a 4th team member / 11th client.
 - **Core → Enterprise** when the firm needs **scale & governance**: many offices,
   unlimited seats, SSO, the ESTICAD/API integration, audit export, white-label.
 

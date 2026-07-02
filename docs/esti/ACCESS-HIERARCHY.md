@@ -57,7 +57,6 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 | `project:delete` | 80 | L2+ — delete a whole project |
 | `hr:manage` | 80 | L2+ — HR, payroll, leave management |
 | `reports:view` | 80 | L2+ — GST/TDS filing abstracts |
-| `cost:approve` | 80 | L2+ (allow-listed to ACCOUNTANT) — approve/apply construction deviations + variation orders |
 | `firm:admin` | 100 | L1 only — firm profile, users, module toggles |
 | `salary:view` | 100 | L1 only — view team salary and payslip amounts |
 | `system:admin` | overlay | `is_system_admin = true` only |
@@ -86,17 +85,14 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 | Billing-ready phases | ✅ | ✅ | — | — | — |
 | Overdue invoices | ✅ | ✅ | — | — | — |
 | Pending approvals | ✅ | ✅ | ✅ | ✅ | — |
-| Open tenders | ✅ | ✅ | ✅ | — | — |
-| Open construction coordination | ✅ | ✅ | ✅ | ✅ | — |
 | Overloaded team members | ✅ | ✅ | — | — | — |
 | At-risk projects | ✅ | ✅ | ✅ | — | — |
 
 **Gates:**
 - Billing / invoicing items: `invoice:manage` (L2+)
 - Team overload: `hr:manage` (L2+)
-- Tenders: `write` + rank ≥ 60 (L3+, new `tenders:view` or inline rank check)
 - At-risk projects: rank ≥ 60 (L3+)
-- Approvals / construction: `write` (L4+)
+- Approvals: `write` (L4+)
 
 ---
 
@@ -129,8 +125,7 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 | **Costing / BOQ / Estimates** | ✅ | ✅ | — | — | — |
 | **Fee proposal** | ✅ | ✅ | — | — | — |
 | Site inspections | ✅ | ✅ | ✅ | ✅ | — |
-| PMC / programme | ✅ | ✅ | ✅ | view | — |
-| Documents / specs / mood boards | ✅ | ✅ | ✅ | ✅ | view |
+| Documents / specs | ✅ | ✅ | ✅ | ✅ | view |
 | Project settings (team, consultants) | ✅ | ✅ | ✅ | — | — |
 | Revision intelligence (CRIF ledger) | ✅ | ✅ | ✅ | — | — |
 
@@ -210,7 +205,7 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 
 ## 9. Inactive module behaviour
 
-Modules are toggled in firm settings: `hrEnabled`, `pmcEnabled`, `financialEnabled`, `projectEnabled`.
+Modules are toggled in firm settings: `hrEnabled`, `financialEnabled`, `projectEnabled`.
 
 | Level | Module OFF behaviour |
 |---|---|
@@ -228,7 +223,7 @@ This prevents L3–L5 users from asking about modules that are not part of their
 | Import demo data | `is_system_admin = true` only | Admin → System (hidden for all others) |
 | Purge / reset installation | `is_system_admin = true` only | Admin → System |
 | System release metadata | `is_system_admin = true` only | Admin → System |
-| Module toggle (HR, PMC…) | `firm:admin` (L1) | Admin → Company settings |
+| Module toggle (HR…) | `firm:admin` (L1) | Admin → Company settings |
 | User management | `firm:admin` (L1) | Admin → Users |
 
 Regular OWNER (`firm:admin`) accounts see Company settings and Users but **not** the System panel.
@@ -241,7 +236,6 @@ Regular OWNER (`firm:admin`) accounts see Company settings and Users but **not**
 
 ```typescript
 "salary:view": 100,   // L1 only — gross/net salary amounts, payslip ₹ values
-"tenders:view": 60,   // L3+ — read access to tender list and documents
 ```
 
 ### `is_system_admin` flag
