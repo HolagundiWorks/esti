@@ -1,6 +1,7 @@
 import { InlineNotification, Loading, Theme } from "@carbon/react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { demoLoginPayload } from "../lib/landing-demo.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -26,6 +27,7 @@ export function DemoAutoLogin() {
 
   return (
     <Theme theme="g100">
+      <MarketingShell>
       <div className="esti-demo-launch">
         {login.error ? (
           <InlineNotification
@@ -39,6 +41,7 @@ export function DemoAutoLogin() {
           <Loading withOverlay={false} description="Opening the demo workspace…" />
         )}
       </div>
+      </MarketingShell>
     </Theme>
   );
 }

@@ -53,7 +53,7 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: 8 }}>
+      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: "var(--cds-spacing-03)" }}>
         <div>
           <h3>Lessons learned</h3>
           <p style={{ margin: 0, opacity: 0.85 }}>

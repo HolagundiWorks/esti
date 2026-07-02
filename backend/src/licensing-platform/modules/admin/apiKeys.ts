@@ -19,22 +19,30 @@ export const apiKeysRouter = router({
           createdAt: schema.apiKeys.createdAt,
           productId: schema.apiKeys.productId,
           productCode: schema.products.code,
+          orgId: schema.apiKeys.orgId,
+          orgName: schema.organizations.name,
         })
         .from(schema.apiKeys)
         .innerJoin(schema.products, eq(schema.products.id, schema.apiKeys.productId))
+        .leftJoin(schema.organizations, eq(schema.organizations.id, schema.apiKeys.orgId))
         .where(input?.productId ? eq(schema.apiKeys.productId, input.productId) : undefined)
         .orderBy(desc(schema.apiKeys.createdAt)),
     ),
 
-  /** Returns the plaintext key ONCE — only the hash is stored. */
+  /**
+   * Returns the plaintext key ONCE — only the hash is stored. Pass `orgId` to
+   * bind the key to one customer org (recommended for per-install product keys):
+   * the identity endpoints then reject any attempt to act for another company.
+   */
   generate: platformAdminProcedure
-    .input(z.object({ productId: z.string(), label: z.string().min(1) }))
+    .input(z.object({ productId: z.string(), label: z.string().min(1), orgId: z.string().nullable().optional() }))
     .mutation(async ({ input }) => {
       const apiKey = newApiKey();
       const id = newId("ak");
       await db.insert(schema.apiKeys).values({
         id,
         productId: input.productId,
+        orgId: input.orgId ?? null,
         keyHash: hashApiKey(apiKey),
         label: input.label,
         status: "ACTIVE",

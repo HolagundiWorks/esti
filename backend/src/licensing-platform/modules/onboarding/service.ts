@@ -1,13 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "../../db/client.js";
-import { newId, newLicenseKey } from "../../lib/ids.js";
+import { newId, newLicenseKey, newPublicId } from "../../lib/ids.js";
 import type { AccountView } from "../auth/service.js";
 
 // Self-serve onboarding: when a customer signs up from a product (AORMS/esti, …)
-// we give them a personal organization and a time-limited trial license, all
+// we give them a personal organization and a free-forever LITE license, all
 // stored centrally here so the admin Licenses GUI manages them like any other.
-
-const TRIAL_DAYS = 14;
+// (There is no trial tier — LITE is free permanently.)
 
 function slugify(s: string): string {
   return (
@@ -21,7 +20,7 @@ function slugify(s: string): string {
 }
 
 /** The account's own org — reuse the one they own, else create one. */
-async function ensurePersonalOrg(account: AccountView): Promise<string> {
+export async function ensurePersonalOrg(account: AccountView): Promise<string> {
   const [owned] = await db
     .select()
     .from(schema.organizations)
@@ -41,6 +40,7 @@ async function ensurePersonalOrg(account: AccountView): Promise<string> {
   const orgId = newId("org");
   await db.insert(schema.organizations).values({
     id: orgId,
+    publicId: newPublicId("C"),
     name: account.name ? `${account.name}'s workspace` : `${base}'s workspace`,
     slug,
     billingEmail: account.email,
@@ -83,15 +83,52 @@ export interface ProvisionResult {
 }
 
 /**
- * Idempotently provision a trial. If the org already holds a non-revoked license
- * for the product, that license is returned unchanged (re-signups are safe).
+ * Ensure the AORMS product + free LITE plan exist, so self-serve sign-up always
+ * has a plan to grant even on an install that never ran the demo-licence seed.
+ * Idempotent. Returns the LITE plan row.
+ */
+async function ensureAormsLitePlan(): Promise<NonNullable<Awaited<ReturnType<typeof findPlan>>>> {
+  const existing = await findPlan("AORMS", "LITE");
+  if (existing) return existing;
+
+  let [product] = await db
+    .select({ id: schema.products.id })
+    .from(schema.products)
+    .where(eq(schema.products.code, "AORMS"))
+    .limit(1);
+  if (!product) {
+    await db
+      .insert(schema.products)
+      .values({ id: newId("prod"), code: "AORMS", name: "AORMS", kind: "APP" })
+      .onConflictDoNothing();
+    [product] = await db
+      .select({ id: schema.products.id })
+      .from(schema.products)
+      .where(eq(schema.products.code, "AORMS"))
+      .limit(1);
+  }
+  await db
+    .insert(schema.plans)
+    .values({ id: newId("plan"), productId: product!.id, code: "LITE", name: "AORMS Lite", seats: 3, deviceLimit: 3 })
+    .onConflictDoNothing();
+  return (await findPlan("AORMS", "LITE"))!;
+}
+
+/**
+ * Idempotently provision the free-forever **LITE** licence for a self-serve
+ * sign-up (there is no trial — LITE is free permanently). If the org already
+ * holds a non-revoked licence for the product, that licence is returned unchanged
+ * (re-signups are safe).
  */
 export async function provisionTrial(
   account: AccountView,
   productCode = "AORMS",
-  planCode = "TRIAL",
+  planCode = "LITE",
 ): Promise<ProvisionResult | null> {
-  const plan = await findPlan(productCode, planCode);
+  // LITE self-heals so sign-up never fails on an unseeded catalogue.
+  const plan =
+    (await findPlan(productCode, planCode)) ??
+    (productCode === "AORMS" && planCode === "LITE" ? await ensureAormsLitePlan() : null);
   if (!plan) return null;
 
   const orgId = await ensurePersonalOrg(account);
@@ -114,8 +151,8 @@ export async function provisionTrial(
     };
   }
 
+  // Free forever: ACTIVE with no expiry.
   const id = newId("lic");
-  const expiresAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
   const [created] = await db
     .insert(schema.licenses)
     .values({
@@ -124,12 +161,12 @@ export async function provisionTrial(
       productId: plan.productId,
       planId: plan.planId,
       key: newLicenseKey(),
-      status: "TRIAL",
+      status: "ACTIVE",
       seats: plan.seats,
       deviceLimit: plan.deviceLimit,
       meterLimit: plan.meterLimit,
-      expiresAt,
-      notes: "Self-serve trial",
+      expiresAt: null,
+      notes: "Self-serve LITE (free)",
     })
     .returning();
   await db.insert(schema.licenseEvents).values({
@@ -144,10 +181,10 @@ export async function provisionTrial(
     orgId,
     licenseId: id,
     key: created!.key,
-    status: "TRIAL",
+    status: "ACTIVE",
     productCode: plan.productCode,
     planCode,
-    expiresAt: expiresAt.toISOString(),
+    expiresAt: null,
     reused: false,
   };
 }

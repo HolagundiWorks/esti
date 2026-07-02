@@ -91,7 +91,7 @@ export function SearchPage() {
       />
 
       <Stack gap={4}>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap", alignItems: "flex-end" }}>
           <div style={{ flex: "1 1 280px", maxWidth: 480 }}>
             <Search
               id="global-search"
@@ -110,7 +110,7 @@ export function SearchPage() {
           </Button>
         </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
           <div style={{ minWidth: 280, flex: 1 }}>
             <MultiSelect
               id="search-types"

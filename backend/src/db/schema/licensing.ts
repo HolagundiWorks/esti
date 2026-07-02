@@ -23,7 +23,7 @@ export const licenses = pgTable("esti_license", {
   key: text("key").notNull().unique(),
   /** Hub-assigned canonical firm id carried in the signed token (sync scoping). */
   firmId: uuid("firm_id").notNull().defaultRandom(),
-  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE"] }).notNull(),
+  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE", "PRO"] }).notNull(),
   /** Optional seat overrides (LicenseSeats); `{}` = use plan defaults. */
   seats: jsonb("seats").notNull().default({}),
   status: text("status", { enum: ["ACTIVE", "SUSPENDED", "REVOKED"] })

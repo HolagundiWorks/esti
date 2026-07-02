@@ -23,6 +23,8 @@ import {
  */
 export const contractors = pgTable("esti_contractor", {
   id: id(),
+  /** Human-readable portable ID, e.g. AORMS-X-7T2M (EX_USER / contractor). */
+  publicId: text("public_id").unique(),
   name: text("name").notNull(),
   category: text("category").notNull(),
   companyName: text("company_name"),

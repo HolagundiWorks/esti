@@ -1,5 +1,5 @@
 import { ArrowRight } from "@carbon/icons-react";
-import { Button, Link, Stack, Theme } from "@carbon/react";
+import { Button, Link, Stack } from "@carbon/react";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
@@ -18,6 +18,7 @@ const CONTACT_LINKS = [
   { href: "/investors", label: "Investors" },
   { href: "/legal", label: "Legal" },
   { href: "/login", label: "Workspace sign in" },
+  { href: "/access", label: "Portal access (clients / contractors)" },
 ] as const;
 
 export function MarketingFooter({
@@ -28,10 +29,9 @@ export function MarketingFooter({
   visitCount?: number | null;
 }) {
   return (
-    <Theme theme="g100">
-      <LandingBand className="esti-landing-footer">
-        <LandingEditorial>
-          <footer className="esti-landing-footer__grid" aria-label="AORMS footer">
+    <LandingBand className="esti-landing-footer">
+      <LandingEditorial>
+        <footer className="esti-landing-footer__grid" aria-label="AORMS footer">
             <div className="esti-landing-footer__brand">
               <img
                 src="/aorms-logo-white.png"
@@ -105,6 +105,5 @@ export function MarketingFooter({
           </footer>
         </LandingEditorial>
       </LandingBand>
-    </Theme>
   );
 }

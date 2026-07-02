@@ -26,8 +26,10 @@ import {
   PLAN_LIMITS,
   type Plan,
   STAFF_ROLE_LABEL,
+  USER_TYPE_LABEL,
   accessLabelForUser,
   isStaffRole,
+  userType,
 } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
@@ -38,6 +40,14 @@ const ROLE_LABEL: Record<string, string> = {
   ...STAFF_ROLE_LABEL,
   CONSULTANT: "Staff / Consultant",
   CLIENT: "Client",
+};
+
+const TYPE_TAG_COLOR: Record<string, "purple" | "gray" | "blue" | "teal" | "cyan"> = {
+  COMPANY: "purple",
+  STAFF: "gray",
+  CLIENT: "blue",
+  CONSULTANT: "teal",
+  CONTRACTOR: "cyan",
 };
 
 export function Users() {
@@ -105,12 +115,47 @@ export function Users() {
     },
   });
 
+  // Link a firm login to a central AORMS-U identity (portable person).
+  const [link, setLink] = useState<{ id: string; email: string } | null>(null);
+  const [linkVal, setLinkVal] = useState("");
+  const linkIdentity = trpc.users.linkIdentity.useMutation({
+    onSuccess: () => {
+      invalidate();
+      setLink(null);
+      setLinkVal("");
+      setMsg("Identity linked");
+    },
+  });
+
+  // U-4 migration path: one-time (re-runnable) push of every linked login's
+  // unified type to the hub, for accounts linked before U-3b shipped.
+  const resync = trpc.users.resyncIdentityTypes.useMutation({
+    onSuccess: (r) => setMsg(`Synced ${r.synced} of ${r.total} linked identities to the hub`),
+    onError: (err) =>
+      setMsg(
+        err.message === "No identity hub configured"
+          ? "No identity hub is configured on this install — nothing to sync."
+          : `Sync failed: ${err.message}`,
+      ),
+  });
+
   return (
     <Stack gap={6}>
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={<Button onClick={() => setAddOpen(true)}>Add staff login</Button>}
+        actions={
+          <Stack orientation="horizontal" gap={3}>
+            <Button
+              kind="tertiary"
+              onClick={() => resync.mutate()}
+              disabled={resync.isPending}
+            >
+              {resync.isPending ? "Syncing…" : "Resync identity types"}
+            </Button>
+            <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
+          </Stack>
+        }
       />
 
       <Tile>
@@ -157,8 +202,10 @@ export function Users() {
             <TableRow>
               <TableHeader>Email</TableHeader>
               <TableHeader>Name</TableHeader>
+              <TableHeader>Type</TableHeader>
               <TableHeader>Level</TableHeader>
               <TableHeader>Role</TableHeader>
+              <TableHeader>AORMS ID</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Actions</TableHeader>
             </TableRow>
@@ -172,10 +219,16 @@ export function Users() {
                   : u.consultantId
                     ? " (consultant portal)"
                     : "";
+              const type = userType(u);
               return (
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.fullName}</TableCell>
+                  <TableCell>
+                    <Tag type={TYPE_TAG_COLOR[type]} size="sm">
+                      {USER_TYPE_LABEL[type]}
+                    </Tag>
+                  </TableCell>
                   <TableCell>
                     {accessLabelForUser(u)}
                   </TableCell>
@@ -213,6 +266,7 @@ export function Users() {
                       </>
                     )}
                   </TableCell>
+                  <TableCell>{u.accountPublicId ?? "—"}</TableCell>
                   <TableCell>
                     <Tag type={u.disabled ? "red" : "green"}>
                       {u.disabled ? "Disabled" : "Active"}
@@ -226,6 +280,16 @@ export function Users() {
                         onClick={() => setReset({ id: u.id, email: u.email })}
                       >
                         Reset password
+                      </Button>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setLink({ id: u.id, email: u.email });
+                          setLinkVal(u.accountPublicId ?? "");
+                        }}
+                      >
+                        Link ID
                       </Button>
                       {!isSelf && (
                         <Button
@@ -335,6 +399,41 @@ export function Users() {
           value={resetPw}
           onChange={(e) => setResetPw(e.target.value)}
         />
+      </Modal>
+
+      <Modal
+        open={link !== null}
+        modalHeading={`Link identity — ${link?.email ?? ""}`}
+        primaryButtonText={linkIdentity.isPending ? "Saving…" : "Save"}
+        secondaryButtonText="Cancel"
+        onRequestClose={() => setLink(null)}
+        onRequestSubmit={() =>
+          link &&
+          linkIdentity.mutate({ id: link.id, accountPublicId: linkVal.trim() || null })
+        }
+      >
+        <Stack gap={4}>
+          <p>
+            Link this firm login to a person&apos;s portable AORMS-U identity so their
+            certifications and growth follow them. Leave blank to unlink.
+          </p>
+          <TextInput
+            id="u-link"
+            labelText="AORMS-U handle"
+            placeholder="AORMS-U-2K4P9F"
+            value={linkVal}
+            onChange={(e) => setLinkVal(e.target.value)}
+          />
+          {linkIdentity.error && (
+            <InlineNotification
+              kind="error"
+              title="Could not link"
+              subtitle={linkIdentity.error.message}
+              hideCloseButton
+              lowContrast
+            />
+          )}
+        </Stack>
       </Modal>
 
     </Stack>

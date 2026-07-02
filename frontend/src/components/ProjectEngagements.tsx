@@ -70,7 +70,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: "var(--cds-spacing-07)",
         }}
       >
         <h3>Consultants engaged</h3>

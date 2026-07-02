@@ -65,7 +65,7 @@ export function SitePortal() {
 
   if (!projectId) {
     return (
-      <main style={{ maxWidth: "640px", margin: "0 auto", padding: "1rem" }}>
+      <main style={{ maxWidth: "640px", margin: "0 auto", padding: "var(--cds-spacing-05)" }}>
         <Stack gap={6}>
           <Stack gap={2}>
             <h2>Site Portal</h2>
@@ -93,7 +93,7 @@ export function SitePortal() {
   const inspections = inspectionsQ.data ?? [];
 
   return (
-    <main style={{ maxWidth: "640px", margin: "0 auto", padding: "1rem" }}>
+    <main style={{ maxWidth: "640px", margin: "0 auto", padding: "var(--cds-spacing-05)" }}>
       <Stack gap={6}>
         <Stack gap={2}>
           <h2>Site Inspections</h2>

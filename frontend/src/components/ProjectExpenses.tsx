@@ -106,12 +106,12 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
   const amountPaise = Math.round(parseFloat(form.amount || "0") * 100);
 
   return (
-    <div style={{ marginTop: 24 }}>
+    <div style={{ marginTop: "var(--cds-spacing-06)" }}>
       <h4>Project expenses</h4>
       <p>Site travel, food, accommodation, and misc — tracked separately from client GST invoices.</p>
 
       {summaryQ.data && (
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "16px 0" }}>
+        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap", margin: "var(--cds-spacing-05) 0" }}>
           <Tile style={{ minWidth: 180 }}>
             <div>Non-billable spend</div>
             <strong>{formatINR(summaryQ.data.nonBillablePaise)}</strong>
@@ -133,7 +133,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      <Stack orientation="horizontal" gap={3} style={{ marginBottom: 12 }}>
+      <Stack orientation="horizontal" gap={3} style={{ marginBottom: "var(--cds-spacing-04)" }}>
         {(["ALL", "BILLABLE", "NON_BILLABLE", "PENDING_RECOVERY"] as const).map((f) => (
           <Button
             key={f}
@@ -313,7 +313,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
         />
         <Button
           kind="danger--ghost"
-          style={{ marginTop: 12 }}
+          style={{ marginTop: "var(--cds-spacing-04)" }}
           onClick={() =>
             recoverId &&
             markRecovered.mutate({ id: recoverId, recoveryStatus: "WRITTEN_OFF" })

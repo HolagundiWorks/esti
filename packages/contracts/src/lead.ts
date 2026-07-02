@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TagColor } from "./schemas.js";
 
 /**
  * Project OS — Lead Capture Engine (Slice A).
@@ -55,10 +56,7 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   LOST: "Lost",
 };
 
-export const LEAD_STATUS_TAG: Record<
-  LeadStatus,
-  "blue" | "cyan" | "teal" | "purple" | "green" | "gray" | "red"
-> = {
+export const LEAD_STATUS_TAG: Record<LeadStatus, TagColor> = {
   NEW: "blue",
   CONTACTED: "cyan",
   ASSESSMENT_STARTED: "teal",

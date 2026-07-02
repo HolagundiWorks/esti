@@ -10,18 +10,24 @@ import {
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
-import { createAccountUrl } from "../lib/onboarding.js";
 import { trpc } from "../lib/trpc.js";
 
-// Public marketing build: account creation goes through the licensing cloud
-// (Google sign-in). A private firm install uses the local first-run setup.
+// On a public-site build (the hub, e.g. aorms.in) the AORMS account + licence
+// portal is its own destination at /account — NOT embedded here. This page is
+// only ever the firm WORKSPACE sign-in (esti_user): one email + password step,
+// one session. A private/self-hosted firm install has no hub to reach, so its
+// "Create account" is the first-run /signup bootstrap instead.
 const PUBLIC_SITE = import.meta.env.VITE_PUBLIC_SITE !== "false";
 
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needCode, setNeedCode] = useState(false);
+
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       // Desktop returns a session token (cookies don't cross the loopback origin).
@@ -29,7 +35,17 @@ export function Login() {
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },
+    onError: (err) => {
+      // Password accepted — now collect the authenticator code.
+      if (err.message === "totp_required") setNeedCode(true);
+    },
   });
+
+  const errorText =
+    login.error?.message === "totp_invalid"
+      ? "That authenticator code is incorrect."
+      : login.error?.message;
+  const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
     <main className="esti-login-shell">
@@ -43,13 +59,13 @@ export function Login() {
                 </span>
                 <h3>ESTI AORMS</h3>
               </div>
-              <p>Architectural Office Resource Management System</p>
+              <p>Sign in to your workspace</p>
             </Stack>
 
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
-                login.mutate({ email, password });
+                login.mutate({ email, password, code: needCode ? code : undefined });
               }}
             >
               <Stack gap={5}>
@@ -57,6 +73,7 @@ export function Login() {
                   id="email"
                   labelText="Email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -65,41 +82,63 @@ export function Login() {
                   id="password"
                   labelText="Password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                {login.error && (
+                {needCode && (
+                  <TextInput
+                    id="totp-code"
+                    labelText="Authenticator code"
+                    placeholder="123456"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    helperText="6-digit code from your authenticator app."
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                )}
+                {showError && (
                   <InlineNotification
                     kind="error"
                     title="Sign-in failed"
-                    subtitle={login.error.message}
+                    subtitle={errorText}
                     hideCloseButton
                     lowContrast
                   />
                 )}
-                <Button type="submit" disabled={login.isPending}>
-                  {login.isPending ? "Signing in..." : "Sign in"}
+                <Button type="submit" disabled={login.isPending || (needCode && code.length < 6)}>
+                  {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                 </Button>
-                {PUBLIC_SITE ? (
-                  <Button href={createAccountUrl()} kind="tertiary">
-                    Create account
-                  </Button>
-                ) : (
-                  <Button as={RouterLink} to="/signup" kind="tertiary">
-                    Create account
-                  </Button>
-                )}
               </Stack>
             </Form>
 
-            <Button
-              as={RouterLink}
-              to="/"
-              kind="ghost"
-              size="sm"
-              renderIcon={ArrowLeft}
-            >
+            <Button as={RouterLink} to="/forgot-password" kind="ghost" size="sm">
+              Forgot password?
+            </Button>
+
+            <Stack gap={2}>
+              {PUBLIC_SITE ? (
+                <Button as={RouterLink} to="/account?mode=create" kind="tertiary">
+                  Create an AORMS account
+                </Button>
+              ) : (
+                <Button as={RouterLink} to="/signup" kind="tertiary">
+                  Create account
+                </Button>
+              )}
+              {PUBLIC_SITE && (
+                <Button as={RouterLink} to="/account" kind="ghost" size="sm">
+                  Manage your AORMS account & licence →
+                </Button>
+              )}
+              <Button as={RouterLink} to="/access" kind="ghost" size="sm">
+                Client / consultant / contractor portal
+              </Button>
+            </Stack>
+
+            <Button as={RouterLink} to="/" kind="ghost" size="sm" renderIcon={ArrowLeft}>
               Back to home
             </Button>
           </Stack>

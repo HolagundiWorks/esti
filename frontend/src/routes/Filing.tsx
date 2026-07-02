@@ -65,7 +65,7 @@ export function Filing() {
       )}
 
       <Tabs>
-        <TabList aria-label="Filing tabs">
+        <TabList aria-label="Filing tabs" contained>
           <Tab>GST abstract</Tab>
           <Tab>TDS abstract</Tab>
         </TabList>

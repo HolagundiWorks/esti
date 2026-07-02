@@ -51,6 +51,10 @@ export default function LicensesTab() {
   const [extendId, setExtendId] = useState<string | null>(null);
   const [extendDate, setExtendDate] = useState("");
 
+  // Change plan (upgrade / downgrade).
+  const [planChange, setPlanChange] = useState<{ id: string; productCode: string } | null>(null);
+  const [changePlanId, setChangePlanId] = useState("");
+
   const [detail, setDetail] = useState<Detail | null>(null);
 
   async function load() {
@@ -102,6 +106,22 @@ export default function LicensesTab() {
     setExtendId(null);
     setExtendDate("");
     await load();
+  }
+
+  const plansForChange =
+    products.find((p) => p.code === planChange?.productCode)?.plans ?? [];
+
+  async function doChangePlan() {
+    if (!planChange || !changePlanId) return;
+    setError(null);
+    try {
+      await trpc.admin.licenses.changePlan.mutate({ licenseId: planChange.id, planId: changePlanId });
+      setPlanChange(null);
+      setChangePlanId("");
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
 
   async function openDetail(licenseId: string) {
@@ -165,6 +185,15 @@ export default function LicensesTab() {
               <TableCell>
                 <OverflowMenu aria-label="License actions" flipped>
                   <OverflowMenuItem itemText="Details" onClick={() => openDetail(l.id)} />
+                  <OverflowMenuItem
+                    itemText="Change plan…"
+                    onClick={() => {
+                      setPlanChange({ id: l.id, productCode: l.productCode });
+                      const plans =
+                        products.find((p) => p.code === l.productCode)?.plans ?? [];
+                      setChangePlanId(plans.find((pl) => pl.code !== l.planCode)?.id ?? plans[0]?.id ?? "");
+                    }}
+                  />
                   <OverflowMenuItem
                     itemText="Extend / set expiry…"
                     onClick={() => {
@@ -249,6 +278,35 @@ export default function LicensesTab() {
           value={extendDate}
           onChange={(e) => setExtendDate(e.target.value)}
         />
+      </Modal>
+
+      {/* Change plan (upgrade / downgrade) */}
+      <Modal
+        open={planChange !== null}
+        modalHeading="Change plan"
+        primaryButtonText="Apply"
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!changePlanId}
+        onRequestClose={() => setPlanChange(null)}
+        onRequestSubmit={doChangePlan}
+      >
+        <Stack gap={5}>
+          <p>
+            Move this licence to another {planChange?.productCode} plan. Seat/device limits adopt
+            the new plan; the node applies it on its next licence refresh.
+          </p>
+          <Select
+            id="change-plan"
+            labelText="New plan"
+            value={changePlanId}
+            onChange={(e) => setChangePlanId(e.target.value)}
+          >
+            {plansForChange.map((pl) => (
+              <SelectItem key={pl.id} value={pl.id} text={pl.name} />
+            ))}
+          </Select>
+          {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast />}
+        </Stack>
       </Modal>
 
       {/* Details: devices + event log */}

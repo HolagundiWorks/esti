@@ -13,8 +13,10 @@ import {
 } from "@carbon/react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader.js";
+import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { useCapabilities } from "../lib/capabilities.js";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -61,6 +63,12 @@ export function Profile() {
   const { user } = useAuth();
   const workQ = trpc.userProfile.workSummary.useQuery();
   const w = workQ.data;
+  const meQ = trpc.users.myProfile.useQuery();
+  const aormsId = meQ.data?.accountPublicId ?? null;
+
+  const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
+  const PRO_DOWNLOAD_URL = import.meta.env.VITE_PRO_DOWNLOAD_URL ?? "";
+  const { isExternal } = useCapabilities();
 
   return (
     <Stack gap={6}>
@@ -73,9 +81,11 @@ export function Profile() {
           <Tab>Personal</Tab>
           <Tab>Work Profile</Tab>
           <Tab>AORMS Identity</Tab>
+          <Tab>Account</Tab>
           <Tab>Certification</Tab>
-          <Tab>AORMS Index</Tab>
-          <Tab>Preferences</Tab>
+            <Tab>AORMS Index</Tab>
+            {!isExternal && <Tab>Downloads</Tab>}
+            <Tab>Preferences</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -88,6 +98,8 @@ export function Profile() {
               </Stack>
             </Tile>
           </TabPanel>
+
+
 
           <TabPanel>
             {w?.hasTeamMember ? (
@@ -105,13 +117,26 @@ export function Profile() {
           </TabPanel>
 
           <TabPanel>
-            <PlannedGrid
-              items={[
-                { title: "AORMS Unique ID", description: "Platform identity, e.g. AORMS-IND-000245." },
-                { title: "Professional Role", description: "Architect / Engineer / Consultant / Manager / Admin." },
-                { title: "Firm Mapping", description: "Registered office / firm association." },
-              ]}
-            />
+            <Stack gap={5}>
+              <Tile className="esti-fill">
+                <Stack gap={5}>
+                  <Field
+                    label="AORMS Unique ID"
+                    value={aormsId ?? "Not linked — an owner can link this login from Users."}
+                  />
+                  <Field label="Professional role" value={user?.role ?? "—"} />
+                </Stack>
+              </Tile>
+              <PlannedGrid
+                items={[
+                  { title: "Firm Mapping", description: "Registered office / firm association." },
+                ]}
+              />
+            </Stack>
+          </TabPanel>
+
+          <TabPanel>
+            <AccountTab />
           </TabPanel>
 
           <TabPanel>
@@ -134,6 +159,29 @@ export function Profile() {
             />
           </TabPanel>
 
+          
+          {!isExternal && (
+            <TabPanel>
+              <Tile className="esti-fill">
+                <Stack gap={4}>
+                  <h4>Desktop installers</h4>
+                  <p className="esti-label esti-label--secondary">Installers are managed by AORMS IT and hosted under <code>/downloads</code>.</p>
+                  <Stack gap={2}>
+                    {LITE_DOWNLOAD_URL ? (
+                      <Button kind="primary" size="md" href={LITE_DOWNLOAD_URL}>Download AORMS Lite</Button>
+                    ) : (
+                      <Button kind="ghost" size="md" disabled>Lite: Coming soon</Button>
+                    )}
+                    {PRO_DOWNLOAD_URL ? (
+                      <Button kind="primary" size="md" href={PRO_DOWNLOAD_URL}>Download AORMS Pro</Button>
+                    ) : (
+                      <Button kind="ghost" size="md" disabled>Pro: Coming soon</Button>
+                    )}
+                  </Stack>
+                </Stack>
+              </Tile>
+            </TabPanel>
+          )}
           <TabPanel>
             <Tile className="esti-fill">
               <Stack gap={4}>
@@ -147,3 +195,4 @@ export function Profile() {
     </Stack>
   );
 }
+

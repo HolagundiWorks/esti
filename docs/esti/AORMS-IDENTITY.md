@@ -1,6 +1,20 @@
 # AORMS Identity — account model & login
 
-> **Status:** design (proposed). Owner: Holagundi. Supersedes the ad-hoc split between
+> **Status:** **I-1…I-5 shipped** (IDs · tenant-first login · sign-up/activation · portable
+> certs/growth · firm-user projection). **U-1…U-4 shipped** — every local login
+> (`esti_user` staff + CLIENT/CONSULTANT/CONTRACTOR portal roles) now classifies under one
+> `type` vocabulary, can be linked to a portable identity, and that link's type is synced
+> to the hub; see §11. **Deliberately not attempted:** a literal single-table merge of
+> `hlp_account`/`hlp_org_member` and `esti_user` across every deployed install — U-1…U-4
+> keep the "projection" model (linked, not merged) that AORMS Identity chose from the
+> start (§8, open decision 4); a real merge is a live-data migration across every
+> customer's database and needs its own sign-off before any build starts. Remaining
+> runtime work: point the firm app / desktop at the live platform as the identity
+> authority, and the hybrid desktop offline-cache (needs the deployed platform base URL +
+> a desktop change) — tracked as follow-ups below.
+> Delivery: phased to `main`, each phase additive so existing logins keep working.
+> Desktop target is hybrid: online identity, locally-cached session for offline open.
+> Supersedes the ad-hoc split between
 > the licensing-platform accounts (`hlp_*`) and the firm-app users (`esti_user`).
 > Related: [`ACCESS-HIERARCHY.md`](ACCESS-HIERARCHY.md), the licensing platform
 > (`backend/src/licensing-platform/`), LXOS (learning/certification pillar).
@@ -160,10 +174,71 @@ logins keep working during the transition (the two-step UI wraps the existing au
 
 | Phase | Scope |
 |---|---|
-| **I-1 — IDs** | `public_id` on `hlp_account`/`hlp_organization` (`AORMS-U/C-`), generator, backfill, show in Profile/Company. |
-| **I-2 — Tenant-first login** | Step-1 company resolver (domain/email/id) + `aorms.in`→admin branch; Step-2 user login with membership check; session scoped to (account, org). Wraps existing auth. |
-| **I-3 — Company + personal sign-up** | Company create (domain + owner); personal create + **activate into company** (`hlp_org_member` status); leave/re-activate. |
-| **I-4 — Portable certs/growth** | `hlp_certification` + `hlp_growth_event` keyed to `AORMS-U-id`; Profile shows them across companies; wire ASPRF/LXOS. |
-| **I-5 — Firm-user projection** | `esti_user.account_public_id`; activation creates/links the firm user; company switcher. |
+| **I-1 — IDs** ✅ | `public_id` on `hlp_account`/`hlp_organization` (`AORMS-U/C-`), generator (`newPublicId`, Crockford base32), backfill (migration 0132), surfaced in the platform-admin console (account chip + Organizations table). *Profile/Company display arrives with the I-5 firm-user projection.* |
+| **I-2 — Tenant-first login** ✅ | Step-1 company resolver (`resolveCompany`: `AORMS-C-` handle / company login-domain / slug, `aorms.in`+admin-email → admin branch) at `POST /platform/auth/resolve-company`; Step-2 `POST /platform/auth/login` takes an optional `company` and, for a customer tenant, requires a verified `hlp_org_member` membership; the `hlp_session` cookie is scoped to `(account, org)`; `/switch-company` + a Panel company switcher for the active tenant. Migration 0133 adds `login_domain`/`login_email`; org create sets the login domain. **Additive** — omitting `company` keeps the legacy single-step platform-admin login. |
+| **I-3 — Company + personal sign-up** ✅ | Membership activation lifecycle on `hlp_org_member` (`status` INVITED→ACTIVE→LEFT + `activated_at`/`left_at`, migration 0134). Self-serve: `POST /platform/auth/{create,join,leave}-company` — joining auto-ACTIVEs when the account's email domain matches the company login-domain, else INVITED pending approval. Admin: `orgs.members` / `inviteMember` / `setMemberStatus`. Only ACTIVE memberships sign in / switch (enforced in the resolver). UI: a "Your companies" panel (create/join/leave) + a Members manager in the Orgs tab. |
+| **I-4 — Portable certs/growth** ✅ | `hlp_certification` + `hlp_growth_event` keyed to `account_public_id` (AORMS-U), migration 0135. `modules/portable/service.ts`: issue/list/revoke certs, record/list growth (the ASPRF/LXOS seam). Self view at `GET /platform/auth/my-credentials` + a "My credentials" tile; admin issuance via `admin.certifications.*` + an Issue-cert form in the Members manager. *Deep ASPRF/LXOS wiring rides on I-5's firm-user link (recordGrowth is the ready seam).* |
+| **I-5 — Firm-user projection** ✅ | `esti_user.account_public_id` (migration 0136) links a firm login to a central person (AORMS-U). Owner links/unlinks via `users.linkIdentity` (validates the handle exists on the platform, same DB); the handle shows in the Users table and the firm Profile › AORMS Identity tab, and rides on `users.list`/`myProfile`. Additive — existing firm logins are simply unlinked until an owner links them. |
 
 Each phase: contracts → migration → backend → Pure-Carbon UI → verify → commit.
+
+## 10. Remaining runtime work (post-I-5)
+
+The identity **model** is complete and on `main`. What's left is wiring live behaviour,
+which needs a deployed platform + a couple of product decisions:
+
+- **Identity authority URL** — ✅ *wired.* Firm installs default `ESTI_LICENSE_API_URL` to
+  `https://aorms.in/platform` (deploy template + `.env.example`), so a node activates /
+  refreshes its **licence** against the central platform (`/platform/v1`). Tenant-first
+  Step-1 already routes `aorms.in` → platform-admin (`PLATFORM_ADMIN_DOMAINS` default).
+  *Still local:* firm **credential** verification (`esti_user` password) is not yet
+  delegated to the platform — that's the login-path change below.
+- **Delegate firm login to the platform** — ✅ *shipped (opt-in, default off).* With
+  `ESTI_IDENTITY_DELEGATE=true`, `auth.login` verifies against the platform's machine
+  endpoint `POST /platform/v1/verify-login` (Bearer `ESTI_PRODUCT_API_KEY`, enforcing
+  `ESTI_COMPANY` membership), then projects the verified person onto a local `esti_user`
+  (`provisionLocalUser` — links by AORMS-U/email, new users land as ASSOCIATE, never
+  auto-OWNER). **Hybrid offline grace:** if the platform is unreachable the last
+  successful password is cached locally and login falls back to it, so the app still
+  opens offline. Default off = unchanged local login. **Fixed:** the hub's generic
+  "invalid" response covers three cases a node can't tell apart — wrong central
+  password, no central account at all (an ordinary staff login created purely
+  locally never has one), or a real account that isn't an ACTIVE member of this
+  company yet. Early code hard-rejected the login on any of the three; now it
+  falls through to the local password check the same way an unreachable hub
+  already did, so a locally-created staff login keeps working once delegation is
+  turned on (`backend/src/modules/auth/router.ts`). *To enable: mint a product API key
+  at `/platform-admin`, set the three env vars, pilot on one install before flipping it
+  on widely.*
+- **Hybrid desktop offline cache** — cache the last successful online login so the desktop
+  opens offline after first sign-in (a `desktop/src-tauri` change). Chosen model: online
+  identity, locally-cached session.
+- **ASPRF → growth** — call `recordGrowth(accountPublicId, …)` from the firm ASPRF/LXOS
+  pipelines so performance + learning accrue to the linked person. The seam exists
+  (`modules/portable/service.ts`); wiring it touches ASPRF hot paths, deferred deliberately.
+
+## 11. Unifying every login under one account-type vocabulary
+
+Today's separate stores — `hlp_account`/`hlp_org_member` (central) and `esti_user` with its
+staff ladder plus `CLIENT`/`CONSULTANT`(+`consultantId`)/`CONTRACTOR`(+`contractorId`) roles
+(per-install) — are five different-shaped things a person can be. The goal: **one** account
+system where `type` — `STAFF` / `COMPANY` / `CLIENT` / `CONSULTANT` / `CONTRACTOR` — is the
+only classification vocabulary, not a maze of tables and role checks. Confirmed scope:
+**every install, product-wide**; `COMPANY` = the firm owner/admin (the `OWNER` staff row),
+every other staff seniority tier is `STAFF`.
+
+This is a multi-week redesign (shared schema, a sync protocol between each install and the
+hub, a migration path for existing installs) — phased the same way as I-1…I-5 so no
+install's login ever breaks mid-transition.
+
+| Phase | Scope |
+|---|---|
+| **U-1 — Derived `UserType`** ✅ | `userType()` in `packages/contracts/src/permissions.ts` — a computed, non-persisted classification built on the existing role + `clientId`/`consultantId`/`contractorId` columns (no schema change). Surfaced as a Tag in the Users admin table. Fixed a gap found along the way: `users.list`'s select was missing `contractorId`, so CONTRACTOR logins fell through `externalClassForUser`/`accessLabelForUser` unclassified. |
+| **U-2 — Projection open to every type** ✅ | The I-5 firm-user projection (`esti_user.account_public_id` / `users.linkIdentity`) was already role-agnostic at the schema and tRPC layers — only the Users admin UI hid the "Link ID" action for CLIENT/CONSULTANT rows. Removed that gate: every login row, regardless of `type`, can now be linked to a portable `AORMS-U-` identity the same way staff already could. |
+| **U-3a — Fix the I-5 lookup for real (non-hub) installs** ✅ | Auditing U-2 surfaced a real bug: `linkIdentity`'s "the person must exist on the central identity platform (same database)" check ran `SELECT ... FROM hlp_account` against the **node's own** Postgres. `hlp_account` is schema-migrated into every install (`registerLicensingPlatform` mounts unconditionally, `backend/src/index.ts`), but only the hub's copy is ever populated — a customer node's local `hlp_account` is an empty shadow table, so every real `AORMS-U-` handle was silently rejected on every non-hub install. Fixed by adding a machine endpoint, `POST /platform/v1/verify-identity` (product-API-key auth, `backend/src/licensing-platform/routes/v1.ts`), and `verifyIdentityAtPlatform()` (`backend/src/lib/identityDelegate.ts`, mirrors the existing `verifyAtPlatform` login-delegation call). `linkIdentity` now calls the hub over `/v1` whenever `ESTI_LICENSE_API_URL`+`ESTI_PRODUCT_API_KEY` are configured (every real customer node), and only falls back to the local same-DB check when they aren't (the hub itself, and single-DB local dev). |
+| **U-3b — Shared schema + sync protocol** ✅ | Extended (not merged — see the "projection now, unify later" decision, §8.4) `hlp_org_member` with `account_type` (migration `0139_hlp_org_member_account_type`, additive/nullable) so the hub's membership record carries the same `STAFF`/`COMPANY`/`CLIENT`/`CONSULTANT`/`CONTRACTOR` value as the node's `userType()`. New machine endpoint `POST /platform/v1/sync-membership` (`backend/src/licensing-platform/routes/v1.ts`, product-API-key auth) resolves the account by `publicId` and the org by the node's `ESTI_COMPANY` handle, then stamps `account_type` on that membership row. Node-side `syncMembershipAtPlatform()` (`backend/src/lib/identityDelegate.ts`) is called from `linkIdentity` right after a successful link — best-effort, never blocks or fails the local link if the hub is unreachable. |
+| **U-4 — Migration path** ✅ | `users.resyncIdentityTypes` (owner-only mutation, `backend/src/modules/users/router.ts`) retroactively pushes every already-linked login's `userType()` to the hub — covers accounts linked under I-5 before U-3b existed. Idempotent (safe to re-run) and best-effort per row (one failed sync doesn't abort the batch). A "Resync identity types" button surfaces it in the Users admin screen. |
+
+Each phase: contracts → migration → backend → Pure-Carbon UI → verify → commit — same
+discipline as I-1…I-5. A literal single-table merge of `hlp_account`/`esti_user` (rather
+than this linked "projection" model) remains out of scope — see the status note above.

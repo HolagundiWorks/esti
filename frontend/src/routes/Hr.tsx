@@ -111,7 +111,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
       )}
 
       <Tabs>
-        <TabList aria-label="HR sections">
+        <TabList aria-label="HR sections" contained>
           <Tab>Operations</Tab>
           <Tab>Staff profiles</Tab>
           <Tab>Applications</Tab>

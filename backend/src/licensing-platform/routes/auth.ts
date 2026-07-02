@@ -1,50 +1,80 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { env } from "../env.js";
-import { clearSession, readSession, writeSession } from "../lib/session.js";
+import { clearSession, readSession, type SessionData, writeSession } from "../lib/session.js";
 import {
+  accountIdByEmail,
+  createEmailVerification,
   getAccountById,
+  hasPlatformAdmin,
   loginWithPassword,
   registerWithPassword,
   upsertAccount,
+  verifyEmailToken,
   type AccountView,
 } from "../modules/auth/service.js";
+import { sendMail } from "../../lib/mail/transport.js";
+import {
+  type OrgHandle,
+  membership,
+  membershipsFor,
+  orgHandleById,
+  orgIdFromHandle,
+  resolveCompany,
+} from "../modules/auth/tenant.js";
+import {
+  createCompany,
+  joinCompany,
+  leaveCompany,
+} from "../modules/membership/service.js";
 import { provisionTrial } from "../modules/onboarding/service.js";
+import { listCertifications, listGrowth } from "../modules/portable/service.js";
+import {
+  checkTotpForLogin,
+  disableTotp,
+  enableTotp,
+  startEnrollment,
+  totpEnabled,
+} from "../modules/auth/totp.js";
+import { PLAN_CODES, type PlanCode, createPlanRequest, myLicense, myRequest } from "../modules/request/service.js";
+
+/** The `me` view: the person + their active company + every company they can enter. */
+interface MeView {
+  account: AccountView;
+  activeOrg: OrgHandle | null;
+  memberships: Array<{ org: OrgHandle; role: string }>;
+  totpEnabled: boolean;
+}
+
+async function buildMe(s: SessionData): Promise<MeView | null> {
+  const account = await getAccountById(s.accountId);
+  if (!account) return null;
+  const [activeOrg, memberships, twoFactor] = await Promise.all([
+    s.orgId ? orgHandleById(s.orgId) : Promise.resolve(null),
+    membershipsFor(s.accountId),
+    totpEnabled(s.accountId),
+  ]);
+  return { account, activeOrg, memberships, totpEnabled: twoFactor };
+}
 
 const ONBOARD_COOKIE = "hlp_onboard";
 const isProd = process.env.NODE_ENV === "production";
 
-// The admin panel SPA is served at /platform-admin on the frontend origin.
-const PANEL_URL = `${env.FRONTEND_ORIGIN}/platform-admin`;
+// The AORMS account + licence portal has its own hub destination at /account
+// (distinct from the firm workspace /login and the /platform-admin console).
+// Onboarding, email verification, and customer sign-in all land there.
+const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/account`;
 
-/** Only redirect back to product origins on the configured allowlist. */
-function isAllowedReturn(ret: string): boolean {
-  try {
-    return env.ONBOARD_RETURN_ORIGINS.includes(new URL(ret).origin.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-/** Provision the trial and build the post-onboarding redirect URL (the product
- *  return URL carrying the issued license, or the admin panel). */
-async function buildOnboardRedirect(
-  account: AccountView,
-  product: string,
-  ret: string,
-): Promise<string> {
-  const result = await provisionTrial(account, product);
-  if (ret && isAllowedReturn(ret)) {
-    const u = new URL(ret);
-    if (result) {
-      u.searchParams.set("license", result.key);
-      u.searchParams.set("status", result.status);
-      u.searchParams.set("email", account.email);
-    } else {
-      u.searchParams.set("onboard_error", "unknown_product");
-    }
-    return u.toString();
-  }
-  return PANEL_URL;
+/** Mint a verification token and email the confirmation link (best-effort). */
+async function sendEmailVerification(accountId: string, email: string): Promise<void> {
+  const token = await createEmailVerification(accountId);
+  const link = `${env.FRONTEND_ORIGIN}/platform/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const subject = "Confirm your AORMS email";
+  const text = `Confirm your email to finish setting up your AORMS account:\n\n${link}\n\nThis link expires in 24 hours. If you didn't create an account, ignore this email.\n\n— AORMS`;
+  const html = `<p>Confirm your email to finish setting up your AORMS account:</p>
+<p><a href="${link}">Confirm my email</a></p>
+<p>This link expires in 24 hours. If you didn't create an account, ignore this email.</p>
+<p>— AORMS</p>`;
+  await sendMail({ to: email, subject, text, html });
 }
 
 /** Read + clear a pending onboard intent cookie (set by GET /onboard). */
@@ -76,15 +106,15 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const s = readSession(req);
     if (!s) {
       reply.code(401);
-      return { account: null };
+      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
     }
-    const account = await getAccountById(s.accountId);
-    if (!account) {
+    const me = await buildMe(s);
+    if (!me) {
       clearSession(reply);
       reply.code(401);
-      return { account: null };
+      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
     }
-    return { account };
+    return me;
   });
 
   app.post("/auth/logout", async (_req, reply) => {
@@ -92,9 +122,233 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     return { ok: true };
   });
 
+  // Whether self-serve account creation is still open on the admin console. Closes
+  // once the first platform admin exists (product onboarding is unaffected).
+  app.get("/auth/registration-status", async () => {
+    return { adminExists: await hasPlatformAdmin() };
+  });
+
+  // --- Plan requests: sign up, ask for a tier; an admin fulfils it in the portal ---
+  app.get("/auth/my-request", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { request: null };
+    }
+    return { request: await myRequest(s.accountId) };
+  });
+
+  // --- Current licence (plan / seats / expiry) for the account's own org ---
+  app.get("/auth/my-license", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { license: null };
+    }
+    return { license: await myLicense(s.accountId) };
+  });
+
+  app.post("/auth/request-plan", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const plan = (req.body as { plan?: string } | undefined)?.plan?.toUpperCase() ?? "";
+    if (!PLAN_CODES.includes(plan as PlanCode)) {
+      reply.code(400);
+      return { error: "invalid_plan" };
+    }
+    const request = await createPlanRequest(account, plan as PlanCode);
+    return { ok: true, request };
+  });
+
+  // --- Two-factor authenticator (TOTP) enrollment ---
+  // Begin: issue a fresh secret + otpauth URI to scan (not stored until confirmed).
+  app.post("/auth/totp/setup", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    return startEnrollment(account.email);
+  });
+
+  // Confirm: the code must validate against the issued secret to turn 2FA on.
+  app.post("/auth/totp/enable", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { secret?: string; code?: string } | undefined;
+    if (!body?.secret || !body?.code) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const ok = await enableTotp(s.accountId, body.secret.trim(), body.code.trim());
+    if (!ok) {
+      reply.code(400);
+      return { error: "totp_invalid" };
+    }
+    return { ok: true };
+  });
+
+  // Turn off — requires a current code so a hijacked session can't disable 2FA.
+  app.post("/auth/totp/disable", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { code?: string } | undefined;
+    const ok = await disableTotp(s.accountId, body?.code?.trim() ?? "");
+    if (!ok) {
+      reply.code(400);
+      return { error: "totp_invalid" };
+    }
+    return { ok: true };
+  });
+
+  // --- The signed-in person's portable credentials (certs + growth), AORMS-U keyed ---
+  app.get("/auth/my-credentials", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { certifications: [], growth: [] };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account?.publicId) return { certifications: [], growth: [] };
+    const [certifications, growth] = await Promise.all([
+      listCertifications(account.publicId),
+      listGrowth(account.publicId),
+    ]);
+    return { certifications, growth };
+  });
+
+  // --- Step 1: resolve the company (tenant) from what the person typed ---
+  app.post("/auth/resolve-company", async (req, reply) => {
+    const body = req.body as { company?: string } | undefined;
+    const input = body?.company?.trim() ?? "";
+    if (!input) {
+      reply.code(400);
+      return { mode: "not_found" as const };
+    }
+    return resolveCompany(input);
+  });
+
+  // --- Switch the active company (must be a member) ---
+  app.post("/auth/switch-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const input = body?.company?.trim() ?? "";
+    const orgId = input ? await orgIdFromHandle(input) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    if (!(await membership(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_a_member" };
+    }
+    writeSession(reply, s.accountId, orgId);
+    const me = await buildMe({ accountId: s.accountId, orgId });
+    return { ok: true, ...me };
+  });
+
+  // --- Create a company (the signed-in account becomes its OWNER) ---
+  app.post("/auth/create-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { name?: string; loginDomain?: string } | undefined;
+    const name = body?.name?.trim() ?? "";
+    if (name.length < 2) {
+      reply.code(400);
+      return { error: "invalid_name" };
+    }
+    const org = await createCompany(s.accountId, { name, loginDomain: body?.loginDomain });
+    if ("error" in org) {
+      reply.code(400);
+      return { error: org.error };
+    }
+    const orgId = org.publicId ? await orgIdFromHandle(org.publicId) : null;
+    writeSession(reply, s.accountId, orgId ?? undefined);
+    const me = await buildMe({ accountId: s.accountId, orgId: orgId ?? undefined });
+    return { ok: true, ...me };
+  });
+
+  // --- Join / request access to a company ---
+  app.post("/auth/join-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const company = body?.company?.trim() ?? "";
+    const res = await joinCompany(s.accountId, account.email, company);
+    if ("error" in res) {
+      reply.code(404);
+      return { error: res.error };
+    }
+    // Auto-activated → make it the active tenant; otherwise stay where we are.
+    const activeOrgId =
+      res.status === "ACTIVE" ? (await orgIdFromHandle(company)) ?? s.orgId : s.orgId;
+    writeSession(reply, s.accountId, activeOrgId);
+    const me = await buildMe({ accountId: s.accountId, orgId: activeOrgId });
+    return { ok: true, status: res.status, ...me };
+  });
+
+  // --- Leave a company ---
+  app.post("/auth/leave-company", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const orgId = body?.company ? await orgIdFromHandle(body.company) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    await leaveCompany(s.accountId, orgId);
+    const nextOrg = s.orgId === orgId ? undefined : s.orgId;
+    writeSession(reply, s.accountId, nextOrg);
+    const me = await buildMe({ accountId: s.accountId, orgId: nextOrg });
+    return { ok: true, ...me };
+  });
+
   // --- Register with email + password ---
   app.post("/auth/register", async (req, reply) => {
-    const body = req.body as { email?: string; password?: string; name?: string } | undefined;
+    const body = req.body as
+      | { email?: string; password?: string; name?: string; portal?: boolean }
+      | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
     const name = body?.name?.trim() || null;
@@ -106,6 +360,16 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(400);
       return { error: "weak_password" };
     }
+    // Admin-console self-signup is a one-time bootstrap: once a platform admin
+    // exists it is closed. Customer sign-up on the user portal (`portal: true`)
+    // and product onboarding (the onboard cookie) create ordinary accounts and
+    // are always open — they never grant admin (that's PLATFORM_ADMIN_EMAILS).
+    const onboarding = Boolean(req.cookies?.[ONBOARD_COOKIE]);
+    const portal = Boolean(body?.portal);
+    if (!onboarding && !portal && (await hasPlatformAdmin())) {
+      reply.code(403);
+      return { error: "registration_closed" };
+    }
     let account: AccountView;
     try {
       account = await registerWithPassword({ email, password, name });
@@ -116,16 +380,73 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
     writeSession(reply, account.id);
 
-    const intent = takeOnboardIntent(req, reply);
-    const redirect = intent ? await buildOnboardRedirect(account, intent.product, intent.ret) : null;
-    return { ok: true, account, redirect };
+    // Self-serve free tier: every new account instantly gets a personal org + a
+    // free-forever LITE licence (idempotent, self-healing) — no admin approval,
+    // no emailed key. Paid tiers stay a request→approve flow. Best-effort so a
+    // provisioning hiccup never blocks signup.
+    try {
+      await provisionTrial(account);
+    } catch {
+      /* ignore — LITE can be re-provisioned; signup still succeeds */
+    }
+
+    // Fire off the email-verification link (best-effort — never fails signup if
+    // SMTP is down; the account just stays unverified, which only blocks
+    // domain-based company auto-join, not login).
+    try {
+      await sendEmailVerification(account.id, account.email);
+    } catch {
+      /* ignore — verification can be re-requested */
+    }
+
+    // Customer (portal) sign-ups stay in the user portal; never bounce to the
+    // admin console. The onboard cookie is still consumed to clear it.
+    takeOnboardIntent(req, reply);
+    return { ok: true, account, redirect: null };
   });
 
-  // --- Log in with email + password ---
+  // --- Confirm an email-verification link (GET so it works straight from mail) ---
+  app.get("/auth/verify-email", async (req, reply) => {
+    const token = (req.query as { token?: string })?.token ?? "";
+    const ok = await verifyEmailToken(token);
+    // Land back on the login page either way; the query flag drives a banner.
+    return reply.redirect(`${ACCOUNT_URL}?verified=${ok ? "1" : "0"}`);
+  });
+
+  // --- Resend the verification email to the signed-in account ---
+  app.post("/auth/resend-verification", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const info = await accountIdByEmail(account.email);
+    if (info?.verified) return { ok: true, alreadyVerified: true };
+    try {
+      await sendEmailVerification(account.id, account.email);
+    } catch {
+      reply.code(502);
+      return { error: "send_failed" };
+    }
+    return { ok: true };
+  });
+
+  // --- Log in with email + password (optionally company-scoped) ---
+  // `company` is the resolved Step-1 handle. Omitted → the legacy single-step
+  // login (unscoped session), so existing platform-admin sign-in is unchanged.
   app.post("/auth/login", async (req, reply) => {
-    const body = req.body as { email?: string; password?: string } | undefined;
+    const body = req.body as
+      | { email?: string; password?: string; company?: string; code?: string }
+      | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
+    const company = body?.company?.trim() ?? "";
     if (!emailValid(email) || !password) {
       reply.code(400);
       return { error: "invalid_credentials" };
@@ -135,11 +456,49 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(401);
       return { error: "invalid_credentials" };
     }
-    writeSession(reply, account.id);
+
+    // Second factor: if this account has an authenticator, a valid code is required.
+    const totp = await checkTotpForLogin(account.id, body?.code?.trim());
+    if (totp === "required") {
+      reply.code(401);
+      return { error: "totp_required" };
+    }
+    if (totp === "invalid") {
+      reply.code(401);
+      return { error: "totp_invalid" };
+    }
+
+    // Tenant-first: when a company is named, only the admin branch or a verified
+    // membership may sign in, and the session is scoped to that active company.
+    let orgId: string | undefined;
+    if (company) {
+      const res = await resolveCompany(company);
+      if (res.mode === "not_found") {
+        reply.code(404);
+        return { error: "company_not_found" };
+      }
+      if (res.mode === "company") {
+        const id = await orgIdFromHandle(company);
+        if (!id) {
+          reply.code(404);
+          return { error: "company_not_found" };
+        }
+        if (!(await membership(account.id, id))) {
+          reply.code(403);
+          return { error: "not_a_member" };
+        }
+        orgId = id;
+      }
+      // res.mode === "admin" → unscoped session; the Panel gates on isPlatformAdmin.
+    }
+    writeSession(reply, account.id, orgId);
 
     const intent = takeOnboardIntent(req, reply);
-    const redirect = intent ? await buildOnboardRedirect(account, intent.product, intent.ret) : null;
-    return { ok: true, account, redirect };
+    // Onboarding lands the account in the customer portal, where they raise a
+    // plan request an admin fulfils — never the admin/licensing console.
+    const redirect = intent ? ACCOUNT_URL : null;
+    const activeOrg = orgId ? await orgHandleById(orgId) : null;
+    return { ok: true, account, redirect, activeOrg };
   });
 
   // --- Self-serve onboarding (a product's "Create account") ---
@@ -149,11 +508,11 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const product = (q.product || "AORMS").toUpperCase();
     const ret = typeof q.return === "string" ? q.return : "";
 
-    // Already signed in → provision now and bounce straight back.
+    // Already signed in → straight to the account portal.
     const s = readSession(req);
     if (s) {
       const account = await getAccountById(s.accountId);
-      if (account) return reply.redirect(await buildOnboardRedirect(account, product, ret));
+      if (account) return reply.redirect(ACCOUNT_URL);
     }
 
     // Otherwise stash the intent and send the visitor to the sign-up form; the
@@ -166,7 +525,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       maxAge: 600,
       secure: isProd,
     });
-    return reply.redirect(`${PANEL_URL}?onboard=${encodeURIComponent(product)}`);
+    return reply.redirect(`${ACCOUNT_URL}?onboard=${encodeURIComponent(product)}`);
   });
 
   // --- Dev login (local only; gated by DEV_LOGIN=1) ---

@@ -82,8 +82,15 @@ function main() {
   const pkg = JSON.parse(readFileSync(join(backend, "package.json"), "utf8"));
   delete pkg.devDependencies;
   delete pkg.scripts;
+  // Always stage the backend WITHOUT the heavy AI kit by default so the installer
+  // stays light. We still create an _ai_node_modules.tgz artifact that the
+  // Core/Enterprise installers can include and unpack at install-time.
   pkg.dependencies["@esti/contracts"] = `file:${contractsTgz}`;
-  pkg.dependencies["@hcw/aorms-ai-kit"] = `file:${aiKitTgz}`;
+  // Remove workspace-only AI kit reference so `npm install` in the stage
+  // doesn't fail due to unsupported "workspace:*" protocol.
+  if (pkg.dependencies && pkg.dependencies["@hcw/aorms-ai-kit"]) {
+    delete pkg.dependencies["@hcw/aorms-ai-kit"];
+  }
   writeFileSync(join(stage, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
 
   execSync("npm install --omit=dev --no-audit --no-fund --ignore-scripts", {
@@ -91,6 +98,35 @@ function main() {
     stdio: "inherit",
   });
   cpSync(join(stage, "node_modules"), join(out, "node_modules"), { recursive: true });
+
+  // Produce a separate tarball that contains the AI package's node_modules
+  // (flattened) so installers can remain light and later unpack the AI deps
+  // without needing to run npm on the user's machine.
+  const aiStage = join(out, "_ai_stage");
+  rmSync(aiStage, { recursive: true, force: true });
+  mkdirSync(aiStage, { recursive: true });
+  // create a minimal package.json that depends only on the AI kit tarball
+  const aiPkg = { name: "esti-ai-stage", version: "1.0.0", dependencies: { "@hcw/aorms-ai-kit": `file:${aiKitTgz}` } };
+  writeFileSync(join(aiStage, "package.json"), `${JSON.stringify(aiPkg, null, 2)}\n`);
+  console.log("• installing AI deps into temporary stage (this produces ai node_modules)");
+  execSync("npm install --omit=dev --no-audit --no-fund --ignore-scripts", {
+    cwd: aiStage,
+    stdio: "inherit",
+  });
+  // Tar the resulting node_modules as an optional artifact the installer can unpack
+  const installersDir = join(repo, "desktop", "dist-installers");
+  mkdirSync(installersDir, { recursive: true });
+  const aiTar = join(installersDir, "_ai_node_modules.tgz");
+  try {
+    execSync(`tar -czf "${aiTar}" -C "${aiStage}" node_modules`, { stdio: "inherit" });
+  } catch (e) {
+    // On Windows without tar, try using PowerShell Compress-Archive as a fallback
+    console.log("tar failed, trying PowerShell Compress-Archive fallback");
+    execSync(`powershell -NoProfile -Command "Compress-Archive -Path '${aiStage}\\node_modules\\*' -DestinationPath '${aiTar}'"`, { stdio: "inherit" });
+  }
+  // clean up the temporary aiStage
+  rmSync(aiStage, { recursive: true, force: true });
+  // remove staging area
   rmSync(stage, { recursive: true, force: true });
 
   // @esti/contracts ships dev-mode main/exports → ./src/index.ts (so tsx/Vite load

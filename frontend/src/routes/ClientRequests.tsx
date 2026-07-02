@@ -253,7 +253,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
                 <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Client's request</p>
                 <p>{impact.body}</p>
                 {impact.refDrawingRef && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)", marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)", marginTop: "var(--cds-spacing-03)" }}>
                     Reference drawing: {impact.refDrawingRef}{impact.refDrawingTitle ? ` — ${impact.refDrawingTitle}` : ""}
                   </p>
                 )}

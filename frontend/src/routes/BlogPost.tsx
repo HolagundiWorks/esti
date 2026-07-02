@@ -2,6 +2,7 @@ import { Tag, Theme } from "@carbon/react";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { formatPostDate, getAdjacentPosts, getPost } from "../lib/blog.js";
 import { applyBlogPostSeo } from "../lib/blog-seo.js";
@@ -21,8 +22,8 @@ export function BlogPost() {
   }, [post]);
 
   return (
-    <MarketingShell>
-      <Theme theme="g100" className="esti-blog-theme">
+    <Theme theme="g100">
+      <MarketingShell>
       <main id="main-content" className="esti-blog">
         <Link to="/blog" className="esti-blog__back">← All posts</Link>
 
@@ -71,7 +72,8 @@ export function BlogPost() {
           </article>
         )}
       </main>
-      </Theme>
-    </MarketingShell>
+      <MarketingFooter />
+      </MarketingShell>
+    </Theme>
   );
 }

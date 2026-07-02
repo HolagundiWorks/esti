@@ -1,6 +1,8 @@
 import { Button, Theme } from "@carbon/react";
 import { Document, Email } from "@carbon/icons-react";
 import { useEffect } from "react";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
+import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const DECK_URL = "/aorms-investor-deck.pdf";
 const CONTACT_EMAIL = "invest@aorms.in";
@@ -69,13 +71,8 @@ export function Investors() {
 
   return (
     <Theme theme="g100">
+      <MarketingShell>
       <div className="esti-investor">
-        <header className="esti-investor__top">
-          <img src="/aorms-logo-white.png" alt="AORMS" className="esti-investor__logo" />
-          <Button kind="tertiary" size="sm" renderIcon={Document} href={DECK_URL}>
-            Download deck
-          </Button>
-        </header>
 
         <section className="esti-investor__hero">
           <p className="esti-investor__eyebrow">Investor brief</p>
@@ -116,6 +113,8 @@ export function Investors() {
           <p className="esti-investor__fineprint">Holagundi Consulting Works · AORMS</p>
         </footer>
       </div>
+      <MarketingFooter />
+      </MarketingShell>
     </Theme>
   );
 }

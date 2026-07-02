@@ -1,8 +1,10 @@
 import {
+  asPlan,
   type ActivateInput,
   type ActivateResult,
   type Entitlement,
   type LicenseTokenPayload,
+  type Plan,
   type ValidateResult,
 } from "@esti/contracts";
 import { and, count, eq } from "drizzle-orm";
@@ -173,6 +175,17 @@ async function bindDevice(
 }
 
 // --- Public API used by the /v1 routes ---
+
+/**
+ * Resolve which edition (LITE/PRO) a licence key entitles, for the component
+ * manifest. Only a usable (ACTIVE/GRACE, non-expired) licence resolves.
+ */
+export async function editionForKey(productId: string, key: string): Promise<Plan | null> {
+  const ctx = await loadCtx(productId, { key });
+  if (!ctx) return null;
+  if (!usability(ctx.lic).ok) return null;
+  return asPlan(ctx.plan.code);
+}
 
 export async function activate(
   productId: string,

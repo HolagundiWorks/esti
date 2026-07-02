@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import {
+  asPlan,
   type LicenseGrant,
   type LicensePayload,
   type LicenseRefreshResult,
@@ -54,7 +55,7 @@ function mintToken(row: LicenseRow, installId: string): string {
     v: 1,
     firmId: row.firmId,
     installId,
-    plan: row.plan,
+    plan: asPlan(row.plan),
     seats: seatsOf(row),
     issuedAt: new Date(now).toISOString(),
     exp: new Date(now + GRANT_DAYS * 864e5).toISOString(),

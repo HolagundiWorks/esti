@@ -101,7 +101,7 @@ function PdfButton({
 
 export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId: string; includeSpecs?: boolean }) {
   return (
-    <Stack gap={7} style={{ marginTop: 16 }}>
+    <Stack gap={7} style={{ marginTop: "var(--cds-spacing-05)" }}>
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
       {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
@@ -301,7 +301,7 @@ function Inspections({ projectId }: { projectId: string }) {
         }
       >
         <Stack gap={5}>
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: "var(--cds-spacing-04)" }}>
             <TextInput
               id="si-date"
               labelText="Date of visit"

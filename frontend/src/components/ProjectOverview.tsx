@@ -396,7 +396,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               Add decision
             </Button>
           </div>
-          <div style={{ margin: "12px 0" }}>
+          <div style={{ margin: "var(--cds-spacing-04) 0" }}>
             <AiDraftPanel projectId={projectId} defaultKind="CRIF_SUMMARY" compact />
           </div>
           {allDecisions.length > 0 && (() => {

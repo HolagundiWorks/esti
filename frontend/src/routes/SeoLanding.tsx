@@ -3,6 +3,7 @@ import { ArrowRight } from "@carbon/icons-react";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import {
   getLandingPage,
@@ -35,8 +36,8 @@ export function SeoLanding({ slug }: { slug: string }) {
   }, [page]);
 
   return (
-    <MarketingShell>
-      <Theme theme="g100" className="esti-blog-theme">
+    <Theme theme="g100">
+      <MarketingShell>
         <main id="main-content" className="esti-blog">
           <Link to="/" className="esti-blog__back">← AORMS home</Link>
 
@@ -96,7 +97,8 @@ export function SeoLanding({ slug }: { slug: string }) {
             </article>
           )}
         </main>
-      </Theme>
-    </MarketingShell>
+        <MarketingFooter />
+      </MarketingShell>
+    </Theme>
   );
 }

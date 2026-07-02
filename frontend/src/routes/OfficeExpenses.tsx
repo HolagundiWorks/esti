@@ -307,7 +307,7 @@ export function CashBook() {
         }
       />
       {cashAccount && (
-        <p style={{ marginBottom: 16 }}>
+        <p style={{ marginBottom: "var(--cds-spacing-05)" }}>
           <strong>Cash balance (closed):</strong> {formatINR(cashAccount.balancePaise)}
         </p>
       )}

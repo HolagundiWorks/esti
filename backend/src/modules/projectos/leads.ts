@@ -14,6 +14,7 @@ import { clients, leads, phases, projectOffices } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
@@ -155,6 +156,7 @@ export const leadsRouter = router({
         const [c] = await tx
           .insert(clients)
           .values({
+            publicId: newPublicId("X"),
             name: lead.clientName,
             kind: "INDIVIDUAL",
             email: lead.email,

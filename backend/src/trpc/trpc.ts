@@ -19,6 +19,9 @@ const DEMO_BLOCKED_MUTATIONS = new Set([
   "users.setDisabled",
   "users.setRole",
   "users.updateProfile",
+  "users.totpSetup",
+  "users.totpEnable",
+  "users.totpDisable",
 ]);
 
 // Mutations still allowed when the install's license is lapsed/absent, so the
@@ -65,6 +68,9 @@ const SELF_SERVICE_MUTATIONS = new Set([
   "auth.logout",
   "users.updateProfile",
   "users.changePassword",
+  "users.totpSetup",
+  "users.totpEnable",
+  "users.totpDisable",
   "dashboard.saveLayout",
 ]);
 

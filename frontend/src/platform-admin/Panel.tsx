@@ -1,20 +1,34 @@
-import { useEffect, useState } from "react";
-import { Button, InlineNotification, Loading, Stack, Tag, Theme } from "@carbon/react";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { Button, Loading, Stack, Tag, Theme } from "@carbon/react";
 import Login from "./Login";
 import AdminApp from "./admin/AdminApp";
-import { fetchMe, logout, type Account } from "./lib/auth";
+import { fetchMe, logout, type Me } from "./lib/auth";
+
+const Companies = lazy(() => import("./Companies"));
+const Credentials = lazy(() => import("./Credentials"));
+const RequestPlan = lazy(() => import("./RequestPlan"));
+const Security = lazy(() => import("./Security"));
 
 function backToSite() {
   window.location.hash = "";
 }
 
+/**
+ * Licence / admin console (`/platform-admin`). Any signed-in account — a
+ * platform admin or an ordinary member who lands here — can reach its own
+ * plan/companies/security/credentials inline via "My account", rather than
+ * bouncing to a separate destination; the firm app's own /login is a
+ * distinct, workspace-only sign-in with no account-management surface of
+ * its own (that lives at Profile → Account once inside a workspace).
+ */
 export default function Panel() {
-  const [account, setAccount] = useState<Account | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAccount, setShowAccount] = useState(false);
 
   useEffect(() => {
-    fetchMe().then((a) => {
-      setAccount(a);
+    fetchMe().then((m) => {
+      setMe(m);
       setLoading(false);
     });
   }, []);
@@ -22,30 +36,38 @@ export default function Panel() {
   if (loading) {
     return (
       <Theme theme="g100">
-        <main style={{padding:"1.5rem"}}>
+        <main style={{ padding: "var(--cds-spacing-06)" }}>
           <Loading withOverlay={false} description="Loading" />
         </main>
       </Theme>
     );
   }
 
-  if (!account) return <Login onLogin={setAccount} />;
+  if (!me?.account) return <Login onLogin={setMe} />;
+  const account = me.account;
+
+  async function refreshMe() {
+    setMe(await fetchMe());
+  }
 
   async function handleLogout() {
     await logout();
-    setAccount(null);
+    setMe(null);
   }
 
   return (
     <Theme theme="g100">
-      <main style={{padding:"1.5rem"}}>
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
         <Stack gap={6}>
           <Stack gap={3} orientation="horizontal">
-            <h1 className="esti-grow">License Cloud</h1>
+            <h1 className="esti-grow">AORMS Licensing Console</h1>
             <Tag type={account.isPlatformAdmin ? "green" : "gray"} size="md">
               {account.isPlatformAdmin ? "Platform admin" : "Member"}
             </Tag>
             <span>{account.email}</span>
+            <Button kind="ghost" size="sm" onClick={() => setShowAccount((s) => !s)}>
+              {showAccount ? "Back to console" : "My account (2FA, profile)"}
+            </Button>
             <Button kind="ghost" size="sm" onClick={backToSite}>
               Back to site
             </Button>
@@ -54,16 +76,21 @@ export default function Panel() {
             </Button>
           </Stack>
 
-          {account.isPlatformAdmin ? (
+          {showAccount ? (
+            <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
+              <Stack gap={5}>
+                <RequestPlan />
+                <Companies me={me} onChange={setMe} />
+                <Security me={me} onChange={refreshMe} />
+                <Credentials />
+              </Stack>
+            </Suspense>
+          ) : account.isPlatformAdmin ? (
             <AdminApp />
           ) : (
-            <InlineNotification
-              kind="info"
-              lowContrast
-              hideCloseButton
-              title="No access"
-              subtitle="This account is not a platform administrator."
-            />
+            <Stack gap={4}>
+              <p>This account isn&apos;t a platform administrator — nothing to manage here yet.</p>
+            </Stack>
           )}
         </Stack>
       </main>

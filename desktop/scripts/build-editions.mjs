@@ -17,6 +17,7 @@ import {
   readdirSync,
   statSync,
   writeFileSync,
+  rmSync,
 } from "node:fs";
 import path from "node:path";
 
@@ -81,6 +82,20 @@ try {
     conf.identifier = e.id;
     if (conf.app?.windows?.[0]) conf.app.windows[0].title = e.name;
     writeFileSync(CONF, `${JSON.stringify(conf, null, 2)}\n`);
+
+    // For CORE/ENTERPRISE, include the prebuilt AI node_modules tarball in the
+    // staged resources so the installer can optionally unpack it at install-time.
+    const resourcesBackend = path.join(ROOT, "desktop/src-tauri/resources/backend");
+    const aiArtifact = path.join(ROOT, "desktop/dist-installers/_ai_node_modules.tgz");
+    const destAi = path.join(resourcesBackend, "_ai_node_modules.tgz");
+    // ensure resources dir exists
+    try { mkdirSync(resourcesBackend, { recursive: true }); } catch {}
+    // remove any existing ai artifact from resources (so LITE remains clean)
+    try { if (existsSync(destAi)) rmSync(destAi); } catch {}
+    if (e.code !== "LITE" && existsSync(aiArtifact)) {
+      copyFileSync(aiArtifact, destAi);
+      console.log(`Included AI bundle for ${e.code} installer`);
+    }
 
     const rel = path.relative(ROOT, CONF).replace(/\\/g, "/");
     sh(`cargo tauri build --config ${rel}`, { AORMS_EDITION: e.code });

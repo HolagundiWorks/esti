@@ -8,6 +8,8 @@ export const DeviceLoginInput = z.object({
   password: z.string().min(8).max(200),
   deviceName: z.string().min(1).max(120).default("ESTICAD"),
   clientId: CompanionClientId.default("esticad"),
+  /** Authenticator (TOTP) code — required when the account has 2FA enabled. */
+  code: z.string().optional(),
 });
 export type DeviceLoginInput = z.infer<typeof DeviceLoginInput>;
 

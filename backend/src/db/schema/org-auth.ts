@@ -19,7 +19,9 @@ export const orgSettings = pgTable("esti_orgsettings", {
   /** Team mode is the only supported operating mode. */
   orgMode: text("org_mode").notNull().default("STUDIO"),
   /** Subscription edition — gates features and quotas. See @esti/contracts plans. */
-  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE"] }).notNull().default("LITE"),
+  // Column accepts legacy codes (CORE/ENTERPRISE) alongside the current LITE/PRO
+  // so pre-collapse rows stay valid; reads are coerced via asPlan() to LITE|PRO.
+  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE", "PRO"] }).notNull().default("LITE"),
   hrEnabled: boolean("hr_enabled").notNull().default(true),
   /** PMC module — construction coordination, site registers, progress reports. */
   pmcEnabled: boolean("pmc_enabled").notNull().default(false),
@@ -155,6 +157,9 @@ export const users = pgTable("esti_user", {
     .default("ASSOCIATE"),
   passwordHash: text("password_hash"), // null for magic-link-only client users
   totpSecret: text("totp_secret"),
+  // Self-serve password reset — one-shot hashed token + expiry, cleared on use.
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires", { withTimezone: true }),
   disabled: boolean("disabled").notNull().default(false),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),
@@ -180,6 +185,8 @@ export const users = pgTable("esti_user", {
   photoKey: text("photo_key"),
   /** Installation-level super-user: seeds, purges, and system metadata only. */
   isSystemAdmin: boolean("is_system_admin").notNull().default(false),
+  /** Portable AORMS-U handle of the central person this firm login projects (I-5). */
+  accountPublicId: text("account_public_id"),
   createdAt: createdAt(),
 });
 
@@ -212,6 +219,8 @@ export const deviceSessions = pgTable("esti_device_session", {
 
 export const clients = pgTable("esti_client", {
   id: id(),
+  /** Human-readable portable ID, e.g. AORMS-X-4K9R (EX_USER / client). */
+  publicId: text("public_id").unique(),
   name: text("name").notNull(),
   kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY"] })
     .notNull()

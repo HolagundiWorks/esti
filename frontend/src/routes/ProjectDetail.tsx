@@ -237,7 +237,7 @@ export function ProjectDetail() {
                   )
                 }
               >
-                <TabList aria-label={`${group.label} project sections`}>
+                <TabList aria-label={`${group.label} project sections`} contained>
                   {group.tabs.map((t) => (
                     <Tab key={t.slug}>{t.label}</Tab>
                   ))}

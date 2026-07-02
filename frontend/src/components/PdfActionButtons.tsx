@@ -34,7 +34,7 @@ export function PdfActionButtons({
 
   if (ui === "open" && url) {
     return (
-      <span style={{ display: "inline-flex", gap: 4 }}>
+      <span style={{ display: "inline-flex", gap: "var(--cds-spacing-02)" }}>
         <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
           {openLabel}
         </Button>

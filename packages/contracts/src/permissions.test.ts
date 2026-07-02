@@ -6,6 +6,7 @@ import {
   can,
   externalClassForUser,
   minLevelForCapability,
+  userType,
 } from "./permissions.js";
 
 describe("access levels", () => {
@@ -43,6 +44,19 @@ describe("access levels", () => {
     expect(
       accessLabelForUser({ role: "CONSULTANT", consultantId: "x" }),
     ).toBe("External — Consultant");
+  });
+
+  it("classifies unified account types", () => {
+    expect(userType({ role: "OWNER" })).toBe("COMPANY");
+    expect(userType({ role: "PARTNER" })).toBe("STAFF");
+    expect(userType({ role: "SITE_SUPERVISOR" })).toBe("STAFF");
+    expect(userType({ role: "CLIENT", clientId: "c1" })).toBe("CLIENT");
+    expect(userType({ role: "CONSULTANT", consultantId: "x" })).toBe("CONSULTANT");
+    expect(userType({ role: "CONTRACTOR", contractorId: "y" })).toBe("CONTRACTOR");
+    // A CONSULTANT/CLIENT/CONTRACTOR row missing its scoping id isn't actually
+    // external yet (legacy internal-staff CONSULTANT rows predate the portal) —
+    // falls back to STAFF like any other non-OWNER role.
+    expect(userType({ role: "CONSULTANT" })).toBe("STAFF");
   });
 
   it("aligns minLevelForCapability with can()", () => {

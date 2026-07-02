@@ -17,6 +17,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { vendorPrices, vendorQuoteLines, vendorQuotes, vendors } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const blank = (v: string | undefined) => (v && v.length > 0 ? v : null);
@@ -45,6 +46,7 @@ export const vendorRouter = router({
     const [row] = await ctx.db
       .insert(vendors)
       .values({
+        publicId: newPublicId("X"),
         name: input.name,
         category: input.category,
         companyName: blank(input.companyName),

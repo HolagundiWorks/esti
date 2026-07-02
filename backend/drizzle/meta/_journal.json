@@ -925,6 +925,97 @@
       "when": 1782205700000,
       "tag": "0131_hlp_account_password",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1782205800000,
+      "tag": "0132_aorms_identity_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1782205900000,
+      "tag": "0133_aorms_identity_login_domain",
+      "breakpoints": true
+    },
+    {
+      "idx": 134,
+      "version": "7",
+      "when": 1782206000000,
+      "tag": "0134_aorms_identity_membership",
+      "breakpoints": true
+    },
+    {
+      "idx": 135,
+      "version": "7",
+      "when": 1782206100000,
+      "tag": "0135_aorms_identity_portable",
+      "breakpoints": true
+    },
+    {
+      "idx": 136,
+      "version": "7",
+      "when": 1782206200000,
+      "tag": "0136_aorms_identity_projection",
+      "breakpoints": true
+    },
+    {
+      "idx": 137,
+      "version": "7",
+      "when": 1782206300000,
+      "tag": "0137_hlp_account_totp",
+      "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1782206400000,
+      "tag": "0138_hlp_plan_request",
+      "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1782206500000,
+      "tag": "0139_hlp_org_member_account_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1782206600000,
+      "tag": "0140_ex_user_public_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 141,
+      "version": "7",
+      "when": 1782206700000,
+      "tag": "0141_hlp_api_key_org",
+      "breakpoints": true
+    },
+    {
+      "idx": 142,
+      "version": "7",
+      "when": 1782206800000,
+      "tag": "0142_hlp_account_email_verify",
+      "breakpoints": true
+    },
+    {
+      "idx": 143,
+      "version": "7",
+      "when": 1782206900000,
+      "tag": "0143_esti_user_password_reset",
+      "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1782207000000,
+      "tag": "0144_hlp_component_release",
+      "breakpoints": true
     }
   ]
 }

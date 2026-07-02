@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Column,
@@ -6,17 +6,31 @@ import {
   Grid,
   InlineNotification,
   Stack,
+  Tag,
   TextInput,
   Theme,
   Tile,
 } from "@carbon/react";
-import { devLogin, login, register, type Account } from "./lib/auth";
+import {
+  type CompanyResolution,
+  type Me,
+  devLogin,
+  fetchMe,
+  fetchRegistrationStatus,
+  login,
+  register,
+  resolveCompany,
+} from "./lib/auth";
 
 const ERRORS: Record<string, string> = {
   invalid_email: "Enter a valid email address.",
   weak_password: "Password must be at least 8 characters.",
   email_taken: "An account with that email already exists — sign in instead.",
   invalid_credentials: "Email or password is incorrect.",
+  totp_invalid: "That authenticator code is incorrect.",
+  registration_closed: "Account creation is closed — please sign in.",
+  company_not_found: "We couldn't find that company. Check the domain or AORMS-C id.",
+  not_a_member: "This account isn't a member of that company.",
   register_failed: "Could not create the account. Please try again.",
   request_failed: "Something went wrong. Please try again.",
 };
@@ -27,15 +41,80 @@ function onboardProduct(): string | null {
   return p && p.trim() ? p.trim().toUpperCase() : null;
 }
 
-export default function Login({ onLogin }: { onLogin: (a: Account) => void }) {
-  const product = onboardProduct();
-  const [mode, setMode] = useState<"signin" | "register">(product ? "register" : "signin");
+function companyLabel(r: CompanyResolution | null): string {
+  if (!r) return "";
+  if (r.mode === "admin") return "AORMS platform admin";
+  if (r.mode === "company") return r.org.name;
+  return "";
+}
+
+export default function Login({
+  onLogin,
+  portal = false,
+  onBack,
+  initialMode,
+}: {
+  onLogin: (me: Me) => void;
+  /** Customer user-portal: skip the tenant company step + always allow sign-up. */
+  portal?: boolean;
+  /** Optional: renders a link back to the caller's own view (e.g. the firm's
+   *  own workspace sign-in), for when this component is embedded rather than
+   *  the whole page. */
+  onBack?: () => void;
+  /** Force the starting mode (e.g. a caller's own "Create account" button
+   *  landing straight on the register form) instead of the default inference. */
+  initialMode?: "signin" | "register";
+}) {
+  // Onboarding (?onboard=PRODUCT) only ever applies to the customer portal.
+  const product = portal ? onboardProduct() : null;
+  // Admin console: no company step, ever — it's a single admin realm.
+  // Customer portal: company-first (name / email / AORMS-C id), unless arriving
+  // via a product "create account" deep link (register mode, no company needed).
+  const skipCompany = !portal || Boolean(product);
+  const [mode, setMode] = useState<"signin" | "register">(
+    initialMode ?? (product ? "register" : "signin"),
+  );
+  const [step, setStep] = useState<"company" | "credentials">(skipCompany ? "credentials" : "company");
+  const [company, setCompany] = useState("");
+  const [resolved, setResolved] = useState<CompanyResolution | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needCode, setNeedCode] = useState(false);
   const [devEmail, setDevEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState(false);
+
+  // Admin-console self-signup is a one-time bootstrap: hide "Create account" once
+  // a platform admin exists. Product onboarding (?onboard=…) keeps registration.
+  useEffect(() => {
+    void fetchRegistrationStatus().then((s) => setAdminExists(s.adminExists));
+  }, []);
+  const registrationOpen = portal || !adminExists || Boolean(product);
+
+  async function handleCompany(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await resolveCompany(company);
+    setBusy(false);
+    if (res.mode === "not_found") {
+      setError(
+        "We couldn't find that company. Check the domain / AORMS-C id — or ask an admin to add it.",
+      );
+      return;
+    }
+    setResolved(res);
+    setStep("credentials");
+  }
+
+  async function finishAuthed() {
+    const me = await fetchMe();
+    if (me.account) onLogin(me);
+    else setError(ERRORS.request_failed ?? "Something went wrong.");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,10 +122,16 @@ export default function Login({ onLogin }: { onLogin: (a: Account) => void }) {
     setError(null);
     const res =
       mode === "register"
-        ? await register({ email, password, name: name || undefined })
-        : await login(email, password);
-    setBusy(false);
+        ? await register({ email, password, name: name || undefined, portal })
+        : await login(email, password, skipCompany ? undefined : company, needCode ? code : undefined);
     if (res.error) {
+      setBusy(false);
+      if (res.error === "totp_required") {
+        // Password was accepted — now ask for the authenticator code.
+        setNeedCode(true);
+        setError(null);
+        return;
+      }
       setError(ERRORS[res.error] ?? res.error);
       return;
     }
@@ -54,7 +139,8 @@ export default function Login({ onLogin }: { onLogin: (a: Account) => void }) {
       window.location.href = res.redirect; // back to the product with the licence
       return;
     }
-    if (res.account) onLogin(res.account);
+    await finishAuthed();
+    setBusy(false);
   }
 
   async function handleDev(e: React.FormEvent) {
@@ -62,81 +148,162 @@ export default function Login({ onLogin }: { onLogin: (a: Account) => void }) {
     setBusy(true);
     setError(null);
     const account = await devLogin(devEmail);
-    setBusy(false);
-    if (account) onLogin(account);
+    if (account) await finishAuthed();
     else setError("Dev login failed (it is disabled outside local development).");
+    setBusy(false);
   }
+
+  const showCompanyStep = mode === "signin" && step === "company" && !skipCompany;
 
   return (
     <Theme theme="g100">
-      <main style={{ padding: "1.5rem" }}>
+      <main style={{ padding: "var(--cds-spacing-06)" }}>
         <Grid>
           <Column sm={4} md={5} lg={6}>
             <Tile>
               <Stack gap={6}>
                 <Stack gap={2}>
-                  <h2>Holagundi License Cloud</h2>
+                  <h2>{portal ? "AORMS Account" : "Holagundi License Cloud"}</h2>
                   <p>
                     {product
                       ? `Create your account to activate ${product}.`
                       : mode === "register"
-                        ? "Create an account to manage your products and licences."
-                        : "Sign in to manage products, plans and licences."}
+                        ? portal
+                          ? "Create your AORMS account and request a workspace."
+                          : "Create the platform admin account."
+                        : portal
+                          ? showCompanyStep
+                            ? "Sign in — start with your company."
+                            : resolved
+                              ? `Signing in to ${companyLabel(resolved)}.`
+                              : "Sign in to your AORMS account."
+                          : "Sign in to manage licences."}
                   </p>
                 </Stack>
 
-                <Form onSubmit={handleSubmit}>
-                  <Stack gap={5}>
-                    {mode === "register" && (
+                {showCompanyStep ? (
+                  <Form onSubmit={handleCompany}>
+                    <Stack gap={5}>
                       <TextInput
-                        id="auth-name"
-                        labelText="Name (optional)"
-                        autoComplete="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        id="auth-company"
+                        labelText="Company name, email, or ID"
+                        placeholder="acme.in · you@acme.in · AORMS-C-2K4P"
+                        helperText="Your company's domain, an email at that company, or its AORMS-C ID."
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
                       />
-                    )}
-                    <TextInput
-                      id="auth-email"
-                      type="email"
-                      labelText="Email"
-                      autoComplete="email"
-                      placeholder="you@firm.in"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <TextInput
-                      id="auth-password"
-                      type="password"
-                      labelText="Password"
-                      autoComplete={mode === "register" ? "new-password" : "current-password"}
-                      helperText={mode === "register" ? "At least 8 characters." : undefined}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Button
-                      type="submit"
-                      kind="primary"
-                      size="lg"
-                      disabled={busy || !email || !password}
-                    >
-                      {mode === "register" ? "Create account" : "Sign in"}
-                    </Button>
-                  </Stack>
-                </Form>
+                      <Button type="submit" kind="primary" size="lg" disabled={busy || !company}>
+                        Continue
+                      </Button>
+                      <Button
+                        kind="ghost"
+                        size="sm"
+                        onClick={() => {
+                          // Solo / personal accounts have no company to name here —
+                          // sign in with just email + password (unscoped session).
+                          setCompany("");
+                          setResolved(null);
+                          setError(null);
+                          setStep("credentials");
+                        }}
+                      >
+                        No company yet? Sign in with just your email
+                      </Button>
+                    </Stack>
+                  </Form>
+                ) : (
+                  <Form onSubmit={handleSubmit}>
+                    <Stack gap={5}>
+                      {mode === "signin" && !product && resolved && (
+                        <Stack gap={2} orientation="horizontal">
+                          <Tag type="cool-gray" size="md">
+                            {companyLabel(resolved)}
+                          </Tag>
+                          <Button
+                            kind="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setStep("company");
+                              setError(null);
+                            }}
+                          >
+                            Change
+                          </Button>
+                        </Stack>
+                      )}
+                      {mode === "register" && (
+                        <TextInput
+                          id="auth-name"
+                          labelText="Name (optional)"
+                          autoComplete="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      )}
+                      <TextInput
+                        id="auth-email"
+                        type="email"
+                        labelText="Email"
+                        autoComplete="email"
+                        placeholder="you@firm.in"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                      <TextInput
+                        id="auth-password"
+                        type="password"
+                        labelText="Password"
+                        autoComplete={mode === "register" ? "new-password" : "current-password"}
+                        helperText={mode === "register" ? "At least 8 characters." : undefined}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      {mode === "signin" && needCode && (
+                        <TextInput
+                          id="auth-code"
+                          labelText="Authenticator code"
+                          placeholder="123456"
+                          autoComplete="one-time-code"
+                          inputMode="numeric"
+                          helperText="6-digit code from your authenticator app."
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                        />
+                      )}
+                      <Button
+                        type="submit"
+                        kind="primary"
+                        size="lg"
+                        disabled={busy || !email || !password || (needCode && code.length < 6)}
+                      >
+                        {mode === "register" ? "Create account" : needCode ? "Verify" : "Sign in"}
+                      </Button>
+                    </Stack>
+                  </Form>
+                )}
 
-                <Button
-                  kind="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setMode(mode === "register" ? "signin" : "register");
-                    setError(null);
-                  }}
-                >
-                  {mode === "register"
-                    ? "Already have an account? Sign in"
-                    : "Need an account? Create one"}
-                </Button>
+                {registrationOpen && (
+                  <Button
+                    kind="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const next = mode === "register" ? "signin" : "register";
+                      setMode(next);
+                      setStep(next === "register" ? "credentials" : "company");
+                      setError(null);
+                    }}
+                  >
+                    {mode === "register"
+                      ? "Already have an account? Sign in"
+                      : "Need an account? Create one"}
+                  </Button>
+                )}
+
+                {onBack && (
+                  <Button kind="ghost" size="sm" onClick={onBack}>
+                    Looking for your AORMS workspace sign-in instead?
+                  </Button>
+                )}
 
                 {error && (
                   <InlineNotification

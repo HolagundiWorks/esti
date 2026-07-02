@@ -15,6 +15,12 @@ cd /opt/esti
 sudo bash deploy/install.sh        # ← pick a profile from the menu
 ```
 
+> **Customer self-hosting Core / Enterprise?** Use the focused, firm-only installer
+> instead: `sudo bash deploy/install-firm.sh` (edition prompt, licence-key activation,
+> no landing/demo/licensing console). See
+> [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md). `install.sh`
+> below is Holagundi's own multi-profile deployment.
+
 ## Profiles
 
 | # | Profile | Public site | Demo data | Plan | Notes |
@@ -31,6 +37,7 @@ sudo bash deploy/install.sh        # ← pick a profile from the menu
 | File | Role |
 |---|---|
 | `deploy/install.sh` | **The installer.** Menu → sets profile env → runs `install_core` |
+| `deploy/install-firm.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
@@ -59,6 +66,27 @@ across future deploys.
    issues TLS during install and fails if DNS doesn't resolve yet).
 2. Open ports **22, 80, 443**.
 3. SSH in as **root** on Ubuntu 22.04 / 24.04.
+
+### Temporary self-signed TLS (fresh VPS or rate-limit safety)
+
+If you are installing on a fresh VPS or want to avoid Let's Encrypt rate limits,
+set `SELF_SIGNED_CERT=true` in the environment when running the installer. The
+installer will generate a short-lived self-signed certificate and configure
+nginx to serve HTTPS immediately. Example:
+
+```bash
+PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in SELF_SIGNED_CERT=true \
+  sudo -E bash deploy/install.sh
+```
+
+This is intended as a bootstrapping convenience — replace the self-signed
+certificate with a real certificate (Certbot) once DNS and rate limits permit:
+
+```bash
+# When ready on the VPS as root:
+certbot --nginx -d aorms.in --non-interactive --agree-tos -m admin@aorms.in --redirect
+systemctl reload nginx
+```
 
 The installer prompts for: domain, TLS email, branch, DB / session / MinIO secrets
 (Enter = auto-generate), and the owner account. Profile 2 also asks for the demo

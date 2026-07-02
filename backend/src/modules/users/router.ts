@@ -5,6 +5,7 @@ import {
   type PlanQuota,
   type StaffRole,
   clampListLimit,
+  userType,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
@@ -13,6 +14,14 @@ import { hashPassword, verifyPassword } from "../../auth/session.js";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import {
+  identityLookupConfigured,
+  membershipSyncConfigured,
+  syncMembershipAtPlatform,
+  verifyIdentityAtPlatform,
+} from "../../lib/identityDelegate.js";
+import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
+import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -25,9 +34,11 @@ const publicUser = {
   disabled: users.disabled,
   clientId: users.clientId,
   consultantId: users.consultantId,
+  contractorId: users.contractorId,
   userCode: users.userCode,
   designation: users.designation,
   photoKey: users.photoKey,
+  accountPublicId: users.accountPublicId,
 };
 
 export const userRouter = router({
@@ -82,6 +93,8 @@ export const userRouter = router({
           fullName: input.fullName,
           role: input.role,
           passwordHash: await hashPassword(input.password),
+          // Portable IN_USER identity handle — generated once, never changes.
+          accountPublicId: newPublicId("U"),
         })
         .returning(publicUser);
       await writeAudit(ctx.db, {
@@ -163,15 +176,139 @@ export const userRouter = router({
       return { ok: true };
     }),
 
+  /** Owner links a firm login to a central person's portable AORMS-U handle (I-5). */
+  linkIdentity: ownerProcedure
+    .input(z.object({ id: z.string().uuid(), accountPublicId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const handle = input.accountPublicId?.trim().toUpperCase() || null;
+      if (handle) {
+        if (!/^AORMS-U-[0-9A-HJKMNP-TV-Z]{4,}$/.test(handle))
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Not a valid AORMS-U handle" });
+        // A hub-configured node (the normal case for a customer install) asks the hub —
+        // its own hlp_account table is an unpopulated per-install shadow, not the real
+        // account store (AORMS-IDENTITY.md §11, U-3). Only the hub itself (no
+        // ESTI_LICENSE_API_URL/ESTI_PRODUCT_API_KEY configured) — or local dev, which
+        // shares one DB for both — falls back to the same-database check.
+        if (identityLookupConfigured()) {
+          const result = await verifyIdentityAtPlatform(handle);
+          if (result.kind === "not_found")
+            throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+          if (result.kind === "unreachable")
+            throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Could not reach the identity platform" });
+        } else {
+          const rows = await ctx.db.execute(
+            sql`SELECT 1 FROM hlp_account WHERE public_id = ${handle} LIMIT 1`,
+          );
+          const found =
+            Array.isArray(rows) ? rows.length > 0 : ((rows as { rows?: unknown[] }).rows?.length ?? 0) > 0;
+          if (!found) throw new TRPCError({ code: "NOT_FOUND", message: "No such AORMS-U identity" });
+        }
+      }
+      const [u] = await ctx.db
+        .update(users)
+        .set({ accountPublicId: handle })
+        .where(eq(users.id, input.id))
+        .returning(publicUser);
+      if (!u) throw new TRPCError({ code: "NOT_FOUND" });
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: input.id,
+        action: "LINK_IDENTITY",
+        actorId: ctx.user.id,
+        after: { accountPublicId: handle },
+      });
+      // Best-effort: stamp this membership's unified type on the hub (U-3b).
+      // Never blocks/fails the link — the hub side is supplementary bookkeeping.
+      if (handle && membershipSyncConfigured()) {
+        await syncMembershipAtPlatform(handle, userType(u));
+      }
+      return u;
+    }),
+
+  /**
+   * U-4 migration path: retroactively push every already-linked login's
+   * userType() to the hub. Only needed once per install after upgrading to
+   * U-3b — logins linked under I-5 before this shipped never had their type
+   * synced. Safe to re-run any time (idempotent upsert of the same value).
+   */
+  resyncIdentityTypes: ownerProcedure.mutation(async ({ ctx }) => {
+    if (!membershipSyncConfigured())
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "No identity hub configured" });
+    const linked = await ctx.db
+      .select(publicUser)
+      .from(users)
+      .where(sql`${users.accountPublicId} IS NOT NULL`);
+    let synced = 0;
+    for (const row of linked) {
+      const ok = await syncMembershipAtPlatform(row.accountPublicId as string, userType(row));
+      if (ok) synced += 1;
+    }
+    return { total: linked.length, synced };
+  }),
+
   /** Self-service: fetch own profile with a short-lived photo URL. */
   myProfile: protectedProcedure.query(async ({ ctx }) => {
     const [u] = await ctx.db
-      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role })
+      .select({ userCode: users.userCode, designation: users.designation, photoKey: users.photoKey, fullName: users.fullName, email: users.email, role: users.role, accountPublicId: users.accountPublicId, totpSecret: users.totpSecret })
       .from(users)
       .where(eq(users.id, ctx.user.id));
     const photoUrl = u?.photoKey ? await presignedGet(u.photoKey).catch(() => null) : null;
-    return { ...(u ?? {}), photoUrl };
+    // Build the view explicitly so the TOTP secret never leaves the backend.
+    return {
+      userCode: u?.userCode ?? null,
+      designation: u?.designation ?? null,
+      photoKey: u?.photoKey ?? null,
+      fullName: u?.fullName ?? null,
+      email: u?.email ?? null,
+      role: u?.role ?? null,
+      accountPublicId: u?.accountPublicId ?? null,
+      totpEnabled: Boolean(u?.totpSecret),
+      photoUrl,
+    };
   }),
+
+  /** Self-service: begin authenticator (TOTP) enrollment — secret + otpauth URI. */
+  totpSetup: protectedProcedure.mutation(async ({ ctx }) => {
+    const secret = generateTotpSecret();
+    return { secret, otpauthUrl: otpauthUri(secret, ctx.user.email) };
+  }),
+
+  /** Self-service: confirm + enable 2FA (the code must validate the issued secret). */
+  totpEnable: protectedProcedure
+    .input(z.object({ secret: z.string().min(16), code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!verifyTotp(input.secret, input.code.trim()))
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That code didn't match" });
+      await ctx.db.update(users).set({ totpSecret: input.secret }).where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "TOTP_ENABLE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
+
+  /** Self-service: disable 2FA — requires a current code. */
+  totpDisable: protectedProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [u] = await ctx.db
+        .select({ totpSecret: users.totpSecret })
+        .from(users)
+        .where(eq(users.id, ctx.user.id));
+      if (!u?.totpSecret) return { ok: true };
+      if (!verifyTotp(u.totpSecret, input.code.trim()))
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That code didn't match" });
+      await ctx.db.update(users).set({ totpSecret: null }).where(eq(users.id, ctx.user.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "TOTP_DISABLE",
+        actorId: ctx.user.id,
+      });
+      return { ok: true };
+    }),
 
   /** Self-service: update own display name and/or designation. */
   updateProfile: protectedProcedure

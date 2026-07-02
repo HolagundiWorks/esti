@@ -108,7 +108,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
     lines.some((l) => l.description.trim() || l.specItemId) && !create.isPending;
 
   return (
-    <div style={{ marginTop: 24 }}>
+    <div style={{ marginTop: "var(--cds-spacing-06)" }}>
       <div
         style={{
           display: "flex",
@@ -175,7 +175,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
                     <Tag
                       type={PO_TAG[po.status] ?? "gray"}
                       size="sm"
-                      style={{ marginLeft: 4 }}
+                      style={{ marginLeft: "var(--cds-spacing-02)" }}
                     >
                       {po.status}
                     </Tag>
@@ -239,7 +239,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
         }
       >
         <Stack gap={5}>
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: "var(--cds-spacing-04)" }}>
             <TextInput
               id="po-vendor"
               labelText="Vendor (optional)"

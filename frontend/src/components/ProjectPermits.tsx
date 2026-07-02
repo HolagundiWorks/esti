@@ -72,7 +72,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: 32,
+          marginTop: "var(--cds-spacing-07)",
         }}
       >
         <h3>Permits &amp; compliance</h3>

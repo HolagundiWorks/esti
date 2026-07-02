@@ -51,6 +51,34 @@ export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
+/**
+ * The Carbon `<Tag>` colour set — the single source of truth for status→colour
+ * mapping across the app. Status maps below (and `LEAD_STATUS_TAG` in lead.ts)
+ * are typed against this so no screen re-invents its own colour choices.
+ */
+export type TagColor =
+  | "red"
+  | "magenta"
+  | "purple"
+  | "blue"
+  | "cyan"
+  | "teal"
+  | "green"
+  | "gray"
+  | "cool-gray"
+  | "warm-gray"
+  | "high-contrast"
+  | "outline";
+
+export const PROJECT_STATUS_TAG: Record<ProjectStatus, TagColor> = {
+  ENQUIRY: "gray",
+  PROPOSAL: "teal",
+  ACTIVE: "blue",
+  ON_HOLD: "gray",
+  COMPLETED: "green",
+  CANCELLED: "red",
+};
+
 // General architectural project delivery stages. Fee-reference logic is separate.
 export const PhaseCode = z.enum([
   "APPOINTMENT",
@@ -273,6 +301,13 @@ export type FeeProposalCreate = z.infer<typeof FeeProposalCreate>;
 
 export const InvoiceStatus = z.enum(["DRAFT", "ISSUED", "PAID", "CANCELLED"]);
 export type InvoiceStatus = z.infer<typeof InvoiceStatus>;
+
+export const INVOICE_STATUS_TAG: Record<InvoiceStatus, TagColor> = {
+  DRAFT: "gray",
+  ISSUED: "blue",
+  PAID: "green",
+  CANCELLED: "red",
+};
 
 export const InvoiceCreate = z.object({
   projectId: z.string().uuid(),

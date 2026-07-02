@@ -120,7 +120,7 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
               <Button
                 kind="primary"
                 size="md"
-                href={createAccountUrl("AORMS")}
+                href={createAccountUrl()}
                 renderIcon={ArrowRight}
               >
                 Create free account

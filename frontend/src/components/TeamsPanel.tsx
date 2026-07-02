@@ -94,12 +94,12 @@ export function TeamsPanel() {
                     </Tag>
                   </div>
                   {t.description && <p className="esti-label esti-label--secondary">{t.description}</p>}
-                  <div className="esti-row" style={{ flexWrap: "wrap", gap: "0.25rem" }}>
+                  <div className="esti-row" style={{ flexWrap: "wrap", gap: "var(--cds-spacing-02)" }}>
                     {t.members.map((m) => (
                       <Tag key={m.teamMemberId} type="blue" size="sm">{m.name}</Tag>
                     ))}
                   </div>
-                  <div className="esti-row" style={{ gap: "0.25rem" }}>
+                  <div className="esti-row" style={{ gap: "var(--cds-spacing-02)" }}>
                     <Button kind="ghost" size="sm" onClick={() => openEdit(t)}>Manage members</Button>
                     <Button kind="danger--ghost" size="sm" disabled={remove.isPending}
                       onClick={() => remove.mutate({ id: t.id })}>Delete</Button>

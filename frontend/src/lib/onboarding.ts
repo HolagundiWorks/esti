@@ -1,15 +1,19 @@
-// Self-serve account creation. The licensing platform is now merged into AORMS
-// (mounted under /platform), so the "Create free account" CTA hands off to the
-// same-origin /platform/onboard endpoint, which signs the user in with Google,
-// provisions a personal org + an AORMS trial licence, and redirects back with the
-// key. Override the origin with VITE_LICENSE_PANEL_URL only if the platform is
-// still deployed separately.
-const PLATFORM_ORIGIN = (import.meta.env.VITE_LICENSE_PANEL_URL as string | undefined) ?? "";
+// Self-serve account creation. The "Create account" CTA hands off to the AORMS
+// account + licence portal at /account (backed by the central licensing
+// platform / hlp_account) — its own hub destination, distinct from the firm
+// workspace /login. `mode=create` opens straight to the sign-up form.
+//
+// VITE_ADMIN_URL  — full origin of the licensing console, e.g. https://admin.aorms.in
+//                   (falls back to the same origin for dev/self-hosted).
+const ADMIN_ORIGIN = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
 
-export function createAccountUrl(product = "AORMS"): string {
-  const base = PLATFORM_ORIGIN || window.location.origin;
-  const url = new URL("/platform/onboard", base);
-  url.searchParams.set("product", product);
-  url.searchParams.set("return", window.location.origin);
+export function adminConsoleUrl(): string {
+  return ADMIN_ORIGIN || window.location.origin.replace(/^\/\//, "//admin.");
+}
+
+export function createAccountUrl(): string {
+  const base = ADMIN_ORIGIN || window.location.origin;
+  const url = new URL("/account", base);
+  url.searchParams.set("mode", "create");
   return url.toString();
 }

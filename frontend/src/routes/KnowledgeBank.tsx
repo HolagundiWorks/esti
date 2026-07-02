@@ -131,7 +131,7 @@ export function KnowledgeBank() {
   };
 
   return (
-    <Stack gap={7}>
+    <Stack gap={6}>
       <PageHeader
         title="Knowledge Bank"
         description="Governed office standards used by estimation, specifications, and procurement workflows."
@@ -140,7 +140,7 @@ export function KnowledgeBank() {
       <KnowledgeBankSearch />
 
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
-        <TabList aria-label="Knowledge Bank sections">
+        <TabList aria-label="Knowledge Bank sections" contained>
           <Tab>Materials</Tab>
           <Tab>Labour</Tab>
           <Tab>Items</Tab>

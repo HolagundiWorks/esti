@@ -219,6 +219,79 @@ html:has(.esti-landing-shell) body {
 .esti-chart-md  { min-height: 18rem; }   /* ≥288 px — standard tile chart   */
 .esti-chart-lg  { min-height: 24rem; }   /* ≥384 px — hero / full-width chart */
 
+/* Card/tile-grid loading skeleton sizing (colourless; used by CardGridSkeleton). */
+.esti-card-skeleton { width: 100%; height: 18rem; }
+
+// ── Tag normalisation ─────────────────────────────────────────────────────────
+// All tags: uniform 1.5rem (24px) height and 5% border-radius.
+// 5% resolves to ~1-3px on each corner — a subtle inset, not a pill.
+// Overrides Carbon sm/md/lg size variants so every tag in the workspace
+// sits on the same baseline regardless of which size prop was used.
+.cds--tag {
+  block-size: 1.5rem;
+  min-block-size: 1.5rem;
+  border-radius: 5%;
+  // Ensure inner text aligns with the fixed height.
+  display: inline-flex;
+  align-items: center;
+}
+
+// ── Dashboard masonry grid ────────────────────────────────────────────────────
+// Two-column CSS multi-column masonry — tiles fill vertically with no gaps.
+// `columns` distributes items to balance column heights automatically.
+// `break-inside: avoid` prevents any single Tile from splitting across columns.
+.esti-dash-masonry {
+  columns: 2;
+  column-gap: var(--cds-spacing-05); // 16px — matches Carbon tile inner padding
+
+  > .cds--tile {
+    break-inside: avoid;
+    display: block;        // required for columns layout
+    margin-block-end: var(--cds-spacing-05);
+  }
+
+  // Collapse to single column on narrow viewports.
+  @media (max-width: 1055px) { columns: 1; }
+}
+
+// ── Workspace KPI connected tile grid ─────────────────────────────────────
+// 1px gap + border-subtle background = flush connected border between tiles.
+// No column gutter so tiles sit flush. Spec: $spacing-05 (16px) padding.
+.esti-kpi-grid {
+  gap: 1px;
+  background: var(--cds-border-subtle);
+  --cds-grid-gutter: 0;
+
+  .cds--tile {
+    border: none;
+    // Carbon tile spec: padding $spacing-05 (16px) on all sides.
+    padding: var(--cds-spacing-05);
+    min-height: 4rem; // Carbon tile min-height: 64px
+  }
+}
+
+// ── Dashboard tile motion ─────────────────────────────────────────────────────
+// Transitions on the Studio Intelligence page.
+// Regular Tile: state transition only (no hover — base tiles are not interactive).
+// ClickableTile: hover background $layer-hover per Carbon spec.
+.esti-studio-abstract-page .cds--tile {
+  transition:
+    background var(--esti-motion-standard),
+    box-shadow  var(--esti-motion-standard);
+}
+.esti-studio-abstract-page .cds--tile--clickable:hover,
+.esti-studio-abstract-page .esti-row-clickable:hover td {
+  background: var(--cds-layer-hover);
+}
+
+// ── Status icon colours — icon fills only; text stays --cds-text-primary ─────
+// esti-state-* classes now applied to Carbon icon SVGs, not text spans.
+// The icon fill inherits from `color` (currentColor), so color sets the fill.
+.esti-state-stable   { color: var(--cds-support-success); }
+.esti-state-watch    { color: var(--cds-support-info); }
+.esti-state-friction { color: var(--cds-support-warning); }
+.esti-state-critical { color: var(--cds-support-error); }
+.esti-state-inactive { color: var(--cds-text-disabled); }
 
 .esti-form-panel      { max-width: 640px; }   /* constrained form tile — matches Column lg=8  */
 .esti-form-panel--wide { max-width: 800px; }  /* wide form tile — matches Column lg=10 */
@@ -738,7 +811,7 @@ html:has(.esti-landing-shell) body {
   &__badge-code {
     font-size: 0.65rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--cds-text-on-color);
     line-height: 1;
   }
 
@@ -824,7 +897,7 @@ html:has(.esti-landing-shell) body {
 .esti-staff-tile__initials {
   font-size: 4rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--cds-text-on-color);
   letter-spacing: 0.04em;
   line-height: 1;
   user-select: none;
@@ -910,7 +983,8 @@ html:has(.esti-landing-shell) body {
 // ── HR profile tiles ─────────────────────────────────────────────────────────
 .esti-profile-member-tile.cds--tile {
   cursor: pointer;
-  padding: var(--cds-spacing-04);
+  // Carbon tile spec: padding $spacing-05 (16px) on all sides.
+  padding: var(--cds-spacing-05);
 }
 .esti-profile-member-tile--active.cds--tile {
   outline: 2px solid var(--cds-focus);
@@ -1641,37 +1715,33 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   color: var(--cds-interactive);
 }
 
-// Studio Intelligence — full width, fits the viewport (the page never scrolls; the
-// table Tile scrolls inside). Structural + colourless only.
+// Studio Intelligence — standard workspace page. No special shell or tab
+// overrides. The page scrolls naturally with other workspace routes.
 html:has(.esti-studio-abstract-page),
-html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
-.esti-app-content:has(.esti-studio-abstract-page) { padding: 0; }
+html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
+
+// ── Workspace tab-content uniform padding ────────────────────────────────────
+// All workspace route TabPanels get a consistent block-start gap (spacing-06 =
+// 24px) so every tabbed screen looks the same. The personal-panel overrides this.
+.esti-app-content .cds--tab-content {
+  padding-block-start: var(--cds-spacing-06);
+}
+// Personal-panel tabs keep their tighter spacing-05 (16px).
+.esti-pp-tabs .cds--tab-content {
+  padding-block-start: var(--cds-spacing-05);
+}
 
 .esti-studio-abstract-page {
   width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.esti-studio-abstract-page .cds--tabs { flex: 0 0 auto; }
-.esti-studio-abstract-page .cds--tab-content {
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
 }
 
-// Every screen: header · 4 KPI cards · scrollable table. Fills its panel.
+// Every screen: header · 4 KPI cards · table. Flows naturally; the page (not the
+// table) scrolls when the table is taller than the viewport.
 .esti-abstract {
-  height: 100%;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--cds-spacing-05);
   padding: var(--cds-spacing-05);
-  overflow: hidden;
 }
 .esti-abstract__head { flex: 0 0 auto; }
 
@@ -1690,7 +1760,8 @@ html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
   flex-direction: column;
   gap: var(--cds-spacing-03);
 }
-.esti-abstract-table__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.esti-abstract-table__scroll { min-height: 0; }
+.esti-abstract-empty { padding: var(--cds-spacing-03) 0; }
 .esti-row-clickable { cursor: pointer; }
 
 // OVERVIEW tab: main screen beside the AI-over-log sidebar; both fit, each scrolls
@@ -1725,8 +1796,13 @@ html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
 }
 
 @keyframes esti-calm-breathe {
+  // Success glow driven by the Carbon support-success token (no raw RGB);
+  // color-mix applies the low-opacity tint the old rgba(66,190,101,0.42) had.
   0%, 100% { box-shadow: inset 0 0 0 1px transparent; opacity: 0.82; }
-  50% { box-shadow: inset 0 0 0 1px rgba(66, 190, 101, 0.42); opacity: 1; }
+  50% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cds-support-success) 42%, transparent);
+    opacity: 1;
+  }
 }
 
 .esti-signal-metric--pulse {
@@ -1901,7 +1977,7 @@ html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
 
   p {
     margin: 0;
-    font-size: 13px;
+    @include type.type-style("body-compact-01");
     line-height: 1.4;
     color: var(--cds-text-secondary);
     overflow: hidden;
@@ -1914,20 +1990,20 @@ html:has(.esti-studio-abstract-page) body { height: 100dvh; overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: var(--cds-spacing-06);
   padding: var(--cds-spacing-04) 0 0;
 
   span {
     display: inline-flex;
     align-items: center;
     gap: var(--cds-spacing-02);
-    font-size: 12px;
-    color: var(--cds-text-helper); // #8d8d8d
+    @include type.type-style("label-01");
+    color: var(--cds-text-helper);
   }
 
   .esti-geo {
     color: var(--cds-text-helper); // legend stays gray — the only live blue is on focus box #1
-    font-size: 13px;
+    @include type.type-style("body-compact-01");
   }
 }
 

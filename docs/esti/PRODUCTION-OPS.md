@@ -12,8 +12,8 @@ for a live firm instance (secrets, TLS, backup/restore drill).
 
 ## Secrets and environment
 
-1. Copy `deploy/.env.production.example` → `.env` on the VPS.
-2. Replace **every** `CHANGE_ME_*` value — `bootstrap.sh` refuses placeholders except domain/session auto-fill.
+1. Normally you don't touch `.env` — `deploy/install.sh` generates `/opt/esti/.env` for you (secrets auto-generated). For a **manual** deploy, copy `deploy/.env.production.example` → `.env` on the VPS.
+2. In a manual `.env`, replace **every** `CHANGE_ME_*` value by hand — nothing auto-substitutes when you deploy this way.
 3. Generate strong secrets:
    - `openssl rand -hex 32` → `SESSION_SECRET`
    - `openssl rand -base64 24` → `POSTGRES_PASSWORD`, `S3_SECRET_KEY`
@@ -272,7 +272,7 @@ Owner UI: **Company → Release & readiness** mirrors `system.release` tRPC.
 
 ## CI and release audit
 
-- GitHub Actions: typecheck, lint, unit tests, backend + frontend production builds. *(CI pipeline not yet configured — run these manually before each release.)*
+- GitHub Actions (`.github/workflows/ci.yml`, `esti-ci`) runs on every push and PR: the **node** job does typecheck · lint · tests · backend + frontend production builds; the **python** job runs `ruff check` + `pytest` on the worker. Green CI is the pre-release gate.
 - Dependency licenses: `node scripts/licenses.mjs`
 - Backend API smoke: `pnpm --filter @esti/backend test:api-smoke`
 - Worker limits / idempotency: [WORKER-LIMITS.md](WORKER-LIMITS.md)
@@ -292,4 +292,4 @@ cd /opt/esti
 bash deploy/update.sh        # pulls, rebuilds, atomic dist swap, idempotent seeds
 ```
 
-`deploy.sh` rebuilds images, extracts frontend `dist/` for host nginx, refreshes nginx config, and waits for `/health`.
+`update.sh` rebuilds images, extracts frontend `dist/` for host nginx (atomic swap), runs idempotent seeds, and waits for `/health`. Pass `GIT_BRANCH=…` to deploy a branch or `REFRESH_NGINX=true` to re-apply the nginx vhost.

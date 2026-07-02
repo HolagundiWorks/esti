@@ -21,7 +21,7 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
   const row = q.data;
 
   return (
-    <Stack gap={4} style={{ marginTop: 16 }}>
+    <Stack gap={4} style={{ marginTop: "var(--cds-spacing-05)" }}>
       <Stack orientation="horizontal" gap={3} style={{ alignItems: "center" }}>
         <h3>Phase 0 — Appointment</h3>
         <Tag type={row?.status === "COMPLETE" ? "green" : "blue"} size="sm">

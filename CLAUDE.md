@@ -152,6 +152,11 @@ Tests: `worker/tests/test_jobs.py` (handler unit tests) and
   `formatINRShort`.
 - Permissions/capabilities live in `packages/contracts/src/permissions.ts`
   (`can(role, capability)`); procedure tiers in `backend/src/trpc/trpc.ts`.
+- Login email is canonicalised: `normalizeEmail` (trim+lowercase) on every
+  account-creating write, `emailMatches` for case-insensitive lookup/uniqueness
+  (both `backend/src/lib/email.ts` — never raw `eq(users.email, …)` or `ilike`).
+- Portable identity handles: `AORMS-U-` (person) / `AORMS-C-` (company) on the
+  licensing platform via `newPublicId` — see `docs/esti/AORMS-IDENTITY.md`.
 - Commit messages end with:
   `Co-Authored-By: Codex Opus 4.8 <noreply@anthropic.com>`
 - Two files have ongoing parallel WIP — avoid editing `frontend/src/routes/

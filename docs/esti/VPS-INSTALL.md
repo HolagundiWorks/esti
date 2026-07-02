@@ -141,6 +141,12 @@ sudo bash deploy/install.sh
 
 All secrets are written to `/opt/esti/.env` (chmod 600, root-only).
 
+> **Licence authority.** A firm install (`ESTI_ROLE=node`) points at the central
+> Holagundi platform for licences — `ESTI_LICENSE_API_URL=https://aorms.in/platform`
+> by default. The node stays unmanaged (runs on its `FIRM_PLAN`) until a licence is
+> activated, so an empty `ESTI_PRODUCT_API_KEY` is safe; set the key to activate a
+> real licence. Override `ESTI_LICENSE_API_URL` only if you self-host the platform.
+
 ### The Landing + Demo + Licensing recipe
 
 ```
@@ -258,6 +264,40 @@ sed -i 's/^VITE_PUBLIC_SITE=.*/VITE_PUBLIC_SITE=false/;s/^SEED_DEMO=.*/SEED_DEMO
 bash deploy/update.sh
 ```
 Legacy `FIRM_PLAN=CORE` / `FIRM_PLAN=ENTERPRISE` values still resolve to Pro.
+
+---
+
+## 9a. Hosting the desktop installers (`/download`)
+
+The Windows `.exe` installers can't be built on a Linux VPS. GitHub Actions
+(`.github/workflows/desktop.yml`, **windows-latest**) builds all three editions
+and publishes them on a `desktop-v*` Release; the VPS just pulls them down and
+hosts them under `/downloads/`.
+
+**1. Build them once (on GitHub):**
+```bash
+git tag desktop-v1.0.0 && git push origin desktop-v1.0.0   # or: Actions → desktop-installer → Run workflow
+```
+This yields a `desktop-v*` Release with `AORMS-Lite-Setup.exe`,
+`AORMS-Core-Setup.exe`, `AORMS-Enterprise-Setup.exe`.
+
+**2. Pull them onto the VPS** (private repo — `gh` must be authed):
+```bash
+apt-get install -y gh && gh auth login     # or: export GH_TOKEN=<token>
+cd /opt/esti
+bash deploy/fetch-installers.sh            # newest desktop-v* release
+bash deploy/fetch-installers.sh desktop-v1.0.0   # or pin a tag
+```
+
+The script downloads the three `.exe`, writes the `VITE_*_DOWNLOAD_URL` keys into
+`.env`, **rebuilds the SPA** (those URLs are build-time constants), and atomic-swaps
+`frontend/dist` with the installers carried into `dist/downloads/`. Afterwards
+`https://<your-domain>/download` serves all three.
+
+- Run `deploy/install.sh` first — `fetch-installers.sh` errors if `.env` is missing.
+- `deploy/update.sh` preserves `dist/downloads/` across the swap, so a normal code
+  update won't wipe the hosted installers — only re-run `fetch-installers.sh` when
+  you publish a **new** installer version.
 
 ---
 

@@ -17,7 +17,6 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-  Tag,
   TextArea,
   TextInput,
 } from "@carbon/react";
@@ -35,6 +34,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { ComplianceCalculator } from "../components/compliance/ComplianceCalculator.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -138,9 +138,11 @@ export function Leads() {
                     </TableCell>
                     <TableCell>
                       {l.convertedProjectId ? (
-                        <Tag type={LEAD_STATUS_TAG[l.status as LeadStatusT] ?? "gray"} size="sm">
-                          {LEAD_STATUS_LABEL[l.status as LeadStatusT] ?? l.status}
-                        </Tag>
+                        <StatusTag
+                          value={l.status as LeadStatusT}
+                          map={LEAD_STATUS_TAG}
+                          label={LEAD_STATUS_LABEL[l.status as LeadStatusT] ?? l.status}
+                        />
                       ) : (
                         <Select
                           id={`st-${l.id}`}

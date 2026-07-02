@@ -11,6 +11,7 @@ export function DataState({
   isEmpty,
   empty,
   columnCount = 4,
+  skeleton,
   children,
 }: {
   loading: boolean;
@@ -19,16 +20,20 @@ export function DataState({
   empty: { title: string; description?: string; action?: ReactNode };
   /** Skeleton column count (match the real table). */
   columnCount?: number;
+  /** Custom loading skeleton for non-table screens (e.g. a tile grid). */
+  skeleton?: ReactNode;
   children: ReactNode;
 }) {
   if (loading) {
     return (
-      <DataTableSkeleton
-        columnCount={columnCount}
-        rowCount={5}
-        showHeader={false}
-        showToolbar={false}
-      />
+      skeleton ?? (
+        <DataTableSkeleton
+          columnCount={columnCount}
+          rowCount={5}
+          showHeader={false}
+          showToolbar={false}
+        />
+      )
     );
   }
   if (isEmpty) {

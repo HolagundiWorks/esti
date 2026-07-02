@@ -119,3 +119,86 @@ export const RefreshInput = z.object({
   deviceId: z.string().min(1),
 });
 export type RefreshInput = z.infer<typeof RefreshInput>;
+
+/**
+ * Looks up a portable AORMS-U handle on the hub — the machine-to-machine half of
+ * the U-3 "sync protocol" (see docs/esti/AORMS-IDENTITY.md §11). A node's own
+ * local `hlp_account` table is a per-install schema shadow, not the real store —
+ * real accounts live only on the hub, so linking a firm login to one has to ask
+ * the hub over `/v1`, the same way license activation and delegated login already do.
+ */
+export const VerifyIdentityInput = z.object({ publicId: z.string().min(1) });
+export type VerifyIdentityInput = z.infer<typeof VerifyIdentityInput>;
+
+export const VerifyIdentityResult = z.object({
+  account: z.object({
+    publicId: z.string(),
+    email: z.string(),
+    name: z.string().nullable(),
+  }),
+});
+export type VerifyIdentityResult = z.infer<typeof VerifyIdentityResult>;
+
+/**
+ * Pushes a node's derived `userType()` for a linked person up to the hub
+ * membership record — the other half of the U-3b sync protocol. `company` is
+ * the node's own AORMS-C handle (same field `verify-login` already takes),
+ * used to find the (account, org) membership row to stamp.
+ */
+export const SyncMembershipInput = z.object({
+  publicId: z.string().min(1),
+  company: z.string().min(1),
+  accountType: z.enum(["STAFF", "COMPANY", "CLIENT", "CONSULTANT", "CONTRACTOR"]),
+});
+export type SyncMembershipInput = z.infer<typeof SyncMembershipInput>;
+
+// --- Desktop component manifest (Manager ⇄ hub) ---
+//
+// The desktop Manager ships as a thin bootstrapper; the actual app is pulled
+// online as versioned "components". A signed manifest tells the Manager exactly
+// what to download for its edition and how to verify each artifact. It is signed
+// with the same Ed25519 key that signs licence tokens, so the Manager verifies
+// it offline against the embedded public key — downloaded code is never trusted
+// without a signature + per-artifact hash check.
+
+/** Which dependency layer a component belongs to. LITE pulls only `core`. */
+export const ComponentKind = z.enum(["core", "ai", "worker"]);
+export type ComponentKind = z.infer<typeof ComponentKind>;
+
+/** One downloadable artifact (backend sidecar, embedded Postgres, SPA, Ollama, model, worker…). */
+export const ManifestComponent = z.object({
+  /** Stable identifier, e.g. "backend", "postgres", "spa", "ollama", "model", "worker". */
+  id: z.string().min(1),
+  version: z.string().min(1),
+  kind: ComponentKind,
+  /** HTTPS download URL (e.g. a GitHub Release asset). */
+  url: z.string().url(),
+  /** Lowercase hex SHA-256 of the artifact — the Manager verifies before executing. */
+  sha256: z.string().regex(/^[0-9a-f]{64}$/),
+  sizeBytes: z.number().int().nonnegative(),
+});
+export type ManifestComponent = z.infer<typeof ManifestComponent>;
+
+/** The full set of components an edition must download to run. */
+export const ComponentManifest = z.object({
+  /** Manifest wire-format version (bump on breaking shape changes). */
+  schemaVersion: z.literal(1),
+  edition: z.enum(["LITE", "PRO"]),
+  /** The app release this manifest describes (e.g. "2026.7.0"). */
+  appVersion: z.string().min(1),
+  issuedAt: z.string(), // ISO 8601
+  components: z.array(ManifestComponent),
+});
+export type ComponentManifest = z.infer<typeof ComponentManifest>;
+
+/** A node asks the hub for the manifest matching its licence. */
+export const ManifestRequest = z.object({ licenseKey: z.string().min(1) });
+export type ManifestRequest = z.infer<typeof ManifestRequest>;
+
+/** Hub response: the manifest plus its detached `base64url(payload).base64url(sig)` token. */
+export const ManifestResult = z.object({
+  manifest: ComponentManifest,
+  /** Signed token (same format as a licence token) the Manager verifies offline. */
+  signed: z.string().min(1),
+});
+export type ManifestResult = z.infer<typeof ManifestResult>;

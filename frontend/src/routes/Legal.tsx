@@ -1,5 +1,6 @@
 import { Theme } from "@carbon/react";
 import { useEffect } from "react";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const CONTACT_EMAIL = "hi@aorms.in";
@@ -19,8 +20,8 @@ export function Legal() {
   }, []);
 
   return (
-    <MarketingShell>
-      <Theme theme="g100" className="esti-blog-theme">
+    <Theme theme="g100">
+      <MarketingShell>
         <main id="main-content" className="esti-blog">
           <header className="esti-blog__head">
             <h1>Legal</h1>
@@ -129,7 +130,8 @@ export function Legal() {
             </div>
           </article>
         </main>
-      </Theme>
-    </MarketingShell>
+        <MarketingFooter />
+      </MarketingShell>
+    </Theme>
   );
 }

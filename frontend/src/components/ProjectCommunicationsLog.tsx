@@ -66,7 +66,7 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
         <p className="esti-label--secondary">Meetings, calls, approvals, and decisions with the client.</p>
         <Button size="sm" onClick={() => setOpen(true)}>Log interaction</Button>
       </div>
@@ -74,8 +74,8 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
       {(logQ.data ?? []).length === 0 && !logQ.isLoading && <p>No interactions logged yet.</p>}
       <Stack gap={3}>
         {(logQ.data ?? []).map((e) => (
-          <div key={e.id} style={{ borderLeft: "3px solid var(--cds-border-subtle-01)", paddingLeft: 12 }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <div key={e.id} style={{ borderLeft: "3px solid var(--cds-border-subtle-01)", paddingLeft: "var(--cds-spacing-04)" }}>
+            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
               <Tag type={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"} size="sm">
                 {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               </Tag>
@@ -98,7 +98,7 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
                 Remove
               </Button>
             </div>
-            {e.body && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{e.body}</p>}
+            {e.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{e.body}</p>}
             {e.followUpDate && (
               <span className="esti-label--secondary">Follow-up: {e.followUpDate}</span>
             )}
@@ -178,7 +178,7 @@ function CriticalPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
         <p className="esti-label--secondary">Red-flag items requiring immediate attention.</p>
         <Button size="sm" onClick={() => setOpen(true)}>Add critical note</Button>
       </div>
@@ -186,8 +186,8 @@ function CriticalPanel({ projectId }: { projectId: string }) {
       {items.length === 0 && !notesQ.isLoading && <p>No critical notes.</p>}
       <Stack gap={3}>
         {items.map((n) => (
-          <div key={n.id} style={{ borderLeft: "3px solid var(--cds-support-error)", paddingLeft: 12 }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <div key={n.id} style={{ borderLeft: "3px solid var(--cds-support-error)", paddingLeft: "var(--cds-spacing-04)" }}>
+            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
               <Tag type={PRIORITY_TAG[n.priority] ?? "gray"} size="sm">{n.priority}</Tag>
               <Tag type={STATUS_TAG[n.status] ?? "gray"} size="sm">{n.status}</Tag>
               <Tag type="gray" size="sm">{n.category}</Tag>
@@ -195,7 +195,7 @@ function CriticalPanel({ projectId }: { projectId: string }) {
               {n.owner && <span className="esti-label--secondary">Owner: {n.owner}</span>}
               {n.dueDate && <span className="esti-label--secondary">Due: {n.dueDate}</span>}
             </div>
-            {n.body && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{n.body}</p>}
+            {n.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{n.body}</p>}
           </div>
         ))}
       </Stack>
@@ -269,7 +269,7 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
         <p className="esti-label--secondary">Architectural instructions and changes arising from site.</p>
         <Button size="sm" onClick={() => setOpen(true)}>Add site instruction</Button>
       </div>
@@ -277,13 +277,13 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
       {items.length === 0 && !siteInsQ.isLoading && <p>No site instructions recorded.</p>}
       <Stack gap={3}>
         {items.map((si) => (
-          <div key={si.id} style={{ borderLeft: "3px solid var(--cds-border-interactive)", paddingLeft: 12 }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <div key={si.id} style={{ borderLeft: "3px solid var(--cds-border-interactive)", paddingLeft: "var(--cds-spacing-04)" }}>
+            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
               <Tag type="teal" size="sm">{si.ref}</Tag>
               <strong>{si.subject}</strong>
               <span className="esti-label--secondary">{si.issuedAt}</span>
             </div>
-            {si.body && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{si.body}</p>}
+            {si.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{si.body}</p>}
           </div>
         ))}
       </Stack>
@@ -343,7 +343,7 @@ function RevisionPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
         <p className="esti-label--secondary">Design revisions — by category and source.</p>
         <Button size="sm" onClick={() => setOpen(true)}>Record revision</Button>
       </div>
@@ -351,8 +351,8 @@ function RevisionPanel({ projectId }: { projectId: string }) {
       {items.length === 0 && !decisionsQ.isLoading && <p>No revision records.</p>}
       <Stack gap={3}>
         {items.map((d) => (
-          <div key={d.id} style={{ borderLeft: "3px solid var(--cds-support-warning)", paddingLeft: 12 }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <div key={d.id} style={{ borderLeft: "3px solid var(--cds-support-warning)", paddingLeft: "var(--cds-spacing-04)" }}>
+            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
               <Tag type={REVISION_CAT_TAG[d.revisionCategory!] ?? "gray"} size="sm">
                 {d.revisionCategory}
               </Tag>
@@ -364,7 +364,7 @@ function RevisionPanel({ projectId }: { projectId: string }) {
               <strong>{d.title}</strong>
               <Tag type="gray" size="sm">{d.state}</Tag>
             </div>
-            {d.rationale && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{d.rationale}</p>}
+            {d.rationale && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{d.rationale}</p>}
           </div>
         ))}
       </Stack>
@@ -410,8 +410,8 @@ export function ProjectCommunicationsLog({ projectId }: { projectId: string }) {
   const [active, setActive] = useState<Category>("clientlog");
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+    <div style={{ marginTop: "var(--cds-spacing-06)" }}>
+      <div style={{ display: "flex", gap: "var(--cds-spacing-03)", flexWrap: "wrap", marginBottom: "var(--cds-spacing-06)" }}>
         {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => (
           <Tag
             key={key}

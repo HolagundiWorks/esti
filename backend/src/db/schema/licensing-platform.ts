@@ -3,6 +3,7 @@
 // const names collide with ESTI's; the licensing modules import tables from here directly.
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -24,18 +25,28 @@ export const accounts = pgTable(
   "hlp_account",
   {
     id: text("id").primaryKey(),
+    /** Portable personal identity — AORMS-U-XXXX. Never changes; certs/growth key to it. */
+    publicId: text("public_id"),
     googleSub: text("google_sub"),
     email: text("email").notNull(),
     name: text("name"),
     avatarUrl: text("avatar_url"),
     passwordHash: text("password_hash"),
+    /** Base32 TOTP secret — null = 2FA off; set = an authenticator code is required at login. */
+    totpSecret: text("totp_secret"),
     isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
+    /** Set once the person proves control of their email (verification link). Null = unverified. */
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    /** One-shot email-verification token (hashed) + its expiry. Cleared on success. */
+    emailVerifyToken: text("email_verify_token"),
+    emailVerifyExpires: timestamp("email_verify_expires", { withTimezone: true }),
     createdAt,
     updatedAt,
   },
   (t) => ({
     emailIdx: uniqueIndex("hlp_account_email_idx").on(t.email),
     googleSubIdx: uniqueIndex("hlp_account_google_sub_idx").on(t.googleSub),
+    publicIdIdx: uniqueIndex("hlp_account_public_id_idx").on(t.publicId),
   }),
 );
 
@@ -44,14 +55,24 @@ export const organizations = pgTable(
   "hlp_organization",
   {
     id: text("id").primaryKey(),
+    /** Company handle — AORMS-C-XXXX. Stable, human-quotable; used for Step-1 login resolution. */
+    publicId: text("public_id"),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    /** Optional company login domain (e.g. acme.in) — Step-1 tenant resolution. Unique when set. */
+    loginDomain: text("login_domain"),
+    /** Optional alternate Step-1 handle (a company contact email). */
+    loginEmail: text("login_email"),
     billingEmail: text("billing_email"),
     ownerAccountId: text("owner_account_id").references(() => accounts.id),
     createdAt,
     updatedAt,
   },
-  (t) => ({ slugIdx: uniqueIndex("hlp_organization_slug_idx").on(t.slug) }),
+  (t) => ({
+    slugIdx: uniqueIndex("hlp_organization_slug_idx").on(t.slug),
+    publicIdIdx: uniqueIndex("hlp_organization_public_id_idx").on(t.publicId),
+    loginDomainIdx: uniqueIndex("hlp_organization_login_domain_idx").on(t.loginDomain),
+  }),
 );
 
 /** Account ↔ organization membership + role. */
@@ -66,6 +87,18 @@ export const orgMembers = pgTable(
       .notNull()
       .references(() => accounts.id),
     role: text("role").notNull(), // OrgRole
+    /**
+     * Unified account type (U-3b) — STAFF/COMPANY/CLIENT/CONSULTANT/CONTRACTOR,
+     * mirroring the linked esti_user row's derived `userType()`. Null until a
+     * node syncs it via POST /v1/sync-membership (see AORMS-IDENTITY.md §11).
+     * Distinct from `role` above, which is this hub membership's own OWNER/MEMBER
+     * admin level, not the firm-side classification.
+     */
+    accountType: text("account_type"),
+    /** Activation lifecycle: INVITED → ACTIVE → LEFT. Only ACTIVE may sign in. */
+    status: text("status").notNull().default("ACTIVE"),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    leftAt: timestamp("left_at", { withTimezone: true }),
     createdAt,
   },
   (t) => ({ memberIdx: uniqueIndex("hlp_org_member_idx").on(t.orgId, t.accountId) }),
@@ -189,6 +222,69 @@ export const licenseEvents = pgTable("hlp_license_event", {
   at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/**
+ * Portable certification earned by a **person** (keyed to `hlp_account.public_id`,
+ * the AORMS-U handle). Visible across every company the person joins; the record
+ * stays owned by the individual.
+ */
+export const certifications = pgTable(
+  "hlp_certification",
+  {
+    id: text("id").primaryKey(),
+    accountPublicId: text("account_public_id").notNull(),
+    title: text("title").notNull(),
+    issuer: text("issuer"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }),
+    evidenceKey: text("evidence_key"),
+    status: text("status").notNull().default("ACTIVE"), // ACTIVE | REVOKED
+    createdAt,
+  },
+  (t) => ({ accountIdx: index("hlp_certification_account_idx").on(t.accountPublicId) }),
+);
+
+/** Portable growth / learning signal accruing to a person (ASPRF, LXOS, …). */
+export const growthEvents = pgTable(
+  "hlp_growth_event",
+  {
+    id: text("id").primaryKey(),
+    accountPublicId: text("account_public_id").notNull(),
+    kind: text("kind").notNull(),
+    value: jsonb("value").$type<Record<string, unknown>>().default({}).notNull(),
+    /** The company (AORMS-C) the signal came from, when relevant. */
+    orgPublicId: text("org_public_id"),
+    at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({ accountIdx: index("hlp_growth_event_account_idx").on(t.accountPublicId) }),
+);
+
+/**
+ * A self-serve plan request: a person asks for a tier (LITE/CORE/ENTERPRISE); a
+ * platform admin fulfils it from the portal (creates the licence + mails the key).
+ */
+export const planRequests = pgTable(
+  "hlp_plan_request",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id),
+    orgId: text("org_id").references(() => organizations.id),
+    email: text("email").notNull(),
+    productCode: text("product_code").notNull().default("AORMS"),
+    planCode: text("plan_code").notNull(), // LITE | CORE | ENTERPRISE
+    status: text("status").notNull().default("PENDING"), // PENDING | FULFILLED | REJECTED
+    note: text("note"),
+    licenseId: text("license_id").references(() => licenses.id),
+    decidedBy: text("decided_by"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt,
+  },
+  (t) => ({
+    statusIdx: index("hlp_plan_request_status_idx").on(t.status),
+    accountIdx: index("hlp_plan_request_account_idx").on(t.accountId),
+  }),
+);
+
 /** Per-product machine keys for the Product License API (`/v1`). */
 export const apiKeys = pgTable(
   "hlp_api_key",
@@ -197,6 +293,14 @@ export const apiKeys = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id),
+    /**
+     * Optional org binding. When set, the key may only act for this organization
+     * on the identity endpoints (`/v1/verify-identity`, `/v1/sync-membership`) —
+     * it can't read or mutate another customer's membership by asserting a
+     * different company/person handle. Null = legacy product-wide key (the
+     * activation/validate endpoints scope themselves via the license key anyway).
+     */
+    orgId: text("org_id").references(() => organizations.id),
     keyHash: text("key_hash").notNull(),
     label: text("label").notNull(),
     status: text("status").notNull().default("ACTIVE"), // ApiKeyStatus
@@ -204,4 +308,24 @@ export const apiKeys = pgTable(
     createdAt,
   },
   (t) => ({ keyHashIdx: uniqueIndex("hlp_api_key_hash_idx").on(t.keyHash) }),
+);
+
+/**
+ * A published desktop component set for an edition — what the Manager pulls and
+ * verifies. The build pipeline publishes a row per (edition, appVersion) with
+ * each artifact's URL + SHA-256; `/v1/manifest` serves the latest `active` row
+ * for the caller's edition, signed. `components` is a ManifestComponent[].
+ */
+export const componentReleases = pgTable(
+  "hlp_component_release",
+  {
+    id: text("id").primaryKey(),
+    edition: text("edition", { enum: ["LITE", "PRO"] }).notNull(),
+    appVersion: text("app_version").notNull(),
+    components: jsonb("components").$type<unknown[]>().notNull().default([]),
+    /** The latest active release per edition is the one served; older rows kept for history. */
+    active: boolean("active").notNull().default(true),
+    createdAt,
+  },
+  (t) => ({ editionActiveIdx: index("hlp_component_release_edition_active_idx").on(t.edition, t.active) }),
 );
