@@ -1,10 +1,13 @@
 name: desktop-installer
 
-# Builds the AORMS desktop app (Tauri) on a clean Windows runner — all three
-# editions (Lite/Core/Enterprise) — and uploads the NSIS installers as artifacts.
-# Manual (workflow_dispatch) or on a `desktop-v*` tag (which also publishes them to
-# a GitHub Release). This is the reproducible "clean machine" build — a Linux box
-# (dev container or VPS) cannot build Windows installers. See desktop/README.md.
+# Builds the AORMS desktop **Manager** — one thin, edition-agnostic Tauri/NSIS
+# installer (the edition, LITE or PRO, is determined at runtime from the
+# licence) — on a clean Windows runner, and packages the downloadable
+# components (backend + Node runtime) the Manager pulls online. Manual
+# (workflow_dispatch) or on a `desktop-v*` tag, which also publishes the
+# installer + components to a GitHub Release (their download URLs go into the
+# hub's component manifest). A Linux box cannot build Windows installers — see
+# desktop/README.md.
 #
 # The @hcw/* kits are vendored in-repo under vendor/ (lockfile links them as
 # link:vendor/hcw-*), so a single checkout is self-contained — no sibling repos.
@@ -22,7 +25,7 @@ concurrency:
 
 jobs:
   windows:
-    name: Windows installer (NSIS)
+    name: Windows Manager installer + components (NSIS)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,22 +57,34 @@ jobs:
           mkdir -p desktop/src-tauri/icons
           cargo tauri icon frontend/public/android-chrome-512x512.png -o desktop/src-tauri/icons
 
-      - name: Build installers (Lite + Core + Enterprise)
-        run: pnpm desktop:build-editions
+      # Builds the thin Manager installer. `desktop:assemble` (run by build) also
+      # stages the backend under resources/backend, which package-components reuses.
+      - name: Build Manager installer
+        run: pnpm desktop:build
+
+      - name: Package downloadable components (backend + node)
+        run: pnpm desktop:package-components
 
       - uses: actions/upload-artifact@v4
         with:
-          name: aorms-desktop-installers
-          path: desktop/dist-installers/*.exe
+          name: aorms-manager-windows
+          path: |
+            desktop/src-tauri/target/release/bundle/nsis/*.exe
+            desktop/dist-components/*
           if-no-files-found: error
 
-      # On a desktop-v* tag, publish all three installers to a GitHub Release so
-      # they have stable download URLs (deploy/fetch-installers.sh pulls them onto
-      # the VPS /download page).
-      - name: Publish installers to GitHub Release
+      # On a desktop-v* tag, publish the installer + component tarballs +
+      # components.json to a GitHub Release. Those asset URLs are what an admin
+      # registers on the hub (admin.components.publish) so /v1/manifest serves
+      # them to Managers.
+      - name: Publish to GitHub Release
         if: startsWith(github.ref, 'refs/tags/desktop-v')
         uses: softprops/action-gh-release@v2
         with:
           name: AORMS Desktop ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          files: desktop/dist-installers/*.exe
+          files: |
+            desktop/src-tauri/target/release/bundle/nsis/*.exe
+            desktop/dist-components/backend-*.tar.gz
+            desktop/dist-components/node-*.tar.gz
+            desktop/dist-components/components.json

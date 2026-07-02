@@ -20,6 +20,7 @@
     "desktop:assemble": "node desktop/scripts/preflight.mjs && pnpm --filter @esti/contracts build && pnpm --filter @esti/backend build && node desktop/scripts/build-frontend.mjs && pnpm desktop:bundle-backend",
     "desktop:dev": "cargo tauri dev --config desktop/src-tauri/tauri.conf.json",
     "desktop:build": "pnpm desktop:assemble && cargo tauri build --config desktop/src-tauri/tauri.conf.json",
+    "desktop:package-components": "node desktop/scripts/package-components.mjs",
     "desktop:build-editions": "node desktop/scripts/build-editions.mjs",
     "licenses": "node scripts/licenses.mjs",
     "carbon:index": "python node_modules/@hcw/carbon-agent-kit/knowledge/scripts/sync-index.py",
