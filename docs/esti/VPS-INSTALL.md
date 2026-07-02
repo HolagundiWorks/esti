@@ -56,21 +56,27 @@ One box runs six containers behind the host's nginx (which terminates TLS):
 
 | # | Profile | Public landing | Demo data | Plan | Root when logged out |
 |---|---|---|---|---|---|
-| 1 | **Landing page only** | ✅ | — | Enterprise | Landing |
-| 2 | **Production demo** | ✅ | ✅ seeded | Enterprise | Landing + one-click `/demo` |
-| 3 | **AORMS Core** | — | — | **Core** | `/login` |
-| 4 | **AORMS Enterprise** | — | — | **Enterprise** | `/login` |
-| 5 | **Licensing & Account** | — | — | Enterprise | `/login` + `/platform-admin` |
+| 1 | **Landing page only** | ✅ | — | Pro | Landing |
+| 2 | **Production demo** | ✅ | ✅ seeded | Pro | Landing + one-click `/demo` |
+| 3 | **AORMS Pro** (cloud) | — | — | **Pro** | `/login` |
+| 4 | **AORMS Pro** (self-hosted) | — | — | **Pro** | `/login` |
+| 5 | **Licensing & Account** | — | — | Pro | `/login` + `/platform-admin` |
 | 6 | **Learning & Certification** | — | — | — | *(in pipeline — exits)* |
+
+> **Legacy plan codes.** The installer's menu numbering is unchanged and it still
+> writes the legacy `FIRM_PLAN` values (`CORE` for 3, `ENTERPRISE` for 1/2/4/5) —
+> `asPlan()` folds both to **PRO**, so every profile above runs the Pro edition
+> (profile numbers stay stable; only the labels were renamed).
 
 **Licensing & Account is also an add-on.** The `/platform` backend is mounted in
 *every* deployment, so after picking 2/3/4 the installer asks
 *"Also enable the Licensing & Account platform? [y/N]"*. So:
 
 - **Landing + Demo + Licensing** = pick **2**, answer **y** to licensing.
-- **Core/Enterprise + Licensing** = pick **3/4**, answer **y**.
+- **Pro + Licensing** = pick **3/4**, answer **y**.
 
-Not combinable (opposite `.env` knobs): Landing-only vs a firm profile; Core vs Enterprise.
+Not combinable (opposite `.env` knobs): Landing-only vs a firm profile; the two
+Pro profiles (3 vs 4) with each other.
 
 ---
 
@@ -159,7 +165,8 @@ PROFILE=demo WITH_LICENSING=true \
   sudo -E bash deploy/install.sh
 ```
 
-`PROFILE` ∈ `landing | demo | core | enterprise | licensing | learning`. Any value
+`PROFILE` ∈ `landing | demo | core | enterprise | licensing | learning` (`core` and
+`enterprise` are the legacy script names for the two AORMS Pro profiles). Any value
 you don't pass is prompted for. Passwords left unset auto-generate.
 
 ---
@@ -244,12 +251,13 @@ docker compose -f /opt/esti/compose.prod.yaml logs -f backend
 systemctl restart esti                    # restart whole stack
 ```
 
-**Switch profile** without reinstalling (e.g. demo → firm-core):
+**Switch profile** without reinstalling (e.g. demo → firm Pro):
 ```bash
 cd /opt/esti
-sed -i 's/^VITE_PUBLIC_SITE=.*/VITE_PUBLIC_SITE=false/;s/^SEED_DEMO=.*/SEED_DEMO=false/;s/^FIRM_PLAN=.*/FIRM_PLAN=CORE/' .env
+sed -i 's/^VITE_PUBLIC_SITE=.*/VITE_PUBLIC_SITE=false/;s/^SEED_DEMO=.*/SEED_DEMO=false/;s/^FIRM_PLAN=.*/FIRM_PLAN=PRO/' .env
 bash deploy/update.sh
 ```
+Legacy `FIRM_PLAN=CORE` / `FIRM_PLAN=ENTERPRISE` values still resolve to Pro.
 
 ---
 
