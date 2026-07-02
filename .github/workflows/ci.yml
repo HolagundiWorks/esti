@@ -16,10 +16,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: esti
-      - uses: actions/checkout@v4
-        with:
-          repository: HolagundiWorks/hcw-aorms-ai-kit
-          path: hcw-aorms-ai-kit
+      # All HCW kits are vendored under esti/vendor/ (resolved by pnpm workspace) —
+      # no external kit checkouts needed. The private sibling-repo checkouts used to
+      # fail here (default token can't read them), which was breaking CI.
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
