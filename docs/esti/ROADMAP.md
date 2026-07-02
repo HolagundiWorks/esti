@@ -118,6 +118,33 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 **Gate — MET:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under
 its V3 pillar); no module appears twice; consultancy-only removals complete.
 
+## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — 🔲 Planned (design adopted 2026-07-02)
+
+**Canonical spec:** [ESTI-PULSE.md](ESTI-PULSE.md). The task-risk and
+dependency-resolution engine: dependency graph, missing-parameter detection,
+scheduled standup cycles with targeted questions, consequence-based priority
+bands (CRITICAL / ACTION TODAY / WATCH / NORMAL / BACKLOG), and a 0–100
+confidence score beside the live `priorityScore`. Deterministic core is
+edition-wide; the standup agent / drafting / RAG are Pro (`ai`) gated. The
+agent matures through four stages (read-only → draft → approval-based →
+limited auto) — promotion is an explicit owner action.
+
+- [ ] **P-1 Graph + gaps** — `esti_task_dependency` (supersedes single `dependsOnId`),
+  `esti_task_missing_param` + typed detector rules, `confidenceScore` column,
+  priority bands, `esti_task_priority_log`.
+- [ ] **P-2 Standup loop** — `esti_standup_session` / `esti_standup_question`,
+  scheduled cycles (09/12/15/18 default), role-routed questions, typed responses;
+  Stage-1/2 agent. Runs end-to-end with zero LLM.
+- [ ] **P-3 Approval agent** — Stage-3 actions after recorded human approval;
+  escalation ladder (assignee → reviewer → owner).
+- [ ] **P-4 RAG + Stage 4** — pgvector embeddings over office records; grounded
+  explanations that cite sources; limited auto-actions.
+
+**Gate:** every score reproducible from stored inputs (log rows prove it); the
+agent never writes without a recorded approval below Stage 4; questions are
+specific, routed, and answerable in-app; no generic "please update your tasks"
+notification can be emitted.
+
 ## Product snapshot
 
 ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorms.in](https://aorms.in). Declaring a **live firm instance** production-ready still requires operator sign-off on backup/restore ([PRODUCTION-OPS](PRODUCTION-OPS.md#staging-sign-off-record)).

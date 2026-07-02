@@ -128,6 +128,15 @@ Pomodoro focus sessions and water reminders are required wellbeing tools. They
 must be opt-in, gentle, and user-controlled, with no punitive ranking or
 manager-only visibility.
 
+**ESTI Pulse (planned — spec: [ESTI-PULSE.md](ESTI-PULSE.md)):** tasks gain a
+dependency graph, typed missing-parameter records, a 0–100 confidence score,
+consequence-based priority bands (CRITICAL / ACTION TODAY / WATCH / NORMAL /
+BACKLOG), and an auditable priority log. Scheduled standup cycles ask targeted,
+role-routed questions and collect typed responses; the standup agent is
+stage-gated (read-only → draft → approval-based → limited auto) and must never
+emit generic update-nag notifications. Deterministic scoring is available on
+every edition; agent/LLM features are Pro-gated.
+
 ## Documents And Coordination
 
 - Drawing register, immutable versions, revision notes, issue purpose, review

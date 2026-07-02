@@ -57,7 +57,10 @@ Project Discussions ✅ · Transmittals ✅ *(project-only — no office-wide vi
 
 ## 3. Tasks ✅
 Assigned ✅ · Site Visits ✅ · Documentation ✅ · Revisions ✅ · Deadlines ✅ ·
-Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
+Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`). The
+Priority Engine grows into **ESTI Pulse** (dependency graph · missing
+parameters · standup loop · priority bands + confidence) — spec:
+[ESTI-PULSE.md](ESTI-PULSE.md), Phase 33.
 
 ## 4. AI Studio ✅ (plan-gated)
 Sidebar item `/office/ai-studio` — shown only when `planAllows(plan, "ai")` and rank ≥ 60.
