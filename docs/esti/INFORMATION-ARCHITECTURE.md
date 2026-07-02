@@ -2,7 +2,7 @@
 
 > **⚠ Navigation superseded (2026-06-29).** The canonical sidebar / module
 > placement is now [NAVIGATION.md](NAVIGATION.md) — the **Canonical V3** IA
-> (consultancy-only: Dashboard · Projects · Tasks · Studio · Third Parties · Office ·
+> (consultancy-only: Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office ·
 > Finance · LXOS · Admin). The "Global navigation" section below is the **prior** IA,
 > kept only for module-placement rationale (one-home-per-module) — **defer to
 > NAVIGATION.md for what the sidebar contains.** Construction-delivery (PMC,

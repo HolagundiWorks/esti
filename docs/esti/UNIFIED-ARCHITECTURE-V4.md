@@ -18,7 +18,7 @@
 > and being rebuilt. Verified against the live tRPC router.
 >
 > **Navigation / sidebar** is defined canonically in [NAVIGATION.md](NAVIGATION.md)
-> (the Canonical V3 IA, consultancy-only: Dashboard · Projects · Tasks · Studio ·
+> (the Canonical V3 IA, consultancy-only: Studio Intelligence · Projects · Tasks · Studio ·
 > Third Parties · Office · Finance · LXOS · Admin). This section
 > stays authoritative for *what code exists*; NAVIGATION.md is authoritative for
 > *where it appears*.
@@ -71,7 +71,7 @@ stack on a cleaner model):
 
 ## What AORMS is
 
-**AORMS = Architecture / AEC Office Resource Management System** — one operating
+**AORMS = Architectural Office Resource Management System** — one operating
 system for an Indian architecture practice, from first client conversation to
 final account on site. It is delivered as a single codebase (pnpm monorepo:
 `packages/contracts`, `backend`, `frontend`, Python `worker`) gated two ways that
@@ -94,13 +94,13 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 | **2. Project OS** | The project as the unit of work — two heads: **Consultancy** (design) and **Project Management** (construction) | `projectOffice`, `phases`, `projectBrief`, `drawings`, `transmittals`, `approvals`, `permits`, `proposals`, `feeProposals`, `invoices`; `ProjectDetail.tsx` | ✅ |
 | **3. Task OS** | Everyone's work surface — tasks (billable/work-type/difficulty dimensions), assignments, workload, attendance, ASPRF | `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`; `Work.tsx` hub | ◐ |
 | **4. Cost Management System** | Architect cost control from estimate to certified bill — unified CMS on the Knowledge Bank foundation | `kb.*` (Knowledge Bank — live); `cms.*` (CMS-1+2 live: Element spine, Estimate, BOQ, Final Estimation Set; CMS-3–8 planned). Office costing (`accounts`, `expenses`, `purchaseOrders`) stays live | ◐ |
-| **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (contractor bids + running bills); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
+| **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (token-scoped site coordination / view-only project access); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
 | **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `companion` (ESTICAD takeoff), `ai.generateCad`, `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine | ◐ |
 
 ## Per-pillar: implemented vs needs-mapping vs needs-creation
 
 ### 1. Ask OS — ◐
-- **Implemented:** AI Studio + agent (`ai.run`), CAD draft generation (`ai.generateCad`, `esti_ai_run.source`), dashboard cognition engine + Action Center, public "Ask ESTI" corner (`marketing.askEsti`). Backend AI lives behind `@hcw/aorms-ai-kit` (prompts + Ollama SDK). Gated to Core/Enterprise.
+- **Implemented:** AI Studio + agent (`ai.run`), CAD draft generation (`ai.generateCad`, `esti_ai_run.source`), dashboard cognition engine + Action Center, public "Ask ESTI" corner (`marketing.askEsti`). Backend AI lives behind `@hcw/aorms-ai-kit` (prompts + Ollama SDK). Gated to Pro.
 - **Needs mapping:** a single "ask the office" entry that spans projects, tasks, and cost data — today cognition is dashboard-scoped and AI Studio is its own route.
 - **Needs creation:** office-wide retrieval/decision surface that reads across all pillars; per-pillar AI affordances (e.g. "explain this deviation", "draft this letter") as first-class actions.
 
@@ -129,7 +129,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
   [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ### 5. Portals — ◐
-- **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor bid + running-bills portal (`contractorPortal`). All Pure Carbon, mobile-first.
+- **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor portal (`contractorPortal`) — token-scoped site coordination / view-only project access (Lite: view-only; writes gated to Pro). All Pure Carbon, mobile-first.
 - **Needs creation:** a dedicated **Site Supervisor** surface. Today the L5 *Site Supervisor* role is internal staff inside the office workspace; the unified vision is a mobile-first site-ops surface (measurements, snags, progress, photos) consistent with the other portals.
 
 ### 6. AI/ML/LLM extraction & decision support — ◐

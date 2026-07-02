@@ -85,7 +85,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 ## Phase 32 — Canonical V3 navigation (consultancy-only) (P1)
 
 **Canonical spec:** [NAVIGATION.md](NAVIGATION.md). AORMS narrows to a
-**consultancy-only** practice system on the V3 nine-pillar menu (Dashboard · Projects
+**consultancy-only** practice system on the V3 nine-pillar menu (Studio Intelligence · Projects
 · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin).
 
 **✅ Shipped — all 5 stages (2026-06-29):**

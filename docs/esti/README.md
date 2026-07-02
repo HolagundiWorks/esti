@@ -16,7 +16,7 @@ New here? Read in this order:
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
 4. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
-5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the Canonical V3 nav: Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin — consultancy-only) with live/planned status per module. Authoritative for the sidebar and module placement.
+5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the Canonical V3 nav: Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin — consultancy-only) with live/planned status per module. Authoritative for the sidebar and module placement.
 6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery history / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe the removed estimation/cost stack.
 
 Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions).
@@ -26,10 +26,10 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | Document | Authority |
 | --- | --- |
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first** — north-star product architecture: the six OS pillars (Ask / Project / Task / Construction Cost / Portals / AI) with implemented-vs-planned status |
-| [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin; consultancy-only) with per-module live/planned status; wins over any other doc on the sidebar and module placement |
+| [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — the Canonical V3 nav (Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin; consultancy-only) with per-module live/planned status; wins over any other doc on the sidebar and module placement |
 | [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) | Module-placement rationale (two delivery heads, one-home-per-module). **Superseded for the sidebar by [NAVIGATION](NAVIGATION.md)**; estimation/cost sections are historical |
 | [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) | L1–L5 access ladder, external tier, capability and information matrices (implementation: `permissions.ts`) |
-| [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | Lite / Core / Enterprise editions — module→edition matrix, quotas, `planAllows` gating |
+| [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | Lite / Pro editions — module→edition matrix, quotas, `planAllows` gating |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline — what we implement and reject |
 | [PRD](PRD.md) | Functional and non-functional requirements |
