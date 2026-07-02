@@ -37,6 +37,8 @@ const withProject = {
   completedAt: tasks.completedAt,
   interventionRequired: tasks.interventionRequired,
   priorityScore: tasks.priorityScore,
+  /** ESTI Pulse confidence score 0–100 — see docs/esti/ESTI-PULSE.md. */
+  confidenceScore: tasks.confidenceScore,
   createdAt: tasks.createdAt,
 };
 

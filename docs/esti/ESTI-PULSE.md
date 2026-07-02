@@ -1,6 +1,6 @@
 # ESTI Pulse — Project Standup Engine
 
-**Status:** Target (design accepted, build phased) · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
+**Status:** ◐ P-1 shipped 2026-07-02, P-2–P-4 planned · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
 
 ESTI Pulse is an **ESTI capability** — part of the Embedded Studio
 Intelligence layer inside the AORMS workspace — that periodically reviews
@@ -65,6 +65,11 @@ Studio Intelligence dashboard + notifications
 | Office-level cognition + Action Center | `cognition/engine.ts`, `dashboard` namespace | ✅ live |
 | Notifications, threaded comments, immutable activity | `notifications` / `comments` / `activity` | ✅ live |
 | AI runtime (Ollama, prompts) | `@hcw/aorms-ai-kit`, `ai` namespace (Pro-gated) | ✅ live |
+| **Dependency graph** (P-1) | `esti_task_dependency` (migration `0145`) + `pulse.dependencies.*` | ✅ live |
+| **Missing-parameter detector** (P-1) | `esti_task_missing_param` + `detectMissingParameters()` + `pulse.detect` / `pulse.missingParameters.*` | ✅ live |
+| **Confidence score** (P-1) | `esti_task.confidenceScore` + `computeConfidenceScore()` | ✅ live |
+| **Priority bands** (P-1) | `bandForScore()` — shown in Work hub Tasks tab + Studio Intelligence WORK queue | ✅ live |
+| **Priority/confidence audit log** (P-1) | `esti_task_priority_log` + `pulse.recompute` | ✅ live |
 
 ## 4. Module 1 — Task Dependency Graph
 
@@ -305,7 +310,7 @@ esti_task_priority_log        id · task_id · old/new_priority_score · old/new
 
 | Phase | Scope | Gate |
 |---|---|---|
-| **P-1 Graph + gaps** | `esti_task_dependency` + `esti_task_missing_param` + detector rules; band display (CRITICAL…BACKLOG); confidence column + formula; priority log | Blocked/low-confidence tasks visible in Work hub + Studio Intelligence; scores reproducible from inputs |
+| **P-1 Graph + gaps** ✅ | `esti_task_dependency` + `esti_task_missing_param` + detector rules; band display (CRITICAL…BACKLOG); confidence column + formula; priority log | Blocked/low-confidence tasks visible in Work hub + Studio Intelligence; scores reproducible from inputs |
 | **P-2 Standup loop** | `esti_standup_session/question`; scheduled cycles; question routing; typed responses; Stage-1/2 agent (read-only → draft) | A full standup runs end-to-end with zero LLM required; questions are specific, routed, and answerable in-app |
 | **P-3 Approval agent** | Stage-3 actions (send after approval, update fields, follow-up tasks); escalation ladder | No agent write without a recorded human approval; audit trail complete |
 | **P-4 RAG + Stage 4** | pgvector embeddings over office records; grounded explanations; limited auto-actions | Explanations cite source records; auto-actions limited to the Stage-4 list |

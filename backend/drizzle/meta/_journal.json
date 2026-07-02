@@ -1016,6 +1016,13 @@
       "when": 1782207000000,
       "tag": "0144_hlp_component_release",
       "breakpoints": true
+    },
+    {
+      "idx": 145,
+      "version": "7",
+      "when": 1782207100000,
+      "tag": "0145_task_pulse",
+      "breakpoints": true
     }
   ]
 }

@@ -27,6 +27,7 @@ import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { confidenceTag } from "../components/work/workHelpers.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
@@ -559,6 +560,7 @@ export function StudioAbstract() {
                   <TableRow>
                     <TableHeader>Task</TableHeader>
                     <TableHeader>Project</TableHeader>
+                    <TableHeader>Confidence</TableHeader>
                     <TableHeader>Due</TableHeader>
                   </TableRow>
                 </TableHead>
@@ -579,6 +581,11 @@ export function StudioAbstract() {
                         </Stack>
                       </TableCell>
                       <TableCell>{t.projectRef ?? "—"}</TableCell>
+                      <TableCell>
+                        <Tag type={confidenceTag(t.confidenceScore)} size="sm">
+                          {t.confidenceScore}%
+                        </Tag>
+                      </TableCell>
                       <TableCell>{t.dueDate ?? "—"}</TableCell>
                     </TableRow>
                   ))}

@@ -7,6 +7,22 @@ export const PRIORITY_TAG: Record<string, "red" | "magenta" | "blue" | "gray"> =
   LOW: "gray",
 };
 
+/** ESTI Pulse consequence band tag colour (docs/esti/ESTI-PULSE.md §8). */
+export const PRIORITY_BAND_TAG: Record<string, "red" | "magenta" | "purple" | "blue" | "gray"> = {
+  CRITICAL: "red",
+  ACTION_TODAY: "magenta",
+  WATCH: "purple",
+  NORMAL: "blue",
+  BACKLOG: "gray",
+};
+
+/** ESTI Pulse confidence score tag colour — a task with missing data must not look healthy. */
+export function confidenceTag(score: number): "green" | "purple" | "red" {
+  if (score >= 80) return "green";
+  if (score >= 50) return "purple";
+  return "red";
+}
+
 export const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",

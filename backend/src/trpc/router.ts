@@ -45,6 +45,7 @@ import { licensingRouter } from "../modules/licensing/router.js";
 import { licenseRouter } from "../modules/license/router.js";
 import { syncRouter } from "../modules/sync/router.js";
 import { taskRouter } from "../modules/task/router.js";
+import { pulseRouter } from "../modules/pulse/router.js";
 import { transmittalRouter } from "../modules/transmittal/router.js";
 import { userRouter } from "../modules/users/router.js";
 import { leaveRouter, payrollRouter } from "../modules/team/hr.js";
@@ -158,6 +159,7 @@ export const appRouter = router({
   firm: firmRouter,
   users: userRouter,
   tasks: taskRouter,
+  pulse: pulseRouter,
   workload: workloadRouter,
   notifications: notificationsRouter,
   team: teamRouter,

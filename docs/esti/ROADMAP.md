@@ -118,7 +118,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 **Gate — MET:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under
 its V3 pillar); no module appears twice; consultancy-only removals complete.
 
-## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — 🔲 Planned (design adopted 2026-07-02)
+## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — ◐ P-1 shipped 2026-07-02
 
 **Canonical spec:** [ESTI-PULSE.md](ESTI-PULSE.md). The task-risk and
 dependency-resolution engine: dependency graph, missing-parameter detection,
@@ -129,9 +129,13 @@ edition-wide; the standup agent / drafting / RAG are Pro (`ai`) gated. The
 agent matures through four stages (read-only → draft → approval-based →
 limited auto) — promotion is an explicit owner action.
 
-- [ ] **P-1 Graph + gaps** — `esti_task_dependency` (supersedes single `dependsOnId`),
-  `esti_task_missing_param` + typed detector rules, `confidenceScore` column,
-  priority bands, `esti_task_priority_log`.
+- [x] **P-1 Graph + gaps** — `esti_task_dependency` (migration `0145`, supersedes the
+  single `dependsOnId` for graph reads), `esti_task_missing_param` + typed detector
+  rules (`detectMissingParameters`, AUTO vs MANUAL types), `confidenceScore` column
+  (`computeConfidenceScore`), priority bands (`bandForScore`), `esti_task_priority_log`.
+  Backend: `pulse` namespace (`dependencies.*`, `missingParameters.*`, `detect`,
+  `recompute`, `queue`). Surfaced in the Work hub (Tasks tab: band + confidence tags)
+  and Studio Intelligence (WORK queue: confidence tag). 17 contract unit tests.
 - [ ] **P-2 Standup loop** — `esti_standup_session` / `esti_standup_question`,
   scheduled cycles (09/12/15/18 default), role-routed questions, typed responses;
   Stage-1/2 agent. Runs end-to-end with zero LLM.

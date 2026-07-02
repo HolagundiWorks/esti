@@ -19,6 +19,7 @@ import {
   Checkbox,
 } from "@carbon/react";
 import {
+  PRIORITY_BAND_LABEL,
   TASK_CLASSIFICATION_LABEL,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -27,6 +28,7 @@ import {
   TaskPriority,
   TaskStatus,
   TaskWorkType,
+  bandForScore,
 } from "@esti/contracts";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -35,10 +37,12 @@ import { ContextualComments } from "../ContextualComments.js";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 import {
+  PRIORITY_BAND_TAG,
   PRIORITY_TAG,
   WORK_CATEGORY_FILTER,
   WORK_CATEGORY_LABELS,
   WORK_CATEGORY_SLUGS,
+  confidenceTag,
   type WorkCategorySlug,
 } from "./workHelpers.js";
 
@@ -155,7 +159,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
         <DataState
           loading={listQ.isLoading}
           isEmpty={(listQ.data ?? []).length === 0}
-          columnCount={8}
+          columnCount={9}
           empty={{
             title: openOnly || myTasks ? "No matching tasks" : "No tasks yet",
             description: "Create a task to track work across the office and projects.",
@@ -171,6 +175,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                   <TableHeader>Assignee</TableHeader>
                   <TableHeader>Reviewer</TableHeader>
                   <TableHeader>Priority</TableHeader>
+                  <TableHeader>Confidence</TableHeader>
                   <TableHeader>Due</TableHeader>
                   <TableHeader>Status</TableHeader>
                   <TableHeader>Comments</TableHeader>
@@ -180,6 +185,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
               <TableBody>
                 {(listQ.data ?? []).map((t) => {
                   const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
+                  const band = bandForScore(t.priorityScore);
                   return (
                     <TableRow
                       key={t.id}
@@ -222,8 +228,18 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                       </TableCell>
                       <TableCell>{"—"}</TableCell>
                       <TableCell>
-                        <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
-                          {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
+                        <span className="esti-row" style={{ gap: "var(--cds-spacing-02)", flexWrap: "wrap" }}>
+                          <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
+                            {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
+                          </Tag>
+                          <Tag type={PRIORITY_BAND_TAG[band] ?? "gray"} size="sm">
+                            {PRIORITY_BAND_LABEL[band] ?? band}
+                          </Tag>
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Tag type={confidenceTag(t.confidenceScore)} size="sm">
+                          {t.confidenceScore}%
                         </Tag>
                       </TableCell>
                       <TableCell>

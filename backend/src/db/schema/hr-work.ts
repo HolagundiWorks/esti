@@ -159,6 +159,8 @@ export const tasks = pgTable("esti_task", {
   interventionRequired: boolean("intervention_required").notNull().default(false),
   /** Multi-factor priority score 0–100; updated by tasks.computeScores (§19). */
   priorityScore: integer("priority_score").notNull().default(0),
+  /** ESTI Pulse confidence score 0–100 (computeConfidenceScore); updated by pulse.recompute. */
+  confidenceScore: integer("confidence_score").notNull().default(100),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
