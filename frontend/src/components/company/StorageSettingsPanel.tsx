@@ -93,10 +93,10 @@ export function StorageSettingsPanel() {
       <Stack gap={5}>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}>
           <h2 style={{ margin: 0 }}>Storage (BYOS)</h2>
-          <Tag type="purple" size="sm">Core+</Tag>
+          <Tag type="purple" size="sm">Pro</Tag>
         </div>
         <p>
-          By default your files live on ESTI-managed storage. Core and Enterprise firms can
+          By default your files live on ESTI-managed storage. Pro firms can
           point object storage at their own <strong>NAS / mounted folder</strong> or an{" "}
           <strong>S3-compatible hosting engine</strong>. Drawings, documents and generated PDFs
           all follow this setting.

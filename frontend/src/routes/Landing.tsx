@@ -105,10 +105,8 @@ export function Landing() {
           modalHeading={
             planContext === "LITE"
               ? "Create your free AORMS-Lite account"
-              : planContext === "CORE"
-              ? "Contact us about AORMS-Core"
-              : planContext === "ENTERPRISE"
-              ? "Contact us about AORMS-Enterprise"
+              : planContext === "PRO"
+              ? "Contact us about AORMS-Pro"
               : "Request a workspace"
           }
           onRequestClose={() => setRequestOpen(false)}

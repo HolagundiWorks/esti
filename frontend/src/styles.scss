@@ -189,12 +189,11 @@ html:has(.esti-landing-shell) body {
 }
 
 // Plan-tier header tint (replaces the plan Tag). `.cds--header` raises specificity
-// above Carbon's default header background. CORE (blue-80) / ENTERPRISE (purple-70)
-// are dark, so Carbon's white header foreground stays readable; LITE (yellow-40)
-// is light, so the foreground (logo, firm name, action icons) flips to dark.
+// above Carbon's default header background. PRO (blue-80) is dark, so Carbon's
+// white header foreground stays readable; LITE (yellow-40) is light, so the
+// foreground (logo, firm name, action icons) flips to dark.
 .cds--header.esti-app-header--lite { background-color: colors.$yellow-40; }
-.cds--header.esti-app-header--core { background-color: colors.$blue-80; }
-.cds--header.esti-app-header--enterprise { background-color: colors.$purple-70; }
+.cds--header.esti-app-header--pro { background-color: colors.$blue-80; }
 
 .esti-app-header--lite {
   .cds--header__name,

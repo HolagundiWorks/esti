@@ -36,13 +36,13 @@ const PLANS: Array<{
     cta: "Request Lite workspace",
   },
   {
-    ctx: "CORE",
-    name: "AORMS-Core",
-    pitch: "Run the whole practice to one standard — delivery, fees, people, and clients.",
+    ctx: "PRO",
+    name: "AORMS-Pro",
+    pitch: "Run the whole practice to one standard — delivery, fees, people, AI, on any scale.",
     price: "Contact for pricing",
-    priceNote: "Cloud, billed annually",
+    priceNote: "Cloud or self-hosted · billed annually",
     featured: true,
-    caps: "1 admin + 1 accountant + 1 HR + 15 staff · 200 GB · unlimited clients & projects",
+    caps: "Unlimited staff, storage, clients & projects · one edition, everything included",
     features: [
       "Everything in Lite, plus —",
       "Project delivery — phases, drawings, transmittals & site progress",
@@ -51,30 +51,11 @@ const PLANS: Array<{
       "26AS / AIS / GSTR reconciliation + GST/TDS filing abstracts",
       "HR, payroll & team performance scoring",
       "Consultant & contractor portals",
-      "ESTI office intelligence & AI Studio",
-      "Bring-your-own-storage (NAS / S3) · audit log",
+      "ESTI office intelligence & AI Studio (built-in or bring-your-own AI)",
+      "Bring-your-own-storage (NAS / S3) · SSO · API access · audit log",
+      "ESTICAD companion · self-hosting · multi-office · white-label",
     ],
-    hosting: "Cloud · dedicated VM: 4 vCPU · 16 GB RAM · 200 GB NVMe · 16 TB bandwidth · 1 snapshot · weekly backups · dedicated IP",
-    cta: "Contact sales",
-  },
-  {
-    ctx: "ENTERPRISE",
-    name: "AORMS-Enterprise",
-    pitch: "Your framework, on your servers, with your own AI.",
-    price: "Contact for pricing",
-    priceNote: "On-premises, custom terms",
-    caps: "Self-hosted · unlimited seats, storage, clients & projects",
-    features: [
-      "Everything in Core, plus —",
-      "Unlimited seats & multi-office portfolios",
-      "Bring-your-own AI provider (OpenAI-compatible)",
-      "Bring-your-own-storage (NAS / S3)",
-      "SSO & API access",
-      "ESTICAD companion · native desktop app",
-      "Audit export, governance & white-label",
-      "Priority support with SLA",
-    ],
-    hosting: "On-premises — deployed on your infrastructure",
+    hosting: "Cloud (dedicated VM) or self-hosted on your own infrastructure",
     cta: "Contact sales",
   },
 ];
@@ -96,9 +77,9 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
             Begin with a shared record, then adopt the full framework as the practice grows.
           </h3>
           <p className="esti-lp-note">
-            Lite gives a small practice one shared record. Core runs the whole practice to one
-            standard — projects, GST, billing, revisions, site visits, portals, and team load.
-            Enterprise keeps the same discipline inside your own infrastructure.
+            Lite gives a small practice one shared record — free forever. Pro runs the whole
+            practice to one standard — projects, GST, billing, revisions, site visits, portals,
+            team load and AI — cloud-hosted or self-hosted on your own infrastructure.
           </p>
         </div>
         </div>

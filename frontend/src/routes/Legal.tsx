@@ -76,7 +76,7 @@ export function Legal() {
               </p>
               <p>
                 This applies <strong>only to the free AORMS-Lite tier</strong>. Data in the paid
-                editions (AORMS-Core and AORMS-Enterprise) and in self-hosted deployments is
+                edition (AORMS-Pro) and in self-hosted deployments is
                 <strong> never used to train our models</strong>. Upgrading to a paid edition, or
                 self-hosting, opts you out of model-training use entirely. Where the law requires
                 consent for such processing, your acceptance of these terms on the free tier

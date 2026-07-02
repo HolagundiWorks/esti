@@ -6,12 +6,12 @@ import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { createAccountUrl } from "../lib/onboarding.js";
 
 type Edition = {
-  code: "LITE" | "CORE" | "ENTERPRISE";
+  code: "LITE" | "PRO";
   name: string;
   price: string;
   pitch: string;
   features: string[];
-  tag: "green" | "blue" | "purple";
+  tag: "green" | "blue";
   needsKey: boolean;
   url?: string;
 };
@@ -22,9 +22,9 @@ const EDITIONS: Edition[] = [
     name: "AORMS Lite",
     price: "Free",
     pitch:
-      "The free desktop edition for solo architects and freelancers — your whole practice on your own machine, no GST billing, no subscription.",
+      "The free desktop edition for small practices — your whole office on your own machine, no GST billing, no subscription, no dependencies to install.",
     features: [
-      "Up to 3 people",
+      "Up to 3 staff · unlimited clients & projects",
       "Projects · tasks · drawings · clients",
       "Local-first — your data stays on your device",
       "No licence key required",
@@ -34,36 +34,21 @@ const EDITIONS: Edition[] = [
     url: import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined,
   },
   {
-    code: "CORE",
-    name: "AORMS Core",
+    code: "PRO",
+    name: "AORMS Pro",
     price: "Licensed",
     pitch:
-      "The full studio edition for growing practices — the complete office OS with AI briefings and bring-your-own storage.",
+      "The full edition for growing and multi-office practices — the complete office OS with AI, GST, portals and unlimited seats, cloud-hosted or self-hosted.",
     features: [
-      "Up to 15 people",
-      "AI office briefings · BYO storage",
-      "Proposals · GST invoicing · portals",
-      "Activate with your Core licence key",
+      "Unlimited staff, storage, clients & projects",
+      "AI Studio · GST invoicing · reconciliation · portals",
+      "HR, payroll & performance · SSO · API · audit log",
+      "Self-host · BYO AI keys · BYO storage · white-label",
+      "Activate with your Pro licence key",
     ],
     tag: "blue",
     needsKey: true,
-    url: import.meta.env.VITE_CORE_DOWNLOAD_URL as string | undefined,
-  },
-  {
-    code: "ENTERPRISE",
-    name: "AORMS Enterprise",
-    price: "Licensed",
-    pitch:
-      "Unlimited seats, self-hosting and bring-your-own AI keys — for multi-office practices that keep everything in-house.",
-    features: [
-      "Unlimited people",
-      "Self-host · BYO AI API keys",
-      "Everything in Core, unlimited",
-      "Activate with your Enterprise licence key",
-    ],
-    tag: "purple",
-    needsKey: true,
-    url: import.meta.env.VITE_ENTERPRISE_DOWNLOAD_URL as string | undefined,
+    url: import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined,
   },
 ];
 
@@ -80,13 +65,13 @@ export function Download() {
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
-                practice — Lite is free; Core and Enterprise activate with a licence key.
+                practice — Lite is free forever; Pro activates with a licence key.
               </p>
             </Stack>
 
             <Grid fullWidth className="esti-landing-grid">
               {EDITIONS.map((e) => (
-                <Column key={e.code} lg={5} md={8} sm={4}>
+                <Column key={e.code} lg={8} md={4} sm={4}>
                   <Tile className="esti-fill">
                     <Stack gap={5}>
                       <Stack gap={3}>

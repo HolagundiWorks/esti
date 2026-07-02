@@ -34,12 +34,11 @@ const DISCIPLINE_OPTIONS = [
 ] as const;
 
 /** Pre-fill context: which edition the user clicked from the pricing cards. */
-export type LandingTrialPlanContext = "LITE" | "CORE" | "ENTERPRISE";
+export type LandingTrialPlanContext = "LITE" | "PRO";
 
 const PLAN_CONTEXT_LABEL: Record<LandingTrialPlanContext, string> = {
   LITE: "AORMS-Lite — free account",
-  CORE: "AORMS-Core — contact for pricing",
-  ENTERPRISE: "AORMS-Enterprise — contact for pricing (on-premises)",
+  PRO: "AORMS-Pro — contact for pricing",
 };
 
 type Kind = "FREELANCER" | "FIRM";
@@ -108,7 +107,7 @@ export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPl
         {planContext && (
           <Tag
             size="md"
-            type={planContext === "LITE" ? "green" : planContext === "CORE" ? "blue" : "purple"}
+            type={planContext === "LITE" ? "green" : "blue"}
           >
             {PLAN_CONTEXT_LABEL[planContext]}
           </Tag>

@@ -56,7 +56,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
       <Stack gap={5}>
         <h2>AI Studio</h2>
         <p>
-          Drafts run on <strong>Ollama</strong> on your server — no cloud keys. Enterprise firms
+          Drafts run on <strong>Ollama</strong> on your server — no cloud keys. Pro firms
           may instead plug in their own <strong>OpenAI-compatible</strong> provider.
         </p>
         <InlineNotification
@@ -114,7 +114,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}>
               <span className="esti-label--secondary">Bring-your-own AI provider</span>
-              <Tag type="purple" size="sm">Enterprise</Tag>
+              <Tag type="purple" size="sm">Pro</Tag>
             </div>
             <TextInput
               id="ai-cloud-url"

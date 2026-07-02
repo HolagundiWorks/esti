@@ -208,13 +208,11 @@ function AppShell() {
   // rate books or audit-log nav. planAllows() defaults LITE until the licence loads.
   const plan = licenseQ.data?.plan ?? settingsQ.data?.plan ?? "LITE";
   // Plan tier tints the workspace header (replaces the old plan Tag):
-  // LITE → yellow-40, CORE → blue-80, ENTERPRISE → purple-70.
+  // LITE → yellow-40 (light); every paid tier → Pro blue-80 (dark). Written
+  // enum-agnostically so it holds whether `plan` is LITE/CORE/ENTERPRISE or the
+  // collapsed LITE/PRO model.
   const planHeaderClass =
-    plan === "ENTERPRISE"
-      ? "esti-app-header--enterprise"
-      : plan === "CORE"
-        ? "esti-app-header--core"
-        : "esti-app-header--lite";
+    plan === "LITE" ? "esti-app-header--lite" : "esti-app-header--pro";
   const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
   const isStaff =
     !!user &&
@@ -252,7 +250,7 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/legal")
     return <Legal />;
 
-  // Download portal — Lite / Core / Enterprise desktop installers.
+  // Download portal — Lite / Pro desktop installers.
   if (PUBLIC_SITE && pathname === "/download")
     return <Download />;
 

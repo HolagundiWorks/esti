@@ -38,7 +38,7 @@ AORMS keeps the commercial chain connected. Once a proposal is approved, the
 project can move through delivery while fee recovery remains visible. Completed or
 approved stages can become billing prompts instead of hidden spreadsheet rows.
 
-In Core workflows, fee proposals connect to invoicing, GST handling,
+In Pro workflows, fee proposals connect to invoicing, GST handling,
 reconciliation and owner review. In Lite, small practices can start with simple
 non-GST office records and grow into deeper commercial control later.
 

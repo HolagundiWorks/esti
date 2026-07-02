@@ -74,4 +74,4 @@ ESTI is India-native — paise-based money, the April–March financial year, ra
 
 ### Can it run offline?
 
-Yes. ESTI ships as a native desktop app for Windows that runs entirely on your machine with local data. The free Lite edition is licence-free; the full estimation and costing workspace is part of Core and Enterprise.
+Yes. ESTI ships as a native desktop app for Windows that runs entirely on your machine with local data. The free Lite edition is licence-free; the full estimation and costing workspace is part of Pro.
