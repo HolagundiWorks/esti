@@ -2,10 +2,7 @@
 
 **Status:** Mandatory · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-15
 
-**Carbon agent kit:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after `pnpm install`) — design-intelligence, pattern-library, knowledge index. This document is the **ESTI-specific** enforcement layer only.
-
-**Theme rules 1–8:** `.carbon-kit/knowledge/theme_implementation.md`  
-**Search / refresh:** `pnpm carbon:search` · `pnpm carbon:index`
+**Scope:** this document is ESTI's canonical Pure-Carbon design guide + enforcement reference. The former `@hcw/carbon-agent-kit` design playbook (design-intelligence, pattern-library, knowledge index) was retired; its lint policy is internalised at `frontend/scripts/carbon-policy-rules.mjs`.
 
 The ESTI application — **office workspace *and* external/site portals** — uses
 only IBM Carbon Design System components, icons, pictograms, charts, layout,
@@ -104,7 +101,7 @@ must not spread to staff workspace routes without an explicit policy update.
 Staff routes (`src/routes` excluding `Landing.tsx`) must not add new entries to
 this table without updating both this document and `ROADMAP.md` Phase 2F.
 
-Automated enforcement lives in `@hcw/carbon-agent-kit/policy`
+Automated enforcement lives in `frontend/scripts/carbon-policy-rules.mjs`
 (consumed by `check-carbon.mjs` and `carbon-policy.test.ts`).
 
 ---
@@ -490,5 +487,5 @@ grep -rEn 'style=\{\{[^}]*(margin|padding|gap|rowGap|columnGap)[A-Za-z]*:\s*("?[
   --include='*.tsx' frontend/src | grep -vE 'var\(--cds-spacing|auto'
 ```
 
-The repo's `frontend/scripts/check-carbon.mjs` (`@hcw/carbon-agent-kit` policy) remains
+The repo's `frontend/scripts/check-carbon.mjs` (internalised Carbon policy) remains
 the colour/visual guard; `landing.scss` is its documented editorial exception.

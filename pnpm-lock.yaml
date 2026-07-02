@@ -11,9 +11,6 @@ importers:
       '@eslint/js':
         specifier: ^9.9.0
         version: 9.39.4
-      '@hcw/carbon-agent-kit':
-        specifier: workspace:*
-        version: link:vendor/hcw-carbon-agent-kit
       eslint:
         specifier: ^9.9.0
         version: 9.39.4
@@ -154,9 +151,6 @@ importers:
         specifier: ^5.0.14
         version: 5.0.14(@types/react@18.3.31)(react@18.3.1)
     devDependencies:
-      '@hcw/carbon-agent-kit':
-        specifier: workspace:*
-        version: link:../vendor/hcw-carbon-agent-kit
       '@types/node':
         specifier: ^20.14.0
         version: 20.19.43
@@ -197,8 +191,6 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
-
-  vendor/hcw-carbon-agent-kit: {}
 
 packages:
 

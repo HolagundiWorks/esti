@@ -1,6 +1,9 @@
 /**
- * Shared Pure Carbon policy rules — see docs/esti/CARBON-UI-DIRECTION.md.
- * Staff workspace is enforced; documented exceptions are excluded.
+ * Pure Carbon policy rules — internalised from the former @hcw/carbon-agent-kit
+ * (retired). See docs/esti/CARBON-UI-DIRECTION.md. Staff workspace is enforced;
+ * documented exceptions are excluded. Consumed by check-carbon.mjs (frontend lint)
+ * and carbon-policy.test.ts (vitest). Kept as .mjs so the policy walk never scans
+ * its own regex literals.
  */
 
 /** Files skipped entirely (marketing landing, special widgets). */
