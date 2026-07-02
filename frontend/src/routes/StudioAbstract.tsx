@@ -33,8 +33,6 @@ import { useNavigate } from "react-router-dom";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
-type ZoneState = "stable" | "watch" | "friction" | "critical" | "inactive";
-
 const ZCOLOR: Record<ZoneState, string> = {
   stable:   "var(--cds-support-success)",
   watch:    "var(--cds-support-warning)",
@@ -180,14 +178,6 @@ type SignalCopy = {
   detail: string;
 };
 
-function officeSignal(state: ZoneState): SignalCopy {
-  if (state === "stable") return { value: "Stable", detail: "The office is under control." };
-  if (state === "watch") return { value: "Minor friction", detail: "A few items may slow the day." };
-  if (state === "friction") return { value: "Needs attention", detail: "Dependencies are slowing progress." };
-  if (state === "critical") return { value: "Recovery required", detail: "Several workflows need owner attention." };
-  return { value: "Reviewing", detail: "The system is still reading office signals." };
-}
-
 function clientSignal(state: ZoneState): SignalCopy {
   if (state === "stable") return { value: "Responsive", detail: "Client communication is healthy." };
   if (state === "watch") return { value: "Waiting", detail: "A normal client response is pending." };
@@ -220,12 +210,6 @@ function teamSignal(state: ZoneState): SignalCopy {
   return { value: "No team signal", detail: "Team capacity data is not available." };
 }
 
-function cognitionState(severity?: string): ZoneState {
-  return severity === "critical" || severity === "friction" || severity === "watch" || severity === "stable" || severity === "inactive"
-    ? severity
-    : "inactive";
-}
-
 function taskHref(taskId?: string | null, projectId?: string | null): string {
   const params = new URLSearchParams({ tab: "tasks" });
   if (taskId) params.set("taskId", taskId);
@@ -240,373 +224,6 @@ function projectIssueHref(p: any): string {
   if ((p.overdueInvoices ?? 0) > 0) return `/projects/${p.id}?tab=invoices`;
   if ((p.staleApprovals ?? 0) > 0) return `/projects/${p.id}?tab=approvals`;
   return `/projects/${p.id}?tab=overview`;
-}
-
-// ── OVERVIEW TAB — cognitive command flow ────────────────────────────────────
-
-function ScreenOverview({
-  home, fh, ac, ph, ti, ri, canInvoice, hrEnabled,
-}: {
-  home: any; fh: any; ac: any; ph: any[]; ti: any[]; att: any; ri: any;
-  canInvoice: boolean; hrEnabled: boolean;
-}) {
-  const pending      = ac?.pendingApprovals   ?? [];
-  const pendingCount = pending.length;
-  const maxWaitDays  = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
-  const billingReady = ac?.billingReadyPhases  ?? [];
-  const overdueInvs  = ac?.overdueInvoices      ?? [];
-  const overduePaise = fh?.overdue30dPaise ?? 0;
-  const riskProjects = ph.filter((p: any) => p.health === "RED");
-  const overloaded   = ti.filter((m: any) => m.capacity === "OVERLOADED");
-
-  const cs = clientState(pendingCount, maxWaitDays);
-  const fs = financeState(fh?.outstandingPaise ?? 0, overduePaise, canInvoice);
-  const ps = projectState(ph.length, riskProjects.length);
-  const ts = teamState(overloaded.length, ti.length, hrEnabled);
-
-  const office = home?.cognition?.office;
-  const attn   = deriveAttn({ cs, fs, ps, ts, pendingCount, maxWaitDays, riskProjects, overduePaise, billingReadyCount: billingReady.length, overloadedCount: overloaded.length });
-  const officeState: ZoneState =
-    cognitionState(office?.severity) !== "inactive"
-      ? cognitionState(office?.severity)
-      : attn.chainColor === ZCOLOR["critical"] ? "critical"
-      : attn.chainColor === ZCOLOR["friction"] ? "friction"
-      : attn.chainColor === ZCOLOR["watch"] ? "watch" : "stable";
-
-  const tasksOverdue = ph.reduce((s: number, p: any) => s + (p.overdueTasks ?? 0), 0);
-  const gst = gstStatus();
-
-  // Top 4 KPI cards.
-  const kpis: Kpi[] = [
-    { label: "Projects Active",   value: ph.length },
-    { label: "Invoices Pending",  value: overdueInvs.length, state: overdueInvs.length > 0 ? "friction" : "stable" },
-    { label: "Approvals Pending", value: pendingCount,       state: pendingCount > 0 ? "watch" : "stable" },
-    { label: "Tasks Overdue",     value: tasksOverdue,       state: tasksOverdue > 0 ? "friction" : "stable" },
-  ];
-
-  // Action-items table (folds Summary's GST + revisions rows in too).
-  const rows: TableRowData[] = [
-    ...overdueInvs.slice(0, 4).map((inv: any) => ({
-      state: "critical" as ZoneState,
-      cells: [`Overdue invoice ${inv.ref}`, formatINRShort(inv.netReceivablePaise), `${inv.daysOverdue}d`],
-      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-    })),
-    ...pending.slice(0, 5).map((ap: any) => ({
-      state: (ap.daysWaiting > 14 ? "critical" : "friction") as ZoneState,
-      cells: [`${ap.projectRef} — ${ap.title}`, "Approval pending", `${ap.daysWaiting}d`],
-      href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
-    })),
-    ...riskProjects.slice(0, 5).map((p: any) => ({
-      state: "critical" as ZoneState,
-      cells: [`${p.ref} — ${p.title}`, "Delivery risk", "—"],
-      href: projectIssueHref(p),
-    })),
-    ...(billingReady.length > 0
-      ? [{ state: "watch" as ZoneState, cells: [`${billingReady.length} phase(s) ready to invoice`, "Billing", "—"], href: "/invoices" }]
-      : []),
-    { state: (gst.state === "stable" ? "stable" : gst.state) as ZoneState, cells: ["GST filing", gst.label, "—"], href: "/filing" },
-    { state: "stable" as ZoneState, cells: ["Revisions logged", String(ri?.totalDecisions ?? 0), "—"], href: "/projects?tab=revisions" },
-  ];
-
-  return (
-    <AbstractScreenShell
-      title="Overview"
-      state={officeState}
-      signal={officeSignal(officeState).detail}
-      kpis={kpis}
-      tableTitle="ACTION ITEMS"
-      headers={["Item", "Detail", "When"]}
-      rows={rows}
-      empty="No action items — the office is operating normally."
-    />
-  );
-}
-
-// ── PROJECTS TAB ──────────────────────────────────────────────────────────────
-
-function ScreenProjects({
-  ph, canInvoice,
-}: {
-  ph: any[]; ti: any[]; att: any; billingReady: any[]; canInvoice: boolean;
-}) {
-  const risk    = ph.filter((p: any) => p.health === "RED");
-  const watch   = ph.filter((p: any) => p.health === "YELLOW");
-  const delayed = ph.filter((p: any) => (p.overdueTasks ?? 0) > 0).length;
-  const state   = projectState(ph.length, risk.length);
-
-  const kpis: Kpi[] = [
-    { label: "Projects Active", value: ph.length },
-    { label: "Critical", value: risk.length, state: risk.length > 0 ? "critical" : "stable" },
-    { label: "Watch", value: watch.length, state: watch.length > 0 ? "watch" : "stable" },
-    { label: "Delayed", value: delayed, state: delayed > 0 ? "friction" : "stable" },
-  ];
-
-  const rows: TableRowData[] = [...risk, ...watch].slice(0, 20).map((p: any) => ({
-    state: (p.health === "RED" ? "critical" : "watch") as ZoneState,
-    cells: [
-      `${p.ref} — ${p.title}`,
-      p.currentPhase ?? "—",
-      [
-        p.overdueTasks > 0 ? `${p.overdueTasks} late` : null,
-        p.staleApprovals > 0 ? `${p.staleApprovals} stale appr.` : null,
-        canInvoice && p.overdueInvoices > 0 ? `${p.overdueInvoices} inv. overdue` : null,
-      ].filter(Boolean).join(" · ") || "—",
-      `${p.progressPct ?? 0}%`,
-    ],
-    href: projectIssueHref(p),
-  }));
-
-  return (
-    <AbstractScreenShell
-      title="Project"
-      state={state}
-      signal={projectSignal(state).detail}
-      kpis={kpis}
-      tableTitle="PROJECTS NEEDING ATTENTION"
-      headers={["Project", "Phase", "Signals", "Progress"]}
-      rows={rows}
-      empty="No projects at risk. Delivery on track."
-    />
-  );
-}
-
-// ── FINANCE TAB ───────────────────────────────────────────────────────────────
-
-function ScreenFinance({
-  fh, ac, canInvoice,
-}: {
-  fh: any; ac: any; canInvoice: boolean; canFees: boolean; home: any;
-}) {
-  if (!canInvoice) {
-    return (
-      <div className="esti-abstract">
-        <Tile><span className="esti-label--secondary">Finance data requires the invoice:manage permission.</span></Tile>
-      </div>
-    );
-  }
-
-  const overdueInvs  = ac?.overdueInvoices    ?? [];
-  const billingReady = ac?.billingReadyPhases ?? [];
-  const gst          = gstStatus();
-  const outstanding  = fh?.outstandingPaise ?? 0;
-  const overdue      = fh?.overdue30dPaise  ?? 0;
-  const ready        = fh?.readyToBillPaise ?? 0;
-  const state        = financeState(outstanding, overdue, canInvoice);
-
-  const kpis: Kpi[] = [
-    { label: "Receivables", value: formatINRShort(outstanding) },
-    { label: "Overdue Invoices", value: overdueInvs.length, state: overdueInvs.length > 0 ? "critical" : "stable" },
-    { label: "Billing Ready", value: formatINRShort(ready), state: ready > 0 ? "watch" : "stable" },
-    { label: "GST", value: gst.label, state: gst.state },
-  ];
-
-  const rows: TableRowData[] = [
-    ...overdueInvs.slice(0, 20).map((inv: any) => ({
-      state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState,
-      cells: [`Overdue invoice ${inv.ref}`, formatINRShort(inv.netReceivablePaise), `${inv.daysOverdue}d`],
-      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-    })),
-    ...(billingReady.length > 0
-      ? [{ state: "watch" as ZoneState, cells: [`${billingReady.length} phase(s) ready to invoice`, ready > 0 ? formatINRShort(ready) : "—", "—"], href: "/invoices" }]
-      : []),
-  ];
-
-  return (
-    <AbstractScreenShell
-      title="Financial"
-      state={state}
-      signal={financeSignal(state).detail}
-      kpis={kpis}
-      tableTitle="OVERDUE & BILLING"
-      headers={["Item", "Amount", "Age"]}
-      rows={rows}
-      empty="No invoices overdue. Collections on track."
-    />
-  );
-}
-
-// ── TEAM TAB ──────────────────────────────────────────────────────────────────
-
-function ScreenTeam({
-  ti, att, hrEnabled,
-}: {
-  ti: any[]; att: any; hrEnabled: boolean;
-}) {
-  if (!hrEnabled) {
-    return (
-      <div className="esti-abstract">
-        <Tile><span className="esti-label--secondary">Team module requires HR to be enabled in settings.</span></Tile>
-      </div>
-    );
-  }
-
-  const overloaded = ti.filter((m: any) => m.capacity === "OVERLOADED");
-  const teamLoadPct = ti.length > 0 ? Math.round(ti.reduce((s: number, m: any) => s + loadPct(m.capacity), 0) / ti.length) : 0;
-  const state = teamState(overloaded.length, ti.length, hrEnabled);
-
-  const kpis: Kpi[] = [
-    { label: "Present Today", value: att?.present ?? "—" },
-    { label: "Absent Today", value: att ? `${att.absent}/${att.headcount}` : "—" },
-    { label: "Overloaded", value: overloaded.length, state: overloaded.length > 0 ? "critical" : "stable" },
-    { label: "Team Load", value: `${teamLoadPct}%`, state: teamLoadPct > 85 ? "friction" : teamLoadPct > 70 ? "watch" : "stable" },
-  ];
-
-  const rows: TableRowData[] = ti.slice(0, 20).map((m: any) => ({
-    state: (m.capacity === "OVERLOADED" ? "critical" : m.capacity === "BUSY" ? "watch" : "stable") as ZoneState,
-    cells: [m.assignee, `${m.totalOpen} open`, `${m.overdueCount ?? 0} late`, CAPACITY_LABEL[m.capacity] ?? m.capacity],
-    href: taskHref(m.focusTaskId, m.focusProjectId),
-  }));
-
-  return (
-    <AbstractScreenShell
-      title="Team"
-      state={state}
-      signal={teamSignal(state).detail}
-      kpis={kpis}
-      tableTitle="CAPACITY"
-      headers={["Member", "Open", "Late", "Capacity"]}
-      rows={rows}
-      empty="No team data available."
-    />
-  );
-}
-
-// ── APPROVALS TAB ─────────────────────────────────────────────────────────────
-
-function ScreenApprovals({ ac }: { ac: any; home: any }) {
-  const pending      = ac?.pendingApprovals ?? [];
-  const pendingCount = pending.length;
-  const maxWait      = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
-  const stale        = pending.filter((a: any) => (a.daysWaiting ?? 0) > 10).length;
-  const state        = clientState(pendingCount, maxWait);
-
-  const kpis: Kpi[] = [
-    { label: "Pending", value: pendingCount, state: pendingCount > 0 ? "watch" : "stable" },
-    { label: "Stale (>10d)", value: stale, state: stale > 0 ? "friction" : "stable" },
-    { label: "Oldest Wait", value: `${maxWait}d`, state: maxWait > 14 ? "critical" : maxWait > 7 ? "friction" : "stable" },
-    { label: "All Clear", value: pendingCount === 0 ? "Yes" : "No", state: pendingCount === 0 ? "stable" : "watch" },
-  ];
-
-  const rows: TableRowData[] = pending.slice(0, 20).map((ap: any) => ({
-    state: (ap.daysWaiting > 14 ? "critical" : ap.daysWaiting > 7 ? "friction" : "watch") as ZoneState,
-    cells: [`${ap.projectRef} — ${ap.title}`, `${ap.daysWaiting}d`],
-    href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
-  }));
-
-  return (
-    <AbstractScreenShell
-      title="Approval"
-      state={state}
-      signal={clientSignal(state).detail}
-      kpis={kpis}
-      tableTitle="PENDING APPROVALS"
-      headers={["Approval", "Waiting"]}
-      rows={rows}
-      empty="No approvals pending. All client responses received."
-    />
-  );
-}
-
-// ── REPORTS TAB ───────────────────────────────────────────────────────────────
-
-// ── ACTIVITY TAB ──────────────────────────────────────────────────────────────
-
-function relTime(input: string | Date): string {
-  const t = new Date(input).getTime();
-  if (Number.isNaN(t)) return "";
-  const m = Math.round((Date.now() - t) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.round(h / 24)}d ago`;
-}
-
-// Dashboard sidebar (STUDIO screen only): AI recommendation on top (~30%) over the
-// last 10 office-log events (record history, spec §8.8). Not a tab.
-function DashboardSidebar({ home }: { home: any }) {
-  const interventions = home?.cognition?.interventions ?? [];
-  const primary = interventions[0];
-  const logQ = trpc.activity.listOffice.useQuery({ limit: 10, visibility: "STAFF" }, { staleTime: 30_000 });
-  const rows = logQ.data?.rows ?? [];
-
-  return (
-    <div className="esti-dash-aside">
-      <Tile className="esti-dash-aside__ai">
-        <Stack gap={3}>
-          <span className="esti-label esti-label--secondary">AI RECOMMENDATION</span>
-          {primary ? (
-            <>
-              <p>{primary.title}</p>
-              {primary.suggestedAction && (
-                <span className="esti-label--secondary">{primary.suggestedAction}</span>
-              )}
-            </>
-          ) : (
-            <span className="esti-label--secondary">No recommendation — the office is operating normally.</span>
-          )}
-        </Stack>
-      </Tile>
-      <Tile className="esti-dash-aside__log">
-        <Stack gap={4}>
-          <span className="esti-label esti-label--secondary">OFFICE LOG · LAST 10</span>
-          {rows.length === 0 ? (
-            <span className="esti-label--secondary">No recent office activity.</span>
-          ) : (
-            <Stack gap={3}>
-              {rows.slice(0, 10).map((a) => (
-                <div key={a.id} className="esti-log-item">
-                  <span>{a.summary}</span>
-                  <span className="esti-label--helper">
-                    {a.actorName ?? "System"}
-                    {a.projectRef ? ` · ${a.projectRef}` : ""} · {relTime(a.createdAt)}
-                  </span>
-                </div>
-              ))}
-            </Stack>
-          )}
-        </Stack>
-      </Tile>
-    </div>
-  );
-}
-
-// ── WORK QUEUE TAB ────────────────────────────────────────────────────────────
-
-function ScreenWorkQueue() {
-  const queueQ = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 25 }, { staleTime: 30_000 });
-  const tasks  = queueQ.data ?? [];
-  const today  = new Date().toISOString().slice(0, 10);
-  const overdue  = tasks.filter((t) => t.dueDate && t.dueDate < today).length;
-  const dueToday = tasks.filter((t) => t.dueDate === today).length;
-  const blocked  = tasks.filter((t) => t.status === "BLOCKED").length;
-  const state: ZoneState = blocked > 0 || overdue > 5 ? "friction" : overdue > 0 ? "watch" : "stable";
-
-  const kpis: Kpi[] = [
-    { label: "Open Tasks", value: tasks.length },
-    { label: "Due Today", value: dueToday, state: dueToday > 0 ? "watch" : "stable" },
-    { label: "Overdue", value: overdue, state: overdue > 0 ? "friction" : "stable" },
-    { label: "Blocked", value: blocked, state: blocked > 0 ? "critical" : "stable" },
-  ];
-
-  const rows: TableRowData[] = tasks.slice(0, 25).map((t) => ({
-    state: (t.status === "BLOCKED" ? "critical" : t.priority === "CRITICAL" || t.priority === "HIGH" ? "friction" : "watch") as ZoneState,
-    cells: [t.title, t.projectRef ?? "—", t.dueDate ?? "—", t.status],
-    href: taskHref(t.id),
-  }));
-
-  return (
-    <AbstractScreenShell
-      title="Work"
-      state={state}
-      signal={`${tasks.length} tasks · ${overdue} overdue · ${blocked} blocked`}
-      kpis={kpis}
-      tableTitle="TASK QUEUE"
-      headers={["Task", "Project", "Due", "Status"]}
-      rows={rows}
-      empty="No active tasks in the queue."
-    />
-  );
 }
 
 // ── Tag type helper ─────────────────────────────────────────────────────────
@@ -642,7 +259,6 @@ export function StudioAbstract() {
   const tasks = queueQ.data ?? [];
 
   const canInvoice = can(user?.role, "invoice:manage");
-  const canWrite   = can(user?.role, "write");
 
   // ── Zone state derivation ──────────────────────────────────────────────
   const pending      = ac?.pendingApprovals   ?? [];
@@ -711,9 +327,6 @@ export function StudioAbstract() {
   // ── KPIs ───────────────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
   const tasksOverdue = tasks.filter((t) => t.dueDate && t.dueDate < today).length;
-  const teamLoadPct  = ti.length > 0
-    ? Math.round(ti.reduce((s: number, m: any) => s + ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[m.capacity] ?? 50), 0) / ti.length)
-    : 0;
 
   const kpis = [
     { label: "Active Projects",  value: ph.length,               state: ps !== "stable" ? ps : undefined },
@@ -851,12 +464,19 @@ export function StudioAbstract() {
           <Tile>
             <Stack gap={3}>
               <span className="esti-label esti-label--secondary">REVISIONS</span>
-              <Stack orientation="horizontal" gap={3}>
-                <span className="esti-label esti-grow">{ri.totalDecisions ?? 0} logged this cycle</span>
-                {(ri.clientDrivenPct ?? 0) > 60 && (
-                  <Tag type="magenta" size="sm">{ri.clientDrivenPct}% client-driven</Tag>
-                )}
-              </Stack>
+              {(() => {
+                const clientDrivenPct = ri.totalDecisions
+                  ? Math.round((ri.clientDriven / ri.totalDecisions) * 100)
+                  : 0;
+                return (
+                  <Stack orientation="horizontal" gap={3}>
+                    <span className="esti-label esti-grow">{ri.totalDecisions ?? 0} logged this cycle</span>
+                    {clientDrivenPct > 60 && (
+                      <Tag type="magenta" size="sm">{clientDrivenPct}% client-driven</Tag>
+                    )}
+                  </Stack>
+                );
+              })()}
             </Stack>
           </Tile>
         )}
@@ -906,6 +526,7 @@ export function StudioAbstract() {
                       </TableCell>
                       <TableCell style={{ minWidth: "8rem" }}>
                         <ProgressBar
+                          label="Project progress"
                           value={p.progressPct ?? 0}
                           max={100}
                           size="small"
@@ -1048,6 +669,7 @@ export function StudioAbstract() {
                         </TableCell>
                         <TableCell style={{ minWidth: "6rem" }}>
                           <ProgressBar
+                            label="Team member load"
                             value={loadPct(m.capacity)}
                             max={100}
                             size="small"
