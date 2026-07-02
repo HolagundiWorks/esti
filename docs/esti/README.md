@@ -3,8 +3,10 @@
 **Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-25
 
 This directory is the single source of truth for ESTI product and engineering
-direction. Point-in-time audits and superseded specs live in
-[archive/](archive/README.md); they must not compete with current requirements.
+direction. There is **no archive**: superseded specs are deleted outright (git
+history preserves them) and must never compete with current requirements.
+*(Deleted so far: the early RIE/bylaw and SteelFlow drafts, the pre-teardown
+estimation snapshot, and the 2026-06-15 workflow/architecture audit.)*
 
 ## Read first
 
@@ -77,4 +79,4 @@ paths must cite [STABILITY-CHARTER](STABILITY-CHARTER.md) or record a charter
 exception with redirects. Architecture, tax, or UI-policy changes also update
 their canonical document. New point-in-time audit files should not be added;
 findings go directly into the roadmap backlog with an owner, priority, and
-acceptance gate. Superseded large specs may move to [archive/](archive/README.md).
+acceptance gate. Superseded large specs are deleted outright — git history is the archive.
