@@ -33,7 +33,7 @@ podman compose up -d --build
 > ```
 > Or manually:
 > ```sh
-> cd ..   # repos parent (esti + hcw-carbon-agent-kit + hcw-aorms-ai-kit)
+> cd ..   # repos parent (esti + hcw-aorms-ai-kit)
 > podman build -t localhost/esti-backend:dev  -f esti/backend/Dockerfile .
 > podman build -t localhost/esti-worker:dev   -f esti/worker/Dockerfile.dev esti/worker
 > podman build -t localhost/esti-frontend:dev -f esti/frontend/Dockerfile.dev .

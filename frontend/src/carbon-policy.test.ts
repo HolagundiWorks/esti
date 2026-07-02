@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { extname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkLine } from "@hcw/carbon-agent-kit/policy";
+import { checkLine } from "../scripts/carbon-policy-rules.mjs";
 
 const root = new URL("./", import.meta.url);
 

@@ -1,8 +1,0 @@
-{
-  "name": "@hcw/carbon-agent-kit",
-  "version": "0.1.0",
-  "type": "module",
-  "exports": {
-    "./policy": "./policy/carbon-policy-rules.mjs"
-  }
-}

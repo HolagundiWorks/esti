@@ -18,16 +18,8 @@ jobs:
           path: esti
       - uses: actions/checkout@v4
         with:
-          repository: HolagundiWorks/hcw-carbon-agent-kit
-          path: hcw-carbon-agent-kit
-      - uses: actions/checkout@v4
-        with:
           repository: HolagundiWorks/hcw-aorms-ai-kit
           path: hcw-aorms-ai-kit
-      - uses: actions/checkout@v4
-        with:
-          repository: HolagundiWorks/hcw-master-dsr-kit
-          path: hcw-master-dsr-kit
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
