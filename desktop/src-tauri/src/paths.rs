@@ -9,6 +9,8 @@ pub struct AppPaths {
     pub files: PathBuf,
     pub logs: PathBuf,
     pub secrets: PathBuf,
+    /// Downloaded, verified component payloads (backend, node, ai…).
+    pub payloads: PathBuf,
 }
 
 pub fn resolve(app: &AppHandle) -> std::io::Result<AppPaths> {
@@ -21,9 +23,10 @@ pub fn resolve(app: &AppHandle) -> std::io::Result<AppPaths> {
         files: root.join("files"),
         logs: root.join("logs"),
         secrets: root.join("secrets"),
+        payloads: root.join("payloads"),
         root,
     };
-    for d in [&p.root, &p.files, &p.logs, &p.secrets] {
+    for d in [&p.root, &p.files, &p.logs, &p.secrets, &p.payloads] {
         fs::create_dir_all(d)?;
     }
     Ok(p)

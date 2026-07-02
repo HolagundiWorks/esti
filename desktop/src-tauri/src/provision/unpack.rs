@@ -39,7 +39,6 @@ mod tests {
     use super::*;
     use flate2::write::GzEncoder;
     use flate2::Compression;
-    use std::io::Write;
 
     fn make_targz(dir: &Path) -> PathBuf {
         // Build a tiny .tar.gz containing dist/index.js with known content.

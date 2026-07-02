@@ -25,12 +25,6 @@
       "icons/128x128.png",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/esti-backend"
-    ],
-    "resources": [
-      "resources/backend/**/*"
-    ],
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"

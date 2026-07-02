@@ -1,51 +1,29 @@
 use std::collections::HashMap;
+use std::path::Path;
+use std::process::{Child, Command, Stdio};
 use std::time::Duration;
-use tauri::AppHandle;
-use tauri_plugin_shell::process::{CommandChild, CommandEvent};
-use tauri_plugin_shell::ShellExt;
 
-/// Spawn the bundled Node backend sidecar (`esti-backend`, a vendored node.exe)
-/// running the bundled `dist/index.js`, with the desktop env. Its stdout/stderr
-/// are pumped into the shell log. Returns the child handle for shutdown.
-pub async fn spawn(
-    app: &AppHandle,
-    script: String,
+/// Launch the backend as a plain child process: a provisioned (or dev) Node
+/// runtime running the backend's `dist/index.js`, with the desktop env. Unlike
+/// the old bundled sidecar, `node` and the backend come from the downloaded
+/// payload, so there's nothing to allow-list in the shell scope — we spawn
+/// directly. stdout/stderr are redirected to a log file (the only way to see a
+/// boot crash on a user's machine).
+pub fn spawn_process(
+    node: &Path,
+    script: &Path,
     env: HashMap<String, String>,
-) -> Result<CommandChild, String> {
-    let (mut rx, child) = app
-        .shell()
-        .sidecar("esti-backend")
-        .map_err(|e| format!("sidecar resolve: {e}"))?
-        .args([script])
+    log_path: &Path,
+) -> Result<Child, String> {
+    let log = std::fs::File::create(log_path).map_err(|e| format!("create log {log_path:?}: {e}"))?;
+    let errlog = log.try_clone().map_err(|e| format!("clone log handle: {e}"))?;
+    Command::new(node)
+        .arg(script)
         .envs(env)
+        .stdout(Stdio::from(log))
+        .stderr(Stdio::from(errlog))
         .spawn()
-        .map_err(|e| format!("sidecar spawn: {e}"))?;
-
-    tauri::async_runtime::spawn(async move {
-        use std::io::Write;
-        // Also tee the sidecar's output to a file — the app has no log sink, so this
-        // is the only way to see a backend boot crash on a user's machine.
-        let mut file = std::fs::File::create(std::env::temp_dir().join("aorms-sidecar.log")).ok();
-        while let Some(event) = rx.recv().await {
-            let entry = match event {
-                CommandEvent::Stdout(line) => {
-                    format!("[out] {}", String::from_utf8_lossy(&line).trim_end())
-                }
-                CommandEvent::Stderr(line) => {
-                    format!("[err] {}", String::from_utf8_lossy(&line).trim_end())
-                }
-                CommandEvent::Terminated(payload) => format!("[terminated] code={:?}", payload.code),
-                _ => continue,
-            };
-            log::info!("[backend] {entry}");
-            if let Some(f) = file.as_mut() {
-                let _ = writeln!(f, "{entry}");
-                let _ = f.flush();
-            }
-        }
-    });
-
-    Ok(child)
+        .map_err(|e| format!("spawn backend ({node:?} {script:?}): {e}"))
 }
 
 /// Poll `GET {base}/readyz` until it returns 200 (or times out at ~60s).

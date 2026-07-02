@@ -1,9 +1,21 @@
 # ESTI Desktop (Tauri shell)
 
+> **Manager rework in progress.** The shell is being converted from a "bundle
+> everything" app into a thin **Manager** that pulls its payload online: on
+> first run it takes a licence key, fetches a *signed* component manifest for
+> its edition (LITE = core only; PRO = core + AI), verifies each artifact
+> (Ed25519 manifest signature + per-file SHA-256), downloads it into a payload
+> store, launches the backend from there (no bundled sidecar), and supervises
+> it (restart-on-failure, DB/AI health). The Rust runtime for this lives in
+> `src/{provision,commands}.rs` + `src/supervisor/health.rs`; the build pipeline
+> that *produces* the components (and this README's build steps below) is not
+> yet updated. Runtime verification happens on the Windows CI. The sections
+> below still describe the current *bundled* build until that pipeline lands.
+
 Native desktop app: a Tauri 2 (Rust) shell that boots a **local PostgreSQL**, runs
-the existing **Node backend as a bundled sidecar**, and serves the existing
-**React/Carbon SPA** in the webview — all on the user's machine. This is **Phase A.1
-(P1)** of the desktop plan: local-only, filesystem storage, no worker/PDFs yet.
+the **Node backend** (bundled sidecar today → provisioned payload under the
+Manager rework), and serves the existing **React/Carbon SPA** in the webview —
+all on the user's machine.
 
 ```
 Tauri shell (Rust) ──┬─ starts local PostgreSQL (initdb on first run)
