@@ -71,9 +71,11 @@ stack on a cleaner model):
 
 ## What AORMS is
 
-**AORMS = Architectural Office Resource Management System** — one operating
-system for an Indian architecture practice, from first client conversation to
-final account on site. It is delivered as a single codebase (pnpm monorepo:
+**AORMS = Architecture Office Resource Management System** — the **workspace**:
+one operating system for an Indian architecture practice, from first client
+conversation to final account on site. **ESTI = Embedded Studio Intelligence** —
+the intelligence/agent layer embedded in the workspace (ESTI AI, Ask ESTI, the
+cognition engine, ESTI Pulse). It is delivered as a single codebase (pnpm monorepo:
 `packages/contracts`, `backend`, `frontend`, Python `worker`) gated two ways that
 are orthogonal: **`can(role, capability)`** by *person*
 ([ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md)) and **`planAllows(plan, feature)`**

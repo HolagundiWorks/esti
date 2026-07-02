@@ -2,7 +2,8 @@
 
 **Status:** Target (design accepted, build phased) · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
 
-ESTI Pulse is the operational intelligence layer that periodically reviews
+ESTI Pulse is an **ESTI capability** — part of the Embedded Studio
+Intelligence layer inside the AORMS workspace — that periodically reviews
 project tasks, detects missing dependencies and information, asks the right
 team member the right question, recalculates task priority and confidence,
 and tells the office **what must be done first**.
@@ -10,8 +11,12 @@ and tells the office **what must be done first**.
 This is not a chatbot. It is a **task-risk and dependency-resolution engine**
 for architecture offices.
 
-> Positioning: the [Cognition Engine](COGNITION-ENGINE.md) watches the
-> **office** (health scores, owner attention). ESTI Pulse watches **projects
+> **Nomenclature:** **AORMS** (Architecture Office Resource Management System)
+> is the workspace that holds the tasks, drawings, approvals and records Pulse
+> reads. **ESTI** (Embedded Studio Intelligence) is the intelligence layer;
+> Pulse is one of its capabilities, beside ESTI AI / Ask ESTI and the
+> [Cognition Engine](COGNITION-ENGINE.md). The cognition engine watches the
+> **office** (health scores, owner attention); ESTI Pulse watches **projects
 > and tasks** (dependencies, blockers, standups). Both obey the same law:
 > *deterministic systems create business truth; LLMs explain business truth.*
 > Pulse never lets an LLM invent a score, a deadline, or a priority.

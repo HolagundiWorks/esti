@@ -2,7 +2,7 @@
 
 **Status:** Live foundation · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
 
-ESTI AORMS is not an ERP dashboard with an AI chatbot bolted on. It is an architecture-office cognition engine: a system that continuously observes office operations, calculates current health, recognises pressure, recommends intervention, and explains the result to the owner.
+AORMS is not an ERP dashboard with an AI chatbot bolted on. **ESTI — Embedded Studio Intelligence — is its cognition engine**: the intelligence layer that continuously observes office operations, calculates current health, recognises pressure, recommends intervention, and explains the result to the owner.
 
 The governing rule is simple:
 

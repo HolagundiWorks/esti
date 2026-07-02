@@ -1,9 +1,11 @@
-# ESTI — Architectural Office Resource Management System (AORMS)
+# AORMS — Architecture Office Resource Management System
 
-ESTI is an **AORMS — Architectural Office Resource Management System**: greenfield
-software to run an Indian architecture office, **not** a general ERP. Developed
-by **Holagundi Consulting Works (HCW)** for Indian freelance architects and small
-architecture practices.
+**AORMS** is the workspace: greenfield software to run an Indian architecture
+office, **not** a general ERP. **ESTI** (Embedded Studio Intelligence) is the
+intelligence/agent layer embedded in the AORMS workspace — ESTI AI, Ask ESTI,
+the cognition engine, ESTI Pulse. Developed by **Holagundi Consulting Works
+(HCW)** for Indian freelance architects and small architecture practices.
+*(The repo, `@esti/*` packages and `esti_*` tables keep the `esti` codename.)*
 
 Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **Carbon React**
 SPA, and a **Python** worker for drawings/PDF/reconciliation. See

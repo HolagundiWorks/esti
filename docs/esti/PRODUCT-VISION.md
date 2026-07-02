@@ -10,15 +10,16 @@
 
 **Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
 
-ESTI is an **Architectural Office Resource Management System (AORMS)** for
-Indian freelance architects and small architecture practices. It is the single
+**AORMS** (Architecture Office Resource Management System) is the workspace for
+Indian freelance architects and small architecture practices: the single
 operational record for projects, communication, tasks, decisions, drawings,
 documents, statutory work, fees, invoices, consultants, contractors, and office
-resources.
+resources. **ESTI** (Embedded Studio Intelligence) is the intelligence/agent
+layer embedded in that workspace.
 
 The long-term product identity is a continuous organizational cognition engine:
-ESTI should not merely store office data, but continuously calculate office
-health, surface causes, recommend interventions, and teach better managerial
+AORMS should not merely store office data — ESTI continuously calculates office
+health, surfaces causes, recommends interventions, and teaches better managerial
 instinct. The implementation boundary is defined in
 [COGNITION-ENGINE](COGNITION-ENGINE.md): deterministic systems create business
 truth; LLMs explain business truth.

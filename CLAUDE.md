@@ -1,7 +1,11 @@
 # ESTI — agent instructions
 
-ESTI is an Architectural Office Resource Management System (AORMS) for Indian
-architecture practices, by Holagundi Consulting Works.
+**AORMS** (Architecture Office Resource Management System) is the workspace —
+the product for Indian architecture practices, by Holagundi Consulting Works.
+**ESTI** (Embedded Studio Intelligence) is the intelligence/agent layer embedded
+in the AORMS workspace: ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse.
+Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
+`esti` codename.
 
 Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via

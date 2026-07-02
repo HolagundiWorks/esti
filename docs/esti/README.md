@@ -1,8 +1,13 @@
-# ESTI Documentation
+# AORMS Documentation
 
-**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-25
+**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-02
 
-This directory is the single source of truth for ESTI product and engineering
+> **Nomenclature:** **AORMS** (Architecture Office Resource Management System) is
+> the **workspace** — the product. **ESTI** (Embedded Studio Intelligence) is the
+> **intelligence/agent layer** embedded in it (ESTI AI, Ask ESTI, cognition
+> engine, ESTI Pulse). Code identifiers keep the `esti` codename.
+
+This directory is the single source of truth for AORMS product and engineering
 direction. There is **no archive**: superseded specs are deleted outright (git
 history preserves them) and must never compete with current requirements.
 *(Deleted so far: the early RIE/bylaw and SteelFlow drafts, the pre-teardown
