@@ -268,6 +268,17 @@ export const authRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Companion login is for office staff only" });
     }
 
+    // Second factor: a device token grants the same full API access as a browser
+    // session, so it must clear the same 2FA bar as `login` — otherwise pairing a
+    // device is a password-only bypass of an account's authenticator.
+    if (u.totpSecret) {
+      const code = input.code?.trim();
+      if (!code) throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_required" });
+      if (!verifyTotp(u.totpSecret, code)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_invalid" });
+      }
+    }
+
     const tokens = await createDeviceSession(ctx.db, {
       userId: u.id,
       deviceName: input.deviceName,
