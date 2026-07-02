@@ -1,3 +1,4 @@
+mod commands;
 mod paths;
 mod provision;
 mod supervisor;
@@ -21,6 +22,11 @@ pub fn run() {
             pg: Mutex::new(None),
             backend: Mutex::new(None),
         })
+        .manage(commands::ManagerState::new())
+        .invoke_handler(tauri::generate_handler![
+            commands::manager_status,
+            commands::submit_license,
+        ])
         .setup(|app| {
             let handle = app.handle().clone();
             // Boot the local stack off the UI thread; the window is created once

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AORMS Manager</title>
+    <!--
+      Dedicated Manager status window (the desktop bootstrapper's control plane).
+      NOT part of the Carbon SPA — it renders before/around the app, like an
+      installer/updater dialog, so it is intentionally plain vanilla HTML and
+      lives in public/ (copied verbatim, outside the Carbon design-system guard).
+      Talks to the Rust shell via the global Tauri API (withGlobalTauri).
+    -->
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
+        font: 14px/1.5 system-ui, sans-serif; background: #161616; color: #f4f4f4;
+      }
+      .card { width: 100%; max-width: 460px; padding: 32px; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      .sub { color: #a8a8a8; margin: 0 0 24px; }
+      .row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: #6f6f6f; flex: none; }
+      .dot.up { background: #42be65; } .dot.down { background: #fa4d56; }
+      .bar { height: 6px; background: #393939; border-radius: 3px; overflow: hidden; margin: 8px 0 4px; }
+      .bar > i { display: block; height: 100%; width: 0; background: #4589ff; transition: width .3s; }
+      input, button { font: inherit; }
+      input {
+        width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 12px;
+        background: #262626; border: 1px solid #525252; color: #f4f4f4; border-radius: 4px;
+      }
+      button {
+        padding: 10px 16px; background: #0f62fe; color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+      }
+      button:disabled { background: #525252; cursor: default; }
+      .err { color: #fa4d56; min-height: 18px; margin: 8px 0 0; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>AORMS</h1>
+      <p class="sub" id="message">Starting…</p>
+
+      <!-- First-run licence entry -->
+      <section id="licence" class="hidden">
+        <label for="key">Licence key</label>
+        <input id="key" placeholder="HLP-XXXX-XXXX-XXXX" autocomplete="off" />
+        <button id="activate">Activate</button>
+        <p class="err" id="err"></p>
+      </section>
+
+      <!-- Provisioning progress -->
+      <section id="progress" class="hidden">
+        <div class="bar"><i id="fill"></i></div>
+        <p class="sub" id="pct">0%</p>
+      </section>
+
+      <!-- Runtime status -->
+      <section id="status" class="hidden">
+        <div class="row"><span class="dot" id="d-db"></span> Database</div>
+        <div class="row"><span class="dot" id="d-node"></span> Application service</div>
+        <div class="row"><span class="dot" id="d-ai"></span> AI (Pro)</div>
+      </section>
+    </div>
+
+    <script>
+      const invoke = window.__TAURI__?.core?.invoke;
+      const listen = window.__TAURI__?.event?.listen;
+      const $ = (id) => document.getElementById(id);
+
+      function render(s) {
+        $("message").textContent = s.message || "";
+        $("licence").classList.toggle("hidden", s.phase !== "licence");
+        $("progress").classList.toggle("hidden", s.phase !== "provisioning");
+        $("status").classList.toggle("hidden", !(s.phase === "ready" || s.phase === "starting"));
+        $("fill").style.width = (s.progress || 0) + "%";
+        $("pct").textContent = (s.progress || 0) + "%";
+        $("d-db").className = "dot " + (s.db ? "up" : "down");
+        $("d-node").className = "dot " + (s.node ? "up" : "down");
+        $("d-ai").className = "dot " + (s.ai ? "up" : "down");
+      }
+
+      async function refresh() {
+        if (!invoke) return;
+        try { render(await invoke("manager_status")); } catch (_) {}
+      }
+
+      $("activate").addEventListener("click", async () => {
+        const key = $("key").value.trim();
+        $("err").textContent = "";
+        $("activate").disabled = true;
+        try {
+          await invoke("submit_license", { key });
+          $("err").textContent = "Saved — restart AORMS to finish setup.";
+        } catch (e) {
+          $("err").textContent = String(e);
+        } finally {
+          $("activate").disabled = false;
+        }
+      });
+
+      if (listen) listen("manager://status", (e) => render(e.payload));
+      refresh();
+      setInterval(refresh, 2000);
+    </script>
+  </body>
+</html>

@@ -6,6 +6,7 @@
 //! (and later `worker`). Nothing downloaded is trusted until both the manifest
 //! signature and the per-file hash check pass.
 
+pub mod config;
 pub mod download;
 pub mod manifest;
 pub mod unpack;
