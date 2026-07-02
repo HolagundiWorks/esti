@@ -81,7 +81,7 @@ operational write.
 
 PostgreSQL is authoritative. Object binaries are content-addressed and treated
 as immutable; versions create new objects. User-facing deletion archives by
-default. Financial, issued-document, approval, tender, and audit retention rules
+default. Financial, issued-document, approval, and audit retention rules
 prevent casual cascade deletion. Owner purge requires reauthentication,
 explicit scope, audit, and backup/export safeguards.
 

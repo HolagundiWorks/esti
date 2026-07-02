@@ -25,16 +25,16 @@ SPA, and a **Python** worker for drawings/PDF/reconciliation. See
   watermarks, and approval logs.
 - Project-scoped client and consultant collaboration, with audited approvals and
   requests expanding through the roadmap.
-- Architect-side contractor/tender coordination: invitations, bids, RFIs,
-  submittals, inspections, snags, and awards.
+- Architect-side site supervision: site instructions, inspections, snags, and
+  progress reports.
 - Drawing register: DXF upload, revision control, issue PDFs, transmittals, and
   **Open in ESTICAD** for quantity takeoff (ESTICAD capture only; list and
   estimate in AORMS — no browser measure tool).
 
-Rate-book/SOR rate reference and BOQ/quantity structures exist to support architect
-workflows such as tender costing and drawing takeoff. General-purpose ERP,
-commerce, warehouse, labour, subcontractor-accounting, and contractor execution
-systems are out of scope.
+Cost estimation and BOQ structures — rebuilding as the Cost Management System on
+the Construction Knowledge Bank foundation — support architect workflows such as
+drawing takeoff. General-purpose ERP, commerce, warehouse, labour,
+subcontractor-accounting, and contractor execution systems are out of scope.
 
 ## Fixed India profile
 

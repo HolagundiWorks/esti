@@ -105,7 +105,7 @@ Store the approved brief in ESTI using the [PROJECT-BRIEFING ESTI mapping](PROJE
 - **Project Info** tab — questionnaire sections §1–§11, assumptions, and client approval note.
 - **Appointment → scope summary** — executive summary for proposals.
 - **Documents** — optional issued letter or signed brief PDF.
-- Inputs to **mood boards**, **specification preferences**, and **Initiation & Brief** tasks.
+- Inputs to **specification preferences** and **Initiation & Brief** tasks.
 
 Obtain explicit **client approval** (approval record or signed brief PDF) before advancing to Concept Design.
 
@@ -162,7 +162,7 @@ Use this checklist before closing onboarding:
 | Appointment letter | **Office → Documents** (letter template) |
 | Questionnaire responses | Transcribed into **Project design brief** (see PROJECT-BRIEFING) |
 | Brief approval | **Approvals** or issued brief PDF in **Documents** |
-| Concept inputs | **Mood boards**, **Specifications**, **Tasks** (Initiation & Brief) |
+| Concept inputs | **Specifications**, **Tasks** (Initiation & Brief) |
 
 ---
 

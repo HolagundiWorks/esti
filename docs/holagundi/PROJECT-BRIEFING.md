@@ -43,9 +43,9 @@ After the client returns the questionnaire, the lead architect produces a **Proj
 | Full brief narrative export | Project **Info** → compiled brief (markdown) or issued letter in **Documents** |
 | Site and context | Project **Info** — site & context section |
 | Accommodation schedule (tasks) | **Tasks** under Initiation & Brief; **Info** accommodation table |
-| Style and loved places | **Mood board** titles; **Info** design drivers |
+| Style and loved places | **Info** design drivers |
 | Material preferences | **Info** materials palette; **Specification sheet** rows |
-| Room-level detail | **Info** room character; mood boards + spec sheets per room |
+| Room-level detail | **Info** room character; spec sheets per room |
 | Client approval (signed) | **Info** approval note; **Approval** record or signed PDF |
 
 ### Quality gate before Concept Design

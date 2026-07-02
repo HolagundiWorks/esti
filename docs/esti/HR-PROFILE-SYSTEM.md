@@ -40,7 +40,7 @@ The `staffLevel` column on `esti_teammember` stores L1–L4 and is set manually 
 |---|---|---|---|
 | **T1** | Client | `esti_user.clientId` set | Teal `#005d5d` |
 | **T2** | Consultant | `esti_user.consultantId` set | Amber `#b45309` |
-| **T3** | Contractor | Tender token (no user row) | Gray `#525252` |
+| **T3** | Contractor | Contractor portal token (no user row) | Gray `#525252` |
 
 ---
 

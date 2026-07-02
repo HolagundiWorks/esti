@@ -26,7 +26,7 @@ After seed, open any project → **Project Info** tab (§9 Compliance) for pre-c
 
 Re-run `seed:demo` on an existing workspace to **backfill** missing records (idempotent). Legacy browser takeoff rows (`source: WEB`) are purged on each run.
 
-**Intentionally not seeded** (charter / scope): tenders, contractor bids, document register bulk, AI Studio draft runs, device sessions — add only when a module needs a dedicated demo pilot. PMC contractor RFIs/NCRs are seeded on showcase projects via `seedDemoPmc.ts`.
+**Intentionally not seeded** (charter / scope): document register bulk, AI Studio draft runs, device sessions — add only when a module needs a dedicated demo pilot.
 
 **Container workflow:**
 
