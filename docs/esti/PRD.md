@@ -27,7 +27,7 @@ Canonical level taxonomy: [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md).
 | Viewer / accounts-limited role | L1 | Capability-scoped read access; no operational writes |
 | Client | External | Own projects; issued documents; approvals, acknowledgements, and change requests |
 | Consultant | External | Engaged projects; assigned deliverables, drawings, RFIs, and responses |
-| Contractor | External | Invited tenders and awarded projects only; bids, RFIs, submittals, inspections |
+| Contractor | External | Invited/awarded projects only; RFIs, submittals, inspections |
 
 Authorization is enforced server-side for tRPC and REST/upload routes. Portal
 roles cannot call office procedures or access unrelated projects.
@@ -49,7 +49,7 @@ roles cannot call office procedures or access unrelated projects.
 
 The dashboard provides configurable Carbon boards for project stage/type,
 tasks, workload, availability, approvals, drawing revisions, site activity,
-accounting, tenders, risks, recent revisions, and project health. Personal
+accounting, risks, recent revisions, and project health. Personal
 wellness widgets are optional and never displace operational information.
 
 The dashboard also surfaces revision-intelligence and studio-health signals in
@@ -132,24 +132,24 @@ manager-only visibility.
 
 - Drawing register, immutable versions, revision notes, issue purpose, review
   status, issue sets, watermarks, and acknowledgement.
-- Specification sheets and mood boards with client approval workflows.
+- Specification sheets with client approval workflows.
 - Site inspection reports with photos, actions, follow-ups, and status.
 - Transmittals, MOM, letters, agreements, reports, and office templates.
-- Contextual comments and activity on drawings, tasks, reports, tenders, RFIs,
+- Contextual comments and activity on drawings, tasks, reports, RFIs,
   decisions, approvals, and submittals.
 - Numbering engine for drawings and office documents using configurable firm
   patterns and concurrency-safe per-FY sequences.
 
-## Contractor And Tender Scope
+## Contractor Scope
 
 The contractor module supports architect-side coordination only:
 
 - contractor company, GST/PAN, contacts, categories, and performance;
 - RFIs, material submittals, shop drawings, inspection requests, site
   instructions, snags, and NCRs;
-- *(Tendering — creation / issue / sealed bids / comparison / award — and the
-  work-package running-bill measurement workflow were **removed** 2026-06-28 with the
-  Construction Cost spine; being rebuilt, see [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md).)*
+- *(Tendering — creation / issue / sealed bids / comparison / award — was
+  **removed** in the 2026-06-29 consultancy-only teardown along with the `esti_tender*`
+  spine; AORMS is consultancy-only and does not run contractor bidding.)*
 - strict portal isolation between contractors.
 
 It does not provide inventory, labour, subcontractor, GRN, or contractor
@@ -160,8 +160,9 @@ accounting systems.
 - COA-aware fee proposals, scope, deliverables, exclusions, versions, approval.
 - Contracts, phase-linked invoices, GST/TDS, receipts, reconciliation, filing.
 - Simple quantity x rate purchase orders without inventory.
-- PMC commercial control: purchase orders and specification sheets under the
-  project PMC group. *(Costing + running bills **removed** 2026-06-28; rebuilding.)*
+- Project purchase orders and specification sheets. *(The PMC hub and its costing +
+  running bills were **removed** in the 2026-06-29 consultancy-only teardown; the cost
+  lifecycle is rebuilding as the CMS.)*
 - ~~Rate book / SOR, BOQ, BBS, and the component-based **Estimation OS** (design-stage
   estimate, IFC→code mapping + auto-BOQ, rate analysis, frozen/versioned estimates,
   contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
@@ -181,14 +182,13 @@ All money is integer paise and formatted through shared `formatINR` utilities.
 ## Knowledge Bank, AI, And Administration
 
 - The former Resources area is named **Knowledge Bank** and is the governed,
-  versioned source for Rate Books, specification and procurement standards, and
-  structural element/reinforcement (BBS) templates.
-- Specification standards carry project/work-package tags, reusable clauses,
-  approved alternatives, units, rate-book references, and purchase-order wording.
-- Structural templates cover beams, columns, slabs, and footings, their types,
-  geometry, cover, bar roles, diameters, spacing/count, laps, hooks, and shape
-  codes. Published templates generate reviewable BBS lines; engineers remain
-  responsible for design approval and project-specific validation.
+  versioned source for specification and procurement standards. *(Rate Books and
+  structural BBS templates were **removed**; the reference foundation is being rebuilt
+  as the Construction Knowledge Bank — Material/Labour/Item libraries, item-mapped
+  Specifications, and consumption Recipes. See
+  [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md).)*
+- Specification standards carry project tags, reusable clauses,
+  approved alternatives, units, and purchase-order wording.
 - The Knowledge Bank expands to searchable templates and closure lessons learned.
   CAD/BIM vendor asset libraries remain **out of scope** ([STABILITY-CHARTER](STABILITY-CHARTER.md)).
 - AI Studio drafts proposals, scopes, agreements, specifications, reports, MOM,
@@ -219,7 +219,7 @@ the same project and task context.
 
 - PostgreSQL is authoritative; binaries are content-addressed in object storage.
 - Append-only audit and immutable activity records for significant actions.
-- Explicit state-transition guards for approvals, drawings, invoices, tenders,
+- Explicit state-transition guards for approvals, drawings, invoices,
   RFIs, submittals, and project lifecycle.
 - Origin/CSRF protection, rate limits, upload authorization and content checks.
 - Cursor pagination and server caps for growing lists.

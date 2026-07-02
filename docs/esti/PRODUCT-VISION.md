@@ -13,7 +13,7 @@
 ESTI is an **Architectural Office Resource Management System (AORMS)** for
 Indian freelance architects and small architecture practices. It is the single
 operational record for projects, communication, tasks, decisions, drawings,
-documents, statutory work, fees, invoices, consultants, tenders, and office
+documents, statutory work, fees, invoices, consultants, contractors, and office
 resources.
 
 The long-term product identity is a continuous organizational cognition engine:
@@ -37,7 +37,7 @@ email or messaging applications.
 ## Target Practice
 
 - India-based solo architects and architecture studios.
-- Architecture, interior, landscape, and limited PMC practices.
+- Architecture, interior, and landscape design + site-supervision practices.
 - Teams that coordinate clients, consultants, vendors, and contractors.
 - One configurable firm per installation, INR only, FY 1 April to 31 March.
 
@@ -47,12 +47,13 @@ ESTI is not a general ERP or contractor execution-accounting system. It does
 include the contractor-facing coordination needed by an architect:
 
 - contractor register and project invitations;
-- tender issue, queries, bid receipt, comparison, and award recommendation;
 - RFIs, material submittals, shop drawings, inspections, site instructions,
   snags, and NCRs;
-- architect-side BOQ, estimation, purchase-order, running-bill measurement
-  verification, and payment-certificate
-  support.
+- architect-side BOQ, estimation, purchase-order, site-measurement
+  verification, and payment-certificate support (rebuilding as the CMS).
+
+*(Contractor tendering — issue / sealed bids / comparison / award — was removed in the
+2026-06-29 consultancy-only teardown; AORMS does not run contractor bidding.)*
 
 Inventory, warehouses, labour gangs, attendance for contractor labour, GRNs,
 subcontractor ledgers, contractor-side RA-bill accounting, and construction-company finance are
@@ -84,15 +85,15 @@ out of scope.
 - Clients, enquiries, and project conversion
 - Projects, phases, timeline, decisions, health, critical notes, and revisions
 - Tasks, timesheets, daily updates, workload, and leave impact
-- Drawings, specifications, mood boards, site reports, transmittals, approvals
+- Drawings, specifications, site reports, transmittals, approvals
 - Client revision intelligence and studio performance analytics, delivered in a
   transparent and non-surveillant way
 - Consultants and project-scoped collaborator portal
-- Contractor register, tender management, and construction coordination
+- Contractor register and architect-side site coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
-- BOQ, takeoff, estimation, BBS, and simple purchase orders
-- Knowledge Bank for Rate Books, specification/procurement standards, and
-  structural element/reinforcement (BBS) templates
+- BOQ, takeoff, and estimation with simple purchase orders (rebuilding as the CMS)
+- Knowledge Bank for specification/procurement standards and reusable
+  material/labour/item libraries
 - Office correspondence, MOM, templates, CAD/BIM resources, and lessons learned
 - Client and contractor portals
 - Universal search, notifications, audit review, administration, and AI Studio

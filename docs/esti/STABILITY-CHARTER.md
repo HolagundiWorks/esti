@@ -48,7 +48,7 @@ Unless a paying firm sponsors a pilot and the roadmap accepts a charter exceptio
 - In-browser CRIF annotation canvas (store the decision record, not the canvas)
 - Live BPAS / AutoPlan / authority portal polling
 - Contractor inventory, GRN, labour, or construction ERP
-- Contractor-side RA accounting ledgers remain out of scope; architect/PMC-side running-bill measurement verification and client forwarding are in scope.
+- Contractor-side RA accounting ledgers remain out of scope; architect-side site-measurement verification and client forwarding are in scope (rebuilding as the CMS).
 - CAD/BIM vendor asset libraries inside Knowledge Bank
 - Real-time SSE/push before scale justifies it
 - Major dashboard relayout or new top-level nav modules
