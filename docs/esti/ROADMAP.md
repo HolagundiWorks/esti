@@ -41,33 +41,33 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 | [2B](#phase-2b---data-visualisation-spacing-and-colour-semantics-p0) | Charts & spacing | P0 | ✅ |
 | [2C](#phase-2c---dashboard-chart-refresh-and-work-module-p1) | Dashboard charts & Work module | P1 | ✅ |
 | [2D](#phase-2d---personal-workspace-and-dashboard-polish-p1) | Personal workspace | P1 | ✅ |
-| [2E](#phase-2e---steelflow-ai-steel-arranger--automated-bbs-p1) | SteelFlow AI | P1 | ✅ |
+| 2E | ~~SteelFlow AI (Steel Arranger + Automated BBS)~~ — **REMOVED 2026-06-28** (BBS / steel reconciliation torn down with the Construction Cost spine) | P1 | ⛔ |
 | [2E-C](#phase-2e-c---cognition-engine-event-learning-and-priority-core-p1) | Cognition event + learning core | P1 | ✅ |
 | [2F](#phase-2f---ui-audit-page-hierarchy-and-policy-alignment-p0) | UI audit & PageHeader | P0 | ✅ |
 | [2G](#phase-2g---workflow-ia--architecture-remediation-p0p3) | Workflow & IA remediation | P0–P3 | ✅ |
 | [3](#phase-3---domain-activity-foundation-p1) | Activity foundation | P1 | ✅ |
 | [4](#phase-4---project-memory-change-control-and-revision-intelligence-p1) | Project memory & CRIF | P1 | ✅ |
-| [4A](#phase-4a---standalone-compliance-intelligence--rie-p1) | RIE / compliance | P1 | ✅ |
+| 4A | ~~Standalone Compliance Intelligence / RIE~~ — **REMOVED** (RIE / bylaw engine, site assessments, BBMP calculator retired — 2026-06 Knowledge-Bank cleanup) | P1 | ⛔ |
 | [4B](#phase-4b---dashboard-intelligence-and-billing-action-p1) | Dashboard intelligence | P1 | ✅ |
 | [4C](#phase-4c---revision-intelligence-and-crif-enhancements-p1) | Revision intelligence | P1 | ✅ |
 | [4D](#phase-4d---knowledge-bank-foundations-p1) | Knowledge Bank catalogues | P1 | ✅ |
 | [5](#phase-5---tasks-availability-escalations-and-performance-p1) | Tasks, ASPRF, escalations | P1 | ✅ |
 | [6](#phase-6---client-and-consultant-collaboration-p1) | Client & consultant portals | P1 | ✅ |
-| [7](#phase-7---contractor-and-tender-coordination-p2) | Contractors & tenders | P2 | ✅ |
+| [7](#phase-7---contractor-and-tender-coordination-p2) | Contractor register (tenders + site coordination **removed 2026-06-29**) | P2 | ◐ |
 | [8](#phase-8---documents-and-numbering-p1) | Documents & numbering | P1 | ✅ |
 | [9](#phase-9---search-knowledge-and-lessons-p2) | Search & lessons | P2 | ✅ |
 | [10](#phase-10---commercial-and-estimation-expansion-p2) | Commercial expansion | P2 | ✅ |
 | [11](#phase-11---ai-studio-p2) | AI Studio | P2 | ✅ |
 | [12](#phase-12---production-readiness-p0) | Production readiness | P0 | ✅ |
 | [13](#phase-13---esticad-companion-integration-p2) | ESTICAD companion | P2 | ✅ |
-| [14](#phase-14---project-programme--milestones-p1) | Project programme | P1 | ✅ |
-| [15](#phase-15---architect-as-pmc-module-p1) | Architect-as-PMC | P1 | ✅ |
-| [16](#phase-16---construction-schedule--cpm-p1) | Construction schedule & CPM | P1 | ✅ |
+| 14 | ~~Project programme & milestones~~ — **REMOVED 2026-06-29** (consultancy-only teardown, migration 0117) | P1 | ⛔ |
+| 15 | ~~Architect-as-PMC module~~ — **REMOVED 2026-06-29** (consultancy-only teardown, migration 0117) | P1 | ⛔ |
+| 16 | ~~Construction schedule & CPM~~ — **REMOVED 2026-06-29** (consultancy-only teardown, migration 0117) | P1 | ⛔ |
 | [17](#phase-17---project-info--access-p1) | Project Info & access | P1 | ✅ |
 | [18](#phase-18---office--project-expenses-p1) | Office & project expenses | P1 | ✅ |
-| [19](#phase-19---master-dsr-workflow-polish-p2) | Master DSR polish | P2 | ✅ |
+| 19 | ~~Master DSR workflow polish~~ — **REMOVED** (Rate Books `dsr` torn down, migration 0108) | P2 | ⛔ |
 | [20](#phase-20---production-audit-remediation-p1) | Audit remediation | P1 | ✅ |
-| [21](#phase-21---unified-compliance-module-ia-p1) | Unified compliance IA | P1 | ✅ |
+| 21 | ~~Unified compliance module IA~~ — **REMOVED** (RIE / BBMP bylaw rule engine retired — 2026-06 Knowledge-Bank cleanup) | P1 | ⛔ |
 | [22](#phase-22---access-level-documentation-p1) | Access level documentation | P1 | ✅ |
 | [23](#phase-23---marketing-landing-refresh-p2) | Marketing landing refresh | P2 | ✅ |
 | [24](#phase-24---vps-first-deploy-and-carbon-diagram-canvas-p0) | VPS first-deploy hardening & Carbon diagram canvas | P0 | ✅ |
@@ -107,8 +107,10 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
   in-browser round-trips (V3 menu, unified Proposals, Compliance/Standards CRUD, dashboard).
 
 **Still planned (🔲 — separate efforts):**
-- Estimation OS · BOQ · Rate Books · Estimation Intelligence — the cost/estimation
-  rebuild ([COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
+- **Cost Management System** (estimate · BOQ · measurement · bill certification) on the
+  **Construction Knowledge Bank** foundation (libraries · specifications · recipes · vendor
+  rates) — the ground-up cost/estimation rebuild that replaces the removed Estimation OS /
+  Rate Books ([COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) + [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md)).
 - Greenfield feature builds behind placeholders: Vendors, the LXOS Community/Identity/
   Certification layers, and the AORMS Identity/Certification/Index subsystems.
 
@@ -127,12 +129,10 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 - Knowledge Bank (`kb`): Material / Labour / Item libraries, item Specifications, consumption Recipes (with CSV import/export), Brand Catalogue, lessons. *(Rate Books, rate analysis, components, parametric — **removed** 2026-06-28.)*
 - Client & consultant portals with threaded submissions and activity feeds
 - ASPRF performance scoring, escalations, leave-impact alerts
-- Contractor register + site coordination (RFI/NCR/submittals). *(Tender packages, contractor bid portal, sealed bids — **removed** 2026-06-28 with the Construction Cost spine.)*
+- Contractor register (`contractors`). *(Tender packages, contractor bid portal, sealed bids — **removed** 2026-06-28 with the Construction Cost spine; contractor site coordination (RFI/NCR/submittals, `construction`) — **removed** 2026-06-29 with the consultancy-only teardown. Site supervision — snags/inspections/progress — is kept under Projects.)*
 - **Document register** — unified office/project documents, MOM, templates, configurable numbering, XLSX exports
 - **Universal search** — permission-aware office + Knowledge Bank search, lessons learned register
 - **AI Studio** — Ollama on-server drafts (billing, CRIF, MOM, proposals) with provenance; AORMS Agent command bar
-- **Project programme** — per-project milestones, schedule progress, office portfolio (`/programme`); complements Work module tasks
-- **PMC module** (optional) — firm + per-project toggles; site coordination hub, construction schedule (CPM/Gantt), snags, progress reports (`/pmc`)
 - **Project Info** — structured project brief questionnaire
 - **Office & project expenses** — cash book and billable project expenses (Accounting nav)
 - **Dashboard home bundle** — single `dashboard.home` round-trip for the office dashboard
@@ -239,18 +239,14 @@ ESTI (AORMS) is **production-engineered through Phase 28** and deployed at [aorm
 
 ---
 
-## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] — Complete 2026-06-12
+## Phase 2E - SteelFlow AI: Steel Arranger + Automated BBS [P1] — REMOVED 2026-06-28
 
-End-to-end reinforcement member flow and BBS generation per IS:456 / IS:2502 / IS:1786 references.
-
-- [x] Contracts layer (`steel-arranger.ts`): enums, Zod schemas, IS:456/IS:2502 pure functions.
-- [x] Database migration `0022_steel_arranger.sql`; Drizzle schema; `steelflow` tRPC router.
-- [x] BBS engine, `SteelArranger` route with member-flow canvas, Excel export, and rule-assist review.
-- [x] Member nodes for footing, column, beam, and slab; shape codes B/C/D/E; TMT diameter and grade reference selection.
-- [x] SteelFlow nav link; migration applied.
-- [x] PDF export of BBS via worker — delivered in [Phase 10](#phase-10---commercial-and-estimation-expansion-p2).
-
-**Gate met:** user can define member geometry, arrange reinforcement groups, export BBS to Excel, run IS-rule review — persisted via tRPC.
+> SteelFlow (steel arranger + automated BBS / bar bending schedule) was part of the
+> Construction Cost spine and was **torn down on 2026-06-28** along with BBS + steel
+> reconciliation. Current state: [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
+> § "System state". The cost/quantities rebuild lives in
+> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ---
 
@@ -342,17 +338,17 @@ Findings from the 2026-06-15 workflow & architecture audit (snapshot retired; ex
 
 ---
 
-## Phase 4A - Standalone Compliance Intelligence / RIE [P1] — Complete
+## Phase 4A - Standalone Compliance Intelligence / RIE [P1] — REMOVED (2026-06 Knowledge-Bank cleanup)
 
-- [x] Standalone compliance module; rule authoring in Knowledge Bank; BBMP seed → versioned knowledge bank.
-- [x] **RIE engines:** site input, development control, basement, sustainability, approval readiness.
-- [x] PRE_DESIGN / POST_DESIGN modes; violation engine; relaxation inputs; violations tab.
-- [x] RIE refinements (basement height, rainwater, trees, FAR-excluded area, plinth area).
-- [x] Bylaw two-system model; BBMP modular rule engine (`0033`, `0036`).
-- [x] Org mode + HR archive; attendance register (replaces timesheets for ASPRF); unified demo + HR gating.
-- [x] Branded compliance PDF via worker; jurisdiction fixtures, auth tests, PDF smoke coverage.
-
-**Gate met:** user can select a verified rule set, reproduce calculations from cited inputs, and issue a project-linked PDF.
+> The in-product **RIE / compliance bylaw engine** — site-input / development-control /
+> basement / sustainability / approval-readiness engines, `ruleVersions` / `siteAssessments`,
+> and the BBMP modular rule engine (`bbmpRules`) — was **removed**. GST / TDS / permit / COA
+> compliance stay live; the structured **Studio › Libraries › Compliance** library
+> (`compliance`: far/setback/nbc/fire/regulation) is a separate, current feature. Current
+> state: [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
+>
+> *(Org mode + HR archive and the attendance register that shipped alongside this phase
+> remain live — see Phase 5.)*
 
 ---
 
@@ -376,9 +372,18 @@ Findings from the 2026-06-15 workflow & architecture audit (snapshot retired; ex
 
 ---
 
-## Phase 4D - Knowledge Bank Foundations [P1] — ✅ Complete (2026-06-15)
+## Phase 4D - Knowledge Bank Foundations [P1] — ✅ Complete (2026-06-15) · partly superseded
 
 Formerly tracked as "Immediate Roadmap — Knowledge Bank Foundations". Consolidated here for phase order.
+
+> **Superseded (2026-06-28).** The DSR / Rate-Book tab, the SteelFlow **structural
+> catalogue** + **BBS** draft/validation work, and the PO → BBS/spec **procurement linkage**
+> below were removed with the Estimation OS / Construction Cost spine (Rate Books via
+> migration 0108). The Knowledge Bank was rebuilt as the **Construction Knowledge Bank**
+> (`kb`: Material / Labour / Item libraries, Specifications, Recipes) — see
+> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md). Only the specification
+> catalogue line below carried forward. Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 - [x] Rename Resources → Knowledge Bank; central route `/knowledge-bank` with DSR | Compliance | Specification | Structural Elements tabs.
 - [x] Shared validation contracts; governed version lifecycle for specification and structural templates (`0021_knowledge_bank_catalogs.sql`).
@@ -423,7 +428,15 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 
 ---
 
-## Phase 7 - Contractor And Tender Coordination [P2] — ✅ Complete (2026-06-15)
+## Phase 7 - Contractor And Tender Coordination [P2] — ◐ (contractor register live; tenders + coordination removed)
+
+> **Partly removed.** The **contractor register** (`contractors`, `/contractors`) is live.
+> The **tenders** spine (`esti_tender*`: packages, invitations, bid comparison, sealed-bid
+> contractor portal) was **removed 2026-06-29** with the consultancy-only teardown
+> (migration 0117); the contractor **site coordination** module (`construction`: RFIs,
+> submittals, shop drawings, NCRs, `/office/construction`) was **removed** in the same
+> teardown. Architect site supervision (snags / inspections / progress) is kept under
+> Projects. The struck items below are historical.
 
 - [x] **Contractor register** — `esti_contractor` (`0029`); `/contractors` CRUD + ratings; linked to tender invitations.
 - [x] **Tender packages** — `esti_tender` + invitations (`0030`); `/office/tenders`; controlled documents + addenda (`esti_tender_document`, migration `0050`).
@@ -445,7 +458,7 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 - [x] **Site reports** — photos, actions, convert action to task.
 - [x] **Meeting minutes** — MOM + action items to tasks.
 - [x] **Office templates** — LETTER / SCOPE / COA / MOM library.
-- [x] **Exports** — BOQ, BBS, tender comparison, register XLSX.
+- [x] **Exports** — document register XLSX. *(BOQ / BBS / tender-comparison exports removed with the Estimation OS / tenders teardown.)*
 
 **Gate met:** issued documents record number, version, issue row, and audit entry.
 
@@ -454,7 +467,7 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 ## Phase 9 - Search, Knowledge, And Lessons [P2] — Complete 2026-06-16
 
 - [x] **Permission-aware universal search** — `/search`; Postgres `pg_trgm` indexes; role gates for invoices/fees/archived projects.
-- [x] **Knowledge Bank search** — templates, DSR, spec catalogue, structural templates, drawings, contractors, published lessons.
+- [x] **Knowledge Bank search** — templates, spec catalogue, drawings, contractors, published lessons. *(DSR / structural-template search removed with Rate Books + the Estimation OS.)*
 - [x] **Lessons learned** — project tab + Knowledge Bank; draft → publish workflow (`esti_lesson_learned`, migration `0044`).
 - [x] **Deep links + type filters** — `searchResultHref()` per entity; MultiSelect type filter on search page.
 
@@ -462,15 +475,18 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 
 ---
 
-## Phase 10 - Commercial And Estimation Expansion [P2] — ✅ Complete (2026-06-16)
+## Phase 10 - Commercial And Estimation Expansion [P2] — ✅ Complete (2026-06-16) · estimation parts removed
+
+> **Superseded (2026-06-28).** The old **Estimate / BOQ inline grid** and the **BBS**
+> templates / PDF export below were the removed Estimation OS + Construction Cost spine
+> (rebuilt as [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md)). The GST/TDS,
+> reconciliation, and APBF Appointment items stay live. Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 - [x] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
 - [x] Rich accountant exports and reconciliation column mapping/remapping.
-- [x] Estimate/BOQ inline grid, bulk import, approval/versioning, PDF/XLSX export.
-- [x] Expanded BBS templates and validated reinforcement layouts (SteelFlow catalog → BBS bridge).
 - [x] **APBF Phase 0 (Appointment)** — pre-engagement site visit, scope, letter of appointment.
 - [~] Visual estimation connector — superseded by Phase 13 ESTICAD companion ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)).
-- [x] BBS PDF export via worker (from Phase 2E backlog).
 
 **Gate met:** calculations remain deterministic, integer-paise where monetary, and tested (`fy.test.ts`, phase plan sum).
 
@@ -569,79 +585,32 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 ---
 
-## Phase 14 - Project Programme & Milestones [P1] — ✅ Complete (2026-06-15)
+## Phase 14 - Project Programme & Milestones [P1] — REMOVED 2026-06-29
 
-Unified delivery schedule: milestones and progress alongside APBF phases and Work-module tasks.
-
-- [x] `esti_project_milestone` table (migration `0059`) — title, target date, status, optional phase link
-- [x] Contracts — `MilestoneStatus`, create/update schemas
-- [x] `programme.portfolio` — active projects with schedule progress % and overdue counts
-- [x] `programme.summary` — phases strip, milestone/task stats, upcoming schedule
-- [x] Milestone CRUD with audit and activity events
-- [x] Project **Programme** tab; office **Programme** route (`/programme`)
-- [x] Demo seed — sample milestones on first three active projects
-
-**Gate met:** staff can add milestones on a project, see blended schedule progress, and review office portfolio health; Work module remains the task execution surface.
+> **Project Programme** (`programme`, `esti_project_milestone`, delivery Gantt, office
+> `/programme` portfolio) was **removed** in the consultancy-only teardown
+> (migration 0117). Do not reference. Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state";
+> IA: [NAVIGATION.md](NAVIGATION.md).
 
 ---
 
-## Phase 15 - Architect-as-PMC Module [P1] — ✅ Complete (2026-06-15)
+## Phase 15 - Architect-as-PMC Module [P1] — REMOVED 2026-06-29
 
-Optional PMC for firms that also act as project management consultants — charter-compliant (no contractor RA bills or construction ERP).
-
-### 15A — Toggles & PMC hub
-- [x] `pmc_enabled` on org settings and project office (migration `0060`)
-- [x] `settings.setPmcEnabled` + project Settings toggle
-- [x] `pmc.summary`, `pmc.portfolio`, `pmc.status`; project **PMC** tab; office `/pmc`
-- [x] Project IA grouped into **Info**, **Consultancy**, and **PMC**
-- [x] PMC group includes costing, running bills, purchase orders, and specification sheets
-- [x] Running-bill measurement workflow from site in-charge to contractor, office, and client forwarding
-
-### 15B — Gantt programme
-- [x] `task.start_date` (migration `0061`); `programme.gantt` API
-- [x] **Timeline** sub-tab on Programme (Carbon CSS Gantt)
-
-### 15C — Site operations
-- [x] Snag register (`esti_snag`), site instruction log (`esti_site_instruction`)
-- [x] Submittal review codes A/B/C/D on contractor submissions (migration `0062`)
-- [x] `construction.review` mutation
-
-### 15D — Progress reports & APBF Layer 2
-- [x] `esti_progress_report` with PDF worker target
-- [x] `esti_phase_progress` live stages for Construction Administration & Handover
-- [x] Demo seed: PMC on studio org + first three active projects
-
-**Gate met:** owner can enable PMC firm-wide; staff enable PMC per project; PMC tab shows hub, snags, coordination, and progress report drafts; office Programme Gantt available for all projects.
+> The **PMC module** (`pmc` hub/portfolio, PMC toggles, running bills, PMC-grouped project
+> IA, Gantt programme) was **removed** in the consultancy-only teardown (migration 0117).
+> Site supervision (snags, site instructions, progress reports, phase progress) was **kept**
+> under Projects. Current state: [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
+> § "System state".
 
 ---
 
-## Phase 16 — Construction Schedule & CPM [P1] — ✅ Complete (2026-06-15)
+## Phase 16 — Construction Schedule & CPM [P1] — REMOVED 2026-06-29
 
-Separate **site construction scheduling** (PMC-gated) from the **office delivery programme** (always on). Aligned with IS 15883-2 time-management practice: baseline WBS, dependencies, CPM/critical path, construction Gantt, and look-ahead reporting.
-
-### 16A — Schema + templates
-- [x] Migration `0063` — `esti_construction_schedule`, `esti_construction_activity`, `esti_construction_dependency`
-- [x] Template WBS by `projectType` (residential, commercial, institutional, industrial, interior)
-- [x] `constructionSchedule.applyTemplate`, `listActivities`
-
-### 16B — CPM engine
-- [x] `cpm.ts` — forward/backward pass, float, cycle detection
-- [x] Dependency CRUD, `recalculate`, `criticalPath` API + unit tests
-
-### 16C — Construction Gantt + UI
-- [x] `constructionSchedule.gantt`; shared `GanttChart` component
-- [x] `ProjectConstructionSchedule` — WBS, Dependencies, Timeline, Look-ahead, Critical path tabs
-
-### 16D — PMC integration
-- [x] `lookahead` API; PMC hub/portfolio use construction schedule % (not office programme)
-- [x] Progress report draft auto-fills schedule % from construction schedule when present
-- [x] PMC tab restructure — Hub / Schedule / Site ops
-
-### 16E — Polish
-- [x] ROADMAP Phase 16; demo seed applies template on PMC projects with sample actual progress
-- [x] Office Programme labelled “Office delivery programme”; PMC portfolio columns (baseline end, critical overdue)
-
-**Gate met:** PMC-on project can apply template → CPM recalc → construction Gantt; office Programme tab unchanged; `pmc.summary` reflects construction schedule health.
+> **Construction Schedule / CPM** (`constructionSchedule`, `esti_construction_schedule`
+> / `_activity` / `_dependency`, CPM engine, construction Gantt, look-ahead) was
+> **removed** in the consultancy-only teardown (migration 0117). Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ---
 
@@ -711,22 +680,14 @@ Separate **site construction scheduling** (PMC-gated) from the **office delivery
 
 ---
 
-## Phase 19 — Master DSR workflow polish [P2] — ✅ Complete (2026-06-15)
+## Phase 19 — Master DSR workflow polish [P2] — REMOVED
 
-### 19A — Version lifecycle
-- [x] Migration `0066` — `esti_dsr_version.status` (`DRAFT` | `PUBLISHED`)
-- [x] **Copy from existing version** on create; **Save draft** vs **Publish** actions
-- [x] Draft versions cannot be set active or linked to estimates until published
-
-### 19B — CSV import
-- [x] `dsr.importCsv` + optional import on new-version create (merge by code)
-- [x] Demo template [`frontend/public/dsr-import-demo.csv`](../../frontend/public/dsr-import-demo.csv)
-- [x] Import CSV on existing versions with optional replace-all
-
-### 19C — Brief ↔ compliance sync
-- [x] Bylaw calc save mirrors permissible built-up (sq m) into `projectBrief.projectInfo.builtUpAreaSqm`
-
-**Gate met:** staff can clone a DSR, edit rates as draft, import CSV, publish, and set active; compliance calculator updates the Project Info questionnaire field.
+> **Rate Books** (`dsr`, `esti_dsr_*`, `@hcw/master-dsr-kit`, MasterDsr) — the DSR version
+> lifecycle and CSV import polished here — were **removed** (migration 0108), along with
+> Rate Analysis. The `19C` bylaw-calc → project-brief sync went with the removed RIE /
+> bylaw engine. Current state: [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
+> § "System state"; the cost rebuild is
+> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ---
 
@@ -760,17 +721,15 @@ Follow-up from the production-grade codebase audit: security hardening, DRY refa
 
 ---
 
-## Phase 21 — Unified compliance module IA [P1] — ✅ Complete (2026-06-15)
+## Phase 21 — Unified compliance module IA [P1] — REMOVED (2026-06 Knowledge-Bank cleanup)
 
-Consolidate BBMP rules, site assessments, and project development-control under one product model: **rules in Knowledge Bank → Compliance**; **calculate and store on Project Info §9**.
-
-- [x] `ComplianceHub` — KB Compliance tab: rule library + site feasibility only (no project calculator duplicate)
-- [x] Unified `RuleVersionManager` — single jurisdiction rule table; FAR bands in rule-set detail modal
-- [x] `ProjectBylawData` — permits + assessment PDF links; statutory permits relocated from KB
-- [x] User-facing copy — remove separate RIE/BBMP/bylaws headings; site feasibility engines label
-- [x] Docs — `ARCHITECT-PROFILE` office vs project surfaces
-
-**Gate met:** KB Compliance is rule authoring + site feasibility only; envelope, audit, and permits live exclusively on Project Info §9.
+> This phase's product model — `ComplianceHub`, `RuleVersionManager`, `ProjectBylawData`,
+> BBMP rules + site assessments, and the Project Info §9 bylaw calculator — was the
+> **RIE / compliance bylaw engine**, which was **removed**. The current Compliance surface
+> is the structured **Studio › Libraries › Compliance** library (`compliance`:
+> far/setback/nbc/fire/regulation) — a separate feature. GST / TDS / permit / COA
+> compliance stay live. Current state:
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ---
 
@@ -784,7 +743,10 @@ Consolidate BBMP rules, site assessments, and project development-control under 
 - [x] Gmail SMTP with App Password documented as supported SMTP provider in [PRODUCTION-OPS](PRODUCTION-OPS.md)
 - [x] `deploy/.env.production.example` — confirmed complete for Hostinger Ubuntu 24.04 + Docker target
 
-### 24C — Parametric estimator — Carbon diagram building blocks
+### 24C — Parametric estimator — Carbon diagram building blocks — REMOVED 2026-06-28
+> `ParametricCanvas` and the parametric estimator were part of the Estimation OS and were
+> **removed** in the 2026-06-28 teardown. The 24A/24B VPS deploy hardening stays live. The
+> struck items below are historical.
 - [x] `ParametricCanvas` rewritten from custom Grasshopper-style nodes to IBM Carbon diagram components
 - [x] `CardNode` (from `@carbon/charts-react`) replaces hand-rolled dark `<div>` panels; 4px coloured left accent border per node type
 - [x] `Edge` with custom bezier `path` prop replaces plain SVG `<path>` wires; `ArrowRightMarker` per port type (number/area/volume/length/weight/money) in `<defs>`
@@ -1061,8 +1023,9 @@ of truth to the site**. `program.siteReference(projectId)` returns the feasibili
 (assessment figures) + the latest **FROZEN** program (spaces + summary) — drafts are never
 surfaced, so the site always sees the agreed baseline. Read-only `ProjectSiteReference.tsx`
 (feasibility-envelope KPIs + frozen program by floor + a "source of truth" notice) mounts as
-a **"Program & feasibility"** PMC tab in the project workspace and as a compact section in
-the mobile **Site Portal**. **Gate met:** 7-check rolled-back API E2E (empty → feasibility
+a **"Program & feasibility"** tab in the project workspace and as a compact section in
+the mobile **Site Portal**. *(Originally mounted under the PMC tab, removed 2026-06-29;
+the site-reference feature itself stays live under Projects.)* **Gate met:** 7-check rolled-back API E2E (empty → feasibility
 surfaced → draft NOT surfaced → frozen surfaced with spaces); tsc + Pure Carbon clean; render-200.
 
 **Project OS arc complete:** lead → activation (31) → program within the feasibility

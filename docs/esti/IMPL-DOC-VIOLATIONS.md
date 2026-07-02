@@ -190,7 +190,8 @@ Owner-only.
 > and the **Construction Cost spine** (tenders, work packages, running bills,
 > measurement book, deviations/variations, final accounts, cost dashboard, GRN,
 > procurement forecast, BBS + steel reconciliation) were **removed** in the 2026-06-28
-> teardown — to be rebuilt from the ground up. Rate Books + Rate Analysis remain.
+> teardown — to be rebuilt from the ground up. Rate Books (`dsr`) and Rate Analysis
+> were **also removed** (migration 0108).
 
 The following documentation files still describe these removed features as live, implemented
 functionality. This creates confusion for developers and agents working from the docs.
@@ -246,7 +247,8 @@ Add a removal notice banner at the top of each affected doc:
 ```markdown
 > **Removed 2026-06-28.** The Estimation OS and Construction Cost spine were torn down
 > for a ground-up rebuild. This section describes the original design only.
-> Current implementation: Rate Books (`dsr`) and Rate Analysis remain.
+> Rate Books (`dsr`) and Rate Analysis were also removed (migration 0108). The rebuild
+> runs via the Construction Knowledge Bank (`kb`) → Cost Management System (`cms`).
 ```
 
 ---
@@ -258,10 +260,9 @@ The following areas were checked and found to match their documentation:
 | Area | Files checked | Status |
 |---|---|---|
 | Navigation / shell structure | `App.tsx`, `Dashboard.tsx` | ✅ Matches IA sidebar spec |
-| Two-head project model (Consultancy + PMC) | `ProjectDetail.tsx`, `INFORMATION-ARCHITECTURE.md` §3 | ✅ Conformant |
+| Two-head project model (Consultancy + Project Management) | `ProjectDetail.tsx`, `INFORMATION-ARCHITECTURE.md` §3 | ✅ Conformant |
 | `can(role, capability)` interface | `permissions.ts` | ✅ Matches ACCESS-HIERARCHY §2–§7 |
 | `salary:view` rank in `MIN_RANK` | `permissions.ts:145` | ✅ rank 100 (L1 only) — see D-1 for allow-list override |
-| `tenders:view` rank | `permissions.ts:146` | ✅ rank 60 (L3+, Senior and above) |
 | Plan enum `LITE / CORE / ENTERPRISE` | `plans.ts`, `PLANS-AND-TIERS.md` | ✅ Exact match |
 | LITE seat caps (staff=3, accountants=0, hrManagers=0) | `plans.ts:46–58` | ✅ Conformant |
 | CORE seat caps (staff=15, accountants=1, hrManagers=1) | `plans.ts:59–70` | ✅ Conformant |

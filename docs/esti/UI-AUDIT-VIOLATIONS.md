@@ -9,6 +9,12 @@
 
 ## Executive Summary
 
+> **2026-07-02 reconciliation:** entries covering torn-down features — programme/Gantt
+> (`esti-gantt__*`), the construction-schedule dependency canvas (`esti-dep-*`), steel/BBS
+> reconciliation (`esti-steel-*`), and the Rate Books / Rate Analysis panels (`MasterDsr`,
+> `RateAnalysisPanel`, `ProjectProgram`) — have been struck as stale. Findings for live
+> modules are retained. Counts below predate this reconciliation and are approximate.
+
 The frontend contains **230+ discrete violations** across the Carbon-only mandate.
 Four violation categories identified, ordered by severity:
 
@@ -89,12 +95,6 @@ Downstream inline-style usages of those maps:
 | 133 | `html:has(.esti-app-shell) body` | `background: #161616` | Use `--cds-background` |
 | 138 | `html:has(.esti-landing-shell) body` | `background: #0b0b0b` | Use `--cds-background` |
 | 144 | `html:has(.esti-lp) body` | `background: #161616` | Use `--cds-background` |
-| 287 | `.esti-dep-canvas__edge--active` | `stroke: #0f62fe` | Use `--cds-interactive` |
-| 319 | `.esti-dep-node--critical` | `border-color: #fa4d56` | Use `--cds-support-error` |
-| 324 | `.esti-dep-node--selected` | `border-color: #0f62fe; box-shadow: ... #0f62fe` | Use `--cds-interactive` |
-| 370 | `.esti-dep-node__port` | `background: #0f62fe` | Use `--cds-interactive` |
-| 461 | `.esti-steel-node--selected` | `border-color: #0f62fe; box-shadow: ... #0f62fe` | Use `--cds-interactive` |
-| 499 | `.esti-steel-node__port` | `background: #0f62fe` | Use `--cds-interactive` |
 | 1344–1360 | `.esti-lp` (custom token block) | 12 raw hex values as CSS custom properties | Entire block violates carbon-token-only rule |
 | 1461 | `.esti-lp-bar__cta:hover` | `color: #78a9ff` | Use `--cds-link-inverse` |
 | 1648 | `.esti-lp-note` | `color: #da1e28` | Use `--cds-support-error` |
@@ -142,16 +142,6 @@ Downstream inline-style usages of those maps:
 `.dwg-base`, `.dwg-viewport`, `.dwg-viewport__svg`, `.dwg-viewport-fs`, `.dwg-viewport-fs__bar`, `.dwg-viewport-fs__main`, `.dwg-viewport-fs__side` (lines 35–87).  
 These also include **visual rules**: `border: 1px solid var(--cds-border-subtle)`, `background: var(--cds-layer-01)`, `border-radius: 4px`.
 
-### B4 · Dependency canvas (not permitted — 20+ classes)
-
-`.esti-dep-canvas-shell`, `.esti-dep-canvas-toolbar`, `.esti-dep-canvas-viewport`, `.esti-dep-canvas`, `.esti-dep-canvas__edges`, `.esti-dep-canvas__edge`, `.esti-dep-canvas__edge--active`, `.esti-dep-canvas__arrow`, `.esti-dep-canvas__edge-label`, `.esti-dep-node`, `.esti-dep-node--critical`, `.esti-dep-node--selected`, `.esti-dep-node__hdr`, `.esti-dep-node__meta`, `.esti-dep-node__links`, `.esti-dep-node__title`, `.esti-dep-node__port`, `.esti-dep-node__port--in`, `.esti-dep-node__port--out` (lines 238–381).
-
-These classes are also heavily visual: box-shadow, border-radius, font-size, color, background.
-
-### B5 · Steel BBS flow canvas (not permitted — 14+ classes)
-
-`.esti-steel-flow`, `.esti-steel-flow__toolbar`, `.esti-steel-flow__viewport`, `.esti-steel-flow__canvas`, `.esti-steel-flow__edges`, `.esti-steel-flow__edge`, `.esti-steel-flow__arrow`, `.esti-steel-flow__empty`, `.esti-steel-node`, `.esti-steel-node--selected`, `.esti-steel-node__hdr`, `.esti-steel-node__title`, `.esti-steel-node__meta`, `.esti-steel-node__port`, `.esti-steel-node__port--in`, `.esti-steel-node__port--out`, `.esti-steel-node__delete`, `.esti-steel-member-summary`, `.esti-steel-row`, `.esti-steel-table-scroll` (lines 383–538).
-
 ### B6 · Form layout helpers (not all permitted)
 
 | Class | Lines | Status |
@@ -161,12 +151,6 @@ These classes are also heavily visual: box-shadow, border-radius, font-size, col
 | `.esti-firm-logo` | 542 | Not in permitted list |
 | `.esti-input-md` | 543 | Not in permitted list |
 | `.esti-input-sm` | 544 | Not in permitted list |
-
-### B7 · Gantt chart (not permitted — 30+ classes)
-
-`.esti-gantt`, `.esti-gantt--empty`, `.esti-gantt__intro`, `.esti-gantt__header`, `.esti-gantt__row`, `.esti-gantt__header`, `.esti-gantt__col-label`, `.esti-gantt__card-col`, `.esti-gantt__timeline-col`, `.esti-gantt__axis`, `.esti-gantt__axis-tick`, `.esti-gantt__body`, `.esti-gantt__row--child`, `.esti-gantt__card`, `.esti-gantt__card--sub`, `.esti-gantt__card-inner`, `.esti-gantt__expand`, `.esti-gantt__card-text`, `.esti-gantt__card-title`, `.esti-gantt__card-meta`, `.esti-gantt__track`, `.esti-gantt__grid-line`, `.esti-gantt__bar`, `.esti-gantt__bar--phase`, `.esti-gantt__bar--task`, `.esti-gantt__milestone` (lines 546–726).
-
-These also include visual rules: `background: var(--cds-layer-02)`, color, font-size, `box-sizing`.
 
 ### B8 · Dashboard zone helpers (not permitted)
 
@@ -292,13 +276,10 @@ Inline `style={{ background: ... }}` on chart bars using raw hex values from `LE
 | `frontend/src/routes/Portal.tsx` | 2 | inline color / fontSize |
 | `frontend/src/routes/ClientRequests.tsx` | 2 | inline color |
 | `frontend/src/components/ProjectDrawings.tsx` | 2 | inline color |
-| `frontend/src/components/knowledge/MasterDsr.tsx` | 2 | inline fontSize |
 | `frontend/src/components/PomodoroRing.tsx` | 3 | inline SVG color values |
 | `frontend/src/components/hr/ApplicationsTab.tsx` | 1 | inline color |
 | `frontend/src/components/ProjectSettings.tsx` | 2 | inline padding / fontSize |
-| `frontend/src/components/ProjectProgram.tsx` | 1 | inline color |
 | `frontend/src/components/ProjectSiteReference.tsx` | 1 | inline background |
-| `frontend/src/components/knowledge/RateAnalysisPanel.tsx` | 1 | inline color |
 | `frontend/src/components/work/WorkloadTab.tsx` | 1 | inline background |
 | `frontend/src/components/PdfActionButtons.tsx` | 1 | inline color |
 
@@ -313,21 +294,15 @@ CLAUDE.md states custom CSS must be "structural and colourless". Many custom cla
 Multiple custom classes set `font-size`, `font-weight`, `letter-spacing`, `line-height`, `text-transform`, `color` — all of which belong in Carbon type-style tokens (`@include type.type-style(...)`) or Carbon component props.
 
 Examples:
-- `.esti-dep-node__title` (line 342): `font-size: 14px; color: var(--cds-text-primary)` — should be Carbon typography
-- `.esti-dep-node__hdr` (line 337): `font-family`, `font-size`, `color` inline in class
-- `.esti-gantt__card-title` (line 664): `color: var(--cds-text-primary)` — use Carbon heading component
-- `.esti-gantt__card-meta` (line 674): `color: var(--cds-text-secondary)`
 - `.esti-qi-metric` (line 817): `font-size: 0.875rem; line-height: 1.34` — use `esti-label` + `body-compact-01`
 - `.esti-qi-chart-label` (line 775): `font-weight: 600; letter-spacing; text-transform; color`
 
 ### D2 · Background and visual rules in custom classes
 
-- `.esti-dep-canvas-viewport` (line 256): `background: linear-gradient(...)` — decorative grid pattern
-- `.esti-steel-flow__viewport` (line 401): Same grid pattern with `linear-gradient`
-- `.esti-dep-node` (line 302): `box-shadow: 0 10px 28px rgba(...)` — decorative shadow
-- `.esti-steel-node` (line 444): `box-shadow: 0 10px 28px rgba(...)`
-- `.esti-gantt__card--sub` (line 627): `background: var(--cds-layer-02)` — visual rule in custom class
-- `.esti-gantt__track` (line 680): `background: var(--cds-layer-accent-01); border-radius: 2px`
+_All originally-cited instances (`esti-dep-*`, `esti-steel-*`, `esti-gantt__*`) belonged to
+the now-removed construction-schedule, steel/BBS, and programme-Gantt features and have been
+struck. Re-scan surviving custom classes for `box-shadow` / `background` / `linear-gradient`
+decorative rules if this category is reworked._
 
 ### D3 · Keyframe animations in custom scope
 
@@ -349,15 +324,13 @@ Note: `--esti-motion-*` tokens referenced in several places are not Carbon token
 
 | File | Approx. violations | Primary issues |
 |---|---|---|
-| `frontend/src/styles.scss` | 130+ class violations, 20+ hex colors | Entire landing system, canvas classes, gantt classes |
+| `frontend/src/styles.scss` | 130+ class violations, 20+ hex colors | Entire landing system, plus AI / floating-widget / QI class families |
 | `frontend/src/routes/Dashboard.tsx` | 60+ | 5 hex color maps, 28 inline styles, 8+ unpermitted class uses |
 | `frontend/src/components/UserIdCard.tsx` | 10+ | Unpermitted classes, hex fallback, inline backgrounds |
 | `frontend/src/components/hr/StaffProfilesTab.tsx` | 8 | Unpermitted classes, inline fontSize/fontWeight/background |
 | `frontend/src/components/StaffAvatar.tsx` | 8+ | 8-value hex palette |
 | `frontend/src/components/landing/LandingOperationalGrid.tsx` | 12+ | Hex color maps, inline styles |
 | `frontend/src/routes/Legal.tsx` / `SeoLanding.tsx` / `BlogPost.tsx` | 10+ | `esti-blog` class family |
-| `frontend/src/components/GanttChart.tsx` | 30+ | All `esti-gantt__*` classes |
-| `frontend/src/components/ProjectConstructionSchedule.tsx` | 15+ | `esti-dep-*` canvas classes |
 
 ---
 
@@ -383,8 +356,6 @@ Note: `--esti-motion-*` tokens referenced in several places are not Carbon token
 ### Priority 3 — Subsystem redesign (requires planning)
 
 7. **Landing page** (`esti-lp-*`): Replace custom design system with Carbon components where possible. The comment in styles.scss acknowledges this tension; a product decision is needed about whether the landing page is within Carbon scope.
-8. **Canvas components** (`esti-dep-*`, `esti-steel-*`): Custom canvas/drag-and-drop UIs require some custom CSS; move colourless structural rules to permitted helpers and use `--cds-*` tokens for all visual values.
-9. **Gantt chart** (`esti-gantt__*`): Align with [Carbon Gantt spec](https://carbondesignsystem.com/data-visualization/gantt-charts/) — replace custom color and typography rules with Carbon tokens and type mixins.
 
 ---
 

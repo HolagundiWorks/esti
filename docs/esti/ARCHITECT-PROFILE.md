@@ -21,7 +21,7 @@ Canonical reference: [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) (L1–L5 internal l
   access for administration, finance, HR, reports, and destructive operations.
 - **Client portal:** one client record; own projects and explicitly client-visible objects.
 - **Consultant portal:** one consultant record; engaged projects and assigned objects.
-- **Contractor portal:** invited tenders and awarded projects only (token-scoped bid portal + site coordination).
+- **Contractor portal:** engaged/awarded projects only (token-scoped site coordination).
 
 Portal identities are not internal staff. Every query and mutation must apply
 row/object scope in the backend, including REST uploads and downloads.
@@ -40,14 +40,14 @@ row/object scope in the backend, including REST uploads and downloads.
 | ~~Compliance / Estimation / Rate Books~~ | _Removed — RIE/compliance engine (2026-06), then the Estimation OS + Construction Cost spine and Rate Books + Rate Analysis (2026-06-28); KB now holds only Spec catalogue + Lessons_ | — |
 | Tasks / Work | Kanban, calendar, workload, ASPRF hooks | Cursor pagination, exports |
 | Drawings | DXF upload, versions, issue PDF, **Open in ESTICAD**, read-only takeoff list | ESTICAD companion sync — **no browser measure** |
-| Documents | register, specs, mood boards, inspections, transmittals, MOM | Revision/approval on existing types |
+| Documents | register, specs, inspections, transmittals, MOM | Revision/approval on existing types |
 | Approvals | issue/sign-off log and supersede chain | Portal acknowledgement only |
 | Consultants | register, engagements, scoped portal, RFIs | Contextual responses |
-| Contractors / tenders | register, tender packages, bids, award, bid portal | Site coordination inbox |
+| Contractors | register, engagements, scoped portal, site coordination | Site coordination inbox |
 | Site coordination | RFI, submittal, shop drawing, IR, instruction, snag, NCR | Same object model |
 | Fees / contracts | proposals, COA scale, contracts | Templates and activity links |
 | Accounting | invoices, GST/TDS, filing, reconciliation | Exports and mapping |
-| Estimation | Rate books, BOQ, takeoff (ESTICAD capture + web read), BBS, PO with spec link | Import/export — **no web visual connector** |
+| Cost Management (rebuilding) | Construction Knowledge Bank (Material/Labour/Item libraries, Specifications, Recipes), CMS Element spine + Estimate + BOQ + Final Estimation Set; takeoff (ESTICAD capture + web read); PO | Measurement, Work Orders, Bill Certification (CMS-3–8, planned) |
 | Search | permission-aware universal search | New entity types quietly |
 | AI Studio | Ollama drafts, provenance, `/office/ai-studio` | **No new web draft kinds** — CAD kinds in ESTICAD only (Phase 13D) |
 | ESTI agent | Alt+A read-only advisor (live AORMS context) | Prompt/rules only — no execute/upload |
@@ -56,7 +56,7 @@ row/object scope in the backend, including REST uploads and downloads.
 ## Project Object Model
 
 A project is the primary context. Tasks, activity, comments, drawings,
-documents, approvals, decisions, risks, consultants, contractors, tenders,
+documents, approvals, decisions, risks, consultants, contractors,
 commercial records, and site coordination reference a project and, where
 applicable, another source object.
 
@@ -101,7 +101,7 @@ Audit, activity, comments, and notifications are related but not interchangeable
 ## Contractor Boundary
 
 Contractor capabilities exist to support the architect's professional role:
-tender administration, design/technical clarification, document issue,
+design/technical clarification, document issue,
 inspection, quality observations, and recommendation. ESTI does not become the
 contractor's inventory, labour, subcontractor, or accounting system.
 
