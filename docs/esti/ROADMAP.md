@@ -85,17 +85,18 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 ## Phase 32 — Canonical V3 navigation (consultancy-only) (P1)
 
 **Canonical spec:** [NAVIGATION.md](NAVIGATION.md). AORMS narrows to a
-**consultancy-only** practice system on the V3 nine-pillar menu (Studio Intelligence · Projects
-· Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin).
+**consultancy-only** practice system on the V3 menu (Studio Intelligence · Projects
+· Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin).
 
 **✅ Shipped — all 5 stages (2026-06-29):**
 - **Stage 1:** V3 nine-pillar nested sidebar; Leads → Dashboard "LEADS PIPELINE" tab
-  (Growth OS dissolved); Search + AI Studio as header actions. **Proposals unified**
+  (Growth OS dissolved); Search + AI Studio as header actions *(AI Studio has since
+  moved into the sidebar as a plan-gated item)*. **Proposals unified**
   into one `esti_proposal` (migration 0116; `proposals` namespace incl. client-approval
   gate). **LEOS → LXOS.** **Full consultancy-only teardown** (migration 0117): PMC,
   Construction, Programme, tenders (`esti_tender*`), mood boards (`esti_moodboard`) —
   tables dropped + modules/namespaces deleted; site supervision kept under Projects.
-- **Stage 2 — Studio › Libraries (built fully):** **Compliance** (5 structured tables,
+- **Stage 2 — Library (built fully):** **Compliance** (5 structured tables,
   migration 0118), **Master Plan** (file uploads, 0119), **Standards** (by discipline +
   files, 0120). Item Library = KB (Lessons moved to LXOS).
 - **Stage 3:** Finance **Payroll** page; Third Parties **Vendors** placeholder.
@@ -343,7 +344,7 @@ Findings from the 2026-06-15 workflow & architecture audit (snapshot retired; ex
 > The in-product **RIE / compliance bylaw engine** — site-input / development-control /
 > basement / sustainability / approval-readiness engines, `ruleVersions` / `siteAssessments`,
 > and the BBMP modular rule engine (`bbmpRules`) — was **removed**. GST / TDS / permit / COA
-> compliance stay live; the structured **Studio › Libraries › Compliance** library
+> compliance stay live; the structured **Library › Compliance** library
 > (`compliance`: far/setback/nbc/fire/regulation) is a separate, current feature. Current
 > state: [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 >
@@ -727,7 +728,7 @@ Follow-up from the production-grade codebase audit: security hardening, DRY refa
 > This phase's product model — `ComplianceHub`, `RuleVersionManager`, `ProjectBylawData`,
 > BBMP rules + site assessments, and the Project Info §9 bylaw calculator — was the
 > **RIE / compliance bylaw engine**, which was **removed**. The current Compliance surface
-> is the structured **Studio › Libraries › Compliance** library (`compliance`:
+> is the structured **Library › Compliance** library (`compliance`:
 > far/setback/nbc/fire/regulation) — a separate feature. GST / TDS / permit / COA
 > compliance stay live. Current state:
 > [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".

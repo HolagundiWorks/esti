@@ -20,8 +20,11 @@
 | 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
 ## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
-`Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS · Admin`
-Header utilities (not sidebar): **Global Search · Notifications · AI Assistant · User Profile**.
+`Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin`
+**AI Studio** appears only when the plan allows `ai` and rank ≥ 60. **Library** is its own
+top-level menu (Item · Compliance · Master Plan · Standards); **Studio** holds Teams ·
+Performance · HR. Header utilities (not sidebar): **Clock · Pomodoro · Global Search ·
+Notifications (AlertsBell) · User Profile (ID card) · Sign out**.
 
 ---
 
@@ -55,18 +58,26 @@ Project Discussions ✅ · Transmittals ✅ *(project-only — no office-wide vi
 Assigned ✅ · Site Visits ✅ · Documentation ✅ · Revisions ✅ · Deadlines ✅ ·
 Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 
-## 4. Studio
-| Group → Module | Status | Where |
+## 4. AI Studio ✅ (plan-gated)
+Sidebar item `/office/ai-studio` — shown only when `planAllows(plan, "ai")` and rank ≥ 60.
+
+## 5. Library
+Top-level menu (gated by the `knowledgeBank` plan feature):
+| Module | Status | Where |
 |---|---|---|
-| **Libraries › Item Library** | ✅ | `/knowledge-bank` (Materials · Labour · Items · Brands · Specifications · Recipes · Brand Catalogue · **Import ✅** — paste/parse unstructured rate text, see `IMPORT_SPEC.md`) |
-| **Libraries › Compliance Library** | ✅ | `/libraries/compliance` — structured: NBC · FAR · Setbacks · Fire · Regulations (CRUD) |
-| **Libraries › Master Plan Library** | ✅ | `/libraries/master-plans` — PDF / DWG / zoning / development file uploads |
-| **Libraries › Standards Library** | ✅ | `/libraries/standards` — by discipline (Interiors/Plumbing/Electrical/Lighting) + notes + files |
+| Item Library | ✅ | `/knowledge-bank` (Materials · Labour · Items · Brands · Specifications · Recipes · Brand Catalogue · **Import ✅** — paste/parse unstructured rate text, see `IMPORT_SPEC.md`) |
+| Compliance Library | ✅ | `/libraries/compliance` — structured: NBC · FAR · Setbacks · Fire · Regulations (CRUD) |
+| Master Plan Library | ✅ | `/libraries/master-plans` — PDF / DWG / zoning / development file uploads |
+| Standards Library | ✅ | `/libraries/standards` — by discipline (Interiors/Plumbing/Electrical/Lighting) + notes + files |
+
+## 6. Studio
+| Module | Status | Where |
+|---|---|---|
 | Teams | ✅ | `/team` |
 | Performance | ✅ | `/performance` |
 | HR | ✅ | `/hr` |
 
-## 5. Third Parties
+## 7. Third Parties
 | Module | Status | Where |
 |---|---|---|
 | Clients | ✅ | `/clients` (profile · projects · contracts · consultancy fees · invoices · comm log) |
@@ -74,14 +85,14 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 | Contractors | ✅ | `/contractors` (profile · projects · site coordination · billing · payments · performance) |
 | Vendors | 🚧 | `/vendors` placeholder page (greenfield): vendor categories · material categories · pricing history · quotations · supplier DB |
 
-## 6. Office
+## 8. Office
 | Module | Status | Where |
 |---|---|---|
 | Proposals | ✅ | `/office/proposals` — **unified** COA fee proposals + scope agreements (one `esti_proposal` model) |
 | Contracts | ✅ | `/office/contracts` (firm↔client; not shown in the project workspace) |
 | Letters | ✅ | `/office/letters` |
 
-## 7. Finance
+## 9. Finance
 | Module | Status | Where |
 |---|---|---|
 | Consultancy Invoices | ✅ | `/invoices` |
@@ -90,7 +101,7 @@ Dependencies ✅ · Priority Engine 🚧 — mapped to the Work-hub (`/tasks`).
 | Payroll | ✅ | `/finance/payroll` (payslip list / generate / mark-paid; `payroll` namespace) |
 | Financial Reports | 🚧 | `/filing` (GST/TDS) + reports |
 
-## 8. LXOS — Learning Exchange Operating System
+## 10. LXOS — Learning Exchange Operating System
 Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 4 layers:
 | Layer | Status | Contents |
 |---|---|---|
@@ -99,7 +110,7 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 | Professional Identity | 🔲 | AORMS ID · role · knowledge contributions · community reputation · articles · templates · contribution history *(shared with User Profile)* |
 | Certification & Growth | 🔲 | AORMS certification (Architect/HR/Finance/Operations) · skill assessments · levels (Foundation/Practitioner/Specialist/Master) · learning history *(shared with User Profile)* |
 
-## 9. Admin
+## 11. Admin
 | Module | Status | Where |
 |---|---|---|
 | Company | ✅ | `/company` |
@@ -116,7 +127,7 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 |---|---|---|
 | Global Search | ✅ | header Search action → `/search` |
 | Notifications | ✅ | `AlertsBell` → `/alerts` |
-| AI Assistant | ✅ | "Ask ESTI" + header AI Studio action → `/office/ai-studio` |
+| AI Studio | ✅ | **sidebar item** (not a header action) → `/office/ai-studio`, plan-gated (`ai`) + rank ≥ 60 |
 | User Profile | 🚧 | `/profile` (`Profile.tsx`) — opened from the header ID card; see below |
 
 ### User Profile (AORMS Identity Layer)

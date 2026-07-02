@@ -18,8 +18,8 @@
 > and being rebuilt. Verified against the live tRPC router.
 >
 > **Navigation / sidebar** is defined canonically in [NAVIGATION.md](NAVIGATION.md)
-> (the Canonical V3 IA, consultancy-only: Studio Intelligence · Projects · Tasks · Studio ·
-> Third Parties · Office · Finance · LXOS · Admin). This section
+> (the Canonical V3 IA, consultancy-only: Studio Intelligence · Projects · Tasks · AI Studio ·
+> Library · Studio · Third Parties · Office · Finance · LXOS · Admin). This section
 > stays authoritative for *what code exists*; NAVIGATION.md is authoritative for
 > *where it appears*.
 

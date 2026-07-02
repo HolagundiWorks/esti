@@ -234,7 +234,7 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 > `constructionSchedule` (CPM), `construction` (contractor coordination), the **tenders**
 > spine (`esti_tender*`), and **mood boards** (`esti_moodboard`). Do not reference these.
 
-**Studio › Libraries (2026-06-29):**
+**Library (2026-06-29):**
 - `compliance` — structured compliance library: `far` / `setback` / `nbc` / `fire` /
   `regulation` sub-routers (each CRUD; tables `esti_compliance_*`, migration 0118)
 - `masterPlans` — master-plan file library (`esti_master_plan`, migration 0119; upload
@@ -256,10 +256,12 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 
 > **Sidebar / module placement** is canonically defined in
 > [docs/esti/NAVIGATION.md](docs/esti/NAVIGATION.md) — the **Canonical V3** IA
-> (Studio Intelligence · Projects · Tasks · Studio · Third Parties · Office · Finance · LXOS ·
-> Admin), consultancy-only, with per-module ✅/🚧/🔲 status. The nested sidebar is a
-> recursive `NavNode` tree (`link` | `menu`) in `App.tsx`; Studio nests Libraries.
-> Search + AI Studio are **header** actions. **Removed (consultancy-only):** PMC,
+> (Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties ·
+> Office · Finance · LXOS · Admin), consultancy-only, with per-module ✅/🚧/🔲 status. The
+> nested sidebar is a recursive `NavNode` tree (`link` | `menu`) in `App.tsx`; **Library**
+> (Item/Compliance/Master Plan/Standards) and **AI Studio** (plan+rank gated) are top-level
+> sidebar entries; Studio holds Teams/Performance/HR. Search is a **header** action
+> (with the Alerts bell, ID card, clock and Pomodoro). **Removed (consultancy-only):** PMC,
 > Construction, Programme, Tenders, mood boards. Edit nav via the `nav` tree and keep
 > NAVIGATION.md in sync.
 
@@ -281,10 +283,10 @@ Key routes by area:
 | `Consultants.tsx` / `Contractors.tsx` | Consultants / contractors (Third Parties) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts (Finance › Financial Reports) |
-| `KnowledgeBank.tsx` | **Item Library** (Studio › Libraries, `/knowledge-bank`) — Materials/Labour/Items/Brands/Specifications/Recipes/Brand Catalogue (Lessons moved to LXOS) |
-| `ComplianceLibrary.tsx` | Studio › Libraries › Compliance (`/libraries/compliance`) — NBC/FAR/Setbacks/Fire/Regulations CRUD |
-| `MasterPlanLibrary.tsx` | Studio › Libraries › Master Plan (`/libraries/master-plans`) — PDF/DWG file uploads |
-| `StandardsLibrary.tsx` | Studio › Libraries › Standards (`/libraries/standards`) — by discipline + files |
+| `KnowledgeBank.tsx` | **Item Library** (Library, `/knowledge-bank`) — Materials/Labour/Items/Brands/Specifications/Recipes/Brand Catalogue (Lessons moved to LXOS) |
+| `ComplianceLibrary.tsx` | Library › Compliance (`/libraries/compliance`) — NBC/FAR/Setbacks/Fire/Regulations CRUD |
+| `MasterPlanLibrary.tsx` | Library › Master Plan (`/libraries/master-plans`) — PDF/DWG file uploads |
+| `StandardsLibrary.tsx` | Library › Standards (`/libraries/standards`) — by discipline + files |
 | `Payroll.tsx` | Finance › Payroll (`/finance/payroll`) — payslips (reuses `payroll` namespace) |
 | `Vendors.tsx` | Third Parties › Vendors (`/vendors`) — placeholder |
 | `Profile.tsx` | User Profile (`/profile`) — Personal + Work Profile + identity/cert placeholders |
