@@ -2,13 +2,17 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { env } from "../env.js";
 import { clearSession, readSession, type SessionData, writeSession } from "../lib/session.js";
 import {
+  accountIdByEmail,
+  createEmailVerification,
   getAccountById,
   hasPlatformAdmin,
   loginWithPassword,
   registerWithPassword,
   upsertAccount,
+  verifyEmailToken,
   type AccountView,
 } from "../modules/auth/service.js";
+import { sendMail } from "../../lib/mail/transport.js";
 import {
   type OrgHandle,
   membership,
@@ -59,6 +63,19 @@ const isProd = process.env.NODE_ENV === "production";
 // admin/licensing console (/platform-admin) remains a distinct surface.
 // Onboarding + customer sign-in always land on /login, never the admin console.
 const ACCOUNT_URL = `${env.FRONTEND_ORIGIN}/login`;
+
+/** Mint a verification token and email the confirmation link (best-effort). */
+async function sendEmailVerification(accountId: string, email: string): Promise<void> {
+  const token = await createEmailVerification(accountId);
+  const link = `${env.FRONTEND_ORIGIN}/platform/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const subject = "Confirm your AORMS email";
+  const text = `Confirm your email to finish setting up your AORMS account:\n\n${link}\n\nThis link expires in 24 hours. If you didn't create an account, ignore this email.\n\n— AORMS`;
+  const html = `<p>Confirm your email to finish setting up your AORMS account:</p>
+<p><a href="${link}">Confirm my email</a></p>
+<p>This link expires in 24 hours. If you didn't create an account, ignore this email.</p>
+<p>— AORMS</p>`;
+  await sendMail({ to: email, subject, text, html });
+}
 
 /** Read + clear a pending onboard intent cookie (set by GET /onboard). */
 function takeOnboardIntent(
@@ -259,6 +276,10 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { error: "invalid_name" };
     }
     const org = await createCompany(s.accountId, { name, loginDomain: body?.loginDomain });
+    if ("error" in org) {
+      reply.code(400);
+      return { error: org.error };
+    }
     const orgId = org.publicId ? await orgIdFromHandle(org.publicId) : null;
     writeSession(reply, s.accountId, orgId ?? undefined);
     const me = await buildMe({ accountId: s.accountId, orgId: orgId ?? undefined });
@@ -349,10 +370,51 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
     writeSession(reply, account.id);
 
+    // Fire off the email-verification link (best-effort — never fails signup if
+    // SMTP is down; the account just stays unverified, which only blocks
+    // domain-based company auto-join, not login).
+    try {
+      await sendEmailVerification(account.id, account.email);
+    } catch {
+      /* ignore — verification can be re-requested */
+    }
+
     // Customer (portal) sign-ups stay in the user portal; never bounce to the
     // admin console. The onboard cookie is still consumed to clear it.
     takeOnboardIntent(req, reply);
     return { ok: true, account, redirect: null };
+  });
+
+  // --- Confirm an email-verification link (GET so it works straight from mail) ---
+  app.get("/auth/verify-email", async (req, reply) => {
+    const token = (req.query as { token?: string })?.token ?? "";
+    const ok = await verifyEmailToken(token);
+    // Land back on the login page either way; the query flag drives a banner.
+    return reply.redirect(`${ACCOUNT_URL}?verified=${ok ? "1" : "0"}`);
+  });
+
+  // --- Resend the verification email to the signed-in account ---
+  app.post("/auth/resend-verification", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      clearSession(reply);
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const info = await accountIdByEmail(account.email);
+    if (info?.verified) return { ok: true, alreadyVerified: true };
+    try {
+      await sendEmailVerification(account.id, account.email);
+    } catch {
+      reply.code(502);
+      return { error: "send_failed" };
+    }
+    return { ok: true };
   });
 
   // --- Log in with email + password (optionally company-scoped) ---

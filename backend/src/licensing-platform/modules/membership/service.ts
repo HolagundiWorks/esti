@@ -29,7 +29,23 @@ function domainOf(email: string): string {
 export async function createCompany(
   accountId: string,
   input: { name: string; loginDomain?: string | null },
-): Promise<OrgHandle> {
+): Promise<OrgHandle | { error: "domain_mismatch" | "domain_unverified" }> {
+  const loginDomain = input.loginDomain?.trim().toLowerCase().replace(/^@/, "") || null;
+
+  // A login-domain is a tenant-trust claim: anyone whose email is at that domain
+  // auto-joins (see joinCompany). Only let the creator claim a domain they can
+  // actually prove — their own *verified* email's domain — so a company can't be
+  // used to squat another firm's domain and hijack its employees' joins.
+  if (loginDomain) {
+    const [acct] = await db
+      .select({ email: schema.accounts.email, verifiedAt: schema.accounts.emailVerifiedAt })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.id, accountId))
+      .limit(1);
+    if (!acct || domainOf(acct.email) !== loginDomain) return { error: "domain_mismatch" };
+    if (!acct.verifiedAt) return { error: "domain_unverified" };
+  }
+
   let slug = slugify(input.name);
   const [clash] = await db
     .select({ id: schema.organizations.id })
@@ -38,7 +54,6 @@ export async function createCompany(
     .limit(1);
   if (clash) slug = `${slug}-${newId("s").slice(2, 6)}`;
 
-  const loginDomain = input.loginDomain?.trim().toLowerCase().replace(/^@/, "") || null;
   const orgId = newId("org");
   const [org] = await db
     .insert(schema.organizations)
@@ -91,7 +106,17 @@ export async function joinCompany(
     return { status: existing.status as MemberStatus, org: orgHandle(org) };
   }
 
-  const autoActive = !!org.loginDomain && org.loginDomain === domainOf(accountEmail);
+  // Auto-ACTIVE only when the domain matches AND the person has *verified* they
+  // control that email — otherwise anyone could register `x@firm.com` (no proof)
+  // and silently join firm.com's tenant. Unverified/mismatched joins land as
+  // INVITED, pending an owner/admin approval.
+  const [acct] = await db
+    .select({ verifiedAt: schema.accounts.emailVerifiedAt })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.id, accountId))
+    .limit(1);
+  const domainMatch = !!org.loginDomain && org.loginDomain === domainOf(accountEmail);
+  const autoActive = domainMatch && Boolean(acct?.verifiedAt);
   const status: MemberStatus = autoActive ? "ACTIVE" : "INVITED";
   const values = {
     role: "MEMBER",

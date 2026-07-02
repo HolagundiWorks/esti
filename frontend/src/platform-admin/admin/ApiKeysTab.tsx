@@ -19,12 +19,15 @@ import { trpc } from "../lib/trpc";
 
 type Keys = Awaited<ReturnType<typeof trpc.admin.apiKeys.list.query>>;
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
+type Orgs = Awaited<ReturnType<typeof trpc.admin.orgs.list.query>>;
 
 export default function ApiKeysTab() {
   const [keys, setKeys] = useState<Keys>([]);
   const [products, setProducts] = useState<Products>([]);
+  const [orgs, setOrgs] = useState<Orgs>([]);
   const [open, setOpen] = useState(false);
   const [productId, setProductId] = useState("");
+  const [orgId, setOrgId] = useState("");
   const [label, setLabel] = useState("");
   const [generated, setGenerated] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,14 +41,20 @@ export default function ApiKeysTab() {
       setProducts(p);
       if (p[0]) setProductId(p[0].id);
     });
+    void trpc.admin.orgs.list.query().then(setOrgs);
   }, []);
 
   async function generate() {
     setError(null);
     try {
-      const r = await trpc.admin.apiKeys.generate.mutate({ productId, label });
+      const r = await trpc.admin.apiKeys.generate.mutate({
+        productId,
+        label,
+        orgId: orgId || null,
+      });
       setGenerated(r.apiKey);
       setLabel("");
+      setOrgId("");
       setOpen(false);
       await load();
     } catch (e) {
@@ -86,6 +95,7 @@ export default function ApiKeysTab() {
         <TableHead>
           <TableRow>
             <TableHeader>Product</TableHeader>
+            <TableHeader>Org</TableHeader>
             <TableHeader>Label</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Last used</TableHeader>
@@ -96,6 +106,13 @@ export default function ApiKeysTab() {
           {keys.map((k) => (
             <TableRow key={k.id}>
               <TableCell>{k.productCode}</TableCell>
+              <TableCell>
+                {k.orgName ? (
+                  <Tag type="blue" size="sm">{k.orgName}</Tag>
+                ) : (
+                  <Tag type="gray" size="sm">Product-wide</Tag>
+                )}
+              </TableCell>
               <TableCell>{k.label}</TableCell>
               <TableCell>
                 <Tag type={k.status === "ACTIVE" ? "green" : "red"} size="sm">
@@ -133,6 +150,18 @@ export default function ApiKeysTab() {
           >
             {products.map((p) => (
               <SelectItem key={p.id} value={p.id} text={p.name} />
+            ))}
+          </Select>
+          <Select
+            id="ak-org"
+            labelText="Bind to organization"
+            helperText="Recommended for a per-install key — it can then only act for this customer. Leave as product-wide only for a shared/legacy key."
+            value={orgId}
+            onChange={(e) => setOrgId(e.target.value)}
+          >
+            <SelectItem value="" text="Product-wide (no org binding)" />
+            {orgs.map((o) => (
+              <SelectItem key={o.id} value={o.id} text={o.name} />
             ))}
           </Select>
           <TextInput id="ak-label" labelText="Label" value={label} onChange={(e) => setLabel(e.target.value)} />

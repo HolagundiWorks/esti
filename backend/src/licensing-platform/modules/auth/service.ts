@@ -1,7 +1,9 @@
-import { eq, or } from "drizzle-orm";
+import { and, eq, gt, or } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
+import { hashApiKey } from "../../lib/apikey.js";
 import { newId, newPublicId } from "../../lib/ids.js";
 import { membership, orgIdFromHandle, resolveCompany } from "./tenant.js";
 
@@ -124,6 +126,51 @@ export async function registerWithPassword(input: {
     })
     .returning();
   return view(created!);
+}
+
+/**
+ * Mint a fresh email-verification token for an account and store only its hash
+ * (24h expiry). Returns the plaintext token to embed in the verification link.
+ */
+export async function createEmailVerification(accountId: string): Promise<string> {
+  const token = randomBytes(24).toString("base64url");
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db
+    .update(schema.accounts)
+    .set({ emailVerifyToken: hashApiKey(token), emailVerifyExpires: expires, updatedAt: new Date() })
+    .where(eq(schema.accounts.id, accountId));
+  return token;
+}
+
+/** Look up an account by (unverified) email, for resend flows. */
+export async function accountIdByEmail(emailRaw: string): Promise<{ id: string; verified: boolean } | null> {
+  const email = emailRaw.toLowerCase();
+  const [a] = await db
+    .select({ id: schema.accounts.id, verifiedAt: schema.accounts.emailVerifiedAt })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  return a ? { id: a.id, verified: Boolean(a.verifiedAt) } : null;
+}
+
+/**
+ * Consume a verification token: mark the email verified and clear the token.
+ * Returns true on success, false if the token is unknown/expired/already used.
+ */
+export async function verifyEmailToken(plainToken: string): Promise<boolean> {
+  const token = plainToken.trim();
+  if (!token) return false;
+  const [updated] = await db
+    .update(schema.accounts)
+    .set({ emailVerifiedAt: new Date(), emailVerifyToken: null, emailVerifyExpires: null, updatedAt: new Date() })
+    .where(
+      and(
+        eq(schema.accounts.emailVerifyToken, hashApiKey(token)),
+        gt(schema.accounts.emailVerifyExpires, new Date()),
+      ),
+    )
+    .returning({ id: schema.accounts.id });
+  return Boolean(updated);
 }
 
 /** Verify email + password. Returns the account on success, else null. Upgrades

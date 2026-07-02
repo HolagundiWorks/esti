@@ -981,6 +981,27 @@
       "when": 1782206500000,
       "tag": "0139_hlp_org_member_account_type",
       "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1782206600000,
+      "tag": "0140_ex_user_public_ids",
+      "breakpoints": true
+    },
+    {
+      "idx": 141,
+      "version": "7",
+      "when": 1782206700000,
+      "tag": "0141_hlp_api_key_org",
+      "breakpoints": true
+    },
+    {
+      "idx": 142,
+      "version": "7",
+      "when": 1782206800000,
+      "tag": "0142_hlp_account_email_verify",
+      "breakpoints": true
     }
   ]
 }

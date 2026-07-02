@@ -16,6 +16,8 @@ import { activate, entitlement, refresh, validate } from "../modules/licenseApi/
 interface ProductAuth {
   productId: string;
   productCode: string;
+  /** Org this key is bound to, or null for a legacy product-wide key. */
+  orgId: string | null;
 }
 
 /** Resolve the product from the `Authorization: Bearer <product-api-key>` header. */
@@ -42,7 +44,7 @@ async function authProduct(req: FastifyRequest): Promise<ProductAuth | null> {
     .update(schema.apiKeys)
     .set({ lastUsedAt: new Date() })
     .where(eq(schema.apiKeys.id, key.id));
-  return { productId: product.id, productCode: product.code };
+  return { productId: product.id, productCode: product.code, orgId: key.orgId ?? null };
 }
 
 /** Product License API (`/v1`) — machine-to-machine, per-product API key. */
@@ -105,7 +107,7 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "invalid_input" };
     }
     const [account] = await db
-      .select({ publicId: schema.accounts.publicId, email: schema.accounts.email, name: schema.accounts.name })
+      .select({ id: schema.accounts.id, publicId: schema.accounts.publicId, email: schema.accounts.email, name: schema.accounts.name })
       .from(schema.accounts)
       .where(eq(schema.accounts.publicId, parsed.data.publicId))
       .limit(1);
@@ -113,7 +115,20 @@ export function registerV1Routes(app: FastifyInstance): void {
       reply.code(404);
       return { error: "not_found" };
     }
-    return { ok: true, account };
+    // Org-bound key: only resolve people who are members of the key's own org —
+    // it must not be able to look up an arbitrary person's email/name.
+    if (auth.orgId) {
+      const [member] = await db
+        .select({ id: schema.orgMembers.id })
+        .from(schema.orgMembers)
+        .where(and(eq(schema.orgMembers.accountId, account.id), eq(schema.orgMembers.orgId, auth.orgId)))
+        .limit(1);
+      if (!member) {
+        reply.code(404);
+        return { error: "not_found" };
+      }
+    }
+    return { ok: true, account: { publicId: account.publicId, email: account.email, name: account.name } };
   });
 
   // Machine membership sync — the other half of U-3b: a node stamps the linked
@@ -143,6 +158,12 @@ export function registerV1Routes(app: FastifyInstance): void {
     if (!orgId) {
       reply.code(404);
       return { error: "company_not_found" };
+    }
+    // Org-bound key: it may only sync memberships for its own org, never assert
+    // a different company handle.
+    if (auth.orgId && auth.orgId !== orgId) {
+      reply.code(403);
+      return { error: "org_mismatch" };
     }
     const [updated] = await db
       .update(schema.orgMembers)

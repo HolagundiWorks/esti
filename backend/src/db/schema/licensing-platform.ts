@@ -35,6 +35,11 @@ export const accounts = pgTable(
     /** Base32 TOTP secret — null = 2FA off; set = an authenticator code is required at login. */
     totpSecret: text("totp_secret"),
     isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
+    /** Set once the person proves control of their email (verification link). Null = unverified. */
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    /** One-shot email-verification token (hashed) + its expiry. Cleared on success. */
+    emailVerifyToken: text("email_verify_token"),
+    emailVerifyExpires: timestamp("email_verify_expires", { withTimezone: true }),
     createdAt,
     updatedAt,
   },
@@ -288,6 +293,14 @@ export const apiKeys = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id),
+    /**
+     * Optional org binding. When set, the key may only act for this organization
+     * on the identity endpoints (`/v1/verify-identity`, `/v1/sync-membership`) —
+     * it can't read or mutate another customer's membership by asserting a
+     * different company/person handle. Null = legacy product-wide key (the
+     * activation/validate endpoints scope themselves via the license key anyway).
+     */
+    orgId: text("org_id").references(() => organizations.id),
     keyHash: text("key_hash").notNull(),
     label: text("label").notNull(),
     status: text("status").notNull().default("ACTIVE"), // ApiKeyStatus
