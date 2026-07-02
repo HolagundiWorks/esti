@@ -6,7 +6,9 @@ import {
   type KeyObject,
 } from "node:crypto";
 import {
+  ComponentManifest,
   LicenseTokenPayload,
+  type ComponentManifest as ManifestPayload,
   type LicenseTokenPayload as TokenPayload,
 } from "@esti/contracts";
 
@@ -87,4 +89,49 @@ export function signToken(payload: TokenPayload, privateKeyPem: string): string 
   const key = createPrivateKey(privateKeyPem);
   const sig = edSign(null, Buffer.from(payloadB64), key);
   return `${payloadB64}.${sig.toString("base64url")}`;
+}
+
+/**
+ * Sign a desktop component manifest (ISSUER ONLY). Same key + wire format as
+ * licence tokens (`base64url(payload).base64url(Ed25519 sig)`) so the Manager
+ * verifies it offline against the embedded public key before trusting any
+ * downloaded artifact.
+ */
+export function signManifest(manifest: ManifestPayload, privateKeyPem: string): string {
+  const valid = ComponentManifest.parse(manifest);
+  const payloadB64 = Buffer.from(JSON.stringify(valid), "utf8").toString("base64url");
+  const key = createPrivateKey(privateKeyPem);
+  const sig = edSign(null, Buffer.from(payloadB64), key);
+  return `${payloadB64}.${sig.toString("base64url")}`;
+}
+
+export type ManifestVerifyResult =
+  | { ok: true; manifest: ManifestPayload }
+  | { ok: false; reason: string };
+
+/** Verify a signed component manifest against the embedded public key. Pure / offline. */
+export function verifyManifest(token: string | null | undefined): ManifestVerifyResult {
+  if (!token) return { ok: false, reason: "missing" };
+  const dot = token.indexOf(".");
+  if (dot <= 0 || dot === token.length - 1) return { ok: false, reason: "malformed" };
+  const payloadB64 = token.slice(0, dot);
+  const sigB64 = token.slice(dot + 1);
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8"));
+  } catch {
+    return { ok: false, reason: "malformed" };
+  }
+  const parsed = ComponentManifest.safeParse(raw);
+  if (!parsed.success) return { ok: false, reason: "invalid payload" };
+
+  let signatureOk = false;
+  try {
+    signatureOk = edVerify(null, Buffer.from(payloadB64), publicKey(), Buffer.from(sigB64, "base64url"));
+  } catch {
+    return { ok: false, reason: "bad signature" };
+  }
+  if (!signatureOk) return { ok: false, reason: "bad signature" };
+  return { ok: true, manifest: parsed.data };
 }
