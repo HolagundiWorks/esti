@@ -1,4 +1,5 @@
 mod paths;
+mod provision;
 mod supervisor;
 
 use std::collections::HashMap;
