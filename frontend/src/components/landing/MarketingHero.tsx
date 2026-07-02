@@ -62,16 +62,10 @@ export function MarketingHero({
             Request Workspace
           </Button>
         )}
-        {LITE_DOWNLOAD_URL && (
-          <Button
-            kind="tertiary"
-            size="lg"
-            renderIcon={Download}
-            href={LITE_DOWNLOAD_URL}
-          >
-            Download AORMS Lite
-          </Button>
-        )}
+        {/* Installers are available under your Profile after sign-in. */}
+        <Button kind="tertiary" size="lg" href="/login">
+          Installers (Profile)
+        </Button>
       </div>
 
       <div className="esti-lp-hero__status" aria-label="System status">

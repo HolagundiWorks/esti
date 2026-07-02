@@ -58,6 +58,84 @@ install_nginx_site() {
   rm -f /etc/nginx/sites-enabled/default
   nginx -t && systemctl reload nginx
 }
+
+# Generate a short-lived self-signed certificate for `domain` and append an
+# SSL server block to the installed vhost file. Files are written to the
+# conventional system paths so nginx can read them.
+generate_self_signed() {
+  local domain="$1" cert_days=${2:-30}
+  local cert_dir_cert="/etc/ssl/certs"
+  local cert_dir_priv="/etc/ssl/private"
+  mkdir -p "$cert_dir_cert" "$cert_dir_priv"
+  local cert_path="$cert_dir_cert/${domain}-self.crt"
+  local key_path="$cert_dir_priv/${domain}-self.key"
+  if [[ -f "$cert_path" && -f "$key_path" ]]; then
+    info "Self-signed cert already exists for ${domain}"
+  else
+    info "Generating self-signed certificate for ${domain} (valid ${cert_days} days)"
+    openssl req -x509 -nodes -days "$cert_days" -newkey rsa:2048 \
+      -keyout "$key_path" -out "$cert_path" -subj "/CN=${domain}" >/dev/null 2>&1 || {
+      warn "OpenSSL failed to create self-signed cert for ${domain}"; return 1;
+    }
+    chmod 640 "$key_path" && chown root:root "$key_path"
+  fi
+
+  # Append an SSL server block to the vhost file so nginx serves HTTPS.
+  local nginx_vhost="/etc/nginx/sites-available/esti"
+  if [[ -f "$nginx_vhost" ]]; then
+    # Idempotent: remove any existing self-signed marker and append fresh block
+    sed -i '/# BEGIN SELF-SIGNED CERT/,/# END SELF-SIGNED CERT/d' "$nginx_vhost" || true
+    cat >> "$nginx_vhost" <<EOF
+
+# BEGIN SELF-SIGNED CERT for ${domain}
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+  server_name ${domain};
+  ssl_certificate     ${cert_path};
+  ssl_certificate_key ${key_path};
+  include             /etc/nginx/mime.types;
+  # Minimal SSL settings for a temporary self-signed cert.
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_ciphers HIGH:!aNULL:!MD5;
+  location / {
+    root       DEPLOY_DIR_PLACEHOLDER/frontend/dist;
+    try_files  $uri $uri/ /index.html;
+  }
+}
+# END SELF-SIGNED CERT
+EOF
+    nginx -t && systemctl reload nginx || warn "nginx reload failed after adding self-signed block"
+  else
+    warn "nginx vhost $nginx_vhost not found — cannot append self-signed block"
+    return 1
+  fi
+}
+
+# Ensure TLS for domain: prefer real Let's Encrypt certs unless
+# SELF_SIGNED_CERT=true, in which case we generate a temporary self-signed
+# certificate. Args: domain admin_email
+ensure_tls() {
+  local domain="$1" admin_email="$2"
+  if [[ "${SELF_SIGNED_CERT:-false}" == "true" ]]; then
+    generate_self_signed "$domain" 30 || warn "self-signed TLS setup failed"
+    info "Using self-signed TLS for ${domain}"
+    return 0
+  fi
+
+  if command -v certbot >/dev/null 2>&1; then
+    certbot --nginx -d "$domain" --non-interactive --agree-tos -m "$admin_email" --redirect || {
+      warn "certbot failed for ${domain} — consider setting SELF_SIGNED_CERT=true to install a temporary self-signed certificate"
+      return 1
+    }
+    systemctl reload nginx
+    info "TLS issued for https://${domain}"
+    return 0
+  else
+    warn "certbot not installed — falling back to self-signed cert"
+    generate_self_signed "$domain" 30 || warn "self-signed TLS setup failed"
+  fi
+}
 esti_compose_network() { printf '%s' "esti-aorms-prod_esti-network"; }
 ensure_minio_bucket() {
   local deploy_dir="${1:-.}" bucket="${S3_BUCKET:-esti-documents}"
@@ -131,6 +209,11 @@ VITE_PUBLIC_SITE=${PUBLIC_SITE}
 VITE_LITE_DOWNLOAD_URL=${VITE_LITE_DOWNLOAD_URL:-}
 VITE_CORE_DOWNLOAD_URL=${VITE_CORE_DOWNLOAD_URL:-}
 VITE_ENTERPRISE_DOWNLOAD_URL=${VITE_ENTERPRISE_DOWNLOAD_URL:-}
+  # When true, the installer will create a temporary self-signed certificate
+  # and configure nginx to serve HTTPS immediately. Useful for fresh VPS
+  # installs or when avoiding Let's Encrypt rate limits. Replace with Certbot
+  # later to get a trusted certificate.
+  SELF_SIGNED_CERT=${SELF_SIGNED_CERT:-false}
 SEED_DEMO=${SEED_DEMO}
 ESTI_ROLE=node
 FIRM_PLAN=${FIRM_PLAN}
@@ -247,9 +330,10 @@ install_core() {
 
   section "nginx + TLS"
   install_nginx_site "$DOMAIN" "$DEPLOY_DIR" || error "nginx configuration failed."
-  certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$ADMIN_EMAIL" --redirect
-  systemctl reload nginx
-  info "TLS issued for https://${DOMAIN}"
+  # TLS provisioning: use certbot by default, or generate a temporary
+  # self-signed certificate when SELF_SIGNED_CERT=true (useful for fresh
+  # VPS installs or when you want to avoid Let's Encrypt rate limits).
+  ensure_tls "$DOMAIN" "$ADMIN_EMAIL"
 
   section "Systemd auto-start"
   cat > /etc/systemd/system/esti.service <<EOF

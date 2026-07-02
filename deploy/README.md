@@ -67,6 +67,27 @@ across future deploys.
 2. Open ports **22, 80, 443**.
 3. SSH in as **root** on Ubuntu 22.04 / 24.04.
 
+### Temporary self-signed TLS (fresh VPS or rate-limit safety)
+
+If you are installing on a fresh VPS or want to avoid Let's Encrypt rate limits,
+set `SELF_SIGNED_CERT=true` in the environment when running the installer. The
+installer will generate a short-lived self-signed certificate and configure
+nginx to serve HTTPS immediately. Example:
+
+```bash
+PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in SELF_SIGNED_CERT=true \
+  sudo -E bash deploy/install.sh
+```
+
+This is intended as a bootstrapping convenience — replace the self-signed
+certificate with a real certificate (Certbot) once DNS and rate limits permit:
+
+```bash
+# When ready on the VPS as root:
+certbot --nginx -d aorms.in --non-interactive --agree-tos -m admin@aorms.in --redirect
+systemctl reload nginx
+```
+
 The installer prompts for: domain, TLS email, branch, DB / session / MinIO secrets
 (Enter = auto-generate), and the owner account. Profile 2 also asks for the demo
 password (keep `demo1234` — the one-click `/demo` button has it baked in). Profile 5

@@ -49,10 +49,15 @@ if [[ "${REFRESH_NGINX:-false}" == "true" ]]; then
   install_nginx_site "$_dom" "$DEPLOY_DIR" || warn "nginx refresh failed"
   # install_nginx_site re-copies the HTTP-only template, which drops the SSL
   # server block certbot had appended. Re-assert TLS so HTTPS survives a refresh.
-  if command -v certbot >/dev/null 2>&1 && [[ -n "$_dom" && -d "/etc/letsencrypt/live/$_dom" ]]; then
-    certbot --nginx -d "$_dom" --redirect --non-interactive --keep-until-expiring \
-      && nginx -t && systemctl reload nginx \
-      || warn "certbot TLS re-assert failed — run: certbot --nginx -d $_dom --redirect"
+  if [[ "${SELF_SIGNED_CERT:-false}" == "true" ]]; then
+    # Re-generate / re-assert the self-signed block if requested.
+    generate_self_signed "$_dom" 30 || warn "self-signed TLS re-assert failed"
+  else
+    if command -v certbot >/dev/null 2>&1 && [[ -n "$_dom" && -d "/etc/letsencrypt/live/$_dom" ]]; then
+      certbot --nginx -d "$_dom" --redirect --non-interactive --keep-until-expiring \
+        && nginx -t && systemctl reload nginx \
+        || warn "certbot TLS re-assert failed — run: certbot --nginx -d $_dom --redirect"
+    fi
   fi
 fi
 info "Update complete."

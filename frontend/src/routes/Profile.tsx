@@ -16,6 +16,7 @@ import { PageHeader } from "../components/PageHeader.js";
 import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { useCapabilities } from "../lib/capabilities.js";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -65,6 +66,11 @@ export function Profile() {
   const meQ = trpc.users.myProfile.useQuery();
   const aormsId = meQ.data?.accountPublicId ?? null;
 
+  const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
+  const CORE_DOWNLOAD_URL = import.meta.env.VITE_CORE_DOWNLOAD_URL ?? "";
+  const ENTERPRISE_DOWNLOAD_URL = import.meta.env.VITE_ENTERPRISE_DOWNLOAD_URL ?? "";
+  const { isExternal } = useCapabilities();
+
   return (
     <Stack gap={6}>
       <PageHeader
@@ -78,8 +84,9 @@ export function Profile() {
           <Tab>AORMS Identity</Tab>
           <Tab>Account</Tab>
           <Tab>Certification</Tab>
-          <Tab>AORMS Index</Tab>
-          <Tab>Preferences</Tab>
+            <Tab>AORMS Index</Tab>
+            {!isExternal && <Tab>Downloads</Tab>}
+            <Tab>Preferences</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -92,6 +99,8 @@ export function Profile() {
               </Stack>
             </Tile>
           </TabPanel>
+
+
 
           <TabPanel>
             {w?.hasTeamMember ? (
@@ -151,6 +160,34 @@ export function Profile() {
             />
           </TabPanel>
 
+          
+          {!isExternal && (
+            <TabPanel>
+              <Tile className="esti-fill">
+                <Stack gap={4}>
+                  <h4>Desktop installers</h4>
+                  <p className="esti-label esti-label--secondary">Installers are managed by AORMS IT and hosted under <code>/downloads</code>.</p>
+                  <Stack gap={2}>
+                    {LITE_DOWNLOAD_URL ? (
+                      <Button kind="primary" size="md" href={LITE_DOWNLOAD_URL}>Download AORMS Lite</Button>
+                    ) : (
+                      <Button kind="ghost" size="md" disabled>Lite: Coming soon</Button>
+                    )}
+                    {CORE_DOWNLOAD_URL ? (
+                      <Button kind="primary" size="md" href={CORE_DOWNLOAD_URL}>Download AORMS Core</Button>
+                    ) : (
+                      <Button kind="ghost" size="md" disabled>Core: Coming soon</Button>
+                    )}
+                    {ENTERPRISE_DOWNLOAD_URL ? (
+                      <Button kind="primary" size="md" href={ENTERPRISE_DOWNLOAD_URL}>Download AORMS Enterprise</Button>
+                    ) : (
+                      <Button kind="ghost" size="md" disabled>Enterprise: Coming soon</Button>
+                    )}
+                  </Stack>
+                </Stack>
+              </Tile>
+            </TabPanel>
+          )}
           <TabPanel>
             <Tile className="esti-fill">
               <Stack gap={4}>
@@ -164,3 +201,4 @@ export function Profile() {
     </Stack>
   );
 }
+
