@@ -6,7 +6,8 @@ describe("search permissions", () => {
     expect(searchCapsForRole("VIEWER").financials).toBe(false);
     expect(searchCapsForRole("VIEWER").fees).toBe(false);
     expect(searchCapsForRole("ASSOCIATE").financials).toBe(false);
-    expect(searchCapsForRole("SENIOR").financials).toBe(true);
+    expect(searchCapsForRole("SENIOR").financials).toBe(false);
+    expect(searchCapsForRole("PARTNER").financials).toBe(true);
     expect(searchCapsForRole("PARTNER").fees).toBe(true);
   });
 

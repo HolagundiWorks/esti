@@ -137,7 +137,7 @@ export const leadsRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: `A ${lead.status} lead cannot be converted.` });
 
     await assertNotFixedPlan(ctx.db);
-    const org = await getOrgSettings(ctx.db);
+    await getOrgSettings(ctx.db);
 
     // Project quota (live projects only).
     const cRows = await ctx.db

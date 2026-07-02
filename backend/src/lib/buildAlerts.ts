@@ -1,5 +1,5 @@
 import type { EscalationSettings } from "@esti/contracts";
-import { and, eq, gte, isNotNull, lt, lte, notInArray, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, lt, lte, notInArray } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import {
   approvals,

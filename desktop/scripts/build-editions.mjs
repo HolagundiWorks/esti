@@ -89,9 +89,9 @@ try {
     const aiArtifact = path.join(ROOT, "desktop/dist-installers/_ai_node_modules.tgz");
     const destAi = path.join(resourcesBackend, "_ai_node_modules.tgz");
     // ensure resources dir exists
-    try { mkdirSync(resourcesBackend, { recursive: true }); } catch {}
+    try { mkdirSync(resourcesBackend, { recursive: true }); } catch { /* already exists */ }
     // remove any existing ai artifact from resources (so LITE remains clean)
-    try { if (existsSync(destAi)) rmSync(destAi); } catch {}
+    try { if (existsSync(destAi)) rmSync(destAi); } catch { /* best-effort */ }
     if (e.code !== "LITE" && existsSync(aiArtifact)) {
       copyFileSync(aiArtifact, destAi);
       console.log(`Included AI bundle for ${e.code} installer`);

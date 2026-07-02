@@ -31,35 +31,23 @@ import {
   contractors,
   criticalNotes,
   decisions,
-  deviations,
   engagements,
   proposals,
-  finalAccounts,
-  grnItems,
-  grns,
   inspections,
   invoices,
-  measurementRecords,
   orgSettings,
   permits,
   phases,
   poItems,
   projectOffices,
   purchaseOrders,
-  runningBillItems,
-  runningBills,
   specItems,
   specSheets,
-  steelReconciliations,
   tasks,
   teamMembers,
   transmittalItems,
   transmittals,
   users,
-  variationItems,
-  variations,
-  workPackageItems,
-  workPackages,
 } from "../db/schema.js";
 import { firmGstSystem } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
@@ -162,7 +150,7 @@ async function main() {
   ]).returning();
 
   // ── Contractors ───────────────────────────────────────────────────────────
-  const contractorRows = await db.insert(contractors).values([
+  await db.insert(contractors).values([
     { name: "Vinayaka Civil Works",      category: "Civil",     companyName: "Vinayaka Civil Works Pvt Ltd",    email: "contracts@vinayakacivil.in",  phone: "+91 98440 10001", city: "Bengaluru", state: "Karnataka", qualityRating: 4, timelinessRating: 4, safetyRating: 4, createdById: principal.id },
     { name: "Sairam Structural Systems", category: "Structural", companyName: "Sairam Structural Pvt Ltd",       email: "info@sairamstruct.in",        phone: "+91 98440 10002", city: "Bengaluru", state: "Karnataka", qualityRating: 5, timelinessRating: 4, safetyRating: 3, createdById: principal.id },
     { name: "Bright MEP Solutions",      category: "MEP",       companyName: "Bright Engineering Services",     email: "mep@brighteng.in",            phone: "+91 98440 10003", city: "Bengaluru", state: "Karnataka", qualityRating: 3, timelinessRating: 3, safetyRating: 4, createdById: principal.id },

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { UPLOAD_ROUTE_CAPABILITIES } from "../auth/upload.js";
 import { registerImageUploadRoute } from "./imageUploadRoute.js";

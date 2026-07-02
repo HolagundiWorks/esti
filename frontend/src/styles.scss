@@ -273,12 +273,10 @@ html:has(.esti-landing-shell) body {
 
 // ── Dashboard tile motion ─────────────────────────────────────────────────────
 // Transitions on the Studio Intelligence page.
-// Regular Tile: state transition only (no hover — base tiles are not interactive).
-// ClickableTile: hover background $layer-hover per Carbon spec.
+// Regular Tile: background state transition only (no hover — base tiles are not
+// interactive; shadow effects are banned by the Pure-Carbon policy).
 .esti-studio-abstract-page .cds--tile {
-  transition:
-    background var(--esti-motion-standard),
-    box-shadow  var(--esti-motion-standard);
+  transition: background var(--esti-motion-standard);
 }
 .esti-studio-abstract-page .cds--tile--clickable:hover,
 .esti-studio-abstract-page .esti-row-clickable:hover td {
@@ -1885,7 +1883,7 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   &__num {
     font-size: 14px;
     font-weight: 600;
-    color: var(--cds-text-helper); // #8d8d8d
+    color: var(--cds-text-helper);
     font-family: 'IBM Plex Mono', monospace;
   }
 

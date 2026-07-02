@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { extname } from "node:path";
 import type { FastifyInstance } from "fastify";
 import type { MultipartFile } from "@fastify/multipart";
-import { eq } from "drizzle-orm";
 import { can } from "@esti/contracts";
 import { SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { db } from "../../db/index.js";

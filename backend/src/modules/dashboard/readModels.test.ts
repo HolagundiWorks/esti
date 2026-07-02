@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardModuleFlags } from "./readModels.js";
+import { dashboardModuleFlags } from "./readModels/index.js";
 
 describe("dashboardModuleFlags", () => {
   it("defaults both modules to enabled", () => {

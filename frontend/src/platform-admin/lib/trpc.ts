@@ -1,9 +1,9 @@
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, type TRPCClient } from "@trpc/client";
 import type { PlatformRouter } from "@esti/backend/router";
 
 /** Vanilla tRPC client (typed against the backend router). Cookies are sent so
  *  the platform-admin session authorizes the `admin.*` procedures. */
-export const trpc = createTRPCClient<PlatformRouter>({
+export const trpc: TRPCClient<PlatformRouter> = createTRPCClient<PlatformRouter>({
   links: [
     httpBatchLink({
       url: "/platform/trpc",

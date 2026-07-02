@@ -3,7 +3,6 @@ import { projectOffices } from "./project.js";
 import {
   bigint,
   createdAt,
-  date,
   doublePrecision,
   id,
   integer,

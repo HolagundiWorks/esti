@@ -4,8 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { firmPayload } from "../../lib/firm.js";
-import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getActionCenter,
   getClientIntelligence,
@@ -26,7 +25,6 @@ import {
   loadBehaviorProfiles,
   loadCognitionQueue,
 } from "../cognition/engine.js";
-import { assertPlanFeature } from "../../lib/plan.js";
 
 /** Office-health KPIs aggregated across projects, fees, invoices and permits. */
 export const dashboardRouter = router({

@@ -3,7 +3,6 @@ import {
   TaskCreate,
   TaskListParams,
   TaskUpdate,
-  TaskWorkType,
   clampListLimit,
   computeTaskPriority,
 } from "@esti/contracts";

@@ -8,7 +8,6 @@ import {
   type Alert,
 } from "./buildAlerts.js";
 
-const today = "2026-06-15";
 
 function sampleAlert(overrides: Partial<Alert> = {}): Alert {
   return {

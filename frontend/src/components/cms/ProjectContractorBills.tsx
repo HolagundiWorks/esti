@@ -53,7 +53,6 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addBillOpen, setAddBillOpen] = useState(false);
   const [addLineOpen, setAddLineOpen] = useState(false);
-  const [certifyOpen, setCertifyOpen] = useState(false);
   const [actionForm, setActionForm] = useState<{ billId: string; action: "certify" | "hold" | "reject"; remarks: string } | null>(null);
   const [billForm, setBillForm] = useState(EMPTY_BILL);
   const [lineForm, setLineForm] = useState(EMPTY_LINE);
@@ -66,10 +65,6 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
   const workOrdersQ = trpc.cms.workOrders.listByProject.useQuery({ projectId });
   const elementsQ = trpc.cms.elements.listByProject.useQuery({ projectId });
 
-  // WO items for the selected work order (on the add-line modal)
-  const selectedWo = lineForm.woItemId
-    ? workOrdersQ.data?.find((w) => w.id === billForm.workOrderId)
-    : undefined;
   const woDetailQ = trpc.cms.workOrders.byId.useQuery(
     { id: billForm.workOrderId },
     { enabled: !!billForm.workOrderId && addLineOpen },

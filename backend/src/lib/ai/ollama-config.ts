@@ -1,4 +1,4 @@
-import { DEFAULT_AI_SETTINGS, parseAiSettings, type AiSettings } from "@esti/contracts";
+import { parseAiSettings, type AiSettings } from "@esti/contracts";
 import {
   checkOllamaHealth,
   ollamaBaseUrlFromEnv,

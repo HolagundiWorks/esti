@@ -34,7 +34,6 @@ export function WorkloadTab() {
   const avg       = headcount > 0 ? (total / headcount).toFixed(1) : "—";
   const dayBand   = officeBand(total, headcount);
 
-  const monthHeadcount = monthQ.data?.headcount ?? 0;
   const totalsByDate   = new Map<string, number>();
   for (const d of monthQ.data?.days ?? []) totalsByDate.set(d.date, d.total);
 
@@ -112,7 +111,6 @@ export function WorkloadTab() {
                 if (d === null) return <div key={`b${i}`} />;
                 const iso = `${view.year}-${String(view.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
                 const cellTotal = totalsByDate.get(iso) ?? 0;
-                const heat      = heatStyle(cellTotal > 0 ? officeBand(cellTotal, monthHeadcount) === "light" ? 1 : officeBand(cellTotal, monthHeadcount) === "balanced" ? 4 : 7 : 0);
                 const rawHeat   = heatStyle(cellTotal);
                 const selected  = iso === selectedDate;
                 return (

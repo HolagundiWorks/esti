@@ -3,8 +3,6 @@ import {
   FileUploaderButton,
   InlineNotification,
   Modal,
-  Select,
-  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -130,7 +128,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     }
   }
 
-  const readyDrawings = (drawingsQ.data ?? []).filter((d) => d.status === "READY");
 
   return (
     <>

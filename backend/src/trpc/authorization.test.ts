@@ -38,9 +38,21 @@ function user(role: AuthUser["role"], overrides: Partial<AuthUser> = {}): AuthUs
   };
 }
 
+/** Minimal DB stub for the license gate: getOrgSettings() reads the singleton
+ *  org-settings row; a null licenseToken = unmanaged install (never blocked). */
+const dbStub = {
+  select: () => ({
+    from: () => ({
+      limit: async () => [
+        { plan: null, licenseToken: null, hrEnabled: true, orgMode: "STUDIO" },
+      ],
+    }),
+  }),
+} as unknown as Context["db"];
+
 function caller(authUser: AuthUser | null) {
   return authorizationRouter.createCaller({
-    db: {} as Context["db"],
+    db: dbStub,
     user: authUser,
     deviceSessionId: null,
     ip: "127.0.0.1",
@@ -81,7 +93,7 @@ describe("tRPC authorization boundaries", () => {
   it.each([
     ["OWNER", true],
     ["PARTNER", true],
-    ["SENIOR", true],
+    ["SENIOR", false],
     ["ASSOCIATE", false],
   ] as const)("enforces invoice capability for %s", async (role, allowed) => {
     const result = expect(caller(user(role)).invoice());
@@ -126,7 +138,7 @@ describe("tRPC authorization boundaries", () => {
   it("aligns capability gates with documented minimum levels", () => {
     expect(minLevelForCapability("firm:admin")).toBe(5);
     expect(minLevelForCapability("reports:view")).toBe(4);
-    expect(minLevelForCapability("invoice:manage")).toBe(3);
+    expect(minLevelForCapability("invoice:manage")).toBe(4);
     expect(minLevelForCapability("write")).toBe(2);
     expect(minLevelForCapability("workspace:view")).toBe(1);
   });

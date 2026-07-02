@@ -1,12 +1,6 @@
-import { ArrowRight, Download } from "@carbon/icons-react";
+import { ArrowRight } from "@carbon/icons-react";
 import { Button } from "@carbon/react";
 import type { DemoKind } from "../../lib/landing-demo.js";
-
-/** Where the AORMS Lite installer is hosted. The download button only appears
- *  once this is set — point it at the built installer (e.g.
- *  /downloads/aorms-lite-setup.exe after dropping the file in frontend/public,
- *  or a CDN URL). See docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md. */
-const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
 
 const STATUS_LINES = [
   { label: "Built only for Indian architectural practices", dot: "green" },

@@ -1,8 +1,6 @@
 import {
   Button,
   Modal,
-  Select,
-  SelectItem,
   Stack,
   Tag,
   TextArea,

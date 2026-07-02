@@ -3,8 +3,6 @@ import {
   InlineNotification,
   Modal,
   PasswordInput,
-  Select,
-  SelectItem,
   Stack,
   Table,
   TableBody,

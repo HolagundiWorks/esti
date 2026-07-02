@@ -4,7 +4,6 @@ import {
   Column,
   Grid,
   Modal,
-  NumberInput,
   Select,
   SelectItem,
   Stack,
@@ -21,14 +20,6 @@ import {
 } from "@carbon/react";
 import { MeterChart } from "@carbon/charts-react";
 import {
-  Trophy,
-  UserProfile,
-  Analytics,
-} from "@carbon/icons-react";
-import {
-  Analytics as AnalyticsPictogram,
-} from "@carbon/pictograms-react";
-import {
   PERFORMANCE_BAND_LABEL,
   PERFORMANCE_BAND_TAG,
   RECOGNITION_AWARD_LABEL,
@@ -38,7 +29,6 @@ import {
   type AspRfMemberScore,
   type PerformanceBand,
   type RecognitionAward,
-  RewardPointCreate,
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";

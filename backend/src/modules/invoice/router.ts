@@ -1,7 +1,7 @@
 import { PeriodFilterInput, ProjectListParams, clampListLimit } from "@esti/contracts";
 import { GstSystem, InvoiceCreate, InvoiceStatus, computeGst, computeTds194j } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";

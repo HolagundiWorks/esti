@@ -19,13 +19,13 @@ export const EXCLUDED_FILES = [
 ];
 
 /** Legacy .esti-lp marketing block in styles.scss. */
-export const LANDING_SCSS_START = 662;
-export const LANDING_SCSS_END = 1845;
+export const LANDING_SCSS_START = 660;
+export const LANDING_SCSS_END = 1843;
 /** Editorial landing block (.esti-landing-*). */
-export const LANDING_EDITORIAL_SCSS_START = 3124;
-export const LANDING_EDITORIAL_SCSS_END = 3495;
+export const LANDING_EDITORIAL_SCSS_START = 3122;
+export const LANDING_EDITORIAL_SCSS_END = 3493;
 /** Case-study conic border animation (.esti-case-study-card). */
-export const CASE_STUDY_SCSS_START = 3365;
+export const CASE_STUDY_SCSS_START = 3363;
 
 const HEX_OR_GRADIENT =
   /(?:#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\(|linear-gradient|box-shadow)/i;

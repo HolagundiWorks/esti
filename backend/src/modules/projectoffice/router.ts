@@ -12,7 +12,7 @@ import {
   can,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   clientOnboardings,

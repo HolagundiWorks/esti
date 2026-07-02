@@ -39,7 +39,6 @@ export function registerHrDocUpload(app: FastifyInstance): void {
     for await (const part of req.parts()) {
       if (part.type === "file") {
         filePart = part as unknown as MultipartFile;
-        filePart.toBuffer; // mark as consumed below
       } else if (part.type === "field") {
         const val = String(part.value ?? "");
         if (part.fieldname === "memberId") memberId = val;

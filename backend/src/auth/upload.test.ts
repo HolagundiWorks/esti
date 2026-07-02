@@ -19,11 +19,13 @@ describe("uploadDenial", () => {
   it("registers every current binary upload route", () => {
     expect(UPLOAD_ROUTE_CAPABILITIES).toEqual({
       "/upload/drawing": "write",
-      "/upload/mood-image": "write",
       "/upload/inspection-photo": "write",
       "/upload/reconcile": "write",
       "/upload/firm-logo": "firm:admin",
-      "/upload/tender-document": "write",
+      "/upload/compliance-doc": "write",
+      "/upload/master-plan": "write",
+      "/upload/profile-photo": "write",
+      "/upload/standard-file": "write",
     });
   });
 
