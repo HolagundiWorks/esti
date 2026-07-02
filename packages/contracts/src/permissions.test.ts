@@ -40,10 +40,10 @@ describe("access levels", () => {
     expect(accessLabelForUser({ role: "PARTNER" })).toBe(ACCESS_LEVEL_LABEL[4]);
     expect(
       accessLabelForUser({ role: "CLIENT", clientId: "c1" }),
-    ).toBe("External — Client");
+    ).toBe("External — Client (EX_USER)");
     expect(
       accessLabelForUser({ role: "CONSULTANT", consultantId: "x" }),
-    ).toBe("External — Consultant");
+    ).toBe("External — Consultant (EX_USER)");
   });
 
   it("classifies unified account types", () => {
