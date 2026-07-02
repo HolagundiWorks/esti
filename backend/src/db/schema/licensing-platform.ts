@@ -76,7 +76,7 @@ export const products = pgTable(
   "hlp_product",
   {
     id: text("id").primaryKey(),
-    code: text("code").notNull(), // AORMS / LEOS / COCO / CAD
+    code: text("code").notNull(), // AORMS / LXOS / COCO / CAD
     name: text("name").notNull(),
     kind: text("kind").notNull(), // ProductKind APP|API
     createdAt,
