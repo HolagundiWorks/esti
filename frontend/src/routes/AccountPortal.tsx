@@ -1,8 +1,8 @@
 import { ArrowLeft } from "@carbon/icons-react";
-import { Button, Loading, Stack, Tag } from "@carbon/react";
+import { Button, Loading, Stack, Tag, Tile } from "@carbon/react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { fetchMe, logout, type Me } from "../platform-admin/lib/auth.js";
+import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
 
 // The AORMS account + licence portal (hlp_account) — its own destination on the
 // hub (aorms.in), NOT embedded in the firm workspace /login. Sign in / create an
@@ -15,6 +15,7 @@ const Security = lazy(() => import("../platform-admin/Security.js"));
 
 export function AccountPortal() {
   const [me, setMe] = useState<Me | null>(null);
+  const [license, setLicense] = useState<MyLicense | null>(null);
   const [checking, setChecking] = useState(true);
 
   const wantsCreate = new URLSearchParams(window.location.search).get("mode") === "create";
@@ -23,11 +24,13 @@ export function AccountPortal() {
     fetchMe().then((m) => {
       setMe(m);
       setChecking(false);
+      if (m.account) fetchMyLicense().then(setLicense);
     });
   }, []);
 
   async function refresh() {
     setMe(await fetchMe());
+    setLicense(await fetchMyLicense());
   }
 
   async function handleSignOut() {
@@ -76,6 +79,31 @@ export function AccountPortal() {
             Sign out
           </Button>
         </Stack>
+
+        {license && (
+          <Tile>
+            <Stack gap={3}>
+              <Stack gap={2} orientation="horizontal">
+                <h4 className="esti-grow">Current plan</h4>
+                <Tag type={license.status === "ACTIVE" ? "green" : "gray"} size="md">
+                  {license.planCode}
+                </Tag>
+              </Stack>
+              <Stack gap={1}>
+                <span className="esti-label esti-label--secondary">
+                  Seats: {license.seats == null ? "Unlimited" : license.seats}
+                  {" · "}
+                  Devices: {license.deviceLimit == null ? "Unlimited" : license.deviceLimit}
+                </span>
+                <span className="esti-label esti-label--secondary">
+                  {license.expiresAt
+                    ? `Renews / expires ${new Date(license.expiresAt).toLocaleDateString()}`
+                    : "Perpetual — no expiry"}
+                </span>
+              </Stack>
+            </Stack>
+          </Tile>
+        )}
 
         <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
           <RequestPlan />

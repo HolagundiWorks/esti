@@ -154,6 +154,22 @@ export async function fetchRegistrationStatus(): Promise<{ adminExists: boolean 
   return { adminExists: Boolean(j.adminExists) };
 }
 
+export interface MyLicense {
+  planCode: string;
+  productCode: string;
+  status: string;
+  seats: number | null;
+  deviceLimit: number | null;
+  expiresAt: string | null;
+}
+
+export async function fetchMyLicense(): Promise<MyLicense | null> {
+  const r = await fetch("/platform/auth/my-license", { credentials: "include" });
+  if (!r.ok) return null;
+  const j = (await r.json()) as { license?: MyLicense | null };
+  return j.license ?? null;
+}
+
 export interface PlanRequest {
   id: string;
   email: string;

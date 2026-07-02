@@ -26,6 +26,7 @@ import {
   joinCompany,
   leaveCompany,
 } from "../modules/membership/service.js";
+import { provisionTrial } from "../modules/onboarding/service.js";
 import { listCertifications, listGrowth } from "../modules/portable/service.js";
 import {
   checkTotpForLogin,
@@ -34,7 +35,7 @@ import {
   startEnrollment,
   totpEnabled,
 } from "../modules/auth/totp.js";
-import { PLAN_CODES, type PlanCode, createPlanRequest, myRequest } from "../modules/request/service.js";
+import { PLAN_CODES, type PlanCode, createPlanRequest, myLicense, myRequest } from "../modules/request/service.js";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
@@ -135,6 +136,16 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { request: null };
     }
     return { request: await myRequest(s.accountId) };
+  });
+
+  // --- Current licence (plan / seats / expiry) for the account's own org ---
+  app.get("/auth/my-license", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { license: null };
+    }
+    return { license: await myLicense(s.accountId) };
   });
 
   app.post("/auth/request-plan", async (req, reply) => {
@@ -368,6 +379,16 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { error: taken ? "email_taken" : "register_failed" };
     }
     writeSession(reply, account.id);
+
+    // Self-serve free tier: every new account instantly gets a personal org + a
+    // free-forever LITE licence (idempotent, self-healing) — no admin approval,
+    // no emailed key. Paid tiers stay a request→approve flow. Best-effort so a
+    // provisioning hiccup never blocks signup.
+    try {
+      await provisionTrial(account);
+    } catch {
+      /* ignore — LITE can be re-provisioned; signup still succeeds */
+    }
 
     // Fire off the email-verification link (best-effort — never fails signup if
     // SMTP is down; the account just stays unverified, which only blocks

@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { sendMail } from "../../../lib/mail/transport.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
@@ -94,6 +94,51 @@ export async function createPlanRequest(
     .values({ id: newId("req"), accountId: account.id, email: account.email, planCode })
     .returning();
   return created!;
+}
+
+/**
+ * The active licence for the account's own org (drives the "Current plan" card
+ * in the account portal). Returns plan code + seat/device caps + expiry, or null
+ * if the account owns no org / holds no non-revoked licence yet.
+ */
+export async function myLicense(accountId: string): Promise<{
+  planCode: string;
+  productCode: string;
+  status: string;
+  seats: number | null;
+  deviceLimit: number | null;
+  expiresAt: string | null;
+} | null> {
+  const [org] = await db
+    .select({ id: schema.organizations.id })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.ownerAccountId, accountId))
+    .limit(1);
+  if (!org) return null;
+  const [row] = await db
+    .select({
+      planCode: schema.plans.code,
+      productCode: schema.products.code,
+      status: schema.licenses.status,
+      seats: schema.licenses.seats,
+      deviceLimit: schema.licenses.deviceLimit,
+      expiresAt: schema.licenses.expiresAt,
+    })
+    .from(schema.licenses)
+    .innerJoin(schema.plans, eq(schema.plans.id, schema.licenses.planId))
+    .innerJoin(schema.products, eq(schema.products.id, schema.licenses.productId))
+    .where(and(eq(schema.licenses.orgId, org.id), ne(schema.licenses.status, "REVOKED")))
+    .orderBy(desc(schema.licenses.createdAt))
+    .limit(1);
+  if (!row) return null;
+  return {
+    planCode: row.planCode,
+    productCode: row.productCode,
+    status: row.status,
+    seats: row.seats,
+    deviceLimit: row.deviceLimit,
+    expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
+  };
 }
 
 /** The account's latest request (drives the console status card). */
