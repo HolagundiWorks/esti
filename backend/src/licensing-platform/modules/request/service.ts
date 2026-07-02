@@ -6,13 +6,24 @@ import { newId, newLicenseKey } from "../../lib/ids.js";
 import { type AccountView, getAccountById } from "../auth/service.js";
 import { ensurePersonalOrg } from "../onboarding/service.js";
 
-export const PLAN_CODES = ["LITE", "CORE", "ENTERPRISE"] as const;
+// The two current editions offered self-serve. Legacy codes (CORE/ENTERPRISE)
+// are still accepted on fulfilment (mapped to PRO) so any in-flight request or
+// old link keeps working after the collapse.
+export const PLAN_CODES = ["LITE", "PRO"] as const;
 export type PlanCode = (typeof PLAN_CODES)[number];
+
+/** Fold a requested code (incl. legacy CORE/ENTERPRISE) to a current edition. */
+export function normalizePlanCode(code: string): PlanCode {
+  const c = code.trim().toUpperCase();
+  if (c === "LITE") return "LITE";
+  return "PRO"; // CORE / ENTERPRISE / PRO all become PRO
+}
 
 const PLAN_DEFS: Record<PlanCode, { name: string; seats: number | null; deviceLimit: number | null }> = {
   LITE: { name: "AORMS Lite", seats: 3, deviceLimit: 3 },
-  CORE: { name: "AORMS Core", seats: 15, deviceLimit: 15 },
-  ENTERPRISE: { name: "AORMS Enterprise", seats: null, deviceLimit: null },
+  // Pro is the full edition (former Core + Enterprise): unlimited seats/devices
+  // by default; a specific licence may still set explicit seat overrides.
+  PRO: { name: "AORMS Pro", seats: null, deviceLimit: null },
 };
 
 async function findPlan(planCode: string) {
@@ -217,12 +228,14 @@ export async function fulfilRequest(
     .limit(1);
   if (!req) return { ok: false, error: "not_found" };
   if (req.status !== "PENDING") return { ok: false, error: "already_decided" };
-  if (!PLAN_CODES.includes(req.planCode as PlanCode)) return { ok: false, error: "bad_plan" };
 
+  // Accept legacy tier codes on in-flight requests, issuing them as the current
+  // edition (CORE/ENTERPRISE → PRO).
+  const planCode = normalizePlanCode(req.planCode);
   const account = await getAccountById(req.accountId);
   if (!account) return { ok: false, error: "account_gone" };
 
-  const plan = await ensureAormsPlan(req.planCode as PlanCode);
+  const plan = await ensureAormsPlan(planCode);
   const orgId = await ensurePersonalOrg(account);
 
   // Reuse a live licence for this org+product if one exists, else create.
@@ -254,7 +267,7 @@ export async function fulfilRequest(
       deviceLimit: plan.deviceLimit,
       meterLimit: plan.meterLimit,
       expiresAt: null,
-      notes: `Fulfilled request (${req.planCode})`,
+      notes: `Fulfilled request (${planCode})`,
     });
   }
   await db.insert(schema.licenseEvents).values({
@@ -262,14 +275,14 @@ export async function fulfilRequest(
     licenseId,
     type: "CREATE",
     actor: adminEmail,
-    meta: { via: "request_fulfil", plan: req.planCode, requestId },
+    meta: { via: "request_fulfil", plan: planCode, requestId },
   });
   await db
     .update(schema.planRequests)
     .set({ status: "FULFILLED", licenseId, orgId, decidedBy: adminEmail, decidedAt: new Date() })
     .where(eq(schema.planRequests.id, requestId));
 
-  const mail = licenseEmail(req.planCode, key);
+  const mail = licenseEmail(planCode, key);
   const res = await sendMail({ to: req.email, ...mail });
   return { ok: true, key, emailed: res.sent, emailReason: res.reason };
 }

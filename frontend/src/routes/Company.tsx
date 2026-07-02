@@ -470,7 +470,7 @@ export function Company() {
       {isOwner && <LicensePanel />}
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
-      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={licensePlan === "ENTERPRISE"} />}
+      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={planAllows(licensePlan, "aiByoApi")} />}
       {isOwner && planAllows(licensePlan, "byos") && <StorageSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}

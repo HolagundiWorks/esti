@@ -19,7 +19,9 @@ export const orgSettings = pgTable("esti_orgsettings", {
   /** Team mode is the only supported operating mode. */
   orgMode: text("org_mode").notNull().default("STUDIO"),
   /** Subscription edition — gates features and quotas. See @esti/contracts plans. */
-  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE"] }).notNull().default("LITE"),
+  // Column accepts legacy codes (CORE/ENTERPRISE) alongside the current LITE/PRO
+  // so pre-collapse rows stay valid; reads are coerced via asPlan() to LITE|PRO.
+  plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE", "PRO"] }).notNull().default("LITE"),
   hrEnabled: boolean("hr_enabled").notNull().default(true),
   /** PMC module — construction coordination, site registers, progress reports. */
   pmcEnabled: boolean("pmc_enabled").notNull().default(false),

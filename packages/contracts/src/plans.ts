@@ -5,16 +5,15 @@ import { z } from "zod";
  * `can(role, capability)` — capability gates by *person*, plan gates by
  * *subscription*. See docs/esti/PLANS-AND-TIERS.md.
  */
-export const Plan = z.enum(["LITE", "CORE", "ENTERPRISE"]);
+export const Plan = z.enum(["LITE", "PRO"]);
 export type Plan = z.infer<typeof Plan>;
 
 export const PLAN_LABEL: Record<Plan, string> = {
   LITE: "AORMS-Lite",
-  CORE: "AORMS-Core",
-  ENTERPRISE: "AORMS-Enterprise",
+  PRO: "AORMS-Pro",
 };
 
-const PLAN_RANK: Record<Plan, number> = { LITE: 0, CORE: 1, ENTERPRISE: 2 };
+const PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1 };
 
 /**
  * Quota caps per plan. `null` = unlimited.
@@ -39,13 +38,11 @@ export interface PlanLimits {
 
 /** 5 GB, the AORMS-Lite storage cap. */
 export const LITE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
-/** 200 GB, the AORMS-Core storage cap. */
-export const CORE_STORAGE_BYTES = 200 * 1024 * 1024 * 1024;
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   LITE: {
     // Lite admins create up to 3 general staff logins directly (no functional
-    // accountant/HR seats — upgrade to Core for those roles). Clients,
+    // accountant/HR seats — upgrade to Pro for those roles). Clients,
     // contractors, consultants and projects are unlimited (the normal create flow).
     accountants: 0,
     hrManagers: 0,
@@ -56,19 +53,10 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     projects: null,
     storageBytes: LITE_STORAGE_BYTES,
   },
-  CORE: {
-    // 1 admin (OWNER, pinned) + 1 accountant + 1 HR + 15 general staff. Clients,
-    // contractors, consultants and projects are unlimited.
-    accountants: 1,
-    hrManagers: 1,
-    staff: 15,
-    clients: null,
-    contractors: null,
-    consultants: null,
-    projects: null,
-    storageBytes: CORE_STORAGE_BYTES,
-  },
-  ENTERPRISE: {
+  PRO: {
+    // Pro is the full edition (merges the former Core + Enterprise). Seat and
+    // storage caps default to unlimited; a licence token may still constrain
+    // seats via its `seats` field (see panelLicense.ts panelDerived).
     accountants: null,
     hrManagers: null,
     staff: null,
@@ -114,31 +102,41 @@ export const PLAN_FEATURES = [
 ] as const;
 export type PlanFeature = (typeof PLAN_FEATURES)[number];
 
-/** Minimum plan that unlocks each feature. */
+/**
+ * Minimum plan that unlocks each feature. With the two-edition model everything
+ * beyond Lite's basics lives in Pro (the former Core + Enterprise merged), so
+ * every gated feature is PRO — only the view-only contractor portal is LITE+.
+ */
 const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
-  pmc: "CORE",
-  costing: "CORE",
-  revisionIntelligence: "CORE",
-  gstFiling: "CORE",
-  hr: "CORE",
-  performance: "CORE",
-  consultantPortal: "CORE",
-  contractorPortal: "LITE", // Lite gets a view-only contractor portal; writes gated to Core+
+  pmc: "PRO",
+  costing: "PRO",
+  revisionIntelligence: "PRO",
+  gstFiling: "PRO",
+  hr: "PRO",
+  performance: "PRO",
+  consultantPortal: "PRO",
+  contractorPortal: "LITE", // Lite gets a view-only contractor portal; writes gated to Pro
 
-  ai: "CORE",
-  aiByoApi: "ENTERPRISE",
-  byos: "CORE",
-  esticad: "CORE",
-  auditLog: "CORE",
-  knowledgeBank: "CORE",
-  sso: "ENTERPRISE",
-  apiAccess: "ENTERPRISE",
-  multiOffice: "ENTERPRISE",
-  whiteLabel: "ENTERPRISE",
+  ai: "PRO",
+  aiByoApi: "PRO", // bring-your-own AI provider — a per-licence flag within Pro
+  byos: "PRO",
+  esticad: "PRO",
+  auditLog: "PRO",
+  knowledgeBank: "PRO",
+  sso: "PRO",
+  apiAccess: "PRO",
+  multiOffice: "PRO",
+  whiteLabel: "PRO",
 };
 
-function asPlan(plan: Plan | string | null | undefined): Plan {
-  return plan === "CORE" || plan === "ENTERPRISE" ? plan : "LITE";
+/**
+ * Coerce any plan string to a current edition. Legacy licence/plan codes
+ * (`CORE`, `ENTERPRISE`) and the new `PRO` all resolve to PRO, so existing
+ * licence tokens and `.env` FIRM_PLAN values keep working after the collapse.
+ */
+export function asPlan(plan: Plan | string | null | undefined): Plan {
+  if (plan === "PRO" || plan === "CORE" || plan === "ENTERPRISE") return "PRO";
+  return "LITE";
 }
 
 /** Does this plan unlock the feature? */

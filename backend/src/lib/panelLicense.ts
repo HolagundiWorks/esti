@@ -1,5 +1,5 @@
 import { createPublicKey, verify as edVerify, type KeyObject } from "node:crypto";
-import { Plan, PLAN_LIMITS, type Plan as PlanT, type ResolvedSeats } from "@esti/contracts";
+import { asPlan, PLAN_LIMITS, type Plan as PlanT, type ResolvedSeats } from "@esti/contracts";
 import { z } from "zod";
 
 /**
@@ -97,9 +97,10 @@ export interface PanelDerived {
  * plan defaults.
  */
 export function panelDerived(p: PanelTokenPayload): PanelDerived | null {
-  const planResult = Plan.safeParse(p.planCode);
-  if (!planResult.success) return null;
-  const plan = planResult.data;
+  // `asPlan` folds legacy plan codes (CORE/ENTERPRISE) onto PRO, so tokens
+  // issued before the two-edition collapse still resolve to a valid edition
+  // instead of dropping the install to UNLICENSED.
+  const plan = asPlan(p.planCode);
   const base = PLAN_LIMITS[plan];
   return {
     plan,
