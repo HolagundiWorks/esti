@@ -14,8 +14,9 @@ jobs:
     # to fail here (default token can't read them), which was breaking CI.
     steps:
       - uses: actions/checkout@v4
+      # pnpm version comes from the packageManager field in package.json —
+      # action-setup errors if both specify one.
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install
@@ -40,4 +41,5 @@ jobs:
           pip install ruff pytest redis pydantic-settings
           ezdxf pandas openpyxl boto3 "psycopg[binary]"
       - run: ruff check .
-      - run: pytest -q
+      # python -m puts worker/ on sys.path so tests import esti_worker.
+      - run: python -m pytest -q
