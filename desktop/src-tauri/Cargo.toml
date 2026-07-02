@@ -37,6 +37,10 @@ sha2 = "0.10"
 base64 = "0.22"
 hex = "0.4"
 futures-util = "0.3"
+# Unpack downloaded components (.tar.gz) into the payload store — pure-Rust so it
+# works identically on Windows without a system `tar`.
+flate2 = "1"
+tar = "0.4"
 
 [features]
 # Default Tauri custom-protocol feature for production builds.
