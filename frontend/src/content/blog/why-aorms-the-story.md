@@ -28,7 +28,7 @@ system, and software should do the *watching* so the principal does not have to.
 
 ## What we built
 
-AORMS — the Architectural Office Resource Management System — observes the whole
+AORMS — the Architecture Office Resource Management System — observes the whole
 office continuously, reasons across its parts, predicts where pressure is
 building, and recommends the one action that matters most today. It speaks the
 language of an Indian practice natively: GST, SAC codes, FY dates, COA fee logic,

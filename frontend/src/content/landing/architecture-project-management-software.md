@@ -5,7 +5,7 @@ metaDescription: Architecture project management software for Indian practices, 
 keyword: architecture project management software
 category: solution
 updated: 2026-06-24
-intro: From the project brief through phases, drawings and delivery to the site, ESTI keeps a single project lifecycle on one auditable record instead of scattered folders.
+intro: From the project brief through phases, drawings and delivery to the site, AORMS keeps a single project lifecycle on one auditable record instead of scattered folders.
 ---
 
 # Run Every Project On One Record
@@ -16,7 +16,7 @@ A building project does not live in one place. The brief sits in an email, the d
 
 ## The project lifecycle, start to finish
 
-ESTI models a project the way a studio runs it, not the way a generic task tool imagines it.
+AORMS models a project the way a studio runs it, not the way a generic task tool imagines it.
 
 - **Brief and setup** — the project info questionnaire captures scope, site, client and the parameters every later stage depends on.
 - **Phases** — each project is broken into the phases your practice works in, so design, documentation and construction stages are first-class, not labels on a board.
@@ -28,7 +28,7 @@ Because all of this is the same record, a phase milestone, a drawing approval an
 
 ## Phases and milestones that mean something
 
-Phases in ESTI are tied to how you bill and how you deliver. A fee proposal built on the COA Scale of Charges maps fees to phase milestones, so when a phase is signed off the billing position is obvious. The programme view rolls every project's milestones into one office-wide Gantt, so a principal can see across the studio which projects are on track and which need attention this week.
+Phases in AORMS are tied to how you bill and how you deliver. A fee proposal built on the COA Scale of Charges maps fees to phase milestones, so when a phase is signed off the billing position is obvious. The programme view rolls every project's milestones into one office-wide Gantt, so a principal can see across the studio which projects are on track and which need attention this week.
 
 This is the project-delivery view of the practice. Where the office-level dashboard answers "how is the firm doing", the project record answers "how is this building doing" — its phase, its drawings, its outstanding approvals, its site status.
 
@@ -36,13 +36,13 @@ This is the project-delivery view of the practice. Where the office-level dashbo
 
 Drawings are where project risk hides. A sheet gets revised, the revision goes out, and three weeks later nobody is sure which version the contractor is building from.
 
-ESTI's drawing register keeps the **current version** of every sheet explicit, with its approval state and a full revision history. Every revision is classified by category — MINOR, MAJOR or CRITICAL — and by source — CLIENT_DRIVEN, INTERNAL_ERROR, TECHNICAL_QUERY or SCOPE_CHANGE. That turns revisions from invisible churn into a record you can read: how much of the rework on this project came from scope creep versus internal error? The revision risk rolls up to the dashboard so a project lead sees the pattern before it becomes a problem. For practices that want to go deeper here, see [drawing revision tracking software](/drawing-revision-tracking-software).
+AORMS's drawing register keeps the **current version** of every sheet explicit, with its approval state and a full revision history. Every revision is classified by category — MINOR, MAJOR or CRITICAL — and by source — CLIENT_DRIVEN, INTERNAL_ERROR, TECHNICAL_QUERY or SCOPE_CHANGE. That turns revisions from invisible churn into a record you can read: how much of the rework on this project came from scope creep versus internal error? The revision risk rolls up to the dashboard so a project lead sees the pattern before it becomes a problem. For practices that want to go deeper here, see [drawing revision tracking software](/drawing-revision-tracking-software).
 
 Measurement sheets sit alongside the register, and the ESTICAD desktop companion handles drawing takeoff so quantities flow back into the same project.
 
 ## Programme, PMC and the construction schedule
 
-Delivery does not stop at the drawing set. ESTI carries a project through to execution with tools built for the site, not bolted on:
+Delivery does not stop at the drawing set. AORMS carries a project through to execution with tools built for the site, not bolted on:
 
 - **Office programme and Gantt milestones** — the planning layer across the portfolio.
 - **PMC hub and portfolio** — for practices acting as project management consultants, a view across the projects under management with progress reports.
@@ -53,23 +53,23 @@ Because the construction schedule and the design phases share a record, a delay 
 
 ## Built for India, owned by you
 
-ESTI is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is self-hosted with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
+AORMS is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is self-hosted with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
 
-If you are evaluating ESTI for the wider practice, the [architecture practice management software](/architecture-practice-management-software) and [software for architecture firms](/software-for-architecture-firms) pages cover the office-level view. To see the project record in motion, [book a demo](/demo).
+If you are evaluating AORMS for the wider practice, the [architecture practice management software](/architecture-practice-management-software) and [software for architecture firms](/software-for-architecture-firms) pages cover the office-level view. To see the project record in motion, [book a demo](/demo).
 
 ## Frequently asked questions
 
 ### What is architecture project management software?
 
-It is software that manages an architecture project across its full lifecycle — brief, phases, drawings, delivery and site — on one connected record. Unlike a generic task tracker, ESTI's architecture project management software understands phases, drawing revisions, fee milestones and construction schedules as first-class parts of a building project.
+It is software that manages an architecture project across its full lifecycle — brief, phases, drawings, delivery and site — on one connected record. Unlike a generic task tracker, AORMS's architecture project management software understands phases, drawing revisions, fee milestones and construction schedules as first-class parts of a building project.
 
-### How does ESTI track drawing revisions on a project?
+### How does AORMS track drawing revisions on a project?
 
 Every sheet in the drawing register carries its current version, approval state and full revision history. Each revision is tagged with a category (MINOR/MAJOR/CRITICAL) and a source (client-driven, internal error, technical query or scope change), and a transmittal log records who received which version. The revision risk then rolls up to the project dashboard.
 
 ### Can it handle construction and site delivery, not just design?
 
-Yes. Beyond design phases, ESTI includes an office programme with Gantt milestones, a PMC hub and portfolio for project-management work, a CPM/Gantt construction schedule, and site tools for snags, site instructions, progress reports and phase progress — all recorded against the same project.
+Yes. Beyond design phases, AORMS includes an office programme with Gantt milestones, a PMC hub and portfolio for project-management work, a CPM/Gantt construction schedule, and site tools for snags, site instructions, progress reports and phase progress — all recorded against the same project.
 
 ### How are fees connected to project phases?
 
@@ -77,8 +77,8 @@ Fee proposals are built on the COA Scale of Charges and billing is tied to phase
 
 ### Is the project data hosted on someone else's servers?
 
-No. ESTI is self-hosted with role-based access, so your drawings, fee data and client decisions stay on infrastructure your practice controls.
+No. AORMS is self-hosted with role-based access, so your drawings, fee data and client decisions stay on infrastructure your practice controls.
 
 ### Does it work for Indian practices specifically?
 
-ESTI is India-native — paise-based money, April–March financial year, COA-based fee proposals, GST and TDS handling, tenders, site records, and project documentation. See [architecture software India](/architecture-software-india) for more.
+AORMS is India-native — paise-based money, April–March financial year, COA-based fee proposals, GST and TDS handling, tenders, site records, and project documentation. See [architecture software India](/architecture-software-india) for more.

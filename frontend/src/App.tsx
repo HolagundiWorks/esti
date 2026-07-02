@@ -198,7 +198,7 @@ export function App() {
       <UploadAuthProvider>
         {/* One boundary covers the lazy routes rendered in every AppShell branch
             (public paths, portals, and the authenticated workspace). */}
-        <Suspense fallback={<Loading withOverlay description="Loading ESTI" />}>
+        <Suspense fallback={<Loading withOverlay description="Loading AORMS" />}>
           <AppShell />
         </Suspense>
       </UploadAuthProvider>
@@ -285,7 +285,7 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/account")
     return <Theme theme="g100"><AccountPortal /></Theme>;
 
-  if (isLoading) return <Loading withOverlay description="Loading ESTI" />;
+  if (isLoading) return <Loading withOverlay description="Loading AORMS" />;
   if (!user)
     return (
       <Routes>

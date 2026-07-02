@@ -57,7 +57,7 @@ export function Login() {
                 <span className="esti-login-mark">
                   <img src="/esti-logo.png" alt="" />
                 </span>
-                <h3>ESTI AORMS</h3>
+                <h3>AORMS</h3>
               </div>
               <p>Sign in to your workspace</p>
             </Stack>

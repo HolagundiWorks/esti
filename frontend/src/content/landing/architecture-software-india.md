@@ -12,7 +12,7 @@ intro: Most architecture software is built for somewhere else, then patched for 
 
 Most tools an Indian practice ends up using were never built for India. The accounting package assumes a January–December year. The billing tool has no idea what a SAC code is. The project tool has no place for tenders, site notes, client approvals or contractor movement. So the office stitches together spreadsheets, a foreign project tool, a desi accountant's Tally file and WhatsApp, and the gaps between them are where things break. **Architecture software India** practices can actually rely on has to speak the language of Indian practice — GST, TDS, the April–March financial year, COA service stages, tenders and site records.
 
-AORMS, the Architectural Office Resource Management System powered by ESTI (Embedded Studio Intelligence), is built that way from the first screen. India is not a settings toggle. It is the default.
+AORMS, the Architecture Office Resource Management System powered by ESTI (Embedded Studio Intelligence), is built that way from the first screen. India is not a settings toggle. It is the default.
 
 ## Why India-native beats generic
 

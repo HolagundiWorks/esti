@@ -12,7 +12,7 @@ intro: One system for the whole Indian office — GST, COA fee logic, tenders, s
 
 An architecture office in India runs on a dozen things at once: fee milestones to bill, a steel BBS to issue, three consultants to coordinate, attendance to mark, site work to record, contractors to follow up, and a client asking where their drawings are. Most offices manage this across a project tool that ignores Indian practice, an accountant's separate ledger, a tender spreadsheet, and a group chat. **Architecture office management India** practices can stand on means putting the commercial, costing and operational sides in one record — built for Indian offices, not adapted to them.
 
-AORMS, powered by ESTI, is that system: a self-hosted Architectural Office Resource Management System where costing, projects, teams, clients, billing and site work share one source of truth.
+AORMS, powered by ESTI, is that system: a self-hosted Architecture Office Resource Management System where costing, projects, teams, clients, billing and site work share one source of truth.
 
 ## Authority and site records
 

@@ -5,14 +5,14 @@ metaDescription: Keyboard-first BOQ estimation and measurement-book costing for 
 keyword: architecture estimation software
 category: solution
 updated: 2026-06-27
-intro: ESTI's estimation workspace works the way an estimator thinks — pick a rate-book item, build the quantity element by element in a measurement book, and the line and project totals compute as you type. No modals, no forms, no leaving the keyboard.
+intro: AORMS's estimation workspace works the way an estimator thinks — pick a rate-book item, build the quantity element by element in a measurement book, and the line and project totals compute as you type. No modals, no forms, no leaving the keyboard.
 ---
 
 # Estimate Like a Measurement Book, Not a Form
 
 Most estimating tools make you stop and fill in a form for every line. Open a dialog, type a description, pick a unit, enter a quantity, save, repeat. An estimator who has spent twenty years with an Excel sheet and a measurement book finds that slower, not faster.
 
-**Architecture estimation software** built for the way Indian practices actually price work should feel like the measurement book — keyboard-first, inline, and continuous. ESTI's estimation workspace does exactly that: think, type, calculate, continue.
+**Architecture estimation software** built for the way Indian practices actually price work should feel like the measurement book — keyboard-first, inline, and continuous. AORMS's estimation workspace does exactly that: think, type, calculate, continue.
 
 ## A keyboard-first BOQ, not a wizard
 
@@ -46,7 +46,7 @@ Because the estimate, the tender, the bill and the cost dashboard share one reco
 
 ## Built for India, owned by you
 
-ESTI is India-native by default: paise-based money, the April–March financial year, rate books, GST-correct invoicing with SAC codes, and TDS handling. The system is self-hosted with role-based access — and the free Lite edition even ships as a native desktop app that runs offline on your machine — so your rates, BOQs and cost data stay on infrastructure you control.
+AORMS is India-native by default: paise-based money, the April–March financial year, rate books, GST-correct invoicing with SAC codes, and TDS handling. The system is self-hosted with role-based access — and the free Lite edition even ships as a native desktop app that runs offline on your machine — so your rates, BOQs and cost data stay on infrastructure you control.
 
 To see the estimation workspace alongside the rest of the practice, the [architecture project management software](/architecture-project-management-software) and [construction client management software](/construction-client-management-software) pages cover delivery and site, and [contractor billing software for architects](/contractor-billing-software-for-architects) covers running-account bills. To try it on a working office, [book a demo](/demo).
 
@@ -54,7 +54,7 @@ To see the estimation workspace alongside the rest of the practice, the [archite
 
 ### What is architecture estimation software?
 
-It is software that builds a bill of quantities (BOQ) and prices it for an architecture or construction project. ESTI's estimation workspace is keyboard-first: you pick rate-book items, build quantities in a measurement book element by element, and the line and project totals compute automatically — without forms, modals or a separate calculation screen.
+It is software that builds a bill of quantities (BOQ) and prices it for an architecture or construction project. AORMS's estimation workspace is keyboard-first: you pick rate-book items, build quantities in a measurement book element by element, and the line and project totals compute automatically — without forms, modals or a separate calculation screen.
 
 ### How does the measurement book work?
 
@@ -70,8 +70,8 @@ Yes. The approved estimate becomes the project BOQ, which can be issued to contr
 
 ### Is it suitable for Indian practices?
 
-ESTI is India-native — paise-based money, the April–March financial year, rate books, GST-correct invoicing with SAC codes and TDS handling. See [architecture software India](/architecture-software-india) for more.
+AORMS is India-native — paise-based money, the April–March financial year, rate books, GST-correct invoicing with SAC codes and TDS handling. See [architecture software India](/architecture-software-india) for more.
 
 ### Can it run offline?
 
-Yes. ESTI ships as a native desktop app for Windows that runs entirely on your machine with local data. The free Lite edition is licence-free; the full estimation and costing workspace is part of Pro.
+Yes. AORMS ships as a native desktop app for Windows that runs entirely on your machine with local data. The free Lite edition is licence-free; the full estimation and costing workspace is part of Pro.

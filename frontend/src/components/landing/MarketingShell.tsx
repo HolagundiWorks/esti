@@ -64,7 +64,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
     <div className="esti-landing-shell">
       <SkipToContent href="#main-content" />
       <Theme theme="g100">
-        <Header aria-label="ESTI AORMS" className="esti-landing-header">
+        <Header aria-label="AORMS" className="esti-landing-header">
           <HeaderMenuButton
             aria-label={navOpen ? "Close menu" : "Open menu"}
             isActive={navOpen}

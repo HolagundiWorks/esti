@@ -15,7 +15,7 @@ office management software** replaces that scatter with a single record of the
 office: every project, drawing, revision, fee, invoice, approval and project record
 check in one place, connected.
 
-AORMS — the Architectural Office Resource Management System — is that record,
+AORMS — the Architecture Office Resource Management System — is that record,
 built specifically for Indian architecture practices rather than adapted from a
 generic project tool.
 

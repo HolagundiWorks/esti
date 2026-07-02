@@ -167,7 +167,7 @@ export function MarketingEstiAi() {
 
             {turns.length === 0 && !ask.isPending && (
               <p className="esti-label esti-label--secondary">
-                Ask ESTI anything — how it handles GST, client portals, drawing revisions, approvals, or whether it fits a small team.
+                Ask ESTI anything — how AORMS handles GST, client portals, drawing revisions, approvals, or whether it fits a small team.
               </p>
             )}
           </Stack>

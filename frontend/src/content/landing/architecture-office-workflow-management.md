@@ -5,7 +5,7 @@ metaDescription: Architecture workflow management for Indian practices — appro
 keyword: architecture workflow management
 category: solution
 updated: 2026-06-24
-intro: Approvals, transmittals, tasks, letters and contracts — ESTI defines how work moves through an architecture office and records every step on an immutable trail.
+intro: Approvals, transmittals, tasks, letters and contracts — AORMS defines how work moves through an architecture office and records every step on an immutable trail.
 ---
 
 # Move Work Through The Office
@@ -18,17 +18,17 @@ Every architecture practice has workflows, whether or not anyone has written the
 
 The most expensive workflow failures are the ones where a step was assumed. A drawing went to the client before the structural check. A fee was quoted without the principal seeing it.
 
-ESTI handles internal approval workflows as explicit chains. Work that needs sign-off routes to the right person, and it is not "done" until the approval is recorded. This applies across the office documents that carry the most risk — proposals, fee proposals, permits and drawings all move through approval rather than around it. The result is not bureaucracy for its own sake; it is the difference between an approval you can point to and one you merely remember.
+AORMS handles internal approval workflows as explicit chains. Work that needs sign-off routes to the right person, and it is not "done" until the approval is recorded. This applies across the office documents that carry the most risk — proposals, fee proposals, permits and drawings all move through approval rather than around it. The result is not bureaucracy for its own sake; it is the difference between an approval you can point to and one you merely remember.
 
 ## Transmittals — proof of what went out
 
 When something leaves the office — a drawing set, a document, a submission — the question that matters later is always the same: what exactly did we send, to whom, and when?
 
-ESTI's transmittals answer that. Every issue out is logged against the drawing register, so each sheet carries a record of which version went to which recipient on which date. When a contractor builds from the wrong revision or a client claims they never received a sheet, the transmittal log settles it. Combined with the drawing register's explicit current version and approval state, the office always knows what is officially out in the world. For the revision side of this, see [architecture revision tracking](/architecture-revision-tracking) and [architecture approval workflow software](/architecture-approval-workflow-software).
+AORMS's transmittals answer that. Every issue out is logged against the drawing register, so each sheet carries a record of which version went to which recipient on which date. When a contractor builds from the wrong revision or a client claims they never received a sheet, the transmittal log settles it. Combined with the drawing register's explicit current version and approval state, the office always knows what is officially out in the world. For the revision side of this, see [architecture revision tracking](/architecture-revision-tracking) and [architecture approval workflow software](/architecture-approval-workflow-software).
 
 ## Tasks with classification and work type
 
-Work inside the office is not all the same, and a flat task list hides that. ESTI tags every task on two dimensions:
+Work inside the office is not all the same, and a flat task list hides that. AORMS tags every task on two dimensions:
 
 - **Classification** — BILLABLE, NON_BILLABLE, TRAINING, COLLABORATION or PERSONAL. This is the financial dimension: it tells you what work is recoverable and what is overhead.
 - **Work type** — design communication, design development, technical production or construction support. This is the architectural dimension: what kind of work is actually being done.
@@ -37,17 +37,17 @@ Two tasks that look identical on a board can be billable design development and 
 
 ## Letters, contracts and office documents
 
-A practice runs on documents, and they deserve the same discipline as drawings. ESTI keeps letters and contracts as office documents — drafted, reviewed and held on the record rather than living as loose files on someone's desktop. Permits are tracked through their lifecycle. Proposals and fee proposals are documents with approval states, not attachments. Bringing all of these into one system means the office's correspondence and agreements are searchable, attributable and current.
+A practice runs on documents, and they deserve the same discipline as drawings. AORMS keeps letters and contracts as office documents — drafted, reviewed and held on the record rather than living as loose files on someone's desktop. Permits are tracked through their lifecycle. Proposals and fee proposals are documents with approval states, not attachments. Bringing all of these into one system means the office's correspondence and agreements are searchable, attributable and current.
 
 ## The audit log and activity trail
 
-The point of workflow management is not control for its own sake — it is being able to answer questions after the fact. ESTI keeps an immutable audit log and an activity timeline across the office. Who changed this fee? When was this drawing approved? Who issued that transmittal?
+The point of workflow management is not control for its own sake — it is being able to answer questions after the fact. AORMS keeps an immutable audit log and an activity timeline across the office. Who changed this fee? When was this drawing approved? Who issued that transmittal?
 
 Because the log is immutable, it is a true record, not a story that can be edited later. Threaded comments and critical notes attach the conversation to the work, and the dashboard surfaces computed KPIs, an Action Center of what needs attention, and health modules so a principal sees where work is stalling without asking anyone. This is how a busy office stays honest with itself.
 
 ## Built for India, owned by you
 
-ESTI is self-hosted with role-based access, so workflow data — approvals, transmittals, the audit trail — stays on infrastructure your practice controls. It is India-native throughout, from COA-based fee proposals to GST-correct billing and the April–March financial year.
+AORMS is self-hosted with role-based access, so workflow data — approvals, transmittals, the audit trail — stays on infrastructure your practice controls. It is India-native throughout, from COA-based fee proposals to GST-correct billing and the April–March financial year.
 
 For the wider picture, see [architecture firm management software](/architecture-firm-management-software) and, for change-heavy practices, [architecture change management software](/architecture-change-management-software). To see the workflows in action, [book a demo](/demo).
 
@@ -55,9 +55,9 @@ For the wider picture, see [architecture firm management software](/architecture
 
 ### What is architecture workflow management?
 
-It is the practice of defining and recording how work moves through an architecture office — approvals, transmittals, tasks, letters and contracts. ESTI's architecture workflow management makes each step explicit and records it on an immutable audit trail, so the office can always show who did what and when.
+It is the practice of defining and recording how work moves through an architecture office — approvals, transmittals, tasks, letters and contracts. AORMS's architecture workflow management makes each step explicit and records it on an immutable audit trail, so the office can always show who did what and when.
 
-### How do internal approvals work in ESTI?
+### How do internal approvals work in AORMS?
 
 Work that needs sign-off routes through explicit approval chains to the right person, and it is not treated as complete until the approval is recorded. This applies to proposals, fee proposals, permits and drawings, so an approval is something you can point to rather than something you assume happened.
 
@@ -75,4 +75,4 @@ No. The audit log is immutable, and an activity timeline records changes across 
 
 ### Is workflow data kept on our own systems?
 
-Yes. ESTI is self-hosted with role-based access, so approvals, transmittals and the full audit trail stay on infrastructure your practice controls.
+Yes. AORMS is self-hosted with role-based access, so approvals, transmittals and the full audit trail stay on infrastructure your practice controls.

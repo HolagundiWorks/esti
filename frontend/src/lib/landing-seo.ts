@@ -15,7 +15,7 @@ export const LANDING_SEO = {
   footerBlurb:
     "AORMS is India's first standardized operational framework for managing architectural consultancy practices — built by Holagundi Consulting Works in Hospet, Karnataka, for offices that want to run with the same discipline as their drawings.",
   canonical: "https://aorms.in/",
-  siteName: "ESTI",
+  siteName: "AORMS",
 } as const;
 
 export function applyLandingSeo(): void {
