@@ -8,11 +8,13 @@ import {
   getAccountById,
   hasPlatformAdmin,
   loginWithPassword,
+  loginWithWorkspaceCredentials,
   registerWithPassword,
   upsertAccount,
   verifyEmailToken,
   type AccountView,
 } from "../modules/auth/service.js";
+import { env as workspaceEnv } from "../../env.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import {
   type OrgHandle,
@@ -638,7 +640,19 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(400);
       return { error: "invalid_credentials" };
     }
-    const account = await loginWithPassword(email, password);
+    let account = await loginWithPassword(email, password);
+    // Unified single-box installs: fall back to the WORKSPACE login (the seeded
+    // owner, owner-created staff) and mirror it onto a platform account, so one
+    // set of credentials works at both /login and /account. The workspace
+    // user's authenticator is enforced inside the fallback.
+    if (!account && workspaceEnv.ESTI_UNIFIED_ACCOUNTS) {
+      const adopted = await loginWithWorkspaceCredentials(email, password, body?.code?.trim());
+      if (adopted.kind === "totp_required" || adopted.kind === "totp_invalid") {
+        reply.code(401);
+        return { error: adopted.kind };
+      }
+      if (adopted.kind === "ok") account = adopted.account;
+    }
     if (!account) {
       reply.code(401);
       return { error: "invalid_credentials" };

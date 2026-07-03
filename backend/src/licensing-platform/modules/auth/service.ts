@@ -1,6 +1,10 @@
 import { and, eq, gt, or } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { hashPassword, verifyPassword } from "../../../auth/session.js";
+import { db as workspaceDb } from "../../../db/index.js";
+import { users as workspaceUsers } from "../../../db/schema/index.js";
+import { emailMatches } from "../../../lib/email.js";
+import { verifyTotp } from "../../../lib/totp.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
 import { hashApiKey } from "../../lib/apikey.js";
@@ -160,6 +164,77 @@ export async function registerWithPassword(input: {
  * a shell without a password hash cannot log in). Idempotent: an existing
  * handle is returned untouched, since the handle must never change.
  */
+export type WorkspaceAdoption =
+  | { kind: "ok"; account: AccountView }
+  | { kind: "totp_required" }
+  | { kind: "totp_invalid" }
+  | { kind: "invalid" };
+
+/**
+ * Unified single-box fallback (Phase 34): the /account portal accepts a
+ * WORKSPACE login (esti_user) that has no platform password yet — the seeded
+ * owner, owner-created staff. On success the platform account is created (or
+ * a passwordless shell claimed) mirroring the SAME password hash (both stores
+ * share the hasher), so one set of credentials works at /login and /account.
+ * A platform account that already has its own credentials is never touched.
+ * The workspace user's authenticator, when enabled, is enforced here too.
+ */
+export async function loginWithWorkspaceCredentials(
+  emailRaw: string,
+  password: string,
+  code?: string,
+): Promise<WorkspaceAdoption> {
+  const email = emailRaw.trim().toLowerCase();
+  const [u] = await workspaceDb
+    .select()
+    .from(workspaceUsers)
+    .where(emailMatches(workspaceUsers.email, email))
+    .limit(1);
+  if (!u || u.disabled || !u.passwordHash) return { kind: "invalid" };
+  if (!(await verifyPassword(u.passwordHash, password))) return { kind: "invalid" };
+  if (u.totpSecret) {
+    const trimmed = code?.trim();
+    if (!trimmed) return { kind: "totp_required" };
+    if (!verifyTotp(u.totpSecret, trimmed)) return { kind: "totp_invalid" };
+  }
+
+  const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
+  const [existing] = await db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  if (existing) {
+    // A real platform account (own password / Google) keeps its own
+    // credentials — the workspace password must not override them.
+    if (existing.passwordHash || existing.googleSub) return { kind: "invalid" };
+    const [claimed] = await db
+      .update(schema.accounts)
+      .set({
+        passwordHash: u.passwordHash,
+        name: existing.name ?? u.fullName,
+        publicId: existing.publicId ?? u.accountPublicId ?? null,
+        isPlatformAdmin: existing.isPlatformAdmin || grantAdmin,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.accounts.id, existing.id))
+      .returning();
+    return { kind: "ok", account: view(claimed!) };
+  }
+  const [created] = await db
+    .insert(schema.accounts)
+    .values({
+      id: newId("acc"),
+      email,
+      name: u.fullName,
+      passwordHash: u.passwordHash,
+      publicId: u.accountPublicId ?? null,
+      isPlatformAdmin: grantAdmin,
+    })
+    .returning();
+  return { kind: "ok", account: view(created!) };
+}
+
 /** Idempotently mint the AORMS-U handle for a signed-in account (instant-ID path). */
 export async function ensureAccountPublicId(accountId: string): Promise<string | null> {
   const [a] = await db
