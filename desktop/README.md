@@ -1,20 +1,19 @@
 # AORMS Desktop (Tauri shell)
 
-> **Manager rework in progress.** The shell is being converted from a "bundle
-> everything" app into a thin **Manager** that pulls its payload online: on
-> first run it takes a licence key, fetches a *signed* component manifest for
-> its edition (LITE = core only; PRO = core + AI), verifies each artifact
-> (Ed25519 manifest signature + per-file SHA-256), downloads it into a payload
-> store, launches the backend from there (no bundled sidecar), and supervises
-> it (restart-on-failure, DB/AI health). The Rust runtime for this lives in
-> `src/{provision,commands}.rs` + `src/supervisor/health.rs`; the build pipeline
-> that *produces* the components (and this README's build steps below) is not
-> yet updated. Runtime verification happens on the Windows CI. The sections
-> below still describe the current *bundled* build until that pipeline lands.
+> **Hybrid Manager model.** The installer ships a complete, licence-free
+> payload (backend + vendored Node sidecar) so a fresh install **runs offline
+> out of the box** as an unmanaged LITE node. Entering a licence key makes the
+> install *managed*: the Manager fetches a *signed* component manifest for its
+> edition (LITE = core only; PRO = core + AI), verifies each artifact (Ed25519
+> manifest signature + per-file SHA-256), downloads it into a payload store,
+> and launches the backend from there — falling back to the bundled payload
+> whenever the hub is unreachable, so the app always starts. The Rust runtime
+> lives in `src/provision/`, `src/commands.rs` + `src/supervisor/`; components
+> are produced by `desktop:package-components` and published from CI.
 
 Native desktop app: a Tauri 2 (Rust) shell that boots a **local PostgreSQL**, runs
-the **Node backend** (bundled sidecar today → provisioned payload under the
-Manager rework), and serves the existing **React/Carbon SPA** in the webview —
+the **Node backend** (bundled sidecar, or the provisioned payload on managed
+installs), and serves the existing **React/Carbon SPA** in the webview —
 all on the user's machine.
 
 ```

@@ -1,7 +1,9 @@
 name: desktop-installer
 
-# Builds the AORMS desktop **Manager** — one thin, edition-agnostic Tauri/NSIS
-# installer (the edition, LITE or PRO, is determined at runtime from the
+# Builds the AORMS desktop **Manager** — one edition-agnostic Tauri/NSIS
+# installer that ships the complete licence-free payload (backend + Node
+# sidecar), so a fresh install runs offline out of the box; a licence key at
+# runtime switches it to managed provisioning (LITE or PRO decided from the
 # licence) — on a clean Windows runner, and packages the downloadable
 # components (backend + Node runtime) the Manager pulls online. Manual
 # (workflow_dispatch) or on a `desktop-v*` tag, which also publishes the

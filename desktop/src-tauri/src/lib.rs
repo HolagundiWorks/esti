@@ -66,9 +66,35 @@ fn set_status(app: &AppHandle, status: ManagerStatus) {
     app.state::<ManagerState>().set(app, status);
 }
 
-/// Resolve where the backend runs from: a dev override, or the provisioned
-/// payload downloaded for this licence. Returns None when the install has no
-/// licence yet (the status window collects one, then the user relaunches).
+/// The payload bundled inside the installer: the vendored Node sidecar
+/// installed next to the app binary plus `resources/backend`. This is the
+/// licence-free LITE path — a fresh install runs offline out of the box.
+/// Returns None only for a thin Manager build shipped without a payload.
+fn bundled_backend(app: &AppHandle) -> Option<(PathBuf, PathBuf)> {
+    let exe = std::env::current_exe().ok()?;
+    let node = exe
+        .parent()?
+        .join(if cfg!(windows) { "esti-backend.exe" } else { "esti-backend" });
+    let script = app.path().resource_dir().ok().map(|r| {
+        let p = r
+            .join("resources")
+            .join("backend")
+            .join("dist")
+            .join("index.js")
+            .to_string_lossy()
+            .to_string();
+        // Strip the Windows \\?\ extended-length prefix that resource_dir()
+        // returns — Node's main-module resolver chokes on it.
+        PathBuf::from(p.strip_prefix(r"\\?\").map(str::to_string).unwrap_or(p))
+    })?;
+    (node.exists() && script.exists()).then_some((node, script))
+}
+
+/// Resolve where the backend runs from: a dev override, the provisioned
+/// payload downloaded for this licence, or the payload bundled in the
+/// installer (unmanaged/offline). Returns None only when there is neither a
+/// licence nor a bundled payload (the status window collects a key, then the
+/// user relaunches).
 async fn resolve_backend(app: &AppHandle, p: &paths::AppPaths) -> Result<Option<(PathBuf, PathBuf)>, String> {
     // Dev override: a local backend entry run by the system Node.
     if let Ok(script) = std::env::var("ESTI_BACKEND_SCRIPT") {
@@ -76,6 +102,10 @@ async fn resolve_backend(app: &AppHandle, p: &paths::AppPaths) -> Result<Option<
     }
 
     let Some(cfg) = provision::config::resolve(&p.secrets) else {
+        // Unmanaged install (no licence): run what the installer shipped.
+        if let Some(bundled) = bundled_backend(app) {
+            return Ok(Some(bundled));
+        }
         set_status(
             app,
             ManagerStatus {
@@ -87,6 +117,28 @@ async fn resolve_backend(app: &AppHandle, p: &paths::AppPaths) -> Result<Option<
         return Ok(None);
     };
 
+    match provision_backend(app, p, &cfg).await {
+        Ok(pair) => Ok(Some(pair)),
+        // A managed install that can't reach the hub (offline, hub down, no
+        // manifest published yet) still starts on the bundled payload rather
+        // than dead-ending; the next launch retries provisioning.
+        Err(e) => match bundled_backend(app) {
+            Some(bundled) => {
+                log::warn!("provisioning failed ({e}); starting the bundled payload instead");
+                Ok(Some(bundled))
+            }
+            None => Err(e),
+        },
+    }
+}
+
+/// Managed path: fetch the signed manifest for this licence and download +
+/// verify every component, reporting progress to the status window.
+async fn provision_backend(
+    app: &AppHandle,
+    p: &paths::AppPaths,
+    cfg: &provision::config::ProvisionConfig,
+) -> Result<(PathBuf, PathBuf), String> {
     set_status(
         app,
         ManagerStatus {
@@ -129,7 +181,6 @@ async fn resolve_backend(app: &AppHandle, p: &paths::AppPaths) -> Result<Option<
     }
 
     provision::backend_launch(&provisioned)
-        .map(Some)
         .ok_or_else(|| "payload is missing the node or backend component".to_string())
 }
 
