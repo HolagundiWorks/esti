@@ -9,8 +9,10 @@ import {
   Tile,
 } from "@carbon/react";
 import {
+  PULSE_ACTION_LABEL,
   STANDUP_RESPONSE_LABEL,
   STANDUP_SESSION_LABEL,
+  type PulseActionType,
   type StandupResponseStatus,
 } from "@esti/contracts";
 import { useState } from "react";
@@ -67,6 +69,19 @@ export function PulseStandupModal({
 
   const questions = questionsQ.data ?? [];
   const pendingCount = questions.filter((q) => q.responseStatus === "PENDING").length;
+
+  const actionsQ = trpc.pulse.actions.list.useQuery({ projectId, status: "PROPOSED" }, { enabled: open && !!projectId });
+  const proposeActions = trpc.pulse.actions.propose.useMutation({
+    onSuccess: () => void utils.pulse.actions.list.invalidate({ projectId, status: "PROPOSED" }),
+  });
+  const decideAction = trpc.pulse.actions.decide.useMutation({
+    onSuccess: () => {
+      void utils.pulse.actions.list.invalidate({ projectId, status: "PROPOSED" });
+      void utils.tasks.list.invalidate();
+      if (activeSessionId) void utils.pulse.standup.questions.invalidate({ standupSessionId: activeSessionId });
+    },
+  });
+  const proposedActions = actionsQ.data ?? [];
 
   return (
     <Modal open={open} modalHeading={`Standup — ${projectLabel}`} passiveModal size="lg" onRequestClose={onClose}>
@@ -164,6 +179,53 @@ export function PulseStandupModal({
         {activeSessionId && questions.length === 0 && !questionsQ.isLoading && (
           <p className="esti-label esti-label--secondary">No questions in this session.</p>
         )}
+
+        <Stack gap={3}>
+          <Stack orientation="horizontal" gap={3}>
+            <span className="esti-label esti-label--secondary esti-grow">PENDING ACTIONS</span>
+            <Button
+              kind="ghost"
+              size="sm"
+              disabled={proposeActions.isPending}
+              onClick={() => proposeActions.mutate({})}
+            >
+              {proposeActions.isPending ? "Checking…" : "Check for actions"}
+            </Button>
+          </Stack>
+
+          {proposedActions.length === 0 ? (
+            <p className="esti-label esti-label--secondary">No pending actions.</p>
+          ) : (
+            proposedActions.map((a) => (
+              <Tile key={a.id}>
+                <Stack gap={3}>
+                  <Tag type="purple" size="sm">
+                    {PULSE_ACTION_LABEL[a.actionType as PulseActionType] ?? a.actionType}
+                  </Tag>
+                  <p>{a.description}</p>
+                  <Stack orientation="horizontal" gap={3}>
+                    <Button
+                      size="sm"
+                      kind="primary"
+                      disabled={decideAction.isPending}
+                      onClick={() => decideAction.mutate({ id: a.id, decision: "APPROVED" })}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      kind="ghost"
+                      disabled={decideAction.isPending}
+                      onClick={() => decideAction.mutate({ id: a.id, decision: "REJECTED" })}
+                    >
+                      Reject
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Tile>
+            ))
+          )}
+        </Stack>
       </Stack>
     </Modal>
   );

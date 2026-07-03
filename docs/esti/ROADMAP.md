@@ -118,7 +118,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 **Gate — MET:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under
 its V3 pillar); no module appears twice; consultancy-only removals complete.
 
-## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — ◐ P-1 + P-2 shipped 2026-07-03
+## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — ◐ P-1 + P-2 + P-3 shipped 2026-07-03
 
 **Canonical spec:** [ESTI-PULSE.md](ESTI-PULSE.md). The task-risk and
 dependency-resolution engine: dependency graph, missing-parameter detection,
@@ -146,8 +146,17 @@ limited auto) — promotion is an explicit owner action.
   Stage-1/2 agent only (template composition, zero LLM). UI: Standup modal in
   the Work hub Tasks tab (project picker → run → answer in place). 7 more
   contract unit tests (24 total for pulse.ts).
-- [ ] **P-3 Approval agent** — Stage-3 actions after recorded human approval;
-  escalation ladder (assignee → reviewer → owner).
+- [x] **P-3 Approval agent** — `esti_pulse_action` (migration `0147`); Module 8
+  Stage 3 only, by construction — `pulse.actions.propose` (30-min tick,
+  `proposePulseActions`) only ever inserts PROPOSED rows, and `pulse.actions.decide`
+  is the sole write path: REJECTED just records the decision, APPROVED executes
+  and marks EXECUTED. Two proposal kinds, both mechanically resolvable (no
+  invented directories): **ESCALATE_QUESTION** — a standup question PENDING
+  ≥24h climbs assignee → `esti_task.reviewerId` → the team member linked to
+  the firm's OWNER-role user (`nextEscalationRung`, `isOverdueForEscalation`);
+  **CREATE_FOLLOWUP_TASK** — a BLOCKED/NEEDS_REVIEW answer spawns a HIGH-priority
+  task in the same project. UI: "Pending actions" panel in the Standup modal
+  (Approve/Reject). 5 more contract unit tests (29 total for pulse.ts).
 - [ ] **P-4 RAG + Stage 4** — pgvector embeddings over office records; grounded
   explanations that cite sources; limited auto-actions.
 

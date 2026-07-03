@@ -35,7 +35,7 @@ import { refreshNow } from "./modules/license/consumer.js";
 import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
-import { runDueStandups } from "./lib/pulseEngine.js";
+import { proposePulseActions, runDueStandups } from "./lib/pulseEngine.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { registerLicensingPlatform } from "./licensing-platform/register.js";
@@ -181,6 +181,20 @@ const standupTick = async () => {
   }
 };
 setInterval(() => void standupTick(), 5 * 60_000).unref();
+
+// ESTI Pulse — approval-based action agent (Module 8 Stage 3). Every 30
+// minutes, propose escalations for overdue standup questions and follow-up
+// tasks for BLOCKED/NEEDS_REVIEW answers. Proposals only — nothing here
+// writes to a task or question without a human approving via pulse.actions.decide.
+const pulseActionsTick = async () => {
+  try {
+    const r = await proposePulseActions(db);
+    if (r.escalationsProposed || r.followupsProposed) app.log.info(r, "pulse actions proposed");
+  } catch (err) {
+    app.log.warn(err, "pulse action proposal sweep failed");
+  }
+};
+setInterval(() => void pulseActionsTick(), 30 * 60_000).unref();
 
 if (isSmtpConfigured()) {
   app.log.info({ to: env.BETA_REQUEST_NOTIFY_TO }, "beta request mail enabled");

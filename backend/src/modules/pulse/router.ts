@@ -2,6 +2,7 @@ import {
   DependencyCreate,
   MissingParameterCreate,
   MissingParameterResolve,
+  PulseActionDecide,
   STANDUP_SESSION_LABEL,
   StandupAnswer,
   StandupRun,
@@ -9,17 +10,25 @@ import {
   missingParameterStatusForResponse,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   projectOffices,
+  pulseActions,
   standupQuestions,
   standupSessions,
   taskDependencies,
   taskMissingParameters,
   tasks,
 } from "../../db/schema.js";
-import { ACTIVE_STATUS, reconcileMissingParameters, recomputeScores, runStandupForProject } from "../../lib/pulseEngine.js";
+import {
+  ACTIVE_STATUS,
+  decidePulseAction,
+  proposePulseActions,
+  reconcileMissingParameters,
+  recomputeScores,
+  runStandupForProject,
+} from "../../lib/pulseEngine.js";
 import { writeActivity } from "../../lib/activity.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -331,5 +340,51 @@ export const pulseRouter = router({
         if (!row) throw new TRPCError({ code: "NOT_FOUND" });
         return row;
       }),
+  }),
+
+  /**
+   * Module 8 Stage 3 — the approval-based action agent. `propose` only
+   * ever inserts PROPOSED rows; `decide` is the sole path to APPROVED/
+   * REJECTED/EXECUTED, and an APPROVED decision is the only way anything
+   * here writes to a task or a standup question.
+   */
+  actions: router({
+    /** Sweep for overdue escalations and blocked/needs-review follow-ups. */
+    propose: protectedProcedure
+      .input(z.object({ hoursThreshold: z.number().int().min(1).max(240).optional() }).optional())
+      .mutation(async ({ ctx, input }) => proposePulseActions(ctx.db, { hoursThreshold: input?.hoursThreshold })),
+
+    list: protectedProcedure
+      .input(
+        z.object({
+          projectId: z.string().uuid().optional(),
+          status: z.enum(["PROPOSED", "APPROVED", "REJECTED", "EXECUTED"]).optional(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        const filters = [];
+        if (input.status) filters.push(eq(pulseActions.status, input.status));
+        if (input.projectId) {
+          const projectTasks = await ctx.db.select({ id: tasks.id }).from(tasks).where(eq(tasks.projectId, input.projectId));
+          const ids = projectTasks.map((t) => t.id);
+          if (ids.length === 0) return [];
+          filters.push(inArray(pulseActions.taskId, ids));
+        }
+        return ctx.db
+          .select()
+          .from(pulseActions)
+          .where(filters.length ? and(...filters) : undefined)
+          .orderBy(desc(pulseActions.createdAt));
+      }),
+
+    /** The sole write path — an APPROVED decision executes the action; REJECTED just records it. */
+    decide: protectedProcedure.input(PulseActionDecide).mutation(async ({ ctx, input }) => {
+      try {
+        return await decidePulseAction(ctx.db, { id: input.id, decision: input.decision, decidedById: ctx.user.id });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Could not decide pulse action";
+        throw new TRPCError({ code: message.includes("not found") ? "NOT_FOUND" : "BAD_REQUEST", message });
+      }
+    }),
   }),
 });

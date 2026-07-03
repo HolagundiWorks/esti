@@ -1,6 +1,6 @@
 # ESTI Pulse — Project Standup Engine
 
-**Status:** ◐ P-1 + P-2 shipped 2026-07-03, P-3–P-4 planned · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
+**Status:** ◐ P-1 + P-2 + P-3 shipped 2026-07-03, P-4 planned · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
 
 ESTI Pulse is an **ESTI capability** — part of the Embedded Studio
 Intelligence layer inside the AORMS workspace — that periodically reviews
@@ -73,6 +73,8 @@ Studio Intelligence dashboard + notifications
 | **Standup sessions + questions** (P-2) | `esti_standup_session` / `esti_standup_question` (migration `0146`) + `pulse.standup.*` | ✅ live |
 | **Standup scheduler** (P-2) | `runDueStandups()` — 5-min server tick, `backend/src/index.ts` | ✅ live (best-effort, server-local time) |
 | **Standup UI** (P-2) | `PulseStandupModal.tsx` — launched from the Work hub Tasks tab (project-scoped) | ✅ live |
+| **Approval-based action agent** (P-3) | `esti_pulse_action` (migration `0147`) + `pulse.actions.{propose,list,decide}` — escalation ladder + follow-up task proposals, approve/reject only | ✅ live |
+| **Action proposal scheduler** (P-3) | 30-min server tick — `proposePulseActions()`, `backend/src/index.ts` | ✅ live |
 
 ## 4. Module 1 — Task Dependency Graph
 
@@ -315,7 +317,7 @@ esti_task_priority_log        id · task_id · old/new_priority_score · old/new
 |---|---|---|
 | **P-1 Graph + gaps** ✅ | `esti_task_dependency` + `esti_task_missing_param` + detector rules; band display (CRITICAL…BACKLOG); confidence column + formula; priority log | Blocked/low-confidence tasks visible in Work hub + Studio Intelligence; scores reproducible from inputs |
 | **P-2 Standup loop** ✅ | `esti_standup_session/question` (migration `0146`); best-effort server-local scheduler (09/12/15/18, once/project/day); question routing (asked to the task's assignee); typed responses; Stage-1/2 agent (template composition only, zero LLM) | A full standup runs end-to-end with zero LLM required; questions are specific, routed, and answerable in-app |
-| **P-3 Approval agent** | Stage-3 actions (send after approval, update fields, follow-up tasks); escalation ladder | No agent write without a recorded human approval; audit trail complete |
+| **P-3 Approval agent** ✅ | Stage-3 actions (escalate, follow-up tasks) proposed on a schedule; approve/reject-only decision path | No agent write without a recorded human approval; audit trail complete |
 | **P-4 RAG + Stage 4** | pgvector embeddings over office records; grounded explanations; limited auto-actions | Explanations cite source records; auto-actions limited to the Stage-4 list |
 
 Naming: the module is **ESTI Pulse** (product name), namespace `pulse`

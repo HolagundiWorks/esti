@@ -327,3 +327,51 @@ export const StandupRun = z.object({
   sessionType: StandupSessionType.default("AD_HOC"),
 });
 export type StandupRun = z.infer<typeof StandupRun>;
+
+/**
+ * ESTI Pulse — Project Standup Engine (P-3: approval-based action agent).
+ * Module 8 Stage 3: the agent PROPOSES; it never writes without a recorded
+ * human approval. Two proposal kinds, both mechanically resolvable from
+ * existing task/team data — no invented directories, no LLM:
+ *   - ESCALATE_QUESTION: an unanswered standup question climbs the ladder.
+ *   - CREATE_FOLLOWUP_TASK: a BLOCKED/NEEDS_REVIEW answer spawns a tracked task.
+ */
+
+export const PulseActionType = z.enum(["ESCALATE_QUESTION", "CREATE_FOLLOWUP_TASK"]);
+export type PulseActionType = z.infer<typeof PulseActionType>;
+
+export const PULSE_ACTION_LABEL: Record<PulseActionType, string> = {
+  ESCALATE_QUESTION: "Escalate unanswered question",
+  CREATE_FOLLOWUP_TASK: "Create follow-up task",
+};
+
+export const PulseActionStatus = z.enum(["PROPOSED", "APPROVED", "REJECTED", "EXECUTED"]);
+export type PulseActionStatus = z.infer<typeof PulseActionStatus>;
+
+/** Module 8: escalation ladder rungs — assignee → reviewer → owner. */
+export const EscalationRung = z.enum(["ASSIGNEE", "REVIEWER", "OWNER"]);
+export type EscalationRung = z.infer<typeof EscalationRung>;
+
+/** Pure ladder step. Returns null once already at OWNER — nowhere further to escalate. */
+export function nextEscalationRung(rung: EscalationRung): EscalationRung | null {
+  if (rung === "ASSIGNEE") return "REVIEWER";
+  if (rung === "REVIEWER") return "OWNER";
+  return null;
+}
+
+/** A PENDING standup question becomes escalation-eligible once it's sat unanswered this long. */
+export function isOverdueForEscalation(
+  question: { responseStatus: string; createdAt: string | Date },
+  now: Date,
+  hoursThreshold = 24,
+): boolean {
+  if (question.responseStatus !== "PENDING") return false;
+  const ageHours = (now.getTime() - new Date(question.createdAt).getTime()) / (1000 * 60 * 60);
+  return ageHours >= hoursThreshold;
+}
+
+export const PulseActionDecide = z.object({
+  id: z.string().uuid(),
+  decision: z.enum(["APPROVED", "REJECTED"]),
+});
+export type PulseActionDecide = z.infer<typeof PulseActionDecide>;

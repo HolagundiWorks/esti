@@ -1,10 +1,12 @@
 /**
  * ESTI Pulse — Project Standup Engine (P-1: deterministic core, P-2: standup
- * loop). Spec: docs/esti/ESTI-PULSE.md. Generalises `esti_task.dependsOnId`
- * into a dependency graph, records typed missing-parameter gaps, logs every
- * priority/confidence recalculation, and runs scheduled standup cycles that
- * ask one grouped, targeted question per task with open gaps.
+ * loop, P-3: approval-based action agent). Spec: docs/esti/ESTI-PULSE.md.
+ * Generalises `esti_task.dependsOnId` into a dependency graph, records typed
+ * missing-parameter gaps, logs every priority/confidence recalculation, runs
+ * scheduled standup cycles, and proposes escalation/follow-up actions that
+ * only execute after a recorded human approval.
  */
+import { users } from "./org-auth.js";
 import { teamMembers, tasks } from "./hr-work.js";
 import { projectOffices } from "./project.js";
 import { createdAt, id, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "./_helpers.js";
@@ -92,6 +94,31 @@ export const standupQuestions = pgTable("esti_standup_question", {
   /** PENDING | CONFIRMED | BLOCKED | NOT_REQUIRED | NEEDS_REVIEW | ATTACHED_DOCUMENT | COMMENT_ONLY. */
   responseStatus: text("response_status").notNull().default("PENDING"),
   responseText: text("response_text"),
+  /** Module 8 escalation ladder position: ASSIGNEE | REVIEWER | OWNER. */
+  escalationRung: text("escalation_rung").notNull().default("ASSIGNEE"),
   createdAt: createdAt(),
   answeredAt: timestamp("answered_at", { withTimezone: true }),
+});
+
+/**
+ * A proposed agent action (Module 8 Stage 3) — never executes until a human
+ * approves it. ESCALATE_QUESTION climbs the ladder on an overdue question;
+ * CREATE_FOLLOWUP_TASK spawns a tracked task from a BLOCKED/NEEDS_REVIEW answer.
+ */
+export const pulseActions = pgTable("esti_pulse_action", {
+  id: id(),
+  /** ESCALATE_QUESTION | CREATE_FOLLOWUP_TASK. */
+  actionType: text("action_type").notNull(),
+  standupQuestionId: uuid("standup_question_id").references(() => standupQuestions.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+  /** Who the executed action would notify/reassign to (escalation target, or the follow-up task's assignee). */
+  targetTeamMemberId: uuid("target_team_member_id").references(() => teamMembers.id, { onDelete: "set null" }),
+  /** Deterministic, human-readable proposal text — never LLM-generated. */
+  description: text("description").notNull(),
+  /** PROPOSED | APPROVED | REJECTED | EXECUTED. */
+  status: text("status").notNull().default("PROPOSED"),
+  decidedById: uuid("decided_by_id").references(() => users.id, { onDelete: "set null" }),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  executedAt: timestamp("executed_at", { withTimezone: true }),
+  createdAt: createdAt(),
 });

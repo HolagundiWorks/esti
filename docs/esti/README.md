@@ -42,7 +42,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [HR-PROFILE-SYSTEM](HR-PROFILE-SYSTEM.md) | HR/payroll module — leaves, payroll, salary visibility, org/HR modes |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership, ADRs |
 | [COGNITION-ENGINE](COGNITION-ENGINE.md) | Continuous office cognition, deterministic scoring, interventions, and LLM boundary |
-| [ESTI-PULSE](ESTI-PULSE.md) | **Phase 33, ◐ P-1 + P-2 shipped** — Project Standup Engine: task dependency graph, missing-parameter detection, confidence + priority bands, and the scheduled standup question loop are live; the approval-gated agent (P-3) and RAG (P-4) still planned |
+| [ESTI-PULSE](ESTI-PULSE.md) | **Phase 33, ◐ P-1 + P-2 + P-3 shipped** — Project Standup Engine: dependency graph, missing-parameter detection, confidence + priority bands, the scheduled standup loop, and the approval-gated escalation/follow-up agent are all live; RAG (P-4) still planned |
 | [ROADMAP](ROADMAP.md) | Current status, gaps, sequence, and acceptance gates |
 | [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore drill, health probes |
 | [DEMO-AND-HR-MODE.md](DEMO-AND-HR-MODE.md) | Team demo account set and seed commands |

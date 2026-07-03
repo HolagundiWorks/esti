@@ -5,7 +5,9 @@ import {
   computeConfidenceScore,
   detectMissingParameters,
   dueStandupCycle,
+  isOverdueForEscalation,
   missingParameterStatusForResponse,
+  nextEscalationRung,
 } from "./pulse.js";
 
 describe("bandForScore", () => {
@@ -236,5 +238,39 @@ describe("composeStandupQuestion", () => {
     expect(text).not.toMatch(/please update your tasks/i);
     expect(text).toContain("Alpha");
     expect(text).toContain("Tile selection");
+  });
+});
+
+describe("nextEscalationRung", () => {
+  it("climbs assignee -> reviewer -> owner -> nowhere", () => {
+    expect(nextEscalationRung("ASSIGNEE")).toBe("REVIEWER");
+    expect(nextEscalationRung("REVIEWER")).toBe("OWNER");
+    expect(nextEscalationRung("OWNER")).toBeNull();
+  });
+});
+
+describe("isOverdueForEscalation", () => {
+  const now = new Date("2026-07-03T12:00:00Z");
+
+  it("is not overdue before the threshold", () => {
+    const createdAt = new Date("2026-07-03T00:00:00Z"); // 12h old
+    expect(isOverdueForEscalation({ responseStatus: "PENDING", createdAt }, now)).toBe(false);
+  });
+
+  it("is overdue once past the default 24h threshold", () => {
+    const createdAt = new Date("2026-07-02T11:00:00Z"); // 25h old
+    expect(isOverdueForEscalation({ responseStatus: "PENDING", createdAt }, now)).toBe(true);
+  });
+
+  it("respects a custom threshold", () => {
+    const createdAt = new Date("2026-07-03T06:00:00Z"); // 6h old
+    expect(isOverdueForEscalation({ responseStatus: "PENDING", createdAt }, now, 4)).toBe(true);
+    expect(isOverdueForEscalation({ responseStatus: "PENDING", createdAt }, now, 8)).toBe(false);
+  });
+
+  it("is never overdue once answered", () => {
+    const createdAt = new Date("2026-07-01T00:00:00Z"); // very old
+    expect(isOverdueForEscalation({ responseStatus: "CONFIRMED", createdAt }, now)).toBe(false);
+    expect(isOverdueForEscalation({ responseStatus: "BLOCKED", createdAt }, now)).toBe(false);
   });
 });

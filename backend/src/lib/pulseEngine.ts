@@ -6,25 +6,34 @@
 import {
   AUTO_MISSING_PARAMETER_TYPES,
   MISSING_PARAMETER_LABEL,
+  PULSE_ACTION_LABEL,
   STANDUP_CUTOFF_LABEL,
   composeStandupQuestion,
   computeConfidenceScore,
   computeTaskPriority,
   detectMissingParameters,
   dueStandupCycle,
+  isOverdueForEscalation,
+  nextEscalationRung,
+  type EscalationRung,
   type MissingParameterType,
+  type PulseActionType,
   type StandupSessionType,
 } from "@esti/contracts";
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { DB } from "../db/index.js";
+import { writeActivity } from "./activity.js";
 import {
   projectOffices,
+  pulseActions,
   standupQuestions,
   standupSessions,
   taskDependencies,
   taskMissingParameters,
   taskPriorityLogs,
   tasks,
+  teamMembers,
+  users,
 } from "../db/schema.js";
 
 export const ACTIVE_STATUS = and(ne(tasks.status, "DONE"), ne(tasks.status, "CANCELLED"));
@@ -307,4 +316,229 @@ export async function runDueStandups(db: DB, now: Date = new Date()) {
     triggered++;
   }
   return { triggered };
+}
+
+/** The team member linked to the firm's single OWNER-role user, if any. */
+async function resolveOwnerTeamMemberId(db: DB): Promise<string | null> {
+  const [row] = await db
+    .select({ id: teamMembers.id })
+    .from(teamMembers)
+    .innerJoin(users, eq(users.id, teamMembers.userId))
+    .where(and(eq(users.role, "OWNER"), eq(teamMembers.active, true)))
+    .limit(1);
+  return row?.id ?? null;
+}
+
+/** The team member id at a given escalation rung for a question's task, or null if unresolvable. */
+async function resolveRungTarget(
+  db: DB,
+  rung: EscalationRung,
+  task: { assigneeId: string | null; reviewerId: string | null },
+): Promise<string | null> {
+  if (rung === "ASSIGNEE") return task.assigneeId;
+  if (rung === "REVIEWER") return task.reviewerId;
+  return resolveOwnerTeamMemberId(db);
+}
+
+/**
+ * Module 8 Stage 3 — propose escalating standup questions that have sat
+ * PENDING past the threshold. Never escalates twice for the same question
+ * while a proposal is still outstanding, and never proposes escalating to a
+ * rung with no resolvable target (e.g. no reviewer set) or the same person
+ * already holding the question.
+ */
+export async function proposeEscalations(db: DB, opts: { hoursThreshold?: number; now?: Date } = {}) {
+  const now = opts.now ?? new Date();
+  const hoursThreshold = opts.hoursThreshold ?? 24;
+
+  const pending = await db
+    .select({
+      id: standupQuestions.id,
+      taskId: standupQuestions.taskId,
+      askedTo: standupQuestions.askedTo,
+      escalationRung: standupQuestions.escalationRung,
+      responseStatus: standupQuestions.responseStatus,
+      createdAt: standupQuestions.createdAt,
+    })
+    .from(standupQuestions)
+    .where(eq(standupQuestions.responseStatus, "PENDING"));
+
+  const overdue = pending.filter((q) => isOverdueForEscalation(q, now, hoursThreshold));
+  if (overdue.length === 0) return { proposed: 0 };
+
+  const taskIds = [...new Set(overdue.map((q) => q.taskId))];
+  const taskRows = taskIds.length
+    ? await db.select({ id: tasks.id, title: tasks.title, assigneeId: tasks.assigneeId, reviewerId: tasks.reviewerId }).from(tasks).where(inArray(tasks.id, taskIds))
+    : [];
+  const taskById = new Map(taskRows.map((t) => [t.id, t]));
+
+  const existingProposals = overdue.length
+    ? await db
+        .select({ standupQuestionId: pulseActions.standupQuestionId })
+        .from(pulseActions)
+        .where(
+          and(
+            eq(pulseActions.actionType, "ESCALATE_QUESTION" satisfies PulseActionType),
+            eq(pulseActions.status, "PROPOSED"),
+            inArray(pulseActions.standupQuestionId, overdue.map((q) => q.id)),
+          ),
+        )
+    : [];
+  const alreadyProposed = new Set(existingProposals.map((r) => r.standupQuestionId));
+
+  let proposed = 0;
+  for (const q of overdue) {
+    if (alreadyProposed.has(q.id)) continue;
+    const rung = (q.escalationRung as EscalationRung) ?? "ASSIGNEE";
+    const nextRung = nextEscalationRung(rung);
+    if (!nextRung) continue; // already at OWNER — nowhere further to go
+
+    const task = taskById.get(q.taskId);
+    if (!task) continue;
+    const target = await resolveRungTarget(db, nextRung, task);
+    if (!target || target === q.askedTo) continue;
+
+    await db.insert(pulseActions).values({
+      actionType: "ESCALATE_QUESTION" satisfies PulseActionType,
+      standupQuestionId: q.id,
+      taskId: q.taskId,
+      targetTeamMemberId: target,
+      description: `${PULSE_ACTION_LABEL.ESCALATE_QUESTION}: "${task.title}" has been unanswered for ${hoursThreshold}h+ — escalate to ${nextRung.toLowerCase()}.`,
+    });
+    proposed++;
+  }
+  return { proposed };
+}
+
+/**
+ * Module 8 Stage 3 — propose a follow-up task for every standup question
+ * answered BLOCKED or NEEDS_REVIEW that doesn't already have one proposed.
+ */
+export async function proposeFollowupTasks(db: DB, opts: { projectId?: string } = {}) {
+  const filters = [or(eq(standupQuestions.responseStatus, "BLOCKED"), eq(standupQuestions.responseStatus, "NEEDS_REVIEW"))];
+  const flagged = await db
+    .select({ id: standupQuestions.id, taskId: standupQuestions.taskId, responseText: standupQuestions.responseText })
+    .from(standupQuestions)
+    .where(and(...filters));
+  if (flagged.length === 0) return { proposed: 0 };
+
+  const taskIds = [...new Set(flagged.map((q) => q.taskId))];
+  const taskRows = await db
+    .select({ id: tasks.id, title: tasks.title, projectId: tasks.projectId, assigneeId: tasks.assigneeId })
+    .from(tasks)
+    .where(
+      opts.projectId
+        ? and(inArray(tasks.id, taskIds), eq(tasks.projectId, opts.projectId))
+        : inArray(tasks.id, taskIds),
+    );
+  const taskById = new Map(taskRows.map((t) => [t.id, t]));
+
+  const existingProposals = await db
+    .select({ standupQuestionId: pulseActions.standupQuestionId })
+    .from(pulseActions)
+    .where(
+      and(
+        eq(pulseActions.actionType, "CREATE_FOLLOWUP_TASK" satisfies PulseActionType),
+        inArray(
+          pulseActions.standupQuestionId,
+          flagged.map((q) => q.id),
+        ),
+      ),
+    );
+  const alreadyProposed = new Set(existingProposals.map((r) => r.standupQuestionId));
+
+  let proposed = 0;
+  for (const q of flagged) {
+    if (alreadyProposed.has(q.id)) continue;
+    const task = taskById.get(q.taskId);
+    if (!task) continue;
+
+    await db.insert(pulseActions).values({
+      actionType: "CREATE_FOLLOWUP_TASK" satisfies PulseActionType,
+      standupQuestionId: q.id,
+      taskId: task.id,
+      targetTeamMemberId: task.assigneeId,
+      description: `${PULSE_ACTION_LABEL.CREATE_FOLLOWUP_TASK}: "${task.title}" was reported blocked${q.responseText ? ` — "${q.responseText}"` : ""}.`,
+    });
+    proposed++;
+  }
+  return { proposed };
+}
+
+/** Run both P-3 proposal sweeps together — used by the scheduler tick. */
+export async function proposePulseActions(db: DB, opts: { hoursThreshold?: number; now?: Date } = {}) {
+  const [escalations, followups] = await Promise.all([proposeEscalations(db, opts), proposeFollowupTasks(db)]);
+  return { escalationsProposed: escalations.proposed, followupsProposed: followups.proposed };
+}
+
+/**
+ * Module 8 Stage 3 gate: no agent write without a recorded human approval.
+ * REJECTED just records the decision. APPROVED executes immediately —
+ * ESCALATE_QUESTION reassigns the question and advances its rung;
+ * CREATE_FOLLOWUP_TASK inserts a new task in the same project — then marks
+ * the action EXECUTED.
+ */
+export async function decidePulseAction(
+  db: DB,
+  opts: { id: string; decision: "APPROVED" | "REJECTED"; decidedById: string },
+) {
+  const [action] = await db.select().from(pulseActions).where(eq(pulseActions.id, opts.id));
+  if (!action) throw new Error("Pulse action not found");
+  if (action.status !== "PROPOSED") throw new Error("Pulse action already decided");
+
+  await db
+    .update(pulseActions)
+    .set({ status: opts.decision, decidedById: opts.decidedById, decidedAt: new Date() })
+    .where(eq(pulseActions.id, opts.id));
+
+  if (opts.decision === "REJECTED") return { ...action, status: "REJECTED" as const };
+
+  if (action.actionType === ("ESCALATE_QUESTION" satisfies PulseActionType) && action.standupQuestionId) {
+    const [question] = await db.select().from(standupQuestions).where(eq(standupQuestions.id, action.standupQuestionId));
+    if (question) {
+      const nextRung = nextEscalationRung((question.escalationRung as EscalationRung) ?? "ASSIGNEE");
+      await db
+        .update(standupQuestions)
+        .set({ askedTo: action.targetTeamMemberId, escalationRung: nextRung ?? question.escalationRung })
+        .where(eq(standupQuestions.id, question.id));
+      const [task] = await db.select().from(tasks).where(eq(tasks.id, question.taskId));
+      if (task?.projectId) {
+        await writeActivity(db, {
+          projectId: task.projectId,
+          objectType: "task",
+          objectId: task.id,
+          eventType: "pulse.question_escalated",
+          summary: `Standup question on "${task.title}" escalated to ${nextRung?.toLowerCase() ?? "owner"}`,
+          metadata: { standupQuestionId: question.id, rung: nextRung },
+        });
+      }
+    }
+  } else if (action.actionType === ("CREATE_FOLLOWUP_TASK" satisfies PulseActionType) && action.taskId) {
+    const [sourceTask] = await db.select().from(tasks).where(eq(tasks.id, action.taskId));
+    if (sourceTask) {
+      const [created] = await db
+        .insert(tasks)
+        .values({
+          title: `Resolve blocker: ${sourceTask.title}`,
+          projectId: sourceTask.projectId,
+          assigneeId: action.targetTeamMemberId ?? sourceTask.assigneeId,
+          priority: "HIGH",
+          status: "TODO",
+        })
+        .returning();
+      if (created && sourceTask.projectId) {
+        await writeActivity(db, {
+          projectId: sourceTask.projectId,
+          objectType: "task",
+          objectId: created.id,
+          eventType: "pulse.followup_task_created",
+          summary: `Follow-up task created from "${sourceTask.title}"`,
+          metadata: { sourceTaskId: sourceTask.id, pulseActionId: action.id },
+        });
+      }
+    }
+  }
+
+  await db.update(pulseActions).set({ status: "EXECUTED", executedAt: new Date() }).where(eq(pulseActions.id, opts.id));
+  return { ...action, status: "EXECUTED" as const };
 }
