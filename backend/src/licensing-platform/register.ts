@@ -1,6 +1,7 @@
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import type { FastifyInstance } from "fastify";
 import { registerAuthRoutes } from "./routes/auth.js";
+import { registerGoogleRoutes } from "./routes/google.js";
 import { registerV1Routes } from "./routes/v1.js";
 import { appRouter } from "./trpc/router.js";
 import { createContext } from "./trpc/trpc.js";
@@ -19,6 +20,7 @@ export async function registerLicensingPlatform(app: FastifyInstance): Promise<v
   await app.register(
     async (scope) => {
       registerAuthRoutes(scope);
+      registerGoogleRoutes(scope);
       registerV1Routes(scope);
       await scope.register(fastifyTRPCPlugin, {
         prefix: "/trpc",

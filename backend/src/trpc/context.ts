@@ -4,6 +4,7 @@ import { userFromDeviceToken } from "../auth/device.js";
 import { SESSION_COOKIE, userFromToken, type AuthUser } from "../auth/session.js";
 import { db } from "../db/index.js";
 import { env } from "../env.js";
+import { readSession as readPlatformSession } from "../licensing-platform/lib/session.js";
 
 export interface Context {
   db: typeof db;
@@ -16,6 +17,10 @@ export interface Context {
   requestId: string;
   /** Opaque session cookie value when present (for logout revocation). */
   sessionToken: string | undefined;
+  /** Signed-in platform (hlp) account, when an hlp_session cookie rides along —
+   *  lets unified installs exchange a Google/platform sign-in for a workspace
+   *  session (auth.sessionFromPlatform). */
+  platformAccountId: string | null;
   setCookie: (name: string, value: string) => void;
 }
 
@@ -45,6 +50,7 @@ export async function createContext({ req, res }: CreateFastifyContextOptions): 
     ip: req.ip,
     requestId: String(req.id),
     sessionToken: cookieToken,
+    platformAccountId: readPlatformSession(req)?.accountId ?? null,
     setCookie: (name, value) =>
       void res.setCookie(name, value, {
         httpOnly: true,

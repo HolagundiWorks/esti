@@ -27,7 +27,10 @@ import {
   provisionLocalUser,
   verifyAtPlatform,
 } from "../../lib/identityDelegate.js";
-import { verifyLogin as verifyPlatformLogin } from "../../licensing-platform/modules/auth/service.js";
+import {
+  getAccountById as getPlatformAccount,
+  verifyLogin as verifyPlatformLogin,
+} from "../../licensing-platform/modules/auth/service.js";
 import { activeCompaniesByEmail } from "../../licensing-platform/modules/membership/service.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
@@ -275,6 +278,54 @@ export const authRouter = router({
     // the SPA every company this person can enter. It shows a picker when
     // there is more than just this studio's workspace.
     const companies = env.ESTI_UNIFIED_ACCOUNTS ? await activeCompaniesByEmail(email) : [];
+    const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName, companies };
+    return env.DESKTOP ? { ...profile, token } : profile;
+  }),
+
+  /**
+   * Exchange a signed-in PLATFORM session (e.g. a Google sign-in) for a
+   * workspace session — unified single-box installs only. Links or provisions
+   * the local user by email (never touching passwords: Google-only people stay
+   * passwordless locally) and returns the same shape as `login`, so the SPA
+   * continues into the tenant-select step.
+   */
+  sessionFromPlatform: publicProcedure.mutation(async ({ ctx }) => {
+    if (!env.ESTI_UNIFIED_ACCOUNTS) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unified accounts disabled" });
+    }
+    if (!ctx.platformAccountId) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "no platform session" });
+    }
+    const account = await getPlatformAccount(ctx.platformAccountId);
+    if (!account) throw new TRPCError({ code: "UNAUTHORIZED", message: "no platform session" });
+    const email = normalizeEmail(account.email);
+
+    let [u] = await ctx.db.select().from(users).where(emailMatches(users.email, email)).limit(1);
+    if (u?.disabled) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+    }
+    if (!u) {
+      const [created] = await ctx.db
+        .insert(users)
+        .values({
+          email,
+          fullName: account.name ?? email,
+          role: "ASSOCIATE",
+          accountPublicId: account.publicId,
+        })
+        .returning();
+      u = created!;
+    } else if (!u.accountPublicId && account.publicId) {
+      await ctx.db
+        .update(users)
+        .set({ accountPublicId: account.publicId })
+        .where(eq(users.id, u.id));
+    }
+
+    const token = await createSession(u.id);
+    ctx.setCookie(SESSION_COOKIE, token);
+    await writeAudit(ctx.db, { entity: "user", entityId: u.id, action: "LOGIN", actorId: u.id });
+    const companies = await activeCompaniesByEmail(email);
     const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName, companies };
     return env.DESKTOP ? { ...profile, token } : profile;
   }),

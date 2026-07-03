@@ -1,4 +1,4 @@
-import { and, eq, gt, or } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db as workspaceDb } from "../../../db/index.js";
@@ -233,6 +233,14 @@ export async function loginWithWorkspaceCredentials(
     })
     .returning();
   return { kind: "ok", account: view(created!) };
+}
+
+/** Stamp the email as verified (idempotent) — used after a Google sign-in. */
+export async function markEmailVerified(accountId: string): Promise<void> {
+  await db
+    .update(schema.accounts)
+    .set({ emailVerifiedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(schema.accounts.id, accountId), isNull(schema.accounts.emailVerifiedAt)));
 }
 
 /** Idempotently mint the AORMS-U handle for a signed-in account (instant-ID path). */

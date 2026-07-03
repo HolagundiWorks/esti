@@ -54,6 +54,7 @@ function caller(authUser: AuthUser | null) {
     ip: "127.0.0.1",
     requestId: "test-request",
     sessionToken: undefined,
+    platformAccountId: null,
     setCookie: () => undefined,
   });
 }

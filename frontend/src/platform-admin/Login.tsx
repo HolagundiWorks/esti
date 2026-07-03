@@ -214,6 +214,18 @@ export default function Login({
                 ) : (
                   <Form onSubmit={handleSubmit}>
                     <Stack gap={5}>
+                      <Stack gap={3}>
+                        <Button
+                          kind="tertiary"
+                          onClick={() => {
+                            window.location.href =
+                              "/platform/auth/google/start?return=" + encodeURIComponent("/account");
+                          }}
+                        >
+                          Continue with Google
+                        </Button>
+                        <p className="esti-label esti-label--secondary">or use email</p>
+                      </Stack>
                       {mode === "signin" && !product && resolved && (
                         <Stack gap={2} orientation="horizontal">
                           <Tag type="cool-gray" size="md">
