@@ -110,9 +110,15 @@ server {
   # Minimal SSL settings for a temporary self-signed cert.
   ssl_protocols TLSv1.2 TLSv1.3;
   ssl_ciphers HIGH:!aNULL:!MD5;
+  location /platform/ {
+    proxy_pass         http://127.0.0.1:4000/platform/;
+    proxy_http_version 1.1;
+    proxy_set_header   Host              \$host;
+    proxy_set_header   X-Forwarded-Proto \$scheme;
+  }
   location / {
-    root       DEPLOY_DIR_PLACEHOLDER/frontend/dist;
-    try_files  $uri $uri/ /index.html;
+    root       ${DEPLOY_DIR}/frontend/dist;
+    try_files  \$uri \$uri/ /index.html;
   }
 }
 # END SELF-SIGNED CERT
