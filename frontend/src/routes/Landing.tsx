@@ -17,6 +17,7 @@ import {
   ValuePropositionSection,
   WorkflowOverviewSection,
 } from "../components/landing/LandingOperationalGrid.js";
+import { InMotionSection } from "../components/landing/LandingMediaTiles.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
@@ -30,7 +31,8 @@ import { useLandingVisitCounter } from "../lib/landing-visit.js";
  * Hero -> Value Proposition -> Product Overview -> Feature Group 1 ->
  * Feature Group 2 -> Workflow Overview -> Productivity Benefits ->
  * Collaboration -> Intelligence & Automation -> Integrations ->
- * Security & Reliability -> Customer Success -> FAQ -> Final CTA.
+ * Security & Reliability -> Customer Success -> In Motion (media reels) ->
+ * FAQ -> Final CTA.
  */
 export function Landing() {
   const visitCount = useLandingVisitCounter();
@@ -78,6 +80,7 @@ export function Landing() {
         <IntegrationsSection />
         <SecuritySection />
         <CustomerSuccessSection />
+        <InMotionSection />
         <FaqSection />
 
         <FinalCtaSection>

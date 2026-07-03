@@ -698,7 +698,7 @@ export function FaqSection() {
   return (
     <>
       <SectionBreak
-        eyebrow="13 / Frequently Asked"
+        eyebrow="14 / Frequently Asked"
         title="Common questions before you start"
         body="If your question isn't here, write to hi@aorms.in and we'll answer it directly."
       />
@@ -717,7 +717,7 @@ export function FinalCtaSection({ children }: { children?: ReactNode }) {
   return (
     <>
       <SectionBreak
-        eyebrow="14 / Get Started"
+        eyebrow="15 / Get Started"
         title="Start with a shared record, then adopt the full framework as the practice grows"
         body="Lite gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
       />
