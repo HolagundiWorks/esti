@@ -180,9 +180,10 @@ export function Profile() {
                   <Stack gap={4}>
                     <h4>Welcome kit</h4>
                     <p className="esti-label esti-label--secondary">
-                      Your earned-identity welcome kit: a certificate (A4) and a privilege
-                      card that prints at credit-card size. Enable “Background graphics” in
-                      the print dialog.
+                      Your welcome kit: a certificate (A4) and your ID card with the Unique
+                      Identification No, printable at credit-card size. Essential and Pro
+                      cards follow — Essential after 100 hours on AORMS, Pro against
+                      certification.
                     </p>
                     <div className="esti-row">
                       <Button
@@ -201,7 +202,7 @@ export function Profile() {
                         target="_blank"
                         rel="noopener"
                       >
-                        Privilege card
+                        ID card
                       </Button>
                     </div>
                   </Stack>

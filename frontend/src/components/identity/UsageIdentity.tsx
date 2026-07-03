@@ -84,7 +84,7 @@ export function UsageIdentity() {
             always find it under Profile › AORMS Identity.
           </p>
           <p>
-            Your welcome kit is ready — a printable certificate and a privilege card at
+            Your welcome kit is ready — a printable certificate and your ID card at
             credit-card size:
           </p>
           <div className="esti-row">
@@ -104,7 +104,7 @@ export function UsageIdentity() {
               target="_blank"
               rel="noopener"
             >
-              Privilege card
+              ID card
             </Button>
           </div>
         </>

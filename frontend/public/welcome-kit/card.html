@@ -3,23 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AORMS Privilege Card</title>
+<title>AORMS ID Card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ── AORMS privilege card — CC / ID-1 size (85.6mm × 54mm), front + back.
-     Landing-page identity: contour texture under a dark scrim, glass panels. */
+  /* ── AORMS ID card — CC / ID-1 size (85.6mm × 54mm), front + back.
+     Flat card on the landing contour texture: no panels, just the
+     Unique Identification No. Tiers: ID (base) · ESSENTIAL (100 hours) ·
+     PRO (against certification) via ?tier= */
   :root {
     --bg: #11100e;
     --text: #f4f4f4;
     --sec: #a8a8a8;
     --mut: #8d8d8d;
-    --purple: #c6a2ff;
-    --purple-deep: #8a3ffc;
+    --accent: #f4f4f4;        /* per-tier, set from ?tier= */
+    --accent-deep: #6f6f6f;
     --sans: 'IBM Plex Sans', system-ui, sans-serif;
     --mono: 'IBM Plex Mono', ui-monospace, monospace;
   }
+  body[data-tier="essential"] { --accent: #c6a2ff; --accent-deep: #8a3ffc; }
+  body[data-tier="pro"]       { --accent: #e3b64f; --accent-deep: #a67c1b; }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #1c1b19; font-family: var(--sans); color: var(--text); }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -46,47 +51,36 @@
       var(--bg);
   }
 
-  /* Glass panel */
-  .glass {
-    position: relative;
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.035));
-    border: 0.3mm solid rgba(255, 255, 255, 0.22);
-    border-radius: 2.2mm;
-    backdrop-filter: blur(3px) saturate(1.15);
-    box-shadow: inset 0 0.3mm 0 rgba(255, 255, 255, 0.18);
-  }
-
   .card__inner {
     position: relative;
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 4mm 4.6mm;
+    padding: 4mm 4.8mm;
   }
 
   .card__top { display: flex; align-items: center; justify-content: space-between; }
-  .card__brand { display: flex; align-items: center; gap: 1.8mm; }
   .card__brand img { height: 4.6mm; width: auto; display: block; }
   .card__kind {
     font-family: var(--mono); font-size: 5.4pt; font-weight: 500;
-    letter-spacing: 0.22em; text-transform: uppercase; color: var(--purple);
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
   }
 
-  .card__id-panel {
-    margin-top: auto;
-    margin-bottom: auto;
-    padding: 3mm 3.6mm;
-  }
-  .card__name {
-    font-size: 9.5pt; font-weight: 600; letter-spacing: -0.01em;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  .card__mid { margin-top: auto; margin-bottom: auto; }
+  .card__uid-label {
+    font-family: var(--mono); font-size: 4.8pt; font-weight: 500;
+    letter-spacing: 0.24em; text-transform: uppercase; color: var(--sec);
   }
   .card__handle {
-    margin-top: 1.4mm;
-    font-family: var(--mono); font-size: 12pt; font-weight: 600;
-    letter-spacing: 0.08em; color: var(--purple);
-    text-shadow: 0 0 4mm rgba(138, 63, 252, 0.45);
+    margin-top: 1.6mm;
+    font-family: var(--mono); font-size: 14pt; font-weight: 600;
+    letter-spacing: 0.08em; color: var(--accent);
     white-space: nowrap;
+  }
+  .card__name {
+    margin-top: 2mm;
+    font-size: 9pt; font-weight: 600; letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
   .card__bottom {
@@ -96,24 +90,28 @@
   }
   .card__bottom strong { color: var(--text); font-weight: 500; }
 
-  /* Back */
-  .card--back .card__inner { padding: 3.6mm 4.6mm; }
+  /* Back — flat, no panels */
   .card__strip {
-    height: 2.6mm; margin: 0 -4.6mm;
-    background: linear-gradient(90deg, var(--purple-deep), var(--purple));
-    opacity: 0.85;
+    height: 2.4mm; margin: -4mm -4.8mm 0;
+    background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+    opacity: 0.9;
   }
-  .card__privileges { margin-top: 2.6mm; padding: 2.6mm 3.2mm; flex: 1; display: flex; flex-direction: column; }
-  .card__priv-title {
-    font-family: var(--mono); font-size: 4.8pt; letter-spacing: 0.2em;
-    text-transform: uppercase; color: var(--purple); margin-bottom: 1.6mm;
+  .card__tiers { margin-top: 4mm; }
+  .card__tiers-title {
+    font-family: var(--mono); font-size: 4.8pt; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 2mm;
   }
-  .card__priv { font-size: 6.2pt; line-height: 1.45; color: var(--text); }
-  .card__priv + .card__priv { margin-top: 1mm; }
-  .card__priv::before { content: "— "; color: var(--mut); }
+  .card__tier { display: flex; align-items: baseline; gap: 2mm; }
+  .card__tier + .card__tier { margin-top: 1.4mm; }
+  .card__tier-name {
+    font-family: var(--mono); font-size: 5.6pt; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text);
+    min-width: 15mm;
+  }
+  .card__tier-rule { font-size: 6.4pt; line-height: 1.4; color: var(--sec); }
   .card__fine {
-    margin-top: auto; padding-top: 1.6mm;
-    font-size: 4.6pt; line-height: 1.4; color: var(--mut);
+    margin-top: auto;
+    font-size: 4.8pt; line-height: 1.5; color: var(--mut);
   }
   .card__back-bottom {
     margin-top: 1.8mm;
@@ -131,7 +129,7 @@
   .chrome p { font-size: 11px; color: var(--sec); margin-top: 3px; }
   .chrome button {
     font-family: var(--sans); font-size: 13px; font-weight: 500;
-    color: #161616; background: var(--purple); border: 0; border-radius: 6px;
+    color: #161616; background: var(--accent); border: 0; border-radius: 6px;
     padding: 9px 18px; cursor: pointer; white-space: nowrap;
   }
   .sheet { width: 85.6mm; margin: 0 auto 40px; }
@@ -147,10 +145,10 @@
   }
 </style>
 </head>
-<body>
+<body data-tier="id">
   <div class="chrome">
     <div>
-      <h1>AORMS privilege card</h1>
+      <h1 id="chrome-title">AORMS ID card</h1>
       <p>Prints at credit-card size (85.6 × 54 mm). Enable “Background graphics” in the print dialog.</p>
     </div>
     <button onclick="window.print()">Print</button>
@@ -163,15 +161,16 @@
       <div class="card__inner">
         <div class="card__top">
           <span class="card__brand"><img src="/aorms-logo-white.png" alt="AORMS"></span>
-          <span class="card__kind">Privilege Card</span>
+          <span class="card__kind" id="kind-front">ID Card</span>
         </div>
-        <div class="glass card__id-panel">
-          <div class="card__name" id="name-front">—</div>
+        <div class="card__mid">
+          <div class="card__uid-label">Unique Identification No</div>
           <div class="card__handle" id="id-front">AORMS-U-····</div>
+          <div class="card__name" id="name-front">—</div>
         </div>
         <div class="card__bottom">
-          <span>Earned identity · <strong id="hours-front">100</strong> hours</span>
           <span>Issued <strong id="date-front">—</strong></span>
+          <span>aorms.in</span>
         </div>
       </div>
     </div>
@@ -181,15 +180,20 @@
       <div class="card__bg"></div>
       <div class="card__inner">
         <div class="card__strip"></div>
-        <div class="glass card__privileges">
-          <div class="card__priv-title">Holder privileges</div>
-          <div class="card__priv">One portable identity across every AORMS studio you work with</div>
-          <div class="card__priv">Certifications and professional growth record key to this ID</div>
-          <div class="card__priv">Priority standing in the AORMS professional community</div>
-          <div class="card__fine">
-            This identity is earned through documented practice — it cannot be bought
-            and never changes. Verify the holder at aorms.in.
+        <div class="card__tiers">
+          <div class="card__tiers-title">Card tiers</div>
+          <div class="card__tier">
+            <span class="card__tier-name">Essential</span>
+            <span class="card__tier-rule">issued after completing 100 hours on AORMS</span>
           </div>
+          <div class="card__tier">
+            <span class="card__tier-name">Pro</span>
+            <span class="card__tier-rule">issued against certification</span>
+          </div>
+        </div>
+        <div class="card__fine">
+          This identification is permanent — it never changes and cannot be bought.
+          Verify the holder at aorms.in.
         </div>
         <div class="card__back-bottom">
           <span id="id-back">AORMS-U-····</span>
@@ -204,17 +208,22 @@
     var q = new URLSearchParams(location.search);
     var name = (q.get("name") || "").trim() || "AORMS Professional";
     var id = (q.get("id") || "").trim().toUpperCase() || "AORMS-U-····";
-    var hours = (q.get("hours") || "100").replace(/[^0-9]/g, "") || "100";
+    var tier = (q.get("tier") || "id").toLowerCase();
+    if (["id", "essential", "pro"].indexOf(tier) < 0) tier = "id";
     var d = q.get("date") ? new Date(q.get("date")) : new Date();
     if (isNaN(d.getTime())) d = new Date();
     var date = d.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
 
+    var kind = tier === "essential" ? "Essential" : tier === "pro" ? "Pro" : "ID Card";
+    document.body.dataset.tier = tier;
+    document.getElementById("kind-front").textContent = kind;
+    document.getElementById("chrome-title").textContent =
+      "AORMS " + (tier === "id" ? "ID card" : kind + " card");
     document.getElementById("name-front").textContent = name;
     document.getElementById("id-front").textContent = id;
     document.getElementById("id-back").textContent = id;
-    document.getElementById("hours-front").textContent = hours;
     document.getElementById("date-front").textContent = date;
-    document.title = id + " — AORMS Privilege Card";
+    document.title = id + " — AORMS " + (tier === "id" ? "ID Card" : kind + " Card");
   })();
 </script>
 </body>
