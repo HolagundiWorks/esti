@@ -24,7 +24,9 @@ source "$SCRIPT_DIR/lib.sh"
 [[ -f "$DEPLOY_DIR/.env" ]] || error "No $DEPLOY_DIR/.env — run deploy/install.sh (the main app) first."
 
 set -a; load_dotenv "$DEPLOY_DIR/.env"; set +a
-[[ -n "${DOMAIN:-}" ]] || error "DOMAIN missing from $DEPLOY_DIR/.env."
+# Older .env files don't carry a DOMAIN= line — derive it from FRONTEND_ORIGIN.
+[[ -n "${DOMAIN:-}" ]] || DOMAIN="$(normalize_domain "${FRONTEND_ORIGIN:-}")"
+[[ -n "${DOMAIN:-}" ]] || error "Cannot determine the domain — set DOMAIN=… in $DEPLOY_DIR/.env (or pass DOMAIN=… to this script)."
 ADMIN_DOMAIN="${ADMIN_DOMAIN:-admin.${DOMAIN}}"
 validate_domain "$ADMIN_DOMAIN" || error "Invalid console domain '$ADMIN_DOMAIN'."
 
