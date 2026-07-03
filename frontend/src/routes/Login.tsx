@@ -34,11 +34,10 @@ interface TenantItem {
   label: string;
 }
 
-const WORKSPACE_ITEM: TenantItem = { id: "workspace", label: "This studio's workspace" };
+const WORKSPACE_ITEM: TenantItem = { id: "workspace", label: "Personal workspace" };
 
-// Edition-matched desktop installer for the tenant step: anyone here belongs
-// to at least one company -> Pro. (Individual Lite users skip this step; the
-// credential page's generic /download link covers them.)
+// Edition-matched desktop installer for the tenant step: company members get
+// the Pro installer; individuals get the generic /download page (Lite).
 const PRO_DOWNLOAD_URL = (import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined) ?? "";
 
 const GOOGLE_ERRORS: Record<string, string> = {
@@ -73,14 +72,10 @@ export function Login() {
   async function afterLogin(data: unknown) {
     // Desktop returns a session token (cookies don't cross the loopback origin).
     setDesktopToken((data as { token?: string }).token);
-    const list = (data as { companies?: CompanyOption[] }).companies ?? [];
-    if (list.length > 0) {
-      // Tenant-select: this studio's workspace or one of the companies.
-      setCompanies(list);
-      return;
-    }
-    await utils.auth.me.invalidate();
-    navigate("/", { replace: true });
+    // Always land on the guide step: company workspace(s) when memberships
+    // exist, otherwise the personal workspace — plus the personal AORMS
+    // account, so every sign-in sees where it can go.
+    setCompanies((data as { companies?: CompanyOption[] }).companies ?? []);
   }
 
   const login = trpc.auth.login.useMutation({
@@ -234,7 +229,11 @@ export function Login() {
                         disabled={companyBusy}
                         onClick={() => void enterWorkspace()}
                       >
-                        {companyBusy ? "Opening..." : `Login — ${companies[0]!.name}`}
+                        {companyBusy
+                          ? "Opening..."
+                          : companies.length === 1
+                            ? `Login — ${companies[0]!.name}`
+                            : "Login — Personal workspace"}
                       </Button>
                     )}
                     {companyError && (
@@ -258,15 +257,15 @@ export function Login() {
                       </Button>
                     )}
                     <Button as={RouterLink} to="/account" kind="ghost" size="sm">
-                      AORMS account login
+                      Personal AORMS account
                     </Button>
-                    {PRO_DOWNLOAD_URL ? (
+                    {companies.length > 0 && PRO_DOWNLOAD_URL ? (
                       <Button kind="ghost" size="sm" renderIcon={Download} href={PRO_DOWNLOAD_URL}>
                         Download AORMS Pro desktop
                       </Button>
                     ) : (
                       <Button as={RouterLink} to="/download" kind="ghost" size="sm" renderIcon={Download}>
-                        Download AORMS Pro desktop
+                        {companies.length > 0 ? "Download AORMS Pro desktop" : "Download AORMS desktop"}
                       </Button>
                     )}
                     <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
