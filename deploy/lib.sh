@@ -16,6 +16,15 @@ askpass() { echo -en "${BOLD}$1${NC} "; read -rs "$2"; echo; }
 REPO_URL="${REPO_URL:-https://github.com/HolagundiWorks/esti.git}"
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/esti}"
 
+# Fully non-interactive apt: DEBIAN_FRONTEND suppresses debconf prompts
+# (conffile diffs, etc.); NEEDRESTART_MODE=a auto-restarts services instead of
+# needrestart's whiptail "which services to restart?" dialog — on Ubuntu with
+# needrestart installed, that dialog blocks apt-get forever over a non-tty SSH
+# session (e.g. CI-triggered installs) even with -y, since it isn't an apt
+# debconf prompt at all.
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+
 # ── dotenv loader (no shell execution) ───────────────────────────────────────
 load_dotenv() {
   local env_file="${1:-.env}"
@@ -251,7 +260,8 @@ install_core() {
   local ADMIN_EMAIL="$1" GIT_BRANCH="${2:-main}"
 
   section "System update"
-  apt-get update -qq && apt-get upgrade -y -qq
+  apt-get update -qq
+  apt-get upgrade -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
   apt-get install -y -qq curl git openssl ufw
   info "System packages up to date."
 
