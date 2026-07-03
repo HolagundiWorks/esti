@@ -44,6 +44,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 |---|---|
 | `deploy/install.sh` | **AORMS-site installer (default: aorms profile)** → sets profile env → runs `install_core` |
 | `deploy/install-enterprise.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
+| `deploy/install-admin-console.sh` | **Licensing console at `admin.DOMAIN`** — vhost + TLS for the `dist/admin.html` entry; same-box `/platform/` proxy (run after the main install; needs the `admin.` DNS record) |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
@@ -133,10 +134,13 @@ The **licensing console UI** is its own deployment (separate repo), served at
   both accept it, and the `hlp_session` cookie rides along because the API
   requests target `DOMAIN` itself (same-site from `admin.DOMAIN`).
 
-The subdomain's own nginx vhost + TLS belong to the console repo's deploy — this
-repo does not claim `admin.DOMAIN`. Set `VITE_ADMIN_URL=""` (empty) in `.env`
+Deploy the console with `sudo bash deploy/install-admin-console.sh` (after the
+main install + an `admin.DOMAIN` DNS record): it serves the build's
+`dist/admin.html` entry on its own vhost with a same-box `/platform/` proxy and
+provisions TLS. A separate console repo can claim the subdomain instead — this
+script is just the built-in path. Set `VITE_ADMIN_URL=""` (empty) in `.env`
 before installing/updating to keep the embedded console at `/platform-admin`
-instead (the default for installs without the platform).
+(the default for installs without the platform).
 
 Google sign-in needs an OAuth client — set in `.env` after install (no code change):
 

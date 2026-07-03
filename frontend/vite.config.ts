@@ -45,6 +45,13 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
+      // Two entries from one build: the product SPA (index.html) and the
+      // standalone licensing console (admin.html — served at admin.DOMAIN by
+      // deploy/install-admin-console.sh, which points its vhost index at it).
+      input: {
+        main: path.join(frontendDir, "index.html"),
+        admin: path.join(frontendDir, "admin.html"),
+      },
       output: {
         // Split the heavy libraries into their own cacheable chunks. charts and xlsx
         // are only reached from lazy (authenticated) routes, so they stay off the

@@ -1,11 +1,17 @@
 # Licensing Console — standalone API integration (`admin.DOMAIN`)
 
-The licensing console is a **standalone app in its own repo**, deployed at
-`admin.DOMAIN` (e.g. `https://admin.aorms.in`). It owns its subdomain vhost +
-TLS and holds **no data of its own** — every account, company, licence, and
-request lives in this backend's `hlp_` tables, reached through the `/platform`
-API on the product origin (`https://DOMAIN`). This document is the integration
-contract that console builds against.
+The licensing console is a **standalone deployment** at `admin.DOMAIN`
+(e.g. `https://admin.aorms.in`) holding **no data of its own** — every account,
+company, licence, and request lives in this backend's `hlp_` tables, reached
+through the `/platform` API. Two ways to ship it:
+
+- **From this repo (default):** the frontend build emits a second entry,
+  `dist/admin.html` (the same Panel client as the embedded fallback).
+  `sudo bash deploy/install-admin-console.sh` serves it on an `admin.DOMAIN`
+  vhost that **proxies `/platform/` to the local backend** — every call is
+  same-origin, so none of the CORS notes below even come into play.
+- **From a separate repo:** build any client against this document's contract;
+  the CORS + cookie mechanics in §1–2 apply.
 
 ## 1. Topology & configuration
 
