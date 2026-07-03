@@ -3,8 +3,8 @@
 // platform / hlp_account) — its own hub destination, distinct from the firm
 // workspace /login. `mode=create` opens straight to the sign-up form.
 //
-// VITE_ADMIN_URL  — full origin of the licensing console, e.g. https://admin.aorms.in
-//                   (falls back to the same origin for dev/self-hosted).
+// VITE_ADMIN_URL  — full origin of the licensing ADMIN console, e.g.
+//                   https://admin.aorms.in (platform-admin realm only).
 const ADMIN_ORIGIN = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
 
 export function adminConsoleUrl(): string {
@@ -13,8 +13,11 @@ export function adminConsoleUrl(): string {
 }
 
 export function createAccountUrl(): string {
-  const base = ADMIN_ORIGIN || window.location.origin;
-  const url = new URL("/account", base);
+  // Always the MAIN origin: the customer account portal is the product SPA's
+  // /account route. The admin console (VITE_ADMIN_URL) is the platform-admin
+  // realm — its self-signup is locked once an admin exists, so sending
+  // sign-ups there dead-ends on "registration closed".
+  const url = new URL("/account", window.location.origin);
   url.searchParams.set("mode", "create");
   return url.toString();
 }
