@@ -21,7 +21,6 @@ const NAV = [
   { href: "/#platform", label: "Platform" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/login", label: "Downloads" },
   { href: "/blog", label: "Blog" },
   { href: "/investors", label: "Investors" },
   { href: "/#trial", label: "Get started" },

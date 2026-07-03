@@ -246,17 +246,15 @@ function AppShell() {
   const firmName = firmQ.data?.companyName ?? "AORMS";
 
   // Licensing Console. When VITE_ADMIN_URL is configured (production: the
-  // console is its own deployment at admin.DOMAIN, from its own repo), the
-  // /platform-admin path on this origin just hands off to it. Unset (dev /
-  // self-host without a separate console) keeps the embedded console as the
-  // fallback, at /platform-admin or on an admin.* hostname.
+  // console is its own deployment at admin.DOMAIN), /platform-admin does not
+  // exist on this origin at all — the request falls through to normal routing
+  // (the console is deliberately not advertised here). Without VITE_ADMIN_URL
+  // (dev / self-host), the embedded console serves at /platform-admin or on an
+  // admin.* hostname.
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
-  if (pathname.startsWith("/platform-admin") && ADMIN_CONSOLE_URL && !isAdminSubdomain) {
-    window.location.replace(ADMIN_CONSOLE_URL);
-    return <Loading withOverlay description="Opening the licensing console" />;
-  }
-  if (isAdminSubdomain || pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
+  if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
+    return <PlatformAdmin />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))

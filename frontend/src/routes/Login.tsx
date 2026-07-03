@@ -1,7 +1,7 @@
-import { ArrowLeft, ArrowRight, Building, Home } from "@carbon/icons-react";
+import { ArrowLeft, ArrowRight, Download } from "@carbon/icons-react";
 import {
   Button,
-  ClickableTile,
+  Dropdown,
   Form,
   InlineNotification,
   Stack,
@@ -28,6 +28,17 @@ interface CompanyOption {
   role: string;
 }
 
+interface TenantItem {
+  id: string;
+  label: string;
+}
+
+const WORKSPACE_ITEM: TenantItem = { id: "workspace", label: "This studio's workspace" };
+
+function companyItem(c: CompanyOption): TenantItem {
+  return { id: c.publicId ?? c.name, label: `${c.name} — ${c.role}` };
+}
+
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
@@ -37,8 +48,9 @@ export function Login() {
   const [code, setCode] = useState("");
   const [needCode, setNeedCode] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[] | null>(null);
-  const [companyBusy, setCompanyBusy] = useState<string | null>(null);
+  const [companyBusy, setCompanyBusy] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
+  const [tenant, setTenant] = useState<TenantItem | null>(null);
 
   const login = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
@@ -59,19 +71,19 @@ export function Login() {
     },
   });
 
-  async function enterWorkspace() {
-    await utils.auth.me.invalidate();
-    navigate("/", { replace: true });
-  }
-
-  async function enterCompany(c: CompanyOption) {
-    const handle = c.publicId ?? c.name;
-    setCompanyBusy(handle);
+  async function enterSelected() {
+    const item = tenant ?? WORKSPACE_ITEM;
+    if (item.id === "workspace") {
+      await utils.auth.me.invalidate();
+      navigate("/", { replace: true });
+      return;
+    }
+    setCompanyBusy(true);
     setCompanyError(null);
     // Company workspaces ride the platform session — sign into it with the
     // same credentials, scoped to the chosen company, then land on its page.
-    const res = await platformLogin(email, password, handle, needCode ? code : undefined);
-    setCompanyBusy(null);
+    const res = await platformLogin(email, password, item.id, needCode ? code : undefined);
+    setCompanyBusy(false);
     if (!res.account) {
       setCompanyError("Could not open that company right now — try again.");
       return;
@@ -102,29 +114,25 @@ export function Login() {
 
             {companies ? (
               <Stack gap={4}>
-                <ClickableTile onClick={() => void enterWorkspace()}>
-                  <Stack gap={2} orientation="horizontal">
-                    <Home size={20} />
-                    <span className="esti-grow">This studio&apos;s workspace</span>
-                    <ArrowRight size={16} />
-                  </Stack>
-                </ClickableTile>
-                {companies.map((c) => {
-                  const handle = c.publicId ?? c.name;
-                  return (
-                    <ClickableTile key={handle} onClick={() => void enterCompany(c)}>
-                      <Stack gap={2} orientation="horizontal">
-                        <Building size={20} />
-                        <span className="esti-grow">
-                          {c.name}
-                          {companyBusy === handle ? " — opening..." : ""}
-                        </span>
-                        <span className="esti-label esti-label--secondary">{c.role}</span>
-                        <ArrowRight size={16} />
-                      </Stack>
-                    </ClickableTile>
-                  );
-                })}
+                <div className="esti-row">
+                  <Dropdown
+                    id="tenant-select"
+                    className="esti-grow"
+                    titleText="Active company"
+                    label="Select where to work"
+                    items={[WORKSPACE_ITEM, ...companies.map(companyItem)]}
+                    itemToString={(item) => item?.label ?? ""}
+                    selectedItem={tenant ?? WORKSPACE_ITEM}
+                    onChange={({ selectedItem }) => setTenant(selectedItem ?? null)}
+                  />
+                  <Button
+                    renderIcon={ArrowRight}
+                    disabled={companyBusy}
+                    onClick={() => void enterSelected()}
+                  >
+                    {companyBusy ? "Opening..." : "Login"}
+                  </Button>
+                </div>
                 {companyError && (
                   <InlineNotification
                     kind="error"
@@ -134,6 +142,9 @@ export function Login() {
                     lowContrast
                   />
                 )}
+                <Button as={RouterLink} to="/account" kind="tertiary">
+                  AORMS account login
+                </Button>
                 <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
                   Sign in as someone else
                 </Button>
@@ -212,6 +223,11 @@ export function Login() {
                   {PUBLIC_SITE && (
                     <Button as={RouterLink} to="/account" kind="ghost" size="sm">
                       Manage your AORMS account & licence →
+                    </Button>
+                  )}
+                  {PUBLIC_SITE && (
+                    <Button as={RouterLink} to="/download" kind="ghost" size="sm" renderIcon={Download}>
+                      Download AORMS desktop
                     </Button>
                   )}
                   <Button as={RouterLink} to="/access" kind="ghost" size="sm">
