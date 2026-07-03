@@ -159,7 +159,7 @@ Written by the installer; edit + `bash deploy/update.sh` to apply. Key groups:
 | `VITE_PUBLIC_SITE` | `true` = show Landing/blog when logged out |
 | `SEED_DEMO` | seed the demo workspace on install |
 | `FIRM_PLAN` | `LITE` \| `CORE` \| `ENTERPRISE` — the fallback tier when unlicensed |
-| `VITE_{LITE,CORE,ENTERPRISE}_DOWNLOAD_URL` | `/downloads/…exe` (set by `fetch-installers.sh`) |
+| `VITE_{LITE,PRO}_DOWNLOAD_URL` | `/downloads/…exe` (set by `fetch-installers.sh`; Pro falls back to the legacy Core exe) |
 
 **Central identity + licence authority**
 | Key | Default | Meaning |
@@ -211,8 +211,10 @@ cd /opt/esti
 bash deploy/fetch-installers.sh                  # newest desktop-v* release
 bash deploy/fetch-installers.sh desktop-v1.0.0   # or pin a tag
 ```
-`fetch-installers.sh` downloads the 3 `.exe`, writes `VITE_*_DOWNLOAD_URL` into `.env`,
-**rebuilds the SPA** (so the buttons go live), and serves them under `/downloads/`.
+`fetch-installers.sh` downloads the `.exe`s, writes `VITE_LITE_DOWNLOAD_URL` and
+`VITE_PRO_DOWNLOAD_URL` into `.env` (Pro maps to `AORMS-Pro-Setup.exe` when the release
+has one, else the legacy `AORMS-Core-Setup.exe`), **rebuilds the SPA** (so the buttons
+go live), and serves them under `/downloads/`.
 `update.sh` preserves `dist/downloads/` — re-run `fetch-installers.sh` only for a **new**
 installer version.
 

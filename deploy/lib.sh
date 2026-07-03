@@ -248,6 +248,7 @@ VITE_PUBLIC_SITE=${PUBLIC_SITE}
 # Set → aorms.in/platform-admin redirects there; empty → embedded console.
 VITE_ADMIN_URL=${VITE_ADMIN_URL:-}
 VITE_LITE_DOWNLOAD_URL=${VITE_LITE_DOWNLOAD_URL:-}
+VITE_PRO_DOWNLOAD_URL=${VITE_PRO_DOWNLOAD_URL:-}
 VITE_CORE_DOWNLOAD_URL=${VITE_CORE_DOWNLOAD_URL:-}
 VITE_ENTERPRISE_DOWNLOAD_URL=${VITE_ENTERPRISE_DOWNLOAD_URL:-}
   # When true, the installer will create a temporary self-signed certificate

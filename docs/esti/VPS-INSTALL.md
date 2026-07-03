@@ -294,10 +294,12 @@ bash deploy/fetch-installers.sh            # newest desktop-v* release
 bash deploy/fetch-installers.sh desktop-v1.0.0   # or pin a tag
 ```
 
-The script downloads the three `.exe`, writes the `VITE_*_DOWNLOAD_URL` keys into
-`.env`, **rebuilds the SPA** (those URLs are build-time constants), and atomic-swaps
-`frontend/dist` with the installers carried into `dist/downloads/`. Afterwards
-`https://<your-domain>/download` serves all three.
+The script downloads the `.exe`s, writes `VITE_LITE_DOWNLOAD_URL` and
+`VITE_PRO_DOWNLOAD_URL` into `.env` (the Pro button maps to `AORMS-Pro-Setup.exe`
+when the release ships one, else the legacy `AORMS-Core-Setup.exe`), **rebuilds
+the SPA** (those URLs are build-time constants), and atomic-swaps `frontend/dist`
+with the installers carried into `dist/downloads/`. Afterwards
+`https://<your-domain>/download` serves the Lite and Pro downloads.
 
 - Run `deploy/install.sh` first — `fetch-installers.sh` errors if `.env` is missing.
 - `deploy/update.sh` preserves `dist/downloads/` across the swap, so a normal code
