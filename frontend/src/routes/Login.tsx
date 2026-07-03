@@ -35,6 +35,11 @@ interface TenantItem {
 
 const WORKSPACE_ITEM: TenantItem = { id: "workspace", label: "This studio's workspace" };
 
+// Edition-matched desktop installer for the tenant step: anyone here belongs
+// to at least one company -> Pro. (Individual Lite users skip this step; the
+// credential page's generic /download link covers them.)
+const PRO_DOWNLOAD_URL = (import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined) ?? "";
+
 function companyItem(c: CompanyOption): TenantItem {
   return { id: c.publicId ?? c.name, label: `${c.name} — ${c.role}` };
 }
@@ -195,6 +200,15 @@ export function Login() {
                     <Button as={RouterLink} to="/account" kind="ghost" size="sm">
                       AORMS account login
                     </Button>
+                    {PRO_DOWNLOAD_URL ? (
+                      <Button kind="ghost" size="sm" renderIcon={Download} href={PRO_DOWNLOAD_URL}>
+                        Download AORMS Pro desktop
+                      </Button>
+                    ) : (
+                      <Button as={RouterLink} to="/download" kind="ghost" size="sm" renderIcon={Download}>
+                        Download AORMS Pro desktop
+                      </Button>
+                    )}
                     <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
                       Sign in as someone else
                     </Button>

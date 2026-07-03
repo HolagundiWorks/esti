@@ -101,9 +101,21 @@ export function Download() {
                           Download {e.name}
                         </Button>
                       ) : (
-                        <Button kind="tertiary" size="lg" renderIcon={Information} disabled>
-                          Coming soon
-                        </Button>
+                        <Stack gap={3}>
+                          <Button kind="tertiary" size="lg" renderIcon={Information} disabled>
+                            Desktop installer coming soon
+                          </Button>
+                          <p className="esti-label--helper">
+                            Use {e.name} on the web today — {""}
+                            {e.code === "LITE" ? (
+                              <a href={createAccountUrl()}>create a free account</a>
+                            ) : (
+                              <a href="/login">sign in to your workspace</a>
+                            )}
+                            , or write to <a href="mailto:hi@aorms.in">hi@aorms.in</a> to be
+                            notified when the installer ships.
+                          </p>
+                        </Stack>
                       )}
 
                       {e.needsKey && (
