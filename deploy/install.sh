@@ -88,6 +88,11 @@ fi
 # accounts in-process (Phase 34). Explicit ESTI_UNIFIED_ACCOUNTS wins.
 [[ -z "${ESTI_UNIFIED_ACCOUNTS:-}" && "$PLATFORM_ENABLED" == "true" ]] && ESTI_UNIFIED_ACCOUNTS="true"
 export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS PLATFORM_ENABLED ESTI_UNIFIED_ACCOUNTS
+# The licensing console is its own deployment (separate repo) at admin.DOMAIN:
+# default the console origin whenever the platform runs on this box, so
+# /platform-admin hands off there and the console's origin may call the
+# /platform API. Explicit VITE_ADMIN_URL wins; VITE_ADMIN_URL="" (set-empty)
+# keeps the embedded console. Resolved after DOMAIN is known (below).
 
 info "Profile: ${BOLD}${PROFILE}${NC}  (public site: ${PUBLIC_SITE}, demo: ${SEED_DEMO}, plan: ${FIRM_PLAN}, licensing: ${PLATFORM_ENABLED:-false})"
 
@@ -96,6 +101,11 @@ section "Configuration"
 [[ -n "${DOMAIN:-}" ]] || ask "Domain (e.g. aorms.in) [aorms.in]:" DOMAIN
 DOMAIN="$(normalize_domain "${DOMAIN:-aorms.in}")"
 validate_domain "$DOMAIN" || error "Enter a valid domain (hostname only)."
+# Standalone licensing console origin (see the note above the profile exports).
+if [[ -z "${VITE_ADMIN_URL+x}" && "$PLATFORM_ENABLED" == "true" ]]; then
+  VITE_ADMIN_URL="https://admin.${DOMAIN}"
+fi
+export VITE_ADMIN_URL
 
 [[ -n "${ADMIN_EMAIL:-}" ]] || ask "Your email (for TLS certificate):" ADMIN_EMAIL
 [[ "$ADMIN_EMAIL" == *@*.* ]] || error "A valid email is required for the TLS certificate."

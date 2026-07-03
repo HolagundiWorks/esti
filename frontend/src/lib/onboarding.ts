@@ -8,7 +8,8 @@
 const ADMIN_ORIGIN = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
 
 export function adminConsoleUrl(): string {
-  return ADMIN_ORIGIN || window.location.origin.replace(/^\/\//, "//admin.");
+  // Fallback derives admin.DOMAIN from the current origin (scheme kept).
+  return ADMIN_ORIGIN || window.location.origin.replace(/^(https?:\/\/)/, "$1admin.");
 }
 
 export function createAccountUrl(): string {

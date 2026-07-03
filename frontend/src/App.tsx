@@ -245,10 +245,17 @@ function AppShell() {
   const firmQ = trpc.firm.get.useQuery(undefined, { enabled: isStaff });
   const firmName = firmQ.data?.companyName ?? "AORMS";
 
-  // Merged licensing platform admin — self-contained (its own Google login +
-  // tRPC at /platform/trpc), reachable regardless of AORMS firm auth.
-  // Licensing Console — served at admin.DOMAIN or /platform-admin (path fallback).
+  // Licensing Console. When VITE_ADMIN_URL is configured (production: the
+  // console is its own deployment at admin.DOMAIN, from its own repo), the
+  // /platform-admin path on this origin just hands off to it. Unset (dev /
+  // self-host without a separate console) keeps the embedded console as the
+  // fallback, at /platform-admin or on an admin.* hostname.
+  const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
+  if (pathname.startsWith("/platform-admin") && ADMIN_CONSOLE_URL && !isAdminSubdomain) {
+    window.location.replace(ADMIN_CONSOLE_URL);
+    return <Loading withOverlay description="Opening the licensing console" />;
+  }
   if (isAdminSubdomain || pathname.startsWith("/platform-admin")) return <PlatformAdmin />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.

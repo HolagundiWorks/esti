@@ -111,6 +111,23 @@ deployment, so it can layer onto any profile. The installer offers it as a `y/N`
 add-on after you pick profile 2/3/4 — e.g. **2 + licensing = Landing + Demo +
 Licensing** on one box. Non-interactive: add `WITH_LICENSING=true`.
 
+### Licensing console on its own subdomain (`admin.DOMAIN`)
+
+The **licensing console UI** is its own deployment (separate repo), served at
+`admin.DOMAIN`. When the platform is enabled, the installer defaults
+`VITE_ADMIN_URL=https://admin.DOMAIN` into `.env`, which does two things:
+
+- `https://DOMAIN/platform-admin` redirects to the console origin, and
+- `ALLOWED_ORIGINS` includes the console origin, so its frontend may call this
+  backend's `/platform` API with credentials — CORS and the CSRF origin gate
+  both accept it, and the `hlp_session` cookie rides along because the API
+  requests target `DOMAIN` itself (same-site from `admin.DOMAIN`).
+
+The subdomain's own nginx vhost + TLS belong to the console repo's deploy — this
+repo does not claim `admin.DOMAIN`. Set `VITE_ADMIN_URL=""` (empty) in `.env`
+before installing/updating to keep the embedded console at `/platform-admin`
+instead (the default for installs without the platform).
+
 Google sign-in needs an OAuth client — set in `.env` after install (no code change):
 
 ```

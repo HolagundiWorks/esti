@@ -187,7 +187,10 @@ NODE_ENV=production
 BACKEND_PORT=4000
 SESSION_SECRET=${SESSION_SECRET}
 COOKIE_SECURE=true
-ALLOWED_ORIGINS=https://${DOMAIN}
+# The standalone licensing console (admin.DOMAIN) calls this backend's
+# /platform API from its own origin — allow it through CORS + the CSRF
+# origin gate whenever it is configured.
+ALLOWED_ORIGINS=https://${DOMAIN}${VITE_ADMIN_URL:+,${VITE_ADMIN_URL}}
 
 POSTGRES_USER=esti
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -218,6 +221,9 @@ VITE_PUBLIC_SITE=${PUBLIC_SITE}
 # AORMS installer download URLs (/download portal). Set each to e.g.
 # /downloads/aorms-lite-setup.exe once you host the built installers under
 # frontend/dist/downloads/; empty = that edition shows "Coming soon".
+# Standalone licensing console origin (its own repo, deployed at admin.DOMAIN).
+# Set → aorms.in/platform-admin redirects there; empty → embedded console.
+VITE_ADMIN_URL=${VITE_ADMIN_URL:-}
 VITE_LITE_DOWNLOAD_URL=${VITE_LITE_DOWNLOAD_URL:-}
 VITE_CORE_DOWNLOAD_URL=${VITE_CORE_DOWNLOAD_URL:-}
 VITE_ENTERPRISE_DOWNLOAD_URL=${VITE_ENTERPRISE_DOWNLOAD_URL:-}

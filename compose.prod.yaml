@@ -150,6 +150,8 @@ services:
         # "true" = public demo site (landing/blog/investors/legal). Override with
         # compose.firm.yaml (or VITE_PUBLIC_SITE=false) for the firm product.
         VITE_PUBLIC_SITE: ${VITE_PUBLIC_SITE:-true}
+        # Standalone licensing console origin (admin.DOMAIN, its own repo/deploy).
+        VITE_ADMIN_URL: ${VITE_ADMIN_URL:-}
         # AORMS installer download URLs — baked into the /download portal CTAs.
         VITE_LITE_DOWNLOAD_URL: ${VITE_LITE_DOWNLOAD_URL:-}
         VITE_CORE_DOWNLOAD_URL: ${VITE_CORE_DOWNLOAD_URL:-}
