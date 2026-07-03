@@ -95,8 +95,11 @@ systemctl reload nginx
 ```
 
 The installer prompts for: domain, TLS email, DB / session / MinIO secrets
-(Enter = auto-generate), the owner account, and (when the platform is on —
-always for the default profile) the platform-admin emails. The `demo` profile
+(Enter = auto-generate), the owner account, **outbound SMTP (optional — blank
+host skips it; licence keys, verification links, password resets and
+invitations all send through it, and sending degrades gracefully until it's
+set in `.env`)**, and (when the platform is on — always for the default
+profile) the platform-admin emails. The `demo` profile
 also asks for the demo password (keep `demo1234` — the one-click `/demo` button
 has it baked in).
 

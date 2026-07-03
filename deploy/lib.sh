@@ -214,6 +214,22 @@ SEED_OWNER_NAME="Firm Owner"
 SEED_OWNER_PASSWORD=${OWNER_PASSWORD}
 SEED_DEMO_PASSWORD=${DEMO_PASSWORD}
 
+# Outbound email (SMTP) — licence-key delivery, email verification links,
+# password resets, company invitations, beta-form notifications. Any mail
+# host works (not Google-specific). Leave SMTP_HOST empty to disable sending:
+# mails are skipped gracefully (never queued, never crash), and features fall
+# back (accounts stay unverified, licence keys shown in /platform-admin only).
+# Edit here later + \`bash deploy/update.sh\` to enable.
+SMTP_HOST=${SMTP_HOST:-}
+SMTP_PORT=${SMTP_PORT:-587}
+# true = implicit TLS (typical port 465); false = STARTTLS (typical port 587).
+SMTP_SECURE=${SMTP_SECURE:-false}
+SMTP_USER=${SMTP_USER:-}
+SMTP_PASS=${SMTP_PASS:-}
+SMTP_FROM=${SMTP_FROM:-AORMS <no-reply@${DOMAIN}>}
+# Inbox that receives every landing beta-form submission.
+BETA_REQUEST_NOTIFY_TO=${BETA_REQUEST_NOTIFY_TO:-hi@${DOMAIN}}
+
 # Profile knobs — VITE_PUBLIC_SITE drives the frontend build (marketing site),
 # SEED_DEMO gates the demo workspace seed, FIRM_PLAN sets the plan tier.
 DEPLOY_PROFILE=${PROFILE}

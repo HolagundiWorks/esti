@@ -128,6 +128,24 @@ else
   DEMO_PASSWORD="demo1234"   # unused unless SEED_DEMO=true
 fi
 
+
+# Outbound email — optional but recommended: licence keys, verification links,
+# password resets and invitations all send through it. Blank host = skip
+# (configure later in .env + deploy/update.sh; sending degrades gracefully).
+warn "Outbound email (SMTP) — optional"
+[[ -n "${SMTP_HOST+x}" ]] || ask "SMTP host [blank = configure later]:" SMTP_HOST
+if [[ -n "${SMTP_HOST:-}" ]]; then
+  [[ -n "${SMTP_PORT:-}" ]] || ask "SMTP port [587]:" SMTP_PORT
+  SMTP_PORT="${SMTP_PORT:-587}"
+  [[ -n "${SMTP_USER:-}" ]] || ask "SMTP user:" SMTP_USER
+  [[ -n "${SMTP_PASS:-}" ]] || askpass "SMTP password:" SMTP_PASS
+  [[ -n "${SMTP_FROM:-}" ]] || ask "From header [AORMS <no-reply@${DOMAIN}>]:" SMTP_FROM
+  info "Email enabled via ${SMTP_HOST}:${SMTP_PORT}."
+else
+  warn "Email sending disabled — accounts stay unverified and licence keys appear only in the console until SMTP is set in .env."
+fi
+export SMTP_HOST SMTP_PORT SMTP_SECURE SMTP_USER SMTP_PASS SMTP_FROM BETA_REQUEST_NOTIFY_TO
+
 # Licensing & Account overlay: platform-admin allowlist (email+password sign-in).
 if [[ "$PLATFORM_ENABLED" == "true" ]]; then
   [[ -n "${PLATFORM_ADMIN_EMAILS:-}" ]] || ask "Platform admin emails (comma-separated):" PLATFORM_ADMIN_EMAILS

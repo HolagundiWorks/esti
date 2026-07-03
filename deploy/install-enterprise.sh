@@ -84,6 +84,24 @@ warn "First owner account (your admin login)"
 [[ -n "${OWNER_PASSWORD:-}" ]] || askpass "Owner password:" OWNER_PASSWORD
 [[ -n "${OWNER_PASSWORD:-}" ]] || error "Owner password is required."
 
+
+# Outbound email — optional but recommended: licence keys, verification links,
+# password resets and invitations all send through it. Blank host = skip
+# (configure later in .env + deploy/update.sh; sending degrades gracefully).
+warn "Outbound email (SMTP) — optional"
+[[ -n "${SMTP_HOST+x}" ]] || ask "SMTP host [blank = configure later]:" SMTP_HOST
+if [[ -n "${SMTP_HOST:-}" ]]; then
+  [[ -n "${SMTP_PORT:-}" ]] || ask "SMTP port [587]:" SMTP_PORT
+  SMTP_PORT="${SMTP_PORT:-587}"
+  [[ -n "${SMTP_USER:-}" ]] || ask "SMTP user:" SMTP_USER
+  [[ -n "${SMTP_PASS:-}" ]] || askpass "SMTP password:" SMTP_PASS
+  [[ -n "${SMTP_FROM:-}" ]] || ask "From header [AORMS <no-reply@${DOMAIN}>]:" SMTP_FROM
+  info "Email enabled via ${SMTP_HOST}:${SMTP_PORT}."
+else
+  warn "Email sending disabled — accounts stay unverified and licence keys appear only in the console until SMTP is set in .env."
+fi
+export SMTP_HOST SMTP_PORT SMTP_SECURE SMTP_USER SMTP_PASS SMTP_FROM BETA_REQUEST_NOTIFY_TO
+
 # Licence activation against the central platform. Empty key = install now and
 # activate later; the node runs unmanaged on FIRM_PLAN until a licence is active
 # (this can never brick a running install — see docs/esti/AORMS-IDENTITY.md §10).
