@@ -118,11 +118,11 @@ warn "First owner account"
 [[ -n "${OWNER_PASSWORD:-}" ]] || askpass "Owner password:" OWNER_PASSWORD
 [[ -n "${OWNER_PASSWORD:-}" ]] || error "Owner password is required."
 
-# Demo profile: the public one-click /demo button posts demo1234 — keep the default.
+# Demo profile: password for the seeded demo logins (manual sign-in at /login —
+# the old one-click /demo autologin was removed as an anonymous-access hole).
 if [[ "$PROFILE" == "demo" ]]; then
   [[ -n "${DEMO_PASSWORD:-}" ]] || askpass "Demo account password [demo1234]:" DEMO_PASSWORD
   DEMO_PASSWORD="${DEMO_PASSWORD:-demo1234}"
-  [[ "$DEMO_PASSWORD" != "demo1234" ]] && warn "Demo password ≠ demo1234 — the one-click /demo button will fail until the frontend constant matches."
   [[ "$OWNER_EMAIL" == "principal@demo.aorms.in" ]] && OWNER_PASSWORD="$DEMO_PASSWORD"
 else
   DEMO_PASSWORD="demo1234"   # unused unless SEED_DEMO=true
@@ -166,7 +166,7 @@ echo -e "${GREEN}${BOLD}  ESTI AORMS — '${PROFILE}' is live!${NC}"
 echo -e "${GREEN}${BOLD}============================================${NC}"
 echo -e "  URL    : ${BOLD}https://${DOMAIN}${NC}"
 echo -e "  Login  : ${BOLD}${OWNER_EMAIL}${NC}"
-[[ "$PROFILE" == "demo" ]]        && echo -e "  Demo   : ${BOLD}https://${DOMAIN}/demo${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD} (no manual login)"
+[[ "$PROFILE" == "demo" ]]        && echo -e "  Demo   : sign in at ${BOLD}https://${DOMAIN}/login${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD}"
 [[ "$PROFILE" == "aorms" ]]       && echo -e "  Site   : landing + main app at ${BOLD}https://${DOMAIN}${NC} · console handoff at ${BOLD}${VITE_ADMIN_URL:-'(embedded)'}${NC}"
 [[ "$PROFILE" == "landing" ]]     && echo -e "  Site   : public marketing landing at ${BOLD}https://${DOMAIN}${NC}"
 [[ "$PLATFORM_ENABLED" == "true" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (register with a PLATFORM_ADMIN_EMAILS address) · demo licences: demo.lite1@aorms.in / demo1234"

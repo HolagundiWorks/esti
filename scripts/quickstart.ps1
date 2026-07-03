@@ -4,8 +4,13 @@ $ErrorActionPreference = "Stop"
 $engine = if ($env:ENGINE) { $env:ENGINE } else { "podman" }
 Set-Location (Join-Path $PSScriptRoot "..")
 
-Write-Host "==> Building and starting the ESTI stack ($engine compose)..."
-& $engine compose up -d --build
+Write-Host "==> Building dev images (context = repo root; kits vendored under vendor/)..."
+& $engine build -t localhost/esti-backend:dev  -f backend/Dockerfile      .
+& $engine build -t localhost/esti-worker:dev   -f worker/Dockerfile.dev   .
+& $engine build -t localhost/esti-frontend:dev -f frontend/Dockerfile.dev .
+
+Write-Host "==> Starting the ESTI stack ($engine compose)..."
+& $engine compose up -d
 
 Write-Host "==> Waiting for the API to become healthy..."
 $up = $false
@@ -16,7 +21,7 @@ foreach ($i in 1..60) {
 if (-not $up) { Write-Error "API did not come up; check '$engine logs esti-backend'"; exit 1 }
 
 Write-Host "==> Seeding the first owner login (idempotent)..."
-& $engine exec esti-backend sh -lc "cd /app/backend && pnpm seed"
+& $engine exec esti-backend sh -lc "cd /app/esti/backend && pnpm seed"
 
 Write-Host ""
 Write-Host "==> ESTI is ready."

@@ -60,7 +60,7 @@ bundled. Other profiles are env overrides (`PROFILE=…`):
 |---|---|---|---|---|
 | **aorms** (default) | ✅ | — | Pro | Landing (`/login`, `/account`) |
 | `landing` | ✅ | — | Pro | Landing |
-| `demo` | ✅ | ✅ seeded | Pro | Landing + one-click `/demo` |
+| `demo` | ✅ | ✅ seeded | Pro | Landing + seeded demo logins |
 | `core` / `enterprise` | — | — | Pro | `/login` — prefer `deploy/install-enterprise.sh` |
 | `licensing` | — | — | Pro | `/login` (+ platform) |
 | `learning` | — | — | — | *(in pipeline — exits)* |
@@ -141,7 +141,7 @@ sudo bash deploy/install.sh
 | Session secret | **Enter = auto-generate** |
 | MinIO root user / password | Default `esti-admin` / auto-generate |
 | Owner email + password | Your **admin login** |
-| Demo password *(profile 2)* | **Keep `demo1234`** — the one-click `/demo` button has it baked in |
+| Demo password *(demo profile)* | Default `demo1234` — the seeded demo logins use it |
 | Platform admin emails *(if licensing)* | Comma-separated; who can sign into `/platform-admin` |
 
 All secrets are written to `/opt/esti/.env` (chmod 600, root-only).
@@ -209,7 +209,7 @@ curl -sI https://your-domain.com | grep -i strict-transport   # HSTS present = T
 ```
 
 Then open `https://your-domain.com` and log in with the owner account.
-- Profile 2: visit `https://your-domain.com/demo` → drops straight into the seeded demo.
+- Demo profile: sign in at `https://your-domain.com/login` with `principal@demo.aorms.in` / the demo password.
 - Licensing on: `https://your-domain.com/platform-admin`.
 
 ---

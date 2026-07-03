@@ -45,10 +45,10 @@ podman compose up -d --build
 
 ```sh
 # apply pending SQL migrations (preferred — matches CI/production)
-podman exec esti-backend sh -c "cd /app/backend && pnpm db:migrate"
+podman exec esti-backend sh -c "cd /app/esti/backend && pnpm db:migrate"
 
 # seed a known OWNER login (idempotent — safe to re-run)
-podman exec esti-backend sh -c "cd /app/backend && pnpm seed"
+podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed"
 ```
 
 After adding new migration files under `backend/drizzle/`, re-run `pnpm db:migrate`
@@ -71,7 +71,7 @@ This gives a fresh pod a known login:
 ```sh
 # pick your own credentials:
 podman exec -e SEED_OWNER_EMAIL=me@studio.in -e SEED_OWNER_PASSWORD='S3cret!' \
-  esti-backend sh -c "cd /app/backend && pnpm seed"
+  esti-backend sh -c "cd /app/esti/backend && pnpm seed"
 ```
 
 > **Dev defaults only** — `ChangeMe123` is not for production. The seed creates

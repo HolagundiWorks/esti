@@ -33,7 +33,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 |---|---|---|---|---|
 | **aorms** (default) | ✅ | — | Enterprise→PRO | Landing + main app + licensing platform + unified accounts |
 | `landing` | ✅ | — | Enterprise→PRO | Public marketing site only; owner account only |
-| `demo` | ✅ | ✅ seeded | Enterprise→PRO | One-click `/demo` auto-login (no manual login) |
+| `demo` | ✅ | ✅ seeded | Enterprise→PRO | Seeded demo workspace (manual sign-in with demo creds) |
 | `core` / `enterprise` | — | — | Core/Ent→PRO | Firm workspace — prefer `install-enterprise.sh` |
 | `licensing` | — | — | Enterprise→PRO | Licensing platform without the public site |
 | `learning` | — | — | — | In the pipeline — exits gracefully |
@@ -100,8 +100,8 @@ host skips it; licence keys, verification links, password resets and
 invitations all send through it, and sending degrades gracefully until it's
 set in `.env`)**, and (when the platform is on — always for the default
 profile) the platform-admin emails. The `demo` profile
-also asks for the demo password (keep `demo1234` — the one-click `/demo` button
-has it baked in).
+also asks for the demo password (default `demo1234`, used by the seeded demo
+logins at `/login`).
 
 ### Non-interactive
 

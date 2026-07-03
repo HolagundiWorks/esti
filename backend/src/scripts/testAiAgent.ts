@@ -2,7 +2,7 @@
  * Live-database smoke test for ESTI AI agent (gateway + tRPC generate).
  *
  *   pnpm --filter @esti/backend exec tsx src/scripts/testAiAgent.ts
- *   podman exec esti-backend sh -c "cd /app/backend && pnpm exec tsx src/scripts/testAiAgent.ts"
+ *   podman exec esti-backend sh -c "cd /app/esti/backend && pnpm exec tsx src/scripts/testAiAgent.ts"
  */
 import { parseAiSettings } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";

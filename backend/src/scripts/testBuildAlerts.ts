@@ -2,7 +2,7 @@
  * Live-database smoke test for notifications alert aggregation.
  *
  *   pnpm --filter @esti/backend test:alerts
- *   podman exec esti-backend sh -c "cd /app/backend && pnpm test:alerts"
+ *   podman exec esti-backend sh -c "cd /app/esti/backend && pnpm test:alerts"
  */
 import { parseEscalationSettings } from "@esti/contracts";
 import { db } from "../db/index.js";

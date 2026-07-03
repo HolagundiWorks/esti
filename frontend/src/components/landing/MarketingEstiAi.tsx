@@ -136,7 +136,7 @@ export function MarketingEstiAi() {
                 kind="warning"
                 lowContrast
                 title="ESTI is resting"
-                subtitle="AI is temporarily unavailable. Try the live demo or email hi@aorms.in."
+                subtitle="AI is temporarily unavailable. Create a free account or email hi@aorms.in."
                 hideCloseButton
               />
             )}

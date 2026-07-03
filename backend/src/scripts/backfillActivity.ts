@@ -4,7 +4,7 @@
  * with the same object, event type, and source timestamp.
  *
  *   pnpm --filter @esti/backend backfill:activity
- *   (or: podman exec esti-backend sh -lc "cd /app/backend && pnpm backfill:activity")
+ *   (or: podman exec esti-backend sh -lc "cd /app/esti/backend && pnpm backfill:activity")
  */
 import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";

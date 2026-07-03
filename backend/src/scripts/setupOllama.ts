@@ -2,7 +2,7 @@
  * Configure and verify on-server Ollama for AI Studio.
  *
  *   pnpm --filter @esti/backend setup:ollama
- *   podman exec esti-backend sh -c "cd /app/backend && pnpm setup:ollama"
+ *   podman exec esti-backend sh -c "cd /app/esti/backend && pnpm setup:ollama"
  */
 import { parseAiSettings } from "@esti/contracts";
 import { db } from "../db/index.js";

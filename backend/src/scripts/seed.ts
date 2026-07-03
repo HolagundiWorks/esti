@@ -2,7 +2,7 @@
  * Dev-seed: ensure a known OWNER login exists on a fresh pod.
  *
  *   pnpm --filter @esti/backend seed
- *   (or: podman exec esti-backend sh -c "cd /app/backend && pnpm seed")
+ *   (or: podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed")
  *
  * Idempotent — if the owner email already exists it does nothing. Credentials
  * come from env (SEED_OWNER_EMAIL / SEED_OWNER_PASSWORD / SEED_OWNER_NAME) and
