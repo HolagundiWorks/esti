@@ -2,7 +2,7 @@
 
 // ── Marketing landing design system (esti-lp) ───────────────────────────────
 // Editorial CSS for the unauthenticated marketing surfaces: Landing, Blog,
-// Investors, DemoAutoLogin. Uses IBM Plex + Carbon tokens but not Carbon React
+// Investors. Uses IBM Plex + Carbon tokens but not Carbon React
 // components — documented exception to the Pure Carbon rule.
 // Imported in main.tsx alongside styles.scss (both load globally).
 
@@ -3325,8 +3325,7 @@ h1.esti-landing-lead-title {
   overflow-wrap: anywhere;
 }
 
-.esti-lp-tile:not(.esti-lp-tile--2x2) .esti-lp-feature-title,
-.esti-lp-demo-title {
+.esti-lp-tile:not(.esti-lp-tile--2x2) .esti-lp-feature-title {
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 3;
@@ -3435,102 +3434,6 @@ h1.esti-landing-lead-title {
   height: 100%;
   border-radius: 0;
   transition: width 0.3s ease;
-}
-
-// Demo tile body
-.esti-lp-demo-body {
-  flex: 1;
-  padding: var(--cds-spacing-06);
-  display: flex;
-  flex-direction: column;
-  gap: var(--cds-spacing-04);
-  min-height: 0;
-}
-
-.esti-lp-demo-eyebrow {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.25;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 0;
-}
-
-.esti-lp-demo-title {
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--cds-text-primary);
-  line-height: 1.32;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.esti-lp-demo-action {
-  margin-top: auto;
-  padding-top: var(--cds-spacing-05);
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
-// Role tile — full-tile button
-.esti-lp-role-btn {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--cds-spacing-04);
-  padding: var(--cds-spacing-06);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s;
-
-  &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.03); }
-  &:disabled { cursor: not-allowed; }
-}
-
-.esti-lp-role-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--cds-text-inverse);
-  flex-shrink: 0;
-  letter-spacing: 0.05em;
-}
-
-.esti-lp-role-info { flex: 1; min-width: 0; }
-
-.esti-lp-role-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--cds-text-primary);
-  line-height: 1.25;
-  margin: 0 0 var(--cds-spacing-01);
-}
-
-.esti-lp-role-title {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.25;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 var(--cds-spacing-02);
-}
-
-.esti-lp-role-arrow {
-  color: var(--cds-text-helper);
-  font-size: 16px;
-  align-self: center;
-  flex-shrink: 0;
-  margin-left: auto;
 }
 
 .esti-lp-cta-h {

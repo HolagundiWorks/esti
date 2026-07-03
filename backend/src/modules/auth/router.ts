@@ -403,42 +403,6 @@ export const authRouter = router({
 
   me: publicProcedure.query(({ ctx }) => ctx.user),
 
-  /** Returns all demo users — available to unauthenticated visitors (landing page) and demo sessions. */
-  demoUsers: publicProcedure.query(async ({ ctx }) => {
-    if (ctx.user && !ctx.user.isDemo) return [];
-    const rows = await ctx.db
-      .select({
-        id: users.id,
-        email: users.email,
-        fullName: users.fullName,
-        role: users.role,
-      })
-      .from(users)
-      .where(and(eq(users.isDemo, true), eq(users.disabled, false)));
-    return rows;
-  }),
-
-  /** Switch to another demo user — no password required; works for demo sessions and unauthenticated visitors. */
-  demoSwitch: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      if (ctx.user && !ctx.user.isDemo) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Demo switch is only available on demo accounts" });
-      }
-      const rows = await ctx.db
-        .select()
-        .from(users)
-        .where(and(emailMatches(users.email, input.email), eq(users.isDemo, true), eq(users.disabled, false)))
-        .limit(1);
-      const u = rows[0];
-      if (!u) throw new TRPCError({ code: "NOT_FOUND", message: "Demo user not found" });
-      // Revoke existing session then create a new one for the target user.
-      await revokeSessionByToken(ctx.db, ctx.sessionToken);
-      const token = await createSession(u.id);
-      ctx.setCookie(SESSION_COOKIE, token);
-      return { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
-    }),
-
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
   resetDemo: publicProcedure.mutation(async ({ ctx }) => {
     if (!ctx.user?.isDemo) {

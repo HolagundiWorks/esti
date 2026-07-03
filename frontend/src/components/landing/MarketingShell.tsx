@@ -20,7 +20,7 @@ import { useState, type ReactNode } from "react";
 const NAV = [
   { href: "/#platform", label: "Platform" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/#demo", label: "Demo" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/login", label: "Downloads" },
   { href: "/blog", label: "Blog" },
   { href: "/investors", label: "Investors" },
@@ -32,7 +32,7 @@ const STATUS_ITEMS = [
   { label: "CLIENT PORTALS INCLUDED", dot: "green" },
   { label: "GST + INDIA WORKFLOWS", dot: "green" },
   { label: "AI OFFICE BRIEFINGS", dot: "yellow" },
-  { label: "DEMO WORKSPACE READY", dot: "green" },
+  { label: "FREE LITE EDITION", dot: "green" },
 ] as const;
 
 type Dot = "green" | "yellow" | "red" | "white";

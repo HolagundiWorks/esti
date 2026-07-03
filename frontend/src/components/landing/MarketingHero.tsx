@@ -1,32 +1,16 @@
-import { ArrowRight, Download } from "@carbon/icons-react";
+import { ArrowRight } from "@carbon/icons-react";
 import { Button } from "@carbon/react";
-import type { DemoKind } from "../../lib/landing-demo.js";
-
-/** Where the AORMS Lite installer is hosted. The download button only appears
- *  once this is set — point it at the built installer (e.g.
- *  /downloads/aorms-lite-setup.exe after dropping the file in frontend/public,
- *  or a CDN URL). See docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md. */
-const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
+import { createAccountUrl } from "../../lib/onboarding.js";
 
 const STATUS_LINES = [
   { label: "Built only for Indian architectural practices", dot: "green" },
   { label: "Projects, fees, approvals and billing in one record", dot: "green" },
   { label: "GST invoicing and 26AS / AIS / GSTR reconciliation built in", dot: "green" },
   { label: "Native desktop app — runs offline on your machine", dot: "yellow" },
-  { label: "Working demo office available", dot: "green" },
+  { label: "Free Lite edition, no credit card required", dot: "green" },
 ] as const;
 
-export function MarketingHero({
-  onStudioDemo,
-  onTrialScroll,
-  demoLoading,
-  demoKind,
-}: {
-  onStudioDemo: () => void;
-  onTrialScroll?: () => void;
-  demoLoading: boolean;
-  demoKind?: DemoKind | null;
-}) {
+export function MarketingHero({ onTrialScroll }: { onTrialScroll?: () => void }) {
   return (
     <section className="esti-lp-hero" id="top" aria-labelledby="hero-title">
       <p className="esti-lp-hero__sysid">
@@ -48,27 +32,17 @@ export function MarketingHero({
       </p>
 
       <div className="esti-lp-hero__actions">
-        <Button
-          kind="primary"
-          size="lg"
-          renderIcon={ArrowRight}
-          onClick={onStudioDemo}
-          disabled={demoLoading}
-        >
-          {demoLoading && demoKind === "team" ? "Opening…" : "Open the live demo office"}
+        <Button kind="primary" size="lg" renderIcon={ArrowRight} href={createAccountUrl()}>
+          Create free account
         </Button>
         {onTrialScroll && (
           <Button kind="ghost" size="lg" onClick={onTrialScroll}>
             Request Workspace
           </Button>
         )}
-        {/* Installers are available under your Profile after sign-in. */}
-        <Button kind="tertiary" size="lg" href="/login">
-          Installers (Profile)
-        </Button>
       </div>
 
-      <div className="esti-lp-hero__status" aria-label="System status">
+      <div className="esti-lp-hero__status" aria-label="Product preview">
         {STATUS_LINES.map((s) => (
           <p key={s.label} className="esti-lp-hero__status-line">
             <span className={`esti-lp-dot esti-lp-dot--${s.dot}`} aria-hidden>●</span>

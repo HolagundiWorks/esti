@@ -1,36 +1,41 @@
-import { InlineNotification, Modal, Theme } from "@carbon/react";
+import { Modal, Theme } from "@carbon/react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { LandingTrialForm, type LandingTrialPlanContext } from "../components/LandingTrialForm.js";
 import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
-import { LandingEditorial } from "../components/landing/LandingBand.js";
-import { LandingFinalCta, LandingOperationalGrid } from "../components/landing/LandingOperationalGrid.js";
+import {
+  CollaborationSection,
+  FaqSection,
+  FeatureGroup1Section,
+  FeatureGroup2Section,
+  FinalCtaSection,
+  IntegrationsSection,
+  IntelligenceSection,
+  ProductOverviewSection,
+  ProductivityBenefitsSection,
+  SecuritySection,
+  CustomerSuccessSection,
+  ValuePropositionSection,
+  WorkflowOverviewSection,
+} from "../components/landing/LandingOperationalGrid.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
-import { LandingInsights } from "../components/landing/LandingInsights.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
-import { MarketingSolutions } from "../components/landing/MarketingSolutions.js";
-import { demoLoginPayload, type DemoKind } from "../lib/landing-demo.js";
 import { applyLandingSeo } from "../lib/landing-seo.js";
 import { useLandingVisitCounter } from "../lib/landing-visit.js";
-import { trpc } from "../lib/trpc.js";
 
+/**
+ * Landing page content structure (docs/esti/CARBON-UI-DIRECTION.md's landing
+ * exception applies — editorial system, not app Carbon). Section order:
+ * Hero -> Value Proposition -> Product Overview -> Feature Group 1 ->
+ * Feature Group 2 -> Workflow Overview -> Productivity Benefits ->
+ * Collaboration -> Intelligence & Automation -> Integrations ->
+ * Security & Reliability -> Customer Success -> FAQ -> Final CTA.
+ */
 export function Landing() {
-  const navigate = useNavigate();
-  const utils = trpc.useUtils();
   const visitCount = useLandingVisitCounter();
-  const [demoKind, setDemoKind] = useState<DemoKind | null>(null);
   const [requestOpen, setRequestOpen] = useState(false);
   const [planContext, setPlanContext] = useState<LandingTrialPlanContext | undefined>();
-
-  const demoLogin = trpc.auth.login.useMutation({
-    onSuccess: async () => {
-      await utils.auth.me.invalidate();
-      navigate("/", { replace: true });
-    },
-    onSettled: () => setDemoKind(null),
-  });
 
   useEffect(() => {
     applyLandingSeo();
@@ -47,11 +52,6 @@ export function Landing() {
     return () => window.cancelAnimationFrame(raf);
   }, []);
 
-  function openDemo(kind: DemoKind) {
-    setDemoKind(kind);
-    demoLogin.mutate(demoLoginPayload(kind));
-  }
-
   function scrollToTrial() {
     setPlanContext(undefined);
     setRequestOpen(true);
@@ -62,39 +62,27 @@ export function Landing() {
     setRequestOpen(true);
   }
 
-  const demoLoading = demoLogin.isPending;
-
   return (
     <Theme theme="g100">
       <MarketingShell>
-        {demoLogin.error && (
-          <LandingEditorial className="esti-landing-alert">
-            <InlineNotification
-              kind="error"
-              title="Demo login failed"
-              subtitle={demoLogin.error.message}
-            />
-          </LandingEditorial>
-        )}
+        <MarketingHero onTrialScroll={scrollToTrial} />
 
-        <MarketingHero
-          onStudioDemo={() => openDemo("team")}
-          demoLoading={demoLoading}
-          demoKind={demoKind}
-          onTrialScroll={scrollToTrial}
-        />
+        <ValuePropositionSection />
+        <ProductOverviewSection />
+        <FeatureGroup1Section />
+        <FeatureGroup2Section />
+        <WorkflowOverviewSection />
+        <ProductivityBenefitsSection />
+        <CollaborationSection />
+        <IntelligenceSection />
+        <IntegrationsSection />
+        <SecuritySection />
+        <CustomerSuccessSection />
+        <FaqSection />
 
-        <LandingOperationalGrid
-          onStudioDemo={() => openDemo("team")}
-          demoLoading={demoLoading}
-          demoKind={demoKind}
-        />
-
-        <LandingFinalCta>
+        <FinalCtaSection>
           <MarketingPricingBand onSelectPlan={openPlanRequest} />
-          <MarketingSolutions />
-          <LandingInsights />
-        </LandingFinalCta>
+        </FinalCtaSection>
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} visitCount={visitCount} />
 

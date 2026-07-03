@@ -6,7 +6,7 @@ import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
 const PRODUCT_LINKS = [
   { href: "/#platform", label: "Platform" },
-  { href: "/#demo", label: "Demo workspace" },
+  { href: "/#pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
   { href: "/#trial", label: "Request access" },
 ] as const;

@@ -1,24 +1,9 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button } from "@carbon/react";
-import { useState, type ReactNode } from "react";
-import { DEMO_ACCOUNTS, type DemoKind } from "../../lib/landing-demo.js";
-import { trpc } from "../../lib/trpc.js";
+import type { ReactNode } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────
 
 type Dot = "green" | "yellow" | "red" | "white";
 type Span = "1x1" | "2x1" | "2x2" | "4x1";
-
-export interface LandingGridProps {
-  afterTryIt?: ReactNode;
-  onStudioDemo: () => void;
-  demoLoading: boolean;
-  demoKind: DemoKind | null;
-}
-
-export interface LandingFinalCtaProps {
-  children?: ReactNode;
-}
 
 // ── Primitive building blocks ──────────────────────────────────────
 
@@ -75,11 +60,9 @@ function DataRow({ k, v }: { k: string; v: string }) {
   );
 }
 
-function SectionLabel({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <p className="esti-lp-section-label" style={style}>{children}</p>;
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="esti-lp-section-label">{children}</p>;
 }
-
-// ── KPI tile ──────────────────────────────────────────────────────
 
 function KpiTile({ header, dot, value, sub }: {
   header: string; dot: Dot; value: string; sub: string;
@@ -95,7 +78,69 @@ function KpiTile({ header, dot, value, sub }: {
   );
 }
 
-// ── Story tiles ────────────────────────────────────────────────────
+function FeatureTile({ header, dot, title, bullets, meta, span }: {
+  header: string; dot: Dot; title: string; bullets: readonly string[]; meta?: string; span?: Span;
+}) {
+  return (
+    <Tile span={span}>
+      <TileHead label={header} dot={dot} meta={meta} />
+      <TileBody>
+        <h3 className="esti-lp-feature-title">{title}</h3>
+        <ul className="esti-lp-bullets">
+          {bullets.map((b) => <li key={b}>{b}</li>)}
+        </ul>
+      </TileBody>
+    </Tile>
+  );
+}
+
+// ── Section 2: Value Proposition ───────────────────────────────────
+
+const VALUE_PROPS = [
+  {
+    header: "One record",
+    dot: "green" as Dot,
+    title: "Projects, revisions, approvals, fees and GST stop living in five different places",
+    bullets: ["Every project follows the same standard, from enquiry to handover"],
+  },
+  {
+    header: "No lost fees",
+    dot: "yellow" as Dot,
+    title: "Client-driven changes carry a visible fee and time trail",
+    bullets: ["Revision history shows who asked, who approved, and what it cost"],
+  },
+  {
+    header: "Nothing waits on memory",
+    dot: "green" as Dot,
+    title: "Blocked work and pending approvals surface on their own",
+    bullets: ["The office remembers what a person would otherwise have to chase"],
+  },
+  {
+    header: "Built for India",
+    dot: "green" as Dot,
+    title: "GST, COA fee scales and the Indian financial year are native, not bolted on",
+    bullets: ["Invoicing, reconciliation and filing abstracts follow Indian practice"],
+  },
+] as const;
+
+export function ValuePropositionSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="02 / Why AORMS"
+        title="The practice stops depending on someone's memory to protect time, fees, and approvals"
+        body="Architectural practices don't lose money because they design badly. They lose it because the office runs on scattered chats, spreadsheets, and verbal approvals no one can find later."
+      />
+      <div className="esti-lp-grid" id="value">
+        {VALUE_PROPS.map((v) => (
+          <FeatureTile key={v.header} header={v.header} dot={v.dot} title={v.title} bullets={v.bullets} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── Section 3: Product Overview ────────────────────────────────────
 
 const COGNITION_SIGNALS = [
   { id: "PROJECTS", score: "14", state: "PHASES, DRAWINGS AND SITE VISITS MOVING", dot: "green" as Dot },
@@ -135,7 +180,7 @@ function ProductStoryTile() {
 
         <div className="esti-lp-cognition-forecast">
           <DataRow k="Built for" v="Solo to mid-size practices" />
-          <DataRow k="First step" v="Enter a working office" />
+          <DataRow k="First step" v="Create a free Lite workspace" />
           <DataRow k="Office role" v="Remembers, warns, records" />
         </div>
       </TileBody>
@@ -143,254 +188,46 @@ function ProductStoryTile() {
   );
 }
 
-function BuyerOutcomeTile() {
-  return (
-    <Tile span="2x1" className="esti-lp-tile--outcome">
-      <TileHead label="What changes" dot="yellow" meta="Practice memory" />
-      <TileBody>
-        <h3 className="esti-lp-feature-title">The practice stops depending on someone's memory to protect time, fees, and approvals.</h3>
-        <ul className="esti-lp-bullets">
-          <li>Principals see risk before it becomes cost.</li>
-          <li>Teams see blocked work and the person responsible for the handoff.</li>
-          <li>Clients approve through records, not noisy message trails.</li>
-        </ul>
-      </TileBody>
-    </Tile>
-  );
-}
-
-// ── Feature tile ──────────────────────────────────────────────────
-
-function FeatureTile({ header, dot, title, bullets, meta }: {
-  header: string; dot: Dot; title: string; bullets: readonly string[]; meta?: string;
-}) {
-  return (
-    <Tile>
-      <TileHead label={header} dot={dot} meta={meta} />
-      <TileBody>
-        <h3 className="esti-lp-feature-title">{title}</h3>
-        <ul className="esti-lp-bullets">
-          {bullets.map((b) => <li key={b}>{b}</li>)}
-        </ul>
-      </TileBody>
-    </Tile>
-  );
-}
-
-// ── Revision intelligence tile ─────────────────────────────────────
-
-const REVISIONS = [
-  { label: "Client Driven",   pct: 42, color: "var(--cds-tag-background-purple, #6929c4)" },
-  { label: "Internal Error",  pct: 18, color: "var(--cds-support-error)" },
-  { label: "Technical Query", pct: 27, color: "var(--cds-interactive)" },
-  { label: "Scope Change",    pct: 13, color: "var(--cds-support-warning)" },
-] as const;
-
-function RevisionTile() {
-  return (
-    <Tile>
-      <TileHead label="Revision Intelligence" dot="yellow" meta="Scope protection" />
-      <TileBody>
-        <SectionLabel>Why the drawing changed</SectionLabel>
-        {REVISIONS.map((r) => (
-          <div key={r.label} className="esti-lp-rev-row">
-            <span className="esti-lp-rev-label">{r.label}</span>
-            <div className="esti-lp-rev-track">
-              <div className="esti-lp-rev-fill" style={{ width: `${r.pct}%`, background: r.color }} />
-            </div>
-            <span className="esti-lp-rev-pct">{r.pct}%</span>
-          </div>
-        ))}
-      </TileBody>
-    </Tile>
-  );
-}
-
-// ── Demo tiles ─────────────────────────────────────────────────────
-
-function DemoTile({
-  kind, onOpen, loading, activeKind,
-}: {
-  kind: DemoKind; onOpen: () => void; loading: boolean; activeKind: DemoKind | null;
-}) {
-  const acct = DEMO_ACCOUNTS[kind];
-  const isActive = loading && activeKind === kind;
-  const accentColor = "var(--cds-interactive)";
-
-  return (
-    <Tile span="2x1" id="demo">
-      <TileHead
-        label="Team Demo"
-        dot="green"
-        meta="Recommended"
-      />
-      <div className="esti-lp-demo-body">
-        <p className="esti-lp-demo-eyebrow" style={{ color: accentColor }}>
-          {acct.caseStudy.eyebrow}
-        </p>
-        <h3 className="esti-lp-demo-title">{acct.title}</h3>
-        <p className="esti-lp-note">{acct.subtitle}</p>
-        <ul className="esti-lp-bullets" style={{ marginTop: "var(--cds-spacing-04)" }}>
-          {acct.highlights.slice(0, 3).map((h) => <li key={h}>{h}</li>)}
-        </ul>
-        <div className="esti-lp-demo-action">
-          <Button
-            kind="primary"
-            size="sm"
-            renderIcon={ArrowRight}
-            onClick={onOpen}
-            disabled={loading}
-          >
-            {isActive ? "Opening workspace…" : acct.cta}
-          </Button>
-        </div>
-      </div>
-    </Tile>
-  );
-}
-
-// ── Role tiles ─────────────────────────────────────────────────────
-
-const ROLE_LEVEL: Record<string, string> = {
-  OWNER: "L1", PARTNER: "L2", SENIOR: "L3",
-  ASSOCIATE: "L4", VIEWER: "L5", CLIENT: "CL", CONSULTANT: "CO",
-};
-
-const ROLE_LABEL: Record<string, string> = {
-  OWNER: "Principal / Owner", PARTNER: "Partner / Finance Lead",
-  SENIOR: "Senior Architect", ASSOCIATE: "Associate / Site Supervisor",
-  VIEWER: "Junior / Intern", CLIENT: "Client Portal", CONSULTANT: "Consultant Portal",
-};
-
-const ROLE_DESC: Record<string, string> = {
-  OWNER: "Whole office view — projects, money, people, risk, and audit trail.",
-  PARTNER: "Fee proposals, GST, billing, reconciliation, HR, and reporting.",
-  SENIOR: "Project delivery, drawings, site progress, and approvals.",
-  ASSOCIATE: "Assigned tasks, clients, site notes, and daily project movement.",
-  VIEWER: "Personal work, calendar, and activity without sensitive office data.",
-  CLIENT: "One project only — drawings, approvals, revisions, and fee status.",
-  CONSULTANT: "Scoped engagement, RFI movement, and issued drawing records.",
-};
-
-const LEVEL_ORDER: Record<string, number> = {
-  OWNER: 1, PARTNER: 2, SENIOR: 3, ASSOCIATE: 4, VIEWER: 5, CLIENT: 6, CONSULTANT: 7,
-};
-
-const LEVEL_BG: Record<string, string> = {
-  L1: "var(--cds-tag-background-purple, #6929c4)",
-  L2: "var(--cds-interactive)",
-  L3: "var(--cds-tag-background-teal, #005d5d)",
-  L4: "var(--cds-support-error-inverse, #9f1853)",
-  L5: "var(--cds-support-warning-minor, #b28600)",
-  CL: "var(--cds-support-success)",
-  CO: "var(--cds-tag-background-red, #520408)",
-};
-
-function RoleTile({
-  user, busy, activeEmail, onSwitch,
-}: {
-  user: { id: string | number; email: string; role: string; fullName: string };
-  busy: boolean;
-  activeEmail: string | null;
-  onSwitch: (email: string) => void;
-}) {
-  const level = ROLE_LEVEL[user.role] ?? "?";
-  const levelBg = LEVEL_BG[level] ?? "var(--cds-background-inverse)";
-  const name = user.fullName.split("(")[0]?.trim() ?? user.fullName;
-  const roleLabel = ROLE_LABEL[user.role] ?? user.role;
-  const desc = ROLE_DESC[user.role] ?? "";
-  const isActive = activeEmail === user.email;
-
-  return (
-    <Tile>
-      <TileHead label={`${level} · ${roleLabel.toUpperCase()}`} dot="white" />
-      <button
-        className="esti-lp-role-btn"
-        onClick={() => onSwitch(user.email)}
-        disabled={busy}
-        style={{ opacity: busy && !isActive ? 0.5 : 1 }}
-      >
-        <div className="esti-lp-role-badge" style={{ background: levelBg }}>
-          {isActive ? "…" : level}
-        </div>
-        <div className="esti-lp-role-info">
-          <p className="esti-lp-role-name">{name}</p>
-          <p className="esti-lp-role-title" style={{ color: levelBg }}>{roleLabel}</p>
-          <p className="esti-lp-note">{isActive ? "Opening workspace…" : desc}</p>
-        </div>
-        {!busy && <span className="esti-lp-role-arrow">→</span>}
-      </button>
-    </Tile>
-  );
-}
-
-// ── Contractor portal tile ─────────────────────────────────────────
-
-function ContractorPortalTile() {
-  return (
-    <Tile span="2x1">
-      <TileHead label="CO · Contractor Portal" dot="white" />
-      <TileBody>
-        <p className="esti-lp-note" style={{ marginBottom: "var(--cds-spacing-04)" }}>
-          Contractors enter only the project scope shared with them.
-        </p>
-        <ul className="esti-lp-bullets">
-          <li>Issued drawings, transmittals, and site instructions</li>
-          <li>Coordination and billing movement recorded against the project</li>
-          <li>No visibility beyond the issued scope</li>
-        </ul>
-      </TileBody>
-    </Tile>
-  );
-}
-
-// ── Main export ────────────────────────────────────────────────────
-
-export function LandingOperationalGrid({
-  afterTryIt, onStudioDemo, demoLoading, demoKind,
-}: LandingGridProps) {
-  const [switching, setSwitching] = useState<string | null>(null);
-
-  const demoUsersQ = trpc.auth.demoUsers.useQuery();
-  const switchMut = trpc.auth.demoSwitch.useMutation({
-    onSuccess: () => { window.location.href = "/"; },
-    onError: () => setSwitching(null),
-  });
-
-  const users = [...(demoUsersQ.data ?? [])].sort(
-    (a, b) => (LEVEL_ORDER[a.role] ?? 99) - (LEVEL_ORDER[b.role] ?? 99),
-  );
-
-  function handleSwitch(email: string) {
-    if (switching) return;
-    setSwitching(email);
-    switchMut.mutate({ email });
-  }
-
+export function ProductOverviewSection() {
   return (
     <>
       <SectionBreak
-        eyebrow="01 / Morning View"
-        title="The principal sees the whole practice before the day begins"
-        body="AORMS shows what moved overnight, what is blocked, what needs approval, what can be billed, and who owns the next action."
+        eyebrow="03 / Product Overview"
+        title="A single operating system for an Indian architecture practice"
+        body="AORMS holds projects, communication, tasks, decisions, drawings, documents, statutory work, fees, invoices, consultants, contractors and office resources in one operational record — not a generic ERP fitted to construction."
       />
-
       <div className="esti-lp-grid" id="platform">
         <ProductStoryTile />
-        <BuyerOutcomeTile />
+        <FeatureTile
+          header="Core Capabilities"
+          dot="green"
+          meta="SUMMARY"
+          title="Everything a project touches, in one place"
+          bullets={[
+            "Projects, phases, tasks, drawings and decisions",
+            "GST invoicing, reconciliation and filing abstracts",
+            "Client, consultant and contractor portals",
+            "Team workload, HR and performance scoring",
+          ]}
+          span="2x1"
+        />
         <KpiTile header="Office Record" dot="green" value="9+" sub="Projects, revisions, fees, GST, teams, portals, and approvals held together" />
-        <KpiTile header="Next Action" dot="yellow" value="Owner" sub="Every warning points to the person responsible for moving the work forward" />
       </div>
+    </>
+  );
+}
 
+// ── Section 4: Feature Group 1 — Run the practice ──────────────────
+
+export function FeatureGroup1Section() {
+  return (
+    <>
       <SectionBreak
-        eyebrow="02 / One Standard"
+        eyebrow="04 / Run The Practice"
         title="What 'standardized' actually means"
         body="Enquiry → proposal → drawings → approvals → billing → handover. Every project follows the same path, every decision lands on the record, and every fee ties back to work done — new intern or twentieth project, the office runs the same way."
       />
-
       <div className="esti-lp-grid">
-        <KpiTile header="Indian Practice" dot="green" value="GST" sub="GST, COA, fee proposals, client approvals, and authority context stay in the record" />
-        <KpiTile header="ESTI" dot="yellow" value="AI" sub="Reads the office state, explains risk, and suggests the next responsible action" />
         <FeatureTile
           header="Project Control"
           dot="green"
@@ -424,38 +261,49 @@ export function LandingOperationalGrid({
             "Sensitive finance and owner views remain controlled",
           ]}
         />
-        <FeatureTile
-          header="Client Experience"
-          dot="green"
-          meta="PORTALS"
-          title="Let clients decide inside a record, not inside WhatsApp noise"
-          bullets={[
-            "Approvals, drawings, RFIs, and fee status move through scoped portals",
-            "Clients, consultants, and contractors see only what belongs to them",
-            "Decisions stop disappearing into screenshots and forwarded messages",
-          ]}
-        />
       </div>
+    </>
+  );
+}
 
+// ── Section 5: Feature Group 2 — Protect the record ────────────────
+
+const REVISIONS = [
+  { label: "Client Driven",   pct: 42, color: "var(--cds-tag-background-purple, #6929c4)" },
+  { label: "Internal Error",  pct: 18, color: "var(--cds-support-error)" },
+  { label: "Technical Query", pct: 27, color: "var(--cds-interactive)" },
+  { label: "Scope Change",    pct: 13, color: "var(--cds-support-warning)" },
+] as const;
+
+function RevisionTile() {
+  return (
+    <Tile>
+      <TileHead label="Revision Intelligence" dot="yellow" meta="Scope protection" />
+      <TileBody>
+        <SectionLabel>Why the drawing changed</SectionLabel>
+        {REVISIONS.map((r) => (
+          <div key={r.label} className="esti-lp-rev-row">
+            <span className="esti-lp-rev-label">{r.label}</span>
+            <div className="esti-lp-rev-track">
+              <div className="esti-lp-rev-fill" style={{ width: `${r.pct}%`, background: r.color }} />
+            </div>
+            <span className="esti-lp-rev-pct">{r.pct}%</span>
+          </div>
+        ))}
+      </TileBody>
+    </Tile>
+  );
+}
+
+export function FeatureGroup2Section() {
+  return (
+    <>
       <SectionBreak
-        eyebrow="03 / See It Running"
-        title="Enter a working office, not an empty dashboard"
-        body="The demo opens with projects, fees, revisions, client approvals, team load, and recommendations already in motion."
+        eyebrow="05 / Protect The Record"
+        title="Never absorb a change you never agreed to"
+        body="Every revision, document and approval is dated, attributed and kept — so a dispute over scope or a missing drawing is a five-second lookup, not a week of searching chat history."
       />
-
       <div className="esti-lp-grid">
-        <DemoTile kind="team" onOpen={onStudioDemo} loading={demoLoading} activeKind={demoKind} />
-        <FeatureTile
-          header="Live Scenario"
-          dot="green"
-          meta="WORKING OFFICE"
-          title="See how the system behaves before asking your team to change its habits"
-          bullets={[
-            "The dashboard reads populated project, fee, client, and team records",
-            "Warnings explain what needs attention and why",
-            "You can judge the office rhythm before rollout",
-          ]}
-        />
         <RevisionTile />
         <FeatureTile
           header="Revision Memory"
@@ -468,73 +316,399 @@ export function LandingOperationalGrid({
             "Repeated revision pressure becomes visible to the principal",
           ]}
         />
-      </div>
-
-      {afterTryIt}
-
-      <SectionBreak
-        eyebrow="04 / People Enter"
-        title="Controlled visibility for every person around the project"
-        body="The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see approvals. Contractors see only their issued scope."
-      />
-
-      <div className="esti-lp-grid">
-        <ContractorPortalTile />
-        {demoUsersQ.isLoading ? (
-          <Tile span="2x1">
-            <TileHead label="Loading Role Entry" dot="yellow" meta="Access model" />
-            <TileBody>
-              <h3 className="esti-lp-feature-title">Preparing controlled views.</h3>
-              <p className="esti-lp-note">
-                Owner, finance, team, client, consultant, and contractor access will appear here.
-              </p>
-            </TileBody>
-          </Tile>
-        ) : demoUsersQ.isError ? (
-          <Tile span="2x1">
-            <TileHead label="Role Entry Unavailable" dot="red" meta="Retry later" />
-            <TileBody>
-              <h3 className="esti-lp-feature-title">Controlled views could not be loaded.</h3>
-              <p className="esti-lp-note">
-                You can still open the team workspace from the hero.
-              </p>
-            </TileBody>
-          </Tile>
-        ) : users.length === 0 ? (
-          <Tile span="2x1">
-            <TileHead label="Role Entry" dot="white" meta="Not configured" />
-            <TileBody>
-              <h3 className="esti-lp-feature-title">Role-based visibility is configured inside the live workspace.</h3>
-              <p className="esti-lp-note">
-                Request access and we will provision owner, finance, team, client, consultant, and contractor views.
-              </p>
-            </TileBody>
-          </Tile>
-        ) : (
-          users.map((u) => (
-            <RoleTile
-              key={u.id}
-              user={u}
-              busy={!!switching}
-              activeEmail={switching}
-              onSwitch={handleSwitch}
-            />
-          ))
-        )}
+        <FeatureTile
+          header="Document Control"
+          dot="green"
+          meta="DRAWINGS + TRANSMITTALS"
+          title="One numbered, dated register for everything issued"
+          bullets={[
+            "Drawing register, transmittals and issue log stay in sync",
+            "Configurable numbering patterns per document type",
+            "Revision workflow ties documents to the decisions behind them",
+          ]}
+        />
       </div>
     </>
   );
 }
 
-export function LandingFinalCta({ children }: LandingFinalCtaProps) {
+// ── Section 6: Workflow Overview ───────────────────────────────────
+
+const WORKFLOW_STEPS = [
+  { step: "Step 1", title: "Enquiry & Proposal", detail: "A lead becomes a scoped fee proposal against the COA scale" },
+  { step: "Step 2", title: "Design & Drawings", detail: "Phases, tasks and drawings move together as one project record" },
+  { step: "Step 3", title: "Approvals & Revisions", detail: "Client decisions land on the record with scope and fee impact" },
+  { step: "Step 4", title: "Billing & Handover", detail: "GST invoices, reconciliation and final records close the project" },
+] as const;
+
+export function WorkflowOverviewSection() {
   return (
     <>
       <SectionBreak
-        eyebrow="05 / Choose"
-        title="Choose the depth of the framework you need"
-        body="Start with a shared record, run the full framework across your practice, or deploy AORMS inside your own infrastructure."
+        eyebrow="06 / How It Works"
+        title="One path, every project, every time"
+        body="A project moves through the same four stages whether it's a solo practice's third commission or a growing studio's fortieth — the record travels with it the whole way."
       />
+      <div className="esti-lp-grid">
+        {WORKFLOW_STEPS.map((s) => (
+          <KpiTile key={s.step} header={s.title} dot="green" value={s.step.replace("Step ", "")} sub={s.detail} />
+        ))}
+        <FeatureTile
+          header="Expected Outcome"
+          dot="yellow"
+          meta="RESULT"
+          span="2x1"
+          title="A continuous record from first client conversation to final account"
+          bullets={[
+            "No stage depends on a person's memory or a private spreadsheet",
+            "The next responsible person is always visible",
+          ]}
+        />
+      </div>
+    </>
+  );
+}
 
+// ── Section 7: Productivity Benefits ───────────────────────────────
+
+const PRODUCTIVITY_BENEFITS = [
+  {
+    header: "Less chasing",
+    dot: "green" as Dot,
+    title: "Blocked work and missing information surface without a status-update meeting",
+    bullets: ["Dependency tracking and standup questions replace 'what's the update?'"],
+  },
+  {
+    header: "Faster billing",
+    dot: "yellow" as Dot,
+    title: "GST invoices generate from work already recorded, not re-typed from scratch",
+    bullets: ["Ready-to-bill stages are visible the moment a phase closes"],
+  },
+  {
+    header: "Faster onboarding",
+    dot: "green" as Dot,
+    title: "New team members see the same standard on day one",
+    bullets: ["No tribal knowledge required to find where a project stands"],
+  },
+  {
+    header: "Fewer surprises",
+    dot: "white" as Dot,
+    title: "Priority is ranked by consequence, not by who shouted last",
+    bullets: ["The task that blocks site work tomorrow outranks a task with no deadline"],
+  },
+] as const;
+
+export function ProductivityBenefitsSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="07 / Productivity"
+        title="Time back for design, not admin"
+        body="Every hour spent re-explaining project status, hunting for an approval, or re-typing an invoice is an hour not spent on the work a practice is actually paid for."
+      />
+      <div className="esti-lp-grid">
+        {PRODUCTIVITY_BENEFITS.map((b) => (
+          <FeatureTile key={b.header} header={b.header} dot={b.dot} title={b.title} bullets={b.bullets} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── Section 8: Collaboration Capabilities ──────────────────────────
+
+function ContractorPortalTile() {
+  return (
+    <Tile span="2x1">
+      <TileHead label="CO · Contractor Portal" dot="white" />
+      <TileBody>
+        <p className="esti-lp-note">
+          Contractors enter only the project scope shared with them.
+        </p>
+        <ul className="esti-lp-bullets">
+          <li>Issued drawings, transmittals, and site instructions</li>
+          <li>Coordination and billing movement recorded against the project</li>
+          <li>No visibility beyond the issued scope</li>
+        </ul>
+      </TileBody>
+    </Tile>
+  );
+}
+
+export function CollaborationSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="08 / Collaboration"
+        title="Controlled visibility for every person around the project"
+        body="The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see approvals. Consultants and contractors see only their issued scope."
+      />
+      <div className="esti-lp-grid">
+        <FeatureTile
+          header="Client Portal"
+          dot="green"
+          meta="ONE PROJECT"
+          title="Clients decide inside a record, not inside WhatsApp noise"
+          bullets={[
+            "Approvals, drawings, RFIs, and fee status move through a scoped portal",
+            "Decisions stop disappearing into screenshots and forwarded messages",
+          ]}
+        />
+        <FeatureTile
+          header="Consultant Portal"
+          dot="green"
+          meta="ENGAGEMENT SCOPE"
+          title="Consultants coordinate against the same record the office uses"
+          bullets={[
+            "Scoped engagement, RFI movement, and issued drawing records",
+            "No access beyond the engagements assigned to them",
+          ]}
+        />
+        <ContractorPortalTile />
+        <FeatureTile
+          header="Team Assignments"
+          dot="yellow"
+          meta="WORKLOAD"
+          title="Every assignment is visible to the people who need to see it"
+          bullets={[
+            "Project staffing, roles, and workload stay attached to the project",
+            "Reassignment happens in the record, not in a side conversation",
+          ]}
+        />
+      </div>
+    </>
+  );
+}
+
+// ── Section 9: Intelligence & Automation ───────────────────────────
+
+export function IntelligenceSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="09 / Intelligence & Automation"
+        title="ESTI — the intelligence layer embedded in your workspace"
+        body="AORMS is the workspace. ESTI (Embedded Studio Intelligence) reads it — continuously calculating office health, recognising pressure, and asking only the questions that need answers. Deterministic systems create the score; ESTI explains it."
+      />
+      <div className="esti-lp-grid">
+        <FeatureTile
+          header="Ask ESTI"
+          dot="yellow"
+          meta="AI STUDIO"
+          title="A drafting assistant grounded in your own project data"
+          bullets={[
+            "Drafts explanations, summaries and CAD notes from your own records",
+            "Runs on-server (Ollama) or with your own OpenAI-compatible key",
+          ]}
+        />
+        <FeatureTile
+          header="Cognition Engine"
+          dot="green"
+          meta="OFFICE HEALTH"
+          title="A deterministic score of office pressure, not a chatbot guess"
+          bullets={[
+            "Continuously calculates project, financial, team and client health",
+            "Surfaces the Action Center — what needs a decision today",
+          ]}
+        />
+        <FeatureTile
+          header="ESTI Pulse"
+          dot="yellow"
+          meta="STANDUP ENGINE"
+          title="A dependency graph that asks the right person the right question"
+          bullets={[
+            "Detects missing approvals, measurements and confirmations automatically",
+            "Ranks tasks by consequence — what blocks tomorrow's site work first",
+            "Escalates unanswered questions up the chain, never silently",
+          ]}
+        />
+        <FeatureTile
+          header="Statutory Awareness"
+          dot="green"
+          meta="INDIA-FIRST"
+          title="GST, TDS and the Indian financial year are built into the logic"
+          bullets={[
+            "CGST/SGST/IGST split, SAC codes and FY-sequential numbering",
+            "26AS / AIS / GSTR reconciliation matched automatically",
+          ]}
+        />
+      </div>
+    </>
+  );
+}
+
+// ── Section 10: Integrations ────────────────────────────────────────
+
+export function IntegrationsSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="10 / Integrations"
+        title="Connects to how a practice already works"
+        body="AORMS doesn't ask a practice to abandon its tools — it gives drawings, calendars and storage a common record to point back to."
+      />
+      <div className="esti-lp-grid">
+        <FeatureTile
+          header="Storage"
+          dot="green"
+          meta="BRING YOUR OWN"
+          title="Point object storage at your own infrastructure"
+          bullets={["NAS or S3-compatible storage for drawings, documents and generated PDFs"]}
+        />
+        <FeatureTile
+          header="ESTICAD"
+          dot="yellow"
+          meta="DESKTOP COMPANION"
+          title="A CAD-side link back to the office record"
+          bullets={["Device-authenticated takeoff capture and drawing register sync"]}
+        />
+        <FeatureTile
+          header="Calendar"
+          dot="green"
+          meta="ICS FEED"
+          title="Project deadlines and site visits on your own calendar"
+          bullets={["A subscribable feed — no separate calendar to maintain"]}
+        />
+        <FeatureTile
+          header="API & Data Exchange"
+          dot="white"
+          meta="PRO EDITION"
+          title="Programmatic access and portable exports"
+          bullets={["API access for custom integrations", "XLSX/PDF export across projects, invoices, GST filings and reports"]}
+        />
+      </div>
+    </>
+  );
+}
+
+// ── Section 11: Security & Reliability ─────────────────────────────
+
+export function SecuritySection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="11 / Security & Reliability"
+        title="Built to be trusted with a practice's financial and client record"
+        body="Access, statutory correctness, backups and audit trails are not add-ons — they're how the record stays usable years into a practice's growth."
+      />
+      <div className="esti-lp-grid">
+        <FeatureTile
+          header="Security"
+          dot="green"
+          meta="ACCESS CONTROL"
+          title="A five-level access ladder, not one shared login"
+          bullets={["Role-based access, two-factor authentication, org-scoped API keys"]}
+        />
+        <FeatureTile
+          header="Compliance"
+          dot="green"
+          meta="INDIA-FIRST"
+          title="GST and TDS correctness by construction, not by add-on"
+          bullets={["Self-hosting keeps every record on infrastructure you control"]}
+        />
+        <FeatureTile
+          header="Reliability"
+          dot="yellow"
+          meta="BACKUPS"
+          title="A documented backup and restore drill, not a hope"
+          bullets={["Dedicated cloud infrastructure or self-hosted on your own servers"]}
+        />
+        <FeatureTile
+          header="Auditability"
+          dot="green"
+          meta="IMMUTABLE LOG"
+          title="Every material change is attributed, dated, and kept"
+          bullets={["An append-only activity log and a separate audit trail for owners"]}
+        />
+      </div>
+    </>
+  );
+}
+
+// ── Section 12: Customer Success ───────────────────────────────────
+
+export function CustomerSuccessSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="12 / Built For Practices Like Yours"
+        title="What practices bring to AORMS — and what they leave behind"
+        body="AORMS is early. Rather than invent testimonials, here is honestly what it replaces for the practices adopting it."
+      />
+      <div className="esti-lp-grid">
+        <FeatureTile
+          header="Before"
+          dot="red"
+          meta="SCATTERED"
+          title="Three WhatsApp groups, a shared spreadsheet, and a drawing folder nobody can find"
+          bullets={["Approvals buried in forwarded screenshots", "Fee follow-ups tracked from memory"]}
+        />
+        <FeatureTile
+          header="After"
+          dot="green"
+          meta="ONE RECORD"
+          title="One project record that the whole team, and the client, can point to"
+          bullets={["Every approval, revision and invoice traceable to a date and a person"]}
+        />
+        <KpiTile header="Adoption Path" dot="yellow" value="Lite → Pro" sub="Start free with a small practice; grow into the full framework without migrating records" />
+        <KpiTile header="Data Ownership" dot="green" value="Yours" sub="Self-host at any time — your projects, drawings and financial records travel with you" />
+      </div>
+    </>
+  );
+}
+
+// ── Section 13: FAQ ─────────────────────────────────────────────────
+
+const FAQS = [
+  {
+    q: "Is AORMS really free?",
+    a: "AORMS-Lite is free forever for up to three staff logins, with unlimited clients, contractors and projects, and no credit card required. It includes simple non-GST invoicing and basic bank reconciliation.",
+  },
+  {
+    q: "Can I use AORMS without an internet connection?",
+    a: "Yes. The Lite edition ships as a native Windows desktop app that runs entirely offline, with your data stored on your own machine.",
+  },
+  {
+    q: "What happens to my data on the free Lite plan?",
+    a: "Your projects, drawings and client data remain yours. On Lite, de-identified and aggregated data may be used to improve AORMS's AI models — this is disclosed in full in our legal terms and does not apply once you upgrade to Pro or self-host.",
+  },
+  {
+    q: "What's the difference between Lite and Pro?",
+    a: "Lite covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, AI Studio, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
+  },
+  {
+    q: "Can I self-host AORMS?",
+    a: "Yes, on the Pro edition. AORMS deploys on your own infrastructure with the same feature set as the cloud-hosted option.",
+  },
+] as const;
+
+export function FaqSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="13 / Frequently Asked"
+        title="Common questions before you start"
+        body="If your question isn't here, write to hi@aorms.in and we'll answer it directly."
+      />
+      <div className="esti-lp-grid" id="faq">
+        {FAQS.map((f) => (
+          <FeatureTile key={f.q} header="Q&A" dot="white" title={f.q} bullets={[f.a]} span="2x1" />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── Section 14: Final CTA ──────────────────────────────────────────
+
+export function FinalCtaSection({ children }: { children?: ReactNode }) {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="14 / Get Started"
+        title="Start with a shared record, then adopt the full framework as the practice grows"
+        body="Lite gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
+      />
       {children}
     </>
   );

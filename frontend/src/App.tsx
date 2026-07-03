@@ -108,7 +108,6 @@ const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
 const SeoLanding = lazy(() =>
   import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
 );
-const DemoAutoLogin = lazyRoute(() => import("./routes/DemoAutoLogin.js"), "DemoAutoLogin");
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
 const Download = lazyRoute(() => import("./routes/Download.js"), "Download");
@@ -263,10 +262,6 @@ function AppShell() {
   // Public keyword landing pages (SEO) — `/architecture-office-management-software`, etc.
   if (PUBLIC_SITE && isLandingSlug(pathname))
     return <SeoLanding slug={pathname.replace(/^\/+/, "").replace(/\/+$/, "")} />;
-
-  // Public one-click demo launcher — signs into the team demo and redirects.
-  if (PUBLIC_SITE && pathname === "/demo")
-    return <DemoAutoLogin />;
 
   // Investor brief — standalone public page, not linked from the marketing nav.
   if (PUBLIC_SITE && pathname === "/investors")
