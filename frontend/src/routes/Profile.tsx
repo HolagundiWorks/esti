@@ -18,6 +18,7 @@ import { PageHeader } from "../components/PageHeader.js";
 import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { aormsIdTeaserVisible } from "@esti/contracts";
 import { useCapabilities } from "../lib/capabilities.js";
 import { welcomeKitUrl } from "../lib/welcomeKit.js";
 
@@ -146,15 +147,17 @@ export function Profile() {
                         max={usage.requiredMinutes}
                       />
                       {usage.canGenerate ? (
-                        <Button
-                          size="sm"
-                          disabled={!usage.eligible || generateId.isPending}
-                          onClick={() => generateId.mutate()}
-                        >
-                          {usage.eligible
-                            ? "Generate my AORMS ID"
-                            : "Unlocks at 100 hours of active use"}
-                        </Button>
+                        // The Apply button surfaces only after 5 days of use and
+                        // stays greyed until earned — a deliberate curiosity teaser.
+                        (usage.eligible || aormsIdTeaserVisible(usage.daysUsed)) && (
+                          <Button
+                            size="sm"
+                            disabled={!usage.eligible || generateId.isPending}
+                            onClick={() => generateId.mutate()}
+                          >
+                            Apply for unique ID
+                          </Button>
+                        )
                       ) : (
                         <p className="esti-label esti-label--helper">
                           No identity platform is configured for this install — an owner can

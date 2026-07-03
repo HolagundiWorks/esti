@@ -12,6 +12,7 @@ import {
   type UsageStatus,
   aormsIdEligible,
   usageCreditMinutes,
+  usageDaysUsed,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
@@ -86,6 +87,7 @@ export const usageRouter = router({
       eligible,
       aormsId: me?.aormsId ?? null,
       promptDismissed: Boolean(stat?.idPromptDismissedAt),
+      daysUsed: usageDaysUsed(stat?.createdAt, new Date()),
       canGenerate: identityMintConfigured(),
     };
   }),

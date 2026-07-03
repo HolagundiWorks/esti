@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  AORMS_ID_TEASER_DAYS,
   AORMS_ID_USAGE_MINUTES,
   USAGE_PING_MAX_CREDIT_MINUTES,
   aormsIdEligible,
+  aormsIdTeaserVisible,
   usageCreditMinutes,
+  usageDaysUsed,
 } from "./usage.js";
 
 const at = (iso: string) => new Date(iso);
@@ -37,5 +40,21 @@ describe("aormsIdEligible", () => {
     expect(aormsIdEligible(5999)).toBe(false);
     expect(aormsIdEligible(6000)).toBe(true);
     expect(aormsIdEligible(12000)).toBe(true);
+  });
+});
+
+describe("apply-button teaser", () => {
+  it("counts whole days since first use, never negative", () => {
+    expect(usageDaysUsed(null, at("2026-07-03T10:00:00Z"))).toBe(0);
+    expect(usageDaysUsed(at("2026-07-03T09:00:00Z"), at("2026-07-03T10:00:00Z"))).toBe(0);
+    expect(usageDaysUsed(at("2026-06-28T10:00:00Z"), at("2026-07-03T10:00:00Z"))).toBe(5);
+    expect(usageDaysUsed(at("2026-07-04T10:00:00Z"), at("2026-07-03T10:00:00Z"))).toBe(0);
+  });
+
+  it("shows the teaser only from day 5 of use", () => {
+    expect(AORMS_ID_TEASER_DAYS).toBe(5);
+    expect(aormsIdTeaserVisible(4)).toBe(false);
+    expect(aormsIdTeaserVisible(5)).toBe(true);
+    expect(aormsIdTeaserVisible(60)).toBe(true);
   });
 });

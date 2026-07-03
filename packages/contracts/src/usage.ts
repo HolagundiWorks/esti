@@ -39,6 +39,24 @@ export function aormsIdEligible(minutes: number): boolean {
   return minutes >= AORMS_ID_USAGE_MINUTES;
 }
 
+/**
+ * Days of use before the Apply-for-unique-ID button appears (greyed until the
+ * hour gate is earned) — a deliberate curiosity teaser, not an unlock.
+ */
+export const AORMS_ID_TEASER_DAYS = 5;
+
+/** Whole calendar days since the account's first active use. */
+export function usageDaysUsed(firstUsedAt: Date | null | undefined, now: Date): number {
+  if (!firstUsedAt) return 0;
+  const elapsed = now.getTime() - firstUsedAt.getTime();
+  return elapsed <= 0 ? 0 : Math.floor(elapsed / 86_400_000);
+}
+
+/** Should the (possibly greyed) Apply-for-unique-ID button be visible? */
+export function aormsIdTeaserVisible(daysUsed: number): boolean {
+  return daysUsed >= AORMS_ID_TEASER_DAYS;
+}
+
 /** SPA-facing usage/identity status (trpc `usage.status`). */
 export const UsageStatus = z.object({
   minutes: z.number(),
@@ -48,6 +66,8 @@ export const UsageStatus = z.object({
   aormsId: z.string().nullable(),
   /** True once the user snoozed the generate prompt (Profile keeps the button). */
   promptDismissed: z.boolean(),
+  /** Whole days since first active use — drives the Apply-button teaser. */
+  daysUsed: z.number(),
   /** False when no identity platform is reachable — hide the prompt entirely. */
   canGenerate: z.boolean(),
 });
