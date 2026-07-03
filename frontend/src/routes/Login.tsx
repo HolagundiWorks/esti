@@ -71,18 +71,33 @@ export function Login() {
     },
   });
 
-  async function enterSelected() {
+  // The dropdown's current selection resolved back to its company (null when
+  // "This studio's workspace" is selected).
+  function selectedCompany(): CompanyOption | null {
     const item = tenant ?? WORKSPACE_ITEM;
-    if (item.id === "workspace") {
-      await utils.auth.me.invalidate();
-      navigate("/", { replace: true });
-      return;
+    if (item.id === "workspace") return null;
+    return companies?.find((c) => (c.publicId ?? c.name) === item.id) ?? null;
+  }
+
+  // Login always opens the WORKSPACE. Selecting a company additionally scopes
+  // the platform session to it (best-effort) so /account later opens on it.
+  async function enterWorkspace() {
+    const company = selectedCompany();
+    if (company) {
+      setCompanyBusy(true);
+      await platformLogin(email, password, company.publicId ?? company.name, needCode ? code : undefined);
+      setCompanyBusy(false);
     }
+    await utils.auth.me.invalidate();
+    navigate("/", { replace: true });
+  }
+
+  // Owners only: open the company's account page (members, invites, licence,
+  // company AORMS ID) in the portal, scoped to that company.
+  async function openCompanyAccount(company: CompanyOption) {
     setCompanyBusy(true);
     setCompanyError(null);
-    // Company workspaces ride the platform session — sign into it with the
-    // same credentials, scoped to the chosen company, then land on its page.
-    const res = await platformLogin(email, password, item.id, needCode ? code : undefined);
+    const res = await platformLogin(email, password, company.publicId ?? company.name, needCode ? code : undefined);
     setCompanyBusy(false);
     if (!res.account) {
       setCompanyError("Could not open that company right now — try again.");
@@ -113,42 +128,79 @@ export function Login() {
             </Stack>
 
             {companies ? (
-              <Stack gap={4}>
-                <div className="esti-row">
-                  <Dropdown
-                    id="tenant-select"
-                    className="esti-grow"
-                    titleText="Active company"
-                    label="Select where to work"
-                    items={[WORKSPACE_ITEM, ...companies.map(companyItem)]}
-                    itemToString={(item) => item?.label ?? ""}
-                    selectedItem={tenant ?? WORKSPACE_ITEM}
-                    onChange={({ selectedItem }) => setTenant(selectedItem ?? null)}
-                  />
-                  <Button
-                    renderIcon={ArrowRight}
-                    disabled={companyBusy}
-                    onClick={() => void enterSelected()}
-                  >
-                    {companyBusy ? "Opening..." : "Login"}
-                  </Button>
-                </div>
-                {companyError && (
-                  <InlineNotification
-                    kind="error"
-                    title="Could not open the company"
-                    subtitle={companyError}
-                    hideCloseButton
-                    lowContrast
-                  />
-                )}
-                <Button as={RouterLink} to="/account" kind="tertiary">
-                  AORMS account login
-                </Button>
-                <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
-                  Sign in as someone else
-                </Button>
-              </Stack>
+              (() => {
+                const owned = companies.filter((c) => c.role === "OWNER");
+                const current = selectedCompany();
+                // Target for the company-account button: the dropdown's
+                // selection when it's a company they own; with exactly one
+                // owned company it always targets that one.
+                const accountCompany =
+                  current && current.role === "OWNER"
+                    ? current
+                    : owned.length === 1
+                      ? owned[0]!
+                      : null;
+                const showDropdown = companies.length > 1 || owned.length > 1;
+                return (
+                  <Stack gap={4}>
+                    {showDropdown ? (
+                      <div className="esti-row">
+                        <Dropdown
+                          id="tenant-select"
+                          className="esti-grow"
+                          titleText="Active company"
+                          label="Select where to work"
+                          items={[WORKSPACE_ITEM, ...companies.map(companyItem)]}
+                          itemToString={(item) => item?.label ?? ""}
+                          selectedItem={tenant ?? WORKSPACE_ITEM}
+                          onChange={({ selectedItem }) => setTenant(selectedItem ?? null)}
+                        />
+                        <Button
+                          renderIcon={ArrowRight}
+                          disabled={companyBusy}
+                          onClick={() => void enterWorkspace()}
+                        >
+                          {companyBusy ? "Opening..." : "Login"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        renderIcon={ArrowRight}
+                        disabled={companyBusy}
+                        onClick={() => void enterWorkspace()}
+                      >
+                        {companyBusy ? "Opening..." : `Login — ${companies[0]!.name}`}
+                      </Button>
+                    )}
+                    {companyError && (
+                      <InlineNotification
+                        kind="error"
+                        title="Could not open the company"
+                        subtitle={companyError}
+                        hideCloseButton
+                        lowContrast
+                      />
+                    )}
+                    {owned.length > 0 && (
+                      <Button
+                        kind="tertiary"
+                        disabled={companyBusy || !accountCompany}
+                        onClick={() => accountCompany && void openCompanyAccount(accountCompany)}
+                      >
+                        {accountCompany
+                          ? `Company account — ${accountCompany.name}`
+                          : "Company account (select a company above)"}
+                      </Button>
+                    )}
+                    <Button as={RouterLink} to="/account" kind="ghost" size="sm">
+                      AORMS account login
+                    </Button>
+                    <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
+                      Sign in as someone else
+                    </Button>
+                  </Stack>
+                );
+              })()
             ) : (
               <>
                 <Form
