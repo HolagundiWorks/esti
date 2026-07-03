@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ReelLoopTile } from "./LandingMediaTiles.js";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -304,6 +305,11 @@ export function FeatureGroup2Section() {
         body="Every revision, document and approval is dated, attributed and kept — so a dispute over scope or a missing drawing is a five-second lookup, not a week of searching chat history."
       />
       <div className="esti-lp-grid">
+        <ReelLoopTile
+          slug="mom-revision"
+          label="Minutes become revision requests"
+          meta="MOM REVISION"
+        />
         <RevisionTile />
         <FeatureTile
           header="Revision Memory"
@@ -319,6 +325,7 @@ export function FeatureGroup2Section() {
         <FeatureTile
           header="Document Control"
           dot="green"
+          span="2x1"
           meta="DRAWINGS + TRANSMITTALS"
           title="One numbered, dated register for everything issued"
           bullets={[
@@ -492,6 +499,11 @@ export function IntelligenceSection() {
         body="AORMS is the workspace. ESTI (Embedded Studio Intelligence) reads it — continuously calculating office health, recognising pressure, and asking only the questions that need answers. Deterministic systems create the score; ESTI explains it."
       />
       <div className="esti-lp-grid">
+        <ReelLoopTile
+          slug="task-prioritization"
+          label="When everything is urgent"
+          meta="TASK PRIORITIZATION"
+        />
         <FeatureTile
           header="Ask ESTI"
           dot="yellow"
@@ -537,6 +549,7 @@ export function IntelligenceSection() {
         <FeatureTile
           header="Statutory Awareness"
           dot="green"
+          span="4x1"
           meta="INDIA-FIRST"
           title="GST, TDS and the Indian financial year are built into the logic"
           bullets={[
@@ -698,7 +711,7 @@ export function FaqSection() {
   return (
     <>
       <SectionBreak
-        eyebrow="14 / Frequently Asked"
+        eyebrow="13 / Frequently Asked"
         title="Common questions before you start"
         body="If your question isn't here, write to hi@aorms.in and we'll answer it directly."
       />
@@ -717,7 +730,7 @@ export function FinalCtaSection({ children }: { children?: ReactNode }) {
   return (
     <>
       <SectionBreak
-        eyebrow="15 / Get Started"
+        eyebrow="14 / Get Started"
         title="Start with a shared record, then adopt the full framework as the practice grows"
         body="Lite gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
       />

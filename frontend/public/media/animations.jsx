@@ -14,7 +14,7 @@
 //     </Sprite>
 //   </Stage>
 //
-// Stage({width,height,duration,background,fps,loop,autoplay}) — auto-scales to
+// Stage({width,height,duration,background,fps,loop,autoplay,controls}) — auto-scales to
 //   viewport; scrubber + play/pause + ←/→ seek + space + 0-reset; persists
 //   playhead. The canvas is an <svg><foreignObject>, export-ready: Share →
 //   Export → Video (or the PlaybackBar's download button) renders it to .mp4.
@@ -429,6 +429,7 @@ function Stage({
   fps = 60,
   loop = true,
   autoplay = true,
+  controls = true,
   persistKey = 'animstage',
   children,
 }) {
@@ -438,6 +439,7 @@ function Stage({
   duration = +duration || 10; fps = +fps || 60;
   if (typeof loop === 'string') loop = loop !== 'false';
   if (typeof autoplay === 'string') autoplay = autoplay !== 'false';
+  if (typeof controls === 'string') controls = controls !== 'false';
 
   const [time, setTime] = React.useState(() => {
     try {
@@ -602,7 +604,7 @@ function Stage({
       </div>
 
       {/* Playback bar — stacked below canvas, never overlapping */}
-      <PlaybackBar
+      {controls && <PlaybackBar
         time={displayTime}
         actualTime={time}
         duration={duration}
@@ -611,7 +613,7 @@ function Stage({
         onReset={() => { setTime(0); }}
         onSeek={(t) => setTime(t)}
         onHover={(t) => setHoverTime(t)}
-      />
+      />}
     </div>
   );
 }
