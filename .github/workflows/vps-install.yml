@@ -1,0 +1,56 @@
+name: vps-install
+
+# One-time, root-level VPS bootstrap (deploy/install.sh) — manual trigger ONLY.
+# Never runs on push. The routine deploy pipeline is deploy-vps.yml
+# (deploy/update.sh), which assumes install.sh has already run once.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          umask 077
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          PORT="${{ secrets.VPS_PORT }}"
+          ssh-keyscan -p "${PORT:-22}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Clone the repo onto the VPS (deploy/install.sh git-clones itself, but needs the script first)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
+        run: |
+          PORT="${VPS_PORT:-22}"
+          DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "test -d '$DIR/.git' || git clone --branch main '$REPO_URL' '$DIR'"
+
+      - name: Run deploy/install.sh (PROFILE=core, non-interactive)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
+          INSTALL_DOMAIN: ${{ secrets.INSTALL_DOMAIN }}
+          INSTALL_ADMIN_EMAIL: ${{ secrets.INSTALL_ADMIN_EMAIL }}
+          INSTALL_OWNER_EMAIL: ${{ secrets.INSTALL_OWNER_EMAIL }}
+          INSTALL_OWNER_PASSWORD: ${{ secrets.INSTALL_OWNER_PASSWORD }}
+        run: |
+          PORT="${VPS_PORT:-22}"
+          DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
+          # VPS_USER is expected to already be root (install.sh requires EUID 0);
+          # no sudo prefix so this also works on images without sudo installed.
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "cd '$DIR' && PROFILE=core DOMAIN='$INSTALL_DOMAIN' ADMIN_EMAIL='$INSTALL_ADMIN_EMAIL' OWNER_EMAIL='$INSTALL_OWNER_EMAIL' OWNER_PASSWORD='$INSTALL_OWNER_PASSWORD' bash deploy/install.sh"
+
+      - name: Clean up deploy key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
