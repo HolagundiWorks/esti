@@ -36,6 +36,17 @@ validate_domain "$ADMIN_DOMAIN" || error "Invalid console domain '$ADMIN_DOMAIN'
 
 section "nginx vhost for ${ADMIN_DOMAIN}"
 NGINX_CONF="/etc/nginx/sites-available/esti-admin"
+
+# A second vhost claiming the same server_name silently wins or loses by file
+# order ("conflicting server name … ignored") and certbot deploys the cert to
+# whichever block it finds first — a stale vhost here means 301/500 mysteries.
+for f in /etc/nginx/sites-enabled/*; do
+  [[ -e "$f" && "$(basename "$f")" != "esti-admin" ]] || continue
+  if grep -qE "server_name[^;]*\b${ADMIN_DOMAIN//./\\.}\b" "$f"; then
+    error "Another vhost also claims ${ADMIN_DOMAIN}: $f
+    Remove it first (sudo rm -f $f /etc/nginx/sites-available/$(basename "$f")), then re-run this script."
+  fi
+done
 cat > "$NGINX_CONF" <<EOF
 # AORMS licensing console — ${ADMIN_DOMAIN} (managed by install-admin-console.sh)
 server {
