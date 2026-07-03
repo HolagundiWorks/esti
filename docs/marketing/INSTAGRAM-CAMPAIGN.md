@@ -228,7 +228,18 @@ computed from your live office record — deadlines, load, approvals, revisions.
 Deterministic systems create the score. ESTI explains it. Ask it why your
 Tuesday feels like it does."
 
-### 4.7 Story sequences (recurring)
+### 4.7 Reel — "When everything is urgent" (P4, ESTI · square)
+
+Animated 37s reel, produced — source in [`reels/`](reels/)
+(`task-prioritization-square.html`, 1080×1080). Hook: five red "URGENT" site
+chips pile up → *"Everything's urgent. So what comes first?"* Body: the ESTI
+daily stand-up gathers site updates in chat (*"No site supervisor? Any team
+member can report."*) → ESTI weighs client priority, site dependencies and
+deadline proximity → a ranked task list with the reasoning under each row
+(*"Do this, in this order."*). Payoff: *"Stop guessing what's next."* End
+card: *"Every site, scored. Every morning, a plan. ESTI · inside AORMS Pro."*
+
+### 4.8 Story sequences (recurring)
 
 - **Poll:** "Last month, how many revisions did you do for free?" (0 / 1–3 / 4–10 /
   I stopped counting) → follow-up story: "The 'stopped counting' gang — this
@@ -332,7 +343,8 @@ bait. One principal who signs up is worth 10,000 render-scrollers.
 | Wed W2 | P1 static: "Approvals that live in WhatsApp don't exist" |
 | Fri W2 | P4 reel: "Your office has a pulse" (§4.6) |
 | Sun W2 | P6 carousel: "What AORMS replaces — no fake testimonials" (§4.5) |
-| Daily | 1–2 stories from §4.7 rotation |
+| Wed W3 | P4 reel: "When everything is urgent" (§4.7) — produced, `reels/` |
+| Daily | 1–2 stories from §4.8 rotation |
 
 Production batching: script all reels Monday, shoot screen-captures Tuesday,
 design carousels (Plex + Carbon tokens, pillar accent colours) Wednesday,
