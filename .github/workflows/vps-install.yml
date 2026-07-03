@@ -48,8 +48,12 @@ jobs:
           DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
           # VPS_USER is expected to already be root (install.sh requires EUID 0);
           # no sudo prefix so this also works on images without sudo installed.
-          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
-            "cd '$DIR' && PROFILE=core DOMAIN='$INSTALL_DOMAIN' ADMIN_EMAIL='$INSTALL_ADMIN_EMAIL' OWNER_EMAIL='$INSTALL_OWNER_EMAIL' OWNER_PASSWORD='$INSTALL_OWNER_PASSWORD' bash deploy/install.sh"
+          # -tt forces a pty (ssh runs a plain command otherwise, no pty by
+          # default) and TERM is set explicitly — install.sh calls `clear` in
+          # its banner, which errors "TERM environment variable not set" and
+          # aborts the whole script (set -e) without either of these.
+          ssh -tt -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "cd '$DIR' && TERM=xterm PROFILE=core DOMAIN='$INSTALL_DOMAIN' ADMIN_EMAIL='$INSTALL_ADMIN_EMAIL' OWNER_EMAIL='$INSTALL_OWNER_EMAIL' OWNER_PASSWORD='$INSTALL_OWNER_PASSWORD' bash deploy/install.sh"
 
       - name: Clean up deploy key
         if: always()
