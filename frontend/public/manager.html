@@ -10,38 +10,107 @@
       installer/updater dialog, so it is intentionally plain vanilla HTML and
       lives in public/ (copied verbatim, outside the Carbon design-system guard).
       Talks to the Rust shell via the global Tauri API (withGlobalTauri).
+      Visual identity mirrors the landing page: contour texture under a dark
+      scrim, glass panel, IBM Plex, purple accent. Assets resolve from the same
+      bundled dist (landing-contour-bg.svg, aorms-logo-white.png) — no network.
     -->
     <style>
-      :root { color-scheme: dark; }
+      :root {
+        color-scheme: dark;
+        --bg: #11100e;
+        --text: #f4f4f4;
+        --sec: #a8a8a8;
+        --mut: #8d8d8d;
+        --purple: #c6a2ff;
+        --purple-deep: #8a3ffc;
+        --green: #42be65;
+        --red: #fa4d56;
+      }
+      * { box-sizing: border-box; }
       body {
         margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
-        font: 14px/1.5 system-ui, sans-serif; background: #161616; color: #f4f4f4;
+        font: 14px/1.5 'IBM Plex Sans', system-ui, sans-serif;
+        color: var(--text);
+        background:
+          linear-gradient(rgba(17, 16, 14, 0.72), rgba(17, 16, 14, 0.72)),
+          url("landing-contour-bg.svg") center / cover no-repeat,
+          var(--bg);
       }
-      .card { width: 100%; max-width: 460px; padding: 32px; }
-      h1 { font-size: 18px; margin: 0 0 4px; }
-      .sub { color: #a8a8a8; margin: 0 0 24px; }
-      .row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
-      .dot { width: 10px; height: 10px; border-radius: 50%; background: #6f6f6f; flex: none; }
-      .dot.up { background: #42be65; } .dot.down { background: #fa4d56; }
-      .bar { height: 6px; background: #393939; border-radius: 3px; overflow: hidden; margin: 8px 0 4px; }
-      .bar > i { display: block; height: 100%; width: 0; background: #4589ff; transition: width .3s; }
+      .card {
+        width: 100%; max-width: 440px; margin: 24px; padding: 30px 32px 26px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        backdrop-filter: blur(6px) saturate(1.15);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+      .brand img { height: 20px; width: auto; display: block; }
+      .brand span {
+        font: 500 10px/1 'IBM Plex Mono', ui-monospace, monospace;
+        letter-spacing: 0.24em; text-transform: uppercase; color: var(--purple);
+        margin-left: auto;
+      }
+      .sub { color: var(--sec); margin: 0 0 20px; min-height: 21px; }
+      .rule {
+        height: 2px; margin: 0 0 18px;
+        background: linear-gradient(90deg, var(--purple-deep), var(--purple), transparent 70%);
+        opacity: 0.85; border: 0;
+      }
+      .row { display: flex; align-items: center; gap: 10px; padding: 7px 0; color: var(--sec); }
+      .dot {
+        width: 9px; height: 9px; border-radius: 50%; background: #6f6f6f; flex: none;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+      }
+      .dot.up { background: var(--green); box-shadow: 0 0 8px rgba(66, 190, 101, 0.5); }
+      .dot.down { background: var(--red); }
+      .bar {
+        height: 6px; background: rgba(255, 255, 255, 0.10); border-radius: 3px;
+        overflow: hidden; margin: 10px 0 6px;
+      }
+      .bar > i {
+        display: block; height: 100%; width: 0;
+        background: linear-gradient(90deg, var(--purple-deep), var(--purple));
+        transition: width .3s;
+      }
+      .pct { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; }
+      label {
+        font: 500 10px/1 'IBM Plex Mono', ui-monospace, monospace;
+        letter-spacing: 0.18em; text-transform: uppercase; color: var(--sec);
+      }
       input, button { font: inherit; }
       input {
-        width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 12px;
-        background: #262626; border: 1px solid #525252; color: #f4f4f4; border-radius: 4px;
+        width: 100%; padding: 11px 12px; margin: 8px 0 12px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.04em;
+        background: rgba(17, 16, 14, 0.55); border: 1px solid rgba(255, 255, 255, 0.22);
+        color: var(--text); border-radius: 7px; outline: none;
       }
+      input:focus { border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple); }
+      input::placeholder { color: var(--mut); }
       button {
-        padding: 10px 16px; background: #0f62fe; color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+        padding: 10px 20px; background: var(--purple-deep); color: #fff;
+        border: 0; border-radius: 7px; cursor: pointer; font-weight: 500;
       }
-      button:disabled { background: #525252; cursor: default; }
-      .err { color: #fa4d56; min-height: 18px; margin: 8px 0 0; }
+      button:hover:not(:disabled) { background: #7a2ef0; }
+      button:disabled { background: rgba(255, 255, 255, 0.14); color: var(--mut); cursor: default; }
+      .err { color: var(--red); min-height: 18px; margin: 8px 0 0; font-size: 12.5px; }
+      .foot {
+        margin-top: 20px; display: flex; align-items: center; justify-content: space-between;
+        gap: 12px;
+        font: 400 9px/1.4 'IBM Plex Mono', ui-monospace, monospace;
+        letter-spacing: 0.14em; text-transform: uppercase; color: var(--mut);
+      }
       .hidden { display: none; }
     </style>
   </head>
   <body>
     <div class="card">
-      <h1>AORMS</h1>
+      <div class="brand">
+        <img src="aorms-logo-white.png" alt="AORMS" />
+        <span>Manager</span>
+      </div>
       <p class="sub" id="message">Starting…</p>
+      <hr class="rule" />
 
       <!-- First-run licence entry -->
       <section id="licence" class="hidden">
@@ -54,7 +123,7 @@
       <!-- Provisioning progress -->
       <section id="progress" class="hidden">
         <div class="bar"><i id="fill"></i></div>
-        <p class="sub" id="pct">0%</p>
+        <p class="sub pct" id="pct">0%</p>
       </section>
 
       <!-- Runtime status -->
@@ -63,6 +132,11 @@
         <div class="row"><span class="dot" id="d-node"></span> Application service</div>
         <div class="row"><span class="dot" id="d-ai"></span> AI (Pro)</div>
       </section>
+
+      <div class="foot">
+        <span>Architecture Office Resource Management System</span>
+        <span>aorms.in</span>
+      </div>
     </div>
 
     <script>
