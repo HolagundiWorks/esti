@@ -1,6 +1,6 @@
 # ESTI Pulse — Project Standup Engine
 
-**Status:** ◐ P-1 + P-2 + P-3 shipped 2026-07-03, P-4 planned · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
+**Status:** ◐ P-1 + P-2 + P-3 shipped 2026-07-03, P-4 backlog · **Owner:** Holagundi Consulting Works (HCW) · **Adopted:** 2026-07-02
 
 ESTI Pulse is an **ESTI capability** — part of the Embedded Studio
 Intelligence layer inside the AORMS workspace — that periodically reviews
@@ -318,7 +318,7 @@ esti_task_priority_log        id · task_id · old/new_priority_score · old/new
 | **P-1 Graph + gaps** ✅ | `esti_task_dependency` + `esti_task_missing_param` + detector rules; band display (CRITICAL…BACKLOG); confidence column + formula; priority log | Blocked/low-confidence tasks visible in Work hub + Studio Intelligence; scores reproducible from inputs |
 | **P-2 Standup loop** ✅ | `esti_standup_session/question` (migration `0146`); best-effort server-local scheduler (09/12/15/18, once/project/day); question routing (asked to the task's assignee); typed responses; Stage-1/2 agent (template composition only, zero LLM) | A full standup runs end-to-end with zero LLM required; questions are specific, routed, and answerable in-app |
 | **P-3 Approval agent** ✅ | Stage-3 actions (escalate, follow-up tasks) proposed on a schedule; approve/reject-only decision path | No agent write without a recorded human approval; audit trail complete |
-| **P-4 RAG + Stage 4** | pgvector embeddings over office records; grounded explanations; limited auto-actions | Explanations cite source records; auto-actions limited to the Stage-4 list |
+| **P-4 RAG + Stage 4** — BACKLOG | pgvector embeddings over office records; grounded explanations; limited auto-actions. Deferred: needs pgvector + a reachable Ollama with an embedding model, verifiable only in a real deployment | Explanations cite source records; auto-actions limited to the Stage-4 list |
 
 Naming: the module is **ESTI Pulse** (product name), namespace `pulse`
 (tRPC), tables `esti_standup_*` / `esti_task_*` as above.

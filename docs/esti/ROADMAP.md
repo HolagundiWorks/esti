@@ -157,8 +157,12 @@ limited auto) — promotion is an explicit owner action.
   **CREATE_FOLLOWUP_TASK** — a BLOCKED/NEEDS_REVIEW answer spawns a HIGH-priority
   task in the same project. UI: "Pending actions" panel in the Standup modal
   (Approve/Reject). 5 more contract unit tests (29 total for pulse.ts).
-- [ ] **P-4 RAG + Stage 4** — pgvector embeddings over office records; grounded
-  explanations that cite sources; limited auto-actions.
+- [ ] **P-4 RAG + Stage 4 — BACKLOG.** pgvector embeddings over office records;
+  grounded explanations that cite sources; limited auto-actions. The first
+  phase that touches an LLM at all (P-1–P-3 are deterministic, zero LLM).
+  Deferred: pgvector and a reachable Ollama with an embedding model
+  (`bge-m3`/`nomic-embed-text`) are prerequisites verifiable only in a real
+  deployment — build and verify there, not speculatively.
 
 **Gate:** every score reproducible from stored inputs (log rows prove it); the
 agent never writes without a recorded approval below Stage 4; questions are
