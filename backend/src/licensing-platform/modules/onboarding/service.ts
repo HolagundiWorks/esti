@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "../../db/client.js";
-import { newId, newLicenseKey, newPublicId } from "../../lib/ids.js";
+import { newId, newLicenseKey } from "../../lib/ids.js";
 import type { AccountView } from "../auth/service.js";
 
 // Self-serve onboarding: when a customer signs up from a product (AORMS/esti, …)
@@ -40,7 +40,6 @@ export async function ensurePersonalOrg(account: AccountView): Promise<string> {
   const orgId = newId("org");
   await db.insert(schema.organizations).values({
     id: orgId,
-    publicId: newPublicId("C"),
     name: account.name ? `${account.name}'s workspace` : `${base}'s workspace`,
     slug,
     billingEmail: account.email,

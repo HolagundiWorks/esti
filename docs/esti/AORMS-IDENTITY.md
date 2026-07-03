@@ -90,6 +90,10 @@ loginUser(org, email, password):
 ## 3. Unique identifiers
 
 - **Company:** `AORMS-C-` + short base32 (e.g. `AORMS-C-2K4P`). Stable, human-quotable.
+  **Earned (Phase 34):** companies are founded WITHOUT a handle (any new user may
+  create one — no personal ID required); the AORMS-C handle unlocks at **100 hours
+  of company usage** (the ACTIVE members' summed active time) via the owner-only
+  generate action. Slug / login-domain act as the handle until then.
 - **User:** `AORMS-U-` + short base32 (e.g. `AORMS-U-9F3T`). **This is the portable ID** —
   it never changes, and every certification / growth record is keyed to it.
 - **Earned, not automatic (Phase 34):** the `AORMS-U-` handle is NOT minted at signup.

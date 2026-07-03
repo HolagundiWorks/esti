@@ -1,4 +1,7 @@
-import { and, desc, eq } from "drizzle-orm";
+import { AORMS_ID_USAGE_MINUTES } from "@esti/contracts";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { db as workspaceDb } from "../../../db/index.js";
+import { usageStats, users as workspaceUsers } from "../../../db/schema/index.js";
 import { db, schema } from "../../db/client.js";
 import { newId, newPublicId } from "../../lib/ids.js";
 import { type OrgHandle, orgIdFromHandle } from "../auth/tenant.js";
@@ -25,34 +28,30 @@ function domainOf(email: string): string {
   return at >= 0 ? email.slice(at + 1).toLowerCase() : "";
 }
 
-/** Create a company owned by this account (OWNER, ACTIVE). Returns the new org. */
+/**
+ * Create a company owned by this account (OWNER, ACTIVE). Open to brand-new
+ * users — earned identity (Phase 34) applies to the COMPANY itself: the org
+ * starts without an AORMS-C handle and mints it after 100 hours of company
+ * usage (generateCompanyId); its slug/login-domain serve as the handle until
+ * then. Returns the new org.
+ */
 export async function createCompany(
   accountId: string,
   input: { name: string; loginDomain?: string | null },
-): Promise<OrgHandle | { error: "domain_mismatch" | "domain_unverified" | "id_required" }> {
+): Promise<OrgHandle | { error: "domain_mismatch" | "domain_unverified" }> {
   const loginDomain = input.loginDomain?.trim().toLowerCase().replace(/^@/, "") || null;
-
-  const [acct] = await db
-    .select({
-      email: schema.accounts.email,
-      verifiedAt: schema.accounts.emailVerifiedAt,
-      publicId: schema.accounts.publicId,
-    })
-    .from(schema.accounts)
-    .where(eq(schema.accounts.id, accountId))
-    .limit(1);
-
-  // Companies are anchored to a person's permanent AORMS-U handle (Phase 34):
-  // generate your ID first (earned at 100 hours, or instantly once invited to
-  // a company), then found companies against it.
-  if (!acct?.publicId) return { error: "id_required" };
 
   // A login-domain is a tenant-trust claim: anyone whose email is at that domain
   // auto-joins (see joinCompany). Only let the creator claim a domain they can
   // actually prove — their own *verified* email's domain — so a company can't be
   // used to squat another firm's domain and hijack its employees' joins.
   if (loginDomain) {
-    if (domainOf(acct.email) !== loginDomain) return { error: "domain_mismatch" };
+    const [acct] = await db
+      .select({ email: schema.accounts.email, verifiedAt: schema.accounts.emailVerifiedAt })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.id, accountId))
+      .limit(1);
+    if (!acct || domainOf(acct.email) !== loginDomain) return { error: "domain_mismatch" };
     if (!acct.verifiedAt) return { error: "domain_unverified" };
   }
 
@@ -69,7 +68,8 @@ export async function createCompany(
     .insert(schema.organizations)
     .values({
       id: orgId,
-      publicId: newPublicId("C"),
+      // Earned company identity (Phase 34): AORMS-C is minted after 100 hours
+      // of company usage (generateCompanyId), not at creation.
       name: input.name,
       slug,
       loginDomain,
@@ -318,6 +318,84 @@ export async function declineInvite(accountId: string, companyHandle: string): P
         eq(schema.orgMembers.status, "INVITED"),
       ),
     );
+}
+
+/**
+ * Earned COMPANY identity (Phase 34): total active minutes the company's
+ * ACTIVE members have put in — the sum of their workspace usage ledgers
+ * (esti_usage_stat, matched by email on a unified single-box install). The
+ * AORMS-C handle unlocks at AORMS_ID_USAGE_MINUTES of company usage.
+ */
+export async function companyUsageMinutes(orgId: string): Promise<number> {
+  const members = await db
+    .select({ email: schema.accounts.email })
+    .from(schema.orgMembers)
+    .innerJoin(schema.accounts, eq(schema.accounts.id, schema.orgMembers.accountId))
+    .where(and(eq(schema.orgMembers.orgId, orgId), eq(schema.orgMembers.status, "ACTIVE")));
+  const emails = members.map((m) => m.email.toLowerCase());
+  if (emails.length === 0) return 0;
+  const rows = await workspaceDb
+    .select({ minutes: usageStats.minutes })
+    .from(usageStats)
+    .innerJoin(workspaceUsers, eq(workspaceUsers.id, usageStats.userId))
+    .where(inArray(sql`lower(${workspaceUsers.email})`, emails));
+  return rows.reduce((total, r) => total + r.minutes, 0);
+}
+
+export interface CompanyIdStatus {
+  publicId: string | null;
+  minutes: number;
+  requiredMinutes: number;
+  eligible: boolean;
+}
+
+/** Company-identity progress for the org — drives the portal's generate button. */
+export async function companyIdStatus(orgId: string): Promise<CompanyIdStatus | null> {
+  const [org] = await db
+    .select({ publicId: schema.organizations.publicId })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, orgId))
+    .limit(1);
+  if (!org) return null;
+  const minutes = org.publicId ? AORMS_ID_USAGE_MINUTES : await companyUsageMinutes(orgId);
+  return {
+    publicId: org.publicId,
+    minutes,
+    requiredMinutes: AORMS_ID_USAGE_MINUTES,
+    eligible: minutes >= AORMS_ID_USAGE_MINUTES,
+  };
+}
+
+/**
+ * Mint the company's permanent AORMS-C handle — allowed once the company has
+ * 100 hours of member usage on the clock. Owner-only; idempotent (an existing
+ * handle is returned untouched — it never changes).
+ */
+export async function generateCompanyId(
+  accountId: string,
+  companyHandle: string,
+): Promise<
+  | { ok: true; publicId: string }
+  | { error: "company_not_found" | "not_company_owner" | "not_eligible" }
+> {
+  const orgId = await orgIdFromHandle(companyHandle);
+  if (!orgId) return { error: "company_not_found" };
+  if (!(await isOrgAdmin(accountId, orgId))) return { error: "not_company_owner" };
+  const [org] = await db
+    .select({ publicId: schema.organizations.publicId })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, orgId))
+    .limit(1);
+  if (org?.publicId) return { ok: true, publicId: org.publicId };
+  if ((await companyUsageMinutes(orgId)) < AORMS_ID_USAGE_MINUTES) {
+    return { error: "not_eligible" };
+  }
+  const publicId = newPublicId("C");
+  await db
+    .update(schema.organizations)
+    .set({ publicId, updatedAt: new Date() })
+    .where(eq(schema.organizations.id, orgId));
+  return { ok: true, publicId };
 }
 
 /**

@@ -25,8 +25,10 @@ import {
 import {
   acceptInvite,
   adoptInvite,
+  companyIdStatus,
   createCompany,
   declineInvite,
+  generateCompanyId,
   invitedEligible,
   inviteMember,
   isOrgAdmin,
@@ -437,6 +439,47 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
     const publicId = await ensureAccountPublicId(s.accountId);
     return { ok: true, publicId };
+  });
+
+  // --- Earned COMPANY identity (Phase 34) ---
+  // Companies are founded without an AORMS-C handle; it unlocks at 100 hours
+  // of company usage (the ACTIVE members' summed active time). Owner-only.
+  app.get("/auth/company-id-status", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const company = (req.query as { company?: string })?.company?.trim() ?? "";
+    const orgId = company ? await orgIdFromHandle(company) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    if (!(await isOrgAdmin(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_company_owner" };
+    }
+    const status = await companyIdStatus(orgId);
+    return { ok: true, ...status };
+  });
+
+  app.post("/auth/generate-company-id", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const res = await generateCompanyId(s.accountId, body?.company?.trim() ?? "");
+    if ("error" in res) {
+      reply.code(
+        res.error === "company_not_found" ? 404 : res.error === "not_company_owner" ? 403 : 400,
+      );
+      return { error: res.error };
+    }
+    const me = await buildMe(s);
+    return { ok: true, publicId: res.publicId, ...me };
   });
 
   // --- "Use my existing AORMS ID" (Phase 34) ---

@@ -81,8 +81,12 @@ Session-authed unless noted. These power the customer portal at
   accounts only; `403 not_eligible` otherwise) · `POST adopt-identity`
   `{company, email, password, code?}` — moves a pending invite onto the
   existing identity-holding account and re-writes the session as it.
-- Companies: `POST create-company` `{name, loginDomain?}` (`400 id_required`
-  until the founder has an AORMS-U handle) · `POST join-company` ·
+- Companies: `POST create-company` `{name, loginDomain?}` — open to brand-new
+  users; the org starts WITHOUT an AORMS-C handle (slug/login-domain serve as
+  the handle) and earns it at 100 hours of company usage: owner-only
+  `GET company-id-status?company=…` → `{publicId, minutes, requiredMinutes,
+  eligible}` and `POST generate-company-id` `{company}` (idempotent;
+  `400 not_eligible` before 100 h) · `POST join-company` ·
   `POST leave-company` · `POST switch-company` · `POST resolve-company` ·
   `POST invite-member` `{company, email, role?}` (company-owner authorization,
   not platform-admin) · `POST accept-invite` / `POST decline-invite`
@@ -95,7 +99,7 @@ Session-authed unless noted. These power the customer portal at
 - Public: `GET registration-status` → `{adminExists}`.
 
 Errors are `{error: "<code>"}` with 4xx status (`invalid_credentials`,
-`totp_required`, `not_company_owner`, `id_required`, `not_invited`, …).
+`totp_required`, `not_company_owner`, `not_eligible`, `not_invited`, …).
 
 ## 5. Machine API — `/v1/*` (Bearer product keys)
 

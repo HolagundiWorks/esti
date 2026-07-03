@@ -160,6 +160,37 @@ export function declineInvite(company: string): Promise<Me & { error?: string }>
   return postMe("/platform/auth/decline-invite", { company });
 }
 
+/** Company-identity progress (owner-only) — AORMS-C unlocks at 100 company hours. */
+export interface CompanyIdStatus {
+  publicId: string | null;
+  minutes: number;
+  requiredMinutes: number;
+  eligible: boolean;
+}
+
+export async function fetchCompanyIdStatus(company: string): Promise<CompanyIdStatus | null> {
+  const r = await fetch(`/platform/auth/company-id-status?company=${encodeURIComponent(company)}`, {
+    credentials: "include",
+  });
+  if (!r.ok) return null;
+  const j = (await r.json().catch(() => null)) as (CompanyIdStatus & { ok?: boolean }) | null;
+  return j?.ok ? j : null;
+}
+
+/** Mint the company's permanent AORMS-C handle (owner-only, 100 company hours). */
+export async function generateCompanyId(
+  company: string,
+): Promise<{ publicId: string | null; error?: string }> {
+  const r = await fetch("/platform/auth/generate-company-id", {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ company }),
+  });
+  const j = (await r.json().catch(() => ({}))) as { publicId?: string; error?: string };
+  return { publicId: j.publicId ?? null, error: j.error };
+}
+
 /** Instant AORMS-U mint (invited into a company waives the 100-hour gate). */
 export async function generateAormsId(): Promise<{ publicId: string | null; error?: string }> {
   const r = await fetch("/platform/auth/generate-id", {

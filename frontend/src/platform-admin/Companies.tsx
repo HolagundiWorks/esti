@@ -1,22 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActionableNotification,
   Button,
   Form,
   InlineNotification,
   Modal,
+  ProgressBar,
   Stack,
   Tag,
   TextInput,
   Tile,
 } from "@carbon/react";
 import {
+  type CompanyIdStatus,
   type Me,
   acceptInvite,
   adoptIdentity,
   createCompany,
   declineInvite,
+  fetchCompanyIdStatus,
+  fetchMe,
   generateAormsId,
+  generateCompanyId,
   inviteToCompany,
   joinCompany,
   leaveCompany,
@@ -25,8 +30,6 @@ import {
 const STATUS_TAG: Record<string, "green" | "teal"> = { ACTIVE: "green", INVITED: "teal" };
 
 const CREATE_ERRORS: Record<string, string> = {
-  id_required:
-    "Companies are founded against your permanent AORMS ID — generate it first (earned at 100 hours of workspace use, or instantly once a company invites you).",
   domain_mismatch: "The login domain must match your own verified email's domain.",
   domain_unverified: "Verify your email first to claim a login domain.",
 };
@@ -51,6 +54,44 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
     me.activeOrg && me.memberships.some((m) => m.org.publicId === me.activeOrg?.publicId && m.role === "OWNER")
       ? me.activeOrg
       : me.memberships.find((m) => m.role === "OWNER")?.org ?? null;
+  const ownedHandle = ownedOrg ? ownedOrg.publicId ?? ownedOrg.slug : null;
+
+  // Earned company identity: AORMS-C unlocks at 100 hours of company usage.
+  const [companyId, setCompanyId] = useState<CompanyIdStatus | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (ownedHandle) {
+      void fetchCompanyIdStatus(ownedHandle).then((st) => {
+        if (alive) setCompanyId(st);
+      });
+    } else {
+      setCompanyId(null);
+    }
+    return () => {
+      alive = false;
+    };
+  }, [ownedHandle]);
+
+  async function handleCompanyId() {
+    if (!ownedHandle) return;
+    setBusy(true);
+    setNote(null);
+    const res = await generateCompanyId(ownedHandle);
+    setBusy(false);
+    if (!res.publicId) {
+      setNote({
+        kind: "error",
+        text:
+          res.error === "not_eligible"
+            ? "The company ID unlocks at 100 hours of company use."
+            : "Could not generate the company ID.",
+      });
+      return;
+    }
+    setNote({ kind: "success", text: `Your company's permanent AORMS ID is ${res.publicId}.` });
+    setCompanyId((st) => (st ? { ...st, publicId: res.publicId } : st));
+    onChange(await fetchMe());
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -275,13 +316,6 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
             </Button>
           </Stack>
         </Form>
-        {!me.account?.publicId && (
-          <p className="esti-label esti-label--helper">
-            Founding a company requires your AORMS ID — earned at 100 hours of workspace use, or
-            instantly once a company invites you.
-          </p>
-        )}
-
         {ownedOrg && (
           <Form onSubmit={handleInvite}>
             <Stack gap={3} orientation="horizontal">
@@ -298,6 +332,37 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
               </Button>
             </Stack>
           </Form>
+        )}
+
+        {ownedOrg && companyId && (
+          <Stack gap={3}>
+            {companyId.publicId ? (
+              <p className="esti-label esti-label--secondary">
+                Company AORMS ID: {companyId.publicId}
+              </p>
+            ) : (
+              <>
+                <ProgressBar
+                  label={`${ownedOrg.name} — company use`}
+                  helperText={`${Math.floor(companyId.minutes / 60)} of ${Math.floor(companyId.requiredMinutes / 60)} hours — the permanent AORMS-C ID unlocks at 100 hours`}
+                  value={Math.min(companyId.minutes, companyId.requiredMinutes)}
+                  max={companyId.requiredMinutes}
+                />
+                <div>
+                  <Button
+                    size="sm"
+                    kind="tertiary"
+                    disabled={busy || !companyId.eligible}
+                    onClick={() => void handleCompanyId()}
+                  >
+                    {companyId.eligible
+                      ? "Generate the company AORMS ID"
+                      : "Unlocks at 100 hours of company use"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Stack>
         )}
 
         <Form onSubmit={handleJoin}>
