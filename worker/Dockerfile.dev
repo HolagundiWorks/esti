@@ -1,6 +1,15 @@
 # Dev image for the worker. ezdxf (DXF takeoff), boto3, psycopg and pandas are
 # pure-wheel installs; WeasyPrint needs the pango/cairo/gdk-pixbuf system libs.
 FROM python:3.12-slim
+# Optional egress-proxy / corporate CA. No-op when the secret isn't provided:
+#   docker build --secret id=extra_ca,src=/path/to/ca-bundle.crt …
+# pip.conf is only written when the CA is supplied, so normal builds keep
+# pip's default certifi bundle untouched.
+RUN --mount=type=secret,id=extra_ca \
+    if [ -f /run/secrets/extra_ca ]; then \
+      cp /run/secrets/extra_ca /usr/local/share/extra-ca.crt && \
+      printf '[global]\ncert = /usr/local/share/extra-ca.crt\n' > /etc/pip.conf; \
+    fi
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev libcairo2 \

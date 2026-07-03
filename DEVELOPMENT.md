@@ -31,13 +31,12 @@ podman compose up -d --build
 > ./scripts/build-dev-images.ps1
 > podman compose -f compose.yaml up -d
 > ```
-> Or manually:
+> Or manually (build context is the repo root — kits are vendored under `vendor/`):
 > ```sh
-> cd ..   # repos parent (esti + hcw-carbon-agent-kit + hcw-aorms-ai-kit)
-> podman build -t localhost/esti-backend:dev  -f esti/backend/Dockerfile .
-> podman build -t localhost/esti-worker:dev   -f esti/worker/Dockerfile.dev esti/worker
-> podman build -t localhost/esti-frontend:dev -f esti/frontend/Dockerfile.dev .
-> podman compose -f esti/compose.yaml up -d
+> podman build -t localhost/esti-backend:dev  -f backend/Dockerfile .
+> podman build -t localhost/esti-worker:dev   -f worker/Dockerfile.dev .
+> podman build -t localhost/esti-frontend:dev -f frontend/Dockerfile.dev .
+> podman compose -f compose.yaml up -d
 > ```
 > The backend/frontend mount `src/` from the host, so most code edits are picked
 > up live (`podman restart esti-backend` if a change isn't detected) — no rebuild.
