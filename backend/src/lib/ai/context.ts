@@ -1,4 +1,10 @@
-import { can, isCadAiDraftKind, type AiDraftKind, type AiSourceRef } from "@esti/contracts";
+import {
+  can,
+  isCadAiDraftKind,
+  MOM_REVISION_MAX_SUGGESTIONS,
+  type AiDraftKind,
+  type AiSourceRef,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
@@ -28,6 +34,66 @@ type UserCtx = { id: string; role: string; email?: string; fullName?: string };
 
 function isAgentQuery(input: { mode?: "draft" | "agent"; prompt?: string }): boolean {
   return input.mode === "agent" && !!input.prompt?.trim();
+}
+
+// ── MOM_REVISIONS: minutes → client revision-request drafts ──────────────────
+// The caller (portal.suggestMomRevisions) passes the issued minutes as
+// `prompt` and the MoM id as `contextQuery`. Output contract: a strict JSON
+// array parsed by `parseMomRevisionSuggestions` (@esti/contracts).
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function momRevisionSources(input: { contextQuery?: string }): AiSourceRef[] {
+  const momId = input.contextQuery?.trim();
+  return [
+    {
+      entityType: "mom",
+      ...(momId && UUID_RE.test(momId) ? { entityId: momId } : {}),
+      label: "Issued meeting minutes",
+    },
+  ];
+}
+
+function assembleMomRevisionContext(input: {
+  prompt?: string;
+  contextQuery?: string;
+}): AiContextBundle {
+  const minutes = input.prompt?.trim();
+  if (!minutes) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Meeting minutes text is required" });
+  }
+  return {
+    systemPrompt: [
+      "You are ESTI, the intelligence layer of AORMS, drafting on behalf of an architecture practice's CLIENT.",
+      "Read the issued meeting minutes and extract every design change, revision, or rework the client asked for or agreed to.",
+      `Respond with ONLY a JSON array (no prose, no markdown) of at most ${MOM_REVISION_MAX_SUGGESTIONS} items:`,
+      '[{"title": "short imperative summary (max 120 chars)", "details": "polite, specific change request the client could send verbatim, referencing what was discussed", "category": "MINOR" | "MAJOR" | "CRITICAL"}]',
+      "category: MINOR = cosmetic/small adjustments; MAJOR = replanning or structural/system rework; CRITICAL = safety, compliance, or contract-impacting changes.",
+      "Only include changes actually present in the minutes. If none exist, respond with [].",
+    ].join("\n"),
+    userPrompt: `## Meeting minutes\n${minutes}\n\n## Task\nExtract the client's revision requests as the JSON array now.`,
+    sources: momRevisionSources(input),
+    promptSummary: `MOM_REVISIONS · ${minutes.slice(0, 80)}`,
+  };
+}
+
+/** Deterministic mock: derive suggestions from change-flavoured minute lines. */
+function buildMockMomRevisions(minutes: string): string {
+  const changeRe =
+    /\b(chang\w*|revis\w*|mov\w*|shift\w*|replac\w*|relocat\w*|increas\w*|reduc\w*|add\w*|remov\w*|swap\w*|updat\w*|rework\w*|resiz\w*|redesign\w*)\b/i;
+  const majorRe = /\b(structur\w*|major|redesign\w*|rework\w*|demolish\w*|replan\w*)\b/i;
+  const lines = minutes
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^[-*•\d.)\s]+/, "").trim())
+    .filter(Boolean);
+  const hits = lines.filter((l) => changeRe.test(l)).slice(0, MOM_REVISION_MAX_SUGGESTIONS);
+  const basis = hits.length > 0 ? hits : lines.slice(0, 1);
+  const items = basis.map((l) => ({
+    title: (l.slice(0, 120) || "Revision discussed in the meeting").trim(),
+    details: `As discussed in the meeting: ${l}. Please treat this as our formal revision request.`.slice(0, 1000),
+    category: majorRe.test(l) ? "MAJOR" : "MINOR",
+  }));
+  return JSON.stringify(items, null, 2);
 }
 
 async function loadProject(
@@ -168,6 +234,9 @@ export async function assembleAiContext(
   if (isAgentQuery(input)) {
     return assembleAgentContext(db, user, input);
   }
+  if (input.kind === "MOM_REVISIONS") {
+    return assembleMomRevisionContext(input);
+  }
 
   const sources: AiSourceRef[] = [];
   let project: ProjectCtx | undefined;
@@ -255,6 +324,14 @@ export async function generateMockOutput(
     const { snapshot } = await loadOperatorSnapshot(db, user, input.projectId);
     return {
       output: buildAgentMockAnswer(snapshot, input.prompt!),
+      sources: bundle.sources,
+      promptSummary: bundle.promptSummary,
+    };
+  }
+  if (input.kind === "MOM_REVISIONS") {
+    const bundle = assembleMomRevisionContext(input);
+    return {
+      output: buildMockMomRevisions(input.prompt ?? ""),
       sources: bundle.sources,
       promptSummary: bundle.promptSummary,
     };

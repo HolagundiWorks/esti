@@ -29,6 +29,7 @@ import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
+import { ProjectMinutes } from "../components/ProjectMinutes.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
 import { ProjectEstimate } from "../components/cms/ProjectEstimate.js";
 import { ProjectBoq } from "../components/cms/ProjectBoq.js";
@@ -109,6 +110,7 @@ export function ProjectDetail() {
         label: "Communications",
         panel: <ProjectCommunicationsLog projectId={id} />,
       },
+      { slug: "minutes", label: "Minutes", panel: <ProjectMinutes projectId={id} /> },
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 

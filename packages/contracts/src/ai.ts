@@ -14,6 +14,9 @@ export const AiDraftKind = z.enum([
   "CRIF_SUMMARY",
   "CRIF_IMPACT",
   "CRIF_RISK",
+  // Client portal: ESTI reads an issued MoM and drafts the revision requests
+  // the client would otherwise have to write (strict-JSON output).
+  "MOM_REVISIONS",
   // ESTICAD companion (Phase 13D) — use ai.generateCad, not browser AI Studio.
   "CAD_DIMENSION_SUGGEST",
   "CAD_NAMING",
@@ -66,7 +69,83 @@ export const AI_DRAFT_KIND_LABEL: Record<AiDraftKind, string> = {
   CAD_REVISION_SUMMARY: "CAD revision summary (AIREV)",
   CAD_PLOT_ASSIST: "CAD plot assist (AIPLOT)",
   CAD_BOQ_DRAFT: "CAD BOQ narrative (AIBOQ)",
+  MOM_REVISIONS: "Client revision suggestions (from minutes)",
 };
+
+// ── MoM → client revision suggestions (MOM_REVISIONS) ────────────────────────
+// ESTI reads issued meeting minutes and drafts the change requests the client
+// would otherwise have to write. The model must answer with a JSON array of
+// these items; the parser below tolerates prose/code-fence wrapping.
+
+export const MomRevisionCategory = z.enum(["MINOR", "MAJOR", "CRITICAL"]);
+
+export const MomRevisionSuggestion = z.object({
+  title: z.string().trim().min(1).max(200),
+  details: z.string().trim().min(1).max(4000),
+  category: MomRevisionCategory.catch("MINOR"),
+});
+export type MomRevisionSuggestion = z.infer<typeof MomRevisionSuggestion>;
+
+export const MOM_REVISION_MAX_SUGGESTIONS = 10;
+
+/**
+ * Parse the model's MOM_REVISIONS output into validated suggestions.
+ * Accepts a bare JSON array, an `{"items": [...]}` object, or either wrapped
+ * in prose / ```json fences. Returns null when nothing parseable is found;
+ * invalid entries are dropped rather than failing the whole draft.
+ */
+export function parseMomRevisionSuggestions(text: string): MomRevisionSuggestion[] | null {
+  const stripped = text.replace(/```(?:json)?/gi, "").trim();
+  const start = stripped.search(/[[{]/);
+  if (start === -1) return null;
+  const slice = stripped.slice(start, findJsonEnd(stripped, start) + 1);
+  let raw: unknown;
+  try {
+    raw = JSON.parse(slice);
+  } catch {
+    return null;
+  }
+  const list = Array.isArray(raw) ? raw : (raw as { items?: unknown[] })?.items;
+  if (!Array.isArray(list)) return null;
+  const out: MomRevisionSuggestion[] = [];
+  for (const entry of list) {
+    if (out.length >= MOM_REVISION_MAX_SUGGESTIONS) break;
+    const norm =
+      entry && typeof entry === "object"
+        ? {
+            ...entry,
+            category:
+              typeof (entry as { category?: unknown }).category === "string"
+                ? (entry as { category: string }).category.trim().toUpperCase()
+                : undefined,
+          }
+        : entry;
+    const parsed = MomRevisionSuggestion.safeParse(norm);
+    if (parsed.success) out.push(parsed.data);
+  }
+  return out.length > 0 ? out : null;
+}
+
+/** Index of the bracket that closes the JSON value opening at `start`. */
+function findJsonEnd(text: string, start: number): number {
+  const open = text[start]!;
+  const close = open === "[" ? "]" : "}";
+  let depth = 0;
+  let inString = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === "\\") i++;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = true;
+    else if (ch === open) depth++;
+    else if (ch === close) {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return text.length - 1;
+}
 
 export const AiProvider = z.enum(["mock", "ollama", "cloud"]);
 export type AiProvider = z.infer<typeof AiProvider>;

@@ -40,6 +40,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
+import { PortalMinutes } from "../components/PortalMinutes.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -502,6 +503,9 @@ export function Portal() {
                 </Table>
               </DataState>
             </Section>
+
+            {/* ── Meeting minutes + ESTI-drafted revision requests ─────────── */}
+            <PortalMinutes projectId={openId} onSubmitted={refresh} />
 
             {/* ── Revision dashboard ───────────────────────────────────────── */}
             <Stack gap={3}>
