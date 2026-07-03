@@ -95,6 +95,25 @@ async fn boot(app: AppHandle) -> Result<(), String> {
         "ESTI_HUB_URL".into(),
         std::env::var("ESTI_HUB_URL").unwrap_or_default(),
     );
+    // Central licensing cloud (License Panel, /platform/v1) — wired by default
+    // so Company → Licence key activation reaches aorms.in out of the box.
+    // Unlike ESTI_HUB_URL this does NOT mark the install managed: with no
+    // activated key the install stays unmanaged on the baked edition and is
+    // never write-blocked. Overridable at launch for a self-hosted hub.
+    env.insert(
+        "ESTI_LICENSE_API_URL".into(),
+        std::env::var("ESTI_LICENSE_API_URL")
+            .unwrap_or_else(|_| "https://aorms.in/platform".into()),
+    );
+    // The /v1 API authenticates the PRODUCT via a per-product key. Public
+    // installers bake it at build time (AORMS_PRODUCT_API_KEY — a CI secret,
+    // like AORMS_EDITION); a runtime env still overrides. Empty → activation
+    // returns 401 until a key is supplied, everything else works offline.
+    env.insert(
+        "ESTI_PRODUCT_API_KEY".into(),
+        std::env::var("ESTI_PRODUCT_API_KEY")
+            .unwrap_or_else(|_| option_env!("AORMS_PRODUCT_API_KEY").unwrap_or("").to_string()),
+    );
     env.insert(
         "ALLOWED_ORIGINS".into(),
         format!("{api_base},tauri://localhost,http://tauri.localhost"),

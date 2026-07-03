@@ -56,6 +56,12 @@ jobs:
 
       - name: Build installers (Lite + Core + Enterprise)
         run: pnpm desktop:build-editions
+        env:
+          # Baked into the Rust shell (option_env!) so installed apps can call
+          # the licensing cloud's /v1 product API (Company → Licence activation).
+          # Mint on the hub (admin console → Products → API keys) and store as a
+          # repo secret. Empty = activation is off; the build still succeeds.
+          AORMS_PRODUCT_API_KEY: ${{ secrets.AORMS_PRODUCT_API_KEY }}
 
       - uses: actions/upload-artifact@v4
         with:
