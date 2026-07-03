@@ -61,7 +61,7 @@ export function TaskCalendarTab() {
   const listParams: TaskListParams = { myTasks, openOnly };
   const listQ = trpc.tasks.list.useQuery(listParams);
 
-  const tasks = listQ.data ?? [];
+  const tasks = useMemo(() => listQ.data ?? [], [listQ.data]);
   const byDate = useMemo(() => groupByDueDate(tasks), [tasks]);
   const unscheduled = tasks.filter((t) => !t.dueDate);
   const selectedTasks = byDate.get(selectedDate) ?? [];

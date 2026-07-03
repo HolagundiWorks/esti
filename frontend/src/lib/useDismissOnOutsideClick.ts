@@ -15,5 +15,7 @@ export function useDismissOnOutsideClick(
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
+    // ignoreRefs is a fresh array literal at most call sites; the refs inside it are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onClose]);
 }
