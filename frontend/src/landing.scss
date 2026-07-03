@@ -3851,3 +3851,84 @@ h1.esti-landing-lead-title {
 @media (max-width: 671px) {
   .esti-lp-tile__media { aspect-ratio: 1; }
 }
+
+// Padded media area (for the ID-card mock, not an iframe)
+.esti-lp-tile__media--pad {
+  align-items: center;
+  justify-content: center;
+  padding: var(--cds-spacing-07);
+}
+
+// ── ID-card mock (Earned Identity section) ────────────────────────────────
+// A CC-proportioned rendering of the printed AORMS ID card.
+.esti-lp-idcard {
+  width: min(100%, 26rem);
+  aspect-ratio: 85.6 / 54;
+  border-radius: 4.5% / 7.1%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 5.5% 6%;
+  background:
+    linear-gradient(rgba(17, 16, 14, 0.70), rgba(17, 16, 14, 0.70)),
+    url("/landing-contour-bg.svg") center / cover no-repeat,
+    #11100e;
+  border: 1px solid var(--cds-border-subtle);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  color: var(--cds-text-primary);
+}
+
+.esti-lp-idcard__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  img { height: 1rem; width: auto; display: block; }
+  span {
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cds-text-secondary);
+  }
+}
+
+.esti-lp-idcard__mid { margin-block: auto; }
+
+.esti-lp-idcard__uid-label {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--cds-text-helper);
+  margin: 0;
+}
+
+.esti-lp-idcard__uid {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cds-tag-color-purple, #c6a2ff);
+  margin: 0.3em 0 0;
+  white-space: nowrap;
+}
+
+.esti-lp-idcard__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cds-text-primary);
+  margin: 0.5em 0 0;
+}
+
+.esti-lp-idcard__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cds-text-secondary);
+}
