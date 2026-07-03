@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AORMS Privilege Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── AORMS privilege card — CC / ID-1 size (85.6mm × 54mm), front + back.
+     Landing-page identity: contour texture under a dark scrim, glass panels. */
+  :root {
+    --bg: #11100e;
+    --text: #f4f4f4;
+    --sec: #a8a8a8;
+    --mut: #8d8d8d;
+    --purple: #c6a2ff;
+    --purple-deep: #8a3ffc;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #1c1b19; font-family: var(--sans); color: var(--text); }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  @page { size: 85.6mm 54mm; margin: 0; }
+
+  .card {
+    position: relative;
+    width: 85.6mm;
+    height: 54mm;
+    overflow: hidden;
+    border-radius: 3.18mm; /* ISO/IEC 7810 corner radius */
+    background: var(--bg);
+    color: var(--text);
+  }
+  .card + .card { margin-top: 8mm; }
+
+  /* Contour texture + scrim — same treatment as the landing page. */
+  .card__bg {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(17, 16, 14, 0.70), rgba(17, 16, 14, 0.70)),
+      url("/landing-contour-bg.svg") center / cover no-repeat,
+      var(--bg);
+  }
+
+  /* Glass panel */
+  .glass {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.035));
+    border: 0.3mm solid rgba(255, 255, 255, 0.22);
+    border-radius: 2.2mm;
+    backdrop-filter: blur(3px) saturate(1.15);
+    box-shadow: inset 0 0.3mm 0 rgba(255, 255, 255, 0.18);
+  }
+
+  .card__inner {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 4mm 4.6mm;
+  }
+
+  .card__top { display: flex; align-items: center; justify-content: space-between; }
+  .card__brand { display: flex; align-items: center; gap: 1.8mm; }
+  .card__brand img { height: 4.6mm; width: auto; display: block; }
+  .card__kind {
+    font-family: var(--mono); font-size: 5.4pt; font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--purple);
+  }
+
+  .card__id-panel {
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 3mm 3.6mm;
+  }
+  .card__name {
+    font-size: 9.5pt; font-weight: 600; letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card__handle {
+    margin-top: 1.4mm;
+    font-family: var(--mono); font-size: 12pt; font-weight: 600;
+    letter-spacing: 0.08em; color: var(--purple);
+    text-shadow: 0 0 4mm rgba(138, 63, 252, 0.45);
+    white-space: nowrap;
+  }
+
+  .card__bottom {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    font-family: var(--mono); font-size: 4.6pt; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--sec);
+  }
+  .card__bottom strong { color: var(--text); font-weight: 500; }
+
+  /* Back */
+  .card--back .card__inner { padding: 3.6mm 4.6mm; }
+  .card__strip {
+    height: 2.6mm; margin: 0 -4.6mm;
+    background: linear-gradient(90deg, var(--purple-deep), var(--purple));
+    opacity: 0.85;
+  }
+  .card__privileges { margin-top: 2.6mm; padding: 2.6mm 3.2mm; flex: 1; display: flex; flex-direction: column; }
+  .card__priv-title {
+    font-family: var(--mono); font-size: 4.8pt; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--purple); margin-bottom: 1.6mm;
+  }
+  .card__priv { font-size: 6.2pt; line-height: 1.45; color: var(--text); }
+  .card__priv + .card__priv { margin-top: 1mm; }
+  .card__priv::before { content: "— "; color: var(--mut); }
+  .card__fine {
+    margin-top: auto; padding-top: 1.6mm;
+    font-size: 4.6pt; line-height: 1.4; color: var(--mut);
+  }
+  .card__back-bottom {
+    margin-top: 1.8mm;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 4.8pt; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--sec);
+  }
+
+  /* ── Screen chrome (hidden in print) ─────────────────────────────── */
+  .chrome {
+    max-width: 480px; margin: 28px auto 16px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .chrome h1 { font-size: 15px; font-weight: 600; }
+  .chrome p { font-size: 11px; color: var(--sec); margin-top: 3px; }
+  .chrome button {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    color: #161616; background: var(--purple); border: 0; border-radius: 6px;
+    padding: 9px 18px; cursor: pointer; white-space: nowrap;
+  }
+  .sheet { width: 85.6mm; margin: 0 auto 40px; }
+  @media screen {
+    .card { box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55); }
+  }
+  @media print {
+    html, body { background: none; }
+    .chrome { display: none; }
+    .sheet { width: auto; margin: 0; }
+    .card { border-radius: 0; box-shadow: none; }
+    .card + .card { margin-top: 0; page-break-before: always; break-before: page; }
+  }
+</style>
+</head>
+<body>
+  <div class="chrome">
+    <div>
+      <h1>AORMS privilege card</h1>
+      <p>Prints at credit-card size (85.6 × 54 mm). Enable “Background graphics” in the print dialog.</p>
+    </div>
+    <button onclick="window.print()">Print</button>
+  </div>
+
+  <div class="sheet">
+    <!-- Front -->
+    <div class="card">
+      <div class="card__bg"></div>
+      <div class="card__inner">
+        <div class="card__top">
+          <span class="card__brand"><img src="/aorms-logo-white.png" alt="AORMS"></span>
+          <span class="card__kind">Privilege Card</span>
+        </div>
+        <div class="glass card__id-panel">
+          <div class="card__name" id="name-front">—</div>
+          <div class="card__handle" id="id-front">AORMS-U-····</div>
+        </div>
+        <div class="card__bottom">
+          <span>Earned identity · <strong id="hours-front">100</strong> hours</span>
+          <span>Issued <strong id="date-front">—</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back -->
+    <div class="card card--back">
+      <div class="card__bg"></div>
+      <div class="card__inner">
+        <div class="card__strip"></div>
+        <div class="glass card__privileges">
+          <div class="card__priv-title">Holder privileges</div>
+          <div class="card__priv">One portable identity across every AORMS studio you work with</div>
+          <div class="card__priv">Certifications and professional growth record key to this ID</div>
+          <div class="card__priv">Priority standing in the AORMS professional community</div>
+          <div class="card__fine">
+            This identity is earned through documented practice — it cannot be bought
+            and never changes. Verify the holder at aorms.in.
+          </div>
+        </div>
+        <div class="card__back-bottom">
+          <span id="id-back">AORMS-U-····</span>
+          <span>aorms.in</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var name = (q.get("name") || "").trim() || "AORMS Professional";
+    var id = (q.get("id") || "").trim().toUpperCase() || "AORMS-U-····";
+    var hours = (q.get("hours") || "100").replace(/[^0-9]/g, "") || "100";
+    var d = q.get("date") ? new Date(q.get("date")) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    var date = d.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
+
+    document.getElementById("name-front").textContent = name;
+    document.getElementById("id-front").textContent = id;
+    document.getElementById("id-back").textContent = id;
+    document.getElementById("hours-front").textContent = hours;
+    document.getElementById("date-front").textContent = date;
+    document.title = id + " — AORMS Privilege Card";
+  })();
+</script>
+</body>
+</html>

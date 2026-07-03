@@ -1,7 +1,9 @@
-import { InlineNotification, Modal, ProgressBar } from "@carbon/react";
+import { Button, InlineNotification, Modal, ProgressBar } from "@carbon/react";
 import { USAGE_PING_INTERVAL_MS } from "@esti/contracts";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../../lib/auth.js";
 import { trpc } from "../../lib/trpc.js";
+import { welcomeKitUrl } from "../../lib/welcomeKit.js";
 
 /**
  * Usage-earned AORMS identity (Phase 34).
@@ -12,6 +14,7 @@ import { trpc } from "../../lib/trpc.js";
  * Identity keeps the progress bar and the generate button available.
  */
 export function UsageIdentity() {
+  const { user } = useAuth();
   const utils = trpc.useUtils();
   const statusQ = trpc.usage.status.useQuery(undefined, {
     refetchInterval: USAGE_PING_INTERVAL_MS,
@@ -80,6 +83,30 @@ export function UsageIdentity() {
             changes — certifications and your professional growth record key to it. You can
             always find it under Profile › AORMS Identity.
           </p>
+          <p>
+            Your welcome kit is ready — a printable certificate and a privilege card at
+            credit-card size:
+          </p>
+          <div className="esti-row">
+            <Button
+              size="sm"
+              kind="tertiary"
+              href={welcomeKitUrl("certificate", { name: user?.fullName, id: generatedId })}
+              target="_blank"
+              rel="noopener"
+            >
+              Certificate
+            </Button>
+            <Button
+              size="sm"
+              kind="tertiary"
+              href={welcomeKitUrl("card", { name: user?.fullName, id: generatedId })}
+              target="_blank"
+              rel="noopener"
+            >
+              Privilege card
+            </Button>
+          </div>
         </>
       ) : (
         <>

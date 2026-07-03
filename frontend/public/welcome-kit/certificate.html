@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AORMS Certificate of Earned Identity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── AORMS certificate of earned identity — A4 portrait.
+     Landing-page identity: contour texture under a dark scrim, glass panels. */
+  :root {
+    --bg: #11100e;
+    --text: #f4f4f4;
+    --sec: #a8a8a8;
+    --mut: #8d8d8d;
+    --purple: #c6a2ff;
+    --purple-deep: #8a3ffc;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #1c1b19; font-family: var(--sans); color: var(--text); }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  @page { size: A4 portrait; margin: 0; }
+
+  .cert {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .cert__bg {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(17, 16, 14, 0.70), rgba(17, 16, 14, 0.70)),
+      url("/landing-contour-bg.svg") center / cover no-repeat,
+      var(--bg);
+  }
+
+  .glass {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
+    border: 0.4mm solid rgba(255, 255, 255, 0.20);
+    border-radius: 4mm;
+    backdrop-filter: blur(4px) saturate(1.15);
+    box-shadow: inset 0 0.4mm 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .cert__frame {
+    position: absolute; inset: 14mm;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 18mm 16mm 14mm;
+    text-align: center;
+  }
+
+  .cert__brand { display: flex; flex-direction: column; align-items: center; gap: 6mm; }
+  .cert__brand img { height: 11mm; width: auto; }
+  .cert__eyebrow {
+    font-family: var(--mono); font-size: 9pt; font-weight: 500;
+    letter-spacing: 0.32em; text-transform: uppercase; color: var(--purple);
+  }
+
+  .cert__rule {
+    width: 58mm; height: 0.5mm; margin: 9mm 0;
+    background: linear-gradient(90deg, transparent, var(--purple-deep), var(--purple), var(--purple-deep), transparent);
+  }
+
+  .cert__certifies { font-size: 11pt; color: var(--sec); }
+  .cert__name {
+    margin-top: 5mm;
+    font-size: 30pt; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .cert__body {
+    margin-top: 8mm; max-width: 128mm;
+    font-size: 11.5pt; line-height: 1.65; color: var(--sec);
+  }
+  .cert__body strong { color: var(--text); font-weight: 600; }
+
+  .cert__id-panel {
+    margin-top: 11mm;
+    padding: 8mm 16mm;
+  }
+  .cert__id-label {
+    font-family: var(--mono); font-size: 7.5pt; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--sec); margin-bottom: 3mm;
+  }
+  .cert__id {
+    font-family: var(--mono); font-size: 26pt; font-weight: 600;
+    letter-spacing: 0.10em; color: var(--purple);
+    text-shadow: 0 0 8mm rgba(138, 63, 252, 0.5);
+    white-space: nowrap;
+  }
+
+  .cert__creed {
+    margin-top: 11mm; max-width: 110mm;
+    font-family: var(--mono); font-size: 9pt; line-height: 1.75; color: var(--mut);
+  }
+
+  .cert__foot {
+    margin-top: auto; width: 100%;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    text-align: left;
+  }
+  .cert__foot-block { display: flex; flex-direction: column; gap: 1.6mm; }
+  .cert__foot-key {
+    font-family: var(--mono); font-size: 6.5pt; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--mut);
+  }
+  .cert__foot-val { font-size: 10pt; color: var(--text); }
+  .cert__foot-block--right { text-align: right; align-items: flex-end; }
+
+  /* ── Screen chrome (hidden in print) ─────────────────────────────── */
+  .chrome {
+    max-width: 760px; margin: 28px auto 16px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .chrome h1 { font-size: 15px; font-weight: 600; }
+  .chrome p { font-size: 11px; color: var(--sec); margin-top: 3px; }
+  .chrome button {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    color: #161616; background: var(--purple); border: 0; border-radius: 6px;
+    padding: 9px 18px; cursor: pointer; white-space: nowrap;
+  }
+  .sheet { width: 210mm; margin: 0 auto 40px; }
+  @media screen {
+    .cert { box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55); }
+  }
+  @media print {
+    html, body { background: none; }
+    .chrome { display: none; }
+    .sheet { width: auto; margin: 0; }
+    .cert { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="chrome">
+    <div>
+      <h1>AORMS certificate of earned identity</h1>
+      <p>Prints on A4. Enable “Background graphics” in the print dialog.</p>
+    </div>
+    <button onclick="window.print()">Print</button>
+  </div>
+
+  <div class="sheet">
+    <div class="cert">
+      <div class="cert__bg"></div>
+      <div class="glass cert__frame">
+        <div class="cert__brand">
+          <img src="/aorms-logo-white.png" alt="AORMS">
+          <div class="cert__eyebrow">Certificate of Earned Identity</div>
+        </div>
+
+        <div class="cert__rule"></div>
+
+        <p class="cert__certifies">This certifies that</p>
+        <h1 class="cert__name" id="name">—</h1>
+        <p class="cert__body">
+          has completed <strong><span id="hours">100</span> hours of documented professional
+          practice</strong> on AORMS — the Architecture Office Resource Management System —
+          and is granted this permanent professional identity, portable across every
+          studio they work with.
+        </p>
+
+        <div class="glass cert__id-panel">
+          <div class="cert__id-label">AORMS Unique ID</div>
+          <div class="cert__id" id="id">AORMS-U-····</div>
+        </div>
+
+        <p class="cert__creed">
+          You can't buy this ID. You can't get it at signup.<br>
+          Some things should still be earned.
+        </p>
+
+        <div class="cert__foot">
+          <div class="cert__foot-block">
+            <span class="cert__foot-key">Date of issue</span>
+            <span class="cert__foot-val" id="date">—</span>
+          </div>
+          <div class="cert__foot-block cert__foot-block--right">
+            <span class="cert__foot-key">Issued by</span>
+            <span class="cert__foot-val">Holagundi Consulting Works · aorms.in</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var name = (q.get("name") || "").trim() || "AORMS Professional";
+    var id = (q.get("id") || "").trim().toUpperCase() || "AORMS-U-····";
+    var hours = (q.get("hours") || "100").replace(/[^0-9]/g, "") || "100";
+    var d = q.get("date") ? new Date(q.get("date")) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    var date = d.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
+
+    document.getElementById("name").textContent = name;
+    document.getElementById("id").textContent = id;
+    document.getElementById("hours").textContent = hours;
+    document.getElementById("date").textContent = date;
+    document.title = id + " — AORMS Certificate of Earned Identity";
+  })();
+</script>
+</body>
+</html>

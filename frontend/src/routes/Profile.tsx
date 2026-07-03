@@ -19,6 +19,7 @@ import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useCapabilities } from "../lib/capabilities.js";
+import { welcomeKitUrl } from "../lib/welcomeKit.js";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -174,6 +175,38 @@ export function Profile() {
                   <Field label="Professional role" value={user?.role ?? "—"} />
                 </Stack>
               </Tile>
+              {aormsId && (
+                <Tile className="esti-fill">
+                  <Stack gap={4}>
+                    <h4>Welcome kit</h4>
+                    <p className="esti-label esti-label--secondary">
+                      Your earned-identity welcome kit: a certificate (A4) and a privilege
+                      card that prints at credit-card size. Enable “Background graphics” in
+                      the print dialog.
+                    </p>
+                    <div className="esti-row">
+                      <Button
+                        size="sm"
+                        kind="primary"
+                        href={welcomeKitUrl("certificate", { name: user?.fullName, id: aormsId })}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Certificate
+                      </Button>
+                      <Button
+                        size="sm"
+                        kind="tertiary"
+                        href={welcomeKitUrl("card", { name: user?.fullName, id: aormsId })}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Privilege card
+                      </Button>
+                    </div>
+                  </Stack>
+                </Tile>
+              )}
               <PlannedGrid
                 items={[
                   { title: "Firm Mapping", description: "Registered office / firm association." },
