@@ -1,46 +1,27 @@
 import {
-  AUTO_MISSING_PARAMETER_TYPES,
   DependencyCreate,
   MissingParameterCreate,
   MissingParameterResolve,
+  STANDUP_SESSION_LABEL,
+  StandupAnswer,
+  StandupRun,
   bandForScore,
-  computeConfidenceScore,
-  computeTaskPriority,
-  detectMissingParameters,
+  missingParameterStatusForResponse,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import type { DB } from "../../db/index.js";
-import { projectOffices, taskDependencies, taskMissingParameters, taskPriorityLogs, tasks } from "../../db/schema.js";
+import {
+  projectOffices,
+  standupQuestions,
+  standupSessions,
+  taskDependencies,
+  taskMissingParameters,
+  tasks,
+} from "../../db/schema.js";
+import { ACTIVE_STATUS, reconcileMissingParameters, recomputeScores, runStandupForProject } from "../../lib/pulseEngine.js";
 import { writeActivity } from "../../lib/activity.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
-
-const ACTIVE_STATUS = and(ne(tasks.status, "DONE"), ne(tasks.status, "CANCELLED"));
-
-/** True when a task has at least one OPEN, BLOCKS-type dependency on a task that isn't DONE. */
-async function unresolvedBlockingTaskIds(db: DB, taskIds: string[]) {
-  if (taskIds.length === 0) return new Set<string>();
-  const rows = await db
-    .select({
-      taskId: taskDependencies.taskId,
-      dependsOnStatus: tasks.status,
-    })
-    .from(taskDependencies)
-    .innerJoin(tasks, eq(tasks.id, taskDependencies.dependsOnTaskId))
-    .where(
-      and(
-        inArray(taskDependencies.taskId, taskIds),
-        eq(taskDependencies.dependencyType, "BLOCKS"),
-        eq(taskDependencies.status, "OPEN"),
-      ),
-    );
-  const blocked = new Set<string>();
-  for (const r of rows) {
-    if (r.dependsOnStatus !== "DONE") blocked.add(r.taskId);
-  }
-  return blocked;
-}
 
 export const pulseRouter = router({
   dependencies: router({
@@ -200,167 +181,15 @@ export const pulseRouter = router({
     }),
   }),
 
-  /**
-   * Module 2 — reconcile AUTO missing-parameter rows against current task
-   * state: raise newly-detected gaps, auto-close AUTO rows whose condition no
-   * longer holds. MANUAL rows (client approval, site measurement, …) are
-   * never touched here — only a human resolves those.
-   */
+  /** Module 2 — reconcile AUTO missing-parameter rows against current task state. */
   detect: protectedProcedure
     .input(z.object({ projectId: z.string().uuid().optional() }))
-    .mutation(async ({ ctx, input }) => {
-      const filters = [ACTIVE_STATUS];
-      if (input.projectId) filters.push(eq(tasks.projectId, input.projectId));
-      const active = await ctx.db
-        .select({
-          id: tasks.id,
-          status: tasks.status,
-          dueDate: tasks.dueDate,
-          assigneeId: tasks.assigneeId,
-          updatedAt: tasks.updatedAt,
-        })
-        .from(tasks)
-        .where(and(...filters));
+    .mutation(async ({ ctx, input }) => reconcileMissingParameters(ctx.db, { projectId: input.projectId })),
 
-      const taskIds = active.map((t) => t.id);
-      const blockedIds = await unresolvedBlockingTaskIds(ctx.db, taskIds);
-
-      const existing = taskIds.length
-        ? await ctx.db
-            .select()
-            .from(taskMissingParameters)
-            .where(and(inArray(taskMissingParameters.taskId, taskIds), eq(taskMissingParameters.status, "OPEN")))
-        : [];
-      const existingByTask = new Map<string, typeof existing>();
-      for (const row of existing) {
-        const list = existingByTask.get(row.taskId) ?? [];
-        list.push(row);
-        existingByTask.set(row.taskId, list);
-      }
-
-      let raised = 0;
-      let closed = 0;
-      for (const t of active) {
-        const openForTask = existingByTask.get(t.id) ?? [];
-        const openAutoTypes = new Set(
-          openForTask
-            .filter((r) => (AUTO_MISSING_PARAMETER_TYPES as readonly string[]).includes(r.parameterType))
-            .map((r) => r.parameterType),
-        );
-        const hasAnyMissingParameter = openForTask.length > 0;
-
-        const detected = detectMissingParameters({
-          status: t.status,
-          dueDate: t.dueDate,
-          assigneeId: t.assigneeId,
-          updatedAt: t.updatedAt,
-          hasUnresolvedBlockingDependency: blockedIds.has(t.id),
-          hasAnyMissingParameter,
-        });
-        const detectedSet = new Set<string>(detected);
-
-        const toRaise = detected.filter((type) => !openAutoTypes.has(type));
-        if (toRaise.length) {
-          await ctx.db.insert(taskMissingParameters).values(
-            toRaise.map((parameterType) => ({ taskId: t.id, parameterType })),
-          );
-          raised += toRaise.length;
-        }
-
-        const toClose = openForTask.filter(
-          (r) =>
-            (AUTO_MISSING_PARAMETER_TYPES as readonly string[]).includes(r.parameterType) &&
-            !detectedSet.has(r.parameterType),
-        );
-        if (toClose.length) {
-          await ctx.db
-            .update(taskMissingParameters)
-            .set({ status: "NOT_REQUIRED", resolvedAt: new Date() })
-            .where(
-              inArray(
-                taskMissingParameters.id,
-                toClose.map((r) => r.id),
-              ),
-            );
-          closed += toClose.length;
-        }
-      }
-
-      return { scanned: active.length, raised, closed };
-    }),
-
-  /**
-   * Module 5/6 — recompute priorityScore + confidenceScore for active tasks
-   * and log every change (Module 5: auditable priority log). Deterministic,
-   * no LLM. Run `detect` first so open-parameter counts are current.
-   */
+  /** Module 5/6 — recompute priorityScore + confidenceScore and log every change. */
   recompute: protectedProcedure
     .input(z.object({ projectId: z.string().uuid().optional() }))
-    .mutation(async ({ ctx, input }) => {
-      const filters = [ACTIVE_STATUS];
-      if (input.projectId) filters.push(eq(tasks.projectId, input.projectId));
-      const active = await ctx.db
-        .select({
-          id: tasks.id,
-          status: tasks.status,
-          priority: tasks.priority,
-          dueDate: tasks.dueDate,
-          assigneeId: tasks.assigneeId,
-          workType: tasks.workType,
-          interventionRequired: tasks.interventionRequired,
-          priorityScore: tasks.priorityScore,
-          confidenceScore: tasks.confidenceScore,
-          updatedAt: tasks.updatedAt,
-        })
-        .from(tasks)
-        .where(and(...filters));
-
-      const taskIds = active.map((t) => t.id);
-      const blockedIds = await unresolvedBlockingTaskIds(ctx.db, taskIds);
-
-      const openParams = taskIds.length
-        ? await ctx.db
-            .select({ taskId: taskMissingParameters.taskId })
-            .from(taskMissingParameters)
-            .where(and(inArray(taskMissingParameters.taskId, taskIds), eq(taskMissingParameters.status, "OPEN")))
-        : [];
-      const openCountByTask = new Map<string, number>();
-      for (const r of openParams) {
-        openCountByTask.set(r.taskId, (openCountByTask.get(r.taskId) ?? 0) + 1);
-      }
-
-      let updated = 0;
-      for (const t of active) {
-        const newPriorityScore = computeTaskPriority(t);
-        const daysSinceUpdate = (Date.now() - new Date(t.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
-        const newConfidenceScore = computeConfidenceScore({
-          status: t.status,
-          openMissingParameterCount: openCountByTask.get(t.id) ?? 0,
-          hasUnresolvedBlockingDependency: blockedIds.has(t.id),
-          hasAssignee: !!t.assigneeId,
-          hasDueDate: !!t.dueDate,
-          daysSinceUpdate,
-        });
-
-        if (newPriorityScore === t.priorityScore && newConfidenceScore === t.confidenceScore) continue;
-
-        await ctx.db
-          .update(tasks)
-          .set({ priorityScore: newPriorityScore, confidenceScore: newConfidenceScore })
-          .where(eq(tasks.id, t.id));
-        await ctx.db.insert(taskPriorityLogs).values({
-          taskId: t.id,
-          oldPriorityScore: t.priorityScore,
-          newPriorityScore,
-          oldConfidenceScore: t.confidenceScore,
-          newConfidenceScore,
-          reason: "pulse.recompute",
-        });
-        updated++;
-      }
-
-      return { scanned: active.length, updated };
-    }),
+    .mutation(async ({ ctx, input }) => recomputeScores(ctx.db, { projectId: input.projectId })),
 
   /** Today's queue, banded by consequence — supersedes tasks.todayQueue for Pulse consumers. */
   queue: protectedProcedure
@@ -391,4 +220,116 @@ export const pulseRouter = router({
         .map((r) => ({ ...r, band: bandForScore(r.priorityScore) }))
         .sort((a, b) => b.priorityScore - a.priorityScore);
     }),
+
+  /**
+   * Module 3/4 — the standup loop (P-2). Sessions default to AD_HOC when
+   * triggered manually; the four daily cycles also run automatically from
+   * the server-local scheduler (backend/src/index.ts → runDueStandups).
+   */
+  standup: router({
+    /** Run a standup now for one project — reconciles gaps, then asks one grouped question per task that has any. */
+    run: protectedProcedure.input(StandupRun).mutation(async ({ ctx, input }) => {
+      const { session, questionCount } = await runStandupForProject(ctx.db, {
+        projectId: input.projectId,
+        sessionType: input.sessionType,
+      });
+      await writeActivity(ctx.db, {
+        projectId: input.projectId,
+        objectType: "project",
+        objectId: input.projectId,
+        eventType: "pulse.standup_run",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `${STANDUP_SESSION_LABEL[input.sessionType]} — ${questionCount} question${questionCount === 1 ? "" : "s"} raised`,
+        metadata: { sessionType: input.sessionType, questionCount },
+      });
+      return { session, questionCount };
+    }),
+
+    list: protectedProcedure
+      .input(z.object({ projectId: z.string().uuid(), limit: z.number().int().min(1).max(100).default(20) }))
+      .query(async ({ ctx, input }) => {
+        return ctx.db
+          .select()
+          .from(standupSessions)
+          .where(eq(standupSessions.projectId, input.projectId))
+          .orderBy(standupSessions.scheduledAt)
+          .limit(input.limit);
+      }),
+
+    questions: protectedProcedure
+      .input(z.object({ standupSessionId: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        return ctx.db
+          .select({
+            id: standupQuestions.id,
+            taskId: standupQuestions.taskId,
+            taskTitle: tasks.title,
+            questionText: standupQuestions.questionText,
+            askedTo: standupQuestions.askedTo,
+            responseStatus: standupQuestions.responseStatus,
+            responseText: standupQuestions.responseText,
+            createdAt: standupQuestions.createdAt,
+            answeredAt: standupQuestions.answeredAt,
+          })
+          .from(standupQuestions)
+          .innerJoin(tasks, eq(tasks.id, standupQuestions.taskId))
+          .where(eq(standupQuestions.standupSessionId, input.standupSessionId));
+      }),
+
+    /**
+     * Module 4 — answer a standup question. A CONFIRMED/NOT_REQUIRED answer
+     * resolves every open missing-parameter gap on that task; other
+     * responses leave gaps open but record the update. Recomputes the
+     * task's project scores immediately so the change is reflected without
+     * waiting for the next cycle.
+     */
+    answer: protectedProcedure.input(StandupAnswer).mutation(async ({ ctx, input }) => {
+      const [question] = await ctx.db.select().from(standupQuestions).where(eq(standupQuestions.id, input.questionId));
+      if (!question) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [updated] = await ctx.db
+        .update(standupQuestions)
+        .set({ responseStatus: input.responseStatus, responseText: input.responseText ?? null, answeredAt: new Date() })
+        .where(eq(standupQuestions.id, input.questionId))
+        .returning();
+
+      const resolution = missingParameterStatusForResponse(input.responseStatus);
+      if (resolution !== "OPEN") {
+        await ctx.db
+          .update(taskMissingParameters)
+          .set({ status: resolution, resolvedAt: new Date() })
+          .where(and(eq(taskMissingParameters.taskId, question.taskId), eq(taskMissingParameters.status, "OPEN")));
+      }
+
+      const [task] = await ctx.db.select().from(tasks).where(eq(tasks.id, question.taskId));
+      if (task?.projectId) {
+        await recomputeScores(ctx.db, { projectId: task.projectId });
+        await writeActivity(ctx.db, {
+          projectId: task.projectId,
+          objectType: "task",
+          objectId: task.id,
+          eventType: "pulse.standup_answered",
+          actorId: ctx.user.id,
+          actorName: ctx.user.fullName,
+          summary: `Standup question answered on "${task.title}": ${input.responseStatus}`,
+          metadata: { responseStatus: input.responseStatus, responseText: input.responseText },
+        });
+      }
+
+      return updated ?? null;
+    }),
+
+    close: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const [row] = await ctx.db
+          .update(standupSessions)
+          .set({ status: "COMPLETED", completedAt: new Date() })
+          .where(eq(standupSessions.id, input.id))
+          .returning();
+        if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+        return row;
+      }),
+  }),
 });

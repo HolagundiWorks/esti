@@ -1023,6 +1023,13 @@
       "when": 1782207100000,
       "tag": "0145_task_pulse",
       "breakpoints": true
+    },
+    {
+      "idx": 146,
+      "version": "7",
+      "when": 1782207200000,
+      "tag": "0146_standup_loop",
+      "breakpoints": true
     }
   ]
 }

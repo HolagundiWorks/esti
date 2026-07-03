@@ -35,6 +35,7 @@ import { refreshNow } from "./modules/license/consumer.js";
 import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
+import { runDueStandups } from "./lib/pulseEngine.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { registerLicensingPlatform } from "./licensing-platform/register.js";
@@ -167,6 +168,19 @@ if (env.ESTI_ROLE === "node" && env.ESTI_HUB_URL) {
   void drainTick();
   setInterval(() => void drainTick(), 60_000).unref();
 }
+
+// ESTI Pulse — best-effort standup scheduler (server-local time). Checks every
+// 5 minutes whether one of the four default cycles (09/12/15/18) is due and,
+// if so, runs it once per active project per day. See docs/esti/ESTI-PULSE.md.
+const standupTick = async () => {
+  try {
+    const r = await runDueStandups(db);
+    if (r.triggered) app.log.info(r, "pulse standup cycle triggered");
+  } catch (err) {
+    app.log.warn(err, "pulse standup scheduler failed");
+  }
+};
+setInterval(() => void standupTick(), 5 * 60_000).unref();
 
 if (isSmtpConfigured()) {
   app.log.info({ to: env.BETA_REQUEST_NOTIFY_TO }, "beta request mail enabled");

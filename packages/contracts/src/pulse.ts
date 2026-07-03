@@ -199,3 +199,131 @@ export const MissingParameterResolve = z.object({
   responseText: z.string().max(1000).optional(),
 });
 export type MissingParameterResolve = z.infer<typeof MissingParameterResolve>;
+
+/**
+ * ESTI Pulse — Project Standup Engine (P-2: standup loop).
+ * Module 3 (Project Standup Agent) + Module 4 (Team Question Loop). Zero LLM
+ * in this module — question text is template-composed, never generated.
+ */
+
+/** The four default daily cycles, plus an operator-triggered one-off run. */
+export const StandupSessionType = z.enum([
+  "MORNING_PULSE",
+  "MIDDAY_BLOCKER",
+  "DEPENDENCY_CHECK",
+  "CLOSURE_REVIEW",
+  "AD_HOC",
+]);
+export type StandupSessionType = z.infer<typeof StandupSessionType>;
+
+export const STANDUP_SESSION_LABEL: Record<StandupSessionType, string> = {
+  MORNING_PULSE: "Morning Project Pulse",
+  MIDDAY_BLOCKER: "Midday Blocker Check",
+  DEPENDENCY_CHECK: "Dependency Resolution Check",
+  CLOSURE_REVIEW: "Closure Review",
+  AD_HOC: "Standup",
+};
+
+/** Default cycle hour (24h, server-local) — see docs/esti/ESTI-PULSE.md §6. */
+export const STANDUP_CYCLE_HOUR: Record<Exclude<StandupSessionType, "AD_HOC">, number> = {
+  MORNING_PULSE: 9,
+  MIDDAY_BLOCKER: 12,
+  DEPENDENCY_CHECK: 15,
+  CLOSURE_REVIEW: 18,
+};
+
+/** "Please update these before <cutoff>" wording per cycle (Module 3 example). */
+export const STANDUP_CUTOFF_LABEL: Record<StandupSessionType, string> = {
+  MORNING_PULSE: "midday",
+  MIDDAY_BLOCKER: "3 PM",
+  DEPENDENCY_CHECK: "6 PM",
+  CLOSURE_REVIEW: "tomorrow morning",
+  AD_HOC: "end of day",
+};
+
+/** Which default cycle (if any) is due at this server-local hour. Pure — no clock reads. */
+export function dueStandupCycle(hour: number): Exclude<StandupSessionType, "AD_HOC"> | null {
+  for (const type of Object.keys(STANDUP_CYCLE_HOUR) as Exclude<StandupSessionType, "AD_HOC">[]) {
+    if (STANDUP_CYCLE_HOUR[type] === hour) return type;
+  }
+  return null;
+}
+
+export const StandupSessionStatus = z.enum(["PENDING", "RUNNING", "COMPLETED", "CANCELLED"]);
+export type StandupSessionStatus = z.infer<typeof StandupSessionStatus>;
+
+/** Module 4: response types a team member can give to a standup question. */
+export const StandupResponseStatus = z.enum([
+  "PENDING",
+  "CONFIRMED",
+  "BLOCKED",
+  "NOT_REQUIRED",
+  "NEEDS_REVIEW",
+  "ATTACHED_DOCUMENT",
+  "COMMENT_ONLY",
+]);
+export type StandupResponseStatus = z.infer<typeof StandupResponseStatus>;
+
+export const STANDUP_RESPONSE_LABEL: Record<StandupResponseStatus, string> = {
+  PENDING: "Pending",
+  CONFIRMED: "Confirmed",
+  BLOCKED: "Blocked",
+  NOT_REQUIRED: "Not required",
+  NEEDS_REVIEW: "Needs review",
+  ATTACHED_DOCUMENT: "Document attached",
+  COMMENT_ONLY: "Comment only",
+};
+
+/**
+ * A CONFIRMED/NOT_REQUIRED answer resolves the underlying missing-parameter
+ * gap; every other response (BLOCKED, NEEDS_REVIEW, ATTACHED_DOCUMENT,
+ * COMMENT_ONLY, PENDING) leaves it OPEN but records the update.
+ */
+export function missingParameterStatusForResponse(
+  response: StandupResponseStatus,
+): "OPEN" | "CONFIRMED" | "NOT_REQUIRED" {
+  if (response === "CONFIRMED") return "CONFIRMED";
+  if (response === "NOT_REQUIRED") return "NOT_REQUIRED";
+  return "OPEN";
+}
+
+/**
+ * Module 3 — compose one targeted, grouped standup question. Pure template,
+ * never LLM-generated (Design Rule §13: never a generic "please update your
+ * tasks"). Mirrors the spec's worked example format exactly.
+ */
+export function composeStandupQuestion(input: {
+  projectTitle: string;
+  taskTitle: string;
+  missingParameterLabels: string[];
+  cutoffLabel: string;
+}): string {
+  const lines = [
+    `Project: ${input.projectTitle}`,
+    `Task: ${input.taskTitle}`,
+    `Missing:`,
+    ...input.missingParameterLabels.map((l, i) => `${i + 1}. ${l}`),
+    `Please update ${input.missingParameterLabels.length > 1 ? "these" : "this"} before ${input.cutoffLabel}.`,
+  ];
+  return lines.join("\n");
+}
+
+export const StandupAnswer = z.object({
+  questionId: z.string().uuid(),
+  responseStatus: z.enum([
+    "CONFIRMED",
+    "BLOCKED",
+    "NOT_REQUIRED",
+    "NEEDS_REVIEW",
+    "ATTACHED_DOCUMENT",
+    "COMMENT_ONLY",
+  ]),
+  responseText: z.string().max(1000).optional(),
+});
+export type StandupAnswer = z.infer<typeof StandupAnswer>;
+
+export const StandupRun = z.object({
+  projectId: z.string().uuid(),
+  sessionType: StandupSessionType.default("AD_HOC"),
+});
+export type StandupRun = z.infer<typeof StandupRun>;

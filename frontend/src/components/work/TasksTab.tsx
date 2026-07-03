@@ -35,6 +35,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { ContextualComments } from "../ContextualComments.js";
 import { DataState } from "../DataState.js";
+import { PulseStandupModal } from "./PulseStandupModal.js";
 import { trpc } from "../../lib/trpc.js";
 import {
   PRIORITY_BAND_TAG,
@@ -81,6 +82,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
 
   const [open,         setOpen]         = useState(false);
   const [confirmId,    setConfirmId]    = useState<string | null>(null);
+  const [standupProjectId, setStandupProjectId] = useState(targetProjectId ?? "");
+  const [standupOpen,      setStandupOpen]      = useState(false);
   const [commentsTask, setCommentsTask] = useState<{ id: string; projectId: string; title: string } | null>(null);
   const [reassign,     setReassign]     = useState<{ id: string; projectId: string; title: string } | null>(null);
   const [reassignTo,   setReassignTo]   = useState("");
@@ -107,6 +110,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
     },
   });
   const today = new Date().toISOString().slice(0, 10);
+  const standupProject = projectsQ.data?.find((p) => p.id === standupProjectId);
 
   useEffect(() => {
     if (!targetTaskId || listQ.isLoading) return;
@@ -154,6 +158,16 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
               <SelectItem key={p} value={p} text={TASK_PRIORITY_LABEL[p] ?? p} />
             ))}
           </Select>
+          <Select id="t-standup-proj" labelText="Standup project" hideLabel size="sm"
+            value={standupProjectId} onChange={(e) => setStandupProjectId(e.target.value)}>
+            <SelectItem value="" text="— pick a project for standup —" />
+            {(projectsQ.data ?? []).map((p) => (
+              <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />
+            ))}
+          </Select>
+          <Button kind="tertiary" size="sm" disabled={!standupProjectId} onClick={() => setStandupOpen(true)}>
+            Standup
+          </Button>
         </Stack>
 
         <DataState
@@ -415,6 +429,17 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
           ))}
         </Select>
       </Modal>
+
+      {standupProjectId && (
+        <PulseStandupModal
+          open={standupOpen}
+          onClose={() => setStandupOpen(false)}
+          projectId={standupProjectId}
+          projectLabel={
+            standupProject ? `${standupProject.ref} ${standupProject.title}` : "Project"
+          }
+        />
+      )}
     </>
   );
 });

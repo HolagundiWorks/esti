@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { bandForScore, computeConfidenceScore, detectMissingParameters } from "./pulse.js";
+import {
+  bandForScore,
+  composeStandupQuestion,
+  computeConfidenceScore,
+  detectMissingParameters,
+  dueStandupCycle,
+  missingParameterStatusForResponse,
+} from "./pulse.js";
 
 describe("bandForScore", () => {
   it("maps the full 0-100 range to the five consequence bands", () => {
@@ -150,5 +157,84 @@ describe("detectMissingParameters", () => {
       hasUnresolvedBlockingDependency: true,
     });
     expect(found).toEqual(["NO_DUE_DATE", "NO_ASSIGNEE", "UNRESOLVED_DEPENDENCY"]);
+  });
+});
+
+describe("dueStandupCycle", () => {
+  it("matches each default cycle hour exactly", () => {
+    expect(dueStandupCycle(9)).toBe("MORNING_PULSE");
+    expect(dueStandupCycle(12)).toBe("MIDDAY_BLOCKER");
+    expect(dueStandupCycle(15)).toBe("DEPENDENCY_CHECK");
+    expect(dueStandupCycle(18)).toBe("CLOSURE_REVIEW");
+  });
+
+  it("is null outside the four cycle hours", () => {
+    expect(dueStandupCycle(8)).toBeNull();
+    expect(dueStandupCycle(10)).toBeNull();
+    expect(dueStandupCycle(0)).toBeNull();
+    expect(dueStandupCycle(23)).toBeNull();
+  });
+});
+
+describe("missingParameterStatusForResponse", () => {
+  it("resolves CONFIRMED and NOT_REQUIRED responses", () => {
+    expect(missingParameterStatusForResponse("CONFIRMED")).toBe("CONFIRMED");
+    expect(missingParameterStatusForResponse("NOT_REQUIRED")).toBe("NOT_REQUIRED");
+  });
+
+  it("leaves every other response OPEN", () => {
+    expect(missingParameterStatusForResponse("BLOCKED")).toBe("OPEN");
+    expect(missingParameterStatusForResponse("NEEDS_REVIEW")).toBe("OPEN");
+    expect(missingParameterStatusForResponse("ATTACHED_DOCUMENT")).toBe("OPEN");
+    expect(missingParameterStatusForResponse("COMMENT_ONLY")).toBe("OPEN");
+    expect(missingParameterStatusForResponse("PENDING")).toBe("OPEN");
+  });
+});
+
+describe("composeStandupQuestion", () => {
+  it("matches the spec's worked example format exactly", () => {
+    const text = composeStandupQuestion({
+      projectTitle: "Residence A",
+      taskTitle: "Finalize staircase detail",
+      missingParameterLabels: [
+        "Site measurement missing",
+        "Consultant input missing",
+        "Vendor / material decision missing",
+      ],
+      cutoffLabel: "3 PM",
+    });
+    expect(text).toBe(
+      [
+        "Project: Residence A",
+        "Task: Finalize staircase detail",
+        "Missing:",
+        "1. Site measurement missing",
+        "2. Consultant input missing",
+        "3. Vendor / material decision missing",
+        "Please update these before 3 PM.",
+      ].join("\n"),
+    );
+  });
+
+  it("uses singular wording for exactly one gap", () => {
+    const text = composeStandupQuestion({
+      projectTitle: "Residence A",
+      taskTitle: "Issue electrical drawing",
+      missingParameterLabels: ["Client approval missing"],
+      cutoffLabel: "tomorrow morning",
+    });
+    expect(text.endsWith("Please update this before tomorrow morning.")).toBe(true);
+  });
+
+  it("never emits a generic please-update-your-tasks message", () => {
+    const text = composeStandupQuestion({
+      projectTitle: "Alpha",
+      taskTitle: "Tile selection",
+      missingParameterLabels: ["Client approval missing"],
+      cutoffLabel: "3 PM",
+    });
+    expect(text).not.toMatch(/please update your tasks/i);
+    expect(text).toContain("Alpha");
+    expect(text).toContain("Tile selection");
   });
 });

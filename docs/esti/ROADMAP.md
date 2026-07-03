@@ -118,7 +118,7 @@ Authoritative delivery plan for [PRD](PRD.md). Canonical docs index: [README](RE
 **Gate — MET:** the live sidebar matches NAVIGATION.md (every ✅ module reachable under
 its V3 pillar); no module appears twice; consultancy-only removals complete.
 
-## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — ◐ P-1 shipped 2026-07-02
+## Phase 33 — ESTI Pulse: Project Standup Engine [P1] — ◐ P-1 + P-2 shipped 2026-07-03
 
 **Canonical spec:** [ESTI-PULSE.md](ESTI-PULSE.md). The task-risk and
 dependency-resolution engine: dependency graph, missing-parameter detection,
@@ -136,9 +136,16 @@ limited auto) — promotion is an explicit owner action.
   Backend: `pulse` namespace (`dependencies.*`, `missingParameters.*`, `detect`,
   `recompute`, `queue`). Surfaced in the Work hub (Tasks tab: band + confidence tags)
   and Studio Intelligence (WORK queue: confidence tag). 17 contract unit tests.
-- [ ] **P-2 Standup loop** — `esti_standup_session` / `esti_standup_question`,
-  scheduled cycles (09/12/15/18 default), role-routed questions, typed responses;
-  Stage-1/2 agent. Runs end-to-end with zero LLM.
+- [x] **P-2 Standup loop** — `esti_standup_session` / `esti_standup_question`
+  (migration `0146`); best-effort server-local scheduler (5-min tick, fires the
+  09/12/15/18 default cycles once per active project per day —
+  `runDueStandups` in `backend/src/index.ts`); `pulse.standup.run` asks one
+  grouped, targeted question per task with open gaps (never a generic
+  "please update your tasks" — Design Rule §13, tested); `pulse.standup.answer`
+  resolves gaps typed CONFIRMED/NOT_REQUIRED and recomputes scores immediately.
+  Stage-1/2 agent only (template composition, zero LLM). UI: Standup modal in
+  the Work hub Tasks tab (project picker → run → answer in place). 7 more
+  contract unit tests (24 total for pulse.ts).
 - [ ] **P-3 Approval agent** — Stage-3 actions after recorded human approval;
   escalation ladder (assignee → reviewer → owner).
 - [ ] **P-4 RAG + Stage 4** — pgvector embeddings over office records; grounded
