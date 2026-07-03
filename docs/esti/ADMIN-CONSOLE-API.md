@@ -44,7 +44,8 @@ Cookie session, established by the console itself:
 1. `POST /platform/auth/login` `{email, password, code?}` — `code` is the TOTP
    digits, required when the account has an authenticator
    (`401 {"error":"totp_required"}` → re-submit with `code`).
-2. The response sets `hlp_session` (30-day signed cookie). All subsequent calls
+2. The response sets `hlp_session` — a browser-SESSION cookie (auto-logoff on
+   browser exit; a 30-day server-side cap applies regardless). All subsequent calls
    ride it.
 3. `GET /platform/auth/me` → `{account, activeOrg, memberships, pendingInvites,
    instantIdEligible, totpEnabled}`. `account.isPlatformAdmin` gates the

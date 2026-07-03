@@ -35,12 +35,15 @@ export function writeSession(reply: FastifyReply, accountId: string, orgId?: str
   const payload: { sub: string; exp: number; org?: string } = { sub: accountId, exp };
   if (orgId) payload.org = orgId;
   const value = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  // No Max-Age: a browser-SESSION cookie — signing out happens automatically
+  // when the browser exits (matches the workspace cookie's behaviour; the
+  // payload `exp` still hard-caps a long-lived browser at MAX_AGE_S). This
+  // guards the account portal and, above all, the admin console.
   reply.setCookie(SESSION_COOKIE, value, {
     signed: true,
     httpOnly: true,
     sameSite: "lax",
     path: "/",
-    maxAge: MAX_AGE_S,
     secure: isProd,
   });
 }
