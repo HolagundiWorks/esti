@@ -5,6 +5,7 @@ import {
   type PlanFeature,
   type PlanQuota,
   type ResolvedSeats,
+  asPlan,
   PLAN_LIMITS,
   planAllows,
   planQuota,
@@ -45,7 +46,9 @@ const DAY_MS = 864e5;
 
 export async function licenseState(db: DB): Promise<LicenseState> {
   const row = await getOrgSettings(db);
-  const fallbackPlan = (row.plan === "CORE" || row.plan === "ENTERPRISE" ? row.plan : "LITE") as Plan;
+  // Fold legacy plan codes (CORE/ENTERPRISE → PRO) — PLAN_LIMITS only has
+  // current editions, so an unfolded legacy value crashes seat resolution.
+  const fallbackPlan = asPlan(row.plan);
   const managed = Boolean(row.licenseToken) || Boolean(env.ESTI_HUB_URL);
   const seatsFor = (plan: Plan): ResolvedSeats => ({
     staff: PLAN_LIMITS[plan].staff,
@@ -156,8 +159,10 @@ export async function firmPlan(db: DB): Promise<Plan> {
  * the stored plan at runtime via {@link licenseState}.
  */
 export async function applyFirmPlanFromEnv(db: DB): Promise<void> {
-  const plan = env.FIRM_PLAN;
-  if (!plan) return;
+  if (!env.FIRM_PLAN) return;
+  // Store the folded edition (CORE/ENTERPRISE .env values → PRO) so the DB
+  // always holds a current plan code.
+  const plan = asPlan(env.FIRM_PLAN);
   const settings = await getOrgSettings(db);
   if (settings.plan === plan) return;
   await db
