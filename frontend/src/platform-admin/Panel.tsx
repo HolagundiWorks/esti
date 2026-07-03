@@ -65,9 +65,11 @@ export default function Panel() {
               {account.isPlatformAdmin ? "Platform admin" : "Member"}
             </Tag>
             <span>{account.email}</span>
-            <Button kind="ghost" size="sm" onClick={() => setShowAccount((s) => !s)}>
-              {showAccount ? "Back to console" : "My account (2FA, profile)"}
-            </Button>
+            {account.isPlatformAdmin && (
+              <Button kind="ghost" size="sm" onClick={() => setShowAccount((s) => !s)}>
+                {showAccount ? "Back to console" : "My account (2FA, profile)"}
+              </Button>
+            )}
             <Button kind="ghost" size="sm" onClick={backToSite}>
               Back to site
             </Button>
@@ -76,21 +78,26 @@ export default function Panel() {
             </Button>
           </Stack>
 
-          {showAccount ? (
+          {showAccount || !account.isPlatformAdmin ? (
+            // Ordinary members land straight on their account page: plan,
+            // companies (create / invites / join), security, credentials.
             <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
               <Stack gap={5}>
+                {me.activeOrg && (
+                  <Stack gap={2} orientation="horizontal">
+                    <Tag type="blue" size="md">
+                      Working in: {me.activeOrg.name}
+                    </Tag>
+                  </Stack>
+                )}
                 <RequestPlan />
                 <Companies me={me} onChange={setMe} />
                 <Security me={me} onChange={refreshMe} />
                 <Credentials />
               </Stack>
             </Suspense>
-          ) : account.isPlatformAdmin ? (
-            <AdminApp />
           ) : (
-            <Stack gap={4}>
-              <p>This account isn&apos;t a platform administrator — nothing to manage here yet.</p>
-            </Stack>
+            <AdminApp />
           )}
         </Stack>
       </main>

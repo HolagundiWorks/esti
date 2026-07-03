@@ -107,14 +107,37 @@ export async function registerWithPassword(input: {
 }): Promise<AccountView> {
   const email = input.email.toLowerCase();
   const [existing] = await db
-    .select({ id: schema.accounts.id })
+    .select({
+      id: schema.accounts.id,
+      passwordHash: schema.accounts.passwordHash,
+      googleSub: schema.accounts.googleSub,
+      name: schema.accounts.name,
+    })
     .from(schema.accounts)
     .where(eq(schema.accounts.email, email))
     .limit(1);
-  if (existing) throw new Error("email_taken");
 
   const passwordHash = await hashPassword(input.password);
   const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
+
+  // A passwordless, non-Google row is an account SHELL — created when someone
+  // was invited into a company (inviteMember) or earned an AORMS ID from a
+  // workspace before ever signing up. Registering with that email claims it,
+  // keeping its memberships/identity. A row with credentials stays taken.
+  if (existing) {
+    if (existing.passwordHash || existing.googleSub) throw new Error("email_taken");
+    const [claimed] = await db
+      .update(schema.accounts)
+      .set({
+        passwordHash,
+        name: input.name ?? existing.name,
+        isPlatformAdmin: grantAdmin,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.accounts.id, existing.id))
+      .returning();
+    return view(claimed!);
+  }
   const [created] = await db
     .insert(schema.accounts)
     .values({
@@ -137,6 +160,23 @@ export async function registerWithPassword(input: {
  * a shell without a password hash cannot log in). Idempotent: an existing
  * handle is returned untouched, since the handle must never change.
  */
+/** Idempotently mint the AORMS-U handle for a signed-in account (instant-ID path). */
+export async function ensureAccountPublicId(accountId: string): Promise<string | null> {
+  const [a] = await db
+    .select({ publicId: schema.accounts.publicId })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.id, accountId))
+    .limit(1);
+  if (!a) return null;
+  if (a.publicId) return a.publicId;
+  const publicId = newPublicId("U");
+  await db
+    .update(schema.accounts)
+    .set({ publicId, updatedAt: new Date() })
+    .where(eq(schema.accounts.id, accountId));
+  return publicId;
+}
+
 export async function mintPublicIdForEmail(
   emailRaw: string,
   name?: string | null,

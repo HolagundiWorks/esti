@@ -4,6 +4,7 @@ import { clearSession, readSession, type SessionData, writeSession } from "../li
 import {
   accountIdByEmail,
   createEmailVerification,
+  ensureAccountPublicId,
   getAccountById,
   hasPlatformAdmin,
   loginWithPassword,
@@ -22,9 +23,16 @@ import {
   resolveCompany,
 } from "../modules/auth/tenant.js";
 import {
+  acceptInvite,
+  adoptInvite,
   createCompany,
+  declineInvite,
+  invitedEligible,
+  inviteMember,
+  isOrgAdmin,
   joinCompany,
   leaveCompany,
+  pendingInvitesFor,
 } from "../modules/membership/service.js";
 import { provisionTrial } from "../modules/onboarding/service.js";
 import { listCertifications, listGrowth } from "../modules/portable/service.js";
@@ -42,18 +50,24 @@ interface MeView {
   account: AccountView;
   activeOrg: OrgHandle | null;
   memberships: Array<{ org: OrgHandle; role: string }>;
+  /** Companies awaiting this person's acceptance (Phase 34 invites). */
+  pendingInvites: Array<{ org: OrgHandle; role: string }>;
+  /** May mint an AORMS-U handle instantly (invited into a company). */
+  instantIdEligible: boolean;
   totpEnabled: boolean;
 }
 
 async function buildMe(s: SessionData): Promise<MeView | null> {
   const account = await getAccountById(s.accountId);
   if (!account) return null;
-  const [activeOrg, memberships, twoFactor] = await Promise.all([
+  const [activeOrg, memberships, pendingInvites, twoFactor] = await Promise.all([
     s.orgId ? orgHandleById(s.orgId) : Promise.resolve(null),
     membershipsFor(s.accountId),
+    pendingInvitesFor(s.accountId),
     totpEnabled(s.accountId),
   ]);
-  return { account, activeOrg, memberships, totpEnabled: twoFactor };
+  const instantIdEligible = !account.publicId && (await invitedEligible(s.accountId));
+  return { account, activeOrg, memberships, pendingInvites, instantIdEligible, totpEnabled: twoFactor };
 }
 
 const ONBOARD_COOKIE = "hlp_onboard";
@@ -106,13 +120,13 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const s = readSession(req);
     if (!s) {
       reply.code(401);
-      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
+      return { account: null, activeOrg: null, memberships: [], pendingInvites: [], instantIdEligible: false, totpEnabled: false };
     }
     const me = await buildMe(s);
     if (!me) {
       clearSession(reply);
       reply.code(401);
-      return { account: null, activeOrg: null, memberships: [], totpEnabled: false };
+      return { account: null, activeOrg: null, memberships: [], pendingInvites: [], instantIdEligible: false, totpEnabled: false };
     }
     return me;
   });
@@ -342,6 +356,136 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     writeSession(reply, s.accountId, nextOrg);
     const me = await buildMe({ accountId: s.accountId, orgId: nextOrg });
     return { ok: true, ...me };
+  });
+
+  // --- Invite a person into a company by email (company owner only) ---
+  // Creates a claimable passwordless account shell when the email is new;
+  // signing up with that email later claims the shell and its invitation.
+  app.post("/auth/invite-member", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string; email?: string; role?: string } | undefined;
+    const email = body?.email?.trim().toLowerCase() ?? "";
+    const orgId = body?.company ? await orgIdFromHandle(body.company) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    if (!emailValid(email)) {
+      reply.code(400);
+      return { error: "invalid_email" };
+    }
+    if (!(await isOrgAdmin(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_company_owner" };
+    }
+    const role = body?.role === "OWNER" ? "OWNER" : "MEMBER";
+    await inviteMember(orgId, email, role);
+    return { ok: true };
+  });
+
+  // --- Accept / decline my pending invitation ---
+  app.post("/auth/accept-invite", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    const res = await acceptInvite(s.accountId, body?.company?.trim() ?? "");
+    if ("error" in res) {
+      reply.code(res.error === "company_not_found" ? 404 : 400);
+      return { error: res.error };
+    }
+    const me = await buildMe(s);
+    return { ok: true, org: res.org, ...me };
+  });
+
+  app.post("/auth/decline-invite", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as { company?: string } | undefined;
+    await declineInvite(s.accountId, body?.company?.trim() ?? "");
+    const me = await buildMe(s);
+    return { ok: true, ...me };
+  });
+
+  // --- Instant AORMS-U generation (Phase 34) ---
+  // Being invited into someone else's company waives the 100-hour usage
+  // requirement. The workspace-earned path stays in the firm app (usage.*).
+  app.post("/auth/generate-id", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const account = await getAccountById(s.accountId);
+    if (!account) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    if (account.publicId) return { ok: true, publicId: account.publicId };
+    if (!(await invitedEligible(s.accountId))) {
+      reply.code(403);
+      return { error: "not_eligible" };
+    }
+    const publicId = await ensureAccountPublicId(s.accountId);
+    return { ok: true, publicId };
+  });
+
+  // --- "Use my existing AORMS ID" (Phase 34) ---
+  // The signed-in invited person proves control of their existing account
+  // (email + password (+ authenticator code)); the pending invitation moves to
+  // that account and the session continues AS the existing account, so one
+  // identity spans every company.
+  app.post("/auth/adopt-identity", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as
+      | { company?: string; email?: string; password?: string; code?: string }
+      | undefined;
+    const email = body?.email?.trim().toLowerCase() ?? "";
+    const password = body?.password ?? "";
+    if (!emailValid(email) || !password) {
+      reply.code(400);
+      return { error: "invalid_credentials" };
+    }
+    const existing = await loginWithPassword(email, password);
+    if (!existing) {
+      reply.code(401);
+      return { error: "invalid_credentials" };
+    }
+    if (!existing.publicId) {
+      reply.code(400);
+      return { error: "no_existing_id" };
+    }
+    const totp = await checkTotpForLogin(existing.id, body?.code?.trim());
+    if (totp === "required") {
+      reply.code(401);
+      return { error: "totp_required" };
+    }
+    if (totp === "invalid") {
+      reply.code(401);
+      return { error: "totp_invalid" };
+    }
+    const res = await adoptInvite(s.accountId, existing.id, body?.company?.trim() ?? "");
+    if ("error" in res) {
+      reply.code(res.error === "company_not_found" ? 404 : 400);
+      return { error: res.error };
+    }
+    // Continue as the existing (identity-holding) account.
+    writeSession(reply, existing.id);
+    const me = await buildMe({ accountId: existing.id });
+    return { ok: true, org: res.org, ...me };
   });
 
   // --- Register with email + password ---

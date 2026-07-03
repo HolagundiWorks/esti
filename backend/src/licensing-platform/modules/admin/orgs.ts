@@ -59,14 +59,10 @@ export const orgsRouter = router({
     .input(z.object({ orgId: z.string() }))
     .query(async ({ input }) => listMembers(input.orgId)),
 
-  /** Invite an existing account into an org (INVITED, pending acceptance/approval). */
+  /** Invite a person into an org by email (creates a claimable shell account if new). */
   inviteMember: platformAdminProcedure
     .input(z.object({ orgId: z.string(), email: z.string().email(), role: z.string().optional() }))
-    .mutation(async ({ input }) => {
-      const res = await inviteMember(input.orgId, input.email, input.role);
-      if ("error" in res) throw new Error(res.error);
-      return res;
-    }),
+    .mutation(async ({ input }) => inviteMember(input.orgId, input.email, input.role)),
 
   /** Set a member's activation status — approve an invite, or remove access. */
   setMemberStatus: platformAdminProcedure

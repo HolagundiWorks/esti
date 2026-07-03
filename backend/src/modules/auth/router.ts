@@ -28,6 +28,7 @@ import {
   verifyAtPlatform,
 } from "../../lib/identityDelegate.js";
 import { verifyLogin as verifyPlatformLogin } from "../../licensing-platform/modules/auth/service.js";
+import { activeCompaniesByEmail } from "../../licensing-platform/modules/membership/service.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
@@ -269,7 +270,12 @@ export const authRouter = router({
       action: "LOGIN",
       actorId: u.id,
     });
-    const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName };
+    // Tenant-select (Phase 34, unified installs): one identity spans many
+    // company workspaces — architects freelance alongside firm work — so hand
+    // the SPA every company this person can enter. It shows a picker when
+    // there is more than just this studio's workspace.
+    const companies = env.ESTI_UNIFIED_ACCOUNTS ? await activeCompaniesByEmail(email) : [];
+    const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName, companies };
     return env.DESKTOP ? { ...profile, token } : profile;
   }),
 
