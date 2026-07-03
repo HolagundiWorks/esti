@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESTI Pulse — landing animation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#c6a2ff; --purple-deep:#8a3ffc; --track:#2a2730;
+    --text:#f4f4f4; --sec:#a8a8a8; --mut:#6f6f6f;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  /* transparent — this is only the matter; the landing section owns the bg */
+  html,body{ height:100%; background:transparent; }
+  body{ display:flex; align-items:center; justify-content:center; font-family:var(--sans); }
+
+  /* ── the pulse widget ─────────────────────────────────────────────── */
+  .pulse{
+    position:relative;
+    width:min(72vmin, 460px); height:min(72vmin, 460px);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text);
+  }
+
+  /* soft breathing halo behind the ring */
+  .pulse .halo{
+    position:absolute; inset:6%;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(138,63,252,0.34), rgba(138,63,252,0) 68%);
+    filter:blur(6px);
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{ transform:scale(0.9); opacity:0.55; }
+    50%    { transform:scale(1.06); opacity:0.9; }
+  }
+
+  .ring-svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--track); stroke-width:14; }
+  .ring-fill{
+    fill:none; stroke:url(#pulseGrad); stroke-width:14; stroke-linecap:round;
+    filter:drop-shadow(0 0 10px rgba(138,63,252,0.55));
+  }
+  /* the sweeping scan highlight that travels the ring — the "pulse" */
+  .ring-scan{
+    fill:none; stroke:#ffffff; stroke-width:14; stroke-linecap:round;
+    opacity:0.9; mix-blend-mode:screen;
+  }
+
+  /* center readout */
+  .core{
+    position:relative; z-index:2;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  .score{
+    font-family:var(--sans); font-weight:700; letter-spacing:-0.04em; line-height:0.9;
+    font-size:min(24vmin,150px); font-variant-numeric:tabular-nums;
+    text-shadow:0 2px 30px rgba(138,63,252,0.35);
+  }
+  .score-max{
+    font-family:var(--mono); font-size:min(3.4vmin,22px); color:var(--mut);
+    letter-spacing:0.12em; margin-top:0.7em;
+  }
+  .label{
+    position:absolute; top:11%; left:50%; transform:translateX(-50%);
+    font-family:var(--mono); font-size:min(3.4vmin,22px); letter-spacing:0.22em;
+    text-transform:uppercase; color:var(--purple);
+  }
+  .label .dot{
+    display:inline-block; width:9px; height:9px; border-radius:50%;
+    background:var(--purple); margin-right:10px; vertical-align:middle;
+    box-shadow:0 0 0 0 rgba(198,162,255,0.7);
+    animation:beat 1.7s ease-out infinite;
+  }
+  @keyframes beat{
+    0%   { box-shadow:0 0 0 0 rgba(198,162,255,0.6); }
+    70%  { box-shadow:0 0 0 12px rgba(198,162,255,0); }
+    100% { box-shadow:0 0 0 0 rgba(198,162,255,0); }
+  }
+
+  /* live signal ticks around the base — small heartbeat of activity */
+  .ticks{
+    position:absolute; bottom:9%; left:50%; transform:translateX(-50%);
+    display:flex; gap:10px; align-items:flex-end; height:26px;
+  }
+  .ticks span{
+    width:5px; border-radius:3px; background:var(--purple);
+    opacity:0.35; height:8px;
+    animation:tick 1.6s ease-in-out infinite;
+  }
+  @keyframes tick{
+    0%,100%{ height:8px; opacity:0.3; }
+    50%    { height:24px; opacity:0.85; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .halo,.core,.label .dot,.ticks span{ animation:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="pulse" role="img" aria-label="ESTI Pulse score: 62 out of 100">
+    <div class="halo"></div>
+
+    <svg class="ring-svg" viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="pulseGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#8a3ffc"/>
+          <stop offset="100%" stop-color="#c6a2ff"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-track" cx="100" cy="100" r="86"></circle>
+      <circle class="ring-fill" id="fill" cx="100" cy="100" r="86"></circle>
+      <circle class="ring-scan" id="scan" cx="100" cy="100" r="86"></circle>
+    </svg>
+
+    <div class="label"><span class="dot"></span>ESTI Pulse</div>
+
+    <div class="core">
+      <div class="score" id="score">0</div>
+      <div class="score-max">/ 100 · this week</div>
+    </div>
+
+    <div class="ticks" id="ticks"></div>
+  </div>
+
+<script>
+(function(){
+  var R = 86;
+  var CIRC = 2 * Math.PI * R;            // ~540.35
+  var fill = document.getElementById('fill');
+  var scan = document.getElementById('scan');
+  var scoreEl = document.getElementById('score');
+  var ticksEl = document.getElementById('ticks');
+
+  fill.style.strokeDasharray = CIRC;
+  scan.style.strokeDasharray = CIRC;
+
+  // build 5 activity ticks with staggered delays
+  for (var i=0;i<5;i++){
+    var s = document.createElement('span');
+    s.style.animationDelay = (i*0.14).toFixed(2) + 's';
+    ticksEl.appendChild(s);
+  }
+
+  var TARGET = 62;                       // the pulse score
+  var scanArc = CIRC * 0.10;             // length of the travelling highlight
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+  var start = null;
+  var LOOP = 6.2;                        // seconds per loop
+  function frame(ts){
+    if (start === null) start = ts;
+    var t = ((ts - start) / 1000) % LOOP;
+
+    // ── ring fill: sweep in over first 1.8s, hold, quick re-scan pulse near end
+    var frac;
+    if (t < 1.8){
+      frac = easeOut(t / 1.8) * (TARGET/100);
+    } else {
+      // gentle live fluctuation ±0.6 around target while holding
+      var hold = (TARGET/100);
+      frac = hold + Math.sin((t-1.8) * 1.6) * 0.006;
+    }
+    fill.style.strokeDashoffset = CIRC * (1 - frac);
+
+    // ── score count-up matching the fill, then steady with micro jitter
+    var shown;
+    if (t < 1.8){ shown = Math.round(easeOut(t/1.8) * TARGET); }
+    else { shown = TARGET; }
+    scoreEl.textContent = shown;
+
+    // ── travelling scan highlight around the whole ring, continuous
+    scan.style.strokeDasharray = scanArc + ' ' + (CIRC - scanArc);
+    var travel = (t / LOOP);             // 0..1 once per loop
+    scan.style.strokeDashoffset = CIRC * (1 - travel);
+    // fade the scan so it reads as a soft sweep, brightest mid-travel
+    var vis = Math.sin(travel * Math.PI);
+    scan.style.opacity = (0.15 + 0.6 * vis).toFixed(3);
+
+    requestAnimationFrame(frame);
+  }
+
+  if (reduce){
+    // static resting state
+    fill.style.strokeDashoffset = CIRC * (1 - TARGET/100);
+    scan.style.opacity = 0;
+    scoreEl.textContent = TARGET;
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

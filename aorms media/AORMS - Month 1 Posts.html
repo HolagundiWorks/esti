@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="design_doc_mode" content="canvas">
+<title>AORMS — Month 1 Instagram Posts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#11100e; --l1:rgba(255,255,255,0.06); --l2:rgba(255,255,255,0.12);
+    --text:#f4f4f4; --sec:#c2c0ba; --mut:#8f8d86;
+    --red:#fa4d56; --blue:#69a4ff; --green:#5fd67f; --purple:#c6a2ff; --gold:#e0b463;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--sans); }
+
+  .frame{
+    position:absolute; width:1080px; height:1350px; overflow:hidden;
+    background:#11100e url('assets/landing-contour-bg.svg') center/cover no-repeat;
+    color:var(--text);
+  }
+  .caption-label{
+    position:absolute; font-family:var(--mono); color:#7c7a74;
+    font-size:30px; letter-spacing:0.02em; width:1080px;
+  }
+
+  /* liquid glass panel — 10% inset all sides */
+  .glass{
+    position:absolute; top:135px; bottom:135px; left:108px; right:108px;
+    border-radius:48px; padding:60px 56px 56px; overflow:hidden;
+    display:flex; flex-direction:column;
+    background:
+      linear-gradient(150deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 42%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter:blur(28px) saturate(155%);
+    -webkit-backdrop-filter:blur(28px) saturate(155%);
+    border:1.5px solid rgba(255,255,255,0.22);
+    box-shadow:
+      0 34px 90px rgba(0,0,0,0.5),
+      inset 0 1.5px 0 rgba(255,255,255,0.45),
+      inset 0 -1px 1px rgba(255,255,255,0.06),
+      inset 0 0 60px rgba(255,255,255,0.03);
+  }
+  /* specular sheen */
+  .glass::before{
+    content:''; position:absolute; top:-40%; left:-30%; width:120%; height:80%;
+    background:radial-gradient(60% 60% at 30% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0) 70%);
+    transform:rotate(-12deg); pointer-events:none;
+  }
+  .glass::after{
+    content:''; position:absolute; inset:0; border-radius:48px; pointer-events:none;
+    background:linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 22%);
+  }
+
+  .tag{
+    position:relative; z-index:1; display:flex; align-items:center; gap:16px;
+    font-family:var(--mono); font-size:26px; letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .tag .dot{ width:18px; height:18px; border-radius:50%; box-shadow:0 0 18px currentColor; }
+  .tag .pillar{ color:var(--sec); }
+  .tag .slot{ margin-left:auto; color:var(--mut); font-size:22px; letter-spacing:0.1em; }
+
+  .main{ position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .headline{ font-weight:600; letter-spacing:-0.03em; line-height:1.07; }
+
+  /* brand furniture in the outer margin */
+  .logo{ position:absolute; right:70px; bottom:48px; width:214px; height:auto; opacity:0.96; z-index:2; }
+  .brandurl{
+    position:absolute; left:120px; bottom:62px; z-index:2;
+    font-family:var(--mono); font-size:28px; color:var(--sec); letter-spacing:0.02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO TITLE ============ -->
+<div style="position:absolute; left:108px; top:-640px; width:1080px;">
+  <div style="font-family:var(--mono); font-size:32px; letter-spacing:0.2em; text-transform:uppercase; color:#7c7a74; margin-bottom:22px;">AORMS · Instagram · Month 1</div>
+  <div style="font-family:var(--sans); font-weight:700; font-size:96px; letter-spacing:-0.03em; color:#f4f4f4; line-height:1;">Five posts,<br>five pillars.</div>
+  <div style="font-family:var(--sans); font-weight:400; font-size:38px; color:#a8a8a8; margin-top:30px; max-width:900px; line-height:1.4;">Shared system: the contour texture on every post, a liquid-glass panel inset 10% on all sides, the logo pinned bottom-right. One accent colour per pillar so the grid reads as one voice.</div>
+</div>
+
+<!-- ============ POST 1 · P1 The Leak (red) ============ -->
+<div class="caption-label" style="left:108px; top:40px;">POST 1 · Wed W1 · P1 The Leak · single static · accent red</div>
+<div class="frame" style="left:108px; top:120px;">
+  <div class="glass">
+    <div class="tag">
+      <span class="dot" style="color:var(--red); background:var(--red);"></span>
+      <span class="pillar">The Leak</span>
+      <span class="slot">01 / 05</span>
+    </div>
+    <div class="main">
+      <div class="headline" style="font-size:80px;">
+        Approvals that<br>live in WhatsApp<br><span style="color:var(--red);">don't exist.</span>
+      </div>
+      <div style="margin-top:52px; display:flex; flex-direction:column; gap:18px; opacity:0.65;">
+        <div style="align-self:flex-start; max-width:76%; background:rgba(255,255,255,0.08); border-radius:6px 22px 22px 22px; padding:22px 28px; font-size:31px; color:var(--sec);">"theek hai, go ahead"</div>
+        <div style="align-self:flex-start; max-width:76%; background:rgba(255,255,255,0.08); border-radius:6px 22px 22px 22px; padding:22px 28px; font-size:31px; color:var(--sec);">"…which drawing was that?"</div>
+      </div>
+      <div style="margin-top:50px; font-size:36px; font-weight:400; color:var(--text); line-height:1.42;">
+        If it isn't in the record, it didn't happen. AORMS timestamps every client approval <span style="font-weight:600;">inside the project</span> — dated, numbered, undeniable.
+      </div>
+    </div>
+  </div>
+  <div class="brandurl">aorms.in · @aorms</div>
+  <img class="logo" src="assets/aorms-logo-white.png" alt="AORMS">
+</div>
+
+<!-- ============ POST 2 · P2 Practice School (blue) ============ -->
+<div class="caption-label" style="left:1308px; top:40px;">POST 2 · Mon W1 · P2 Practice School · carousel cover (8 slides) · accent blue</div>
+<div class="frame" style="left:1308px; top:120px;">
+  <div class="glass">
+    <div class="tag">
+      <span class="dot" style="color:var(--blue); background:var(--blue);"></span>
+      <span class="pillar">Practice School</span>
+      <span class="slot">02 / 05</span>
+    </div>
+    <div class="main">
+      <div class="headline" style="font-size:70px;">
+        You quoted a<br>lump sum.<br><span style="color:var(--blue);">COA gave you<br>stages.</span>
+      </div>
+      <div style="margin-top:30px; font-size:40px; font-weight:500; color:var(--sec);">Here's the map. →</div>
+      <div style="margin-top:48px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:22px; padding:20px 26px; background:var(--l1); border-radius:12px; border-left:4px solid var(--blue);">
+          <span style="font-family:var(--mono); font-size:28px; color:var(--blue); font-weight:600;">01</span>
+          <span style="font-size:31px;">Concept design</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:22px; padding:20px 26px; background:var(--l1); border-radius:12px;">
+          <span style="font-family:var(--mono); font-size:28px; color:var(--mut); font-weight:600;">02</span>
+          <span style="font-size:31px; color:var(--sec);">Preliminary drawings</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:22px; padding:20px 26px; background:var(--l1); border-radius:12px;">
+          <span style="font-family:var(--mono); font-size:28px; color:var(--mut); font-weight:600;">03</span>
+          <span style="font-size:31px; color:var(--sec);">Statutory approvals <span style="color:var(--blue); font-size:24px;">— under-billed</span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:22px; padding:20px 26px; background:var(--l1); border-radius:12px; opacity:0.55;">
+          <span style="font-family:var(--mono); font-size:28px; color:var(--mut); font-weight:600;">04</span>
+          <span style="font-size:31px; color:var(--sec);">+ 3 more →</span>
+        </div>
+      </div>
+      <div style="margin-top:40px; font-family:var(--mono); font-size:28px; color:var(--blue); letter-spacing:0.12em;">SAVE THIS ↓</div>
+    </div>
+  </div>
+  <div class="brandurl">aorms.in · @aorms</div>
+  <img class="logo" src="assets/aorms-logo-white.png" alt="AORMS">
+</div>
+
+<!-- ============ POST 3 · P3 Product in 30s (green) ============ -->
+<div class="caption-label" style="left:2508px; top:40px;">POST 3 · Fri W1 · P3 Product in 30s · single static · accent green</div>
+<div class="frame" style="left:2508px; top:120px;">
+  <div class="glass">
+    <div class="tag">
+      <span class="dot" style="color:var(--green); background:var(--green);"></span>
+      <span class="pillar">Product in 30s</span>
+      <span class="slot">03 / 05</span>
+    </div>
+    <div class="main">
+      <div class="headline" style="font-size:74px;">
+        A GST invoice,<br>before your chai<br><span style="color:var(--green);">gets cold.</span>
+      </div>
+      <div style="margin-top:44px; background:var(--l1); border:1px solid var(--l2); border-radius:16px; overflow:hidden;">
+        <div style="padding:22px 30px; background:rgba(255,255,255,0.06); font-family:var(--mono); font-size:26px; color:var(--sec); letter-spacing:0.08em;">NEW INVOICE · Mehta Residence</div>
+        <div style="padding:8px 30px 4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--l2);">
+            <span style="font-size:30px; color:var(--sec);">Fee stage</span>
+            <span style="font-size:30px; font-family:var(--mono);">Working drawings</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--l2);">
+            <span style="font-size:30px; color:var(--sec);">SAC code</span>
+            <span style="font-size:30px; font-family:var(--mono);">998322 · auto</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--l2);">
+            <span style="font-size:30px; color:var(--sec);">GST @ 18%</span>
+            <span style="font-size:30px; font-family:var(--mono); color:var(--green);">+ ₹27,000 · applied</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 0;">
+            <span style="font-size:32px; font-weight:600;">Total</span>
+            <span style="font-size:36px; font-family:var(--mono); font-weight:600;">₹1,77,000</span>
+          </div>
+        </div>
+        <div style="margin:4px 30px 26px; padding:20px; background:var(--green); color:#08351b; border-radius:10px; text-align:center; font-size:32px; font-weight:600;">↓  Export GST PDF</div>
+      </div>
+      <div style="margin-top:26px; font-size:28px; color:var(--mut); line-height:1.4;">GST invoicing on Pro. Lite raises clean non-GST invoices, free.</div>
+    </div>
+  </div>
+  <div class="brandurl">aorms.in · @aorms</div>
+  <img class="logo" src="assets/aorms-logo-white.png" alt="AORMS">
+</div>
+
+<!-- ============ POST 4 · P4 ESTI (purple) ============ -->
+<div class="caption-label" style="left:3708px; top:40px;">POST 4 · Fri W2 · P4 ESTI / AI in practice · single static · accent purple</div>
+<div class="frame" style="left:3708px; top:120px;">
+  <div class="glass">
+    <div class="tag">
+      <span class="dot" style="color:var(--purple); background:var(--purple);"></span>
+      <span class="pillar">ESTI</span>
+      <span class="slot">04 / 05</span>
+    </div>
+    <div class="main">
+      <div class="headline" style="font-size:72px;">
+        Your office has<br>a pulse.<br><span style="color:var(--purple);">Can you read it?</span>
+      </div>
+      <div style="margin-top:52px; display:flex; align-items:center; gap:44px;">
+        <div style="width:270px; height:270px; border-radius:50%; flex-shrink:0;
+          background:conic-gradient(var(--purple) 0turn 0.62turn, rgba(255,255,255,0.12) 0.62turn 1turn);
+          display:flex; align-items:center; justify-content:center;">
+          <div style="width:198px; height:198px; border-radius:50%; background:#11100e;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <span style="font-size:96px; font-weight:700; letter-spacing:-0.04em; line-height:1;">62</span>
+            <span style="font-family:var(--mono); font-size:22px; color:var(--mut); letter-spacing:0.1em; margin-top:6px;">ESTI PULSE</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div style="display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:27px; color:var(--sec);"><span style="color:var(--purple);">▲</span> 3 deadlines this week</div>
+          <div style="display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:27px; color:var(--sec);"><span style="color:var(--purple);">▲</span> 2 approvals pending</div>
+          <div style="display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:27px; color:var(--sec);"><span style="color:var(--purple);">▲</span> revision load rising</div>
+        </div>
+      </div>
+      <div style="margin-top:52px; font-size:34px; font-weight:400; color:var(--text); line-height:1.42;">
+        This isn't an AI guess. Deterministic systems compute the score from your live office record. <span style="font-weight:600;">ESTI explains it.</span>
+      </div>
+    </div>
+  </div>
+  <div class="brandurl">aorms.in · @aorms</div>
+  <img class="logo" src="assets/aorms-logo-white.png" alt="AORMS">
+</div>
+
+<!-- ============ POST 5 · P5 100-Hour Identity (gold) ============ -->
+<div class="caption-label" style="left:4908px; top:40px;">POST 5 · Sun W1 · P5 The 100-Hour Identity · single static · accent gold</div>
+<div class="frame" style="left:4908px; top:120px;">
+  <div class="glass" style="align-items:center; text-align:center;">
+    <div class="tag" style="width:100%;">
+      <span class="dot" style="color:var(--gold); background:var(--gold);"></span>
+      <span class="pillar">The 100-Hour Identity</span>
+      <span class="slot">05 / 05</span>
+    </div>
+    <div class="main" style="align-items:center;">
+      <div style="font-family:var(--mono); font-size:70px; font-weight:600; color:var(--gold); letter-spacing:0.02em;">AORMS-U-______</div>
+      <div style="width:200px; height:2px; background:var(--l2); margin:52px 0;"></div>
+      <div style="font-family:var(--mono); font-size:44px; font-weight:400; color:var(--text); line-height:1.7;">
+        You can't buy this ID.<br>
+        You can't get it at signup.<br>
+        <span style="color:var(--gold);">100 hours</span> of running your<br>
+        practice on AORMS earns it.
+      </div>
+      <div style="margin-top:60px; font-family:var(--sans); font-size:36px; font-weight:500; color:var(--sec); font-style:italic;">Some things should still be earned.</div>
+    </div>
+  </div>
+  <div class="brandurl">aorms.in · @aorms</div>
+  <img class="logo" src="assets/aorms-logo-white.png" alt="AORMS">
+</div>
+
+</body>
+</html>
