@@ -48,8 +48,45 @@ NGINX_CONF="/etc/nginx/sites-available/esti-admin"
 for f in /etc/nginx/sites-enabled/*; do
   [[ -e "$f" && "$(basename "$f")" != "esti-admin" ]] || continue
   if grep -qE "server_name[^;]*\b${ADMIN_DOMAIN//./\\.}\b" "$f"; then
-    error "Another vhost also claims ${ADMIN_DOMAIN}: $f
+    if [[ "$(basename "$f")" == "esti" ]]; then
+      # The MAIN vhost must never be deleted — strip only the server block(s)
+      # claiming the console domain (typically left by an early certbot run).
+      warn "The main vhost ($f) contains a server block claiming ${ADMIN_DOMAIN} — removing just that block."
+      python3 - "$f" "$ADMIN_DOMAIN" <<'PYEOF_INNER'
+import re, sys
+path, domain = sys.argv[1], sys.argv[2]
+s = open(path).read()
+out, i, removed = [], 0, 0
+while True:
+    m = re.search(r'server\s*\{', s[i:])
+    if not m:
+        out.append(s[i:])
+        break
+    start = i + m.start()
+    out.append(s[i:start])
+    depth, j = 0, start
+    while j < len(s):
+        if s[j] == '{':
+            depth += 1
+        elif s[j] == '}':
+            depth -= 1
+            if depth == 0:
+                break
+        j += 1
+    block = s[start:j + 1]
+    if re.search(r'server_name[^;]*\b' + re.escape(domain) + r'\b', block):
+        removed += 1
+    else:
+        out.append(block)
+    i = j + 1
+open(path, "w").write("".join(out))
+print(f"removed {removed} server block(s) claiming {domain} from {path}")
+PYEOF_INNER
+      nginx -t || error "nginx config invalid after removing the conflicting block from $f — inspect it manually."
+    else
+      error "Another vhost also claims ${ADMIN_DOMAIN}: $f
     Remove it first (sudo rm -f $f /etc/nginx/sites-available/$(basename "$f")), then re-run this script."
+    fi
   fi
 done
 
