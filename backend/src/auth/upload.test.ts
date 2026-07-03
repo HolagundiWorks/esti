@@ -17,13 +17,18 @@ function user(role: AuthUser["role"], overrides: Partial<AuthUser> = {}): AuthUs
 
 describe("uploadDenial", () => {
   it("registers every current binary upload route", () => {
+    // Mood boards + tenders removed (0117 consultancy-only teardown); the
+    // Library uploads (master plans, standards, compliance docs) and profile
+    // photos were added with the 2026-06-29 Library build.
     expect(UPLOAD_ROUTE_CAPABILITIES).toEqual({
       "/upload/drawing": "write",
-      "/upload/mood-image": "write",
       "/upload/inspection-photo": "write",
       "/upload/reconcile": "write",
       "/upload/firm-logo": "firm:admin",
-      "/upload/tender-document": "write",
+      "/upload/profile-photo": "write",
+      "/upload/master-plan": "write",
+      "/upload/standard-file": "write",
+      "/upload/compliance-doc": "write",
     });
   });
 

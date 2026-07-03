@@ -21,7 +21,6 @@ import {
   verifyIdentityAtPlatform,
 } from "../../lib/identityDelegate.js";
 import { generateTotpSecret, otpauthUri, verifyTotp } from "../../lib/totp.js";
-import { newPublicId } from "../../licensing-platform/lib/ids.js";
 import { assertQuota } from "../../lib/plan.js";
 import { presignedGet } from "../../lib/storage.js";
 import { ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
@@ -93,8 +92,9 @@ export const userRouter = router({
           fullName: input.fullName,
           role: input.role,
           passwordHash: await hashPassword(input.password),
-          // Portable IN_USER identity handle — generated once, never changes.
-          accountPublicId: newPublicId("U"),
+          // Earned identity (Phase 34): no AORMS-U handle at creation — the
+          // person generates their permanent handle after 100 hours of usage
+          // (trpc usage.generateAormsId).
         })
         .returning(publicUser);
       await writeAudit(ctx.db, {

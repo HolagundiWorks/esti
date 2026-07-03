@@ -83,7 +83,11 @@ elif [[ -z "$PLATFORM_ENABLED" && "$PROFILE" == "demo" ]]; then
   ask "Also enable the Licensing & Account platform (/platform-admin)? [y/N]:" _lic
   [[ "${_lic,,}" == y* ]] && PLATFORM_ENABLED="true"
 fi
-export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS PLATFORM_ENABLED
+# Unified individual accounts ride with the platform: when the licensing
+# platform is enabled on this box, the workspace login accepts platform
+# accounts in-process (Phase 34). Explicit ESTI_UNIFIED_ACCOUNTS wins.
+[[ -z "${ESTI_UNIFIED_ACCOUNTS:-}" && "$PLATFORM_ENABLED" == "true" ]] && ESTI_UNIFIED_ACCOUNTS="true"
+export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS PLATFORM_ENABLED ESTI_UNIFIED_ACCOUNTS
 
 info "Profile: ${BOLD}${PROFILE}${NC}  (public site: ${PUBLIC_SITE}, demo: ${SEED_DEMO}, plan: ${FIRM_PLAN}, licensing: ${PLATFORM_ENABLED:-false})"
 

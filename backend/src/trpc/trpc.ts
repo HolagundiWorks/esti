@@ -72,6 +72,10 @@ const SELF_SERVICE_MUTATIONS = new Set([
   "users.totpEnable",
   "users.totpDisable",
   "dashboard.saveLayout",
+  // Usage-earned identity (Phase 34) — every login, incl. read-only, self-tracks.
+  "usage.ping",
+  "usage.dismissIdPrompt",
+  "usage.generateAormsId",
 ]);
 
 /**

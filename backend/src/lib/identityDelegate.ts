@@ -63,6 +63,37 @@ export async function verifyIdentityAtPlatform(publicId: string): Promise<Verify
   return { kind: "ok", account: body.account };
 }
 
+/**
+ * Earned identity (Phase 34) — ask the hub to mint the permanent AORMS-U handle
+ * for a person who crossed the usage threshold on this node. The node enforces
+ * eligibility; the hub guarantees mint-once semantics. Null on any failure.
+ */
+export async function generateIdentityAtPlatform(
+  email: string,
+  name?: string | null,
+): Promise<string | null> {
+  const base = identityBase();
+  if (!base || !env.ESTI_PRODUCT_API_KEY) return null;
+  try {
+    const res = await fetch(`${base}/v1/generate-identity`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ email, name: name ?? undefined }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json().catch(() => null)) as
+      | { ok?: boolean; publicId?: string }
+      | null;
+    return body?.ok && body.publicId ? body.publicId : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Is a hub configured to stamp this node's memberships with a `userType()`? */
 export function membershipSyncConfigured(): boolean {
   return identityLookupConfigured() && Boolean(env.ESTI_COMPANY);

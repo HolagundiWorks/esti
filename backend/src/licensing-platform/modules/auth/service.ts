@@ -83,11 +83,12 @@ export async function upsertAccount(input: UpsertInput): Promise<AccountView> {
     return view(updated!);
   }
 
+  // Earned identity (Phase 34): accounts start WITHOUT an AORMS-U handle —
+  // it is generated later, after 100 hours of product usage.
   const [created] = await db
     .insert(schema.accounts)
     .values({
       id: newId("acc"),
-      publicId: newPublicId("U"),
       email,
       googleSub: input.googleSub ?? null,
       name: input.name ?? null,
@@ -118,7 +119,8 @@ export async function registerWithPassword(input: {
     .insert(schema.accounts)
     .values({
       id: newId("acc"),
-      publicId: newPublicId("U"),
+      // Earned identity (Phase 34): no AORMS-U handle at signup — generated
+      // after 100 hours of product usage (see mintPublicIdForEmail).
       email,
       name: input.name ?? null,
       passwordHash,
@@ -126,6 +128,37 @@ export async function registerWithPassword(input: {
     })
     .returning();
   return view(created!);
+}
+
+/**
+ * Earned identity (Phase 34): mint the permanent AORMS-U handle for the account
+ * with this email, creating a passwordless account shell first if none exists
+ * (a workspace-only user earning their handle materialises on the platform —
+ * a shell without a password hash cannot log in). Idempotent: an existing
+ * handle is returned untouched, since the handle must never change.
+ */
+export async function mintPublicIdForEmail(
+  emailRaw: string,
+  name?: string | null,
+): Promise<string> {
+  const email = emailRaw.trim().toLowerCase();
+  const [existing] = await db
+    .select({ id: schema.accounts.id, publicId: schema.accounts.publicId })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  if (existing?.publicId) return existing.publicId;
+
+  const publicId = newPublicId("U");
+  if (existing) {
+    await db
+      .update(schema.accounts)
+      .set({ publicId, updatedAt: new Date() })
+      .where(eq(schema.accounts.id, existing.id));
+    return publicId;
+  }
+  await db.insert(schema.accounts).values({ id: newId("acc"), publicId, email, name: name ?? null });
+  return publicId;
 }
 
 /**

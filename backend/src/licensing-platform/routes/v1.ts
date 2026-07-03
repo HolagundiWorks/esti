@@ -12,7 +12,7 @@ import { db, schema } from "../db/client.js";
 import { loadSigningKey } from "../env.js";
 import { hashApiKey } from "../lib/apikey.js";
 import { signManifest } from "../lib/license.js";
-import { verifyLogin } from "../modules/auth/service.js";
+import { mintPublicIdForEmail, verifyLogin } from "../modules/auth/service.js";
 import { orgIdFromHandle } from "../modules/auth/tenant.js";
 import { latestManifest } from "../modules/components/service.js";
 import { activate, editionForKey, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
@@ -133,6 +133,26 @@ export function registerV1Routes(app: FastifyInstance): void {
       }
     }
     return { ok: true, account: { publicId: account.publicId, email: account.email, name: account.name } };
+  });
+
+  // Earned identity (Phase 34) — a product node asks the hub to mint the
+  // permanent AORMS-U handle for a person who crossed the usage threshold.
+  // The node enforces the 100-hour eligibility; the hub only guarantees the
+  // handle is minted once and never changes (idempotent on repeat calls).
+  app.post("/v1/generate-identity", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const body = req.body as { email?: string; name?: string } | undefined;
+    const email = body?.email?.trim().toLowerCase() ?? "";
+    if (!email || !email.includes("@")) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const publicId = await mintPublicIdForEmail(email, body?.name ?? null);
+    return { ok: true, publicId };
   });
 
   // Machine membership sync — the other half of U-3b: a node stamps the linked

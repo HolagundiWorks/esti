@@ -2,6 +2,8 @@ import {
   Button,
   Column,
   Grid,
+  InlineNotification,
+  ProgressBar,
   Stack,
   Tab,
   TabList,
@@ -65,6 +67,16 @@ export function Profile() {
   const w = workQ.data;
   const meQ = trpc.users.myProfile.useQuery();
   const aormsId = meQ.data?.accountPublicId ?? null;
+  // Usage-earned identity (Phase 34): progress toward the 100-hour AORMS ID.
+  const utils = trpc.useUtils();
+  const usageQ = trpc.usage.status.useQuery(undefined, { enabled: !aormsId });
+  const generateId = trpc.usage.generateAormsId.useMutation({
+    onSuccess: () => {
+      void utils.usage.status.invalidate();
+      void utils.users.myProfile.invalidate();
+    },
+  });
+  const usage = usageQ.data;
 
   const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
   const PRO_DOWNLOAD_URL = import.meta.env.VITE_PRO_DOWNLOAD_URL ?? "";
@@ -122,8 +134,43 @@ export function Profile() {
                 <Stack gap={5}>
                   <Field
                     label="AORMS Unique ID"
-                    value={aormsId ?? "Not linked — an owner can link this login from Users."}
+                    value={aormsId ?? "Not yet generated — earned after 100 hours of active use."}
                   />
+                  {!aormsId && usage && (
+                    <Stack gap={4}>
+                      <ProgressBar
+                        label="Active use"
+                        helperText={`${Math.floor(usage.minutes / 60)} of ${Math.floor(usage.requiredMinutes / 60)} hours`}
+                        value={Math.min(usage.minutes, usage.requiredMinutes)}
+                        max={usage.requiredMinutes}
+                      />
+                      {usage.canGenerate ? (
+                        <Button
+                          size="sm"
+                          disabled={!usage.eligible || generateId.isPending}
+                          onClick={() => generateId.mutate()}
+                        >
+                          {usage.eligible
+                            ? "Generate my AORMS ID"
+                            : "Unlocks at 100 hours of active use"}
+                        </Button>
+                      ) : (
+                        <p className="esti-label esti-label--helper">
+                          No identity platform is configured for this install — an owner can
+                          link a handle from Users.
+                        </p>
+                      )}
+                      {generateId.isError && (
+                        <InlineNotification
+                          kind="error"
+                          lowContrast
+                          hideCloseButton
+                          title="Could not generate the ID"
+                          subtitle={generateId.error.message}
+                        />
+                      )}
+                    </Stack>
+                  )}
                   <Field label="Professional role" value={user?.role ?? "—"} />
                 </Stack>
               </Tile>

@@ -1,8 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   accessLevelForRole,
   minLevelForCapability,
 } from "@esti/contracts";
+
+// The licence write-gate reads org settings from the DB on every mutation.
+// These boundary tests run against a stub context (`db: {}`), so pin the gate
+// open — an unmanaged PRO install — and keep the tests purely about role gates.
+vi.mock("../lib/plan.js", () => ({
+  firmPlan: vi.fn(async () => "PRO"),
+  licenseBlocked: vi.fn(async () => false),
+}));
 import type { AuthUser } from "../auth/session.js";
 import type { Context } from "./context.js";
 import {
@@ -81,7 +89,8 @@ describe("tRPC authorization boundaries", () => {
   it.each([
     ["OWNER", true],
     ["PARTNER", true],
-    ["SENIOR", true],
+    // Invoices are financial instruments — partner and above (b6ad4c46).
+    ["SENIOR", false],
     ["ASSOCIATE", false],
   ] as const)("enforces invoice capability for %s", async (role, allowed) => {
     const result = expect(caller(user(role)).invoice());
@@ -126,7 +135,8 @@ describe("tRPC authorization boundaries", () => {
   it("aligns capability gates with documented minimum levels", () => {
     expect(minLevelForCapability("firm:admin")).toBe(5);
     expect(minLevelForCapability("reports:view")).toBe(4);
-    expect(minLevelForCapability("invoice:manage")).toBe(3);
+    // Financial instruments: partner and above (b6ad4c46).
+    expect(minLevelForCapability("invoice:manage")).toBe(4);
     expect(minLevelForCapability("write")).toBe(2);
     expect(minLevelForCapability("workspace:view")).toBe(1);
   });

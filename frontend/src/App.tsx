@@ -66,6 +66,7 @@ import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { UserIdCard } from "./components/UserIdCard.js";
 import { FloatingDock } from "./components/FloatingDock.js";
+import { UsageIdentity } from "./components/identity/UsageIdentity.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
@@ -688,6 +689,7 @@ function AppShell() {
               </Routes>
             </main>
           </Content>
+          <UsageIdentity />
           <FloatingDock />
           <AiAgentCommand />
         </div>

@@ -74,3 +74,4 @@ export * from "./pmc.js";
 export * from "./hr-profile.js";
 export * from "./licensing-platform.js";
 export * from "./pulse.js";
+export * from "./usage.js";

@@ -92,7 +92,14 @@ loginUser(org, email, password):
 - **Company:** `AORMS-C-` + short base32 (e.g. `AORMS-C-2K4P`). Stable, human-quotable.
 - **User:** `AORMS-U-` + short base32 (e.g. `AORMS-U-9F3T`). **This is the portable ID** —
   it never changes, and every certification / growth record is keyed to it.
-- Generated once at creation, stored on the row, shown in the UI (Profile / Company).
+- **Earned, not automatic (Phase 34):** the `AORMS-U-` handle is NOT minted at signup.
+  Individual accounts start without one; the workspace tracks *active app time*
+  (frontend heartbeat, `esti_usage_stat`), and at **100 hours** the person is invited —
+  never forced — to generate their permanent handle (`usage.generateAormsId`; prompt
+  modal + Profile › AORMS Identity). Generation is idempotent and the handle never
+  changes once minted. Single-box installs mint in-process
+  (`ESTI_UNIFIED_ACCOUNTS=true`); firm nodes mint via the hub `/v1/generate-identity`.
+- Once generated, stored on the row and shown in the UI (Profile / Company).
 - The opaque internal ids (`acc_…`, `org_…`) stay as PKs; the `AORMS-U/C-` ids are the
   human-facing handles + the join key for portable records.
 

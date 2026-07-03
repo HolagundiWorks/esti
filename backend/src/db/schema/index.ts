@@ -33,3 +33,4 @@ export * from "./sync.js";
 export * from "./pulse.js";
 
 export type { ProjectOfficeRow } from "./project.js";
+export * from "./usage.js";

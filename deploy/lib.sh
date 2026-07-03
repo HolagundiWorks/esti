@@ -242,6 +242,11 @@ ESTI_PRODUCT_API_KEY=${ESTI_PRODUCT_API_KEY:-}
 # handle to enforce company membership.
 ESTI_IDENTITY_DELEGATE=${ESTI_IDENTITY_DELEGATE:-false}
 ESTI_COMPANY=${ESTI_COMPANY:-}
+# Unified individual accounts (single-box installs where the platform runs in
+# this same backend): the workspace login verifies platform credentials
+# in-process and provisions a workspace user on first login. Enabled by the
+# licensing profile; leave false on ordinary firm nodes.
+ESTI_UNIFIED_ACCOUNTS=${ESTI_UNIFIED_ACCOUNTS:-false}
 
 # Licensing & account platform (mounted at /platform; admin UI at /platform-admin).
 # Set GOOGLE_* to enable Google sign-in — see docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md.

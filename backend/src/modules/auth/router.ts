@@ -27,6 +27,7 @@ import {
   provisionLocalUser,
   verifyAtPlatform,
 } from "../../lib/identityDelegate.js";
+import { verifyLogin as verifyPlatformLogin } from "../../licensing-platform/modules/auth/service.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
@@ -186,6 +187,30 @@ export const authRouter = router({
 
     let u: typeof users.$inferSelect | undefined;
 
+    // Unified individual accounts (Phase 34, opt-in): on a single-box install
+    // the licensing platform lives in this same process, so verify against the
+    // local platform account store directly — no HTTP hop, no product API key.
+    // Same additive rule as HTTP delegation below: a miss (no account / wrong
+    // central password / not a member) falls through to the local check.
+    if (env.ESTI_UNIFIED_ACCOUNTS) {
+      const unified = await verifyPlatformLogin({
+        email,
+        password: input.password,
+        company: env.ESTI_COMPANY || undefined,
+      });
+      if (unified) {
+        const projected = await provisionLocalUser(
+          ctx.db,
+          { account: unified.account, role: unified.role },
+          input.password,
+        );
+        if (!isLoginable(projected)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
+        }
+        u = projected!;
+      }
+    }
+
     // Delegated identity (opt-in): verify against the central platform and project
     // the person onto a local firm user. The hub's "invalid" covers three cases a
     // node can't tell apart — wrong central password, no central account at all
@@ -196,7 +221,7 @@ export const authRouter = router({
     // local password (below) decide. This keeps delegation additive: it can only
     // let a login succeed that the local password check would have rejected
     // anyway, never the reverse.
-    if (delegationEnabled()) {
+    if (!u && delegationEnabled()) {
       const res = await verifyAtPlatform(email, input.password);
       if (res.kind === "ok") {
         const projected = await provisionLocalUser(ctx.db, res.identity, input.password);

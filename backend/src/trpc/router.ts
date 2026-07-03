@@ -17,6 +17,7 @@ import { complianceRouter } from "../modules/compliance/router.js";
 import { masterPlanRouter } from "../modules/masterplan/router.js";
 import { standardsRouter } from "../modules/standards/router.js";
 import { profileRouter } from "../modules/profile/router.js";
+import { usageRouter } from "../modules/usage/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
 import { clientRouter } from "../modules/clientlog/router.js";
 import { leadsRouter } from "../modules/projectos/leads.js";
@@ -130,6 +131,7 @@ export const appRouter = router({
   masterPlans: masterPlanRouter,
   standards: standardsRouter,
   userProfile: profileRouter,
+  usage: usageRouter,
   engagements: engagementRouter,
   collab: collaboratorRouter,
   consultantRequests: consultantRequestsRouter,

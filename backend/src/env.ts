@@ -1,10 +1,22 @@
 import { z } from "zod";
 
+/**
+ * Strict env boolean: only "true"/"1"/"yes" (any case) enable the flag.
+ * `z.coerce.boolean()` uses JS Boolean() semantics, where the literal string
+ * "false" is TRUE — so a `.env` line like `FLAG=false` silently enabled the
+ * feature. Every boolean env var must use this instead.
+ */
+const envBool = (def = false) =>
+  z.preprocess(
+    (v) => (typeof v === "string" ? ["true", "1", "yes"].includes(v.trim().toLowerCase()) : v),
+    z.boolean().default(def),
+  );
+
 const Env = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   BACKEND_PORT: z.coerce.number().default(4000),
   SESSION_SECRET: z.string().min(16).default("dev-session-secret-change-me"),
-  COOKIE_SECURE: z.coerce.boolean().default(false),
+  COOKIE_SECURE: envBool(),
   ALLOWED_ORIGINS: z.string().default("http://localhost:5173,http://127.0.0.1:5173"),
   DATABASE_URL: z.string().default("postgres://esti:esti@localhost:5432/esti"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
@@ -15,7 +27,7 @@ const Env = z.object({
    */
   WORKER_MODE: z.enum(["redis", "inproc"]).default("redis"),
   /** When true (native desktop build), loopback HTTP + generated secrets are allowed. */
-  DESKTOP: z.coerce.boolean().default(false),
+  DESKTOP: envBool(),
   /**
    * Deployment role (Phase B hybrid). "node" (default) = a firm's local/office
    * install: holds office data + drafts, derives its plan from a license, pushes
@@ -41,11 +53,22 @@ const Env = z.object({
    * existing local `esti_user` login. If the platform is unreachable, login falls back
    * to the locally-cached password (hybrid offline grace).
    */
-  ESTI_IDENTITY_DELEGATE: z.coerce.boolean().default(false),
+  ESTI_IDENTITY_DELEGATE: envBool(),
   /** NODE — base URL of the identity platform for delegated login. Empty → use ESTI_LICENSE_API_URL. */
   ESTI_IDENTITY_URL: z.string().default(""),
   /** NODE — this firm's company handle (AORMS-C-…) — membership is checked against it on delegated login. */
   ESTI_COMPANY: z.string().default(""),
+  /**
+   * Unified individual accounts (Phase 34) — single-box installs where the
+   * licensing platform runs in this same process (aorms.in). When true, the
+   * workspace login first verifies credentials against the LOCAL platform
+   * account store in-process (no HTTP hop, no product API key), provisioning a
+   * workspace user on first login, then falls back to HTTP delegation / the
+   * local password. Leave false on ordinary firm nodes: their hlp_ tables are
+   * unpopulated shadows, and /platform self-registration would otherwise become
+   * a workspace-access path.
+   */
+  ESTI_UNIFIED_ACCOUNTS: envBool(),
   /** Read/write grace window (days) after a license `exp` before writes are blocked. */
   LICENSE_GRACE_DAYS: z.coerce.number().default(14),
   /** How often (hours) the node re-fetches a fresh license token from the hub. */
@@ -80,7 +103,7 @@ const Env = z.object({
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   /** true for implicit TLS (typical port 465); false for STARTTLS (typical port 587). */
-  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_SECURE: envBool(),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   /** From header, e.g. "AORMS Beta <hi@aorms.in>" */
