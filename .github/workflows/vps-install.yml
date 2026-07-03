@@ -20,6 +20,26 @@ jobs:
           PORT="${{ secrets.VPS_PORT }}"
           ssh-keyscan -p "${PORT:-22}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Diagnostics
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_DEPLOY_DIR: ${{ secrets.VPS_DEPLOY_DIR }}
+        run: |
+          PORT="${VPS_PORT:-22}"
+          DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" '
+            echo "--- whoami / uname ---"; whoami; uname -a
+            echo "--- os-release ---"; cat /etc/os-release 2>/dev/null || true
+            echo "--- disk ---"; df -h / 2>/dev/null || true
+            echo "--- dpkg lock holders ---"; fuser /var/lib/dpkg/lock-frontend 2>&1 || true
+            echo "--- apt/dpkg processes ---"; ps aux | grep -E "apt|dpkg|needrestart" | grep -v grep || echo "none"
+            echo "--- deploy dir ---"; ls -la '"$DIR"' 2>&1 || echo "does not exist"
+            echo "--- docker/git/curl present ---"; command -v docker git curl 2>&1 || true
+            echo "--- diagnostics done ---"
+          '
+
       - name: Clone the repo onto the VPS (deploy/install.sh git-clones itself, but needs the script first)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -31,9 +51,9 @@ jobs:
           DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
           REPO_URL="https://github.com/${{ github.repository }}.git"
           ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
-            "test -d '$DIR/.git' || git clone --branch main '$REPO_URL' '$DIR'"
+            "cd '$DIR' 2>/dev/null && git fetch origin && git checkout main && git pull origin main || (rm -rf '$DIR' && git clone --branch main '$REPO_URL' '$DIR')"
 
-      - name: Run deploy/install.sh (PROFILE=core, non-interactive)
+      - name: Start deploy/install.sh in the background (PROFILE=core)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -46,14 +66,40 @@ jobs:
         run: |
           PORT="${VPS_PORT:-22}"
           DIR="${VPS_DEPLOY_DIR:-/opt/esti}"
-          # VPS_USER is expected to already be root (install.sh requires EUID 0);
-          # no sudo prefix so this also works on images without sudo installed.
-          # -tt forces a pty (ssh runs a plain command otherwise, no pty by
-          # default) and TERM is set explicitly — install.sh calls `clear` in
-          # its banner, which errors "TERM environment variable not set" and
-          # aborts the whole script (set -e) without either of these.
-          ssh -tt -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
-            "cd '$DIR' && TERM=xterm PROFILE=core DOMAIN='$INSTALL_DOMAIN' ADMIN_EMAIL='$INSTALL_ADMIN_EMAIL' OWNER_EMAIL='$INSTALL_OWNER_EMAIL' OWNER_PASSWORD='$INSTALL_OWNER_PASSWORD' bash deploy/install.sh"
+          # No -tt: stdin is /dev/null instead, so any accidental `read` in the
+          # script hits EOF immediately (fails fast) rather than blocking on a
+          # terminal that doesn't exist. TERM=xterm still covers `clear`. The
+          # whole thing backgrounds with nohup+disown and logs to a file, so
+          # this SSH call returns in seconds regardless of how long install.sh
+          # takes — the next step polls the log instead of blocking here.
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o BatchMode=yes "$VPS_USER@$VPS_HOST" \
+            "cd '$DIR' && rm -f /var/log/aorms-install.log /var/log/aorms-install.exit && \
+             nohup env TERM=xterm PROFILE=core DOMAIN='$INSTALL_DOMAIN' ADMIN_EMAIL='$INSTALL_ADMIN_EMAIL' OWNER_EMAIL='$INSTALL_OWNER_EMAIL' OWNER_PASSWORD='$INSTALL_OWNER_PASSWORD' \
+             bash -c 'bash deploy/install.sh; echo \$? > /var/log/aorms-install.exit' \
+             > /var/log/aorms-install.log 2>&1 < /dev/null & disown; sleep 2; echo 'install.sh started in background'"
+
+      - name: Poll until install.sh finishes (up to ~25 min)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          PORT="${VPS_PORT:-22}"
+          SSH="ssh -i $HOME/.ssh/deploy_key -p $PORT -o BatchMode=yes ${VPS_USER}@${VPS_HOST}"
+          for i in $(seq 1 75); do
+            sleep 20
+            EXIT_CODE=$($SSH "cat /var/log/aorms-install.exit 2>/dev/null || echo RUNNING")
+            echo "poll $i (~$((i*20))s): $EXIT_CODE"
+            if [[ "$EXIT_CODE" != "RUNNING" ]]; then
+              echo "----- full install log -----"
+              $SSH "cat /var/log/aorms-install.log"
+              echo "----- end log -----"
+              exit "$EXIT_CODE"
+            fi
+          done
+          echo "Timed out after 25 minutes — dumping log so far:"
+          $SSH "cat /var/log/aorms-install.log"
+          exit 1
 
       - name: Clean up deploy key
         if: always()
