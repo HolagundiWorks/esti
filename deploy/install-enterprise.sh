@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-#  AORMS — Self-Hosted install  (customer Core / Enterprise)
+#  AORMS — Enterprise install (customer self-hosted)
 #  ------------------------------------------------------------
 #  For a firm hosting AORMS on ITS OWN server. Installs the firm
 #  workspace only — no marketing landing, no demo data, no
@@ -8,15 +8,15 @@
 #  central Holagundi platform (aorms.in) with a product API key.
 #
 #  Ubuntu 22.04 / 24.04, as root:
-#    sudo bash deploy/install-firm.sh
+#    sudo bash deploy/install-enterprise.sh
 #  Non-interactive:
-#    EDITION=core DOMAIN=studio.example.in OWNER_EMAIL=you@studio.in \
+#    DOMAIN=studio.example.in OWNER_EMAIL=you@studio.in \
 #      OWNER_PASSWORD='…' ESTI_PRODUCT_API_KEY='…' \
-#      sudo -E bash deploy/install-firm.sh
+#      sudo -E bash deploy/install-enterprise.sh
 #
-#  Holagundi's OWN site (landing + demo + licensing platform) uses the
-#  other installer, deploy/install.sh. Reuses the same tested install
-#  core (deploy/lib.sh) — this is a focused, client-safe front door.
+#  Holagundi's OWN site (landing + main app + licensing platform) uses
+#  the default installer, deploy/install.sh. Reuses the same tested
+#  install core (deploy/lib.sh) — this is a focused, client-safe front door.
 # ============================================================
 set -euo pipefail
 
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 source "$SCRIPT_DIR/lib.sh"
 
-[[ $EUID -ne 0 ]] && error "Run as root: sudo bash deploy/install-firm.sh"
+[[ $EUID -ne 0 ]] && error "Run as root: sudo bash deploy/install-enterprise.sh"
 
 clear
 echo -e "${CYAN}${BOLD}"
@@ -34,28 +34,16 @@ echo " ███████║██║   ██║██████╔╝█�
 echo " ██╔══██║██║   ██║██╔══██╗██║╚██╔╝██║╚════██║"
 echo " ██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║███████║"
 echo " ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝"
-echo -e "  AORMS — Self-Hosted Install (your own server)${NC}"
+echo -e "  AORMS — Enterprise Install (your own server)${NC}"
 echo "  ============================================"
 
 # ── Edition ──────────────────────────────────────────────────────────────────
-# EDITION=core|enterprise skips the prompt (non-interactive installs).
-EDITION_IN="${EDITION:-}"
-if [[ -z "$EDITION_IN" ]]; then
-  cat <<'MENU'
-
-  Which edition is your licence for?
-
-    1) AORMS Core        — firm workspace, Core plan
-    2) AORMS Enterprise  — firm workspace, Enterprise plan (all features)
-
-MENU
-  ask "Enter 1-2:" _ed
-  case "$_ed" in 1) EDITION_IN="core" ;; 2) EDITION_IN="enterprise" ;; *) error "Pick 1 or 2." ;; esac
-fi
-case "${EDITION_IN,,}" in
+# Enterprise by default (all editions fold to the PRO plan since the LITE/PRO
+# collapse); EDITION=core is kept for legacy-labelled licences.
+case "${EDITION:-enterprise}" in
   core)       PROFILE="core";       FIRM_PLAN="CORE" ;;
   enterprise) PROFILE="enterprise"; FIRM_PLAN="ENTERPRISE" ;;
-  *) error "EDITION must be 'core' or 'enterprise' (got '${EDITION_IN}')." ;;
+  *) error "EDITION must be 'core' or 'enterprise' (got '${EDITION}')." ;;
 esac
 
 # A customer self-host is ALWAYS a firm workspace only: never a marketing site,

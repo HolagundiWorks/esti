@@ -7,7 +7,7 @@ Enterprise licence against the central AORMS platform at `aorms.in`.
 
 > This is a separate front door from Holagundi's own deployment. Holagundi's site
 > (landing + demo + the `/platform-admin` licensing console) uses `deploy/install.sh`;
-> **customers use `deploy/install-firm.sh`** (this guide). Both share the same tested
+> **customers use `deploy/install-enterprise.sh`** (this guide). Both share the same tested
 > install core, so you get identical infrastructure — just a firm-only surface.
 
 ---
@@ -51,7 +51,7 @@ Internet (HTTPS) → host nginx (TLS, static SPA, proxies /trpc /upload /storage
 
 ```bash
 cd /opt/esti
-sudo bash deploy/install-firm.sh
+sudo bash deploy/install-enterprise.sh
 ```
 
 You'll be asked, in order:
@@ -75,7 +75,7 @@ You'll be asked, in order:
 EDITION=enterprise DOMAIN=studio.example.in \
   ADMIN_EMAIL=you@studio.in OWNER_EMAIL=you@studio.in OWNER_PASSWORD='…' \
   ESTI_PRODUCT_API_KEY='…' \
-  sudo -E bash deploy/install-firm.sh
+  sudo -E bash deploy/install-enterprise.sh
 ```
 `EDITION` ∈ `core | enterprise`. Anything you don't pass is prompted; secrets left
 unset auto-generate.

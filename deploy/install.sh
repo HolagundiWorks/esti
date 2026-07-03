@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # ============================================================
-#  ESTI AORMS — installer (pick a deployment profile)
+#  ESTI AORMS — installer for the AORMS site (aorms.in)
+#  Default (no PROFILE): public landing page + the main app on one box —
+#  workspace, unified accounts, and the licensing platform.
+#
 #  Ubuntu 22.04 / 24.04, as root:
 #    sudo bash deploy/install.sh
-#  Non-interactive: PROFILE=core DOMAIN=… OWNER_EMAIL=… … sudo -E bash deploy/install.sh
+#  Non-interactive: DOMAIN=… ADMIN_EMAIL=… OWNER_EMAIL=… OWNER_PASSWORD=… \
+#    sudo -E bash deploy/install.sh
+#
+#  Customer/self-hosted firm installs use deploy/install-enterprise.sh.
+#  Legacy profiles stay reachable via PROFILE=landing|demo|core|enterprise|licensing.
 # ============================================================
 set -euo pipefail
 
@@ -24,48 +31,27 @@ echo " ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝ 
 echo -e "  AORMS — Deployment installer${NC}"
 echo "  ============================================"
 
-# ── Profile menu ─────────────────────────────────────────────────────────────
-# Each profile only sets a few env knobs; the install flow is identical (lib.sh).
-cat <<'MENU'
-
-  Select what to install:
-
-    1) Landing page only        — public marketing site, no demo data
-    2) Production demo           — seeded credentials, one-click /demo login
-    3) AORMS Core (production)   — firm workspace, Core plan
-    4) AORMS Enterprise (prod)   — firm workspace, Enterprise plan
-    5) Licensing & Account       — licensing platform + admin (/platform-admin)
-    6) Learning & Certification  — (in pipeline — not yet available)
-
-  Licensing & Account lives on the AORMS site: pick 5, or add it onto the
-  demo (2) — e.g. 2 + licensing = Landing + Demo + Licensing on one box.
-  Customer Core (3) / Enterprise (4) installs never bundle licensing.
-
-MENU
-
-CHOICE="${PROFILE_CHOICE:-}"
-[[ -z "$CHOICE" && -z "${PROFILE:-}" ]] && ask "Enter 1-6:" CHOICE
-
-# Allow PROFILE=<name> to bypass the numeric menu (non-interactive installs).
-case "${PROFILE:-}" in
-  landing) CHOICE=1 ;; demo) CHOICE=2 ;; core) CHOICE=3 ;;
-  enterprise) CHOICE=4 ;; licensing) CHOICE=5 ;; learning) CHOICE=6 ;;
-esac
-
+# ── Profile ──────────────────────────────────────────────────────────────────
+# Default: the AORMS site — landing page + main app (+ licensing platform +
+# unified accounts) on one box. Legacy profiles stay reachable via PROFILE=…;
+# each only sets a few env knobs and the install flow is identical (lib.sh).
 PLATFORM_ADMIN_EMAILS="${PLATFORM_ADMIN_EMAILS:-}"
-case "$CHOICE" in
-  1) PROFILE="landing";    PUBLIC_SITE="true";  SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
-  2) PROFILE="demo";       PUBLIC_SITE="true";  SEED_DEMO="true";  FIRM_PLAN="ENTERPRISE" ;;
-  3) PROFILE="core";       PUBLIC_SITE="false"; SEED_DEMO="false"; FIRM_PLAN="CORE" ;;
-  4) PROFILE="enterprise"; PUBLIC_SITE="false"; SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
-  5) PROFILE="licensing";  PUBLIC_SITE="false"; SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
-  6)
-    echo ""
-    warn "Learning & Certification Manager is in the development pipeline and not yet"
-    warn "available for deployment. Choose 1-5 for now."
+case "${PROFILE:-aorms}" in
+  aorms)      PROFILE="aorms";      PUBLIC_SITE="true";  SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
+  landing)    PROFILE="landing";    PUBLIC_SITE="true";  SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
+  demo)       PROFILE="demo";       PUBLIC_SITE="true";  SEED_DEMO="true";  FIRM_PLAN="ENTERPRISE" ;;
+  core|enterprise)
+    warn "Customer/self-hosted firm installs have their own front door now:"
+    warn "  sudo bash deploy/install-enterprise.sh"
+    PROFILE="${PROFILE}"; PUBLIC_SITE="false"; SEED_DEMO="false"
+    [[ "$PROFILE" == "core" ]] && FIRM_PLAN="CORE" || FIRM_PLAN="ENTERPRISE"
+    ;;
+  licensing)  PROFILE="licensing";  PUBLIC_SITE="false"; SEED_DEMO="false"; FIRM_PLAN="ENTERPRISE" ;;
+  learning)
+    warn "Learning & Certification Manager is in the development pipeline and not yet available."
     exit 0
     ;;
-  *) error "Invalid choice '$CHOICE' — pick 1-6." ;;
+  *) error "Unknown PROFILE '${PROFILE:-}' — use aorms (default) | landing | demo | core | enterprise | licensing." ;;
 esac
 
 # Licensing & Account is an OVERLAY, not a separate base: the /platform backend is
@@ -73,7 +59,9 @@ esac
 # registers platform admins (+ Google sign-in). Auto-on for the licensing base;
 # offered as a y/N add-on on demo/core/enterprise. Non-interactive: WITH_LICENSING=true.
 PLATFORM_ENABLED="${WITH_LICENSING:-}"
-[[ "$PROFILE" == "licensing" ]] && PLATFORM_ENABLED="true"
+# The AORMS-site default bundles the platform: unified accounts + licensing
+# ride with the landing + main app.
+[[ "$PROFILE" == "aorms" || "$PROFILE" == "licensing" ]] && PLATFORM_ENABLED="true"
 # Licensing & Account is centralised on the AORMS site (its own `licensing` profile,
 # optionally alongside the `demo` showcase). A customer's Core/Enterprise install
 # NEVER bundles it — force it off even if WITH_LICENSING was passed by mistake.
@@ -161,6 +149,7 @@ echo -e "${GREEN}${BOLD}============================================${NC}"
 echo -e "  URL    : ${BOLD}https://${DOMAIN}${NC}"
 echo -e "  Login  : ${BOLD}${OWNER_EMAIL}${NC}"
 [[ "$PROFILE" == "demo" ]]        && echo -e "  Demo   : ${BOLD}https://${DOMAIN}/demo${NC} → principal@demo.aorms.in / ${DEMO_PASSWORD} (no manual login)"
+[[ "$PROFILE" == "aorms" ]]       && echo -e "  Site   : landing + main app at ${BOLD}https://${DOMAIN}${NC} · console handoff at ${BOLD}${VITE_ADMIN_URL:-'(embedded)'}${NC}"
 [[ "$PROFILE" == "landing" ]]     && echo -e "  Site   : public marketing landing at ${BOLD}https://${DOMAIN}${NC}"
 [[ "$PLATFORM_ENABLED" == "true" ]] && echo -e "  Admin  : ${BOLD}https://${DOMAIN}/platform-admin${NC} (register with a PLATFORM_ADMIN_EMAILS address) · demo licences: demo.lite1@aorms.in / demo1234"
 echo ""

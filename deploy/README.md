@@ -4,40 +4,46 @@
 > (specs, DNS, swap, prompts, verification, day-2 ops, troubleshooting). This file
 > is the quick reference.
 
-One menu installer, six profiles. The install flow is identical for every profile
-(`deploy/lib.sh` → `install_core`); a profile only changes a few `.env` knobs
-(`VITE_PUBLIC_SITE`, `SEED_DEMO`, `FIRM_PLAN`, and the licensing/Google vars).
+Two front doors, one tested install flow (`deploy/lib.sh` → `install_core`);
+a profile only changes a few `.env` knobs (`VITE_PUBLIC_SITE`, `SEED_DEMO`,
+`FIRM_PLAN`, and the licensing/Google vars).
+
+**The AORMS site (default — no menu):** landing page + the main app + the
+licensing platform + unified accounts, on one box:
 
 ```bash
 apt-get update && apt-get install -y git
 git clone --branch main https://github.com/HolagundiWorks/esti.git /opt/esti
 cd /opt/esti
-sudo bash deploy/install.sh        # ← pick a profile from the menu
+sudo bash deploy/install.sh
 ```
 
-> **Customer self-hosting Core / Enterprise?** Use the focused, firm-only installer
-> instead: `sudo bash deploy/install-firm.sh` (edition prompt, licence-key activation,
-> no landing/demo/licensing console). See
-> [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md). `install.sh`
-> below is Holagundi's own multi-profile deployment.
+**Customer/self-hosted enterprise:** firm workspace only — no landing, no demo,
+no licensing console; licence-key activation against aorms.in:
 
-## Profiles
+```bash
+sudo bash deploy/install-enterprise.sh
+```
 
-| # | Profile | Public site | Demo data | Plan | Notes |
-|---|---|---|---|---|---|
-| 1 | **Landing page only** | ✅ | — | Enterprise | Public marketing site; owner account only |
-| 2 | **Production demo** | ✅ | ✅ seeded | Enterprise | One-click `/demo` auto-login (no manual login) |
-| 3 | **AORMS Core** | — | — | **Core** | Firm workspace, `/login` at root |
-| 4 | **AORMS Enterprise** | — | — | **Enterprise** | Firm workspace, all features |
-| 5 | **Licensing & Account** | — | — | Enterprise | Licensing platform `/platform` + admin `/platform-admin` |
-| 6 | **Learning & Certification** | — | — | — | In the pipeline — the menu exits gracefully |
+See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
+
+## Profiles (`PROFILE=` overrides on `install.sh`)
+
+| Profile | Public site | Demo data | Plan | Notes |
+|---|---|---|---|---|
+| **aorms** (default) | ✅ | — | Enterprise→PRO | Landing + main app + licensing platform + unified accounts |
+| `landing` | ✅ | — | Enterprise→PRO | Public marketing site only; owner account only |
+| `demo` | ✅ | ✅ seeded | Enterprise→PRO | One-click `/demo` auto-login (no manual login) |
+| `core` / `enterprise` | — | — | Core/Ent→PRO | Firm workspace — prefer `install-enterprise.sh` |
+| `licensing` | — | — | Enterprise→PRO | Licensing platform without the public site |
+| `learning` | — | — | — | In the pipeline — exits gracefully |
 
 ## Files
 
 | File | Role |
 |---|---|
-| `deploy/install.sh` | **The installer.** Menu → sets profile env → runs `install_core` |
-| `deploy/install-firm.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
+| `deploy/install.sh` | **AORMS-site installer (default: aorms profile)** → sets profile env → runs `install_core` |
+| `deploy/install-enterprise.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
@@ -75,7 +81,7 @@ installer will generate a short-lived self-signed certificate and configure
 nginx to serve HTTPS immediately. Example:
 
 ```bash
-PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in SELF_SIGNED_CERT=true \
+DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in SELF_SIGNED_CERT=true \
   sudo -E bash deploy/install.sh
 ```
 
@@ -88,28 +94,29 @@ certbot --nginx -d aorms.in --non-interactive --agree-tos -m admin@aorms.in --re
 systemctl reload nginx
 ```
 
-The installer prompts for: domain, TLS email, branch, DB / session / MinIO secrets
-(Enter = auto-generate), and the owner account. Profile 2 also asks for the demo
-password (keep `demo1234` — the one-click `/demo` button has it baked in). Profile 5
-also asks for platform-admin emails.
+The installer prompts for: domain, TLS email, DB / session / MinIO secrets
+(Enter = auto-generate), the owner account, and (when the platform is on —
+always for the default profile) the platform-admin emails. The `demo` profile
+also asks for the demo password (keep `demo1234` — the one-click `/demo` button
+has it baked in).
 
 ### Non-interactive
 
 ```bash
-PROFILE=core DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in \
-  OWNER_EMAIL=owner@firm.in OWNER_PASSWORD=… \
+DOMAIN=aorms.in ADMIN_EMAIL=ops@firm.in \
+  OWNER_EMAIL=owner@firm.in OWNER_PASSWORD=… PLATFORM_ADMIN_EMAILS=you@firm.in \
   sudo -E bash deploy/install.sh
 ```
 
-`PROFILE` ∈ `landing | demo | core | enterprise | licensing | learning`. Any value
-you don't pass as an env var is prompted for.
+`PROFILE` ∈ `aorms (default) | landing | demo | core | enterprise | licensing |
+learning`. Any value you don't pass as an env var is prompted for.
 
-## Licensing & Account — base profile 5 *or* an add-on
+## Licensing & Account — bundled by default, or an add-on
 
-The licensing platform (`/platform`, admin `/platform-admin`) is mounted in **every**
-deployment, so it can layer onto any profile. The installer offers it as a `y/N`
-add-on after you pick profile 2/3/4 — e.g. **2 + licensing = Landing + Demo +
-Licensing** on one box. Non-interactive: add `WITH_LICENSING=true`.
+The licensing platform (`/platform`) is mounted in **every** deployment and is
+**on by default** for the `aorms` profile (and `licensing`). On the `demo`
+profile the installer offers it as a `y/N` add-on (non-interactive:
+`WITH_LICENSING=true`); customer `core`/`enterprise` installs never bundle it.
 
 ### Licensing console on its own subdomain (`admin.DOMAIN`)
 

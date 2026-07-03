@@ -2,7 +2,7 @@
 
 Complete, start-to-finish guide for deploying AORMS on a fresh Ubuntu VPS. The
 installer (`deploy/install.sh`) does everything — Docker, nginx, TLS, seeding,
-auto-start. You only provision the box, point DNS, and pick a profile.
+auto-start. You only provision the box, point DNS, and run the installer.
 
 > Quick reference for the scripts is in [`deploy/README.md`](../../deploy/README.md).
 > HTTPS + Google-auth specifics: [`AORMS-LITE-AND-GOOGLE-AUTH.md`](AORMS-LITE-AND-GOOGLE-AUTH.md).
@@ -16,7 +16,7 @@ auto-start. You only provision the box, point DNS, and pick a profile.
 apt-get update && apt-get install -y git
 git clone --branch main https://github.com/HolagundiWorks/esti.git /opt/esti
 cd /opt/esti
-sudo bash deploy/install.sh          # pick a profile from the menu
+sudo bash deploy/install.sh          # default: landing + main app (the AORMS site)
 ```
 
 ~5–8 min later you're live at `https://<your-domain>` with TLS.
@@ -50,23 +50,28 @@ One box runs six containers behind the host's nginx (which terminates TLS):
 
 ---
 
-## 2. Choose a profile
+## 2. Profiles
 
-`deploy/install.sh` presents a menu:
+`deploy/install.sh` installs the **AORMS site by default — no menu**: the public
+landing page + the main app, with the licensing platform and unified accounts
+bundled. Other profiles are env overrides (`PROFILE=…`):
 
-| # | Profile | Public landing | Demo data | Plan | Root when logged out |
-|---|---|---|---|---|---|
-| 1 | **Landing page only** | ✅ | — | Pro | Landing |
-| 2 | **Production demo** | ✅ | ✅ seeded | Pro | Landing + one-click `/demo` |
-| 3 | **AORMS Pro** (cloud) | — | — | **Pro** | `/login` |
-| 4 | **AORMS Pro** (self-hosted) | — | — | **Pro** | `/login` |
-| 5 | **Licensing & Account** | — | — | Pro | `/login` + `/platform-admin` |
-| 6 | **Learning & Certification** | — | — | — | *(in pipeline — exits)* |
+| `PROFILE` | Public landing | Demo data | Plan | Root when logged out |
+|---|---|---|---|---|
+| **aorms** (default) | ✅ | — | Pro | Landing (`/login`, `/account`) |
+| `landing` | ✅ | — | Pro | Landing |
+| `demo` | ✅ | ✅ seeded | Pro | Landing + one-click `/demo` |
+| `core` / `enterprise` | — | — | Pro | `/login` — prefer `deploy/install-enterprise.sh` |
+| `licensing` | — | — | Pro | `/login` (+ platform) |
+| `learning` | — | — | — | *(in pipeline — exits)* |
 
-> **Legacy plan codes.** The installer's menu numbering is unchanged and it still
-> writes the legacy `FIRM_PLAN` values (`CORE` for 3, `ENTERPRISE` for 1/2/4/5) —
-> `asPlan()` folds both to **PRO**, so every profile above runs the Pro edition
-> (profile numbers stay stable; only the labels were renamed).
+**Customer/self-hosted enterprise installs use their own front door** —
+`sudo bash deploy/install-enterprise.sh` (firm workspace only, licence-key
+activation; see `docs/esti/SELF-HOST-INSTALL.md`).
+
+> **Legacy plan codes.** The installer still writes legacy `FIRM_PLAN` values
+> (`CORE` / `ENTERPRISE`) — `asPlan()` folds both to **PRO**, so every profile
+> above runs the Pro edition.
 
 **Licensing & Account is also an add-on.** The `/platform` backend is mounted in
 *every* deployment, so after picking 2/3/4 the installer asks
