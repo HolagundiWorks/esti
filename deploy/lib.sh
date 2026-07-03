@@ -10,8 +10,11 @@ info()    { echo -e "${GREEN}[✔]${NC} $*"; }
 section() { echo -e "\n${CYAN}${BOLD}▶ $*${NC}"; }
 warn()    { echo -e "${YELLOW}[!]${NC} $*"; }
 error()   { echo -e "${RED}[✘] ERROR:${NC} $*"; exit 1; }
-ask()     { echo -en "${BOLD}$1${NC} "; read -r "$2"; }
-askpass() { echo -en "${BOLD}$1${NC} "; read -rs "$2"; echo; }
+# `|| true`: read exits non-zero at EOF (no tty / stdin=/dev/null), which
+# would kill the script under `set -e`. Falling through leaves the variable
+# empty so each prompt's [auto-generate] / validation branch decides instead.
+ask()     { echo -en "${BOLD}$1${NC} "; read -r "$2" || true; }
+askpass() { echo -en "${BOLD}$1${NC} "; read -rs "$2" || true; echo; }
 
 REPO_URL="${REPO_URL:-https://github.com/HolagundiWorks/esti.git}"
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/esti}"
