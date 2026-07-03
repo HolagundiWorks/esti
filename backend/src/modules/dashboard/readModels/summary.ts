@@ -1,4 +1,4 @@
-import { and, count, eq, isNull, sql } from "drizzle-orm";
+import { count, eq, isNull, sql } from "drizzle-orm";
 import type { DB } from "../../../db/index.js";
 import {
   proposals,

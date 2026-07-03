@@ -22,14 +22,9 @@
     "desktop:build": "pnpm desktop:assemble && cargo tauri build --config desktop/src-tauri/tauri.conf.json",
     "desktop:package-components": "node desktop/scripts/package-components.mjs",
     "desktop:build-editions": "node desktop/scripts/build-editions.mjs",
-    "licenses": "node scripts/licenses.mjs",
-    "carbon:index": "python node_modules/@hcw/carbon-agent-kit/knowledge/scripts/sync-index.py",
-    "carbon:search": "python node_modules/@hcw/carbon-agent-kit/knowledge/scripts/search.py",
-    "carbon:install-rules": "node node_modules/@hcw/carbon-agent-kit/scripts/install-cursor-rules.mjs",
-    "postinstall": "node scripts/setup-carbon-kit.mjs"
+    "licenses": "node scripts/licenses.mjs"
   },
   "devDependencies": {
-    "@hcw/carbon-agent-kit": "workspace:*",
     "@eslint/js": "^9.9.0",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",

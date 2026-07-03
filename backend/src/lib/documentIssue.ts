@@ -1,4 +1,3 @@
-import { DEFAULT_NUMBERING_SCOPES, NumberingPatterns } from "@esti/contracts";
 import type { DB } from "../db/index.js";
 import { documentIssues } from "../db/schema.js";
 

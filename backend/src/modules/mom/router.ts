@@ -2,7 +2,7 @@ import { MomActionCreate, MomCreate } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { momActions, moms, projectOffices, tasks } from "../../db/schema.js";
+import { momActions, moms, tasks } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { recordDocumentIssue } from "../../lib/documentIssue.js";

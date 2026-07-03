@@ -23,9 +23,6 @@ RUN pnpm install --no-frozen-lockfile --ignore-scripts
 COPY packages/contracts packages/contracts
 COPY backend backend
 COPY frontend frontend
-COPY scripts scripts
-
-RUN pnpm --filter @hcw/aorms-ai-kit build && node scripts/setup-carbon-kit.mjs
 
 EXPOSE 5173
 CMD ["pnpm", "--filter", "@esti/frontend", "dev"]

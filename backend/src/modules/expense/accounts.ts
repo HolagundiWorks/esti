@@ -1,6 +1,5 @@
-import { clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import { accounts, expenses } from "../../db/schema.js";
 import { capabilityProcedure, router } from "../../trpc/trpc.js";

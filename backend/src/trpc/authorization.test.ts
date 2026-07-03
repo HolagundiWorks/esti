@@ -46,9 +46,21 @@ function user(role: AuthUser["role"], overrides: Partial<AuthUser> = {}): AuthUs
   };
 }
 
+/** Minimal DB stub for the license gate: getOrgSettings() reads the singleton
+ *  org-settings row; a null licenseToken = unmanaged install (never blocked). */
+const dbStub = {
+  select: () => ({
+    from: () => ({
+      limit: async () => [
+        { plan: null, licenseToken: null, hrEnabled: true, orgMode: "STUDIO" },
+      ],
+    }),
+  }),
+} as unknown as Context["db"];
+
 function caller(authUser: AuthUser | null) {
   return authorizationRouter.createCaller({
-    db: {} as Context["db"],
+    db: dbStub,
     user: authUser,
     deviceSessionId: null,
     ip: "127.0.0.1",

@@ -1,5 +1,5 @@
-# Build dev images for Podman/Docker compose (context = this repo root —
-# the HCW kits are vendored under vendor/, no sibling checkouts needed).
+# Build dev images for Podman compose (context = repo root; @hcw/aorms-ai-kit is
+# vendored under vendor/ — no sibling repos needed).
 #   ./scripts/build-dev-images.ps1
 $ErrorActionPreference = "Stop"
 $engine = if ($env:ENGINE) { $env:ENGINE } else { "podman" }

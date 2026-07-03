@@ -20,7 +20,6 @@ import {
 } from "@carbon/react";
 import { Calculator } from "@carbon/icons-react";
 import {
-  NBC_RULES_VERSION,
   NBC_ZONES,
   computeNbcPermissible,
   type NbcPermissibleReport,

@@ -119,7 +119,7 @@ function main() {
   const aiTar = join(installersDir, "_ai_node_modules.tgz");
   try {
     execSync(`tar -czf "${aiTar}" -C "${aiStage}" node_modules`, { stdio: "inherit" });
-  } catch (e) {
+  } catch {
     // On Windows without tar, try using PowerShell Compress-Archive as a fallback
     console.log("tar failed, trying PowerShell Compress-Archive fallback");
     execSync(`powershell -NoProfile -Command "Compress-Archive -Path '${aiStage}\\node_modules\\*' -DestinationPath '${aiTar}'"`, { stdio: "inherit" });

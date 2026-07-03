@@ -43,7 +43,7 @@ export function PomodoroRing() {
     const rect = el.getBoundingClientRect();
     const sx = ((e.clientX - rect.left) / rect.width) * DIAL.vb;
     const sy = ((e.clientY - rect.top) / rect.height) * DIAL.vb;
-    let deg = Math.atan2(sy - DIAL.cy, sx - DIAL.cx) * (180 / Math.PI);
+    const deg = Math.atan2(sy - DIAL.cy, sx - DIAL.cx) * (180 / Math.PI);
     let fromTop = (deg + 90) % 360;
     if (fromTop < 0) fromTop += 360;
     const minutes = Math.max(1, Math.min(60, Math.round((fromTop / 360) * 60)));

@@ -2,7 +2,7 @@
 
 **Canonical agent guide:** [CLAUDE.md](CLAUDE.md)
 
-**Carbon UI:** `@hcw/carbon-agent-kit` (`.carbon-kit/` after install) — design-intelligence → pattern-library → knowledge.
+**Carbon UI:** Pure Carbon only — see [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md); enforced by `frontend/scripts/check-carbon.mjs` + `carbon-policy.test.ts`.
 
 **AORMS AI:** `@hcw/aorms-ai-kit` — prompts + Ollama SDK in backend.
 

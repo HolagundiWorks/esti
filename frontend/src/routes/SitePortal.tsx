@@ -3,8 +3,6 @@ import {
   ClickableTile,
   InlineNotification,
   Modal,
-  Select,
-  SelectItem,
   Stack,
   Tag,
   TextArea,

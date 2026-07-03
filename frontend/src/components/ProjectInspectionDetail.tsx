@@ -44,7 +44,7 @@ export function ProjectInspectionDetail({
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const reject = trpc.inspections.reject.useMutation({
-    onSuccess: () => { inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }); setRejectOpen(false); setRejectNote(""); },
+    onSuccess: () => { if (inspectionId) utils.inspections.byId.invalidate({ id: inspectionId }); setRejectOpen(false); setRejectNote(""); },
   });
 
   const [actionText, setActionText] = useState("");

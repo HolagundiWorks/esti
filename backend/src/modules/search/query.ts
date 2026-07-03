@@ -523,8 +523,8 @@ async function searchKnowledge(db: DB, q: string): Promise<SearchHit[]> {
 async function searchPeopleAndTenders(
   db: DB,
   q: string,
-  caps: SearchCaps,
-  projectId?: string,
+  _caps: SearchCaps,
+  _projectId?: string,
 ): Promise<SearchHit[]> {
   const like = pattern(q);
   const hits: SearchHit[] = [];

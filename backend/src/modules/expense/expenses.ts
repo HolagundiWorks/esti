@@ -8,7 +8,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { accounts, expenses, projectOffices } from "../../db/schema.js";
+import { expenses, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";

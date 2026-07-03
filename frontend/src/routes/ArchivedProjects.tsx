@@ -44,10 +44,6 @@ export function ArchivedProjects() {
     },
   });
 
-  const exportQ = trpc.projectOffice.exportData.useQuery(
-    { id: purgeTarget?.id ?? "" },
-    { enabled: false },
-  );
 
   const purge = trpc.projectOffice.purge.useMutation({
     onSuccess: () => {

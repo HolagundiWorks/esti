@@ -25,8 +25,8 @@ podman compose up -d --build
 # MinIO    → http://localhost:9001 (console)
 ```
 
-> On Windows, build dev images from the **repos parent** (sibling `hcw-*-kit` packages),
-> then start compose:
+> All dev images build from the **repo root** — `@hcw/aorms-ai-kit` is vendored
+> under `vendor/`, so no sibling repos are needed. On Windows:
 > ```sh
 > ./scripts/build-dev-images.ps1
 > podman compose -f compose.yaml up -d

@@ -2,7 +2,7 @@ import { PeriodFilterInput, formatINR } from "@esti/contracts";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { invoices, projectOffices } from "../../db/schema.js";
-import { invoicePeriodDate, invoicePeriodWhere, periodRangeFromInput } from "../../lib/periodFilter.js";
+import { invoicePeriodDate, periodRangeFromInput } from "../../lib/periodFilter.js";
 import { capabilityProcedure, router } from "../../trpc/trpc.js";
 
 const reportProcedure = capabilityProcedure("reports:view");

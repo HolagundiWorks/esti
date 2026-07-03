@@ -1,68 +1,54 @@
-# External kit packages
+# Vendored kit package
 
-AORMS consumes two HCW workspace packages vendored inside the monorepo under
-`vendor/`. They are pnpm workspace members (`vendor/*` in `pnpm-workspace.yaml`)
-and are **not** sibling repos on disk — everything needed to run is inside this
-repository.
+ESTI consumes **one** HCW package, vendored inside the monorepo under `vendor/`. It is a
+pnpm workspace member (`vendor/*` in `pnpm-workspace.yaml`) — **not** a sibling repo on
+disk. Everything needed to run is inside this repository.
 
 | Package | Vendor path | Role |
 |---------|-------------|------|
-| `@hcw/carbon-agent-kit` | `vendor/hcw-carbon-agent-kit/` | Carbon agent knowledge, patterns, Cursor rules |
-| `@hcw/aorms-ai-kit` | `vendor/hcw-aorms-ai-kit/` | AORMS AI prompts + Ollama SDK |
+| `@hcw/aorms-ai-kit` | `vendor/hcw-aorms-ai-kit/` | AORMS AI prompts + Ollama SDK (backend) |
 
-> The former `@hcw/master-dsr-kit` (CPWD + state SSR Rate Book catalogs) was
-> **removed** in the 2026-06-28 teardown along with the in-product Rate Books
-> (`dsr`) and Rate Analysis (`rateAnalysis`).
->
-> The earlier `@hcw/india-compliance-kit` (pan-India building-bylaw compliance
-> engine) was **removed** in the 2026-06 cleanup along with the in-product
-> RIE/compliance engine and BBMP bylaw calculator. There is no `bbmpRules` lib.
+> **Retired kits — do not reintroduce.**
+> - `@hcw/carbon-agent-kit` was **internalised** (2026-07): its Pure-Carbon lint policy now
+>   lives at `frontend/scripts/carbon-policy-rules.mjs`; design guidance is in
+>   [`esti/CARBON-UI-DIRECTION.md`](esti/CARBON-UI-DIRECTION.md).
+> - `@hcw/master-dsr-kit` (Rate Books) and `@hcw/india-compliance-kit` (bylaw engine) were
+>   removed in the 2026-06 teardown.
 
 ## Local setup
 
 ```bash
-pnpm install          # links workspace packages + runs postinstall (setup-carbon-kit.mjs)
-pnpm carbon:index     # refresh Carbon doc index
-pnpm carbon:search tile
+pnpm install          # links the workspace package + resolves deps
 ```
 
-After install, `.carbon-kit/` is a junction/symlink pointing at
-`vendor/hcw-carbon-agent-kit/` for agent docs.
-
-Kit packages build to `dist/` on install (`prepare` script). Podman dev images
-run an explicit build for the AI kit.
+The vendored AI kit ships a pre-built `dist/` (committed) — there is no build step.
+All Docker images (dev and prod) copy `vendor/` from the repo-root build context.
 
 ## Dev volume mounts
 
-In `compose.yaml`, `./vendor:/app/esti/vendor` is mounted into both the
-`backend` and `frontend` containers. Vite's `fs.allow` covers `estiRoot`
-(`/app/esti`) which includes `vendor/`, so kit dist files are served correctly
-in dev.
+In `compose.yaml`, `./vendor:/app/esti/vendor` is mounted into the `backend` and `frontend`
+containers. Vite's `fs.allow` covers `/app/esti` (incl. `vendor/`), so kit dist files are
+served in dev.
 
-## Updating a vendored kit
+## Updating the vendored kit
 
-When HCW releases a new kit version:
+1. Build the release in the kit repo and copy it (incl. `dist/`) into
+   `vendor/hcw-aorms-ai-kit/` (keep the directory name).
+2. Confirm `vendor/hcw-aorms-ai-kit/package.json` shows the new version.
+3. `pnpm install` at the repo root to re-link.
+4. Rebuild the backend image (compiled SDK).
+5. Test in the Podman dev stack before deploying.
 
-1. Copy the new release into the relevant `vendor/hcw-<kit>/` directory,
-   replacing the existing files (keep the directory name unchanged).
-2. Confirm `vendor/hcw-<kit>/package.json` shows the new version.
-3. Run `pnpm install` at the repo root so pnpm re-links workspace packages.
-4. Rebuild backend and/or frontend images as needed:
-   - AI kit (`@hcw/aorms-ai-kit`) → rebuild backend image.
-   - Carbon kit → run `pnpm carbon:index` to refresh agent docs.
-5. Test that the affected feature works in the Podman dev stack before deploying.
-
-Do **not** publish vendored kits to npm or GitHub Packages — they are
-internal HCW packages distributed as committed source.
+Do **not** publish the vendored kit to npm / GitHub Packages — it is distributed as
+committed source.
 
 ## CI
 
-- `pnpm install` must resolve both workspace packages from `vendor/`
-- `pnpm --filter @hcw/aorms-ai-kit test` — landing AI unit tests
-- `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks
-- `pnpm --filter @esti/frontend lint` — `check-carbon.mjs` imports `@hcw/carbon-agent-kit/policy`
+CI uses a **single checkout** — no sibling kit repos are cloned.
 
-## AI runtime
+- `pnpm install` resolves the workspace package from `vendor/`.
+- `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks.
+- `pnpm --filter @esti/frontend lint` — runs `check-carbon.mjs` (internalised Carbon policy)
+  and the `carbon-policy.test.ts` vitest guard.
 
-Rebuild backend after updating kit versions so compiled SDKs are in the image.
 Ollama requirement for landing AI unchanged — see [PRODUCTION-OPS.md](esti/PRODUCTION-OPS.md).

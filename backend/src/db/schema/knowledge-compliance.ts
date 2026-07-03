@@ -1,6 +1,5 @@
 import { users } from "./org-auth.js";
 import {
-  boolean,
   createdAt,
   id,
   jsonb,

@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { activities, projectOffices } from "../../db/schema.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";

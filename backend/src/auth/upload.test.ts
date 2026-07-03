@@ -25,10 +25,10 @@ describe("uploadDenial", () => {
       "/upload/inspection-photo": "write",
       "/upload/reconcile": "write",
       "/upload/firm-logo": "firm:admin",
-      "/upload/profile-photo": "write",
-      "/upload/master-plan": "write",
-      "/upload/standard-file": "write",
       "/upload/compliance-doc": "write",
+      "/upload/master-plan": "write",
+      "/upload/profile-photo": "write",
+      "/upload/standard-file": "write",
     });
   });
 
