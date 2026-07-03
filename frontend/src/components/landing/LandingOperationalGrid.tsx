@@ -451,6 +451,7 @@ export function CollaborationSection() {
           title="Clients decide inside a record, not inside WhatsApp noise"
           bullets={[
             "Approvals, drawings, RFIs, and fee status move through a scoped portal",
+            "Issued meeting minutes appear here — ESTI drafts the revision requests they'd otherwise never write",
             "Decisions stop disappearing into screenshots and forwarded messages",
           ]}
         />
@@ -499,6 +500,17 @@ export function IntelligenceSection() {
           bullets={[
             "Drafts explanations, summaries and CAD notes from your own records",
             "Runs on-server (Ollama) or with your own OpenAI-compatible key",
+          ]}
+        />
+        <FeatureTile
+          header="Minutes → Revisions"
+          dot="green"
+          meta="CLIENT PORTAL"
+          title="ESTI turns issued meeting minutes into the client's revision requests"
+          bullets={[
+            "Issue the minutes; ESTI extracts every change discussed into a ready, categorised request",
+            "Clients review, edit and send — they never have to write a revision request again",
+            "Drafts only: nothing reaches the office without the client's explicit push",
           ]}
         />
         <FeatureTile
