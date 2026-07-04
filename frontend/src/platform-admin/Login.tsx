@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Column,
   Form,
-  Grid,
   InlineNotification,
   Stack,
   Tag,
@@ -157,9 +155,8 @@ export default function Login({
 
   return (
     <Theme theme="g100">
-      <main style={{ padding: "var(--cds-spacing-06)" }}>
-        <Grid>
-          <Column sm={4} md={5} lg={6}>
+      <main className="esti-login-shell">
+        <div className="esti-login-panel">
             <Tile>
               <Stack gap={6}>
                 <Stack gap={2}>
@@ -345,8 +342,7 @@ export default function Login({
                 )}
               </Stack>
             </Tile>
-          </Column>
-        </Grid>
+        </div>
       </main>
     </Theme>
   );

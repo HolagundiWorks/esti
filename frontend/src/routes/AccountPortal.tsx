@@ -1,5 +1,5 @@
 import { ArrowLeft } from "@carbon/icons-react";
-import { Button, Loading, Stack, Tag, Tile } from "@carbon/react";
+import { Button, Loading, Stack, Tag, Theme, Tile } from "@carbon/react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
@@ -40,9 +40,11 @@ export function AccountPortal() {
 
   if (checking) {
     return (
-      <main style={{ padding: "var(--cds-spacing-06)" }}>
-        <Loading withOverlay={false} description="Loading" />
-      </main>
+      <Theme theme="g100">
+        <main className="esti-portal-shell">
+          <Loading withOverlay={false} description="Loading" />
+        </main>
+      </Theme>
     );
   }
 
@@ -62,7 +64,8 @@ export function AccountPortal() {
   // Signed in → the account dashboard.
   const account = me.account;
   return (
-    <main style={{ padding: "var(--cds-spacing-06)" }}>
+    <Theme theme="g100">
+    <main className="esti-portal-shell">
       <Stack gap={6}>
         <Stack gap={3} orientation="horizontal">
           <h1 className="esti-grow">AORMS Account</h1>
@@ -113,5 +116,6 @@ export function AccountPortal() {
         </Suspense>
       </Stack>
     </main>
+    </Theme>
   );
 }

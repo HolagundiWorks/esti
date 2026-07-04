@@ -3973,3 +3973,27 @@ h1.esti-landing-lead-title {
     &:hover { color: var(--cds-text-primary); text-decoration: underline; }
   }
 }
+
+// ── Auth surfaces (workspace login, portal access, licence/account portal) ────
+// Every sign-in and the account/licence portal share the landing contour
+// background + deep base so the entry points match the marketing site instead
+// of sitting on blank white space. Layout (centering) stays in styles.scss.
+.esti-login-shell,
+.esti-portal-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 11, 0.74), rgba(11, 11, 11, 0.86)),
+    url("/landing-contour-bg.svg") center / cover no-repeat,
+    #0b0b0b;
+}
+
+// Full-page portal (account / licence dashboard) — content flows on the
+// contour, constrained to a comfortable reading width.
+.esti-portal-shell {
+  padding: var(--cds-spacing-07) var(--cds-spacing-06) var(--cds-spacing-09);
+
+  > * {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+}

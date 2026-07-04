@@ -5,6 +5,7 @@ import {
   InlineNotification,
   Stack,
   TextInput,
+  Theme,
   Tile,
 } from "@carbon/react";
 import { useState } from "react";
@@ -45,6 +46,7 @@ export function ExternalLogin() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
+    <Theme theme="g100">
     <main className="esti-login-shell">
       <Stack gap={5} className="esti-login-panel">
         <Tile>
@@ -131,5 +133,6 @@ export function ExternalLogin() {
         </Tile>
       </Stack>
     </main>
+    </Theme>
   );
 }
