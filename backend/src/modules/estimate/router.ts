@@ -19,7 +19,15 @@
  * CONSULTANT collaborators. Estimates carry internal costing, so keep this tier:
  * do not drop to `authedProcedure`/`publicProcedure`.
  */
-import { EstimateLineCreate, EstimateMeasurementAdd } from "@esti/contracts";
+import {
+  EstimateLineCreate,
+  EstimateMeasurementAdd,
+  MeasurementDerivation,
+  deriveColumn,
+  derivationChildDims,
+  dimensionCount,
+  lineQuantity,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, ilike, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -50,6 +58,26 @@ async function requireLine(db: Parameters<typeof getProjectById>[0], id: string)
 
 const touch = (db: Parameters<typeof getProjectById>[0], estimateId: string) =>
   db.update(estimates).set({ updatedAt: new Date() }).where(eq(estimates.id, estimateId));
+
+/** Row (nullable dims) → contract measurement (undefined dims). */
+const toMeasurement = (m: { nos: number; l: number | null; b: number | null; h: number | null }) => ({
+  nos: m.nos,
+  l: m.l ?? undefined,
+  b: m.b ?? undefined,
+  h: m.h ?? undefined,
+});
+
+/** A scalar quantity (RATIO derivation) expressed as a measurement whose
+ *  measurementQty equals the quantity, for the child unit's dimensionality. */
+function scalarMeasurement(qty: number, unit: string) {
+  const dims = dimensionCount(unit);
+  return {
+    nos: Math.round(qty * 1000) / 1000,
+    l: dims >= 1 ? 1 : null,
+    b: dims >= 2 ? 1 : null,
+    h: dims >= 3 ? 1 : null,
+  };
+}
 
 export const estimatesRouter = router({
   list: protectedProcedure
@@ -139,6 +167,7 @@ export const estimatesRouter = router({
           unit: childItem.unit,
           ratio: kbItemDependencies.ratio,
           dependencyType: kbItemDependencies.dependencyType,
+          derivation: kbItemDependencies.derivation,
         })
         .from(kbItemDependencies)
         .innerJoin(childItem, eq(kbItemDependencies.childItemId, childItem.id))
@@ -238,6 +267,109 @@ export const estimatesRouter = router({
       }
       await touch(ctx.db, line.estimateId);
       return { kept: true as const };
+    }),
+
+  /**
+   * Auto-create the parent line's dependency children from its measurements.
+   * For each KB dependency edge of the parent's item:
+   *   - MANUAL            → returned in `manual` for the sheet to queue (hand entry)
+   *   - RATIO             → one child column: parent line qty × edge.ratio
+   *   - geometric (2-D)   → one derived child column per parent column (deriveColumn)
+   * A geometric derivation whose child unit is not 2-D falls back to manual entry.
+   * Idempotent: prior AUTO (derived) children of this parent are replaced; any
+   * manual/overridden children are left untouched — so it doubles as re-derive.
+   */
+  deriveDependencies: protectedProcedure
+    .input(z.object({ parentLineId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const parent = await requireLine(ctx.db, input.parentLineId);
+      if (parent.parentLineId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only a main line derives dependencies." });
+      }
+      if (!parent.kbItemId) return { created: [] as string[], manual: [] };
+
+      const parentMs = await ctx.db
+        .select()
+        .from(estimateMeasurements)
+        .where(eq(estimateMeasurements.lineId, parent.id))
+        .orderBy(asc(estimateMeasurements.sortOrder), asc(estimateMeasurements.createdAt));
+
+      const edges = await ctx.db
+        .select({
+          childItemId: kbItemDependencies.childItemId,
+          name: childItem.name,
+          unit: childItem.unit,
+          ratio: kbItemDependencies.ratio,
+          derivation: kbItemDependencies.derivation,
+        })
+        .from(kbItemDependencies)
+        .innerJoin(childItem, eq(kbItemDependencies.childItemId, childItem.id))
+        .where(eq(kbItemDependencies.parentItemId, parent.kbItemId))
+        .orderBy(asc(childItem.name));
+
+      // Re-derivation: drop this parent's prior AUTO children (manual ones survive).
+      await ctx.db
+        .delete(estimateLines)
+        .where(and(eq(estimateLines.parentLineId, parent.id), eq(estimateLines.derived, true)));
+
+      const created: string[] = [];
+      const manual: { kbItemId: string; name: string; unit: string }[] = [];
+
+      for (const edge of edges) {
+        const parsed = MeasurementDerivation.safeParse(edge.derivation);
+        const derivation = parsed.success ? parsed.data : "MANUAL";
+
+        let childCols: { nos: number; l: number | null; b: number | null; h: number | null }[] = [];
+        if (derivation === "MANUAL") {
+          manual.push({ kbItemId: edge.childItemId, name: edge.name, unit: edge.unit });
+          continue;
+        } else if (derivation === "RATIO") {
+          const qty = lineQuantity(parentMs.map(toMeasurement), parent.unit) * edge.ratio;
+          childCols = [scalarMeasurement(qty, edge.unit)];
+        } else {
+          // Geometric — needs a 2-D child unit; otherwise fall back to manual entry.
+          if (derivationChildDims(derivation) !== dimensionCount(edge.unit)) {
+            manual.push({ kbItemId: edge.childItemId, name: edge.name, unit: edge.unit });
+            continue;
+          }
+          childCols = parentMs
+            .map((m) => deriveColumn(derivation, toMeasurement(m)))
+            .filter((c): c is NonNullable<typeof c> => c != null)
+            .map((c) => ({ nos: c.nos, l: c.l ?? null, b: c.b ?? null, h: c.h ?? null }));
+        }
+        if (childCols.length === 0) continue;
+
+        const [agg] = await ctx.db
+          .select({ next: sql<number>`coalesce(max(${estimateLines.sortOrder}), 0) + 1` })
+          .from(estimateLines)
+          .where(eq(estimateLines.estimateId, parent.estimateId));
+        const [line] = await ctx.db
+          .insert(estimateLines)
+          .values({
+            estimateId: parent.estimateId,
+            parentLineId: parent.id,
+            kbItemId: edge.childItemId,
+            sortOrder: agg?.next ?? 1,
+            description: edge.name,
+            unit: edge.unit,
+            derived: true,
+          })
+          .returning();
+        await ctx.db.insert(estimateMeasurements).values(
+          childCols.map((c, i) => ({
+            lineId: line!.id,
+            sortOrder: i + 1,
+            nos: c.nos,
+            l: c.l,
+            b: c.b,
+            h: c.h,
+          })),
+        );
+        created.push(line!.id);
+      }
+
+      await touch(ctx.db, parent.estimateId);
+      return { created, manual };
     }),
 
   updateLine: protectedProcedure

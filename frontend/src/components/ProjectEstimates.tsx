@@ -65,13 +65,31 @@ function fmtQty(n: number): string {
 /** One saved line — each measurement is a row; parameters + Qty are columns. */
 function SavedLine({ no, line }: {
   no: string;
-  line: { description: string; unit: string; measurements?: unknown; parentLineId: string | null };
+  line: {
+    description: string;
+    unit: string;
+    measurements?: unknown;
+    parentLineId: string | null;
+    derived?: boolean;
+  };
 }) {
   const ms = (line.measurements ?? []) as EstimateMeasurement[];
   const rows = measurementRows(line.unit);
   const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
   return (
-    <TableContainer title={`${no} · ${line.description}`} description={`Unit: ${line.unit} · Qty: ${fmtQty(lineQuantity(ms, line.unit))} ${line.unit}`}>
+    <TableContainer
+      title={
+        <span>
+          {no} · {line.description}{" "}
+          {line.derived && (
+            <Tag type="teal" size="sm">
+              auto
+            </Tag>
+          )}
+        </span>
+      }
+      description={`Unit: ${line.unit} · Qty: ${fmtQty(lineQuantity(ms, line.unit))} ${line.unit}`}
+    >
       <Table size="sm">
         <TableHead>
           <TableRow>
@@ -108,6 +126,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
   const estimateQ = trpc.estimates.get.useQuery({ id: estimateId });
   const openLine = trpc.estimates.openLine.useMutation();
   const addMeasurement = trpc.estimates.addMeasurement.useMutation();
+  const deriveDependencies = trpc.estimates.deriveDependencies.useMutation();
   const closeLine = trpc.estimates.closeLine.useMutation({
     onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
   });
@@ -197,20 +216,23 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
   /** Double Enter — close the sheet; empty lines are pruned server-side. */
   async function closeItem() {
     if (entry.phase !== "measuring") return;
-    const { element, dep, lineId } = entry;
+    const { dep, lineId } = entry;
     setError(null);
     try {
       const { kept } = await closeLine.mutateAsync({ id: lineId });
       if (!dep) {
-        const children = kept
-          ? await utils.estimates.elementChildren.fetch({ kbItemId: element.id })
+        // Auto-derive dependency children from this line's measurements; only the
+        // MANUAL ones come back to be punched by hand.
+        const manual = kept
+          ? (await deriveDependencies.mutateAsync({ parentLineId: lineId })).manual
           : [];
-        if (kept && children.length > 0) {
-          setDepQueue(children.map((c) => ({ kbItemId: c.kbItemId, name: c.name, unit: c.unit })));
+        await utils.estimates.get.invalidate({ id: estimateId });
+        if (manual.length > 0) {
+          setDepQueue(manual.map((c) => ({ kbItemId: c.kbItemId, name: c.name, unit: c.unit })));
           setEntry({
             phase: "armed",
-            element: { id: children[0]!.kbItemId, name: children[0]!.name, category: null, unit: children[0]!.unit },
-            dep: { parentLineId: lineId, index: 0, total: children.length },
+            element: { id: manual[0]!.kbItemId, name: manual[0]!.name, category: null, unit: manual[0]!.unit },
+            dep: { parentLineId: lineId, index: 0, total: manual.length },
           });
           return;
         }

@@ -139,8 +139,11 @@ export const kbItemDependencies = pgTable("esti_kb_item_dependency", {
   childItemId: uuid("child_item_id")
     .notNull()
     .references(() => kbItems.id, { onDelete: "cascade" }),
-  ratio: doublePrecision("ratio").notNull().default(1), // child qty = parent qty × ratio
+  ratio: doublePrecision("ratio").notNull().default(1), // child qty = parent qty × ratio (RATIO derivation)
   dependencyType: text("dependency_type").notNull().default("MANDATORY"), // MANDATORY|OPTIONAL|SEQUENCE
+  // How the child's measurement is derived from the parent's — see
+  // MeasurementDerivation in @esti/contracts (MANUAL|RATIO|PERIMETER_X_HEIGHT|…).
+  derivation: text("derivation").notNull().default("MANUAL"),
   notes: text("notes"),
   createdAt: createdAt(),
 });

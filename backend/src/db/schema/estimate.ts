@@ -8,6 +8,7 @@
 import { kbItems } from "./knowledge-bank.js";
 import { projectOffices } from "./project.js";
 import {
+  boolean,
   createdAt,
   doublePrecision,
   id,
@@ -41,6 +42,9 @@ export const estimateLines = pgTable("esti_estimate_line", {
   code: text("code"),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
+  /** True when this dependency line was auto-created from its parent's
+   *  measurements (a derivation). Manual/overridden lines are false. */
+  derived: boolean("derived").notNull().default(false),
   createdAt: createdAt(),
 });
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MeasurementDerivation } from "./estimate.js";
 
 // Construction Knowledge Bank OS contracts. See
 // docs/esti/CONSTRUCTION-KNOWLEDGE-BANK.md. Money fields are integer paise.
@@ -148,9 +149,20 @@ export const KbItemDependencyCreate = z.object({
   childItemId: z.string().uuid(),
   ratio: z.number().min(0).default(1),
   dependencyType: KbDependencyType.default("MANDATORY"),
+  /** How the child's measurement is derived from the parent's (default: manual). */
+  derivation: MeasurementDerivation.default("MANUAL"),
   notes: z.string().max(500).optional(),
 });
 export type KbItemDependencyCreate = z.infer<typeof KbItemDependencyCreate>;
+
+export const KbItemDependencyUpdate = z.object({
+  id: z.string().uuid(),
+  ratio: z.number().min(0).optional(),
+  dependencyType: KbDependencyType.optional(),
+  derivation: MeasurementDerivation.optional(),
+  notes: z.string().max(500).nullish(),
+});
+export type KbItemDependencyUpdate = z.infer<typeof KbItemDependencyUpdate>;
 
 export const KbByParentItemInput = z.object({ parentItemId: z.string().uuid() });
 export type KbByParentItemInput = z.infer<typeof KbByParentItemInput>;

@@ -7,6 +7,7 @@ import {
   KbBySpecInput,
   KbIdInput,
   KbItemDependencyCreate,
+  KbItemDependencyUpdate,
   KbItemCreate,
   KbItemUpdate,
   KbLaborCreate,
@@ -640,8 +641,10 @@ const dependencies = router({
         parentItemName: parentItem.name,
         childItemId: kbItemDependencies.childItemId,
         childItemName: childItem.name,
+        childItemUnit: childItem.unit,
         ratio: kbItemDependencies.ratio,
         dependencyType: kbItemDependencies.dependencyType,
+        derivation: kbItemDependencies.derivation,
         notes: kbItemDependencies.notes,
       })
       .from(kbItemDependencies)
@@ -670,10 +673,34 @@ const dependencies = router({
           childItemId: input.childItemId,
           ratio: input.ratio,
           dependencyType: input.dependencyType,
+          derivation: input.derivation,
           notes: input.notes ?? null,
         })
         .returning();
       return row!;
+    }),
+  update: protectedProcedure
+    .input(KbItemDependencyUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const patch: Record<string, unknown> = {};
+      if (input.ratio !== undefined) patch.ratio = input.ratio;
+      if (input.dependencyType !== undefined) patch.dependencyType = input.dependencyType;
+      if (input.derivation !== undefined) patch.derivation = input.derivation;
+      if (input.notes !== undefined) patch.notes = input.notes ?? null;
+      if (Object.keys(patch).length === 0) {
+        const [row] = await ctx.db
+          .select()
+          .from(kbItemDependencies)
+          .where(eq(kbItemDependencies.id, input.id));
+        return row!;
+      }
+      const [row] = await ctx.db
+        .update(kbItemDependencies)
+        .set(patch)
+        .where(eq(kbItemDependencies.id, input.id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      return row;
     }),
   remove: protectedProcedure.input(KbIdInput).mutation(async ({ ctx, input }) => {
     await ctx.db.delete(kbItemDependencies).where(eq(kbItemDependencies.id, input.id));
