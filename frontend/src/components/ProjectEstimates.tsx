@@ -121,6 +121,9 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
   const [error, setError] = useState<string | null>(null);
   const slashRef = useRef<HTMLInputElement>(null);
   const activeCellRef = useRef<HTMLInputElement>(null);
+  // Guards against a second armed-Enter (key repeat) creating a duplicate line
+  // before the armed→measuring re-render lands.
+  const openingRef = useRef(false);
 
   const searchQuery = entry.phase === "slash" && entry.text.startsWith("/")
     ? entry.text.slice(1).trim()
@@ -151,7 +154,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
 
   /** Enter in the armed state — open the sheet: the backend creates the line. */
   async function openSheet() {
-    if (entry.phase !== "armed") return;
+    if (entry.phase !== "armed" || openingRef.current) return;
+    openingRef.current = true;
     setError(null);
     try {
       const line = await openLine.mutateAsync({
@@ -169,6 +173,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not open the measurement sheet");
+    } finally {
+      openingRef.current = false;
     }
   }
 

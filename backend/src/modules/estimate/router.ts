@@ -201,7 +201,14 @@ export const estimatesRouter = router({
   removeMeasurement: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const [owner] = await ctx.db
+        .select({ estimateId: estimateLines.estimateId })
+        .from(estimateMeasurements)
+        .innerJoin(estimateLines, eq(estimateMeasurements.lineId, estimateLines.id))
+        .where(eq(estimateMeasurements.id, input.id))
+        .limit(1);
       await ctx.db.delete(estimateMeasurements).where(eq(estimateMeasurements.id, input.id));
+      if (owner) await touch(ctx.db, owner.estimateId);
       return { ok: true };
     }),
 

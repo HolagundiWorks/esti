@@ -37,10 +37,12 @@ export function setValue(s: MeasureState, value: number | null): MeasureState {
   return { ...s, column };
 }
 
-/** Column → measurement. Slot 0 is Nos (or Qty for 0-dim units). */
+/** Column → measurement. Slot 0 is Nos (or Qty for 0-dim units). A blank Nos
+ *  on a dimensioned column defaults to 1 — standard takeoff convention, so
+ *  writing only "4 × 3" means one 4×3, not a zeroed-out measurement. */
 function columnToMeasurement(s: MeasureState): EstimateMeasurement {
   const [nos, l, b, h] = [s.column[0], s.column[1], s.column[2], s.column[3]];
-  const m: EstimateMeasurement = { nos: nos ?? 0 };
+  const m: EstimateMeasurement = { nos: nos ?? 1 };
   if (s.rows.length > 1) m.l = l ?? undefined;
   if (s.rows.length > 2) m.b = b ?? undefined;
   if (s.rows.length > 3) m.h = h ?? undefined;

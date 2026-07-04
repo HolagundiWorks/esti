@@ -59,6 +59,23 @@ describe("estimate sheet keyboard grammar", () => {
     expect(s.recorded).toEqual([]);
   });
 
+  it("blank Nos on a dimensioned column defaults to 1 (takeoff convention)", () => {
+    let s = startMeasuring("sqm");
+    // leave Nos blank, fill Length + Breadth
+    let r = pressEnter(s); // Nos empty, rowIdx 0 → would close; so type nothing but move via arrow
+    // simulate: skip Nos by arrowing down, fill L and B, record on last row
+    s = moveRow(startMeasuring("sqm"), 1); // cursor on Length
+    s = setValue(s, 4);
+    r = pressEnter(s); // advance to Breadth
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, 3);
+    r = pressEnter(s); // last row → record
+    expect(r.kind).toBe("recorded");
+    if (r.kind === "recorded") {
+      expect(r.state.recorded[0]).toEqual({ nos: 1, l: 4, b: 3 });
+    }
+  });
+
   it("partial column still records (missing dims read as zero qty)", () => {
     let s = startMeasuring("cum");
     s = setValue(s, 2); // Nos
