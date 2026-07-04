@@ -370,3 +370,24 @@ def fetch_estimate_boq_full(estimate_id: str) -> dict[str, Any] | None:
     """
     with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
         return conn.execute(sql, [estimate_id]).fetchone()
+
+
+def update_estimate_boq_client(estimate_id: str, **fields: Any) -> None:
+    """Patch the client-copy BOQ-PDF columns (same generic kwargs)."""
+    remap = {"pdf_status": "boq_client_pdf_status", "pdf_key": "boq_client_pdf_key"}
+    mapped = {remap.get(k, k): v for k, v in fields.items()}
+    _patch("esti_estimate", estimate_id, set(), mapped)
+
+
+def fetch_estimate_boq_client(estimate_id: str) -> dict[str, Any] | None:
+    """Same snapshot as the internal BOQ, but the client-copy pdf_key/status."""
+    sql = """
+        select e.title, e.boq_snapshot as snapshot,
+               e.boq_client_pdf_key as pdf_key, e.boq_client_pdf_status as pdf_status,
+               p.ref as project_ref, p.title as project_title
+        from esti_estimate e
+        join esti_projectoffice p on p.id = e.project_id
+        where e.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [estimate_id]).fetchone()

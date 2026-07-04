@@ -15,6 +15,7 @@ from typing import Any
 from ..config import settings
 from ..db import (
     fetch_drawing_full,
+    fetch_estimate_boq_client,
     fetch_estimate_boq_full,
     fetch_feeproposal_full,
     fetch_inspection_full,
@@ -29,6 +30,7 @@ from ..db import (
     fetch_site_instruction_full,
     update_drawing,
     update_estimate_boq,
+    update_estimate_boq_client,
     update_feeproposal,
     update_inspection,
     update_invoice,
@@ -686,8 +688,9 @@ td{{padding:4px 8px;border-bottom:1px solid #ddd}}
 </body></html>"""
 
 
-def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
-    """Priced BOQ + material abstract for an estimate, from the frozen snapshot."""
+def _boq_html(rec: dict[str, Any], firm: dict[str, Any], client: bool = False) -> str:
+    """Priced BOQ for an estimate, from the frozen snapshot. The internal copy
+    also prints the material + labour abstracts; the client copy is items only."""
     addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
     snap = rec.get("snapshot") or {}
     boq = snap.get("boq", [])
@@ -728,7 +731,7 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
             f"<td class='r'>{_amt(m.get('amountPaise'))}</td></tr>"
         )
     mat_block = ""
-    if materials:
+    if materials and not client:
         mat_block = (
             "<h4>Material abstract</h4>"
             "<table><thead><tr><th>Material</th><th class='c'>Unit</th>"
@@ -747,7 +750,7 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
             f"<td class='r'>{_amt(lab.get('amountPaise'))}</td></tr>"
         )
     lab_block = ""
-    if labor:
+    if labor and not client:
         lab_block = (
             "<h4>Labour abstract</h4>"
             "<table><thead><tr><th>Labour</th><th class='c'>Unit</th>"
@@ -756,6 +759,11 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
             "<tfoot><tr class='tot'><td colspan='4'>Labour total</td>"
             f"<td class='r'>{_inr(int(snap.get('laborTotalPaise') or 0))}</td></tr></tfoot></table>"
         )
+    note = (
+        "Bill of quantities at agreed rates."
+        if client
+        else "Priced at analysed rates (material + labour build-up)."
+    )
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
       td.r,th.r {{ text-align: right; }} td.c,th.c {{ text-align: center; }}
       tfoot .tot td {{ font-weight: 700; border-top: 2px solid #161616; }}</style></head><body>
@@ -772,14 +780,28 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
       </table>
       {mat_block}
       {lab_block}
-      <p class="muted" style="margin-top:20px">Priced at analysed rates (material + labour build-up).
+      <p class="muted" style="margin-top:20px">{note}
         Generated {_e(snap.get('generatedAt') or '')}. {_e(firm.get('legalName'))}.</p>
     </body></html>"""
+
+
+def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    return _boq_html(rec, firm, client=False)
+
+
+def _estimate_boq_client_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    return _boq_html(rec, firm, client=True)
 
 
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
     "estimate_boq": (fetch_estimate_boq_full, _estimate_boq_html, update_estimate_boq, "estimate_boq"),
+    "estimate_boq_client": (
+        fetch_estimate_boq_client,
+        _estimate_boq_client_html,
+        update_estimate_boq_client,
+        "estimate_boq_client",
+    ),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
     "transmittal": (fetch_transmittal_full, _transmittal_html, update_transmittal, "transmittal"),

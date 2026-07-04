@@ -203,9 +203,16 @@ function CostingPanel({ estimateId }: { estimateId: string }) {
   const utils = trpc.useUtils();
   const q = trpc.estimates.costing.useQuery(
     { id: estimateId },
-    { refetchInterval: (query) => pdfPollInterval(query.state.data?.boqPdfStatus, true) },
+    {
+      refetchInterval: (query) =>
+        pdfPollInterval(query.state.data?.boqPdfStatus, true) ||
+        pdfPollInterval(query.state.data?.boqClientPdfStatus, true),
+    },
   );
   const generatePdf = trpc.estimates.generateBoqPdf.useMutation({
+    onSuccess: () => void utils.estimates.costing.invalidate({ id: estimateId }),
+  });
+  const generateClientPdf = trpc.estimates.generateClientBoqPdf.useMutation({
     onSuccess: () => void utils.estimates.costing.invalidate({ id: estimateId }),
   });
   const data = q.data;
@@ -215,12 +222,22 @@ function CostingPanel({ estimateId }: { estimateId: string }) {
     <Stack gap={5}>
       <div className="esti-row-between">
         <h4>Costing</h4>
-        <PdfActionButtons
-          status={data.boqPdfStatus}
-          url={data.boqPdfUrl}
-          generatePending={generatePdf.isPending}
-          onGenerate={() => generatePdf.mutate({ id: estimateId })}
-        />
+        <div className="esti-row">
+          <span className="esti-label esti-label--secondary">Internal</span>
+          <PdfActionButtons
+            status={data.boqPdfStatus}
+            url={data.boqPdfUrl}
+            generatePending={generatePdf.isPending}
+            onGenerate={() => generatePdf.mutate({ id: estimateId })}
+          />
+          <span className="esti-label esti-label--secondary">Client</span>
+          <PdfActionButtons
+            status={data.boqClientPdfStatus}
+            url={data.boqClientPdfUrl}
+            generatePending={generateClientPdf.isPending}
+            onGenerate={() => generateClientPdf.mutate({ id: estimateId })}
+          />
+        </div>
       </div>
       <TableContainer title="Priced BOQ" description={`Total ${inr(data.totalPaise)}`}>
         <Table size="sm">

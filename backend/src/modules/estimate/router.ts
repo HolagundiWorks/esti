@@ -725,6 +725,9 @@ export const estimatesRouter = router({
       const boqPdfUrl = c.estimate.boqPdfKey
         ? await presignedGet(c.estimate.boqPdfKey).catch(() => null)
         : null;
+      const boqClientPdfUrl = c.estimate.boqClientPdfKey
+        ? await presignedGet(c.estimate.boqClientPdfKey).catch(() => null)
+        : null;
       return {
         estimate: { id: c.estimate.id, title: c.estimate.title, status: c.estimate.status },
         boq: c.boq,
@@ -735,6 +738,8 @@ export const estimatesRouter = router({
         laborTotalPaise: c.laborTotalPaise,
         boqPdfStatus: c.estimate.boqPdfStatus,
         boqPdfUrl,
+        boqClientPdfStatus: c.estimate.boqClientPdfStatus,
+        boqClientPdfUrl,
       };
     }),
 
@@ -764,6 +769,37 @@ export const estimatesRouter = router({
       await enqueueJob(
         "render_pdf",
         { target: "estimate_boq", id: input.id, firm: await firmPayload(ctx.db) },
+        ctx.requestId,
+      );
+      return { ok: true };
+    }),
+
+  /** Client copy of the BOQ — priced items only, no internal material/labour
+   *  abstracts. Same snapshot, rendered by a different target. Approved only. */
+  generateClientBoqPdf: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const c = await computeCosting(ctx.db, input.id);
+      if (c.estimate.status !== "APPROVED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Generate the BOQ after the estimate is approved." });
+      }
+      const snapshot = {
+        title: c.estimate.title,
+        boq: c.boq,
+        totalPaise: c.totalPaise,
+        materials: c.materials,
+        materialTotalPaise: c.materialTotalPaise,
+        labor: c.labor,
+        laborTotalPaise: c.laborTotalPaise,
+        generatedAt: new Date().toISOString(),
+      };
+      await ctx.db
+        .update(estimates)
+        .set({ boqSnapshot: snapshot, boqClientPdfStatus: "PENDING" })
+        .where(eq(estimates.id, input.id));
+      await enqueueJob(
+        "render_pdf",
+        { target: "estimate_boq_client", id: input.id, firm: await firmPayload(ctx.db) },
         ctx.requestId,
       );
       return { ok: true };

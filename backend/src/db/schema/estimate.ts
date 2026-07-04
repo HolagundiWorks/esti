@@ -36,6 +36,9 @@ export const estimates = pgTable("esti_estimate", {
   boqSnapshot: jsonb("boq_snapshot"),
   boqPdfKey: text("boq_pdf_key"),
   boqPdfStatus: text("boq_pdf_status").notNull().default("NONE"),
+  /** Client copy — the priced BOQ only, no internal material/labour abstracts. */
+  boqClientPdfKey: text("boq_client_pdf_key"),
+  boqClientPdfStatus: text("boq_client_pdf_status").notNull().default("NONE"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: createdAt(),
 });
