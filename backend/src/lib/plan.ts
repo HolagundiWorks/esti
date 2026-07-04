@@ -93,7 +93,9 @@ export async function licenseState(db: DB): Promise<LicenseState> {
       plan: fallbackPlan,
       seats: seatsFor(fallbackPlan),
       managed,
-      blocked: managed && env.ESTI_ROLE === "node",
+      // Never write-lock a local-first desktop install — the firm owns its data
+      // on its own machine; a missing/lapsed licence only limits Pro features.
+      blocked: managed && env.ESTI_ROLE === "node" && !env.DESKTOP,
       firmId: null,
       issuedAt: null,
       expiresAt: null,
@@ -120,7 +122,8 @@ export async function licenseState(db: DB): Promise<LicenseState> {
     plan: derived.plan,
     seats: derived.seats,
     managed: true,
-    blocked: status === "EXPIRED" && env.ESTI_ROLE === "node",
+    // Local desktop installs are never write-locked (see UNLICENSED branch).
+    blocked: status === "EXPIRED" && env.ESTI_ROLE === "node" && !env.DESKTOP,
     firmId: derived.firmId,
     issuedAt: derived.issuedAtIso,
     expiresAt: derived.expiresAtIso,

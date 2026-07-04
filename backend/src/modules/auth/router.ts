@@ -19,6 +19,7 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
+import { licenseState } from "../../lib/plan.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -484,6 +485,22 @@ export const authRouter = router({
   }),
 
   me: publicProcedure.query(({ ctx }) => ctx.user),
+
+  /**
+   * Server-authoritative runtime signal so the SPA can branch on WHERE it runs
+   * instead of guessing from build flags. `desktop` = a local-first desktop
+   * install (data on this machine, no online workspace); `managed` = a licence
+   * token or hub is configured; `mode` folds these for convenience.
+   */
+  runtime: publicProcedure.query(async ({ ctx }) => {
+    const state = await licenseState(ctx.db);
+    const desktop = Boolean(env.DESKTOP);
+    return {
+      desktop,
+      managed: state.managed,
+      mode: desktop ? ("local" as const) : ("cloud" as const),
+    };
+  }),
 
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
   resetDemo: publicProcedure.mutation(async ({ ctx }) => {

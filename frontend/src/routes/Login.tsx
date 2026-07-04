@@ -12,7 +12,7 @@ import {
 } from "@carbon/react";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
-import { setDesktopToken } from "../lib/api-base.js";
+import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -73,7 +73,14 @@ export function Login() {
   async function afterLogin(data: unknown) {
     // Desktop returns a session token (cookies don't cross the loopback origin).
     setDesktopToken((data as { token?: string }).token);
-    // Always land on the guide step: company workspace(s) when memberships
+    // Local-first desktop Lite: a single-firm workspace that lives on this
+    // machine — there is no online tenant/company step, so go straight in.
+    if (IS_DESKTOP) {
+      await utils.auth.me.invalidate();
+      navigate("/", { replace: true });
+      return;
+    }
+    // Cloud: land on the guide step: company workspace(s) when memberships
     // exist, otherwise the personal workspace — plus the personal AORMS
     // account, so every sign-in sees where it can go.
     setCompanies((data as { companies?: CompanyOption[] }).companies ?? []);
@@ -172,7 +179,9 @@ export function Login() {
               <h2>{companies ? "Where are you working today?" : "Welcome back"}</h2>
               {!companies && (
                 <p className="esti-label esti-label--secondary">
-                  One account for your studio, your companies, and your AORMS identity.
+                  {IS_DESKTOP
+                    ? "AORMS Lite · this workspace lives on this computer."
+                    : "One account for your studio, your companies, and your AORMS identity."}
                 </p>
               )}
             </Stack>
@@ -361,7 +370,7 @@ export function Login() {
                     </Button>
                   ) : (
                     <Button as={RouterLink} to="/signup" kind="ghost" size="sm">
-                      Create account
+                      {IS_DESKTOP ? "First time? Set up your studio" : "Create account"}
                     </Button>
                   )}
                 </div>
