@@ -23,6 +23,7 @@ import {
 } from "@carbon/react";
 import { can, formatINRShort } from "@esti/contracts";
 import { StatusSymbol } from "../components/dashboard/abstractShell.js";
+import { DashboardQuickActions } from "../components/dashboard/DashboardQuickActions.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
@@ -249,6 +250,7 @@ export function StudioAbstract() {
   const tiQ       = trpc.dashboard.teamIntelligence.useQuery(undefined, { enabled: hrEnabled });
   const attQ      = trpc.dashboard.attendanceToday.useQuery(undefined, { enabled: hrEnabled });
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
+  const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
 
   const home = homeQ.data;
   const ac   = home?.actionCenter;
@@ -367,6 +369,40 @@ export function StudioAbstract() {
           </Tag>
         </Stack>
       </Tile>
+
+      {/* ── Quick actions + today's counters ────────────────────────────── */}
+      <Grid narrow>
+        <Column sm={4} md={4} lg={8}>
+          <DashboardQuickActions />
+        </Column>
+        <Column sm={2} md={2} lg={4}>
+          <Tile className="esti-fill">
+            <Stack gap={2}>
+              <span className="esti-label--helper">Pending Tasks</span>
+              <Stack orientation="horizontal" gap={3}>
+                <h3>{glanceQ.data?.pendingTasks ?? "—"}</h3>
+                {(glanceQ.data?.pendingTasks ?? 0) > 0 && <StatusSymbol state="watch" sm />}
+              </Stack>
+            </Stack>
+          </Tile>
+        </Column>
+        <Column sm={2} md={2} lg={4}>
+          <Tile className="esti-fill">
+            <Stack gap={2}>
+              <span className="esti-label--helper">Meetings Today</span>
+              <Stack orientation="horizontal" gap={3}>
+                <h3>{glanceQ.data?.meetingsToday ?? "—"}</h3>
+              </Stack>
+              {(glanceQ.data?.siteVisitsToday ?? 0) > 0 && (
+                <span className="esti-label--helper">
+                  incl. {glanceQ.data?.siteVisitsToday} site visit
+                  {(glanceQ.data?.siteVisitsToday ?? 0) > 1 ? "s" : ""}
+                </span>
+              )}
+            </Stack>
+          </Tile>
+        </Column>
+      </Grid>
 
       {/* ── Connected KPI grid ──────────────────────────────────────────── */}
       <Grid narrow className="esti-kpi-grid">

@@ -2,7 +2,7 @@ import { DashboardLayout } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { users } from "../../db/schema.js";
+import { moms, siteVisits, tasks, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
@@ -33,6 +33,32 @@ export const dashboardRouter = router({
 
   /** Bundled office dashboard data — one server round-trip for the home view. */
   home: protectedProcedure.query(({ ctx }) => getDashboardHome(ctx.db)),
+
+  /**
+   * Lightweight "today" counters for the home quick-glance band: open (not-done)
+   * tasks, and today's meetings — recorded MOMs dated today plus site visits
+   * planned for today. Kept separate from `home` so it can poll on its own cadence.
+   */
+  todayGlance: protectedProcedure.query(async ({ ctx }) => {
+    const [tasksRow] = await ctx.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(tasks)
+      .where(sql`${tasks.status} <> 'DONE'`);
+    const [momRow] = await ctx.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(moms)
+      .where(sql`${moms.meetingDate} = CURRENT_DATE`);
+    const [visitRow] = await ctx.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(siteVisits)
+      .where(sql`${siteVisits.plannedDate} = CURRENT_DATE AND ${siteVisits.status} <> 'CANCELLED'`);
+    const meetingsToday = (momRow?.n ?? 0) + (visitRow?.n ?? 0);
+    return {
+      pendingTasks: tasksRow?.n ?? 0,
+      meetingsToday,
+      siteVisitsToday: visitRow?.n ?? 0,
+    };
+  }),
 
   /** Explicit ingestion hook for workers/cron/tests; dashboard.home also refreshes idempotently. */
   ingestCognition: protectedProcedure.mutation(async ({ ctx }) => {
