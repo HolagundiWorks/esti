@@ -32,7 +32,7 @@ import {
   lineQuantity,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import {
@@ -495,56 +495,67 @@ export const estimatesRouter = router({
             .orderBy(asc(estimateMeasurements.sortOrder), asc(estimateMeasurements.createdAt))
         : [];
 
-      const revisionNo = (src.revisionNo ?? 0) + 1;
+      // Next revision number = max across the whole chain + 1, so Rev-N stays
+      // linear even if the same approved baseline is cloned more than once.
+      const root = src.revisionOf ?? src.id;
+      const [maxRow] = await ctx.db
+        .select({ max: sql<number>`coalesce(max(${estimates.revisionNo}), 0)` })
+        .from(estimates)
+        .where(or(eq(estimates.id, root), eq(estimates.revisionOf, root)));
+      const revisionNo = (maxRow?.max ?? 0) + 1;
       const base = src.title.replace(/\s*\(Rev \d+\)\s*$/i, "");
-      const [newEst] = await ctx.db
-        .insert(estimates)
-        .values({
-          projectId: src.projectId,
-          title: `${base} (Rev ${revisionNo})`,
-          status: "IN_PROGRESS",
-          revisionNo,
-          revisionOf: src.revisionOf ?? src.id,
-        })
-        .returning();
 
-      // Remap old line id → new line id: main lines first so dependency lines
-      // can point their parentLineId at the new parent.
-      const idMap = new Map<string, string>();
-      const copyLine = async (l: (typeof srcLines)[number], parentLineId: string | null) => {
-        const [n] = await ctx.db
-          .insert(estimateLines)
+      // One transaction so a mid-copy failure never leaves a partial revision.
+      return ctx.db.transaction(async (tx) => {
+        const [newEst] = await tx
+          .insert(estimates)
           .values({
-            estimateId: newEst!.id,
-            parentLineId,
-            kbItemId: l.kbItemId,
-            sortOrder: l.sortOrder,
-            code: l.code,
-            description: l.description,
-            unit: l.unit,
-            derived: l.derived,
+            projectId: src.projectId,
+            title: `${base} (Rev ${revisionNo})`,
+            status: "IN_PROGRESS",
+            revisionNo,
+            revisionOf: root,
           })
-          .returning({ id: estimateLines.id });
-        idMap.set(l.id, n!.id);
-      };
-      for (const l of srcLines.filter((x) => !x.parentLineId)) await copyLine(l, null);
-      for (const l of srcLines.filter((x) => x.parentLineId)) {
-        await copyLine(l, l.parentLineId ? idMap.get(l.parentLineId) ?? null : null);
-      }
-      if (srcMs.length) {
-        await ctx.db.insert(estimateMeasurements).values(
-          srcMs.map((m) => ({
-            lineId: idMap.get(m.lineId)!,
-            sortOrder: m.sortOrder,
-            label: m.label,
-            nos: m.nos,
-            l: m.l,
-            b: m.b,
-            h: m.h,
-          })),
-        );
-      }
-      return newEst!;
+          .returning();
+
+        // Remap old line id → new line id: main lines first so dependency lines
+        // can point their parentLineId at the new parent.
+        const idMap = new Map<string, string>();
+        const copyLine = async (l: (typeof srcLines)[number], parentLineId: string | null) => {
+          const [n] = await tx
+            .insert(estimateLines)
+            .values({
+              estimateId: newEst!.id,
+              parentLineId,
+              kbItemId: l.kbItemId,
+              sortOrder: l.sortOrder,
+              code: l.code,
+              description: l.description,
+              unit: l.unit,
+              derived: l.derived,
+            })
+            .returning({ id: estimateLines.id });
+          idMap.set(l.id, n!.id);
+        };
+        for (const l of srcLines.filter((x) => !x.parentLineId)) await copyLine(l, null);
+        for (const l of srcLines.filter((x) => x.parentLineId)) {
+          await copyLine(l, l.parentLineId ? idMap.get(l.parentLineId) ?? null : null);
+        }
+        if (srcMs.length) {
+          await tx.insert(estimateMeasurements).values(
+            srcMs.map((m) => ({
+              lineId: idMap.get(m.lineId)!,
+              sortOrder: m.sortOrder,
+              label: m.label,
+              nos: m.nos,
+              l: m.l,
+              b: m.b,
+              h: m.h,
+            })),
+          );
+        }
+        return newEst!;
+      });
     }),
 
   remove: protectedProcedure

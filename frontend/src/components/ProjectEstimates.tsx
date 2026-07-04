@@ -17,7 +17,7 @@ import {
   ESTIMATE_STATUS_LABEL,
   ESTIMATE_STATUS_TAG,
   type EstimateMeasurement,
-  type EstimateStatus,
+  EstimateStatus,
   can,
   lineQuantity,
   measurementQty,
@@ -350,22 +350,46 @@ function EstimateSheet({
     }
   }
 
-  /** Leaving mid-measurement: close the open line first (closeLine prunes it
-   *  if nothing was recorded) so an abandoned sheet leaves no empty line. */
-  async function exit() {
-    if (entry.phase === "measuring") {
-      try {
-        await closeLine.mutateAsync({ id: entry.lineId });
-      } catch {
-        /* navigate away regardless */
+  /** Close (and auto-derive) the currently-open line before leaving or
+   *  submitting, so an abandoned sheet leaves no empty stub AND a measured
+   *  item's auto dependencies still get created (they otherwise only run on the
+   *  double-Enter close). Manual dependencies are dropped — the user is leaving. */
+  async function flushOpenLine() {
+    if (entry.phase !== "measuring" || closingRef.current) return;
+    closingRef.current = true;
+    try {
+      const { kept } = await closeLine.mutateAsync({ id: entry.lineId });
+      if (kept && !entry.dep) {
+        await deriveDependencies.mutateAsync({ parentLineId: entry.lineId });
       }
+      await utils.estimates.get.invalidate({ id: estimateId });
+      setDepQueue([]);
+      setEntry({ phase: "slash", text: "", highlight: 0 });
+    } catch {
+      /* best effort — proceed regardless */
+    } finally {
+      closingRef.current = false;
     }
+  }
+
+  /** Leaving the sheet: flush any open line first. */
+  async function exit() {
+    await flushOpenLine();
     onBack();
+  }
+
+  /** Submit for review: flush the open line (close + derive) before the status
+   *  flips, so nothing goes to review half-entered. */
+  async function submitForReview() {
+    await flushOpenLine();
+    setStatus.mutate({ id: estimateId, status: "FOR_REVIEW" });
   }
 
   const est = estimateQ.data;
   if (!est) return null;
-  const status = est.status as EstimateStatus;
+  const status: EstimateStatus = EstimateStatus.options.includes(est.status as EstimateStatus)
+    ? (est.status as EstimateStatus)
+    : "IN_PROGRESS";
   const locked = status !== "IN_PROGRESS";
 
   return (
@@ -383,7 +407,7 @@ function EstimateSheet({
               size="sm"
               kind="tertiary"
               disabled={setStatus.isPending || mains.length === 0}
-              onClick={() => setStatus.mutate({ id: estimateId, status: "FOR_REVIEW" })}
+              onClick={() => void submitForReview()}
             >
               Submit for review
             </Button>
