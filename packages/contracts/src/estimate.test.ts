@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   EstimateMeasurement,
   deriveColumn,
+  derivationChildDims,
   dimensionCount,
   lineQuantity,
   measurementQty,
@@ -107,5 +108,16 @@ describe("deriveColumn — dependency geometry (fixed L/B/H)", () => {
   it("returns null for the non-geometric derivations", () => {
     expect(deriveColumn("MANUAL", { nos: 1, l: 1 })).toBeNull();
     expect(deriveColumn("RATIO", { nos: 1, l: 1 })).toBeNull();
+  });
+
+  it("declares a 2-D (area) child unit for every geometric derivation", () => {
+    // Guard the engine must enforce: a geometric derivation on a non-2-D child
+    // unit would silently miscompute, so the child unit must be an area.
+    for (const d of ["PERIMETER_X_HEIGHT", "THREE_SIDE_X_LENGTH", "LENGTH_X_HEIGHT", "LENGTH_X_BREADTH"] as const) {
+      expect(derivationChildDims(d)).toBe(2);
+      expect(deriveColumn(d, { nos: 1, l: 1, b: 1, h: 1 })).not.toBeNull();
+    }
+    expect(derivationChildDims("MANUAL")).toBeNull();
+    expect(derivationChildDims("RATIO")).toBeNull();
   });
 });

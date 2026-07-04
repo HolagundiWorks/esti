@@ -104,12 +104,33 @@ export const MEASUREMENT_DERIVATION_LABEL: Record<MeasurementDerivation, string>
 };
 
 /**
+ * The dimensionality the child line's unit MUST have for a derivation. Every
+ * geometric derivation produces an AREA, so the child unit must be 2-dimension
+ * (m²/sqm); `null` for the non-geometric derivations (MANUAL, RATIO). The engine
+ * validates dimensionCount(childUnit) against this before applying deriveColumn,
+ * so a misconfigured edge fails loudly instead of silently recording 0 (a 3-D
+ * child, whose missing H collapses to 0) or a bare length (a 1-D child, which
+ * ignores the second factor).
+ */
+export function derivationChildDims(d: MeasurementDerivation): 2 | null {
+  switch (d) {
+    case "PERIMETER_X_HEIGHT":
+    case "THREE_SIDE_X_LENGTH":
+    case "LENGTH_X_HEIGHT":
+    case "LENGTH_X_BREADTH":
+      return 2;
+    default:
+      return null; // MANUAL, RATIO — not a geometric area transform
+  }
+}
+
+/**
  * Map one parent measurement column to the child's, for the geometric
- * derivations. The child is an AREA (2-dimension) column, so a child line whose
- * unit is m² recomputes the right quantity via measurementQty(). A negative Nos
- * (deduction) is carried through, so a deducted parent void deducts the child
- * automatically. Returns null for the non-geometric derivations (MANUAL, RATIO),
- * which the estimate engine handles separately.
+ * derivations. The child is an AREA (2-dimension) column, so the child line's
+ * unit MUST be 2-D (m²) — see derivationChildDims; the engine validates this
+ * before applying. A negative Nos (deduction) is carried through, so a deducted
+ * parent void deducts the child automatically. Returns null for the
+ * non-geometric derivations (MANUAL, RATIO), which the engine handles separately.
  */
 export function deriveColumn(
   derivation: MeasurementDerivation,
