@@ -21,7 +21,6 @@ import {
   Catalog,
   Dashboard as DashboardIcon,
   Document,
-  Education,
   Email,
   Enterprise,
   Events,
@@ -79,6 +78,7 @@ import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
 import { ForcePasswordChange } from "./routes/ForcePasswordChange.js";
+import { useEdition } from "./lib/edition.js";
 import { ForgotPassword } from "./routes/ForgotPassword.js";
 import { ResetPassword } from "./routes/ResetPassword.js";
 
@@ -210,6 +210,7 @@ export function App() {
 
 function AppShell() {
   const { user, isLoading } = useAuth();
+  const { community } = useEdition();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
@@ -464,7 +465,6 @@ function AppShell() {
           : []),
       ],
     },
-    { label: "LXOS", to: "/lxos", icon: Education },
     {
       kind: "menu",
       label: "Admin",
@@ -705,7 +705,7 @@ function AppShell() {
           </Content>
           <UsageIdentity />
           <FloatingDock />
-          <AiAgentCommand />
+          {!community && <AiAgentCommand />}
         </div>
       </Theme>
     </ThemeContext.Provider>
