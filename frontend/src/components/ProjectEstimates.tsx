@@ -88,7 +88,10 @@ function LineSpecPicker({
   const utils = trpc.useUtils();
   const specsQ = trpc.estimates.specsForLine.useQuery({ lineId });
   const setSpec = trpc.estimates.setLineSpecification.useMutation({
-    onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+    onSuccess: () => {
+      void utils.estimates.get.invalidate({ id: estimateId });
+      void utils.estimates.costing.invalidate({ id: estimateId });
+    },
   });
   const specs = specsQ.data ?? [];
   const selected = specs.find((s) => s.id === specificationId);
@@ -189,6 +192,81 @@ function SavedLine({ no, line, approved, estimateId }: {
         unit={line.unit}
       />
     )}
+    </Stack>
+  );
+}
+
+/** Priced BOQ + material abstract for an approved estimate. */
+function CostingPanel({ estimateId }: { estimateId: string }) {
+  const q = trpc.estimates.costing.useQuery({ id: estimateId });
+  const data = q.data;
+  if (!data) return null;
+  const inr = (p: number) => formatINR(p, { paise: false });
+  return (
+    <Stack gap={5}>
+      <TableContainer title="Priced BOQ" description={`Total ${inr(data.totalPaise)}`}>
+        <Table size="sm">
+          <TableHead>
+            <TableRow>
+              <TableHeader>Item</TableHeader>
+              <TableHeader>Specification</TableHeader>
+              <TableHeader>Unit</TableHeader>
+              <TableHeader>Qty</TableHeader>
+              <TableHeader>Rate</TableHeader>
+              <TableHeader>Amount</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.boq.map((r) => (
+              <TableRow key={r.lineId}>
+                <TableCell>
+                  {r.description}
+                  {r.derived && (
+                    <Tag type="teal" size="sm">
+                      auto
+                    </Tag>
+                  )}
+                </TableCell>
+                <TableCell>{r.specName ?? "—"}</TableCell>
+                <TableCell>{r.unit}</TableCell>
+                <TableCell>{fmtQty(r.qty)}</TableCell>
+                <TableCell>{r.ratePaise != null ? inr(r.ratePaise) : "—"}</TableCell>
+                <TableCell>{r.amountPaise != null ? inr(r.amountPaise) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {data.materials.length > 0 && (
+        <TableContainer
+          title="Material abstract"
+          description={`Materials ${inr(data.materialTotalPaise)}`}
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Material</TableHeader>
+                <TableHeader>Unit</TableHeader>
+                <TableHeader>Qty</TableHeader>
+                <TableHeader>Rate</TableHeader>
+                <TableHeader>Amount</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.materials.map((m) => (
+                <TableRow key={m.materialId}>
+                  <TableCell>{m.name}</TableCell>
+                  <TableCell>{m.unit}</TableCell>
+                  <TableCell>{fmtQty(m.qty)}</TableCell>
+                  <TableCell>{inr(m.ratePaise)}</TableCell>
+                  <TableCell>{inr(m.amountPaise)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Stack>
   );
 }
@@ -536,6 +614,8 @@ function EstimateSheet({
           estimateId={estimateId}
         />
       ))}
+
+      {status === "APPROVED" && <CostingPanel estimateId={estimateId} />}
 
       {/* ── Active entry (only while editable) ── */}
       {!locked && (

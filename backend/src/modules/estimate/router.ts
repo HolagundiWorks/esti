@@ -514,6 +514,113 @@ export const estimatesRouter = router({
     }),
 
   /**
+   * Priced BOQ + material abstract for an estimate. Each line priced at its
+   * mapped spec's analysed rate (qty × rate); materials aggregated across lines
+   * from the spec recipes (qty × qty-per-unit × (1+wastage)).
+   */
+  costing: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const estimate = await requireEstimate(ctx.db, input.id);
+      const lines = await ctx.db
+        .select()
+        .from(estimateLines)
+        .where(eq(estimateLines.estimateId, input.id))
+        .orderBy(asc(estimateLines.sortOrder), asc(estimateLines.createdAt));
+      const lineIds = lines.map((l) => l.id);
+      const ms = lineIds.length
+        ? await ctx.db.select().from(estimateMeasurements).where(inArray(estimateMeasurements.lineId, lineIds))
+        : [];
+      const msByLine = new Map<string, typeof ms>();
+      for (const m of ms) {
+        const a = msByLine.get(m.lineId) ?? [];
+        a.push(m);
+        msByLine.set(m.lineId, a);
+      }
+      const qtyOf = (lineId: string, unit: string) =>
+        lineQuantity((msByLine.get(lineId) ?? []).map(toMeasurement), unit);
+
+      // Resolve each distinct spec's recipe + analysed rate once.
+      const specIds = [...new Set(lines.map((l) => l.specificationId).filter((x): x is string => !!x))];
+      type MatLine = { materialId: string; name: string; unit: string; quantityPerUnit: number; wastageFactor: number; ratePaise: number };
+      const specInfo = new Map<string, { name: string; ratePaise: number; materials: MatLine[] }>();
+      for (const specId of specIds) {
+        const [spec] = await ctx.db.select().from(kbSpecifications).where(eq(kbSpecifications.id, specId));
+        const mats = await ctx.db
+          .select({
+            materialId: kbSpecMaterials.materialId,
+            name: kbMaterials.name,
+            unit: kbMaterials.unit,
+            quantityPerUnit: kbSpecMaterials.quantityPerUnit,
+            wastageFactor: kbSpecMaterials.wastageFactor,
+            ratePaise: kbMaterials.defaultRatePaise,
+          })
+          .from(kbSpecMaterials)
+          .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
+          .where(eq(kbSpecMaterials.specificationId, specId));
+        const labs = await ctx.db
+          .select({ quantityPerUnit: kbSpecLabor.quantityPerUnit, ratePaise: kbLabor.defaultRatePaise })
+          .from(kbSpecLabor)
+          .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
+          .where(eq(kbSpecLabor.specificationId, specId));
+        specInfo.set(specId, { name: spec?.name ?? "", ratePaise: specRatePaise(mats, labs), materials: mats });
+      }
+
+      const boq = lines.map((l) => {
+        const qty = qtyOf(l.id, l.unit);
+        const info = l.specificationId ? specInfo.get(l.specificationId) : undefined;
+        const ratePaise = info ? info.ratePaise : null;
+        const amountPaise = ratePaise != null ? Math.round(qty * ratePaise) : null;
+        return {
+          lineId: l.id,
+          description: l.description,
+          unit: l.unit,
+          derived: l.derived,
+          parentLineId: l.parentLineId,
+          specName: info?.name ?? null,
+          qty: Math.round(qty * 1000) / 1000,
+          ratePaise,
+          amountPaise,
+        };
+      });
+      const totalPaise = boq.reduce((s, r) => s + (r.amountPaise ?? 0), 0);
+
+      // Material abstract — aggregate consumption across every priced line.
+      const agg = new Map<string, { name: string; unit: string; qty: number; ratePaise: number }>();
+      for (const l of lines) {
+        if (!l.specificationId) continue;
+        const info = specInfo.get(l.specificationId);
+        if (!info) continue;
+        const qty = qtyOf(l.id, l.unit);
+        for (const m of info.materials) {
+          const consumed = qty * m.quantityPerUnit * (1 + m.wastageFactor);
+          const cur = agg.get(m.materialId) ?? { name: m.name, unit: m.unit, qty: 0, ratePaise: m.ratePaise };
+          cur.qty += consumed;
+          agg.set(m.materialId, cur);
+        }
+      }
+      const materials = [...agg.entries()]
+        .map(([materialId, v]) => ({
+          materialId,
+          name: v.name,
+          unit: v.unit,
+          qty: Math.round(v.qty * 1000) / 1000,
+          ratePaise: v.ratePaise,
+          amountPaise: Math.round(v.qty * v.ratePaise),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const materialTotalPaise = materials.reduce((s, m) => s + m.amountPaise, 0);
+
+      return {
+        estimate: { id: estimate.id, title: estimate.title, status: estimate.status },
+        boq,
+        totalPaise,
+        materials,
+        materialTotalPaise,
+      };
+    }),
+
+  /**
    * Estimate lifecycle: IN_PROGRESS → FOR_REVIEW (submit), FOR_REVIEW →
    * IN_PROGRESS (send back), FOR_REVIEW → APPROVED (approve — team lead only).
    * APPROVED is terminal; revise it via cloneRevision.
