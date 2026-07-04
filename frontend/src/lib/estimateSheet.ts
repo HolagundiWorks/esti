@@ -1,4 +1,4 @@
-import { type EstimateMeasurement, measurementRows } from "@esti/contracts";
+import { type EstimateMeasurement, measurementQty, measurementRows } from "@esti/contracts";
 
 /**
  * Estimate sheet keyboard grammar — the pure state machine behind the
@@ -18,8 +18,13 @@ export type MeasureState = {
   unit: string;
   /** Parameter row labels, from contracts measurementRows(unit). */
   rows: string[];
-  /** The active column, one slot per row (null = not yet typed). */
-  column: (number | null)[];
+  /**
+   * The active column as RAW editing text, one slot per row ("" = untyped).
+   * Held as strings — never parsed numbers — so an in-progress decimal ("0.",
+   * "4.5") is not mangled by an early `Number()` round-trip that reflects the
+   * parsed value straight back into the input. Cells parse only when recorded.
+   */
+  column: string[];
   /** Which parameter row the cursor is on. */
   rowIdx: number;
   /** Recorded measurement columns. */
@@ -28,20 +33,32 @@ export type MeasureState = {
 
 export function startMeasuring(unit: string): MeasureState {
   const rows = measurementRows(unit);
-  return { unit, rows, column: rows.map(() => null), rowIdx: 0, recorded: [] };
+  return { unit, rows, column: rows.map(() => ""), rowIdx: 0, recorded: [] };
 }
 
-export function setValue(s: MeasureState, value: number | null): MeasureState {
+/** Store the raw text of the active cell verbatim (parsing is deferred). */
+export function setValue(s: MeasureState, raw: string): MeasureState {
   const column = [...s.column];
-  column[s.rowIdx] = value;
+  column[s.rowIdx] = raw;
   return { ...s, column };
+}
+
+/** Parse a cell's raw text to a finite number, or null when blank/unparseable. */
+function parseCell(raw: string | undefined): number | null {
+  const t = (raw ?? "").trim();
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
 }
 
 /** Column → measurement. Slot 0 is Nos (or Qty for 0-dim units). A blank Nos
  *  on a dimensioned column defaults to 1 — standard takeoff convention, so
  *  writing only "4 × 3" means one 4×3, not a zeroed-out measurement. */
 function columnToMeasurement(s: MeasureState): EstimateMeasurement {
-  const [nos, l, b, h] = [s.column[0], s.column[1], s.column[2], s.column[3]];
+  const nos = parseCell(s.column[0]);
+  const l = parseCell(s.column[1]);
+  const b = parseCell(s.column[2]);
+  const h = parseCell(s.column[3]);
   const m: EstimateMeasurement = { nos: nos ?? 1 };
   if (s.rows.length > 1) m.l = l ?? undefined;
   if (s.rows.length > 2) m.b = b ?? undefined;
@@ -52,10 +69,14 @@ function columnToMeasurement(s: MeasureState): EstimateMeasurement {
 export type EnterResult =
   | { kind: "advanced"; state: MeasureState }
   | { kind: "recorded"; state: MeasureState }
-  | { kind: "closed"; measurements: EstimateMeasurement[] };
+  | { kind: "closed"; measurements: EstimateMeasurement[] }
+  | { kind: "invalid"; state: MeasureState; reason: string };
 
 export function pressEnter(s: MeasureState): EnterResult {
-  const columnEmpty = s.column.every((v) => v == null || v === 0);
+  const columnEmpty = s.column.every((raw) => {
+    const n = parseCell(raw);
+    return n == null || n === 0;
+  });
 
   // The double-Enter: an untouched column closes the item.
   if (columnEmpty && s.rowIdx === 0) {
@@ -71,10 +92,27 @@ export function pressEnter(s: MeasureState): EnterResult {
   if (columnEmpty) {
     return { kind: "closed", measurements: s.recorded };
   }
+  // Guard before recording — mirror the server contract (EstimateMeasurement):
+  // every cell must be finite; dimensions (L/B/H) must be non-negative. A
+  // negative Nos (slot 0) is allowed — that is how a deduction (a door void, an
+  // opening) is entered, and its qty subtracts from the line total.
+  for (let i = 0; i < s.column.length; i++) {
+    const t = s.column[i]!.trim();
+    if (t === "") continue;
+    const n = Number(t);
+    if (!Number.isFinite(n)) return { kind: "invalid", state: s, reason: "Enter a valid number." };
+    if (i > 0 && n < 0) {
+      return {
+        kind: "invalid",
+        state: s,
+        reason: "Dimensions can’t be negative — use a negative Nos to record a deduction.",
+      };
+    }
+  }
   const recorded = [...s.recorded, columnToMeasurement(s)];
   return {
     kind: "recorded",
-    state: { ...s, recorded, column: s.rows.map(() => null), rowIdx: 0 },
+    state: { ...s, recorded, column: s.rows.map(() => ""), rowIdx: 0 },
   };
 }
 
@@ -82,4 +120,27 @@ export function pressEnter(s: MeasureState): EnterResult {
 export function moveRow(s: MeasureState, delta: -1 | 1): MeasureState {
   const rowIdx = Math.min(s.rows.length - 1, Math.max(0, s.rowIdx + delta));
   return { ...s, rowIdx };
+}
+
+/**
+ * Remove a previously-recorded column by identity. Used to roll a column back
+ * out of the live sheet (and its running total) when its optimistic save to the
+ * server fails, so nothing is ever shown as recorded that the backend rejected.
+ */
+export function dropRecorded(s: MeasureState, m: EstimateMeasurement): MeasureState {
+  return { ...s, recorded: s.recorded.filter((x) => x !== m) };
+}
+
+/** The measurement the active column would record right now — same blank-Nos→1
+ *  rule as recording — for a live preview. Null when nothing is typed yet. */
+export function previewColumn(s: MeasureState): EstimateMeasurement | null {
+  const hasValue = s.column.some((raw) => parseCell(raw) != null);
+  return hasValue ? columnToMeasurement(s) : null;
+}
+
+/** Live quantity of the active column, or null when nothing is typed. Reads 0
+ *  while a required dimension is still blank — a visible cue before Enter. */
+export function previewColumnQty(s: MeasureState): number | null {
+  const m = previewColumn(s);
+  return m ? measurementQty(m, s.unit) : null;
 }
