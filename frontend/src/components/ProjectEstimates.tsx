@@ -285,6 +285,36 @@ function CostingPanel({ estimateId }: { estimateId: string }) {
           </Table>
         </TableContainer>
       )}
+
+      {data.labor.length > 0 && (
+        <TableContainer
+          title="Labour abstract"
+          description={`Labour ${inr(data.laborTotalPaise)}`}
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Labour</TableHeader>
+                <TableHeader>Unit</TableHeader>
+                <TableHeader>Qty</TableHeader>
+                <TableHeader>Rate</TableHeader>
+                <TableHeader>Amount</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.labor.map((l) => (
+                <TableRow key={l.laborId}>
+                  <TableCell>{l.name}</TableCell>
+                  <TableCell>{l.unit}</TableCell>
+                  <TableCell>{fmtQty(l.qty)}</TableCell>
+                  <TableCell>{inr(l.ratePaise)}</TableCell>
+                  <TableCell>{inr(l.amountPaise)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Stack>
   );
 }

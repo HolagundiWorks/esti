@@ -692,6 +692,7 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     snap = rec.get("snapshot") or {}
     boq = snap.get("boq", [])
     materials = snap.get("materials", [])
+    labor = snap.get("labor", [])
 
     def _qty(v: Any) -> str:
         try:
@@ -734,6 +735,25 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
             "<tfoot><tr class='tot'><td colspan='4'>Materials total</td>"
             f"<td class='r'>{_inr(int(snap.get('materialTotalPaise') or 0))}</td></tr></tfoot></table>"
         )
+    lab_rows = ""
+    for lab in labor:
+        lab_rows += (
+            f"<tr><td>{_e(lab.get('name'))}</td>"
+            f"<td class='c'>{_e(lab.get('unit'))}</td>"
+            f"<td class='r'>{_qty(lab.get('qty'))}</td>"
+            f"<td class='r'>{_amt(lab.get('ratePaise'))}</td>"
+            f"<td class='r'>{_amt(lab.get('amountPaise'))}</td></tr>"
+        )
+    lab_block = ""
+    if labor:
+        lab_block = (
+            "<h4>Labour abstract</h4>"
+            "<table><thead><tr><th>Labour</th><th class='c'>Unit</th>"
+            "<th class='r'>Qty</th><th class='r'>Rate</th><th class='r'>Amount</th></tr></thead>"
+            f"<tbody>{lab_rows}</tbody>"
+            "<tfoot><tr class='tot'><td colspan='4'>Labour total</td>"
+            f"<td class='r'>{_inr(int(snap.get('laborTotalPaise') or 0))}</td></tr></tfoot></table>"
+        )
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
       td.r,th.r {{ text-align: right; }} td.c,th.c {{ text-align: center; }}
       tfoot .tot td {{ font-weight: 700; border-top: 2px solid #161616; }}</style></head><body>
@@ -749,6 +769,7 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
           <td class="r">{_inr(int(snap.get('totalPaise') or 0))}</td></tr></tfoot>
       </table>
       {mat_block}
+      {lab_block}
       <p class="muted" style="margin-top:20px">Priced at analysed rates (material + labour build-up).
         Generated {_e(snap.get('generatedAt') or '')}. {_e(firm.get('legalName'))}.</p>
     </body></html>"""

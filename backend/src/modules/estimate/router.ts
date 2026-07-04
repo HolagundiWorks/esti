@@ -138,7 +138,8 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
 
   const specIds = [...new Set(lines.map((l) => l.specificationId).filter((x): x is string => !!x))];
   type MatLine = { materialId: string; name: string; unit: string; quantityPerUnit: number; wastageFactor: number; ratePaise: number };
-  const specInfo = new Map<string, { name: string; ratePaise: number; materials: MatLine[] }>();
+  type LabLine = { laborId: string; name: string; unit: string; quantityPerUnit: number; ratePaise: number };
+  const specInfo = new Map<string, { name: string; ratePaise: number; materials: MatLine[]; labor: LabLine[] }>();
   for (const specId of specIds) {
     const [spec] = await db.select().from(kbSpecifications).where(eq(kbSpecifications.id, specId));
     const mats = await db
@@ -154,11 +155,17 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
       .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
       .where(eq(kbSpecMaterials.specificationId, specId));
     const labs = await db
-      .select({ quantityPerUnit: kbSpecLabor.quantityPerUnit, ratePaise: kbLabor.defaultRatePaise })
+      .select({
+        laborId: kbSpecLabor.laborId,
+        name: kbLabor.name,
+        unit: kbLabor.unit,
+        quantityPerUnit: kbSpecLabor.quantityPerUnit,
+        ratePaise: kbLabor.defaultRatePaise,
+      })
       .from(kbSpecLabor)
       .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
       .where(eq(kbSpecLabor.specificationId, specId));
-    specInfo.set(specId, { name: spec?.name ?? "", ratePaise: specRatePaise(mats, labs), materials: mats });
+    specInfo.set(specId, { name: spec?.name ?? "", ratePaise: specRatePaise(mats, labs), materials: mats, labor: labs });
   }
 
   const boq = lines.map((l) => {
@@ -205,7 +212,32 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
     .sort((a, b) => a.name.localeCompare(b.name));
   const materialTotalPaise = materials.reduce((s, m) => s + m.amountPaise, 0);
 
-  return { estimate, boq, totalPaise, materials, materialTotalPaise };
+  // Labour abstract — aggregate labour resource-days across every priced line.
+  const labAgg = new Map<string, { name: string; unit: string; qty: number; ratePaise: number }>();
+  for (const l of lines) {
+    if (!l.specificationId) continue;
+    const info = specInfo.get(l.specificationId);
+    if (!info) continue;
+    const qty = qtyOf(l.id, l.unit);
+    for (const lab of info.labor) {
+      const cur = labAgg.get(lab.laborId) ?? { name: lab.name, unit: lab.unit, qty: 0, ratePaise: lab.ratePaise };
+      cur.qty += qty * lab.quantityPerUnit;
+      labAgg.set(lab.laborId, cur);
+    }
+  }
+  const labor = [...labAgg.entries()]
+    .map(([laborId, v]) => ({
+      laborId,
+      name: v.name,
+      unit: v.unit,
+      qty: Math.round(v.qty * 1000) / 1000,
+      ratePaise: v.ratePaise,
+      amountPaise: Math.round(v.qty * v.ratePaise),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const laborTotalPaise = labor.reduce((s, m) => s + m.amountPaise, 0);
+
+  return { estimate, boq, totalPaise, materials, materialTotalPaise, labor, laborTotalPaise };
 }
 
 export const estimatesRouter = router({
@@ -640,6 +672,8 @@ export const estimatesRouter = router({
         totalPaise: c.totalPaise,
         materials: c.materials,
         materialTotalPaise: c.materialTotalPaise,
+        labor: c.labor,
+        laborTotalPaise: c.laborTotalPaise,
         boqPdfStatus: c.estimate.boqPdfStatus,
         boqPdfUrl,
       };
@@ -660,6 +694,8 @@ export const estimatesRouter = router({
         totalPaise: c.totalPaise,
         materials: c.materials,
         materialTotalPaise: c.materialTotalPaise,
+        labor: c.labor,
+        laborTotalPaise: c.laborTotalPaise,
         generatedAt: new Date().toISOString(),
       };
       await ctx.db
