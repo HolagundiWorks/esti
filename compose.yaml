@@ -56,7 +56,11 @@ services:
       WORKER_JOB_STREAM: ${WORKER_JOB_STREAM:-esti:jobs}
       BUILD_REVISION: ${BUILD_REVISION:-dev}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      # Keep this untagged and in sync with .env.example / compose.prod.yaml.
+      # `ollama pull llama3.2` fetches `llama3.2:latest`; a tagged default like
+      # `llama3.2:1b` would not match it, so the health check fails and the AI
+      # gateway silently falls back to canned template output.
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
       # First-run owner (consumed by `pnpm --filter @esti/backend seed`).
       SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL:-owner@hcw.in}
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD:-ChangeMe123}
