@@ -1,10 +1,12 @@
 import {
+  Jurisdiction,
   ListParams,
   ProjectOfficeActivate,
   ProjectOfficeCreate,
   ProjectSetStatus,
   ProjectSiteUpdate,
   ProjectStatus,
+  ProjectType,
   ProjectWorkType,
   DEFAULT_PHASE_PLAN,
   canTransition,
@@ -79,6 +81,33 @@ async function gatherActivationGate(db: DB, projectId: string, status: ProjectSt
     onboardingComplete: onboarding?.status === "COMPLETE",
     advancePaid: !!advance,
   });
+}
+
+/**
+ * Enforce the draft-project status state machine (Slice G) for any status
+ * change. Shared by `updateStatus` (the dedicated control) and `update` (the
+ * edit-details form) so neither can be used as a backdoor around the graph:
+ *  - a no-op (from === to) is always allowed,
+ *  - INITIAL activation (→ ACTIVE from anything other than ON_HOLD) is reachable
+ *    only through the activation gate (`activate`); resuming a paused project
+ *    (ON_HOLD → ACTIVE) is a legal manual transition since it was gated already,
+ *  - every other move must be legal per `PROJECT_TRANSITIONS`,
+ *  - ENQUIRY → PROPOSAL additionally requires a captured Project DNA.
+ */
+export async function assertLegalTransition(db: DB, projectId: string, from: ProjectStatus, to: ProjectStatus) {
+  if (from === to) return;
+  if (to === "ACTIVE" && from !== "ON_HOLD")
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Use the activation gate to make a project ACTIVE." });
+  if (!canTransition(from, to))
+    throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot move a ${from} project to ${to}.` });
+  if (from === "ENQUIRY" && to === "PROPOSAL") {
+    const [dna] = await db
+      .select({ id: projectDnas.id })
+      .from(projectDnas)
+      .where(eq(projectDnas.projectId, projectId));
+    if (!dna)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Capture the Project DNA before moving to Proposal." });
+  }
 }
 
 export const projectOfficeRouter = router({
@@ -191,9 +220,9 @@ export const projectOfficeRouter = router({
         id: z.string().uuid(),
         title: z.string().min(2).max(200),
         status: ProjectStatus,
-        projectType: z.string().min(1),
+        projectType: ProjectType,
         workType: ProjectWorkType.optional(),
-        jurisdiction: z.string().min(1),
+        jurisdiction: Jurisdiction,
         dateStart: z.string().nullish(),
         pmcEnabled: z.boolean().optional(),
       }),
@@ -201,6 +230,9 @@ export const projectOfficeRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      // A status change through the edit form must still obey the state machine —
+      // the form normally re-sends the unchanged status, but never trust that.
+      await assertLegalTransition(ctx.db, input.id, before.status as ProjectStatus, input.status);
       const org = await getOrgSettings(ctx.db);
       if (input.pmcEnabled !== undefined && input.pmcEnabled && !org.pmcEnabled) {
         throw new TRPCError({
@@ -278,18 +310,7 @@ export const projectOfficeRouter = router({
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
     const from = before.status as ProjectStatus;
     if (from === input.status) return before;
-    if (input.status === "ACTIVE")
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Use the activation gate to make a project ACTIVE." });
-    if (!canTransition(from, input.status))
-      throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot move a ${from} project to ${input.status}.` });
-    if (from === "ENQUIRY" && input.status === "PROPOSAL") {
-      const [dna] = await ctx.db
-        .select({ id: projectDnas.id })
-        .from(projectDnas)
-        .where(eq(projectDnas.projectId, input.id));
-      if (!dna)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Capture the Project DNA before moving to Proposal." });
-    }
+    await assertLegalTransition(ctx.db, input.id, from, input.status);
     const row = await ctx.db.transaction(async (tx) => {
       const [updated] = await tx
         .update(projectOffices)

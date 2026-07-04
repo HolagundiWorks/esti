@@ -209,10 +209,11 @@ export function ArchivedProjects() {
       >
         <Stack gap={5}>
           <p>
-            This marks the project for permanent deletion. All records —
-            tasks, drawings, invoices, and documents — will be scheduled for
-            removal. This action cannot be undone. Export the project data
-            first if you need an offline record.
+            This permanently retires the project. It is removed from the
+            archive and can never be restored or accessed in the workspace
+            again; its records are retained only as a sealed audit trail, not in
+            any project view. This action cannot be undone. Export the project
+            data first if you need an offline record.
           </p>
           <TextInput
             id="purge-password"

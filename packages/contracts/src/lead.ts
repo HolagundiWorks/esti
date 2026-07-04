@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProjectType } from "./schemas.js";
 import type { TagColor } from "./schemas.js";
 
 /**
@@ -119,7 +120,7 @@ export const LeadConvert = z.object({
   clientId: z.string().uuid().nullable().optional(),
   /** Project title — defaults to the lead's project type / client name. */
   projectTitle: z.string().min(2).max(200),
-  projectType: z.string().min(1).max(200),
+  projectType: ProjectType,
   workType: z.enum(["ARCHITECTURE", "INTERIOR", "LANDSCAPE", "MISC"]).default("ARCHITECTURE"),
 });
 export type LeadConvert = z.infer<typeof LeadConvert>;

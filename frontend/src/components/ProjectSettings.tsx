@@ -3,6 +3,8 @@ import {
   InlineNotification,
   Modal,
   PasswordInput,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -17,6 +19,14 @@ import {
   Tile,
   Toggle,
 } from "@carbon/react";
+import {
+  Jurisdiction,
+  PROJECT_STATUS_LABEL,
+  PROJECT_STATUS_TAG,
+  PROJECT_TRANSITIONS,
+  ProjectType,
+  type ProjectStatus,
+} from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -76,6 +86,17 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     },
   });
 
+  const [statusDraft, setStatusDraft] = useState<ProjectStatus | "">("");
+  const updateStatus = trpc.projectOffice.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.projectOffice.byId.invalidate({ id: projectId });
+      utils.projectOffice.list.invalidate();
+      utils.projectOffice.activationStatus.invalidate({ id: projectId });
+      setStatusDraft("");
+      setMsg("Project status updated");
+    },
+  });
+
   const [note, setNote] = useState("");
   const addLog = trpc.projectOffice.addLog.useMutation({
     onSuccess: () => {
@@ -112,8 +133,62 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         />
       )}
 
+      {p && (
+        <Tile style={{ maxWidth: 640 }}>
+          <Stack gap={5}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-03)" }}>
+              <h4 className="esti-grow">Project status</h4>
+              <Tag type={PROJECT_STATUS_TAG[p.status as ProjectStatus]} size="md">
+                {PROJECT_STATUS_LABEL[p.status as ProjectStatus]}
+              </Tag>
+            </div>
+            {(() => {
+              const targets = PROJECT_TRANSITIONS[p.status as ProjectStatus] ?? [];
+              if (targets.length === 0)
+                return <p>This project is in a terminal stage — its status can no longer change.</p>;
+              return (
+                <>
+                  <p>
+                    Move this project to its next stage. Initial activation runs through the
+                    activation gate under “Pipeline”, not here.
+                  </p>
+                  <Select
+                    id="ps-status"
+                    labelText="Change status to"
+                    value={statusDraft}
+                    onChange={(e) => setStatusDraft(e.target.value as ProjectStatus | "")}
+                  >
+                    <SelectItem value="" text="— select —" />
+                    {targets.map((s) => (
+                      <SelectItem key={s} value={s} text={PROJECT_STATUS_LABEL[s]} />
+                    ))}
+                  </Select>
+                  {updateStatus.error && (
+                    <InlineNotification
+                      kind="error"
+                      lowContrast
+                      title="Status change failed"
+                      subtitle={updateStatus.error.message}
+                      onCloseButtonClick={() => updateStatus.reset()}
+                    />
+                  )}
+                  <Button
+                    disabled={!statusDraft || updateStatus.isPending}
+                    onClick={() => {
+                      if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
+                    }}
+                  >
+                    Update status
+                  </Button>
+                </>
+              );
+            })()}
+          </Stack>
+        </Tile>
+      )}
+
       {firmPmcEnabled && (
-      <Tile style={{ maxWidth: 640 }}>
+      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
         <Stack gap={5}>
           <h4>PMC</h4>
           <Toggle
@@ -132,10 +207,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
               update.mutate({
                 id: projectId,
                 title: p.title,
-                status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
-                projectType: p.projectType,
+                status: p.status as ProjectStatus,
+                projectType: p.projectType as (typeof ProjectType.options)[number],
                 workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
-                jurisdiction: p.jurisdiction,
+                jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
                 dateStart: p.dateStart ?? null,
                 pmcEnabled,
               });

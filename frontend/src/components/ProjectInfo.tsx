@@ -11,6 +11,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import {
+  Jurisdiction,
   PROJECT_WORK_TYPE_LABEL,
   ProjectType,
   ProjectWorkType,
@@ -169,9 +170,9 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
                   id: projectId,
                   title: identity.title,
                   status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
-                  projectType: identity.projectType,
+                  projectType: identity.projectType as (typeof ProjectType.options)[number],
                   workType: identity.workType as (typeof ProjectWorkType.options)[number],
-                  jurisdiction: identity.jurisdiction,
+                  jurisdiction: identity.jurisdiction as (typeof Jurisdiction.options)[number],
                   dateStart: identity.dateStart || null,
                 })
               }

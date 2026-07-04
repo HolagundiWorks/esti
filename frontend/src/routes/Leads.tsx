@@ -27,6 +27,7 @@ import {
   LeadSource,
   LeadStatus,
   PROJECT_WORK_TYPE_LABEL,
+  ProjectType,
   ProjectWorkType,
   type LeadStatus as LeadStatusT,
 } from "@esti/contracts";
@@ -165,7 +166,12 @@ export function Leads() {
                           kind="tertiary"
                           size="sm"
                           onClick={() => {
-                            setConv({ projectTitle: l.projectType || l.clientName, projectType: l.projectType || "", workType: "ARCHITECTURE", clientId: "" });
+                            // A lead's project type is free text — only carry it over
+                            // if it matches a real ProjectType, else pick a valid default.
+                            const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
+                              ? (l.projectType as string)
+                              : ProjectType.options[0];
+                            setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
                             setConvertId(l.id);
                           }}
                         >
@@ -236,7 +242,7 @@ export function Leads() {
           convert.mutate({
             id: convertId,
             projectTitle: conv.projectTitle,
-            projectType: conv.projectType,
+            projectType: conv.projectType as (typeof ProjectType.options)[number],
             workType: conv.workType as (typeof ProjectWorkType.options)[number],
             clientId: conv.clientId || undefined,
           });
@@ -247,7 +253,9 @@ export function Leads() {
             Creates a client (or reuses an existing one) and a draft project in ENQUIRY stage. The lead is marked Qualified.
           </p>
           <TextInput id="cv-title" labelText="Project title" value={conv.projectTitle} onChange={(e) => setConv({ ...conv, projectTitle: e.target.value })} />
-          <TextInput id="cv-type" labelText="Project type" value={conv.projectType} onChange={(e) => setConv({ ...conv, projectType: e.target.value })} />
+          <Select id="cv-type" labelText="Project type" value={conv.projectType} onChange={(e) => setConv({ ...conv, projectType: e.target.value })}>
+            {ProjectType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}
+          </Select>
           <Select id="cv-work" labelText="Discipline" value={conv.workType} onChange={(e) => setConv({ ...conv, workType: e.target.value })}>
             {ProjectWorkType.options.map((t) => <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />)}
           </Select>
