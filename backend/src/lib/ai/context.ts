@@ -130,6 +130,7 @@ function assembleMomRevisionContext(input: {
       "Read the issued meeting minutes and extract every design change, revision, or rework the client asked for or agreed to.",
       `Respond with ONLY a JSON array (no prose, no markdown) of at most ${MOM_REVISION_MAX_SUGGESTIONS} items:`,
       '[{"title": "short imperative summary (max 120 chars)", "details": "polite, specific change request the client could send verbatim, referencing what was discussed", "category": "MINOR" | "MAJOR" | "CRITICAL"}]',
+      'Every object MUST include all three keys with a non-empty "title" AND a non-empty "details" — never omit "details".',
       "category: MINOR = cosmetic/small adjustments; MAJOR = replanning or structural/system rework; CRITICAL = safety, compliance, or contract-impacting changes.",
       "Only include changes actually present in the minutes. If none exist, respond with [].",
     ].join("\n"),
