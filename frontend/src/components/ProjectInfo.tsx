@@ -4,6 +4,7 @@ import {
   Button,
   Column,
   Grid,
+  InlineNotification,
   Select,
   SelectItem,
   Stack,
@@ -109,6 +110,18 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
           project briefing data.
         </p>
       </div>
+
+      {(updateProject.error || updateSite.error || upsert.error) && (
+        <InlineNotification
+          kind="error"
+          lowContrast
+          title="Could not save"
+          subtitle={
+            (updateProject.error || updateSite.error || upsert.error)?.message ??
+            "Something went wrong — please try again."
+          }
+        />
+      )}
 
       <Accordion>
         <AccordionItem title="1. Project summary">

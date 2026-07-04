@@ -12,7 +12,9 @@ import {
 } from "@carbon/react";
 import {
   PROJECT_STATUS_LABEL,
+  PROJECT_STATUS_TAG,
   PROJECT_WORK_TYPE_LABEL,
+  type ProjectStatus,
 } from "@esti/contracts";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -41,18 +43,6 @@ import { ProjectContractorBills } from "../components/cms/ProjectContractorBills
 import { ProjectCostIntelligence } from "../components/cms/ProjectCostIntelligence.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
-
-const PROJECT_STATUS_TAG: Record<
-  string,
-  "gray" | "blue" | "purple" | "green" | "red" | "teal"
-> = {
-  ENQUIRY: "gray",
-  PROPOSAL: "teal",
-  ACTIVE: "blue",
-  ON_HOLD: "purple",
-  COMPLETED: "green",
-  CANCELLED: "red",
-};
 
 type ProjectTab = { slug: string; label: string; panel: ReactNode };
 type ProjectGroup = { slug: string; label: string; tabs: ProjectTab[] };
@@ -204,7 +194,7 @@ export function ProjectDetail() {
             }{" "}
             · {p.projectType} · {p.jurisdiction}
           </span>
-          <Tag type={PROJECT_STATUS_TAG[p.status] ?? "gray"} size="sm">
+          <Tag type={PROJECT_STATUS_TAG[p.status as ProjectStatus] ?? "gray"} size="sm">
             {PROJECT_STATUS_LABEL[
               p.status as keyof typeof PROJECT_STATUS_LABEL
             ] ?? p.status}
