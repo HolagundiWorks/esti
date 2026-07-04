@@ -139,6 +139,9 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
   // Guards against a second armed-Enter (key repeat) creating a duplicate line
   // before the armed→measuring re-render lands.
   const openingRef = useRef(false);
+  // Guards against a held closing-Enter re-firing closeItem (and deriveDependencies)
+  // during the two-round-trip window before entry leaves the measuring phase.
+  const closingRef = useRef(false);
 
   const searchQuery = entry.phase === "slash" && entry.text.startsWith("/")
     ? entry.text.slice(1).trim()
@@ -215,7 +218,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
 
   /** Double Enter — close the sheet; empty lines are pruned server-side. */
   async function closeItem() {
-    if (entry.phase !== "measuring") return;
+    if (entry.phase !== "measuring" || closingRef.current) return;
+    closingRef.current = true;
     const { dep, lineId } = entry;
     setError(null);
     try {
@@ -255,6 +259,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not close the item");
+    } finally {
+      closingRef.current = false;
     }
   }
 

@@ -286,6 +286,14 @@ export const estimatesRouter = router({
       if (parent.parentLineId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Only a main line derives dependencies." });
       }
+
+      // Re-derivation: always drop this parent's prior AUTO children first (manual
+      // ones survive), so re-deriving is idempotent even if the KB item is gone
+      // (kbItemId set null on item delete) and no edges are found below.
+      await ctx.db
+        .delete(estimateLines)
+        .where(and(eq(estimateLines.parentLineId, parent.id), eq(estimateLines.derived, true)));
+
       if (!parent.kbItemId) return { created: [] as string[], manual: [] };
 
       const parentMs = await ctx.db
@@ -307,11 +315,6 @@ export const estimatesRouter = router({
         .where(eq(kbItemDependencies.parentItemId, parent.kbItemId))
         .orderBy(asc(childItem.name));
 
-      // Re-derivation: drop this parent's prior AUTO children (manual ones survive).
-      await ctx.db
-        .delete(estimateLines)
-        .where(and(eq(estimateLines.parentLineId, parent.id), eq(estimateLines.derived, true)));
-
       const created: string[] = [];
       const manual: { kbItemId: string; name: string; unit: string }[] = [];
 
@@ -325,6 +328,7 @@ export const estimatesRouter = router({
           continue;
         } else if (derivation === "RATIO") {
           const qty = lineQuantity(parentMs.map(toMeasurement), parent.unit) * edge.ratio;
+          if (qty === 0) continue; // no parent qty → no child (matches the geometric path)
           childCols = [scalarMeasurement(qty, edge.unit)];
         } else {
           // Geometric — needs a 2-D child unit; otherwise fall back to manual entry.
