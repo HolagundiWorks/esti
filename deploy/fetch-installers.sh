@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Fetch the AORMS desktop installers from a GitHub Release and host them on the
-# VPS /download page (Lite / Core / Enterprise .exe).
+# Fetch the AORMS desktop installer from a GitHub Release and host it on the
+# VPS /download page.
 #
 # Windows installers can't be built on a Linux VPS — GitHub Actions (windows-latest,
-# .github/workflows/desktop.yml) builds all three and publishes them on a `desktop-v*`
-# tag. This script pulls them down, wires the .env download URLs, rebuilds the SPA so
-# the buttons go live, and serves the files under /downloads/.
+# .github/workflows/desktop.yml) builds the Manager installer and publishes it on a
+# `desktop-v*` tag. Since the Manager model there is ONE edition-agnostic installer
+# (AORMS-Setup.exe — the edition comes from the licence at runtime); both download
+# buttons point at it. Legacy releases (up to desktop-v0.2.0) shipped per-edition
+# Lite/Pro/Core exes — those names remain supported as a fallback. This script pulls
+# the assets down, wires the .env download URLs, rebuilds the SPA so the buttons go
+# live, and serves the files under /downloads/.
 #
 #   bash deploy/fetch-installers.sh                  # latest desktop-v* release
 #   bash deploy/fetch-installers.sh desktop-v1.0.0   # a specific tag
@@ -25,11 +29,10 @@ ENV_FILE="$DEPLOY_DIR/.env"
 DIST="$DEPLOY_DIR/frontend/dist"
 STAGE="$DEPLOY_DIR/.installers"
 
+MANAGER="AORMS-Setup.exe"
+# Legacy asset names (releases up to desktop-v0.2.0): per-edition installers.
 LITE="AORMS-Lite-Setup.exe"
 PRO="AORMS-Pro-Setup.exe"
-# Legacy asset names (releases up to desktop-v0.1.0): the licensed edition was
-# built as "Core", plus a separate "Enterprise" build. The product editions are
-# now Lite/Pro — Pro falls back to the Core exe when no Pro-named asset exists.
 CORE="AORMS-Core-Setup.exe"
 ENT="AORMS-Enterprise-Setup.exe"
 
@@ -46,24 +49,29 @@ if [[ -z "$TAG" ]]; then
 fi
 section "Fetching installers from ${REPO} @ ${TAG}"
 
-# 2. Download the installers to a staging dir.
+# 2. Download the installers to a staging dir. New releases carry one
+#    edition-agnostic Manager installer; legacy releases carry per-edition exes.
 rm -rf "$STAGE"; mkdir -p "$STAGE"
-gh release download "$TAG" --repo "$REPO" --pattern "AORMS-*-Setup.exe" --dir "$STAGE" --clobber \
+gh release download "$TAG" --repo "$REPO" --pattern "AORMS-*Setup.exe" --dir "$STAGE" --clobber \
   || error "gh release download failed — check 'gh auth status' or GH_TOKEN."
-[[ -f "$STAGE/$LITE" ]] || error "Release ${TAG} is missing ${LITE} — re-run the desktop-installer workflow."
-# The Pro download: a Pro-named asset when the release has one, else the
-# legacy Core exe (same licensed edition, old name).
-PRO_FILE=""
-if [[ -f "$STAGE/$PRO" ]]; then PRO_FILE="$PRO"; elif [[ -f "$STAGE/$CORE" ]]; then PRO_FILE="$CORE"; fi
-[[ -n "$PRO_FILE" ]] || error "Release ${TAG} has neither ${PRO} nor ${CORE} — re-run the desktop-installer workflow."
-info "Downloaded: $(cd "$STAGE" && ls AORMS-*-Setup.exe | tr '\n' ' ')"
+LITE_FILE=""; PRO_FILE=""
+if [[ -f "$STAGE/$MANAGER" ]]; then
+  # Single Manager installer — both buttons serve the same exe.
+  LITE_FILE="$MANAGER"; PRO_FILE="$MANAGER"
+else
+  [[ -f "$STAGE/$LITE" ]] && LITE_FILE="$LITE"
+  if [[ -f "$STAGE/$PRO" ]]; then PRO_FILE="$PRO"; elif [[ -f "$STAGE/$CORE" ]]; then PRO_FILE="$CORE"; fi
+fi
+[[ -n "$LITE_FILE" ]] || error "Release ${TAG} has neither ${MANAGER} nor ${LITE} — re-run the desktop-installer workflow."
+[[ -n "$PRO_FILE" ]] || error "Release ${TAG} has neither ${MANAGER}, ${PRO} nor ${CORE} — re-run the desktop-installer workflow."
+info "Downloaded: $(cd "$STAGE" && ls AORMS-*Setup.exe | tr '\n' ' ')"
 
 # 3. Point /download at /downloads/<file> in .env (idempotent).
 section "Wiring .env download URLs"
 set_env_kv() {  # key value
   if grep -q "^$1=" "$ENV_FILE"; then sed -i "s#^$1=.*#$1=$2#" "$ENV_FILE"; else echo "$1=$2" >> "$ENV_FILE"; fi
 }
-set_env_kv VITE_LITE_DOWNLOAD_URL "/downloads/$LITE"
+set_env_kv VITE_LITE_DOWNLOAD_URL "/downloads/$LITE_FILE"
 set_env_kv VITE_PRO_DOWNLOAD_URL "/downloads/$PRO_FILE"
 # Legacy vars — harmless, kept for older builds that still read them.
 [[ -f "$STAGE/$CORE" ]] && set_env_kv VITE_CORE_DOWNLOAD_URL "/downloads/$CORE"
@@ -80,11 +88,11 @@ docker cp esti-fe-tmp:/usr/share/nginx/html/. "$DIST.new/"
 docker rm esti-fe-tmp >/dev/null
 
 mkdir -p "$DIST.new/downloads"
-cp "$STAGE"/AORMS-*-Setup.exe "$DIST.new/downloads/"
+cp "$STAGE"/AORMS-*Setup.exe "$DIST.new/downloads/"
 chown -R www-data:www-data "$DIST.new" 2>/dev/null || true
 rm -rf "$DIST.old"; [[ -d "$DIST" ]] && mv "$DIST" "$DIST.old"
 mv "$DIST.new" "$DIST"
 rm -rf "$STAGE"
 nginx -t >/dev/null 2>&1 && systemctl reload nginx 2>/dev/null || true
 
-info "Done — https://<your-domain>/download now serves Lite (${LITE}) and Pro (${PRO_FILE})."
+info "Done — https://<your-domain>/download now serves Lite (${LITE_FILE}) and Pro (${PRO_FILE})."
