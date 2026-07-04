@@ -15,7 +15,6 @@ import {
 } from "@carbon/react";
 import {
   type EstimateMeasurement,
-  dimensionCount,
   lineQuantity,
   measurementQty,
   measurementRows,
@@ -37,7 +36,7 @@ import {
  * keyboard-first measurement sheet.
  *
  *   /        element search over the Knowledge Bank item library
- *   ↑ / ↓    move through search results (and parameter rows while measuring)
+ *   ↑ / ↓    move through search results (and parameter fields while measuring)
  *   Space    select the highlighted element
  *   Enter    open the measurement block · advance down the column ·
  *            record the column (last row)
@@ -63,44 +62,39 @@ function fmtQty(n: number): string {
   return n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 }
 
-/** One saved line rendered as a transposed measurement block. */
+/** One saved line — each measurement is a row; parameters + Qty are columns. */
 function SavedLine({ no, line }: {
   no: string;
   line: { description: string; unit: string; measurements?: unknown; parentLineId: string | null };
 }) {
   const ms = (line.measurements ?? []) as EstimateMeasurement[];
   const rows = measurementRows(line.unit);
-  const dims = dimensionCount(line.unit);
   const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
   return (
     <TableContainer title={`${no} · ${line.description}`} description={`Unit: ${line.unit} · Qty: ${fmtQty(lineQuantity(ms, line.unit))} ${line.unit}`}>
       <Table size="sm">
         <TableHead>
           <TableRow>
-            <TableHeader>Parameter</TableHeader>
-            {ms.map((_, i) => (
-              <TableHeader key={i}>M{i + 1}</TableHeader>
+            <TableHeader>#</TableHeader>
+            {rows.map((label, r) => (
+              <TableHeader key={label + r}>{label}</TableHeader>
             ))}
+            <TableHeader>Qty ({line.unit})</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((label, r) => (
-            <TableRow key={label + r}>
-              <TableCell>{label}</TableCell>
-              {ms.map((m, i) => (
-                <TableCell key={i}>{m[keys[r]!] ?? "—"}</TableCell>
+          {ms.map((m, i) => (
+            <TableRow key={i}>
+              <TableCell>M{i + 1}</TableCell>
+              {rows.map((_, r) => (
+                <TableCell key={r}>{m[keys[r]!] ?? "—"}</TableCell>
               ))}
+              <TableCell>{fmtQty(measurementQty(m, line.unit))}</TableCell>
             </TableRow>
           ))}
-          <TableRow>
-            <TableCell>Qty ({line.unit})</TableCell>
-            {ms.map((m, i) => (
-              <TableCell key={i}>{fmtQty(measurementQty(m, line.unit))}</TableCell>
-            ))}
-          </TableRow>
-          {dims === 0 && ms.length === 0 && (
+          {ms.length === 0 && (
             <TableRow>
-              <TableCell colSpan={1}>—</TableCell>
+              <TableCell colSpan={rows.length + 2}>—</TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -331,8 +325,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       </div>
       <p className="esti-label esti-label--helper">
         Type “/” then the element name · ↑↓ to choose · Space to select · Enter opens the
-        block, walks the column and records it · Enter on an empty column closes the item —
-        mapped dependencies follow automatically.
+        block, walks the Nos/dimension fields and records the measurement · Enter on an empty
+        measurement closes the item — mapped dependencies follow automatically.
       </p>
 
       {lines.map((line) => (
@@ -405,53 +399,51 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
               <Table size="sm">
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Parameter</TableHeader>
-                    {entry.state.recorded.map((_, i) => (
-                      <TableHeader key={i}>M{i + 1}</TableHeader>
+                    <TableHeader>#</TableHeader>
+                    {entry.state.rows.map((label, r) => (
+                      <TableHeader key={label + r}>{label}</TableHeader>
                     ))}
-                    <TableHeader>New</TableHeader>
+                    <TableHeader>Qty ({entry.element.unit})</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {entry.state.rows.map((label, r) => {
+                  {entry.state.recorded.map((m, i) => {
                     const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
                     return (
-                      <TableRow key={label + r}>
-                        <TableCell>{label}</TableCell>
-                        {entry.state.recorded.map((m, i) => (
-                          <TableCell key={i}>{m[keys[r]!] ?? "—"}</TableCell>
+                      <TableRow key={i}>
+                        <TableCell>M{i + 1}</TableCell>
+                        {entry.state.rows.map((_, r) => (
+                          <TableCell key={r}>{m[keys[r]!] ?? "—"}</TableCell>
                         ))}
-                        <TableCell>
-                          <TextInput
-                            id={`m-${r}`}
-                            ref={r === entry.state.rowIdx ? activeCellRef : undefined}
-                            labelText=""
-                            hideLabel
-                            size="sm"
-                            className="esti-input-sm"
-                            autoComplete="off"
-                            value={entry.state.column[r] ?? ""}
-                            onChange={(e) =>
-                              setEntry({
-                                ...entry,
-                                state: setValue({ ...entry.state, rowIdx: r }, e.target.value),
-                              })
-                            }
-                            onFocus={() => setEntry({ ...entry, state: { ...entry.state, rowIdx: r } })}
-                            onKeyDown={onMeasureKey}
-                          />
-                        </TableCell>
+                        <TableCell>{fmtQty(measurementQty(m, entry.element.unit))}</TableCell>
                       </TableRow>
                     );
                   })}
                   <TableRow>
-                    <TableCell>Qty ({entry.element.unit})</TableCell>
-                    {entry.state.recorded.map((m, i) => (
-                      <TableCell key={i}>{fmtQty(measurementQty(m, entry.element.unit))}</TableCell>
+                    <TableCell>New</TableCell>
+                    {entry.state.rows.map((label, r) => (
+                      <TableCell key={label + r}>
+                        <TextInput
+                          id={`m-${r}`}
+                          ref={r === entry.state.rowIdx ? activeCellRef : undefined}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          className="esti-input-sm"
+                          autoComplete="off"
+                          value={entry.state.column[r] ?? ""}
+                          onChange={(e) =>
+                            setEntry({
+                              ...entry,
+                              state: setValue({ ...entry.state, rowIdx: r }, e.target.value),
+                            })
+                          }
+                          onFocus={() => setEntry({ ...entry, state: { ...entry.state, rowIdx: r } })}
+                          onKeyDown={onMeasureKey}
+                        />
+                      </TableCell>
                     ))}
-                    <TableCell>
-                      {currentColumnQty == null ? "—" : fmtQty(currentColumnQty)}
-                    </TableCell>
+                    <TableCell>{currentColumnQty == null ? "—" : fmtQty(currentColumnQty)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
