@@ -20,9 +20,12 @@
  * do not drop to `authedProcedure`/`publicProcedure`.
  */
 import {
+  ESTIMATE_STATUS_LABEL,
   EstimateLineCreate,
   EstimateMeasurementAdd,
+  EstimateStatus,
   MeasurementDerivation,
+  can,
   deriveColumn,
   derivationChildDims,
   dimensionCount,
@@ -39,7 +42,7 @@ import {
   kbItemDependencies,
   kbItems,
 } from "../../db/schema.js";
-import { protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import { getProjectById } from "../projectoffice/queries.js";
 
 const childItem = alias(kbItems, "child_item");
@@ -58,6 +61,25 @@ async function requireLine(db: Parameters<typeof getProjectById>[0], id: string)
 
 const touch = (db: Parameters<typeof getProjectById>[0], estimateId: string) =>
   db.update(estimates).set({ updatedAt: new Date() }).where(eq(estimates.id, estimateId));
+
+/** Content edits are allowed only while an estimate is IN_PROGRESS. FOR_REVIEW
+ *  and APPROVED are locked — approved is revised by cloning. */
+async function assertEditable(db: Parameters<typeof getProjectById>[0], estimateId: string) {
+  const [row] = await db
+    .select({ status: estimates.status })
+    .from(estimates)
+    .where(eq(estimates.id, estimateId))
+    .limit(1);
+  if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate not found" });
+  if (row.status !== "IN_PROGRESS") {
+    const parsed = EstimateStatus.safeParse(row.status);
+    const label = parsed.success ? ESTIMATE_STATUS_LABEL[parsed.data] : row.status;
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `This estimate is ${label} and locked; only in-progress estimates can be edited.`,
+    });
+  }
+}
 
 /** Row (nullable dims) → contract measurement (undefined dims). */
 const toMeasurement = (m: { nos: number; l: number | null; b: number | null; h: number | null }) => ({
@@ -179,6 +201,7 @@ export const estimatesRouter = router({
    *  which in the backend is the line row being created. */
   openLine: protectedProcedure.input(EstimateLineCreate).mutation(async ({ ctx, input }) => {
     await requireEstimate(ctx.db, input.estimateId);
+    await assertEditable(ctx.db, input.estimateId);
     if (input.parentLineId) {
       const parent = await requireLine(ctx.db, input.parentLineId);
       if (parent.estimateId !== input.estimateId) {
@@ -213,6 +236,7 @@ export const estimatesRouter = router({
     .input(EstimateMeasurementAdd)
     .mutation(async ({ ctx, input }) => {
       const line = await requireLine(ctx.db, input.lineId);
+      await assertEditable(ctx.db, line.estimateId);
       const [agg] = await ctx.db
         .select({ next: sql<number>`coalesce(max(${estimateMeasurements.sortOrder}), 0) + 1` })
         .from(estimateMeasurements)
@@ -242,6 +266,7 @@ export const estimatesRouter = router({
         .innerJoin(estimateLines, eq(estimateMeasurements.lineId, estimateLines.id))
         .where(eq(estimateMeasurements.id, input.id))
         .limit(1);
+      if (owner) await assertEditable(ctx.db, owner.estimateId);
       await ctx.db.delete(estimateMeasurements).where(eq(estimateMeasurements.id, input.id));
       if (owner) await touch(ctx.db, owner.estimateId);
       return { ok: true };
@@ -253,6 +278,7 @@ export const estimatesRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const line = await requireLine(ctx.db, input.id);
+      await assertEditable(ctx.db, line.estimateId);
       const [agg] = await ctx.db
         .select({ count: sql<number>`count(*)::int` })
         .from(estimateMeasurements)
@@ -286,6 +312,7 @@ export const estimatesRouter = router({
       if (parent.parentLineId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Only a main line derives dependencies." });
       }
+      await assertEditable(ctx.db, parent.estimateId);
 
       // Re-derivation: always drop this parent's prior AUTO children first (manual
       // ones survive), so re-deriving is idempotent even if the KB item is gone
@@ -385,10 +412,12 @@ export const estimatesRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const line = await requireLine(ctx.db, input.id);
+      await assertEditable(ctx.db, line.estimateId);
       const patch: Record<string, unknown> = {};
       if (input.description !== undefined) patch.description = input.description;
       if (input.code !== undefined) patch.code = input.code;
-      if (Object.keys(patch).length === 0) return requireLine(ctx.db, input.id);
+      if (Object.keys(patch).length === 0) return line;
       const [row] = await ctx.db
         .update(estimateLines)
         .set(patch)
@@ -404,15 +433,127 @@ export const estimatesRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const line = await requireLine(ctx.db, input.id);
+      await assertEditable(ctx.db, line.estimateId);
       await ctx.db.delete(estimateLines).where(eq(estimateLines.parentLineId, input.id));
       await ctx.db.delete(estimateLines).where(eq(estimateLines.id, input.id));
       await touch(ctx.db, line.estimateId);
       return { ok: true };
     }),
 
+  /**
+   * Estimate lifecycle: IN_PROGRESS → FOR_REVIEW (submit), FOR_REVIEW →
+   * IN_PROGRESS (send back), FOR_REVIEW → APPROVED (approve — team lead only).
+   * APPROVED is terminal; revise it via cloneRevision.
+   */
+  setStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid(), status: EstimateStatus }))
+    .mutation(async ({ ctx, input }) => {
+      const est = await requireEstimate(ctx.db, input.id);
+      const from = est.status;
+      const to = input.status;
+      const allowed =
+        (from === "IN_PROGRESS" && to === "FOR_REVIEW") ||
+        (from === "FOR_REVIEW" && to === "IN_PROGRESS") ||
+        (from === "FOR_REVIEW" && to === "APPROVED");
+      if (!allowed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot move an estimate from ${from} to ${to}.` });
+      }
+      if (to === "APPROVED" && !can(ctx.user.role, "estimate:approve")) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only a team lead can approve an estimate." });
+      }
+      const [row] = await ctx.db
+        .update(estimates)
+        .set({ status: to, updatedAt: new Date() })
+        .where(eq(estimates.id, input.id))
+        .returning();
+      return row!;
+    }),
+
+  /**
+   * Clone an APPROVED estimate into a fresh IN_PROGRESS revision (deep copy of
+   * lines + measurements, remapping dependency parents). Team lead only. The
+   * approved original stays immutable; every revision chains to it (revisionOf).
+   */
+  cloneRevision: capabilityProcedure("estimate:approve")
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const src = await requireEstimate(ctx.db, input.id);
+      if (src.status !== "APPROVED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only an approved estimate can be revised." });
+      }
+      const srcLines = await ctx.db
+        .select()
+        .from(estimateLines)
+        .where(eq(estimateLines.estimateId, src.id))
+        .orderBy(asc(estimateLines.sortOrder), asc(estimateLines.createdAt));
+      const srcLineIds = srcLines.map((l) => l.id);
+      const srcMs = srcLineIds.length
+        ? await ctx.db
+            .select()
+            .from(estimateMeasurements)
+            .where(inArray(estimateMeasurements.lineId, srcLineIds))
+            .orderBy(asc(estimateMeasurements.sortOrder), asc(estimateMeasurements.createdAt))
+        : [];
+
+      const revisionNo = (src.revisionNo ?? 0) + 1;
+      const base = src.title.replace(/\s*\(Rev \d+\)\s*$/i, "");
+      const [newEst] = await ctx.db
+        .insert(estimates)
+        .values({
+          projectId: src.projectId,
+          title: `${base} (Rev ${revisionNo})`,
+          status: "IN_PROGRESS",
+          revisionNo,
+          revisionOf: src.revisionOf ?? src.id,
+        })
+        .returning();
+
+      // Remap old line id → new line id: main lines first so dependency lines
+      // can point their parentLineId at the new parent.
+      const idMap = new Map<string, string>();
+      const copyLine = async (l: (typeof srcLines)[number], parentLineId: string | null) => {
+        const [n] = await ctx.db
+          .insert(estimateLines)
+          .values({
+            estimateId: newEst!.id,
+            parentLineId,
+            kbItemId: l.kbItemId,
+            sortOrder: l.sortOrder,
+            code: l.code,
+            description: l.description,
+            unit: l.unit,
+            derived: l.derived,
+          })
+          .returning({ id: estimateLines.id });
+        idMap.set(l.id, n!.id);
+      };
+      for (const l of srcLines.filter((x) => !x.parentLineId)) await copyLine(l, null);
+      for (const l of srcLines.filter((x) => x.parentLineId)) {
+        await copyLine(l, l.parentLineId ? idMap.get(l.parentLineId) ?? null : null);
+      }
+      if (srcMs.length) {
+        await ctx.db.insert(estimateMeasurements).values(
+          srcMs.map((m) => ({
+            lineId: idMap.get(m.lineId)!,
+            sortOrder: m.sortOrder,
+            label: m.label,
+            nos: m.nos,
+            l: m.l,
+            b: m.b,
+            h: m.h,
+          })),
+        );
+      }
+      return newEst!;
+    }),
+
   remove: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const est = await requireEstimate(ctx.db, input.id);
+      if (est.status === "APPROVED") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "An approved estimate cannot be deleted." });
+      }
       await ctx.db.delete(estimates).where(eq(estimates.id, input.id));
       return { ok: true };
     }),

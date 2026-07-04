@@ -25,7 +25,12 @@ export const estimates = pgTable("esti_estimate", {
     .notNull()
     .references(() => projectOffices.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
-  status: text("status").notNull().default("DRAFT"),
+  /** IN_PROGRESS | FOR_REVIEW | APPROVED (EstimateStatus). Editable only in-progress. */
+  status: text("status").notNull().default("IN_PROGRESS"),
+  /** 0 for the original; a clone of an approved estimate increments it (Rev N). */
+  revisionNo: integer("revision_no").notNull().default(0),
+  /** The original estimate this is a revision of (null for the original). */
+  revisionOf: uuid("revision_of"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: createdAt(),
 });

@@ -2,6 +2,26 @@ import { z } from "zod";
 import { canonicalUnit } from "./rate-import.js";
 
 /**
+ * Estimate lifecycle. Editable only while IN_PROGRESS; FOR_REVIEW awaits a lead's
+ * decision; APPROVED is immutable — to revise, a team lead clones it (a new
+ * IN_PROGRESS estimate marked Rev N). See the estimates router.
+ */
+export const EstimateStatus = z.enum(["IN_PROGRESS", "FOR_REVIEW", "APPROVED"]);
+export type EstimateStatus = z.infer<typeof EstimateStatus>;
+
+export const ESTIMATE_STATUS_LABEL: Record<EstimateStatus, string> = {
+  IN_PROGRESS: "In progress",
+  FOR_REVIEW: "For review",
+  APPROVED: "Approved",
+};
+
+export const ESTIMATE_STATUS_TAG: Record<EstimateStatus, "gray" | "blue" | "green"> = {
+  IN_PROGRESS: "gray",
+  FOR_REVIEW: "blue",
+  APPROVED: "green",
+};
+
+/**
  * Estimate sheet (Estimation OS rebuild, phase 1) — the Excel-inspired
  * keyboard-first measurement sheet. Pure measurement math + line shapes;
  * persistence lives in the backend `estimates` router.

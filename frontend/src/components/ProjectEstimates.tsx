@@ -14,13 +14,18 @@ import {
   Tile,
 } from "@carbon/react";
 import {
+  ESTIMATE_STATUS_LABEL,
+  ESTIMATE_STATUS_TAG,
   type EstimateMeasurement,
+  type EstimateStatus,
+  can,
   lineQuantity,
   measurementQty,
   measurementRows,
 } from "@esti/contracts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { useAuth } from "../lib/auth.js";
 import {
   type MeasureState,
   dropRecorded,
@@ -121,14 +126,33 @@ function SavedLine({ no, line }: {
   );
 }
 
-function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () => void }) {
+function EstimateSheet({
+  estimateId,
+  projectId,
+  onBack,
+}: {
+  estimateId: string;
+  projectId: string;
+  onBack: () => void;
+}) {
   const utils = trpc.useUtils();
+  const { user } = useAuth();
+  const canApprove = can(user?.role, "estimate:approve");
   const estimateQ = trpc.estimates.get.useQuery({ id: estimateId });
   const openLine = trpc.estimates.openLine.useMutation();
   const addMeasurement = trpc.estimates.addMeasurement.useMutation();
   const deriveDependencies = trpc.estimates.deriveDependencies.useMutation();
   const closeLine = trpc.estimates.closeLine.useMutation({
     onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+  });
+  const setStatus = trpc.estimates.setStatus.useMutation({
+    onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+  });
+  const cloneRevision = trpc.estimates.cloneRevision.useMutation({
+    onSuccess: () => {
+      void utils.estimates.list.invalidate({ projectId });
+      onBack();
+    },
   });
 
   const [entry, setEntry] = useState<EntryPhase>({ phase: "slash", text: "", highlight: 0 });
@@ -341,27 +365,83 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
 
   const est = estimateQ.data;
   if (!est) return null;
+  const status = est.status as EstimateStatus;
+  const locked = status !== "IN_PROGRESS";
 
   return (
     <Stack gap={5}>
       <div className="esti-row-between">
-        <h4>{est.title}</h4>
+        <span className="esti-row">
+          <h4>{est.title}</h4>
+          <Tag type={ESTIMATE_STATUS_TAG[status]} size="sm">{ESTIMATE_STATUS_LABEL[status]}</Tag>
+          {est.revisionNo > 0 && <Tag type="purple" size="sm">Rev {est.revisionNo}</Tag>}
+        </span>
         <div className="esti-row">
           <Tag type="gray" size="sm">{mains.length} item{mains.length === 1 ? "" : "s"}</Tag>
+          {status === "IN_PROGRESS" && (
+            <Button
+              size="sm"
+              kind="tertiary"
+              disabled={setStatus.isPending || mains.length === 0}
+              onClick={() => setStatus.mutate({ id: estimateId, status: "FOR_REVIEW" })}
+            >
+              Submit for review
+            </Button>
+          )}
+          {status === "FOR_REVIEW" && (
+            <>
+              <Button
+                size="sm"
+                kind="tertiary"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ id: estimateId, status: "IN_PROGRESS" })}
+              >
+                Send back
+              </Button>
+              {canApprove && (
+                <Button
+                  size="sm"
+                  disabled={setStatus.isPending}
+                  onClick={() => setStatus.mutate({ id: estimateId, status: "APPROVED" })}
+                >
+                  Approve
+                </Button>
+              )}
+            </>
+          )}
+          {status === "APPROVED" && canApprove && (
+            <Button
+              size="sm"
+              disabled={cloneRevision.isPending}
+              onClick={() => cloneRevision.mutate({ id: estimateId })}
+            >
+              Clone to revision
+            </Button>
+          )}
           <Button size="sm" kind="ghost" onClick={() => void exit()}>All estimates</Button>
         </div>
       </div>
-      <p className="esti-label esti-label--helper">
-        Type “/” then the element name · ↑↓ to choose · Space to select · Enter opens the
-        block, walks the Nos/dimension fields and records the measurement · Enter on an empty
-        measurement closes the item — mapped dependencies follow automatically.
-      </p>
+      {locked ? (
+        <p className="esti-label esti-label--helper">
+          This estimate is {ESTIMATE_STATUS_LABEL[status].toLowerCase()} and read-only.
+          {status === "APPROVED"
+            ? " Clone it to a revision to make changes."
+            : " Send it back to editing to make changes."}
+        </p>
+      ) : (
+        <p className="esti-label esti-label--helper">
+          Type “/” then the element name · ↑↓ to choose · Space to select · Enter opens the
+          block, walks the Nos/dimension fields and records the measurement · Enter on an empty
+          measurement closes the item — mapped dependencies follow automatically.
+        </p>
+      )}
 
       {lines.map((line) => (
         <SavedLine key={line.id} no={lineNo(line)} line={line} />
       ))}
 
-      {/* ── Active entry ── */}
+      {/* ── Active entry (only while editable) ── */}
+      {!locked && (
       <Tile className="esti-fill">
         {entry.phase === "slash" && (
           <Stack gap={3}>
@@ -482,6 +562,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
           <InlineNotification kind="error" lowContrast hideCloseButton title="Could not save" subtitle={error} />
         )}
       </Tile>
+      )}
     </Stack>
   );
 }
@@ -500,7 +581,10 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
 
   const estimatesList = useMemo(() => listQ.data ?? [], [listQ.data]);
 
-  if (openId) return <EstimateSheet estimateId={openId} onBack={() => setOpenId(null)} />;
+  if (openId)
+    return (
+      <EstimateSheet estimateId={openId} projectId={projectId} onBack={() => setOpenId(null)} />
+    );
 
   return (
     <Stack gap={5}>
@@ -550,7 +634,9 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           <div className="esti-row-between">
             <span>
               <strong>{e.title}</strong>{" "}
-              <Tag type={e.status === "DRAFT" ? "gray" : "green"} size="sm">{e.status}</Tag>
+              <Tag type={ESTIMATE_STATUS_TAG[e.status as EstimateStatus] ?? "gray"} size="sm">
+                {ESTIMATE_STATUS_LABEL[e.status as EstimateStatus] ?? e.status}
+              </Tag>
             </span>
             <Button size="sm" kind="tertiary" onClick={() => setOpenId(e.id)}>
               Open sheet
