@@ -503,6 +503,14 @@ export const estimatesRouter = router({
         if (line.kbItemId && spec.itemId !== line.kbItemId) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "That specification is for a different item." });
         }
+        // The line is priced qty(line unit) × rate(spec unit), so the units must
+        // agree. A null spec unit inherits the item/line unit and is fine.
+        if (spec.unit && spec.unit !== line.unit) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Specification unit (${spec.unit}) doesn't match the line unit (${line.unit}).`,
+          });
+        }
       }
       const [row] = await ctx.db
         .update(estimateLines)
