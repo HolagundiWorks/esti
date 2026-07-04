@@ -15,6 +15,10 @@ describe("dimensionCount", () => {
     expect(dimensionCount("m2")).toBe(2);
     expect(dimensionCount("cum")).toBe(3);
     expect(dimensionCount("m3")).toBe(3);
+    // imperial units are handled consistently with their metric counterparts
+    expect(dimensionCount("rft")).toBe(1);
+    expect(dimensionCount("ft")).toBe(1);
+    expect(dimensionCount("sqft")).toBe(2);
     expect(dimensionCount("nos")).toBe(0);
     expect(dimensionCount("kg")).toBe(0);
     expect(dimensionCount("LS")).toBe(0);

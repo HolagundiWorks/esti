@@ -19,6 +19,7 @@ import { canonicalUnit } from "./rate-import.js";
 export function dimensionCount(unit: string | null | undefined): 0 | 1 | 2 | 3 {
   switch (canonicalUnit(unit)) {
     case "m":
+    case "rft": // imperial running foot — linear, like metre
       return 1;
     case "m2":
     case "sqft":

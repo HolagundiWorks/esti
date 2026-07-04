@@ -281,6 +281,19 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     }
   }
 
+  /** Leaving mid-measurement: close the open line first (closeLine prunes it
+   *  if nothing was recorded) so an abandoned sheet leaves no empty line. */
+  async function exit() {
+    if (entry.phase === "measuring") {
+      try {
+        await closeLine.mutateAsync({ id: entry.lineId });
+      } catch {
+        /* navigate away regardless */
+      }
+    }
+    onBack();
+  }
+
   const est = estimateQ.data;
   if (!est) return null;
 
@@ -290,7 +303,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
         <h4>{est.title}</h4>
         <div className="esti-row">
           <Tag type="gray" size="sm">{mains.length} item{mains.length === 1 ? "" : "s"}</Tag>
-          <Button size="sm" kind="ghost" onClick={onBack}>All estimates</Button>
+          <Button size="sm" kind="ghost" onClick={() => void exit()}>All estimates</Button>
         </div>
       </div>
       <p className="esti-label esti-label--helper">
