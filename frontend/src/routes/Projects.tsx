@@ -21,7 +21,6 @@ import {
   TextInput,
 } from "@carbon/react";
 import {
-  Jurisdiction,
   PROJECT_STATUS_LABEL,
   ProjectStatus,
   ProjectType,
@@ -57,7 +56,6 @@ export function Projects() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [projectType, setProjectType] = useState<string>("RESIDENTIAL");
-  const [jurisdiction, setJurisdiction] = useState<string>("BBMP");
   const [valueRupees, setValueRupees] = useState("");
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
@@ -225,7 +223,6 @@ export function Projects() {
           create.mutate({
             title,
             projectType: projectType as (typeof ProjectType.options)[number],
-            jurisdiction: jurisdiction as (typeof Jurisdiction.options)[number],
             contractValuePaise: Math.round(Number(valueRupees || "0") * 100),
             clientId: clientId || undefined,
           })
@@ -246,16 +243,6 @@ export function Projects() {
           >
             {ProjectType.options.map((t) => (
               <SelectItem key={t} value={t} text={t} />
-            ))}
-          </Select>
-          <Select
-            id="jurisdiction"
-            labelText="Jurisdiction"
-            value={jurisdiction}
-            onChange={(e) => setJurisdiction(e.target.value)}
-          >
-            {Jurisdiction.options.map((j) => (
-              <SelectItem key={j} value={j} text={j} />
             ))}
           </Select>
           <Select
