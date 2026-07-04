@@ -5,6 +5,25 @@ admin + 3 staff/intern, no licence, no online/hub, no AI, no external portals.
 Pro remains the licensed/cloud product; data moves **one way, Community → Pro**
 (package the company in *Company › Move to AORMS Pro*, import it into Pro).
 
+## Getting the installer
+
+Community ships as its own **baked** Windows installer — `AORMS-Community-Setup.exe`
+— distinct from the licensed Manager installer. The Rust shell bakes
+`AORMS_EDITION=COMMUNITY` at compile time, so the app boots the backend with
+`ESTI_EDITION=COMMUNITY` (licence-free, no hub, first-run admin seed) with no env
+wiring on the user's side.
+
+- **Build it:** GitHub → Actions → **desktop-installer** → *Run workflow* (or push
+  a `desktop-v*` tag). The `community` job builds on `windows-latest` and, on a
+  `desktop-v*` release, publishes `AORMS-Community-Setup.exe` to the GitHub Release.
+  (A Linux host cannot build Windows installers — see `desktop/README.md`.)
+- **Host the download:** on the VPS, `bash deploy/fetch-installers.sh` pulls the
+  release asset into `frontend/dist/downloads/` and bakes
+  `VITE_COMMUNITY_DOWNLOAD_URL=/downloads/AORMS-Community-Setup.exe` into the SPA.
+- **Where it appears:** the public **/download** page (Community card) and the
+  landing pricing band ("Download Community (offline)"). Until a Community asset
+  exists the button falls back to the free Lite/Manager exe, then to `/download`.
+
 ## Turning it on
 
 Set the edition (Tauri desktop bakes `AORMS_EDITION`; a server install uses env):

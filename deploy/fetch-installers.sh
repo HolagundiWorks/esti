@@ -30,6 +30,8 @@ DIST="$DEPLOY_DIR/frontend/dist"
 STAGE="$DEPLOY_DIR/.installers"
 
 MANAGER="AORMS-Setup.exe"
+# The free, offline, LAN-only Community appliance (its own baked installer).
+COMMUNITY="AORMS-Community-Setup.exe"
 # Legacy asset names (releases up to desktop-v0.2.0): per-edition installers.
 LITE="AORMS-Lite-Setup.exe"
 PRO="AORMS-Pro-Setup.exe"
@@ -73,6 +75,10 @@ set_env_kv() {  # key value
 }
 set_env_kv VITE_LITE_DOWNLOAD_URL "/downloads/$LITE_FILE"
 set_env_kv VITE_PRO_DOWNLOAD_URL "/downloads/$PRO_FILE"
+# The Community appliance has its own baked installer; fall back to the free
+# Lite/Manager exe when a release predates it so the button is never dead.
+COMMUNITY_FILE="$([[ -f "$STAGE/$COMMUNITY" ]] && echo "$COMMUNITY" || echo "$LITE_FILE")"
+set_env_kv VITE_COMMUNITY_DOWNLOAD_URL "/downloads/$COMMUNITY_FILE"
 # Legacy vars — harmless, kept for older builds that still read them.
 [[ -f "$STAGE/$CORE" ]] && set_env_kv VITE_CORE_DOWNLOAD_URL "/downloads/$CORE"
 [[ -f "$STAGE/$ENT" ]] && set_env_kv VITE_ENTERPRISE_DOWNLOAD_URL "/downloads/$ENT"
@@ -95,4 +101,4 @@ mv "$DIST.new" "$DIST"
 rm -rf "$STAGE"
 nginx -t >/dev/null 2>&1 && systemctl reload nginx 2>/dev/null || true
 
-info "Done — https://<your-domain>/download now serves Lite (${LITE_FILE}) and Pro (${PRO_FILE})."
+info "Done — https://<your-domain>/download now serves Community (${COMMUNITY_FILE}) and Pro (${PRO_FILE})."

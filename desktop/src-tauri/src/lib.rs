@@ -275,10 +275,21 @@ fn backend_env(
     env.insert("COOKIE_SECURE".into(), "false".into());
     // Edition falls back to the baked value; a licence (below) overrides the plan.
     let baked_edition = option_env!("AORMS_EDITION").unwrap_or("LITE");
+    // COMMUNITY is the free, offline, LAN-only appliance: it runs on the LITE
+    // plan but flips the backend's ESTI_EDITION so it strips licence/online/AI/
+    // portal surfaces and seeds the first-run admin. FIRM_PLAN stays LITE.
+    let community = baked_edition.eq_ignore_ascii_case("COMMUNITY");
+    let plan = if community { "LITE".to_string() } else { baked_edition.to_string() };
     env.insert(
         "FIRM_PLAN".into(),
-        std::env::var("FIRM_PLAN").unwrap_or_else(|_| baked_edition.to_string()),
+        std::env::var("FIRM_PLAN").unwrap_or(plan),
     );
+    if community {
+        env.insert(
+            "ESTI_EDITION".into(),
+            std::env::var("ESTI_EDITION").unwrap_or_else(|_| "COMMUNITY".into()),
+        );
+    }
     env.insert("INSTALL_ID".into(), install_id);
     env.insert(
         "ESTI_HUB_URL".into(),

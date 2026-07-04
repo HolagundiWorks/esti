@@ -155,6 +155,7 @@ services:
         # AORMS installer download URLs — baked into the /download portal CTAs.
         VITE_LITE_DOWNLOAD_URL: ${VITE_LITE_DOWNLOAD_URL:-}
         VITE_PRO_DOWNLOAD_URL: ${VITE_PRO_DOWNLOAD_URL:-}
+        VITE_COMMUNITY_DOWNLOAD_URL: ${VITE_COMMUNITY_DOWNLOAD_URL:-}
         VITE_CORE_DOWNLOAD_URL: ${VITE_CORE_DOWNLOAD_URL:-}
         VITE_ENTERPRISE_DOWNLOAD_URL: ${VITE_ENTERPRISE_DOWNLOAD_URL:-}
     image: esti-frontend:prod

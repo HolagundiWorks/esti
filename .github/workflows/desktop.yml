@@ -109,3 +109,66 @@ jobs:
             desktop/dist-components/backend-*.tar.gz
             desktop/dist-components/node-*.tar.gz
             desktop/dist-components/components.json
+
+  community:
+    name: Windows Community installer (NSIS)
+    runs-on: windows-latest
+    # The free, offline, LAN-only appliance: AORMS_EDITION=COMMUNITY is baked into
+    # the Rust shell (option_env!) so the backend boots with ESTI_EDITION=COMMUNITY
+    # (licence-free, no hub, seeds the first-run admin). A distinct product name +
+    # identifier lets it install standalone. No downloadable components — Community
+    # is fully offline and never provisions from the hub.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: desktop/src-tauri }
+
+      - name: Install tauri-cli
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Install dependencies (native Windows)
+        run: pnpm install
+
+      - name: Preflight — host buildability
+        run: pnpm desktop:doctor
+
+      - name: Generate Tauri icons
+        shell: bash
+        run: |
+          mkdir -p desktop/src-tauri/icons
+          cargo tauri icon frontend/public/android-chrome-512x512.png -o desktop/src-tauri/icons
+
+      # Bake AORMS_EDITION=COMMUNITY at Rust compile time; override the product
+      # name + identifier so the Community appliance installs standalone.
+      - name: Build Community installer
+        run: |
+          pnpm desktop:assemble
+          cargo tauri build --config desktop/src-tauri/tauri.conf.json --config '{"productName":"AORMS Community","identifier":"in.aorms.esti.community"}'
+        env:
+          AORMS_EDITION: COMMUNITY
+
+      - name: Rename installer to stable asset name
+        shell: bash
+        run: |
+          exe=$(ls desktop/src-tauri/target/release/bundle/nsis/*.exe | head -1)
+          cp "$exe" desktop/src-tauri/target/release/bundle/nsis/AORMS-Community-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aorms-community-windows
+          path: desktop/src-tauri/target/release/bundle/nsis/AORMS-Community-Setup.exe
+          if-no-files-found: error
+
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/desktop-v') || startsWith(inputs.release_tag, 'desktop-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: AORMS Desktop ${{ inputs.release_tag || github.ref_name }}
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
+          files: desktop/src-tauri/target/release/bundle/nsis/AORMS-Community-Setup.exe

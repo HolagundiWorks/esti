@@ -1,7 +1,14 @@
-import { ArrowRight, Checkmark } from "@carbon/icons-react";
+import { ArrowRight, Checkmark, Download as DownloadIcon } from "@carbon/icons-react";
 import { Button, Tag } from "@carbon/react";
 import { createAccountUrl } from "../../lib/onboarding.js";
 import type { LandingTrialPlanContext } from "../LandingTrialForm.js";
+
+// The free, offline, LAN-only Community appliance (Windows). Baked at build by
+// deploy/fetch-installers.sh; when absent the button routes to the /download page.
+const COMMUNITY_DOWNLOAD_URL =
+  (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL as string | undefined) ??
+  (import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined) ??
+  "/download";
 
 const PLANS: Array<{
   ctx: LandingTrialPlanContext;
@@ -116,15 +123,26 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
             <p className="esti-lp-note">{p.hosting}</p>
             {p.ctx === "LITE" ? (
               // Instant self-serve: hand off to the licensing cloud to create an
-              // account + AORMS trial, rather than the personal lead form.
-              <Button
-                kind="primary"
-                size="md"
-                href={createAccountUrl()}
-                renderIcon={ArrowRight}
-              >
-                Create free account
-              </Button>
+              // account + AORMS trial, or download the free offline Community
+              // appliance to run the whole office on the local network.
+              <div className="esti-lp-pricing-tile__ctas">
+                <Button
+                  kind="primary"
+                  size="md"
+                  href={createAccountUrl()}
+                  renderIcon={ArrowRight}
+                >
+                  Create free account
+                </Button>
+                <Button
+                  kind="tertiary"
+                  size="md"
+                  href={COMMUNITY_DOWNLOAD_URL}
+                  renderIcon={DownloadIcon}
+                >
+                  Download Community (offline)
+                </Button>
+              </div>
             ) : (
               <Button
                 kind={p.featured ? "primary" : "tertiary"}

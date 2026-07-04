@@ -6,7 +6,7 @@ import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { createAccountUrl } from "../lib/onboarding.js";
 
 type Edition = {
-  code: "LITE" | "PRO";
+  code: "COMMUNITY" | "PRO";
   name: string;
   price: string;
   pitch: string;
@@ -18,20 +18,23 @@ type Edition = {
 
 const EDITIONS: Edition[] = [
   {
-    code: "LITE",
-    name: "AORMS Lite",
-    price: "Free",
+    code: "COMMUNITY",
+    name: "AORMS Community",
+    price: "Free · Offline",
     pitch:
-      "The free desktop edition for small practices — your whole office on your own machine, no GST billing, no subscription, no dependencies to install.",
+      "The free, offline, LAN-only appliance for small practices — your whole office on your own machine and network. No licence, no cloud, no subscription, nothing to install online.",
     features: [
-      "Up to 3 staff · unlimited clients & projects",
-      "Projects · tasks · drawings · clients",
-      "Local-first — your data stays on your device",
-      "No licence key required",
+      "1 admin + 3 staff/intern · unlimited projects & contacts",
+      "Projects · tasks · drawings · proposals · invoices · contacts",
+      "Runs on your local network — teammates connect from their own devices",
+      "Fully offline — your data never leaves your machine",
+      "Share any PDF over WhatsApp · backup-code recovery",
+      "No licence key required — upgrade to Pro whenever you're ready",
     ],
     tag: "green",
     needsKey: false,
-    url: import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined,
+    url: (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL ??
+      import.meta.env.VITE_LITE_DOWNLOAD_URL) as string | undefined,
   },
   {
     code: "PRO",
@@ -66,7 +69,8 @@ export function Download() {
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
-                practice — Lite is free forever; Pro activates with a licence key.
+                practice — Community is free forever and fully offline; Pro activates with a
+                licence key and adds AI, GST, portals and the cloud.
               </p>
             </Stack>
 
@@ -107,7 +111,7 @@ export function Download() {
                           </Button>
                           <p className="esti-label--helper">
                             Use {e.name} on the web today — {""}
-                            {e.code === "LITE" ? (
+                            {e.code === "COMMUNITY" ? (
                               <a href={createAccountUrl()}>create a free account</a>
                             ) : (
                               <a href="/login">sign in to your workspace</a>
