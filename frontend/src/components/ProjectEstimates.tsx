@@ -51,6 +51,8 @@ type EntryPhase =
   | {
       phase: "measuring";
       element: Element;
+      /** The persisted line — opening the sheet created it (backend openLine). */
+      lineId: string;
       state: MeasureState;
       dep?: { parentLineId: string; index: number; total: number };
     };
@@ -108,7 +110,9 @@ function SavedLine({ no, line }: {
 function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () => void }) {
   const utils = trpc.useUtils();
   const estimateQ = trpc.estimates.get.useQuery({ id: estimateId });
-  const addLine = trpc.estimates.addLine.useMutation({
+  const openLine = trpc.estimates.openLine.useMutation();
+  const addMeasurement = trpc.estimates.addMeasurement.useMutation();
+  const closeLine = trpc.estimates.closeLine.useMutation({
     onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
   });
 
@@ -145,35 +149,56 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     return `${pIdx + 1}.${sibs.findIndex((s) => s.id === line.id) + 1}`;
   };
 
-  /** Close the active item: persist (if measured), then queue dependencies. */
-  async function closeItem(measurements: EstimateMeasurement[]) {
-    if (entry.phase === "slash") return;
-    const { element, dep } = entry;
+  /** Enter in the armed state — open the sheet: the backend creates the line. */
+  async function openSheet() {
+    if (entry.phase !== "armed") return;
     setError(null);
     try {
-      let savedId: string | null = null;
-      if (measurements.length > 0) {
-        const saved = await addLine.mutateAsync({
-          estimateId,
-          kbItemId: element.id,
-          parentLineId: dep?.parentLineId ?? null,
-          description: element.name,
-          unit: element.unit,
-          measurements,
-        });
-        savedId = saved.id;
-      }
+      const line = await openLine.mutateAsync({
+        estimateId,
+        kbItemId: entry.element.id,
+        parentLineId: entry.dep?.parentLineId ?? null,
+        description: entry.element.name,
+        unit: entry.element.unit,
+      });
+      setEntry({
+        ...entry,
+        phase: "measuring",
+        lineId: line.id,
+        state: startMeasuring(entry.element.unit),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not open the measurement sheet");
+    }
+  }
+
+  /** Single Enter on the last row — persist the recorded column immediately. */
+  async function recordColumn(m: EstimateMeasurement) {
+    if (entry.phase !== "measuring") return;
+    try {
+      await addMeasurement.mutateAsync({ lineId: entry.lineId, ...m });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save the measurement");
+    }
+  }
+
+  /** Double Enter — close the sheet; empty lines are pruned server-side. */
+  async function closeItem() {
+    if (entry.phase !== "measuring") return;
+    const { element, dep, lineId } = entry;
+    setError(null);
+    try {
+      const { kept } = await closeLine.mutateAsync({ id: lineId });
       if (!dep) {
-        // Main item closed — fetch its mapped children and queue them.
-        const children = savedId
+        const children = kept
           ? await utils.estimates.elementChildren.fetch({ kbItemId: element.id })
           : [];
-        if (savedId && children.length > 0) {
+        if (kept && children.length > 0) {
           setDepQueue(children.map((c) => ({ kbItemId: c.kbItemId, name: c.name, unit: c.unit })));
           setEntry({
             phase: "armed",
             element: { id: children[0]!.kbItemId, name: children[0]!.name, category: null, unit: children[0]!.unit },
-            dep: { parentLineId: savedId, index: 0, total: children.length },
+            dep: { parentLineId: lineId, index: 0, total: children.length },
           });
           return;
         }
@@ -195,7 +220,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
         setEntry({ phase: "slash", text: "", highlight: 0 });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save the line");
+      setError(e instanceof Error ? e.message : "Could not close the item");
     }
   }
 
@@ -226,7 +251,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     if (entry.phase !== "armed") return;
     if (e.key === "Enter") {
       e.preventDefault();
-      setEntry({ ...entry, phase: "measuring", state: startMeasuring(entry.element.unit) });
+      void openSheet();
     }
   }
 
@@ -245,8 +270,14 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     if (e.key === "Enter") {
       e.preventDefault();
       const r = pressEnter(entry.state);
-      if (r.kind === "closed") void closeItem(r.measurements);
-      else setEntry({ ...entry, state: r.state });
+      if (r.kind === "closed") {
+        void closeItem();
+      } else {
+        if (r.kind === "recorded") {
+          void recordColumn(r.state.recorded[r.state.recorded.length - 1]!);
+        }
+        setEntry({ ...entry, state: r.state });
+      }
     }
   }
 
@@ -322,7 +353,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
             {entry.phase === "armed" && (
               <div role="presentation" tabIndex={0} onKeyDown={onArmedKey} ref={(el) => el?.focus()}>
                 <p className="esti-label esti-label--secondary">
-                  Enter to start measurements{entry.dep ? " · Enter twice to skip this dependency" : ""}.
+                  Enter to start measurements{entry.dep ? " · Enter twice more to skip this dependency" : ""}.
                 </p>
               </div>
             )}

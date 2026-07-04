@@ -1,13 +1,22 @@
 /**
  * Estimate sheet (Estimation OS rebuild, phase 1) — the keyboard-first
  * measurement sheet. An estimate belongs to a project; lines are KB elements
- * (or their dependencies via parentLineId) with measurement columns stored as
- * JSONB [{nos, l?, b?, h?}]. Quantity is always computed from measurements
- * (contracts: lineQuantity) — never stored.
+ * (or their dependencies via parentLineId); measurements are first-class rows
+ * in their own table. Quantity is always computed (contracts: lineQuantity) —
+ * never stored.
  */
 import { kbItems } from "./knowledge-bank.js";
 import { projectOffices } from "./project.js";
-import { createdAt, id, integer, jsonb, pgTable, text, timestamp, uuid } from "./_helpers.js";
+import {
+  createdAt,
+  doublePrecision,
+  id,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "./_helpers.js";
 
 export const estimates = pgTable("esti_estimate", {
   id: id(),
@@ -32,7 +41,25 @@ export const estimateLines = pgTable("esti_estimate_line", {
   code: text("code"),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
-  /** Measurement columns: [{nos, l?, b?, h?}] per contracts EstimateMeasurement. */
-  measurements: jsonb("measurements").notNull().default([]),
+  createdAt: createdAt(),
+});
+
+/**
+ * Measurement rows — one row per recorded column of a line's sheet. Punched
+ * top-to-bottom (nos, then the dimensions the unit calls for); quantity is
+ * computed (contracts measurementQty), never stored.
+ */
+export const estimateMeasurements = pgTable("esti_estimate_measurement", {
+  id: id(),
+  lineId: uuid("line_id")
+    .notNull()
+    .references(() => estimateLines.id, { onDelete: "cascade" }),
+  sortOrder: integer("sort_order").notNull().default(0),
+  /** Optional location note ("GF west wall"). */
+  label: text("label"),
+  nos: doublePrecision("nos").notNull().default(0),
+  l: doublePrecision("l"),
+  b: doublePrecision("b"),
+  h: doublePrecision("h"),
   createdAt: createdAt(),
 });

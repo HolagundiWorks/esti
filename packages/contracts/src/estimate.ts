@@ -67,7 +67,12 @@ export function lineQuantity(
 
 export const ESTIMATE_MAX_MEASUREMENTS = 500;
 
-export const EstimateLineUpsert = z.object({
+/**
+ * Opening the measurement sheet (the single Enter after selecting an element)
+ * creates the LINE; every recorded column is then its own row in the
+ * measurements table (EstimateMeasurementAdd) — no embedded JSON.
+ */
+export const EstimateLineCreate = z.object({
   estimateId: z.string().uuid(),
   kbItemId: z.string().uuid().nullish(),
   /** Null for main items; a main line's id for dependency lines. */
@@ -75,6 +80,12 @@ export const EstimateLineUpsert = z.object({
   code: z.string().trim().max(40).nullish(),
   description: z.string().trim().min(1).max(500),
   unit: z.string().trim().min(1).max(20),
-  measurements: z.array(EstimateMeasurement).max(ESTIMATE_MAX_MEASUREMENTS),
 });
-export type EstimateLineUpsert = z.infer<typeof EstimateLineUpsert>;
+export type EstimateLineCreate = z.infer<typeof EstimateLineCreate>;
+
+/** One recorded measurement column, persisted the moment it is recorded. */
+export const EstimateMeasurementAdd = EstimateMeasurement.extend({
+  lineId: z.string().uuid(),
+  label: z.string().trim().max(120).nullish(),
+});
+export type EstimateMeasurementAdd = z.infer<typeof EstimateMeasurementAdd>;
