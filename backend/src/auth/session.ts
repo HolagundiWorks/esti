@@ -64,6 +64,8 @@ export interface AuthUser {
   contractorId: string | null;
   /** Seeded demo workspace — uploads blocked; ESTI agent read-only; credential admin blocked. */
   isDemo: boolean;
+  /** Preloaded/community account that must set a new password before doing anything. */
+  mustChangePassword: boolean;
   /** Installation super-user: seeds, purges, system metadata. Independent of role rank. */
   isSystemAdmin: boolean;
   userCode: string | null;
@@ -84,6 +86,7 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
       consultantId: users.consultantId,
       contractorId: users.contractorId,
       isDemo: users.isDemo,
+      mustChangePassword: users.mustChangePassword,
       isSystemAdmin: users.isSystemAdmin,
       userCode: users.userCode,
       designation: users.designation,

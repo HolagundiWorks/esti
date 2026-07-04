@@ -161,6 +161,8 @@ export const users = pgTable("esti_user", {
   passwordResetToken: text("password_reset_token"),
   passwordResetExpires: timestamp("password_reset_expires", { withTimezone: true }),
   disabled: boolean("disabled").notNull().default(false),
+  // Community/preloaded accounts must rotate their password on first login.
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),
   // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.

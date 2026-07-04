@@ -78,6 +78,7 @@ import { Landing } from "./routes/Landing.js";
 import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
+import { ForcePasswordChange } from "./routes/ForcePasswordChange.js";
 import { ForgotPassword } from "./routes/ForgotPassword.js";
 import { ResetPassword } from "./routes/ResetPassword.js";
 
@@ -304,6 +305,9 @@ function AppShell() {
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>
     );
+  // Preloaded/community accounts must set their own password before anything else.
+  if (user.mustChangePassword) return <ForcePasswordChange />;
+
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT")
     return (

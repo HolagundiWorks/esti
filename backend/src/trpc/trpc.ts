@@ -35,8 +35,17 @@ const LICENSE_GATE_ALLOW = new Set([
 ]);
 
 /** Any authenticated user (staff or portal client). Internal base only. */
+// The only mutations a must-rotate account may perform before setting a new
+// password — the change itself and signing out.
+const PASSWORD_ROTATE_ALLOW = new Set(["users.changePassword", "auth.logout"]);
+
 const authedProcedure = t.procedure.use(async ({ ctx, next, type, path }) => {
   if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Preloaded/community accounts must rotate their password first — block every
+  // mutation except the change itself (and logout) until they do.
+  if (ctx.user.mustChangePassword && type === "mutation" && !PASSWORD_ROTATE_ALLOW.has(path)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "password_change_required" });
+  }
   if (ctx.user.isDemo && type === "mutation" && DEMO_BLOCKED_MUTATIONS.has(path)) {
     throw new TRPCError({
       code: "FORBIDDEN",

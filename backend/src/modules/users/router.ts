@@ -337,7 +337,7 @@ export const userRouter = router({
       }
       await ctx.db
         .update(users)
-        .set({ passwordHash: await hashPassword(input.newPassword) })
+        .set({ passwordHash: await hashPassword(input.newPassword), mustChangePassword: false })
         .where(eq(users.id, ctx.user.id));
       await writeAudit(ctx.db, {
         entity: "user",
