@@ -114,16 +114,20 @@ export function parseMomRevisionSuggestions(text: string): MomRevisionSuggestion
   const out: MomRevisionSuggestion[] = [];
   for (const entry of list) {
     if (out.length >= MOM_REVISION_MAX_SUGGESTIONS) break;
-    const norm =
-      entry && typeof entry === "object"
-        ? {
-            ...entry,
-            category:
-              typeof (entry as { category?: unknown }).category === "string"
-                ? (entry as { category: string }).category.trim().toUpperCase()
-                : undefined,
-          }
-        : entry;
+    let norm: unknown = entry;
+    if (entry && typeof entry === "object") {
+      const e = entry as { title?: unknown; details?: unknown; category?: unknown };
+      const title = typeof e.title === "string" ? e.title.trim() : "";
+      const details = typeof e.details === "string" ? e.details.trim() : "";
+      norm = {
+        ...e,
+        // Small local models (e.g. llama3.2) frequently emit `title` but omit
+        // the required `details` — fall back to the title so the suggestion
+        // survives validation instead of being silently dropped.
+        details: details || title,
+        category: typeof e.category === "string" ? e.category.trim().toUpperCase() : undefined,
+      };
+    }
     const parsed = MomRevisionSuggestion.safeParse(norm);
     if (parsed.success) out.push(parsed.data);
   }
