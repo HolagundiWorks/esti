@@ -75,3 +75,4 @@ export * from "./hr-profile.js";
 export * from "./licensing-platform.js";
 export * from "./pulse.js";
 export * from "./usage.js";
+export * from "./cpi.js";

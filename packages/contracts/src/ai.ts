@@ -17,6 +17,9 @@ export const AiDraftKind = z.enum([
   // Client portal: ESTI reads an issued MoM and drafts the revision requests
   // the client would otherwise have to write (strict-JSON output).
   "MOM_REVISIONS",
+  // CPI: synthesize the residential questionnaire into the Client
+  // Intelligence Report (strict-JSON output; contracts/cpi.ts).
+  "CPI_REPORT",
   // ESTICAD companion (Phase 13D) — use ai.generateCad, not browser AI Studio.
   "CAD_DIMENSION_SUGGEST",
   "CAD_NAMING",
@@ -70,6 +73,7 @@ export const AI_DRAFT_KIND_LABEL: Record<AiDraftKind, string> = {
   CAD_PLOT_ASSIST: "CAD plot assist (AIPLOT)",
   CAD_BOQ_DRAFT: "CAD BOQ narrative (AIBOQ)",
   MOM_REVISIONS: "Client revision suggestions (from minutes)",
+  CPI_REPORT: "Client Intelligence Report (CPI synthesis)",
 };
 
 // ── MoM → client revision suggestions (MOM_REVISIONS) ────────────────────────

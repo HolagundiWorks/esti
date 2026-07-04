@@ -28,6 +28,7 @@ import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
+import { ProjectCpi } from "../components/ProjectCpi.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectMinutes } from "../components/ProjectMinutes.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
@@ -68,6 +69,7 @@ export function ProjectDetail() {
   );
 
   const showTeam = hrEnabled && canHr;
+  const isResidential = /residential/i.test(project.data?.projectType ?? "");
 
   const projectGroups = useMemo((): ProjectGroup[] => {
     // ── Setup (shared) — identity, info, schedule and admin live above the heads.
@@ -76,6 +78,10 @@ export function ProjectDetail() {
       { slug: "pipeline", label: "Pipeline", panel: <ProjectPipeline projectId={id} /> },
       { slug: "program", label: "Program", panel: <ProjectProgram projectId={id} /> },
       { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
+      // CPI — residential onboarding questionnaire (only for residential projects).
+      ...(isResidential
+        ? [{ slug: "cpi", label: "CPI", panel: <ProjectCpi projectId={id} /> } satisfies ProjectTab]
+        : []),
       { slug: "permits", label: "Permits", panel: <ProjectPermits projectId={id} /> },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
@@ -129,7 +135,7 @@ export function ProjectDetail() {
       { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
       { slug: "cost", label: "Cost Management", tabs: cmsTabs },
     ];
-  }, [id, showTeam]);
+  }, [id, showTeam, isResidential]);
 
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 

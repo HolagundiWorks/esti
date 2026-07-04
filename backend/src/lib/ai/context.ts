@@ -36,6 +36,68 @@ function isAgentQuery(input: { mode?: "draft" | "agent"; prompt?: string }): boo
   return input.mode === "agent" && !!input.prompt?.trim();
 }
 
+// ── CPI_REPORT: questionnaire responses → Client Intelligence Report ─────────
+// The caller (cpi.generateReport) passes the section-keyed responses JSON as
+// `prompt` and the project id as `contextQuery`. Output contract: a strict
+// JSON object parsed by `parseCpiReport` (@esti/contracts).
+
+function assembleCpiReportContext(input: {
+  prompt?: string;
+  contextQuery?: string;
+}): AiContextBundle {
+  const responses = input.prompt?.trim();
+  if (!responses) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "CPI questionnaire responses are required" });
+  }
+  return {
+    systemPrompt: [
+      "You are ESTI, the intelligence layer of AORMS, acting as a senior residential architect.",
+      "You receive a Client–Project Intelligence (CPI) questionnaire: section-keyed JSON responses covering household, daily life, lifestyle ratings, emotional goals, design personality, materials, colour, light, furniture, texture, scale, storage, kitchen, bathroom, technology, sustainability, budget priorities, project priorities and image-board scores.",
+      "Synthesize them into a Client Intelligence Report — actionable design insights, not a restatement of answers.",
+      "Respond with ONLY a JSON object (no prose, no markdown):",
+      '{"designDna": "e.g. Warm Contemporary with Minimalist influences", "colourPalette": "...", "materialPreferences": "...", "spatialPreferences": "...", "lightingPreferences": "...", "lifestyleDrivers": "...", "luxuryPriorities": "...", "avoidances": "...", "summary": "a concise design brief paragraph the whole team can work from"}',
+      "Ground every field in the actual responses; where sections are empty, infer conservatively and say so in the summary.",
+    ].join("\n"),
+    userPrompt: `## CPI questionnaire responses\n${responses}\n\n## Task\nWrite the Client Intelligence Report as the JSON object now.`,
+    sources: [
+      {
+        entityType: "project",
+        ...(input.contextQuery && UUID_RE.test(input.contextQuery)
+          ? { entityId: input.contextQuery }
+          : {}),
+        label: "CPI questionnaire responses",
+      },
+    ],
+    promptSummary: `CPI_REPORT · ${responses.slice(0, 80)}`,
+  };
+}
+
+/** Deterministic mock: pull recognisable picks out of the raw responses JSON. */
+function buildMockCpiReport(responses: string): string {
+  const has = (re: RegExp) => re.test(responses);
+  const mats = ["Wood", "Marble", "Stone", "Concrete", "Brass", "Lime plaster", "Glass"].filter((m) =>
+    new RegExp(m, "i").test(responses),
+  );
+  return JSON.stringify({
+    designDna: has(/minimal/i) ? "Warm Contemporary with Minimalist influences" : "Warm Contemporary",
+    colourPalette: has(/forest|countryside/i)
+      ? "Warm neutrals, muted greens, natural oak, black accents"
+      : "Warm neutrals with natural oak and black accents",
+    materialPreferences: mats.length > 0 ? mats.join(", ") : "Wood, natural stone, textured plaster",
+    spatialPreferences: has(/open/i)
+      ? "Open-plan living with intimate private areas"
+      : "Balanced rooms with clear public/private separation",
+    lightingPreferences: has(/warm/i) ? "Warm, layered, indirect illumination" : "Layered, indirect illumination",
+    lifestyleDrivers: has(/entertain/i)
+      ? "Frequent entertaining, low-maintenance finishes, concealed storage"
+      : "Quiet family living, low-maintenance finishes, concealed storage",
+    luxuryPriorities: "Kitchen, primary bathroom, living room",
+    avoidances: has(/gloss/i) ? "High-gloss finishes, excessive ornamentation" : "Clutter, excessive ornamentation",
+    summary:
+      "Mock synthesis (no AI provider configured): a warm contemporary home grounded in the client's saved CPI responses — refine each field against the questionnaire before sharing.",
+  });
+}
+
 // ── MOM_REVISIONS: minutes → client revision-request drafts ──────────────────
 // The caller (portal.suggestMomRevisions) passes the issued minutes as
 // `prompt` and the MoM id as `contextQuery`. Output contract: a strict JSON
@@ -237,6 +299,9 @@ export async function assembleAiContext(
   if (input.kind === "MOM_REVISIONS") {
     return assembleMomRevisionContext(input);
   }
+  if (input.kind === "CPI_REPORT") {
+    return assembleCpiReportContext(input);
+  }
 
   const sources: AiSourceRef[] = [];
   let project: ProjectCtx | undefined;
@@ -332,6 +397,14 @@ export async function generateMockOutput(
     const bundle = assembleMomRevisionContext(input);
     return {
       output: buildMockMomRevisions(input.prompt ?? ""),
+      sources: bundle.sources,
+      promptSummary: bundle.promptSummary,
+    };
+  }
+  if (input.kind === "CPI_REPORT") {
+    const bundle = assembleCpiReportContext(input);
+    return {
+      output: buildMockCpiReport(input.prompt ?? ""),
       sources: bundle.sources,
       promptSummary: bundle.promptSummary,
     };
