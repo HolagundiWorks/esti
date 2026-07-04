@@ -20,6 +20,7 @@ import {
 import { normalizeEmail } from "../lib/email.js";
 import { applyFirmPlanFromEnv } from "../lib/plan.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
+import { seedCivilWbs } from "./seedCivilWbs.js";
 
 const email = normalizeEmail(process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in");
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
@@ -27,6 +28,9 @@ const fullName = process.env.SEED_OWNER_NAME ?? "HCW Owner";
 
 async function main(): Promise<void> {
   await ensureAiStudioEnabled(db);
+
+  // Knowledge Bank: civil-works WBS item library (idempotent).
+  await seedCivilWbs(db);
 
   // Licence-free standalone plan (no-op when FIRM_PLAN is unset).
   await applyFirmPlanFromEnv(db);
