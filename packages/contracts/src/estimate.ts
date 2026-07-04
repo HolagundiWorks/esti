@@ -39,8 +39,11 @@ export function measurementRows(unit: string | null | undefined): string[] {
 }
 
 export const EstimateMeasurement = z.object({
-  /** Count multiplier — for 0-dimension units this IS the quantity. */
-  nos: z.number().finite().nonnegative(),
+  /** Count multiplier — for 0-dimension units this IS the quantity. A NEGATIVE
+   *  Nos denotes a deduction (a door opening in a plaster line, a void in a
+   *  concrete line): its qty subtracts from the line total. Dimensions stay
+   *  non-negative — the deduction sign is carried only by Nos. */
+  nos: z.number().finite(),
   l: z.number().finite().nonnegative().optional(),
   b: z.number().finite().nonnegative().optional(),
   h: z.number().finite().nonnegative().optional(),
@@ -67,6 +70,67 @@ export function lineQuantity(
 }
 
 export const ESTIMATE_MAX_MEASUREMENTS = 500;
+
+/**
+ * Dependency measurement derivation — how a child activity's measurement is
+ * computed from its parent's. Configured per parent→child edge in the Knowledge
+ * Bank (esti_kb_item_dependency.derivation). Dimensions use the FIXED L/B/H
+ * convention (Length, Breadth, Height — no per-element flipping):
+ *
+ *   MANUAL              punched by hand (today's behaviour)
+ *   RATIO               child qty = parent line qty × edge.ratio (scalar; not geometric)
+ *   PERIMETER_X_HEIGHT  2·(L+B) × H     — column shuttering (girth × height)
+ *   THREE_SIDE_X_LENGTH (B + 2H) × L    — beam shuttering (bottom + 2 sides × length)
+ *   LENGTH_X_HEIGHT     L × H           — wall face (internal/external plaster)
+ *   LENGTH_X_BREADTH    L × B           — plan area (flooring, slab, ceiling plaster)
+ */
+export const MeasurementDerivation = z.enum([
+  "MANUAL",
+  "RATIO",
+  "PERIMETER_X_HEIGHT",
+  "THREE_SIDE_X_LENGTH",
+  "LENGTH_X_HEIGHT",
+  "LENGTH_X_BREADTH",
+]);
+export type MeasurementDerivation = z.infer<typeof MeasurementDerivation>;
+
+export const MEASUREMENT_DERIVATION_LABEL: Record<MeasurementDerivation, string> = {
+  MANUAL: "Manual entry",
+  RATIO: "Ratio × parent qty",
+  PERIMETER_X_HEIGHT: "Perimeter × height — e.g. column shuttering",
+  THREE_SIDE_X_LENGTH: "3-side girth × length — e.g. beam shuttering",
+  LENGTH_X_HEIGHT: "Length × height — e.g. wall plaster",
+  LENGTH_X_BREADTH: "Length × breadth — e.g. floor/ceiling area",
+};
+
+/**
+ * Map one parent measurement column to the child's, for the geometric
+ * derivations. The child is an AREA (2-dimension) column, so a child line whose
+ * unit is m² recomputes the right quantity via measurementQty(). A negative Nos
+ * (deduction) is carried through, so a deducted parent void deducts the child
+ * automatically. Returns null for the non-geometric derivations (MANUAL, RATIO),
+ * which the estimate engine handles separately.
+ */
+export function deriveColumn(
+  derivation: MeasurementDerivation,
+  p: EstimateMeasurement,
+): EstimateMeasurement | null {
+  const l = p.l ?? 0;
+  const b = p.b ?? 0;
+  const h = p.h ?? 0;
+  switch (derivation) {
+    case "PERIMETER_X_HEIGHT":
+      return { nos: p.nos, l: 2 * (l + b), b: h };
+    case "THREE_SIDE_X_LENGTH":
+      return { nos: p.nos, l, b: b + 2 * h };
+    case "LENGTH_X_HEIGHT":
+      return { nos: p.nos, l, b: h };
+    case "LENGTH_X_BREADTH":
+      return { nos: p.nos, l, b };
+    default:
+      return null; // MANUAL, RATIO — not a per-column geometric transform
+  }
+}
 
 /**
  * Opening the measurement sheet (the single Enter after selecting an element)

@@ -92,15 +92,22 @@ export function pressEnter(s: MeasureState): EnterResult {
   if (columnEmpty) {
     return { kind: "closed", measurements: s.recorded };
   }
-  // Guard before recording — the server contract (EstimateMeasurement) enforces
-  // finite, non-negative values, so reject them here with inline feedback rather
-  // than optimistically "recording" a column the backend will silently drop.
-  for (const raw of s.column) {
-    const t = raw.trim();
+  // Guard before recording — mirror the server contract (EstimateMeasurement):
+  // every cell must be finite; dimensions (L/B/H) must be non-negative. A
+  // negative Nos (slot 0) is allowed — that is how a deduction (a door void, an
+  // opening) is entered, and its qty subtracts from the line total.
+  for (let i = 0; i < s.column.length; i++) {
+    const t = s.column[i]!.trim();
     if (t === "") continue;
     const n = Number(t);
     if (!Number.isFinite(n)) return { kind: "invalid", state: s, reason: "Enter a valid number." };
-    if (n < 0) return { kind: "invalid", state: s, reason: "Measurements can’t be negative." };
+    if (i > 0 && n < 0) {
+      return {
+        kind: "invalid",
+        state: s,
+        reason: "Dimensions can’t be negative — use a negative Nos to record a deduction.",
+      };
+    }
   }
   const recorded = [...s.recorded, columnToMeasurement(s)];
   return {

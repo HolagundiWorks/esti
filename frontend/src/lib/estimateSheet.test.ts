@@ -124,12 +124,19 @@ describe("raw-text cells (decimals survive; server-invalid values are blocked)",
     expect(s.recorded).toEqual([{ nos: 2, l: 4.5, b: 3, h: 0.15 }]);
   });
 
-  it("blocks a negative value with inline feedback instead of recording it", () => {
-    let s = startMeasuring("kg"); // single Qty row
+  it("records a negative Nos as a deduction (count unit)", () => {
+    let s = startMeasuring("kg"); // single Qty row (slot 0 = Nos/Qty)
     s = setValue(s, "-5");
     const r = pressEnter(s);
-    expect(r.kind).toBe("invalid");
-    if (r.kind === "invalid") expect(r.reason).toMatch(/negative/i);
+    expect(r.kind).toBe("recorded");
+    if (r.kind === "recorded") expect(r.state.recorded[0]).toEqual({ nos: -5 });
+  });
+
+  it("records a deduction column: negative Nos with positive dimensions", () => {
+    // A door void in a wall-plaster line: -1 × 1.0 × 2.1
+    let s = startMeasuring("sqm"); // Nos, Length, Breadth
+    s = fill(s, ["-1", "1.0", "2.1"]);
+    expect(s.recorded[0]).toEqual({ nos: -1, l: 1, b: 2.1 });
   });
 
   it("blocks a negative dimension on a multi-row column", () => {
