@@ -15,6 +15,11 @@ name: desktop-installer
 # link:vendor/hcw-*), so a single checkout is self-contained — no sibling repos.
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Publish a Release under this desktop-v* tag (created if missing). Empty = build only."
+        required: false
+        default: ""
   push:
     tags: ["desktop-v*"]
 
@@ -94,11 +99,11 @@ jobs:
       # registers on the hub (admin.components.publish) so /v1/manifest serves
       # them to Managers.
       - name: Publish to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        if: startsWith(github.ref, 'refs/tags/desktop-v') || startsWith(inputs.release_tag, 'desktop-v')
         uses: softprops/action-gh-release@v2
         with:
-          name: AORMS Desktop ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          name: AORMS Desktop ${{ inputs.release_tag || github.ref_name }}
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
           files: |
             desktop/src-tauri/target/release/bundle/nsis/AORMS-Setup.exe
             desktop/dist-components/backend-*.tar.gz
