@@ -29,6 +29,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 import {
   type MeasureState,
   dropRecorded,
@@ -198,12 +200,28 @@ function SavedLine({ no, line, approved, estimateId }: {
 
 /** Priced BOQ + material abstract for an approved estimate. */
 function CostingPanel({ estimateId }: { estimateId: string }) {
-  const q = trpc.estimates.costing.useQuery({ id: estimateId });
+  const utils = trpc.useUtils();
+  const q = trpc.estimates.costing.useQuery(
+    { id: estimateId },
+    { refetchInterval: (query) => pdfPollInterval(query.state.data?.boqPdfStatus, true) },
+  );
+  const generatePdf = trpc.estimates.generateBoqPdf.useMutation({
+    onSuccess: () => void utils.estimates.costing.invalidate({ id: estimateId }),
+  });
   const data = q.data;
   if (!data) return null;
   const inr = (p: number) => formatINR(p, { paise: false });
   return (
     <Stack gap={5}>
+      <div className="esti-row-between">
+        <h4>Costing</h4>
+        <PdfActionButtons
+          status={data.boqPdfStatus}
+          url={data.boqPdfUrl}
+          generatePending={generatePdf.isPending}
+          onGenerate={() => generatePdf.mutate({ id: estimateId })}
+        />
+      </div>
       <TableContainer title="Priced BOQ" description={`Total ${inr(data.totalPaise)}`}>
         <Table size="sm">
           <TableHead>

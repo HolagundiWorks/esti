@@ -15,6 +15,7 @@ from typing import Any
 from ..config import settings
 from ..db import (
     fetch_drawing_full,
+    fetch_estimate_boq_full,
     fetch_feeproposal_full,
     fetch_inspection_full,
     fetch_invoice_full,
@@ -27,6 +28,7 @@ from ..db import (
     fetch_feasibility_report_full,
     fetch_site_instruction_full,
     update_drawing,
+    update_estimate_boq,
     update_feeproposal,
     update_inspection,
     update_invoice,
@@ -684,8 +686,77 @@ td{{padding:4px 8px;border-bottom:1px solid #ddd}}
 </body></html>"""
 
 
+def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Priced BOQ + material abstract for an estimate, from the frozen snapshot."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    snap = rec.get("snapshot") or {}
+    boq = snap.get("boq", [])
+    materials = snap.get("materials", [])
+
+    def _qty(v: Any) -> str:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return "—"
+        s = f"{f:,.3f}".rstrip("0").rstrip(".")
+        return s or "0"
+
+    def _amt(v: Any) -> str:
+        return _inr(int(v)) if v is not None else "—"
+
+    boq_rows = ""
+    for r in boq:
+        auto = " <span class='muted'>(auto)</span>" if r.get("derived") else ""
+        boq_rows += (
+            f"<tr><td>{_e(r.get('description'))}{auto}</td>"
+            f"<td>{_e(r.get('specName') or '—')}</td>"
+            f"<td class='c'>{_e(r.get('unit'))}</td>"
+            f"<td class='r'>{_qty(r.get('qty'))}</td>"
+            f"<td class='r'>{_amt(r.get('ratePaise'))}</td>"
+            f"<td class='r'>{_amt(r.get('amountPaise'))}</td></tr>"
+        )
+    mat_rows = ""
+    for m in materials:
+        mat_rows += (
+            f"<tr><td>{_e(m.get('name'))}</td>"
+            f"<td class='c'>{_e(m.get('unit'))}</td>"
+            f"<td class='r'>{_qty(m.get('qty'))}</td>"
+            f"<td class='r'>{_amt(m.get('ratePaise'))}</td>"
+            f"<td class='r'>{_amt(m.get('amountPaise'))}</td></tr>"
+        )
+    mat_block = ""
+    if materials:
+        mat_block = (
+            "<h4>Material abstract</h4>"
+            "<table><thead><tr><th>Material</th><th class='c'>Unit</th>"
+            "<th class='r'>Qty</th><th class='r'>Rate</th><th class='r'>Amount</th></tr></thead>"
+            f"<tbody>{mat_rows}</tbody>"
+            "<tfoot><tr class='tot'><td colspan='4'>Materials total</td>"
+            f"<td class='r'>{_inr(int(snap.get('materialTotalPaise') or 0))}</td></tr></tfoot></table>"
+        )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
+      td.r,th.r {{ text-align: right; }} td.c,th.c {{ text-align: center; }}
+      tfoot .tot td {{ font-weight: 700; border-top: 2px solid #161616; }}</style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+      <div class="title">Bill of Quantities — {_e(rec.get('project_title'))} ({_e(rec.get('project_ref'))})</div>
+      <div class="muted">{_e(snap.get('title'))}</div>
+      <table>
+        <thead><tr><th>Item</th><th>Specification</th><th class="c">Unit</th>
+          <th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead>
+        <tbody>{boq_rows or '<tr><td colspan=6 class="muted">No items</td></tr>'}</tbody>
+        <tfoot><tr class="tot"><td colspan="5">Total</td>
+          <td class="r">{_inr(int(snap.get('totalPaise') or 0))}</td></tr></tfoot>
+      </table>
+      {mat_block}
+      <p class="muted" style="margin-top:20px">Priced at analysed rates (material + labour build-up).
+        Generated {_e(snap.get('generatedAt') or '')}. {_e(firm.get('legalName'))}.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
+    "estimate_boq": (fetch_estimate_boq_full, _estimate_boq_html, update_estimate_boq, "estimate_boq"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
     "transmittal": (fetch_transmittal_full, _transmittal_html, update_transmittal, "transmittal"),

@@ -13,6 +13,7 @@ import {
   doublePrecision,
   id,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -31,6 +32,10 @@ export const estimates = pgTable("esti_estimate", {
   revisionNo: integer("revision_no").notNull().default(0),
   /** The original estimate this is a revision of (null for the original). */
   revisionOf: uuid("revision_of"),
+  /** Frozen priced BOQ + material abstract at PDF-generation time (see costing). */
+  boqSnapshot: jsonb("boq_snapshot"),
+  boqPdfKey: text("boq_pdf_key"),
+  boqPdfStatus: text("boq_pdf_status").notNull().default("NONE"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: createdAt(),
 });
