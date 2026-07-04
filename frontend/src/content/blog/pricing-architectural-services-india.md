@@ -11,8 +11,8 @@ building, run a site and detail a staircase, and still feel uncertain quoting a 
 whole thing. The result is familiar: a number picked to win the job, a scope that was never
 written down, and a client who assumes "the fee" covers every change they can think of. This
 is a working guide to pricing architectural services in India — the Council of Architecture's
-fee framework, the three common ways to structure a fee, how to invoice against stages, and
-how to price the revisions that quietly eat a practice's margin.
+fee framework, the three common ways to structure a fee, invoicing against stages, and pricing
+the revisions that quietly eat a practice's margin.
 
 ## The COA fee framework, and what it actually is
 
@@ -22,12 +22,11 @@ clear-eyed on.
 
 First, it is **guidance, not a legally enforceable price floor.** Competition law in India
 takes a dim view of professional bodies mandating minimum fees, so the scale is best treated
-as a widely-used reference point you are free to depart from by agreement — not a rate you are
-bound to charge. Second, its real value is not the headline percentage; it is the **stage
-structure**. The COA breaks comprehensive architectural services into defined work stages,
-each carrying a share of the total fee. That structure is what makes a fee defensible,
-because it ties money to delivered work rather than to a single lump you have to justify at
-the end.
+as a widely-used reference point you can depart from by agreement — not a rate you are bound to
+charge. Second, its real value is not the headline percentage; it is the **stage structure**.
+The COA breaks comprehensive architectural services into defined work stages, each carrying a
+share of the total fee — and that ties money to delivered work rather than to a single lump you
+have to justify at the end.
 
 A representative COA-style stage split for comprehensive services looks like this (the exact
 percentages are set in your agreement — treat these as illustrative, not official):
@@ -43,8 +42,7 @@ percentages are set in your agreement — treat these as illustrative, not offic
 | 7 | Completion | ~5% |
 
 The point is the shape, not the decimals: roughly two-thirds of the fee is earned before a
-brick is laid, in the design and documentation stages where the intellectual work sits. A
-proposal built on these stages bills in step with that effort.
+brick is laid, in the design and documentation stages where the intellectual work sits.
 
 ## Three ways to structure the fee
 
@@ -85,8 +83,8 @@ mobilisation advance on signing, then raise an invoice on completion of each sta
 preliminary, approval drawings, working drawings, and periodic bills through construction. Two
 disciplines keep this clean.
 
-Watch **realisation**: the gap between the stage you have delivered and the fee you have
-billed. Architects habitually run ahead — finishing working drawings while invoicing is still
+Watch **realisation** — the gap between the stage you have delivered and the fee you have
+billed. Architects habitually run ahead, finishing working drawings while invoicing is still
 stuck at the preliminary instalment. That gap is not profit you are waiting on; it is profit
 you are financing for the client.
 
@@ -101,17 +99,17 @@ and in [GST billing software for architects](/gst-billing-software-architects-in
 
 A proposal that prevents disputes is specific about the boundary of the fee. Put in writing:
 
-- **Scope of services** — which COA stages are included, and which are explicitly excluded
-  (interiors, landscape, structural or MEP consultancy, third-party liaison).
+- **Scope of services** — which COA stages are included, and which are excluded (interiors,
+  landscape, structural or MEP consultancy, third-party liaison).
 - **Fee basis and amount** — percentage, lump sum or area rate, with the base defined.
-- **Payment schedule** — the advance and the stage instalments, each tied to a deliverable.
-- **Reimbursables** — statutory and municipal fees, printing, travel, physical models,
-  specialist consultants: normally billed at actuals *on top of* the fee, never inside it.
+- **Payment schedule** — the advance and stage instalments, each tied to a deliverable.
+- **Reimbursables** — statutory fees, printing, travel, models, specialist consultants:
+  normally billed at actuals *on top of* the fee, never inside it.
 - **Revisions included** — how many rounds per stage the fee covers (see below).
 - **Exclusions, validity and a GST note** — that the fee is exclusive of 18% GST.
 
 Structuring the proposal around COA stages from the start makes the invoicing maths fall out
-automatically. More on that in [COA-compliant billing](/coa-compliant-billing-software) and
+automatically. More in [COA-compliant billing](/coa-compliant-billing-software) and
 [fee-proposal structure](/architect-fee-proposal-software).
 
 ## Pricing revisions and scope changes
@@ -133,10 +131,9 @@ whole point of proper [change management](/architecture-change-management-softwa
 
 This is also where a practice system earns its place. In AORMS a fee proposal is built on the
 COA stages with a client-approval gate, invoices are raised against those stages with the GST
-split and SAC code already correct, and every decision carries its revision category and
-source — so when a change lands, the record of who asked for it, and whether it sits inside the
-fee, is already there. The pricing decision stays yours; the paperwork that defends it does not
-have to be reassembled from email.
+split and SAC code already correct, and every decision carries its revision source — so when a
+change lands, the record of who asked for it, and whether it sits inside the fee, is already
+there. The pricing decision stays yours; the paperwork that defends it does not.
 
 ## Frequently asked questions
 
@@ -163,8 +160,8 @@ work delivered and stops you financing the project for the client.
 ### Should the fee include GST?
 
 Quote the fee **exclusive of GST** and add 18% on the invoice — CGST 9% + SGST 9% if the site
-is in your state, IGST 18% if it is in another state, under SAC 998321–998323. State clearly in
-the proposal that the fee is exclusive of GST so there is no dispute at billing time.
+is in your state, IGST 18% if elsewhere, under SAC 998321–998323. Say so plainly in the
+proposal, so there is no dispute at billing time.
 
 ### How many revisions should a fee cover?
 
