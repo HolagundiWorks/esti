@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
 import { LicensePanel } from "../components/company/LicensePanel.js";
+import { MigrationPanel } from "../components/company/MigrationPanel.js";
 import { StorageSettingsPanel } from "../components/company/StorageSettingsPanel.js";
 import { ConnectedDevicesPanel } from "../components/company/ConnectedDevicesPanel.js";
 import { DataTools } from "../components/company/DataTools.js";
@@ -468,6 +469,7 @@ export function Company() {
       </Tile>
 
       {isOwner && <LicensePanel />}
+      {isOwner && <MigrationPanel />}
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
       {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={planAllows(licensePlan, "aiByoApi")} />}

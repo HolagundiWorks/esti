@@ -65,6 +65,17 @@ export const MigrationManifest = z.object({
 });
 export type MigrationManifest = z.infer<typeof MigrationManifest>;
 
+/**
+ * A whole-instance bundle: the manifest plus every `esti_*` table's rows as JSON.
+ * v1 carries DB rows only (object-store bytes move separately); the manifest's
+ * fileBytes is informational and is neutralised in the import's DB-only verify.
+ */
+export const MigrationBundle = z.object({
+  manifest: MigrationManifest,
+  tables: z.record(z.array(z.record(z.string(), z.unknown()))),
+});
+export type MigrationBundle = z.infer<typeof MigrationBundle>;
+
 export interface ManifestDiff {
   ok: boolean;
   bundleVersionMismatch: boolean;
