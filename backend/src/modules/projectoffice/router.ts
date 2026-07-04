@@ -187,6 +187,7 @@ export const projectOfficeRouter = router({
         .set({
           siteAddress: input.siteAddress ?? null,
           siteAreaSqm: input.siteAreaSqm ?? null,
+          updatedAt: new Date(),
         })
         .where(eq(projectOffices.id, input.id))
         .returning();
@@ -224,6 +225,7 @@ export const projectOfficeRouter = router({
         workType: ProjectWorkType.optional(),
         jurisdiction: Jurisdiction,
         dateStart: z.string().nullish(),
+        contractValuePaise: z.number().int().nonnegative().optional(),
         pmcEnabled: z.boolean().optional(),
       }),
     )
@@ -250,7 +252,9 @@ export const projectOfficeRouter = router({
             ...(input.workType ? { workType: input.workType } : {}),
             jurisdiction: input.jurisdiction,
             dateStart: input.dateStart ?? null,
+            ...(input.contractValuePaise !== undefined ? { contractValuePaise: input.contractValuePaise } : {}),
             ...(input.pmcEnabled !== undefined ? { pmcEnabled: input.pmcEnabled } : {}),
+            updatedAt: new Date(),
           })
           .where(eq(projectOffices.id, input.id))
           .returning();
@@ -314,7 +318,7 @@ export const projectOfficeRouter = router({
     const row = await ctx.db.transaction(async (tx) => {
       const [updated] = await tx
         .update(projectOffices)
-        .set({ status: input.status })
+        .set({ status: input.status, updatedAt: new Date() })
         .where(eq(projectOffices.id, input.id))
         .returning();
       await writeActivity(tx, {
@@ -371,7 +375,7 @@ export const projectOfficeRouter = router({
     const row = await ctx.db.transaction(async (tx) => {
       const [updated] = await tx
         .update(projectOffices)
-        .set({ status: "ACTIVE", dateStart: project.dateStart ?? new Date().toISOString().slice(0, 10) })
+        .set({ status: "ACTIVE", dateStart: project.dateStart ?? new Date().toISOString().slice(0, 10), updatedAt: new Date() })
         .where(eq(projectOffices.id, input.id))
         .returning();
       await tx.insert(tasks).values({
@@ -431,7 +435,7 @@ export const projectOfficeRouter = router({
       await ctx.db.transaction(async (tx) => {
         await tx
           .update(projectOffices)
-          .set({ archivedAt, archivedById: ctx.user.id, purgeAfter: purgeAfterStr })
+          .set({ archivedAt, archivedById: ctx.user.id, purgeAfter: purgeAfterStr, updatedAt: new Date() })
           .where(eq(projectOffices.id, input.id));
         await writeActivity(tx, {
           projectId: input.id,
@@ -467,7 +471,7 @@ export const projectOfficeRouter = router({
       const row = await ctx.db.transaction(async (tx) => {
           const [updated] = await tx
             .update(projectOffices)
-            .set({ archivedAt: null, archivedById: null })
+            .set({ archivedAt: null, archivedById: null, purgeAfter: null, updatedAt: new Date() })
             .where(eq(projectOffices.id, input.id))
             .returning();
           await writeActivity(tx, {
@@ -566,7 +570,7 @@ export const projectOfficeRouter = router({
       await ctx.db.transaction(async (tx) => {
         await tx
           .update(projectOffices)
-          .set({ purgedAt })
+          .set({ purgedAt, updatedAt: new Date() })
           .where(eq(projectOffices.id, input.id));
         await writeAudit(tx, {
           entity: "projectoffice",

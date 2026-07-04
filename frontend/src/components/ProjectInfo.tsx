@@ -51,6 +51,8 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
     workType: "ARCHITECTURE",
     jurisdiction: "OTHER",
     dateStart: "",
+    // Contract value is captured in rupees here and stored as integer paise.
+    contractValueRupees: "",
     siteAddress: "",
     siteAreaSqm: "",
   });
@@ -72,6 +74,7 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
         workType: (p as { workType?: string }).workType ?? "ARCHITECTURE",
         jurisdiction: p.jurisdiction,
         dateStart: p.dateStart ?? "",
+        contractValueRupees: p.contractValuePaise ? String(p.contractValuePaise / 100) : "",
         siteAddress: p.siteAddress ?? "",
         siteAreaSqm: p.siteAreaSqm != null ? String(p.siteAreaSqm) : "",
       });
@@ -161,6 +164,18 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
                   onChange={(e) => setIdentity((x) => ({ ...x, dateStart: e.target.value }))}
                 />
               </Column>
+              <Column sm={4} md={4} lg={4}>
+                <TextInput
+                  id="pi-contract-value"
+                  labelText="Contract value (₹)"
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  helperText="Total fee/contract value for this project."
+                  value={identity.contractValueRupees}
+                  onChange={(e) => setIdentity((x) => ({ ...x, contractValueRupees: e.target.value }))}
+                />
+              </Column>
             </Grid>
             <Button
               size="sm"
@@ -174,6 +189,10 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
                   workType: identity.workType as (typeof ProjectWorkType.options)[number],
                   jurisdiction: identity.jurisdiction as (typeof Jurisdiction.options)[number],
                   dateStart: identity.dateStart || null,
+                  contractValuePaise:
+                    identity.contractValueRupees.trim() === ""
+                      ? 0
+                      : Math.round(Number(identity.contractValueRupees) * 100),
                 })
               }
             >
