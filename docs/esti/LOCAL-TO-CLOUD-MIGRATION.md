@@ -23,6 +23,19 @@ read-only tRPC endpoints:
 The pure `diffManifest` (in `@esti/contracts`) is the gate: it fails on any
 dropped row, any *extra* row (target wasn't empty), schema skew, or byte drift.
 
+**Validate the core claim locally first.** Before trusting the flow on real
+tenants, prove that a whole-instance `pg_dump`→restore into an empty DB is
+row-for-row faithful against your own dev stack:
+
+```bash
+bash deploy/test-migration-roundtrip.sh   # dumps `esti`, restores into a throwaway
+                                          # `esti_migtest`, diffs every table + schema head
+```
+
+`PASS` means the DB dimension of the migration is sound (this is the `pg_dump`
+step 3–4 below, self-checked). It is read-only on the source and drops its own
+target DB on success.
+
 ## The two hard invariants
 
 1. **The target must be EMPTY.** A freshly provisioned Pro tenant with **no**
