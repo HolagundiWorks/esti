@@ -1065,6 +1065,13 @@
       "when": 1782207403000,
       "tag": "0151_estimate_measurements",
       "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1782207404000,
+      "tag": "0152_proposal_fee_basis",
+      "breakpoints": true
     }
   ]
 }

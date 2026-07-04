@@ -283,18 +283,50 @@ export const FeeProposalStatus = z.enum([
 ]);
 export type FeeProposalStatus = z.infer<typeof FeeProposalStatus>;
 
-export const FeeProposalCreate = z.object({
-  projectId: z.string().uuid(),
-  workCategory: z.nativeEnum(CoaWorkCategory),
-  workType: ProjectWorkType.default("ARCHITECTURE"),
-  costOfWorksPaise: z.number().int().nonnegative(),
-  feePaise: z.number().int().nonnegative(),
-  docCommPct: z.number().min(0).max(100).default(10),
-  scope: z.string().max(8000).optional(),
-  notes: z.string().max(2000).optional(),
-  /** Required when the quoted fee is below the COA minimum (compliance override). */
-  overrideReason: z.string().max(500).optional(),
-});
+/**
+ * How the professional fee is arrived at:
+ * - COA_PERCENT — a percentage of the cost of works (the COA scale of charges).
+ * - PER_SQM     — a rate per square metre of built-up area (area × rate).
+ * - LUMPSUM     — a fixed negotiated amount.
+ * The COA minimum benchmark is still computed for all three (from cost of works)
+ * as a compliance cross-check.
+ */
+export const FeeBasis = z.enum(["COA_PERCENT", "PER_SQM", "LUMPSUM"]);
+export type FeeBasis = z.infer<typeof FeeBasis>;
+
+export const FEE_BASIS_LABEL: Record<FeeBasis, string> = {
+  COA_PERCENT: "COA scale (% of cost of works)",
+  PER_SQM: "Per sq.m of built-up area",
+  LUMPSUM: "Lumpsum",
+};
+
+export const FeeProposalCreate = z
+  .object({
+    projectId: z.string().uuid(),
+    workCategory: z.nativeEnum(CoaWorkCategory),
+    workType: ProjectWorkType.default("ARCHITECTURE"),
+    feeBasis: FeeBasis.default("COA_PERCENT"),
+    costOfWorksPaise: z.number().int().nonnegative(),
+    feePaise: z.number().int().nonnegative(),
+    /** Built-up area in sq.m — required (and drives the fee) when feeBasis is PER_SQM. */
+    builtUpAreaSqm: z.number().nonnegative().nullish(),
+    /** Rate per sq.m in paise — required (and drives the fee) when feeBasis is PER_SQM. */
+    ratePerSqmPaise: z.number().int().nonnegative().nullish(),
+    docCommPct: z.number().min(0).max(100).default(10),
+    scope: z.string().max(8000).optional(),
+    notes: z.string().max(2000).optional(),
+    /** Required when the quoted fee is below the COA minimum (compliance override). */
+    overrideReason: z.string().max(500).optional(),
+  })
+  .refine(
+    (v) =>
+      v.feeBasis !== "PER_SQM" ||
+      (!!v.builtUpAreaSqm && v.builtUpAreaSqm > 0 && !!v.ratePerSqmPaise && v.ratePerSqmPaise > 0),
+    {
+      message: "Built-up area and rate per sq.m are required for a per-sq.m fee.",
+      path: ["builtUpAreaSqm"],
+    },
+  );
 export type FeeProposalCreate = z.infer<typeof FeeProposalCreate>;
 
 // --- Invoices (esti_invoiceindia) ---

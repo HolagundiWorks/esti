@@ -239,6 +239,20 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
     fee = int(f["fee_paise"] or 0)
     coa_min = int(f["coa_minimum_paise"] or 0)
     pct_of_coa = f"{(fee / coa_min * 100):.0f}%" if coa_min else "—"
+    basis = f.get("fee_basis") or "COA_PERCENT"
+    basis_label = {
+        "COA_PERCENT": "COA scale (% of cost of works)",
+        "PER_SQM": "Per sq.m of built-up area",
+        "LUMPSUM": "Lumpsum",
+    }.get(basis, basis)
+    persqm_row = ""
+    if basis == "PER_SQM":
+        area = f.get("built_up_area_sqm") or 0
+        rate = int(f.get("rate_per_sqm_paise") or 0)
+        persqm_row = (
+            '<tr><td class="muted">Built-up area × rate</td>'
+            f'<td class="r">{area:g} sq.m × {_inr(rate)}/sq.m</td></tr>'
+        )
     below = (
         '<p class="warn">Quoted fee is below the COA minimum scale of charges.'
         f' Override: {_e(f.get("override_reason") or "—")}</p>'
@@ -278,7 +292,9 @@ def _feeproposal_html(f: dict[str, Any], firm: dict[str, Any]) -> str:
 
       <h4>Fee</h4>
       <table class="kv">
+        <tr><td class="muted">Fee basis</td><td class="r">{_e(basis_label)}</td></tr>
         <tr><td class="muted">Cost of works</td><td class="r">{_inr(f['cost_of_works_paise'])}</td></tr>
+        {persqm_row}
         <tr><td class="muted">Professional fee</td><td class="r"><b>{_inr(fee)}</b></td></tr>
         <tr><td class="muted">COA minimum (benchmark)</td><td class="r">{_inr(coa_min)} ({pct_of_coa} of COA)</td></tr>
         <tr><td class="muted">Documentation &amp; communication</td><td class="r">{f['doc_comm_pct']}%</td></tr>

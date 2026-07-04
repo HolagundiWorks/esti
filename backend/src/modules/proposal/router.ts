@@ -68,8 +68,14 @@ export const proposalRouter = router({
 
   create: manage.input(FeeProposalCreate).mutation(async ({ ctx, input }) => {
     await requireProject(ctx.db, input.projectId);
+    // A per-sq.m fee is derived (built-up area × rate); COA-scale and lumpsum fees
+    // are the quoted figure. The COA minimum is always benchmarked off cost of works.
+    const feePaise =
+      input.feeBasis === "PER_SQM"
+        ? Math.round((input.builtUpAreaSqm ?? 0) * (input.ratePerSqmPaise ?? 0))
+        : input.feePaise;
     const coaMinimumPaise = coaMinimumFee(input.workCategory, input.costOfWorksPaise);
-    const below = isBelowCoaMinimum(input.feePaise, coaMinimumPaise);
+    const below = isBelowCoaMinimum(feePaise, coaMinimumPaise);
     // COA compliance guardrail: a below-minimum fee needs an audited override.
     if (below && !input.overrideReason) {
       throw new TRPCError({
@@ -85,8 +91,11 @@ export const proposalRouter = router({
         projectId: input.projectId,
         workCategory: input.workCategory,
         workType: input.workType,
+        feeBasis: input.feeBasis,
         costOfWorksPaise: input.costOfWorksPaise,
-        feePaise: input.feePaise,
+        feePaise,
+        builtUpAreaSqm: input.builtUpAreaSqm ?? null,
+        ratePerSqmPaise: input.ratePerSqmPaise ?? null,
         docCommPct: input.docCommPct,
         coaMinimumPaise,
         belowMinimum: below,

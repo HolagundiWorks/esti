@@ -19,6 +19,8 @@ import {
 import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
+  FEE_BASIS_LABEL,
+  type FeeBasis,
   ProjectWorkType,
   coaMinimumFee,
   formatINR,
@@ -43,8 +45,11 @@ export function Proposals() {
     Object.values(CoaWorkCategory)[0] as string,
   );
   const [workType, setWorkType] = useState<string>(ProjectWorkType.options[0] as string);
+  const [feeBasis, setFeeBasis] = useState<FeeBasis>("COA_PERCENT");
   const [cost, setCost] = useState("");
   const [fee, setFee] = useState("");
+  const [area, setArea] = useState("");
+  const [rate, setRate] = useState("");
   const [docComm, setDocComm] = useState("10");
   const [scope, setScope] = useState("");
   const [notes, setNotes] = useState("");
@@ -55,8 +60,11 @@ export function Proposals() {
       utils.proposals.listAll.invalidate();
       setOpen(false);
       setProjectId("");
+      setFeeBasis("COA_PERCENT");
       setCost("");
       setFee("");
+      setArea("");
+      setRate("");
       setOverride("");
       setScope("");
       setNotes("");
@@ -64,7 +72,12 @@ export function Proposals() {
   });
 
   const costPaise = Math.round(Number(cost || "0") * 100);
-  const feePaise = Math.round(Number(fee || "0") * 100);
+  const ratePaise = Math.round(Number(rate || "0") * 100);
+  const areaNum = Number(area || "0");
+  const feePaise =
+    feeBasis === "PER_SQM"
+      ? Math.round(areaNum * ratePaise)
+      : Math.round(Number(fee || "0") * 100);
   const coaMin =
     costPaise > 0
       ? coaMinimumFee(category as keyof typeof COA_MIN_FEE_PCT, costPaise)
@@ -143,7 +156,11 @@ export function Proposals() {
         primaryButtonText={create.isPending ? "Creating…" : "Create"}
         secondaryButtonText="Cancel"
         primaryButtonDisabled={
-          !projectId || !cost || !fee || (below && !override) || create.isPending
+          !projectId ||
+          (feeBasis === "COA_PERCENT" && !cost) ||
+          (feeBasis === "PER_SQM" ? !(areaNum > 0 && ratePaise > 0) : feePaise <= 0) ||
+          (below && !override) ||
+          create.isPending
         }
         size="lg"
         onRequestClose={() => setOpen(false)}
@@ -152,8 +169,11 @@ export function Proposals() {
             projectId,
             workCategory: category as CoaWorkCategory,
             workType: workType as (typeof ProjectWorkType.options)[number],
+            feeBasis,
             costOfWorksPaise: costPaise,
             feePaise,
+            builtUpAreaSqm: feeBasis === "PER_SQM" ? areaNum : undefined,
+            ratePerSqmPaise: feeBasis === "PER_SQM" ? ratePaise : undefined,
             docCommPct: Number(docComm || "10"),
             scope: scope || undefined,
             notes: notes || undefined,
@@ -195,21 +215,54 @@ export function Proposals() {
               ))}
             </Select>
           </Stack>
+          <Select
+            id="fp-basis"
+            labelText="Fee basis"
+            value={feeBasis}
+            onChange={(e) => setFeeBasis(e.target.value as FeeBasis)}
+          >
+            {Object.entries(FEE_BASIS_LABEL).map(([value, label]) => (
+              <SelectItem key={value} value={value} text={label} />
+            ))}
+          </Select>
           <Stack orientation="horizontal" gap={4}>
             <TextInput
               id="fp-cost"
-              labelText="Cost of works (₹)"
+              labelText={
+                feeBasis === "COA_PERCENT"
+                  ? "Cost of works (₹)"
+                  : "Cost of works (₹, COA benchmark)"
+              }
               type="number"
               value={cost}
               onChange={(e) => setCost(e.target.value)}
             />
-            <TextInput
-              id="fp-fee"
-              labelText="Professional fee (₹)"
-              type="number"
-              value={fee}
-              onChange={(e) => setFee(e.target.value)}
-            />
+            {feeBasis === "PER_SQM" ? (
+              <>
+                <TextInput
+                  id="fp-area"
+                  labelText="Built-up area (sq.m)"
+                  type="number"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                />
+                <TextInput
+                  id="fp-rate"
+                  labelText="Rate (₹ / sq.m)"
+                  type="number"
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                />
+              </>
+            ) : (
+              <TextInput
+                id="fp-fee"
+                labelText={feeBasis === "LUMPSUM" ? "Lumpsum fee (₹)" : "Professional fee (₹)"}
+                type="number"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+              />
+            )}
             <TextInput
               id="fp-dc"
               labelText="Doc & comm %"
@@ -218,6 +271,9 @@ export function Proposals() {
               onChange={(e) => setDocComm(e.target.value)}
             />
           </Stack>
+          {feeBasis === "PER_SQM" && feePaise > 0 && (
+            <div>Computed fee ≈ {formatINR(feePaise, { paise: false })}</div>
+          )}
           {coaMin > 0 && (
             <div>
               COA minimum ≈ {formatINR(coaMin, { paise: false })}
