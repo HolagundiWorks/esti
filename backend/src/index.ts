@@ -33,6 +33,7 @@ import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { refreshNow } from "./modules/license/consumer.js";
 import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
+import { seedCommunityAdmin } from "./lib/seedCommunity.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
 import { proposePulseActions, runDueStandups } from "./lib/pulseEngine.js";
@@ -134,6 +135,14 @@ try {
   await applyFirmPlanFromEnv(db);
 } catch (err) {
   app.log.warn(err, "FIRM_PLAN apply failed");
+}
+
+// Community edition first-run: seed the default admin + backup code. No-op
+// outside COMMUNITY or when the install already has users.
+try {
+  await seedCommunityAdmin(db);
+} catch (err) {
+  app.log.warn(err, "Community admin seed failed");
 }
 
 // License (Phase B): log effective state on boot. On a managed node, refresh the

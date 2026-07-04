@@ -78,6 +78,7 @@ import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
 import { ForcePasswordChange } from "./routes/ForcePasswordChange.js";
+import { RecoverWithBackupCode } from "./routes/RecoverWithBackupCode.js";
 import { useEdition } from "./lib/edition.js";
 import { ForgotPassword } from "./routes/ForgotPassword.js";
 import { ResetPassword } from "./routes/ResetPassword.js";
@@ -302,6 +303,7 @@ function AppShell() {
         <Route path="/signup" element={<Theme theme="g100"><Signup /></Theme>} />
         <Route path="/forgot-password" element={<Theme theme="g100"><ForgotPassword /></Theme>} />
         <Route path="/reset-password" element={<Theme theme="g100"><ResetPassword /></Theme>} />
+        <Route path="/recover" element={<Theme theme="g100"><RecoverWithBackupCode /></Theme>} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>
@@ -418,17 +420,21 @@ function AppShell() {
     },
     {
       kind: "menu",
-      label: "Third Parties",
+      label: community ? "Contacts" : "Third Parties",
       icon: Partnership,
       items: [
-        ...(can(user.role, "write") ? [{ label: "Clients", to: "/clients", icon: User }] : []),
-        ...(atLeast(60)
+        ...(can(user.role, "write")
+          ? [{ label: community ? "Contacts" : "Clients", to: "/clients", icon: User }]
+          : []),
+        // External parties (consultants/contractors/vendors) are Pro/Standard —
+        // the free Community edition keeps contacts only, no third-party portals.
+        ...(!community && atLeast(60)
           ? [
               { label: "Consultants", to: "/consultants", icon: UserProfile },
               { label: "Contractors", to: "/contractors", icon: Tools },
             ]
           : []),
-        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
+        ...(!community && can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
       ],
     },
     {

@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
 import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
+import { useEdition } from "../lib/edition.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -56,6 +57,7 @@ function companyItem(c: CompanyOption): TenantItem {
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+  const { community } = useEdition();
   const [params, setParams] = useSearchParams();
 
   const [email, setEmail] = useState("");
@@ -361,8 +363,8 @@ export function Login() {
                 </Form>
 
                 <div className="esti-row-between">
-                  <Button as={RouterLink} to="/forgot-password" kind="ghost" size="sm">
-                    Forgot password?
+                  <Button as={RouterLink} to={community ? "/recover" : "/forgot-password"} kind="ghost" size="sm">
+                    {community ? "Use backup code" : "Forgot password?"}
                   </Button>
                   {PUBLIC_SITE ? (
                     <Button as={RouterLink} to="/account?mode=create" kind="ghost" size="sm">
@@ -392,9 +394,11 @@ export function Login() {
                   Download AORMS desktop
                 </Button>
               )}
-              <Button as={RouterLink} to="/access" kind="ghost" size="sm">
-                Client / consultant / contractor portal
-              </Button>
+              {!community && (
+                <Button as={RouterLink} to="/access" kind="ghost" size="sm">
+                  Client / consultant / contractor portal
+                </Button>
+              )}
               <Button as={RouterLink} to="/" kind="ghost" size="sm" renderIcon={ArrowLeft}>
                 Back to home
               </Button>

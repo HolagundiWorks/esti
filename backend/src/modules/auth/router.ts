@@ -20,6 +20,7 @@ import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { licenseState } from "../../lib/plan.js";
+import { generateBackupCode, hashBackupCode } from "../../lib/seedCommunity.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -261,6 +262,14 @@ export const authRouter = router({
       if (!verifyTotp(u.totpSecret, code)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_invalid" });
       }
+    }
+
+    // Community edition has no external portals — refuse portal-role logins.
+    if (
+      env.ESTI_EDITION === "COMMUNITY" &&
+      (u.role === "CLIENT" || u.role === "CONTRACTOR" || u.role === "CONSULTANT")
+    ) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Portals are not available in this edition." });
     }
 
     const token = await createSession(u.id);
@@ -505,6 +514,39 @@ export const authRouter = router({
       community,
     };
   }),
+
+  /**
+   * Offline account recovery (Community edition): reset a password using the
+   * one-time backup code printed at first-run — the only recovery path when
+   * there is no email/online. Consumes the code and issues a fresh one.
+   */
+  recoverWithBackupCode: publicProcedure
+    .input(z.object({ code: z.string().min(1).max(64), newPassword: z.string().min(8).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      await enforceRateLimit("recover-ip", ctx.ip, 5, 300);
+      const [u] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.backupCodeHash, hashBackupCode(input.code)))
+        .limit(1);
+      if (!u) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid backup code" });
+      const nextCode = generateBackupCode();
+      await ctx.db
+        .update(users)
+        .set({
+          passwordHash: await hashPassword(input.newPassword),
+          mustChangePassword: false,
+          backupCodeHash: hashBackupCode(nextCode),
+        })
+        .where(eq(users.id, u.id));
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: u.id,
+        action: "BACKUP_RECOVERY",
+        actorId: u.id,
+      });
+      return { ok: true as const, backupCode: nextCode };
+    }),
 
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
   resetDemo: publicProcedure.mutation(async ({ ctx }) => {
