@@ -861,7 +861,18 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
               <strong>{e.title}</strong>{" "}
               <Tag type={ESTIMATE_STATUS_TAG[e.status as EstimateStatus] ?? "gray"} size="sm">
                 {ESTIMATE_STATUS_LABEL[e.status as EstimateStatus] ?? e.status}
-              </Tag>
+              </Tag>{" "}
+              {e.revisionNo > 0 && (
+                <Tag type="purple" size="sm">
+                  Rev {e.revisionNo}
+                </Tag>
+              )}
+              {e.boqTotalPaise != null && (
+                <span className="esti-label esti-label--secondary">
+                  {" "}
+                  · {formatINR(e.boqTotalPaise, { paise: false })}
+                </span>
+              )}
             </span>
             <Button size="sm" kind="tertiary" onClick={() => setOpenId(e.id)}>
               Open sheet

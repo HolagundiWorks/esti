@@ -245,7 +245,16 @@ export const estimatesRouter = router({
     .input(z.object({ projectId: z.string().uuid() }))
     .query(({ ctx, input }) =>
       ctx.db
-        .select()
+        .select({
+          id: estimates.id,
+          title: estimates.title,
+          status: estimates.status,
+          revisionNo: estimates.revisionNo,
+          revisionOf: estimates.revisionOf,
+          createdAt: estimates.createdAt,
+          // Last-generated BOQ total (jsonb extract, not the whole snapshot).
+          boqTotalPaise: sql<number | null>`(${estimates.boqSnapshot} ->> 'totalPaise')::double precision`,
+        })
         .from(estimates)
         .where(eq(estimates.projectId, input.projectId))
         .orderBy(asc(estimates.createdAt)),
