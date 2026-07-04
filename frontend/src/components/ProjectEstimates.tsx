@@ -278,12 +278,17 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       const r = pressEnter(entry.state);
       if (r.kind === "closed") {
         void closeItem();
-      } else {
-        if (r.kind === "recorded") {
-          void recordColumn(r.state.recorded[r.state.recorded.length - 1]!);
-        }
-        setEntry({ ...entry, state: r.state });
+        return;
       }
+      if (r.kind === "invalid") {
+        setError(r.reason);
+        return;
+      }
+      setError(null);
+      if (r.kind === "recorded") {
+        void recordColumn(r.state.recorded[r.state.recorded.length - 1]!);
+      }
+      setEntry({ ...entry, state: r.state });
     }
   }
 
@@ -407,14 +412,12 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
                             className="esti-input-sm"
                             autoComplete="off"
                             value={entry.state.column[r] ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value === "" ? null : Number(e.target.value);
-                              if (v !== null && !Number.isFinite(v)) return;
+                            onChange={(e) =>
                               setEntry({
                                 ...entry,
-                                state: setValue({ ...entry.state, rowIdx: r }, v),
-                              });
-                            }}
+                                state: setValue({ ...entry.state, rowIdx: r }, e.target.value),
+                              })
+                            }
                             onFocus={() => setEntry({ ...entry, state: { ...entry.state, rowIdx: r } })}
                             onKeyDown={onMeasureKey}
                           />

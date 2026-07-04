@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { moveRow, pressEnter, setValue, startMeasuring, type MeasureState } from "./estimateSheet.js";
 
-function fill(s: MeasureState, values: (number | null)[]): MeasureState {
+function fill(s: MeasureState, values: (number | string | null)[]): MeasureState {
   let cur = s;
   for (const v of values) {
-    cur = setValue(cur, v);
+    cur = setValue(cur, v == null ? "" : String(v));
     const r = pressEnter(cur);
     if (r.kind === "closed") throw new Error("unexpected close");
+    if (r.kind === "invalid") throw new Error(`unexpected invalid: ${r.reason}`);
     cur = r.state;
   }
   return cur;
@@ -65,10 +66,10 @@ describe("estimate sheet keyboard grammar", () => {
     let r = pressEnter(s); // Nos empty, rowIdx 0 → would close; so type nothing but move via arrow
     // simulate: skip Nos by arrowing down, fill L and B, record on last row
     s = moveRow(startMeasuring("sqm"), 1); // cursor on Length
-    s = setValue(s, 4);
+    s = setValue(s, "4");
     r = pressEnter(s); // advance to Breadth
     if (r.kind !== "advanced") throw new Error("expected advance");
-    s = setValue(r.state, 3);
+    s = setValue(r.state, "3");
     r = pressEnter(s); // last row → record
     expect(r.kind).toBe("recorded");
     if (r.kind === "recorded") {
@@ -78,7 +79,7 @@ describe("estimate sheet keyboard grammar", () => {
 
   it("partial column still records (missing dims read as zero qty)", () => {
     let s = startMeasuring("cum");
-    s = setValue(s, 2); // Nos
+    s = setValue(s, "2"); // Nos
     let r = pressEnter(s);
     if (r.kind !== "advanced") throw new Error("expected advance");
     s = r.state; // Length row, leave empty
@@ -93,5 +94,55 @@ describe("estimate sheet keyboard grammar", () => {
     if (r.kind === "recorded") {
       expect(r.state.recorded[0]).toEqual({ nos: 2, l: undefined, b: undefined, h: undefined });
     }
+  });
+});
+
+describe("raw-text cells (decimals survive; server-invalid values are blocked)", () => {
+  it("records true decimals — 4.5 stays 4.5, not 45", () => {
+    let s = startMeasuring("rm"); // Nos, Length
+    s = setValue(s, "3");
+    let r = pressEnter(s);
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, "12.5");
+    r = pressEnter(s);
+    expect(r.kind).toBe("recorded");
+    if (r.kind === "recorded") expect(r.state.recorded[0]).toEqual({ nos: 3, l: 12.5 });
+  });
+
+  it("preserves a leading-zero decimal like 0.15", () => {
+    let s = startMeasuring("cum");
+    s = fill(s, ["2", "4.5", "3", "0.15"]);
+    expect(s.recorded).toEqual([{ nos: 2, l: 4.5, b: 3, h: 0.15 }]);
+  });
+
+  it("blocks a negative value with inline feedback instead of recording it", () => {
+    let s = startMeasuring("kg"); // single Qty row
+    s = setValue(s, "-5");
+    const r = pressEnter(s);
+    expect(r.kind).toBe("invalid");
+    if (r.kind === "invalid") expect(r.reason).toMatch(/negative/i);
+  });
+
+  it("blocks a negative dimension on a multi-row column", () => {
+    let s = startMeasuring("sqm"); // Nos, Length, Breadth
+    s = setValue(s, "2");
+    let r = pressEnter(s); // -> Length
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, "4");
+    r = pressEnter(s); // -> Breadth (last row)
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, "-3");
+    r = pressEnter(s);
+    expect(r.kind).toBe("invalid");
+  });
+
+  it("non-numeric garbage in a used column is rejected, not silently recorded", () => {
+    let s = startMeasuring("rm");
+    s = setValue(s, "2"); // Nos ok
+    let r = pressEnter(s); // -> Length (last row)
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, "abc");
+    r = pressEnter(s);
+    expect(r.kind).toBe("invalid");
   });
 });

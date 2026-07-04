@@ -18,8 +18,13 @@ export type MeasureState = {
   unit: string;
   /** Parameter row labels, from contracts measurementRows(unit). */
   rows: string[];
-  /** The active column, one slot per row (null = not yet typed). */
-  column: (number | null)[];
+  /**
+   * The active column as RAW editing text, one slot per row ("" = untyped).
+   * Held as strings — never parsed numbers — so an in-progress decimal ("0.",
+   * "4.5") is not mangled by an early `Number()` round-trip that reflects the
+   * parsed value straight back into the input. Cells parse only when recorded.
+   */
+  column: string[];
   /** Which parameter row the cursor is on. */
   rowIdx: number;
   /** Recorded measurement columns. */
@@ -28,20 +33,32 @@ export type MeasureState = {
 
 export function startMeasuring(unit: string): MeasureState {
   const rows = measurementRows(unit);
-  return { unit, rows, column: rows.map(() => null), rowIdx: 0, recorded: [] };
+  return { unit, rows, column: rows.map(() => ""), rowIdx: 0, recorded: [] };
 }
 
-export function setValue(s: MeasureState, value: number | null): MeasureState {
+/** Store the raw text of the active cell verbatim (parsing is deferred). */
+export function setValue(s: MeasureState, raw: string): MeasureState {
   const column = [...s.column];
-  column[s.rowIdx] = value;
+  column[s.rowIdx] = raw;
   return { ...s, column };
+}
+
+/** Parse a cell's raw text to a finite number, or null when blank/unparseable. */
+function parseCell(raw: string | undefined): number | null {
+  const t = (raw ?? "").trim();
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
 }
 
 /** Column → measurement. Slot 0 is Nos (or Qty for 0-dim units). A blank Nos
  *  on a dimensioned column defaults to 1 — standard takeoff convention, so
  *  writing only "4 × 3" means one 4×3, not a zeroed-out measurement. */
 function columnToMeasurement(s: MeasureState): EstimateMeasurement {
-  const [nos, l, b, h] = [s.column[0], s.column[1], s.column[2], s.column[3]];
+  const nos = parseCell(s.column[0]);
+  const l = parseCell(s.column[1]);
+  const b = parseCell(s.column[2]);
+  const h = parseCell(s.column[3]);
   const m: EstimateMeasurement = { nos: nos ?? 1 };
   if (s.rows.length > 1) m.l = l ?? undefined;
   if (s.rows.length > 2) m.b = b ?? undefined;
@@ -52,10 +69,14 @@ function columnToMeasurement(s: MeasureState): EstimateMeasurement {
 export type EnterResult =
   | { kind: "advanced"; state: MeasureState }
   | { kind: "recorded"; state: MeasureState }
-  | { kind: "closed"; measurements: EstimateMeasurement[] };
+  | { kind: "closed"; measurements: EstimateMeasurement[] }
+  | { kind: "invalid"; state: MeasureState; reason: string };
 
 export function pressEnter(s: MeasureState): EnterResult {
-  const columnEmpty = s.column.every((v) => v == null || v === 0);
+  const columnEmpty = s.column.every((raw) => {
+    const n = parseCell(raw);
+    return n == null || n === 0;
+  });
 
   // The double-Enter: an untouched column closes the item.
   if (columnEmpty && s.rowIdx === 0) {
@@ -71,10 +92,20 @@ export function pressEnter(s: MeasureState): EnterResult {
   if (columnEmpty) {
     return { kind: "closed", measurements: s.recorded };
   }
+  // Guard before recording — the server contract (EstimateMeasurement) enforces
+  // finite, non-negative values, so reject them here with inline feedback rather
+  // than optimistically "recording" a column the backend will silently drop.
+  for (const raw of s.column) {
+    const t = raw.trim();
+    if (t === "") continue;
+    const n = Number(t);
+    if (!Number.isFinite(n)) return { kind: "invalid", state: s, reason: "Enter a valid number." };
+    if (n < 0) return { kind: "invalid", state: s, reason: "Measurements can’t be negative." };
+  }
   const recorded = [...s.recorded, columnToMeasurement(s)];
   return {
     kind: "recorded",
-    state: { ...s, recorded, column: s.rows.map(() => null), rowIdx: 0 },
+    state: { ...s, recorded, column: s.rows.map(() => ""), rowIdx: 0 },
   };
 }
 
