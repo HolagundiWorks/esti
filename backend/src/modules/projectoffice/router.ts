@@ -38,6 +38,7 @@ import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
 import { getOrgSettings } from "../../lib/settings.js";
+import { assertProjectAccess } from "../../lib/projectAccess.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getProjectById,
@@ -113,7 +114,10 @@ export async function assertLegalTransition(db: DB, projectId: string, from: Pro
 export const projectOfficeRouter = router({
   list: protectedProcedure.input(ListParams).query(async ({ ctx, input }) => listProjects(ctx.db, input, ctx.user)),
 
-  byId: protectedProcedure.input(projectByIdInput).query(async ({ ctx, input }) => getProjectById(ctx.db, input.id)),
+  byId: protectedProcedure.input(projectByIdInput).query(async ({ ctx, input }) => {
+    await assertProjectAccess(ctx.db, ctx.user, input.id);
+    return getProjectById(ctx.db, input.id);
+  }),
 
   listArchived: protectedProcedure.query(async ({ ctx }) => listArchivedProjects(ctx.db, ctx.user)),
 
@@ -181,6 +185,7 @@ export const projectOfficeRouter = router({
   updateSite: protectedProcedure.input(ProjectSiteUpdate).mutation(async ({ ctx, input }) => {
     const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    await assertProjectAccess(ctx.db, ctx.user, input.id);
     const row = await ctx.db.transaction(async (tx) => {
       const [updated] = await tx
         .update(projectOffices)
@@ -232,6 +237,7 @@ export const projectOfficeRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      await assertProjectAccess(ctx.db, ctx.user, input.id);
       // A status change through the edit form must still obey the state machine —
       // the form normally re-sends the unchanged status, but never trust that.
       await assertLegalTransition(ctx.db, input.id, before.status as ProjectStatus, input.status);
@@ -312,6 +318,7 @@ export const projectOfficeRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
     const [before] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    await assertProjectAccess(ctx.db, ctx.user, input.id);
     const from = before.status as ProjectStatus;
     if (from === input.status) return before;
     await assertLegalTransition(ctx.db, input.id, from, input.status);
@@ -353,6 +360,7 @@ export const projectOfficeRouter = router({
     .query(async ({ ctx, input }) => {
       const [project] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
       if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+      await assertProjectAccess(ctx.db, ctx.user, input.id);
       const gate = await gatherActivationGate(ctx.db, input.id, project.status as ProjectStatus);
       return gate;
     }),
@@ -367,6 +375,7 @@ export const projectOfficeRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Your role has read-only access" });
     const [project] = await ctx.db.select().from(projectOffices).where(eq(projectOffices.id, input.id));
     if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+    await assertProjectAccess(ctx.db, ctx.user, input.id);
 
     const gate = await gatherActivationGate(ctx.db, input.id, project.status as ProjectStatus);
     if (!gate.ok)
@@ -587,11 +596,15 @@ export const projectOfficeRouter = router({
   // --- Internal project log (audit notes) ---
   logs: protectedProcedure
     .input(projectLogsInput)
-    .query(async ({ ctx, input }) => listProjectLogs(ctx.db, input.projectId, input.limit)),
+    .query(async ({ ctx, input }) => {
+      await assertProjectAccess(ctx.db, ctx.user, input.projectId);
+      return listProjectLogs(ctx.db, input.projectId, input.limit);
+    }),
 
   addLog: protectedProcedure
     .input(z.object({ projectId: z.string().uuid(), note: z.string().min(1).max(2000) }))
     .mutation(async ({ ctx, input }) => {
+      await assertProjectAccess(ctx.db, ctx.user, input.projectId);
       return ctx.db.transaction(async (tx) => {
         const [row] = await tx
           .insert(projectLogs)

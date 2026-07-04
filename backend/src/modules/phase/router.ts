@@ -4,12 +4,14 @@ import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { phases, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { assertProjectAccess } from "../../lib/projectAccess.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const phaseRouter = router({
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      await assertProjectAccess(ctx.db, ctx.user, input.projectId);
       return ctx.db
         .select()
         .from(phases)
@@ -19,6 +21,7 @@ export const phaseRouter = router({
 
   /** Advance the project to the given stage; earlier stages are implicitly complete. */
   setCurrent: protectedProcedure.input(PhaseSetCurrent).mutation(async ({ ctx, input }) => {
+    await assertProjectAccess(ctx.db, ctx.user, input.projectId);
     const [phase] = await ctx.db
       .select()
       .from(phases)
@@ -52,6 +55,7 @@ export const phaseRouter = router({
       revisionBudget: z.number().int().min(0).max(99).nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
+      await assertProjectAccess(ctx.db, ctx.user, input.projectId);
       const [phase] = await ctx.db.select().from(phases).where(eq(phases.id, input.phaseId));
       if (!phase || phase.projectId !== input.projectId)
         throw new TRPCError({ code: "NOT_FOUND" });

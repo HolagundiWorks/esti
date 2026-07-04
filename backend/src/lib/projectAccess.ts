@@ -1,4 +1,5 @@
 import { can } from "@esti/contracts";
+import { TRPCError } from "@trpc/server";
 import { eq, inArray } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import { assignments, projectOffices, teamMembers } from "../db/schema.js";
@@ -32,6 +33,23 @@ export async function accessibleProjectIds(
   for (const row of created) ids.add(row.id);
 
   return [...ids];
+}
+
+/**
+ * Guard a single-project read/write. Partner+ (project:delete) may reach any
+ * project; everyone else is limited to the projects they created or are
+ * assigned to — the same scope the list view enforces, so a project a user
+ * cannot see in their list cannot be opened or edited by id either.
+ */
+export async function assertProjectAccess(
+  db: DB,
+  user: { id: string; role: string },
+  projectId: string,
+): Promise<void> {
+  const ids = await accessibleProjectIds(db, user);
+  if (ids === null) return;
+  if (!ids.includes(projectId))
+    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this project." });
 }
 
 export async function projectAccessFilter(
