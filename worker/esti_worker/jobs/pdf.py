@@ -718,8 +718,10 @@ def _estimate_boq_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
         )
     mat_rows = ""
     for m in materials:
+        brand = m.get("brand")
+        name_cell = _e(m.get("name")) + (f" · {_e(brand)}" if brand else "")
         mat_rows += (
-            f"<tr><td>{_e(m.get('name'))}</td>"
+            f"<tr><td>{name_cell}</td>"
             f"<td class='c'>{_e(m.get('unit'))}</td>"
             f"<td class='r'>{_qty(m.get('qty'))}</td>"
             f"<td class='r'>{_amt(m.get('ratePaise'))}</td>"

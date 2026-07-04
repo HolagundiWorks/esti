@@ -274,7 +274,10 @@ function CostingPanel({ estimateId }: { estimateId: string }) {
             <TableBody>
               {data.materials.map((m) => (
                 <TableRow key={m.materialId}>
-                  <TableCell>{m.name}</TableCell>
+                  <TableCell>
+                    {m.name}
+                    {m.brand ? ` · ${m.brand}` : ""}
+                  </TableCell>
                   <TableCell>{m.unit}</TableCell>
                   <TableCell>{fmtQty(m.qty)}</TableCell>
                   <TableCell>{inr(m.ratePaise)}</TableCell>

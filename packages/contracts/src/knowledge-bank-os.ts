@@ -74,6 +74,9 @@ export const KbMaterialBrandAdd = z.object({
   brandId: z.string().uuid(),
   gradeOrVariant: z.string().max(160).optional(),
   qualityLevel: z.string().max(80).optional(),
+  /** Brand-specific rate (paise/material unit). Overrides the material default
+   *  in costing when this is the preferred brand; null → use the material rate. */
+  ratePaise: z.number().int().nonnegative().nullish(),
   preferred: z.boolean().default(false),
 });
 export type KbMaterialBrandAdd = z.infer<typeof KbMaterialBrandAdd>;
@@ -82,6 +85,7 @@ export const KbMaterialBrandUpdate = z.object({
   id: z.string().uuid(),
   gradeOrVariant: z.string().max(160).nullable().optional(),
   qualityLevel: z.string().max(80).nullable().optional(),
+  ratePaise: z.number().int().nonnegative().nullable().optional(),
   preferred: z.boolean().optional(),
 });
 export type KbMaterialBrandUpdate = z.infer<typeof KbMaterialBrandUpdate>;

@@ -76,6 +76,8 @@ export const kbMaterialBrands = pgTable("esti_kb_material_brand", {
     .references(() => kbBrands.id, { onDelete: "cascade" }),
   gradeOrVariant: text("grade_or_variant"),
   qualityLevel: text("quality_level"),
+  /** Brand-specific rate (paise/material unit); overrides the material default. */
+  ratePaise: integer("rate_paise"),
   preferred: boolean("preferred").notNull().default(false),
   createdAt: createdAt(),
 });

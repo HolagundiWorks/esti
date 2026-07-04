@@ -606,6 +606,7 @@ const materialBrands = router({
           brandId: kbMaterialBrands.brandId,
           gradeOrVariant: kbMaterialBrands.gradeOrVariant,
           qualityLevel: kbMaterialBrands.qualityLevel,
+          ratePaise: kbMaterialBrands.ratePaise,
           preferred: kbMaterialBrands.preferred,
           brandName: kbBrands.name,
         })
@@ -630,6 +631,7 @@ const materialBrands = router({
           brandId: input.brandId,
           gradeOrVariant: input.gradeOrVariant ?? null,
           qualityLevel: input.qualityLevel ?? null,
+          ratePaise: input.ratePaise ?? null,
           preferred: input.preferred,
         })
         .returning();

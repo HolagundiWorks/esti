@@ -40,9 +40,11 @@ import {
   estimateLines,
   estimateMeasurements,
   estimates,
+  kbBrands,
   kbItemDependencies,
   kbItems,
   kbLabor,
+  kbMaterialBrands,
   kbMaterials,
   kbSpecLabor,
   kbSpecMaterials,
@@ -111,10 +113,32 @@ function scalarMeasurement(qty: number, unit: string) {
 }
 
 /**
+ * Preferred-brand rate override per material (paise/material unit) + brand name.
+ * When a material's preferred brand carries a rate, costing uses it instead of
+ * the material default — so a client is quoted on the specified brand.
+ */
+async function brandRateMap(db: Parameters<typeof getProjectById>[0], materialIds: string[]) {
+  const map = new Map<string, { brandName: string; ratePaise: number | null }>();
+  if (materialIds.length === 0) return map;
+  const rows = await db
+    .select({
+      materialId: kbMaterialBrands.materialId,
+      brandName: kbBrands.name,
+      ratePaise: kbMaterialBrands.ratePaise,
+    })
+    .from(kbMaterialBrands)
+    .innerJoin(kbBrands, eq(kbMaterialBrands.brandId, kbBrands.id))
+    .where(and(inArray(kbMaterialBrands.materialId, materialIds), eq(kbMaterialBrands.preferred, true)));
+  for (const r of rows) map.set(r.materialId, { brandName: r.brandName, ratePaise: r.ratePaise });
+  return map;
+}
+
+/**
  * Priced BOQ + material abstract for an estimate. Each line priced at its mapped
  * spec's analysed rate (qty × rate); materials aggregated across every priced
- * line from the spec recipes (qty × qty-per-unit × (1+wastage)). Shared by the
- * `costing` read query and the BOQ-PDF snapshot.
+ * line from the spec recipes (qty × qty-per-unit × (1+wastage)). Material rates
+ * resolve through the preferred-brand override when set. Shared by the `costing`
+ * read query and the BOQ-PDF snapshot.
  */
 async function computeCosting(db: Parameters<typeof getProjectById>[0], id: string) {
   const estimate = await requireEstimate(db, id);
@@ -137,12 +161,12 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
     lineQuantity((msByLine.get(lineId) ?? []).map(toMeasurement), unit);
 
   const specIds = [...new Set(lines.map((l) => l.specificationId).filter((x): x is string => !!x))];
-  type MatLine = { materialId: string; name: string; unit: string; quantityPerUnit: number; wastageFactor: number; ratePaise: number };
+  type MatLine = { materialId: string; name: string; unit: string; quantityPerUnit: number; wastageFactor: number; ratePaise: number; brandName?: string };
   type LabLine = { laborId: string; name: string; unit: string; quantityPerUnit: number; ratePaise: number };
   const specInfo = new Map<string, { name: string; ratePaise: number; materials: MatLine[]; labor: LabLine[] }>();
   for (const specId of specIds) {
     const [spec] = await db.select().from(kbSpecifications).where(eq(kbSpecifications.id, specId));
-    const mats = await db
+    const mats: MatLine[] = await db
       .select({
         materialId: kbSpecMaterials.materialId,
         name: kbMaterials.name,
@@ -165,7 +189,21 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
       .from(kbSpecLabor)
       .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
       .where(eq(kbSpecLabor.specificationId, specId));
-    specInfo.set(specId, { name: spec?.name ?? "", ratePaise: specRatePaise(mats, labs), materials: mats, labor: labs });
+    specInfo.set(specId, { name: spec?.name ?? "", ratePaise: 0, materials: mats, labor: labs });
+  }
+
+  // Resolve preferred-brand rate overrides, then compute each spec's rate.
+  const matIds = [...new Set([...specInfo.values()].flatMap((s) => s.materials.map((m) => m.materialId)))];
+  const brands = await brandRateMap(db, matIds);
+  for (const info of specInfo.values()) {
+    for (const m of info.materials) {
+      const b = brands.get(m.materialId);
+      if (b) {
+        m.brandName = b.brandName;
+        if (b.ratePaise != null && b.ratePaise > 0) m.ratePaise = b.ratePaise;
+      }
+    }
+    info.ratePaise = specRatePaise(info.materials, info.labor);
   }
 
   const boq = lines.map((l) => {
@@ -187,7 +225,7 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
   });
   const totalPaise = boq.reduce((s, r) => s + (r.amountPaise ?? 0), 0);
 
-  const agg = new Map<string, { name: string; unit: string; qty: number; ratePaise: number }>();
+  const agg = new Map<string, { name: string; unit: string; qty: number; ratePaise: number; brand: string | null }>();
   for (const l of lines) {
     if (!l.specificationId) continue;
     const info = specInfo.get(l.specificationId);
@@ -195,7 +233,9 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
     const qty = qtyOf(l.id, l.unit);
     for (const m of info.materials) {
       const consumed = qty * m.quantityPerUnit * (1 + m.wastageFactor);
-      const cur = agg.get(m.materialId) ?? { name: m.name, unit: m.unit, qty: 0, ratePaise: m.ratePaise };
+      const cur =
+        agg.get(m.materialId) ??
+        { name: m.name, unit: m.unit, qty: 0, ratePaise: m.ratePaise, brand: m.brandName ?? null };
       cur.qty += consumed;
       agg.set(m.materialId, cur);
     }
@@ -205,6 +245,7 @@ async function computeCosting(db: Parameters<typeof getProjectById>[0], id: stri
       materialId,
       name: v.name,
       unit: v.unit,
+      brand: v.brand,
       qty: Math.round(v.qty * 1000) / 1000,
       ratePaise: v.ratePaise,
       amountPaise: Math.round(v.qty * v.ratePaise),
@@ -604,6 +645,7 @@ export const estimatesRouter = router({
       for (const s of specs) {
         const mats = await ctx.db
           .select({
+            materialId: kbSpecMaterials.materialId,
             quantityPerUnit: kbSpecMaterials.quantityPerUnit,
             wastageFactor: kbSpecMaterials.wastageFactor,
             ratePaise: kbMaterials.defaultRatePaise,
@@ -611,6 +653,14 @@ export const estimatesRouter = router({
           .from(kbSpecMaterials)
           .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
           .where(eq(kbSpecMaterials.specificationId, s.id));
+        const brands = await brandRateMap(ctx.db, mats.map((m) => m.materialId));
+        const pricedMats = mats.map((m) => {
+          const b = brands.get(m.materialId);
+          return {
+            ...m,
+            ratePaise: b && b.ratePaise != null && b.ratePaise > 0 ? b.ratePaise : m.ratePaise,
+          };
+        });
         const labs = await ctx.db
           .select({
             quantityPerUnit: kbSpecLabor.quantityPerUnit,
@@ -619,7 +669,7 @@ export const estimatesRouter = router({
           .from(kbSpecLabor)
           .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
           .where(eq(kbSpecLabor.specificationId, s.id));
-        out.push({ id: s.id, name: s.name, ratePaise: specRatePaise(mats, labs) });
+        out.push({ id: s.id, name: s.name, ratePaise: specRatePaise(pricedMats, labs) });
       }
       return out;
     }),
