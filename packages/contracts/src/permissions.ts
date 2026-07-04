@@ -114,6 +114,7 @@ export type Capability =
   | "hr:manage"        // team + HR + payroll operations (L2+)
   | "reports:view"     // GST/TDS filing abstracts (L2+)
   | "cost:approve"     // approve cost deviations / variation orders (L2+)
+  | "estimate:approve" // approve an estimate + clone an approved one into a revision (L3 lead+)
   | "firm:admin"       // firm profile, users, module toggles (L1 only)
   | "salary:view"      // view team salary and payslip amounts (L1 only)
   | "tenders:view";    // view tenders list and documents (L3+)
@@ -141,6 +142,7 @@ const MIN_RANK: Record<Capability, number> = {
   "hr:manage":           80,  // L2+: partner and above (HR, payroll, leaves)
   "reports:view":        80,  // L2+: GST/TDS filing abstracts
   "cost:approve":        80,  // L2+: sign off cost deviations + variation orders
+  "estimate:approve":    60,  // L3+: team lead (Senior) and above approve + clone estimates
   "firm:admin":         100,  // L1 only: owner / director
   "salary:view":        100,  // L1 only: gross/net salary amounts, payslip ₹ values
   "tenders:view":        60,  // L3+: senior and above may view tenders

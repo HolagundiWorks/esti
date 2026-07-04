@@ -259,10 +259,15 @@ export const proposals = pgTable("esti_proposal", {
   revisionNo: integer("revision_no").notNull().default(0),
   workCategory: text("work_category").notNull(),
   workType: text("work_type").notNull().default("ARCHITECTURE"),
+  // How the fee was derived: COA_PERCENT | PER_SQM | LUMPSUM (see FeeBasis).
+  feeBasis: text("fee_basis").notNull().default("COA_PERCENT"),
   costOfWorksPaise: bigint("cost_of_works_paise", { mode: "number" })
     .notNull()
     .default(0),
   feePaise: bigint("fee_paise", { mode: "number" }).notNull().default(0),
+  // Per-sq.m fee inputs (used only when feeBasis = PER_SQM).
+  builtUpAreaSqm: doublePrecision("built_up_area_sqm"),
+  ratePerSqmPaise: bigint("rate_per_sqm_paise", { mode: "number" }),
   docCommPct: integer("doc_comm_pct").notNull().default(10),
   coaMinimumPaise: bigint("coa_minimum_paise", { mode: "number" })
     .notNull()

@@ -70,6 +70,20 @@ describe("parseMomRevisionSuggestions", () => {
     expect(out![0]!.category).toBe("MINOR");
   });
 
+  it("backfills missing details from the title (small-model output)", () => {
+    const out = parseMomRevisionSuggestions(
+      JSON.stringify([
+        { title: "Move the main staircase to the north wall", category: "MAJOR" },
+        { title: "Increase parking from 8 to 12 bays" },
+      ]),
+    );
+    expect(out).toHaveLength(2);
+    expect(out![0]!.details).toBe("Move the main staircase to the north wall");
+    expect(out![0]!.category).toBe("MAJOR");
+    expect(out![1]!.details).toBe("Increase parking from 8 to 12 bays");
+    expect(out![1]!.category).toBe("MINOR");
+  });
+
   it("returns null on unparseable output", () => {
     expect(parseMomRevisionSuggestions("I could not find any changes.")).toBeNull();
     expect(parseMomRevisionSuggestions("[not json")).toBeNull();

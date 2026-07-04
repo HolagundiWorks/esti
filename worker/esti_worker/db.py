@@ -104,7 +104,7 @@ def fetch_payslip_full(payslip_id: str) -> dict[str, Any] | None:
 
 
 def update_feeproposal(fee_id: str, **fields: Any) -> None:
-    _patch("esti_feeproposal", fee_id, set(), fields)
+    _patch("esti_proposal", fee_id, set(), fields)
 
 
 def update_transmittal(tr_id: str, **fields: Any) -> None:
@@ -149,13 +149,14 @@ def fetch_feeproposal_full(fee_id: str) -> dict[str, Any] | None:
     """Fee proposal joined with its project + client, plus the stage plan."""
     sql = """
         select
-          f.ref, f.work_category, f.cost_of_works_paise, f.fee_paise,
+          f.ref, f.work_category, f.fee_basis, f.cost_of_works_paise, f.fee_paise,
+          f.built_up_area_sqm, f.rate_per_sqm_paise,
           f.doc_comm_pct, f.coa_minimum_paise, f.below_minimum,
           f.override_reason, f.scope, f.revision_no,
           p.id as project_id, p.ref as project_ref, p.title as project_title,
           p.project_type, p.jurisdiction,
           c.name as client_name, c.city as client_city, c.state as client_state
-        from esti_feeproposal f
+        from esti_proposal f
         join esti_projectoffice p on p.id = f.project_id
         left join esti_client c on c.id = p.client_id
         where f.id = %s
@@ -345,3 +346,48 @@ def fetch_estimation_set(set_id: str) -> dict | None:
 
 def update_estimation_set(set_id: str, **fields) -> None:
     _patch("esti_cms_final_set", set_id, set(), fields)
+
+
+def update_estimate_boq(estimate_id: str, **fields: Any) -> None:
+    """Patch the BOQ-PDF columns on esti_estimate. The renderer speaks the
+    generic pdf_status/pdf_key kwargs; map them to the boq_* columns."""
+    remap = {"pdf_status": "boq_pdf_status", "pdf_key": "boq_pdf_key"}
+    mapped = {remap.get(k, k): v for k, v in fields.items()}
+    _patch("esti_estimate", estimate_id, set(), mapped)
+
+
+def fetch_estimate_boq_full(estimate_id: str) -> dict[str, Any] | None:
+    """An estimate's frozen priced-BOQ snapshot + header, for the PDF. The
+    boq_* columns are aliased to the generic pdf_key/pdf_status the renderer
+    expects; boq_snapshot (jsonb) is parsed into a dict by psycopg."""
+    sql = """
+        select e.title, e.boq_snapshot as snapshot,
+               e.boq_pdf_key as pdf_key, e.boq_pdf_status as pdf_status,
+               p.ref as project_ref, p.title as project_title
+        from esti_estimate e
+        join esti_projectoffice p on p.id = e.project_id
+        where e.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [estimate_id]).fetchone()
+
+
+def update_estimate_boq_client(estimate_id: str, **fields: Any) -> None:
+    """Patch the client-copy BOQ-PDF columns (same generic kwargs)."""
+    remap = {"pdf_status": "boq_client_pdf_status", "pdf_key": "boq_client_pdf_key"}
+    mapped = {remap.get(k, k): v for k, v in fields.items()}
+    _patch("esti_estimate", estimate_id, set(), mapped)
+
+
+def fetch_estimate_boq_client(estimate_id: str) -> dict[str, Any] | None:
+    """Same snapshot as the internal BOQ, but the client-copy pdf_key/status."""
+    sql = """
+        select e.title, e.boq_snapshot as snapshot,
+               e.boq_client_pdf_key as pdf_key, e.boq_client_pdf_status as pdf_status,
+               p.ref as project_ref, p.title as project_title
+        from esti_estimate e
+        join esti_projectoffice p on p.id = e.project_id
+        where e.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        return conn.execute(sql, [estimate_id]).fetchone()

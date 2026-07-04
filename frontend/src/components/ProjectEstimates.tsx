@@ -1,6 +1,8 @@
 import {
   Button,
   InlineNotification,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -14,18 +16,27 @@ import {
   Tile,
 } from "@carbon/react";
 import {
+  ESTIMATE_STATUS_LABEL,
+  ESTIMATE_STATUS_TAG,
   type EstimateMeasurement,
-  dimensionCount,
+  EstimateStatus,
+  can,
+  formatINR,
   lineQuantity,
   measurementQty,
   measurementRows,
 } from "@esti/contracts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { useAuth } from "../lib/auth.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 import {
   type MeasureState,
+  dropRecorded,
   moveRow,
   pressEnter,
+  previewColumnQty,
   setValue,
   startMeasuring,
 } from "../lib/estimateSheet.js";
@@ -35,7 +46,7 @@ import {
  * keyboard-first measurement sheet.
  *
  *   /        element search over the Knowledge Bank item library
- *   ↑ / ↓    move through search results (and parameter rows while measuring)
+ *   ↑ / ↓    move through search results (and parameter fields while measuring)
  *   Space    select the highlighted element
  *   Enter    open the measurement block · advance down the column ·
  *            record the column (last row)
@@ -61,59 +72,300 @@ function fmtQty(n: number): string {
   return n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 }
 
-/** One saved line rendered as a transposed measurement block. */
-function SavedLine({ no, line }: {
+/** Post-approval costing: pick the line's specification and show its rate +
+ *  the line amount (qty × analysed rate). */
+function LineSpecPicker({
+  estimateId,
+  lineId,
+  specificationId,
+  qty,
+  unit,
+}: {
+  estimateId: string;
+  lineId: string;
+  specificationId: string | null;
+  qty: number;
+  unit: string;
+}) {
+  const utils = trpc.useUtils();
+  const specsQ = trpc.estimates.specsForLine.useQuery({ lineId });
+  const setSpec = trpc.estimates.setLineSpecification.useMutation({
+    onSuccess: () => {
+      void utils.estimates.get.invalidate({ id: estimateId });
+      void utils.estimates.costing.invalidate({ id: estimateId });
+    },
+  });
+  const specs = specsQ.data ?? [];
+  const selected = specs.find((s) => s.id === specificationId);
+  return (
+    <div className="esti-row">
+      <Select
+        id={`spec-${lineId}`}
+        labelText="Specification"
+        hideLabel
+        size="sm"
+        value={specificationId ?? ""}
+        disabled={setSpec.isPending || specs.length === 0}
+        onChange={(e) => setSpec.mutate({ lineId, specificationId: e.target.value || null })}
+      >
+        <SelectItem value="" text={specs.length === 0 ? "No specifications for this item" : "— choose specification —"} />
+        {specs.map((s) => (
+          <SelectItem key={s.id} value={s.id} text={`${s.name} · ${formatINR(s.ratePaise, { paise: false })}/${unit}`} />
+        ))}
+      </Select>
+      {selected && (
+        <span className="esti-label esti-label--secondary">
+          {formatINR(selected.ratePaise, { paise: false })}/{unit} · Amount{" "}
+          {formatINR(Math.round(qty * selected.ratePaise), { paise: false })}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** One saved line — each measurement is a row; parameters + Qty are columns. */
+function SavedLine({ no, line, approved, estimateId }: {
   no: string;
-  line: { description: string; unit: string; measurements?: unknown; parentLineId: string | null };
+  line: {
+    id: string;
+    description: string;
+    unit: string;
+    measurements?: unknown;
+    parentLineId: string | null;
+    derived?: boolean;
+    kbItemId?: string | null;
+    specificationId?: string | null;
+  };
+  approved: boolean;
+  estimateId: string;
 }) {
   const ms = (line.measurements ?? []) as EstimateMeasurement[];
   const rows = measurementRows(line.unit);
-  const dims = dimensionCount(line.unit);
   const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
   return (
-    <TableContainer title={`${no} · ${line.description}`} description={`Unit: ${line.unit} · Qty: ${fmtQty(lineQuantity(ms, line.unit))} ${line.unit}`}>
+    <Stack gap={2}>
+    <TableContainer
+      title={
+        <span>
+          {no} · {line.description}{" "}
+          {line.derived && (
+            <Tag type="teal" size="sm">
+              auto
+            </Tag>
+          )}
+        </span>
+      }
+      description={`Unit: ${line.unit} · Qty: ${fmtQty(lineQuantity(ms, line.unit))} ${line.unit}`}
+    >
       <Table size="sm">
         <TableHead>
           <TableRow>
-            <TableHeader>Parameter</TableHeader>
-            {ms.map((_, i) => (
-              <TableHeader key={i}>M{i + 1}</TableHeader>
+            <TableHeader>#</TableHeader>
+            {rows.map((label, r) => (
+              <TableHeader key={label + r}>{label}</TableHeader>
             ))}
+            <TableHeader>Qty ({line.unit})</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((label, r) => (
-            <TableRow key={label + r}>
-              <TableCell>{label}</TableCell>
-              {ms.map((m, i) => (
-                <TableCell key={i}>{m[keys[r]!] ?? "—"}</TableCell>
+          {ms.map((m, i) => (
+            <TableRow key={i}>
+              <TableCell>M{i + 1}</TableCell>
+              {rows.map((_, r) => (
+                <TableCell key={r}>{m[keys[r]!] ?? "—"}</TableCell>
               ))}
+              <TableCell>{fmtQty(measurementQty(m, line.unit))}</TableCell>
             </TableRow>
           ))}
-          <TableRow>
-            <TableCell>Qty ({line.unit})</TableCell>
-            {ms.map((m, i) => (
-              <TableCell key={i}>{fmtQty(measurementQty(m, line.unit))}</TableCell>
-            ))}
-          </TableRow>
-          {dims === 0 && ms.length === 0 && (
+          {ms.length === 0 && (
             <TableRow>
-              <TableCell colSpan={1}>—</TableCell>
+              <TableCell colSpan={rows.length + 2}>—</TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
     </TableContainer>
+    {approved && line.kbItemId && (
+      <LineSpecPicker
+        estimateId={estimateId}
+        lineId={line.id}
+        specificationId={line.specificationId ?? null}
+        qty={lineQuantity(ms, line.unit)}
+        unit={line.unit}
+      />
+    )}
+    </Stack>
   );
 }
 
-function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () => void }) {
+/** Priced BOQ + material abstract for an approved estimate. */
+function CostingPanel({ estimateId }: { estimateId: string }) {
   const utils = trpc.useUtils();
+  const q = trpc.estimates.costing.useQuery(
+    { id: estimateId },
+    {
+      refetchInterval: (query) =>
+        pdfPollInterval(query.state.data?.boqPdfStatus, true) ||
+        pdfPollInterval(query.state.data?.boqClientPdfStatus, true),
+    },
+  );
+  const generatePdf = trpc.estimates.generateBoqPdf.useMutation({
+    onSuccess: () => void utils.estimates.costing.invalidate({ id: estimateId }),
+  });
+  const generateClientPdf = trpc.estimates.generateClientBoqPdf.useMutation({
+    onSuccess: () => void utils.estimates.costing.invalidate({ id: estimateId }),
+  });
+  const data = q.data;
+  if (!data) return null;
+  const inr = (p: number) => formatINR(p, { paise: false });
+  return (
+    <Stack gap={5}>
+      <div className="esti-row-between">
+        <h4>Costing</h4>
+        <div className="esti-row">
+          <span className="esti-label esti-label--secondary">Internal</span>
+          <PdfActionButtons
+            status={data.boqPdfStatus}
+            url={data.boqPdfUrl}
+            generatePending={generatePdf.isPending}
+            onGenerate={() => generatePdf.mutate({ id: estimateId })}
+          />
+          <span className="esti-label esti-label--secondary">Client</span>
+          <PdfActionButtons
+            status={data.boqClientPdfStatus}
+            url={data.boqClientPdfUrl}
+            generatePending={generateClientPdf.isPending}
+            onGenerate={() => generateClientPdf.mutate({ id: estimateId })}
+          />
+        </div>
+      </div>
+      <TableContainer title="Priced BOQ" description={`Total ${inr(data.totalPaise)}`}>
+        <Table size="sm">
+          <TableHead>
+            <TableRow>
+              <TableHeader>Item</TableHeader>
+              <TableHeader>Specification</TableHeader>
+              <TableHeader>Unit</TableHeader>
+              <TableHeader>Qty</TableHeader>
+              <TableHeader>Rate</TableHeader>
+              <TableHeader>Amount</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.boq.map((r) => (
+              <TableRow key={r.lineId}>
+                <TableCell>
+                  {r.description}
+                  {r.derived && (
+                    <Tag type="teal" size="sm">
+                      auto
+                    </Tag>
+                  )}
+                </TableCell>
+                <TableCell>{r.specName ?? "—"}</TableCell>
+                <TableCell>{r.unit}</TableCell>
+                <TableCell>{fmtQty(r.qty)}</TableCell>
+                <TableCell>{r.ratePaise != null ? inr(r.ratePaise) : "—"}</TableCell>
+                <TableCell>{r.amountPaise != null ? inr(r.amountPaise) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {data.materials.length > 0 && (
+        <TableContainer
+          title="Material abstract"
+          description={`Materials ${inr(data.materialTotalPaise)}`}
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Material</TableHeader>
+                <TableHeader>Unit</TableHeader>
+                <TableHeader>Qty</TableHeader>
+                <TableHeader>Rate</TableHeader>
+                <TableHeader>Amount</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.materials.map((m) => (
+                <TableRow key={m.materialId}>
+                  <TableCell>
+                    {m.name}
+                    {m.brand ? ` · ${m.brand}` : ""}
+                  </TableCell>
+                  <TableCell>{m.unit}</TableCell>
+                  <TableCell>{fmtQty(m.qty)}</TableCell>
+                  <TableCell>{inr(m.ratePaise)}</TableCell>
+                  <TableCell>{inr(m.amountPaise)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {data.labor.length > 0 && (
+        <TableContainer
+          title="Labour abstract"
+          description={`Labour ${inr(data.laborTotalPaise)}`}
+        >
+          <Table size="sm">
+            <TableHead>
+              <TableRow>
+                <TableHeader>Labour</TableHeader>
+                <TableHeader>Unit</TableHeader>
+                <TableHeader>Qty</TableHeader>
+                <TableHeader>Rate</TableHeader>
+                <TableHeader>Amount</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.labor.map((l) => (
+                <TableRow key={l.laborId}>
+                  <TableCell>{l.name}</TableCell>
+                  <TableCell>{l.unit}</TableCell>
+                  <TableCell>{fmtQty(l.qty)}</TableCell>
+                  <TableCell>{inr(l.ratePaise)}</TableCell>
+                  <TableCell>{inr(l.amountPaise)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Stack>
+  );
+}
+
+function EstimateSheet({
+  estimateId,
+  projectId,
+  onBack,
+}: {
+  estimateId: string;
+  projectId: string;
+  onBack: () => void;
+}) {
+  const utils = trpc.useUtils();
+  const { user } = useAuth();
+  const canApprove = can(user?.role, "estimate:approve");
   const estimateQ = trpc.estimates.get.useQuery({ id: estimateId });
   const openLine = trpc.estimates.openLine.useMutation();
   const addMeasurement = trpc.estimates.addMeasurement.useMutation();
+  const deriveDependencies = trpc.estimates.deriveDependencies.useMutation();
   const closeLine = trpc.estimates.closeLine.useMutation({
     onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+  });
+  const setStatus = trpc.estimates.setStatus.useMutation({
+    onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+  });
+  const cloneRevision = trpc.estimates.cloneRevision.useMutation({
+    onSuccess: () => {
+      void utils.estimates.list.invalidate({ projectId });
+      onBack();
+    },
   });
 
   const [entry, setEntry] = useState<EntryPhase>({ phase: "slash", text: "", highlight: 0 });
@@ -124,6 +376,9 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
   // Guards against a second armed-Enter (key repeat) creating a duplicate line
   // before the armed→measuring re-render lands.
   const openingRef = useRef(false);
+  // Guards against a held closing-Enter re-firing closeItem (and deriveDependencies)
+  // during the two-round-trip window before entry leaves the measuring phase.
+  const closingRef = useRef(false);
 
   const searchQuery = entry.phase === "slash" && entry.text.startsWith("/")
     ? entry.text.slice(1).trim()
@@ -143,6 +398,12 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
 
   const lines = estimateQ.data?.lines ?? [];
   const mains = lines.filter((l) => !l.parentLineId);
+
+  // Live readout while measuring: the line's running total and the qty of the
+  // column currently being typed (0 flags a still-missing dimension before Enter).
+  const runningTotalQty =
+    entry.phase === "measuring" ? lineQuantity(entry.state.recorded, entry.element.unit) : 0;
+  const currentColumnQty = entry.phase === "measuring" ? previewColumnQty(entry.state) : null;
 
   /** Number a line: main items 1..n, dependencies parent.1, parent.2… */
   const lineNo = (line: (typeof lines)[number]): string => {
@@ -178,33 +439,41 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     }
   }
 
-  /** Single Enter on the last row — persist the recorded column immediately. */
-  async function recordColumn(m: EstimateMeasurement) {
-    if (entry.phase !== "measuring") return;
+  /** Single Enter on the last row — persist the recorded column immediately.
+   *  On failure the column is rolled back out of the live sheet (and its running
+   *  total) so nothing is shown as recorded that the server didn't accept. */
+  async function recordColumn(lineId: string, m: EstimateMeasurement) {
     try {
-      await addMeasurement.mutateAsync({ lineId: entry.lineId, ...m });
+      await addMeasurement.mutateAsync({ lineId, ...m });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save the measurement");
+      setEntry((prev) =>
+        prev.phase === "measuring" ? { ...prev, state: dropRecorded(prev.state, m) } : prev,
+      );
     }
   }
 
   /** Double Enter — close the sheet; empty lines are pruned server-side. */
   async function closeItem() {
-    if (entry.phase !== "measuring") return;
-    const { element, dep, lineId } = entry;
+    if (entry.phase !== "measuring" || closingRef.current) return;
+    closingRef.current = true;
+    const { dep, lineId } = entry;
     setError(null);
     try {
       const { kept } = await closeLine.mutateAsync({ id: lineId });
       if (!dep) {
-        const children = kept
-          ? await utils.estimates.elementChildren.fetch({ kbItemId: element.id })
+        // Auto-derive dependency children from this line's measurements; only the
+        // MANUAL ones come back to be punched by hand.
+        const manual = kept
+          ? (await deriveDependencies.mutateAsync({ parentLineId: lineId })).manual
           : [];
-        if (kept && children.length > 0) {
-          setDepQueue(children.map((c) => ({ kbItemId: c.kbItemId, name: c.name, unit: c.unit })));
+        await utils.estimates.get.invalidate({ id: estimateId });
+        if (manual.length > 0) {
+          setDepQueue(manual.map((c) => ({ kbItemId: c.kbItemId, name: c.name, unit: c.unit })));
           setEntry({
             phase: "armed",
-            element: { id: children[0]!.kbItemId, name: children[0]!.name, category: null, unit: children[0]!.unit },
-            dep: { parentLineId: lineId, index: 0, total: children.length },
+            element: { id: manual[0]!.kbItemId, name: manual[0]!.name, category: null, unit: manual[0]!.unit },
+            dep: { parentLineId: lineId, index: 0, total: manual.length },
           });
           return;
         }
@@ -227,6 +496,8 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not close the item");
+    } finally {
+      closingRef.current = false;
     }
   }
 
@@ -278,51 +549,144 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       const r = pressEnter(entry.state);
       if (r.kind === "closed") {
         void closeItem();
-      } else {
-        if (r.kind === "recorded") {
-          void recordColumn(r.state.recorded[r.state.recorded.length - 1]!);
-        }
-        setEntry({ ...entry, state: r.state });
+        return;
       }
+      if (r.kind === "invalid") {
+        setError(r.reason);
+        return;
+      }
+      setError(null);
+      if (r.kind === "recorded") {
+        void recordColumn(entry.lineId, r.state.recorded[r.state.recorded.length - 1]!);
+      }
+      setEntry({ ...entry, state: r.state });
     }
   }
 
-  /** Leaving mid-measurement: close the open line first (closeLine prunes it
-   *  if nothing was recorded) so an abandoned sheet leaves no empty line. */
-  async function exit() {
-    if (entry.phase === "measuring") {
-      try {
-        await closeLine.mutateAsync({ id: entry.lineId });
-      } catch {
-        /* navigate away regardless */
+  /** Close (and auto-derive) the currently-open line before leaving or
+   *  submitting, so an abandoned sheet leaves no empty stub AND a measured
+   *  item's auto dependencies still get created (they otherwise only run on the
+   *  double-Enter close). Manual dependencies are dropped — the user is leaving. */
+  async function flushOpenLine() {
+    if (entry.phase !== "measuring" || closingRef.current) return;
+    closingRef.current = true;
+    try {
+      const { kept } = await closeLine.mutateAsync({ id: entry.lineId });
+      if (kept && !entry.dep) {
+        await deriveDependencies.mutateAsync({ parentLineId: entry.lineId });
       }
+      await utils.estimates.get.invalidate({ id: estimateId });
+      setDepQueue([]);
+      setEntry({ phase: "slash", text: "", highlight: 0 });
+    } catch {
+      /* best effort — proceed regardless */
+    } finally {
+      closingRef.current = false;
     }
+  }
+
+  /** Leaving the sheet: flush any open line first. */
+  async function exit() {
+    await flushOpenLine();
     onBack();
+  }
+
+  /** Submit for review: flush the open line (close + derive) before the status
+   *  flips, so nothing goes to review half-entered. */
+  async function submitForReview() {
+    await flushOpenLine();
+    setStatus.mutate({ id: estimateId, status: "FOR_REVIEW" });
   }
 
   const est = estimateQ.data;
   if (!est) return null;
+  const status: EstimateStatus = EstimateStatus.options.includes(est.status as EstimateStatus)
+    ? (est.status as EstimateStatus)
+    : "IN_PROGRESS";
+  const locked = status !== "IN_PROGRESS";
 
   return (
     <Stack gap={5}>
       <div className="esti-row-between">
-        <h4>{est.title}</h4>
+        <span className="esti-row">
+          <h4>{est.title}</h4>
+          <Tag type={ESTIMATE_STATUS_TAG[status]} size="sm">{ESTIMATE_STATUS_LABEL[status]}</Tag>
+          {est.revisionNo > 0 && <Tag type="purple" size="sm">Rev {est.revisionNo}</Tag>}
+        </span>
         <div className="esti-row">
           <Tag type="gray" size="sm">{mains.length} item{mains.length === 1 ? "" : "s"}</Tag>
+          {status === "IN_PROGRESS" && (
+            <Button
+              size="sm"
+              kind="tertiary"
+              disabled={setStatus.isPending || mains.length === 0}
+              onClick={() => void submitForReview()}
+            >
+              Submit for review
+            </Button>
+          )}
+          {status === "FOR_REVIEW" && (
+            <>
+              <Button
+                size="sm"
+                kind="tertiary"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ id: estimateId, status: "IN_PROGRESS" })}
+              >
+                Send back
+              </Button>
+              {canApprove && (
+                <Button
+                  size="sm"
+                  disabled={setStatus.isPending}
+                  onClick={() => setStatus.mutate({ id: estimateId, status: "APPROVED" })}
+                >
+                  Approve
+                </Button>
+              )}
+            </>
+          )}
+          {status === "APPROVED" && canApprove && (
+            <Button
+              size="sm"
+              disabled={cloneRevision.isPending}
+              onClick={() => cloneRevision.mutate({ id: estimateId })}
+            >
+              Clone to revision
+            </Button>
+          )}
           <Button size="sm" kind="ghost" onClick={() => void exit()}>All estimates</Button>
         </div>
       </div>
-      <p className="esti-label esti-label--helper">
-        Type “/” then the element name · ↑↓ to choose · Space to select · Enter opens the
-        block, walks the column and records it · Enter on an empty column closes the item —
-        mapped dependencies follow automatically.
-      </p>
+      {locked ? (
+        <p className="esti-label esti-label--helper">
+          This estimate is {ESTIMATE_STATUS_LABEL[status].toLowerCase()} and read-only.
+          {status === "APPROVED"
+            ? " Clone it to a revision to make changes."
+            : " Send it back to editing to make changes."}
+        </p>
+      ) : (
+        <p className="esti-label esti-label--helper">
+          Type “/” then the element name · ↑↓ to choose · Space to select · Enter opens the
+          block, walks the Nos/dimension fields and records the measurement · Enter on an empty
+          measurement closes the item — mapped dependencies follow automatically.
+        </p>
+      )}
 
       {lines.map((line) => (
-        <SavedLine key={line.id} no={lineNo(line)} line={line} />
+        <SavedLine
+          key={line.id}
+          no={lineNo(line)}
+          line={line}
+          approved={status === "APPROVED"}
+          estimateId={estimateId}
+        />
       ))}
 
-      {/* ── Active entry ── */}
+      {status === "APPROVED" && <CostingPanel estimateId={estimateId} />}
+
+      {/* ── Active entry (only while editable) ── */}
+      {!locked && (
       <Tile className="esti-fill">
         {entry.phase === "slash" && (
           <Stack gap={3}>
@@ -366,7 +730,14 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
                 )}{" "}
                 <strong>{entry.element.name}</strong>
               </span>
-              <Tag type="gray" size="sm">{entry.element.unit}</Tag>
+              <span className="esti-row">
+                {entry.phase === "measuring" && (
+                  <Tag type="blue" size="sm">
+                    Σ {fmtQty(runningTotalQty)} {entry.element.unit}
+                  </Tag>
+                )}
+                <Tag type="gray" size="sm">{entry.element.unit}</Tag>
+              </span>
             </div>
 
             {entry.phase === "armed" && (
@@ -381,55 +752,51 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
               <Table size="sm">
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Parameter</TableHeader>
-                    {entry.state.recorded.map((_, i) => (
-                      <TableHeader key={i}>M{i + 1}</TableHeader>
+                    <TableHeader>#</TableHeader>
+                    {entry.state.rows.map((label, r) => (
+                      <TableHeader key={label + r}>{label}</TableHeader>
                     ))}
-                    <TableHeader>New</TableHeader>
+                    <TableHeader>Qty ({entry.element.unit})</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {entry.state.rows.map((label, r) => {
+                  {entry.state.recorded.map((m, i) => {
                     const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
                     return (
-                      <TableRow key={label + r}>
-                        <TableCell>{label}</TableCell>
-                        {entry.state.recorded.map((m, i) => (
-                          <TableCell key={i}>{m[keys[r]!] ?? "—"}</TableCell>
+                      <TableRow key={i}>
+                        <TableCell>M{i + 1}</TableCell>
+                        {entry.state.rows.map((_, r) => (
+                          <TableCell key={r}>{m[keys[r]!] ?? "—"}</TableCell>
                         ))}
-                        <TableCell>
-                          <TextInput
-                            id={`m-${r}`}
-                            ref={r === entry.state.rowIdx ? activeCellRef : undefined}
-                            labelText=""
-                            hideLabel
-                            size="sm"
-                            className="esti-input-sm"
-                            autoComplete="off"
-                            value={entry.state.column[r] ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value === "" ? null : Number(e.target.value);
-                              if (v !== null && !Number.isFinite(v)) return;
-                              setEntry({
-                                ...entry,
-                                state: setValue({ ...entry.state, rowIdx: r }, v),
-                              });
-                            }}
-                            onFocus={() => setEntry({ ...entry, state: { ...entry.state, rowIdx: r } })}
-                            onKeyDown={onMeasureKey}
-                          />
-                        </TableCell>
+                        <TableCell>{fmtQty(measurementQty(m, entry.element.unit))}</TableCell>
                       </TableRow>
                     );
                   })}
                   <TableRow>
-                    <TableCell>Qty ({entry.element.unit})</TableCell>
-                    {entry.state.recorded.map((m, i) => (
-                      <TableCell key={i}>{fmtQty(measurementQty(m, entry.element.unit))}</TableCell>
+                    <TableCell>New</TableCell>
+                    {entry.state.rows.map((label, r) => (
+                      <TableCell key={label + r}>
+                        <TextInput
+                          id={`m-${r}`}
+                          ref={r === entry.state.rowIdx ? activeCellRef : undefined}
+                          labelText=""
+                          hideLabel
+                          size="sm"
+                          className="esti-input-sm"
+                          autoComplete="off"
+                          value={entry.state.column[r] ?? ""}
+                          onChange={(e) =>
+                            setEntry({
+                              ...entry,
+                              state: setValue({ ...entry.state, rowIdx: r }, e.target.value),
+                            })
+                          }
+                          onFocus={() => setEntry({ ...entry, state: { ...entry.state, rowIdx: r } })}
+                          onKeyDown={onMeasureKey}
+                        />
+                      </TableCell>
                     ))}
-                    <TableCell>
-                      Σ {fmtQty(lineQuantity(entry.state.recorded, entry.element.unit))}
-                    </TableCell>
+                    <TableCell>{currentColumnQty == null ? "—" : fmtQty(currentColumnQty)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -440,6 +807,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
           <InlineNotification kind="error" lowContrast hideCloseButton title="Could not save" subtitle={error} />
         )}
       </Tile>
+      )}
     </Stack>
   );
 }
@@ -458,7 +826,10 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
 
   const estimatesList = useMemo(() => listQ.data ?? [], [listQ.data]);
 
-  if (openId) return <EstimateSheet estimateId={openId} onBack={() => setOpenId(null)} />;
+  if (openId)
+    return (
+      <EstimateSheet estimateId={openId} projectId={projectId} onBack={() => setOpenId(null)} />
+    );
 
   return (
     <Stack gap={5}>
@@ -508,7 +879,20 @@ export function ProjectEstimates({ projectId }: { projectId: string }) {
           <div className="esti-row-between">
             <span>
               <strong>{e.title}</strong>{" "}
-              <Tag type={e.status === "DRAFT" ? "gray" : "green"} size="sm">{e.status}</Tag>
+              <Tag type={ESTIMATE_STATUS_TAG[e.status as EstimateStatus] ?? "gray"} size="sm">
+                {ESTIMATE_STATUS_LABEL[e.status as EstimateStatus] ?? e.status}
+              </Tag>{" "}
+              {e.revisionNo > 0 && (
+                <Tag type="purple" size="sm">
+                  Rev {e.revisionNo}
+                </Tag>
+              )}
+              {e.boqTotalPaise != null && (
+                <span className="esti-label esti-label--secondary">
+                  {" "}
+                  · {formatINR(e.boqTotalPaise, { paise: false })}
+                </span>
+              )}
             </span>
             <Button size="sm" kind="tertiary" onClick={() => setOpenId(e.id)}>
               Open sheet

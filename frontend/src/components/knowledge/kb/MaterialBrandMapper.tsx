@@ -17,6 +17,7 @@ import {
   TextInput,
 } from "@carbon/react";
 import { Add, TrashCan } from "@carbon/icons-react";
+import { formatINR } from "@esti/contracts";
 import { trpc } from "../../../lib/trpc.js";
 import { DataState } from "../../DataState.js";
 
@@ -45,6 +46,7 @@ export function MaterialBrandMapper() {
   const [brandId, setBrandId] = useState("");
   const [grade, setGrade] = useState("");
   const [quality, setQuality] = useState("");
+  const [rate, setRate] = useState("");
   const [preferred, setPreferred] = useState(false);
 
   const materials = materialsQ.data ?? [];
@@ -57,11 +59,13 @@ export function MaterialBrandMapper() {
       brandId,
       gradeOrVariant: grade || undefined,
       qualityLevel: quality || undefined,
+      ratePaise: rate ? Math.round(Number(rate) * 100) : undefined,
       preferred,
     });
     setBrandId("");
     setGrade("");
     setQuality("");
+    setRate("");
     setPreferred(false);
   }
 
@@ -125,6 +129,14 @@ export function MaterialBrandMapper() {
           value={quality}
           onChange={(e) => setQuality(e.target.value)}
         />
+        <TextInput
+          id="mb-rate"
+          labelText="Brand rate (₹)"
+          type="number"
+          placeholder="optional"
+          value={rate}
+          onChange={(e) => setRate(e.target.value)}
+        />
         <Checkbox
           id="mb-preferred"
           labelText="Preferred"
@@ -139,7 +151,7 @@ export function MaterialBrandMapper() {
       <DataState
         loading={!!materialId && mapQ.isLoading}
         isEmpty={(mapQ.data ?? []).length === 0}
-        columnCount={5}
+        columnCount={6}
         empty={{
           title: "No brands mapped",
           description: "Pick a brand above and add it.",
@@ -152,6 +164,7 @@ export function MaterialBrandMapper() {
                 <TableHeader>Brand</TableHeader>
                 <TableHeader>Grade / variant</TableHeader>
                 <TableHeader>Quality</TableHeader>
+                <TableHeader>Rate</TableHeader>
                 <TableHeader>Preferred</TableHeader>
                 <TableHeader></TableHeader>
               </TableRow>
@@ -162,6 +175,7 @@ export function MaterialBrandMapper() {
                   <TableCell>{r.brandName}</TableCell>
                   <TableCell>{r.gradeOrVariant ?? "—"}</TableCell>
                   <TableCell>{r.qualityLevel ?? "—"}</TableCell>
+                  <TableCell>{r.ratePaise != null ? formatINR(r.ratePaise, { paise: false }) : "—"}</TableCell>
                   <TableCell>
                     {r.preferred ? (
                       <Tag type="green" size="sm">Preferred</Tag>
