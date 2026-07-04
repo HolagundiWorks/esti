@@ -43,6 +43,11 @@ export const LANDING_SLUGS = [
   "esti-ai-assistant-for-architects",
   // Phase 14 — estimation / BOQ / costing intent.
   "architecture-estimation-software",
+  // Phase 15 — site delivery, coordination, time & meetings (SEO wave 1).
+  "architecture-site-visit-software",
+  "rfi-management-software-for-architects",
+  "architecture-timesheet-software",
+  "minutes-of-meeting-software-for-architects",
 ] as const;
 
 const SET: ReadonlySet<string> = new Set(LANDING_SLUGS);
@@ -75,12 +80,16 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "architecture-erp-india", label: "Architecture ERP India" },
       { slug: "architect-fee-proposal-software", label: "Fee proposal software" },
       { slug: "architecture-estimation-software", label: "Estimation & BOQ software" },
+      { slug: "architecture-timesheet-software", label: "Timesheet & time tracking" },
+      { slug: "rfi-management-software-for-architects", label: "RFI management" },
     ],
   },
   {
     heading: "Decision records",
     links: [
       { slug: "architecture-revision-tracking", label: "Revision tracking" },
+      { slug: "architecture-site-visit-software", label: "Site visit management" },
+      { slug: "minutes-of-meeting-software-for-architects", label: "Minutes of meeting" },
       { slug: "drawing-revision-tracking-software", label: "Drawing revision control" },
       { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
       { slug: "architect-document-approval-system", label: "Document approval system" },

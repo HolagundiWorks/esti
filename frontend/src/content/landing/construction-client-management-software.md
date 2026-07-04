@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: The client relationship does not end at GFC — it gets harder during construction. AORMS keeps the client informed, the approvals on record, and the site coordination connected through the entire build.
 ---
 
-# Construction Client Management Software
+## Construction Client Management Software
 
 Most software for architects manages the design phase and then goes quiet. But the relationship that strains a practice is the one during **construction** — when the client wants to know why a drawing changed, the contractor raises an RFI that needs a client decision, a running bill needs sign-off, and a site instruction has fee implications. **Construction client management** is about keeping the client informed and accountable through the build, with a record behind every decision.
 

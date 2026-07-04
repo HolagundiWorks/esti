@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: Get the place-of-supply split, SAC code, TDS and invoice numbering right the first time — and walk into filing season with reconciled abstracts already done.
 ---
 
-# GST Billing for Architecture Firms
+## GST Billing for Architecture Firms
 
 A wrong GST invoice is not a small problem for an architecture practice. Charge CGST/SGST when you should have charged IGST, miss the SAC code, forget the client's TDS deduction, or break the invoice number sequence, and the error surfaces months later — at GSTR-1 filing, or worse, in a notice. Most architects are not tax accountants, and generic billing tools do not know that professional design services in India carry their own SAC code and a 194J deduction. **GST billing software for architects India** has to get all of that right by default.
 

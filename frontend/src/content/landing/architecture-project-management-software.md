@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: From the project brief through phases, drawings and delivery to the site, AORMS keeps a single project lifecycle on one auditable record instead of scattered folders.
 ---
 
-# Run Every Project On One Record
+## Run Every Project On One Record
 
 A building project does not live in one place. The brief sits in an email, the drawing set lives in a shared folder, the programme is a spreadsheet someone forgot to update, and the site instructions are in a WhatsApp group. By the time a project reaches construction, nobody can answer the simple question: where are we, and what changed since last week?
 

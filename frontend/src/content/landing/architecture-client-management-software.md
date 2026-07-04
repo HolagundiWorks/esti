@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: From first enquiry to signed decisions, AORMS keeps the client relationship — log, proposals, fees and portal approvals — on one record so nothing important is lost in email.
 ---
 
-# Keep Every Client On The Record
+## Keep Every Client On The Record
 
 The hardest part of running an architecture practice is rarely the design. It is the client relationship: the conversation that never made it into writing, the approval given on a call and forgotten, the fee that was agreed verbally and then disputed at invoicing. Most studios manage all of this in inboxes and memory, and that is exactly where it leaks.
 

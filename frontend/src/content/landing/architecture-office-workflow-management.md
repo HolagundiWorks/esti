@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: Approvals, transmittals, tasks, letters and contracts — AORMS defines how work moves through an architecture office and records every step on an immutable trail.
 ---
 
-# Move Work Through The Office
+## Move Work Through The Office
 
 Every architecture practice has workflows, whether or not anyone has written them down. A drawing gets checked before it goes out. A fee proposal needs a principal's nod. A letter is drafted, reviewed, signed. The problem is that these workflows usually live in habit and goodwill — and when the office is busy, steps get skipped, approvals get assumed, and nobody can say afterwards who signed off on what.
 

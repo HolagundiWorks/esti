@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: Fees structured by COA service stages, then billed only as each phase is delivered — so what you propose and what you invoice never drift apart.
 ---
 
-# COA-Compliant Billing for Architects
+## COA-Compliant Billing for Architects
 
 Fees in an Indian practice are won at the proposal stage and lost in the billing. The proposal is written against the Council of Architecture Scale of Charges, broken into the familiar service stages, with a percentage of the total fee allotted to each. Then the project runs for two years, the proposal lives in a Word file nobody opens, and invoices get raised on gut feel. By the end, nobody can say cleanly how much of stage three has been billed. A **COA compliant architecture billing system** closes that gap by making the proposal the source of truth and tying every invoice back to the stage it belongs to.
 

@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: An architecture consultancy lives or dies on coordination — clients, in-house teams, external consultants and deliverables all moving at once. AORMS keeps the whole engagement in one traceable record.
 ---
 
-# Architecture Consultancy Management Software
+## Architecture Consultancy Management Software
 
 An architecture consultancy is a coordination business. On any given project you are managing the client relationship, your in-house team, a structural and an MEP consultant, a contractor's queries, a stack of drawings under revision, the fee that all of it is billed against, and the GST and TDS on every invoice. **Architecture consultancy management** software has to hold that whole engagement as one connected record — not as a folder of spreadsheets, a billing app and a WhatsApp thread that no one can audit later.
 

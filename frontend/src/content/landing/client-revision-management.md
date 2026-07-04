@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: Endless client changes are the quiet profit-killer in an architecture practice. AORMS records every revision with its source and category, keeps the approval trail, and makes scope creep visible — and billable.
 ---
 
-# Client Revision Management for Architects
+## Client Revision Management for Architects
 
 Ask any architect where the **revision frustration** comes from and the answer is the same: the client who keeps changing their mind, the "small tweak" that is the fourth small tweak this week, and the moment months later when they insist they never asked for any of it. Unmanaged client revisions do not just waste design hours — they erode the fee, the timeline and the relationship, and there is rarely a record to point to. **Client revision management** is about turning that mess into a record you can stand behind.
 

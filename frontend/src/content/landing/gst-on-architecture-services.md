@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: A plain-language guide to how GST applies to architecture work in India — the rate, the SAC code, registration, and getting each invoice right — and how AORMS handles it by default.
 ---
 
-# GST on Architecture Work in India
+## GST on Architecture Work in India
 
 Architecture is a professional service, so **GST on architecture work** follows the rules for services, not goods. That single fact decides the rate you charge, the code that goes on the invoice, and how clients deduct tax on your fees. Get it wrong and the mistake surfaces months later at GSTR filing — or in a notice. This page explains how GST applies to architectural services in India, then how AORMS applies it for you automatically.
 

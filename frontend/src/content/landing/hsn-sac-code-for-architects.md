@@ -8,7 +8,7 @@ updated: 2026-06-24
 intro: "HSN for architecture" is a common search with a short answer: architects bill services under a SAC code, not an HSN. Here is what to use, where it goes, and how AORMS handles it.
 ---
 
-# HSN / SAC Code for Architecture Services
+## HSN / SAC Code for Architecture Services
 
 If you have searched for an **HSN code for architecture**, the short answer is that you probably need a **SAC code** instead. HSN (Harmonised System of Nomenclature) codes classify *goods*; SAC (Services Accounting Code) codes classify *services*. Architectural and design work is a service, so a GST invoice for architecture carries a SAC, not an HSN.
 

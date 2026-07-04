@@ -6,11 +6,16 @@ import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { formatPostDate, getAdjacentPosts, getPost } from "../lib/blog.js";
 import { applyBlogPostSeo } from "../lib/blog-seo.js";
+import { relatedLandingForTags } from "../lib/blog-related.js";
 
 export function BlogPost() {
   const { slug = "" } = useParams();
   const post = getPost(slug);
   const { newer, older } = getAdjacentPosts(slug);
+  const relatedSolutions = useMemo(
+    () => (post ? relatedLandingForTags(post.tags) : []),
+    [post],
+  );
 
   const html = useMemo(
     () => (post ? (marked.parse(post.markdown, { async: false }) as string) : ""),
@@ -52,6 +57,21 @@ export function BlogPost() {
             )}
             {/* Content is authored by the team in-repo (trusted), not user input. */}
             <div className="esti-blog-article__body" dangerouslySetInnerHTML={{ __html: html }} />
+
+            {relatedSolutions.length > 0 && (
+              <nav className="esti-blog-roadmap" aria-label="Related solutions">
+                <h2>Related solutions</h2>
+                <ul>
+                  {relatedSolutions.map((s) => (
+                    <li key={s.slug}>
+                      <Link to={`/${s.slug}`}>
+                        <span aria-hidden>→</span> {s.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
 
             {(older || newer) && (
               <nav className="esti-blog-pager" aria-label="More posts">

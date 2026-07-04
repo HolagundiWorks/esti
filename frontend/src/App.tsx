@@ -111,6 +111,7 @@ const SeoLanding = lazy(() =>
 );
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
+const About = lazyRoute(() => import("./routes/About.js"), "About");
 const Download = lazyRoute(() => import("./routes/Download.js"), "Download");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
@@ -276,6 +277,10 @@ function AppShell() {
   // Legal — terms, privacy, acceptable use, licensing.
   if (PUBLIC_SITE && pathname === "/legal")
     return <Legal />;
+
+  // About / E-E-A-T — who builds AORMS and the expertise behind it.
+  if (PUBLIC_SITE && pathname === "/about")
+    return <About />;
 
   // Download portal — Lite / Pro desktop installers.
   if (PUBLIC_SITE && pathname === "/download")

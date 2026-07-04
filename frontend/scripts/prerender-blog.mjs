@@ -254,58 +254,12 @@ writeFileSync(
     canonical: HOME_SEO.canonical,
     exactTitle: true,
     bodyHtml: homeBody,
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": `${SITE}/#website`,
-          url: SITE,
-          name: "AORMS",
-          description: HOME_SEO.description,
-          inLanguage: "en-IN",
-          publisher: { "@id": `${SITE}/#organization` },
-        },
-        {
-          "@type": "Organization",
-          "@id": `${SITE}/#organization`,
-          name: "Holagundi Consulting Works",
-          url: SITE,
-          email: "hi@aorms.in",
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: "Hospet",
-            addressRegion: "Karnataka",
-            addressCountry: "IN",
-          },
-        },
-        {
-          "@type": "SoftwareApplication",
-          "@id": `${SITE}/#software`,
-          name: "AORMS",
-          alternateName: "Architecture Office Resource Management System",
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          url: SITE,
-          description: "AORMS is architecture office management software for Indian architects, solo practices and small to mid-sized architecture firms.",
-          audience: {
-            "@type": "Audience",
-            audienceType: "Architects, architecture firms, Indian design practices",
-          },
-          featureList: [
-            "client revision tracking",
-            "project management",
-            "billing",
-            "document approvals",
-            "contractor workflows",
-            "AI assistant",
-            "fee proposals",
-            "cognitive dashboard",
-          ],
-          publisher: { "@id": `${SITE}/#organization` },
-        },
-      ],
-    },
+    // The homepage template (frontend/index.html) already ships the canonical
+    // WebSite + Organization + SoftwareApplication (with Offers) + FAQPage graph.
+    // Emitting a second, leaner graph here produced competing #website/#organization/
+    // #software nodes on the served page — so the home render adds no JSON-LD and
+    // the rich template block stands as the single source of truth.
+    jsonLd: null,
   }),
   "utf8",
 );
@@ -418,6 +372,7 @@ const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
   ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
+  { loc: `${SITE}/about`, lastmod: today, changefreq: "monthly", priority: "0.6" },
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
   ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}`, lastmod: p.date || today, changefreq: "monthly", priority: "0.7" })),
 ];

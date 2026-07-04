@@ -1,6 +1,7 @@
 import { ArrowRight } from "@carbon/icons-react";
 import { Button, Link, Stack } from "@carbon/react";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
+import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
@@ -8,6 +9,7 @@ const PRODUCT_LINKS = [
   { href: "/#platform", label: "Platform" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
+  { href: "/about", label: "About" },
   { href: "/#trial", label: "Request access" },
 ] as const;
 
@@ -31,6 +33,23 @@ export function MarketingFooter({
   return (
     <LandingBand className="esti-landing-footer">
       <LandingEditorial>
+        {/* Sitewide solutions mesh — links every keyword landing page from every
+            marketing/blog page so authority is distributed and no page is orphaned. */}
+        <nav className="esti-landing-footer__solutions" aria-label="Solutions">
+          {LANDING_NAV.map((group) => (
+            <div key={group.heading} className="esti-landing-footer__solcol">
+              <h2>{group.heading}</h2>
+              <ul>
+                {group.links.map((l) => (
+                  <li key={l.slug}>
+                    <a href={`/${l.slug}`}>{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
         <footer className="esti-landing-footer__grid" aria-label="AORMS footer">
             <div className="esti-landing-footer__brand">
               <img

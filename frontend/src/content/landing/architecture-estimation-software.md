@@ -8,7 +8,7 @@ updated: 2026-06-27
 intro: AORMS's estimation workspace works the way an estimator thinks — pick a rate-book item, build the quantity element by element in a measurement book, and the line and project totals compute as you type. No modals, no forms, no leaving the keyboard.
 ---
 
-# Estimate Like a Measurement Book, Not a Form
+## Estimate Like a Measurement Book, Not a Form
 
 Most estimating tools make you stop and fill in a form for every line. Open a dialog, type a description, pick a unit, enter a quantity, save, repeat. An estimator who has spent twenty years with an Excel sheet and a measurement book finds that slower, not faster.
 
