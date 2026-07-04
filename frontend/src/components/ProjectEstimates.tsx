@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import {
   type MeasureState,
+  dropRecorded,
   moveRow,
   pressEnter,
   setValue,
@@ -178,13 +179,17 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
     }
   }
 
-  /** Single Enter on the last row — persist the recorded column immediately. */
-  async function recordColumn(m: EstimateMeasurement) {
-    if (entry.phase !== "measuring") return;
+  /** Single Enter on the last row — persist the recorded column immediately.
+   *  On failure the column is rolled back out of the live sheet (and its running
+   *  total) so nothing is shown as recorded that the server didn't accept. */
+  async function recordColumn(lineId: string, m: EstimateMeasurement) {
     try {
-      await addMeasurement.mutateAsync({ lineId: entry.lineId, ...m });
+      await addMeasurement.mutateAsync({ lineId, ...m });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save the measurement");
+      setEntry((prev) =>
+        prev.phase === "measuring" ? { ...prev, state: dropRecorded(prev.state, m) } : prev,
+      );
     }
   }
 
@@ -286,7 +291,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
       }
       setError(null);
       if (r.kind === "recorded") {
-        void recordColumn(r.state.recorded[r.state.recorded.length - 1]!);
+        void recordColumn(entry.lineId, r.state.recorded[r.state.recorded.length - 1]!);
       }
       setEntry({ ...entry, state: r.state });
     }

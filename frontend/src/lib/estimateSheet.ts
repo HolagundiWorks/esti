@@ -114,3 +114,12 @@ export function moveRow(s: MeasureState, delta: -1 | 1): MeasureState {
   const rowIdx = Math.min(s.rows.length - 1, Math.max(0, s.rowIdx + delta));
   return { ...s, rowIdx };
 }
+
+/**
+ * Remove a previously-recorded column by identity. Used to roll a column back
+ * out of the live sheet (and its running total) when its optimistic save to the
+ * server fails, so nothing is ever shown as recorded that the backend rejected.
+ */
+export function dropRecorded(s: MeasureState, m: EstimateMeasurement): MeasureState {
+  return { ...s, recorded: s.recorded.filter((x) => x !== m) };
+}

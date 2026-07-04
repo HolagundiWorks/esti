@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { moveRow, pressEnter, setValue, startMeasuring, type MeasureState } from "./estimateSheet.js";
+import {
+  dropRecorded,
+  moveRow,
+  pressEnter,
+  setValue,
+  startMeasuring,
+  type MeasureState,
+} from "./estimateSheet.js";
 
 function fill(s: MeasureState, values: (number | string | null)[]): MeasureState {
   let cur = s;
@@ -144,5 +151,23 @@ describe("raw-text cells (decimals survive; server-invalid values are blocked)",
     s = setValue(r.state, "abc");
     r = pressEnter(s);
     expect(r.kind).toBe("invalid");
+  });
+});
+
+describe("dropRecorded (roll back a failed optimistic save)", () => {
+  it("removes exactly the failed column by identity, keeping the rest", () => {
+    let s = startMeasuring("rm");
+    s = fill(s, ["3", "12"]); // M1 = {nos:3, l:12}
+    s = fill(s, ["1", "5"]); // M2 = {nos:1, l:5}
+    expect(s.recorded).toHaveLength(2);
+    const m1 = s.recorded[0]!;
+    const rolledBack = dropRecorded(s, m1);
+    expect(rolledBack.recorded).toEqual([{ nos: 1, l: 5 }]);
+  });
+
+  it("is a no-op for a column that isn't in the sheet", () => {
+    let s = startMeasuring("rm");
+    s = fill(s, ["3", "12"]);
+    expect(dropRecorded(s, { nos: 9 }).recorded).toHaveLength(1);
   });
 });
