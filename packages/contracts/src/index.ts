@@ -76,3 +76,4 @@ export * from "./licensing-platform.js";
 export * from "./pulse.js";
 export * from "./usage.js";
 export * from "./cpi.js";
+export * from "./estimate.js";

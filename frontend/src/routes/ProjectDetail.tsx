@@ -29,6 +29,7 @@ import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectCpi } from "../components/ProjectCpi.js";
+import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectMinutes } from "../components/ProjectMinutes.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
@@ -88,6 +89,7 @@ export function ProjectDetail() {
 
     // ── Consultancy — design delivery.
     const consultancyTabs: ProjectTab[] = [
+      { slug: "estimates", label: "Estimates", panel: <ProjectEstimates projectId={id} /> },
       {
         slug: "drawings",
         label: "Drawings & approvals",
