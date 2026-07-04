@@ -56,7 +56,6 @@ export function Projects() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [projectType, setProjectType] = useState<string>("RESIDENTIAL");
-  const [valueRupees, setValueRupees] = useState("");
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
 
@@ -68,7 +67,6 @@ export function Projects() {
       utils.projectOffice.list.invalidate();
       setOpen(false);
       setTitle("");
-      setValueRupees("");
     },
   });
 
@@ -223,7 +221,6 @@ export function Projects() {
           create.mutate({
             title,
             projectType: projectType as (typeof ProjectType.options)[number],
-            contractValuePaise: Math.round(Number(valueRupees || "0") * 100),
             clientId: clientId || undefined,
           })
         }
@@ -256,13 +253,6 @@ export function Projects() {
               <SelectItem key={c.id} value={c.id} text={c.name} />
             ))}
           </Select>
-          <TextInput
-            id="value"
-            labelText="Contract value (₹)"
-            type="number"
-            value={valueRupees}
-            onChange={(e) => setValueRupees(e.target.value)}
-          />
           {create.error && (
             <InlineNotification
               kind="error"
