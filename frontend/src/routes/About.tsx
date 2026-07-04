@@ -128,10 +128,11 @@ export function About() {
                   financial year, and 26AS / AIS / GSTR reconciliation are native — not bolted on.
                 </li>
                 <li>
-                  <strong>Deterministic systems, explained by AI.</strong> The numbers — office
+                  <strong>Deterministic systems you can audit.</strong> The numbers — office
                   health, revision intelligence, performance scores — are computed from your live
-                  record. ESTI, the embedded intelligence layer, explains them and drafts on your
-                  behalf, but never acts on its own.
+                  record by transparent rules you can trace, not a black-box model. ESTI, the
+                  embedded intelligence layer, drafts documents and suggestions on your behalf, but
+                  never decides or acts on its own.
                 </li>
                 <li>
                   <strong>Your data is yours.</strong> Projects, drawings, invoices and client data
