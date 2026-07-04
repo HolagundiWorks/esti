@@ -1,5 +1,7 @@
+import { Share } from "@carbon/icons-react";
 import { Button } from "@carbon/react";
 import { pdfUiState } from "../lib/pdfUi.js";
+import { shareViaWhatsApp } from "../lib/whatsapp.js";
 
 type PdfActionButtonsProps = {
   status: string;
@@ -8,6 +10,8 @@ type PdfActionButtonsProps = {
   showRegenerateWhenReady?: boolean;
   generatePending?: boolean;
   onGenerate: () => void;
+  /** When set, shows a "WhatsApp" action once the PDF is ready. */
+  share?: { text?: string; phone?: string; fileName?: string };
   labels?: {
     open?: string;
     generate?: string;
@@ -24,6 +28,7 @@ export function PdfActionButtons({
   showRegenerateWhenReady = false,
   generatePending = false,
   onGenerate,
+  share,
   labels = {},
 }: PdfActionButtonsProps) {
   const ui = pdfUiState(status, url);
@@ -38,6 +43,23 @@ export function PdfActionButtons({
         <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
           {openLabel}
         </Button>
+        {share && (
+          <Button
+            kind="ghost"
+            size="sm"
+            renderIcon={Share}
+            onClick={() =>
+              void shareViaWhatsApp({
+                fileUrl: url,
+                fileName: share.fileName,
+                text: share.text ?? "Please find the attached document.",
+                phone: share.phone,
+              })
+            }
+          >
+            WhatsApp
+          </Button>
+        )}
         {showRegenerateWhenReady && canManage && (
           <Button kind="ghost" size="sm" disabled={generatePending} onClick={onGenerate}>
             Regenerate
