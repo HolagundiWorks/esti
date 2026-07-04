@@ -30,9 +30,10 @@ import {
   derivationChildDims,
   dimensionCount,
   lineQuantity,
+  specRatePaise,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import {
@@ -41,6 +42,11 @@ import {
   estimates,
   kbItemDependencies,
   kbItems,
+  kbLabor,
+  kbMaterials,
+  kbSpecLabor,
+  kbSpecMaterials,
+  kbSpecifications,
 } from "../../db/schema.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 import { getProjectById } from "../projectoffice/queries.js";
@@ -438,6 +444,73 @@ export const estimatesRouter = router({
       await ctx.db.delete(estimateLines).where(eq(estimateLines.id, input.id));
       await touch(ctx.db, line.estimateId);
       return { ok: true };
+    }),
+
+  /** Candidate specifications for a line's KB item, each with its analysed rate
+   *  (approach B). Drives the post-approval spec picker. */
+  specsForLine: protectedProcedure
+    .input(z.object({ lineId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const line = await requireLine(ctx.db, input.lineId);
+      if (!line.kbItemId) return [];
+      const specs = await ctx.db
+        .select()
+        .from(kbSpecifications)
+        .where(eq(kbSpecifications.itemId, line.kbItemId))
+        .orderBy(desc(kbSpecifications.isDefault), asc(kbSpecifications.name));
+      const out: { id: string; name: string; ratePaise: number }[] = [];
+      for (const s of specs) {
+        const mats = await ctx.db
+          .select({
+            quantityPerUnit: kbSpecMaterials.quantityPerUnit,
+            wastageFactor: kbSpecMaterials.wastageFactor,
+            ratePaise: kbMaterials.defaultRatePaise,
+          })
+          .from(kbSpecMaterials)
+          .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
+          .where(eq(kbSpecMaterials.specificationId, s.id));
+        const labs = await ctx.db
+          .select({
+            quantityPerUnit: kbSpecLabor.quantityPerUnit,
+            ratePaise: kbLabor.defaultRatePaise,
+          })
+          .from(kbSpecLabor)
+          .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
+          .where(eq(kbSpecLabor.specificationId, s.id));
+        out.push({ id: s.id, name: s.name, ratePaise: specRatePaise(mats, labs) });
+      }
+      return out;
+    }),
+
+  /** Map a specification onto a line (post-approval costing step). */
+  setLineSpecification: protectedProcedure
+    .input(z.object({ lineId: z.string().uuid(), specificationId: z.string().uuid().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const line = await requireLine(ctx.db, input.lineId);
+      const est = await requireEstimate(ctx.db, line.estimateId);
+      if (est.status !== "APPROVED") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Specifications are mapped after the estimate is approved.",
+        });
+      }
+      if (input.specificationId) {
+        const [spec] = await ctx.db
+          .select()
+          .from(kbSpecifications)
+          .where(eq(kbSpecifications.id, input.specificationId));
+        if (!spec) throw new TRPCError({ code: "NOT_FOUND", message: "Specification not found" });
+        if (line.kbItemId && spec.itemId !== line.kbItemId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "That specification is for a different item." });
+        }
+      }
+      const [row] = await ctx.db
+        .update(estimateLines)
+        .set({ specificationId: input.specificationId })
+        .where(eq(estimateLines.id, input.lineId))
+        .returning();
+      await touch(ctx.db, line.estimateId);
+      return row!;
     }),
 
   /**

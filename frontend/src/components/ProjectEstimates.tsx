@@ -1,6 +1,8 @@
 import {
   Button,
   InlineNotification,
+  Select,
+  SelectItem,
   Stack,
   Table,
   TableBody,
@@ -19,6 +21,7 @@ import {
   type EstimateMeasurement,
   EstimateStatus,
   can,
+  formatINR,
   lineQuantity,
   measurementQty,
   measurementRows,
@@ -67,21 +70,75 @@ function fmtQty(n: number): string {
   return n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 }
 
+/** Post-approval costing: pick the line's specification and show its rate +
+ *  the line amount (qty × analysed rate). */
+function LineSpecPicker({
+  estimateId,
+  lineId,
+  specificationId,
+  qty,
+  unit,
+}: {
+  estimateId: string;
+  lineId: string;
+  specificationId: string | null;
+  qty: number;
+  unit: string;
+}) {
+  const utils = trpc.useUtils();
+  const specsQ = trpc.estimates.specsForLine.useQuery({ lineId });
+  const setSpec = trpc.estimates.setLineSpecification.useMutation({
+    onSuccess: () => void utils.estimates.get.invalidate({ id: estimateId }),
+  });
+  const specs = specsQ.data ?? [];
+  const selected = specs.find((s) => s.id === specificationId);
+  return (
+    <div className="esti-row">
+      <Select
+        id={`spec-${lineId}`}
+        labelText="Specification"
+        hideLabel
+        size="sm"
+        value={specificationId ?? ""}
+        disabled={setSpec.isPending || specs.length === 0}
+        onChange={(e) => setSpec.mutate({ lineId, specificationId: e.target.value || null })}
+      >
+        <SelectItem value="" text={specs.length === 0 ? "No specifications for this item" : "— choose specification —"} />
+        {specs.map((s) => (
+          <SelectItem key={s.id} value={s.id} text={`${s.name} · ${formatINR(s.ratePaise, { paise: false })}/${unit}`} />
+        ))}
+      </Select>
+      {selected && (
+        <span className="esti-label esti-label--secondary">
+          {formatINR(selected.ratePaise, { paise: false })}/{unit} · Amount{" "}
+          {formatINR(Math.round(qty * selected.ratePaise), { paise: false })}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /** One saved line — each measurement is a row; parameters + Qty are columns. */
-function SavedLine({ no, line }: {
+function SavedLine({ no, line, approved, estimateId }: {
   no: string;
   line: {
+    id: string;
     description: string;
     unit: string;
     measurements?: unknown;
     parentLineId: string | null;
     derived?: boolean;
+    kbItemId?: string | null;
+    specificationId?: string | null;
   };
+  approved: boolean;
+  estimateId: string;
 }) {
   const ms = (line.measurements ?? []) as EstimateMeasurement[];
   const rows = measurementRows(line.unit);
   const keys: (keyof EstimateMeasurement)[] = ["nos", "l", "b", "h"];
   return (
+    <Stack gap={2}>
     <TableContainer
       title={
         <span>
@@ -123,6 +180,16 @@ function SavedLine({ no, line }: {
         </TableBody>
       </Table>
     </TableContainer>
+    {approved && line.kbItemId && (
+      <LineSpecPicker
+        estimateId={estimateId}
+        lineId={line.id}
+        specificationId={line.specificationId ?? null}
+        qty={lineQuantity(ms, line.unit)}
+        unit={line.unit}
+      />
+    )}
+    </Stack>
   );
 }
 
@@ -461,7 +528,13 @@ function EstimateSheet({
       )}
 
       {lines.map((line) => (
-        <SavedLine key={line.id} no={lineNo(line)} line={line} />
+        <SavedLine
+          key={line.id}
+          no={lineNo(line)}
+          line={line}
+          approved={status === "APPROVED"}
+          estimateId={estimateId}
+        />
       ))}
 
       {/* ── Active entry (only while editable) ── */}

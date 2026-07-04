@@ -5,7 +5,7 @@
  * in their own table. Quantity is always computed (contracts: lineQuantity) —
  * never stored.
  */
-import { kbItems } from "./knowledge-bank.js";
+import { kbItems, kbSpecifications } from "./knowledge-bank.js";
 import { projectOffices } from "./project.js";
 import {
   boolean,
@@ -43,6 +43,10 @@ export const estimateLines = pgTable("esti_estimate_line", {
   /** Null for main items; the main line's id for dependency lines. */
   parentLineId: uuid("parent_line_id"),
   kbItemId: uuid("kb_item_id").references(() => kbItems.id, { onDelete: "set null" }),
+  /** Chosen KB specification (mix/method) for costing — mapped post-approval. */
+  specificationId: uuid("specification_id").references(() => kbSpecifications.id, {
+    onDelete: "set null",
+  }),
   sortOrder: integer("sort_order").notNull().default(0),
   code: text("code"),
   description: text("description").notNull(),
