@@ -1,4 +1,4 @@
-import { type EstimateMeasurement, measurementRows } from "@esti/contracts";
+import { type EstimateMeasurement, measurementQty, measurementRows } from "@esti/contracts";
 
 /**
  * Estimate sheet keyboard grammar — the pure state machine behind the
@@ -122,4 +122,18 @@ export function moveRow(s: MeasureState, delta: -1 | 1): MeasureState {
  */
 export function dropRecorded(s: MeasureState, m: EstimateMeasurement): MeasureState {
   return { ...s, recorded: s.recorded.filter((x) => x !== m) };
+}
+
+/** The measurement the active column would record right now — same blank-Nos→1
+ *  rule as recording — for a live preview. Null when nothing is typed yet. */
+export function previewColumn(s: MeasureState): EstimateMeasurement | null {
+  const hasValue = s.column.some((raw) => parseCell(raw) != null);
+  return hasValue ? columnToMeasurement(s) : null;
+}
+
+/** Live quantity of the active column, or null when nothing is typed. Reads 0
+ *  while a required dimension is still blank — a visible cue before Enter. */
+export function previewColumnQty(s: MeasureState): number | null {
+  const m = previewColumn(s);
+  return m ? measurementQty(m, s.unit) : null;
 }

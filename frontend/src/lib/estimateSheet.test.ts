@@ -3,6 +3,8 @@ import {
   dropRecorded,
   moveRow,
   pressEnter,
+  previewColumn,
+  previewColumnQty,
   setValue,
   startMeasuring,
   type MeasureState,
@@ -169,5 +171,36 @@ describe("dropRecorded (roll back a failed optimistic save)", () => {
     let s = startMeasuring("rm");
     s = fill(s, ["3", "12"]);
     expect(dropRecorded(s, { nos: 9 }).recorded).toHaveLength(1);
+  });
+});
+
+describe("live column preview (F3)", () => {
+  it("is null before anything is typed", () => {
+    const s = startMeasuring("cum");
+    expect(previewColumn(s)).toBeNull();
+    expect(previewColumnQty(s)).toBeNull();
+  });
+
+  it("reads 0 while a required dimension is still blank", () => {
+    let s = startMeasuring("cum"); // Nos, L, B, H
+    s = setValue(s, "2"); // only Nos typed
+    expect(previewColumn(s)).toEqual({ nos: 2, l: undefined, b: undefined, h: undefined });
+    expect(previewColumnQty(s)).toBe(0); // missing L/B/H ⇒ 0, the visible cue
+  });
+
+  it("computes the live qty of a complete column", () => {
+    let s = startMeasuring("rm"); // Nos, Length
+    s = setValue(s, "3");
+    const r = pressEnter(s);
+    if (r.kind !== "advanced") throw new Error("expected advance");
+    s = setValue(r.state, "12");
+    expect(previewColumnQty(s)).toBe(36);
+  });
+
+  it("applies the blank-Nos→1 takeoff default in the preview", () => {
+    let s = moveRow(startMeasuring("rm"), 1); // skip Nos, cursor on Length
+    s = setValue(s, "4");
+    expect(previewColumn(s)).toEqual({ nos: 1, l: 4 });
+    expect(previewColumnQty(s)).toBe(4);
   });
 });

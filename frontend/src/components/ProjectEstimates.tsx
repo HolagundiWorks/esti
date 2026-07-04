@@ -27,6 +27,7 @@ import {
   dropRecorded,
   moveRow,
   pressEnter,
+  previewColumnQty,
   setValue,
   startMeasuring,
 } from "../lib/estimateSheet.js";
@@ -144,6 +145,12 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
 
   const lines = estimateQ.data?.lines ?? [];
   const mains = lines.filter((l) => !l.parentLineId);
+
+  // Live readout while measuring: the line's running total and the qty of the
+  // column currently being typed (0 flags a still-missing dimension before Enter).
+  const runningTotalQty =
+    entry.phase === "measuring" ? lineQuantity(entry.state.recorded, entry.element.unit) : 0;
+  const currentColumnQty = entry.phase === "measuring" ? previewColumnQty(entry.state) : null;
 
   /** Number a line: main items 1..n, dependencies parent.1, parent.2… */
   const lineNo = (line: (typeof lines)[number]): string => {
@@ -376,7 +383,14 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
                 )}{" "}
                 <strong>{entry.element.name}</strong>
               </span>
-              <Tag type="gray" size="sm">{entry.element.unit}</Tag>
+              <span className="esti-row">
+                {entry.phase === "measuring" && (
+                  <Tag type="blue" size="sm">
+                    Σ {fmtQty(runningTotalQty)} {entry.element.unit}
+                  </Tag>
+                )}
+                <Tag type="gray" size="sm">{entry.element.unit}</Tag>
+              </span>
             </div>
 
             {entry.phase === "armed" && (
@@ -436,7 +450,7 @@ function EstimateSheet({ estimateId, onBack }: { estimateId: string; onBack: () 
                       <TableCell key={i}>{fmtQty(measurementQty(m, entry.element.unit))}</TableCell>
                     ))}
                     <TableCell>
-                      Σ {fmtQty(lineQuantity(entry.state.recorded, entry.element.unit))}
+                      {currentColumnQty == null ? "—" : fmtQty(currentColumnQty)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
