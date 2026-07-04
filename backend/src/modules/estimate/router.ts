@@ -12,6 +12,12 @@
  * Elements come from the Knowledge Bank item library; a main line's mapped
  * child items (esti_kb_item_dependency) drive the dependency queue.
  * Quantities are always computed from measurement rows — never stored.
+ *
+ * Access: staff-wide. Every procedure uses `protectedProcedure`, which admits
+ * the full staff ladder (Owner/Partner/Senior/Associate — and read-only Viewers
+ * for queries) while rejecting CLIENT / CONTRACTOR portal users and external
+ * CONSULTANT collaborators. Estimates carry internal costing, so keep this tier:
+ * do not drop to `authedProcedure`/`publicProcedure`.
  */
 import { EstimateLineCreate, EstimateMeasurementAdd } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
