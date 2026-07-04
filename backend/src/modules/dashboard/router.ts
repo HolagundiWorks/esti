@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { moms, siteVisits, tasks, users } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { getOrgSettings } from "../../lib/settings.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
   getActionCenter,
@@ -57,6 +58,43 @@ export const dashboardRouter = router({
       pendingTasks: tasksRow?.n ?? 0,
       meetingsToday,
       siteVisitsToday: visitRow?.n ?? 0,
+    };
+  }),
+
+  /**
+   * Billed-vs-collected over the last 12 months, for the home trend chart.
+   * Densified against a generated month spine so zero-invoice months still
+   * appear. Billed = non-draft/cancelled grand totals; collected = paid
+   * receivables — same rules as financialHealth. Empty when finance is off.
+   */
+  trend: protectedProcedure.query(async ({ ctx }) => {
+    const settings = await getOrgSettings(ctx.db);
+    if (settings.financialEnabled === false) {
+      return { financialEnabled: false as const, series: [] as { month: string; billedPaise: number; collectedPaise: number }[] };
+    }
+    const rows = (await ctx.db.execute(sql`
+      with months as (
+        select to_char(date_trunc('month', current_date) - (n || ' month')::interval, 'YYYY-MM') as ym
+        from generate_series(0, 11) as n
+      )
+      select m.ym as month,
+        coalesce(sum(case when i.status not in ('DRAFT','CANCELLED')
+                          then i.grand_total_paise else 0 end), 0)::bigint as billed_paise,
+        coalesce(sum(case when i.status = 'PAID'
+                          then i.net_receivable_paise else 0 end), 0)::bigint as collected_paise
+      from months m
+      left join esti_invoice i
+        on to_char(coalesce(i.date_invoice, i.created_at::date), 'YYYY-MM') = m.ym
+      group by m.ym
+      order by m.ym
+    `)) as unknown as { month: string; billed_paise: number; collected_paise: number }[];
+    return {
+      financialEnabled: true as const,
+      series: rows.map((r) => ({
+        month: r.month,
+        billedPaise: Number(r.billed_paise),
+        collectedPaise: Number(r.collected_paise),
+      })),
     };
   }),
 

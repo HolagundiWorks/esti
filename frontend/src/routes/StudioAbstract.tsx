@@ -8,6 +8,7 @@
  * Route: /  (root)
  */
 import {
+  ClickableTile,
   Column,
   Grid,
   ProgressBar,
@@ -21,9 +22,24 @@ import {
   Tag,
   Tile,
 } from "@carbon/react";
+import "@carbon/charts-react/styles.css";
+import { LineChart } from "@carbon/charts-react";
+import { ScaleTypes } from "@carbon/charts";
+import {
+  Bot,
+  Building,
+  Catalog,
+  Document,
+  Partnership,
+  Receipt,
+  TaskComplete,
+  UserMultiple,
+} from "@carbon/icons-react";
+import type { CarbonIconType } from "@carbon/icons-react";
 import { can, formatINRShort } from "@esti/contracts";
 import { StatusSymbol } from "../components/dashboard/abstractShell.js";
 import { DashboardQuickActions } from "../components/dashboard/DashboardQuickActions.js";
+import { useAppTheme } from "../lib/theme-context.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
@@ -238,6 +254,37 @@ function tagKind(state: ZoneState): "green" | "warm-gray" | "magenta" | "red" | 
   return "gray";
 }
 
+// ── Module launcher ("My applications") ─────────────────────────────────────
+
+type LauncherApp = {
+  label: string;
+  route: string;
+  icon: CarbonIconType;
+  /** Live count for the card subtitle, or null to show no count. */
+  count: (h: any, g: any) => number | null;
+  subtitle: ((n: number) => string) | null;
+};
+
+const LAUNCHER_APPS: LauncherApp[] = [
+  { label: "Projects", route: "/projects", icon: Building,
+    count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null,
+    subtitle: (n) => `${n} active` },
+  { label: "Tasks", route: "/tasks", icon: TaskComplete,
+    count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
+  { label: "Invoices", route: "/invoices", icon: Receipt,
+    count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
+  { label: "Clients", route: "/clients", icon: Partnership,
+    count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
+  { label: "Proposals", route: "/office/proposals", icon: Document,
+    count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
+  { label: "Team", route: "/team", icon: UserMultiple,
+    count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
+  { label: "Library", route: "/knowledge-bank", icon: Catalog,
+    count: () => null, subtitle: null },
+  { label: "AI Studio", route: "/office/ai-studio", icon: Bot,
+    count: () => null, subtitle: null },
+];
+
 // ── Studio Intelligence shell ───────────────────────────────────────────────
 
 export function StudioAbstract() {
@@ -251,6 +298,8 @@ export function StudioAbstract() {
   const attQ      = trpc.dashboard.attendanceToday.useQuery(undefined, { enabled: hrEnabled });
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
+  const trendQ    = trpc.dashboard.trend.useQuery(undefined, { staleTime: 300_000 });
+  const chartTheme = useAppTheme();
 
   const home = homeQ.data;
   const ac   = home?.actionCenter;
@@ -331,13 +380,6 @@ export function StudioAbstract() {
   const today = new Date().toISOString().slice(0, 10);
   const tasksOverdue = tasks.filter((t) => t.dueDate && t.dueDate < today).length;
 
-  const kpis = [
-    { label: "Active Projects",  value: ph.length,               state: ps !== "stable" ? ps : undefined },
-    { label: "Overdue Invoices", value: overdueInvs.length,      state: overdueInvs.length > 0 ? ("critical" as ZoneState) : undefined },
-    { label: "Approvals Pending", value: pendingCount,           state: pendingCount > 0 ? ("watch" as ZoneState) : undefined },
-    { label: "Tasks Overdue",    value: tasksOverdue,             state: tasksOverdue > 0 ? ("friction" as ZoneState) : undefined },
-  ];
-
   const zones = [
     { label: "Client",   state: cs, signal: clientSignal(cs)  },
     { label: "Finance",  state: fs, signal: financeSignal(fs) },
@@ -346,6 +388,38 @@ export function StudioAbstract() {
   ];
 
   const gst = gstStatus();
+
+  // ── Hero KPIs — finance when visible, else operational (honest fallback) ──
+  const heroKpis: { label: string; value: string; sub: string; danger: string | null }[] =
+    canInvoice && fh
+      ? [
+          { label: "Pipeline", value: formatINRShort(fh.pipelinePaise), sub: `Active ${formatINRShort(fh.activePipelinePaise)}`, danger: null },
+          { label: "Outstanding", value: formatINRShort(fh.outstandingPaise), sub: "Receivable", danger: fh.overdue30dPaise > 0 ? `${formatINRShort(fh.overdue30dPaise)} overdue` : null },
+          { label: "Collected", value: formatINRShort(fh.collectedFyPaise), sub: `FY ${String(fh.fyStart).slice(0, 4)}`, danger: null },
+          { label: "Ready to bill", value: formatINRShort(fh.readyToBillPaise), sub: `${billingReady.length} phase${billingReady.length === 1 ? "" : "s"}`, danger: null },
+        ]
+      : [
+          { label: "Active Projects", value: String(ph.length), sub: "In delivery", danger: null },
+          { label: "Overdue Invoices", value: String(overdueInvs.length), sub: "To chase", danger: overdueInvs.length > 0 ? "Action needed" : null },
+          { label: "Approvals Pending", value: String(pendingCount), sub: "Awaiting client", danger: null },
+          { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
+        ];
+
+  // ── Top risks rail — at-risk projects + high-risk clients ────────────────
+  type RiskRow = { key: string; label: string; detail: string; state: ZoneState; href: string };
+  const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
+  const topRisks: RiskRow[] = [
+    ...riskProjects.map((p: any): RiskRow => ({ key: `rp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Delivery at risk", state: "critical", href: projectIssueHref(p) })),
+    ...watchProjects.slice(0, 3).map((p: any): RiskRow => ({ key: `wp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Needs watching", state: "watch", href: projectIssueHref(p) })),
+    ...clientRisks.slice(0, 3).map((c: any): RiskRow => ({ key: `cr-${c.id}`, label: c.name, detail: `${c.oldestInvoiceDays ?? 0}d oldest invoice`, state: "friction", href: "/clients" })),
+  ].slice(0, 7);
+
+  // ── Trend chart — billed vs collected, last 12 months ────────────────────
+  const trend = trendQ.data;
+  const trendData = (trend?.series ?? []).flatMap((r) => [
+    { group: "Billed", date: `${r.month}-01`, value: r.billedPaise / 100 },
+    { group: "Collected", date: `${r.month}-01`, value: r.collectedPaise / 100 },
+  ]);
 
   return (
     <Stack gap={6} className="esti-studio-abstract-page">
@@ -370,50 +444,47 @@ export function StudioAbstract() {
         </Stack>
       </Tile>
 
-      {/* ── Quick actions + today's counters ────────────────────────────── */}
+      {/* ── Launcher: quick actions (Pinned) + module cards ──────────────── */}
       <Grid narrow>
-        <Column sm={4} md={4} lg={8}>
+        <Column sm={4} md={8} lg={4}>
           <DashboardQuickActions />
         </Column>
-        <Column sm={2} md={2} lg={4}>
-          <Tile className="esti-fill">
-            <Stack gap={2}>
-              <span className="esti-label--helper">Pending Tasks</span>
-              <Stack orientation="horizontal" gap={3}>
-                <h3>{glanceQ.data?.pendingTasks ?? "—"}</h3>
-                {(glanceQ.data?.pendingTasks ?? 0) > 0 && <StatusSymbol state="watch" sm />}
-              </Stack>
-            </Stack>
-          </Tile>
-        </Column>
-        <Column sm={2} md={2} lg={4}>
-          <Tile className="esti-fill">
-            <Stack gap={2}>
-              <span className="esti-label--helper">Meetings Today</span>
-              <Stack orientation="horizontal" gap={3}>
-                <h3>{glanceQ.data?.meetingsToday ?? "—"}</h3>
-              </Stack>
-              {(glanceQ.data?.siteVisitsToday ?? 0) > 0 && (
-                <span className="esti-label--helper">
-                  incl. {glanceQ.data?.siteVisitsToday} site visit
-                  {(glanceQ.data?.siteVisitsToday ?? 0) > 1 ? "s" : ""}
-                </span>
-              )}
-            </Stack>
-          </Tile>
+        <Column sm={4} md={8} lg={12}>
+          <Grid narrow>
+            {LAUNCHER_APPS.map((app) => {
+              const Icon = app.icon;
+              const n = home ? app.count(home, glanceQ.data) : null;
+              return (
+                <Column key={app.label} sm={2} md={4} lg={4}>
+                  <ClickableTile className="esti-fill" onClick={() => navigate(app.route)}>
+                    <Stack gap={3}>
+                      <Icon size={24} />
+                      <Stack gap={1}>
+                        <span className="esti-label">{app.label}</span>
+                        {n != null && app.subtitle && (
+                          <span className="esti-label--helper">{app.subtitle(n)}</span>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </ClickableTile>
+                </Column>
+              );
+            })}
+          </Grid>
         </Column>
       </Grid>
 
-      {/* ── Connected KPI grid ──────────────────────────────────────────── */}
+      {/* ── Hero KPI row (oversized numbers) ─────────────────────────────── */}
       <Grid narrow className="esti-kpi-grid">
-        {kpis.map((k) => (
-          <Column key={k.label} sm={2} md={2} lg={4}>
+        {heroKpis.map((k) => (
+          <Column key={k.label} sm={2} md={4} lg={4}>
             <Tile>
               <Stack gap={2}>
                 <span className="esti-label--helper">{k.label}</span>
-                <Stack orientation="horizontal" gap={3}>
-                  <h3>{k.value}</h3>
-                  {k.state && k.state !== "stable" && <StatusSymbol state={k.state} sm />}
+                <p className="esti-kpi-hero">{k.value}</p>
+                <Stack orientation="horizontal" gap={2}>
+                  <span className="esti-label--helper esti-grow">{k.sub}</span>
+                  {k.danger && <Tag type="red" size="sm">{k.danger}</Tag>}
                 </Stack>
               </Stack>
             </Tile>
@@ -421,8 +492,104 @@ export function StudioAbstract() {
         ))}
       </Grid>
 
+      {/* ── Billed vs collected · last 12 months ─────────────────────────── */}
+      <Grid narrow>
+        <Column sm={4} md={8} lg={16}>
+          <Tile>
+            <Stack gap={4}>
+              <span className="esti-label esti-label--secondary">BILLED vs COLLECTED · LAST 12 MONTHS</span>
+              {trend && trend.financialEnabled && trendData.length > 0 ? (
+                <div className="esti-chart-lg">
+                  <LineChart
+                    data={trendData}
+                    options={{
+                      theme: chartTheme,
+                      height: "384px",
+                      data: { groupMapsTo: "group" },
+                      axes: {
+                        bottom: { mapsTo: "date", scaleType: ScaleTypes.TIME, title: "Month" },
+                        left: {
+                          mapsTo: "value",
+                          scaleType: ScaleTypes.LINEAR,
+                          title: "Amount (₹)",
+                          ticks: { formatter: (v: any) => formatINRShort(Number(v) * 100) },
+                        },
+                      },
+                      curve: "curveMonotoneX",
+                      points: { enabled: true },
+                      toolbar: { enabled: false },
+                      legend: { enabled: true },
+                      accessibility: { svgAriaLabel: "Billed vs collected, last 12 months" },
+                    }}
+                  />
+                </div>
+              ) : (
+                <p className="esti-label--secondary">
+                  {trend && !trend.financialEnabled
+                    ? "Financials are turned off for this workspace."
+                    : "No invoice history yet — raise your first invoice to see the trend."}
+                </p>
+              )}
+            </Stack>
+          </Tile>
+        </Column>
+      </Grid>
+
       {/* ── Masonry grid — all content tiles pack vertically without gaps ── */}
       <div className="esti-dash-masonry">
+
+        {/* Top risks — the reference's "Top threats" rail */}
+        <Tile>
+          <Stack gap={4}>
+            <span className="esti-label esti-label--secondary">TOP RISKS</span>
+            {topRisks.length === 0 ? (
+              <Stack orientation="horizontal" gap={3}>
+                <StatusSymbol state="stable" sm />
+                <p className="esti-label--secondary">No elevated risks right now.</p>
+              </Stack>
+            ) : (
+              <Stack gap={3}>
+                {topRisks.map((r) => (
+                  <Stack
+                    key={r.key}
+                    orientation="horizontal"
+                    gap={3}
+                    className="esti-row-clickable"
+                    onClick={() => navigate(r.href)}
+                  >
+                    <StatusSymbol state={r.state} sm />
+                    <Stack gap={1} className="esti-grow">
+                      <span className="esti-label">{r.label}</span>
+                      <span className="esti-label--helper">{r.detail}</span>
+                    </Stack>
+                    <Tag type={tagKind(r.state)} size="sm">{STATE_WORD[r.state]}</Tag>
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        </Tile>
+
+        {/* Today — pending tasks + meetings scheduled today */}
+        <Tile>
+          <Stack gap={4}>
+            <span className="esti-label esti-label--secondary">TODAY</span>
+            <Stack orientation="horizontal" gap={6}>
+              <Stack gap={1} className="esti-grow">
+                <span className="esti-label--helper">Pending tasks</span>
+                <h3>{glanceQ.data?.pendingTasks ?? "—"}</h3>
+              </Stack>
+              <Stack gap={1} className="esti-grow">
+                <span className="esti-label--helper">Meetings today</span>
+                <h3>{glanceQ.data?.meetingsToday ?? "—"}</h3>
+              </Stack>
+              <Stack gap={1} className="esti-grow">
+                <span className="esti-label--helper">Site visits</span>
+                <h3>{glanceQ.data?.siteVisitsToday ?? "—"}</h3>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Tile>
 
         {/* Action items — primary content, column 1 top */}
         <Tile>

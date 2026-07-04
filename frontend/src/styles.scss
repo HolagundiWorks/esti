@@ -1101,6 +1101,15 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   padding: var(--cds-spacing-05) var(--cds-spacing-05) var(--cds-spacing-03);
 }
 
+// Oversized hero KPI number (IBM Security Cloud-style home). Carbon heading-07
+// type token only — no hand-set font size. Colour stays a Carbon token.
+.esti-kpi-hero {
+  @include type.type-style("heading-07");
+  color: var(--cds-text-primary);
+  line-height: 1;
+  margin: 0;
+}
+
 .esti-dash-kpi-note {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
