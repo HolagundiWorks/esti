@@ -495,10 +495,14 @@ export const authRouter = router({
   runtime: publicProcedure.query(async ({ ctx }) => {
     const state = await licenseState(ctx.db);
     const desktop = Boolean(env.DESKTOP);
+    const community = env.ESTI_EDITION === "COMMUNITY";
     return {
       desktop,
       managed: state.managed,
       mode: desktop ? ("local" as const) : ("cloud" as const),
+      edition: env.ESTI_EDITION,
+      /** Free offline LAN edition: no licence, no online, no AI, no portals. */
+      community,
     };
   }),
 

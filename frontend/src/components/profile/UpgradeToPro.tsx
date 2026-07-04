@@ -2,6 +2,7 @@ import { ArrowRight, Checkmark } from "@carbon/icons-react";
 import { Button, Stack, Tag, Tile } from "@carbon/react";
 import { PLAN_LABEL } from "@esti/contracts";
 import { Link as RouterLink } from "react-router-dom";
+import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
 
 /**
@@ -13,6 +14,25 @@ import { trpc } from "../../lib/trpc.js";
 export function UpgradeToPro() {
   const licenseQ = trpc.license.status.useQuery();
   const runtimeQ = trpc.auth.runtime.useQuery();
+  const { community } = useEdition();
+
+  // Community edition is offline — there is no online plan request. Upgrading
+  // means packaging the company and importing it into a Pro workspace.
+  if (community) {
+    return (
+      <Tile>
+        <Stack gap={3}>
+          <h3 className="esti-label">Upgrade to AORMS Pro</h3>
+          <p className="esti-label esti-label--secondary">
+            You&apos;re on the free Community edition — offline, on your own network. AORMS Pro adds
+            the cloud workspace, external portals, AI and more. To move up: package your whole
+            company in <strong>Company › Move to AORMS Pro</strong>, then import the bundle into your
+            new Pro workspace. Migration is one-way.
+          </p>
+        </Stack>
+      </Tile>
+    );
+  }
 
   const view = licenseQ.data;
   if (!view) return null;

@@ -12,6 +12,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, login, logout, type Me } from "../../platform-admin/lib/auth.js";
+import { useEdition } from "../../lib/edition.js";
 import { UpgradeToPro } from "./UpgradeToPro.js";
 
 const Companies = lazy(() => import("../../platform-admin/Companies.js"));
@@ -27,6 +28,7 @@ const Security = lazy(() => import("../../platform-admin/Security.js"));
  * this browser.
  */
 export function AccountTab() {
+  const { community } = useEdition();
   const [me, setMe] = useState<Me | null>(null);
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
@@ -72,6 +74,9 @@ export function AccountTab() {
     }
     await refresh();
   }
+
+  // Community edition has no online account — show only the offline upgrade path.
+  if (community) return <UpgradeToPro />;
 
   if (checking) return <Loading withOverlay={false} description="Loading" />;
 

@@ -29,6 +29,12 @@ const Env = z.object({
   /** When true (native desktop build), loopback HTTP + generated secrets are allowed. */
   DESKTOP: envBool(),
   /**
+   * Product edition. COMMUNITY = the free, offline, LAN-only appliance: no
+   * licence, no online/hub, no AI, no external portals, a single admin + 3 staff.
+   * STANDARD (default) = the licensed Lite/Pro product with those surfaces.
+   */
+  ESTI_EDITION: z.enum(["STANDARD", "COMMUNITY"]).default("STANDARD"),
+  /**
    * Deployment role (Phase B hybrid). "node" (default) = a firm's local/office
    * install: holds office data + drafts, derives its plan from a license, pushes
    * finalized records to the hub. "hub" = the central vendor VPS: the licensing

@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
 import { LicensePanel } from "../components/company/LicensePanel.js";
 import { MigrationPanel } from "../components/company/MigrationPanel.js";
+import { useEdition } from "../lib/edition.js";
 import { StorageSettingsPanel } from "../components/company/StorageSettingsPanel.js";
 import { ConnectedDevicesPanel } from "../components/company/ConnectedDevicesPanel.js";
 import { DataTools } from "../components/company/DataTools.js";
@@ -94,6 +95,7 @@ const EMPTY: Form = {
 
 export function Company() {
   const { user } = useAuth();
+  const { community } = useEdition();
   const { canFirmAdmin } = useCapabilities();
   const { authorizedFetch } = useUploadAuth();
   const isOwner = canFirmAdmin;
@@ -468,7 +470,7 @@ export function Company() {
         </Stack>
       </Tile>
 
-      {isOwner && <LicensePanel />}
+      {isOwner && !community && <LicensePanel />}
       {isOwner && <MigrationPanel />}
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}

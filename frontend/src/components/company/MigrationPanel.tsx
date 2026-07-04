@@ -1,6 +1,7 @@
 import { Button, FileUploaderButton, InlineNotification, Stack, Tile } from "@carbon/react";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
+import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
 
 /**
@@ -11,6 +12,7 @@ import { trpc } from "../../lib/trpc.js";
  */
 export function MigrationPanel() {
   const utils = trpc.useUtils();
+  const { community } = useEdition();
   const preflightQ = trpc.migration.preflight.useQuery();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -59,10 +61,11 @@ export function MigrationPanel() {
   return (
     <Tile>
       <Stack gap={5}>
-        <h3 className="esti-label">Cloud migration</h3>
+        <h3 className="esti-label">{community ? "Move to AORMS Pro" : "Cloud migration"}</h3>
         <p className="esti-label esti-label--secondary">
-          Move this studio to a fresh cloud tenant: export a bundle here, then import it into the
-          empty tenant. The import refuses a non-empty target and rolls back if verification fails.
+          {community
+            ? "Package this whole company as a bundle, then import it into a fresh AORMS Pro workspace. Migration is one-way, Community → Pro."
+            : "Import a company bundle exported from a Community/Lite install into this fresh, empty workspace. Import refuses a non-empty target and rolls back if verification fails."}
         </p>
         {pf && (
           <p className="esti-label--helper">
@@ -71,17 +74,20 @@ export function MigrationPanel() {
           </p>
         )}
         <Stack orientation="horizontal" gap={3}>
-          <Button onClick={download} disabled={busy}>
-            {busy ? "Preparing…" : "Download studio bundle"}
-          </Button>
-          <FileUploaderButton
-            labelText={importMut.isPending ? "Importing…" : "Import a bundle"}
-            buttonKind="tertiary"
-            accept={[".json", "application/json"]}
-            disableLabelChanges
-            onChange={onFile}
-            disabled={importMut.isPending}
-          />
+          {community ? (
+            <Button onClick={download} disabled={busy}>
+              {busy ? "Preparing…" : "Package company for Pro"}
+            </Button>
+          ) : (
+            <FileUploaderButton
+              labelText={importMut.isPending ? "Importing…" : "Import a company bundle"}
+              buttonKind="primary"
+              accept={[".json", "application/json"]}
+              disableLabelChanges
+              onChange={onFile}
+              disabled={importMut.isPending}
+            />
+          )}
         </Stack>
         {msg && (
           <InlineNotification kind="success" lowContrast title="Migration" subtitle={msg} onCloseButtonClick={() => setMsg(null)} />
