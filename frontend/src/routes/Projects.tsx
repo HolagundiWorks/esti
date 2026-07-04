@@ -55,7 +55,7 @@ export function Projects() {
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [projectType, setProjectType] = useState<string>("RESIDENTIAL");
+  const [projectType, setProjectType] = useState<string>(ProjectType.options[0]);
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
 
