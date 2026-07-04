@@ -40,6 +40,7 @@ export function InvoicePdfCell({
       showRegenerateWhenReady
       generatePending={generate.isPending}
       onGenerate={() => generate.mutate({ id: invoiceId })}
+      share={{ text: "Please find the attached invoice.", fileName: "invoice.pdf" }}
     />
   );
 }
