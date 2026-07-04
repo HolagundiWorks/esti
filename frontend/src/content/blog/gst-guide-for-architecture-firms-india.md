@@ -54,18 +54,17 @@ of supply falls back to the recipient's location.
 
 Registration is mandatory once your **aggregate turnover crosses ₹20 lakh** in a
 financial year (₹10 lakh in special-category states). A useful relief: unlike goods, a
-service provider making **inter-state supplies is not forced to register** merely because
-the supply crossed a state line — the ₹20 lakh threshold still applies. So a two-person
-studio taking an occasional out-of-state project is not automatically pushed into
-registration. Once registered, you charge and file regardless of the client's size.
+service provider making **inter-state supplies is not forced to register** just because
+the supply crossed a state line — the ₹20 lakh threshold still applies. Once registered,
+you charge and file regardless of the client's size.
 
 ## Composition vs regular
 
 A service provider with turnover up to **₹50 lakh** can opt for the **composition
 scheme** under Section 10(2A): a flat **6%** (3% CGST + 3% SGST) on turnover, a **bill of
-supply** instead of a tax invoice, and far lighter filing. The catch is real, though —
-under composition you **cannot collect GST from the client, cannot claim input tax
-credit, and cannot make inter-state supplies.**
+supply** instead of a tax invoice, and lighter filing. The catch is real, though — you
+**cannot collect GST from the client, cannot claim input tax credit, and cannot make
+inter-state supplies.**
 
 For most practices with corporate clients, the **regular scheme** wins for one reason:
 your client wants the **input tax credit** on your 18%, and under composition you pass

@@ -10,15 +10,15 @@ intro: Record the minutes on the project itself, issue them to the client portal
 
 Every architect knows the meeting where four changes are agreed across the table,
 everyone nods, and nothing arrives in writing. The minutes get typed into a Word
-file, emailed, and forgotten — while the changes discussed quietly become unpaid
+file, emailed, and forgotten — while the changes quietly become unpaid
 rework. **Minutes of meeting software for architects** should close that gap: keep
-the minutes on the project record where the drawings, decisions and fees already
-live, not in a document nobody opens again.
+the minutes on the project record where the drawings, decisions and fees live, not in
+a document nobody opens again.
 
 AORMS records minutes inside the project workspace, issues them to the client
 through the portal, and uses ESTI to convert the changes discussed in those minutes
 into formal, categorised revision requests. The meeting stops being a conversation
-that evaporates and becomes a dated, traceable record both sides can point to.
+that evaporates and becomes a dated record both sides can point to.
 
 ## Minutes belong on the project record
 
@@ -35,14 +35,13 @@ is edited silently after issue.
 
 Because the minutes live on the project, they connect to everything else on it: the
 drawing a decision changed, the phase it belongs to, the fee stage it touches — not a
-separate meeting log that drifts out of sync with the actual job.
+separate log that drifts out of sync with the job.
 
 ## Issued minutes appear in the client portal
 
 The moment you issue minutes, they appear in the [client portal](/architecture-client-portal-software) —
-one record, both sides reading the same words. There is no re-typing into an email,
-no "please confirm you received the attached," no forwarded-thread version of the
-minutes the client can later dispute.
+one record, both sides reading the same words. There is no re-typing into an email
+and no forwarded-thread version of the minutes the client can later dispute.
 
 This single record is what makes the later conversation calm. When a change is
 questioned three weeks on, the minutes are there — dated, issued, seen by the client
@@ -66,7 +65,7 @@ ESTI drafts; it never sends. Nothing reaches the office until the client explici
 pushes it. ESTI only extracts what is actually in the minutes — it does not invent
 scope, fees or commitments, and if the minutes contain no changes it says so. Every
 run is logged like any [ESTI AI](/esti-ai-assistant-for-architects) run: who asked,
-which minutes, what came back. The AI drafts, people decide.
+which minutes, what came back.
 
 ## Where the revision request goes next
 
@@ -81,23 +80,21 @@ That classification only works if the records feeding it are honest. Because the
 requests came from minutes the client saw and sent themselves, the project's
 revision history becomes arithmetic rather than an argument from memory: six
 client-driven changes this stage, two of them major, each traceable to the meeting
-where it was agreed. For the wider flow, see
-[client revision management](/client-revision-management) and the walk-through in
+where it was agreed. For the full walk-through, see
 [how ESTI drafts revision requests from minutes](/blog/esti-drafts-revision-requests-from-minutes).
 
 ## How minutes of meeting works in AORMS
 
-1. **Record the minutes** in the project workspace under the Minutes tab — title,
-   date, attendees, and what was discussed. Draft minutes stay office-internal.
-2. **Issue the minutes** to lock them into the project's document register with a
-   date, the same deliberate action used for drawings and transmittals.
-3. **The client sees the same issued minutes** in their portal — one shared record,
-   both sides reading identical words.
+1. **Record the minutes** under the project's Minutes tab — title, date, attendees,
+   what was discussed. Drafts stay office-internal.
+2. **Issue the minutes** to lock them into the document register with a date — the
+   same action used for drawings and transmittals.
+3. **The client sees the issued minutes** in their portal — one shared record, both
+   sides reading identical words.
 4. **The client asks ESTI to draft revision requests** from those minutes; ESTI
    returns each change as an editable request with a suggested impact category.
-5. **The client reviews, edits and sends** only the real ones — and the office
-   receives formal, categorised, dated change requests that feed revision
-   intelligence.
+5. **The client reviews, edits and sends** only the real ones — the office receives
+   formal, categorised, dated change requests that feed revision intelligence.
 
 ## Frequently asked questions
 

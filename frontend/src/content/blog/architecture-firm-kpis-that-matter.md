@@ -12,11 +12,10 @@ time they move, the decision that moved them was made months ago, on a project y
 half-forgotten.
 
 The KPIs that actually help a small or mid-size Indian practice are quieter. They tell
-you whether the work you are doing right now is profitable, whether a project is
-drifting, and whether your team is carrying a fair load — while there is still time to
-act. Here are six, with why each matters and how to compute it. None needs expensive
-software — only the discipline to record a few facts as work happens, rather than
-reconstructing them at year end.
+you whether the work you are doing right now is profitable, whether a project is drifting,
+and whether your team is carrying a fair load — while there is still time to act. Here are
+six, with why each matters and how to compute it. None needs expensive software, only the
+discipline to record a few facts as work happens.
 
 ## 1. Fee realisation against COA stage
 
@@ -29,8 +28,8 @@ delivered, how much of the fee have you billed and collected?
 Architects routinely run ahead of their billing. You finish working drawings — Stage 4
 on most schedules — while invoicing is still stuck at the preliminary-design instalment:
 60% of the value delivered, 30% of the fee billed. That gap is not profit you are waiting
-on; it is profit you are quietly financing for the client, and the longer a project runs
-the wider it opens.
+on; it is profit you are quietly financing for the client, and it widens the longer a
+project runs.
 
 > Realisation = (fee billed to date ÷ fee earned by stage delivered) × 100
 
@@ -54,28 +53,26 @@ apart — only the source can. And the split has commercial meaning: client-driv
 scope-change revisions are usually billable, while internal errors are cost you absorb.
 
 To compute it, tag each revision with a category (minor, major, critical) and a source
-(client, internal error, technical query, scope change). A rising share of internal
-errors points at drawing quality or coordination; a rising share of client and scope
-changes points at a brief that was never pinned down — and at fees you should be
-recovering. More in [architecture revision tracking](/architecture-revision-tracking) and
+(client, internal error, technical query, scope change). A rising share of internal errors
+points at drawing quality or coordination; a rising share of client and scope changes
+points at a brief that was never pinned down — and at fees you should be recovering. More
+in [architecture revision tracking](/architecture-revision-tracking) and
 [the hidden cost of untracked revisions](/blog/hidden-cost-untracked-revisions).
 
 ## 3. Work-in-progress and unbilled fees
 
 **Work-in-progress (WIP)** is the value of work done but not yet invoiced; **unbilled
-fees** are the subset billable now under the agreement but not yet raised. It is the
-closest thing a practice has to hidden cash — and practices die of poor cash flow far
-more often than poor design. WIP is where cash hides: a stage completed but not invoiced,
-a site instruction carried out but never billed, an approval drawing submitted while the
-invoice sits in a draft folder.
+fees** are the subset billable now but not yet raised. It is the closest thing a practice
+has to hidden cash — and practices die of poor cash flow far more often than poor design.
+WIP hides in a stage completed but not invoiced, a site instruction carried out but never
+billed, an approval drawing submitted while the invoice sits in a draft folder.
 
-To compute it, add the fee value of stages and extra work delivered but not yet invoiced,
-per project. Watch the total (how much cash is trapped) and the age (how long each piece
-has sat unbilled); anything beyond 30–45 days deserves an invoice this week. Remember your
-invoice total and your net receivable differ once corporate clients deduct TDS on
-professional fees, so track the receivable, not the headline. Clean
-[GST invoicing](/gst-billing-software-architects-india) tied to project stages keeps WIP
-from accumulating in the first place.
+To compute it, add the fee value of work delivered but not yet invoiced, per project.
+Watch the total (how much cash is trapped) and the age; anything beyond 30–45 days
+deserves an invoice this week. Remember your invoice total and your net receivable differ
+once corporate clients deduct TDS on professional fees, so track the receivable, not the
+headline. Clean [GST invoicing](/gst-billing-software-architects-india) tied to project
+stages keeps WIP from accumulating in the first place.
 
 ## 4. Utilisation
 
@@ -92,8 +89,7 @@ You need time attributed to work, not just attendance. For a design practice a
 sustainable band is usually 60–75%; persistently higher and people head for burnout with
 no slack for the inevitable revision, persistently lower and either fees are underquoted
 or non-billable work has crept in unmeasured. Attributing time as work happens — rather
-than reconstructing timesheets on a Friday — is what makes the number trustworthy; see
-[time attribution](/architecture-timesheet-software).
+than reconstructing timesheets on a Friday — is what makes the number trustworthy.
 
 ## 5. Approval turnaround
 
@@ -106,9 +102,9 @@ project's elapsed time.
 
 Record the date each item is issued and the date the decision returns; the difference is
 turnaround. Average it by client and by approval type. Long turnarounds concentrated on
-one client are a conversation to have — often the evidence you need to justify an
-extension of time — and a timestamped record of what was issued and when it was approved
-is your first defence in a "we never approved that" dispute. See
+one client are often the evidence you need to justify an extension of time — and a
+timestamped record of what was issued and when it was approved is your first defence in a
+"we never approved that" dispute. See
 [approval workflow](/architecture-approval-workflow-software).
 
 ## 6. A fair team score
@@ -128,14 +124,13 @@ bad week does not define someone, and be transparent about the formula. More in
 ## Putting it together
 
 You do not need all six from day one. Start with **fee realisation against stage** and
-**revision source mix** — between them they explain most of where a practice's money
-leaks — and let the rest follow as the recording habit takes hold. That habit is the real
+**revision source mix** — between them they explain most of where a practice's money leaks
+— and let the rest follow as the recording habit takes hold. That habit is the real
 prerequisite: every KPI here depends on capturing a fact at the moment it occurs, instead
 of reconstructing it later from memory and email. A practice-management system like AORMS
-exists to make that capture a by-product of doing the work rather than a separate chore,
-so the numbers are already there when you need them. But they matter whether or not you
-use software to keep them. Measure the quiet things, and the loud ones tend to look after
-themselves.
+makes that capture a by-product of doing the work, so the numbers are already there when
+you need them — but they matter whether or not you use software to keep them. Measure the
+quiet things, and the loud ones tend to look after themselves.
 
 ## Frequently asked questions
 
@@ -166,6 +161,6 @@ work.
 ### Do I need software to track these KPIs?
 
 No. Every KPI here can live in a spreadsheet if you have the discipline to record the
-underlying facts — stage delivered, revision reason, issue and approval dates, time by task
-— as work happens. Software mainly makes that capture a by-product of the work rather than
-a separate end-of-month chore, which is usually where manual tracking breaks down.
+underlying facts as work happens. Software mainly makes that capture a by-product of the
+work rather than a separate end-of-month chore, which is usually where manual tracking
+breaks down.
