@@ -12,6 +12,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, login, logout, type Me } from "../../platform-admin/lib/auth.js";
+import { UpgradeToPro } from "./UpgradeToPro.js";
 
 const Companies = lazy(() => import("../../platform-admin/Companies.js"));
 const Credentials = lazy(() => import("../../platform-admin/Credentials.js"));
@@ -76,12 +77,14 @@ export function AccountTab() {
 
   if (!me?.account) {
     return (
-      <Tile className="esti-fill">
-        <Stack gap={5}>
-          <p>
-            Sign in to your AORMS account to manage your plan, companies, security and
-            credentials from here.
-          </p>
+      <Stack gap={5}>
+        <UpgradeToPro />
+        <Tile className="esti-fill">
+          <Stack gap={5}>
+            <p>
+              Sign in to your AORMS account to manage your plan, companies, security and
+              credentials from here.
+            </p>
           <Form onSubmit={handleSubmit}>
             <Stack gap={5}>
               <TextInput
@@ -126,16 +129,18 @@ export function AccountTab() {
               </Button>
             </Stack>
           </Form>
-          <p className="esti-label esti-label--secondary">
-            Don&apos;t have an account? <RouterLink to="/account?mode=create">Create one</RouterLink>.
-          </p>
-        </Stack>
-      </Tile>
+            <p className="esti-label esti-label--secondary">
+              Don&apos;t have an account? <RouterLink to="/account?mode=create">Create one</RouterLink>.
+            </p>
+          </Stack>
+        </Tile>
+      </Stack>
     );
   }
 
   return (
     <Stack gap={5}>
+      <UpgradeToPro />
       <Stack gap={3} orientation="horizontal">
         <span className="esti-grow">{me.account.email}</span>
         {me.account.publicId && (
