@@ -22,6 +22,8 @@ import {
   KbSpecLaborUpdate,
   KbSpecMaterialAdd,
   KbSpecMaterialUpdate,
+  specLaborCostPaise,
+  specMaterialCostPaise,
   ImportCommitItems,
   ImportCommitLabour,
   ImportCommitMaterials,
@@ -467,6 +469,38 @@ const specifications = router({
       });
       return { ok: true };
     }),
+  /** Rate analysis (approach B) — build the spec's applied rate from its
+   *  material + labour recipe × the KB default rates, with the breakdown. */
+  analyse: protectedProcedure.input(KbBySpecInput).query(async ({ ctx, input }) => {
+    const materials = await ctx.db
+      .select({
+        materialId: kbSpecMaterials.materialId,
+        name: kbMaterials.name,
+        unit: kbMaterials.unit,
+        quantityPerUnit: kbSpecMaterials.quantityPerUnit,
+        wastageFactor: kbSpecMaterials.wastageFactor,
+        ratePaise: kbMaterials.defaultRatePaise,
+      })
+      .from(kbSpecMaterials)
+      .innerJoin(kbMaterials, eq(kbSpecMaterials.materialId, kbMaterials.id))
+      .where(eq(kbSpecMaterials.specificationId, input.specificationId))
+      .orderBy(asc(kbMaterials.name));
+    const labor = await ctx.db
+      .select({
+        laborId: kbSpecLabor.laborId,
+        name: kbLabor.name,
+        unit: kbLabor.unit,
+        quantityPerUnit: kbSpecLabor.quantityPerUnit,
+        ratePaise: kbLabor.defaultRatePaise,
+      })
+      .from(kbSpecLabor)
+      .innerJoin(kbLabor, eq(kbSpecLabor.laborId, kbLabor.id))
+      .where(eq(kbSpecLabor.specificationId, input.specificationId))
+      .orderBy(asc(kbLabor.name));
+    const materialPaise = specMaterialCostPaise(materials);
+    const laborPaise = specLaborCostPaise(labor);
+    return { materials, labor, materialPaise, laborPaise, ratePaise: materialPaise + laborPaise };
+  }),
 });
 
 // ── Recipes (data mapper: specification → material / labour consumption) ─────

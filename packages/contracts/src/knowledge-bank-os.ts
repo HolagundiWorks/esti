@@ -166,3 +166,40 @@ export type KbItemDependencyUpdate = z.infer<typeof KbItemDependencyUpdate>;
 
 export const KbByParentItemInput = z.object({ parentItemId: z.string().uuid() });
 export type KbByParentItemInput = z.infer<typeof KbByParentItemInput>;
+
+// ── Rate analysis (approach B: a spec's rate is built up from its recipe) ─────
+// A specification's applied rate (paise per spec unit) is computed from its
+// material + labour consumption recipe rather than typed by hand:
+//   material cost = Σ quantityPerUnit × (1 + wastageFactor) × material rate
+//   labour  cost = Σ quantityPerUnit × labour rate
+// Everything is integer paise per the money convention.
+
+export type SpecMaterialLine = {
+  quantityPerUnit: number;
+  wastageFactor: number;
+  ratePaise: number; // the material's default rate, paise per material unit
+};
+export type SpecLaborLine = {
+  quantityPerUnit: number;
+  ratePaise: number; // the labour's default rate, paise per labour unit
+};
+
+/** Material cost per spec unit (paise), wastage included. */
+export function specMaterialCostPaise(lines: readonly SpecMaterialLine[]): number {
+  return Math.round(
+    lines.reduce((sum, m) => sum + m.quantityPerUnit * (1 + m.wastageFactor) * m.ratePaise, 0),
+  );
+}
+
+/** Labour cost per spec unit (paise). */
+export function specLaborCostPaise(lines: readonly SpecLaborLine[]): number {
+  return Math.round(lines.reduce((sum, l) => sum + l.quantityPerUnit * l.ratePaise, 0));
+}
+
+/** Analysed rate per spec unit (paise) = material + labour build-up. */
+export function specRatePaise(
+  materials: readonly SpecMaterialLine[],
+  labor: readonly SpecLaborLine[],
+): number {
+  return specMaterialCostPaise(materials) + specLaborCostPaise(labor);
+}
