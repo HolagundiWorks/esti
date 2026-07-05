@@ -275,15 +275,18 @@ Steel is priced from the rate book like any material (₹/kg or ₹/MT), so a ra
 ## 6. Build order
 
 **AORMS side (this repo, buildable + verifiable now):**
-1. **Rate Book** proper — keyed catalogue (`code · description · uom · rate`), office master + per-project selection/override. (Extends the flat `esti_rate_book` already added.)
-2. **Interchange contract** — `.aormsest` zod schema in `@esti/contracts` (shared, so the desktop app reuses it).
-3. **Import + snapshot** — parse/validate/version an estimate onto a project.
-4. **Re-costing engine** — qty × rate-book rate; as-estimated vs as-costed variance.
-5. **Four viewers** — Abstract · BOQ · Materials · Steel, read-only, in the project tab.
+1. ✅ **Rate Book** — the flat `esti_rate_book` catalogue (`code · description · uom · rate_paise`), office-wide, keyed by `code`. Seeded from an ESE pack via `estimates.importRateBookPack`. *(Per-project override still a follow-up.)*
+2. ✅ **Interchange contract** — `.aormsest` zod schema (`EstimateFile`) in `@esti/contracts`, with `estimateSealString` for checksum verification (shared, so the desktop app reuses it).
+3. ✅ **Import + snapshot** — `/upload/estimate` REST route validates + seals + stores an immutable `esti_estimate` snapshot; `estimates.list/byId`.
+4. ✅ **Re-costing engine** — pure `recostEstimate` (`@esti/contracts`): qty × rate-book rate, as-estimated vs as-costed + variance; exposed as `estimates.recost`.
+5. ✅ **Four viewers** — Abstract · BOQ · Materials · Steel, read-only Carbon route `EstimateViewer` at `/libraries/estimates`.
+
+**ESE side (this repo, `ese/`):**
+- ✅ Deterministic Karnataka SR parser → sealed `RateLibraryPack` (`ese/packs/kar-pwd-2023.pack.json`); `build-pack` CLI; Ollama enrichment (adds metadata only).
 
 **Estimate desktop app (separate, Tauri — built + tested on Windows via CI):**
-6. Knowledge Bank editor (work item · rate item · measurement template · recipes).
-7. Measurement entry + extractors (BOQ · materials · steel) + priced abstract.
-8. Export `.aormsest` (+ PDF abstract).
+6. Knowledge Bank editor (work item · rate item · measurement template · recipes). *(pending)*
+7. Measurement entry + extractors (BOQ · materials · steel) + priced abstract. *(pending — the pure extractors `measureQty`/`takeoffMaterials`/`deriveLinked`/`steelFromBBS` already exist in `@esti/contracts`)*
+8. Export `.aormsest` (+ PDF abstract). *(pending — sealing via `estimateSealString`; see the demo `docs/esti/samples/villa-demo.aormsest`)*
 
-The interchange schema (step 2) is the seam: build it first, and both apps are developed against the same contract.
+The interchange schema (step 2) is the seam: both apps develop against the same contract. A demo file (`docs/esti/samples/villa-demo.aormsest`) exercises the whole AORMS loop today.

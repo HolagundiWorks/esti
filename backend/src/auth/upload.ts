@@ -13,6 +13,7 @@ export const UPLOAD_ROUTE_CAPABILITIES = {
   "/upload/master-plan": "write",
   "/upload/standard-file": "write",
   "/upload/compliance-doc": "write",
+  "/upload/estimate": "write",
 } as const satisfies Record<string, Capability>;
 
 /** Shared authorization policy for cookie-authenticated REST upload routes. */

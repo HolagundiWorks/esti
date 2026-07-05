@@ -17,6 +17,28 @@ import type { DerivationRule } from "./ese-packs.js";
 import { scheduleByDiameter, type BbsMember } from "./bbs-engine.js";
 
 export const AORMSEST_FORMAT_VERSION = 1;
+export const ESTIMATE_MAX_BYTES = 25 * 1024 * 1024;
+export const ESTIMATE_EXTENSIONS = [".aormsest", ".json"] as const;
+
+/** Canonical, key-sorted JSON of the file content with the `checksum` field
+ *  excluded — the string a caller hashes to seal / verify an `.aormsest`.
+ *  Pure and browser-safe (no crypto), so the desktop app, backend and SPA all
+ *  agree on the bytes to hash. */
+export function estimateSealString(file: Record<string, unknown>): string {
+  const { checksum: _drop, ...rest } = file;
+  void _drop;
+  const sort = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(sort);
+    if (v && typeof v === "object") {
+      const src = v as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const k of Object.keys(src).sort()) if (src[k] !== undefined) out[k] = sort(src[k]);
+      return out;
+    }
+    return v;
+  };
+  return JSON.stringify(sort(rest));
+}
 
 // ── .aormsest interchange schema ──────────────────────────────────────────────
 export const EstimateMeasurement = z.object({

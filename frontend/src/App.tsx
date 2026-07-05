@@ -18,6 +18,7 @@ import {
   Book,
   Bot,
   Building,
+  Calculator,
   Catalog,
   Dashboard as DashboardIcon,
   Document,
@@ -129,6 +130,7 @@ const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "Know
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
+const EstimateViewer = lazyRoute(() => import("./routes/EstimateViewer.js"), "EstimateViewer");
 const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
@@ -398,6 +400,7 @@ function AppShell() {
               { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
               { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
               { label: "Standards Library", to: "/libraries/standards", icon: Book },
+              { label: "Estimate Viewer", to: "/libraries/estimates", icon: Calculator },
             ]
           : []),
       ],
@@ -599,6 +602,7 @@ function AppShell() {
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
+                <Route path="/libraries/estimates" element={<EstimateViewer />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />
