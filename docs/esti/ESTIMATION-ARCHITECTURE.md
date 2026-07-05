@@ -1,24 +1,58 @@
-# Estimation architecture — Estimate desktop app + AORMS import/viewer
+# Estimation architecture — ESE publisher + Estimate desktop app + AORMS import/viewer
 
-Two apps, one interchange file. **Creation happens only in the standalone Estimate
-desktop app**; **AORMS only imports, views, and re-costs** against its rate books.
-Money is integer **paise** throughout; India-native (SQM/CUM/RM, FY Apr–Mar).
+Three layers, decoupled by data. The **Estimation Specification Engine (ESE)**
+deciphers state/central PWD workbooks into clean, versioned **Rate Library Packs**;
+the **standalone Estimate desktop app** consumes a pack and does all creation
+(measure → extract → price); **AORMS only imports, views, and re-costs** against its
+rate books. Money is integer **paise** throughout; India-native (SQM/CUM/RM, FY Apr–Mar).
 
 ```
-┌────────────────────────────┐        .aormsest         ┌────────────────────────────┐
-│  Estimate desktop app       │   custom estimate file    │  AORMS (project tab)        │
-│  (standalone, offline)      │ ───────────────────────▶ │  import · view · re-cost    │
-│                             │                           │                            │
-│  • Knowledge Bank           │                           │  • Rate Books (editable)    │
-│    Work Item → Rate Item    │                           │  • Import estimate          │
-│    (spec · UOM · rate ·     │                           │  • Viewers (read-only):     │
-│     measurement template)   │                           │      Abstract · BOQ ·       │
-│  • Material recipes         │                           │      Materials · Steel      │
-│  • Measure → qty            │                           │  • Change rate book →        │
-│  • Extract materials + steel│                           │    recalculate costing      │
-│  • Price → export           │                           │  • NO estimate creation      │
-└────────────────────────────┘                           └────────────────────────────┘
+┌──────────────────────────┐  Rate    ┌────────────────────────┐  .aormsest ┌────────────────────────┐
+│ Estimation Specification  │ Library  │  Estimate desktop app   │  estimate  │  AORMS (project tab)    │
+│ Engine (ESE) — back office│ Pack     │  (standalone, offline)  │  file      │  import · view · re-cost │
+│                          │ ───────▶ │                        │ ─────────▶ │                        │
+│ Ingest PWD workbooks      │          │  • consume rate library │            │  • Rate Books (editable) │
+│ (CPWD DSR/Specs/DAR,      │          │  • Work Item→Rate Item  │            │  • Import estimate       │
+│  state PWD SoRs)          │          │    (spec·UOM·rate·      │            │  • Viewers (read-only):  │
+│ Decipher · Normalize ·    │          │     measurement tmpl)   │            │    Abstract·BOQ·         │
+│ Version · Publish         │          │  • Material + steel BBS  │            │    Materials·Steel       │
+│                          │          │  • Measure→extract→price │            │  • Change rate book →     │
+│  yearly: new DSR → new    │          │  • Export .aormsest      │            │    recalculate costing   │
+│  versioned pack           │          │                        │            │  • NO estimate creation   │
+└──────────────────────────┘          └────────────────────────┘            └────────────────────────┘
 ```
+
+## 0. Estimation Specification Engine (ESE) — the rate-library publisher
+
+A **back-office pipeline** (run by the office/publisher, not per end-user) that turns
+each year's messy state/central PWD workbook into a clean, versioned dataset the apps
+consume. All the parsing/interpretation complexity lives here so the apps stay simple,
+and a new DSR is just a re-run — never a code change.
+
+**Pipeline — Ingest → Decipher → Normalize → Version → Publish:**
+- **Ingest** — raw markdown/PDF/CSV of one source + year (CPWD DSR + Specifications + DAR;
+  or a state PWD SoR).
+- **Decipher** *(the crux)* — detect the item hierarchy + that book's code scheme; from each
+  item extract work type, spec **attributes** (thickness/grade/mortar/location), unit, and
+  rate; link the **Specification** text and the **DAR** material/labour recipe by item code.
+  **Hybrid**: deterministic table/regex parse for code·unit·**rate** (must be exact — never
+  LLM-guessed), LLM-assisted extraction for semantic attributes, human review for the
+  canonical-taxonomy mapping.
+- **Normalize** — map every source onto the canonical **Work Item → Rate Item → Recipe**
+  schema; money → paise; units canonicalised (cum/sqm/rm/each/quintal→kg).
+- **Version** — each source+year is an **immutable edition** (`CPWD-DSR-2023`, `KAR-PWD-2024`).
+- **Publish** — emit a signed **Rate Library Pack**:
+  `{ source, year, checksum, workItems[], rateItems[], recipes[], specs[] }`, hosted for the
+  apps to pull (same distribution pattern as the desktop-installer / latest-release resolver).
+
+**Yearly lifecycle:** DSR changes → re-ingest → new versioned pack → apps pull the update →
+a project either stays **pinned** to the edition it was estimated on, or migrates to the new
+edition and **re-costs**. Old editions are never mutated, so historical estimates stay reproducible.
+
+> The CPWD/state markdown you provide is the **input to the ESE**. CPWD's own hierarchy
+> (parent item `6.4` → sub-items `6.4.1/6.4.2` with mortar variant + unit + rate) already
+> matches Work Item → Rate Item, which is why the mapping is clean. Steel: PWD books give the
+> steel *rate* only; the *arrangement/quantities* come from the BBS model (§5), meeting at ₹/kg.
 
 ## Confirmed decisions
 
