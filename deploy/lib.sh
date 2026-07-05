@@ -142,6 +142,17 @@ ensure_tls() {
   fi
 
   if command -v certbot >/dev/null 2>&1; then
+    # Request a SAN certificate covering both the apex and www so the
+    # www → apex 301 (see nginx-proxy.conf) can be served over HTTPS with a
+    # valid cert. certbot issuance is all-or-nothing per cert, so if www DNS
+    # isn't configured the apex+www attempt fails — fall back to apex-only.
+    if certbot --nginx -d "$domain" -d "www.${domain}" \
+         --non-interactive --agree-tos -m "$admin_email" --redirect; then
+      systemctl reload nginx
+      info "TLS issued for https://${domain} (+ www → apex redirect)"
+      return 0
+    fi
+    warn "certbot could not cover www.${domain} (is its DNS set?) — retrying apex-only"
     certbot --nginx -d "$domain" --non-interactive --agree-tos -m "$admin_email" --redirect || {
       warn "certbot failed for ${domain} — consider setting SELF_SIGNED_CERT=true to install a temporary self-signed certificate"
       return 1

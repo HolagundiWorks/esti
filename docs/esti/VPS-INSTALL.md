@@ -110,6 +110,11 @@ reinstall.
 1. **Point DNS first.** Add an `A` record: `your-domain.com` → the VPS public IP.
    Certbot validates over HTTP-01 and **fails if DNS doesn't resolve to this box yet.**
    Verify: `dig +short your-domain.com` returns the VPS IP.
+   **Also add a `www` record** (`A` → the same IP, or a `CNAME` → the apex): the
+   installer requests a SAN cert covering `www` and nginx 301-redirects
+   `www` → apex, so search engines index one canonical host instead of flagging
+   www/non-www duplicate content. If `www` DNS is missing the installer falls
+   back to an apex-only certificate.
 2. **Open ports 22, 80, 443** at the cloud firewall (the script also configures UFW).
 3. **SSH in as root** (or a sudo user).
 4. **Add swap if you're on 4 GB RAM:**
