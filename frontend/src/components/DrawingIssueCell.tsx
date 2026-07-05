@@ -1,6 +1,8 @@
-import { Button, Modal, TextInput } from "@carbon/react";
+import { Share } from "@carbon/icons-react";
+import { Button, Modal, Stack, TextInput } from "@carbon/react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { shareViaWhatsApp } from "../lib/whatsapp.js";
 
 /** Render & open a watermarked issue-set PDF for a drawing. */
 export function DrawingIssueCell({
@@ -41,15 +43,31 @@ export function DrawingIssueCell({
 
   if (status === "READY" && url) {
     return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open issue
-      </Button>
+      <Stack orientation="horizontal" gap={2}>
+        <Button
+          kind="ghost"
+          size="sm"
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open issue
+        </Button>
+        <Button
+          kind="ghost"
+          size="sm"
+          renderIcon={Share}
+          onClick={() =>
+            void shareViaWhatsApp({
+              fileUrl: url,
+              fileName: "drawing.pdf",
+              text: "Please find the attached drawing.",
+            })
+          }
+        >
+          WhatsApp
+        </Button>
+      </Stack>
     );
   }
   if (status === "PENDING" || status === "PROCESSING") {

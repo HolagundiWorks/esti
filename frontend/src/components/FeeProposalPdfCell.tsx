@@ -35,6 +35,7 @@ export function FeeProposalPdfCell({
       url={byId.data?.pdfUrl ?? null}
       generatePending={generate.isPending}
       onGenerate={() => generate.mutate({ id: feeId })}
+      share={{ text: "Please find the attached proposal / agreement.", fileName: "proposal.pdf" }}
     />
   );
 }

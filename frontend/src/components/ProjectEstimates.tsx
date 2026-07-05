@@ -236,6 +236,7 @@ function CostingPanel({ estimateId }: { estimateId: string }) {
             url={data.boqClientPdfUrl}
             generatePending={generateClientPdf.isPending}
             onGenerate={() => generateClientPdf.mutate({ id: estimateId })}
+            share={{ text: "Please find the attached bill of quantities.", fileName: "boq.pdf" }}
           />
         </div>
       </div>

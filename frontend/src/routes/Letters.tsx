@@ -19,6 +19,8 @@ import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { PdfActionButtons } from "../components/PdfActionButtons.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
 import { trpc } from "../lib/trpc.js";
 
 function LetterPdf({ id, initial }: { id: string; initial: string }) {
@@ -27,42 +29,20 @@ function LetterPdf({ id, initial }: { id: string; initial: string }) {
     { id },
     {
       enabled: initial !== "NONE",
-      refetchInterval: (query) =>
-        query.state.data &&
-        (query.state.data.pdfStatus === "PENDING" ||
-          query.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
+      refetchInterval: (query) => pdfPollInterval(query.state.data?.pdfStatus, initial !== "NONE"),
     },
   );
   const gen = trpc.letters.generatePdf.useMutation({
     onSuccess: () => utils.letters.byId.invalidate({ id }),
   });
-  const status = q.data?.pdfStatus ?? initial;
-  const url = q.data?.pdfUrl ?? null;
-  if (status === "READY" && url)
-    return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open PDF
-      </Button>
-    );
-  if (status === "PENDING" || status === "PROCESSING")
-    return <span>Generating…</span>;
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={gen.isPending}
-      onClick={() => gen.mutate({ id })}
-    >
-      {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
-    </Button>
+    <PdfActionButtons
+      status={q.data?.pdfStatus ?? initial}
+      url={q.data?.pdfUrl ?? null}
+      generatePending={gen.isPending}
+      onGenerate={() => gen.mutate({ id })}
+      share={{ text: "Please find the attached letter.", fileName: "letter.pdf" }}
+    />
   );
 }
 

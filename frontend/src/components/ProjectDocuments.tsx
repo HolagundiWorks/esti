@@ -16,11 +16,12 @@ import {
   TextArea,
   TextInput,
 } from "@carbon/react";
-import { Add, TrashCan } from "@carbon/icons-react";
+import { Add, Share, TrashCan } from "@carbon/icons-react";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
+import { shareViaWhatsApp } from "../lib/whatsapp.js";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
 import { ProjectMom } from "./ProjectMom.js";
@@ -49,6 +50,7 @@ function InspectionPdf({ id, initial }: { id: string; initial: string }) {
       url={q.data?.pdfUrl ?? null}
       pending={gen.isPending}
       onGen={() => gen.mutate({ id })}
+      share={{ text: "Please find the attached site inspection report.", fileName: "inspection.pdf" }}
     />
   );
 }
@@ -64,6 +66,7 @@ function SpecPdf({ id, initial }: { id: string; initial: string }) {
       url={q.data?.pdfUrl ?? null}
       pending={gen.isPending}
       onGen={() => gen.mutate({ id })}
+      share={{ text: "Please find the attached specification sheet.", fileName: "specification.pdf" }}
     />
   );
 }
@@ -72,23 +75,40 @@ function PdfButton({
   url,
   pending,
   onGen,
+  share,
 }: {
   status: string;
   url: string | null;
   pending: boolean;
   onGen: () => void;
+  /** When set, shows a "WhatsApp" action once the PDF is ready. */
+  share?: { text: string; fileName: string };
 }) {
   if (status === "READY" && url)
     return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open PDF
-      </Button>
+      <Stack orientation="horizontal" gap={2}>
+        <Button
+          kind="ghost"
+          size="sm"
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open PDF
+        </Button>
+        {share && (
+          <Button
+            kind="ghost"
+            size="sm"
+            renderIcon={Share}
+            onClick={() =>
+              void shareViaWhatsApp({ fileUrl: url, fileName: share.fileName, text: share.text })
+            }
+          >
+            WhatsApp
+          </Button>
+        )}
+      </Stack>
     );
   if (status === "PENDING" || status === "PROCESSING")
     return <span>Generating…</span>;
