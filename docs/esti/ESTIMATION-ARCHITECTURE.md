@@ -180,7 +180,71 @@ Costing is computed (qty × rate-book rate), never stored as truth — so a rate
 
 ---
 
-## 5. Steel quantities (designed)
+## 4a. Automation engines — "enter once, derive everything" (the core value)
+
+The point of the product is to **kill repetition**. Three engines do that:
+
+**A. Derived measurements — measure once → linked quantities.**
+Enter a wall's `L × H` once → brickwork, **plastering (× 2 faces)**, and **painting (× 2)**
+are all computed from that single measurement (net of openings). Driven by **derivation
+rules** on the rate item: `parent item → child item · rule · factor`.
+- Rules: `FACTOR` (child qty = parent × k, e.g. plaster = brick × 2), `NET_OF_OPENINGS`
+  (subtract door/window areas), and geometric rules (`PERIMETER_X_HEIGHT`, …).
+- Auto-generated child lines are editable/removable (openings, part-height, etc.).
+> The `esti_kb_item_dependency` table `{parentItem, childItem, ratio, derivation}` kept
+> during the teardown **is** this engine's store — retained on purpose.
+
+**B. Rate propagation — change once → re-cost everything.** Swap the project's rate book,
+or edit one rate, and every amount recomputes live (costing is computed, never stored — §4).
+
+**C. BBS engine — fixed IS formulae, not 100 manual steps** (see §5).
+
+## 5. Steel quantities & the BBS engine (designed against IS 2502 / IS 456)
+
+Steel is a **Bar Bending Schedule**: each element (slab/beam/column/footing) is a **member**
+carrying **bar rows**, and every bar's cut length + weight is *computed* from a few inputs.
+
+**Inputs the estimator gives:** element type · member dims · bar diameter · spacing · cover ·
+grade. **Everything else is formula:**
+```
+nos         = (clear length / spacing) + 1
+cut length  = clear span − 2·cover + Σ hooks + Σ (Ld / laps) − Σ bend-deductions + crank
+weight      = nos × cut length × (d² / 162)      kg
+```
+
+**Standard constants** (IS 2502:1963 / IS 456:2000 — ✅ = independently verified this run):
+| Constant | Value | Note |
+|---|---|---|
+| Unit weight | **d² / 162** kg/m | d in mm (162.27 exact) |
+| Hook, each end | **9d** ✅ | IS 2502, mild steel k=2; 11/13/17d for k=3/4/6 |
+| Bend coefficient k | 2 mild · 3 medium · **4 HYSD** ✅ | ↑ for bars > 25 mm |
+| 90° bend deduction | ~2d | per bend |
+| 45° bend deduction | ~1d | per bend |
+| Crank (45° bent-up) | **+0.42 D** | D = vertical crank height (slab) |
+| Development length Ld | ~40d–47d (Fe500/M25, tension) | IS 456 26.2 |
+| Lap — tension / compression | 40d–50d / 24d | IS 456 |
+| Clear cover | slab 15–20 · beam 25 · column 40 · footing 50 mm | IS 456 |
+
+**Bar rows per element (the arrangements):**
+- **Slab** — main + distribution + top bars at supports + crank/bent-up.
+- **Beam** — bottom & top longitudinal + **stirrups** (135° hooks) + curtailed/extra + bent-up + side-face.
+- **Column** — longitudinal verticals + **ties/spirals** + lap each floor.
+- **Footing** — two-way bottom mesh + dowel/starter bars.
+
+**Data model (member → bar rows):**
+```
+member:  type · id · concreteGrade · dims · cover · steelGrade
+bar:     mark · role(main|dist|top|stirrup|bent-up|dowel|side) · dia · shapeCode(IS 2502) ·
+         spacing · nos · cutLengthMm · unitWtKgM · weightKg
+```
+Roll up **by diameter** → the steel schedule; **by member** → element steel; × rate → cost.
+AORMS only **displays** the imported schedule (it never recomputes bar geometry).
+
+> Verification status: hook 9d + k-values verified against IS 2502 this run; Ld, laps, cover,
+> bend deductions and crank are standard Indian BBS practice extracted from IS 456 / IS 2502 /
+> SP 34 — to be re-checked against the code PDFs before the constants are hardcoded.
+
+## 5b. Steel quantities — AORMS viewer
 
 Steel is a material reported **by bar diameter**, priced by **weight**.
 
