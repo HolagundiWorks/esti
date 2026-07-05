@@ -1,4 +1,5 @@
-import { ChevronDown, ChevronUp } from "@carbon/icons-react";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 type ScrollAffordanceProps = {
@@ -45,7 +46,7 @@ export function ScrollAffordance({ children, className }: ScrollAffordanceProps)
     <div className={rootClass}>
       {canScrollUp && (
         <div className="esti-scroll-affordance__hint esti-scroll-affordance__hint--up" aria-hidden>
-          <ChevronUp size={16} />
+          <ExpandLess sx={{ fontSize: 16 }} />
         </div>
       )}
       <div ref={viewportRef} className="esti-scroll-affordance__viewport">
@@ -53,7 +54,7 @@ export function ScrollAffordance({ children, className }: ScrollAffordanceProps)
       </div>
       {canScrollDown && (
         <div className="esti-scroll-affordance__hint esti-scroll-affordance__hint--down" aria-hidden>
-          <ChevronDown size={16} />
+          <ExpandMore sx={{ fontSize: 16 }} />
         </div>
       )}
     </div>

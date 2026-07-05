@@ -1,4 +1,4 @@
-import { Tag } from "@carbon/react";
+import { Chip } from "@mui/material";
 import type { ReactNode } from "react";
 import type { TagColor } from "@esti/contracts";
 
@@ -23,9 +23,17 @@ export function StatusTag<T extends string>({
   label?: ReactNode;
   size?: "sm" | "md";
 }) {
+  // Preserve exact Carbon tag colours by rendering an MUI Chip over the
+  // `--cds-tag-*` token vars (still defined by the Carbon token layer).
+  const color = map[value] ?? "gray";
   return (
-    <Tag type={map[value] ?? "gray"} size={size}>
-      {label ?? value}
-    </Tag>
+    <Chip
+      label={label ?? value}
+      size={size === "md" ? "medium" : "small"}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+        color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+      }}
+    />
   );
 }

@@ -1,70 +1,69 @@
-import { ArrowLeft } from "@carbon/icons-react";
-import { Button, Form, InlineNotification, Stack, TextInput, Tile } from "@carbon/react";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Alert, Button, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
-/** Request a workspace password-reset link (esti_user). */
+/** Request a workspace password-reset link (esti_user). Material UI. */
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
   const request = trpc.auth.requestPasswordReset.useMutation();
 
   return (
     <main className="esti-login-shell">
-      <Stack gap={5} className="esti-login-panel">
-        <Tile>
-          <Stack gap={5}>
-            <Stack gap={3}>
+      <Stack spacing={2} className="esti-login-panel">
+        <Paper sx={{ p: 3 }}>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
               <h3>Reset your password</h3>
               <p>Enter your email and we'll send a reset link if an account exists.</p>
             </Stack>
 
             {request.isSuccess ? (
-              <InlineNotification
-                kind="success"
-                title="Check your email"
-                subtitle="If that email has an account, a reset link is on its way. The link is valid for 1 hour."
-                hideCloseButton
-                lowContrast
-              />
+              <Alert severity="success">
+                If that email has an account, a reset link is on its way. The link is
+                valid for 1 hour.
+              </Alert>
             ) : (
-              <Form
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   request.mutate({ email });
                 }}
               >
-                <Stack gap={5}>
-                  <TextInput
+                <Stack spacing={2}>
+                  <TextField
                     id="email"
-                    labelText="Email"
+                    label="Email"
                     type="email"
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    fullWidth
                   />
                   {request.error && (
-                    <InlineNotification
-                      kind="error"
-                      title="Something went wrong"
-                      subtitle={request.error.message}
-                      hideCloseButton
-                      lowContrast
-                    />
+                    <Alert severity="error">{request.error.message}</Alert>
                   )}
-                  <Button type="submit" disabled={request.isPending || !email}>
+                  <Button type="submit" variant="contained" disabled={request.isPending || !email}>
                     {request.isPending ? "Sending..." : "Send reset link"}
                   </Button>
                 </Stack>
-              </Form>
+              </form>
             )}
 
-            <Button as={RouterLink} to="/login" kind="ghost" size="sm" renderIcon={ArrowLeft}>
+            <Button
+              component={RouterLink}
+              to="/login"
+              variant="text"
+              size="small"
+              color="inherit"
+              startIcon={<ArrowBack />}
+            >
               Back to sign in
             </Button>
           </Stack>
-        </Tile>
+        </Paper>
       </Stack>
     </main>
   );
