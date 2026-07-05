@@ -83,7 +83,6 @@ import { progressReportsRouter } from "../modules/pmc/progressReports.js";
 import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
 import { siteVisitRouter } from "../modules/siteVisit/router.js";
 import { cpiRouter } from "../modules/cpi/router.js";
-import { estimatesRouter } from "../modules/estimate/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
 import { accountsRouter } from "../modules/expense/accounts.js";
 import { expensesRouter } from "../modules/expense/expenses.js";
@@ -199,7 +198,6 @@ export const appRouter = router({
   program: programRouter,
   projectBrief: projectBriefRouter,
   cpi: cpiRouter,
-  estimates: estimatesRouter,
   accounts: accountsRouter,
   expenses: expensesRouter,
   system: systemRouter,

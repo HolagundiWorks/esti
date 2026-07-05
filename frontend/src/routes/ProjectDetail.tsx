@@ -31,11 +31,9 @@ import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectCpi } from "../components/ProjectCpi.js";
-import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectMinutes } from "../components/ProjectMinutes.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
-import { ProjectEstimate } from "../components/cms/ProjectEstimate.js";
 import { ProjectBoq } from "../components/cms/ProjectBoq.js";
 import { ProjectSiteMeasurement } from "../components/cms/ProjectSiteMeasurement.js";
 import { ProjectWorkOrders } from "../components/cms/ProjectWorkOrders.js";
@@ -79,7 +77,6 @@ export function ProjectDetail() {
 
     // ── Consultancy — design delivery.
     const consultancyTabs: ProjectTab[] = [
-      { slug: "estimates", label: "Estimates", panel: <ProjectEstimates projectId={id} /> },
       {
         slug: "drawings",
         label: "Drawings & approvals",
@@ -114,7 +111,6 @@ export function ProjectDetail() {
 
     // ── Cost Management System — Element-centric cost control (consultancy).
     const cmsTabs: ProjectTab[] = [
-      { slug: "estimate", label: "Estimate", panel: <ProjectEstimate projectId={id} /> },
       { slug: "boq", label: "BOQ", panel: <ProjectBoq projectId={id} /> },
       { slug: "site-measurement", label: "Site Measurement", panel: <ProjectSiteMeasurement projectId={id} /> },
       { slug: "work-orders", label: "Work Orders", panel: <ProjectWorkOrders projectId={id} /> },

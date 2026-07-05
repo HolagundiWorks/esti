@@ -35,4 +35,4 @@ export * from "./pulse.js";
 export type { ProjectOfficeRow } from "./project.js";
 export * from "./usage.js";
 export * from "./cpi.js";
-export * from "./estimate.js";
+export * from "./rate-book.js";

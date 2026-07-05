@@ -23,27 +23,11 @@ import { DataState } from "../components/DataState.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
 import { PageHeader } from "../components/PageHeader.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
-import { MaterialLibrary } from "../components/knowledge/kb/MaterialLibrary.js";
-import { LaborLibrary } from "../components/knowledge/kb/LaborLibrary.js";
 import { ItemLibrary } from "../components/knowledge/kb/ItemLibrary.js";
-import { ItemDependencyMapper } from "../components/knowledge/kb/ItemDependencyMapper.js";
-import { BrandLibrary } from "../components/knowledge/kb/BrandLibrary.js";
-import { MaterialBrandMapper } from "../components/knowledge/kb/MaterialBrandMapper.js";
-import { SpecificationLibrary } from "../components/knowledge/kb/SpecificationLibrary.js";
-import { RecipeMapper } from "../components/knowledge/kb/RecipeMapper.js";
-import { RateTextImport } from "../components/knowledge/kb/RateTextImport.js";
+import { RateBookLibrary } from "../components/knowledge/kb/RateBookLibrary.js";
 import { trpc } from "../lib/trpc.js";
 
-const KB_TAB_SLUGS = [
-  "materials",
-  "labour",
-  "items",
-  "brands",
-  "specifications",
-  "recipes",
-  "brand-catalogue",
-  "import",
-] as const;
+const KB_TAB_SLUGS = ["items", "specification", "rate-book"] as const;
 
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
@@ -120,7 +104,7 @@ export function KnowledgeBank() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabIndex = Math.max(0, KB_TAB_SLUGS.indexOf(
-    (searchParams.get("tab") ?? "materials") as (typeof KB_TAB_SLUGS)[number],
+    (searchParams.get("tab") ?? "items") as (typeof KB_TAB_SLUGS)[number],
   ));
   const selectTab = (index: number) => {
     setSearchParams((prev) => {
@@ -134,51 +118,20 @@ export function KnowledgeBank() {
     <Stack gap={6}>
       <PageHeader
         title="Knowledge Bank"
-        description="Governed office standards used by estimation, specifications, and procurement workflows."
+        description="Governed office reference library — items, specifications, and the office rate book."
       />
 
       <KnowledgeBankSearch />
 
       <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
         <TabList aria-label="Knowledge Bank sections" contained>
-          <Tab>Materials</Tab>
-          <Tab>Labour</Tab>
           <Tab>Items</Tab>
-          <Tab>Brands</Tab>
-          <Tab>Specifications</Tab>
-          <Tab>Recipes</Tab>
-          <Tab>Brand Catalogue</Tab>
-          <Tab>Import</Tab>
+          <Tab>Specification</Tab>
+          <Tab>Rate Book</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
-            <MaterialLibrary />
-          </TabPanel>
-
-          <TabPanel>
-            <LaborLibrary />
-          </TabPanel>
-
-          <TabPanel>
-            <Stack gap={8}>
-              <ItemLibrary />
-              <ItemDependencyMapper />
-            </Stack>
-          </TabPanel>
-
-          <TabPanel>
-            <Stack gap={8}>
-              <BrandLibrary />
-              <MaterialBrandMapper />
-            </Stack>
-          </TabPanel>
-
-          <TabPanel>
-            <SpecificationLibrary />
-          </TabPanel>
-
-          <TabPanel>
-            <RecipeMapper />
+            <ItemLibrary />
           </TabPanel>
 
           <TabPanel>
@@ -186,7 +139,7 @@ export function KnowledgeBank() {
           </TabPanel>
 
           <TabPanel>
-            <RateTextImport />
+            <RateBookLibrary />
           </TabPanel>
         </TabPanels>
       </Tabs>

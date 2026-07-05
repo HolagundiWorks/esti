@@ -41,8 +41,6 @@ export const LANDING_SLUGS = [
   "architect-document-approval-system",
   "contractor-billing-software-for-architects",
   "esti-ai-assistant-for-architects",
-  // Phase 14 — estimation / BOQ / costing intent.
-  "architecture-estimation-software",
   // Phase 15 — site delivery, coordination, time & meetings (SEO wave 1).
   "architecture-site-visit-software",
   "rfi-management-software-for-architects",
@@ -79,7 +77,6 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "construction-client-management-software", label: "Construction client management" },
       { slug: "architecture-erp-india", label: "Architecture ERP India" },
       { slug: "architect-fee-proposal-software", label: "Fee proposal software" },
-      { slug: "architecture-estimation-software", label: "Estimation & BOQ software" },
       { slug: "architecture-timesheet-software", label: "Timesheet & time tracking" },
       { slug: "rfi-management-software-for-architects", label: "RFI management" },
     ],
