@@ -23,6 +23,13 @@ docker compose -f compose.prod.yaml build backend worker
 docker compose -f compose.prod.yaml up -d backend worker
 wait_for_backend_health 30 2 && info "Backend healthy." || warn "Backend /health failed — docker logs esti-backend"
 
+if [[ "${ESE_ENABLED:-false}" == "true" ]]; then
+  section "Rebuilding ESE"
+  docker compose -f compose.prod.yaml build ese
+  docker compose -f compose.prod.yaml up -d ese
+  info "ESE rebuilt (ese.<domain>)."
+fi
+
 section "Seeds (idempotent)"
 docker compose -f compose.prod.yaml exec -T backend node backend/dist/scripts/seed.js || warn "base seed failed"
 if [[ "${SEED_DEMO:-false}" == "true" ]]; then

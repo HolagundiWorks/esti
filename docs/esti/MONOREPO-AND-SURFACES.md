@@ -122,7 +122,12 @@ state DSRs.
 
 - **AORMS** (backend + worker + frontend, incl. `/estimation`) → `deploy/update.sh`
   (podman compose); one deploy, no separate estimation release.
-- **ESE** → its own container behind `ese.aorms.in`; `kbteam` admin from env.
+- **ESE** → its own `esti-ese` container (in `compose.prod.yaml`) behind
+  `ese.aorms.in`, sharing the AORMS Postgres (self-provisions its `ese_*` tables
+  on boot). One-time: `sudo bash deploy/install-ese.sh` (builds+starts the
+  container, installs the nginx vhost `deploy/nginx-ese.conf`, issues TLS), then
+  set `ESE_ENABLED=true` + `ESE_ADMIN_PASSWORD` in `.env` so `update.sh` keeps it
+  rebuilt. `kbteam` admin seeded from env, forced to rotate on first login.
 - **Estimate app** → desktop release tag; installers hosted like the AORMS builds
   (`.github/workflows/desktop.yml`, `windows-latest`).
 

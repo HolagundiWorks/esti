@@ -14,6 +14,41 @@ function hashPassword(pw: string): string {
   return `${salt}:${scryptSync(pw, salt, 64).toString("hex")}`;
 }
 
+/** Create the ESE tables if absent. ESE shares the AORMS Postgres (its own
+ *  `ese_*` tables); there is no separate migration runner, so it self-provisions
+ *  on boot (idempotent). Keep in sync with db.ts. */
+async function ensureSchema(): Promise<void> {
+  await sql`CREATE TABLE IF NOT EXISTS ese_user (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    username text NOT NULL UNIQUE,
+    password_hash text NOT NULL,
+    role text NOT NULL DEFAULT 'kbteam',
+    must_change_password boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`;
+  await sql`CREATE TABLE IF NOT EXISTS ese_source (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    kind text NOT NULL,
+    authority text NOT NULL,
+    year integer NOT NULL,
+    file_key text NOT NULL,
+    status text NOT NULL DEFAULT 'UPLOADED',
+    markdown text,
+    extracted jsonb,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
+  await sql`CREATE TABLE IF NOT EXISTS ese_pack (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    pack_type text NOT NULL,
+    edition text NOT NULL UNIQUE,
+    checksum text NOT NULL,
+    payload jsonb NOT NULL,
+    published_by_id uuid REFERENCES ese_user(id),
+    published_at timestamptz NOT NULL DEFAULT now()
+  )`;
+}
+
 /** Seed the default kbteam admin at deploy (env-declared), forced to rotate. */
 async function seedAdmin(): Promise<void> {
   if (!config.adminPassword) {
@@ -32,6 +67,7 @@ async function seedAdmin(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  await ensureSchema();
   await seedAdmin();
 
   const app = Fastify({ logger: true });
