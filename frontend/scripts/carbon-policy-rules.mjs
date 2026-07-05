@@ -25,14 +25,14 @@ export const EXCLUDED_FILES = [
 ];
 
 /** Legacy .esti-lp marketing block in styles.scss.
- *  (Shifted +43 lines by the Google-Sans brand-font block added near the top.) */
-export const LANDING_SCSS_START = 703;
-export const LANDING_SCSS_END = 1886;
+ *  (Shifted +19 lines from the original by the Open Sans brand-font block near the top.) */
+export const LANDING_SCSS_START = 679;
+export const LANDING_SCSS_END = 1862;
 /** Editorial landing block (.esti-landing-*). */
-export const LANDING_EDITORIAL_SCSS_START = 3165;
-export const LANDING_EDITORIAL_SCSS_END = 3536;
+export const LANDING_EDITORIAL_SCSS_START = 3141;
+export const LANDING_EDITORIAL_SCSS_END = 3512;
 /** Case-study conic border animation (.esti-case-study-card). */
-export const CASE_STUDY_SCSS_START = 3406;
+export const CASE_STUDY_SCSS_START = 3382;
 
 const HEX_OR_GRADIENT =
   /(?:#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\(|linear-gradient|box-shadow)/i;

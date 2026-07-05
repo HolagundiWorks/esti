@@ -1,3 +1,7 @@
+// Brand font — Open Sans (OFL, self-hosted via @fontsource; works offline, no CDN).
+import "@fontsource/open-sans/400.css";
+import "@fontsource/open-sans/600.css";
+import "@fontsource/open-sans/700.css";
 import "./styles.scss";
 import "./landing.scss";
 import "./glass.scss";

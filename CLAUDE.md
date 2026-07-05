@@ -27,9 +27,9 @@ podman (`compose.yaml`).
 > 3. **Liquid glass** — translucent Paper/Card/Drawer/AppBar with backdrop blur
 >    (baked into the theme; matches `landing.scss` / `glass.scss`).
 >
-> **Brand font: Google Sans** across the *entire* product (landing included) —
-> `--esti-font-sans` in `styles.scss`, mirrored in the MUI theme. Proprietary
-> woff2s go in `frontend/public/fonts/` (see its README); falls back to Plex Sans.
+> **Brand font: Open Sans** (OFL, free) across the *entire* product (landing
+> included) — self-hosted via `@fontsource/open-sans` (imported in `main.tsx`),
+> exposed as `--esti-font-sans` in `styles.scss` and mirrored in the MUI theme.
 
 **Canonical guide:** [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md) —
 MUI theme, migration playbook, square-corner + palette-lock rules.

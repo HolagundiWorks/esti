@@ -24,6 +24,7 @@
     "@emotion/styled": "^11.14.1",
     "@esti/backend": "workspace:*",
     "@esti/contracts": "workspace:*",
+    "@fontsource/open-sans": "^5.2.7",
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "@tanstack/react-query": "^5.51.0",

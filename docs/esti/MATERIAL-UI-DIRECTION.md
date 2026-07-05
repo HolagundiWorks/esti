@@ -21,14 +21,12 @@
    frosted panels over the dark ambient backdrop. Baked into the theme, so screens
    inherit it for free.
 
-## Brand font — Google Sans (whole product, landing included)
+## Brand font — Open Sans (whole product, landing included)
 
+- **Open Sans** (SIL OFL, free) is self-hosted via `@fontsource/open-sans`
+  (weights 400/600/700 imported in `main.tsx`) — works offline, no CDN/CSP issue.
 - Single source of truth: `--esti-font-sans` in `styles.scss`, mirrored by
   `theme.typography.fontFamily` (MUI) and `--lp-font` (landing).
-- Google Sans is proprietary and **not committed**. Drop the licensed woff2s into
-  `frontend/public/fonts/` (`GoogleSans-Regular/Medium/Bold.woff2` — see the
-  README there). Until present, the stack falls back to **IBM Plex Sans** (already
-  loaded) with no breakage.
 - Applied to Carbon surfaces via a runtime override in `styles.scss` (Carbon's
   `$font-families` map is not a configurable Sass var). Our `.esti-*` monospace
   utilities are untouched (higher specificity), so numeric/code readouts keep

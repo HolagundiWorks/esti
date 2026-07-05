@@ -34,38 +34,14 @@
   --cds-spacing-12: 6rem;      // 96px
   --cds-spacing-13: 10rem;     // 160px
   --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
-  // Brand font stack — single source of truth (mirrors the Carbon $font-families
-  // 'sans' override above and MUI's theme.typography.fontFamily).
-  --esti-font-sans: "Google Sans", "Google Sans Text", "Product Sans",
-    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  // Brand font stack — single source of truth (mirrors MUI's
+  // theme.typography.fontFamily and landing's --lp-font). Open Sans (OFL) is
+  // self-hosted via @fontsource, imported in main.tsx.
+  --esti-font-sans: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
-// Google Sans web font (self-hosted). Files are proprietary and NOT committed —
-// drop the licensed woff2s into public/fonts/ (see public/fonts/README.md). If
-// absent, @font-face fails silently and the stack falls back to IBM Plex Sans.
-@font-face {
-  font-family: "Google Sans";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/GoogleSans-Regular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Google Sans";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("/fonts/GoogleSans-Medium.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Google Sans";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/GoogleSans-Bold.woff2") format("woff2");
-}
-
-// BRAND FONT — Google Sans everywhere. Applied as a runtime override because
+// BRAND FONT — Open Sans everywhere. Applied as a runtime override because
 // Carbon's $font-families map is not a configurable Sass var. Reaches the body
 // (inherited by all app + landing text) and every Carbon-prefixed surface, which
 // otherwise set 'IBM Plex Sans' explicitly via the type-style mixins. Our own

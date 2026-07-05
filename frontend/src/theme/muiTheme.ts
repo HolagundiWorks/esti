@@ -68,10 +68,10 @@ export const muiTheme = createTheme({
     divider: "rgba(255, 255, 255, 0.12)",
   },
   typography: {
-    // Brand font — Google Sans across the whole product (mirrors --esti-font-sans
-    // and the Carbon runtime font override in styles.scss). Falls back to Plex Sans.
+    // Brand font — Open Sans (OFL, self-hosted via @fontsource) across the whole
+    // product; mirrors --esti-font-sans and the Carbon runtime override in styles.scss.
     fontFamily:
-      "'Google Sans', 'Google Sans Text', 'Product Sans', 'IBM Plex Sans', system-ui, -apple-system, sans-serif",
+      "'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     button: { textTransform: "none", fontWeight: 400 },
   },
   components: {
