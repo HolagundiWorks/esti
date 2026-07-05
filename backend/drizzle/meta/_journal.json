@@ -1128,6 +1128,13 @@
       "when": 1782207412000,
       "tag": "0160_community_backup_code",
       "breakpoints": true
+    },
+    {
+      "idx": 161,
+      "version": "7",
+      "when": 1782207413000,
+      "tag": "0161_pro_storage_addon",
+      "breakpoints": true
     }
   ]
 }

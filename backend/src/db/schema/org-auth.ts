@@ -50,7 +50,7 @@ export const orgSettings = pgTable("esti_orgsettings", {
       model: "llama3.2",
       redactPii: true,
     }),
-  /** BYOS — bring-your-own-storage (Core+). See StorageSettings in @esti/contracts. */
+  /** BYOS — bring-your-own-storage (Enterprise). See StorageSettings in @esti/contracts. */
   storageSettings: jsonb("storage_settings").notNull().default({ mode: "DEFAULT" }),
   /** When true, REST file uploads require uploadPassword in multipart form data. */
   uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
@@ -58,6 +58,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
   uploadPasswordHash: text("upload_password_hash"),
   /** Running total of object-store bytes used — enforced against the plan's storage cap. */
   storageBytesUsed: bigint("storage_bytes_used", { mode: "number" }).notNull().default(0),
+  /** Add-on cloud storage the firm has purchased, in bytes — lifts the Pro cap. */
+  storagePurchasedBytes: bigint("storage_purchased_bytes", { mode: "number" }).notNull().default(0),
   // Licensing (Phase B) — the install's cached signed license + sync credentials.
   // The plan is **derived from licenseToken**, not the `plan` column above (kept
   // as a fallback for un-licensed web/dev installs).

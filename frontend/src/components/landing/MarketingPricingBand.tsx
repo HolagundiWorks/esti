@@ -28,7 +28,7 @@ const PLANS: Array<{
     pitch: "Get your practice out of spreadsheets — free, with an offline desktop app.",
     price: "Free",
     priceNote: "Forever · licence-free",
-    caps: "1 admin + up to 3 staff · unlimited clients, contractors & projects · 5 GB",
+    caps: "1 admin + up to 3 staff · unlimited clients, contractors & projects · local storage on your device",
     features: [
       "Create your own staff logins (up to 3)",
       "Unlimited clients, contractors & projects",
@@ -49,7 +49,7 @@ const PLANS: Array<{
     price: "Contact for pricing",
     priceNote: "Cloud or self-hosted · billed annually",
     featured: true,
-    caps: "Unlimited staff, storage, clients & projects · one edition, everything included",
+    caps: "Unlimited staff, clients & projects · 10 GB cloud storage (mirrored to the desktop app · expandable)",
     features: [
       "Everything in Lite, plus —",
       "Project delivery — phases, drawings, transmittals & site progress",
@@ -58,11 +58,11 @@ const PLANS: Array<{
       "26AS / AIS / GSTR reconciliation + GST/TDS filing abstracts",
       "HR, payroll & team performance scoring",
       "Consultant & contractor portals",
-      "ESTI office intelligence & AI Studio (built-in or bring-your-own AI)",
-      "Bring-your-own-storage (NAS / S3) · SSO · API access · audit log",
-      "ESTICAD companion · self-hosting · multi-office · white-label",
+      "ESTI AI & AI Studio — LLM / RAG run locally, fetch your cloud data",
+      "10 GB cloud storage, mirrored to desktop · buy add-on storage · archive closed projects",
+      "SSO · API access · audit log · ESTICAD companion · multi-office · white-label",
     ],
-    hosting: "Cloud (dedicated VM) or self-hosted on your own infrastructure",
+    hosting: "Cloud (dedicated VM) or self-hosted · Enterprise adds bring-your-own-storage (on-prem)",
     cta: "Contact sales",
   },
 ];

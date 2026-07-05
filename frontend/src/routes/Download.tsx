@@ -43,10 +43,11 @@ const EDITIONS: Edition[] = [
     pitch:
       "The full edition for growing and multi-office practices — the complete office OS with AI, GST, portals and unlimited seats, cloud-hosted or self-hosted.",
     features: [
-      "Unlimited staff, storage, clients & projects",
-      "AI Studio · GST invoicing · reconciliation · portals",
+      "Unlimited staff, clients & projects",
+      "10 GB cloud storage, mirrored to desktop · buy add-on storage",
+      "AI Studio (LLM/RAG run locally, fetch cloud data) · GST · portals",
       "HR, payroll & performance · SSO · API · audit log",
-      "Self-host · BYO AI keys · BYO storage · white-label",
+      "Self-host · BYO AI keys · white-label (BYO storage on Enterprise)",
       "Activate with your Pro licence key",
     ],
     tag: "blue",

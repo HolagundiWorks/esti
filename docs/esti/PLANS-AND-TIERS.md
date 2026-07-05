@@ -1,4 +1,4 @@
-# AORMS — editions & module map (Lite / Pro)
+# AORMS — editions & module map (Lite / Pro / Enterprise)
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books** (`rateBooks` feature), and **Rate Analysis** were **removed** in
@@ -8,10 +8,13 @@
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
 > [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md). The new Construction Knowledge Bank is Pro.
 
-> **Legacy editions.** The former **Core** and **Enterprise** editions were merged into
-> one paid edition, **AORMS-Pro**. Legacy `CORE` / `ENTERPRISE` licence tokens and
-> `FIRM_PLAN` values still work at runtime — `asPlan()` in `packages/contracts` folds
-> them to `PRO`.
+> **Editions (2026-07).** Three tiers: **Lite** (free, local-first — the offline
+> Community appliance), **Pro** (paid cloud, 10 GB storage mirrored to the desktop
+> app), and **Enterprise** (Pro + bring-your-own-storage, set up on-prem by an AORMS
+> admin). The legacy **Core** code folds to `PRO` via `asPlan()`; `ENTERPRISE` is now
+> a first-class tier again (it previously folded to Pro). **Enterprise desktop builds
+> are on hold** — Enterprise is a licensing/deployment tier, not yet a packaged
+> installer.
 
 > Proposal. Maps every module (see [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md))
 > to a plan. Backend is one codebase; the plan is a **firm-level flag** that gates
@@ -37,8 +40,8 @@
 | **Contractors** | unlimited | unlimited |
 | Consultants | unlimited | unlimited |
 | Active projects | unlimited | unlimited |
-| Document storage | 5 GB | unlimited |
-| Bring-your-own storage (BYOS) | — | ✓ NAS / S3 |
+| Document storage | none — local, on the user's device | **10 GB cloud** (mirrored to desktop · buy add-on storage · archive closed projects to reclaim space) |
+| Bring-your-own storage (BYOS) | — | — (Enterprise only: ✓ NAS / S3, on-prem) |
 | AI / LLM / ML | — (none) | ✓ built-in Ollama or bring-your-own API (per-licence flag) |
 | Support | community | priority + SLA |
 
@@ -53,10 +56,20 @@
 > point AI Studio at their own **OpenAI-compatible** cloud endpoint (base URL +
 > model + key) from Company → AI Studio; the key is write-only and calls fall back
 > to the template if the provider is unreachable. **Bring-your-own-storage (BYOS,
-> Pro)** lets a firm redirect object storage — drawings, documents and generated
-> PDFs — to their own **NAS / mounted folder** or **S3-compatible hosting engine**
-> from Company → Storage (the S3 secret is write-only). NAS mode requires the path
-> to be mounted on both the backend and the worker host.
+> Enterprise)** lets a firm redirect object storage — drawings, documents and
+> generated PDFs — to their own **NAS / mounted folder** or **S3-compatible hosting
+> engine** from Company → Storage (the S3 secret is write-only). NAS mode requires
+> the path to be mounted on both the backend and the worker host. BYOS is set up
+> **on-premises by an AORMS admin** as part of an Enterprise deployment.
+
+> **Storage model (Lite / Pro / Enterprise).** **Lite** keeps files on the user's
+> own machine (the offline Community appliance) — there is no cloud object store and
+> no cap. **Pro** gives **10 GB of cloud storage**, mirrored down to the desktop app;
+> firms can **buy add-on storage** (`orgSettings.storagePurchasedBytes` lifts the cap)
+> or **archive a closed project to a package file** (exported out, re-importable) to
+> reclaim space. **Enterprise** uses the firm's **own** store (BYOS), so the cap does
+> not apply. AI (LLM / RAG) on the desktop runs **locally** and fetches the firm's
+> cloud data.
 
 > Only **active** logins consume a staff seat — disabling an account frees its
 > seat back up. On Lite, creating a 4th active general-staff login is blocked with
@@ -179,9 +192,9 @@
 
 ## Enforcement (implementation approach)
 
-1. **`plan` on the firm** — `LITE | PRO` (DB column on the firm/org record;
-   defaults `LITE`). Legacy `CORE` / `ENTERPRISE` values are folded to `PRO` by
-   `asPlan()`.
+1. **`plan` on the firm** — `LITE | PRO | ENTERPRISE` (DB column on the firm/org
+   record; defaults `LITE`). The legacy `CORE` value folds to `PRO` via `asPlan()`;
+   `ENTERPRISE` resolves to itself (it adds BYOS on top of Pro).
 2. **Feature gate** — `planAllows(plan, feature)` in `packages/contracts`
    (sibling to `can(role, capability)`); a procedure tier `planProcedure(feature)`
    in `backend/src/trpc/trpc.ts` returns `PAYMENT_REQUIRED`/`FORBIDDEN` below tier.

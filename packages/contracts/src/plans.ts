@@ -5,15 +5,16 @@ import { z } from "zod";
  * `can(role, capability)` — capability gates by *person*, plan gates by
  * *subscription*. See docs/esti/PLANS-AND-TIERS.md.
  */
-export const Plan = z.enum(["LITE", "PRO"]);
+export const Plan = z.enum(["LITE", "PRO", "ENTERPRISE"]);
 export type Plan = z.infer<typeof Plan>;
 
 export const PLAN_LABEL: Record<Plan, string> = {
   LITE: "AORMS-Lite",
   PRO: "AORMS-Pro",
+  ENTERPRISE: "AORMS-Enterprise",
 };
 
-const PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1 };
+const PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1, ENTERPRISE: 2 };
 
 /**
  * Quota caps per plan. `null` = unlimited.
@@ -36,14 +37,16 @@ export interface PlanLimits {
   storageBytes: number | null;
 }
 
-/** 5 GB, the AORMS-Lite storage cap. */
-export const LITE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
+/** 10 GB, the AORMS-Pro cloud storage cap (mirrored to the desktop app). */
+export const PRO_STORAGE_BYTES = 10 * 1024 * 1024 * 1024;
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   LITE: {
     // Lite admins create up to 3 general staff logins directly (no functional
     // accountant/HR seats — upgrade to Pro for those roles). Clients,
     // contractors, consultants and projects are unlimited (the normal create flow).
+    // Lite is local-first (the offline Community appliance) — files live on the
+    // user's own machine, so there is no cloud object-store cap to enforce.
     accountants: 0,
     hrManagers: 0,
     staff: 3,
@@ -51,12 +54,28 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     contractors: null,
     consultants: null,
     projects: null,
-    storageBytes: LITE_STORAGE_BYTES,
+    storageBytes: null,
   },
   PRO: {
-    // Pro is the full edition (merges the former Core + Enterprise). Seat and
-    // storage caps default to unlimited; a licence token may still constrain
-    // seats via its `seats` field (see panelLicense.ts panelDerived).
+    // Pro is the full cloud edition. Seats are unlimited (a licence token may
+    // still constrain them via its `seats` field — see panelLicense.ts). Cloud
+    // object storage is capped at 10 GB (mirrored to the desktop app); firms can
+    // buy add-on storage (orgSettings.storagePurchasedBytes lifts the cap), or
+    // archive closed projects to a package file to reclaim space. BYOS lives in
+    // Enterprise.
+    accountants: null,
+    hrManagers: null,
+    staff: null,
+    clients: null,
+    contractors: null,
+    consultants: null,
+    projects: null,
+    storageBytes: PRO_STORAGE_BYTES,
+  },
+  ENTERPRISE: {
+    // Enterprise is Pro plus bring-your-own-storage (NAS / S3), configured
+    // on-premises by an AORMS admin — so the object store is the firm's own and
+    // uncapped here. Everything Pro unlocks, Enterprise unlocks too (rank ≥ PRO).
     accountants: null,
     hrManagers: null,
     staff: null,
@@ -67,6 +86,12 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     storageBytes: null,
   },
 };
+
+/**
+ * @deprecated Lite is local-first and no longer carries a cloud storage cap.
+ * Retained so older imports keep compiling; not referenced by enforcement.
+ */
+export const LITE_STORAGE_BYTES = 5 * 1024 * 1024 * 1024;
 /** Count-based quotas (storageBytes is enforced separately via `withinStorage`). */
 export type PlanQuota =
   | "accountants"
@@ -119,7 +144,7 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
 
   ai: "PRO",
   aiByoApi: "PRO", // bring-your-own AI provider — a per-licence flag within Pro
-  byos: "PRO",
+  byos: "ENTERPRISE", // bring-your-own-storage (NAS / S3) — Enterprise, set up on-prem by an AORMS admin
   esticad: "PRO",
   auditLog: "PRO",
   knowledgeBank: "PRO",
@@ -130,12 +155,13 @@ const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
 };
 
 /**
- * Coerce any plan string to a current edition. Legacy licence/plan codes
- * (`CORE`, `ENTERPRISE`) and the new `PRO` all resolve to PRO, so existing
- * licence tokens and `.env` FIRM_PLAN values keep working after the collapse.
+ * Coerce any plan string to a current edition. `ENTERPRISE` and `PRO` are
+ * first-class tiers; the legacy `CORE` code folds onto `PRO` so old licence
+ * tokens and `.env` FIRM_PLAN values keep working. Anything unknown → LITE.
  */
 export function asPlan(plan: Plan | string | null | undefined): Plan {
-  if (plan === "PRO" || plan === "CORE" || plan === "ENTERPRISE") return "PRO";
+  if (plan === "ENTERPRISE") return "ENTERPRISE";
+  if (plan === "PRO" || plan === "CORE") return "PRO";
   return "LITE";
 }
 
@@ -159,17 +185,26 @@ export function withinQuota(
   return cap == null || current < cap;
 }
 
-/** The object-store cap for this plan, in bytes, or null when unlimited. */
-export function storageCapBytes(plan: Plan | string | null | undefined): number | null {
-  return PLAN_LIMITS[asPlan(plan)].storageBytes;
+/**
+ * The object-store cap for this plan, in bytes, or null when unlimited.
+ * `purchasedBytes` is add-on storage the firm has bought — it lifts a finite cap
+ * (Pro) and is a no-op on unlimited plans (Lite local / Enterprise BYOS).
+ */
+export function storageCapBytes(
+  plan: Plan | string | null | undefined,
+  purchasedBytes = 0,
+): number | null {
+  const base = PLAN_LIMITS[asPlan(plan)].storageBytes;
+  return base == null ? null : base + Math.max(0, purchasedBytes);
 }
 
-/** Would storing `incomingBytes` more keep the firm within its storage cap? */
+/** Would storing `incomingBytes` more keep the firm within its (add-on-adjusted) storage cap? */
 export function withinStorage(
   plan: Plan | string | null | undefined,
   usedBytes: number,
   incomingBytes: number,
+  purchasedBytes = 0,
 ): boolean {
-  const cap = storageCapBytes(plan);
+  const cap = storageCapBytes(plan, purchasedBytes);
   return cap == null || usedBytes + incomingBytes <= cap;
 }

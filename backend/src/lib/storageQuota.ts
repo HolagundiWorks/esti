@@ -26,7 +26,14 @@ export async function currentStorageUsed(): Promise<number> {
 export async function assertStorageAvailable(incomingBytes: number): Promise<void> {
   if (incomingBytes <= 0) return;
   const settings = await getOrgSettings(db);
-  if (!withinStorage(settings.plan, settings.storageBytesUsed ?? 0, incomingBytes)) {
+  if (
+    !withinStorage(
+      settings.plan,
+      settings.storageBytesUsed ?? 0,
+      incomingBytes,
+      settings.storagePurchasedBytes ?? 0,
+    )
+  ) {
     throw new StorageQuotaExceededError();
   }
 }

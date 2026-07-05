@@ -320,7 +320,7 @@ export const componentReleases = pgTable(
   "hlp_component_release",
   {
     id: text("id").primaryKey(),
-    edition: text("edition", { enum: ["LITE", "PRO"] }).notNull(),
+    edition: text("edition", { enum: ["LITE", "PRO", "ENTERPRISE"] }).notNull(),
     appVersion: text("app_version").notNull(),
     components: jsonb("components").$type<unknown[]>().notNull().default([]),
     /** The latest active release per edition is the one served; older rows kept for history. */
