@@ -205,27 +205,38 @@ Steel is a **Bar Bending Schedule**: each element (slab/beam/column/footing) is 
 carrying **bar rows**, and every bar's cut length + weight is *computed* from a few inputs.
 
 **Inputs the estimator gives:** element type · member dims · bar diameter · spacing · cover ·
-grade. **Everything else is formula:**
+grade · exposure. **Everything else is formula:**
 ```
-nos         = (clear length / spacing) + 1
-cut length  = clear span − 2·cover + Σ hooks + Σ (Ld / laps) − Σ bend-deductions + crank
-weight      = nos × cut length × (d² / 162)      kg
+nos         = ⌊ clear length / spacing ⌋ + 1
+cut length  = Σ(outer dimensions) + Σ hooks + Σ(Ld / laps) − Σ(bend deductions)   ( + crank )
+weight      = nos × cut length × (D² / 162)      kg
 ```
 
-**Standard constants** (IS 2502:1963 / IS 456:2000 — ✅ = independently verified this run):
-| Constant | Value | Note |
+**Verified constants** (primary BIS sources this run — IS 456:2000, IS 2502:1963, SP 34:1987,
+IS 1786:2008; ✅ = 3-0 verified, ⛔ = a rule-of-thumb that was **refuted**, use the code rule):
+| Constant | Value | Source |
 |---|---|---|
-| Unit weight | **d² / 162** kg/m | d in mm (162.27 exact) |
-| Hook, each end | **9d** ✅ | IS 2502, mild steel k=2; 11/13/17d for k=3/4/6 |
-| Bend coefficient k | 2 mild · 3 medium · **4 HYSD** ✅ | ↑ for bars > 25 mm |
-| 90° bend deduction | ~2d | per bend |
-| 45° bend deduction | ~1d | per bend |
-| Crank (45° bent-up) | **+0.42 D** | D = vertical crank height (slab) |
-| Development length Ld | ~40d–47d (Fe500/M25, tension) | IS 456 26.2 |
-| Lap — tension / compression | 40d–50d / 24d | IS 456 |
-| Clear cover | slab 15–20 · beam 25 · column 40 · footing 50 mm | IS 456 |
+| Unit mass | **D² / 162** kg/m ✅ | (162.27 exact) — 8:0.395·10:0.617·12:0.888·16:1.58·20:2.47·25:3.85 |
+| Development length | **Ld = φ·σs / (4·τbd)** ✅ | IS 456 cl.26.2.1 |
+| τbd (plain, tension) | 1.2/1.4/1.5/1.7/1.9 N/mm² for M20/25/30/35/40+ ✅ | **+60 % deformed, +25 % compression** → Fe500/M25 ≈ **48d** |
+| **Lap — tension** | **max(Ld, 30φ)**, straight lap ≥ 15φ or 200 mm ✅ | IS 456 cl.26.2.5.1 — ⛔ flat "40d" refuted |
+| **Lap — compression** | **Ld(comp), min 24φ** ✅ | IS 456 |
+| Cut-length **bend deduction** | 45°=**1d** · 90°=**2d** · 135°=**3d** · 180°=**4d** ✅ | per bend |
+| Hook allowance (add) | **9d/11d/13d/17d** for k=2/3/4/6 ✅ | IS 2502; bend-anchorage add 5d/5.5d/6d/7d |
+| k (steel type) | 2 mild · 3 medium · **4 HYSD** ✅ | ↑ (6) for bars > 25 mm |
+| Anchorage value | 4d per 45° bend (max 16d) · U-hook = 16d ✅ | IS 456 |
+| Crank (slab bent-up) | **+0.42 h** ✅ | h = vertical crank height |
+| Cover = **max(element-min, exposure-min)** | slab 15 · beam 25 · column 40 (→25 small) · footing **50** · end 25/2d ✅ | SP 34 §4.1 |
+| Cover — exposure (durability) | mild 20 · moderate 30 · severe 45 · very-severe 50 · extreme 75 mm ✅ | IS 456 Table 16 — ⛔ footing "40–75" refuted → 50 min |
+| Grades (fy = grade №) | Fe415 (elong ≥14.5 %) · Fe500 (≥12 %) · Fe550 (≥8 %) ✅ | IS 1786; Fe500D/550D = ductile variants |
 
-**Bar rows per element (the arrangements):**
+> **Two corrections the research forced:** lap is **not** a flat 40d — it is `max(Ld, 30φ)`
+> tension / `≥24φ` compression; and cover is the **greater of the element minimum and the
+> exposure minimum** (footing = 50 mm, the "40–75" range was refuted). These are the values
+> to hardcode.
+
+**Bar rows per element** (Part 1 arrangements — a design decision *grounded in* the above,
+not itself a cited finding):
 - **Slab** — main + distribution + top bars at supports + crank/bent-up.
 - **Beam** — bottom & top longitudinal + **stirrups** (135° hooks) + curtailed/extra + bent-up + side-face.
 - **Column** — longitudinal verticals + **ties/spirals** + lap each floor.
@@ -233,16 +244,12 @@ weight      = nos × cut length × (d² / 162)      kg
 
 **Data model (member → bar rows):**
 ```
-member:  type · id · concreteGrade · dims · cover · steelGrade
+member:  type · id · concreteGrade · dims · cover · steelGrade · exposure
 bar:     mark · role(main|dist|top|stirrup|bent-up|dowel|side) · dia · shapeCode(IS 2502) ·
          spacing · nos · cutLengthMm · unitWtKgM · weightKg
 ```
 Roll up **by diameter** → the steel schedule; **by member** → element steel; × rate → cost.
 AORMS only **displays** the imported schedule (it never recomputes bar geometry).
-
-> Verification status: hook 9d + k-values verified against IS 2502 this run; Ld, laps, cover,
-> bend deductions and crank are standard Indian BBS practice extracted from IS 456 / IS 2502 /
-> SP 34 — to be re-checked against the code PDFs before the constants are hardcoded.
 
 ## 5b. Steel quantities — AORMS viewer
 
