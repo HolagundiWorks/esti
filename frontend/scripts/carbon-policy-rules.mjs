@@ -10,6 +10,9 @@
 export const EXCLUDED_FILES = [
   /[/\\]routes[/\\]Landing\.tsx$/,
   /[/\\]frontend[/\\]src[/\\]landing\.scss$/,
+  // Studio Intelligence liquid-glass reskin — dark editorial surface layered on
+  // the Pure-Carbon dashboard structure (see glass.scss header).
+  /[/\\]frontend[/\\]src[/\\]glass\.scss$/,
   /[/\\]components[/\\]landing[/\\]/,
   /[/\\]components[/\\]LandingTrialForm\.tsx$/,
   /[/\\]components[/\\]LandingCarbonZone\.tsx$/,

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
   Tag,
+  Theme,
   Tile,
 } from "@carbon/react";
 import "@carbon/charts-react/styles.css";
@@ -39,7 +40,6 @@ import type { CarbonIconType } from "@carbon/icons-react";
 import { can, formatINRShort } from "@esti/contracts";
 import { StatusSymbol } from "../components/dashboard/abstractShell.js";
 import { DashboardQuickActions } from "../components/dashboard/DashboardQuickActions.js";
-import { useAppTheme } from "../lib/theme-context.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
@@ -299,7 +299,8 @@ export function StudioAbstract() {
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
   const trendQ    = trpc.dashboard.trend.useQuery(undefined, { staleTime: 300_000 });
-  const chartTheme = useAppTheme();
+  // Studio Intelligence is reskinned dark (liquid glass) — chart matches g100.
+  const chartTheme = "g100" as const;
 
   const home = homeQ.data;
   const ac   = home?.actionCenter;
@@ -422,6 +423,7 @@ export function StudioAbstract() {
   ]);
 
   return (
+    <Theme theme="g100" className="esti-glass-dash">
     <Stack gap={6} className="esti-studio-abstract-page">
 
       {/* ── Page title ──────────────────────────────────────────────────── */}
@@ -904,5 +906,6 @@ export function StudioAbstract() {
       </div>
 
     </Stack>
+    </Theme>
   );
 }

@@ -96,6 +96,7 @@ must not spread to staff workspace routes without an explicit policy update.
 | Landing layout | `.esti-landing-content`, `.esti-landing-*`, `.esti-lp-*` | UI Shell chrome plus expressive editorial typography and 2x Grid tile layout. Marketing sections use Carbon `Grid`, `Column`, `Stack`, and `Tile`. The `.esti-lp-*` prefix is the implemented form of the `.esti-landing-*` convention — both are permitted. |
 | Landing case-study border | `.esti-case-study-card`, `@property --esti-case-study-angle` | Landing-only IBM-style rotating conic border using `--cds-*` tokens only; `prefers-reduced-motion: reduce` disables animation. |
 | Landing ESTI AI | `.esti-landing-ai` | Fixed corner FAB + panel positioning for public marketing AI; Carbon controls only. |
+| Studio Intelligence liquid-glass | `.esti-glass-dash` (`glass.scss`) | The Studio Intelligence home (`StudioAbstract.tsx`, route `/`) is reskinned with the landing page's dark "liquid glass" editorial surface at the user's request. Structure stays Pure-Carbon (`Grid`/`Column`/`Tile`/`Table`/`Tag`/`ProgressBar`); only the surface — dark ambient backdrop + frosted-glass tiles via `<Theme theme="g100">` — is layered on. Scoped strictly to `.esti-glass-dash`; `glass.scss` is guard-exempt like `landing.scss`. |
 | Portal logo sizing | `.esti-portal-logo` | Structural max-height for firm logo in external portal headers. |
 
 Staff routes (`src/routes` excluding `Landing.tsx`) must not add new entries to
