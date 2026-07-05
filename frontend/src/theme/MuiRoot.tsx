@@ -10,15 +10,22 @@
  * <head> so our own app CSS (styles.scss, glass.scss) still wins on cascade.
  * We deliberately do NOT render a global <CssBaseline> — it would repaint the
  * landing body; the dark ambient backdrop is applied per-shell in SCSS instead.
+ *
+ * `LocalizationProvider` (dayjs) is mounted here so MUI X Date Pickers work
+ * anywhere without per-screen setup.
  */
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { ReactNode } from "react";
 import { muiTheme } from "./muiTheme.js";
 
 export function MuiRoot({ children }: { children: ReactNode }) {
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>
+      <ThemeProvider theme={muiTheme}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>{children}</LocalizationProvider>
+      </ThemeProvider>
     </StyledEngineProvider>
   );
 }

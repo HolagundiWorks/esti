@@ -57,15 +57,23 @@ consistent (same dark glass palette) throughout the transition.
    | `Grid`/`Column` (2x grid) | `Grid` (`container` / `size`) or `Box` `display:grid` |
    | `Modal` | `Dialog` (+ `DialogTitle/Content/Actions`) |
    | `TextInput` / `TextArea` / `Select` | `TextField` (`multiline`, `select`) |
-   | `DataTable` / `Table*` | `Table` / `TableHead/Body/Row/Cell` (+ `TableContainer`) |
+   | `DataTable` / `Table*` (list/data grids) | **MUI X `DataGrid`** (`@mui/x-data-grid`) — columns + rows, sorting/filtering built in |
+   | small static `Table*` (2–3 rows, no data ops) | plain MUI `Table`/`TableHead/Body/Row/Cell` is fine |
+   | `LineChart`/`BarChart` (`@carbon/charts`) | **MUI X Charts** (`@mui/x-charts`) — `LineChart`/`BarChart`/`PieChart` |
+   | date `TextInput type="date"` | **MUI X `DatePicker`** (`@mui/x-date-pickers`, dayjs adapter mounted in MuiRoot) |
    | `Tabs`/`Tab`/`TabPanel` | `Tabs`/`Tab` + controlled panel state |
    | `InlineNotification` | `Alert` (`severity`) |
    | `ProgressBar` | `LinearProgress` (`variant="determinate"`) |
-   | `@carbon/icons-react` | keep short-term (framework-neutral SVG) or `@mui/icons-material` |
+   | `@carbon/icons-react` | `@mui/icons-material` (per-icon default import) |
 
-2. **Keep semantic type.** Prefer `<h1>…<h4>`, `<p>` inside MUI containers so the
-   existing Carbon/Google-Sans type scale applies — don't re-scale with MUI
-   `Typography` variants unless matching the old size.
+2. **Use the MUI System, not Carbon layout.** Layout, spacing, sizing and type go
+   through the [MUI System](https://mui.com/system/getting-started/): `Box`/`Stack`/
+   `Grid` with the `sx` prop and system props (`spacing`, `p`/`m`, `width`, `display`,
+   `typography`). No Carbon `Grid`/`Column`/`gap`, no ad-hoc structural divs.
+   - **Grid**: `<Grid container spacing={2}>` + `<Grid size={{ xs: 12, md: 4 }}>`.
+   - **Spacing/sizing**: `sx={{ p: 2, mt: 3, width: 1, maxWidth: 480 }}` (8px unit).
+   - **Type**: MUI `Typography` (`variant="h4|body1|body2|caption"`) or the `typography`
+     sx prop — not raw `<h1>/<p>`. Page titles use `<Typography variant="h4">`.
 3. **Never hard-code colour.** Use `color="primary|error|warning|success"`,
    theme palette, or `--cds-*` vars (still defined on the g100 shell). No hex.
 4. **Never round corners.** Don't set `borderRadius` (theme handles it). The guard
@@ -88,9 +96,22 @@ zero edits. Copy its shape for other shared primitives.
 - **`Grid`** — use the `size` prop (`<Grid size={{ xs: 12, md: 4 }}>`), not `item`/`xs`.
 - **Icons** — import per-icon default: `import Logout from "@mui/icons-material/Logout"`.
 
-## Charts & icons (deferred)
+## MUI X (the data layer)
 
-- `@carbon/charts-react` has no MUI equivalent; keep it until a chart pass swaps to
-  MUI X Charts / Recharts. It renders fine on the g100 shell.
-- `@carbon/icons-react` icons are plain SVG components — keep during migration to
-  avoid churn; swap to `@mui/icons-material` opportunistically.
+Installed and wired: `@mui/x-data-grid`, `@mui/x-charts`, `@mui/x-date-pickers`
+(+ `dayjs`). `MuiRoot` mounts `LocalizationProvider` (dayjs adapter) so pickers
+work anywhere; the theme styles `MuiDataGrid` square + glass to match.
+
+- **Tables → `DataGrid`.** Define `columns: GridColDef[]` + `rows` (each row needs an
+  `id`). Prefer this for any list screen — it brings sort/filter/resize for free.
+  Community edition (MIT) is enough. Render status columns with `renderCell` → our
+  `StatusTag`/`Chip`.
+- **Charts → `@mui/x-charts`.** `LineChart`/`BarChart`/`PieChart` with `series` +
+  `xAxis`. Colour series from the theme palette / `--cds-*` tokens, never hex.
+- **Dates → `DatePicker`.** `value`/`onChange` are dayjs objects; format with
+  `dayjs`. Replaces `TextInput type="date"`.
+
+## Icons
+
+`@carbon/icons-react` → `@mui/icons-material`, per-icon default import
+(`import Logout from "@mui/icons-material/Logout"`). Size via `sx={{ fontSize }}`.

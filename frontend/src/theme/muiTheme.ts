@@ -20,6 +20,8 @@
  * live — it is exempt from the visual guard exactly like landing.scss.
  */
 import { createTheme } from "@mui/material/styles";
+// Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
+import type {} from "@mui/x-data-grid/themeAugmentation";
 
 // ── Carbon g100 tokens (verbatim from @carbon/themes) ────────────────────────
 const CDS = {
@@ -151,6 +153,25 @@ export const muiTheme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: { borderRadius: 0, backgroundColor: POP_FILL, border: GLASS_BORDER },
+      },
+    },
+    // MUI X DataGrid — square, glass surface, translucent rows (the standard
+    // table primitive going forward; replaces Carbon DataTable).
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          backgroundColor: GLASS_FILL,
+          backdropFilter: GLASS_BLUR,
+          WebkitBackdropFilter: GLASS_BLUR,
+          border: GLASS_BORDER,
+          "--DataGrid-rowBorderColor": "rgba(255,255,255,0.08)",
+        },
+        columnHeaders: { backgroundColor: "rgba(255,255,255,0.04)" },
+        columnHeader: { backgroundColor: "transparent" },
+        cell: { borderColor: "rgba(255,255,255,0.08)" },
+        footerContainer: { borderColor: "rgba(255,255,255,0.10)" },
+        row: { "&:hover": { backgroundColor: "rgba(255,255,255,0.06)" } },
       },
     },
   },
