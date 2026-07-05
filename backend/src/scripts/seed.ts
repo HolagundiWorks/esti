@@ -21,6 +21,7 @@ import { normalizeEmail } from "../lib/email.js";
 import { applyFirmPlanFromEnv } from "../lib/plan.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 import { seedCivilWbs } from "./seedCivilWbs.js";
+import { seedCpwdRates } from "./seedCpwdRates.js";
 
 const email = normalizeEmail(process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in");
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
@@ -31,6 +32,9 @@ async function main(): Promise<void> {
 
   // Knowledge Bank: civil-works WBS item library (idempotent).
   await seedCivilWbs(db);
+
+  // Office rate book: CPWD Delhi DSR rates (idempotent; skips if already seeded).
+  await seedCpwdRates(db);
 
   // Licence-free standalone plan (no-op when FIRM_PLAN is unset).
   await applyFirmPlanFromEnv(db);
