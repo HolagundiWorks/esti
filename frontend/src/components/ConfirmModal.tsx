@@ -1,4 +1,5 @@
-import { Modal } from "@carbon/react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import type { ReactNode } from "react";
 
 /**
  * One confirmation pattern for destructive actions — replaces ad-hoc
@@ -7,6 +8,8 @@ import { Modal } from "@carbon/react";
  *   const [confirm, setConfirm] = useState<null | (() => void)>(null);
  *   <Button onClick={() => setConfirm(() => () => remove.mutate({ id }))}>Remove</Button>
  *   <ConfirmModal open={!!confirm} ... onConfirm={() => { confirm?.(); setConfirm(null); }} />
+ *
+ * Migrated to Material UI (Dialog). API unchanged so all call sites are untouched.
  */
 export function ConfirmModal({
   open,
@@ -20,7 +23,7 @@ export function ConfirmModal({
 }: {
   open: boolean;
   heading?: string;
-  body: React.ReactNode;
+  body: ReactNode;
   confirmText?: string;
   danger?: boolean;
   pending?: boolean;
@@ -28,17 +31,22 @@ export function ConfirmModal({
   onClose: () => void;
 }) {
   return (
-    <Modal
-      open={open}
-      danger={danger}
-      modalHeading={heading}
-      primaryButtonText={pending ? "Working…" : confirmText}
-      secondaryButtonText="Cancel"
-      primaryButtonDisabled={pending}
-      onRequestClose={onClose}
-      onRequestSubmit={onConfirm}
-    >
-      {typeof body === "string" ? <p>{body}</p> : body}
-    </Modal>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle>{heading}</DialogTitle>
+      <DialogContent>{typeof body === "string" ? <p>{body}</p> : body}</DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} variant="text" color="inherit">
+          Cancel
+        </Button>
+        <Button
+          onClick={onConfirm}
+          disabled={pending}
+          variant="contained"
+          color={danger ? "error" : "primary"}
+        >
+          {pending ? "Working…" : confirmText}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
