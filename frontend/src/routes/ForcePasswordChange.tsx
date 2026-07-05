@@ -1,5 +1,5 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button, Form, InlineNotification, Stack, TextInput, Theme, Tile } from "@carbon/react";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import { Alert, Button, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
@@ -7,7 +7,7 @@ import { trpc } from "../lib/trpc.js";
  * Forced first-login password rotation. Preloaded/community accounts ship with a
  * default password and `mustChangePassword`; the backend blocks every mutation
  * until it's cleared, and App renders this gate instead of the workspace until
- * the account sets its own password.
+ * the account sets its own password. Material UI.
  */
 export function ForcePasswordChange() {
   const utils = trpc.useUtils();
@@ -24,19 +24,19 @@ export function ForcePasswordChange() {
   const canSubmit = Boolean(current) && next.length >= 8 && next === confirm;
 
   return (
-    <Theme theme="g100">
+    <div className="cds--g100">
       <main className="esti-login-shell">
         <div className="esti-login-panel">
-          <Tile>
-            <Stack gap={6}>
-              <Stack gap={2}>
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Stack spacing={1}>
                 <h2>Set a new password</h2>
                 <p className="esti-label esti-label--secondary">
                   This account was preloaded with a default password. Choose your own before
                   continuing — it can&apos;t be skipped.
                 </p>
               </Stack>
-              <Form
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (canSubmit && !change.isPending) {
@@ -44,62 +44,59 @@ export function ForcePasswordChange() {
                   }
                 }}
               >
-                <Stack gap={5}>
-                  <TextInput
+                <Stack spacing={2}>
+                  <TextField
                     id="fpc-current"
                     type="password"
-                    labelText="Current (default) password"
+                    label="Current (default) password"
                     autoComplete="current-password"
                     value={current}
                     onChange={(e) => setCurrent(e.target.value)}
                     required
+                    fullWidth
                   />
-                  <TextInput
+                  <TextField
                     id="fpc-new"
                     type="password"
-                    labelText="New password"
-                    helperText="At least 8 characters."
+                    label="New password"
                     autoComplete="new-password"
                     value={next}
                     onChange={(e) => setNext(e.target.value)}
-                    invalid={tooShort}
-                    invalidText="At least 8 characters."
+                    error={tooShort}
+                    helperText="At least 8 characters."
                     required
+                    fullWidth
                   />
-                  <TextInput
+                  <TextField
                     id="fpc-confirm"
                     type="password"
-                    labelText="Confirm new password"
+                    label="Confirm new password"
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
-                    invalid={mismatch}
-                    invalidText="Passwords do not match."
+                    error={mismatch}
+                    helperText={mismatch ? "Passwords do not match." : undefined}
                     required
+                    fullWidth
                   />
                   {change.error && (
-                    <InlineNotification
-                      kind="error"
-                      lowContrast
-                      hideCloseButton
-                      title="Could not update password"
-                      subtitle={change.error.message}
-                    />
+                    <Alert severity="error">{change.error.message}</Alert>
                   )}
                   <Button
                     type="submit"
-                    size="lg"
-                    renderIcon={ArrowRight}
+                    size="large"
+                    variant="contained"
+                    endIcon={<ArrowForward />}
                     disabled={change.isPending || !canSubmit}
                   >
                     {change.isPending ? "Saving…" : "Set password & continue"}
                   </Button>
                 </Stack>
-              </Form>
+              </form>
             </Stack>
-          </Tile>
+          </Paper>
         </div>
       </main>
-    </Theme>
+    </div>
   );
 }

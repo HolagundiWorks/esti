@@ -1,4 +1,4 @@
-import { Button, Stack, Tag, TextArea } from "@carbon/react";
+import { Button, Chip, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { DataState } from "./DataState.js";
 
@@ -19,6 +19,7 @@ const SIDE_TAG: Record<string, "blue" | "teal" | "purple"> = {
 /**
  * Presentational conversation thread for a portal/consultant submission.
  * The parent owns the query + reply mutation and passes data/handlers in.
+ * Material UI.
  */
 export function SubmissionThread({
   messages,
@@ -34,35 +35,57 @@ export function SubmissionThread({
   const [body, setBody] = useState("");
 
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       <DataState
         loading={loading}
         isEmpty={messages.length === 0}
         columnCount={1}
         empty={{ title: "No messages yet", description: "Start the conversation below." }}
       >
-        <Stack gap={4}>
-          {messages.map((m) => (
-            <Stack key={m.id} gap={2}>
-              <Stack orientation="horizontal" gap={3}>
-                <Tag type={SIDE_TAG[m.authorSide] ?? "gray"} size="sm">
-                  {m.authorName ?? m.authorSide}
-                </Tag>
-                <span className="esti-label esti-label--helper">
-                  {new Date(m.createdAt as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                </span>
+        <Stack spacing={2}>
+          {messages.map((m) => {
+            const color = SIDE_TAG[m.authorSide] ?? "gray";
+            return (
+              <Stack key={m.id} spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <Chip
+                    size="small"
+                    label={m.authorName ?? m.authorSide}
+                    sx={{
+                      backgroundColor: `var(--cds-tag-background-${color})`,
+                      color: `var(--cds-tag-color-${color})`,
+                    }}
+                  />
+                  <span className="esti-label esti-label--helper">
+                    {new Date(m.createdAt as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </span>
+                </Stack>
+                <p>{m.body}</p>
               </Stack>
-              <p>{m.body}</p>
-            </Stack>
-          ))}
+            );
+          })}
         </Stack>
       </DataState>
 
-      <Stack gap={3}>
-        <TextArea id="thread-reply" labelText="Reply" rows={2} value={body}
-          onChange={(e) => setBody(e.target.value)} />
-        <Button size="sm" disabled={!body.trim() || pending}
-          onClick={() => { onReply(body.trim()); setBody(""); }}>
+      <Stack spacing={1}>
+        <TextField
+          id="thread-reply"
+          label="Reply"
+          multiline
+          minRows={2}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          fullWidth
+        />
+        <Button
+          variant="contained"
+          size="small"
+          disabled={!body.trim() || pending}
+          onClick={() => {
+            onReply(body.trim());
+            setBody("");
+          }}
+        >
           {pending ? "Sending…" : "Send reply"}
         </Button>
       </Stack>
