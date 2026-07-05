@@ -1,20 +1,21 @@
-import { ToastNotification } from "@carbon/react";
+import { Alert, AlertTitle } from "@mui/material";
 import { dismissToast, useToasts } from "../lib/toast.js";
 
-/** Renders the global toast stack (bottom-right). */
+/** Renders the global toast stack (bottom-right). Material UI. */
 export function ToastHost() {
   const toasts = useToasts();
   return (
     <div className="esti-toast-host">
       {toasts.map((t) => (
-        <ToastNotification
+        <Alert
           key={t.id}
-          kind={t.kind}
-          title={t.title}
-          subtitle={t.subtitle}
-          lowContrast
-          onCloseButtonClick={() => dismissToast(t.id)}
-        />
+          severity={t.kind}
+          variant="filled"
+          onClose={() => dismissToast(t.id)}
+        >
+          <AlertTitle>{t.title}</AlertTitle>
+          {t.subtitle}
+        </Alert>
       ))}
     </div>
   );

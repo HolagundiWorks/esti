@@ -1,10 +1,5 @@
-import {
-  Header,
-  HeaderGlobalAction,
-  HeaderGlobalBar,
-  HeaderName,
-} from "@carbon/react";
-import { Logout } from "@carbon/icons-react";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { AppBar, IconButton, Toolbar, Tooltip, Typography } from "@mui/material";
 
 export function PortalHeader({
   companyName,
@@ -20,22 +15,27 @@ export function PortalHeader({
   signingOut?: boolean;
 }) {
   return (
-    <Header aria-label={`${companyName ?? "ESTI"} ${portalLabel}`}>
-      {logoUrl && (
-        <img src={logoUrl} alt="" className="esti-portal-logo" />
-      )}
-      <HeaderName prefix={companyName ?? "ESTI"}>{portalLabel}</HeaderName>
-      <HeaderGlobalBar>
-        <HeaderGlobalAction
-          aria-label="Sign out"
-          tooltipAlignment="end"
-          onClick={() => {
-            if (!signingOut) onSignOut();
-          }}
-        >
-          <Logout size={20} />
-        </HeaderGlobalAction>
-      </HeaderGlobalBar>
-    </Header>
+    <AppBar position="static" aria-label={`${companyName ?? "ESTI"} ${portalLabel}`}>
+      <Toolbar>
+        {logoUrl && <img src={logoUrl} alt="" className="esti-portal-logo" />}
+        <Typography component="span" sx={{ flexGrow: 1 }}>
+          <strong>{companyName ?? "ESTI"}</strong> {portalLabel}
+        </Typography>
+        <Tooltip title="Sign out">
+          <span>
+            <IconButton
+              aria-label="Sign out"
+              color="inherit"
+              disabled={signingOut}
+              onClick={() => {
+                if (!signingOut) onSignOut();
+              }}
+            >
+              <LogoutIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Toolbar>
+    </AppBar>
   );
 }
