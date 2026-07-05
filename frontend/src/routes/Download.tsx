@@ -60,6 +60,16 @@ const BAKED: Record<Edition["code"], string | undefined> = {
   PRO: import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined,
 };
 
+// The standalone estimating companion (separate Windows binary).
+const ESTIMATE_URL = import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined;
+const ESTIMATE_FEATURES = [
+  "Measure once → derive linked quantities (brickwork → plaster → paint)",
+  "Material take-off from recipes · Bar Bending Schedule against IS 456 / 2502",
+  "Prices against the CPWD Schedule of Rates",
+  "Exports a sealed .aormsest — import into any project's Cost Management",
+  "Fully offline; free companion to any AORMS edition",
+];
+
 export function Download() {
   // Live: the newest desktop release's installers, pulled from GitHub (cached server-side).
   const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
@@ -159,6 +169,50 @@ export function Download() {
                 );
               })}
             </Grid>
+
+            {/* Standalone estimating companion */}
+            <Tile className="esti-fill">
+              <Stack gap={5}>
+                <Stack gap={3}>
+                  <Stack orientation="horizontal" gap={3}>
+                    <Tag type="teal" size="md">AORMS Estimate</Tag>
+                    <Tag type="outline" size="md">Free · Offline companion</Tag>
+                  </Stack>
+                  <h2 className="esti-landing-section-title">The estimating companion</h2>
+                  <p>
+                    Measure once, derive everything. The standalone Windows app for detailed
+                    estimating — enter a single measurement and it derives the aligned quantities,
+                    takes off materials, and builds the Bar Bending Schedule. It exports a sealed{" "}
+                    <code>.aormsest</code> you import into any AORMS project under{" "}
+                    <strong>Cost Management</strong>.
+                  </p>
+                </Stack>
+                <Stack gap={3}>
+                  {ESTIMATE_FEATURES.map((f) => (
+                    <Stack key={f} orientation="horizontal" gap={3}>
+                      <Checkmark size={16} aria-hidden />
+                      <span>{f}</span>
+                    </Stack>
+                  ))}
+                </Stack>
+                {ESTIMATE_URL ? (
+                  <Button kind="primary" size="lg" renderIcon={DownloadIcon} href={ESTIMATE_URL}>
+                    Download AORMS Estimate
+                  </Button>
+                ) : (
+                  <Stack gap={3}>
+                    <Button kind="tertiary" size="lg" renderIcon={Information} disabled>
+                      Estimate app coming soon
+                    </Button>
+                    <p className="esti-label--helper">
+                      Write to <a href="mailto:hi@aorms.in">hi@aorms.in</a> to be notified when the
+                      installer ships. Import/re-cost of <code>.aormsest</code> files works in AORMS
+                      today.
+                    </p>
+                  </Stack>
+                )}
+              </Stack>
+            </Tile>
 
             <p className="esti-label--helper">
               Installers are code-signed for Windows 10/11. macOS and Linux builds are on the

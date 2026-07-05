@@ -4,6 +4,7 @@ import { LandingTrialForm, type LandingTrialPlanContext } from "../components/La
 import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
 import {
   CollaborationSection,
+  EstimationSection,
   FaqSection,
   FeatureGroup1Section,
   FeatureGroup2Section,
@@ -76,6 +77,7 @@ export function Landing() {
         <ProductivityBenefitsSection />
         <CollaborationSection />
         <IntelligenceSection />
+        <EstimationSection />
         <IntegrationsSection />
         <SecuritySection />
         <CustomerSuccessSection />

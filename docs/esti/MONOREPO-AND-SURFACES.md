@@ -3,7 +3,7 @@
 **Status:** Canonical · Companion to [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 How the one repo splits into deployable **surfaces**, and the decision that
-estimation is accessed as a **nested `/estimation` extension** of the workspace —
+estimation is accessed **inside a project (Cost Management)** of the workspace —
 not a separate subdomain — while **ESE** is the one true subdomain and the
 **Estimate app** is a separate binary.
 
@@ -41,18 +41,19 @@ Any "yes" that matters → a **subdomain** (or a binary).
 | Surface | Users | Cadence | Isolation need | → Access |
 |---|---|---|---|---|
 | AORMS workspace | firm staff | continuous | — | `app.aorms.in` (root) |
-| **Estimation** | **same staff** | **same** | **none** | **`/estimation` — extension** |
+| **Estimation** | **same staff** | **same** | **none** | **Project › Cost Management — nested** |
 | **ESE** (pack publisher) | **`kbteam`** | **yearly SR** | **yes** | **`ese.aorms.in` — subdomain** |
 | **Estimate app** | estimators, **offline** | independent | native/offline | **desktop binary** |
 | Client / consultant portals | external | — | session-scoped | `/portal`, `/collab` extensions |
 
-### Estimation → nested extension `/estimation`
+### Estimation → nested inside a project (Cost Management)
 It is a module *of* the workspace: same session cookie, same Carbon shell, same
 `can(role, capability)` permissions, and it re-costs against the same project rate
 book. A subdomain would add cross-origin auth cost for **zero** isolation benefit.
-So the AORMS estimation surface (import · view · re-cost · project rate book)
-mounts at **`/estimation`** as a top-level nav entry. (`/libraries/estimates`
-redirects there for back-compat.)
+So the AORMS estimation surface lives **inside a project → Cost Management**
+(`Estimation · BOQ · BBS · …`) — import an `.aormsest` under the project, re-cost
+it, keep a project rate book. (The old top-level `/estimation` and
+`/libraries/estimates` paths redirect to `/projects`.)
 
 ### ESE → the one subdomain `ese.aorms.in`
 Different users (`kbteam`, admin seeded from deploy env), a different job
@@ -71,7 +72,7 @@ desktop builds.
    ────►│  ┌───────────┐  Rate    ┌───────────────────────────────────┐ │
         │  │  ESE      │  Library │  AORMS workspace (frontend+backend)│ │
         │  │ (Fastify) │  Pack    │   /  /projects  /tasks             │ │
-        │  │ CPWD SR → │ ───────► │   /estimation ◄── nested extension │ │
+        │  │ CPWD SR → │ ───────► │   /projects/:id › Cost Management  │ │
         │  │  packs    │ (→ rate  │      Abstract·BOQ·Materials·Steel  │ │
         │  └───────────┘   book)  │      + project Rate Book           │ │
         │                         └───────────▲───────────────────────┘ │
@@ -110,7 +111,7 @@ state DSRs.
 
 ## 4. Auth per surface
 
-- **Workspace + `/estimation`** — one session cookie, tRPC `protectedProcedure`
+- **Workspace (incl. Project › Cost Management)** — one session cookie, tRPC `protectedProcedure`
   ladder; rate-book writes need `write`. The extension inherits everything.
 - **ESE** — own `kbteam` users; never shares the AORMS session; emits signed packs.
 - **Estimate app** — no server auth; trust is established at *import* via the
@@ -120,7 +121,7 @@ state DSRs.
 
 ## 5. Deploy
 
-- **AORMS** (backend + worker + frontend, incl. `/estimation`) → `deploy/update.sh`
+- **AORMS** (backend + worker + frontend, incl. estimation) → `deploy/update.sh`
   (podman compose); one deploy, no separate estimation release.
 - **ESE** → its own `esti-ese` container (in `compose.prod.yaml`) behind
   `ese.aorms.in`, sharing the AORMS Postgres (self-provisions its `ese_*` tables

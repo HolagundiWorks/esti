@@ -20,14 +20,16 @@
 | 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
 ## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
-`Studio Intelligence · Projects · Tasks · Estimation · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin`
-**Estimation** (`/estimation`, Calculator icon) is a top-level **nested extension** —
-the import · view · re-cost surface + the project Rate Book (see
-[MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md)); `/libraries/estimates` redirects
-there. **AI Studio** appears only when the plan allows `ai` and rank ≥ 60. **Library**
-is its own top-level menu (Item · Compliance · Master Plan · Standards); **Studio** holds
-Teams · Performance · HR. Header utilities (not sidebar): **Clock · Pomodoro · Global
-Search · Notifications (AlertsBell) · User Profile (ID card) · Sign out**.
+`Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin`
+**Estimation lives inside a project** → **Cost Management** (not a top-level pillar):
+`Estimation · BOQ · BBS · Site Measurement · Work Orders · Contractor Bills · Cost
+Intelligence`. Import an `.aormsest` under the project and re-cost it (see
+[MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md)); the old `/estimation` and
+`/libraries/estimates` paths redirect to `/projects`. **AI Studio** appears only when the
+plan allows `ai` and rank ≥ 60. **Library** is its own top-level menu (Item · Compliance ·
+Master Plan · Standards); **Studio** holds Teams · Performance · HR. Header utilities (not
+sidebar): **Clock · Pomodoro · Global Search · Notifications (AlertsBell) · User Profile
+(ID card) · Sign out**.
 
 ---
 

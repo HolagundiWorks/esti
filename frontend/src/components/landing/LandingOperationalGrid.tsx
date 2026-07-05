@@ -1,3 +1,5 @@
+import { ArrowRight } from "@carbon/icons-react";
+import { Button } from "@carbon/react";
 import type { ReactNode } from "react";
 import { ReelLoopTile } from "./LandingMediaTiles.js";
 
@@ -489,6 +491,53 @@ export function CollaborationSection() {
 }
 
 // ── Section 9: Intelligence & Automation ───────────────────────────
+
+export function EstimationSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="Estimation & Cost"
+        title="Estimate once, cost it forever — CPWD rates, materials and steel, inside the project"
+        body="AORMS Estimate is the standalone desktop app for detailed estimating: measure once and it derives the aligned quantities, takes off materials, and builds the Bar Bending Schedule. Export a sealed file, import it into any project's Cost Management, and re-cost live against the CPWD Schedule of Rates or your own project rates."
+      />
+      <div className="esti-lp-grid" id="estimation">
+        <FeatureTile
+          header="Measure once"
+          dot="green"
+          meta="ESTIMATE APP"
+          title="Enter one measurement, derive everything aligned to it"
+          bullets={[
+            "Brick wall → plastering both faces → paint, net of openings — automatically",
+            "Material take-off from recipes; nothing re-entered",
+          ]}
+        />
+        <FeatureTile
+          header="Rate book, one lever"
+          dot="green"
+          meta="CPWD DSR"
+          title="Quantities are frozen; price is the only thing that moves"
+          bullets={[
+            "Re-cost against the 4,250-item CPWD schedule or per-project overrides",
+            "As-estimated vs as-costed with the variance, live",
+          ]}
+        />
+        <FeatureTile
+          header="Bar Bending Schedule"
+          dot="yellow"
+          meta="IS 456 / IS 2502"
+          title="Steel modelled against the code, not 100 manual steps"
+          bullets={[
+            "Slab, beam, column, footing — cut lengths, laps and weights computed",
+            "Priced by the rate book like any other material",
+          ]}
+        />
+      </div>
+      <Button kind="primary" size="lg" renderIcon={ArrowRight} href="/download">
+        Download AORMS Estimate
+      </Button>
+    </>
+  );
+}
 
 export function IntelligenceSection() {
   return (

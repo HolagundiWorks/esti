@@ -52,7 +52,7 @@ One monorepo (pnpm workspaces); surfaces are build targets, not repos.
 
 ### Surfaces And Access Topology
 
-Estimation is accessed as a **nested `/estimation` path extension** of the
+Estimation is accessed **inside a project (Cost Management)** of the
 workspace — same session, nav, permissions, and Carbon shell — not a subdomain.
 **ESE** is the one true subdomain (`ese.aorms.in`): different users (`kbteam`),
 different cadence (yearly SR), publishing into the system across a versioned,

@@ -158,6 +158,8 @@ services:
         VITE_COMMUNITY_DOWNLOAD_URL: ${VITE_COMMUNITY_DOWNLOAD_URL:-}
         VITE_CORE_DOWNLOAD_URL: ${VITE_CORE_DOWNLOAD_URL:-}
         VITE_ENTERPRISE_DOWNLOAD_URL: ${VITE_ENTERPRISE_DOWNLOAD_URL:-}
+        # Standalone Estimate desktop app installer (coming-soon fallback if unset).
+        VITE_ESTIMATION_DOWNLOAD_URL: ${VITE_ESTIMATION_DOWNLOAD_URL:-}
     image: esti-frontend:prod
     # No entrypoint override needed — the runner stage nginx image is used only
     # as a build artefact holder; the container is never started as a daemon.
