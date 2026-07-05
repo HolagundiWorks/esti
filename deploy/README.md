@@ -70,7 +70,11 @@ across future deploys.
 ## Before a first install
 
 1. **Point DNS first** — `A` record for your domain → the VPS public IP (certbot
-   issues TLS during install and fails if DNS doesn't resolve yet).
+   issues TLS during install and fails if DNS doesn't resolve yet). Add a
+   `www` record too (`A` → the same IP, or a `CNAME` → the apex): the installer
+   requests a SAN cert covering `www` and nginx 301-redirects `www` → apex so
+   search engines see one canonical host. If `www` DNS is absent the installer
+   falls back to an apex-only cert.
 2. Open ports **22, 80, 443**.
 3. SSH in as **root** on Ubuntu 22.04 / 24.04.
 
@@ -90,8 +94,8 @@ This is intended as a bootstrapping convenience — replace the self-signed
 certificate with a real certificate (Certbot) once DNS and rate limits permit:
 
 ```bash
-# When ready on the VPS as root:
-certbot --nginx -d aorms.in --non-interactive --agree-tos -m admin@aorms.in --redirect
+# When ready on the VPS as root (include www for the canonical redirect cert):
+certbot --nginx -d aorms.in -d www.aorms.in --non-interactive --agree-tos -m admin@aorms.in --redirect
 systemctl reload nginx
 ```
 

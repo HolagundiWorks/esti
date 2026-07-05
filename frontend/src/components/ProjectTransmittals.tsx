@@ -23,6 +23,8 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { pdfPollInterval } from "../lib/pdfUi.js";
+import { PdfActionButtons } from "./PdfActionButtons.js";
 
 function TransmittalPdfCell({
   id,
@@ -37,12 +39,7 @@ function TransmittalPdfCell({
     { id },
     {
       enabled: active,
-      refetchInterval: (q) =>
-        q.state.data &&
-        (q.state.data.pdfStatus === "PENDING" ||
-          q.state.data.pdfStatus === "PROCESSING")
-          ? 1500
-          : false,
+      refetchInterval: (q) => pdfPollInterval(q.state.data?.pdfStatus, active),
     },
   );
   const gen = trpc.transmittals.generatePdf.useMutation({
@@ -51,31 +48,14 @@ function TransmittalPdfCell({
       utils.transmittals.byId.invalidate({ id });
     },
   });
-  const status = byId.data?.pdfStatus ?? initialStatus;
-  const url = byId.data?.pdfUrl ?? null;
-  if (status === "READY" && url)
-    return (
-      <Button
-        kind="ghost"
-        size="sm"
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Open PDF
-      </Button>
-    );
-  if (status === "PENDING" || status === "PROCESSING")
-    return <span>Rendering…</span>;
   return (
-    <Button
-      kind="ghost"
-      size="sm"
-      disabled={gen.isPending}
-      onClick={() => gen.mutate({ id })}
-    >
-      {status === "FAILED" ? "Retry" : "Generate PDF"}
-    </Button>
+    <PdfActionButtons
+      status={byId.data?.pdfStatus ?? initialStatus}
+      url={byId.data?.pdfUrl ?? null}
+      generatePending={gen.isPending}
+      onGenerate={() => gen.mutate({ id })}
+      share={{ text: "Please find the attached drawing transmittal.", fileName: "transmittal.pdf" }}
+    />
   );
 }
 
