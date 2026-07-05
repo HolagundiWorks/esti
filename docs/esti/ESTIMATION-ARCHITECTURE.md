@@ -274,15 +274,21 @@ Steel is priced from the rate book like any material (₹/kg or ₹/MT), so a ra
 
 ## 6. Build order
 
+**One source of truth:** the product standardises on **CPWD** (Delhi DSR + Analysis
+of Rates) as the single specification/rate schedule — no multiple state DSRs. In
+the Knowledge Bank, **Specification** (rate-free: `esti_spec_catalog_item` has no
+rate column) and the **Rate Book** (`esti_rate_book`, all rates) are separate tabs.
+Rates live *only* in the rate book.
+
 **AORMS side (this repo, buildable + verifiable now):**
-1. ✅ **Rate Book** — the flat `esti_rate_book` catalogue (`code · description · uom · rate_paise`), office-wide, keyed by `code`. Seeded from an ESE pack via `estimates.importRateBookPack`. *(Per-project override still a follow-up.)*
-2. ✅ **Interchange contract** — `.aormsest` zod schema (`EstimateFile`) in `@esti/contracts`, with `estimateSealString` for checksum verification (shared, so the desktop app reuses it).
+1. ✅ **Rate Book** — office `esti_rate_book` (`code · description · uom · rate_paise`), seeded from an ESE pack via `estimates.importRateBookPack`; **per-project override** in `esti_project_rate` (`estimates.projectRates/setProjectRate/removeProjectRate/seedProjectRatesFromOffice`). Re-cost prefers **project → office → as-estimated**.
+2. ✅ **Interchange contract** — `.aormsest` zod schema (`EstimateFile`) in `@esti/contracts`, with `estimateSealString` for checksum verification. Items carry an optional **lead** (carriage) add-on.
 3. ✅ **Import + snapshot** — `/upload/estimate` REST route validates + seals + stores an immutable `esti_estimate` snapshot; `estimates.list/byId`.
-4. ✅ **Re-costing engine** — pure `recostEstimate` (`@esti/contracts`): qty × rate-book rate, as-estimated vs as-costed + variance; exposed as `estimates.recost`.
-5. ✅ **Four viewers** — Abstract · BOQ · Materials · Steel, read-only Carbon route `EstimateViewer` at `/libraries/estimates`.
+4. ✅ **Re-costing engine** — pure `recostEstimate` (`@esti/contracts`): qty × rate (+ frozen lead), as-estimated vs as-costed + variance, project overrides; exposed as `estimates.recost`.
+5. ✅ **Viewers** — Abstract · BOQ · Materials · Steel · **Rate Book** (project override editor), read-only Carbon route `EstimateViewer` at `/libraries/estimates`.
 
 **ESE side (this repo, `ese/`):**
-- ✅ Deterministic Karnataka SR parser → sealed `RateLibraryPack` (`ese/packs/kar-pwd-2023.pack.json`); `build-pack` CLI; Ollama enrichment (adds metadata only).
+- ✅ Deterministic CPWD/PWD-family SR parser (`parseSR`) → sealed `RateLibraryPack`; `build-pack` CLI; Ollama enrichment (adds metadata only). Validated on a real Karnataka SR sample of the identical format (parser fixture); CPWD packs on CPWD markdown.
 
 **Estimate desktop app (separate, Tauri — built + tested on Windows via CI):**
 6. Knowledge Bank editor (work item · rate item · measurement template · recipes). *(pending)*

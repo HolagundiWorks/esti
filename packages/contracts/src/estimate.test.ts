@@ -136,6 +136,62 @@ describe("re-costing — abstract (quantities frozen, price is the lever)", () =
   });
 });
 
+describe("leads (carriage) on items", () => {
+  const rb: RateBookRates = { code: "x", name: "x", itemRatePaise: {}, materialRatePaise: {}, steelRatePaiseByDia: {} };
+  const items = [
+    {
+      code: "agg",
+      shortName: "20mm aggregate at site",
+      uom: "m³",
+      ratePaise: 133300,
+      qty: 10,
+      amountPaise: 1333000,
+      attributes: {},
+      measurements: [],
+      lead: { km: 12, desc: "Carriage 12 km", chargePaise: 20000 }, // ₹200/m³ lead
+    },
+  ];
+  it("lead adds qty × chargePaise to the amount", () => {
+    const a = recostAbstract(items, rb);
+    const r = a.rows[0]!;
+    expect(r.leadAmountPaise).toBe(10 * 20000); // 200000
+    expect(r.amountPaise).toBe(10 * 133300 + 10 * 20000); // base + lead
+    expect(a.totalLeadPaise).toBe(200000);
+  });
+  it("lead cancels out of the variance (pure rate delta)", () => {
+    const a = recostAbstract(items, { ...rb, itemRatePaise: { agg: 120000 } });
+    const r = a.rows[0]!;
+    expect(r.rateSource).toBe("rateBook");
+    // variance is only the base-rate delta; lead is in both estimated and costed
+    expect(r.variancePaise).toBe(10 * 120000 - 10 * 133300);
+  });
+});
+
+describe("per-project rate book (overrides the office book)", () => {
+  const rb: RateBookRates = {
+    code: "OFFICE",
+    name: "Office",
+    itemRatePaise: { bw230: 750000 },
+    materialRatePaise: {},
+    steelRatePaiseByDia: {},
+  };
+  it("project override wins over office rate book and tags the source", () => {
+    const a = recostAbstract(FILE.items, rb, { projectItemRatePaise: { bw230: 700000 } });
+    const brick = a.rows.find((r) => r.code === "bw230")!;
+    expect(brick.rateSource).toBe("project");
+    expect(brick.ratePaise).toBe(700000);
+  });
+  it("falls back office → estimate when no project override", () => {
+    const a = recostAbstract(FILE.items, rb, { projectItemRatePaise: {} });
+    expect(a.rows.find((r) => r.code === "bw230")!.rateSource).toBe("rateBook");
+    expect(a.rows.find((r) => r.code === "plaster12")!.rateSource).toBe("estimate");
+  });
+  it("threads through recostEstimate", () => {
+    const costed = recostEstimate(FILE, rb, { projectItemRatePaise: { bw230: 700000 } });
+    expect(costed.abstract.rows.find((r) => r.code === "bw230")!.rateSource).toBe("project");
+  });
+});
+
 describe("BOQ — grouped abstract", () => {
   it("groups by section and subtotals to the abstract total", () => {
     const rb: RateBookRates = { code: "x", name: "x", itemRatePaise: {}, materialRatePaise: {}, steelRatePaiseByDia: {} };

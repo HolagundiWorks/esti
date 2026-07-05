@@ -37,3 +37,4 @@ export * from "./usage.js";
 export * from "./cpi.js";
 export * from "./rate-book.js";
 export * from "./estimate.js";
+export * from "./project-rate.js";

@@ -34,11 +34,20 @@ A **representative slice** (not the whole book) is enough to build a robust pars
 
 ## Status
 
-| Source | Sample | Parser | Golden test |
-|---|---|---|---|
-| **Karnataka PWD Common SR 2023-24** | `kar-dsr-2023.md` | ✅ `../src/parsers/karnataka.ts` | ✅ `karnataka.test.ts` (10) |
-| CPWD (Delhi) DSR | ⏳ awaiting markdown | — | — |
-| TN / MH / AP | ⏳ awaiting markdown | — | — |
+The product standardises on **one** schedule — **CPWD** (Delhi DSR + Analysis of
+Rates). The multi-state fan-out (TN / MH / AP) is dropped — we do not juggle
+multiple state DSRs. The CPWD/PWD-family parser is validated against a real
+Karnataka SR sample of the *identical* published format (retained only as a
+parser fixture, not a second product source).
+
+| Source | Role | Markdown | Parser | Golden test |
+|---|---|---|---|---|
+| **CPWD Delhi DSR** | product schedule | ⏳ awaiting markdown | ✅ `../src/parsers/karnataka.ts` (`parseSR`) | via the fixture below |
+| Karnataka PWD Common SR 2023-24 | parser fixture (same format) | `kar-dsr-2023.md` | ✅ same parser | ✅ `karnataka.test.ts` (10) |
+
+Drop CPWD markdown here (`cpwd-dsr-2023.md`) and I tune the parser for its
+specifics (4-digit basic-rate codes, +Water 1% / +CPOH 15% build-up) and add a
+CPWD golden fixture; the pack schema is shared.
 
 ### Karnataka parser — what it extracts (all deterministic, no LLM)
 

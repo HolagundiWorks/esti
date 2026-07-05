@@ -73,6 +73,11 @@
       ],
       "qty": 1.476,
       "amountPaise": 915120,
+      "lead": {
+        "km": 12,
+        "desc": "Carriage of aggregate, 12 km lead",
+        "chargePaise": 18000
+      },
       "section": "Concrete"
     },
     {
@@ -200,5 +205,5 @@
       "amountPaise": 865368
     }
   ],
-  "checksum": "de1e831a6d781024ef4f82d0016f45569b4537f739904eb729764d2f45f4e1a5"
+  "checksum": "99e55e65f50562945b9293ae1596d3533acb417d01b97e5df97c96168c08c269"
 }

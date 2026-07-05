@@ -51,6 +51,16 @@ export const EstimateMeasurement = z.object({
 });
 export type EstimateMeasurement = z.infer<typeof EstimateMeasurement>;
 
+/** Lead (carriage) — the standard Indian-estimation add-on for conveying material
+ *  a distance to site. Frozen per item like the quantity; `chargePaise` is the
+ *  extra cost per 1 UOM of the item at that lead. */
+export const EstimateLead = z.object({
+  km: z.number().nonnegative().optional(), // lead distance
+  desc: z.string().optional(), // e.g. "Carriage of coarse aggregate, 12 km"
+  chargePaise: z.number().int().nonnegative().default(0), // extra ₹/UOM
+});
+export type EstimateLead = z.infer<typeof EstimateLead>;
+
 export const EstimateItem = z.object({
   code: z.string(), // join key AORMS re-prices against its own rate book
   itemCode: z.string().optional(), // parent work item / section join
@@ -62,6 +72,7 @@ export const EstimateItem = z.object({
   measurements: z.array(EstimateMeasurement).default([]),
   qty: z.number(), // authoritative
   amountPaise: z.number().int().nonnegative(),
+  lead: EstimateLead.optional(), // per-item carriage/lead add-on
   section: z.string().optional(), // BOQ grouping label
   derivedFrom: z.string().optional(), // parent item code, if this line was derived
 });
@@ -185,7 +196,9 @@ export function deriveLinked(
 }
 
 // ── 4. Re-costing — the abstract (item × rate = amount), as-estimated vs costed ─
-export type RateSource = "rateBook" | "estimate";
+/** Where the costed rate came from: a project override, the office rate book, or
+ *  (fallback) the as-estimated rate carried in the file. */
+export type RateSource = "project" | "rateBook" | "estimate";
 export interface AbstractRow {
   code: string;
   itemCode?: string;
@@ -195,9 +208,11 @@ export interface AbstractRow {
   qty: number;
   ratePaiseEstimated: number;
   amountPaiseEstimated: number;
-  ratePaise: number; // as-costed
-  amountPaise: number; // as-costed
-  variancePaise: number; // costed − estimated
+  ratePaise: number; // as-costed (base rate, excl. lead)
+  leadChargePaise: number; // per-UOM carriage add-on (frozen)
+  leadAmountPaise: number; // qty × leadCharge
+  amountPaise: number; // as-costed, INCLUDING lead
+  variancePaise: number; // costed − estimated (lead cancels → pure rate delta)
   rateSource: RateSource;
   section?: string;
 }
@@ -206,22 +221,33 @@ export interface Abstract {
   totalEstimatedPaise: number;
   totalCostedPaise: number;
   totalVariancePaise: number;
+  totalLeadPaise: number;
 }
-/** Re-cost every item against the rate book; fall back to the as-estimated rate
- *  when the book has no entry for that code. Estimated and costed amounts are
- *  recomputed with identical math (qty × rate) so the variance is purely the
- *  rate delta. */
-export function recostAbstract(items: EstimateItem[], rb: RateBookRates): Abstract {
+/** Optional re-cost overrides — a project rate book layered over the office one. */
+export interface RecostOptions {
+  /** Project rate overrides by item code; win over the office rate book. */
+  projectItemRatePaise?: Record<string, number>;
+}
+/** Re-cost every item: project override → office rate book → as-estimated rate.
+ *  The frozen per-item lead (carriage) is added to both estimated and costed
+ *  amounts, so it never distorts the variance (which stays a pure rate delta). */
+export function recostAbstract(items: EstimateItem[], rb: RateBookRates, opts: RecostOptions = {}): Abstract {
   let totalEstimatedPaise = 0;
   let totalCostedPaise = 0;
+  let totalLeadPaise = 0;
   const rows: AbstractRow[] = items.map((it) => {
+    const projectRate = opts.projectItemRatePaise?.[it.code];
     const bookRate = rb.itemRatePaise[it.code];
-    const rateSource: RateSource = bookRate != null ? "rateBook" : "estimate";
-    const ratePaise = bookRate ?? it.ratePaise;
-    const amountEst = amountPaise(it.qty, it.ratePaise);
-    const amount = amountPaise(it.qty, ratePaise);
+    const rateSource: RateSource = projectRate != null ? "project" : bookRate != null ? "rateBook" : "estimate";
+    const ratePaise = projectRate ?? bookRate ?? it.ratePaise;
+
+    const leadChargePaise = it.lead?.chargePaise ?? 0;
+    const leadAmountPaise = amountPaise(it.qty, leadChargePaise);
+    const amountEst = amountPaise(it.qty, it.ratePaise) + leadAmountPaise;
+    const amount = amountPaise(it.qty, ratePaise) + leadAmountPaise;
     totalEstimatedPaise += amountEst;
     totalCostedPaise += amount;
+    totalLeadPaise += leadAmountPaise;
     return {
       code: it.code,
       itemCode: it.itemCode,
@@ -232,6 +258,8 @@ export function recostAbstract(items: EstimateItem[], rb: RateBookRates): Abstra
       ratePaiseEstimated: it.ratePaise,
       amountPaiseEstimated: amountEst,
       ratePaise,
+      leadChargePaise,
+      leadAmountPaise,
       amountPaise: amount,
       variancePaise: amount - amountEst,
       rateSource,
@@ -243,6 +271,7 @@ export function recostAbstract(items: EstimateItem[], rb: RateBookRates): Abstra
     totalEstimatedPaise,
     totalCostedPaise,
     totalVariancePaise: totalCostedPaise - totalEstimatedPaise,
+    totalLeadPaise,
   };
 }
 
@@ -256,8 +285,8 @@ export interface Boq {
   sections: BoqSection[];
   totalPaise: number;
 }
-export function recostBOQ(items: EstimateItem[], rb: RateBookRates): Boq {
-  const abstract = recostAbstract(items, rb);
+export function recostBOQ(items: EstimateItem[], rb: RateBookRates, opts: RecostOptions = {}): Boq {
+  const abstract = recostAbstract(items, rb, opts);
   const bySection = new Map<string, AbstractRow[]>();
   for (const row of abstract.rows) {
     const key = row.section || "General";
@@ -366,11 +395,11 @@ export interface CostedEstimate {
    *  material + labour). Materials/steel are procurement take-off, not additive. */
   grandTotalPaise: number;
 }
-export function recostEstimate(file: EstimateFile, rb: RateBookRates): CostedEstimate {
-  const abstract = recostAbstract(file.items, rb);
+export function recostEstimate(file: EstimateFile, rb: RateBookRates, opts: RecostOptions = {}): CostedEstimate {
+  const abstract = recostAbstract(file.items, rb, opts);
   return {
     abstract,
-    boq: recostBOQ(file.items, rb),
+    boq: recostBOQ(file.items, rb, opts),
     materials: recostMaterials(file.materials, rb),
     steel: recostSteel(file.steel, rb),
     grandTotalPaise: abstract.totalCostedPaise,

@@ -1,7 +1,9 @@
 import {
+  Button,
   Dropdown,
   FileUploaderButton,
   InlineNotification,
+  NumberInput,
   Stack,
   Tab,
   TabList,
@@ -16,8 +18,10 @@ import {
   TableHeader,
   TableRow,
   Tag,
+  TextInput,
 } from "@carbon/react";
-import { formatINR, type CostedEstimate } from "@esti/contracts";
+import { TrashCan } from "@carbon/icons-react";
+import { formatINR, type CostedEstimate, type RateSource } from "@esti/contracts";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
@@ -25,7 +29,7 @@ import { PageHeader } from "../components/PageHeader.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
-const EST_TAB_SLUGS = ["abstract", "boq", "materials", "steel"] as const;
+const EST_TAB_SLUGS = ["abstract", "boq", "materials", "steel", "ratebook"] as const;
 const inr = (paise: number) => formatINR(paise, { paise: false });
 const qty = (n: number) => n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 
@@ -40,6 +44,13 @@ function VarianceTag({ paise }: { paise: number }) {
   );
 }
 
+/** Where the costed rate came from — project override, office book, or estimate. */
+function SourceTag({ source }: { source: RateSource }) {
+  if (source === "project") return <Tag type="purple" size="sm">project</Tag>;
+  if (source === "estimate") return <Tag type="cool-gray" size="sm">est.</Tag>;
+  return null; // rateBook is the norm — no tag
+}
+
 const scroll = { maxHeight: "58vh", overflowY: "auto" } as const;
 
 type Costed = CostedEstimate;
@@ -47,10 +58,12 @@ type Costed = CostedEstimate;
 function AbstractTab({ c }: { c: Costed }) {
   const rows = c.abstract.rows;
   return (
-    <DataState loading={false} isEmpty={rows.length === 0} columnCount={8} empty={{ title: "No items" }}>
+    <DataState loading={false} isEmpty={rows.length === 0} columnCount={9} empty={{ title: "No items" }}>
       <TableContainer
         title="Abstract of cost"
-        description={`As-estimated ${inr(c.abstract.totalEstimatedPaise)} · costed ${inr(c.abstract.totalCostedPaise)}`}
+        description={`As-estimated ${inr(c.abstract.totalEstimatedPaise)} · costed ${inr(c.abstract.totalCostedPaise)}${
+          c.abstract.totalLeadPaise ? ` · lead ${inr(c.abstract.totalLeadPaise)}` : ""
+        }`}
       >
         <div style={scroll}>
           <Table size="sm" useZebraStyles stickyHeader>
@@ -62,6 +75,7 @@ function AbstractTab({ c }: { c: Costed }) {
                 <TableHeader>Qty</TableHeader>
                 <TableHeader>Rate (est.)</TableHeader>
                 <TableHeader>Rate</TableHeader>
+                <TableHeader>Lead</TableHeader>
                 <TableHeader>Amount</TableHeader>
                 <TableHeader>Variance</TableHeader>
               </TableRow>
@@ -75,8 +89,9 @@ function AbstractTab({ c }: { c: Costed }) {
                   <TableCell>{qty(r.qty)}</TableCell>
                   <TableCell>{inr(r.ratePaiseEstimated)}</TableCell>
                   <TableCell>
-                    {inr(r.ratePaise)} {r.rateSource === "estimate" && <Tag type="cool-gray" size="sm">est.</Tag>}
+                    {inr(r.ratePaise)} <SourceTag source={r.rateSource} />
                   </TableCell>
+                  <TableCell>{r.leadAmountPaise ? inr(r.leadAmountPaise) : "—"}</TableCell>
                   <TableCell>{inr(r.amountPaise)}</TableCell>
                   <TableCell>
                     <VarianceTag paise={r.variancePaise} />
@@ -153,7 +168,7 @@ function MaterialsTab({ c }: { c: Costed }) {
                   <TableCell>{r.unit}</TableCell>
                   <TableCell>{qty(r.qty)}</TableCell>
                   <TableCell>
-                    {inr(r.ratePaise)} {r.rateSource === "estimate" && <Tag type="cool-gray" size="sm">est.</Tag>}
+                    {inr(r.ratePaise)} <SourceTag source={r.rateSource} />
                   </TableCell>
                   <TableCell>{inr(r.amountPaise)}</TableCell>
                 </TableRow>
@@ -200,6 +215,110 @@ function SteelTab({ c }: { c: Costed }) {
         </Table>
       </TableContainer>
     </DataState>
+  );
+}
+
+/** The project rate book — a project's rate overrides that win over the office
+ *  book when re-costing. Seed from the office book, then edit individual rates. */
+function ProjectRateBook({ projectId }: { projectId: string | null }) {
+  const utils = trpc.useUtils();
+  const rows = trpc.estimates.projectRates.useQuery({ projectId: projectId ?? "" }, { enabled: !!projectId });
+  const invalidate = () => {
+    void utils.estimates.projectRates.invalidate();
+    void utils.estimates.recost.invalidate();
+  };
+  const seed = trpc.estimates.seedProjectRatesFromOffice.useMutation({ onSuccess: invalidate });
+  const setRate = trpc.estimates.setProjectRate.useMutation({ onSuccess: invalidate });
+  const remove = trpc.estimates.removeProjectRate.useMutation({ onSuccess: invalidate });
+
+  const [code, setCode] = useState("");
+  const [description, setDescription] = useState("");
+  const [unit, setUnit] = useState("");
+  const [rupees, setRupees] = useState(0);
+
+  if (!projectId) {
+    return (
+      <span className="esti-label esti-label--helper">
+        Import this estimate under a project (projectId) to keep a project rate book. Costing then prefers project rate →
+        office rate → as-estimated.
+      </span>
+    );
+  }
+
+  function saveOverride() {
+    if (!projectId || !code.trim()) return;
+    setRate.mutate(
+      { projectId, code: code.trim(), description: description.trim(), unit: unit.trim(), ratePaise: Math.round(rupees * 100) },
+      { onSuccess: () => { setCode(""); setDescription(""); setUnit(""); setRupees(0); } },
+    );
+  }
+
+  const list = rows.data ?? [];
+  return (
+    <Stack gap={5}>
+      <Stack orientation="horizontal" gap={3}>
+        <Button size="sm" kind="tertiary" disabled={seed.isPending} onClick={() => seed.mutate({ projectId })}>
+          {seed.isPending ? "Seeding…" : "Seed from office rate book"}
+        </Button>
+        <span className="esti-label esti-label--helper">{list.length} project override(s)</span>
+      </Stack>
+
+      <Stack orientation="horizontal" gap={3} style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
+        <TextInput id="pr-code" labelText="Item code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <TextInput id="pr-desc" labelText="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <TextInput id="pr-unit" labelText="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} />
+        <NumberInput
+          id="pr-rate"
+          label="Rate (₹)"
+          min={0}
+          step={1}
+          value={rupees}
+          onChange={(_e, { value }) => setRupees(Number(value) || 0)}
+        />
+        <Button size="sm" disabled={!code.trim() || setRate.isPending} onClick={saveOverride}>
+          Save override
+        </Button>
+      </Stack>
+
+      <DataState loading={rows.isLoading} isEmpty={list.length === 0} columnCount={5} empty={{ title: "No project overrides", description: "Seed from the office book or add an override above." }}>
+        <TableContainer title="Project rate book" description="Overrides win over the office rate book when re-costing.">
+          <div style={scroll}>
+            <Table size="sm" useZebraStyles stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Code</TableHeader>
+                  <TableHeader>Description</TableHeader>
+                  <TableHeader>Unit</TableHeader>
+                  <TableHeader>Rate</TableHeader>
+                  <TableHeader>Remove</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {list.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>{r.code}</TableCell>
+                    <TableCell>{r.description}</TableCell>
+                    <TableCell>{r.unit}</TableCell>
+                    <TableCell>{inr(r.ratePaise)}</TableCell>
+                    <TableCell>
+                      <Button
+                        hasIconOnly
+                        size="sm"
+                        kind="ghost"
+                        renderIcon={TrashCan}
+                        iconDescription="Remove override"
+                        disabled={remove.isPending}
+                        onClick={() => remove.mutate({ id: r.id })}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TableContainer>
+      </DataState>
+    </Stack>
   );
 }
 
@@ -286,7 +405,8 @@ export function EstimateViewer() {
         {recost.data && (
           <Stack gap={2}>
             <span className="esti-label esti-label--helper">
-              Rate book: {recost.data.rateBook.name} ({recost.data.rateBook.entryCount} rates)
+              Rate book: {recost.data.rateBook.name} ({recost.data.rateBook.entryCount} rates
+              {recost.data.rateBook.projectOverrides ? `, ${recost.data.rateBook.projectOverrides} project overrides` : ""})
             </span>
             <Stack orientation="horizontal" gap={3}>
               <Tag type="blue">Estimate {inr(costed!.abstract.totalEstimatedPaise)}</Tag>
@@ -310,6 +430,7 @@ export function EstimateViewer() {
               <Tab>BOQ</Tab>
               <Tab>Materials</Tab>
               <Tab>Steel</Tab>
+              <Tab>Rate Book</Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -323,6 +444,9 @@ export function EstimateViewer() {
               </TabPanel>
               <TabPanel>
                 <SteelTab c={costed} />
+              </TabPanel>
+              <TabPanel>
+                <ProjectRateBook projectId={recost.data?.estimate.projectId ?? null} />
               </TabPanel>
             </TabPanels>
           </Tabs>
