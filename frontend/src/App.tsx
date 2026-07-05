@@ -386,6 +386,7 @@ function AppShell() {
     { label: "Studio Intelligence", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
+    { label: "Estimation", to: "/estimation", icon: Calculator },
     ...(planAllowsFeature("ai") && atLeast(60)
       ? [{ label: "AI Studio", to: "/office/ai-studio", icon: Bot }]
       : []),
@@ -400,7 +401,6 @@ function AppShell() {
               { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
               { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
               { label: "Standards Library", to: "/libraries/standards", icon: Book },
-              { label: "Estimate Viewer", to: "/libraries/estimates", icon: Calculator },
             ]
           : []),
       ],
@@ -602,7 +602,8 @@ function AppShell() {
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
-                <Route path="/libraries/estimates" element={<EstimateViewer />} />
+                <Route path="/estimation" element={<EstimateViewer />} />
+                <Route path="/libraries/estimates" element={<Navigate to="/estimation" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />

@@ -37,11 +37,28 @@ structured machine output. See [COGNITION-ENGINE](COGNITION-ENGINE.md).
 
 ## Repository
 
-- `packages/contracts`: shared Zod schemas, permissions, money, tax, labels.
+One monorepo (pnpm workspaces); surfaces are build targets, not repos.
+
+- `packages/contracts`: shared Zod schemas, permissions, money, tax, labels, and
+  the PURE estimation engine (`.aormsest` `EstimateFile` + `recostEstimate`, BBS).
+  Browser-safe — the seam every surface imports.
 - `backend`: Fastify, tRPC, Drizzle, PostgreSQL domain modules and REST routes.
 - `frontend`: React/Vite SPA using the mandatory Pure Carbon policy.
 - `worker`: Redis consumer for DXF, PDF, and reconciliation processing.
+- `ese`: the Estimation Specification Engine — its own Fastify service that turns
+  the CPWD schedule into sealed Rate Library Packs (deploys at `ese.aorms.in`).
+- `desktop`: the Tauri shell (AORMS Lite/Pro/Community; and the Estimate app target).
 - `docs/esti`: canonical product and engineering documentation.
+
+### Surfaces And Access Topology
+
+Estimation is accessed as a **nested `/estimation` path extension** of the
+workspace — same session, nav, permissions, and Carbon shell — not a subdomain.
+**ESE** is the one true subdomain (`ese.aorms.in`): different users (`kbteam`),
+different cadence (yearly SR), publishing into the system across a versioned,
+checksummed seam. The **Estimate app** is a separate offline Tauri binary that
+exports a sealed `.aormsest`. Full topology, the subdomain-vs-extension test, and
+the shared seams: [MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md).
 
 ## Architecture Decisions
 
