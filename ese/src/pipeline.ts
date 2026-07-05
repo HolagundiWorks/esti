@@ -60,18 +60,26 @@ export function buildRateLibraryPack(
  * material-name reconciliation) layers on top of this — it never overrides a
  * parsed rate.
  */
-export function buildPack(
-  sourceKey: string,
-  markdown: string,
-  opts: { year?: number; edition?: string } = {},
+/** Parsed entities (from any source parser) — structurally the ParsedSR shape. */
+interface ParsedEntities {
+  workItems: { code: string; name: string; discipline?: string }[];
+  rateItems: {
+    code: string; itemCode: string; shortName: string; specification?: string;
+    attributes: Record<string, string>; uom: string; ratePaise: number; source: string;
+  }[];
+  materials: { code: string; name: string; unit: string; ratePaise?: number }[];
+  recipes: { rateItemCode: string; materialCode: string; coefficient: number; wastagePct: number }[];
+}
+
+/** Map parsed entities → a sealed RateLibraryPack (drops parser-internal fields). */
+export function packFromParsed(
+  meta: { source: string; year: number; edition?: string },
+  parsed: ParsedEntities,
 ): RateLibraryPack {
-  const src = getSource(sourceKey);
-  const year = opts.year ?? src.defaultYear;
-  const parsed = src.parse(formatMarkdown(markdown), `${src.key}-${year}`);
   return buildRateLibraryPack({
-    source: src.key,
-    year,
-    edition: opts.edition ?? `${src.key}-SR-${year}`,
+    source: meta.source,
+    year: meta.year,
+    edition: meta.edition ?? `${meta.source}-SR-${meta.year}`,
     workItems: parsed.workItems.map((w) => ({ code: w.code, name: w.name, discipline: w.discipline })),
     rateItems: parsed.rateItems.map((r) => ({
       code: r.code,
@@ -93,4 +101,16 @@ export function buildPack(
     })),
     specs: [],
   });
+}
+
+/** Markdown-source pack build (the Karnataka fixture path). CPWD uses buildCpwdPack. */
+export function buildPack(
+  sourceKey: string,
+  markdown: string,
+  opts: { year?: number; edition?: string } = {},
+): RateLibraryPack {
+  const src = getSource(sourceKey);
+  const year = opts.year ?? src.defaultYear;
+  const parsed = src.parse(formatMarkdown(markdown), `${src.key}-${year}`);
+  return packFromParsed({ source: src.key, year, edition: opts.edition }, parsed);
 }

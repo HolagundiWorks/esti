@@ -25,7 +25,9 @@ export interface SourceDef {
   label: string;
   authority: string;
   defaultYear: number;
-  /** Deterministic parse: normalised markdown → parsed entities (no LLM). */
+  /** Input format: CPWD ships as chapter CSVs; the fixture is markdown. */
+  format: "csv" | "markdown";
+  /** Deterministic parse of a single markdown string (markdown sources only). */
   parse: (markdown: string, source: string) => ParsedSR;
   /** true once a real parser exists. */
   ready: boolean;
@@ -34,21 +36,26 @@ export interface SourceDef {
 }
 
 export const SOURCES: Record<string, SourceDef> = {
-  // The single product schedule.
+  // The single product schedule — CPWD, shipped as chapter CSVs. Built via
+  // build-cpwd-pack (src/parsers/cpwd.ts), not the markdown parse() slot.
   CPWD: {
     key: "CPWD",
     label: "CPWD Delhi Schedule of Rates",
     authority: "Central Public Works Department",
-    defaultYear: 2023,
-    parse: parseSR,
+    defaultYear: 2021,
+    format: "csv",
+    parse: () => {
+      throw new Error("CPWD is CSV — build with `pnpm --filter @esti/ese build-cpwd-pack` (src/parsers/cpwd.ts)");
+    },
     ready: true,
   },
-  // Real-data parser fixture (same published format as CPWD). Not a product source.
+  // Real-data parser fixture (markdown, same published structure). Not a product source.
   "KAR-PWD": {
     key: "KAR-PWD",
     label: "Karnataka PWD Common SR (parser fixture)",
     authority: "Karnataka Public Works Department",
     defaultYear: 2023,
+    format: "markdown",
     parse: parseSR,
     ready: true,
     reference: true,

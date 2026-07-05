@@ -34,20 +34,23 @@ A **representative slice** (not the whole book) is enough to build a robust pars
 
 ## Status
 
-The product standardises on **one** schedule — **CPWD** (Delhi DSR + Analysis of
-Rates). The multi-state fan-out (TN / MH / AP) is dropped — we do not juggle
-multiple state DSRs. The CPWD/PWD-family parser is validated against a real
-Karnataka SR sample of the *identical* published format (retained only as a
-parser fixture, not a second product source).
+The product standardises on **one** schedule — **CPWD** (Delhi DSR). The
+multi-state fan-out (TN / MH / AP) is dropped — we do not juggle multiple DSRs.
 
-| Source | Role | Markdown | Parser | Golden test |
-|---|---|---|---|---|
-| **CPWD Delhi DSR** | product schedule | ⏳ awaiting markdown | ✅ `../src/parsers/karnataka.ts` (`parseSR`) | via the fixture below |
-| Karnataka PWD Common SR 2023-24 | parser fixture (same format) | `kar-dsr-2023.md` | ✅ same parser | ✅ `karnataka.test.ts` (10) |
+| Source | Role | Input | Parser | Golden test | Pack |
+|---|---|---|---|---|---|
+| **CPWD Delhi DSR 2021** | ✅ product schedule | **18 chapter CSVs** (here) + cement-coefficient CSV | ✅ `../src/parsers/cpwd.ts` | ✅ `cpwd.test.ts` (7) + `cpwd-pack.test.ts` (4) | ✅ `../packs/cpwd-2021.pack.json` (**4252 rate items · 261 recipes**) |
+| Karnataka PWD Common SR | parser fixture (markdown) | `kar-dsr-2023.md` | `../src/parsers/karnataka.ts` | ✅ `karnataka.test.ts` (10) | reference only |
 
-Drop CPWD markdown here (`cpwd-dsr-2023.md`) and I tune the parser for its
-specifics (4-digit basic-rate codes, +Water 1% / +CPOH 15% build-up) and add a
-CPWD golden fixture; the pack schema is shared.
+### CPWD CSV format (what `cpwd.ts` reads)
+`Item No. , Description , Unit , Rate` per chapter. Parent rows (colon, no rate) →
+work items; sub-items carry the code inside the description (`2.1.1 All kinds of
+soil`); 4-digit basic-rate codes (`0114 Beldar`) are priced items. **Hindi
+duplicate rows use hyphen codes (`2-1`, `2-1-1`) and are skipped.** Cement
+coefficients (quintals per unit) become recipes. Rates go to the **Rate Book**;
+the description is the rate-free **specification** (they join by `code`).
+
+Build/refresh the pack: `pnpm --filter @esti/ese build-cpwd-pack`.
 
 ### Karnataka parser — what it extracts (all deterministic, no LLM)
 
