@@ -34,7 +34,9 @@ import { ProjectCpi } from "../components/ProjectCpi.js";
 import { ProjectInfo } from "../components/ProjectInfo.js";
 import { ProjectMinutes } from "../components/ProjectMinutes.js";
 import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
-import { ProjectBoq } from "../components/cms/ProjectBoq.js";
+import { ProjectEstimation } from "../components/cms/ProjectEstimation.js";
+import { ProjectEstimateBoq } from "../components/cms/ProjectEstimateBoq.js";
+import { ProjectBbs } from "../components/cms/ProjectBbs.js";
 import { ProjectSiteMeasurement } from "../components/cms/ProjectSiteMeasurement.js";
 import { ProjectWorkOrders } from "../components/cms/ProjectWorkOrders.js";
 import { ProjectContractorBills } from "../components/cms/ProjectContractorBills.js";
@@ -109,9 +111,11 @@ export function ProjectDetail() {
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 
-    // ── Cost Management System — Element-centric cost control (consultancy).
+    // ── Cost Management — estimate import/re-cost + element cost control.
     const cmsTabs: ProjectTab[] = [
-      { slug: "boq", label: "BOQ", panel: <ProjectBoq projectId={id} /> },
+      { slug: "estimation", label: "Estimation", panel: <ProjectEstimation projectId={id} /> },
+      { slug: "boq", label: "BOQ", panel: <ProjectEstimateBoq projectId={id} /> },
+      { slug: "bbs", label: "BBS", panel: <ProjectBbs projectId={id} /> },
       { slug: "site-measurement", label: "Site Measurement", panel: <ProjectSiteMeasurement projectId={id} /> },
       { slug: "work-orders", label: "Work Orders", panel: <ProjectWorkOrders projectId={id} /> },
       { slug: "contractor-bills", label: "Contractor Bills", panel: <ProjectContractorBills projectId={id} /> },

@@ -41,21 +41,24 @@ function buildRateBookRates(
 }
 
 export const estimateRouter = router({
-  /** Imported estimates (light — no pack payload). */
-  list: protectedProcedure.query(({ ctx }) =>
-    ctx.db
-      .select({
-        id: estimates.id,
-        title: estimates.title,
-        projectId: estimates.projectId,
-        sourceRateBookName: estimates.sourceRateBookName,
-        checksum: estimates.checksum,
-        createdAt: estimates.createdAt,
-      })
-      .from(estimates)
-      .orderBy(desc(estimates.createdAt))
-      .limit(200),
-  ),
+  /** Imported estimates (light — no pack payload); optionally scoped to a project. */
+  list: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid().optional() }).optional())
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select({
+          id: estimates.id,
+          title: estimates.title,
+          projectId: estimates.projectId,
+          sourceRateBookName: estimates.sourceRateBookName,
+          checksum: estimates.checksum,
+          createdAt: estimates.createdAt,
+        })
+        .from(estimates)
+        .where(input?.projectId ? eq(estimates.projectId, input.projectId) : undefined)
+        .orderBy(desc(estimates.createdAt))
+        .limit(200),
+    ),
 
   /** One estimate with its full parsed pack. */
   byId: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {

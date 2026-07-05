@@ -18,7 +18,6 @@ import {
   Book,
   Bot,
   Building,
-  Calculator,
   Catalog,
   Dashboard as DashboardIcon,
   Document,
@@ -130,7 +129,6 @@ const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "Know
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
-const EstimateViewer = lazyRoute(() => import("./routes/EstimateViewer.js"), "EstimateViewer");
 const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
@@ -386,7 +384,6 @@ function AppShell() {
     { label: "Studio Intelligence", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
-    { label: "Estimation", to: "/estimation", icon: Calculator },
     ...(planAllowsFeature("ai") && atLeast(60)
       ? [{ label: "AI Studio", to: "/office/ai-studio", icon: Bot }]
       : []),
@@ -602,8 +599,9 @@ function AppShell() {
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
-                <Route path="/estimation" element={<EstimateViewer />} />
-                <Route path="/libraries/estimates" element={<Navigate to="/estimation" replace />} />
+                {/* Estimation lives inside a project → Cost Management. Old links redirect. */}
+                <Route path="/estimation" element={<Navigate to="/projects" replace />} />
+                <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />
