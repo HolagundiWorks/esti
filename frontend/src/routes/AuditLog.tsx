@@ -1,25 +1,17 @@
 import {
+  Alert,
+  Box,
   Button,
-  CodeSnippet,
-  Column,
-  Grid,
-  InlineNotification,
-  Modal,
-  Pagination,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -33,217 +25,161 @@ function jsonDetail(value: unknown) {
     : JSON.stringify(value, null, 2);
 }
 
+const fmtTime = (v: string | number | Date) =>
+  new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(v));
+
 export function AuditLog() {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    entity: "",
-    action: "",
-  });
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
+  const [filters, setFilters] = useState<Filters>({ search: "", entity: "", action: "" });
   const [applied, setApplied] = useState<Filters>(filters);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const list = trpc.audit.list.useQuery({
-    page,
-    pageSize,
+    page: paginationModel.page + 1,
+    pageSize: paginationModel.pageSize,
     search: applied.search || undefined,
     entity: applied.entity || undefined,
     action: applied.action || undefined,
   });
-  const selected = list.data?.rows.find((row) => row.id === selectedId) ?? null;
+  const rows = list.data?.rows ?? [];
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
 
   function applyFilters() {
-    setPage(1);
+    setPaginationModel((m) => ({ ...m, page: 0 }));
     setApplied(filters);
   }
-
   function clearFilters() {
     const empty = { search: "", entity: "", action: "" };
     setFilters(empty);
     setApplied(empty);
-    setPage(1);
+    setPaginationModel((m) => ({ ...m, page: 0 }));
   }
 
+  const columns: GridColDef[] = [
+    { field: "createdAt", headerName: "Time", flex: 1.2, minWidth: 160, renderCell: (p) => fmtTime(p.row.createdAt) },
+    { field: "entity", headerName: "Entity", flex: 1, minWidth: 120 },
+    { field: "action", headerName: "Action", flex: 1, minWidth: 120 },
+    {
+      field: "actor",
+      headerName: "Actor",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (_v, row) => row.actorName ?? row.actorEmail ?? "System",
+    },
+    { field: "entityId", headerName: "Record ID", flex: 1, minWidth: 120, valueGetter: (v) => v ?? "—" },
+    {
+      field: "details",
+      headerName: "Details",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (p) => (
+        <Button variant="text" size="small" onClick={() => setSelectedId(p.row.id)}>
+          View
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={7}>
+    <Stack spacing={3}>
       <PageHeader
         title="Audit log"
         description="Append-only record of security-sensitive and operational changes."
       />
 
-      <Grid condensed>
-        <Column sm={4} md={4} lg={6}>
-          <TextInput
-            id="audit-search"
-            labelText="Search actor, entity, or action"
-            value={filters.search}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                search: event.target.value,
-              }))
-            }
-            onKeyDown={(event) => event.key === "Enter" && applyFilters()}
-          />
-        </Column>
-        <Column sm={4} md={2} lg={3}>
-          <Select
-            id="audit-entity"
-            labelText="Entity"
-            value={filters.entity}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                entity: event.target.value,
-              }))
-            }
-          >
-            <SelectItem value="" text="All entities" />
-            {(list.data?.filters.entities ?? []).map((entity) => (
-              <SelectItem key={entity} value={entity} text={entity} />
-            ))}
-          </Select>
-        </Column>
-        <Column sm={4} md={2} lg={3}>
-          <Select
-            id="audit-action"
-            labelText="Action"
-            value={filters.action}
-            onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
-                action: event.target.value,
-              }))
-            }
-          >
-            <SelectItem value="" text="All actions" />
-            {(list.data?.filters.actions ?? []).map((action) => (
-              <SelectItem key={action} value={action} text={action} />
-            ))}
-          </Select>
-        </Column>
-        <Column sm={4} md={8} lg={4}>
-          <Stack orientation="horizontal" gap={3}>
-            <Button onClick={applyFilters}>Apply filters</Button>
-            <Button kind="secondary" onClick={clearFilters}>
-              Clear
-            </Button>
-          </Stack>
-        </Column>
-      </Grid>
-
-      {list.error && (
-        <InlineNotification
-          kind="error"
-          title="Audit log unavailable"
-          subtitle={list.error.message}
-          hideCloseButton
-          lowContrast
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "flex-start" }}>
+        <TextField
+          id="audit-search"
+          label="Search actor, entity, or action"
+          value={filters.search}
+          onChange={(e) => setFilters((c) => ({ ...c, search: e.target.value }))}
+          onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+          sx={{ flex: 2, minWidth: 240 }}
         />
-      )}
-
-      <DataState
-        loading={list.isLoading}
-        isEmpty={!list.error && (list.data?.rows.length ?? 0) === 0}
-        columnCount={6}
-        empty={{
-          title: "No audit entries found",
-          description: "Change or clear the current filters.",
-        }}
-      >
-        <TableContainer
-          title="Recorded changes"
-          description={`${list.data?.total ?? 0} entries`}
+        <TextField
+          id="audit-entity"
+          select
+          label="Entity"
+          value={filters.entity}
+          onChange={(e) => setFilters((c) => ({ ...c, entity: e.target.value }))}
+          sx={{ flex: 1, minWidth: 160 }}
         >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Time</TableHeader>
-                <TableHeader>Entity</TableHeader>
-                <TableHeader>Action</TableHeader>
-                <TableHeader>Actor</TableHeader>
-                <TableHeader>Record ID</TableHeader>
-                <TableHeader>Details</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(list.data?.rows ?? []).map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>
-                    {new Intl.DateTimeFormat("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    }).format(new Date(row.createdAt))}
-                  </TableCell>
-                  <TableCell>{row.entity}</TableCell>
-                  <TableCell>{row.action}</TableCell>
-                  <TableCell>
-                    {row.actorName ?? row.actorEmail ?? "System"}
-                  </TableCell>
-                  <TableCell>{row.entityId ?? "—"}</TableCell>
-                  <TableCell>
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      onClick={() => setSelectedId(row.id)}
-                    >
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Pagination
-            page={page}
-            pageSize={pageSize}
-            pageSizes={PAGE_SIZES}
-            totalItems={list.data?.total ?? 0}
-            onChange={({ page: nextPage, pageSize: nextPageSize }) => {
-              setPage(nextPage);
-              setPageSize(nextPageSize);
-            }}
-          />
-        </TableContainer>
-      </DataState>
+          <MenuItem value="">All entities</MenuItem>
+          {(list.data?.filters.entities ?? []).map((entity) => (
+            <MenuItem key={entity} value={entity}>{entity}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          id="audit-action"
+          select
+          label="Action"
+          value={filters.action}
+          onChange={(e) => setFilters((c) => ({ ...c, action: e.target.value }))}
+          sx={{ flex: 1, minWidth: 160 }}
+        >
+          <MenuItem value="">All actions</MenuItem>
+          {(list.data?.filters.actions ?? []).map((action) => (
+            <MenuItem key={action} value={action}>{action}</MenuItem>
+          ))}
+        </TextField>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 56 }}>
+          <Button variant="contained" onClick={applyFilters}>Apply filters</Button>
+          <Button variant="outlined" onClick={clearFilters}>Clear</Button>
+        </Stack>
+      </Box>
 
-      <Modal
-        open={selected !== null}
-        passiveModal
-        modalHeading={
-          selected ? `${selected.entity} · ${selected.action}` : "Audit details"
-        }
-        onRequestClose={() => setSelectedId(null)}
-      >
+      {list.error && <Alert severity="error">{list.error.message}</Alert>}
+
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        loading={list.isLoading}
+        rowCount={list.data?.total ?? 0}
+        paginationMode="server"
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={PAGE_SIZES}
+        disableRowSelectionOnClick
+        autoHeight
+      />
+
+      <Dialog open={selected !== null} onClose={() => setSelectedId(null)} fullWidth maxWidth="md">
+        <DialogTitle>{selected ? `${selected.entity} · ${selected.action}` : "Audit details"}</DialogTitle>
         {selected && (
-          <Stack gap={5}>
-            <p>
-              Record:{" "}
-              {selected.entityId ?? "Not associated with a domain record"}
-            </p>
-            <p>
-              Actor:{" "}
-              {selected.actorName ??
-                selected.actorEmail ??
-                selected.actorId ??
-                "System"}
-            </p>
-            <Stack gap={3}>
-              <h3>Before</h3>
-              <CodeSnippet type="multi">
-                {jsonDetail(selected.before)}
-              </CodeSnippet>
+          <DialogContent>
+            <Stack spacing={2}>
+              <Typography variant="body2">
+                Record: {selected.entityId ?? "Not associated with a domain record"}
+              </Typography>
+              <Typography variant="body2">
+                Actor: {selected.actorName ?? selected.actorEmail ?? selected.actorId ?? "System"}
+              </Typography>
+              {(["before", "after"] as const).map((k) => (
+                <Stack spacing={1} key={k}>
+                  <Typography variant="subtitle2" sx={{ textTransform: "capitalize" }}>{k}</Typography>
+                  <Box
+                    component="pre"
+                    sx={{
+                      m: 0,
+                      p: 1.5,
+                      fontFamily: "'IBM Plex Mono', monospace",
+                      fontSize: 12,
+                      whiteSpace: "pre-wrap",
+                      overflowX: "auto",
+                      bgcolor: "background.paper",
+                      border: 1,
+                      borderColor: "divider",
+                    }}
+                  >
+                    {jsonDetail(selected[k])}
+                  </Box>
+                </Stack>
+              ))}
             </Stack>
-            <Stack gap={3}>
-              <h3>After</h3>
-              <CodeSnippet type="multi">
-                {jsonDetail(selected.after)}
-              </CodeSnippet>
-            </Stack>
-          </Stack>
+          </DialogContent>
         )}
-      </Modal>
+      </Dialog>
     </Stack>
   );
 }
