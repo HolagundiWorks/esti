@@ -12,6 +12,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App.js";
+import { MuiRoot } from "./theme/MuiRoot.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
@@ -68,7 +69,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <BrowserRouter
             future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
           >
-            <App />
+            <MuiRoot>
+              <App />
+            </MuiRoot>
           </BrowserRouter>
           <ToastHost />
         </QueryClientProvider>

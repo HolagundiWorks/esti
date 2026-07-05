@@ -26,7 +26,8 @@
   --lp-bg-soft: var(--cds-layer-01);
   --lp-max: min(80vw, 100rem);
   --lp-radius: 2px;
-  --lp-font: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  // Brand font — Google Sans across the whole product, landing included.
+  --lp-font: "Google Sans", "Google Sans Text", "Product Sans", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
 
   font-family: var(--lp-font);
   color: var(--lp-ink);

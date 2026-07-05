@@ -11,22 +11,42 @@ Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
 podman (`compose.yaml`).
 
-## UI / design system — PURE CARBON ONLY
+## UI / design system — MIGRATING TO MATERIAL UI (landing stays Carbon)
 
-**Canonical guide:** [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) — the
-ESTI Pure-Carbon rules, tokens, and documented exceptions. (The former `@hcw/carbon-agent-kit`
-design playbook was retired; its lint policy is internalised at
-`frontend/scripts/carbon-policy-rules.mjs`.)
+> **⚠️ ACTIVE MIGRATION (2026-07).** The research team moved the **app, panels and
+> all portals** off IBM Carbon onto **Material UI** (`@mui/material`). Both systems
+> coexist during the migration (strangler pattern) so the build never breaks —
+> migrate screen-by-screen, replacing `@carbon/react` with `@mui/material`.
+> **The landing page (`Landing.tsx`, `components/landing/**`, `landing.scss`) stays
+> on Carbon editorial and is out of scope.** Three hard rules for the new UI:
+>
+> 1. **Colours are unchanged** — the MUI theme uses Carbon **g100** token values
+>    verbatim (`src/theme/muiTheme.ts`). The dark "liquid glass" surface *is* g100.
+> 2. **Square corners everywhere** — `borderRadius: 0`. The guard rejects any
+>    non-zero `border-radius` / `borderRadius` outside the exempt landing/theme.
+> 3. **Liquid glass** — translucent Paper/Card/Drawer/AppBar with backdrop blur
+>    (baked into the theme; matches `landing.scss` / `glass.scss`).
+>
+> **Brand font: Google Sans** across the *entire* product (landing included) —
+> `--esti-font-sans` in `styles.scss`, mirrored in the MUI theme. Proprietary
+> woff2s go in `frontend/public/fonts/` (see its README); falls back to Plex Sans.
+
+**Canonical guide:** [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md) —
+MUI theme, migration playbook, square-corner + palette-lock rules.
+[`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) still governs the
+landing surface and documents legacy Carbon exceptions.
 
 ### UI task order
 
-1. Read [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) — rules, tokens, exceptions.
-2. Build every screen from `@carbon/react` + `--cds-*` tokens — never hard-coded hex/gradients/shadows.
-3. Enforcement runs in CI: `frontend/scripts/check-carbon.mjs` (frontend `lint`) + `carbon-policy.test.ts` (vitest).
+1. Read [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md) — theme, playbook, rules.
+2. Build app/portal screens from `@mui/material` + the theme — never hard-coded hex/gradients, never rounded corners.
+3. Enforcement runs in CI: `frontend/scripts/check-carbon.mjs` (frontend `lint`) + `carbon-policy.test.ts` (vitest) — now also flags rounded corners; `src/theme/` is the only place raw colour lives.
 
 **AORMS AI:** `@hcw/aorms-ai-kit` (prompts + Ollama SDK) — backend dependency; product docs stay in `docs/esti/`.
 
-**The frontend must use ONLY the IBM Carbon Design System. No custom UI
+### Legacy Carbon rules (landing surface + not-yet-migrated screens)
+
+**The landing surface uses ONLY the IBM Carbon Design System. No custom UI
 elements.**
 
 - Build every screen from `@carbon/react` components (`Grid`, `Column`,

@@ -3,6 +3,8 @@
 //
 // Override $font-path off Carbon's webpack-only "~@ibm/plex" default (which
 // 404s under Vite) to the IBM Plex CDN so the @font-face URLs resolve.
+// ($font-families is NOT a configurable Carbon var, so the Google Sans swap is
+// applied as a runtime override further below, not here.)
 @use "@carbon/react" with (
   $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
 );
@@ -32,6 +34,47 @@
   --cds-spacing-12: 6rem;      // 96px
   --cds-spacing-13: 10rem;     // 160px
   --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
+  // Brand font stack — single source of truth (mirrors the Carbon $font-families
+  // 'sans' override above and MUI's theme.typography.fontFamily).
+  --esti-font-sans: "Google Sans", "Google Sans Text", "Product Sans",
+    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+// Google Sans web font (self-hosted). Files are proprietary and NOT committed —
+// drop the licensed woff2s into public/fonts/ (see public/fonts/README.md). If
+// absent, @font-face fails silently and the stack falls back to IBM Plex Sans.
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Google Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/GoogleSans-Bold.woff2") format("woff2");
+}
+
+// BRAND FONT — Google Sans everywhere. Applied as a runtime override because
+// Carbon's $font-families map is not a configurable Sass var. Reaches the body
+// (inherited by all app + landing text) and every Carbon-prefixed surface, which
+// otherwise set 'IBM Plex Sans' explicitly via the type-style mixins. Our own
+// monospace utilities are `.esti-*` classes (never `.cds--*`) and set their own
+// 'IBM Plex Mono' with higher specificity, so numeric/code readouts are untouched.
+html body,
+html body [class^="cds--"],
+html body [class*=" cds--"] {
+  font-family: var(--esti-font-sans);
 }
 
 // Let the themed app shell fill the viewport (no unstyled strip in dark theme).
@@ -223,14 +266,14 @@ html:has(.esti-landing-shell) body {
 .esti-card-skeleton { width: 100%; height: 18rem; }
 
 // ── Tag normalisation ─────────────────────────────────────────────────────────
-// All tags: uniform 1.5rem (24px) height and 5% border-radius.
-// 5% resolves to ~1-3px on each corner — a subtle inset, not a pill.
+// All tags: uniform 1.5rem (24px) height and square (0) corners — the migration
+// brief mandates 90° corners everywhere.
 // Overrides Carbon sm/md/lg size variants so every tag in the workspace
 // sits on the same baseline regardless of which size prop was used.
 .cds--tag {
   block-size: 1.5rem;
   min-block-size: 1.5rem;
-  border-radius: 5%;
+  border-radius: 0;
   // Ensure inner text aligns with the fixed height.
   display: inline-flex;
   align-items: center;
@@ -2907,7 +2950,7 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   &__bar  {
     width: 80px; height: 3px;
     background: var(--cds-border-subtle);
-    border-radius: 1px;
+    border-radius: 0;
     position: relative;
     flex-shrink: 0;
     &::before {
@@ -2916,7 +2959,7 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
       left: 0; top: 0; bottom: 0;
       width: var(--rl, 0%);
       background: var(--rc, var(--cds-border-strong));
-      border-radius: 1px;
+      border-radius: 0;
     }
   }
 }
