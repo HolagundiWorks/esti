@@ -1,17 +1,4 @@
-import {
-  Content,
-  Header,
-  HeaderGlobalAction,
-  HeaderGlobalBar,
-  HeaderName,
-  InlineNotification,
-  Loading,
-  SideNav,
-  SideNavItems,
-  SideNavLink,
-  SideNavMenu,
-  Theme,
-} from "@carbon/react";
+import { InlineNotification, Loading, Theme } from "@carbon/react";
 import {
   Analytics,
   Archive,
@@ -27,7 +14,6 @@ import {
   Identification,
   License,
   ListChecked,
-  Logout,
   Map as MapIcon,
   Money,
   Partnership,
@@ -35,7 +21,6 @@ import {
   Receipt,
   Report,
   Rule,
-  Search as SearchIcon,
   Settings as SettingsIcon,
   Store,
   TaskComplete,
@@ -55,7 +40,7 @@ import {
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
@@ -65,6 +50,8 @@ import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { UserIdCard } from "./components/UserIdCard.js";
 import { FloatingDock } from "./components/FloatingDock.js";
+import { AppRibbon } from "./components/shell/AppRibbon.js";
+import { AppFooterBar } from "./components/shell/AppFooterBar.js";
 import { UsageIdentity } from "./components/identity/UsageIdentity.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
@@ -154,44 +141,6 @@ const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
 const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
-/** Side nav highlight — prefix match for nested routes (projects, tasks, KB). */
-function navPathActive(pathname: string, to: string): boolean {
-  if (to === "/") return pathname === "/";
-  if (to === "/projects") {
-    return pathname === "/projects" || pathname.startsWith("/projects/");
-  }
-  if (to === "/tasks") return pathname === "/tasks" || pathname.startsWith("/tasks");
-  if (to === "/knowledge-bank") {
-    return pathname === "/knowledge-bank" || pathname.startsWith("/knowledge-bank");
-  }
-  if (to === "/search") return pathname === "/search";
-  return pathname === to || pathname.startsWith(`${to}/`);
-}
-
-// ─── Header clock ─────────────────────────────────────────────────────────────
-
-function HeaderClock() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const time = now.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const date = now.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-  return (
-    <span className="esti-header-clock">
-      {date} · {time}
-    </span>
-  );
-}
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -494,88 +443,13 @@ function AppShell() {
     },
   ]);
 
-  // Is this node (or any descendant) the active route? Used to auto-expand menus.
-  const navNodeActive = (node: NavNode): boolean =>
-    "items" in node ? node.items.some(navNodeActive) : navPathActive(pathname, node.to);
-
-  // Recursive sidebar renderer. ONE nav-item contract: every leaf — top-level or
-  // nested — is a `SideNavLink` with an icon, so all items share the same row
-  // width, height, icon+label gap, hover/active/focus, and full-row click target.
-  // Grouping is expressed only through the (nestable) `SideNavMenu`; nested leaves
-  // are never a different variant. This keeps every item representable in the icon
-  // rail and removes the width/indent divergence that `SideNavMenuItem` introduced.
-  const renderNavNode = (node: NavNode) => {
-    if ("items" in node) {
-      return (
-        <SideNavMenu
-          key={node.label}
-          title={node.label}
-          renderIcon={node.icon}
-          defaultExpanded={node.items.some(navNodeActive)}
-        >
-          {node.items.map((c) => renderNavNode(c))}
-        </SideNavMenu>
-      );
-    }
-    return (
-      <SideNavLink
-        key={node.to}
-        as={Link}
-        to={node.to}
-        renderIcon={node.icon ?? DashboardIcon}
-        isActive={navPathActive(pathname, node.to)}
-      >
-        {node.label}
-      </SideNavLink>
-    );
-  };
-
   return (
     <ThemeContext.Provider value="g100">
       <Theme theme="g100">
-        <div className={`esti-app-shell${user.isDemo ? " esti-app-shell--demo" : ""}`}>          <Theme theme="g100">
-            <Header
-              aria-label="AORMS"
-              className={`esti-app-header ${planHeaderClass}`}
-            >
-              <HeaderName prefix="">
-                <span className="esti-app-brand">
-                  <img
-                    src="/aorms-logo-white.png"
-                    alt="AORMS"
-                    className="esti-app-brand__logo"
-                  />
-                  <span className="esti-app-brand__tier">{plan}</span>
-                </span>
-                <span className="esti-app-brand__firm">{firmName}</span>
-              </HeaderName>
-              <HeaderGlobalBar>
-                <HeaderClock />
-                <HeaderPomodoro />
-                <HeaderGlobalAction
-                  aria-label="Search"
-                  isActive={navPathActive(pathname, "/search")}
-                  onClick={() => navigate("/search")}
-                >
-                  <SearchIcon size={20} />
-                </HeaderGlobalAction>
-                <AlertsBell />
-                <UserIdCard />
-                <HeaderGlobalAction
-                  aria-label="Sign out"
-                  onClick={() => logout.mutate()}
-                >
-                  <Logout size={20} />
-                </HeaderGlobalAction>
-              </HeaderGlobalBar>
-            </Header>
-          </Theme>
-          <SideNav aria-label="Side navigation" isRail>
-            <SideNavItems>
-              {nav.map((n) => renderNavNode(n))}
-            </SideNavItems>
-          </SideNav>
-          <Content className="esti-app-content">
+        <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
+          {/* Top ribbon nav (Excel-style) — replaces the left side-nav. */}
+          <AppRibbon nav={nav} />
+          <div className="esti-app-content2">
             <main className="esti-grow">
               {licenseBlocked && (
                 <InlineNotification
@@ -711,9 +585,18 @@ function AppShell() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
-          </Content>
+          </div>
           <UsageIdentity />
           <FloatingDock />
+          {/* Footer bar — former top nav bar, moved to the bottom. */}
+          <AppFooterBar
+            firmName={firmName}
+            plan={plan}
+            logoSrc="/aorms-logo-white.png"
+            planClass={planHeaderClass}
+            onSearch={() => navigate("/search")}
+            onSignOut={() => logout.mutate()}
+          />
           {!community && <AiAgentCommand />}
         </div>
       </Theme>

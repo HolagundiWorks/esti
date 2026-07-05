@@ -16,7 +16,7 @@
 
 // Ambient dark editorial backdrop — painted across the whole content scroll area
 // whenever the dashboard is mounted (same gradient family as .esti-landing-shell).
-.esti-app-content:has(.esti-glass-dash) {
+.esti-app-content2:has(.esti-glass-dash) {
   background:
     radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.06), transparent 68%),
     linear-gradient(180deg, #121216 0%, #0c0c0f 58%, #08080a 100%);
@@ -95,11 +95,49 @@
 // float positioning. Top border colour (alert status) is set inline from tokens.
 .esti-floating-dock {
   position: fixed;
-  bottom: 16px;
+  bottom: 60px; // float above the 48px footer bar
   left: 50%;
   transform: translateX(-50%);
   z-index: 1200;
   width: max-content;
   max-width: calc(100vw - 32px);
   overflow: hidden;
+}
+
+// ── App shell v2 — ribbon (top) · content · footer (bottom) · floating dock ────
+.esti-app-shell2 {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--cds-background); // g100 dark (shell is inside .cds--g100)
+}
+.esti-ribbon {
+  flex: 0 0 auto;
+  background-color: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.esti-ribbon__row {
+  padding: 4px 8px;
+  overflow-x: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.esti-app-content2 {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: 88px; // clear the footer + floating dock
+}
+.esti-app-footer {
+  flex: 0 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background-color: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
