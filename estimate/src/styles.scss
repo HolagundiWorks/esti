@@ -1,0 +1,61 @@
+// AORMS Estimate — Carbon v11 stylesheet + colourless structural helpers only.
+// Same Carbon import as the AORMS frontend (IBM Plex via CDN for Vite).
+@use "@carbon/react" with (
+  $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
+);
+@use "@carbon/react/scss/type" as type;
+
+:root {
+  --cds-spacing-03: 0.5rem;
+  --cds-spacing-05: 1rem;
+  --cds-spacing-07: 2rem;
+}
+
+// Structural, colourless layout helpers only (no colour/gradient/shadow).
+.est-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--cds-spacing-05);
+}
+.est-header,
+.est-meta {
+  margin-bottom: var(--cds-spacing-07);
+}
+.est-meta {
+  padding: var(--cds-spacing-05);
+}
+.est-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-07);
+}
+.est-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--cds-spacing-05);
+  align-items: end;
+  margin-bottom: var(--cds-spacing-05);
+}
+.est-mark {
+  width: 28px;
+  height: 28px;
+}
+.est-grow {
+  flex: 1 1 auto;
+  min-width: 220px;
+}
+.est-w-sm {
+  width: 140px;
+}
+.est-w-xs {
+  width: 90px;
+}
+.est-h1 {
+  @include type.type-style("productive-heading-05");
+}
+.est-h2 {
+  @include type.type-style("productive-heading-03");
+}
+.est-help {
+  @include type.type-style("label-01");
+}

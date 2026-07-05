@@ -5,6 +5,8 @@ packages:
   # Estimation Specification Engine (ESE) — back-office rate/bylaw pack publisher.
   # Split to its own repo (ese.aorms.in) later; the @esti/contracts pack schema is the seam.
   - ese
+  # AORMS Estimate — offline desktop estimating app (measure → export .aormsest).
+  - estimate
   # HCW kits vendored under vendor/ for self-contained Docker builds.
   # To use a live sibling checkout during development, run:
   #   pnpm add --workspace-root <kit>@file:../hcw-<kit>
