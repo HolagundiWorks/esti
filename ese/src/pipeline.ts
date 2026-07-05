@@ -1,7 +1,10 @@
-import { createHash } from "node:crypto";
 import { RateLibraryPack } from "@esti/contracts";
 import { config } from "./config.js";
-import { parseKarnatakaSR } from "./parsers/karnataka.js";
+import { getSource } from "./registry.js";
+import { packChecksum } from "./pack-checksum.js";
+import { formatMarkdown } from "./normalize.js";
+
+export { formatMarkdown };
 
 /**
  * The ESE pipeline: PDF/Markdown → clean Markdown → Ollama-structured entities →
@@ -18,15 +21,6 @@ export async function pdfToMarkdown(_pdf: Buffer): Promise<string> {
   throw new Error("pdfToMarkdown: not yet implemented — wire a PDF→Markdown converter");
 }
 
-/** Stage 2 — normalise the markdown (strip page furniture, fix table rows, units). */
-export function formatMarkdown(md: string): string {
-  return md
-    .replace(/\r\n/g, "\n")
-    .replace(/^\s*Page \d+ of \d+\s*$/gim, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
 /** Stage 3 — local Ollama call. Structures + reads; used only for semantic fields. */
 export async function ollamaExtract(prompt: string): Promise<string> {
   const res = await fetch(`${config.ollamaUrl}/api/generate`, {
@@ -39,54 +33,45 @@ export async function ollamaExtract(prompt: string): Promise<string> {
   return json.response;
 }
 
-/** Deterministic rate/code/unit parse from a normalised markdown table row.
- *  (Regex/table parse — NEVER LLM. Returns null for a non-item row.) */
-export function parseRateRow(
-  row: string,
-): { code: string; description: string; unit: string; ratePaise: number } | null {
-  // Placeholder shape; per-source parsers are built from the state-SoR research.
-  const m = row.match(
-    /^\s*([\d.]+)\s*\|\s*(.+?)\s*\|\s*([A-Za-z%]+)\s*\|\s*₹?\s*([\d,]+(?:\.\d+)?)\s*$/,
-  );
-  if (!m) return null;
-  const rupees = Number(m[4]!.replace(/,/g, ""));
-  return { code: m[1]!, description: m[2]!.trim(), unit: m[3]!, ratePaise: Math.round(rupees * 100) };
-}
+// Deterministic rate parsing now lives per source under src/parsers/<state>.ts
+// (registered in src/registry.ts). The Karnataka parser is the reference impl.
 
-/** Stage 4 — assemble + checksum a Rate Library Pack from reviewed, structured data. */
+/** Stage 4 — assemble + checksum a Rate Library Pack from reviewed, structured data.
+ *  The seal is content-addressed (key-sorted), so regenerating the pack from the
+ *  same source is byte-stable regardless of key order. */
 export function buildRateLibraryPack(
   input: Omit<RateLibraryPack, "formatVersion" | "packType" | "checksum" | "currency">,
 ): RateLibraryPack {
-  const draft = {
+  const base = {
     formatVersion: 1 as const,
     packType: "RATE_LIBRARY" as const,
     currency: "INR" as const,
-    checksum: "",
     ...input,
   };
-  const checksum = createHash("sha256")
-    .update(JSON.stringify({ ...draft, checksum: undefined }))
-    .digest("hex");
-  return RateLibraryPack.parse({ ...draft, checksum });
+  const checksum = packChecksum(base);
+  return RateLibraryPack.parse({ ...base, checksum });
 }
 
 /**
- * Karnataka source → validated, checksummed Rate Library Pack. The deterministic
- * parser reads every rate/unit/coefficient; this only maps the parsed entities
- * into pack shape (dropping the parser's internal `via` provenance) and seals it.
- * The Ollama enrichment pass (attribute inference, material-name reconciliation)
- * layers on top of this — it never overrides a parsed rate.
+ * Any registered source → validated, checksummed Rate Library Pack. The source's
+ * deterministic parser reads every rate/unit/coefficient; this only maps the
+ * parsed entities into pack shape (dropping the parser's internal `via`
+ * provenance) and seals it. The Ollama enrichment pass (attribute inference,
+ * material-name reconciliation) layers on top of this — it never overrides a
+ * parsed rate.
  */
-export function buildKarnatakaPack(
+export function buildPack(
+  sourceKey: string,
   markdown: string,
-  opts: { year?: number; edition?: string; source?: string } = {},
+  opts: { year?: number; edition?: string } = {},
 ): RateLibraryPack {
-  const source = opts.source ?? "KAR-PWD";
-  const parsed = parseKarnatakaSR(formatMarkdown(markdown), `${source}-${opts.year ?? 2023}`);
+  const src = getSource(sourceKey);
+  const year = opts.year ?? src.defaultYear;
+  const parsed = src.parse(formatMarkdown(markdown), `${src.key}-${year}`);
   return buildRateLibraryPack({
-    source,
-    year: opts.year ?? 2023,
-    edition: opts.edition ?? `${source}-SR-${opts.year ?? 2023}`,
+    source: src.key,
+    year,
+    edition: opts.edition ?? `${src.key}-SR-${year}`,
     workItems: parsed.workItems.map((w) => ({ code: w.code, name: w.name, discipline: w.discipline })),
     rateItems: parsed.rateItems.map((r) => ({
       code: r.code,
