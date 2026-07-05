@@ -88,3 +88,18 @@
     cursor: pointer;
   }
 }
+
+// ── Floating dock ────────────────────────────────────────────────────────────
+// Bottom-centred floating glass bar (FloatingDock.tsx). The Paper carries the
+// glass fill/blur/border + square corners from the MUI theme; this only handles
+// float positioning. Top border colour (alert status) is set inline from tokens.
+.esti-floating-dock {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+}

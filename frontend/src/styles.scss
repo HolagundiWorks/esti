@@ -3040,3 +3040,14 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   margin-block-start: var(--cds-spacing-03);
 }
 
+
+// ── Hide scrollbars app-wide (scrolling still works) — shell redesign brief. ────
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
