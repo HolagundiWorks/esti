@@ -1,13 +1,4 @@
-import {
-  InlineNotification,
-  Stack,
-  StructuredListBody,
-  StructuredListCell,
-  StructuredListRow,
-  StructuredListWrapper,
-  Tag,
-  Tile,
-} from "@carbon/react";
+import { Alert, Chip, Paper, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 
 export function ReleaseMetadataPanel() {
@@ -30,62 +21,64 @@ export function ReleaseMetadataPanel() {
     staleTime: 30_000,
   });
 
+  const check = (ok: boolean, label: string) => {
+    const color = ok ? "green" : "red";
+    return (
+      <Chip
+        size="small"
+        label={`${label} ${ok ? "OK" : "down"}`}
+        sx={{
+          backgroundColor: `var(--cds-tag-background-${color})`,
+          color: `var(--cds-tag-color-${color})`,
+        }}
+      />
+    );
+  };
+
   return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={4}>
-        <h2>Release &amp; readiness</h2>
-        <p>Build revision and backing-service checks for production operations.</p>
-        {releaseQ.isLoading && <p className="esti-label">Loading…</p>}
+    <Paper sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Typography variant="h5" component="h2">Release &amp; readiness</Typography>
+        <Typography variant="body2">Build revision and backing-service checks for production operations.</Typography>
+        {releaseQ.isLoading && <Typography variant="body2">Loading…</Typography>}
         {releaseQ.isError && (
-          <InlineNotification
-            kind="error"
-            lowContrast
-            title="Could not load release metadata"
-            subtitle={releaseQ.error instanceof Error ? releaseQ.error.message : "Unknown error"}
-            hideCloseButton
-          />
+          <Alert severity="error">
+            {releaseQ.error instanceof Error ? releaseQ.error.message : "Unknown error"}
+          </Alert>
         )}
         {releaseQ.data && (
           <>
-            <StructuredListWrapper isCondensed>
-              <StructuredListBody>
-                <StructuredListRow>
-                  <StructuredListCell>Application</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.app}</StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Version</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.version}</StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Revision</StructuredListCell>
-                  <StructuredListCell noWrap>
-                    <code>{releaseQ.data.revision}</code>
-                  </StructuredListCell>
-                </StructuredListRow>
-                <StructuredListRow>
-                  <StructuredListCell>Environment</StructuredListCell>
-                  <StructuredListCell noWrap>{releaseQ.data.nodeEnv}</StructuredListCell>
-                </StructuredListRow>
-              </StructuredListBody>
-            </StructuredListWrapper>
-            <Stack orientation="horizontal" gap={3}>
-              <Tag type={releaseQ.data.checks.db ? "green" : "red"} size="sm">
-                Database {releaseQ.data.checks.db ? "OK" : "down"}
-              </Tag>
-              <Tag type={releaseQ.data.checks.redis ? "green" : "red"} size="sm">
-                Redis {releaseQ.data.checks.redis ? "OK" : "down"}
-              </Tag>
-              <Tag type={releaseQ.data.checks.storage ? "green" : "red"} size="sm">
-                Storage {releaseQ.data.checks.storage ? "OK" : "down"}
-              </Tag>
+            <Table size="small">
+              <TableBody>
+                <TableRow>
+                  <TableCell>Application</TableCell>
+                  <TableCell>{releaseQ.data.app}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Version</TableCell>
+                  <TableCell>{releaseQ.data.version}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Revision</TableCell>
+                  <TableCell><code>{releaseQ.data.revision}</code></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Environment</TableCell>
+                  <TableCell>{releaseQ.data.nodeEnv}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <Stack direction="row" spacing={1}>
+              {check(releaseQ.data.checks.db, "Database")}
+              {check(releaseQ.data.checks.redis, "Redis")}
+              {check(releaseQ.data.checks.storage, "Storage")}
             </Stack>
-            <p className="esti-label esti-label--helper">
+            <Typography variant="caption" color="text.secondary">
               Public liveness: <code>/health</code> · dependency probe: <code>/readyz</code>
-            </p>
+            </Typography>
           </>
         )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

@@ -1,11 +1,16 @@
 import {
+  Alert,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  PasswordInput,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Stack,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
 
@@ -23,66 +28,60 @@ export function DataTools() {
     },
   });
 
+  const closePurge = () => {
+    setPurgeOpen(false);
+    setPwd("");
+    purge.reset();
+  };
+
   return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={5}>
-        <h2>Data tools</h2>
-        {msg && (
-          <InlineNotification
-            kind="success"
-            title="Done"
-            subtitle={msg}
-            lowContrast
-            onCloseButtonClick={() => setMsg(null)}
-          />
-        )}
-        <p>
+    <Paper sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Typography variant="h5" component="h2">Data tools</Typography>
+        {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
+        <Typography variant="body2">
           Reset everything to a clean slate. Reset keeps your firm profile, this
           owner login and rate book reference data — all projects, clients, invoices,
           drawings, HR and other logins are permanently removed.
-        </p>
-        <Stack orientation="horizontal" gap={2}>
-          <Button kind="danger" onClick={() => setPurgeOpen(true)}>
+        </Typography>
+        <Box>
+          <Button color="error" variant="contained" onClick={() => setPurgeOpen(true)}>
             Reset all data…
           </Button>
-        </Stack>
+        </Box>
       </Stack>
 
-      <Modal
-        open={purgeOpen}
-        danger
-        modalHeading="Reset all data?"
-        primaryButtonText={purge.isPending ? "Resetting…" : "Permanently reset"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={pwd.length === 0 || purge.isPending}
-        onRequestClose={() => {
-          setPurgeOpen(false);
-          setPwd("");
-          purge.reset();
-        }}
-        onRequestSubmit={() => purge.mutate({ password: pwd })}
-      >
-        <Stack gap={5}>
-          <p>
-            This permanently deletes <strong>all operational data</strong> and
-            cannot be undone. Enter your admin password to confirm.
-          </p>
-          <PasswordInput
-            id="purge-pwd"
-            labelText="Admin password"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-          />
-          {purge.error && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              title="Reset failed"
-              subtitle={purge.error.message}
+      <Dialog open={purgeOpen} onClose={closePurge} fullWidth maxWidth="xs">
+        <DialogTitle>Reset all data?</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              This permanently deletes <strong>all operational data</strong> and
+              cannot be undone. Enter your admin password to confirm.
+            </Typography>
+            <TextField
+              id="purge-pwd"
+              type="password"
+              label="Admin password"
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
+              fullWidth
             />
-          )}
-        </Stack>
-      </Modal>
-    </Tile>
+            {purge.error && <Alert severity="error">{purge.error.message}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={closePurge}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={pwd.length === 0 || purge.isPending}
+            onClick={() => purge.mutate({ password: pwd })}
+          >
+            {purge.isPending ? "Resetting…" : "Permanently reset"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   );
 }
