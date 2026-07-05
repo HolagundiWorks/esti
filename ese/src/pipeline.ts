@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { RateLibraryPack } from "@esti/contracts";
 import { config } from "./config.js";
+import { parseKarnatakaSR } from "./parsers/karnataka.js";
 
 /**
  * The ESE pipeline: PDF/Markdown → clean Markdown → Ollama-structured entities →
@@ -67,4 +68,44 @@ export function buildRateLibraryPack(
     .update(JSON.stringify({ ...draft, checksum: undefined }))
     .digest("hex");
   return RateLibraryPack.parse({ ...draft, checksum });
+}
+
+/**
+ * Karnataka source → validated, checksummed Rate Library Pack. The deterministic
+ * parser reads every rate/unit/coefficient; this only maps the parsed entities
+ * into pack shape (dropping the parser's internal `via` provenance) and seals it.
+ * The Ollama enrichment pass (attribute inference, material-name reconciliation)
+ * layers on top of this — it never overrides a parsed rate.
+ */
+export function buildKarnatakaPack(
+  markdown: string,
+  opts: { year?: number; edition?: string; source?: string } = {},
+): RateLibraryPack {
+  const source = opts.source ?? "KAR-PWD";
+  const parsed = parseKarnatakaSR(formatMarkdown(markdown), `${source}-${opts.year ?? 2023}`);
+  return buildRateLibraryPack({
+    source,
+    year: opts.year ?? 2023,
+    edition: opts.edition ?? `${source}-SR-${opts.year ?? 2023}`,
+    workItems: parsed.workItems.map((w) => ({ code: w.code, name: w.name, discipline: w.discipline })),
+    rateItems: parsed.rateItems.map((r) => ({
+      code: r.code,
+      itemCode: r.itemCode,
+      shortName: r.shortName,
+      specification: r.specification,
+      attributes: r.attributes,
+      uom: r.uom,
+      ratePaise: r.ratePaise,
+      source: r.source,
+      derivations: [],
+    })),
+    materials: parsed.materials.map((m) => ({ code: m.code, name: m.name, unit: m.unit, ratePaise: m.ratePaise })),
+    recipes: parsed.recipes.map((r) => ({
+      rateItemCode: r.rateItemCode,
+      materialCode: r.materialCode,
+      coefficient: r.coefficient,
+      wastagePct: r.wastagePct,
+    })),
+    specs: [],
+  });
 }
