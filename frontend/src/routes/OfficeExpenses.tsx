@@ -25,11 +25,16 @@ import {
   ExpensePaymentMethod,
   can,
   formatINR,
+  resolvePeriodRange,
+  type PeriodFilterInput,
 } from "@esti/contracts";
 import { useState } from "react";
+import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+
+const DEFAULT_PERIOD: PeriodFilterInput = { preset: "CURRENT_FY" };
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   DRAFT: "gray",
@@ -259,7 +264,14 @@ export function OfficeExpenses() {
   const { user } = useAuth();
   const canManage = can(user?.role, "invoice:manage");
   const canAudit = can(user?.role, "reports:view");
-  const listQ = trpc.expenses.list.useQuery({ scope: "OFFICE", limit: 200 });
+  const [period, setPeriod] = useState<PeriodFilterInput>(DEFAULT_PERIOD);
+  const range = resolvePeriodRange(period);
+  const listQ = trpc.expenses.list.useQuery({
+    scope: "OFFICE",
+    dateFrom: range.from,
+    dateTo: range.to,
+    limit: 200,
+  });
   const [open, setOpen] = useState(false);
 
   return (
@@ -273,10 +285,13 @@ export function OfficeExpenses() {
           ) : undefined
         }
       />
-      {listQ.isLoading && <p>Loading…</p>}
-      {listQ.data && (
-        <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
-      )}
+      <Stack gap={6}>
+        <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
+        {listQ.isLoading && <p>Loading…</p>}
+        {listQ.data && (
+          <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
+        )}
+      </Stack>
       {open && <ExpenseFormModal open scope="OFFICE" onClose={() => setOpen(false)} />}
     </div>
   );
@@ -286,11 +301,15 @@ export function CashBook() {
   const { user } = useAuth();
   const canManage = can(user?.role, "invoice:manage");
   const canAudit = can(user?.role, "reports:view");
-  const accountsQ = trpc.accounts.list.useQuery();
+  const [period, setPeriod] = useState<PeriodFilterInput>(DEFAULT_PERIOD);
+  const range = resolvePeriodRange(period);
+  const accountsQ = trpc.accounts.list.useQuery(period);
   const cashAccount = accountsQ.data?.find((a) => a.code === "CASH");
   const listQ = trpc.expenses.list.useQuery({
     paymentMethod: "CASH",
     accountCode: "CASH",
+    dateFrom: range.from,
+    dateTo: range.to,
     limit: 200,
   });
   const [open, setOpen] = useState(false);
@@ -299,22 +318,25 @@ export function CashBook() {
     <div>
       <PageHeader
         title="Cash book"
-        description="Petty cash and physical cash outflows. Balance reflects closed cash vouchers only."
+        description="Petty cash and physical cash outflows. Balance reflects closed cash vouchers in the selected financial year."
         actions={
           canManage ? (
             <Button onClick={() => setOpen(true)}>New cash voucher</Button>
           ) : undefined
         }
       />
-      {cashAccount && (
-        <p style={{ marginBottom: "var(--cds-spacing-05)" }}>
-          <strong>Cash balance (closed):</strong> {formatINR(cashAccount.balancePaise)}
-        </p>
-      )}
-      {listQ.isLoading && <p>Loading…</p>}
-      {listQ.data && (
-        <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
-      )}
+      <Stack gap={6}>
+        <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
+        {cashAccount && (
+          <p className="esti-label">
+            <strong>Cash balance ({range.label}):</strong> {formatINR(cashAccount.balancePaise)}
+          </p>
+        )}
+        {listQ.isLoading && <p>Loading…</p>}
+        {listQ.data && (
+          <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
+        )}
+      </Stack>
       {open && <ExpenseFormModal open scope="OFFICE" onClose={() => setOpen(false)} />}
     </div>
   );
