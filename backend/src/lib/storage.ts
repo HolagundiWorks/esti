@@ -249,3 +249,16 @@ export async function getObjectStream(key: string): Promise<NodeJS.ReadableStrea
   if (b.kind === "fs") return createReadStream(fsPathFor(b.root, key));
   return b.put.getObject(b.bucket, key);
 }
+
+/** Size of a single stored object in bytes (0 if missing) — used by project archive. */
+export async function objectBytes(key: string): Promise<number> {
+  return objectSize(await getBackend(), key);
+}
+
+/** Read a whole object into a Buffer (driver-aware) — used to package project files. */
+export async function getObjectBuffer(key: string): Promise<Buffer> {
+  const stream = await getObjectStream(key);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks);
+}

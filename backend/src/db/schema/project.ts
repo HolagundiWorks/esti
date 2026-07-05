@@ -41,6 +41,11 @@ export const projectOffices = pgTable("esti_projectoffice", {
   createdById: uuid("created_by_id"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   archivedById: uuid("archived_by_id").references(() => users.id),
+  /** Files packaged to a bundle + removed from object storage to reclaim space. */
+  filesArchivedAt: timestamp("files_archived_at", { withTimezone: true }),
+  filesArchivedById: uuid("files_archived_by_id").references(() => users.id),
+  /** Object-store bytes reclaimed when the project's files were archived. */
+  filesArchivedBytes: bigint("files_archived_bytes", { mode: "number" }).notNull().default(0),
   /** The phase currently in progress; previous phases are considered complete. */
   currentPhaseId: uuid("current_phase_id"),
   /** When true (and firm PMC on), project shows PMC tab and site-admin features. */

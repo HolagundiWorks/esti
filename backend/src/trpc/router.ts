@@ -45,6 +45,7 @@ import { settingsRouter } from "../modules/settings/router.js";
 import { licensingRouter } from "../modules/licensing/router.js";
 import { licenseRouter } from "../modules/license/router.js";
 import { migrationRouter } from "../modules/migration/router.js";
+import { projectArchiveRouter } from "../modules/projectArchive/router.js";
 import { syncRouter } from "../modules/sync/router.js";
 import { taskRouter } from "../modules/task/router.js";
 import { pulseRouter } from "../modules/pulse/router.js";
@@ -161,6 +162,7 @@ export const appRouter = router({
   licensing: licensingRouter,
   license: licenseRouter,
   migration: migrationRouter,
+  projectArchive: projectArchiveRouter,
   sync: syncRouter,
   firm: firmRouter,
   users: userRouter,
