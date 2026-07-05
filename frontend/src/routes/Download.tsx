@@ -4,37 +4,35 @@ import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { LandingBand, LandingEditorial } from "../components/landing/LandingBand.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { createAccountUrl } from "../lib/onboarding.js";
+import { trpc } from "../lib/trpc.js";
 
 type Edition = {
-  code: "COMMUNITY" | "PRO";
+  code: "LITE" | "PRO";
   name: string;
   price: string;
   pitch: string;
   features: string[];
   tag: "green" | "blue";
   needsKey: boolean;
-  url?: string;
 };
 
 const EDITIONS: Edition[] = [
   {
-    code: "COMMUNITY",
-    name: "AORMS Community",
+    code: "LITE",
+    name: "AORMS Lite",
     price: "Free · Offline",
     pitch:
-      "The free, offline, LAN-only appliance for small practices — your whole office on your own machine and network. No licence, no cloud, no subscription, nothing to install online.",
+      "The free, standalone, offline desktop app for small practices — your whole office on your own machine and local network. No licence, no cloud, no subscription, and everything it needs ships inside the installer.",
     features: [
       "1 admin + 3 staff/intern · unlimited projects & contacts",
       "Projects · tasks · drawings · proposals · invoices · contacts",
       "Runs on your local network — teammates connect from their own devices",
-      "Fully offline — your data never leaves your machine",
+      "Fully offline — Postgres is bundled, your data never leaves your machine",
       "Share any PDF over WhatsApp · backup-code recovery",
       "No licence key required — upgrade to Pro whenever you're ready",
     ],
     tag: "green",
     needsKey: false,
-    url: (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL ??
-      import.meta.env.VITE_LITE_DOWNLOAD_URL) as string | undefined,
   },
   {
     code: "PRO",
@@ -52,11 +50,25 @@ const EDITIONS: Edition[] = [
     ],
     tag: "blue",
     needsKey: true,
-    url: import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined,
   },
 ];
 
+// Baked build-time fallbacks (deploy/fetch-installers.sh) if the live resolver is unavailable.
+const BAKED: Record<Edition["code"], string | undefined> = {
+  LITE: (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL ??
+    import.meta.env.VITE_LITE_DOWNLOAD_URL) as string | undefined,
+  PRO: import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined,
+};
+
 export function Download() {
+  // Live: the newest desktop release's installers, pulled from GitHub (cached server-side).
+  const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000,
+  });
+  const live = installersQ.data;
+  const urlFor = (code: Edition["code"]): string | undefined =>
+    (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
+
   return (
     <Theme theme="g100">
       <MarketingShell>
@@ -70,13 +82,25 @@ export function Download() {
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
-                practice — Community is free forever and fully offline; Pro activates with a
-                licence key and adds AI, GST, portals and the cloud.
+                practice — Lite is free forever and fully offline; Pro activates with a licence
+                key and adds AI, GST, portals and the cloud.
               </p>
+              {live?.version && (
+                <p className="esti-label--helper">
+                  Latest release: {live.version}
+                  {live.publishedAt
+                    ? ` · ${new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
+                        new Date(live.publishedAt),
+                      )}`
+                    : ""}
+                </p>
+              )}
             </Stack>
 
             <Grid fullWidth className="esti-landing-grid">
-              {EDITIONS.map((e) => (
+              {EDITIONS.map((e) => {
+                const url = urlFor(e.code);
+                return (
                 <Column key={e.code} lg={8} md={4} sm={4}>
                   <Tile className="esti-fill">
                     <Stack gap={5}>
@@ -101,8 +125,8 @@ export function Download() {
                         ))}
                       </Stack>
 
-                      {e.url ? (
-                        <Button kind="primary" size="lg" renderIcon={DownloadIcon} href={e.url}>
+                      {url ? (
+                        <Button kind="primary" size="lg" renderIcon={DownloadIcon} href={url}>
                           Download {e.name}
                         </Button>
                       ) : (
@@ -112,7 +136,7 @@ export function Download() {
                           </Button>
                           <p className="esti-label--helper">
                             Use {e.name} on the web today — {""}
-                            {e.code === "COMMUNITY" ? (
+                            {e.code === "LITE" ? (
                               <a href={createAccountUrl()}>create a free account</a>
                             ) : (
                               <a href="/login">sign in to your workspace</a>
@@ -132,7 +156,8 @@ export function Download() {
                     </Stack>
                   </Tile>
                 </Column>
-              ))}
+                );
+              })}
             </Grid>
 
             <p className="esti-label--helper">

@@ -1,11 +1,12 @@
 import { ArrowRight, Checkmark, Download as DownloadIcon } from "@carbon/icons-react";
 import { Button, Tag } from "@carbon/react";
 import { createAccountUrl } from "../../lib/onboarding.js";
+import { trpc } from "../../lib/trpc.js";
 import type { LandingTrialPlanContext } from "../LandingTrialForm.js";
 
-// The free, offline, LAN-only Community appliance (Windows). Baked at build by
-// deploy/fetch-installers.sh; when absent the button routes to the /download page.
-const COMMUNITY_DOWNLOAD_URL =
+// Build-time fallback for the free Lite installer (deploy/fetch-installers.sh);
+// the live resolver (marketing.desktopInstallers) takes precedence when available.
+const LITE_DOWNLOAD_FALLBACK =
   (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL as string | undefined) ??
   (import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined) ??
   "/download";
@@ -68,6 +69,10 @@ const PLANS: Array<{
 ];
 
 export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: LandingTrialPlanContext) => void }) {
+  const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000,
+  });
+  const liteDownloadUrl = installersQ.data?.lite ?? LITE_DOWNLOAD_FALLBACK;
   return (
     <>
       <span id="trial" className="esti-lp-anchor" aria-hidden />
@@ -137,10 +142,10 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
                 <Button
                   kind="tertiary"
                   size="md"
-                  href={COMMUNITY_DOWNLOAD_URL}
+                  href={liteDownloadUrl}
                   renderIcon={DownloadIcon}
                 >
-                  Download Community (offline)
+                  Download Lite (offline)
                 </Button>
               </div>
             ) : (

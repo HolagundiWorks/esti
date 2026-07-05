@@ -116,6 +116,10 @@ const Env = z.object({
   SMTP_FROM: z.string().default("AORMS Beta <hi@aorms.in>"),
   /** Inbox that receives every beta form submission. */
   BETA_REQUEST_NOTIFY_TO: z.string().default("hi@aorms.in"),
+  /** owner/repo whose latest desktop-v* release the /download page pulls installers from. */
+  INSTALLER_REPO: z.string().default("HolagundiWorks/esti"),
+  /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */
+  GITHUB_TOKEN: z.string().default(""),
 });
 
 export type Env = z.infer<typeof Env>;

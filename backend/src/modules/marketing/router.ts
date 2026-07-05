@@ -3,12 +3,16 @@ import { TRPCError } from "@trpc/server";
 import { desc } from "drizzle-orm";
 import { LANDING_AI_UNAVAILABLE_MESSAGE } from "../../lib/ai/landing-operator.js";
 import { runLandingAsk } from "../../lib/ai/landing-gateway.js";
+import { latestDesktopInstallers } from "../../lib/desktopInstallers.js";
 import { notifyBetaRequestSubmitted } from "../../lib/mail/beta-request-mail.js";
 import { enforceRateLimit } from "../../lib/ratelimit.js";
 import { trialRequests } from "../../db/schema/marketing.js";
 import { ownerProcedure, publicProcedure, router } from "../../trpc/trpc.js";
 
 export const marketingRouter = router({
+  /** Latest desktop Lite/Pro installer URLs from the newest GitHub release (cached). */
+  desktopInstallers: publicProcedure.query(() => latestDesktopInstallers()),
+
   /** Public landing ESTI AI — Ollama required; no firm data. */
   askEsti: publicProcedure.input(LandingAskInput).mutation(async ({ ctx, input }) => {
     await enforceRateLimit("landing-ai-ip", ctx.ip, 20, 3600);
