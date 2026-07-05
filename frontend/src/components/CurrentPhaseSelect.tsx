@@ -1,4 +1,4 @@
-import { Select, SelectItem } from "@carbon/react";
+import { MenuItem, TextField } from "@mui/material";
 import { trpc } from "../lib/trpc.js";
 
 type PhaseRow = { id: string; label: string };
@@ -36,9 +36,10 @@ export function CurrentPhaseSelect({
   }
 
   return (
-    <Select
+    <TextField
       id={id}
-      labelText={labelText}
+      select
+      label={labelText}
       helperText={helperText}
       value={value}
       disabled={setCurrent.isPending}
@@ -48,10 +49,13 @@ export function CurrentPhaseSelect({
           setCurrent.mutate({ projectId, phaseId });
         }
       }}
+      fullWidth
     >
       {phases.map((ph) => (
-        <SelectItem key={ph.id} value={ph.id} text={ph.label} />
+        <MenuItem key={ph.id} value={ph.id}>
+          {ph.label}
+        </MenuItem>
       ))}
-    </Select>
+    </TextField>
   );
 }

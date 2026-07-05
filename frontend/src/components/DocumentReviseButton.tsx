@@ -1,4 +1,4 @@
-import { Button, Modal, Stack, TextArea } from "@carbon/react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import type { DocumentEntityType } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
@@ -28,28 +28,53 @@ export function DocumentReviseButton({
 
   return (
     <>
-      <Button kind="ghost" size="sm" onClick={() => setOpen(true)}>{label}</Button>
-      <Modal
-        open={open}
-        modalHeading="Document revision"
-        primaryButtonText={revise.isPending ? "Saving…" : "Revise"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!revisionNote || revise.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          revise.mutate({
-            entityType,
-            entityId,
-            revisionNote,
-            impactNote: impactNote || undefined,
-          })
-        }
-      >
-        <Stack gap={4}>
-          <TextArea id="doc-rev" labelText="Revision note" value={revisionNote} onChange={(e) => setRevisionNote(e.target.value)} />
-          <TextArea id="doc-imp" labelText="Impact note (optional)" value={impactNote} onChange={(e) => setImpactNote(e.target.value)} />
-        </Stack>
-      </Modal>
+      <Button variant="text" size="small" onClick={() => setOpen(true)}>
+        {label}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Document revision</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="doc-rev"
+              label="Revision note"
+              multiline
+              minRows={3}
+              value={revisionNote}
+              onChange={(e) => setRevisionNote(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              id="doc-imp"
+              label="Impact note (optional)"
+              multiline
+              minRows={3}
+              value={impactNote}
+              onChange={(e) => setImpactNote(e.target.value)}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!revisionNote || revise.isPending}
+            onClick={() =>
+              revise.mutate({
+                entityType,
+                entityId,
+                revisionNote,
+                impactNote: impactNote || undefined,
+              })
+            }
+          >
+            {revise.isPending ? "Saving…" : "Revise"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

@@ -1,10 +1,4 @@
-import {
-  Button,
-  Stack,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+import { Button, Chip, Stack, TextField } from "@mui/material";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
 
@@ -19,22 +13,29 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
   });
 
   const row = q.data;
+  const tagColor = row?.status === "COMPLETE" ? "green" : "blue";
 
   return (
-    <Stack gap={4} style={{ marginTop: "var(--cds-spacing-05)" }}>
-      <Stack orientation="horizontal" gap={3} style={{ alignItems: "center" }}>
+    <Stack spacing={2} sx={{ mt: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <h3>Phase 0 — Appointment</h3>
-        <Tag type={row?.status === "COMPLETE" ? "green" : "blue"} size="sm">
-          {row?.status ?? "Not started"}
-        </Tag>
+        <Chip
+          size="small"
+          label={row?.status ?? "Not started"}
+          sx={{
+            backgroundColor: `var(--cds-tag-background-${tagColor})`,
+            color: `var(--cds-tag-color-${tagColor})`,
+          }}
+        />
       </Stack>
       <p style={{ margin: 0, opacity: 0.85 }}>
         Pre-engagement site visit, scope confirmation, and letter of appointment before full initiation.
       </p>
-      <TextInput
+      <TextField
         id="appt-date"
-        labelText="Site visit date"
+        label="Site visit date"
         type="date"
+        slotProps={{ inputLabel: { shrink: true } }}
         defaultValue={row?.siteVisitDate ?? ""}
         onBlur={(e) =>
           upsert.mutate({
@@ -44,10 +45,11 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
           })
         }
       />
-      <TextArea
+      <TextField
         id="appt-scope"
-        labelText="Scope summary"
-        rows={4}
+        label="Scope summary"
+        multiline
+        minRows={4}
         defaultValue={row?.scopeSummary ?? ""}
         onBlur={(e) =>
           upsert.mutate({
@@ -57,15 +59,20 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
           })
         }
       />
-      <Stack orientation="horizontal" gap={3}>
-        <Link to="/office/letters">
-          <Button kind="tertiary" size="sm">Draft letter of appointment</Button>
-        </Link>
-        <Link to="/accounting/fees">
-          <Button kind="tertiary" size="sm">Fee proposal</Button>
-        </Link>
+      <Stack direction="row" spacing={1}>
+        <Button component={Link} to="/office/letters" variant="outlined" size="small">
+          Draft letter of appointment
+        </Button>
+        <Button component={Link} to="/accounting/fees" variant="outlined" size="small">
+          Fee proposal
+        </Button>
         {row?.status !== "COMPLETE" && (
-          <Button size="sm" disabled={complete.isPending} onClick={() => complete.mutate({ projectId })}>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={complete.isPending}
+            onClick={() => complete.mutate({ projectId })}
+          >
             Mark appointment complete
           </Button>
         )}

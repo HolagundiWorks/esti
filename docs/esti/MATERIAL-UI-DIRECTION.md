@@ -80,6 +80,14 @@ consistent (same dark glass palette) throughout the transition.
 `Stack` → MUI `Stack` with the API unchanged, so all ~38 call sites upgraded with
 zero edits. Copy its shape for other shared primitives.
 
+## MUI v9 gotchas
+
+- **`Stack` alignment** — `alignItems`/`justifyContent` go via `sx`, not direct props.
+- **Date/shrink label** — use `slotProps={{ inputLabel: { shrink: true } }}` on
+  `TextField` (the old `InputLabelProps` is gone in v9). Same for `input`/`htmlInput`.
+- **`Grid`** — use the `size` prop (`<Grid size={{ xs: 12, md: 4 }}>`), not `item`/`xs`.
+- **Icons** — import per-icon default: `import Logout from "@mui/icons-material/Logout"`.
+
 ## Charts & icons (deferred)
 
 - `@carbon/charts-react` has no MUI equivalent; keep it until a chart pass swaps to
