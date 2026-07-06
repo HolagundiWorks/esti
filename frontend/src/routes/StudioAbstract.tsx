@@ -505,7 +505,7 @@ export function StudioAbstract() {
           sx={{
             flex: "0 0 20%", maxWidth: "20%", minWidth: 0,
             position: "sticky", top: 0, alignSelf: "flex-start",
-            height: "calc(100vh - 140px)", overflow: "hidden",
+            maxHeight: "calc(100vh - 140px)", overflowY: "auto",
             display: "flex", flexDirection: "column", gap: 1.5,
             borderRight: 1, borderColor: "divider", pr: 2,
           }}
@@ -524,9 +524,17 @@ export function StudioAbstract() {
             {companyName && <Typography variant="caption" color="text.secondary">{companyName}</Typography>}
           </Box>
 
+          {/* Attention update — below the greeting */}
+          <Typography variant="body2" color="text.secondary">
+            {attn.issue} — {attn.action}
+          </Typography>
+
+          {/* Module toggles (Financial · Project) */}
+          {moduleToggles}
+
           <Sep />
 
-          {/* Telemetry — flat square tiles: office health · KPIs · filing due dates */}
+          {/* Status section — flat square tiles: office health · KPIs · filing due dates */}
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             {railTiles.map((c, i) => (
               <Box
@@ -546,19 +554,28 @@ export function StudioAbstract() {
               </Box>
             ))}
           </Box>
+
+          {/* Zone health — single column, one row per zone, below the status section */}
+          <Box>
+            <Typography variant="overline" color="text.secondary">Zone health</Typography>
+            <Stack spacing={1} sx={{ mt: 0.5 }}>
+              {zones.map((z) => (
+                <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <OfficeHealthGlyph state={z.state} size={12} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2">{z.label}</Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>{z.signal}</Typography>
+                  </Box>
+                  <ZoneChip state={z.state} />
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
         </Box>
 
         {/* ── RIGHT 80% — FLAT content ─────────────────────────────────────────── */}
         <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {/* Attention strip + admin toggles (office health now lives in the rail) */}
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-            <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
-              <b>{attn.issue}</b> — {attn.action}
-            </Typography>
-            {moduleToggles}
-          </Stack>
-
-          {/* Horizontal section tabs */}
+          {/* Horizontal section tabs (greeting, attention, telemetry + zone health are in the rail) */}
           <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab value="priorities" label="Priorities" />
             <Tab value="apps" label="Apps" />
@@ -569,21 +586,6 @@ export function StudioAbstract() {
 
           {tab === "priorities" && (
             <>
-              <SectionCard title="Zone health">
-                <Stack spacing={1}>
-                  {zones.map((z) => (
-                    <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                      <OfficeHealthGlyph state={z.state} size={12} />
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2">{z.label}</Typography>
-                        <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
-                      </Box>
-                      <ZoneChip state={z.state} />
-                    </Stack>
-                  ))}
-                </Stack>
-              </SectionCard>
-              <Sep />
               <SectionCard title="Today">
                 <Stack direction="row" spacing={4}>
                   {[
