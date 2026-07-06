@@ -1,4 +1,4 @@
-import { Button, Stack, Tag } from "@carbon/react";
+import { Button, Chip, Stack } from "@mui/material";
 import { useRef, useState } from "react";
 import {
   fmtPomTime,
@@ -51,11 +51,16 @@ export function PomodoroRing() {
   }
 
   return (
-    <Stack gap={4}>
-      <Stack orientation="horizontal" gap={3}>
-        <Tag type={isBreak ? "red" : "green"} size="sm">
-          {POMODORO_MODE_LABEL[pom.mode]}
-        </Tag>
+    <Stack spacing={1.5}>
+      <Stack direction="row" spacing={1}>
+        <Chip
+          size="small"
+          label={POMODORO_MODE_LABEL[pom.mode]}
+          sx={{
+            backgroundColor: `var(--cds-tag-background-${isBreak ? "red" : "green"})`,
+            color: `var(--cds-tag-color-${isBreak ? "red" : "green"})`,
+          }}
+        />
       </Stack>
 
       <div className="esti-pom-ring">
@@ -167,7 +172,7 @@ export function PomodoroRing() {
         </svg>
       </div>
 
-      <Button kind="secondary" size="sm" onClick={pom.reset}>
+      <Button variant="outlined" size="small" onClick={pom.reset}>
         Reset
       </Button>
     </Stack>
