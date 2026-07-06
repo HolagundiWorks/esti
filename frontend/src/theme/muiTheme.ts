@@ -23,23 +23,26 @@ import { createTheme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
-// ── Carbon g100 tokens (verbatim from @carbon/themes) ────────────────────────
+// ── Design language: FLAT BLACK & WHITE + grey gradient + liquid glass, with a
+// single IBM-blue accent. Neutral values are pure monochrome (no hue tint);
+// the accent is IBM blue-60 (#0f62fe, Carbon's core interactive blue). Status
+// colours stay Carbon support tokens (they signal state, not brand).
 const CDS = {
-  background:     "#161616", // $background
-  layer01:        "#262626", // $layer-01
-  layer02:        "#393939", // $layer-02
-  borderSubtle:   "#525252", // $border-subtle-01
+  background:     "#000000", // flat black canvas (grey-gradient backdrop in glass.scss)
+  layer01:        "#1a1a1a", // neutral grey layer
+  layer02:        "#2a2a2a",
+  borderSubtle:   "#525252", // $border-subtle-01 (neutral grey)
   borderStrong:   "#6f6f6f", // $border-strong-01
-  textPrimary:    "#f4f4f4", // $text-primary
-  textSecondary:  "#c6c6c6", // $text-secondary
+  textPrimary:    "#ffffff", // flat white
+  textSecondary:  "#c6c6c6", // $text-secondary (grey)
   textHelper:     "#a8a8a8", // $text-helper
   textOnColor:    "#ffffff", // $text-on-color
-  interactive:    "#4589ff", // $interactive
-  linkPrimary:    "#78a9ff", // $link-primary
+  interactive:    "#0f62fe", // IBM blue-60 — THE accent colour
+  linkPrimary:    "#78a9ff", // IBM blue-40 — readable link blue on black
   supportSuccess: "#42be65", // $support-success
   supportWarning: "#f1c21b", // $support-warning
   supportError:   "#fa4d56", // $support-error
-  supportInfo:    "#4589ff", // $support-info
+  supportInfo:    "#4589ff", // $support-info (blue-50)
 } as const;
 
 // ── Liquid-glass surface constants (shared with glass.scss) ──────────────────
@@ -49,7 +52,7 @@ const GLASS_BLUR   = "blur(14px) saturate(1.12)";
 const GLASS_SHADOW = "0 8px 24px rgba(0, 0, 0, 0.28)";
 // Pop-over surfaces (menus, dialogs, app bar) sit over content, so they use a
 // darker frosted fill for legibility rather than the near-clear tile fill.
-const POP_FILL     = "rgba(22, 22, 22, 0.92)";
+const POP_FILL     = "rgba(10, 10, 10, 0.92)";
 
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },

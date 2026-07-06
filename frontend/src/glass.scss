@@ -16,10 +16,12 @@
 
 // Ambient dark editorial backdrop — painted across the whole content scroll area
 // whenever the dashboard is mounted (same gradient family as .esti-landing-shell).
-.esti-app-content2:has(.esti-glass-dash) {
+// Flat black & white language — every screen rides a neutral grey gradient over
+// flat black (no hue tint); glass panels float on top.
+.esti-app-content2 {
   background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.06), transparent 68%),
-    linear-gradient(180deg, #121216 0%, #0c0c0f 58%, #08080a 100%);
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.05), transparent 68%),
+    linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 55%, #000000 100%);
 }
 
 .esti-glass-dash {
@@ -114,7 +116,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--cds-background); // g100 dark (shell is inside .cds--g100)
+  background: #000; // flat black canvas (grey gradient painted by the content area)
 }
 .esti-ribbon {
   flex: 0 0 auto;
