@@ -413,6 +413,19 @@ export function StudioAbstract() {
           { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
         ];
 
+  // Rail telemetry — every metric is a flat square tile: office health, the four
+  // KPIs, then each statutory filing due date.
+  const railTiles: { label: string; value: ReactNode; sub?: ReactNode; glyph?: ZoneState; subColor?: string }[] = [
+    { label: "Office health", value: STATE_WORD[officeState], glyph: officeState },
+    ...heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub })),
+    ...filingDue.map((f) => ({
+      label: f.name,
+      value: f.date,
+      sub: `${f.days}d`,
+      subColor: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary",
+    })),
+  ];
+
   // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
   const topRisks = [
@@ -513,50 +526,35 @@ export function StudioAbstract() {
 
           <Sep />
 
-          {/* 2×2 telemetry — flat, square cells, hairline cross separators */}
+          {/* Telemetry — flat square tiles: office health · KPIs · filing due dates */}
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {heroKpis.slice(0, 4).map((k, i) => (
+            {railTiles.map((c, i) => (
               <Box
-                key={k.label}
+                key={i}
                 sx={{
                   aspectRatio: "1 / 1", minWidth: 0, p: 1.25,
                   display: "flex", flexDirection: "column", justifyContent: "center",
                   borderTop: i >= 2 ? 1 : 0, borderLeft: i % 2 === 1 ? 1 : 0, borderColor: "divider",
                 }}
               >
-                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }}>{k.label}</Typography>
-                <Typography sx={{ fontWeight: 300, fontSize: "1.5rem", lineHeight: 1.05 }}>{k.value}</Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>{k.sub}</Typography>
+                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+                  {c.glyph && <OfficeHealthGlyph state={c.glyph} size={14} />}
+                  <Typography sx={{ fontWeight: 300, fontSize: "1.35rem", lineHeight: 1.05, textTransform: c.glyph ? "capitalize" : "none" }} noWrap>{c.value}</Typography>
+                </Stack>
+                {c.sub != null && <Typography variant="caption" sx={{ color: c.subColor ?? "text.secondary" }} noWrap>{c.sub}</Typography>}
               </Box>
             ))}
-          </Box>
-
-          <Sep />
-
-          {/* Filing due dates */}
-          <Box sx={{ minHeight: 0 }}>
-            <Typography variant="overline" color="text.secondary">Filing due</Typography>
-            <Stack spacing={0.75} sx={{ mt: 0.5 }}>
-              {filingDue.map((f) => (
-                <Stack key={f.name} direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
-                  <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }} noWrap>{f.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{f.date}</Typography>
-                  <Typography variant="caption" sx={{ width: 34, textAlign: "right", color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
-                </Stack>
-              ))}
-            </Stack>
           </Box>
         </Box>
 
         {/* ── RIGHT 80% — FLAT content ─────────────────────────────────────────── */}
         <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {/* Attention strip + admin toggles */}
+          {/* Attention strip + admin toggles (office health now lives in the rail) */}
           <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-            <OfficeHealthGlyph state={officeState} size={18} />
             <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
               <b>{attn.issue}</b> — {attn.action}
             </Typography>
-            <ZoneChip state={officeState} />
             {moduleToggles}
           </Stack>
 
