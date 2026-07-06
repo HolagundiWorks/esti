@@ -95,13 +95,18 @@
 // float positioning. Top border colour (alert status) is set inline from tokens.
 .esti-floating-dock {
   position: fixed;
-  bottom: 48px; // float above the 38px footer bar
+  bottom: 52px; // clear gap above the footer bar
   left: 50%;
   transform: translateX(-50%);
   z-index: 1200;
   width: max-content;
   max-width: calc(100vw - 32px);
   overflow: hidden;
+  // Liquid glass — stronger than the base Paper so the floating dock reads as glass.
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 // ── App shell v2 — ribbon (top) · content · footer (bottom) · floating dock ────
@@ -139,10 +144,10 @@
   color: var(--cds-text-primary);
 }
 
-// Floating AORMS logo — bottom, just above the footer bar, dimmed.
+// Floating AORMS logo — bottom, spaced above the footer bar, dimmed.
 .esti-app-logo-float {
   position: fixed;
-  bottom: 44px; // just above the 38px footer
+  bottom: 44px; // spacing above the 30px footer
   right: 12px;
   height: 24px;
   opacity: 0.6;
@@ -171,7 +176,7 @@
   padding-bottom: 88px; // clear the footer + floating dock
 }
 .esti-app-footer {
-  flex: 0 0 38px; // 80% of the previous 48px
+  flex: 0 0 30px; // reduced to 80% of the previous 38px
   display: flex;
   align-items: center;
   justify-content: space-between;
