@@ -5,6 +5,18 @@
 > The **landing page stays on Carbon** (see `CARBON-UI-DIRECTION.md`). This doc is
 > the canonical guide for everything else.
 
+## Screen nomenclature — Rail / Stage (canonical)
+
+Every screen splits into two regions. **Always refer to them by these names:**
+
+| Term | Width | Class | What it holds |
+|---|---|---|---|
+| **Rail** | 20% | `.esti-dash-rail` | Fixed info column — heading/greeting, telemetry (health, KPIs, filing), zone health, section tabs, module toggles (bottom). Its own hidden-scrollbar scroll. |
+| **Stage** | 80% | `.esti-dash-stage` | The changing primary content — tabs' items, lists, tables, panels. |
+
+Shared shell: `components/RailLayout.tsx` (`<RailLayout title tabs aside>{stage}</RailLayout>`).
+A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta + 80% grid).
+
 ## The three hard rules
 
 1. **Hyper-minimalist LIGHT palette (MP025).** The app rides the **MP025** scheme

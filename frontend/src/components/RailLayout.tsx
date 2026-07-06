@@ -2,16 +2,17 @@ import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 
 /**
- * Standard app screen shell — a 30 / 70 master-detail split used across every
- * menu-item screen.
+ * Standard app screen shell — the **Rail / Stage** split used across screens.
  *
- *  - LEFT 30% (`esti-dash-rail`): a sticky, independently-scrolling rail carrying
- *    the screen heading + subtitle, an optional yellow-accent rule, then any
- *    `tabs` (vertical section nav) and `aside` (telemetry / filters / summary).
- *  - RIGHT 70%: the screen's primary content (`children`) — lists, tables, panels.
+ * Nomenclature (canonical — use these terms everywhere):
+ *  - **RAIL** (20%, `esti-dash-rail`): the fixed info column — heading + subtitle,
+ *    optional yellow-accent rule, `tabs` (section nav) and `aside` (telemetry /
+ *    filters / summary).
+ *  - **STAGE** (80%, `esti-dash-stage`): the changing primary content
+ *    (`children`) — lists, tables, panels.
  *
- * Keeps every screen consistent: fixed heading/telemetry on the left, the changing
- * items on the right. Colour comes from the theme; no raw values here.
+ * Keeps every screen consistent: fixed instruments on the Rail, the changing
+ * items on the Stage. Colour comes from the theme; no raw values here.
  */
 export function RailLayout({
   title,
@@ -68,8 +69,8 @@ export function RailLayout({
           {aside}
         </Box>
 
-        {/* RIGHT 70% — content */}
-        <Box sx={{ flex: "1 1 70%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* STAGE (80%) — content */}
+        <Box className="esti-dash-stage" sx={{ flex: "1 1 80%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
           {children}
         </Box>
       </Box>

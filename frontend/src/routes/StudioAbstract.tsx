@@ -513,7 +513,7 @@ export function StudioAbstract() {
   return (
     <Box className="esti-glass-dash">
       <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", width: 1 }}>
-        {/* ── LEFT 20% — fixed, no scroll, FLAT: logo · greeting · telemetry · filing ── */}
+        {/* ── RAIL (20%) — fixed info column: logo · greeting · Today · zones · status · toggles ── */}
         <Box
           className="esti-dash-rail"
           sx={{
@@ -608,8 +608,8 @@ export function StudioAbstract() {
           {moduleToggles && <Box sx={{ mt: "auto", pt: 1 }}>{moduleToggles}</Box>}
         </Box>
 
-        {/* ── RIGHT 80% — FLAT content ─────────────────────────────────────────── */}
-        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
+        {/* ── STAGE (80%) — tabbed content ─────────────────────────────────────── */}
+        <Box className="esti-dash-stage" sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
           {/* Horizontal section tabs (greeting, attention, telemetry + zone health are in the rail) */}
           <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab value="priorities" label="Priorities" />
