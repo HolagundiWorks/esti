@@ -2305,8 +2305,7 @@ h1.esti-landing-lead-title {
 
   // Clickable card variant: keep text left-aligned (MUI/anchor cards).
   &[href],
-  &[role="button"],
-  a& {
+  &[role="button"] {
     text-align: start;
   }
 
