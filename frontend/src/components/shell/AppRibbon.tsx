@@ -69,12 +69,21 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
               key={c.to}
               component={Link}
               to={c.to}
-              size="small"
               color={active ? "primary" : "inherit"}
               variant={active ? "outlined" : "text"}
-              startIcon={Icon ? <Icon size={18} /> : undefined}
-              sx={{ flexShrink: 0 }}
+              sx={{
+                flexShrink: 0,
+                flexDirection: "column",
+                gap: 0.25,
+                minWidth: 76,
+                height: 56,
+                px: 1,
+                fontSize: 11,
+                lineHeight: 1.15,
+                textTransform: "none",
+              }}
             >
+              {Icon ? <Icon size={22} /> : <span />}
               {c.label}
             </Button>
           );

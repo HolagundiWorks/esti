@@ -155,7 +155,11 @@
   width: 360px;
   max-width: 40vw;
 }
+// Command row — Excel-style large buttons (icon on top, label below). Height is
+// ~2× the tab row so the ribbon reads as a proper ribbon.
 .esti-ribbon__row {
+  align-items: center;
+  min-height: 64px;
   padding: 4px 8px;
   overflow-x: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
