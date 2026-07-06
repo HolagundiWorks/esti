@@ -1,5 +1,5 @@
-import { Share } from "@carbon/icons-react";
-import { Button } from "@carbon/react";
+import Share from "@mui/icons-material/Share";
+import { Button, Stack } from "@mui/material";
 import { pdfUiState } from "../lib/pdfUi.js";
 import { shareViaWhatsApp } from "../lib/whatsapp.js";
 
@@ -20,7 +20,7 @@ type PdfActionButtonsProps = {
   };
 };
 
-/** Shared PDF generate / poll / open UI for document action cells. */
+/** Shared PDF generate / poll / open UI for document action cells. Material UI. */
 export function PdfActionButtons({
   status,
   url,
@@ -39,15 +39,15 @@ export function PdfActionButtons({
 
   if (ui === "open" && url) {
     return (
-      <span style={{ display: "inline-flex", gap: "var(--cds-spacing-02)" }}>
-        <Button kind="ghost" size="sm" href={url} target="_blank" rel="noreferrer">
+      <Stack direction="row" spacing={0.5} sx={{ display: "inline-flex" }}>
+        <Button variant="text" size="small" href={url} target="_blank" rel="noreferrer">
           {openLabel}
         </Button>
         {share && (
           <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Share}
+            variant="text"
+            size="small"
+            startIcon={<Share />}
             onClick={() =>
               void shareViaWhatsApp({
                 fileUrl: url,
@@ -61,11 +61,11 @@ export function PdfActionButtons({
           </Button>
         )}
         {showRegenerateWhenReady && canManage && (
-          <Button kind="ghost" size="sm" disabled={generatePending} onClick={onGenerate}>
+          <Button variant="text" size="small" disabled={generatePending} onClick={onGenerate}>
             Regenerate
           </Button>
         )}
-      </span>
+      </Stack>
     );
   }
   if (ui === "generating") {
@@ -75,7 +75,7 @@ export function PdfActionButtons({
     return <span>—</span>;
   }
   return (
-    <Button kind="ghost" size="sm" disabled={generatePending} onClick={onGenerate}>
+    <Button variant="text" size="small" disabled={generatePending} onClick={onGenerate}>
       {ui === "retry" ? retryLabel : generateLabel}
     </Button>
   );

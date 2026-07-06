@@ -1,22 +1,18 @@
-import { HeaderGlobalAction, Stack, Tile } from "@carbon/react";
-import { Time } from "@carbon/icons-react";
+import AccessTime from "@mui/icons-material/AccessTime";
+import { IconButton, Paper, Stack } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import {
-  fmtPomTime,
-  usePomodoro,
-} from "../contexts/PomodoroContext.js";
+import { fmtPomTime, usePomodoro } from "../contexts/PomodoroContext.js";
 import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 import { PomodoroRing } from "./PomodoroRing.js";
 import { ScrollAffordance } from "./ScrollAffordance.js";
 
-/** Header focus-timer control — opens a floating dial panel (Alt+T). */
+/** Header focus-timer control — opens a floating dial panel (Alt+T). Material UI. */
 export function HeaderPomodoro() {
   const [open, setOpen] = useState(false);
   const pom = usePomodoro();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const pomActive =
-    pom.running || (pom.timeLeft < pom.duration && pom.timeLeft > 0);
+  const pomActive = pom.running || (pom.timeLeft < pom.duration && pom.timeLeft > 0);
 
   useDismissOnOutsideClick(open, () => setOpen(false), [panelRef, triggerRef]);
 
@@ -36,17 +32,18 @@ export function HeaderPomodoro() {
 
   return (
     <>
-      <HeaderGlobalAction
+      <IconButton
         ref={triggerRef}
+        size="small"
+        color={open ? "primary" : "default"}
         aria-label={`Focus timer${pomActive ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}
         aria-expanded={open}
         aria-controls="esti-pom-panel"
-        isActive={open}
         className={pomActive ? "esti-header-pom--active" : undefined}
         onClick={() => setOpen((o) => !o)}
       >
-        <Time size={20} />
-      </HeaderGlobalAction>
+        <AccessTime />
+      </IconButton>
 
       {pom.running && !open && (
         <span
@@ -60,14 +57,14 @@ export function HeaderPomodoro() {
 
       {open && (
         <div ref={panelRef} id="esti-pom-panel" className="esti-float-widget esti-float-pom-header">
-          <Tile className="esti-float-panel-shell">
+          <Paper className="esti-float-panel-shell">
             <ScrollAffordance>
-              <Stack gap={4}>
+              <Stack spacing={2}>
                 <h4>Focus timer</h4>
                 <PomodoroRing />
               </Stack>
             </ScrollAffordance>
-          </Tile>
+          </Paper>
         </div>
       )}
     </>
