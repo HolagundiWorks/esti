@@ -1,16 +1,17 @@
 import Logout from "@mui/icons-material/Logout";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
-import { Box, IconButton, InputAdornment, Stack, TextField, Tooltip } from "@mui/material";
+import { Box, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertsBell } from "../AlertsBell.js";
 import { UserIdCard } from "../UserIdCard.js";
+import { OfficeHealthGlyph } from "./OfficeHealthGlyph.js";
+import { useOfficeHealth } from "./useOfficeHealth.js";
 
 /**
- * Footer bar — the former top nav bar, moved to the bottom (shell brief). There is
- * no header bar; the firm name lives in the ribbon and the AORMS logo floats top-
- * right. The footer carries the utility cluster (clock, pomodoro, alerts, ID card,
- * sign out) with the open Search bar centered. Liquid glass, compact height.
+ * Footer bar — no header bar; the firm name lives in the ribbon, the AORMS logo
+ * floats above. Left: date + due dates. Centre: open Search. Right: office-health
+ * ("stable") indicator + ID card + sign out. Notifications live on the dock now.
+ * Liquid glass, compact height.
  */
 function FooterClock() {
   const [now, setNow] = useState(() => new Date());
@@ -32,6 +33,7 @@ export function AppFooterBar({
 }) {
   const navigate = useNavigate();
   const [term, setTerm] = useState("");
+  const { state, pendingTasks, overdueInvoices } = useOfficeHealth();
   const runSearch = () => {
     const q = term.trim();
     navigate(q ? `/search?q=${encodeURIComponent(q)}` : "/search");
@@ -39,9 +41,19 @@ export function AppFooterBar({
 
   return (
     <Box component="footer" className={`esti-app-footer ${planClass ?? ""}`}>
-      {/* Left utilities */}
-      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: 1 }}>
+      {/* Left: date + due dates */}
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flex: 1 }}>
         <FooterClock />
+        <Tooltip title="Pending tasks · overdue invoices">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ cursor: "pointer" }}
+            onClick={() => navigate("/tasks")}
+          >
+            · {pendingTasks} due{overdueInvoices > 0 ? ` · ${overdueInvoices} inv` : ""}
+          </Typography>
+        </Tooltip>
       </Stack>
 
       {/* Centered open search */}
@@ -64,9 +76,19 @@ export function AppFooterBar({
         }}
       />
 
-      {/* Right utilities */}
-      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
-        <AlertsBell />
+      {/* Right: office-health indicator + ID card + sign out */}
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
+        <Tooltip title={`Office health: ${state}`}>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{ alignItems: "center", cursor: "pointer" }}
+            onClick={() => navigate("/")}
+          >
+            <OfficeHealthGlyph state={state} size={12} />
+            <Typography variant="caption" sx={{ textTransform: "capitalize" }}>{state}</Typography>
+          </Stack>
+        </Tooltip>
         <UserIdCard />
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onSignOut} aria-label="Sign out">

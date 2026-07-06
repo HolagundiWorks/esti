@@ -3,7 +3,6 @@ import {
   Analytics,
   Archive,
   Book,
-  Bot,
   Building,
   Catalog,
   Document,
@@ -330,9 +329,6 @@ function AppShell() {
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
-    ...(planAllowsFeature("ai") && atLeast(60)
-      ? [{ label: "AI Studio", to: "/office/ai-studio", icon: Bot }]
-      : []),
     {
       kind: "menu",
       label: "Library",

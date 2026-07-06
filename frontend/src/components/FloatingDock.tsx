@@ -1,9 +1,7 @@
-import AddBoxOutlined from "@mui/icons-material/AddBoxOutlined";
-import AssignmentOutlined from "@mui/icons-material/AssignmentOutlined";
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
-import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
 import {
   Divider,
   FormControlLabel,
@@ -14,48 +12,30 @@ import {
   Stack,
   Switch,
   Tooltip,
-  Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { can } from "@esti/contracts";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { AlertsBell } from "./AlertsBell.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
 import { HeaderPomodoro } from "./HeaderPomodoro.js";
-import { OfficeHealthGlyph } from "./shell/OfficeHealthGlyph.js";
-import type { ZoneState } from "./dashboard/zoneState.js";
+import { useOfficeHealth } from "./shell/useOfficeHealth.js";
 
 /**
- * Floating glass dock — bottom-centred floating bar (height = top nav bar) with a
- * top border that signals alert status (due dates + office health). Left→right:
- * due dates · office-health glyph (shape only) · quick actions · ESTI AI. Square
- * icons, liquid glass (Paper). Calculator (Alt+C) + admin module toggles are kept
- * as quick actions.
+ * Floating glass dock — bottom-centred floating bar with a top border that signals
+ * alert status (office health). Left→right: Studio Intelligence · quick actions ·
+ * pomodoro · calculator · settings · notifications · ESTI AI. Due dates + the
+ * office-health indicator live in the footer now. Square icons, liquid glass.
  */
 export function FloatingDock() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [showCalc, setShowCalc] = useState(false);
   const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
   const calcTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const homeQ = trpc.dashboard.home.useQuery(undefined, { staleTime: 60_000 });
-  const glanceQ = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
-
-  const home = homeQ.data;
-  const risk = (home?.projectHealth ?? []).filter((p: { health: string }) => p.health === "RED").length;
-  const overduePaise = home?.financialHealth?.overdue30dPaise ?? 0;
-  const overdueInvoices = home?.actionCenter?.overdueInvoices?.length ?? 0;
-  const pendingTasks = glanceQ.data?.pendingTasks ?? 0;
-
-  const state: ZoneState = !home
-    ? "inactive"
-    : risk >= 2 || overduePaise > 5_000_000 || overdueInvoices >= 3
-    ? "critical"
-    : risk >= 1 || overduePaise > 0 || overdueInvoices > 0
-    ? "watch"
-    : "stable";
+  const { state } = useOfficeHealth();
 
   const borderToken =
     state === "critical"
@@ -63,8 +43,6 @@ export function FloatingDock() {
       : state === "watch"
       ? "var(--cds-support-warning)"
       : "var(--cds-support-success)";
-
-  const canInvoice = can(user?.role, "invoice:manage");
 
   // Alt+C toggles the calculator (kept from the previous dock).
   useEffect(() => {
@@ -95,53 +73,12 @@ export function FloatingDock() {
 
           <Divider orientation="vertical" flexItem />
 
-          {/* Due dates */}
-          <Tooltip title="Pending tasks · overdue invoices">
-            <Stack
-              direction="row"
-              spacing={0.75}
-              sx={{ alignItems: "center", cursor: "pointer" }}
-              onClick={() => navigate("/tasks")}
-            >
-              <AssignmentOutlined sx={{ fontSize: 18 }} />
-              <Typography variant="caption">
-                {pendingTasks} due{overdueInvoices > 0 ? ` · ${overdueInvoices} inv` : ""}
-              </Typography>
-            </Stack>
-          </Tooltip>
-
-          <Divider orientation="vertical" flexItem />
-
-          {/* Office health — shape only */}
-          <Tooltip title={`Office health: ${state}`}>
-            <Stack
-              direction="row"
-              spacing={0.75}
-              sx={{ alignItems: "center", cursor: "pointer" }}
-              onClick={() => navigate("/")}
-            >
-              <OfficeHealthGlyph state={state} size={14} />
-              <Typography variant="caption" sx={{ textTransform: "capitalize" }}>
-                {state}
-              </Typography>
-            </Stack>
-          </Tooltip>
-
-          <Divider orientation="vertical" flexItem />
-
-          {/* Quick actions */}
-          <Tooltip title="Projects">
-            <IconButton size="small" onClick={() => navigate("/projects")} aria-label="Projects">
-              <AddBoxOutlined />
+          {/* Tasks */}
+          <Tooltip title="Tasks">
+            <IconButton size="small" onClick={() => navigate("/tasks")} aria-label="Tasks">
+              <TaskAltOutlined />
             </IconButton>
           </Tooltip>
-          {canInvoice && (
-            <Tooltip title="Invoices">
-              <IconButton size="small" onClick={() => navigate("/invoices")} aria-label="Invoices">
-                <ReceiptLongOutlined />
-              </IconButton>
-            </Tooltip>
-          )}
           <HeaderPomodoro />
           <Tooltip title="Calculator (Alt+C)">
             <IconButton
@@ -163,6 +100,9 @@ export function FloatingDock() {
               <SettingsOutlined />
             </IconButton>
           </Tooltip>
+
+          {/* Notifications */}
+          <AlertsBell />
 
           <Divider orientation="vertical" flexItem />
 
