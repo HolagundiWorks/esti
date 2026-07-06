@@ -477,7 +477,7 @@ export function StudioAbstract() {
               <Card sx={{ height: 1 }}>
                 <CardContent>
                   <Typography variant="overline" color="text.secondary">{k.label}</Typography>
-                  <Typography variant="h4" sx={{ my: 0.5 }}>{k.value}</Typography>
+                  <Typography variant="h3" sx={{ my: 0.5, fontWeight: 300, fontSize: { xs: "1.75rem", md: "2.25rem" }, lineHeight: 1.1 }}>{k.value}</Typography>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                     <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>{k.sub}</Typography>
                     {k.danger && <Chip size="small" label={k.danger} sx={chipSx("red")} />}
