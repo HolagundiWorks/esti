@@ -19,7 +19,7 @@ export function PageHeader({
 }) {
   return (
     <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Box sx={{ flex: 1, minWidth: 0, borderLeft: 3, borderLeftColor: "primary.main", pl: 1.5 }}>
         <Typography variant="h4" component="h1">
           {title}
         </Typography>

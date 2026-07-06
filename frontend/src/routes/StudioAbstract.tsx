@@ -474,7 +474,7 @@ export function StudioAbstract() {
         <Grid container spacing={2}>
           {heroKpis.map((k) => (
             <Grid key={k.label} size={{ xs: 6, md: 3 }}>
-              <Card sx={{ height: 1 }}>
+              <Card sx={{ height: 1, borderTop: 2, borderTopColor: "primary.main" }}>
                 <CardContent>
                   <Typography variant="overline" color="text.secondary">{k.label}</Typography>
                   <Typography variant="h3" sx={{ my: 0.5, fontWeight: 300, fontSize: { xs: "1.75rem", md: "2.25rem" }, lineHeight: 1.1 }}>{k.value}</Typography>
@@ -495,10 +495,10 @@ export function StudioAbstract() {
             const n = home ? app.count(home, glanceQ.data) : null;
             return (
               <Grid key={app.label} size={{ xs: 6, sm: 3, lg: 1.5 }}>
-                <Card sx={{ height: 1 }}>
+                <Card sx={{ height: 1, transition: "border-color 120ms ease", "&:hover": { borderColor: "primary.main" } }}>
                   <CardActionArea onClick={() => navigate(app.route)} sx={{ height: 1, p: 2 }}>
                     <Stack spacing={1}>
-                      <Icon sx={{ fontSize: 24 }} />
+                      <Icon sx={{ fontSize: 24, color: "text.secondary" }} />
                       <Box>
                         <Typography variant="body2">{app.label}</Typography>
                         {n != null && app.subtitle && (
