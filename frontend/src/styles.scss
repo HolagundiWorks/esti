@@ -1770,6 +1770,11 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   padding: var(--cds-spacing-05);
 }
 .esti-abstract__head { flex: 0 0 auto; }
+// Light editorial screen title (MP025 hyper-minimal).
+.esti-abstract__head h2 {
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
 
 .esti-kpi-row {
   flex: 0 0 auto;
@@ -1777,7 +1782,27 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--cds-spacing-05);
 }
-.esti-kpi-card { display: flex; flex-direction: column; gap: var(--cds-spacing-02); }
+.esti-kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-02);
+
+  // Hyper-minimal readout: tiny uppercase label over a large light numeral
+  // (the smart-home-dashboard idiom / MP025 reference).
+  .esti-label--helper {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+  }
+  h3 {
+    font-weight: 300;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--cds-text-primary);
+  }
+}
 
 .esti-abstract-table {
   flex: 1 1 auto;
@@ -1787,6 +1812,12 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   gap: var(--cds-spacing-03);
 }
 .esti-abstract-table__scroll { min-height: 0; }
+// Section caption above a table reads as a small uppercase eyebrow.
+.esti-abstract-table > .esti-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+}
 .esti-abstract-empty { padding: var(--cds-spacing-03) 0; }
 .esti-row-clickable { cursor: pointer; }
 

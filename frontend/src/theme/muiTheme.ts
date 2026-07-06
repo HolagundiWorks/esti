@@ -162,6 +162,14 @@ export const muiTheme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: { borderColor: "rgba(23, 43, 54, 0.08)" },
+        // Tiny uppercase eyebrow headers, matching the DataGrid.
+        head: {
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          fontSize: "0.6875rem",
+          fontWeight: 600,
+          color: CDS.textSecondary,
+        },
       },
     },
     MuiTooltip: {
@@ -188,6 +196,14 @@ export const muiTheme = createTheme({
         },
         columnHeaders: { backgroundColor: "rgba(217,232,226,0.55)" },
         columnHeader: { backgroundColor: "transparent" },
+        // Tiny uppercase eyebrow headers — the MP025 hyper-minimal table idiom.
+        columnHeaderTitle: {
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          fontSize: "0.6875rem",
+          fontWeight: 600,
+          color: CDS.textSecondary,
+        },
         cell: { borderColor: "rgba(23,43,54,0.07)" },
         footerContainer: { borderColor: "rgba(23,43,54,0.08)" },
         row: { "&:hover": { backgroundColor: "rgba(17,76,90,0.05)" } },
