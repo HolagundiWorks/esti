@@ -1,4 +1,3 @@
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import {
   Box,
   Button,
@@ -30,7 +29,19 @@ function pathActive(pathname: string, to: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
-const navBtnSx = { textTransform: "none", minHeight: 36 } as const;
+// Active nav reads as an underline (bottom line), not an outlined box.
+const navSx = (active: boolean) => ({
+  textTransform: "none",
+  minHeight: 36,
+  borderRadius: 0,
+  color: active ? "text.primary" : "text.secondary",
+  borderBottom: "2px solid",
+  borderBottomColor: active ? "primary.main" : "transparent",
+  "&:hover": {
+    backgroundColor: "transparent",
+    borderBottomColor: active ? "primary.main" : "divider",
+  },
+});
 
 function SectionMenu({ node }: { node: Extract<RibbonNode, { kind: "menu" }> }) {
   const navigate = useNavigate();
@@ -43,11 +54,10 @@ function SectionMenu({ node }: { node: Extract<RibbonNode, { kind: "menu" }> }) 
   return (
     <>
       <Button
-        color={active ? "primary" : "inherit"}
-        variant={active ? "outlined" : "text"}
-        endIcon={<KeyboardArrowDown />}
+        variant="text"
+        color="inherit"
         onClick={(e) => setAnchor(e.currentTarget)}
-        sx={navBtnSx}
+        sx={navSx(active)}
       >
         {node.label}
       </Button>
@@ -83,9 +93,9 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
                 key={n.label}
                 component={Link}
                 to={n.to}
-                color={pathActive(pathname, n.to) ? "primary" : "inherit"}
-                variant={pathActive(pathname, n.to) ? "outlined" : "text"}
-                sx={navBtnSx}
+                variant="text"
+                color="inherit"
+                sx={navSx(pathActive(pathname, n.to))}
               >
                 {n.label}
               </Button>

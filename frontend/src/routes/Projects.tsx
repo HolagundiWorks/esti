@@ -23,7 +23,7 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -116,29 +116,12 @@ export function Projects() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Projects"
         description="Architecture project offices — phases, fees, drawings and delivery."
-      />
-
-      <DataState
-        loading={list.isLoading}
-        isEmpty={allRows.length === 0}
-        columnCount={5}
-        empty={{
-          title: "No projects yet",
-          description:
-            "Create your first project office to start tracking phases, fees and invoices.",
-          action: (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-              New project
-            </Button>
-          ),
-        }}
-      >
-        <Stack spacing={2}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
+        aside={
+          <Stack spacing={1.5}>
             <TextField
               id="project-search"
               size="small"
@@ -157,7 +140,7 @@ export function Projects() {
                   ),
                 },
               }}
-              sx={{ flex: 1, minWidth: 240 }}
+              fullWidth
             />
             <TextField
               id="project-status-filter"
@@ -169,7 +152,7 @@ export function Projects() {
                 setPaginationModel((m) => ({ ...m, page: 0 }));
                 setStatusFilter(e.target.value);
               }}
-              sx={{ minWidth: 180 }}
+              fullWidth
             >
               <MenuItem value="">All statuses</MenuItem>
               {ProjectStatus.options.map((status) => (
@@ -178,11 +161,27 @@ export function Projects() {
                 </MenuItem>
               ))}
             </TextField>
-            <Button variant="contained" onClick={() => setOpen(true)}>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
               New project
             </Button>
-          </Box>
-
+          </Stack>
+        }
+      >
+        <DataState
+          loading={list.isLoading}
+          isEmpty={allRows.length === 0}
+          columnCount={5}
+          empty={{
+            title: "No projects yet",
+            description:
+              "Create your first project office to start tracking phases, fees and invoices.",
+            action: (
+              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                New project
+              </Button>
+            ),
+          }}
+        >
           <DataGrid
             rows={rows}
             columns={columns}
@@ -195,8 +194,8 @@ export function Projects() {
             onRowClick={(params) => navigate(`/projects/${params.id}`)}
             sx={{ "& .MuiDataGrid-row": { cursor: "pointer" } }}
           />
-        </Stack>
-      </DataState>
+        </DataState>
+      </RailLayout>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New project</DialogTitle>
@@ -261,6 +260,6 @@ export function Projects() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }
