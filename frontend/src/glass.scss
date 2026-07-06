@@ -103,6 +103,21 @@ $neu-input-radius: 0; // square corners
   }
 }
 
+// ── Status indicator — a coloured DOT + text (replaces filled status chips) ───
+// The dot is a small circle; its colour is set inline from a --cds-tag-* token by
+// the StatusTag/TagChip components. Shape-only here (colour stays data-driven).
+.esti-status-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.esti-status-dot--md {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
 // Studio Intelligence left rail (20/80 split) — its own scroll, hidden bar so it
 // reads as a fixed pane while the right 80% scrolls.
 .esti-dash-rail {

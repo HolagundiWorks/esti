@@ -1,13 +1,44 @@
-import { Chip } from "@mui/material";
+import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 import type { TagColor } from "@esti/contracts";
 
 /**
+ * A status indicator — a coloured **dot + text** (not a colour-filled chip). The
+ * dot carries the status colour (a `--cds-tag-*` token); the label reads in normal
+ * ink. Use for any status/enum badge.
+ *
+ *   <StatusDot color="green" label="Approved" />
+ */
+export function StatusDot({
+  color = "gray",
+  label,
+  size = "sm",
+}: {
+  color?: TagColor | string;
+  label: ReactNode;
+  size?: "sm" | "md";
+}) {
+  return (
+    <Box
+      component="span"
+      sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, whiteSpace: "nowrap", lineHeight: 1.2 }}
+    >
+      <Box
+        component="span"
+        className={`esti-status-dot${size === "md" ? " esti-status-dot--md" : ""}`}
+        sx={{ backgroundColor: `var(--cds-tag-color-${color}, var(--cds-text-primary))` }}
+      />
+      <Box component="span" sx={{ fontSize: size === "md" ? "0.875rem" : "0.75rem", color: "text.primary" }}>
+        {label}
+      </Box>
+    </Box>
+  );
+}
+
+/**
  * The one status-badge primitive. Every status/enum column renders through this
- * so colour choices live in a single shared map (in `@esti/contracts`) rather
- * than being re-derived with a per-route ternary. Pass the centralised map and
- * the raw value; an optional `label` overrides the displayed text (defaults to
- * the value). Unknown values fall back to a neutral `gray` tag.
+ * so colour choices live in a single shared map (in `@esti/contracts`). Renders as
+ * a coloured dot + text; unknown values fall back to neutral `gray`.
  *
  *   <StatusTag value={iv.status} map={INVOICE_STATUS_TAG} />
  *   <StatusTag value={p.status} map={PROJECT_STATUS_TAG} label={PROJECT_STATUS_LABEL[p.status]} />
@@ -23,17 +54,5 @@ export function StatusTag<T extends string>({
   label?: ReactNode;
   size?: "sm" | "md";
 }) {
-  // Preserve exact Carbon tag colours by rendering an MUI Chip over the
-  // `--cds-tag-*` token vars (still defined by the Carbon token layer).
-  const color = map[value] ?? "gray";
-  return (
-    <Chip
-      label={label ?? value}
-      size={size === "md" ? "medium" : "small"}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-        color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-      }}
-    />
-  );
+  return <StatusDot color={map[value] ?? "gray"} label={label ?? value} size={size} />;
 }

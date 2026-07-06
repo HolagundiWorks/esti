@@ -1,5 +1,6 @@
 import ArrowForward from "@mui/icons-material/ArrowForward";
-import { Box, Card, CardActionArea, Chip, Grid, Stack } from "@mui/material";
+import { Box, Card, CardActionArea, Grid, Stack } from "@mui/material";
+import { StatusDot } from "../StatusTag.js";
 import type { ReactNode } from "react";
 
 export const CHART_HEIGHT = "240px";
@@ -34,19 +35,9 @@ export const RISK_TAG: Record<"LOW" | "MEDIUM" | "HIGH", "red" | "magenta" | "gr
   LOW: "green",
 };
 
-/** MUI Chip carrying the exact Carbon tag colours. */
-export function TagChip({ type, label, ...rest }: { type: TagType; label: ReactNode } & Record<string, unknown>) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${type}, var(--cds-layer-01))`,
-        color: `var(--cds-tag-color-${type}, var(--cds-text-primary))`,
-      }}
-      {...rest}
-    />
-  );
+/** Status indicator — a coloured dot + text (delegates to the shared StatusDot). */
+export function TagChip({ type, label }: { type: TagType; label: ReactNode }) {
+  return <StatusDot color={type} label={label} />;
 }
 
 export function formatEventType(et: string): string {
