@@ -193,11 +193,10 @@ export function AiAgentCommand() {
           {open ? (
             <Close sx={{ fontSize: 20 }} aria-hidden />
           ) : (
-            <img
-              src="/esti-logo.png"
-              alt=""
+            <span
               aria-hidden
-              className="esti-landing-ai__fab-logo"
+              className="esti-landing-ai__fab-logo esti-brand esti-brand--esti"
+              style={{ width: 24, height: 24 }}
             />
           )}
         </IconButton>

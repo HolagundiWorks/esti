@@ -165,9 +165,9 @@ html:has(.esti-landing-shell) body {
 .esti-login-mark {
   display: inline-flex;
   padding: 0;
-  background: var(--cds-background-inverse);
+  // Transparent — no fill chip (was a solid square behind the mark).
 }
-.esti-login-mark img {
+.esti-login-mark .esti-brand {
   height: 2rem;
   width: 2rem;
   display: block;
@@ -3090,4 +3090,31 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   inset: auto;
   border-radius: 0;
   z-index: auto;
+}
+
+// ── Brand marks — one consistent, recoloured silhouette per brand ────────────
+// Both the ESTI mark and the AORMS wordmark render in the Forsythia accent, with
+// a transparent background (no square fill). The PNG is used as a CSS mask and
+// the fill comes from the brand colour var (glass.scss) — so the same asset reads
+// identically everywhere. Sizing comes from each call site's box (aspect-ratio
+// keeps it undistorted); colour is the only brand-specific value (CSS var).
+.esti-brand {
+  display: inline-block;
+  background-color: var(--esti-brand-yellow);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.esti-brand--esti {
+  aspect-ratio: 1 / 1;
+  -webkit-mask-image: url("/esti-mark-black.png");
+  mask-image: url("/esti-mark-black.png");
+}
+.esti-brand--aorms {
+  aspect-ratio: 816 / 216;
+  -webkit-mask-image: url("/aorms-logo.png");
+  mask-image: url("/aorms-logo.png");
 }

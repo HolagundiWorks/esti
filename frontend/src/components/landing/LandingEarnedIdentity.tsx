@@ -8,7 +8,7 @@ function CardMock() {
   return (
     <div className="esti-lp-idcard" aria-label="AORMS ID card">
       <div className="esti-lp-idcard__top">
-        <img src="/aorms-logo-white.png" alt="AORMS" />
+        <span role="img" aria-label="AORMS" className="esti-brand esti-brand--aorms" />
         <span>ID Card</span>
       </div>
       <div className="esti-lp-idcard__mid">

@@ -185,11 +185,10 @@ export function MarketingEstiAi() {
           {open ? (
             <Close sx={{ fontSize: 20 }} aria-hidden />
           ) : (
-            <img
-              src="/esti-logo-inverted.png"
-              alt=""
+            <span
               aria-hidden
-              className="esti-landing-ai__fab-logo"
+              className="esti-landing-ai__fab-logo esti-brand esti-brand--esti"
+              style={{ width: 24, height: 24 }}
             />
           )}
         </button>

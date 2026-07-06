@@ -52,10 +52,10 @@ export function MarketingFooter({
 
         <footer className="esti-landing-footer__grid" aria-label="AORMS footer">
             <div className="esti-landing-footer__brand">
-              <img
-                src="/aorms-logo-white.png"
-                alt="AORMS"
-                className="esti-landing-footer__aorms"
+              <span
+                role="img"
+                aria-label="AORMS"
+                className="esti-landing-footer__aorms esti-brand esti-brand--aorms"
               />
               <p>{LANDING_SEO.footerBlurb}</p>
               <Button

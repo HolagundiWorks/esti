@@ -15,6 +15,12 @@
 //   Arctic Powder #F1F6F4 · Mystic Mint #D9E8E2 · Oceanic Noir #172B36
 //   Nocturnal #114C5A · Forsythia #FFC801 · Deep Saffron #FF9932
 
+// Brand-mark fill — both the ESTI mark and the AORMS wordmark render in the
+// Forsythia accent (recoloured via CSS mask in styles.scss; transparent bg).
+:root {
+  --esti-brand-yellow: #ffc801; // Forsythia — brand mark fill
+}
+
 // Ambient light editorial backdrop — a barely-there mint/white wash over the
 // Arctic Powder canvas, painted across the whole content scroll area.
 .esti-app-content2 {

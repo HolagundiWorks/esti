@@ -61,10 +61,10 @@ export function MarketingShell({ children }: { children: ReactNode }) {
           </IconButton>
           <a href="/#top" className="esti-landing-header__name" aria-label="AORMS home">
             <span className="esti-landing-header-brand">
-              <img
-                src="/aorms-logo.png"
-                alt="AORMS"
-                className="esti-landing-brand-logo"
+              <span
+                role="img"
+                aria-label="AORMS"
+                className="esti-landing-brand-logo esti-brand esti-brand--aorms"
               />
             </span>
           </a>

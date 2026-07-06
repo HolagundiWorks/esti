@@ -4024,8 +4024,9 @@ h1.esti-landing-lead-title {
   align-items: center;
   justify-content: space-between;
 
-  img { height: 1rem; width: auto; display: block; }
-  span {
+  img,
+  .esti-brand { height: 1rem; width: auto; display: block; }
+  span:not(.esti-brand) {
     font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-size: 10px;
     letter-spacing: 0.22em;

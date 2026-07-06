@@ -46,7 +46,7 @@ export function ExternalLogin() {
             <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
-                  <img src="/esti-logo-inverted.png" alt="" />
+                  <span className="esti-brand esti-brand--esti" role="img" aria-label="ESTI" />
                 </span>
                 <h3>Portal access</h3>
               </div>
