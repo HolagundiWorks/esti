@@ -1,22 +1,21 @@
 import { useState } from "react";
 import {
   Button,
-  Search,
+  Chip,
   Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 
-/** Cross-vendor rate comparison for one material — cheapest quote per vendor. */
+/** Cross-vendor rate comparison for one material — cheapest quote per vendor. Material UI. */
 export function VendorRateCompare() {
   const [term, setTerm] = useState("");
   const [material, setMaterial] = useState<string | null>(null);
@@ -27,21 +26,26 @@ export function VendorRateCompare() {
   const rows = compareQ.data ?? [];
 
   return (
-    <Stack gap={4}>
-      <h4>Compare vendor rates</h4>
-      <Stack orientation="horizontal" gap={3} className="esti-row">
-        <Search
+    <Stack spacing={2}>
+      <Typography variant="h6" component="h4">Compare vendor rates</Typography>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+        <TextField
           id="vrc-search"
-          size="lg"
-          labelText="Material"
+          label="Material"
           placeholder="Material name (exact, as quoted) — e.g. OPC 53 cement"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && term.trim()) setMaterial(term.trim());
           }}
+          sx={{ flex: 1 }}
         />
-        <Button size="md" onClick={() => term.trim() && setMaterial(term.trim())} disabled={!term.trim()}>
+        <Button
+          variant="contained"
+          sx={{ height: 56 }}
+          onClick={() => term.trim() && setMaterial(term.trim())}
+          disabled={!term.trim()}
+        >
           Compare
         </Button>
       </Stack>
@@ -53,33 +57,37 @@ export function VendorRateCompare() {
           empty={{ title: "No quotes", description: `No vendor quotes found for “${material}”.` }}
           columnCount={5}
         >
-          <TableContainer title={`Latest quote per vendor — “${material}”`}>
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Vendor</TableHeader>
-                  <TableHeader>Quote</TableHeader>
-                  <TableHeader>Date</TableHeader>
-                  <TableHeader>Unit</TableHeader>
-                  <TableHeader>Rate</TableHeader>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Vendor</TableCell>
+                <TableCell>Quote</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Unit</TableCell>
+                <TableCell>Rate</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.vendorId}>
+                  <TableCell>{r.vendorName}</TableCell>
+                  <TableCell>{r.quoteRef}</TableCell>
+                  <TableCell>{r.quoteDate}</TableCell>
+                  <TableCell>{r.unit}</TableCell>
+                  <TableCell>
+                    {formatINR(r.ratePaise)}{" "}
+                    {r.isLowest && (
+                      <Chip
+                        size="small"
+                        label="lowest"
+                        sx={{ backgroundColor: "var(--cds-tag-background-green)", color: "var(--cds-tag-color-green)" }}
+                      />
+                    )}
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.vendorId}>
-                    <TableCell>{r.vendorName}</TableCell>
-                    <TableCell>{r.quoteRef}</TableCell>
-                    <TableCell>{r.quoteDate}</TableCell>
-                    <TableCell>{r.unit}</TableCell>
-                    <TableCell>
-                      {formatINR(r.ratePaise)}{" "}
-                      {r.isLowest && <Tag type="green" size="sm">lowest</Tag>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ))}
+            </TableBody>
+          </Table>
         </DataState>
       )}
     </Stack>
