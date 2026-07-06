@@ -8,7 +8,6 @@ import {
   type TimelineCriticality,
   type VastuRequirement,
 } from "@esti/contracts";
-import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { projectDnas, projectOffices } from "../../db/schema.js";
@@ -65,7 +64,9 @@ export const projectDnaRouter = router({
         .select()
         .from(projectDnas)
         .where(eq(projectDnas.projectId, input.projectId));
-      if (!dna) throw new TRPCError({ code: "NOT_FOUND", message: "No DNA captured yet." });
+      // No DNA yet is a normal empty state, not an error — return null so the UI
+      // simply hides the risk badge instead of raising a "Something went wrong" toast.
+      if (!dna) return null;
       const [project] = await ctx.db
         .select({ jurisdiction: projectOffices.jurisdiction })
         .from(projectOffices)
