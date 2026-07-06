@@ -1,11 +1,4 @@
-import {
-  Button,
-  InlineNotification,
-  PasswordInput,
-  Stack,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+import { Alert, Box, Button, FormControlLabel, Paper, Stack, Switch, TextField, Typography } from "@mui/material";
 import { UPLOAD_PASSWORD_MIN_LENGTH } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { trpc } from "../../lib/trpc.js";
@@ -19,9 +12,7 @@ export function UploadSecurityPanel() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (settingsQ.data) {
-      setRequired(settingsQ.data.uploadPasswordRequired);
-    }
+    if (settingsQ.data) setRequired(settingsQ.data.uploadPasswordRequired);
   }, [settingsQ.data]);
 
   const save = trpc.settings.setUploadSecurity.useMutation({
@@ -37,45 +28,26 @@ export function UploadSecurityPanel() {
   const configured = settingsQ.data?.uploadPasswordConfigured ?? false;
 
   return (
-    <Tile style={{ maxWidth: 760 }}>
-      <Stack gap={5}>
-        <h2>Upload protection</h2>
-        <p>
+    <Paper sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Typography variant="h5" component="h2">Upload protection</Typography>
+        <Typography variant="body2">
           When enabled, every staff member must enter a shared upload password before
           drawings, photos, bank statements, tender documents, or the firm logo can be
           stored. Login credentials are not accepted — set a dedicated upload password
           below.
-        </p>
-        {msg ? (
-          <InlineNotification
-            kind="success"
-            title="Saved"
-            subtitle={msg}
-            lowContrast
-            onCloseButtonClick={() => setMsg(null)}
-          />
-        ) : null}
-        {err ? (
-          <InlineNotification
-            kind="error"
-            title="Could not save"
-            subtitle={err}
-            lowContrast
-            onCloseButtonClick={() => setErr(null)}
-          />
-        ) : null}
-        <Toggle
-          id="upload-required"
-          labelText="Require upload password"
-          labelB="On"
-          labelA="Off"
-          toggled={required}
-          onToggle={(checked) => setRequired(checked)}
+        </Typography>
+        {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
+        {err && <Alert severity="error" onClose={() => setErr(null)}>{err}</Alert>}
+        <FormControlLabel
+          control={<Switch checked={required} onChange={(e) => setRequired(e.target.checked)} />}
+          label="Require upload password"
         />
-        {required ? (
-          <PasswordInput
+        {required && (
+          <TextField
             id="upload-password-set"
-            labelText={configured ? "New upload password (optional)" : "Upload password"}
+            type="password"
+            label={configured ? "New upload password (optional)" : "Upload password"}
             helperText={
               configured
                 ? "Leave blank to keep the current password."
@@ -84,20 +56,24 @@ export function UploadSecurityPanel() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
+            fullWidth
           />
-        ) : null}
-        <Button
-          disabled={save.isPending || (required && !configured && password.length < UPLOAD_PASSWORD_MIN_LENGTH)}
-          onClick={() =>
-            save.mutate({
-              uploadPasswordRequired: required,
-              uploadPassword: password.trim() || undefined,
-            })
-          }
-        >
-          {save.isPending ? "Saving…" : "Save upload protection"}
-        </Button>
+        )}
+        <Box>
+          <Button
+            variant="contained"
+            disabled={save.isPending || (required && !configured && password.length < UPLOAD_PASSWORD_MIN_LENGTH)}
+            onClick={() =>
+              save.mutate({
+                uploadPasswordRequired: required,
+                uploadPassword: password.trim() || undefined,
+              })
+            }
+          >
+            {save.isPending ? "Saving…" : "Save upload protection"}
+          </Button>
+        </Box>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

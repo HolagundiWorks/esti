@@ -1,10 +1,10 @@
-import { Share } from "@carbon/icons-react";
-import { Button, Modal, Stack, TextInput } from "@carbon/react";
+import Share from "@mui/icons-material/Share";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { shareViaWhatsApp } from "../lib/whatsapp.js";
 
-/** Render & open a watermarked issue-set PDF for a drawing. */
+/** Render & open a watermarked issue-set PDF for a drawing. Material UI. */
 export function DrawingIssueCell({
   drawingId,
   initialStatus,
@@ -23,8 +23,7 @@ export function DrawingIssueCell({
       enabled: active,
       refetchInterval: (q) =>
         q.state.data &&
-        (q.state.data.issuePdfStatus === "PENDING" ||
-          q.state.data.issuePdfStatus === "PROCESSING")
+        (q.state.data.issuePdfStatus === "PENDING" || q.state.data.issuePdfStatus === "PROCESSING")
           ? 1500
           : false,
     },
@@ -43,20 +42,14 @@ export function DrawingIssueCell({
 
   if (status === "READY" && url) {
     return (
-      <Stack orientation="horizontal" gap={2}>
-        <Button
-          kind="ghost"
-          size="sm"
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-        >
+      <Stack direction="row" spacing={0.5}>
+        <Button variant="text" size="small" href={url} target="_blank" rel="noreferrer">
           Open issue
         </Button>
         <Button
-          kind="ghost"
-          size="sm"
-          renderIcon={Share}
+          variant="text"
+          size="small"
+          startIcon={<Share />}
           onClick={() =>
             void shareViaWhatsApp({
               fileUrl: url,
@@ -75,32 +68,32 @@ export function DrawingIssueCell({
   }
   return (
     <>
-      <Button
-        kind="ghost"
-        size="sm"
-        disabled={issue.isPending}
-        onClick={() => setOpen(true)}
-      >
+      <Button variant="text" size="small" disabled={issue.isPending} onClick={() => setOpen(true)}>
         {status === "FAILED" ? "Retry issue" : "Issue PDF"}
       </Button>
-      <Modal
-        open={open}
-        modalHeading="Issue drawing (watermarked PDF)"
-        primaryButtonText={issue.isPending ? "Rendering…" : "Generate"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={issue.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          issue.mutate({ id: drawingId, watermark: watermark || undefined })
-        }
-      >
-        <TextInput
-          id={`wm-${drawingId}`}
-          labelText="Watermark text"
-          value={watermark}
-          onChange={(e) => setWatermark(e.target.value)}
-        />
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Issue drawing (watermarked PDF)</DialogTitle>
+        <DialogContent>
+          <TextField
+            id={`wm-${drawingId}`}
+            label="Watermark text"
+            value={watermark}
+            onChange={(e) => setWatermark(e.target.value)}
+            fullWidth
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={issue.isPending}
+            onClick={() => issue.mutate({ id: drawingId, watermark: watermark || undefined })}
+          >
+            {issue.isPending ? "Rendering…" : "Generate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
