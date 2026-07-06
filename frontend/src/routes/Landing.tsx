@@ -1,4 +1,5 @@
-import { Modal, Theme } from "@carbon/react";
+import CloseIcon from "@mui/icons-material/Close";
+import { Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material";
 import { useEffect, useState } from "react";
 import { LandingTrialForm, type LandingTrialPlanContext } from "../components/LandingTrialForm.js";
 import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
@@ -65,7 +66,7 @@ export function Landing() {
   }
 
   return (
-    <Theme theme="white">
+    <>
       <MarketingShell>
         <MarketingHero onTrialScroll={scrollToTrial} />
 
@@ -90,24 +91,29 @@ export function Landing() {
 
         <MarketingFooter onRequestWorkspace={scrollToTrial} visitCount={visitCount} />
 
-        <Modal
+        <Dialog
           open={requestOpen}
-          passiveModal
           className="esti-lp-request-modal"
-          modalHeading={
-            planContext === "LITE"
+          onClose={() => setRequestOpen(false)}
+          fullWidth
+        >
+          <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pr: 1 }}>
+            {planContext === "LITE"
               ? "Create your free AORMS-Lite account"
               : planContext === "PRO"
               ? "Contact us about AORMS-Pro"
-              : "Request a workspace"
-          }
-          onRequestClose={() => setRequestOpen(false)}
-        >
-          <LandingTrialForm planContext={planContext} />
-        </Modal>
+              : "Request a workspace"}
+            <IconButton aria-label="Close" onClick={() => setRequestOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            <LandingTrialForm planContext={planContext} />
+          </DialogContent>
+        </Dialog>
       </MarketingShell>
 
       <MarketingEstiAi />
-    </Theme>
+    </>
   );
 }

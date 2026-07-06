@@ -1,18 +1,6 @@
-import {
-  Button,
-  Header,
-  HeaderGlobalBar,
-  HeaderMenuButton,
-  HeaderName,
-  HeaderNavigation,
-  HeaderMenuItem,
-  HeaderSideNavItems,
-  SideNav,
-  SideNavItems,
-  SkipToContent,
-  Content,
-  Theme,
-} from "@carbon/react";
+import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
+import { Button, IconButton } from "@mui/material";
 import { useState, type ReactNode } from "react";
 
 // Absolute "/#section" links so the nav works from any route (e.g. /blog), not
@@ -61,60 +49,63 @@ export function MarketingShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="esti-landing-shell">
-      <SkipToContent href="#main-content" />
-      <Theme theme="white">
-        <Header aria-label="AORMS" className="esti-landing-header">
-          <HeaderMenuButton
+      <a href="#main-content" className="esti-lp-skip">Skip to main content</a>
+      <header className="esti-landing-header" aria-label="AORMS">
+        <div className="esti-landing-header__inner">
+          <IconButton
+            className="esti-landing-header__menu"
             aria-label={navOpen ? "Close menu" : "Open menu"}
-            isActive={navOpen}
             onClick={() => setNavOpen((o) => !o)}
-          />
-          <HeaderName prefix="" href="/#top" aria-label="AORMS home">
+            size="small"
+          >
+            {navOpen ? <CloseIcon /> : <MenuIcon />}
+          </IconButton>
+          <a href="/#top" className="esti-landing-header__name" aria-label="AORMS home">
             <span className="esti-landing-header-brand">
               <img
-                src="/aorms-logo-white.png"
+                src="/aorms-logo.png"
                 alt="AORMS"
                 className="esti-landing-brand-logo"
               />
             </span>
-          </HeaderName>
-          <HeaderNavigation aria-label="Page sections">
+          </a>
+          <nav className="esti-landing-header__nav" aria-label="Page sections">
             {NAV.map((n) => (
-              <HeaderMenuItem key={n.href} href={n.href}>
+              <a key={n.href} href={n.href} className="esti-landing-header__link">
                 {n.label}
-              </HeaderMenuItem>
+              </a>
             ))}
-          </HeaderNavigation>
-          <HeaderGlobalBar>
-            <Button kind="primary" size="sm" href="/login" as="a" className="esti-landing-signin">
+          </nav>
+          <div className="esti-landing-header__actions">
+            <Button variant="contained" size="small" href="/login" className="esti-landing-signin">
               Log in
             </Button>
-          </HeaderGlobalBar>
-          <SideNav
-            aria-label="Mobile navigation"
-            expanded={navOpen}
-            isPersistent={false}
-            onOverlayClick={() => setNavOpen(false)}
-          >
-            <SideNavItems>
-              <HeaderSideNavItems>
-                {NAV.map((n) => (
-                  <HeaderMenuItem
-                    key={n.href}
-                    href={n.href}
-                    onClick={() => setNavOpen(false)}
-                  >
-                    {n.label}
-                  </HeaderMenuItem>
-                ))}
-              </HeaderSideNavItems>
-            </SideNavItems>
-          </SideNav>
-        </Header>
-      </Theme>
-      <Content id="main-content" className="esti-landing-content">
+          </div>
+        </div>
+        {/* Mobile nav drawer */}
+        <div className={`esti-landing-header__sidenav${navOpen ? " is-open" : ""}`}>
+          {NAV.map((n) => (
+            <a
+              key={n.href}
+              href={n.href}
+              className="esti-landing-header__link"
+              onClick={() => setNavOpen(false)}
+            >
+              {n.label}
+            </a>
+          ))}
+        </div>
+        {navOpen && (
+          <div
+            className="esti-landing-header__overlay"
+            onClick={() => setNavOpen(false)}
+            aria-hidden
+          />
+        )}
+      </header>
+      <main id="main-content" className="esti-landing-content">
         {children}
-      </Content>
+      </main>
       <LandingStatusBar />
     </div>
   );

@@ -4,18 +4,17 @@
  * derived. Carbon controls only.
  */
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Column,
-  Form,
+  Chip,
   Grid,
-  InlineNotification,
   Link,
-  Select,
-  SelectItem,
+  MenuItem,
   Stack,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import { useState, type FormEvent } from "react";
 import type { TrialTeamSize } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
@@ -87,7 +86,7 @@ export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPl
 
   if (submit.isSuccess) {
     return (
-      <Stack gap={5}>
+      <Stack spacing={2}>
         <h3 className="esti-landing-section-title">Request received</h3>
         <p>
           Thanks — we'll email <strong>{workEmail}</strong> about access or a walkthrough, usually
@@ -102,112 +101,131 @@ export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPl
   }
 
   return (
-    <Form onSubmit={onSubmit}>
-      <Stack gap={6}>
+    <Box component="form" onSubmit={onSubmit}>
+      <Stack spacing={3}>
         {planContext && (
-          <Tag
-            size="md"
-            type={planContext === "LITE" ? "green" : "blue"}
-          >
-            {PLAN_CONTEXT_LABEL[planContext]}
-          </Tag>
+          <Box>
+            <Chip
+              size="small"
+              label={PLAN_CONTEXT_LABEL[planContext]}
+              sx={{
+                backgroundColor: `var(--cds-tag-background-${planContext === "LITE" ? "green" : "blue"})`,
+                color: `var(--cds-tag-color-${planContext === "LITE" ? "green" : "blue"})`,
+              }}
+            />
+          </Box>
         )}
-        <Grid fullWidth className="esti-landing-grid">
-          <Column lg={8} md={4} sm={4}>
-            <TextInput
+        <Grid container spacing={2} className="esti-landing-grid">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              fullWidth
               id="trial-name"
-              labelText="Your name"
+              label="Your name"
               required
               autoComplete="name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <TextInput
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              fullWidth
               id="trial-email"
-              labelText="Email"
+              label="Email"
               type="email"
               required
               autoComplete="email"
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
             />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <TextInput
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              fullWidth
               id="trial-mobile"
-              labelText="Mobile / WhatsApp"
+              label="Mobile / WhatsApp"
               type="tel"
               required
               autoComplete="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
             />
-          </Column>
-          <Column lg={8} md={4} sm={4}>
-            <Select
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              select
+              fullWidth
               id="trial-kind"
-              labelText="Are you a freelancer or a firm?"
+              label="Are you a freelancer or a firm?"
               required
               value={kind}
               onChange={(e) => setKind(e.target.value as Kind)}
             >
-              <SelectItem value="" text="Select…" />
-              <SelectItem value="FREELANCER" text="Freelancer / solo" />
-              <SelectItem value="FIRM" text="A firm / studio" />
-            </Select>
-          </Column>
+              <MenuItem value="">Select…</MenuItem>
+              <MenuItem value="FREELANCER">Freelancer / solo</MenuItem>
+              <MenuItem value="FIRM">A firm / studio</MenuItem>
+            </TextField>
+          </Grid>
           {isFirm && (
             <>
-              <Column lg={8} md={4} sm={4}>
-                <TextInput
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
                   id="trial-firm"
-                  labelText="Firm name"
+                  label="Firm name"
                   required
                   autoComplete="organization"
                   value={firmName}
                   onChange={(e) => setFirmName(e.target.value)}
                 />
-              </Column>
-              <Column lg={8} md={4} sm={4}>
-                <Select
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  select
+                  fullWidth
                   id="trial-team"
-                  labelText="How many people?"
+                  label="How many people?"
                   required
                   value={teamSize}
                   onChange={(e) => setTeamSize(e.target.value as TrialTeamSize)}
                 >
-                  <SelectItem value="" text="Select…" />
+                  <MenuItem value="">Select…</MenuItem>
                   {TEAM_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value} text={o.label} />
+                    <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
                   ))}
-                </Select>
-              </Column>
+                </TextField>
+              </Grid>
             </>
           )}
-          <Column lg={8} md={4} sm={4}>
-            <Select
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              select
+              fullWidth
               id="trial-discipline"
-              labelText="Your focus"
+              label="Your focus"
               required
               value={discipline}
               onChange={(e) => setDiscipline(e.target.value as Discipline)}
             >
-              <SelectItem value="" text="Select…" />
+              <MenuItem value="">Select…</MenuItem>
               {DISCIPLINE_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value} text={o.label} />
+                <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
               ))}
-            </Select>
-          </Column>
+            </TextField>
+          </Grid>
         </Grid>
 
-        {error && <InlineNotification kind="error" title="Error" subtitle={error} />}
+        {error && (
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {error}
+          </Alert>
+        )}
 
-        <Button type="submit" kind="primary" size="lg" disabled={submit.isPending}>
+        <Button type="submit" variant="contained" size="large" disabled={submit.isPending}>
           {submit.isPending ? "Submitting…" : "Send request"}
         </Button>
       </Stack>
-    </Form>
+    </Box>
   );
 }

@@ -1,5 +1,7 @@
-import { Download as DownloadIcon, Checkmark, Information } from "@carbon/icons-react";
-import { Button, Column, Grid, Stack, Tag, Theme, Tile } from "@carbon/react";
+import DownloadIcon from "@mui/icons-material/Download";
+import CheckIcon from "@mui/icons-material/Check";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { Button, Chip, Grid, Paper, Stack } from "@mui/material";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { LandingBand, LandingEditorial } from "../components/landing/LandingBand.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
@@ -70,6 +72,13 @@ const ESTIMATE_FEATURES = [
   "Fully offline; free companion to any AORMS edition",
 ];
 
+// Carbon Tag colour tokens still resolve at :root (styles.scss emits the Carbon
+// White theme globally), so coloured Chips reuse the tag background/foreground pair.
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
 export function Download() {
   // Live: the newest desktop release's installers, pulled from GitHub (cached server-side).
   const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
@@ -80,15 +89,12 @@ export function Download() {
     (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
 
   return (
-    <Theme theme="white">
       <MarketingShell>
         <LandingBand>
           <LandingEditorial>
-            <Stack gap={7}>
-            <Stack gap={4}>
-              <Tag type="cool-gray" size="md">
-                Windows desktop app
-              </Tag>
+            <Stack spacing={7}>
+            <Stack spacing={4}>
+              <Chip label="Windows desktop app" sx={tagSx("cool-gray")} />
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
@@ -107,41 +113,37 @@ export function Download() {
               )}
             </Stack>
 
-            <Grid fullWidth className="esti-landing-grid">
+            <Grid container spacing={2} className="esti-landing-grid">
               {EDITIONS.map((e) => {
                 const url = urlFor(e.code);
                 return (
-                <Column key={e.code} lg={8} md={4} sm={4}>
-                  <Tile className="esti-fill">
-                    <Stack gap={5}>
-                      <Stack gap={3}>
-                        <Stack orientation="horizontal" gap={3}>
-                          <Tag type={e.tag} size="md">
-                            {e.name}
-                          </Tag>
-                          <Tag type="outline" size="md">
-                            {e.price}
-                          </Tag>
+                <Grid key={e.code} size={{ xs: 12, md: 6 }}>
+                  <Paper className="esti-fill">
+                    <Stack spacing={5}>
+                      <Stack spacing={3}>
+                        <Stack direction="row" spacing={3}>
+                          <Chip label={e.name} sx={tagSx(e.tag)} />
+                          <Chip label={e.price} variant="outlined" />
                         </Stack>
                         <p>{e.pitch}</p>
                       </Stack>
 
-                      <Stack gap={3}>
+                      <Stack spacing={3}>
                         {e.features.map((f) => (
-                          <Stack key={f} orientation="horizontal" gap={3}>
-                            <Checkmark size={16} aria-hidden />
+                          <Stack key={f} direction="row" spacing={3}>
+                            <CheckIcon sx={{ fontSize: 16 }} aria-hidden />
                             <span>{f}</span>
                           </Stack>
                         ))}
                       </Stack>
 
                       {url ? (
-                        <Button kind="primary" size="lg" renderIcon={DownloadIcon} href={url}>
+                        <Button variant="contained" size="large" endIcon={<DownloadIcon />} href={url}>
                           Download {e.name}
                         </Button>
                       ) : (
-                        <Stack gap={3}>
-                          <Button kind="tertiary" size="lg" renderIcon={Information} disabled>
+                        <Stack spacing={3}>
+                          <Button variant="outlined" size="large" endIcon={<InfoOutlinedIcon />} disabled>
                             Desktop installer coming soon
                           </Button>
                           <p className="esti-label--helper">
@@ -164,19 +166,19 @@ export function Download() {
                         </p>
                       )}
                     </Stack>
-                  </Tile>
-                </Column>
+                  </Paper>
+                </Grid>
                 );
               })}
             </Grid>
 
             {/* Standalone estimating companion */}
-            <Tile className="esti-fill">
-              <Stack gap={5}>
-                <Stack gap={3}>
-                  <Stack orientation="horizontal" gap={3}>
-                    <Tag type="teal" size="md">AORMS Estimate</Tag>
-                    <Tag type="outline" size="md">Free · Offline companion</Tag>
+            <Paper className="esti-fill">
+              <Stack spacing={5}>
+                <Stack spacing={3}>
+                  <Stack direction="row" spacing={3}>
+                    <Chip label="AORMS Estimate" sx={tagSx("teal")} />
+                    <Chip label="Free · Offline companion" variant="outlined" />
                   </Stack>
                   <h2 className="esti-landing-section-title">The estimating companion</h2>
                   <p>
@@ -187,21 +189,21 @@ export function Download() {
                     <strong>Cost Management</strong>.
                   </p>
                 </Stack>
-                <Stack gap={3}>
+                <Stack spacing={3}>
                   {ESTIMATE_FEATURES.map((f) => (
-                    <Stack key={f} orientation="horizontal" gap={3}>
-                      <Checkmark size={16} aria-hidden />
+                    <Stack key={f} direction="row" spacing={3}>
+                      <CheckIcon sx={{ fontSize: 16 }} aria-hidden />
                       <span>{f}</span>
                     </Stack>
                   ))}
                 </Stack>
                 {ESTIMATE_URL ? (
-                  <Button kind="primary" size="lg" renderIcon={DownloadIcon} href={ESTIMATE_URL}>
+                  <Button variant="contained" size="large" endIcon={<DownloadIcon />} href={ESTIMATE_URL}>
                     Download AORMS Estimate
                   </Button>
                 ) : (
-                  <Stack gap={3}>
-                    <Button kind="tertiary" size="lg" renderIcon={Information} disabled>
+                  <Stack spacing={3}>
+                    <Button variant="outlined" size="large" endIcon={<InfoOutlinedIcon />} disabled>
                       Estimate app coming soon
                     </Button>
                     <p className="esti-label--helper">
@@ -212,7 +214,7 @@ export function Download() {
                   </Stack>
                 )}
               </Stack>
-            </Tile>
+            </Paper>
 
             <p className="esti-label--helper">
               Installers are code-signed for Windows 10/11. macOS and Linux builds are on the
@@ -223,6 +225,5 @@ export function Download() {
         </LandingBand>
         <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }

@@ -1,4 +1,5 @@
-import { InlineNotification, Loading, Theme } from "@carbon/react";
+import { Theme } from "@carbon/react";
+import { Alert, AlertTitle, Box, CircularProgress } from "@mui/material";
 import {
   Analytics,
   Archive,
@@ -146,7 +147,7 @@ export function App() {
       <UploadAuthProvider>
         {/* One boundary covers the lazy routes rendered in every AppShell branch
             (public paths, portals, and the authenticated workspace). */}
-        <Suspense fallback={<Loading withOverlay description="Loading AORMS" />}>
+        <Suspense fallback={<Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>}>
           <AppShell />
         </Suspense>
       </UploadAuthProvider>
@@ -239,7 +240,7 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/account")
     return <Theme theme="white"><AccountPortal /></Theme>;
 
-  if (isLoading) return <Loading withOverlay description="Loading AORMS" />;
+  if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
   if (!user)
     return (
       <Routes>
@@ -446,13 +447,10 @@ function AppShell() {
           <div className="esti-app-content2">
             <main className="esti-grow">
               {licenseBlocked && (
-                <InlineNotification
-                  kind="error"
-                  lowContrast
-                  hideCloseButton
-                  title="Workspace licence required"
-                  subtitle="Your licence is missing or expired — changes are blocked until it is activated. Open Company → Licence to activate a key."
-                />
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <AlertTitle>Workspace licence required</AlertTitle>
+                  Your licence is missing or expired — changes are blocked until it is activated. Open Company → Licence to activate a key.
+                </Alert>
               )}
               <Routes>
                 <Route path="/" element={<StudioAbstract />} />

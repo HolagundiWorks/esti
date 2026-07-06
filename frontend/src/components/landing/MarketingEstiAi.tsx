@@ -1,12 +1,14 @@
-import { Close, Send } from "@carbon/icons-react";
 import {
+  Alert,
+  AlertTitle,
   Button,
-  InlineLoading,
-  InlineNotification,
+  CircularProgress,
+  Paper,
   Stack,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import Close from "@mui/icons-material/Close";
+import Send from "@mui/icons-material/Send";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { trpc } from "../../lib/trpc.js";
 
@@ -97,72 +99,70 @@ export function MarketingEstiAi() {
           aria-modal
           aria-label="Ask ESTI about AORMS"
         >
-          <Stack gap={5}>
-            <Stack orientation="horizontal" gap={4} className="esti-landing-ai__cmd-input-row">
-              <TextInput
-                ref={inputRef}
+          <Stack spacing={2}>
+            <div className="esti-landing-ai__cmd-input-row">
+              <TextField
+                inputRef={inputRef}
                 id="landing-ai-prompt"
-                labelText=""
-                hideLabel
+                aria-label="Ask ESTI"
                 placeholder="What does your studio struggle with most — revisions, invoices, drawings?"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleInputKey}
                 disabled={ask.isPending || unavailable}
-                size="lg"
                 className="esti-grow"
+                fullWidth
               />
               <Button
-                kind="primary"
-                size="lg"
-                renderIcon={Send}
-                iconDescription="Send"
-                hasIconOnly
+                variant="contained"
+                size="large"
+                aria-label="Send"
                 onClick={() => submit()}
                 disabled={!input.trim() || ask.isPending || unavailable}
-              />
+              >
+                <Send fontSize="small" />
+              </Button>
               <Button
-                kind="ghost"
-                size="lg"
-                renderIcon={Close}
-                iconDescription="Close"
-                hasIconOnly
+                variant="text"
+                size="large"
+                aria-label="Close"
                 onClick={() => setOpen(false)}
-              />
-            </Stack>
+              >
+                <Close fontSize="small" />
+              </Button>
+            </div>
 
             {unavailable && (
-              <InlineNotification
-                kind="warning"
-                lowContrast
-                title="ESTI is resting"
-                subtitle="AI is temporarily unavailable. Create a free account or email hi@aorms.in."
-                hideCloseButton
-              />
+              <Alert severity="warning">
+                <AlertTitle>ESTI is resting</AlertTitle>
+                AI is temporarily unavailable. Create a free account or email hi@aorms.in.
+              </Alert>
             )}
             {ask.error && !unavailable && (
-              <InlineNotification
-                kind="error"
-                lowContrast
-                title="Could not get an answer"
-                subtitle={ask.error.message}
-                hideCloseButton
-              />
+              <Alert severity="error">
+                <AlertTitle>Could not get an answer</AlertTitle>
+                {ask.error.message}
+              </Alert>
             )}
 
             {(turns.length > 0 || ask.isPending) && (
-              <Stack gap={3} className="esti-landing-ai__thread">
+              <div className="esti-landing-ai__thread">
                 {turns.map((t, i) => (
-                  <Tile key={`${t.role}-${i}`} className="esti-landing-ai__turn">
+                  <Paper key={`${t.role}-${i}`} className="esti-landing-ai__turn">
                     <p className="esti-landing-eyebrow">
                       {t.role === "user" ? "You" : "ESTI"}
                     </p>
                     <p>{t.text}</p>
-                  </Tile>
+                  </Paper>
                 ))}
-                {ask.isPending && <InlineLoading description="Thinking…" />}
+                {ask.isPending && (
+                  <Stack direction="row" spacing={1}>
+                    <CircularProgress size={16} />
+                    <span>Thinking…</span>
+                  </Stack>
+                )}
                 <div ref={endRef} />
-              </Stack>
+              </div>
             )}
 
             {turns.length === 0 && !ask.isPending && (
@@ -183,7 +183,7 @@ export function MarketingEstiAi() {
           aria-expanded={open}
         >
           {open ? (
-            <Close size={20} aria-hidden />
+            <Close sx={{ fontSize: 20 }} aria-hidden />
           ) : (
             <img
               src="/esti-logo-inverted.png"

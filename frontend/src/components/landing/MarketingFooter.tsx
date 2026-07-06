@@ -1,5 +1,5 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button, Link, Stack } from "@carbon/react";
+import { Button, Link, Stack } from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
@@ -59,10 +59,10 @@ export function MarketingFooter({
               />
               <p>{LANDING_SEO.footerBlurb}</p>
               <Button
-                kind="primary"
-                size="sm"
+                variant="contained"
+                size="small"
                 onClick={onRequestWorkspace}
-                renderIcon={ArrowRight}
+                endIcon={<ArrowForward />}
               >
                 Request workspace
               </Button>
@@ -70,7 +70,7 @@ export function MarketingFooter({
 
             <nav className="esti-landing-footer__nav" aria-label="Product">
               <h2>Product</h2>
-              <Stack gap={3}>
+              <Stack spacing={1.5}>
                 {PRODUCT_LINKS.map((item) => (
                   <Link key={item.href} href={item.href}>
                     {item.label}
@@ -81,7 +81,7 @@ export function MarketingFooter({
 
             <nav className="esti-landing-footer__nav" aria-label="Contact">
               <h2>Contact</h2>
-              <Stack gap={3}>
+              <Stack spacing={1.5}>
                 {CONTACT_LINKS.map((item) => (
                   <Link
                     key={item.href}

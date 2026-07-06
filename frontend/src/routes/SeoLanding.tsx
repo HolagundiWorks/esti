@@ -1,5 +1,5 @@
-import { Button, Tag, Theme } from "@carbon/react";
-import { ArrowRight } from "@carbon/icons-react";
+import { Button, Chip } from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
@@ -36,7 +36,6 @@ export function SeoLanding({ slug }: { slug: string }) {
   }, [page]);
 
   return (
-    <Theme theme="white">
       <MarketingShell>
         <main id="main-content" className="esti-blog">
           <Link to="/" className="esti-blog__back">← AORMS home</Link>
@@ -51,7 +50,14 @@ export function SeoLanding({ slug }: { slug: string }) {
             </div>
           ) : (
             <article className="esti-blog-article">
-              <Tag type="cool-gray" size="sm">{landingCategoryLabel(page.category)}</Tag>
+              <Chip
+                size="small"
+                label={landingCategoryLabel(page.category)}
+                sx={{
+                  backgroundColor: "var(--cds-tag-background-cool-gray)",
+                  color: "var(--cds-tag-color-cool-gray)",
+                }}
+              />
               <h1>{page.title}</h1>
               {page.intro && <p className="esti-blog-article__byline">{page.intro}</p>}
 
@@ -68,10 +74,10 @@ export function SeoLanding({ slug }: { slug: string }) {
                   your practice.
                 </p>
                 <div className="esti-blog-card__tags">
-                  <Button as="a" href="/demo" renderIcon={ArrowRight} size="md">
+                  <Button href="/demo" endIcon={<ArrowForward />}>
                     Open the live demo
                   </Button>
-                  <Button as="a" href="/#trial" kind="tertiary" size="md">
+                  <Button href="/#trial" variant="outlined">
                     Request a workspace
                   </Button>
                 </div>
@@ -99,6 +105,5 @@ export function SeoLanding({ slug }: { slug: string }) {
         </main>
         <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }

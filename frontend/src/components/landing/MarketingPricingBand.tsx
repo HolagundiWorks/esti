@@ -1,5 +1,7 @@
-import { ArrowRight, Checkmark, Download as DownloadIcon } from "@carbon/icons-react";
-import { Button, Tag } from "@carbon/react";
+import { Button, Chip } from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import Check from "@mui/icons-material/Check";
+import DownloadIcon from "@mui/icons-material/Download";
 import { createAccountUrl } from "../../lib/onboarding.js";
 import { trpc } from "../../lib/trpc.js";
 import type { LandingTrialPlanContext } from "../LandingTrialForm.js";
@@ -108,7 +110,16 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
           <div className="esti-lp-tile__hdr">
             <span className={`esti-lp-dot esti-lp-dot--${p.featured ? "yellow" : "white"}`} aria-hidden>●</span>
             <span className="esti-lp-tile__hdr-label">{p.name}</span>
-            {p.featured && <Tag type="blue" size="sm">Most firms</Tag>}
+            {p.featured && (
+              <Chip
+                size="small"
+                label="Most firms"
+                sx={{
+                  backgroundColor: "var(--cds-tag-background-blue)",
+                  color: "var(--cds-tag-color-blue)",
+                }}
+              />
+            )}
           </div>
           <div className="esti-lp-pricing-tile__body">
             <p className="esti-lp-pricing-tile__pitch">{p.pitch}</p>
@@ -120,7 +131,7 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
             <ul className="esti-lp-pricing-list">
               {p.features.map((f) => (
                 <li key={f}>
-                  <Checkmark size={16} aria-hidden />
+                  <Check sx={{ fontSize: 16 }} aria-hidden />
                   <span>{f}</span>
                 </li>
               ))}
@@ -132,28 +143,25 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
               // appliance to run the whole office on the local network.
               <div className="esti-lp-pricing-tile__ctas">
                 <Button
-                  kind="primary"
-                  size="md"
+                  variant="contained"
                   href={createAccountUrl()}
-                  renderIcon={ArrowRight}
+                  endIcon={<ArrowForward />}
                 >
                   Create free account
                 </Button>
                 <Button
-                  kind="tertiary"
-                  size="md"
+                  variant="outlined"
                   href={liteDownloadUrl}
-                  renderIcon={DownloadIcon}
+                  endIcon={<DownloadIcon />}
                 >
                   Download Lite (offline)
                 </Button>
               </div>
             ) : (
               <Button
-                kind={p.featured ? "primary" : "tertiary"}
-                size="md"
+                variant={p.featured ? "contained" : "outlined"}
                 onClick={() => onSelectPlan(p.ctx)}
-                renderIcon={ArrowRight}
+                endIcon={<ArrowForward />}
               >
                 {p.cta}
               </Button>

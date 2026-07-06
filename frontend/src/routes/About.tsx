@@ -1,4 +1,3 @@
-import { Theme } from "@carbon/react";
 import { useEffect } from "react";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
@@ -83,7 +82,6 @@ export function About() {
   }, []);
 
   return (
-    <Theme theme="white">
       <MarketingShell>
         <main id="main-content" className="esti-blog">
           <header className="esti-blog__head">
@@ -183,6 +181,5 @@ export function About() {
         </main>
         <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }

@@ -1,5 +1,5 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button } from "@carbon/react";
+import { Button } from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
 import { createAccountUrl } from "../../lib/onboarding.js";
 
 const STATUS_LINES = [
@@ -32,11 +32,11 @@ export function MarketingHero({ onTrialScroll }: { onTrialScroll?: () => void })
       </p>
 
       <div className="esti-lp-hero__actions">
-        <Button kind="primary" size="lg" renderIcon={ArrowRight} href={createAccountUrl()}>
+        <Button variant="contained" size="large" endIcon={<ArrowForward />} href={createAccountUrl()}>
           Create free account
         </Button>
         {onTrialScroll && (
-          <Button kind="ghost" size="lg" onClick={onTrialScroll}>
+          <Button variant="text" size="large" onClick={onTrialScroll}>
             Request Workspace
           </Button>
         )}

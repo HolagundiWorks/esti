@@ -1,5 +1,5 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button } from "@carbon/react";
+import { Button } from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
 import type { ReactNode } from "react";
 import { ReelLoopTile } from "./LandingMediaTiles.js";
 
@@ -532,7 +532,7 @@ export function EstimationSection() {
           ]}
         />
       </div>
-      <Button kind="primary" size="lg" renderIcon={ArrowRight} href="/download">
+      <Button variant="contained" size="large" endIcon={<ArrowForward />} href="/download">
         Download AORMS Estimate
       </Button>
     </>

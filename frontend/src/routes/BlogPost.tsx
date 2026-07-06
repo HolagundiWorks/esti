@@ -1,4 +1,4 @@
-import { Tag, Theme } from "@carbon/react";
+import { Chip } from "@mui/material";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -27,7 +27,6 @@ export function BlogPost() {
   }, [post]);
 
   return (
-    <Theme theme="white">
       <MarketingShell>
       <main id="main-content" className="esti-blog">
         <Link to="/blog" className="esti-blog__back">← All posts</Link>
@@ -51,7 +50,15 @@ export function BlogPost() {
             {post.tags.length > 0 && (
               <div className="esti-blog-card__tags">
                 {post.tags.map((t) => (
-                  <Tag key={t} type="cool-gray" size="sm">{t}</Tag>
+                  <Chip
+                    key={t}
+                    size="small"
+                    label={t}
+                    sx={{
+                      backgroundColor: "var(--cds-tag-background-cool-gray)",
+                      color: "var(--cds-tag-color-cool-gray)",
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -94,6 +101,5 @@ export function BlogPost() {
       </main>
       <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }

@@ -1929,7 +1929,7 @@
     z-index: 1;
   }
 
-  .esti-landing-content.cds--content {
+  .esti-landing-content {
     flex: 1;
     margin-block-start: var(--cds-spacing-09);
     max-width: 100%;
@@ -1939,30 +1939,107 @@
   }
 }
 
-// UI Shell header — keep brand marks visible; nav must not compress logos to zero width.
-.esti-landing-header.cds--header {
-  .cds--header__name {
-    flex: 0 0 auto;
-    min-inline-size: 0;
-
-    a {
-      display: inline-flex;
-      align-items: center;
-      text-decoration: none;
-    }
+// Skip link — visually hidden until focused.
+.esti-lp-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9500;
+  &:focus {
+    left: var(--cds-spacing-05);
+    top: var(--cds-spacing-03);
+    background: var(--lp-bg-soft);
+    color: var(--lp-accent);
+    padding: var(--cds-spacing-03);
   }
+}
 
-  .cds--header__nav {
-    flex: 1 1 auto;
-    min-inline-size: 0;
+// Editorial header — self-contained (migrated off the Carbon UI Shell).
+// A near-white frosted bar; deep-teal accents on hover. Brand marks stay visible;
+// nav must not compress logos to zero width.
+.esti-landing-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 9000;
+  height: 3.5rem;
+  background: color-mix(in srgb, var(--lp-bg-soft) 82%, transparent);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  border-bottom: 1px solid var(--lp-border);
+}
+.esti-landing-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-05);
+  height: 100%;
+  max-width: var(--lp-max);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+.esti-landing-header__menu {
+  display: none;
+  color: var(--lp-ink);
+}
+.esti-landing-header__name {
+  flex: 0 0 auto;
+  min-inline-size: 0;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.esti-landing-header__nav {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-06);
+}
+.esti-landing-header__link {
+  color: var(--lp-ink-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition: color 100ms ease;
+  &:hover,
+  &:focus { color: var(--lp-accent); }
+}
+.esti-landing-header__actions {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+.esti-landing-header__sidenav { display: none; }
+.esti-landing-header__overlay { display: none; }
+
+.esti-landing-visit-count {
+  @include type.type-style("label-01");
+  align-self: center;
+  color: var(--cds-text-secondary);
+  margin-inline-end: var(--cds-spacing-05);
+  white-space: nowrap;
+}
+
+@media (max-width: 42rem) {
+  .esti-landing-header__menu { display: inline-flex; }
+  .esti-landing-header__nav { display: none; }
+  .esti-landing-header__sidenav {
+    position: fixed;
+    inset: 3.5rem 0 auto;
+    display: none;
+    flex-direction: column;
+    gap: var(--cds-spacing-03);
+    padding: var(--cds-spacing-04);
+    background: var(--lp-bg-soft);
+    border-bottom: 1px solid var(--lp-border);
+    z-index: 9000;
+    &.is-open { display: flex; }
+    .esti-landing-header__link { padding: var(--cds-spacing-03) 0; }
   }
-
-  .esti-landing-visit-count {
-    @include type.type-style("label-01");
-    align-self: center;
-    color: var(--cds-text-secondary);
-    margin-inline-end: var(--cds-spacing-05);
-    white-space: nowrap;
+  .esti-landing-header__overlay {
+    position: fixed;
+    inset: 3.5rem 0 0;
+    display: block;
+    background: rgba(23, 43, 54, 0.35);
+    z-index: 8999;
   }
 }
 
@@ -2130,8 +2207,9 @@ h1.esti-landing-lead-title {
 
   // Remove individual tile borders — the 1px grid gap IS the border.
   // Apply the 24px internal padding spec uniformly.
-  .cds--tile,
-  .cds--expandable-tile {
+  .esti-landing-kpi-tile,
+  .esti-landing-bento-tile,
+  .MuiPaper-root {
     border: none;
     padding: var(--cds-spacing-06); // 24px
   }
@@ -2173,7 +2251,8 @@ h1.esti-landing-lead-title {
   row-gap: var(--cds-spacing-07);
   padding-inline: 0;
 
-  > .cds--css-grid-column {
+  > .MuiGrid-root,
+  > * {
     min-width: 0;
   }
 }
@@ -2224,9 +2303,10 @@ h1.esti-landing-lead-title {
   gap: var(--cds-spacing-05);
   box-sizing: border-box;
 
-  // Carbon Tile provides its own background and border — no overrides needed.
-  // ClickableTile: reset text-align since Carbon defaults to center on some builds.
-  &.cds--clickable-tile {
+  // Clickable card variant: keep text left-aligned (MUI/anchor cards).
+  &[href],
+  &[role="button"],
+  a& {
     text-align: start;
   }
 
@@ -2473,7 +2553,7 @@ h1.esti-landing-lead-title {
 
 // Top-right "Log in" button on the landing header (dark g100 surface).
 // Carbon Button kind="primary" — only tweak margin so it sits flush in HeaderGlobalBar.
-.esti-landing-signin.cds--btn {
+.esti-landing-signin {
   margin-inline-end: var(--cds-spacing-04);
   align-self: center;
 }
@@ -2613,7 +2693,7 @@ h1.esti-landing-lead-title {
 }
 
 // Demo band card — flex column so the CTA button stays pinned to the bottom.
-.esti-landing-demo-card.cds--tile {
+.esti-landing-demo-card {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -2691,20 +2771,19 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-request-modal {
-  .cds--modal-container {
-    background: var(--cds-layer-02) !important;
+  .MuiDialog-paper {
+    background: var(--cds-layer-02);
     border: 1px solid var(--cds-border-subtle);
     inline-size: min(760px, calc(100vw - 2rem));
-    opacity: 1;
-    backdrop-filter: none;
+    max-width: none;
   }
 
-  .cds--modal-header,
-  .cds--modal-content {
-    background: var(--cds-layer-02) !important;
+  .MuiDialogTitle-root,
+  .MuiDialogContent-root {
+    background: var(--cds-layer-02);
   }
 
-  .cds--modal-content {
+  .MuiDialogContent-root {
     max-block-size: min(74vh, 820px);
     overflow-y: auto;
     padding-block-end: var(--cds-spacing-07);
@@ -3323,7 +3402,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-.esti-lp-pricing-tile .cds--btn {
+.esti-lp-pricing-tile .MuiButton-root {
   margin-top: auto;
   width: fit-content;
 }

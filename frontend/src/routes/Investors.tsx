@@ -1,5 +1,6 @@
-import { Button, Theme } from "@carbon/react";
-import { Document, Email } from "@carbon/icons-react";
+import { Button } from "@mui/material";
+import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
+import EmailOutlined from "@mui/icons-material/EmailOutlined";
 import { useEffect } from "react";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
@@ -70,7 +71,6 @@ export function Investors() {
   }, []);
 
   return (
-    <Theme theme="white">
       <MarketingShell>
       <div className="esti-investor">
 
@@ -82,7 +82,7 @@ export function Investors() {
             pressure points, predicts risk, and recommends the one action that matters — built
             India-native, from the ground up.
           </p>
-          <Button renderIcon={Document} href={DECK_URL}>
+          <Button endIcon={<DescriptionOutlined />} href={DECK_URL}>
             Download the pitch deck (PDF)
           </Button>
         </section>
@@ -107,7 +107,7 @@ export function Investors() {
             We're raising to expand jurisdiction coverage, stand up the hosted offering, and build
             out go-to-market. If that's interesting, the deck is above — and so are we.
           </p>
-          <Button renderIcon={Email} href={`mailto:${CONTACT_EMAIL}`}>
+          <Button endIcon={<EmailOutlined />} href={`mailto:${CONTACT_EMAIL}`}>
             {CONTACT_EMAIL}
           </Button>
           <p className="esti-investor__fineprint">Holagundi Consulting Works · AORMS</p>
@@ -115,6 +115,5 @@ export function Investors() {
       </div>
       <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }

@@ -1,4 +1,4 @@
-import { ClickableTile, Column, Grid, Tag, Theme } from "@carbon/react";
+import { Chip, Grid, Paper } from "@mui/material";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
@@ -25,7 +25,6 @@ export function Blog() {
   }, []);
 
   return (
-    <Theme theme="white">
       <MarketingShell>
       <main id="main-content" className="esti-blog">
         <header className="esti-blog__head">
@@ -36,10 +35,14 @@ export function Blog() {
         {posts.length === 0 ? (
           <p className="esti-blog__empty">No posts yet — check back soon.</p>
         ) : (
-          <Grid narrow className="esti-blog__grid">
+          <Grid container spacing={2} className="esti-blog__grid">
             {posts.map((p) => (
-              <Column key={p.slug} lg={8} md={4} sm={4}>
-                <ClickableTile className="esti-blog-card" onClick={() => navigate(`/blog/${p.slug}`)}>
+              <Grid key={p.slug} size={{ xs: 12, md: 6 }}>
+                <Paper
+                  className="esti-blog-card"
+                  onClick={() => navigate(`/blog/${p.slug}`)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <div className="esti-blog-card__meta">
                     <span>{formatPostDate(p.date)}</span>
                     <span aria-hidden>·</span>
@@ -50,12 +53,20 @@ export function Blog() {
                   {p.tags.length > 0 && (
                     <div className="esti-blog-card__tags">
                       {p.tags.map((t) => (
-                        <Tag key={t} type="cool-gray" size="sm">{t}</Tag>
+                        <Chip
+                          key={t}
+                          size="small"
+                          label={t}
+                          sx={{
+                            backgroundColor: "var(--cds-tag-background-cool-gray)",
+                            color: "var(--cds-tag-color-cool-gray)",
+                          }}
+                        />
                       ))}
                     </div>
                   )}
-                </ClickableTile>
-              </Column>
+                </Paper>
+              </Grid>
             ))}
           </Grid>
         )}
@@ -71,6 +82,5 @@ export function Blog() {
       </main>
       <MarketingFooter />
       </MarketingShell>
-    </Theme>
   );
 }
