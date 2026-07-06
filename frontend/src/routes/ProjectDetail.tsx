@@ -1,6 +1,5 @@
 import {
   Box,
-  Breadcrumbs,
   Chip,
   CircularProgress,
   Stack,
@@ -12,8 +11,10 @@ import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
   PROJECT_WORK_TYPE_LABEL,
+  formatINR,
   type ProjectStatus,
 } from "@esti/contracts";
+import { RailLayout } from "../components/RailLayout.js";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ProjectApprovals } from "../components/ProjectApprovals.js";
@@ -162,62 +163,77 @@ export function ProjectDetail() {
   const phases = phasesQ.data ?? [];
   const currentPhase =
     phases.find((ph) => ph.id === p.currentPhaseId) ?? phases[phases.length - 1];
+  const workTypeLabel =
+    PROJECT_WORK_TYPE_LABEL[
+      (p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL }).workType ??
+        "ARCHITECTURE"
+    ];
+  const contractValuePaise = (p as { contractValuePaise?: number })
+    .contractValuePaise;
+
+  // Compact project overview — a labelled fact for the rail's aside.
+  const Fact = ({ label, value }: { label: string; value: ReactNode }) => (
+    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, py: 0.5, borderBottom: 1, borderColor: "divider" }}>
+      <Typography variant="caption" color="text.secondary">{label}</Typography>
+      <Typography variant="caption" sx={{ textAlign: "right", fontWeight: 600 }}>{value}</Typography>
+    </Box>
+  );
 
   return (
-    <div>
-      <Box
-        sx={{
-          position: "sticky",
-          top: "var(--esti-sticky-top, 48px)",
-          zIndex: 100,
-          paddingBottom: "var(--cds-spacing-03)",
-          background: "var(--cds-background)",
-        }}
-      >
-        <Breadcrumbs aria-label="Breadcrumb">
-          <Link to="/projects">Projects</Link>
-          <Typography>{p.ref}</Typography>
-        </Breadcrumbs>
-        <Typography variant="h4" component="h1">
-          {p.ref} — {p.title}
-        </Typography>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
-          <Typography variant="body2" component="span">
-            {
-              PROJECT_WORK_TYPE_LABEL[
-                (p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL })
-                  .workType ?? "ARCHITECTURE"
-              ]
-            }{" "}
-            · {p.projectType} · {p.jurisdiction}
-          </Typography>
-          <StatusTag
-            value={p.status as ProjectStatus}
-            map={PROJECT_STATUS_TAG}
-            label={
-              PROJECT_STATUS_LABEL[
-                p.status as keyof typeof PROJECT_STATUS_LABEL
-              ] ?? p.status
-            }
-          />
-        </Stack>
-        {phases.length > 0 && currentPhase && (
-          <Box sx={{ marginTop: "var(--cds-spacing-03)" }}>
-            <Link to={`/projects/${id}?tab=info`}>
-              <Chip
-                size="medium"
-                clickable
-                label={`Stage: ${currentPhase.label}`}
-                sx={{
-                  backgroundColor: "var(--cds-tag-background-blue)",
-                  color: "var(--cds-tag-color-blue)",
-                }}
-              />
-            </Link>
-          </Box>
-        )}
-      </Box>
+    <RailLayout
+      title={`${p.ref} — ${p.title}`}
+      description={`${workTypeLabel} · ${p.projectType} · ${p.jurisdiction}`}
+      aside={
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+            <StatusTag
+              value={p.status as ProjectStatus}
+              map={PROJECT_STATUS_TAG}
+              label={
+                PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ??
+                p.status
+              }
+            />
+            <Typography variant="caption" component="span">
+              <Link to="/projects">← All projects</Link>
+            </Typography>
+          </Stack>
 
+          {/* Overview — project at a glance (moved into the rail). */}
+          <Box>
+            <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>
+              Overview
+            </Typography>
+            <Box sx={{ mt: 0.5 }}>
+              {currentPhase && (
+                <Fact
+                  label="Stage"
+                  value={
+                    <Link to={`/projects/${id}?tab=info`}>{currentPhase.label}</Link>
+                  }
+                />
+              )}
+              <Fact
+                label="Status"
+                value={
+                  PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ??
+                  p.status
+                }
+              />
+              <Fact label="Type" value={p.projectType} />
+              <Fact label="Jurisdiction" value={p.jurisdiction} />
+              {typeof contractValuePaise === "number" && (
+                <Fact
+                  label="Contract value"
+                  value={formatINR(contractValuePaise, { paise: false })}
+                />
+              )}
+            </Box>
+          </Box>
+        </Stack>
+      }
+    >
+      {/* Stage — section navigation (two-level tabs) + the active panel. */}
       <Tabs
         value={groupIndex}
         onChange={(_e, selectedIndex: number) =>
@@ -265,6 +281,6 @@ export function ProjectDetail() {
             </Box>
           ),
       )}
-    </div>
+    </RailLayout>
   );
 }
