@@ -119,17 +119,40 @@
   -webkit-backdrop-filter: blur(14px) saturate(1.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-// Header strip: centered open search + AORMS brand (top-right).
-.esti-ribbon__top {
+// Row 1: firm-name h1 (40%) + section tabs.
+.esti-ribbon__nav {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2px 12px 0;
 }
-.esti-ribbon__search {
+.esti-ribbon__title {
+  width: 40%;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--cds-text-primary);
+}
+
+// Floating AORMS logo — top-right corner (no header bar).
+.esti-app-logo-float {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  height: 24px;
+  z-index: 1300;
+  pointer-events: none;
+}
+
+// Footer centered open search.
+.esti-app-footer__search {
   width: 360px;
-  max-width: 42vw;
+  max-width: 40vw;
 }
 .esti-ribbon__row {
   padding: 4px 8px;

@@ -446,9 +446,11 @@ function AppShell() {
     <ThemeContext.Provider value="g100">
       <Theme theme="g100">
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
-          {/* Top ribbon nav (Excel-style) — replaces the left side-nav.
-              Carries the centered search + AORMS brand (top-right). */}
-          <AppRibbon nav={nav} plan={plan} logoSrc="/aorms-logo-white.png" />
+          {/* Floating AORMS logo — top-right corner, no header bar. */}
+          <img src="/aorms-logo-white.png" alt="AORMS" className="esti-app-logo-float" />
+          {/* Top ribbon nav (Excel-style) — replaces the left side-nav + header.
+              Firm name as an h1 (40%) then the section tabs. */}
+          <AppRibbon nav={nav} firmName={firmName} />
           <div className="esti-app-content2">
             <main className="esti-grow">
               {licenseBlocked && (
@@ -588,9 +590,8 @@ function AppShell() {
           </div>
           <UsageIdentity />
           <FloatingDock />
-          {/* Footer bar — former top nav bar, moved to the bottom. Company name only. */}
+          {/* Footer bar — former top nav bar, moved to the bottom. Centered search. */}
           <AppFooterBar
-            firmName={firmName}
             planClass={planHeaderClass}
             onSignOut={() => logout.mutate()}
           />

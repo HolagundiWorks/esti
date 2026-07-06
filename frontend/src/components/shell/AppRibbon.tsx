@@ -1,12 +1,11 @@
-import SearchOutlined from "@mui/icons-material/SearchOutlined";
-import { Box, Button, InputAdornment, Stack, Tab, Tabs, TextField } from "@mui/material";
+import { Box, Button, Stack, Tab, Tabs } from "@mui/material";
 import { useEffect, useState, type ComponentType } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 /**
- * Top ribbon navigation — Excel/Office-style. Replaces the left side-nav.
- *   Header strip: centered open search · AORMS brand (top-right).
- *   Row 1: ribbon TABS (top-level sections).
+ * Top ribbon navigation — Excel/Office-style. Replaces the left side-nav and the
+ * top header bar (there is no separate header).
+ *   Row 1: firm name as an h1 (40% width) followed by the section TABS.
  *   Row 2: the selected tab's leaf destinations as square-icon command buttons.
  * The active tab tracks the current route. Liquid-glass surface, square icons.
  */
@@ -24,18 +23,9 @@ function pathActive(pathname: string, to: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
-export function AppRibbon({
-  nav,
-  plan,
-  logoSrc,
-}: {
-  nav: RibbonNode[];
-  plan: string;
-  logoSrc: string;
-}) {
+export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: string }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [term, setTerm] = useState("");
 
   const activeTop = Math.max(
     0,
@@ -47,57 +37,28 @@ export function AppRibbon({
   const current = nav[selected];
   const commands = current ? leaves(current) : [];
 
-  const runSearch = () => {
-    const q = term.trim();
-    navigate(q ? `/search?q=${encodeURIComponent(q)}` : "/search");
-  };
-
   return (
     <Box className="esti-ribbon">
-      {/* Header strip: centered open search · brand top-right */}
-      <Box className="esti-ribbon__top">
-        <Box sx={{ flex: 1 }} />
-        <TextField
-          className="esti-ribbon__search"
-          size="small"
-          placeholder="Search AORMS…"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && runSearch()}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined fontSize="small" />
-                </InputAdornment>
-              ),
-            },
+      {/* Row 1: firm-name h1 (40%) + section tabs */}
+      <Box className="esti-ribbon__nav">
+        <h1 className="esti-ribbon__title" title={firmName}>{firmName}</h1>
+        <Tabs
+          value={selected}
+          onChange={(_e, v: number) => {
+            setSelected(v);
+            const node = nav[v];
+            if (node && !("items" in node)) navigate(node.to);
           }}
-        />
-        <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-          <span className="esti-app-brand">
-            <img src={logoSrc} alt="AORMS" className="esti-app-brand__logo" />
-            <span className="esti-app-brand__tier">{plan}</span>
-          </span>
-        </Box>
+          variant="scrollable"
+          allowScrollButtonsMobile
+          aria-label="Primary navigation"
+          sx={{ flex: 1, minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0 } }}
+        >
+          {nav.map((n) => (
+            <Tab key={n.label} label={n.label} />
+          ))}
+        </Tabs>
       </Box>
-
-      <Tabs
-        value={selected}
-        onChange={(_e, v: number) => {
-          setSelected(v);
-          const node = nav[v];
-          if (node && !("items" in node)) navigate(node.to);
-        }}
-        variant="scrollable"
-        allowScrollButtonsMobile
-        aria-label="Primary navigation"
-        sx={{ minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0 } }}
-      >
-        {nav.map((n) => (
-          <Tab key={n.label} label={n.label} />
-        ))}
-      </Tabs>
 
       <Stack direction="row" spacing={0.5} className="esti-ribbon__row">
         {commands.map((c) => {
