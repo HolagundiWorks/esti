@@ -97,6 +97,102 @@ function FeatureTile({ header, dot, title, bullets, meta, span }: {
   );
 }
 
+// ── Wireframe: Partners / trust strip ──────────────────────────────
+// A "trusted by / built for" band. AORMS deliberately avoids inventing client
+// logos, so this states the Indian-practice standards it is built around —
+// reusing the existing status-bar styling (no new UI).
+const PARTNER_MARKS = [
+  "GST-native",
+  "COA fee scales",
+  "NBC",
+  "CPWD Schedule of Rates",
+  "26AS · AIS · GSTR",
+] as const;
+
+export function PartnersSection() {
+  return (
+    <section className="esti-lp-statusbar" id="partners" aria-label="Built for Indian practice">
+      <span className="esti-lp-statusbar__item esti-lp-statusbar__ver">
+        Built for how Indian practices actually work
+      </span>
+      {PARTNER_MARKS.map((p) => (
+        <span key={p} className="esti-lp-statusbar__item">
+          <StatusDot color="green" />
+          {p}
+        </span>
+      ))}
+    </section>
+  );
+}
+
+// ── Wireframe: Features (4 highlighted) ─────────────────────────────
+// The four capabilities that set AORMS apart, in the standard tile grid.
+const FEATURES = [
+  {
+    header: "Project Control",
+    dot: "green" as Dot,
+    meta: "DELIVERY",
+    title: "From enquiry to handover, the project stays one continuous record",
+    bullets: ["Phases, tasks, drawings, decisions and site notes move together"],
+  },
+  {
+    header: "Fee Recovery",
+    dot: "white" as Dot,
+    meta: "FINANCE",
+    title: "Get paid for work you've already done",
+    bullets: ["Proposals, GST invoices, receipts and reconciliation stay connected"],
+  },
+  {
+    header: "Revision Memory",
+    dot: "yellow" as Dot,
+    meta: "SCOPE PROTECTION",
+    title: "Never absorb a change you never agreed to",
+    bullets: ["Client-driven revisions carry a dated fee and time trail"],
+  },
+  {
+    header: "Team Visibility",
+    dot: "green" as Dot,
+    meta: "HR + LOAD",
+    title: "Stop being the only person who knows everything",
+    bullets: ["Attendance, task ownership and project pressure are visible together"],
+  },
+] as const;
+
+export function FeaturesSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="Features"
+        title="What sets AORMS apart"
+        body="The key capabilities that keep a practice's projects, fees and record in one operational spine."
+      />
+      <div className="esti-lp-grid" id="features">
+        {FEATURES.map((f) => (
+          <FeatureTile key={f.header} header={f.header} dot={f.dot} meta={f.meta} title={f.title} bullets={f.bullets} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── Wireframe: Why Us (4 cards) ─────────────────────────────────────
+export function WhyUsSection() {
+  return (
+    <>
+      <SectionBreak
+        eyebrow="Why Us"
+        title="Why practices choose AORMS over spreadsheets and generic tools"
+        body="Time back for design, not admin — the office remembers what a person would otherwise have to chase."
+      />
+      <div className="esti-lp-grid" id="why-us">
+        {PRODUCTIVITY_BENEFITS.map((b) => (
+          <FeatureTile key={b.header} header={b.header} dot={b.dot} title={b.title} bullets={b.bullets} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 // ── Section 2: Value Proposition ───────────────────────────────────
 
 const VALUE_PROPS = [
@@ -621,7 +717,7 @@ export function IntegrationsSection() {
         title="Connects to how a practice already works"
         body="AORMS doesn't ask a practice to abandon its tools — it gives drawings, calendars and storage a common record to point back to."
       />
-      <div className="esti-lp-grid">
+      <div className="esti-lp-grid" id="integrations">
         <FeatureTile
           header="Storage"
           dot="green"
@@ -709,7 +805,7 @@ export function CustomerSuccessSection() {
         title="What practices bring to AORMS — and what they leave behind"
         body="AORMS is early. Rather than invent testimonials, here is honestly what it replaces for the practices adopting it."
       />
-      <div className="esti-lp-grid">
+      <div className="esti-lp-grid" id="reviews">
         <FeatureTile
           header="Before"
           dot="red"

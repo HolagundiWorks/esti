@@ -6,12 +6,11 @@ import { useState, type ReactNode } from "react";
 // Absolute "/#section" links so the nav works from any route (e.g. /blog), not
 // just the landing page where the in-page anchors live.
 const NAV = [
-  { href: "/#platform", label: "Platform" },
+  { href: "/#features", label: "Features" },
+  { href: "/#why-us", label: "Why Us" },
+  { href: "/#integrations", label: "Integrations" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/blog", label: "Blog" },
-  { href: "/investors", label: "Investors" },
-  { href: "/#trial", label: "Get started" },
+  { href: "/#faq", label: "FAQs" },
 ] as const;
 
 const STATUS_ITEMS = [

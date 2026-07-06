@@ -4,22 +4,14 @@ import { useEffect, useState } from "react";
 import { LandingTrialForm, type LandingTrialPlanContext } from "../components/LandingTrialForm.js";
 import { MarketingPricingBand } from "../components/landing/MarketingPricingBand.js";
 import {
-  CollaborationSection,
-  EstimationSection,
+  CustomerSuccessSection,
   FaqSection,
-  FeatureGroup1Section,
-  FeatureGroup2Section,
+  FeaturesSection,
   FinalCtaSection,
   IntegrationsSection,
-  IntelligenceSection,
-  ProductOverviewSection,
-  ProductivityBenefitsSection,
-  SecuritySection,
-  CustomerSuccessSection,
-  ValuePropositionSection,
-  WorkflowOverviewSection,
+  PartnersSection,
+  WhyUsSection,
 } from "../components/landing/LandingOperationalGrid.js";
-import { EarnedIdentitySection } from "../components/landing/LandingEarnedIdentity.js";
 import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
@@ -28,12 +20,10 @@ import { applyLandingSeo } from "../lib/landing-seo.js";
 import { useLandingVisitCounter } from "../lib/landing-visit.js";
 
 /**
- * Landing page content structure (docs/esti/CARBON-UI-DIRECTION.md's landing
- * exception applies — editorial system, not app Carbon). Section order:
- * Hero -> Value Proposition -> Product Overview -> Feature Group 1 ->
- * Feature Group 2 -> Workflow Overview -> Productivity Benefits ->
- * Collaboration -> Intelligence & Automation -> Integrations ->
- * Security & Reliability -> Customer Success -> Earned Identity -> FAQ -> Final CTA.
+ * Landing page content structure (editorial landing system — MP025 light).
+ * Section order follows the reference wireframe:
+ * Nav -> Hero -> Partners -> Features -> Why Us -> Integrations ->
+ * Reviews -> FAQ -> CTA (pricing) -> Footer.
  */
 export function Landing() {
   const visitCount = useLandingVisitCounter();
@@ -68,21 +58,18 @@ export function Landing() {
   return (
     <>
       <MarketingShell>
+        {/* Structure follows the wireframe: Hero → Partners → Features → Why Us →
+            Integrations → Reviews → FAQ → CTA → Footer. The deeper editorial
+            sections (Product Overview, Workflow, Collaboration, Intelligence,
+            Estimation, Security, Earned Identity) remain exported in
+            LandingOperationalGrid and can be re-added without new markup. */}
         <MarketingHero onTrialScroll={scrollToTrial} />
 
-        <ValuePropositionSection />
-        <ProductOverviewSection />
-        <FeatureGroup1Section />
-        <FeatureGroup2Section />
-        <WorkflowOverviewSection />
-        <ProductivityBenefitsSection />
-        <CollaborationSection />
-        <IntelligenceSection />
-        <EstimationSection />
+        <PartnersSection />
+        <FeaturesSection />
+        <WhyUsSection />
         <IntegrationsSection />
-        <SecuritySection />
         <CustomerSuccessSection />
-        <EarnedIdentitySection />
         <FaqSection />
 
         <FinalCtaSection>
