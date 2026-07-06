@@ -164,7 +164,7 @@ export function WorkloadTab() {
 
       <Grid size={{ xs: 12, lg: 5 }}>
         <Stack spacing={2}>
-          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1.5}>
               <Stack spacing={0.5}>
                 <p>Office — {selectedLabel}</p>

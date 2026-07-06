@@ -168,7 +168,7 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
           { label: "Floors used", value: String(floorsUsed) },
         ].map((k) => (
           <Grid key={k.label} size={{ xs: 6, md: 3 }}>
-            <Box className="esti-fill" sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
+            <Box className="esti-fill" sx={{ p: 1.5, borderBottom: 1, borderColor: "divider" }}>
               <p className="esti-label--secondary">{k.label}</p>
               <Typography variant="h6" sx={{ mt: 0.5 }}>{k.value}</Typography>
             </Box>

@@ -33,7 +33,7 @@ type ModuleTileProps = {
 
 function ModuleTile({ icon: Icon, title, description, enabled, loading, onToggle }: ModuleTileProps) {
   return (
-    <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
+    <Box sx={{ p: 2, height: 1, borderBottom: 1, borderColor: "divider" }}>
       <Stack spacing={2}>
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <Stack spacing={1.5}>

@@ -98,7 +98,9 @@ export const muiTheme = createTheme({
     overline: { letterSpacing: "0.08em", fontWeight: 600 },
   },
   components: {
-    // Tiles / cards — the light frosted-glass panel.
+    // Tiles / cards — FLAT: a plain Pure-White surface with NO border and NO
+    // shadow (definition comes from spacing / hairline dividers, not a box edge).
+    // Pop surfaces (Dialog/Menu/Drawer/AppBar) re-add their own border below.
     MuiPaper: {
       defaultProps: { elevation: 0, square: true },
       styleOverrides: {
@@ -107,14 +109,37 @@ export const muiTheme = createTheme({
           backgroundColor: GLASS_FILL,
           backdropFilter: GLASS_BLUR,
           WebkitBackdropFilter: GLASS_BLUR,
-          border: GLASS_BORDER,
+          border: "none",
           borderRadius: 0,
           boxShadow: GLASS_SHADOW,
         },
       },
     },
     MuiCard: {
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: { root: { border: "none", boxShadow: "none", borderRadius: 0 } },
+    },
+    // Accordions — FLAT: transparent, no shadow, no rounded corners, and the MUI
+    // divider pseudo-line removed; a single hairline separates stacked panels.
+    MuiAccordion: {
+      defaultProps: { elevation: 0, square: true, disableGutters: true },
+      styleOverrides: {
+        root: {
+          backgroundColor: "transparent",
+          backgroundImage: "none",
+          border: "none",
+          borderBottom: GLASS_BORDER,
+          boxShadow: "none",
+          borderRadius: 0,
+          "&:before": { display: "none" },
+          "&.Mui-expanded": { margin: 0 },
+        },
+      },
+    },
+    MuiAccordionSummary: {
+      styleOverrides: { root: { paddingInline: 0 } },
+    },
+    MuiAccordionDetails: {
+      styleOverrides: { root: { paddingInline: 0 } },
     },
     // Pop surfaces — near-opaque white for crisp readability over content.
     MuiMenu: {

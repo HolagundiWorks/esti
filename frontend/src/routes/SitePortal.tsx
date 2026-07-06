@@ -132,7 +132,7 @@ export function SitePortal() {
             {(visitsQ.data ?? [])
               .filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt)
               .map((v) => (
-                <Box key={v.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                <Box key={v.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                   <Stack spacing={1.5}>
                     <Typography variant="body1"><strong>{v.plannedDate}</strong></Typography>
                     {v.notes && <Typography variant="body2" color="text.secondary">{v.notes}</Typography>}
@@ -175,7 +175,7 @@ export function SitePortal() {
 
         <Stack spacing={1.5}>
           {inspections.map((insp) => (
-            <Box key={insp.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+            <Box key={insp.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack spacing={1.5}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <Typography variant="body1"><strong>{insp.ref}</strong></Typography>

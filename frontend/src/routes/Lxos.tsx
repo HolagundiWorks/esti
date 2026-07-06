@@ -15,7 +15,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
     <Grid container spacing={1}>
       {items.map((m) => (
         <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, height: "100%", border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, height: "100%", borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <h4>{m.title}</h4>
               <p className="esti-label esti-label--secondary">{m.description}</p>

@@ -79,7 +79,7 @@ export function AlertsBell() {
           )}
 
           {alerts.map((a) => (
-            <Box key={a.id} sx={{ border: 1, borderColor: "divider", p: 1 }}>
+            <Box key={a.id} sx={{ borderBottom: 1, borderColor: "divider", p: 1 }}>
               <Stack spacing={0.5}>
                 <Box>
                   <Chip size="small" label={a.severity} sx={chipSx(sevColor(a.severity))} />

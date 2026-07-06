@@ -67,7 +67,7 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
 
       <Stack spacing={1}>
         {visits.map((v) => (
-          <Box key={v.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box key={v.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>{v.plannedDate}</strong>

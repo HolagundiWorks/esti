@@ -90,7 +90,7 @@ export function ApplicationsTab() {
       <Grid container spacing={2}>
         {apps.map((a) => (
           <Grid key={a.id} size={{ xs: 12, md: 6, lg: 3 }}>
-            <Box className="esti-app-tile" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+            <Box className="esti-app-tile" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack spacing={1}>
                 <div className="esti-row-between">
                   <p><strong>{a.name}</strong></p>

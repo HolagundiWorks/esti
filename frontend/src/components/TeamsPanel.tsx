@@ -94,7 +94,7 @@ export function TeamsPanel() {
         <Grid container spacing={1.5}>
           {teams.map((t) => (
             <Grid key={t.id} size={{ xs: 12, md: 6, lg: 3 }}>
-              <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+              <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Box className="esti-row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <strong>{t.name}</strong>

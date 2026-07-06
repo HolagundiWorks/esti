@@ -131,7 +131,7 @@ export function PortalMinutes({
 
       {momsQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
       {!momsQ.isLoading && moms.length === 0 && (
-        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="body1">No issued meeting minutes yet.</Typography>
         </Box>
       )}
@@ -141,7 +141,7 @@ export function PortalMinutes({
           const momDrafts = drafts[m.id] ?? [];
           const hasRun = suggestedFor.has(m.id);
           return (
-            <Box key={m.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+            <Box key={m.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
               <Stack spacing={1}>
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
                   <Typography variant="body1">
@@ -189,7 +189,7 @@ export function PortalMinutes({
                 )}
 
                 {momDrafts.map((draft) => (
-                  <Box key={draft.key} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                  <Box key={draft.key} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                     <Stack spacing={1.5}>
                       <Stack direction="row">
                         <Chip

@@ -84,7 +84,7 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
               { label: "Est. project cost", value: formatINR(a.estimatedProjectCostPaise, { paise: false }) },
             ].map((k) => (
               <Grid key={k.label} size={{ xs: 6, md: 4 }}>
-                <Box sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
+                <Box sx={{ p: 1.5, borderBottom: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">{k.label}</p>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 0.5 }}>{k.value}</Typography>
                 </Box>

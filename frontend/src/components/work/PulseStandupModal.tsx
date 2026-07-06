@@ -137,7 +137,7 @@ export function PulseStandupModal({
             const draft = drafts[q.id] ?? { status: "", text: "" };
             const answered = q.responseStatus !== "PENDING";
             return (
-              <Box key={q.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+              <Box key={q.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Stack spacing={0.5}>
                     {q.questionText.split("\n").map((line, i) => (
@@ -208,7 +208,7 @@ export function PulseStandupModal({
               <p className="esti-label esti-label--secondary">No pending actions.</p>
             ) : (
               proposedActions.map((a) => (
-                <Box key={a.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                <Box key={a.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                   <Stack spacing={1}>
                     <Chip
                       size="small"

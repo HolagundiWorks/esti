@@ -84,7 +84,7 @@ function MemberScoreCard({
   const band = member.band as PerformanceBand | null;
   return (
     <Grid size={{ xs: 12, md: 6 }}>
-      <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
         <Stack spacing={2}>
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
             <Stack spacing={1} sx={{ flexGrow: 1 }}>
@@ -169,7 +169,7 @@ function RecognitionTab() {
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, lg: 6 }}>
-        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
               <Box><TagChip color="teal" label="Awards" /></Box>
@@ -188,7 +188,7 @@ function RecognitionTab() {
       </Grid>
 
       <Grid size={{ xs: 12, lg: 6 }}>
-        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
               <Box><TagChip color="blue" label="Rewards" /></Box>
@@ -297,7 +297,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
       {/* KPI summary */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="gray" label="Team" /></Box>
               <Typography variant="h5" component="p">{teamSize}</Typography>
@@ -306,7 +306,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
           </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="blue" label="Average score" /></Box>
               <Typography variant="h5" component="p">{avgScore > 0 ? avgScore : "—"}</Typography>
@@ -315,7 +315,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
           </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="teal" label="Platinum" /></Box>
               <Typography variant="h5" component="p">{bandCounts["PLATINUM"] ?? 0}</Typography>
@@ -324,7 +324,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
           </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="warm-gray" label="Gold" /></Box>
               <Typography variant="h5" component="p">{bandCounts["GOLD"] ?? 0}</Typography>

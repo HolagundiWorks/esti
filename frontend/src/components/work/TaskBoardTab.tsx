@@ -75,7 +75,7 @@ export function TaskBoardTab() {
                     colTasks.map((t) => {
                       const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
                       return (
-                        <Box key={t.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                        <Box key={t.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                           <Stack spacing={1}>
                             <strong>{t.title}</strong>
                             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

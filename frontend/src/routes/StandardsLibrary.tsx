@@ -84,7 +84,7 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
         <Grid container spacing={1}>
           {(q.data ?? []).map((s) => (
             <Grid key={s.id} size={{ xs: 12, lg: 6 }}>
-              <Box className="esti-fill" sx={{ p: 2, height: "100%", border: 1, borderColor: "divider" }}>
+              <Box className="esti-fill" sx={{ p: 2, height: "100%", borderBottom: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                     <h4 className="esti-grow">{s.title}</h4>

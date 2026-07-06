@@ -230,7 +230,7 @@ export function StaffProfilesTab() {
             <Grid container spacing={2}>
               {(profileQ.data?.documents ?? []).map((doc) => (
                 <Grid key={doc.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                  <Box className="esti-doc-tile" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                  <Box className="esti-doc-tile" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                     <Stack spacing={1}>
                       <div className="esti-doc-tile__header">
                         <DescriptionIcon sx={{ fontSize: 20 }} />

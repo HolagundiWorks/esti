@@ -53,14 +53,14 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
           {d && (
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
+                <Box sx={{ p: 2, height: 1, borderBottom: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Estimated Total</p>
                   <p>{formatINR(d.estimatedTotalPaise)}</p>
                   <p className="esti-label--helper">{d.elementCount} elements</p>
                 </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
+                <Box sx={{ p: 2, height: 1, borderBottom: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Executed (Est. Value)</p>
                   <p>{formatINR(d.executedEstimatedPaise)}</p>
                   <LinearProgress
@@ -71,7 +71,7 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                 </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
+                <Box sx={{ p: 2, height: 1, borderBottom: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Certified Total</p>
                   <p>{formatINR(d.certifiedTotalPaise)}</p>
                   <LinearProgress
@@ -82,7 +82,7 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                 </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
+                <Box sx={{ p: 2, height: 1, borderBottom: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Balance to Certify</p>
                   <p>
                     {formatINR(Math.max(0, d.estimatedTotalPaise - d.certifiedTotalPaise))}

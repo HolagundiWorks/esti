@@ -948,7 +948,7 @@ export function Portal() {
                   />
                 </Stack>
                 {impactResponse.architectComment && (
-                  <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+                  <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                     <Stack spacing={1}>
                       <Typography variant="body2" color="text.secondary">
                         Architect's note

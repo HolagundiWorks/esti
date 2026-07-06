@@ -31,7 +31,7 @@ export function AccountsCarryForward({
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <Chip size="small" label="Carried forward" sx={chipSx("teal")} />
@@ -47,7 +47,7 @@ export function AccountsCarryForward({
           </Box>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <Chip size="small" label="Carried forward" sx={chipSx("magenta")} />

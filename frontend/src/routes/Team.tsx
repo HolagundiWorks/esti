@@ -119,7 +119,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
               <Grid key={m.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                 <Box
                   className="esti-staff-tile"
-                  sx={{ p: 0, overflow: "hidden", height: 1, border: 1, borderColor: "divider" }}
+                  sx={{ p: 0, overflow: "hidden", height: 1, borderBottom: 1, borderColor: "divider" }}
                   style={{ "--esti-staff-color": color } as CSSProperties}
                 >
                   {/* Portrait photo area — color fill + large initials */}

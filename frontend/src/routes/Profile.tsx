@@ -33,7 +33,7 @@ function Field({ label, value }: { label: string; value: string }) {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-      <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+      <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
         <Stack spacing={1}>
           <Typography variant="body2" component="span" className="esti-label esti-label--secondary">{label}</Typography>
           <Typography variant="h5" component="h3">{value}</Typography>
@@ -48,7 +48,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
     <Grid container spacing={1}>
       {items.map((m) => (
         <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Typography variant="h6" component="h4">{m.title}</Typography>
               <Typography variant="body2" component="p" className="esti-label esti-label--secondary">{m.description}</Typography>

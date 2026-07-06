@@ -117,14 +117,14 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
 
       {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
       {rows.length === 0 && !listQ.isLoading && (
-        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="body2">No meeting minutes recorded for this project yet.</Typography>
         </Box>
       )}
 
       <Stack spacing={1}>
         {rows.map((m) => (
-          <Box key={m.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
+          <Box key={m.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>

@@ -196,7 +196,7 @@ export function SearchPage() {
               {hits.map((h) => (
                 <Box
                   key={`${h.entityType}-${h.entityId}`}
-                  sx={{ p: 2, border: 1, borderColor: "divider" }}
+                  sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}
                 >
                   <Stack spacing={1}>
                     <Stack

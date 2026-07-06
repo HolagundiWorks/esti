@@ -147,7 +147,7 @@ export function ZoneTile({
       <CardActionArea sx={{ height: 1, p: 2 }} onClick={() => navigate(to)}>{inner}</CardActionArea>
     </Card>
   ) : (
-    <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>{inner}</Box>
+    <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>{inner}</Box>
   );
 }
 

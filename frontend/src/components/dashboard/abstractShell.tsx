@@ -85,7 +85,7 @@ export function AbstractScreenShell({
 
       <div className="esti-kpi-row">
         {kpis.slice(0, 4).map((k) => (
-          <Box key={k.label} className="esti-kpi-card" sx={{ p: 2, border: 1, borderColor: "divider", borderTop: 2, borderTopColor: "primary.main" }}>
+          <Box key={k.label} className="esti-kpi-card" sx={{ p: 2, borderBottom: 1, borderColor: "divider", borderTop: 2, borderTopColor: "primary.main" }}>
             <span className="esti-label--helper">{k.label}</span>
             <h3 className={k.state ? `esti-state-${k.state}` : undefined}>{k.value}</h3>
           </Box>
