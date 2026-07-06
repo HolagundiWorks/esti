@@ -20,17 +20,15 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import {
-  Bot,
-  Building,
-  Catalog,
-  Document,
-  Partnership,
-  Receipt,
-  TaskComplete,
-  UserMultiple,
-} from "@carbon/icons-react";
-import type { CarbonIconType } from "@carbon/icons-react";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
+import Business from "@mui/icons-material/Business";
+import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
+import Groups2Outlined from "@mui/icons-material/Groups2Outlined";
+import HandshakeOutlined from "@mui/icons-material/HandshakeOutlined";
+import LibraryBooksOutlined from "@mui/icons-material/LibraryBooksOutlined";
+import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
+import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
+import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import { can, formatINRShort } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
@@ -251,20 +249,20 @@ const glyphCell = (state: ZoneState, text: ReactNode) => (
 type LauncherApp = {
   label: string;
   route: string;
-  icon: CarbonIconType;
+  icon: SvgIconComponent;
   count: (h: any, g: any) => number | null;
   subtitle: ((n: number) => string) | null;
 };
 
 const LAUNCHER_APPS: LauncherApp[] = [
-  { label: "Projects", route: "/projects", icon: Building, count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null, subtitle: (n) => `${n} active` },
-  { label: "Tasks", route: "/tasks", icon: TaskComplete, count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
-  { label: "Invoices", route: "/invoices", icon: Receipt, count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
-  { label: "Clients", route: "/clients", icon: Partnership, count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
-  { label: "Proposals", route: "/office/proposals", icon: Document, count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
-  { label: "Team", route: "/team", icon: UserMultiple, count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
-  { label: "Library", route: "/knowledge-bank", icon: Catalog, count: () => null, subtitle: null },
-  { label: "AI Studio", route: "/office/ai-studio", icon: Bot, count: () => null, subtitle: null },
+  { label: "Projects", route: "/projects", icon: Business, count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null, subtitle: (n) => `${n} active` },
+  { label: "Tasks", route: "/tasks", icon: TaskAltOutlined, count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
+  { label: "Invoices", route: "/invoices", icon: ReceiptLongOutlined, count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
+  { label: "Clients", route: "/clients", icon: HandshakeOutlined, count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
+  { label: "Proposals", route: "/office/proposals", icon: DescriptionOutlined, count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
+  { label: "Team", route: "/team", icon: Groups2Outlined, count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
+  { label: "Library", route: "/knowledge-bank", icon: LibraryBooksOutlined, count: () => null, subtitle: null },
+  { label: "AI Studio", route: "/office/ai-studio", icon: AutoAwesomeOutlined, count: () => null, subtitle: null },
 ];
 
 // ── Studio Intelligence ───────────────────────────────────────────────────────
@@ -500,7 +498,7 @@ export function StudioAbstract() {
                 <Card sx={{ height: 1 }}>
                   <CardActionArea onClick={() => navigate(app.route)} sx={{ height: 1, p: 2 }}>
                     <Stack spacing={1}>
-                      <Icon size={24} />
+                      <Icon sx={{ fontSize: 24 }} />
                       <Box>
                         <Typography variant="body2">{app.label}</Typography>
                         {n != null && app.subtitle && (
