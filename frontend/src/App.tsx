@@ -5,7 +5,6 @@ import {
   Archive,
   Book,
   Business as Building,
-  LibraryBooks as Catalog,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -15,7 +14,6 @@ import {
   Checklist as ListChecked,
   Map as MapIcon,
   Payments as Money,
-  Handshake as Partnership,
   ShoppingCart as Purchase,
   Receipt,
   Assessment as Report,
@@ -324,27 +322,14 @@ function AppShell() {
       )
       .filter((n) => !("items" in n) || n.items.length > 0);
 
-  // Canonical V3 nav (consultancy-only). See docs/esti/NAVIGATION.md.
+  // Top ribbon nav — three sections only: Projects · Teams · Office (Finance
+  // folded into Office). Library, Third Parties and the admin/system items move
+  // to the footer "Admin" menu (adminGroups below). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
     {
       kind: "menu",
-      label: "Library",
-      icon: Catalog,
-      items: [
-        ...(planAllowsFeature("knowledgeBank")
-          ? [
-              { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
-              { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
-              { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
-              { label: "Standards Library", to: "/libraries/standards", icon: Book },
-            ]
-          : []),
-      ],
-    },
-    {
-      kind: "menu",
-      label: "Studio",
+      label: "Teams",
       icon: UserMultiple,
       items: [
         ...(planAllowsFeature("hr") && hrEnabled
@@ -360,25 +345,6 @@ function AppShell() {
     },
     {
       kind: "menu",
-      label: community ? "Contacts" : "Third Parties",
-      icon: Partnership,
-      items: [
-        ...(can(user.role, "write")
-          ? [{ label: community ? "Contacts" : "Clients", to: "/clients", icon: User }]
-          : []),
-        // External parties (consultants/contractors/vendors) are Pro/Standard —
-        // the free Community edition keeps contacts only, no third-party portals.
-        ...(!community && atLeast(60)
-          ? [
-              { label: "Consultants", to: "/consultants", icon: UserProfile },
-              { label: "Contractors", to: "/contractors", icon: Tools },
-            ]
-          : []),
-        ...(!community && can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
-      ],
-    },
-    {
-      kind: "menu",
       label: "Office",
       icon: Enterprise,
       items: [
@@ -389,13 +355,7 @@ function AppShell() {
               { label: "Letters", to: "/office/letters", icon: Email },
             ]
           : []),
-      ],
-    },
-    {
-      kind: "menu",
-      label: "Finance",
-      icon: Money,
-      items: [
+        // Finance folded into Office.
         ...(can(user.role, "invoice:manage")
           ? [
               { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
@@ -411,10 +371,39 @@ function AppShell() {
           : []),
       ],
     },
+  ]);
+
+  // Admin lives in the footer (beside the user icon), grouped: Third Parties,
+  // Library, and the admin/system items.
+  const adminGroups: { heading: string; items: NavLink[] }[] = [
     {
-      kind: "menu",
-      label: "Admin",
-      icon: SettingsIcon,
+      heading: community ? "Contacts" : "Third Parties",
+      items: [
+        ...(can(user.role, "write")
+          ? [{ label: community ? "Contacts" : "Clients", to: "/clients", icon: User }]
+          : []),
+        ...(!community && atLeast(60)
+          ? [
+              { label: "Consultants", to: "/consultants", icon: UserProfile },
+              { label: "Contractors", to: "/contractors", icon: Tools },
+            ]
+          : []),
+        ...(!community && can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
+      ],
+    },
+    {
+      heading: "Library",
+      items: planAllowsFeature("knowledgeBank")
+        ? [
+            { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
+            { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
+            { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
+            { label: "Standards Library", to: "/libraries/standards", icon: Book },
+          ]
+        : [],
+    },
+    {
+      heading: "Admin",
       items: [
         ...(can(user.role, "firm:admin")
           ? [
@@ -432,7 +421,7 @@ function AppShell() {
         { label: "Settings", to: "/settings", icon: SettingsIcon },
       ],
     },
-  ]);
+  ].filter((g) => g.items.length > 0);
 
   return (
     <ThemeContext.Provider value="white">
@@ -582,6 +571,7 @@ function AppShell() {
           {/* Footer bar — former top nav bar, moved to the bottom. Centered search. */}
           <AppFooterBar
             planClass={planHeaderClass}
+            adminGroups={adminGroups}
             onSignOut={() => logout.mutate()}
           />
         </div>

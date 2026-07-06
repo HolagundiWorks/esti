@@ -1,11 +1,29 @@
 import Logout from "@mui/icons-material/Logout";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
-import { Box, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import Settings from "@mui/icons-material/Settings";
+import {
+  Box,
+  Divider,
+  IconButton,
+  InputAdornment,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Menu,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import type { ComponentType } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserIdCard } from "../UserIdCard.js";
 import { OfficeHealthGlyph } from "./OfficeHealthGlyph.js";
 import { useOfficeHealth } from "./useOfficeHealth.js";
+
+type AdminGroup = { heading: string; items: { label: string; to: string; icon?: ComponentType<any> }[] };
 
 /**
  * Footer bar — no header bar; the firm name lives in the ribbon, the AORMS logo
@@ -26,18 +44,22 @@ function FooterClock() {
 
 export function AppFooterBar({
   planClass,
+  adminGroups = [],
   onSignOut,
 }: {
   planClass?: string;
+  adminGroups?: AdminGroup[];
   onSignOut: () => void;
 }) {
   const navigate = useNavigate();
   const [term, setTerm] = useState("");
+  const [adminAnchor, setAdminAnchor] = useState<null | HTMLElement>(null);
   const { state, pendingTasks, overdueInvoices } = useOfficeHealth();
   const runSearch = () => {
     const q = term.trim();
     navigate(q ? `/search?q=${encodeURIComponent(q)}` : "/search");
   };
+  const goAdmin = (to: string) => { setAdminAnchor(null); navigate(to); };
 
   return (
     <Box component="footer" className={`esti-app-footer ${planClass ?? ""}`}>
@@ -89,6 +111,42 @@ export function AppFooterBar({
             <Typography variant="caption" sx={{ textTransform: "capitalize" }}>{state}</Typography>
           </Stack>
         </Tooltip>
+        {adminGroups.length > 0 && (
+          <>
+            <Tooltip title="Admin · Library · Third Parties">
+              <IconButton
+                size="small"
+                onClick={(e) => setAdminAnchor(e.currentTarget)}
+                aria-label="Admin menu"
+              >
+                <Settings />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={adminAnchor}
+              open={Boolean(adminAnchor)}
+              onClose={() => setAdminAnchor(null)}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
+              transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+              {adminGroups.flatMap((g, gi) => [
+                ...(gi > 0 ? [<Divider key={`d-${g.heading}`} />] : []),
+                <ListSubheader key={`h-${g.heading}`} disableSticky sx={{ bgcolor: "transparent", lineHeight: 2.2 }}>
+                  {g.heading}
+                </ListSubheader>,
+                ...g.items.map((it) => {
+                  const Icon = it.icon;
+                  return (
+                    <MenuItem key={it.to} onClick={() => goAdmin(it.to)}>
+                      {Icon && <ListItemIcon><Icon fontSize="small" /></ListItemIcon>}
+                      <ListItemText>{it.label}</ListItemText>
+                    </MenuItem>
+                  );
+                }),
+              ])}
+            </Menu>
+          </>
+        )}
         <UserIdCard />
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onSignOut} aria-label="Sign out">

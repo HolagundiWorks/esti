@@ -110,10 +110,10 @@
 }
 .esti-ribbon {
   flex: 0 0 auto;
-  background-color: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px) saturate(1.06);
-  -webkit-backdrop-filter: blur(12px) saturate(1.06);
-  border-bottom: 1px solid rgba(23, 43, 54, 0.08);
+  // No bar background — blends with the page. Opaque because the shell canvas
+  // (#f1f6f4) sits behind it, so scrolling content never shows through.
+  background-color: transparent;
+  border-bottom: none;
 }
 // Row 1: firm-name h1 (40%) + section tabs.
 .esti-ribbon__nav {
@@ -172,8 +172,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background-color: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px) saturate(1.06);
-  -webkit-backdrop-filter: blur(12px) saturate(1.06);
-  border-top: 1px solid rgba(23, 43, 54, 0.08);
+  // No bar background — blends with the page; the opaque shell canvas behind it
+  // keeps scrolling content from showing through.
+  background-color: transparent;
+  border-top: none;
 }
