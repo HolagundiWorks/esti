@@ -91,6 +91,13 @@ Intelligence, now everywhere):
   exception to the square-corner rule — its corners are soft ROUNDED** (`20px`
   panels, `16px` buttons), because rounded corners are intrinsic to the neumorphic
   look. Everything else stays square.
+- **Text inputs are RECESSED neu, not boxes.** Every text-entry field (search +
+  all `TextField`/`Select`/`DatePicker`) looks carved *into* the surface: a
+  same-colour fill with a dark inner shadow top-left + a light inner highlight
+  bottom-right, **no border**, soft rounded corners (`12px`), a Radiant-Orange
+  inner ring on focus. Baked into the theme (`MuiOutlinedInput`/`MuiFilledInput`);
+  raw fields can use the `.esti-neu-input` class (`glass.scss`). This is the second
+  rounded-corner exception, for the same soft-UI reason.
 
 ---
 

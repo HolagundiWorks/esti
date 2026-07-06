@@ -67,6 +67,41 @@ $neu-btn-radius: 16px; // rounded neu buttons
   }
 }
 
+// ── Recessed neu input (soft UI) — for RAW (non-MUI) text/search fields ───────
+// The MUI theme styles every TextField/Select as a recessed well; this class is
+// the same look for any bare <input>/search box. Text is carved into the surface:
+// no border, same-colour fill, dark inset top-left + light inset bottom-right,
+// soft rounded corners. Wrap an icon + input in .esti-neu-input for a search bar.
+$neu-input-radius: 12px;
+.esti-neu-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  background-color: $neu-bg;
+  border: none;
+  border-radius: $neu-input-radius;
+  box-shadow: inset 4px 4px 9px $neu-dark, inset -4px -4px 9px $neu-light;
+  transition: box-shadow 120ms ease;
+
+  input,
+  input[type="text"],
+  input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    font: inherit;
+    color: var(--cds-text-primary, #141517);
+  }
+  &:focus-within {
+    box-shadow: inset 5px 5px 11px $neu-dark, inset -5px -5px 11px $neu-light,
+      inset 0 0 0 1.5px rgba(255, 79, 24, 0.45);
+  }
+}
+
 // Studio Intelligence left rail (20/80 split) — its own scroll, hidden bar so it
 // reads as a fixed pane while the right 80% scrolls.
 .esti-dash-rail {

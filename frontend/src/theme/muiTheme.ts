@@ -64,6 +64,18 @@ const GLASS_SHADOW = "none";                           // flat — no elevation
 // Pop-over surfaces (menus, dialogs, app bar) sit over content — solid white.
 const POP_FILL     = "#FFFFFF";
 
+// ── Neumorphic RECESSED inputs (soft UI) — every text-entry field ────────────
+// Text inputs (search + all TextField/Select/DatePicker) look carved INTO the
+// surface instead of sitting in a bordered box: a same-colour fill with a dark
+// inner shadow top-left + a light inner highlight bottom-right (the classic inset
+// look), no border, soft rounded corners. Shares the neu palette with glass.scss.
+const NEU_FILL        = "#eceef2"; // soft base, a touch off the Fog-Gray canvas
+const NEU_INSET       = "inset 4px 4px 9px rgba(20, 21, 23, 0.16), inset -4px -4px 9px rgba(255, 255, 255, 0.92)";
+// On focus, deepen the well and add a thin Radiant-Orange inner ring for affordance.
+const NEU_INSET_FOCUS = "inset 5px 5px 11px rgba(20, 21, 23, 0.20), inset -5px -5px 11px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
+const NEU_INSET_ERROR = "inset 4px 4px 9px rgba(20, 21, 23, 0.16), inset -4px -4px 9px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
+const NEU_INPUT_RADIUS = 12; // soft rounded (the recessed look needs rounding).
+
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
   palette: {
@@ -241,11 +253,36 @@ export const muiTheme = createTheme({
         },
       },
     },
+    // Text inputs — RECESSED neumorphic well (not a bordered box).
     MuiOutlinedInput: {
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: {
+        root: {
+          borderRadius: NEU_INPUT_RADIUS,
+          backgroundColor: NEU_FILL,
+          boxShadow: NEU_INSET,
+          // Kill the outlined border in every state — the inset shadow is the frame.
+          "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
+          "&.Mui-focused": { boxShadow: NEU_INSET_FOCUS },
+          "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
+          "&.Mui-disabled": { boxShadow: NEU_INSET, opacity: 0.6 },
+        },
+      },
     },
     MuiFilledInput: {
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: {
+        root: {
+          borderRadius: NEU_INPUT_RADIUS,
+          backgroundColor: NEU_FILL,
+          boxShadow: NEU_INSET,
+          "&:before": { display: "none" }, // drop the filled underline
+          "&:after": { display: "none" },
+          "&:hover": { backgroundColor: NEU_FILL },
+          "&.Mui-focused": { backgroundColor: NEU_FILL, boxShadow: NEU_INSET_FOCUS },
+          "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
+        },
+      },
     },
     MuiToggleButton: {
       styleOverrides: { root: { borderRadius: 0 } },
