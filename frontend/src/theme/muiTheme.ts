@@ -118,7 +118,10 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
-          backgroundColor: GLASS_FILL,
+          // Fill with the CANVAS colour so content Paper blends into the page (no
+          // white box), while every Paper stays opaque (floating poppers stay
+          // readable). Pop surfaces (Dialog/Menu/Drawer/AppBar) re-set solid white below.
+          backgroundColor: CDS.background,
           backdropFilter: GLASS_BLUR,
           WebkitBackdropFilter: GLASS_BLUR,
           border: "none",
@@ -128,7 +131,7 @@ export const muiTheme = createTheme({
       },
     },
     MuiCard: {
-      styleOverrides: { root: { border: "none", boxShadow: "none", borderRadius: 0 } },
+      styleOverrides: { root: { backgroundColor: CDS.background, border: "none", boxShadow: "none", borderRadius: 0 } },
     },
     // Accordions — FLAT: transparent, no shadow, no rounded corners, and the MUI
     // divider pseudo-line removed; a single hairline separates stacked panels.
