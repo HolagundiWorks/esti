@@ -53,7 +53,6 @@ import { FloatingDock } from "./components/FloatingDock.js";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
 import { UsageIdentity } from "./components/identity/UsageIdentity.js";
-import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
@@ -447,8 +446,9 @@ function AppShell() {
     <ThemeContext.Provider value="g100">
       <Theme theme="g100">
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
-          {/* Top ribbon nav (Excel-style) — replaces the left side-nav. */}
-          <AppRibbon nav={nav} />
+          {/* Top ribbon nav (Excel-style) — replaces the left side-nav.
+              Carries the centered search + AORMS brand (top-right). */}
+          <AppRibbon nav={nav} plan={plan} logoSrc="/aorms-logo-white.png" />
           <div className="esti-app-content2">
             <main className="esti-grow">
               {licenseBlocked && (
@@ -588,16 +588,12 @@ function AppShell() {
           </div>
           <UsageIdentity />
           <FloatingDock />
-          {/* Footer bar — former top nav bar, moved to the bottom. */}
+          {/* Footer bar — former top nav bar, moved to the bottom. Company name only. */}
           <AppFooterBar
             firmName={firmName}
-            plan={plan}
-            logoSrc="/aorms-logo-white.png"
             planClass={planHeaderClass}
-            onSearch={() => navigate("/search")}
             onSignOut={() => logout.mutate()}
           />
-          {!community && <AiAgentCommand />}
         </div>
       </Theme>
     </ThemeContext.Provider>

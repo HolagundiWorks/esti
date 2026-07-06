@@ -95,7 +95,7 @@
 // float positioning. Top border colour (alert status) is set inline from tokens.
 .esti-floating-dock {
   position: fixed;
-  bottom: 60px; // float above the 48px footer bar
+  bottom: 48px; // float above the 38px footer bar
   left: 50%;
   transform: translateX(-50%);
   z-index: 1200;
@@ -119,6 +119,18 @@
   -webkit-backdrop-filter: blur(14px) saturate(1.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+// Header strip: centered open search + AORMS brand (top-right).
+.esti-ribbon__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.esti-ribbon__search {
+  width: 360px;
+  max-width: 42vw;
+}
 .esti-ribbon__row {
   padding: 4px 8px;
   overflow-x: auto;
@@ -131,7 +143,7 @@
   padding-bottom: 88px; // clear the footer + floating dock
 }
 .esti-app-footer {
-  flex: 0 0 48px;
+  flex: 0 0 38px; // 80% of the previous 48px
   display: flex;
   align-items: center;
   justify-content: space-between;

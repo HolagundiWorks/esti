@@ -1,5 +1,4 @@
 import Logout from "@mui/icons-material/Logout";
-import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import { Box, IconButton, Stack, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { AlertsBell } from "../AlertsBell.js";
@@ -7,9 +6,10 @@ import { HeaderPomodoro } from "../HeaderPomodoro.js";
 import { UserIdCard } from "../UserIdCard.js";
 
 /**
- * Footer bar — the former top nav bar, moved to the bottom (shell brief). Carries
- * the brand mark plus the utility cluster (clock, pomodoro, search, alerts, ID card,
- * sign out). Liquid glass, fixed height = top nav bar. Sits below the floating dock.
+ * Footer bar — the former top nav bar, moved to the bottom (shell brief). Shows
+ * the company name (left) plus the utility cluster (clock, pomodoro, alerts, ID
+ * card, sign out). Search + the AORMS brand live in the top ribbon now. Liquid
+ * glass, compact height. Sits below the floating dock.
  */
 function FooterClock() {
   const [now, setNow] = useState(() => new Date());
@@ -24,34 +24,19 @@ function FooterClock() {
 
 export function AppFooterBar({
   firmName,
-  plan,
-  logoSrc,
   planClass,
-  onSearch,
   onSignOut,
 }: {
   firmName: string;
-  plan: string;
-  logoSrc: string;
   planClass?: string;
-  onSearch: () => void;
   onSignOut: () => void;
 }) {
   return (
     <Box component="footer" className={`esti-app-footer ${planClass ?? ""}`}>
-      <span className="esti-app-brand">
-        <img src={logoSrc} alt="AORMS" className="esti-app-brand__logo" />
-        <span className="esti-app-brand__tier">{plan}</span>
-        <span className="esti-app-brand__firm">{firmName}</span>
-      </span>
+      <span className="esti-app-brand__firm">{firmName}</span>
       <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
         <FooterClock />
         <HeaderPomodoro />
-        <Tooltip title="Search">
-          <IconButton size="small" onClick={onSearch} aria-label="Search">
-            <SearchOutlined />
-          </IconButton>
-        </Tooltip>
         <AlertsBell />
         <UserIdCard />
         <Tooltip title="Sign out">
