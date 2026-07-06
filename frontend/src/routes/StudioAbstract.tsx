@@ -248,6 +248,20 @@ function Sep() {
   return <Box sx={{ height: "1px", width: "80%", mx: "auto", my: 1.5, bgcolor: "divider" }} />;
 }
 
+// Per-tab split — the tab's heading/summary "items" sit in a 20% column, its data
+// (grid/list) fills the 80%.
+function TabSplit({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+      <Box sx={{ flex: "0 0 20%", maxWidth: "20%", minWidth: 0, borderRight: 1, borderColor: "divider", pr: 1.5 }}>
+        <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>{title}</Typography>
+        {action && <Box sx={{ mt: 1 }}>{action}</Box>}
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
+    </Box>
+  );
+}
+
 const GRID_SX = {
   border: 0,
   backgroundColor: "transparent",
@@ -320,7 +334,7 @@ export function StudioAbstract() {
 
   // Main-screen 30/70 split: left rail carries heading + telemetry + these tabs;
   // the right 70% renders the selected tab's items.
-  const [tab, setTab] = useState<"priorities" | "apps" | "projects" | "work" | "team">("priorities");
+  const [tab, setTab] = useState<"priorities" | "projects" | "work" | "team">("priorities");
 
   // Module toggles (moved off the dock) — admin-only, shown in the page header.
   const isAdmin = can(user?.role, "firm:admin");
@@ -529,33 +543,24 @@ export function StudioAbstract() {
             {attn.issue} — {attn.action}
           </Typography>
 
-          {/* Module toggles (Financial · Project) */}
-          {moduleToggles}
-
-          <Sep />
-
-          {/* Status section — flat square tiles: office health · KPIs · filing due dates */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {railTiles.map((c, i) => (
-              <Box
-                key={i}
-                sx={{
-                  aspectRatio: "1 / 1", minWidth: 0, p: 1.25,
-                  display: "flex", flexDirection: "column", justifyContent: "center",
-                  borderTop: i >= 2 ? 1 : 0, borderLeft: i % 2 === 1 ? 1 : 0, borderColor: "divider",
-                }}
-              >
-                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
-                  {c.glyph && <OfficeHealthGlyph state={c.glyph} size={14} />}
-                  <Typography sx={{ fontWeight: 300, fontSize: "1.35rem", lineHeight: 1.05, textTransform: c.glyph ? "capitalize" : "none" }} noWrap>{c.value}</Typography>
-                </Stack>
-                {c.sub != null && <Typography variant="caption" sx={{ color: c.subColor ?? "text.secondary" }} noWrap>{c.sub}</Typography>}
-              </Box>
-            ))}
+          {/* Today — above zone health */}
+          <Box>
+            <Typography variant="overline" color="text.secondary">Today</Typography>
+            <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+              {[
+                { label: "Tasks", value: glanceQ.data?.pendingTasks },
+                { label: "Meetings", value: glanceQ.data?.meetingsToday },
+                { label: "Visits", value: glanceQ.data?.siteVisitsToday },
+              ].map((s) => (
+                <Box key={s.label} sx={{ minWidth: 0 }}>
+                  <Typography variant="caption" color="text.secondary" noWrap>{s.label}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 300 }}>{s.value ?? "—"}</Typography>
+                </Box>
+              ))}
+            </Stack>
           </Box>
 
-          {/* Zone health — single row, each zone a square unit */}
+          {/* Zone health — single row of square units, above office health */}
           <Box>
             <Typography variant="overline" color="text.secondary">Zone health</Typography>
             <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${zones.length}, 1fr)` }}>
@@ -575,6 +580,32 @@ export function StudioAbstract() {
               ))}
             </Box>
           </Box>
+
+          <Sep />
+
+          {/* Status section — flat square tiles: office health · KPIs · filing (3 per row) */}
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+            {railTiles.map((c, i) => (
+              <Box
+                key={i}
+                sx={{
+                  aspectRatio: "1 / 1", minWidth: 0, p: 1,
+                  display: "flex", flexDirection: "column", justifyContent: "center",
+                  borderTop: i >= 3 ? 1 : 0, borderLeft: i % 3 !== 0 ? 1 : 0, borderColor: "divider",
+                }}
+              >
+                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", minWidth: 0 }}>
+                  {c.glyph && <OfficeHealthGlyph state={c.glyph} size={13} />}
+                  <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05, textTransform: c.glyph ? "capitalize" : "none" }} noWrap>{c.value}</Typography>
+                </Stack>
+                {c.sub != null && <Typography variant="caption" sx={{ color: c.subColor ?? "text.secondary", fontSize: "0.65rem" }} noWrap>{c.sub}</Typography>}
+              </Box>
+            ))}
+          </Box>
+
+          {/* Module toggles — bottom of the rail */}
+          {moduleToggles && <Box sx={{ mt: "auto", pt: 1 }}>{moduleToggles}</Box>}
         </Box>
 
         {/* ── RIGHT 80% — FLAT content ─────────────────────────────────────────── */}
@@ -582,7 +613,6 @@ export function StudioAbstract() {
           {/* Horizontal section tabs (greeting, attention, telemetry + zone health are in the rail) */}
           <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab value="priorities" label="Priorities" />
-            <Tab value="apps" label="Apps" />
             <Tab value="projects" label="Projects" />
             <Tab value="work" label="Work" />
             {hrEnabled && <Tab value="team" label="Team" />}
@@ -590,21 +620,6 @@ export function StudioAbstract() {
 
           {tab === "priorities" && (
             <>
-              <SectionCard title="Today">
-                <Stack direction="row" spacing={4}>
-                  {[
-                    { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
-                    { label: "Meetings", value: glanceQ.data?.meetingsToday },
-                    { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
-                  ].map((s) => (
-                    <Box key={s.label}>
-                      <Typography variant="caption" color="text.secondary">{s.label}</Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 300 }}>{s.value ?? "—"}</Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              </SectionCard>
-              <Sep />
               <SectionCard title="Action items">
                 {actionRows.length === 0
                   ? emptyText("No action items — the office is operating normally.")
@@ -630,74 +645,62 @@ export function StudioAbstract() {
             </>
           )}
 
-          {tab === "apps" && (
-            <Box>
-              {LAUNCHER_APPS.map((app, i) => {
-                const Icon = app.icon;
-                const n = home ? app.count(home, glanceQ.data) : null;
-                return (
-                  <Box
-                    key={app.label}
-                    onClick={() => navigate(app.route)}
-                    sx={{
-                      display: "flex", alignItems: "center", gap: 2, py: 1.5, cursor: "pointer",
-                      borderTop: i === 0 ? 0 : 1, borderColor: "divider",
-                      "&:hover .esti-launch-lbl": { color: "primary.main" },
-                    }}
-                  >
-                    <Icon sx={{ fontSize: 22, color: "text.secondary" }} />
-                    <Typography variant="body1" className="esti-launch-lbl" sx={{ flex: 1 }}>{app.label}</Typography>
-                    {n != null && app.subtitle && (
-                      <Typography variant="body2" color="text.secondary">{app.subtitle(n)}</Typography>
-                    )}
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-
           {tab === "projects" && (
-            <SectionCard
-              title={`Project health — ${riskProjects.length} critical · ${watchProjects.length} watch`}
-              action={<ZoneChip state={ps} label={projectSignal(ps)} />}
+            <TabSplit
+              title="Project health"
+              action={
+                <Stack spacing={1}>
+                  <ZoneChip state={ps} label={projectSignal(ps)} />
+                  <Typography variant="caption" color="text.secondary">
+                    {riskProjects.length} critical · {watchProjects.length} watch
+                  </Typography>
+                </Stack>
+              }
             >
               {atRiskProjects.length === 0
                 ? emptyText("All projects are on track.")
                 : <DataGrid rows={phRows} columns={phCols} onRowClick={(p) => navigate(projectIssueHref(p.row))} {...gridProps} />}
-            </SectionCard>
+            </TabSplit>
           )}
 
           {tab === "work" && (
             <>
-              <SectionCard
+              <TabSplit
                 title="Work queue"
                 action={<Chip size="small" label={`${tasks.length} open · ${tasksOverdue} overdue`} sx={chipSx(tasksOverdue > 0 ? "warm-gray" : "green")} />}
               >
                 {tasks.length === 0 ? emptyText("No active tasks.") : (
                   <DataGrid rows={wqRows} columns={wqCols} onRowClick={(p) => navigate(taskHref(p.row.id))} {...gridProps} />
                 )}
-              </SectionCard>
+              </TabSplit>
               <Sep />
-              <SectionCard
+              <TabSplit
                 title="Approvals"
                 action={<Chip size="small" label={`${pendingCount} pending`} sx={chipSx(pendingCount > 0 ? tagKind(cs) : "green")} />}
               >
                 {pending.length === 0 ? emptyText("No approvals pending.") : (
                   <DataGrid rows={apRows} columns={apCols} onRowClick={(p) => navigate(`/projects/${p.row.projectId}?tab=approvals&approvalId=${p.row.id}`)} {...gridProps} />
                 )}
-              </SectionCard>
+              </TabSplit>
             </>
           )}
 
           {tab === "team" && (
-            <SectionCard
-              title={`Team capacity — ${att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}`}
-              action={<ZoneChip state={ts} label={teamSignal(ts)} />}
+            <TabSplit
+              title="Team capacity"
+              action={
+                <Stack spacing={1}>
+                  <ZoneChip state={ts} label={teamSignal(ts)} />
+                  <Typography variant="caption" color="text.secondary">
+                    {att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}
+                  </Typography>
+                </Stack>
+              }
             >
               {ti.length === 0
                 ? emptyText("No team data yet.")
                 : <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />}
-            </SectionCard>
+            </TabSplit>
           )}
         </Box>
       </Box>
