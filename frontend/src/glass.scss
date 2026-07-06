@@ -21,6 +21,13 @@
   --esti-brand-yellow: #ffc801; // Forsythia — brand mark fill
 }
 
+// Studio Intelligence left rail (30/70 split) — its own scroll, hidden bar so it
+// reads as a fixed pane while the right 70% scrolls.
+.esti-dash-rail {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { width: 0; height: 0; display: none; }
+}
+
 // Ambient light editorial backdrop — a barely-there mint/white wash over the
 // Arctic Powder canvas, painted across the whole content scroll area.
 .esti-app-content2 {

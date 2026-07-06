@@ -17,9 +17,12 @@ import {
   LinearProgress,
   Stack,
   Switch,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { useState } from "react";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import Business from "@mui/icons-material/Business";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
@@ -35,7 +38,6 @@ import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
-import { PageHeader } from "../components/PageHeader.js";
 import { confidenceTag } from "../components/work/workHelpers.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -290,6 +292,10 @@ export function StudioAbstract() {
 
   const canInvoice = can(user?.role, "invoice:manage");
 
+  // Main-screen 30/70 split: left rail carries heading + telemetry + these tabs;
+  // the right 70% renders the selected tab's items.
+  const [tab, setTab] = useState<"priorities" | "apps" | "projects" | "work" | "team">("priorities");
+
   // Module toggles (moved off the dock) — admin-only, shown in the page header.
   const isAdmin = can(user?.role, "firm:admin");
   const setModule = trpc.settings.setModuleEnabled.useMutation({
@@ -449,198 +455,225 @@ export function StudioAbstract() {
 
   return (
     <Box className="esti-glass-dash">
-      <Stack spacing={3} sx={{ width: 1 }}>
-        <PageHeader
-          title="Studio Intelligence"
-          description="Practice health · action items · project, finance and team signals"
-          actions={moduleToggles}
-        />
+      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", width: 1 }}>
+        {/* ── LEFT 30% — fixed rail: heading · subtitle · telemetry · tabs ──────── */}
+        <Box
+          className="esti-dash-rail"
+          sx={{
+            flex: "0 0 30%", maxWidth: "30%", minWidth: 0,
+            position: "sticky", top: 0, alignSelf: "flex-start",
+            maxHeight: "calc(100vh - 132px)", overflowY: "auto",
+            display: "flex", flexDirection: "column", gap: 2, pr: 0.5,
+          }}
+        >
+          <Box sx={{ borderLeft: 3, borderLeftColor: "primary.main", pl: 1.5 }}>
+            <Typography variant="h4" component="h1">Studio Intelligence</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Practice health · action items · project, finance and team signals
+            </Typography>
+          </Box>
+          {moduleToggles}
 
-        {/* Attention banner */}
-        <Card sx={{ borderLeft: 4, borderLeftColor: attn.chainColor }}>
-          <CardContent>
-            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <OfficeHealthGlyph state={officeState} size={22} />
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body1">{attn.issue}</Typography>
-                <Typography variant="body2" color="text.secondary">{attn.action}</Typography>
-              </Box>
-              <ZoneChip state={officeState} />
-            </Stack>
-          </CardContent>
-        </Card>
+          {/* Office attention (telemetry) */}
+          <Card sx={{ borderLeft: 4, borderLeftColor: attn.chainColor }}>
+            <CardContent>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                <OfficeHealthGlyph state={officeState} size={20} />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2">{attn.issue}</Typography>
+                  <Typography variant="caption" color="text.secondary">{attn.action}</Typography>
+                </Box>
+                <ZoneChip state={officeState} />
+              </Stack>
+            </CardContent>
+          </Card>
 
-        {/* KPI cards */}
-        <Grid container spacing={2}>
-          {heroKpis.map((k) => (
-            <Grid key={k.label} size={{ xs: 6, md: 3 }}>
-              <Card sx={{ height: 1, borderTop: 2, borderTopColor: "primary.main" }}>
-                <CardContent>
-                  <Typography variant="overline" color="text.secondary">{k.label}</Typography>
-                  <Typography variant="h3" sx={{ my: 0.5, fontWeight: 300, fontSize: { xs: "1.75rem", md: "2.25rem" }, lineHeight: 1.1 }}>{k.value}</Typography>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>{k.sub}</Typography>
-                    {k.danger && <Chip size="small" label={k.danger} sx={chipSx("red")} />}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+          {/* Section tabs — drive the right 70% */}
+          <Tabs
+            orientation="vertical"
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            sx={{ borderLeft: 1, borderColor: "divider", "& .MuiTab-root": { alignItems: "flex-start", minHeight: 42 } }}
+          >
+            <Tab value="priorities" label="Priorities" />
+            <Tab value="apps" label="Apps" />
+            <Tab value="projects" label="Projects" />
+            <Tab value="work" label="Work" />
+            {hrEnabled && <Tab value="team" label="Team" />}
+          </Tabs>
 
-        {/* Module launcher */}
-        <Grid container spacing={2}>
-          {LAUNCHER_APPS.map((app) => {
-            const Icon = app.icon;
-            const n = home ? app.count(home, glanceQ.data) : null;
-            return (
-              <Grid key={app.label} size={{ xs: 6, sm: 3, lg: 1.5 }}>
-                <Card sx={{ height: 1, transition: "border-color 120ms ease", "&:hover": { borderColor: "primary.main" } }}>
-                  <CardActionArea onClick={() => navigate(app.route)} sx={{ height: 1, p: 2 }}>
-                    <Stack spacing={1}>
-                      <Icon sx={{ fontSize: 24, color: "text.secondary" }} />
-                      <Box>
-                        <Typography variant="body2">{app.label}</Typography>
-                        {n != null && app.subtitle && (
-                          <Typography variant="caption" color="text.secondary">{app.subtitle(n)}</Typography>
-                        )}
-                      </Box>
+          {/* KPI telemetry — 2-up, compact for the narrow rail */}
+          <Grid container spacing={1}>
+            {heroKpis.map((k) => (
+              <Grid key={k.label} size={6}>
+                <Card sx={{ height: 1, borderTop: 2, borderTopColor: "primary.main" }}>
+                  <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
+                    <Typography variant="overline" color="text.secondary">{k.label}</Typography>
+                    <Typography sx={{ fontWeight: 300, fontSize: "1.5rem", lineHeight: 1.1, my: 0.25 }}>{k.value}</Typography>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ flex: 1, minWidth: 0 }}>{k.sub}</Typography>
+                      {k.danger && <Chip size="small" label={k.danger} sx={chipSx("red")} />}
                     </Stack>
-                  </CardActionArea>
+                  </CardContent>
                 </Card>
               </Grid>
-            );
-          })}
-        </Grid>
+            ))}
+          </Grid>
 
-        {/* Signal panels */}
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <SectionCard title="Zone health">
-              <Stack spacing={1.5}>
-                {zones.map((z) => (
-                  <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <OfficeHealthGlyph state={z.state} size={12} />
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2">{z.label}</Typography>
-                      <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
-                    </Box>
-                    <ZoneChip state={z.state} />
-                  </Stack>
-                ))}
-              </Stack>
-            </SectionCard>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <SectionCard title="Today">
-              <Stack direction="row" spacing={2}>
-                {[
-                  { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
-                  { label: "Meetings", value: glanceQ.data?.meetingsToday },
-                  { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
-                ].map((s) => (
-                  <Box key={s.label} sx={{ flex: 1 }}>
-                    <Typography variant="caption" color="text.secondary">{s.label}</Typography>
-                    <Typography variant="h5">{s.value ?? "—"}</Typography>
+          <SectionCard title="Zone health">
+            <Stack spacing={1.5}>
+              {zones.map((z) => (
+                <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <OfficeHealthGlyph state={z.state} size={12} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2">{z.label}</Typography>
+                    <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
                   </Box>
-                ))}
-              </Stack>
-            </SectionCard>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <SectionCard title="GST filing" action={<ZoneChip state={gst.state} label={gst.label} />}>
-              <Typography variant="body2">
-                {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
-              </Typography>
-            </SectionCard>
-          </Grid>
+                  <ZoneChip state={z.state} />
+                </Stack>
+              ))}
+            </Stack>
+          </SectionCard>
+
+          <SectionCard title="Today">
+            <Stack direction="row" spacing={2}>
+              {[
+                { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
+                { label: "Meetings", value: glanceQ.data?.meetingsToday },
+                { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
+              ].map((s) => (
+                <Box key={s.label} sx={{ flex: 1 }}>
+                  <Typography variant="caption" color="text.secondary">{s.label}</Typography>
+                  <Typography variant="h5">{s.value ?? "—"}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          </SectionCard>
+
+          <SectionCard title="GST filing" action={<ZoneChip state={gst.state} label={gst.label} />}>
+            <Typography variant="body2">
+              {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
+            </Typography>
+          </SectionCard>
+
           {ri && (
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <SectionCard
-                title="Revisions"
-                action={ri.totalDecisions && Math.round((ri.clientDriven / ri.totalDecisions) * 100) > 60
-                  ? <Chip size="small" label={`${Math.round((ri.clientDriven / ri.totalDecisions) * 100)}% client-driven`} sx={chipSx("magenta")} />
-                  : undefined}
-              >
-                <Typography variant="body2">{ri.totalDecisions ?? 0} logged this cycle</Typography>
-              </SectionCard>
+            <SectionCard
+              title="Revisions"
+              action={ri.totalDecisions && Math.round((ri.clientDriven / ri.totalDecisions) * 100) > 60
+                ? <Chip size="small" label={`${Math.round((ri.clientDriven / ri.totalDecisions) * 100)}% client-driven`} sx={chipSx("magenta")} />
+                : undefined}
+            >
+              <Typography variant="body2">{ri.totalDecisions ?? 0} logged this cycle</Typography>
+            </SectionCard>
+          )}
+        </Box>
+
+        {/* ── RIGHT 70% — the selected tab's items ─────────────────────────────── */}
+        <Box sx={{ flex: "1 1 70%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+          {tab === "priorities" && (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, xl: 6 }}>
+                <SectionCard title="Action items">
+                  {actionRows.length === 0
+                    ? emptyText("No action items — the office is operating normally.")
+                    : <DataGrid rows={actionRows} columns={actionCols} onRowClick={(p) => p.row.href && navigate(p.row.href)} {...gridProps} />}
+                </SectionCard>
+              </Grid>
+              <Grid size={{ xs: 12, xl: 6 }}>
+                <SectionCard title="Top risks">
+                  {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
+                    <Stack spacing={1.5}>
+                      {topRisks.map((r) => (
+                        <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
+                          <OfficeHealthGlyph state={r.state} size={12} />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2">{r.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
+                          </Box>
+                          <ZoneChip state={r.state} />
+                        </Stack>
+                      ))}
+                    </Stack>
+                  )}
+                </SectionCard>
+              </Grid>
             </Grid>
           )}
-        </Grid>
 
-        {/* Action items + top risks */}
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, lg: 6 }}>
-            <SectionCard title="Action items">
-              {actionRows.length === 0
-                ? emptyText("No action items — the office is operating normally.")
-                : <DataGrid rows={actionRows} columns={actionCols} onRowClick={(p) => p.row.href && navigate(p.row.href)} {...gridProps} />}
-            </SectionCard>
-          </Grid>
-          <Grid size={{ xs: 12, lg: 6 }}>
-            <SectionCard title="Top risks">
-              {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
-                <Stack spacing={1.5}>
-                  {topRisks.map((r) => (
-                    <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
-                      <OfficeHealthGlyph state={r.state} size={12} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2">{r.label}</Typography>
-                        <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
-                      </Box>
-                      <ZoneChip state={r.state} />
-                    </Stack>
-                  ))}
-                </Stack>
-              )}
-            </SectionCard>
-          </Grid>
-        </Grid>
+          {tab === "apps" && (
+            <Grid container spacing={2}>
+              {LAUNCHER_APPS.map((app) => {
+                const Icon = app.icon;
+                const n = home ? app.count(home, glanceQ.data) : null;
+                return (
+                  <Grid key={app.label} size={{ xs: 6, sm: 4, lg: 3 }}>
+                    <Card sx={{ height: 1, transition: "border-color 120ms ease", "&:hover": { borderColor: "primary.main" } }}>
+                      <CardActionArea onClick={() => navigate(app.route)} sx={{ height: 1, p: 2 }}>
+                        <Stack spacing={1}>
+                          <Icon sx={{ fontSize: 24, color: "text.secondary" }} />
+                          <Box>
+                            <Typography variant="body2">{app.label}</Typography>
+                            {n != null && app.subtitle && (
+                              <Typography variant="caption" color="text.secondary">{app.subtitle(n)}</Typography>
+                            )}
+                          </Box>
+                        </Stack>
+                      </CardActionArea>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
 
-        {/* Project health */}
-        {atRiskProjects.length > 0 && (
-          <SectionCard
-            title={`Project health — ${riskProjects.length} critical · ${watchProjects.length} watch`}
-            action={<ZoneChip state={ps} label={projectSignal(ps)} />}
-          >
-            <DataGrid rows={phRows} columns={phCols} onRowClick={(p) => navigate(projectIssueHref(p.row))} {...gridProps} />
-          </SectionCard>
-        )}
-
-        {/* Work queue + approvals */}
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, lg: 7 }}>
+          {tab === "projects" && (
             <SectionCard
-              title="Work queue"
-              action={<Chip size="small" label={`${tasks.length} open · ${tasksOverdue} overdue`} sx={chipSx(tasksOverdue > 0 ? "warm-gray" : "green")} />}
+              title={`Project health — ${riskProjects.length} critical · ${watchProjects.length} watch`}
+              action={<ZoneChip state={ps} label={projectSignal(ps)} />}
             >
-              {tasks.length === 0 ? emptyText("No active tasks.") : (
-                <DataGrid rows={wqRows} columns={wqCols} onRowClick={(p) => navigate(taskHref(p.row.id))} {...gridProps} />
-              )}
+              {atRiskProjects.length === 0
+                ? emptyText("All projects are on track.")
+                : <DataGrid rows={phRows} columns={phCols} onRowClick={(p) => navigate(projectIssueHref(p.row))} {...gridProps} />}
             </SectionCard>
-          </Grid>
-          <Grid size={{ xs: 12, lg: 5 }}>
-            <SectionCard
-              title="Approvals"
-              action={<Chip size="small" label={`${pendingCount} pending`} sx={chipSx(pendingCount > 0 ? tagKind(cs) : "green")} />}
-            >
-              {pending.length === 0 ? emptyText("No approvals pending.") : (
-                <DataGrid rows={apRows} columns={apCols} onRowClick={(p) => navigate(`/projects/${p.row.projectId}?tab=approvals&approvalId=${p.row.id}`)} {...gridProps} />
-              )}
-            </SectionCard>
-          </Grid>
-        </Grid>
+          )}
 
-        {/* Team capacity */}
-        {hrEnabled && ti.length > 0 && (
-          <SectionCard
-            title={`Team capacity — ${att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}`}
-            action={<ZoneChip state={ts} label={teamSignal(ts)} />}
-          >
-            <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />
-          </SectionCard>
-        )}
-      </Stack>
+          {tab === "work" && (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, xl: 7 }}>
+                <SectionCard
+                  title="Work queue"
+                  action={<Chip size="small" label={`${tasks.length} open · ${tasksOverdue} overdue`} sx={chipSx(tasksOverdue > 0 ? "warm-gray" : "green")} />}
+                >
+                  {tasks.length === 0 ? emptyText("No active tasks.") : (
+                    <DataGrid rows={wqRows} columns={wqCols} onRowClick={(p) => navigate(taskHref(p.row.id))} {...gridProps} />
+                  )}
+                </SectionCard>
+              </Grid>
+              <Grid size={{ xs: 12, xl: 5 }}>
+                <SectionCard
+                  title="Approvals"
+                  action={<Chip size="small" label={`${pendingCount} pending`} sx={chipSx(pendingCount > 0 ? tagKind(cs) : "green")} />}
+                >
+                  {pending.length === 0 ? emptyText("No approvals pending.") : (
+                    <DataGrid rows={apRows} columns={apCols} onRowClick={(p) => navigate(`/projects/${p.row.projectId}?tab=approvals&approvalId=${p.row.id}`)} {...gridProps} />
+                  )}
+                </SectionCard>
+              </Grid>
+            </Grid>
+          )}
+
+          {tab === "team" && (
+            <SectionCard
+              title={`Team capacity — ${att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}`}
+              action={<ZoneChip state={ts} label={teamSignal(ts)} />}
+            >
+              {ti.length === 0
+                ? emptyText("No team data yet.")
+                : <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />}
+            </SectionCard>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 }
