@@ -2006,6 +2006,13 @@
   // Full-bleed bands use 100vw tricks; clip so the rail offset never yields a
   // horizontal body scroll.
   overflow-x: hidden;
+
+  // Content width must be STAGE-relative (not viewport-relative). The wrapped
+  // sections use var(--lp-max) = min(80vw, 100rem); the other sections use
+  // width: 80%. With the rail offsetting the stage, 80vw (viewport) no longer
+  // equals 80% (stage), so headings in wraps stopped sharing a left edge with the
+  // 80%-width sections. Rebasing --lp-max onto the stage realigns them.
+  --lp-max: min(80%, 100rem);
 }
 // In the rail layout the stage no longer clears a fixed top header.
 .esti-lp-railshell .esti-landing-content {
