@@ -20,12 +20,14 @@ podman (`compose.yaml`).
 > **The landing page (`Landing.tsx`, `components/landing/**`, `landing.scss`) stays
 > on Carbon editorial and is out of scope.** Three hard rules for the new UI:
 >
-> 1. **Colours are unchanged** — the MUI theme uses Carbon **g100** token values
->    verbatim (`src/theme/muiTheme.ts`). The dark "liquid glass" surface *is* g100.
+> 1. **Hyper-minimalist LIGHT palette (MP025)** — the MUI theme (`src/theme/muiTheme.ts`)
+>    uses the MP025 scheme: Arctic Powder `#F1F6F4` canvas, near-white cards, deep-teal
+>    ink/primary (Oceanic Noir `#172B36` / Nocturnal `#114C5A`), Forsythia `#FFC801` +
+>    Deep Saffron `#FF9932` accents. The app-shell Carbon layer runs `<Theme theme="white">`.
 > 2. **Square corners everywhere** — `borderRadius: 0`. The guard rejects any
 >    non-zero `border-radius` / `borderRadius` outside the exempt landing/theme.
-> 3. **Liquid glass** — translucent Paper/Card/Drawer/AppBar with backdrop blur
->    (baked into the theme; matches `landing.scss` / `glass.scss`).
+> 3. **Liquid glass (light)** — translucent **white** Paper/Card/Drawer/AppBar with
+>    backdrop blur (baked into the theme; matches `glass.scss`).
 >
 > **Brand font: Open Sans** (OFL, free) across the *entire* product (landing
 > included) — self-hosted via `@fontsource/open-sans` (imported in `main.tsx`),

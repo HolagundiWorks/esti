@@ -1,27 +1,26 @@
-// ── Studio Intelligence — liquid-glass reskin ────────────────────────────────
+// ── Studio Intelligence — liquid-glass reskin (LIGHT / MP025) ────────────────
 //
 // DOCUMENTED EXCEPTION (see docs/esti/CARBON-UI-DIRECTION.md). At the user's
-// request the Studio Intelligence home (routes/StudioAbstract.tsx, route `/`) is
-// reskinned with the landing page's dark "liquid glass" editorial surface. The
-// structure stays Pure-Carbon — Grid / Column / Tile / Table / Tag / ProgressBar
-// unchanged; only the surface treatment (dark ambient backdrop + frosted-glass
-// tiles) is layered on top, exactly as landing.scss does for marketing surfaces.
+// request the app rides a hyper-minimalist LIGHT surface (the MP025 palette):
+// a soft off-white canvas with near-white frosted-glass panels floating on top.
+// The structure stays component-driven — only the surface treatment (light
+// ambient backdrop + frosted-white panels) is layered on, mirroring how
+// landing.scss dresses the marketing surfaces.
 //
-// Everything here is scoped under `.esti-glass-dash`, which is applied only to
-// the dashboard's <Theme theme="g100"> wrapper, so no other app screen is
-// touched. This file is exempt from the Carbon visual guard
-// (carbon-policy-rules.mjs → EXCLUDED_FILES) — the same treatment landing.scss
-// gets — because the frosted-glass look inherently needs rgba/blur/shadow that
-// the guard forbids in the Pure-Carbon staff workspace.
+// This file is exempt from the Carbon visual guard (carbon-policy-rules.mjs →
+// EXCLUDED_FILES) because the frosted-glass look inherently needs rgba/blur/
+// shadow the guard forbids in the staff workspace.
+//
+// MP025 tokens referenced here:
+//   Arctic Powder #F1F6F4 · Mystic Mint #D9E8E2 · Oceanic Noir #172B36
+//   Nocturnal #114C5A · Forsythia #FFC801 · Deep Saffron #FF9932
 
-// Ambient dark editorial backdrop — painted across the whole content scroll area
-// whenever the dashboard is mounted (same gradient family as .esti-landing-shell).
-// Flat black & white language — every screen rides a neutral grey gradient over
-// flat black (no hue tint); glass panels float on top.
+// Ambient light editorial backdrop — a barely-there mint/white wash over the
+// Arctic Powder canvas, painted across the whole content scroll area.
 .esti-app-content2 {
   background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.05), transparent 68%),
-    linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 55%, #000000 100%);
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.9), transparent 70%),
+    linear-gradient(180deg, #f6faf8 0%, #f1f6f4 55%, #e9f0ed 100%);
 }
 
 .esti-glass-dash {
@@ -30,51 +29,29 @@
   isolation: isolate;
   background: transparent;
 
-  // Contour texture over the gradient — fixed so it reads as depth while
-  // scrolling, and masked out toward the fold (mirrors the landing shell).
-  &::before {
-    content: "";
-    position: fixed;
-    inset: 3rem 0 auto;
-    height: 78vh;
-    min-height: 440px;
-    pointer-events: none;
-    z-index: 0;
-    background: url("/landing-contour-bg.svg") center top / 120% auto no-repeat;
-    opacity: 0.4;
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
-    mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
-  }
-
-  // Real content rides above the texture.
+  // Real content rides above any texture.
   > * {
     position: relative;
     z-index: 1;
   }
 
-  // ── Frosted glass tiles ────────────────────────────────────────────────────
-  // Override Carbon's solid layer with the translucent panel used across landing.
+  // ── Frosted-white tiles (light) ───────────────────────────────────────────
   .cds--tile {
-    background: rgba(255, 255, 255, 0.045);
-    backdrop-filter: blur(14px) saturate(1.12);
-    -webkit-backdrop-filter: blur(14px) saturate(1.12);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.05) inset,
-      0 8px 24px rgba(0, 0, 0, 0.28);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px) saturate(1.06);
+    -webkit-backdrop-filter: blur(12px) saturate(1.06);
+    border: 1px solid rgba(23, 43, 54, 0.08);
+    box-shadow: 0 1px 2px rgba(23, 43, 54, 0.05);
     transition: background 100ms ease, border-color 100ms ease;
   }
 
-  // Clickable tiles brighten on hover / keyboard focus (mirrors .esti-blog-card).
   .cds--tile--clickable:hover,
   .cds--tile--clickable:focus {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(17, 76, 90, 0.22);
   }
 
-  // ── Tables read on the frosted layer ───────────────────────────────────────
-  // Keep table surfaces clear so the tile's glass shows through; only the hover
-  // affordance tints. Borders/text come from g100 Carbon tokens.
+  // Tables read clean on the frosted layer; only hover tints (teal wash).
   .cds--data-table,
   .cds--data-table thead tr,
   .cds--data-table tbody tr {
@@ -83,7 +60,7 @@
 
   .cds--data-table tbody tr:hover td,
   .cds--data-table tbody tr:hover th {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(17, 76, 90, 0.05);
   }
 
   .esti-row-clickable {
@@ -92,9 +69,10 @@
 }
 
 // ── Floating dock ────────────────────────────────────────────────────────────
-// Bottom-centred floating glass bar (FloatingDock.tsx). The Paper carries the
-// glass fill/blur/border + square corners from the MUI theme; this only handles
-// float positioning. Top border colour (alert status) is set inline from tokens.
+// Bottom-centred floating frosted-white bar (FloatingDock.tsx). The Paper carries
+// the glass fill/blur/border + square corners from the MUI theme; this only
+// handles float positioning + a slightly stronger frost so it reads as glass.
+// Top border colour (alert status) is set inline from tokens.
 .esti-floating-dock {
   position: fixed;
   bottom: 52px; // clear gap above the footer bar
@@ -103,11 +81,10 @@
   z-index: 1200;
   width: max-content;
   max-width: calc(100vw - 32px);
-  // Liquid glass — stronger than the base Paper so the floating dock reads as glass.
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: 0 6px 24px rgba(23, 43, 54, 0.12);
 }
 
 // ── App shell v2 — ribbon (top) · content · footer (bottom) · floating dock ────
@@ -116,14 +93,14 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: #000; // flat black canvas (grey gradient painted by the content area)
+  background: #f1f6f4; // Arctic Powder canvas
 }
 .esti-ribbon {
   flex: 0 0 auto;
-  background-color: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(14px) saturate(1.12);
-  -webkit-backdrop-filter: blur(14px) saturate(1.12);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  border-bottom: 1px solid rgba(23, 43, 54, 0.08);
 }
 // Row 1: firm-name h1 (40%) + section tabs.
 .esti-ribbon__nav {
@@ -168,7 +145,7 @@
   min-height: 64px;
   padding: 4px 8px;
   overflow-x: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(23, 43, 54, 0.06);
 }
 .esti-app-content2 {
   flex: 1 1 auto;
@@ -182,8 +159,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background-color: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(14px) saturate(1.12);
-  -webkit-backdrop-filter: blur(14px) saturate(1.12);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  border-top: 1px solid rgba(23, 43, 54, 0.08);
 }

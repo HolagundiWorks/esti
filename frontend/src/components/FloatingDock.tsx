@@ -89,7 +89,7 @@ export function FloatingDock() {
               onClick={() => navigate("/office/ai-studio")}
               aria-label="Ask ESTI AI"
             >
-              <img src="/esti-mark-white.png" alt="ESTI" style={{ height: 20 }} />
+              <img src="/esti-mark-black.png" alt="ESTI" style={{ height: 20 }} />
             </IconButton>
           </Tooltip>
         </Stack>

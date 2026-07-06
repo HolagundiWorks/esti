@@ -435,11 +435,11 @@ function AppShell() {
   ]);
 
   return (
-    <ThemeContext.Provider value="g100">
-      <Theme theme="g100">
+    <ThemeContext.Provider value="white">
+      <Theme theme="white">
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
-          {/* Floating AORMS logo — top-right corner, no header bar. */}
-          <img src="/aorms-logo-white.png" alt="AORMS" className="esti-app-logo-float" />
+          {/* Floating AORMS logo — bottom-right corner, dimmed (dark mark on light canvas). */}
+          <img src="/aorms-logo.png" alt="AORMS" className="esti-app-logo-float" />
           {/* Top ribbon nav (Excel-style) — replaces the left side-nav + header.
               Firm name as an h1 (40%) then the section tabs. */}
           <AppRibbon nav={nav} firmName={firmName} />

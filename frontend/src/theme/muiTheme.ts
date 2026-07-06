@@ -6,15 +6,15 @@
  * Three hard rules from the migration brief, encoded here so screens inherit them
  * for free and never re-specify them inline:
  *
- *  1. COLOURS ARE UNCHANGED. Every value below is a Carbon **g100** design-token
- *     value, lifted verbatim from `@carbon/themes` (see the block comment on each
- *     line). The dark "liquid glass" surface *is* the g100 theme — the office
- *     workspace already renders g100, so nothing shifts hue.
+ *  1. HYPER-MINIMALIST LIGHT PALETTE. The product now rides the **MP025** scheme
+ *     (Alex Cristache): a soft off-white canvas, near-white frosted cards, deep
+ *     teal ink + primary, with Forsythia yellow / Deep Saffron orange as the only
+ *     warm accents. Airy whitespace, hairline separators, near-flat shadows.
  *  2. SQUARE CORNERS EVERYWHERE. `shape.borderRadius = 0` plus explicit
  *     `borderRadius: 0` on every surface/control component. No rounded corners.
- *  3. LIQUID GLASS. Paper/Card/Drawer/AppBar/Menu surfaces are translucent with a
- *     backdrop blur, matching landing.scss / glass.scss — frosted panels over the
- *     dark ambient backdrop the app shell paints.
+ *  3. LIQUID GLASS (light). Paper/Card/Drawer/AppBar/Menu surfaces are translucent
+ *     white with a subtle backdrop blur — frosted panels over the light ambient
+ *     backdrop the app shell paints (glass.scss).
  *
  * This file (and everything under src/theme/) is the ONE place raw colour values
  * live — it is exempt from the visual guard exactly like landing.scss.
@@ -23,43 +23,47 @@ import { createTheme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
-// ── Design language: FLAT BLACK & WHITE + grey gradient + liquid glass, with a
-// single IBM-blue accent. Neutral values are pure monochrome (no hue tint);
-// the accent is IBM blue-60 (#0f62fe, Carbon's core interactive blue). Status
-// colours stay Carbon support tokens (they signal state, not brand).
+// ── Design language: MP025 — hyper-minimalist LIGHT. A cool off-white canvas
+// with near-white cards; deep teal is the ink and the primary; Forsythia yellow
+// and Deep Saffron orange are the only warm accents. Status colours stay in the
+// same family so state reads clearly on the light surface.
 const CDS = {
-  background:     "#000000", // flat black canvas (grey-gradient backdrop in glass.scss)
-  layer01:        "#1a1a1a", // neutral grey layer
-  layer02:        "#2a2a2a",
-  borderSubtle:   "#525252", // $border-subtle-01 (neutral grey)
-  borderStrong:   "#6f6f6f", // $border-strong-01
-  textPrimary:    "#ffffff", // flat white
-  textSecondary:  "#c6c6c6", // $text-secondary (grey)
-  textHelper:     "#a8a8a8", // $text-helper
-  textOnColor:    "#ffffff", // $text-on-color
-  interactive:    "#0f62fe", // IBM blue-60 — THE accent colour
-  linkPrimary:    "#78a9ff", // IBM blue-40 — readable link blue on black
-  supportSuccess: "#42be65", // $support-success
-  supportWarning: "#f1c21b", // $support-warning
-  supportError:   "#fa4d56", // $support-error
-  supportInfo:    "#4589ff", // $support-info (blue-50)
+  background:     "#F1F6F4", // Arctic Powder — soft off-white canvas
+  layer01:        "#FFFFFF", // near-white card surface
+  layer02:        "#D9E8E2", // Mystic Mint — secondary/quiet surface
+  borderSubtle:   "rgba(23, 43, 54, 0.10)", // hairline separator (Oceanic Noir @ 10%)
+  borderStrong:   "rgba(23, 43, 54, 0.20)",
+  textPrimary:    "#172B36", // Oceanic Noir — ink
+  textSecondary:  "#516069", // muted teal-grey
+  textHelper:     "#8a969c", // quiet label grey
+  textOnColor:    "#FFFFFF", // on deep-teal / dark fills
+  interactive:    "#114C5A", // Nocturnal Expedition — deep teal primary
+  linkPrimary:    "#114C5A", // links share the teal primary
+  accentYellow:   "#FFC801", // Forsythia
+  accentOrange:   "#FF9932", // Deep Saffron
+  supportSuccess: "#1B7F5A", // deep teal-green (reads on light)
+  supportWarning: "#FF9932", // Deep Saffron
+  supportError:   "#C8442E", // burnt red (warm family)
+  supportInfo:    "#114C5A", // Nocturnal teal
 } as const;
 
-// ── Liquid-glass surface constants (shared with glass.scss) ──────────────────
-const GLASS_FILL   = "rgba(255, 255, 255, 0.045)";
-const GLASS_BORDER = "1px solid rgba(255, 255, 255, 0.10)";
-const GLASS_BLUR   = "blur(14px) saturate(1.12)";
-const GLASS_SHADOW = "0 8px 24px rgba(0, 0, 0, 0.28)";
+// ── Liquid-glass surface constants (light — shared with glass.scss) ──────────
+// Translucent white with a soft blur; near-flat shadow so cards read as clean
+// hyper-minimal panels rather than heavy floating glass.
+const GLASS_FILL   = "rgba(255, 255, 255, 0.72)";
+const GLASS_BORDER = "1px solid rgba(23, 43, 54, 0.08)";
+const GLASS_BLUR   = "blur(12px) saturate(1.06)";
+const GLASS_SHADOW = "0 1px 2px rgba(23, 43, 54, 0.05)";
 // Pop-over surfaces (menus, dialogs, app bar) sit over content, so they use a
-// darker frosted fill for legibility rather than the near-clear tile fill.
-const POP_FILL     = "rgba(10, 10, 10, 0.92)";
+// near-opaque white fill for crisp legibility.
+const POP_FILL     = "rgba(255, 255, 255, 0.96)";
 
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
   palette: {
-    mode: "dark",
+    mode: "light",
     primary:   { main: CDS.interactive, contrastText: CDS.textOnColor },
-    secondary: { main: CDS.linkPrimary, contrastText: CDS.textOnColor },
+    secondary: { main: CDS.accentYellow, contrastText: CDS.textPrimary },
     error:     { main: CDS.supportError },
     warning:   { main: CDS.supportWarning },
     success:   { main: CDS.supportSuccess },
@@ -68,19 +72,26 @@ export const muiTheme = createTheme({
     text: {
       primary:   CDS.textPrimary,
       secondary: CDS.textSecondary,
-      disabled:  CDS.borderStrong,
+      disabled:  CDS.textHelper,
     },
-    divider: "rgba(255, 255, 255, 0.12)",
+    divider: CDS.borderSubtle,
   },
   typography: {
     // Brand font — Open Sans (OFL, self-hosted via @fontsource) across the whole
     // product; mirrors --esti-font-sans and the Carbon runtime override in styles.scss.
     fontFamily:
       "'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-    button: { textTransform: "none", fontWeight: 400 },
+    button: { textTransform: "none", fontWeight: 600 },
+    // Hyper-minimal readouts: large numerics run light so the value dominates the
+    // small muted label above it (the smart-home dashboard idiom).
+    h1: { fontWeight: 300, letterSpacing: "-0.01em" },
+    h2: { fontWeight: 300, letterSpacing: "-0.01em" },
+    h3: { fontWeight: 300, letterSpacing: "-0.01em" },
+    h4: { fontWeight: 400 },
+    overline: { letterSpacing: "0.08em", fontWeight: 600 },
   },
   components: {
-    // Tiles / cards — the frosted-glass panel.
+    // Tiles / cards — the light frosted-glass panel.
     MuiPaper: {
       defaultProps: { elevation: 0, square: true },
       styleOverrides: {
@@ -91,14 +102,14 @@ export const muiTheme = createTheme({
           WebkitBackdropFilter: GLASS_BLUR,
           border: GLASS_BORDER,
           borderRadius: 0,
-          boxShadow: `0 1px 0 rgba(255,255,255,0.05) inset, ${GLASS_SHADOW}`,
+          boxShadow: GLASS_SHADOW,
         },
       },
     },
     MuiCard: {
       styleOverrides: { root: { borderRadius: 0 } },
     },
-    // Pop surfaces — darker frosted fill for readability over content.
+    // Pop surfaces — near-opaque white for crisp readability over content.
     MuiMenu: {
       styleOverrides: {
         paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 },
@@ -150,16 +161,21 @@ export const muiTheme = createTheme({
     },
     MuiTableCell: {
       styleOverrides: {
-        root: { borderColor: "rgba(255, 255, 255, 0.10)" },
+        root: { borderColor: "rgba(23, 43, 54, 0.08)" },
       },
     },
     MuiTooltip: {
       styleOverrides: {
-        tooltip: { borderRadius: 0, backgroundColor: POP_FILL, border: GLASS_BORDER },
+        tooltip: {
+          borderRadius: 0,
+          backgroundColor: "#172B36",
+          color: "#FFFFFF",
+          border: "1px solid rgba(23, 43, 54, 0.20)",
+        },
       },
     },
-    // MUI X DataGrid — square, glass surface, translucent rows (the standard
-    // table primitive going forward; replaces Carbon DataTable).
+    // MUI X DataGrid — square, light frosted surface, hairline row rules (the
+    // standard table primitive going forward; replaces Carbon DataTable).
     MuiDataGrid: {
       styleOverrides: {
         root: {
@@ -168,13 +184,13 @@ export const muiTheme = createTheme({
           backdropFilter: GLASS_BLUR,
           WebkitBackdropFilter: GLASS_BLUR,
           border: GLASS_BORDER,
-          "--DataGrid-rowBorderColor": "rgba(255,255,255,0.08)",
+          "--DataGrid-rowBorderColor": "rgba(23,43,54,0.07)",
         },
-        columnHeaders: { backgroundColor: "rgba(255,255,255,0.04)" },
+        columnHeaders: { backgroundColor: "rgba(217,232,226,0.55)" },
         columnHeader: { backgroundColor: "transparent" },
-        cell: { borderColor: "rgba(255,255,255,0.08)" },
-        footerContainer: { borderColor: "rgba(255,255,255,0.10)" },
-        row: { "&:hover": { backgroundColor: "rgba(255,255,255,0.06)" } },
+        cell: { borderColor: "rgba(23,43,54,0.07)" },
+        footerContainer: { borderColor: "rgba(23,43,54,0.08)" },
+        row: { "&:hover": { backgroundColor: "rgba(17,76,90,0.05)" } },
       },
     },
   },

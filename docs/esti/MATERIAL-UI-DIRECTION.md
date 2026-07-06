@@ -7,18 +7,23 @@
 
 ## The three hard rules
 
-1. **Colours are unchanged.** Every colour comes from the Carbon **g100** design
-   tokens, lifted verbatim into `frontend/src/theme/muiTheme.ts`. The dark
-   "liquid glass" look *is* the g100 theme — the office workspace already rendered
-   g100, so no hue shifts. **`src/theme/` is the only place raw colour values may
-   live**; everywhere else references the theme (`color="primary"`, `sx`, tokens).
+1. **Hyper-minimalist LIGHT palette (MP025).** The app rides the **MP025** scheme
+   (Alex Cristache), lifted into `frontend/src/theme/muiTheme.ts`: a soft off-white
+   canvas (Arctic Powder `#F1F6F4`), near-white frosted cards, deep-teal ink +
+   primary (Oceanic Noir `#172B36` / Nocturnal `#114C5A`), with Forsythia yellow
+   `#FFC801` and Deep Saffron orange `#FF9932` as the only warm accents. Airy
+   whitespace, hairline separators, near-flat shadows, large light-weight numeric
+   readouts over small muted labels. **`src/theme/` is the only place raw colour
+   values may live**; everywhere else references the theme (`color="primary"`,
+   `sx`, tokens). The Carbon token layer runs under `<Theme theme="white">` so
+   `--cds-*` status tokens (tags, support colours) stay light-coherent.
 2. **Square corners everywhere.** `shape.borderRadius = 0` plus explicit
    `borderRadius: 0` on every surface/control in the theme. The visual guard
    rejects any non-zero `border-radius` (SCSS) or `borderRadius` (JSX/TS) outside
    the exempt landing + theme files. No pills, no rounded cards, no rounded chips.
-3. **Liquid glass.** Paper / Card / Drawer / AppBar / Menu surfaces are
-   translucent with a backdrop blur, matching `landing.scss` and `glass.scss` —
-   frosted panels over the dark ambient backdrop. Baked into the theme, so screens
+3. **Liquid glass (light).** Paper / Card / Drawer / AppBar / Menu surfaces are
+   translucent **white** with a subtle backdrop blur, matching `glass.scss` —
+   frosted panels over the light ambient backdrop. Baked into the theme, so screens
    inherit it for free.
 
 ## Brand font — Open Sans (whole product, landing included)
@@ -36,7 +41,7 @@
 
 | Piece | File | Role |
 |---|---|---|
-| Theme | `src/theme/muiTheme.ts` | g100 palette, `borderRadius:0`, glass component overrides, Google Sans |
+| Theme | `src/theme/muiTheme.ts` | MP025 light palette, `borderRadius:0`, light-glass component overrides, Open Sans |
 | Provider | `src/theme/MuiRoot.tsx` | `StyledEngineProvider injectFirst` + `ThemeProvider`, mounted in `main.tsx` around `<App>`; no global `CssBaseline` (would repaint landing) |
 | Guard | `frontend/scripts/carbon-policy-rules.mjs` | flags rounded corners + raw hex/controls; exempts `src/theme/`, `landing.scss`, `glass.scss`, `components/landing/**` |
 
