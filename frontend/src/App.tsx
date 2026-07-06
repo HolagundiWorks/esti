@@ -6,7 +6,6 @@ import {
   Bot,
   Building,
   Catalog,
-  Dashboard as DashboardIcon,
   Document,
   Email,
   Enterprise,
@@ -329,7 +328,6 @@ function AppShell() {
 
   // Canonical V3 nav (consultancy-only). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
-    { label: "Studio Intelligence", to: "/", icon: DashboardIcon },
     { label: "Projects", to: "/projects", icon: Building },
     { label: "Tasks", to: "/tasks", icon: TaskComplete },
     ...(planAllowsFeature("ai") && atLeast(60)

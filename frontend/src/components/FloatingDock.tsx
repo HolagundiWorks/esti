@@ -86,6 +86,15 @@ export function FloatingDock() {
         sx={{ borderTop: 2, borderTopColor: borderToken, height: 48, px: 1.5 }}
       >
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+          {/* Studio Intelligence — home dashboard lives on the dock now */}
+          <Tooltip title="Studio Intelligence">
+            <IconButton size="small" onClick={() => navigate("/")} aria-label="Studio Intelligence" color="primary">
+              <AutoAwesome />
+            </IconButton>
+          </Tooltip>
+
+          <Divider orientation="vertical" flexItem />
+
           {/* Due dates */}
           <Tooltip title="Pending tasks · overdue invoices">
             <Stack
@@ -157,15 +166,14 @@ export function FloatingDock() {
 
           <Divider orientation="vertical" flexItem />
 
-          {/* ESTI AI agent */}
+          {/* ESTI AI agent — ESTI mark */}
           <Tooltip title="Ask ESTI">
             <IconButton
               size="small"
-              color="primary"
               onClick={() => navigate("/office/ai-studio")}
               aria-label="Ask ESTI AI"
             >
-              <AutoAwesome />
+              <img src="/esti-mark-white.png" alt="ESTI" style={{ height: 20 }} />
             </IconButton>
           </Tooltip>
         </Stack>

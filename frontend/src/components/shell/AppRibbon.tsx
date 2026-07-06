@@ -46,8 +46,11 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
           value={selected}
           onChange={(_e, v: number) => {
             setSelected(v);
+            // Any tab (leaf or multi-item menu) navigates straight to its first
+            // ribbon destination — no second click needed to enter a menu.
             const node = nav[v];
-            if (node && !("items" in node)) navigate(node.to);
+            const first = node ? leaves(node)[0] : undefined;
+            if (first) navigate(first.to);
           }}
           variant="scrollable"
           allowScrollButtonsMobile
