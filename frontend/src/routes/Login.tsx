@@ -173,7 +173,7 @@ export function Login() {
             <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
-                  <img src="/esti-logo.png" alt="" />
+                  <img src="/esti-logo-inverted.png" alt="" />
                 </span>
                 <Stack spacing={0.5}>
                   <h3>AORMS</h3>

@@ -237,18 +237,18 @@ function AppShell() {
   // AORMS account + licence portal (hlp_account) — its own hub destination,
   // independent of any firm workspace session.
   if (PUBLIC_SITE && pathname === "/account")
-    return <Theme theme="g100"><AccountPortal /></Theme>;
+    return <Theme theme="white"><AccountPortal /></Theme>;
 
   if (isLoading) return <Loading withOverlay description="Loading AORMS" />;
   if (!user)
     return (
       <Routes>
-        <Route path="/login" element={<Theme theme="g100"><Login /></Theme>} />
-        <Route path="/access" element={<Theme theme="g100"><ExternalLogin /></Theme>} />
-        <Route path="/signup" element={<Theme theme="g100"><Signup /></Theme>} />
-        <Route path="/forgot-password" element={<Theme theme="g100"><ForgotPassword /></Theme>} />
-        <Route path="/reset-password" element={<Theme theme="g100"><ResetPassword /></Theme>} />
-        <Route path="/recover" element={<Theme theme="g100"><RecoverWithBackupCode /></Theme>} />
+        <Route path="/login" element={<Theme theme="white"><Login /></Theme>} />
+        <Route path="/access" element={<Theme theme="white"><ExternalLogin /></Theme>} />
+        <Route path="/signup" element={<Theme theme="white"><Signup /></Theme>} />
+        <Route path="/forgot-password" element={<Theme theme="white"><ForgotPassword /></Theme>} />
+        <Route path="/reset-password" element={<Theme theme="white"><ResetPassword /></Theme>} />
+        <Route path="/recover" element={<Theme theme="white"><RecoverWithBackupCode /></Theme>} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>

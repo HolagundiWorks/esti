@@ -33,7 +33,7 @@ export function Signup() {
             <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
-                  <img src="/esti-logo.png" alt="" />
+                  <img src="/esti-logo-inverted.png" alt="" />
                 </span>
                 <h3>ESTI AORMS</h3>
               </div>
