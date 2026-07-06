@@ -1,8 +1,9 @@
 /**
- * Carbon for AI — shared ESTI explainability labels.
- * @see https://carbondesignsystem.com/guidelines/carbon-for-ai/
+ * ESTI explainability labels (formerly Carbon for AI). MUI implementation:
+ * a small clickable "AI" chip that opens an explainability popover.
  */
-import { AILabel, Stack } from "@carbon/react";
+import { Box, Chip, Popover, Stack, Typography } from "@mui/material";
+import { useState } from "react";
 
 export type EstiAiScope = "agent" | "draft" | "landing";
 
@@ -42,18 +43,33 @@ const EXPLAIN: Record<
 /** Primary AI transparency control — opens explainability on click. */
 export function EstiAiExplainLabel({ scope }: { scope: EstiAiScope }) {
   const copy = EXPLAIN[scope];
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   return (
-    <AILabel aiText="AI" textLabel={copy.textLabel} align="top-end">
-      <div>
-        <Stack gap={3}>
-          <p className="esti-ai-explain__summary">{copy.summary}</p>
-          <ul className="esti-ai-explain__list">
-            {copy.details.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </Stack>
-      </div>
-    </AILabel>
+    <>
+      <Chip
+        size="small"
+        variant="outlined"
+        label={`AI · ${copy.textLabel}`}
+        onClick={(e) => setAnchor(e.currentTarget)}
+      />
+      <Popover
+        open={Boolean(anchor)}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Box sx={{ p: 2, maxWidth: 320 }}>
+          <Stack spacing={1}>
+            <Typography variant="body2" className="esti-ai-explain__summary">{copy.summary}</Typography>
+            <ul className="esti-ai-explain__list">
+              {copy.details.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </Stack>
+        </Box>
+      </Popover>
+    </>
   );
 }

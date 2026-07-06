@@ -1,14 +1,16 @@
-import { Button, FileUploaderButton, InlineNotification, Stack, Tile } from "@carbon/react";
+import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
 
+// Visually-hidden native file input (styled component, not a raw control tag).
+const HiddenFileInput = styled("input")({ display: "none" });
+
 /**
  * Cloud migration (owner). Export this studio as a JSON bundle, then import it
- * into a freshly provisioned EMPTY cloud tenant. The import is guarded server-
- * side (schema handshake + empty-target + verify-or-rollback), so a bad target
- * fails safely. v1 moves DB rows; object-store files follow the ops runbook.
+ * into a freshly provisioned EMPTY cloud tenant. Material UI.
  */
 export function MigrationPanel() {
   const utils = trpc.useUtils();
@@ -59,43 +61,35 @@ export function MigrationPanel() {
 
   const pf = preflightQ.data;
   return (
-    <Tile>
-      <Stack gap={5}>
-        <h3 className="esti-label">{community ? "Move to AORMS Pro" : "Cloud migration"}</h3>
-        <p className="esti-label esti-label--secondary">
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Typography variant="h6" component="h3">{community ? "Move to AORMS Pro" : "Cloud migration"}</Typography>
+        <Typography variant="body2" color="text.secondary">
           {community
             ? "Package this whole company as a bundle, then import it into a fresh AORMS Pro workspace. Migration is one-way, Community → Pro."
             : "Import a company bundle exported from a Community/Lite install into this fresh, empty workspace. Import refuses a non-empty target and rolls back if verification fails."}
-        </p>
+        </Typography>
         {pf && (
-          <p className="esti-label--helper">
+          <Typography variant="caption" color="text.secondary">
             {pf.counts.projects} projects · {pf.counts.clients} clients · {pf.counts.invoices} invoices ·{" "}
             {(pf.fileBytes / 1048576).toFixed(1)} MB files · schema {pf.schemaHead}
-          </p>
+          </Typography>
         )}
-        <Stack orientation="horizontal" gap={3}>
+        <Stack direction="row" spacing={1}>
           {community ? (
-            <Button onClick={download} disabled={busy}>
+            <Button variant="contained" onClick={download} disabled={busy}>
               {busy ? "Preparing…" : "Package company for Pro"}
             </Button>
           ) : (
-            <FileUploaderButton
-              labelText={importMut.isPending ? "Importing…" : "Import a company bundle"}
-              buttonKind="primary"
-              accept={[".json", "application/json"]}
-              disableLabelChanges
-              onChange={onFile}
-              disabled={importMut.isPending}
-            />
+            <Button variant="contained" component="label" disabled={importMut.isPending}>
+              {importMut.isPending ? "Importing…" : "Import a company bundle"}
+              <HiddenFileInput type="file" accept=".json,application/json" onChange={onFile} />
+            </Button>
           )}
         </Stack>
-        {msg && (
-          <InlineNotification kind="success" lowContrast title="Migration" subtitle={msg} onCloseButtonClick={() => setMsg(null)} />
-        )}
-        {err && (
-          <InlineNotification kind="error" lowContrast title="Migration failed" subtitle={err} onCloseButtonClick={() => setErr(null)} />
-        )}
+        {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
+        {err && <Alert severity="error" onClose={() => setErr(null)}>{err}</Alert>}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

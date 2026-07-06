@@ -1,36 +1,40 @@
-import { ArrowRight, Checkmark } from "@carbon/icons-react";
-import { Button, Stack, Tag, Tile } from "@carbon/react";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import Check from "@mui/icons-material/Check";
+import { Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import type { ReactNode } from "react";
 import { PLAN_LABEL } from "@esti/contracts";
 import { Link as RouterLink } from "react-router-dom";
 import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
 
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color})`,
+  color: `var(--cds-tag-color-${color})`,
+});
+
 /**
  * Guided Lite → Pro upgrade. Reads the workspace's own licence (not the
  * platform account), so it always shows the real current plan and the path
- * forward: request Pro from the AORMS account, then activate the emailed key.
- * On a local-first desktop install it reassures that data stays on the machine.
+ * forward. Material UI.
  */
 export function UpgradeToPro() {
   const licenseQ = trpc.license.status.useQuery();
   const runtimeQ = trpc.auth.runtime.useQuery();
   const { community } = useEdition();
 
-  // Community edition is offline — there is no online plan request. Upgrading
-  // means packaging the company and importing it into a Pro workspace.
   if (community) {
     return (
-      <Tile>
-        <Stack gap={3}>
-          <h3 className="esti-label">Upgrade to AORMS Pro</h3>
-          <p className="esti-label esti-label--secondary">
+      <Paper sx={{ p: 3 }}>
+        <Stack spacing={1}>
+          <Typography variant="h6" component="h3">Upgrade to AORMS Pro</Typography>
+          <Typography variant="body2" color="text.secondary">
             You&apos;re on the free Community edition — offline, on your own network. AORMS Pro adds
             the cloud workspace, external portals, AI and more. To move up: package your whole
             company in <strong>Company › Move to AORMS Pro</strong>, then import the bundle into your
             new Pro workspace. Migration is one-way.
-          </p>
+          </Typography>
         </Stack>
-      </Tile>
+      </Paper>
     );
   }
 
@@ -42,25 +46,25 @@ export function UpgradeToPro() {
 
   if (isPro) {
     return (
-      <Tile>
-        <Stack orientation="horizontal" gap={3}>
-          <Checkmark size={20} />
-          <span className="esti-grow">
+      <Paper sx={{ p: 3 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Check fontSize="small" />
+          <Typography variant="body2" sx={{ flex: 1 }}>
             You&apos;re on <strong>{PLAN_LABEL[view.plan]}</strong> — the full edition is unlocked.
-          </span>
-          <Tag type="green">{PLAN_LABEL[view.plan]}</Tag>
+          </Typography>
+          <Chip size="small" label={PLAN_LABEL[view.plan]} sx={tagSx("green")} />
         </Stack>
-      </Tile>
+      </Paper>
     );
   }
 
-  const steps: { n: string; text: string; action?: React.ReactNode }[] = [
+  const steps: { n: string; text: string; action?: ReactNode }[] = [
     { n: "1", text: "Request Pro from your AORMS account below — we email your licence once approved." },
     {
       n: "2",
       text: "Activate the emailed key.",
       action: (
-        <Button as={RouterLink} to="/company" kind="ghost" size="sm" renderIcon={ArrowRight}>
+        <Button component={RouterLink} to="/company" variant="text" size="small" endIcon={<ArrowForward />}>
           Company · Licence
         </Button>
       ),
@@ -69,31 +73,29 @@ export function UpgradeToPro() {
   ];
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <Stack orientation="horizontal" gap={3}>
-          <h3 className="esti-label esti-grow">Upgrade to Pro</h3>
-          <Tag type="cool-gray">{PLAN_LABEL[view.plan]}</Tag>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Typography variant="h6" component="h3" sx={{ flex: 1 }}>Upgrade to Pro</Typography>
+          <Chip size="small" label={PLAN_LABEL[view.plan]} sx={tagSx("cool-gray")} />
         </Stack>
 
-        <p className="esti-label esti-label--secondary">
+        <Typography variant="body2" color="text.secondary">
           {desktop
             ? "Pro lifts the seat limits and unlocks the full edition. Your studio stays on this computer — when you're ready, Pro also lets you move it to the cloud."
             : "Pro lifts the seat limits and unlocks the full edition across your workspace."}
-        </p>
+        </Typography>
 
-        <Stack gap={4}>
+        <Stack spacing={1.5}>
           {steps.map((s) => (
-            <Stack key={s.n} orientation="horizontal" gap={3}>
-              <Tag type="teal" size="sm">
-                {s.n}
-              </Tag>
-              <span className="esti-grow">{s.text}</span>
+            <Stack key={s.n} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <Chip size="small" label={s.n} sx={tagSx("teal")} />
+              <Typography variant="body2" sx={{ flex: 1 }}>{s.text}</Typography>
               {s.action}
             </Stack>
           ))}
         </Stack>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }
