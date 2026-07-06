@@ -28,7 +28,7 @@ export function Signup() {
   return (
     <main className="esti-login-shell">
       <Stack spacing={2} className="esti-login-panel">
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
           <Stack spacing={2}>
             <Stack spacing={1}>
               <div className="esti-login-brand">

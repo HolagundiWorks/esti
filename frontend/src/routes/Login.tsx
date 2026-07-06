@@ -168,7 +168,7 @@ export function Login() {
     <div className="cds--g100">
     <main className="esti-login-shell">
       <Stack spacing={2} className="esti-login-panel">
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
           <Stack spacing={3}>
             <Stack spacing={1}>
               <div className="esti-login-brand">
@@ -406,7 +406,7 @@ export function Login() {
         </Paper>
 
         {!companies && (
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
             <Stack spacing={1}>
               {PUBLIC_SITE && (
                 <Button component={RouterLink} to="/account" variant="text" size="small">
