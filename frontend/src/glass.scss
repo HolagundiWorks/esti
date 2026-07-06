@@ -72,7 +72,7 @@ $neu-btn-radius: 16px; // rounded neu buttons
 // the same look for any bare <input>/search box. Text is carved into the surface:
 // no border, same-colour fill, dark inset top-left + light inset bottom-right,
 // soft rounded corners. Wrap an icon + input in .esti-neu-input for a search bar.
-$neu-input-radius: 12px;
+$neu-input-radius: 0; // square corners
 .esti-neu-input {
   display: flex;
   align-items: center;
@@ -81,7 +81,8 @@ $neu-input-radius: 12px;
   background-color: $neu-bg;
   border: none;
   border-radius: $neu-input-radius;
-  box-shadow: inset 4px 4px 9px $neu-dark, inset -4px -4px 9px $neu-light;
+  // Depth reduced ~50% (shallower well): offsets/blur halved.
+  box-shadow: inset 2px 2px 4.5px $neu-dark, inset -2px -2px 4.5px $neu-light;
   transition: box-shadow 120ms ease;
 
   input,

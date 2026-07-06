@@ -70,11 +70,12 @@ const POP_FILL     = "#FFFFFF";
 // inner shadow top-left + a light inner highlight bottom-right (the classic inset
 // look), no border, soft rounded corners. Shares the neu palette with glass.scss.
 const NEU_FILL        = "#eceef2"; // soft base, a touch off the Fog-Gray canvas
-const NEU_INSET       = "inset 4px 4px 9px rgba(20, 21, 23, 0.16), inset -4px -4px 9px rgba(255, 255, 255, 0.92)";
-// On focus, deepen the well and add a thin Radiant-Orange inner ring for affordance.
-const NEU_INSET_FOCUS = "inset 5px 5px 11px rgba(20, 21, 23, 0.20), inset -5px -5px 11px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
-const NEU_INSET_ERROR = "inset 4px 4px 9px rgba(20, 21, 23, 0.16), inset -4px -4px 9px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
-const NEU_INPUT_RADIUS = 12; // soft rounded (the recessed look needs rounding).
+// Depth reduced ~50% (shallower well): offsets/blur halved from the original 4px/9px.
+const NEU_INSET       = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92)";
+// On focus, a touch deeper + a thin Radiant-Orange inner ring for affordance.
+const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
+const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
+const NEU_INPUT_RADIUS = 0; // square corners (matches the app's square-corner rule).
 
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
