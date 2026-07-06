@@ -18,23 +18,30 @@ podman (`compose.yaml`).
 > coexist during the migration (strangler pattern) so the build never breaks —
 > migrate screen-by-screen, replacing `@carbon/react` with `@mui/material`.
 > **The landing page (`Landing.tsx`, `components/landing/**`, `landing.scss`) stays
-> on Carbon editorial and is out of scope.** Three hard rules for the new UI:
+> on Carbon editorial and is out of scope.** Three hard rules for the new UI
+> (full spec: **[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md)**):
 >
-> 1. **Hyper-minimalist LIGHT palette (MP025)** — the MUI theme (`src/theme/muiTheme.ts`)
->    uses the MP025 scheme: Arctic Powder `#F1F6F4` canvas, near-white cards, deep-teal
->    ink/primary (Oceanic Noir `#172B36` / Nocturnal `#114C5A`), Forsythia `#FFC801` +
->    Deep Saffron `#FF9932` accents. The app-shell Carbon layer runs `<Theme theme="white">`.
+> 1. **Hyper-minimalist LIGHT palette — Radiant Orange accent** — the MUI theme
+>    (`src/theme/muiTheme.ts`): Fog Gray `#F2F4F7` canvas, Pure White `#FFFFFF`
+>    cards, Coal Black `#141517` ink, **Radiant Orange `#FF4F18`** the single
+>    signature accent (fills only, **white text on it**, deeper `#DB3E0F` on hover).
+>    Links use slate, never the accent. The app-shell Carbon layer runs `<Theme theme="white">`.
 > 2. **Square corners everywhere** — `borderRadius: 0`. The guard rejects any
 >    non-zero `border-radius` / `borderRadius` outside the exempt landing/theme.
-> 3. **Liquid glass (light)** — translucent **white** Paper/Card/Drawer/AppBar with
->    backdrop blur (baked into the theme; matches `glass.scss`).
+> 3. **Flat surfaces everywhere** — the flat dashboard language runs across the
+>    whole app: solid **Pure-White** Paper/Card/DataGrid/Drawer/AppBar/Menu with a
+>    **hairline edge, NO backdrop blur, NO drop shadow** (baked into the theme).
+>    Only the floating widgets (ESTI/Pomodoro/Calculator) keep the neumorphic
+>    soft-UI treatment (`glass.scss`).
 >
 > **Brand font: Open Sans** (OFL, free) across the *entire* product (landing
 > included) — self-hosted via `@fontsource/open-sans` (imported in `main.tsx`),
 > exposed as `--esti-font-sans` in `styles.scss` and mirrored in the MUI theme.
 
-**Canonical guide:** [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md) —
-MUI theme, migration playbook, square-corner + palette-lock rules.
+**Canonical guides:** **[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md)**
+— the single source of truth for colour, type, surfaces, brand marks and the
+**Rail / Stage** layout. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
+— MUI theme, migration playbook, square-corner + palette-lock rules.
 [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) still governs the
 landing surface and documents legacy Carbon exceptions.
 

@@ -20,7 +20,7 @@ New here? Read in this order:
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star **and the single source of truth for current system state** (its "System state" section lists what's live / removed / rebuilding). Where any other doc disagrees about what exists, this one wins.
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
-4. [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) — the mandatory Pure Carbon UI law.
+4. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) — **the single source of truth for the brand**: colour (Radiant Orange), type (Open Sans), flat surfaces, brand marks and the Rail / Stage layout. [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) is the MUI migration playbook; [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) governs the landing surface.
 5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the Canonical V3 nav: Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin — consultancy-only) with live/planned status per module. Authoritative for the sidebar and module placement.
 6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery history / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe the removed estimation/cost stack.
 
@@ -51,7 +51,9 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [ESTICAD-COMPANION](ESTICAD-COMPANION.md) | ESTICAD desktop integration — cloud takeoff, device auth, proxied CAD AI |
 | [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | **Target (rebuild foundation)** — the layered construction-intelligence reference layer: Material / Labor / Item / Specification libraries, consumption recipes, and the formula + derivation engine. Everything downstream (CMS estimate, BOQ, bills) reads from it |
 | [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) | **Active build** — unified CMS: Element spine (permanent identity EL-001), Estimate, BOQ, Final Estimation Set, Site Measurement Book, Work Orders, Contractor Bill Certification, Material Intelligence, Cost Dashboard. Supersedes the former "Estimation OS" concept entirely |
-| [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Mandatory Pure Carbon UI rules |
+| [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) | **Brand single source of truth** — colour (Radiant Orange), type (Open Sans), flat surface language, square corners, brand marks, Rail / Stage layout. All UI styles link here |
+| [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) | MUI migration playbook — Carbon→MUI component map, theme, gotchas (colour/type/surface rules live in the Branding Kit) |
+| [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Landing-surface Carbon rules + legacy Carbon exceptions |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 

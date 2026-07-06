@@ -14,9 +14,11 @@
  *     un-Carbon, un-enterprise feel. Full spec: `docs/esti/AORMS-BRANDING-KIT.md`.
  *  2. SQUARE CORNERS EVERYWHERE. `shape.borderRadius = 0` plus explicit
  *     `borderRadius: 0` on every surface/control component. No rounded corners.
- *  3. LIQUID GLASS (light). Paper/Card/Drawer/AppBar/Menu surfaces are translucent
- *     white with a subtle backdrop blur — frosted panels over the light ambient
- *     backdrop the app shell paints (glass.scss).
+ *  3. FLAT SURFACES (the dashboard language, everywhere). Paper/Card/DataGrid/
+ *     Drawer/AppBar/Menu are solid Pure-White (or transparent) panels with a
+ *     hairline edge — NO backdrop blur, NO drop shadow. Definition comes from the
+ *     hairline, not elevation. Only the floating widgets (ESTI/Pomodoro/Calculator)
+ *     keep the neumorphic soft-UI treatment (glass.scss).
  *
  * This file (and everything under src/theme/) is the ONE place raw colour values
  * live — it is exempt from the visual guard exactly like landing.scss.
@@ -51,16 +53,16 @@ const CDS = {
   supportInfo:    "#3B5568", // slate — links + info
 } as const;
 
-// ── Liquid-glass surface constants (light — shared with glass.scss) ──────────
-// Translucent white with a soft blur; near-flat shadow so cards read as clean
-// hyper-minimal panels rather than heavy floating glass.
-const GLASS_FILL   = "rgba(255, 255, 255, 0.72)";
-const GLASS_BORDER = "1px solid rgba(20, 21, 23, 0.08)";
-const GLASS_BLUR   = "blur(12px) saturate(1.06)";
-const GLASS_SHADOW = "0 1px 2px rgba(20, 21, 23, 0.05)";
-// Pop-over surfaces (menus, dialogs, app bar) sit over content, so they use a
-// near-opaque white fill for crisp legibility.
-const POP_FILL     = "rgba(255, 255, 255, 0.96)";
+// ── Flat surface constants (light — the "flat dashboard everywhere" language) ──
+// The app runs the dashboard's FLAT vocabulary across every screen: solid
+// Pure-White panels on the Fog-Gray canvas, hairline borders, NO glass blur and
+// NO drop shadow. Definition comes from the hairline edge, not elevation.
+const GLASS_FILL   = "#FFFFFF";                        // solid Pure White panel
+const GLASS_BORDER = "1px solid rgba(20, 21, 23, 0.08)"; // hairline edge
+const GLASS_BLUR   = "none";                           // flat — no backdrop blur
+const GLASS_SHADOW = "none";                           // flat — no elevation
+// Pop-over surfaces (menus, dialogs, app bar) sit over content — solid white.
+const POP_FILL     = "#FFFFFF";
 
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
@@ -246,21 +248,20 @@ export const muiTheme = createTheme({
         },
       },
     },
-    // MUI X DataGrid — square, light frosted surface, hairline row rules (the
-    // standard table primitive going forward; replaces Carbon DataTable).
+    // MUI X DataGrid — FLAT: no surface fill, no outer border; the table reads
+    // directly on the canvas with hairline row rules (the dashboard idiom, now the
+    // standard everywhere). Replaces Carbon DataTable.
     MuiDataGrid: {
       styleOverrides: {
         root: {
           borderRadius: 0,
-          backgroundColor: GLASS_FILL,
-          backdropFilter: GLASS_BLUR,
-          WebkitBackdropFilter: GLASS_BLUR,
-          border: GLASS_BORDER,
+          backgroundColor: "transparent",
+          border: 0,
           "--DataGrid-rowBorderColor": "rgba(20,21,23,0.07)",
         },
-        columnHeaders: { backgroundColor: "rgba(231,234,240,0.7)" },
+        columnHeaders: { backgroundColor: "transparent" },
         columnHeader: { backgroundColor: "transparent" },
-        // Tiny uppercase eyebrow headers — the MP025 hyper-minimal table idiom.
+        // Tiny uppercase eyebrow headers — the hyper-minimal table idiom.
         columnHeaderTitle: {
           textTransform: "uppercase",
           letterSpacing: "0.08em",
@@ -270,7 +271,7 @@ export const muiTheme = createTheme({
         },
         cell: { borderColor: "rgba(20,21,23,0.07)" },
         footerContainer: { borderColor: "rgba(20,21,23,0.08)" },
-        // Mint hover, yellow-wash selection (the signature accent).
+        // Neutral hover, orange-wash selection (the signature accent).
         row: {
           "&:hover": { backgroundColor: CDS.hoverSoft },
           "&.Mui-selected": {

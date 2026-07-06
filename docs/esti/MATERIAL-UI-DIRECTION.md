@@ -3,7 +3,8 @@
 > **Status: active migration (2026-07).** The app, panels and all portals are
 > moving from IBM Carbon (`@carbon/react`) to **Material UI** (`@mui/material`).
 > The **landing page stays on Carbon** (see `CARBON-UI-DIRECTION.md`). This doc is
-> the canonical guide for everything else.
+> the migration playbook; **[`AORMS-BRANDING-KIT.md`](AORMS-BRANDING-KIT.md) is the
+> single source of truth for colour, type, surfaces and brand marks** — read it first.
 
 ## Screen nomenclature — Rail / Stage (canonical)
 
@@ -19,24 +20,27 @@ A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta +
 
 ## The three hard rules
 
-1. **Hyper-minimalist LIGHT palette (MP025).** The app rides the **MP025** scheme
-   (Alex Cristache), lifted into `frontend/src/theme/muiTheme.ts`: a soft off-white
-   canvas (Arctic Powder `#F1F6F4`), near-white frosted cards, deep-teal ink +
-   primary (Oceanic Noir `#172B36` / Nocturnal `#114C5A`), with Forsythia yellow
-   `#FFC801` and Deep Saffron orange `#FF9932` as the only warm accents. Airy
-   whitespace, hairline separators, near-flat shadows, large light-weight numeric
-   readouts over small muted labels. **`src/theme/` is the only place raw colour
-   values may live**; everywhere else references the theme (`color="primary"`,
-   `sx`, tokens). The Carbon token layer runs under `<Theme theme="white">` so
-   `--cds-*` status tokens (tags, support colours) stay light-coherent.
+1. **Hyper-minimalist LIGHT palette — Radiant Orange accent.** Lifted into
+   `frontend/src/theme/muiTheme.ts`: a Fog-Gray canvas (`#F2F4F7`), Pure-White
+   cards (`#FFFFFF`), Coal-Black ink (`#141517`), with **Radiant Orange `#FF4F18`**
+   the single signature accent (fills only, **white text on it**, deeper `#DB3E0F`
+   on hover). Links use slate, never the accent. Airy whitespace, hairline
+   separators, large light-weight numeric readouts over small muted labels.
+   **`src/theme/` is the only place raw colour values may live**; everywhere else
+   references the theme (`color="primary"`, `sx`, tokens). The Carbon token layer
+   runs under `<Theme theme="white">` so `--cds-*` status tokens stay light-coherent.
+   Full palette: [`AORMS-BRANDING-KIT.md`](AORMS-BRANDING-KIT.md).
 2. **Square corners everywhere.** `shape.borderRadius = 0` plus explicit
    `borderRadius: 0` on every surface/control in the theme. The visual guard
    rejects any non-zero `border-radius` (SCSS) or `borderRadius` (JSX/TS) outside
    the exempt landing + theme files. No pills, no rounded cards, no rounded chips.
-3. **Liquid glass (light).** Paper / Card / Drawer / AppBar / Menu surfaces are
-   translucent **white** with a subtle backdrop blur, matching `glass.scss` —
-   frosted panels over the light ambient backdrop. Baked into the theme, so screens
-   inherit it for free.
+3. **Flat surfaces everywhere.** The flat dashboard language runs across the whole
+   app: Paper / Card / DataGrid / Drawer / AppBar / Menu are solid **Pure-White**
+   (or transparent) panels with a **hairline edge — no backdrop blur, no drop
+   shadow**. Definition comes from the hairline, not elevation. Tables sit flat on
+   the canvas (no surface fill, hairline row rules). Baked into the theme, so
+   screens inherit it for free. Only the floating widgets (ESTI / Pomodoro /
+   Calculator) keep the **neumorphic** soft-UI treatment (`glass.scss`).
 
 ## Brand font — Open Sans (whole product, landing included)
 
