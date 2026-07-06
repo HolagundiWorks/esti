@@ -1,19 +1,19 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Column,
+  Chip,
   Grid,
-  InlineNotification,
-  ProgressBar,
+  LinearProgress,
+  Paper,
   Stack,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Tag,
-  Tile,
-} from "@carbon/react";
+  Typography,
+} from "@mui/material";
 import { Link } from "react-router-dom";
+import { useState, type ReactNode } from "react";
 import { PageHeader } from "../components/PageHeader.js";
 import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
@@ -24,39 +24,41 @@ import { welcomeKitUrl } from "../lib/welcomeKit.js";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <Stack gap={3}>
-      <span className="esti-label esti-label--secondary">{label}</span>
-      <span>{value}</span>
+    <Stack spacing={1}>
+      <Typography variant="body2" component="span" className="esti-label esti-label--secondary">{label}</Typography>
+      <Typography component="span">{value}</Typography>
     </Stack>
   );
 }
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
-    <Column lg={4} md={4} sm={2}>
-      <Tile className="esti-fill">
-        <Stack gap={2}>
-          <span className="esti-label esti-label--secondary">{label}</span>
-          <h3>{value}</h3>
+    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+      <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Stack spacing={1}>
+          <Typography variant="body2" component="span" className="esti-label esti-label--secondary">{label}</Typography>
+          <Typography variant="h5" component="h3">{value}</Typography>
         </Stack>
-      </Tile>
-    </Column>
+      </Paper>
+    </Grid>
   );
 }
 
 function PlannedGrid({ items }: { items: { title: string; description: string }[] }) {
   return (
-    <Grid narrow>
+    <Grid container spacing={1}>
       {items.map((m) => (
-        <Column key={m.title} lg={4} md={4} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={3}>
-              <h4>{m.title}</h4>
-              <p className="esti-label esti-label--secondary">{m.description}</p>
-              <Tag type="gray" size="sm">Planned</Tag>
+        <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h4">{m.title}</Typography>
+              <Typography variant="body2" component="p" className="esti-label esti-label--secondary">{m.description}</Typography>
+              <Box>
+                <Chip label="Planned" size="small" variant="outlined" />
+              </Box>
             </Stack>
-          </Tile>
-        </Column>
+          </Paper>
+        </Grid>
       ))}
     </Grid>
   );
@@ -84,199 +86,232 @@ export function Profile() {
   const PRO_DOWNLOAD_URL = import.meta.env.VITE_PRO_DOWNLOAD_URL ?? "";
   const { isExternal } = useCapabilities();
 
+  const [tab, setTab] = useState(0);
+
+  const tabs: { label: string; panel: ReactNode }[] = [
+    {
+      label: "Personal",
+      panel: (
+        <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Field label="Full name" value={user?.fullName ?? "—"} />
+            <Field label="Email" value={user?.email ?? "—"} />
+            <Field label="Role" value={user?.role ?? "—"} />
+            {w?.hasTeamMember && <Field label="Team role" value={w.teamRole ?? "—"} />}
+          </Stack>
+        </Paper>
+      ),
+    },
+    {
+      label: "Work Profile",
+      panel: w?.hasTeamMember ? (
+        <Grid container spacing={1}>
+          <Stat label="Assigned projects" value={w.assignedProjects} />
+          <Stat label="Open tasks" value={w.openTasks} />
+          <Stat label="Completed tasks" value={w.doneTasks} />
+          <Stat label="Days present (30d)" value={w.attendance30} />
+        </Grid>
+      ) : (
+        <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
+          No staff record linked to this account — work metrics appear once you are added to the team.
+        </Typography>
+      ),
+    },
+    {
+      label: "AORMS Identity",
+      panel: (
+        <Stack spacing={2}>
+          <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <Field
+                label="AORMS Unique ID"
+                value={aormsId ?? "Not yet generated — earned after 100 hours of active use."}
+              />
+              {!aormsId && usage && (
+                <Stack spacing={1.5}>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" component="span" className="esti-label esti-label--secondary">Active use</Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(100, (Math.min(usage.minutes, usage.requiredMinutes) / usage.requiredMinutes) * 100)}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {`${Math.floor(usage.minutes / 60)} of ${Math.floor(usage.requiredMinutes / 60)} hours`}
+                    </Typography>
+                  </Stack>
+                  {usage.canGenerate ? (
+                    // The Apply button surfaces only after 5 days of use and
+                    // stays greyed until earned — a deliberate curiosity teaser.
+                    (usage.eligible || aormsIdTeaserVisible(usage.daysUsed)) && (
+                      <Box>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          disabled={!usage.eligible || generateId.isPending}
+                          onClick={() => generateId.mutate()}
+                        >
+                          Apply for unique ID
+                        </Button>
+                      </Box>
+                    )
+                  ) : (
+                    <Typography variant="body2" component="p" className="esti-label esti-label--helper">
+                      No identity platform is configured for this install — an owner can
+                      link a handle from Users.
+                    </Typography>
+                  )}
+                  {generateId.isError && (
+                    <Alert severity="error">
+                      <AlertTitle>Could not generate the ID</AlertTitle>
+                      {generateId.error.message}
+                    </Alert>
+                  )}
+                </Stack>
+              )}
+              <Field label="Professional role" value={user?.role ?? "—"} />
+            </Stack>
+          </Paper>
+          {aormsId && (
+            <Paper className="esti-fill" sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Typography variant="h6" component="h4">Welcome kit</Typography>
+                <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
+                  Your welcome kit: a certificate (A4) and your ID card with the Unique
+                  Identification No, printable at credit-card size. Essential and Pro
+                  cards follow — Essential after 100 hours on AORMS, Pro against
+                  certification.
+                </Typography>
+                <div className="esti-row">
+                  <Button
+                    size="small"
+                    variant="contained"
+                    href={welcomeKitUrl("certificate", { name: user?.fullName, id: aormsId })}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Certificate
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    href={welcomeKitUrl("card", { name: user?.fullName, id: aormsId })}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    ID card
+                  </Button>
+                </div>
+              </Stack>
+            </Paper>
+          )}
+          <PlannedGrid
+            items={[
+              { title: "Firm Mapping", description: "Registered office / firm association." },
+            ]}
+          />
+        </Stack>
+      ),
+    },
+    {
+      label: "Account",
+      panel: <AccountTab />,
+    },
+    {
+      label: "Certification",
+      panel: (
+        <PlannedGrid
+          items={[
+            { title: "Certification Track", description: "ACA / ACE / ACC / ACOM / ACFM / ACO." },
+            { title: "Certification Level", description: "Foundation · Practitioner · Specialist · Master." },
+            { title: "Certification History", description: "Assessments and awarded certifications." },
+          ]}
+        />
+      ),
+    },
+    {
+      label: "AORMS Index",
+      panel: (
+        <PlannedGrid
+          items={[
+            { title: "Overall Score", description: "Composite professional score." },
+            { title: "Knowledge & Skill", description: "Knowledge contribution + skill assessment scores." },
+            { title: "Platform & Community", description: "Platform competency + community reputation." },
+          ]}
+        />
+      ),
+    },
+    ...(!isExternal
+      ? [
+          {
+            label: "Downloads",
+            panel: (
+              <Paper className="esti-fill" sx={{ p: 2 }}>
+                <Stack spacing={1.5}>
+                  <Typography variant="h6" component="h4">Desktop installers</Typography>
+                  <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
+                    Installers are managed by AORMS IT and hosted under <code>/downloads</code>.
+                  </Typography>
+                  <Stack spacing={1}>
+                    {LITE_DOWNLOAD_URL ? (
+                      <Box>
+                        <Button variant="contained" href={LITE_DOWNLOAD_URL}>Download AORMS Lite</Button>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Button variant="text" disabled>Lite: Coming soon</Button>
+                      </Box>
+                    )}
+                    {PRO_DOWNLOAD_URL ? (
+                      <Box>
+                        <Button variant="contained" href={PRO_DOWNLOAD_URL}>Download AORMS Pro</Button>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Button variant="text" disabled>Pro: Coming soon</Button>
+                      </Box>
+                    )}
+                  </Stack>
+                </Stack>
+              </Paper>
+            ),
+          },
+        ]
+      : []),
+    {
+      label: "Preferences",
+      panel: (
+        <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Stack spacing={1.5}>
+            <Typography component="p">Theme, dashboard layout, notification preferences and security settings.</Typography>
+            <Box>
+              <Button component={Link} to="/settings" variant="contained">Open settings</Button>
+            </Box>
+          </Stack>
+        </Paper>
+      ),
+    },
+  ];
+
+  const activeTab = Math.min(tab, tabs.length - 1);
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title={user?.fullName ?? "My profile"}
         description="Your AORMS identity, work profile, certifications and preferences."
       />
-      <Tabs>
-        <TabList aria-label="Profile sections" contained>
-          <Tab>Personal</Tab>
-          <Tab>Work Profile</Tab>
-          <Tab>AORMS Identity</Tab>
-          <Tab>Account</Tab>
-          <Tab>Certification</Tab>
-            <Tab>AORMS Index</Tab>
-            {!isExternal && <Tab>Downloads</Tab>}
-            <Tab>Preferences</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel>
-            <Tile className="esti-fill">
-              <Stack gap={5}>
-                <Field label="Full name" value={user?.fullName ?? "—"} />
-                <Field label="Email" value={user?.email ?? "—"} />
-                <Field label="Role" value={user?.role ?? "—"} />
-                {w?.hasTeamMember && <Field label="Team role" value={w.teamRole ?? "—"} />}
-              </Stack>
-            </Tile>
-          </TabPanel>
-
-
-
-          <TabPanel>
-            {w?.hasTeamMember ? (
-              <Grid narrow>
-                <Stat label="Assigned projects" value={w.assignedProjects} />
-                <Stat label="Open tasks" value={w.openTasks} />
-                <Stat label="Completed tasks" value={w.doneTasks} />
-                <Stat label="Days present (30d)" value={w.attendance30} />
-              </Grid>
-            ) : (
-              <p className="esti-label esti-label--secondary">
-                No staff record linked to this account — work metrics appear once you are added to the team.
-              </p>
-            )}
-          </TabPanel>
-
-          <TabPanel>
-            <Stack gap={5}>
-              <Tile className="esti-fill">
-                <Stack gap={5}>
-                  <Field
-                    label="AORMS Unique ID"
-                    value={aormsId ?? "Not yet generated — earned after 100 hours of active use."}
-                  />
-                  {!aormsId && usage && (
-                    <Stack gap={4}>
-                      <ProgressBar
-                        label="Active use"
-                        helperText={`${Math.floor(usage.minutes / 60)} of ${Math.floor(usage.requiredMinutes / 60)} hours`}
-                        value={Math.min(usage.minutes, usage.requiredMinutes)}
-                        max={usage.requiredMinutes}
-                      />
-                      {usage.canGenerate ? (
-                        // The Apply button surfaces only after 5 days of use and
-                        // stays greyed until earned — a deliberate curiosity teaser.
-                        (usage.eligible || aormsIdTeaserVisible(usage.daysUsed)) && (
-                          <Button
-                            size="sm"
-                            disabled={!usage.eligible || generateId.isPending}
-                            onClick={() => generateId.mutate()}
-                          >
-                            Apply for unique ID
-                          </Button>
-                        )
-                      ) : (
-                        <p className="esti-label esti-label--helper">
-                          No identity platform is configured for this install — an owner can
-                          link a handle from Users.
-                        </p>
-                      )}
-                      {generateId.isError && (
-                        <InlineNotification
-                          kind="error"
-                          lowContrast
-                          hideCloseButton
-                          title="Could not generate the ID"
-                          subtitle={generateId.error.message}
-                        />
-                      )}
-                    </Stack>
-                  )}
-                  <Field label="Professional role" value={user?.role ?? "—"} />
-                </Stack>
-              </Tile>
-              {aormsId && (
-                <Tile className="esti-fill">
-                  <Stack gap={4}>
-                    <h4>Welcome kit</h4>
-                    <p className="esti-label esti-label--secondary">
-                      Your welcome kit: a certificate (A4) and your ID card with the Unique
-                      Identification No, printable at credit-card size. Essential and Pro
-                      cards follow — Essential after 100 hours on AORMS, Pro against
-                      certification.
-                    </p>
-                    <div className="esti-row">
-                      <Button
-                        size="sm"
-                        kind="primary"
-                        href={welcomeKitUrl("certificate", { name: user?.fullName, id: aormsId })}
-                        target="_blank"
-                        rel="noopener"
-                      >
-                        Certificate
-                      </Button>
-                      <Button
-                        size="sm"
-                        kind="tertiary"
-                        href={welcomeKitUrl("card", { name: user?.fullName, id: aormsId })}
-                        target="_blank"
-                        rel="noopener"
-                      >
-                        ID card
-                      </Button>
-                    </div>
-                  </Stack>
-                </Tile>
-              )}
-              <PlannedGrid
-                items={[
-                  { title: "Firm Mapping", description: "Registered office / firm association." },
-                ]}
-              />
-            </Stack>
-          </TabPanel>
-
-          <TabPanel>
-            <AccountTab />
-          </TabPanel>
-
-          <TabPanel>
-            <PlannedGrid
-              items={[
-                { title: "Certification Track", description: "ACA / ACE / ACC / ACOM / ACFM / ACO." },
-                { title: "Certification Level", description: "Foundation · Practitioner · Specialist · Master." },
-                { title: "Certification History", description: "Assessments and awarded certifications." },
-              ]}
-            />
-          </TabPanel>
-
-          <TabPanel>
-            <PlannedGrid
-              items={[
-                { title: "Overall Score", description: "Composite professional score." },
-                { title: "Knowledge & Skill", description: "Knowledge contribution + skill assessment scores." },
-                { title: "Platform & Community", description: "Platform competency + community reputation." },
-              ]}
-            />
-          </TabPanel>
-
-          
-          {!isExternal && (
-            <TabPanel>
-              <Tile className="esti-fill">
-                <Stack gap={4}>
-                  <h4>Desktop installers</h4>
-                  <p className="esti-label esti-label--secondary">Installers are managed by AORMS IT and hosted under <code>/downloads</code>.</p>
-                  <Stack gap={2}>
-                    {LITE_DOWNLOAD_URL ? (
-                      <Button kind="primary" size="md" href={LITE_DOWNLOAD_URL}>Download AORMS Lite</Button>
-                    ) : (
-                      <Button kind="ghost" size="md" disabled>Lite: Coming soon</Button>
-                    )}
-                    {PRO_DOWNLOAD_URL ? (
-                      <Button kind="primary" size="md" href={PRO_DOWNLOAD_URL}>Download AORMS Pro</Button>
-                    ) : (
-                      <Button kind="ghost" size="md" disabled>Pro: Coming soon</Button>
-                    )}
-                  </Stack>
-                </Stack>
-              </Tile>
-            </TabPanel>
-          )}
-          <TabPanel>
-            <Tile className="esti-fill">
-              <Stack gap={4}>
-                <p>Theme, dashboard layout, notification preferences and security settings.</p>
-                <Button as={Link} to="/settings">Open settings</Button>
-              </Stack>
-            </Tile>
-          </TabPanel>
-        </TabPanels>
+      <Tabs
+        value={activeTab}
+        onChange={(_e, v) => setTab(v)}
+        variant="scrollable"
+        allowScrollButtonsMobile
+        aria-label="Profile sections"
+      >
+        {tabs.map((t) => (
+          <Tab key={t.label} label={t.label} />
+        ))}
       </Tabs>
+      {tabs[activeTab]?.panel}
     </Stack>
   );
 }
-

@@ -1,14 +1,20 @@
 import {
+  Alert,
+  Box,
   Button,
-  ClickableTile,
-  InlineNotification,
-  Modal,
+  Card,
+  CardActionArea,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
@@ -21,6 +27,13 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   REJECTED: "red",
   ISSUED: "teal",
 };
+
+function chipTokens(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function SitePortal() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -63,61 +76,79 @@ export function SitePortal() {
 
   if (!projectId) {
     return (
-      <main style={{ maxWidth: "640px", margin: "0 auto", padding: "var(--cds-spacing-05)" }}>
-        <Stack gap={6}>
-          <Stack gap={2}>
-            <h2>Site Portal</h2>
-            <p className="esti-label--secondary">{user?.fullName ?? "Site Supervisor"} · Field view</p>
+      <Box component="main" sx={{ maxWidth: 640, mx: "auto", p: 2 }}>
+        <Stack spacing={3}>
+          <Stack spacing={1}>
+            <Typography variant="h5" component="h2">Site Portal</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {user?.fullName ?? "Site Supervisor"} · Field view
+            </Typography>
           </Stack>
-          {projectsQ.isLoading && <p>Loading projects…</p>}
-          {(projectsQ.data ?? []).length === 0 && !projectsQ.isLoading && (
-            <Tile><p>No projects assigned yet.</p></Tile>
+          {projectsQ.isLoading && (
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2">Loading projects…</Typography>
+            </Stack>
           )}
-          <Stack gap={3}>
+          {(projectsQ.data ?? []).length === 0 && !projectsQ.isLoading && (
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="body2">No projects assigned yet.</Typography>
+            </Paper>
+          )}
+          <Stack spacing={1.5}>
             {(projectsQ.data ?? []).map((p) => (
-              <ClickableTile key={p.id} onClick={() => navigate(`/projects/${p.id}`)}>
-                <Stack gap={3}>
-                  <p><strong>{p.ref}</strong> — {p.title}</p>
-                  <p className="esti-label--secondary">{p.status}</p>
-                </Stack>
-              </ClickableTile>
+              <Card key={p.id}>
+                <CardActionArea onClick={() => navigate(`/projects/${p.id}`)} sx={{ p: 2 }}>
+                  <Stack spacing={1.5}>
+                    <Typography variant="body1">
+                      <strong>{p.ref}</strong> — {p.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">{p.status}</Typography>
+                  </Stack>
+                </CardActionArea>
+              </Card>
             ))}
           </Stack>
         </Stack>
-      </main>
+      </Box>
     );
   }
 
   const inspections = inspectionsQ.data ?? [];
 
   return (
-    <main style={{ maxWidth: "640px", margin: "0 auto", padding: "var(--cds-spacing-05)" }}>
-      <Stack gap={6}>
-        <Stack gap={2}>
-          <h2>Site Inspections</h2>
-          <p className="esti-label--secondary">{user?.fullName ?? "Site Supervisor"} · Field view</p>
+    <Box component="main" sx={{ maxWidth: 640, mx: "auto", p: 2 }}>
+      <Stack spacing={3}>
+        <Stack spacing={1}>
+          <Typography variant="h5" component="h2">Site Inspections</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {user?.fullName ?? "Site Supervisor"} · Field view
+          </Typography>
         </Stack>
 
         {/* Site visits requiring supervisor confirmation */}
         {(visitsQ.data ?? []).filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt).length > 0 && (
-          <Stack gap={3}>
-            <h3>Site visits — confirm your attendance</h3>
+          <Stack spacing={1.5}>
+            <Typography variant="h6" component="h3">Site visits — confirm your attendance</Typography>
             {(visitsQ.data ?? [])
               .filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt)
               .map((v) => (
-                <Tile key={v.id}>
-                  <Stack gap={3}>
-                    <strong>{v.plannedDate}</strong>
-                    {v.notes && <p className="esti-label--secondary">{v.notes}</p>}
-                    <Button
-                      size="sm" kind="primary"
-                      disabled={confirmBySupervisor.isPending}
-                      onClick={() => confirmBySupervisor.mutate({ id: v.id })}
-                    >
-                      Confirm attendance
-                    </Button>
+                <Paper key={v.id} sx={{ p: 2 }}>
+                  <Stack spacing={1.5}>
+                    <Typography variant="body1"><strong>{v.plannedDate}</strong></Typography>
+                    {v.notes && <Typography variant="body2" color="text.secondary">{v.notes}</Typography>}
+                    <Box>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={confirmBySupervisor.isPending}
+                        onClick={() => confirmBySupervisor.mutate({ id: v.id })}
+                      >
+                        Confirm attendance
+                      </Button>
+                    </Box>
                   </Stack>
-                </Tile>
+                </Paper>
               ))}
           </Stack>
         )}
@@ -125,82 +156,152 @@ export function SitePortal() {
         {/* Agreed baseline (read-only source of truth) */}
         <ProjectSiteReference projectId={projectId} compact />
 
-        <Button onClick={() => setCreateOpen(true)}>New inspection report</Button>
+        <Box>
+          <Button variant="contained" onClick={() => setCreateOpen(true)}>New inspection report</Button>
+        </Box>
 
-        {inspectionsQ.isLoading && <p>Loading…</p>}
+        {inspectionsQ.isLoading && (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <CircularProgress size={20} />
+            <Typography variant="body2">Loading…</Typography>
+          </Stack>
+        )}
         {inspections.length === 0 && !inspectionsQ.isLoading && (
-          <Tile><p>No inspection reports yet. Tap "New inspection report" to create one.</p></Tile>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="body2">
+              No inspection reports yet. Tap "New inspection report" to create one.
+            </Typography>
+          </Paper>
         )}
 
-        <Stack gap={3}>
+        <Stack spacing={1.5}>
           {inspections.map((insp) => (
-            <Tile key={insp.id}>
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={3}>
-                  <strong>{insp.ref}</strong>
-                  <Tag type={STATUS_TAG[insp.status] ?? "gray"}>{insp.status}</Tag>
-                </Stack>
-                {insp.dateVisit && <p className="esti-label--secondary">Visit: {insp.dateVisit}</p>}
-                {insp.progress && <p>{insp.progress.slice(0, 120)}{insp.progress.length > 120 ? "…" : ""}</p>}
-                {insp.status === "REJECTED" && insp.rejectionNote && (
-                  <InlineNotification
-                    kind="error"
-                    title="Rejected"
-                    subtitle={insp.rejectionNote}
-                    hideCloseButton
+            <Paper key={insp.id} sx={{ p: 2 }}>
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                  <Typography variant="body1"><strong>{insp.ref}</strong></Typography>
+                  <Chip
+                    size="small"
+                    label={insp.status}
+                    sx={chipTokens(STATUS_TAG[insp.status] ?? "gray")}
                   />
+                </Stack>
+                {insp.dateVisit && (
+                  <Typography variant="body2" color="text.secondary">Visit: {insp.dateVisit}</Typography>
+                )}
+                {insp.progress && (
+                  <Typography variant="body2">
+                    {insp.progress.slice(0, 120)}{insp.progress.length > 120 ? "…" : ""}
+                  </Typography>
+                )}
+                {insp.status === "REJECTED" && insp.rejectionNote && (
+                  <Alert severity="error">
+                    <strong>Rejected</strong> — {insp.rejectionNote}
+                  </Alert>
                 )}
                 {insp.status === "DRAFT" && (
-                  <Button
-                    kind="primary"
-                    size="sm"
-                    disabled={submit.isPending}
-                    onClick={() => submit.mutate({ id: insp.id })}
-                  >
-                    {submit.isPending ? "Submitting…" : "Submit for approval"}
-                  </Button>
+                  <Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disabled={submit.isPending}
+                      onClick={() => submit.mutate({ id: insp.id })}
+                    >
+                      {submit.isPending ? "Submitting…" : "Submit for approval"}
+                    </Button>
+                  </Box>
                 )}
               </Stack>
-            </Tile>
+            </Paper>
           ))}
         </Stack>
       </Stack>
 
-      <Modal
+      <Dialog
         open={createOpen}
-        modalHeading="New inspection report"
-        primaryButtonText={createForSite.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={createForSite.isPending}
-        onRequestClose={() => { setCreateOpen(false); resetForm(); }}
-        onRequestSubmit={() =>
-          createForSite.mutate({
-            projectId: projectId!,
-            dateVisit: form.dateVisit || undefined,
-            weather: form.weather || undefined,
-            attendees: form.attendees || undefined,
-            progress: form.progress || undefined,
-            observations: form.observations || undefined,
-            instructions: form.instructions || undefined,
-            inspectorName: user?.fullName || undefined,
-          })
-        }
+        onClose={() => { setCreateOpen(false); resetForm(); }}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <TextInput id="si-date" labelText="Date of visit" type="date" value={form.dateVisit}
-            onChange={(e) => setForm((f) => ({ ...f, dateVisit: e.target.value }))} />
-          <TextInput id="si-weather" labelText="Weather" value={form.weather}
-            onChange={(e) => setForm((f) => ({ ...f, weather: e.target.value }))} />
-          <TextInput id="si-att" labelText="Attendees" value={form.attendees}
-            onChange={(e) => setForm((f) => ({ ...f, attendees: e.target.value }))} />
-          <TextArea id="si-prog" labelText="Progress" rows={3} value={form.progress}
-            onChange={(e) => setForm((f) => ({ ...f, progress: e.target.value }))} />
-          <TextArea id="si-obs" labelText="Observations" rows={3} value={form.observations}
-            onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))} />
-          <TextArea id="si-instr" labelText="Instructions" rows={3} value={form.instructions}
-            onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} />
-        </Stack>
-      </Modal>
-    </main>
+        <DialogTitle>New inspection report</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="si-date"
+              label="Date of visit"
+              type="date"
+              value={form.dateVisit}
+              onChange={(e) => setForm((f) => ({ ...f, dateVisit: e.target.value }))}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              id="si-weather"
+              label="Weather"
+              value={form.weather}
+              onChange={(e) => setForm((f) => ({ ...f, weather: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="si-att"
+              label="Attendees"
+              value={form.attendees}
+              onChange={(e) => setForm((f) => ({ ...f, attendees: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="si-prog"
+              label="Progress"
+              multiline
+              rows={3}
+              value={form.progress}
+              onChange={(e) => setForm((f) => ({ ...f, progress: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="si-obs"
+              label="Observations"
+              multiline
+              rows={3}
+              value={form.observations}
+              onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="si-instr"
+              label="Instructions"
+              multiline
+              rows={3}
+              value={form.instructions}
+              onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => { setCreateOpen(false); resetForm(); }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={createForSite.isPending}
+            onClick={() =>
+              createForSite.mutate({
+                projectId: projectId!,
+                dateVisit: form.dateVisit || undefined,
+                weather: form.weather || undefined,
+                attendees: form.attendees || undefined,
+                progress: form.progress || undefined,
+                observations: form.observations || undefined,
+                instructions: form.instructions || undefined,
+                inspectorName: user?.fullName || undefined,
+              })
+            }
+          >
+            {createForSite.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

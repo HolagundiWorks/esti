@@ -1,69 +1,59 @@
-import { InlineNotification, Stack, TextInput, Tile } from "@carbon/react";
-import { useRef, useState, type RefObject } from "react";
-import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
-import { ScrollAffordance } from "./ScrollAffordance.js";
+import { Alert, Paper, Popover, Stack, TextField, Typography } from "@mui/material";
+import { useState, type RefObject } from "react";
 
 type FloatingCalculatorProps = {
   open: boolean;
   onClose: () => void;
-  /** Dock trigger — excluded from outside-dismiss. */
+  /** Dock trigger — the popover anchors above it. */
   triggerRef: RefObject<HTMLElement | null>;
 };
 
 /**
- * Office-wide floating calculator — anchored beside the dock (no modal backdrop).
- * Closes on pointer-down outside the panel and its trigger.
+ * Office-wide floating calculator — a portaled MUI Popover anchored above its dock
+ * button (never clipped by the dock's transform/overflow). Material UI.
  */
 export function FloatingCalculator({ open, onClose, triggerRef }: FloatingCalculatorProps) {
   const [expr, setExpr] = useState("");
-  const panelRef = useRef<HTMLDivElement>(null);
   const result = safeEval(expr);
 
-  useDismissOnOutsideClick(open, onClose, [panelRef, triggerRef]);
-
-  if (!open) return null;
-
   return (
-    <div ref={panelRef} className="esti-float-widget esti-float-calc">
-      <Tile className="esti-float-panel-shell">
-        <ScrollAffordance>
-          <Stack gap={4}>
-          <h4>Calculator</h4>
-          <TextInput
-            id="calc-screen"
-            labelText="Calculator"
-            hideLabel
-            size="lg"
-            autoFocus
-            placeholder="e.g. (1200*2.5)+18%"
-            value={expr}
-            onChange={(e) => setExpr(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && result !== null)
-                setExpr(formatNum(result));
-            }}
-          />
-          {result === null && expr.trim() ? (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              hideCloseButton
-              title="Invalid expression"
-            />
-          ) : (
-            <Tile>
-              <h3>
-                {expr.trim() === "" ? "0" : `= ${formatNum(result ?? 0)}`}
-              </h3>
-            </Tile>
-          )}
-          <p>
-            + − × ÷ ( ) and % (e.g. 5000+18% = 5900). Enter to reuse the result.
-          </p>
-          </Stack>
-        </ScrollAffordance>
-      </Tile>
-    </div>
+    <Popover
+      open={open}
+      anchorEl={triggerRef.current}
+      onClose={onClose}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+      slotProps={{ paper: { sx: { width: 260, p: 2 } } }}
+    >
+      <Stack spacing={1.5}>
+        <Typography variant="subtitle2">Calculator</Typography>
+        <TextField
+          id="calc-screen"
+          hiddenLabel
+          size="small"
+          autoFocus
+          placeholder="e.g. (1200*2.5)+18%"
+          value={expr}
+          onChange={(e) => setExpr(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && result !== null) setExpr(formatNum(result));
+          }}
+          fullWidth
+        />
+        {result === null && expr.trim() ? (
+          <Alert severity="error">Invalid expression</Alert>
+        ) : (
+          <Paper sx={{ p: 1.5 }}>
+            <Typography variant="h6">
+              {expr.trim() === "" ? "0" : `= ${formatNum(result ?? 0)}`}
+            </Typography>
+          </Paper>
+        )}
+        <Typography variant="caption" color="text.secondary">
+          + − × ÷ ( ) and % (e.g. 5000+18% = 5900). Enter to reuse the result.
+        </Typography>
+      </Stack>
+    </Popover>
   );
 }
 

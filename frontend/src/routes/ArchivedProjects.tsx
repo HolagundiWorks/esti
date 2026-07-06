@@ -1,23 +1,24 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  FileUploaderButton,
-  InlineNotification,
-  Modal,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import { useState } from "react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
+
+const HiddenInput = styled("input")({ display: "none" });
 
 function downloadJson(data: unknown, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -59,6 +60,7 @@ function FileArchiveModal({
   const utils = trpc.useUtils();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const restoreRef = useRef<HTMLInputElement>(null);
   const p = previewQ.data;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -100,60 +102,70 @@ function FileArchiveModal({
   const archived = !!p?.filesArchivedAt;
 
   return (
-    <Modal
-      open
-      modalHeading={`Files — ${project.ref} · ${project.title}`}
-      passiveModal
-      onRequestClose={onClose}
-    >
-      <Stack gap={5}>
-        {previewQ.isLoading && <p>Reading files…</p>}
-        {p && !archived && (
-          <>
-            <p>
-              This project holds <strong>{p.fileCount}</strong> file(s). Archiving downloads a bundle
-              you can re-import later, then removes{" "}
-              <strong>{p.removableCount}</strong> of them from cloud storage to reclaim{" "}
-              <strong>{formatBytes(p.reclaimableBytes)}</strong>.
-              {p.sharedCount > 0 &&
-                ` ${p.sharedCount} file(s) are shared with other projects and are kept.`}
-            </p>
-            <p className="esti-label--helper">
-              Records (invoices, receivables, decisions) stay — only the stored files move to the
-              bundle. Keep the downloaded file safe: it is the only way to restore them.
-            </p>
-            <Button kind="primary" disabled={busy || p.fileCount === 0} onClick={archiveAndDownload}>
-              {busy ? "Archiving…" : "Download package & archive files"}
-            </Button>
-          </>
-        )}
-        {p && archived && (
-          <>
-            <p>
-              Files were archived on{" "}
-              <strong>
-                {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
-                  new Date(p.filesArchivedAt as string),
-                )}
-              </strong>
-              , reclaiming <strong>{formatBytes(p.filesArchivedBytes)}</strong>. Upload the bundle to
-              restore them.
-            </p>
-            <FileUploaderButton
-              labelText={busy ? "Restoring…" : "Restore from bundle"}
-              accept={[".json"]}
-              disableLabelChanges
-              disabled={busy}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const f = e.target.files?.[0];
-                if (f) void restoreFromFile(f);
-              }}
-            />
-          </>
-        )}
-        {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast hideCloseButton />}
-      </Stack>
-    </Modal>
+    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {previewQ.isLoading && <Typography>Reading files…</Typography>}
+          {p && !archived && (
+            <>
+              <Typography>
+                This project holds <strong>{p.fileCount}</strong> file(s). Archiving downloads a bundle
+                you can re-import later, then removes{" "}
+                <strong>{p.removableCount}</strong> of them from cloud storage to reclaim{" "}
+                <strong>{formatBytes(p.reclaimableBytes)}</strong>.
+                {p.sharedCount > 0 &&
+                  ` ${p.sharedCount} file(s) are shared with other projects and are kept.`}
+              </Typography>
+              <Typography variant="body2" className="esti-label esti-label--helper">
+                Records (invoices, receivables, decisions) stay — only the stored files move to the
+                bundle. Keep the downloaded file safe: it is the only way to restore them.
+              </Typography>
+              <Button variant="contained" disabled={busy || p.fileCount === 0} onClick={archiveAndDownload}>
+                {busy ? "Archiving…" : "Download package & archive files"}
+              </Button>
+            </>
+          )}
+          {p && archived && (
+            <>
+              <Typography>
+                Files were archived on{" "}
+                <strong>
+                  {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
+                    new Date(p.filesArchivedAt as string),
+                  )}
+                </strong>
+                , reclaiming <strong>{formatBytes(p.filesArchivedBytes)}</strong>. Upload the bundle to
+                restore them.
+              </Typography>
+              <Button
+                variant="outlined"
+                disabled={busy}
+                onClick={() => restoreRef.current?.click()}
+              >
+                {busy ? "Restoring…" : "Restore from bundle"}
+              </Button>
+              <HiddenInput
+                ref={restoreRef}
+                type="file"
+                accept=".json"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void restoreFromFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </>
+          )}
+          {error && (
+            <Alert severity="error">
+              <AlertTitle>Error</AlertTitle>
+              {error}
+            </Alert>
+          )}
+        </Stack>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -186,39 +198,124 @@ export function ArchivedProjects() {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Reference", flex: 1, minWidth: 120 },
+    { field: "title", headerName: "Project", flex: 1.6, minWidth: 180 },
+    { field: "status", headerName: "Status", flex: 1, minWidth: 120 },
+    {
+      field: "archivedAt",
+      headerName: "Archived",
+      flex: 1,
+      minWidth: 140,
+      renderCell: (params) =>
+        params.row.archivedAt
+          ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
+              new Date(params.row.archivedAt),
+            )
+          : "—",
+    },
+    {
+      field: "purgeAfter",
+      headerName: "Purge after",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (params) => {
+        const pastRetention = params.row.purgeAfter ? params.row.purgeAfter <= today : true;
+        const color = pastRetention ? "red" : "gray";
+        return params.row.purgeAfter ? (
+          <Chip
+            label={params.row.purgeAfter}
+            size="small"
+            sx={{
+              backgroundColor: `var(--cds-tag-background-${color})`,
+              color: `var(--cds-tag-color-${color})`,
+            }}
+          />
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      flex: 1.8,
+      minWidth: 340,
+      renderCell: (params) => {
+        const project = params.row;
+        const pastRetention = project.purgeAfter ? project.purgeAfter <= today : true;
+        return (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+            <Button
+              variant="text"
+              size="small"
+              disabled={restore.isPending}
+              onClick={() => restore.mutate({ id: project.id })}
+            >
+              Restore
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={async () => {
+                const data = await utils.projectOffice.exportData.fetch({ id: project.id });
+                downloadJson(data, `esti-export-${project.ref}-${today}.json`);
+              }}
+            >
+              Export
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() =>
+                setFileTarget({ id: project.id, ref: project.ref, title: project.title })
+              }
+            >
+              Files
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              color="error"
+              disabled={!pastRetention}
+              onClick={() =>
+                setPurgeTarget({ id: project.id, ref: project.ref, title: project.title })
+              }
+            >
+              Purge
+            </Button>
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={7}>
+    <Stack spacing={4}>
       <PageHeader
         title="Archived projects"
         description="Retained projects hidden from active work. Restore preserves full history. Export downloads a JSON bundle before permanent purge. Purge is irreversible and requires the retention period to have expired (default 90 days after archive)."
       />
 
       {message && (
-        <InlineNotification
-          kind="success"
-          title="Done"
-          subtitle={message}
-          lowContrast
-          onCloseButtonClick={() => setMessage(null)}
-        />
+        <Alert severity="success" onClose={() => setMessage(null)}>
+          <AlertTitle>Done</AlertTitle>
+          {message}
+        </Alert>
       )}
       {restore.error && (
-        <InlineNotification
-          kind="error"
-          title="Restore failed"
-          subtitle={restore.error.message}
-          hideCloseButton
-          lowContrast
-        />
+        <Alert severity="error">
+          <AlertTitle>Restore failed</AlertTitle>
+          {restore.error.message}
+        </Alert>
       )}
       {purge.error && (
-        <InlineNotification
-          kind="error"
-          title="Purge failed"
-          subtitle={purge.error.message}
-          hideCloseButton
-          lowContrast
-        />
+        <Alert severity="error">
+          <AlertTitle>Purge failed</AlertTitle>
+          {purge.error.message}
+        </Alert>
       )}
 
       <DataState
@@ -227,107 +324,18 @@ export function ArchivedProjects() {
         columnCount={6}
         empty={{
           title: "No archived projects",
-          description:
-            "Projects archived from their Settings tab will appear here.",
+          description: "Projects archived from their Settings tab will appear here.",
         }}
       >
-        <TableContainer title="Retained project archive">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Reference</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Archived</TableHeader>
-                <TableHeader>Purge after</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(archived.data ?? []).map((project) => {
-                const pastRetention = project.purgeAfter
-                  ? project.purgeAfter <= today
-                  : true;
-                return (
-                  <TableRow key={project.id}>
-                    <TableCell>{project.ref}</TableCell>
-                    <TableCell>{project.title}</TableCell>
-                    <TableCell>{project.status}</TableCell>
-                    <TableCell>
-                      {project.archivedAt
-                        ? new Intl.DateTimeFormat("en-IN", {
-                            dateStyle: "medium",
-                          }).format(new Date(project.archivedAt))
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {project.purgeAfter ? (
-                        <Tag
-                          type={pastRetention ? "red" : "gray"}
-                          size="sm"
-                        >
-                          {project.purgeAfter}
-                        </Tag>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Stack orientation="horizontal" gap={2}>
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          disabled={restore.isPending}
-                          onClick={() => restore.mutate({ id: project.id })}
-                        >
-                          Restore
-                        </Button>
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            const data = await utils.projectOffice.exportData.fetch(
-                              { id: project.id },
-                            );
-                            downloadJson(
-                              data,
-                              `esti-export-${project.ref}-${today}.json`,
-                            );
-                          }}
-                        >
-                          Export
-                        </Button>
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setFileTarget({ id: project.id, ref: project.ref, title: project.title })
-                          }
-                        >
-                          Files
-                        </Button>
-                        <Button
-                          kind="danger--ghost"
-                          size="sm"
-                          disabled={!pastRetention}
-                          onClick={() =>
-                            setPurgeTarget({
-                              id: project.id,
-                              ref: project.ref,
-                              title: project.title,
-                            })
-                          }
-                        >
-                          Purge
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={archived.data ?? []}
+          columns={columns}
+          getRowId={(row) => row.id}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
       {fileTarget && (
@@ -341,39 +349,56 @@ export function ArchivedProjects() {
         />
       )}
 
-      <Modal
+      <Dialog
         open={!!purgeTarget}
-        danger
-        modalHeading={`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}
-        primaryButtonText={purge.isPending ? "Purging…" : "Confirm purge"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!purgePassword || purge.isPending}
-        onRequestClose={() => {
+        onClose={() => {
           setPurgeTarget(null);
           setPurgePassword("");
         }}
-        onRequestSubmit={() => {
-          if (!purgeTarget) return;
-          purge.mutate({ id: purgeTarget.id, password: purgePassword });
-        }}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <p>
-            This permanently retires the project. It is removed from the
-            archive and can never be restored or accessed in the workspace
-            again; its records are retained only as a sealed audit trail, not in
-            any project view. This action cannot be undone. Export the project
-            data first if you need an offline record.
-          </p>
-          <TextInput
-            id="purge-password"
-            labelText="Admin password (confirm identity)"
-            type="password"
-            value={purgePassword}
-            onChange={(e) => setPurgePassword(e.target.value)}
-          />
-        </Stack>
-      </Modal>
+        <DialogTitle>{`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography>
+              This permanently retires the project. It is removed from the archive and can never be
+              restored or accessed in the workspace again; its records are retained only as a sealed
+              audit trail, not in any project view. This action cannot be undone. Export the project
+              data first if you need an offline record.
+            </Typography>
+            <TextField
+              id="purge-password"
+              label="Admin password (confirm identity)"
+              type="password"
+              value={purgePassword}
+              onChange={(e) => setPurgePassword(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="text"
+            onClick={() => {
+              setPurgeTarget(null);
+              setPurgePassword("");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={!purgePassword || purge.isPending}
+            onClick={() => {
+              if (!purgeTarget) return;
+              purge.mutate({ id: purgeTarget.id, password: purgePassword });
+            }}
+          >
+            {purge.isPending ? "Purging…" : "Confirm purge"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

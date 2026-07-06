@@ -1,31 +1,30 @@
 import {
-  Column,
+  Alert,
+  Box,
+  CircularProgress,
   Grid,
-  InlineLoading,
-  InlineNotification,
+  Paper,
   Stack,
-  Tile,
-  Toggle,
-} from "@carbon/react";
-import {
-  Application,
-  Building,
-  ChartBar,
-  Construction,
-  Finance,
-  Settings as SettingsIcon,
-  Task,
-  UserAdmin,
-  UserMultiple,
-  type CarbonIconType,
-} from "@carbon/icons-react";
+  Switch,
+  Typography,
+} from "@mui/material";
+import type { SvgIconComponent } from "@mui/icons-material";
+import Apps from "@mui/icons-material/Apps";
+import Business from "@mui/icons-material/Business";
+import BarChart from "@mui/icons-material/BarChart";
+import Construction from "@mui/icons-material/Construction";
+import AccountBalance from "@mui/icons-material/AccountBalance";
+import Settings from "@mui/icons-material/Settings";
+import Task from "@mui/icons-material/Task";
+import ManageAccounts from "@mui/icons-material/ManageAccounts";
+import Group from "@mui/icons-material/Group";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
 import { Navigate } from "react-router-dom";
 
 type ModuleTileProps = {
-  icon: CarbonIconType;
+  icon: SvgIconComponent;
   title: string;
   description: string;
   enabled: boolean;
@@ -35,28 +34,31 @@ type ModuleTileProps = {
 
 function ModuleTile({ icon: Icon, title, description, enabled, loading, onToggle }: ModuleTileProps) {
   return (
-    <Tile>
-      <Stack gap={4}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <Stack gap={3}>
-            <Icon size={24} />
-            <h4>{title}</h4>
+    <Paper sx={{ p: 2, height: 1 }}>
+      <Stack spacing={2}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <Stack spacing={1.5}>
+            <Icon />
+            <Typography variant="h6" component="h4">{title}</Typography>
           </Stack>
-          <Toggle
+          <Switch
             id={`module-${title.toLowerCase().replace(/\s+/g, "-")}`}
-            labelA="Off"
-            labelB="On"
-            toggled={enabled}
+            checked={enabled}
             disabled={loading}
-            onToggle={onToggle}
-            hideLabel
-            size="sm"
+            onChange={(e) => onToggle(e.target.checked)}
+            size="small"
+            slotProps={{ input: { "aria-label": `${title} enabled` } }}
           />
-        </div>
-        <p className="esti-label esti-label--secondary">{description}</p>
-        {loading && <InlineLoading description="Updating…" />}
+        </Box>
+        <Typography variant="body2" color="text.secondary">{description}</Typography>
+        {loading && (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <CircularProgress size={16} />
+            <Typography variant="body2" color="text.secondary">Updating…</Typography>
+          </Stack>
+        )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }
 
@@ -80,12 +82,19 @@ export function SystemAdmin() {
   const setPmc = trpc.settings.setPmcEnabled.useMutation({ onSuccess: invalidate });
   const setModule = trpc.settings.setModuleEnabled.useMutation({ onSuccess: invalidate });
 
-  if (settingsQ.isLoading) return <InlineLoading description="Loading modules…" />;
+  if (settingsQ.isLoading) {
+    return (
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <CircularProgress size={20} />
+        <Typography variant="body2">Loading modules…</Typography>
+      </Stack>
+    );
+  }
   if (!s) return null;
 
   const modules: ModuleTileProps[] = [
     {
-      icon: UserMultiple,
+      icon: Group,
       title: "Team & HR",
       description: "Staff roster, attendance tracking, leave management, payroll processing, and ASPRF performance scoring. Team mode is the default operating model.",
       enabled: s.hrEnabled,
@@ -101,7 +110,7 @@ export function SystemAdmin() {
       onToggle: (checked) => setPmc.mutate({ pmcEnabled: checked }),
     },
     {
-      icon: Finance,
+      icon: AccountBalance,
       title: "Financial Operations",
       description: "Cash book, office expense tracking, reconciliation, and vendor financial management. Disable only for practices that handle accounting outside ESTI.",
       enabled: s.financialEnabled ?? true,
@@ -109,7 +118,7 @@ export function SystemAdmin() {
       onToggle: (checked) => setModule.mutate({ module: "financial", enabled: checked }),
     },
     {
-      icon: Building,
+      icon: Business,
       title: "Project Operations",
       description: "Full project lifecycle management — phases, billing milestones, drawings, and document control. Core module; disable only during trial or demo reset.",
       enabled: s.projectEnabled ?? true,
@@ -117,7 +126,7 @@ export function SystemAdmin() {
       onToggle: (checked) => setModule.mutate({ module: "project", enabled: checked }),
     },
     {
-      icon: ChartBar,
+      icon: BarChart,
       title: "Admin & Governance",
       description: "Audit log, archived projects, and administrative oversight tools. Keep enabled for all production installations.",
       enabled: s.adminEnabled ?? true,
@@ -125,7 +134,7 @@ export function SystemAdmin() {
       onToggle: (checked) => setModule.mutate({ module: "admin", enabled: checked }),
     },
     {
-      icon: Application,
+      icon: Apps,
       title: "AI Studio",
       description: "ESTI AI agent, billing assistant, and generative drafting tools. Uses firm Ollama instance or per-user cloud API keys. Disable if AI connectivity is not available.",
       enabled: true,
@@ -141,7 +150,7 @@ export function SystemAdmin() {
       onToggle: () => undefined,
     },
     {
-      icon: UserAdmin,
+      icon: ManageAccounts,
       title: "Client & Collaborator Portals",
       description: "External stakeholder portals: client change requests and approvals, collaborator (consultant) scoped access. Enabled automatically when portals are provisioned.",
       enabled: true,
@@ -149,7 +158,7 @@ export function SystemAdmin() {
       onToggle: () => undefined,
     },
     {
-      icon: SettingsIcon,
+      icon: Settings,
       title: "Contractor Bid Portal",
       description: "Magic-link bid submission for contractors. Active as long as at least one tender has an open bid round.",
       enabled: true,
@@ -159,42 +168,40 @@ export function SystemAdmin() {
   ];
 
   return (
-    <Stack gap={7}>
+    <Stack spacing={3}>
       <PageHeader
         title="System administration"
         description="Installation-level controls: module toggles and data management. Visible only to system administrators."
       />
 
       {(setHr.error || setPmc.error || setModule.error) && (
-        <InlineNotification
-          kind="error"
-          title="Could not update module"
-          subtitle={(setHr.error ?? setPmc.error ?? setModule.error)?.message}
-          hideCloseButton
-          lowContrast
-        />
+        <Alert severity="error">
+          <strong>Could not update module</strong>
+          {" — "}
+          {(setHr.error ?? setPmc.error ?? setModule.error)?.message}
+        </Alert>
       )}
 
-      <Stack gap={3}>
-        <h3>Modules</h3>
-        <p className="esti-label esti-label--secondary">
+      <Stack spacing={1.5}>
+        <Typography variant="h6" component="h3">Modules</Typography>
+        <Typography variant="body2" color="text.secondary">
           Toggle switches control which modules appear in the navigation for all staff. Modules marked as always-on are core to ESTI and cannot be disabled from this interface.
-        </p>
+        </Typography>
       </Stack>
 
-      <Grid narrow>
+      <Grid container spacing={2}>
         {modules.map((m) => (
-          <Column key={m.title} lg={4} md={4} sm={4}>
+          <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
             <ModuleTile {...m} />
-          </Column>
+          </Grid>
         ))}
       </Grid>
 
-      <Stack gap={3}>
-        <h3>Data management</h3>
-        <p className="esti-label esti-label--secondary">
+      <Stack spacing={1.5}>
+        <Typography variant="h6" component="h3">Data management</Typography>
+        <Typography variant="body2" color="text.secondary">
           Import demo data and purge operations are available on the Company settings page (Admin → Company) for system administrators only.
-        </p>
+        </Typography>
       </Stack>
     </Stack>
   );

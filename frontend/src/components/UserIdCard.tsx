@@ -1,10 +1,9 @@
-import { UserAvatar } from "@carbon/icons-react";
-import { HeaderGlobalAction, Link } from "@carbon/react";
-import { type CSSProperties, useRef, useState } from "react";
+import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
+import { IconButton, Link, Popover, Tooltip } from "@mui/material";
+import { type CSSProperties, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
-import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 import { ROLE_TO_DISPLAY_LEVEL, STAFF_LEVEL_COLOR, STAFF_LEVEL_LABEL } from "@esti/contracts";
 import { getInitials } from "./StaffAvatar.js";
 
@@ -18,19 +17,16 @@ const ROLE_LABEL: Record<string, string> = {
   CLIENT: "Client",
 };
 
-/** Top-bar user icon → portrait ID card popover. */
+/** Footer user icon → portrait ID card in a portaled Popover (opens above). */
 export function UserIdCard() {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const fabRef = useRef<HTMLButtonElement>(null);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchor);
 
   const profileQ = trpc.users.myProfile.useQuery(undefined, {
     enabled: !!user && open,
     staleTime: 30_000,
   });
-
-  useDismissOnOutsideClick(open, () => setOpen(false), [rootRef, fabRef]);
 
   if (!user) return null;
 
@@ -42,18 +38,27 @@ export function UserIdCard() {
   const levelLabel = displayLevel ? STAFF_LEVEL_LABEL[displayLevel as keyof typeof STAFF_LEVEL_LABEL] : null;
 
   return (
-    <div ref={rootRef} style={{ position: "relative" }}>
-      <HeaderGlobalAction
-        ref={fabRef}
-        aria-label="My profile"
-        isActive={open}
-        onClick={() => setOpen((o) => !o)}
-      >
-        <UserAvatar size={20} />
-      </HeaderGlobalAction>
+    <>
+      <Tooltip title="My profile">
+        <IconButton
+          size="small"
+          aria-label="My profile"
+          color={open ? "primary" : "default"}
+          onClick={(e) => setAnchor(e.currentTarget)}
+        >
+          <AccountCircleOutlined />
+        </IconButton>
+      </Tooltip>
 
-      {open && (
-        <div className="esti-id-card" role="dialog" aria-label="ID card"
+      <Popover
+        open={open}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        slotProps={{ paper: { sx: { p: 0 } } }}
+      >
+        <div className="esti-id-card esti-id-card--pop" role="dialog" aria-label="ID card"
           style={{ "--esti-staff-color": roleColor } as CSSProperties}>
           {/* Photo / initials area with role-colour overlay */}
           <div className="esti-id-card__photo-area">
@@ -64,10 +69,7 @@ export function UserIdCard() {
                 <span className="esti-id-card__initials">{initials}</span>
               </div>
             )}
-            {/* Diagonal colour swatch + code badge (always shown over photo) */}
-            {p?.photoUrl && (
-              <div className="esti-id-card__overlay" />
-            )}
+            {p?.photoUrl && <div className="esti-id-card__overlay" />}
             <div className="esti-id-card__badge">
               <span className="esti-id-card__badge-label">ESTI</span>
               {p?.userCode && (
@@ -92,16 +94,16 @@ export function UserIdCard() {
               </span>
             )}
             <Link
-              as={RouterLink}
+              component={RouterLink}
               to="/profile"
-              onClick={() => setOpen(false)}
+              onClick={() => setAnchor(null)}
               className="esti-id-card__link"
             >
               View profile →
             </Link>
           </div>
         </div>
-      )}
-    </div>
+      </Popover>
+    </>
   );
 }

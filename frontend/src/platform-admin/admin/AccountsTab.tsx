@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
+  Box,
   Button,
-  Form,
-  InlineNotification,
-  Modal,
-  Search,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { trpc } from "../lib/trpc";
 
 type Accounts = Awaited<ReturnType<typeof trpc.admin.accounts.list.query>>;
 
 const fmt = (d: Date | string) => new Date(d).toLocaleDateString();
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 /** A random, readable-enough password to seed the reset field (admin can edit it). */
 function suggestPassword(len = 14): string {
@@ -73,92 +75,108 @@ export default function AccountsTab() {
     }
   }
 
+  const columns: GridColDef<Accounts[number]>[] = [
+    { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
+    {
+      field: "publicId",
+      headerName: "AORMS ID",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (v) => v ?? "—",
+    },
+    { field: "name", headerName: "Name", flex: 1, minWidth: 140, valueGetter: (v) => v ?? "—" },
+    {
+      field: "isPlatformAdmin",
+      headerName: "Role",
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (p) =>
+        p.row.isPlatformAdmin ? (
+          <Chip size="small" label="Platform admin" sx={chipSx("green")} />
+        ) : null,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => fmt(p.row.createdAt),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 150,
+      renderCell: (p) => (
+        <Button variant="text" size="small" onClick={() => openReset(p.row.email)}>
+          Reset password
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       {note && (
-        <InlineNotification
-          kind={note.kind}
-          lowContrast
-          title={note.kind === "success" ? "Done" : "Error"}
-          subtitle={note.text}
-          onCloseButtonClick={() => setNote(null)}
-        />
+        <Alert severity={note.kind} onClose={() => setNote(null)}>
+          {note.text}
+        </Alert>
       )}
 
-      <Form onSubmit={doSearch}>
-        <Search
+      <Box component="form" onSubmit={doSearch}>
+        <TextField
           id="account-search"
-          labelText="Search by email or AORMS-U ID"
+          label="Search by email or AORMS-U ID"
           placeholder="person@firm.in or AORMS-U-2K4P9F"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          fullWidth
         />
-      </Form>
+      </Box>
 
-      <Table size="lg">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>AORMS ID</TableHeader>
-            <TableHeader>Name</TableHeader>
-            <TableHeader>Role</TableHeader>
-            <TableHeader>Created</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {accounts.map((a) => (
-            <TableRow key={a.id}>
-              <TableCell>{a.email}</TableCell>
-              <TableCell>{a.publicId ?? "—"}</TableCell>
-              <TableCell>{a.name ?? "—"}</TableCell>
-              <TableCell>
-                {a.isPlatformAdmin && <Tag type="green">Platform admin</Tag>}
-              </TableCell>
-              <TableCell>{fmt(a.createdAt)}</TableCell>
-              <TableCell>
-                <Button kind="ghost" size="sm" onClick={() => openReset(a.email)}>
-                  Reset password
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-          {accounts.length === 0 && (
-            <TableRow>
-              <TableCell>No accounts found.</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <DataGrid
+        rows={accounts}
+        columns={columns}
+        getRowId={(r) => r.id}
+        density="compact"
+        disableRowSelectionOnClick
+        hideFooter
+        autoHeight
+      />
 
-      <Modal
-        open={reset !== null}
-        modalHeading={`Reset password — ${reset?.email ?? ""}`}
-        primaryButtonText={busy ? "Saving…" : "Reset"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={newPassword.length < 8 || busy}
-        onRequestClose={() => setReset(null)}
-        onRequestSubmit={doReset}
-      >
-        <Stack gap={5}>
-          <p>
-            Sets a new password for this account immediately. Copy it and send it to the
-            person yourself (phone, email, chat) — this does not email them automatically.
-          </p>
-          <TextInput
-            id="reset-pw"
-            labelText="New password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            helperText="Pre-filled with a random password — edit if you prefer your own."
-          />
-        </Stack>
-      </Modal>
+      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{`Reset password — ${reset?.email ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Sets a new password for this account immediately. Copy it and send it to the
+              person yourself (phone, email, chat) — this does not email them automatically.
+            </Typography>
+            <TextField
+              id="reset-pw"
+              label="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              helperText="Pre-filled with a random password — edit if you prefer your own."
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setReset(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={newPassword.length < 8 || busy}
+            onClick={doReset}
+          >
+            {busy ? "Saving…" : "Reset"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

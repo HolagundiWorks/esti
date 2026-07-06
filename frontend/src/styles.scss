@@ -3051,3 +3051,12 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   height: 0;
   display: none;
 }
+
+// ID card inside the footer Popover — flows in place (the Popover positions it),
+// square corners per the shell brief.
+.esti-id-card.esti-id-card--pop {
+  position: static;
+  inset: auto;
+  border-radius: 0;
+  z-index: auto;
+}

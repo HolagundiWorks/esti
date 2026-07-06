@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  OverflowMenu,
-  OverflowMenuItem,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import MoreVert from "@mui/icons-material/MoreVert";
 import { trpc } from "../lib/trpc";
 
 type Licenses = Awaited<ReturnType<typeof trpc.admin.licenses.list.query>>;
@@ -24,13 +25,17 @@ type Orgs = Awaited<ReturnType<typeof trpc.admin.orgs.list.query>>;
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
 type Detail = Awaited<ReturnType<typeof trpc.admin.licenses.get.query>>;
 
-const STATUS_TAG: Record<string, "green" | "teal" | "gray" | "red" | "cool-gray"> = {
+const STATUS_TAG: Record<string, string> = {
   ACTIVE: "green",
   TRIAL: "teal",
   SUSPENDED: "cool-gray",
   REVOKED: "red",
   EXPIRED: "gray",
 };
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 const fmtDate = (d: Date | string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 const toIso = (yyyymmdd: string) =>
   yyyymmdd ? new Date(`${yyyymmdd}T00:00:00.000Z`).toISOString() : null;
@@ -56,6 +61,9 @@ export default function LicensesTab() {
   const [changePlanId, setChangePlanId] = useState("");
 
   const [detail, setDetail] = useState<Detail | null>(null);
+
+  // Row action menu (replaces Carbon OverflowMenu).
+  const [menu, setMenu] = useState<{ anchor: HTMLElement; license: Licenses[number] } | null>(null);
 
   async function load() {
     setLicenses(await trpc.admin.licenses.list.query());
@@ -133,10 +141,106 @@ export default function LicensesTab() {
     setDetail(await trpc.admin.licenses.get.query({ licenseId }));
   }
 
+  function closeMenu() {
+    setMenu(null);
+  }
+
+  const columns: GridColDef<Licenses[number]>[] = [
+    { field: "key", headerName: "Key", flex: 1.4, minWidth: 200 },
+    { field: "orgName", headerName: "Organization", flex: 1.2, minWidth: 160 },
+    { field: "productCode", headerName: "Product", flex: 1, minWidth: 120 },
+    { field: "planCode", headerName: "Plan", flex: 1, minWidth: 120 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")} />
+      ),
+    },
+    {
+      field: "expiresAt",
+      headerName: "Expires",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => fmtDate(p.row.expiresAt),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 70,
+      align: "right",
+      renderCell: (p) => (
+        <IconButton
+          aria-label="License actions"
+          size="small"
+          onClick={(e) => setMenu({ anchor: e.currentTarget, license: p.row })}
+        >
+          <MoreVert fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const deviceColumns: GridColDef<Detail["devices"][number]>[] = [
+    { field: "deviceId", headerName: "Device", flex: 1.2, minWidth: 160 },
+    { field: "name", headerName: "Name", flex: 1, minWidth: 120, valueGetter: (v) => v ?? "—" },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipSx(p.row.status === "ACTIVE" ? "green" : "red")} />
+      ),
+    },
+    {
+      field: "lastSeenAt",
+      headerName: "Last seen",
+      flex: 1.2,
+      minWidth: 160,
+      renderCell: (p) => (p.row.lastSeenAt ? new Date(p.row.lastSeenAt).toLocaleString() : "—"),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 130,
+      renderCell: (p) =>
+        p.row.status === "ACTIVE" && detail ? (
+          <Button
+            variant="text"
+            color="error"
+            size="small"
+            onClick={() => deactivateDevice(p.row.id, detail.license.id)}
+          >
+            Deactivate
+          </Button>
+        ) : null,
+    },
+  ];
+
+  const eventColumns: GridColDef<Detail["events"][number]>[] = [
+    {
+      field: "at",
+      headerName: "When",
+      flex: 1.2,
+      minWidth: 180,
+      renderCell: (p) => new Date(p.row.at).toLocaleString(),
+    },
+    { field: "type", headerName: "Event", flex: 1, minWidth: 140 },
+    { field: "actor", headerName: "Actor", flex: 1, minWidth: 140, valueGetter: (v) => v ?? "—" },
+  ];
+
   return (
-    <Stack gap={5}>
-      <div>
+    <Stack spacing={2}>
+      <Box>
         <Button
+          variant="contained"
           onClick={() => {
             setNewKey(null);
             setError(null);
@@ -145,252 +249,269 @@ export default function LicensesTab() {
         >
           New license
         </Button>
-      </div>
+      </Box>
 
       {newKey && (
-        <InlineNotification
-          kind="success"
-          lowContrast
-          title="License created — key:"
-          subtitle={newKey}
-          onCloseButtonClick={() => setNewKey(null)}
-        />
+        <Alert severity="success" onClose={() => setNewKey(null)}>
+          License created — key: {newKey}
+        </Alert>
       )}
 
-      <Table size="lg">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Key</TableHeader>
-            <TableHeader>Organization</TableHeader>
-            <TableHeader>Product</TableHeader>
-            <TableHeader>Plan</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Expires</TableHeader>
-            <TableHeader>{""}</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {licenses.map((l) => (
-            <TableRow key={l.id}>
-              <TableCell>{l.key}</TableCell>
-              <TableCell>{l.orgName}</TableCell>
-              <TableCell>{l.productCode}</TableCell>
-              <TableCell>{l.planCode}</TableCell>
-              <TableCell>
-                <Tag type={STATUS_TAG[l.status] ?? "gray"} size="sm">
-                  {l.status}
-                </Tag>
-              </TableCell>
-              <TableCell>{fmtDate(l.expiresAt)}</TableCell>
-              <TableCell>
-                <OverflowMenu aria-label="License actions" flipped>
-                  <OverflowMenuItem itemText="Details" onClick={() => openDetail(l.id)} />
-                  <OverflowMenuItem
-                    itemText="Change plan…"
-                    onClick={() => {
-                      setPlanChange({ id: l.id, productCode: l.productCode });
-                      const plans =
-                        products.find((p) => p.code === l.productCode)?.plans ?? [];
-                      setChangePlanId(plans.find((pl) => pl.code !== l.planCode)?.id ?? plans[0]?.id ?? "");
-                    }}
-                  />
-                  <OverflowMenuItem
-                    itemText="Extend / set expiry…"
-                    onClick={() => {
-                      setExtendId(l.id);
-                      setExtendDate("");
-                    }}
-                  />
-                  <OverflowMenuItem itemText="Reinstate (Active)" onClick={() => setStatus(l.id, "ACTIVE")} />
-                  <OverflowMenuItem itemText="Suspend" onClick={() => setStatus(l.id, "SUSPENDED")} />
-                  <OverflowMenuItem
-                    itemText="Revoke"
-                    isDelete
-                    hasDivider
-                    onClick={() => setStatus(l.id, "REVOKED")}
-                  />
-                </OverflowMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DataGrid
+        rows={licenses}
+        columns={columns}
+        getRowId={(r) => r.id}
+        density="compact"
+        disableRowSelectionOnClick
+        hideFooter
+        autoHeight
+      />
+
+      <Menu anchorEl={menu?.anchor ?? null} open={menu !== null} onClose={closeMenu}>
+        <MenuItem
+          onClick={() => {
+            if (menu) void openDetail(menu.license.id);
+            closeMenu();
+          }}
+        >
+          Details
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) {
+              const l = menu.license;
+              setPlanChange({ id: l.id, productCode: l.productCode });
+              const plans = products.find((p) => p.code === l.productCode)?.plans ?? [];
+              setChangePlanId(plans.find((pl) => pl.code !== l.planCode)?.id ?? plans[0]?.id ?? "");
+            }
+            closeMenu();
+          }}
+        >
+          Change plan…
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) {
+              setExtendId(menu.license.id);
+              setExtendDate("");
+            }
+            closeMenu();
+          }}
+        >
+          Extend / set expiry…
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) void setStatus(menu.license.id, "ACTIVE");
+            closeMenu();
+          }}
+        >
+          Reinstate (Active)
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) void setStatus(menu.license.id, "SUSPENDED");
+            closeMenu();
+          }}
+        >
+          Suspend
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            if (menu) void setStatus(menu.license.id, "REVOKED");
+            closeMenu();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          Revoke
+        </MenuItem>
+      </Menu>
 
       {/* Create license */}
-      <Modal
-        open={createOpen}
-        modalHeading="New license"
-        primaryButtonText="Create"
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!orgId || !productId || !planId}
-        onRequestClose={() => setCreateOpen(false)}
-        onRequestSubmit={create}
-      >
-        <Stack gap={5}>
-          <Select id="lic-org" labelText="Organization" value={orgId} onChange={(e) => setOrgId(e.target.value)}>
-            {orgs.map((o) => (
-              <SelectItem key={o.id} value={o.id} text={o.name} />
-            ))}
-          </Select>
-          <Select
-            id="lic-product"
-            labelText="Product"
-            value={productId}
-            onChange={(e) => {
-              setProductId(e.target.value);
-              const p = products.find((x) => x.id === e.target.value);
-              setPlanId(p?.plans[0]?.id ?? "");
-            }}
+      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New license</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="lic-org"
+              select
+              label="Organization"
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              fullWidth
+            >
+              {orgs.map((o) => (
+                <MenuItem key={o.id} value={o.id}>
+                  {o.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="lic-product"
+              select
+              label="Product"
+              value={productId}
+              onChange={(e) => {
+                setProductId(e.target.value);
+                const p = products.find((x) => x.id === e.target.value);
+                setPlanId(p?.plans[0]?.id ?? "");
+              }}
+              fullWidth
+            >
+              {products.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="lic-plan"
+              select
+              label="Plan"
+              value={planId}
+              onChange={(e) => setPlanId(e.target.value)}
+              fullWidth
+            >
+              {plansForProduct.map((pl) => (
+                <MenuItem key={pl.id} value={pl.id}>
+                  {pl.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="lic-expires"
+              type="date"
+              label="Expires (optional — blank = perpetual)"
+              value={expires}
+              onChange={(e) => setExpires(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            {error && <Alert severity="error">{error}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setCreateOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!orgId || !productId || !planId}
+            onClick={create}
           >
-            {products.map((p) => (
-              <SelectItem key={p.id} value={p.id} text={p.name} />
-            ))}
-          </Select>
-          <Select id="lic-plan" labelText="Plan" value={planId} onChange={(e) => setPlanId(e.target.value)}>
-            {plansForProduct.map((pl) => (
-              <SelectItem key={pl.id} value={pl.id} text={pl.name} />
-            ))}
-          </Select>
-          <TextInput
-            id="lic-expires"
-            type="date"
-            labelText="Expires (optional — blank = perpetual)"
-            value={expires}
-            onChange={(e) => setExpires(e.target.value)}
-          />
-          {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast />}
-        </Stack>
-      </Modal>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Extend */}
-      <Modal
-        open={extendId !== null}
-        modalHeading="Extend / set expiry"
-        primaryButtonText="Save"
-        secondaryButtonText="Cancel"
-        onRequestClose={() => setExtendId(null)}
-        onRequestSubmit={doExtend}
-      >
-        <TextInput
-          id="ext-date"
-          type="date"
-          labelText="New expiry (blank = perpetual)"
-          value={extendDate}
-          onChange={(e) => setExtendDate(e.target.value)}
-        />
-      </Modal>
+      <Dialog open={extendId !== null} onClose={() => setExtendId(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Extend / set expiry</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <TextField
+              id="ext-date"
+              type="date"
+              label="New expiry (blank = perpetual)"
+              value={extendDate}
+              onChange={(e) => setExtendDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setExtendId(null)}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={doExtend}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Change plan (upgrade / downgrade) */}
-      <Modal
-        open={planChange !== null}
-        modalHeading="Change plan"
-        primaryButtonText="Apply"
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!changePlanId}
-        onRequestClose={() => setPlanChange(null)}
-        onRequestSubmit={doChangePlan}
-      >
-        <Stack gap={5}>
-          <p>
-            Move this licence to another {planChange?.productCode} plan. Seat/device limits adopt
-            the new plan; the node applies it on its next licence refresh.
-          </p>
-          <Select
-            id="change-plan"
-            labelText="New plan"
-            value={changePlanId}
-            onChange={(e) => setChangePlanId(e.target.value)}
-          >
-            {plansForChange.map((pl) => (
-              <SelectItem key={pl.id} value={pl.id} text={pl.name} />
-            ))}
-          </Select>
-          {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast />}
-        </Stack>
-      </Modal>
+      <Dialog open={planChange !== null} onClose={() => setPlanChange(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Change plan</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Move this licence to another {planChange?.productCode} plan. Seat/device limits adopt
+              the new plan; the node applies it on its next licence refresh.
+            </Typography>
+            <TextField
+              id="change-plan"
+              select
+              label="New plan"
+              value={changePlanId}
+              onChange={(e) => setChangePlanId(e.target.value)}
+              fullWidth
+            >
+              {plansForChange.map((pl) => (
+                <MenuItem key={pl.id} value={pl.id}>
+                  {pl.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            {error && <Alert severity="error">{error}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setPlanChange(null)}>
+            Cancel
+          </Button>
+          <Button variant="contained" disabled={!changePlanId} onClick={doChangePlan}>
+            Apply
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Details: devices + event log */}
-      <Modal
-        open={detail !== null}
-        passiveModal
-        modalHeading={detail ? `License ${detail.license.key}` : ""}
-        onRequestClose={() => setDetail(null)}
-      >
+      <Dialog open={detail !== null} onClose={() => setDetail(null)} fullWidth maxWidth="lg">
+        <DialogTitle>{detail ? `License ${detail.license.key}` : ""}</DialogTitle>
         {detail && (
-          <Stack gap={6}>
-            <Stack gap={2}>
-              <h4>Devices</h4>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Device</TableHeader>
-                    <TableHeader>Name</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Last seen</TableHeader>
-                    <TableHeader>{""}</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {detail.devices.length === 0 && (
-                    <TableRow>
-                      <TableCell>No devices activated.</TableCell>
-                      <TableCell>{""}</TableCell>
-                      <TableCell>{""}</TableCell>
-                      <TableCell>{""}</TableCell>
-                      <TableCell>{""}</TableCell>
-                    </TableRow>
-                  )}
-                  {detail.devices.map((d) => (
-                    <TableRow key={d.id}>
-                      <TableCell>{d.deviceId}</TableCell>
-                      <TableCell>{d.name ?? "—"}</TableCell>
-                      <TableCell>
-                        <Tag type={d.status === "ACTIVE" ? "green" : "red"} size="sm">
-                          {d.status}
-                        </Tag>
-                      </TableCell>
-                      <TableCell>{d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : "—"}</TableCell>
-                      <TableCell>
-                        {d.status === "ACTIVE" && (
-                          <Button
-                            kind="danger--ghost"
-                            size="sm"
-                            onClick={() => deactivateDevice(d.id, detail.license.id)}
-                          >
-                            Deactivate
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Stack>
+          <DialogContent>
+            <Stack spacing={4} sx={{ mt: 1 }}>
+              <Stack spacing={1}>
+                <Typography variant="h6" component="h4">
+                  Devices
+                </Typography>
+                <DataGrid
+                  rows={detail.devices}
+                  columns={deviceColumns}
+                  getRowId={(r) => r.id}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  hideFooter
+                  autoHeight
+                  localeText={{ noRowsLabel: "No devices activated." }}
+                />
+              </Stack>
 
-            <Stack gap={2}>
-              <h4>Event log</h4>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>When</TableHeader>
-                    <TableHeader>Event</TableHeader>
-                    <TableHeader>Actor</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {detail.events.map((ev) => (
-                    <TableRow key={ev.id}>
-                      <TableCell>{new Date(ev.at).toLocaleString()}</TableCell>
-                      <TableCell>{ev.type}</TableCell>
-                      <TableCell>{ev.actor ?? "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <Stack spacing={1}>
+                <Typography variant="h6" component="h4">
+                  Event log
+                </Typography>
+                <DataGrid
+                  rows={detail.events}
+                  columns={eventColumns}
+                  getRowId={(r) => r.id}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  hideFooter
+                  autoHeight
+                />
+              </Stack>
             </Stack>
-          </Stack>
+          </DialogContent>
         )}
-      </Modal>
+        <DialogActions>
+          <Button variant="contained" onClick={() => setDetail(null)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

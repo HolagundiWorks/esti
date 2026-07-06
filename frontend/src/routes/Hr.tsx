@@ -1,24 +1,20 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Paper,
   Stack,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +32,19 @@ const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
 };
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
+
 export function Hr({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { canSalary } = useCapabilities();
@@ -47,6 +56,8 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
     date: new Date().toISOString().slice(0, 10),
   });
   const team = (teamQ.data ?? []).filter((m) => m.active);
+
+  const [tab, setTab] = useState(0);
 
   const setLeave = trpc.leaves.setStatus.useMutation({
     onSuccess: () => utils.leaves.list.invalidate(),
@@ -101,8 +112,115 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
     },
   });
 
+  const leaveColumns: GridColDef[] = [
+    { field: "name", headerName: "Member", flex: 1, minWidth: 140 },
+    {
+      field: "type",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (_v, row) => LEAVE_TYPES[row.type as LeaveTypeCode] ?? row.type,
+    },
+    { field: "fromDate", headerName: "From", width: 120 },
+    { field: "toDate", headerName: "To", width: 120 },
+    { field: "days", headerName: "Days", width: 90 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (p) => <TagChip color={LEAVE_TAG[p.row.status] ?? "blue"} label={p.row.status} />,
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      sortable: false,
+      filterable: false,
+      minWidth: 180,
+      flex: 1,
+      renderCell: (p) =>
+        p.row.status === "REQUESTED" ? (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setLeave.mutate({ id: p.row.id, status: "APPROVED" })}
+            >
+              Approve
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setLeave.mutate({ id: p.row.id, status: "REJECTED" })}
+            >
+              Reject
+            </Button>
+          </Stack>
+        ) : null,
+    },
+  ];
+
+  const payrollColumns: GridColDef[] = [
+    { field: "name", headerName: "Member", flex: 1, minWidth: 140 },
+    { field: "month", headerName: "Month", width: 120 },
+    ...(canSalary
+      ? ([
+          {
+            field: "grossPaise",
+            headerName: "Gross",
+            width: 130,
+            valueGetter: (v: number) => formatINR(v, { paise: false }),
+          },
+          {
+            field: "deductionsPaise",
+            headerName: "Deductions",
+            width: 130,
+            valueGetter: (v: number) => formatINR(v, { paise: false }),
+          },
+          {
+            field: "netPaise",
+            headerName: "Net",
+            width: 130,
+            valueGetter: (v: number) => formatINR(v, { paise: false }),
+          },
+        ] as GridColDef[])
+      : []),
+    {
+      field: "status",
+      headerName: "Status",
+      minWidth: 160,
+      flex: 1,
+      renderCell: (p) => (
+        <TagChip
+          color={p.row.paid ? "green" : "gray"}
+          label={p.row.paid ? `Paid ${p.row.paidDate ?? ""}` : "Unpaid"}
+        />
+      ),
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      sortable: false,
+      filterable: false,
+      width: 130,
+      renderCell: (p) =>
+        !p.row.paid ? (
+          <Button variant="text" size="small" onClick={() => markPaid.mutate({ id: p.row.id })}>
+            Mark paid
+          </Button>
+        ) : null,
+    },
+    {
+      field: "slip",
+      headerName: "Slip",
+      sortable: false,
+      filterable: false,
+      width: 140,
+      renderCell: (p) => <PayslipPdfCell payslipId={p.row.id} initialStatus={p.row.pdfStatus} />,
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!embedded && (
         <PageHeader
           title="HR"
@@ -110,323 +228,243 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
         />
       )}
 
-      <Tabs>
-        <TabList aria-label="HR sections" contained>
-          <Tab>Operations</Tab>
-          <Tab>Staff profiles</Tab>
-          <Tab>Applications</Tab>
-        </TabList>
-        <TabPanels>
-          {/* ── Operations panel ── */}
-          <TabPanel>
-            <Stack gap={6}>
+      <Box>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="HR sections">
+          <Tab label="Operations" />
+          <Tab label="Staff profiles" />
+          <Tab label="Applications" />
+        </Tabs>
+      </Box>
 
-      <Stack orientation="horizontal" gap={5}>
-        <h2 className="esti-grow">Today&apos;s attendance</h2>
-        <Button kind="ghost" size="sm" onClick={() => navigate("/tasks?tab=attendance")}>
-          Open register
-        </Button>
-      </Stack>
-      <p>
-        {(attTodayQ.data?.rows ?? []).filter((r) => r.status === "PRESENT" || r.status === "HALF_DAY").length} present /{" "}
-        {(attTodayQ.data?.rows ?? []).length} staff · mark daily status in Work → Attendance.
-      </p>
+      {/* ── Operations panel ── */}
+      {tab === 0 && (
+        <Stack spacing={3}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+              Today&apos;s attendance
+            </Typography>
+            <Button variant="text" size="small" onClick={() => navigate("/tasks?tab=attendance")}>
+              Open register
+            </Button>
+          </Box>
+          <Typography variant="body2">
+            {(attTodayQ.data?.rows ?? []).filter((r) => r.status === "PRESENT" || r.status === "HALF_DAY").length} present /{" "}
+            {(attTodayQ.data?.rows ?? []).length} staff · mark daily status in Work → Attendance.
+          </Typography>
 
-      {/* Leaves */}
-      <Stack orientation="horizontal" gap={5}>
-        <h2 className="esti-grow">Leaves</h2>
-        <Button
-          size="sm"
-          disabled={team.length === 0}
-          onClick={() => setLvOpen(true)}
-        >
-          Request leave
-        </Button>
-      </Stack>
-      <TableContainer title="Leave register">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Member</TableHeader>
-              <TableHeader>Type</TableHeader>
-              <TableHeader>From</TableHeader>
-              <TableHeader>To</TableHeader>
-              <TableHeader>Days</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Action</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(leavesQ.data ?? []).map((l) => (
-              <TableRow key={l.id}>
-                <TableCell>{l.name}</TableCell>
-                <TableCell>
-                  {LEAVE_TYPES[l.type as LeaveTypeCode] ?? l.type}
-                </TableCell>
-                <TableCell>{l.fromDate}</TableCell>
-                <TableCell>{l.toDate}</TableCell>
-                <TableCell>{l.days}</TableCell>
-                <TableCell>
-                  <Tag type={LEAVE_TAG[l.status] ?? "blue"}>{l.status}</Tag>
-                </TableCell>
-                <TableCell>
-                  {l.status === "REQUESTED" && (
-                    <Stack orientation="horizontal" gap={2}>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setLeave.mutate({ id: l.id, status: "APPROVED" })
-                        }
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setLeave.mutate({ id: l.id, status: "REJECTED" })
-                        }
-                      >
-                        Reject
-                      </Button>
-                    </Stack>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          {/* Leaves */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+              Leaves
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={team.length === 0}
+              onClick={() => setLvOpen(true)}
+            >
+              Request leave
+            </Button>
+          </Box>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2">Leave register</Typography>
+              <DataGrid
+                rows={leavesQ.data ?? []}
+                columns={leaveColumns}
+                loading={leavesQ.isLoading}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+          </Paper>
 
-      {/* Payroll */}
-      <Stack orientation="horizontal" gap={5}>
-        <h2 className="esti-grow">Payroll</h2>
-        <Button
-          size="sm"
-          disabled={team.length === 0}
-          onClick={() => setPyOpen(true)}
-        >
-          Generate payslip
-        </Button>
-      </Stack>
-      <TableContainer
-        title="Payslips"
-        description="Monthly salary — net of deductions"
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Member</TableHeader>
-              <TableHeader>Month</TableHeader>
-              {canSalary && <TableHeader>Gross</TableHeader>}
-              {canSalary && <TableHeader>Deductions</TableHeader>}
-              {canSalary && <TableHeader>Net</TableHeader>}
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Action</TableHeader>
-              <TableHeader>Slip</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(payrollQ.data ?? []).map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.name}</TableCell>
-                <TableCell>{p.month}</TableCell>
-                {canSalary && (
-                  <TableCell>{formatINR(p.grossPaise, { paise: false })}</TableCell>
-                )}
-                {canSalary && (
-                  <TableCell>{formatINR(p.deductionsPaise, { paise: false })}</TableCell>
-                )}
-                {canSalary && (
-                  <TableCell>{formatINR(p.netPaise, { paise: false })}</TableCell>
-                )}
-                <TableCell>
-                  <Tag type={p.paid ? "green" : "gray"}>
-                    {p.paid ? `Paid ${p.paidDate ?? ""}` : "Unpaid"}
-                  </Tag>
-                </TableCell>
-                <TableCell>
-                  {!p.paid && (
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      onClick={() => markPaid.mutate({ id: p.id })}
-                    >
-                      Mark paid
-                    </Button>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <PayslipPdfCell
-                    payslipId={p.id}
-                    initialStatus={p.pdfStatus}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          {/* Payroll */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+              Payroll
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={team.length === 0}
+              onClick={() => setPyOpen(true)}
+            >
+              Generate payslip
+            </Button>
+          </Box>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2">Payslips</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Monthly salary — net of deductions
+              </Typography>
+              <DataGrid
+                rows={payrollQ.data ?? []}
+                columns={payrollColumns}
+                loading={payrollQ.isLoading}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+          </Paper>
+        </Stack>
+      )}
+
+      {/* ── Staff profiles panel ── */}
+      {tab === 1 && <StaffProfilesTab />}
+
+      {/* ── Applications panel ── */}
+      {tab === 2 && <ApplicationsTab />}
 
       {/* Leave modal */}
-      <Modal
-        open={lvOpen}
-        modalHeading="Request leave"
-        primaryButtonText={createLeave.isPending ? "Saving…" : "Submit"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !lv.teamMemberId ||
-          !lv.fromDate ||
-          !lv.toDate ||
-          createLeave.isPending
-        }
-        onRequestClose={() => setLvOpen(false)}
-        onRequestSubmit={() =>
-          createLeave.mutate({
-            teamMemberId: lv.teamMemberId,
-            type: lv.type,
-            fromDate: lv.fromDate,
-            toDate: lv.toDate,
-            days: Number(lv.days) || 1,
-            reason: lv.reason || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="lv-m"
-            labelText="Member"
-            value={lv.teamMemberId}
-            onChange={(e) =>
-              setLv((f) => ({ ...f, teamMemberId: e.target.value }))
+      <Dialog open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Request leave</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="lv-m"
+              select
+              label="Member"
+              value={lv.teamMemberId}
+              onChange={(e) => setLv((f) => ({ ...f, teamMemberId: e.target.value }))}
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {team.map((m) => (
+                <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="lv-t"
+              select
+              label="Type"
+              value={lv.type}
+              onChange={(e) => setLv((f) => ({ ...f, type: e.target.value as LeaveTypeCode }))}
+            >
+              {(Object.keys(LEAVE_TYPES) as LeaveTypeCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{LEAVE_TYPES[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="lv-f"
+              label="From"
+              type="date"
+              value={lv.fromDate}
+              onChange={(e) => setLv((f) => ({ ...f, fromDate: e.target.value }))}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              id="lv-to"
+              label="To"
+              type="date"
+              value={lv.toDate}
+              onChange={(e) => setLv((f) => ({ ...f, toDate: e.target.value }))}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              id="lv-d"
+              label="Days"
+              type="number"
+              value={lv.days}
+              onChange={(e) => setLv((f) => ({ ...f, days: e.target.value }))}
+            />
+            <TextField
+              id="lv-r"
+              label="Reason (optional)"
+              value={lv.reason}
+              onChange={(e) => setLv((f) => ({ ...f, reason: e.target.value }))}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setLvOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!lv.teamMemberId || !lv.fromDate || !lv.toDate || createLeave.isPending}
+            onClick={() =>
+              createLeave.mutate({
+                teamMemberId: lv.teamMemberId,
+                type: lv.type,
+                fromDate: lv.fromDate,
+                toDate: lv.toDate,
+                days: Number(lv.days) || 1,
+                reason: lv.reason || undefined,
+              })
             }
           >
-            <SelectItem value="" text="Select…" />
-            {team.map((m) => (
-              <SelectItem key={m.id} value={m.id} text={m.name} />
-            ))}
-          </Select>
-          <Select
-            id="lv-t"
-            labelText="Type"
-            value={lv.type}
-            onChange={(e) =>
-              setLv((f) => ({ ...f, type: e.target.value as LeaveTypeCode }))
-            }
-          >
-            {(Object.keys(LEAVE_TYPES) as LeaveTypeCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={LEAVE_TYPES[k]} />
-            ))}
-          </Select>
-          <TextInput
-            id="lv-f"
-            labelText="From"
-            type="date"
-            value={lv.fromDate}
-            onChange={(e) => setLv((f) => ({ ...f, fromDate: e.target.value }))}
-          />
-          <TextInput
-            id="lv-to"
-            labelText="To"
-            type="date"
-            value={lv.toDate}
-            onChange={(e) => setLv((f) => ({ ...f, toDate: e.target.value }))}
-          />
-          <TextInput
-            id="lv-d"
-            labelText="Days"
-            type="number"
-            value={lv.days}
-            onChange={(e) => setLv((f) => ({ ...f, days: e.target.value }))}
-          />
-          <TextInput
-            id="lv-r"
-            labelText="Reason (optional)"
-            value={lv.reason}
-            onChange={(e) => setLv((f) => ({ ...f, reason: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
+            {createLeave.isPending ? "Saving…" : "Submit"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Payslip modal */}
-      <Modal
-        open={pyOpen}
-        modalHeading="Generate payslip"
-        primaryButtonText={generate.isPending ? "Saving…" : "Generate"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !py.teamMemberId ||
-          !/^\d{4}-\d{2}$/.test(py.month) ||
-          generate.isPending
-        }
-        onRequestClose={() => setPyOpen(false)}
-        onRequestSubmit={() =>
-          generate.mutate({
-            teamMemberId: py.teamMemberId,
-            month: py.month,
-            grossPaise: py.gross ? parseRupeeInput(py.gross) : undefined,
-            deductionsPaise: py.deductions ? parseRupeeInput(py.deductions) : 0,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="py-m"
-            labelText="Member"
-            value={py.teamMemberId}
-            onChange={(e) =>
-              setPy((f) => ({ ...f, teamMemberId: e.target.value }))
+      <Dialog open={pyOpen} onClose={() => setPyOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Generate payslip</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="py-m"
+              select
+              label="Member"
+              value={py.teamMemberId}
+              onChange={(e) => setPy((f) => ({ ...f, teamMemberId: e.target.value }))}
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {team.map((m) => (
+                <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="py-mo"
+              label="Month (YYYY-MM)"
+              value={py.month}
+              onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
+            />
+            {canSalary && (
+              <TextField
+                id="py-g"
+                label="Gross (₹ — blank = member salary)"
+                type="number"
+                value={py.gross}
+                onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
+              />
+            )}
+            {canSalary && (
+              <TextField
+                id="py-d"
+                label="Deductions (₹)"
+                type="number"
+                value={py.deductions}
+                onChange={(e) => setPy((f) => ({ ...f, deductions: e.target.value }))}
+              />
+            )}
+            {generate.error && (
+              <Typography variant="body2" color="error">{generate.error.message}</Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setPyOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!py.teamMemberId || !/^\d{4}-\d{2}$/.test(py.month) || generate.isPending}
+            onClick={() =>
+              generate.mutate({
+                teamMemberId: py.teamMemberId,
+                month: py.month,
+                grossPaise: py.gross ? parseRupeeInput(py.gross) : undefined,
+                deductionsPaise: py.deductions ? parseRupeeInput(py.deductions) : 0,
+              })
             }
           >
-            <SelectItem value="" text="Select…" />
-            {team.map((m) => (
-              <SelectItem key={m.id} value={m.id} text={m.name} />
-            ))}
-          </Select>
-          <TextInput
-            id="py-mo"
-            labelText="Month (YYYY-MM)"
-            value={py.month}
-            onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
-          />
-          {canSalary && (
-            <TextInput
-              id="py-g"
-              labelText="Gross (₹ — blank = member salary)"
-              type="number"
-              value={py.gross}
-              onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
-            />
-          )}
-          {canSalary && (
-            <TextInput
-              id="py-d"
-              labelText="Deductions (₹)"
-              type="number"
-              value={py.deductions}
-              onChange={(e) =>
-                setPy((f) => ({ ...f, deductions: e.target.value }))
-              }
-            />
-          )}
-          {generate.error && <p>{generate.error.message}</p>}
-        </Stack>
-      </Modal>
-            </Stack>
-          </TabPanel>
-
-          {/* ── Staff profiles panel ── */}
-          <TabPanel>
-            <StaffProfilesTab />
-          </TabPanel>
-
-          {/* ── Applications panel ── */}
-          <TabPanel>
-            <ApplicationsTab />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+            {generate.isPending ? "Saving…" : "Generate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

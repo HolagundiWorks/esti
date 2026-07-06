@@ -1,17 +1,18 @@
 import {
+  Alert,
+  Box,
   Button,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineNotification,
-  Modal,
-  Search,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import {
   EMPLOYMENT_TYPES,
   type EmploymentTypeCode,
@@ -71,7 +72,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
   );
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!embedded && (
         <PageHeader
           title="Team"
@@ -80,16 +81,19 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {/* Toolbar */}
-      <div className="esti-team-bar">
-        <Search
+      <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}>
+        <TextField
           id="team-search"
-          labelText="Search team"
+          label="Search team"
           placeholder="Search team…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          sx={{ flex: 1 }}
         />
-        <Button onClick={() => setOpen(true)}>New member</Button>
-      </div>
+        <Button variant="contained" onClick={() => setOpen(true)}>
+          New member
+        </Button>
+      </Box>
 
       {/* Portrait tile grid */}
       <DataState
@@ -102,13 +106,13 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
             ? `No staff match "${search}".`
             : "Add staff to enable HR, payroll and project team tracking.",
           action: !search ? (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New member
             </Button>
           ) : undefined,
         }}
       >
-        <Grid narrow>
+        <Grid container spacing={2}>
           {members.map((m) => {
             const color = resolveColor({ staffLevel: m.staffLevel ?? null, name: m.name });
             const initials = getInitials(m.name);
@@ -116,8 +120,12 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
             const levelLabel = levelKey ? STAFF_LEVEL_LABEL[levelKey] : null;
             const contact = m.email ?? m.phone ?? null;
             return (
-              <Column key={m.id} lg={3} md={2} sm={2}>
-                <Tile className="esti-staff-tile" style={{ "--esti-staff-color": color } as CSSProperties}>
+              <Grid key={m.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
+                <Paper
+                  className="esti-staff-tile"
+                  sx={{ p: 0, overflow: "hidden", height: 1 }}
+                  style={{ "--esti-staff-color": color } as CSSProperties}
+                >
                   {/* Portrait photo area — color fill + large initials */}
                   <div className="esti-staff-tile__photo">
                     <span className="esti-staff-tile__initials">{initials}</span>
@@ -133,9 +141,14 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
                         {EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
                           m.employmentType}
                       </span>
-                      <Tag type={m.active ? "green" : "gray"} size="sm">
-                        {m.active ? "Active" : "Inactive"}
-                      </Tag>
+                      <Chip
+                        label={m.active ? "Active" : "Inactive"}
+                        size="small"
+                        sx={{
+                          backgroundColor: `var(--cds-tag-background-${m.active ? "green" : "gray"})`,
+                          color: `var(--cds-tag-color-${m.active ? "green" : "gray"})`,
+                        }}
+                      />
                     </div>
 
                     <p className="esti-staff-tile__name">{m.name}</p>
@@ -156,8 +169,8 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
 
                     <div className="esti-staff-tile__actions">
                       <Button
-                        kind="ghost"
-                        size="sm"
+                        variant="text"
+                        size="small"
                         disabled={update.isPending}
                         onClick={() =>
                           update.mutate({ id: m.id, active: !m.active })
@@ -167,8 +180,8 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
                       </Button>
                     </div>
                   </div>
-                </Tile>
-              </Column>
+                </Paper>
+              </Grid>
             );
           })}
         </Grid>
@@ -177,92 +190,92 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
       <TeamsPanel />
 
       {/* Add member modal */}
-      <Modal
-        open={open}
-        modalHeading="New team member"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.name || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            name: form.name,
-            role: form.role,
-            employmentType: form.employmentType,
-            email: form.email || undefined,
-            phone: form.phone || undefined,
-            monthlySalaryPaise: form.salary ? parseRupeeInput(form.salary) : 0,
-            dateJoined: form.dateJoined || null,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="tm-name"
-            labelText="Name"
-            value={form.name}
-            onChange={set("name")}
-          />
-          <Select
-            id="tm-role"
-            labelText="Role"
-            value={form.role}
-            onChange={set("role")}
-          >
-            {(Object.keys(TEAM_ROLES) as TeamRoleCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={TEAM_ROLES[k]} />
-            ))}
-          </Select>
-          <Select
-            id="tm-emp"
-            labelText="Employment type"
-            value={form.employmentType}
-            onChange={set("employmentType")}
-          >
-            {(Object.keys(EMPLOYMENT_TYPES) as EmploymentTypeCode[]).map(
-              (k) => (
-                <SelectItem key={k} value={k} text={EMPLOYMENT_TYPES[k]} />
-              ),
-            )}
-          </Select>
-          <TextInput
-            id="tm-salary"
-            labelText="Monthly salary (₹)"
-            type="number"
-            value={form.salary}
-            onChange={set("salary")}
-          />
-          <TextInput
-            id="tm-joined"
-            labelText="Date joined (optional)"
-            type="date"
-            value={form.dateJoined}
-            onChange={set("dateJoined")}
-          />
-          <TextInput
-            id="tm-email"
-            labelText="Email (optional)"
-            type="email"
-            value={form.email}
-            onChange={set("email")}
-          />
-          <TextInput
-            id="tm-phone"
-            labelText="Phone (optional)"
-            value={form.phone}
-            onChange={set("phone")}
-          />
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New team member</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="tm-name"
+              label="Name"
+              value={form.name}
+              onChange={set("name")}
             />
-          )}
-        </Stack>
-      </Modal>
+            <TextField
+              id="tm-role"
+              select
+              label="Role"
+              value={form.role}
+              onChange={set("role")}
+            >
+              {(Object.keys(TEAM_ROLES) as TeamRoleCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{TEAM_ROLES[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="tm-emp"
+              select
+              label="Employment type"
+              value={form.employmentType}
+              onChange={set("employmentType")}
+            >
+              {(Object.keys(EMPLOYMENT_TYPES) as EmploymentTypeCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{EMPLOYMENT_TYPES[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="tm-salary"
+              label="Monthly salary (₹)"
+              type="number"
+              value={form.salary}
+              onChange={set("salary")}
+            />
+            <TextField
+              id="tm-joined"
+              label="Date joined (optional)"
+              type="date"
+              value={form.dateJoined}
+              onChange={set("dateJoined")}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              id="tm-email"
+              label="Email (optional)"
+              type="email"
+              value={form.email}
+              onChange={set("email")}
+            />
+            <TextField
+              id="tm-phone"
+              label="Phone (optional)"
+              value={form.phone}
+              onChange={set("phone")}
+            />
+            {create.error && (
+              <Alert severity="error">{create.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.name || create.isPending}
+            onClick={() =>
+              create.mutate({
+                name: form.name,
+                role: form.role,
+                employmentType: form.employmentType,
+                email: form.email || undefined,
+                phone: form.phone || undefined,
+                monthlySalaryPaise: form.salary ? parseRupeeInput(form.salary) : 0,
+                dateJoined: form.dateJoined || null,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { trpc } from "../lib/trpc";
 
 type Keys = Awaited<ReturnType<typeof trpc.admin.apiKeys.list.query>>;
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
 type Orgs = Awaited<ReturnType<typeof trpc.admin.orgs.list.query>>;
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export default function ApiKeysTab() {
   const [keys, setKeys] = useState<Keys>([]);
@@ -67,10 +70,63 @@ export default function ApiKeysTab() {
     await load();
   }
 
+  const columns: GridColDef<Keys[number]>[] = [
+    { field: "productCode", headerName: "Product", flex: 1, minWidth: 140 },
+    {
+      field: "orgName",
+      headerName: "Org",
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      renderCell: (p) =>
+        p.row.orgName ? (
+          <Chip size="small" label={p.row.orgName} sx={chipSx("blue")} />
+        ) : (
+          <Chip size="small" label="Product-wide" sx={chipSx("gray")} />
+        ),
+    },
+    { field: "label", headerName: "Label", flex: 1.2, minWidth: 160 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip
+          size="small"
+          label={p.row.status}
+          sx={chipSx(p.row.status === "ACTIVE" ? "green" : "red")}
+        />
+      ),
+    },
+    {
+      field: "lastUsedAt",
+      headerName: "Last used",
+      flex: 1.2,
+      minWidth: 180,
+      renderCell: (p) =>
+        p.row.lastUsedAt ? new Date(p.row.lastUsedAt).toLocaleString() : "—",
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (p) =>
+        p.row.status === "ACTIVE" ? (
+          <Button variant="text" color="error" size="small" onClick={() => revoke(p.row.id)}>
+            Revoke
+          </Button>
+        ) : null,
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <div>
+    <Stack spacing={2}>
+      <Box>
         <Button
+          variant="contained"
           onClick={() => {
             setGenerated(null);
             setError(null);
@@ -79,95 +135,77 @@ export default function ApiKeysTab() {
         >
           Generate API key
         </Button>
-      </div>
+      </Box>
 
       {generated && (
-        <InlineNotification
-          kind="success"
-          lowContrast
-          title="API key created — copy it now (shown once):"
-          subtitle={generated}
-          onCloseButtonClick={() => setGenerated(null)}
-        />
+        <Alert severity="success" onClose={() => setGenerated(null)}>
+          API key created — copy it now (shown once): {generated}
+        </Alert>
       )}
 
-      <Table size="lg">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Product</TableHeader>
-            <TableHeader>Org</TableHeader>
-            <TableHeader>Label</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Last used</TableHeader>
-            <TableHeader>{""}</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {keys.map((k) => (
-            <TableRow key={k.id}>
-              <TableCell>{k.productCode}</TableCell>
-              <TableCell>
-                {k.orgName ? (
-                  <Tag type="blue" size="sm">{k.orgName}</Tag>
-                ) : (
-                  <Tag type="gray" size="sm">Product-wide</Tag>
-                )}
-              </TableCell>
-              <TableCell>{k.label}</TableCell>
-              <TableCell>
-                <Tag type={k.status === "ACTIVE" ? "green" : "red"} size="sm">
-                  {k.status}
-                </Tag>
-              </TableCell>
-              <TableCell>{k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString() : "—"}</TableCell>
-              <TableCell>
-                {k.status === "ACTIVE" && (
-                  <Button kind="danger--ghost" size="sm" onClick={() => revoke(k.id)}>
-                    Revoke
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DataGrid
+        rows={keys}
+        columns={columns}
+        getRowId={(r) => r.id}
+        density="compact"
+        disableRowSelectionOnClick
+        hideFooter
+        autoHeight
+      />
 
-      <Modal
-        open={open}
-        modalHeading="Generate API key"
-        primaryButtonText="Generate"
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!productId || !label}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={generate}
-      >
-        <Stack gap={5}>
-          <Select
-            id="ak-product"
-            labelText="Product"
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-          >
-            {products.map((p) => (
-              <SelectItem key={p.id} value={p.id} text={p.name} />
-            ))}
-          </Select>
-          <Select
-            id="ak-org"
-            labelText="Bind to organization"
-            helperText="Recommended for a per-install key — it can then only act for this customer. Leave as product-wide only for a shared/legacy key."
-            value={orgId}
-            onChange={(e) => setOrgId(e.target.value)}
-          >
-            <SelectItem value="" text="Product-wide (no org binding)" />
-            {orgs.map((o) => (
-              <SelectItem key={o.id} value={o.id} text={o.name} />
-            ))}
-          </Select>
-          <TextInput id="ak-label" labelText="Label" value={label} onChange={(e) => setLabel(e.target.value)} />
-          {error && <InlineNotification kind="error" title="Error" subtitle={error} lowContrast />}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Generate API key</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="ak-product"
+              select
+              label="Product"
+              value={productId}
+              onChange={(e) => setProductId(e.target.value)}
+              fullWidth
+            >
+              {products.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="ak-org"
+              select
+              label="Bind to organization"
+              helperText="Recommended for a per-install key — it can then only act for this customer. Leave as product-wide only for a shared/legacy key."
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Product-wide (no org binding)</MenuItem>
+              {orgs.map((o) => (
+                <MenuItem key={o.id} value={o.id}>
+                  {o.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="ak-label"
+              label="Label"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              fullWidth
+            />
+            {error && <Alert severity="error">{error}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="contained" disabled={!productId || !label} onClick={generate}>
+            Generate
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

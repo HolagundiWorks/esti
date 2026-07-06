@@ -1,27 +1,19 @@
-import {
-  Column,
-  Grid,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Tile,
-} from "@carbon/react";
+import { Chip, Grid, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { formatINR, type PeriodFilterInput } from "@esti/contracts";
 import { PeriodFilter } from "../PeriodFilter.js";
 import { trpc } from "../../lib/trpc.js";
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 /**
  * The financial-year bar for the accounts section: an FY period selector plus a
  * "carried forward" band that a financial year must never hide — running
  * projects (they span years) and receivables from projects closed in prior
  * years (money still owed). Both come from `accounts.carryForward`, which is
- * deliberately NOT scoped to the selected FY.
+ * deliberately NOT scoped to the selected FY. Material UI.
  */
 export function AccountsCarryForward({
   period,
@@ -34,17 +26,15 @@ export function AccountsCarryForward({
   const cf = cfQ.data;
 
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       <PeriodFilter value={period} onChange={onPeriodChange} />
 
-      <Grid fullWidth>
-        <Column lg={8} md={4} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={3}>
-              <Stack orientation="horizontal" gap={3}>
-                <Tag type="teal" size="sm">
-                  Carried forward
-                </Tag>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Chip size="small" label="Carried forward" sx={chipSx("teal")} />
                 <span className="esti-label--secondary">Running projects</span>
               </Stack>
               <p className="esti-label">
@@ -54,15 +44,13 @@ export function AccountsCarryForward({
                 Contract value in play: {cf ? formatINR(cf.runningContractPaise) : "—"}
               </p>
             </Stack>
-          </Tile>
-        </Column>
-        <Column lg={8} md={4} sm={4}>
-          <Tile className="esti-fill">
-            <Stack gap={3}>
-              <Stack orientation="horizontal" gap={3}>
-                <Tag type="magenta" size="sm">
-                  Carried forward
-                </Tag>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Chip size="small" label="Carried forward" sx={chipSx("magenta")} />
                 <span className="esti-label--secondary">Prior-year receivables</span>
               </Stack>
               <p className="esti-label">
@@ -74,19 +62,22 @@ export function AccountsCarryForward({
                   : "—"}
               </p>
             </Stack>
-          </Tile>
-        </Column>
+          </Paper>
+        </Grid>
       </Grid>
 
       {cf && cf.priorReceivables.length > 0 && (
-        <TableContainer title="Receivables from closed projects (previous years)">
-          <Table size="sm">
+        <Stack spacing={1}>
+          <Typography variant="subtitle2">
+            Receivables from closed projects (previous years)
+          </Typography>
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableHeader>Invoice</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Dated</TableHeader>
-                <TableHeader>Outstanding</TableHeader>
+                <TableCell>Invoice</TableCell>
+                <TableCell>Project</TableCell>
+                <TableCell>Dated</TableCell>
+                <TableCell>Outstanding</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -100,7 +91,7 @@ export function AccountsCarryForward({
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+        </Stack>
       )}
     </Stack>
   );

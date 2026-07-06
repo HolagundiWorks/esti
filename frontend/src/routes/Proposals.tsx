@@ -1,21 +1,17 @@
 import {
+  Alert,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
@@ -26,12 +22,27 @@ import {
   formatINR,
   isBelowCoaMinimum,
 } from "@esti/contracts";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
+
+/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
+function TagChip({ color, label }: { color: string; label: ReactNode }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** Office › Proposals — unified COA fee proposals + scope/agreements (one model). */
 export function Proposals() {
@@ -85,12 +96,62 @@ export function Proposals() {
   const below =
     feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 120 },
+    {
+      field: "project",
+      headerName: "Project",
+      flex: 1.4,
+      minWidth: 200,
+      sortable: false,
+      valueGetter: (_v, row) => row.projectRef,
+      renderCell: (p) => (
+        <Stack spacing={0} sx={{ justifyContent: "center", height: 1 }}>
+          <Link to={`/projects/${p.row.projectId}`}>{p.row.projectRef}</Link>
+          <Typography variant="caption" color="text.secondary">
+            {p.row.projectTitle}
+          </Typography>
+        </Stack>
+      ),
+    },
+    { field: "workCategory", headerName: "Work category", flex: 1.2, minWidth: 160 },
+    {
+      field: "feePaise",
+      headerName: "Fee",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (p) => formatINR(p.row.feePaise, { paise: false }),
+    },
+    {
+      field: "belowMinimum",
+      headerName: "COA",
+      flex: 0.9,
+      minWidth: 130,
+      sortable: false,
+      renderCell: (p) =>
+        p.row.belowMinimum ? (
+          <TagChip color="magenta" label="Below COA min" />
+        ) : (
+          <TagChip color="green" label="OK" />
+        ),
+    },
+    {
+      field: "document",
+      headerName: "Document",
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => <FeeProposalPdfCell feeId={p.row.id} initialStatus={p.row.pdfStatus} />,
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Proposals"
         description="COA fee proposals and scope agreements across all projects."
-        actions={<Button onClick={() => setOpen(true)}>New proposal</Button>}
+        actions={<Button variant="contained" onClick={() => setOpen(true)}>New proposal</Button>}
       />
 
       <DataState
@@ -101,218 +162,199 @@ export function Proposals() {
           title: "No proposals",
           description: "Prepare a COA-benchmarked proposal for a project.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New proposal
             </Button>
           ),
         }}
       >
-        <TableContainer title="All proposals">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Work category</TableHeader>
-                <TableHeader>Fee</TableHeader>
-                <TableHeader>COA</TableHeader>
-                <TableHeader>Document</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.ref}</TableCell>
-                  <TableCell>
-                    <Link to={`/projects/${p.projectId}`}>{p.projectRef}</Link>
-                    <div>{p.projectTitle}</div>
-                  </TableCell>
-                  <TableCell>{p.workCategory}</TableCell>
-                  <TableCell>{formatINR(p.feePaise, { paise: false })}</TableCell>
-                  <TableCell>
-                    {p.belowMinimum ? (
-                      <Tag type="magenta" size="sm">
-                        Below COA min
-                      </Tag>
-                    ) : (
-                      <Tag type="green" size="sm">
-                        OK
-                      </Tag>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <FeeProposalPdfCell feeId={p.id} initialStatus={p.pdfStatus} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          getRowHeight={() => "auto"}
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New proposal"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !projectId ||
-          (feeBasis === "COA_PERCENT" && !cost) ||
-          (feeBasis === "PER_SQM" ? !(areaNum > 0 && ratePaise > 0) : feePaise <= 0) ||
-          (below && !override) ||
-          create.isPending
-        }
-        size="lg"
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            workCategory: category as CoaWorkCategory,
-            workType: workType as (typeof ProjectWorkType.options)[number],
-            feeBasis,
-            costOfWorksPaise: costPaise,
-            feePaise,
-            builtUpAreaSqm: feeBasis === "PER_SQM" ? areaNum : undefined,
-            ratePerSqmPaise: feeBasis === "PER_SQM" ? ratePaise : undefined,
-            docCommPct: Number(docComm || "10"),
-            scope: scope || undefined,
-            notes: notes || undefined,
-            overrideReason: override || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="fp-proj"
-            labelText="Project"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-          >
-            <SelectItem value="" text="Select a project…" />
-            {(projectsQ.data ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id} text={`${p.ref} — ${p.title}`} />
-            ))}
-          </Select>
-          <Stack orientation="horizontal" gap={4}>
-            <Select
-              id="fp-cat"
-              labelText="Work category (COA)"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New proposal</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="fp-proj"
+              select
+              label="Project"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
             >
-              {Object.values(CoaWorkCategory).map((c) => (
-                <SelectItem key={c} value={c} text={c} />
+              <MenuItem value="">Select a project…</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
               ))}
-            </Select>
-            <Select
-              id="fp-wt"
-              labelText="Work type"
-              value={workType}
-              onChange={(e) => setWorkType(e.target.value)}
+            </TextField>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="fp-cat"
+                select
+                label="Work category (COA)"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                sx={{ flex: 1 }}
+              >
+                {Object.values(CoaWorkCategory).map((c) => (
+                  <MenuItem key={c} value={c}>{c}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="fp-wt"
+                select
+                label="Work type"
+                value={workType}
+                onChange={(e) => setWorkType(e.target.value)}
+                sx={{ flex: 1 }}
+              >
+                {ProjectWorkType.options.map((w) => (
+                  <MenuItem key={w} value={w}>{w}</MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <TextField
+              id="fp-basis"
+              select
+              label="Fee basis"
+              value={feeBasis}
+              onChange={(e) => setFeeBasis(e.target.value as FeeBasis)}
             >
-              {ProjectWorkType.options.map((w) => (
-                <SelectItem key={w} value={w} text={w} />
+              {Object.entries(FEE_BASIS_LABEL).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
               ))}
-            </Select>
-          </Stack>
-          <Select
-            id="fp-basis"
-            labelText="Fee basis"
-            value={feeBasis}
-            onChange={(e) => setFeeBasis(e.target.value as FeeBasis)}
-          >
-            {Object.entries(FEE_BASIS_LABEL).map(([value, label]) => (
-              <SelectItem key={value} value={value} text={label} />
-            ))}
-          </Select>
-          <Stack orientation="horizontal" gap={4}>
-            <TextInput
-              id="fp-cost"
-              labelText={
-                feeBasis === "COA_PERCENT"
-                  ? "Cost of works (₹)"
-                  : "Cost of works (₹, COA benchmark)"
-              }
-              type="number"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-            />
-            {feeBasis === "PER_SQM" ? (
-              <>
-                <TextInput
-                  id="fp-area"
-                  labelText="Built-up area (sq.m)"
-                  type="number"
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                />
-                <TextInput
-                  id="fp-rate"
-                  labelText="Rate (₹ / sq.m)"
-                  type="number"
-                  value={rate}
-                  onChange={(e) => setRate(e.target.value)}
-                />
-              </>
-            ) : (
-              <TextInput
-                id="fp-fee"
-                labelText={feeBasis === "LUMPSUM" ? "Lumpsum fee (₹)" : "Professional fee (₹)"}
+            </TextField>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="fp-cost"
+                label={
+                  feeBasis === "COA_PERCENT"
+                    ? "Cost of works (₹)"
+                    : "Cost of works (₹, COA benchmark)"
+                }
                 type="number"
-                value={fee}
-                onChange={(e) => setFee(e.target.value)}
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                sx={{ flex: 1 }}
+              />
+              {feeBasis === "PER_SQM" ? (
+                <>
+                  <TextField
+                    id="fp-area"
+                    label="Built-up area (sq.m)"
+                    type="number"
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    id="fp-rate"
+                    label="Rate (₹ / sq.m)"
+                    type="number"
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    sx={{ flex: 1 }}
+                  />
+                </>
+              ) : (
+                <TextField
+                  id="fp-fee"
+                  label={feeBasis === "LUMPSUM" ? "Lumpsum fee (₹)" : "Professional fee (₹)"}
+                  type="number"
+                  value={fee}
+                  onChange={(e) => setFee(e.target.value)}
+                  sx={{ flex: 1 }}
+                />
+              )}
+              <TextField
+                id="fp-dc"
+                label="Doc & comm %"
+                type="number"
+                value={docComm}
+                onChange={(e) => setDocComm(e.target.value)}
+                sx={{ flex: 1 }}
+              />
+            </Stack>
+            {feeBasis === "PER_SQM" && feePaise > 0 && (
+              <Typography variant="body2">Computed fee ≈ {formatINR(feePaise, { paise: false })}</Typography>
+            )}
+            {coaMin > 0 && (
+              <Typography variant="body2">
+                COA minimum ≈ {formatINR(coaMin, { paise: false })}
+                {below ? " — quoted fee is below the COA minimum." : ""}
+              </Typography>
+            )}
+            {below && (
+              <TextField
+                id="fp-or"
+                label="Override reason (required below COA minimum)"
+                value={override}
+                onChange={(e) => setOverride(e.target.value)}
               />
             )}
-            <TextInput
-              id="fp-dc"
-              labelText="Doc & comm %"
-              type="number"
-              value={docComm}
-              onChange={(e) => setDocComm(e.target.value)}
+            <TextField
+              id="fp-scope"
+              label="Scope (optional)"
+              multiline
+              rows={3}
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
             />
+            <TextField
+              id="fp-notes"
+              label="Notes (optional)"
+              multiline
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+            {create.error && (
+              <Alert severity="error">
+                <strong>Could not create</strong> — {create.error.message}
+              </Alert>
+            )}
           </Stack>
-          {feeBasis === "PER_SQM" && feePaise > 0 && (
-            <div>Computed fee ≈ {formatINR(feePaise, { paise: false })}</div>
-          )}
-          {coaMin > 0 && (
-            <div>
-              COA minimum ≈ {formatINR(coaMin, { paise: false })}
-              {below ? " — quoted fee is below the COA minimum." : ""}
-            </div>
-          )}
-          {below && (
-            <TextInput
-              id="fp-or"
-              labelText="Override reason (required below COA minimum)"
-              value={override}
-              onChange={(e) => setOverride(e.target.value)}
-            />
-          )}
-          <TextArea
-            id="fp-scope"
-            labelText="Scope (optional)"
-            rows={3}
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-          />
-          <TextArea
-            id="fp-notes"
-            labelText="Notes (optional)"
-            rows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !projectId ||
+              (feeBasis === "COA_PERCENT" && !cost) ||
+              (feeBasis === "PER_SQM" ? !(areaNum > 0 && ratePaise > 0) : feePaise <= 0) ||
+              (below && !override) ||
+              create.isPending
+            }
+            onClick={() =>
+              create.mutate({
+                projectId,
+                workCategory: category as CoaWorkCategory,
+                workType: workType as (typeof ProjectWorkType.options)[number],
+                feeBasis,
+                costOfWorksPaise: costPaise,
+                feePaise,
+                builtUpAreaSqm: feeBasis === "PER_SQM" ? areaNum : undefined,
+                ratePerSqmPaise: feeBasis === "PER_SQM" ? ratePaise : undefined,
+                docCommPct: Number(docComm || "10"),
+                scope: scope || undefined,
+                notes: notes || undefined,
+                overrideReason: override || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

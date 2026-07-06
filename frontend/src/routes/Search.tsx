@@ -1,19 +1,15 @@
 import {
+  Box,
   Button,
-  MultiSelect,
-  Search,
-  Select,
-  SelectItem,
+  Chip,
+  InputAdornment,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   SEARCH_ENTITY_LABEL,
   SearchEntityType,
@@ -26,6 +22,19 @@ import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
 const ALL_TYPES = SearchEntityType.options;
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -84,72 +93,94 @@ export function SearchPage() {
   const typeCounts = searchQ.data?.typeCounts ?? {};
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Search"
         description="Permission-aware search across projects, documents, knowledge catalogues, and lessons."
       />
 
-      <Stack gap={4}>
-        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div style={{ flex: "1 1 280px", maxWidth: 480 }}>
-            <Search
-              id="global-search"
-              labelText="Search"
-              placeholder="Search projects, templates, rate books, lessons…"
-              size="lg"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") runSearch();
-              }}
-            />
-          </div>
-          <Button onClick={runSearch} disabled={query.trim().length < 2}>
+      <Stack spacing={2}>
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <TextField
+            id="global-search"
+            label="Search"
+            placeholder="Search projects, templates, rate books, lessons…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") runSearch();
+            }}
+            sx={{ flex: "1 1 280px", maxWidth: 480 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <Button variant="contained" onClick={runSearch} disabled={query.trim().length < 2}>
             Search
           </Button>
-        </div>
+        </Box>
 
-        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
-          <div style={{ minWidth: 280, flex: 1 }}>
-            <MultiSelect
-              id="search-types"
-              titleText="Object types"
-              label="Filter by type"
-              items={typeItems}
-              itemToString={(item) => item?.text ?? ""}
-              initialSelectedItems={typeItems.filter((i) => typeFilter.includes(i.id))}
-              onChange={({ selectedItems }) =>
-                setTypeFilter(selectedItems?.map((i) => i.id) ?? [])
-              }
-            />
-          </div>
-          <Select
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <TextField
+            id="search-types"
+            select
+            label="Object types"
+            value={typeFilter}
+            onChange={(e) => {
+              const value = e.target.value as unknown as SearchEntityTypeT[] | string;
+              setTypeFilter(typeof value === "string" ? (value ? (value.split(",") as SearchEntityTypeT[]) : []) : value);
+            }}
+            sx={{ minWidth: 280, flex: 1 }}
+            slotProps={{
+              select: {
+                multiple: true,
+                renderValue: (selected) =>
+                  (selected as SearchEntityTypeT[]).map((t) => SEARCH_ENTITY_LABEL[t]).join(", ") || "Filter by type",
+              },
+            }}
+          >
+            {typeItems.map((item) => (
+              <MenuItem key={item.id} value={item.id}>
+                {item.text}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
             id="search-project"
-            labelText="Limit to project (optional)"
+            select
+            label="Limit to project (optional)"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
+            sx={{ minWidth: 240 }}
           >
-            <SelectItem value="" text="All projects" />
+            <MenuItem value="">All projects</MenuItem>
             {(projectsQ.data ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id} text={`${p.ref} — ${p.title}`} />
+              <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
             ))}
-          </Select>
-        </div>
+          </TextField>
+        </Box>
 
         {appliedQ.length >= 2 && Object.keys(typeCounts).length > 0 && (
-          <Stack orientation="horizontal" gap={2}>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
             {Object.entries(typeCounts).map(([t, n]) => (
-              <Tag key={t} type="blue" size="sm">
-                {SEARCH_ENTITY_LABEL[t as SearchEntityTypeT] ?? t} ({n})
-              </Tag>
+              <TagChip
+                key={t}
+                color="blue"
+                label={`${SEARCH_ENTITY_LABEL[t as SearchEntityTypeT] ?? t} (${n})`}
+              />
             ))}
           </Stack>
         )}
       </Stack>
 
       {appliedQ.length < 2 ? (
-        <p>Enter at least 2 characters to search.</p>
+        <Typography variant="body2">Enter at least 2 characters to search.</Typography>
       ) : (
         <DataState
           loading={searchQ.isLoading}
@@ -160,44 +191,41 @@ export function SearchPage() {
             description: `Nothing matched “${appliedQ}” with your filters.`,
           }}
         >
-          <TableContainer title={`Results for “${appliedQ}”`}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Title</TableHeader>
-                  <TableHeader>Snippet</TableHeader>
-                  <TableHeader>Project</TableHeader>
-                  <TableHeader></TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {hits.map((h) => (
-                  <TableRow key={`${h.entityType}-${h.entityId}`}>
-                    <TableCell>
-                      <Tag size="sm" type="gray">
-                        {SEARCH_ENTITY_LABEL[h.entityType]}
-                      </Tag>
-                    </TableCell>
-                    <TableCell>{h.title}</TableCell>
-                    <TableCell>{h.snippet}</TableCell>
-                    <TableCell>
+          <Stack spacing={2}>
+            <Typography variant="subtitle1" component="h3">{`Results for “${appliedQ}”`}</Typography>
+            <Stack spacing={1}>
+              {hits.map((h) => (
+                <Paper key={`${h.entityType}-${h.entityId}`} sx={{ p: 2 }}>
+                  <Stack spacing={1}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", justifyContent: "space-between" }}
+                    >
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+                        <TagChip color="gray" label={SEARCH_ENTITY_LABEL[h.entityType]} />
+                        <Typography variant="subtitle2" noWrap>{h.title}</Typography>
+                      </Stack>
+                      <Button component={Link} to={h.href} variant="text" size="small">
+                        Open
+                      </Button>
+                    </Stack>
+                    {h.snippet && (
+                      <Typography variant="body2" color="text.secondary">{h.snippet}</Typography>
+                    )}
+                    <Typography variant="caption" color="text.secondary">
+                      Project:{" "}
                       {h.projectRef && h.projectId ? (
                         <Link to={`/projects/${h.projectId}`}>{h.projectRef}</Link>
                       ) : (
                         h.projectRef ?? "—"
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <Link to={h.href}>
-                        <Button kind="ghost" size="sm">Open</Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </Typography>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Stack>
         </DataState>
       )}
     </Stack>

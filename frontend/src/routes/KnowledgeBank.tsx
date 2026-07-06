@@ -1,22 +1,15 @@
 import {
+  Box,
   Button,
-  Search,
+  Chip,
+  Paper,
   Stack,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Tag,
-  Tile,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
@@ -29,6 +22,8 @@ import { trpc } from "../lib/trpc.js";
 
 const KB_TAB_SLUGS = ["items", "specification", "rate-book"] as const;
 
+const SEARCH_TYPES = "OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,DRAWING,CONTRACTOR,LESSON";
+
 function KnowledgeBankSearch() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -37,66 +32,100 @@ function KnowledgeBankSearch() {
     { enabled: q.trim().length >= 2 },
   );
 
+  const hits = kbQ.data?.hits ?? [];
+  const columns: GridColDef[] = [
+    {
+      field: "type",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 140,
+      renderCell: (params) => (
+        <Chip
+          label={SEARCH_ENTITY_LABEL[params.row.entityType as keyof typeof SEARCH_ENTITY_LABEL] ?? params.row.entityType}
+          size="small"
+          sx={{
+            backgroundColor: "var(--cds-tag-background-gray)",
+            color: "var(--cds-tag-color-gray)",
+          }}
+        />
+      ),
+    },
+    { field: "title", headerName: "Title", flex: 2, minWidth: 200 },
+    {
+      field: "open",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (params) => <Link to={params.row.href}>Open</Link>,
+    },
+  ];
+  const rows = hits.map((h) => ({
+    id: `${h.entityType}-${h.entityId}`,
+    entityType: h.entityType,
+    title: h.title,
+    href: h.href,
+  }));
+
   return (
-    <Tile>
-      <Stack gap={4}>
-        <Stack gap={2}>
-          <h3>Search Knowledge Bank</h3>
-          <p style={{ margin: 0 }}>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Stack spacing={1}>
+          <Typography variant="h6" component="h3">Search Knowledge Bank</Typography>
+          <Typography variant="body2">
             Templates, rate books, specification catalogue, drawings, contractors, and published lessons.
-          </p>
+          </Typography>
         </Stack>
-        <Stack orientation="horizontal" gap={4} style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div style={{ flex: "1 1 240px", maxWidth: 420 }}>
-            <Search
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ flexWrap: "wrap", alignItems: "flex-end" }}
+        >
+          <Box sx={{ flex: "1 1 240px", maxWidth: 420 }}>
+            <TextField
               id="kb-search"
-              labelText="Knowledge search"
+              label="Knowledge search"
               placeholder="Search catalogues and templates…"
+              fullWidth
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && q.trim().length >= 2) {
-                  navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,DRAWING,CONTRACTOR,LESSON`);
+                  navigate(`/search?q=${encodeURIComponent(q.trim())}&types=${SEARCH_TYPES}`);
                 }
               }}
             />
-          </div>
+          </Box>
           <Button
-            kind="tertiary"
+            variant="outlined"
             disabled={q.trim().length < 2}
             onClick={() =>
-              navigate(`/search?q=${encodeURIComponent(q.trim())}&types=OFFICE_TEMPLATE,DSR_ITEM,SPEC_CATALOG,SPEC_STANDARD,DRAWING,CONTRACTOR,LESSON`)
+              navigate(`/search?q=${encodeURIComponent(q.trim())}&types=${SEARCH_TYPES}`)
             }
           >
             Full search
           </Button>
         </Stack>
         {q.trim().length >= 2 && (
-          <DataState loading={kbQ.isLoading} isEmpty={(kbQ.data?.hits ?? []).length === 0} columnCount={3} empty={{ title: "No matches", description: "Try a different term or open full search." }}>
-            <TableContainer>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Type</TableHeader>
-                    <TableHeader>Title</TableHeader>
-                    <TableHeader></TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(kbQ.data?.hits ?? []).map((h) => (
-                    <TableRow key={`${h.entityType}-${h.entityId}`}>
-                      <TableCell><Tag size="sm" type="gray">{SEARCH_ENTITY_LABEL[h.entityType]}</Tag></TableCell>
-                      <TableCell>{h.title}</TableCell>
-                      <TableCell><Link to={h.href}>Open</Link></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          <DataState
+            loading={kbQ.isLoading}
+            isEmpty={hits.length === 0}
+            columnCount={3}
+            empty={{ title: "No matches", description: "Try a different term or open full search." }}
+          >
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+              onRowClick={(params) => navigate(params.row.href)}
+            />
           </DataState>
         )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }
 
@@ -115,7 +144,7 @@ export function KnowledgeBank() {
   };
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Knowledge Bank"
         description="Governed office reference library — items, specifications, and the office rate book."
@@ -123,26 +152,19 @@ export function KnowledgeBank() {
 
       <KnowledgeBankSearch />
 
-      <Tabs selectedIndex={tabIndex} onChange={({ selectedIndex }) => selectTab(selectedIndex)}>
-        <TabList aria-label="Knowledge Bank sections" contained>
-          <Tab>Items</Tab>
-          <Tab>Specification</Tab>
-          <Tab>Rate Book</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel>
-            <ItemLibrary />
-          </TabPanel>
-
-          <TabPanel>
-            <SpecCatalogManager embedded />
-          </TabPanel>
-
-          <TabPanel>
-            <RateBookLibrary />
-          </TabPanel>
-        </TabPanels>
+      <Tabs
+        value={tabIndex}
+        onChange={(_e, v) => selectTab(v)}
+        aria-label="Knowledge Bank sections"
+      >
+        <Tab label="Items" />
+        <Tab label="Specification" />
+        <Tab label="Rate Book" />
       </Tabs>
+
+      {tabIndex === 0 && <ItemLibrary />}
+      {tabIndex === 1 && <SpecCatalogManager embedded />}
+      {tabIndex === 2 && <RateBookLibrary />}
     </Stack>
   );
 }

@@ -1,20 +1,18 @@
 import {
+  Alert,
   Button,
   Checkbox,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   GstSystem,
   INVOICE_STATUS_TAG,
@@ -77,14 +75,107 @@ export function Invoices() {
   const net = breakup.grandTotal - tdsPaise;
   const showSac = firmGst === GstSystem.REGULAR;
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 120 },
+    {
+      field: "project",
+      headerName: "Project",
+      flex: 1.4,
+      minWidth: 200,
+      sortable: false,
+      valueGetter: (_v, row) => row.projectRef,
+      renderCell: (p) => (
+        <Stack spacing={0} sx={{ justifyContent: "center", height: 1 }}>
+          <Link to={`/projects/${p.row.projectId}?tab=invoices`}>{p.row.projectRef}</Link>
+          <Typography variant="caption" color="text.secondary">
+            {p.row.projectTitle}
+          </Typography>
+        </Stack>
+      ),
+    },
+    { field: "documentKind", headerName: "Document", flex: 1, minWidth: 140 },
+    {
+      field: "taxablePaise",
+      headerName: "Taxable",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.taxablePaise, { paise: false }),
+    },
+    {
+      field: "gstTotalPaise",
+      headerName: "GST",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.gstTotalPaise, { paise: false }),
+    },
+    {
+      field: "netReceivablePaise",
+      headerName: "Net",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.netReceivablePaise, { paise: false }),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1.2,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (iv) => (
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+          <TextField
+            id={`inv-st-${iv.row.id}`}
+            select
+            size="small"
+            variant="standard"
+            value={iv.row.status}
+            disabled={
+              !canInvoice ||
+              iv.row.status === "PAID" ||
+              iv.row.status === "CANCELLED"
+            }
+            onChange={(e) =>
+              updateStatus.mutate({
+                id: iv.row.id,
+                status: e.target.value as (typeof InvoiceStatus.options)[number],
+              })
+            }
+            sx={{ minWidth: 110 }}
+            slotProps={{ htmlInput: { "aria-label": "Invoice status" } }}
+          >
+            {InvoiceStatus.options.map((st) => (
+              <MenuItem key={st} value={st}>{st}</MenuItem>
+            ))}
+          </TextField>
+          <StatusTag value={iv.row.status as InvoiceStatusT} map={INVOICE_STATUS_TAG} />
+        </Stack>
+      ),
+    },
+    {
+      field: "document",
+      headerName: "Document",
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: (iv) => (
+        <InvoicePdfCell
+          invoiceId={iv.row.id}
+          initialStatus={iv.row.pdfStatus}
+          canManage={canInvoice}
+        />
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Invoices"
-        description="GST tax invoices &amp; bills of supply across all projects."
+        description="GST tax invoices & bills of supply across all projects."
         actions={
           canInvoice ? (
-            <Button onClick={() => setOpen(true)}>New invoice</Button>
+            <Button variant="contained" onClick={() => setOpen(true)}>New invoice</Button>
           ) : undefined
         }
       />
@@ -99,186 +190,120 @@ export function Invoices() {
           title: "No invoices yet",
           description: "Raise an invoice against any project.",
           action: canInvoice ? (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New invoice
             </Button>
           ) : undefined,
         }}
       >
-        <TableContainer title="All invoices" description="Office-wide">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Document</TableHeader>
-                <TableHeader>Taxable</TableHeader>
-                <TableHeader>GST</TableHeader>
-                <TableHeader>Net</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Document</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((iv) => (
-                <TableRow key={iv.id}>
-                  <TableCell>{iv.ref}</TableCell>
-                  <TableCell>
-                    <Link to={`/projects/${iv.projectId}?tab=invoices`}>
-                      {iv.projectRef}
-                    </Link>
-                    <div>{iv.projectTitle}</div>
-                  </TableCell>
-                  <TableCell>{iv.documentKind}</TableCell>
-                  <TableCell>
-                    {formatINR(iv.taxablePaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>
-                    {formatINR(iv.gstTotalPaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>
-                    {formatINR(iv.netReceivablePaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      id={`inv-st-${iv.id}`}
-                      labelText=""
-                      hideLabel
-                      size="sm"
-                      value={iv.status}
-                      disabled={
-                        !canInvoice ||
-                        iv.status === "PAID" ||
-                        iv.status === "CANCELLED"
-                      }
-                      onChange={(e) =>
-                        updateStatus.mutate({
-                          id: iv.id,
-                          status: e.target
-                            .value as (typeof InvoiceStatus.options)[number],
-                        })
-                      }
-                    >
-                      {InvoiceStatus.options.map((st) => (
-                        <SelectItem key={st} value={st} text={st} />
-                      ))}
-                    </Select>
-                    <StatusTag
-                      value={iv.status as InvoiceStatusT}
-                      map={INVOICE_STATUS_TAG}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <InvoicePdfCell
-                      invoiceId={iv.id}
-                      initialStatus={iv.pdfStatus}
-                      canManage={canInvoice}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          getRowHeight={() => "auto"}
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New invoice (GST / TDS)"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!projectId || !taxableR || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            taxablePaise,
-            interState: inter,
-            isAdvance,
-            sac: showSac ? sac : undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="gi-proj"
-            labelText="Project"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-          >
-            <SelectItem value="" text="Select a project…" />
-            {(projectsQ.data ?? []).map((p) => (
-              <SelectItem
-                key={p.id}
-                value={p.id}
-                text={`${p.ref} — ${p.title}`}
-              />
-            ))}
-          </Select>
-          <div>
-            GST system: <strong>{firmGst}</strong> (from Company settings)
-          </div>
-          <TextInput
-            id="gi-tax"
-            labelText="Taxable value (₹)"
-            type="number"
-            value={taxableR}
-            onChange={(e) => setTaxableR(e.target.value)}
-          />
-          {showSac && (
-            <Select
-              id="gi-sac"
-              labelText="SAC code"
-              value={sac}
-              onChange={(e) => setSac(e.target.value)}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New invoice (GST / TDS)</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="gi-proj"
+              select
+              label="Project"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
             >
-              {SAC_CODES.map((s) => (
-                <SelectItem
-                  key={s.code}
-                  value={s.code}
-                  text={`${s.code} — ${s.label}`}
-                />
+              <MenuItem value="">Select a project…</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
               ))}
-            </Select>
-          )}
-          <Checkbox
-            id="gi-inter"
-            labelText="Inter-state (IGST)"
-            checked={inter}
-            onChange={(_, { checked }) => setInter(checked)}
-          />
-          <Checkbox
-            id="gi-advance"
-            labelText="Advance invoice (gates project activation when paid)"
-            checked={isAdvance}
-            onChange={(_, { checked }) => setIsAdvance(checked)}
-          />
-          <div>
-            TDS u/s 194J:{" "}
-            <strong>
-              {firmTdsDefault ? "deducted (10%)" : "not applicable"}
-            </strong>{" "}
-            (from Company settings)
-          </div>
-          {taxablePaise > 0 && (
-            <div>
-              {breakup.documentKind} · GST{" "}
-              {formatINR(breakup.gstTotal, { paise: false })} · TDS{" "}
-              {formatINR(tdsPaise, { paise: false })} · Net{" "}
-              <strong>{formatINR(net, { paise: false })}</strong>
-            </div>
-          )}
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
+            </TextField>
+            <Typography variant="body2">
+              GST system: <strong>{firmGst}</strong> (from Company settings)
+            </Typography>
+            <TextField
+              id="gi-tax"
+              label="Taxable value (₹)"
+              type="number"
+              value={taxableR}
+              onChange={(e) => setTaxableR(e.target.value)}
             />
-          )}
-        </Stack>
-      </Modal>
+            {showSac && (
+              <TextField
+                id="gi-sac"
+                select
+                label="SAC code"
+                value={sac}
+                onChange={(e) => setSac(e.target.value)}
+              >
+                {SAC_CODES.map((s) => (
+                  <MenuItem key={s.code} value={s.code}>{`${s.code} — ${s.label}`}</MenuItem>
+                ))}
+              </TextField>
+            )}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="gi-inter"
+                  checked={inter}
+                  onChange={(e) => setInter(e.target.checked)}
+                />
+              }
+              label="Inter-state (IGST)"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="gi-advance"
+                  checked={isAdvance}
+                  onChange={(e) => setIsAdvance(e.target.checked)}
+                />
+              }
+              label="Advance invoice (gates project activation when paid)"
+            />
+            <Typography variant="body2">
+              TDS u/s 194J:{" "}
+              <strong>{firmTdsDefault ? "deducted (10%)" : "not applicable"}</strong>{" "}
+              (from Company settings)
+            </Typography>
+            {taxablePaise > 0 && (
+              <Typography variant="body2">
+                {breakup.documentKind} · GST {formatINR(breakup.gstTotal, { paise: false })} · TDS{" "}
+                {formatINR(tdsPaise, { paise: false })} · Net{" "}
+                <strong>{formatINR(net, { paise: false })}</strong>
+              </Typography>
+            )}
+            {create.error && (
+              <Alert severity="error">
+                <strong>Could not create</strong> — {create.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!projectId || !taxableR || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                taxablePaise,
+                interState: inter,
+                isAdvance,
+                sac: showSac ? sac : undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

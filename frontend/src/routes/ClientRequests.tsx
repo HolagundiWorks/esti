@@ -1,22 +1,20 @@
 import {
+  Alert,
   Button,
   Checkbox,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   PORTAL_SUBMISSION_KIND_LABEL,
   PORTAL_SUBMISSION_STATUS_LABEL,
@@ -32,6 +30,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -40,6 +39,19 @@ const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
   CHANGE_REQUEST: "purple",
   FEEDBACK: "blue",
 };
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -93,8 +105,173 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     onSuccess: () => utils.clientRequests.thread.invalidate(),
   });
 
+  const columns: GridColDef[] = [
+    {
+      field: "kind",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (p) => (
+        <StatusTag
+          value={p.row.kind as string}
+          map={KIND_TAG}
+          label={PORTAL_SUBMISSION_KIND_LABEL[p.row.kind as keyof typeof PORTAL_SUBMISSION_KIND_LABEL] ?? p.row.kind}
+        />
+      ),
+    },
+    {
+      field: "revisionCategory",
+      headerName: "Revision",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) =>
+        p.row.revisionCategory ? (
+          <StatusTag
+            value={p.row.revisionCategory as RevisionCategoryT}
+            map={REVISION_CATEGORY_TAG}
+            label={REVISION_CATEGORY_LABEL[p.row.revisionCategory as RevisionCategoryT] ?? p.row.revisionCategory}
+          />
+        ) : (
+          <span>—</span>
+        ),
+    },
+    {
+      field: "subject",
+      headerName: "Subject",
+      flex: 2,
+      minWidth: 240,
+      sortable: false,
+      renderCell: (p) => {
+        const r = p.row;
+        return (
+          <Stack spacing={0.25} sx={{ py: 1 }}>
+            <Typography variant="body2">{r.subject}</Typography>
+            {r.body && (
+              <Typography variant="caption" className="esti-label esti-label--secondary" color="text.secondary">
+                {r.body}
+              </Typography>
+            )}
+            {r.rating != null && (
+              <Typography variant="caption" className="esti-label esti-label--helper" color="text.secondary">
+                Rating: {r.rating}/5
+              </Typography>
+            )}
+            {r.refDrawingRef && (
+              <Typography variant="caption" className="esti-label esti-label--helper" color="text.secondary">
+                Ref drawing: {r.refDrawingRef}{r.refDrawingTitle ? ` — ${r.refDrawingTitle}` : ""}
+              </Typography>
+            )}
+            {r.attentionToId && (
+              <Typography variant="caption" className="esti-label esti-label--helper" color="text.secondary">
+                Attn: {(r as { submittedBy?: string | null }).submittedBy ?? r.attentionToId}
+              </Typography>
+            )}
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "projectRef",
+      headerName: "Project",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => <Link to={`/projects/${p.row.projectId}`}>{p.row.projectRef}</Link>,
+    },
+    {
+      field: "clientName",
+      headerName: "Client",
+      flex: 1,
+      minWidth: 130,
+      valueGetter: (v) => v ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1.2,
+      minWidth: 150,
+      renderCell: (p) => {
+        const r = p.row;
+        return (
+          <Stack spacing={0.5} sx={{ py: 1 }}>
+            <StatusTag
+              value={r.status as PortalSubmissionStatusT}
+              map={PORTAL_SUBMISSION_STATUS_TAG}
+              label={PORTAL_SUBMISSION_STATUS_LABEL[r.status as PortalSubmissionStatusT] ?? r.status}
+            />
+            {(r.affectsCosting || r.affectsTimeline || r.isBillable) && (
+              <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
+                {r.affectsCosting && <TagChip color="red" label="Cost" />}
+                {r.affectsTimeline && <TagChip color="magenta" label="Time" />}
+                {r.isBillable && <TagChip color="purple" label="Billable" />}
+              </Stack>
+            )}
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      minWidth: 150,
+      flex: 1,
+      renderCell: (p) => {
+        const r = p.row;
+        return (
+          <Stack spacing={0.5} sx={{ py: 1 }}>
+            {r.kind === "CHANGE_REQUEST" &&
+              !["IMPACT_SENT", "CLIENT_APPROVED", "CLIENT_REJECTED", "RESOLVED", "DECLINED"].includes(r.status) && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() =>
+                    setImpact({
+                      id: r.id,
+                      subject: r.subject,
+                      refDrawingRef: r.refDrawingRef,
+                      refDrawingTitle: r.refDrawingTitle,
+                      attentionToName: r.attentionToId ? String(r.attentionToId) : null,
+                      body: r.body,
+                      affectsCosting: r.affectsCosting ?? false,
+                      affectsTimeline: r.affectsTimeline ?? false,
+                      isBillable: r.isBillable ?? false,
+                      architectComment: r.architectComment ?? "",
+                    })
+                  }
+                >
+                  Send impact
+                </Button>
+              )}
+            <Button
+              variant="text"
+              size="small"
+              onClick={() =>
+                setTriage({
+                  id: r.id,
+                  subject: r.subject,
+                  status: r.status as PortalSubmissionStatusT,
+                  responseNote: r.responseNote ?? "",
+                })
+              }
+            >
+              Triage
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setThreadFor({ id: r.id, subject: r.subject })}
+            >
+              Reply
+            </Button>
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!embedded && (
         <PageHeader
           title="Client requests"
@@ -102,26 +279,39 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         />
       )}
 
-      <Stack orientation="horizontal" gap={5}>
-        <Select id="cr-status" labelText="Status" hideLabel size="sm"
-          value={status} onChange={(e) => setStatus(e.target.value)}>
-          <SelectItem value="" text="All statuses" />
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+        <TextField
+          id="cr-status"
+          select
+          size="small"
+          label="Status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">All statuses</MenuItem>
           {PortalSubmissionStatus.options.map((s) => (
-            <SelectItem key={s} value={s} text={PORTAL_SUBMISSION_STATUS_LABEL[s]} />
+            <MenuItem key={s} value={s}>{PORTAL_SUBMISSION_STATUS_LABEL[s]}</MenuItem>
           ))}
-        </Select>
-        <Select id="cr-kind" labelText="Kind" hideLabel size="sm"
-          value={kind} onChange={(e) => setKind(e.target.value)}>
-          <SelectItem value="" text="All kinds" />
+        </TextField>
+        <TextField
+          id="cr-kind"
+          select
+          size="small"
+          label="Kind"
+          value={kind}
+          onChange={(e) => setKind(e.target.value)}
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">All kinds</MenuItem>
           {PortalSubmissionKind.options.map((k) => (
-            <SelectItem key={k} value={k} text={PORTAL_SUBMISSION_KIND_LABEL[k]} />
+            <MenuItem key={k} value={k}>{PORTAL_SUBMISSION_KIND_LABEL[k]}</MenuItem>
           ))}
-        </Select>
+        </TextField>
       </Stack>
 
       {listQ.error && (
-        <InlineNotification kind="error" title="Could not load client requests"
-          subtitle={listQ.error.message} hideCloseButton lowContrast />
+        <Alert severity="error">Could not load client requests — {listQ.error.message}</Alert>
       )}
 
       <DataState
@@ -130,223 +320,185 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         columnCount={7}
         empty={{ title: "No client requests", description: "Items raised from the client portal appear here." }}
       >
-        <TableContainer title="Submissions">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Revision</TableHeader>
-                <TableHeader>Subject</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Client</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>
-                    <Tag type={KIND_TAG[r.kind] ?? "gray"} size="sm">
-                      {PORTAL_SUBMISSION_KIND_LABEL[r.kind as keyof typeof PORTAL_SUBMISSION_KIND_LABEL] ?? r.kind}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    {r.revisionCategory ? (
-                      <Tag type={REVISION_CATEGORY_TAG[r.revisionCategory as RevisionCategoryT] ?? "gray"} size="sm">
-                        {REVISION_CATEGORY_LABEL[r.revisionCategory as RevisionCategoryT] ?? r.revisionCategory}
-                      </Tag>
-                    ) : "—"}
-                  </TableCell>
-                  <TableCell>
-                    {r.subject}
-                    {r.body && <div className="esti-label esti-label--secondary">{r.body}</div>}
-                    {r.rating != null && <div className="esti-label esti-label--helper">Rating: {r.rating}/5</div>}
-                    {r.refDrawingRef && (
-                      <div className="esti-label esti-label--helper">
-                        Ref drawing: {r.refDrawingRef}{r.refDrawingTitle ? ` — ${r.refDrawingTitle}` : ""}
-                      </div>
-                    )}
-                    {r.attentionToId && (
-                      <div className="esti-label esti-label--helper">
-                        Attn: {(r as { submittedBy?: string | null }).submittedBy ?? r.attentionToId}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Link to={`/projects/${r.projectId}`}>{r.projectRef}</Link>
-                  </TableCell>
-                  <TableCell>{r.clientName ?? "—"}</TableCell>
-                  <TableCell>
-                    <Stack gap={3}>
-                      <Tag type={PORTAL_SUBMISSION_STATUS_TAG[r.status as PortalSubmissionStatusT] ?? "blue"}>
-                        {PORTAL_SUBMISSION_STATUS_LABEL[r.status as PortalSubmissionStatusT] ?? r.status}
-                      </Tag>
-                      {(r.affectsCosting || r.affectsTimeline || r.isBillable) && (
-                        <Stack orientation="horizontal" gap={3}>
-                          {r.affectsCosting && <Tag type="red" size="sm">Cost</Tag>}
-                          {r.affectsTimeline && <Tag type="magenta" size="sm">Time</Tag>}
-                          {r.isBillable && <Tag type="purple" size="sm">Billable</Tag>}
-                        </Stack>
-                      )}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Stack gap={2}>
-                      {r.kind === "CHANGE_REQUEST" && !["IMPACT_SENT", "CLIENT_APPROVED", "CLIENT_REJECTED", "RESOLVED", "DECLINED"].includes(r.status) && (
-                        <Button kind="primary" size="sm"
-                          onClick={() => setImpact({
-                            id: r.id,
-                            subject: r.subject,
-                            refDrawingRef: r.refDrawingRef,
-                            refDrawingTitle: r.refDrawingTitle,
-                            attentionToName: r.attentionToId ? String(r.attentionToId) : null,
-                            body: r.body,
-                            affectsCosting: r.affectsCosting ?? false,
-                            affectsTimeline: r.affectsTimeline ?? false,
-                            isBillable: r.isBillable ?? false,
-                            architectComment: r.architectComment ?? "",
-                          })}>
-                          Send impact
-                        </Button>
-                      )}
-                      <Button kind="ghost" size="sm"
-                        onClick={() => setTriage({
-                          id: r.id, subject: r.subject,
-                          status: r.status as PortalSubmissionStatusT,
-                          responseNote: r.responseNote ?? "",
-                        })}>
-                        Triage
-                      </Button>
-                      <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: r.id, subject: r.subject })}>
-                        Reply
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowHeight={() => "auto"}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      {/* ── Impact Assessment modal ──────────────────────────────────────── */}
-      <Modal
-        open={impact !== null}
-        modalHeading={impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}
-        primaryButtonText={sendImpact.isPending ? "Sending…" : "Send to client"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={sendImpact.isPending}
-        onRequestClose={() => setImpact(null)}
-        onRequestSubmit={() => impact && sendImpact.mutate({
-          submissionId: impact.id,
-          affectsCosting: impact.affectsCosting,
-          affectsTimeline: impact.affectsTimeline,
-          isBillable: impact.isBillable,
-          architectComment: impact.architectComment || undefined,
-        })}
-      >
-        {impact && (
-          <Stack gap={5}>
-            {impact.body && (
-              <Tile>
-                <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Client's request</p>
-                <p>{impact.body}</p>
-                {impact.refDrawingRef && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)", marginTop: "var(--cds-spacing-03)" }}>
-                    Reference drawing: {impact.refDrawingRef}{impact.refDrawingTitle ? ` — ${impact.refDrawingTitle}` : ""}
-                  </p>
-                )}
-              </Tile>
-            )}
-            <p>Tick all that apply to this change:</p>
-            <Stack gap={3}>
-              <Checkbox
-                id="ia-costing"
-                labelText="Affects costing"
-                helperText="This change will require a revised fee or additional costing."
-                checked={impact.affectsCosting}
-                onChange={(_e, { checked }) => setImpact({ ...impact, affectsCosting: checked })}
+      {/* ── Impact Assessment dialog ─────────────────────────────────────── */}
+      <Dialog open={impact !== null} onClose={() => setImpact(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}</DialogTitle>
+        <DialogContent>
+          {impact && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              {impact.body && (
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="caption" color="text.secondary">Client's request</Typography>
+                  <Typography variant="body2">{impact.body}</Typography>
+                  {impact.refDrawingRef && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                      Reference drawing: {impact.refDrawingRef}{impact.refDrawingTitle ? ` — ${impact.refDrawingTitle}` : ""}
+                    </Typography>
+                  )}
+                </Paper>
+              )}
+              <Typography variant="body2">Tick all that apply to this change:</Typography>
+              <Stack spacing={1.5}>
+                <Stack spacing={0}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        id="ia-costing"
+                        checked={impact.affectsCosting}
+                        onChange={(e) => setImpact({ ...impact, affectsCosting: e.target.checked })}
+                      />
+                    }
+                    label="Affects costing"
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
+                    This change will require a revised fee or additional costing.
+                  </Typography>
+                </Stack>
+                <Stack spacing={0}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        id="ia-timeline"
+                        checked={impact.affectsTimeline}
+                        onChange={(e) => setImpact({ ...impact, affectsTimeline: e.target.checked })}
+                      />
+                    }
+                    label="Affects timeline / delivery schedule"
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
+                    This change will extend or shift the project delivery dates.
+                  </Typography>
+                </Stack>
+                <Stack spacing={0}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        id="ia-billable"
+                        checked={impact.isBillable}
+                        onChange={(e) => setImpact({ ...impact, isBillable: e.target.checked })}
+                      />
+                    }
+                    label="Billable additional work"
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
+                    This change is outside the original scope and will be billed separately.
+                  </Typography>
+                </Stack>
+              </Stack>
+              <TextField
+                id="ia-comment"
+                label="Your comment to the client (optional)"
+                helperText="Explain the impact in plain terms. The client will see this before approving."
+                multiline
+                rows={4}
+                value={impact.architectComment}
+                onChange={(e) => setImpact({ ...impact, architectComment: e.target.value })}
               />
-              <Checkbox
-                id="ia-timeline"
-                labelText="Affects timeline / delivery schedule"
-                helperText="This change will extend or shift the project delivery dates."
-                checked={impact.affectsTimeline}
-                onChange={(_e, { checked }) => setImpact({ ...impact, affectsTimeline: checked })}
-              />
-              <Checkbox
-                id="ia-billable"
-                labelText="Billable additional work"
-                helperText="This change is outside the original scope and will be billed separately."
-                checked={impact.isBillable}
-                onChange={(_e, { checked }) => setImpact({ ...impact, isBillable: checked })}
-              />
+              {sendImpact.error && (
+                <Alert severity="error">Could not send — {sendImpact.error.message}</Alert>
+              )}
             </Stack>
-            <TextArea
-              id="ia-comment"
-              labelText="Your comment to the client (optional)"
-              helperText="Explain the impact in plain terms. The client will see this before approving."
-              rows={4}
-              value={impact.architectComment}
-              onChange={(e) => setImpact({ ...impact, architectComment: e.target.value })}
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setImpact(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={sendImpact.isPending}
+            onClick={() =>
+              impact &&
+              sendImpact.mutate({
+                submissionId: impact.id,
+                affectsCosting: impact.affectsCosting,
+                affectsTimeline: impact.affectsTimeline,
+                isBillable: impact.isBillable,
+                architectComment: impact.architectComment || undefined,
+              })
+            }
+          >
+            {sendImpact.isPending ? "Sending…" : "Send to client"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Triage dialog ────────────────────────────────────────────────── */}
+      <Dialog open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
+        <DialogContent>
+          {triage && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                id="tr-status"
+                select
+                label="Status"
+                value={triage.status}
+                onChange={(e) => setTriage({ ...triage, status: e.target.value as PortalSubmissionStatusT })}
+              >
+                {PortalSubmissionStatus.options.map((s) => (
+                  <MenuItem key={s} value={s}>{PORTAL_SUBMISSION_STATUS_LABEL[s]}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="tr-note"
+                label="Response to client (optional)"
+                multiline
+                rows={3}
+                value={triage.responseNote}
+                onChange={(e) => setTriage({ ...triage, responseNote: e.target.value })}
+              />
+              {setStatusM.error && (
+                <Alert severity="error">Could not save — {setStatusM.error.message}</Alert>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setTriage(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={setStatusM.isPending}
+            onClick={() =>
+              triage &&
+              setStatusM.mutate({
+                id: triage.id,
+                status: triage.status,
+                responseNote: triage.responseNote || undefined,
+              })
+            }
+          >
+            {setStatusM.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Thread dialog ────────────────────────────────────────────────── */}
+      <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+        <DialogContent>
+          {threadFor && (
+            <SubmissionThread
+              messages={threadQ.data ?? []}
+              loading={threadQ.isLoading}
+              pending={reply.isPending}
+              onReply={(body) => reply.mutate({ id: threadFor.id, body })}
             />
-            {sendImpact.error && (
-              <InlineNotification kind="error" title="Could not send"
-                subtitle={sendImpact.error.message} hideCloseButton lowContrast />
-            )}
-          </Stack>
-        )}
-      </Modal>
-
-      {/* ── Triage modal ─────────────────────────────────────────────────── */}
-      <Modal
-        open={triage !== null}
-        modalHeading={triage ? `Triage — ${triage.subject}` : "Triage"}
-        primaryButtonText={setStatusM.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={setStatusM.isPending}
-        onRequestClose={() => setTriage(null)}
-        onRequestSubmit={() => triage && setStatusM.mutate({
-          id: triage.id, status: triage.status,
-          responseNote: triage.responseNote || undefined,
-        })}
-      >
-        {triage && (
-          <Stack gap={5}>
-            <Select id="tr-status" labelText="Status" value={triage.status}
-              onChange={(e) => setTriage({ ...triage, status: e.target.value as PortalSubmissionStatusT })}>
-              {PortalSubmissionStatus.options.map((s) => (
-                <SelectItem key={s} value={s} text={PORTAL_SUBMISSION_STATUS_LABEL[s]} />
-              ))}
-            </Select>
-            <TextArea id="tr-note" labelText="Response to client (optional)" rows={3}
-              value={triage.responseNote}
-              onChange={(e) => setTriage({ ...triage, responseNote: e.target.value })} />
-            {setStatusM.error && (
-              <InlineNotification kind="error" title="Could not save"
-                subtitle={setStatusM.error.message} hideCloseButton lowContrast />
-            )}
-          </Stack>
-        )}
-      </Modal>
-
-      {/* ── Thread modal ─────────────────────────────────────────────────── */}
-      <Modal
-        open={threadFor !== null}
-        modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
-        primaryButtonText="Close" passiveModal
-        onRequestClose={() => setThreadFor(null)}
-      >
-        {threadFor && (
-          <SubmissionThread
-            messages={threadQ.data ?? []}
-            loading={threadQ.isLoading}
-            pending={reply.isPending}
-            onReply={(body) => reply.mutate({ id: threadFor.id, body })}
-          />
-        )}
-      </Modal>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setThreadFor(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

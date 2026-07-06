@@ -1,24 +1,23 @@
-import "@carbon/charts-react/styles.css";
 import {
+  Box,
   Button,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   Grid,
-  Modal,
-  Select,
-  SelectItem,
+  LinearProgress,
+  MenuItem,
+  Paper,
   Stack,
+  Switch,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-  Toggle,
-} from "@carbon/react";
-import { MeterChart } from "@carbon/charts-react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   PERFORMANCE_BAND_LABEL,
   PERFORMANCE_BAND_TAG,
@@ -33,10 +32,22 @@ import {
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
-import { useAppTheme } from "../lib/theme-context.js";
 import { trpc } from "../lib/trpc.js";
 
-const KPI_METER_HEIGHT = "24px";
+// ─── Shared tag chip (exact Carbon tag colours over --cds tokens) ─────────────
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 // ─── KPI meter inside a member tile ──────────────────────────────────────────
 
@@ -44,35 +55,20 @@ function KpiMeter({
   label,
   value,
   weight,
-  chartTheme,
 }: {
   label: string;
   value: number;
   weight: string;
-  chartTheme: string;
 }) {
   const pct = Math.min(100, Math.max(0, value));
   return (
-    <Stack gap={3}>
-      <Stack orientation="horizontal" gap={3}>
-        <span className="esti-grow">{label}</span>
-        <span>{weight}</span>
-        <span>{pct.toFixed(0)}</span>
-      </Stack>
-      <div className="esti-chart-sm">
-        <MeterChart
-          data={[{ group: label, value: pct }]}
-          options={{
-            data: { groupMapsTo: "group" },
-            height: KPI_METER_HEIGHT,
-            theme: chartTheme,
-            toolbar: { enabled: false },
-            legend: { enabled: false },
-            meter: { peak: 100 },
-            accessibility: { svgAriaLabel: `${label} ${pct} out of 100` },
-          }}
-        />
-      </div>
+    <Stack spacing={1}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Typography variant="body2" sx={{ flexGrow: 1 }}>{label}</Typography>
+        <Typography variant="caption" color="text.secondary">{weight}</Typography>
+        <Typography variant="body2">{pct.toFixed(0)}</Typography>
+      </Box>
+      <LinearProgress variant="determinate" value={pct} />
     </Stack>
   );
 }
@@ -82,79 +78,78 @@ function KpiMeter({
 function MemberScoreCard({
   member,
   onGrant,
-  chartTheme,
 }: {
   member: AspRfMemberScore;
   onGrant: (m: AspRfMemberScore) => void;
-  chartTheme: string;
 }) {
   const band = member.band as PerformanceBand | null;
   return (
-    <Column sm={4} md={4} lg={8}>
-      <Tile>
-        <Stack gap={5}>
-          <Stack orientation="horizontal" gap={4}>
-            <Stack gap={3} className="esti-grow">
-              <Tag type="gray" size="sm">{member.memberRole}</Tag>
-              <h3>{member.memberName}</h3>
+    <Grid size={{ xs: 12, md: 6 }}>
+      <Paper sx={{ p: 2 }}>
+        <Stack spacing={2}>
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+            <Stack spacing={1} sx={{ flexGrow: 1 }}>
+              <Box><TagChip color="gray" label={member.memberRole} /></Box>
+              <Typography variant="h6" component="h3">{member.memberName}</Typography>
             </Stack>
-            <Stack gap={2}>
-              <h2>{member.score}</h2>
+            <Stack spacing={0.5} sx={{ alignItems: "flex-end" }}>
+              <Typography variant="h5" component="p">{member.score}</Typography>
               {band ? (
-                <Tag type={PERFORMANCE_BAND_TAG[band]} size="sm">
-                  {PERFORMANCE_BAND_LABEL[band]}
-                </Tag>
+                <TagChip color={PERFORMANCE_BAND_TAG[band]} label={PERFORMANCE_BAND_LABEL[band]} />
               ) : (
-                <Tag type="gray" size="sm">Developing</Tag>
+                <TagChip color="gray" label="Developing" />
               )}
             </Stack>
-          </Stack>
+          </Box>
 
-          <Stack gap={3}>
-            <KpiMeter label="Reliability" value={member.kpi.reliability} weight="30%" chartTheme={chartTheme} />
-            <KpiMeter label="Quality" value={member.kpi.quality} weight="25%" chartTheme={chartTheme} />
-            <KpiMeter label="Client Impact" value={member.kpi.clientImpact} weight="15%" chartTheme={chartTheme} />
-            <KpiMeter label="Collaboration" value={member.kpi.collaboration} weight="15%" chartTheme={chartTheme} />
-            <KpiMeter label="Learning" value={member.kpi.learning} weight="10%" chartTheme={chartTheme} />
+          <Stack spacing={1}>
+            <KpiMeter label="Reliability" value={member.kpi.reliability} weight="30%" />
+            <KpiMeter label="Quality" value={member.kpi.quality} weight="25%" />
+            <KpiMeter label="Client Impact" value={member.kpi.clientImpact} weight="15%" />
+            <KpiMeter label="Collaboration" value={member.kpi.collaboration} weight="15%" />
+            <KpiMeter label="Learning" value={member.kpi.learning} weight="10%" />
             {member.wellbeingOptIn && member.kpi.wellbeing !== null && (
-              <KpiMeter
-                label="Wellbeing"
-                value={member.kpi.wellbeing}
-                weight="5%"
-                chartTheme={chartTheme}
-              />
+              <KpiMeter label="Wellbeing" value={member.kpi.wellbeing} weight="5%" />
             )}
           </Stack>
 
-          <Stack orientation="horizontal" gap={5}>
-            <Stack gap={3}>
-              <p>Tasks</p>
-              <p><strong>{member.totalTasks}</strong></p>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">Tasks</Typography>
+              <Typography variant="body2"><strong>{member.totalTasks}</strong></Typography>
             </Stack>
-            <Stack gap={3}>
-              <p>On time</p>
-              <p><strong>{member.completedOnTime}</strong></p>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">On time</Typography>
+              <Typography variant="body2"><strong>{member.completedOnTime}</strong></Typography>
             </Stack>
-            <Stack gap={3}>
-              <p>Overdue</p>
-              <div><strong>{member.overdueCount > 0 ? <Tag type="red" size="sm">{member.overdueCount}</Tag> : 0}</strong></div>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">Overdue</Typography>
+              <Box>
+                {member.overdueCount > 0 ? (
+                  <TagChip color="red" label={String(member.overdueCount)} />
+                ) : (
+                  <Typography variant="body2" component="span"><strong>0</strong></Typography>
+                )}
+              </Box>
             </Stack>
-            <Stack gap={3}>
-              <p>Training</p>
-              <p><strong>{member.trainingCount}</strong></p>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">Training</Typography>
+              <Typography variant="body2"><strong>{member.trainingCount}</strong></Typography>
             </Stack>
-            <Stack gap={3}>
-              <p>Points</p>
-              <p><strong>{member.totalPoints}</strong></p>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">Points</Typography>
+              <Typography variant="body2"><strong>{member.totalPoints}</strong></Typography>
             </Stack>
-          </Stack>
+          </Box>
 
-          <Button kind="ghost" size="sm" onClick={() => onGrant(member)}>
-            Grant reward points
-          </Button>
+          <Box>
+            <Button variant="text" size="small" onClick={() => onGrant(member)}>
+              Grant reward points
+            </Button>
+          </Box>
         </Stack>
-      </Tile>
-    </Column>
+      </Paper>
+    </Grid>
   );
 }
 
@@ -173,47 +168,45 @@ function RecognitionTab() {
   const events = Object.entries(REWARD_POINT_VALUES) as [string, number][];
 
   return (
-    <Grid>
-      <Column sm={4} md={8} lg={8}>
-        <Tile>
-          <Stack gap={5}>
-            <Stack gap={2}>
-              <Tag type="teal" size="sm">Awards</Tag>
-              <h3>Recognition awards</h3>
-              <p>Computed monthly from the performance score engine.</p>
+    <Grid container spacing={2}>
+      <Grid size={{ xs: 12, lg: 6 }}>
+        <Paper sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="teal" label="Awards" /></Box>
+              <Typography variant="h6" component="h3">Recognition awards</Typography>
+              <Typography variant="body2">Computed monthly from the performance score engine.</Typography>
             </Stack>
-            <Stack gap={3}>
+            <Stack spacing={1}>
               {awards.map((a) => (
-                <Stack key={a} orientation="horizontal" gap={3}>
-                  <Tag type={RECOGNITION_AWARD_TAG[a]} size="sm">
-                    {RECOGNITION_AWARD_LABEL[a]}
-                  </Tag>
-                </Stack>
+                <Box key={a}>
+                  <TagChip color={RECOGNITION_AWARD_TAG[a]} label={RECOGNITION_AWARD_LABEL[a]} />
+                </Box>
               ))}
             </Stack>
           </Stack>
-        </Tile>
-      </Column>
+        </Paper>
+      </Grid>
 
-      <Column sm={4} md={8} lg={8}>
-        <Tile>
-          <Stack gap={5}>
-            <Stack gap={2}>
-              <Tag type="blue" size="sm">Rewards</Tag>
-              <h3>Reward point events</h3>
-              <p>Base points awarded per qualifying event. Managers grant points from the Scores tab.</p>
+      <Grid size={{ xs: 12, lg: 6 }}>
+        <Paper sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="blue" label="Rewards" /></Box>
+              <Typography variant="h6" component="h3">Reward point events</Typography>
+              <Typography variant="body2">Base points awarded per qualifying event. Managers grant points from the Scores tab.</Typography>
             </Stack>
-            <Stack gap={3}>
+            <Stack spacing={1}>
               {events.map(([type, pts]) => (
-                <Stack key={type} orientation="horizontal" gap={3}>
-                  <Tag type="gray" size="sm">{pts} pts</Tag>
-                  <span className="esti-grow">{REWARD_POINT_LABEL[type] ?? type}</span>
-                </Stack>
+                <Box key={type} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <TagChip color="gray" label={`${pts} pts`} />
+                  <Typography variant="body2" sx={{ flexGrow: 1 }}>{REWARD_POINT_LABEL[type] ?? type}</Typography>
+                </Box>
               ))}
             </Stack>
           </Stack>
-        </Tile>
-      </Column>
+        </Paper>
+      </Grid>
     </Grid>
   );
 }
@@ -221,11 +214,12 @@ function RecognitionTab() {
 // ─── Performance page ─────────────────────────────────────────────────────────
 
 export function Performance({ embedded = false }: { embedded?: boolean }) {
-  const chartTheme = useAppTheme();
   const utils = trpc.useUtils();
   const scoresQ = trpc.aspRf.teamScores.useQuery();
   const myScoreQ = trpc.aspRf.myScore.useQuery();
   const scores = scoresQ.data ?? [];
+
+  const [tab, setTab] = useState(0);
 
   const setWellbeing = trpc.aspRf.setWellbeingOptIn.useMutation({
     onSuccess: () => {
@@ -261,7 +255,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
   }, {});
 
   return (
-    <Stack gap={7}>
+    <Stack spacing={4}>
       {!embedded && (
         <PageHeader
           title="Performance"
@@ -270,145 +264,149 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {myScoreQ.data && (
-        <Tile className="esti-form-panel">
-          <Stack gap={4}>
-            <h3>Wellbeing dimension (optional)</h3>
-            <p>
+        <Paper className="esti-form-panel" sx={{ p: 2 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h6" component="h3">Wellbeing dimension (optional)</Typography>
+            <Typography variant="body2">
               When enabled, your ASPRF score includes a wellbeing KPI based on
               overdue tasks and sustained heavy due-day load. Informational only
               — not used for discipline.
-            </p>
-            <Toggle
-              id="wellbeing-opt-in"
-              labelText="Include wellbeing in my ASPRF score"
-              toggled={myScoreQ.data.wellbeingOptIn}
-              disabled={setWellbeing.isPending}
-              onToggle={(checked) => setWellbeing.mutate({ optIn: checked })}
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  id="wellbeing-opt-in"
+                  checked={myScoreQ.data.wellbeingOptIn}
+                  disabled={setWellbeing.isPending}
+                  onChange={(_e, checked) => setWellbeing.mutate({ optIn: checked })}
+                />
+              }
+              label="Include wellbeing in my ASPRF score"
             />
           </Stack>
-        </Tile>
+        </Paper>
       )}
 
       {/* KPI summary */}
-      <Grid narrow>
-        <Column sm={4} md={2} lg={4}>
-          <Tile>
-            <Stack gap={2}>
-              <Tag type="gray" size="sm">Team</Tag>
-              <h2>{teamSize}</h2>
-              <p>Active members</p>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="gray" label="Team" /></Box>
+              <Typography variant="h5" component="p">{teamSize}</Typography>
+              <Typography variant="body2" color="text.secondary">Active members</Typography>
             </Stack>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile>
-            <Stack gap={2}>
-              <Tag type="blue" size="sm">Average score</Tag>
-              <h2>{avgScore > 0 ? avgScore : "—"}</h2>
-              <p>30-day rolling</p>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="blue" label="Average score" /></Box>
+              <Typography variant="h5" component="p">{avgScore > 0 ? avgScore : "—"}</Typography>
+              <Typography variant="body2" color="text.secondary">30-day rolling</Typography>
             </Stack>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile>
-            <Stack gap={2}>
-              <Tag type="teal" size="sm">Platinum</Tag>
-              <h2>{bandCounts["PLATINUM"] ?? 0}</h2>
-              <p>Score ≥ 96</p>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="teal" label="Platinum" /></Box>
+              <Typography variant="h5" component="p">{bandCounts["PLATINUM"] ?? 0}</Typography>
+              <Typography variant="body2" color="text.secondary">Score ≥ 96</Typography>
             </Stack>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile>
-            <Stack gap={2}>
-              <Tag type="warm-gray" size="sm">Gold</Tag>
-              <h2>{bandCounts["GOLD"] ?? 0}</h2>
-              <p>Score 91–95</p>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Box><TagChip color="warm-gray" label="Gold" /></Box>
+              <Typography variant="h5" component="p">{bandCounts["GOLD"] ?? 0}</Typography>
+              <Typography variant="body2" color="text.secondary">Score 91–95</Typography>
             </Stack>
-          </Tile>
-        </Column>
+          </Paper>
+        </Grid>
       </Grid>
 
-      <Tabs>
-        <TabList aria-label="Performance sections" contained>
-          <Tab>Scores</Tab>
-          <Tab>Recognition</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel>
-            <DataState
-              loading={scoresQ.isLoading}
-              isEmpty={scores.length === 0}
-              columnCount={2}
-              empty={{
-                title: "No team members yet",
-                description: "Add team members via the HR module to track performance scores.",
-              }}
-            >
-              <Grid>
-                {scores.map((m) => (
-                  <MemberScoreCard
-                    key={m.teamMemberId}
-                    member={m}
-                    onGrant={setGrantTarget}
-                    chartTheme={chartTheme}
-                  />
-                ))}
-              </Grid>
-            </DataState>
-          </TabPanel>
-          <TabPanel>
-            <RecognitionTab />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      <Box>
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Performance sections">
+          <Tab label="Scores" />
+          <Tab label="Recognition" />
+        </Tabs>
+      </Box>
+
+      {tab === 0 && (
+        <DataState
+          loading={scoresQ.isLoading}
+          isEmpty={scores.length === 0}
+          columnCount={2}
+          empty={{
+            title: "No team members yet",
+            description: "Add team members via the HR module to track performance scores.",
+          }}
+        >
+          <Grid container spacing={2}>
+            {scores.map((m) => (
+              <MemberScoreCard key={m.teamMemberId} member={m} onGrant={setGrantTarget} />
+            ))}
+          </Grid>
+        </DataState>
+      )}
+
+      {tab === 1 && <RecognitionTab />}
 
       {/* Grant modal */}
-      <Modal
-        open={!!grantTarget}
-        modalHeading={`Grant reward points — ${grantTarget?.memberName ?? ""}`}
-        primaryButtonText={grant.isPending ? "Saving…" : "Grant points"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!grantForm.reason || !grantForm.points || grant.isPending}
-        onRequestClose={() => setGrantTarget(null)}
-        onRequestSubmit={() => {
-          if (!grantTarget) return;
-          grant.mutate({
-            teamMemberId: grantTarget.teamMemberId,
-            points: parseInt(grantForm.points, 10),
-            reason: grantForm.reason,
-            awardType: grantForm.awardType || undefined,
-          });
-        }}
-      >
-        <Stack gap={5}>
-          <Select
-            id="gp-type"
-            labelText="Award type (optional)"
-            value={grantForm.awardType}
-            onChange={(e) => setGrantForm((f) => ({ ...f, awardType: e.target.value }))}
+      <Dialog open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Grant reward points — {grantTarget?.memberName ?? ""}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="gp-type"
+              select
+              label="Award type (optional)"
+              value={grantForm.awardType}
+              onChange={(e) => setGrantForm((f) => ({ ...f, awardType: e.target.value }))}
+            >
+              <MenuItem value="">— custom —</MenuItem>
+              {Object.entries(REWARD_POINT_LABEL).map(([k, v]) => (
+                <MenuItem key={k} value={k}>{`${v} (+${REWARD_POINT_VALUES[k] ?? "?"} pts)`}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="gp-pts"
+              label="Points"
+              type="number"
+              value={grantForm.points}
+              onChange={(e) => setGrantForm((f) => ({ ...f, points: e.target.value }))}
+            />
+            <TextField
+              id="gp-reason"
+              label="Reason"
+              multiline
+              rows={3}
+              value={grantForm.reason}
+              onChange={(e) => setGrantForm((f) => ({ ...f, reason: e.target.value }))}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setGrantTarget(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!grantForm.reason || !grantForm.points || grant.isPending}
+            onClick={() => {
+              if (!grantTarget) return;
+              grant.mutate({
+                teamMemberId: grantTarget.teamMemberId,
+                points: parseInt(grantForm.points, 10),
+                reason: grantForm.reason,
+                awardType: grantForm.awardType || undefined,
+              });
+            }}
           >
-            <SelectItem value="" text="— custom —" />
-            {Object.entries(REWARD_POINT_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k} text={`${v} (+${REWARD_POINT_VALUES[k] ?? "?"} pts)`} />
-            ))}
-          </Select>
-          <TextInput
-            id="gp-pts"
-            labelText="Points"
-            type="number"
-            value={grantForm.points}
-            onChange={(e) => setGrantForm((f) => ({ ...f, points: e.target.value }))}
-          />
-          <TextArea
-            id="gp-reason"
-            labelText="Reason"
-            rows={3}
-            value={grantForm.reason}
-            onChange={(e) => setGrantForm((f) => ({ ...f, reason: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
+            {grant.isPending ? "Saving…" : "Grant points"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -1,25 +1,19 @@
 import { useEffect, useState } from "react";
-import {
-  Button,
-  InlineNotification,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-} from "@carbon/react";
+import { Alert, Button, Chip, Stack } from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { trpc } from "../lib/trpc";
 
 type Requests = Awaited<ReturnType<typeof trpc.admin.requests.list.query>>;
 
-const STATUS_TAG: Record<string, "teal" | "green" | "red" | "gray"> = {
+const STATUS_TAG: Record<string, string> = {
   PENDING: "teal",
   FULFILLED: "green",
   REJECTED: "red",
 };
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 const fmt = (d: Date | string) => new Date(d).toLocaleString();
 
 export default function RequestsTab() {
@@ -66,63 +60,72 @@ export default function RequestsTab() {
     }
   }
 
+  const columns: GridColDef<Requests[number]>[] = [
+    {
+      field: "createdAt",
+      headerName: "Requested",
+      flex: 1.2,
+      minWidth: 180,
+      renderCell: (p) => fmt(p.row.createdAt),
+    },
+    { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
+    { field: "planCode", headerName: "Plan", flex: 1, minWidth: 120 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 220,
+      renderCell: (p) =>
+        p.row.status === "PENDING" ? (
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={busy === p.row.id}
+              onClick={() => fulfil(p.row.id)}
+            >
+              Approve &amp; email
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              disabled={busy === p.row.id}
+              onClick={() => reject(p.row.id)}
+            >
+              Reject
+            </Button>
+          </Stack>
+        ) : null,
+    },
+  ];
+
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       {note && (
-        <InlineNotification
-          kind={note.kind}
-          lowContrast
-          title={note.kind === "success" ? "Done" : "Error"}
-          subtitle={note.text}
-          onCloseButtonClick={() => setNote(null)}
-        />
+        <Alert severity={note.kind} onClose={() => setNote(null)}>
+          {note.text}
+        </Alert>
       )}
-      <Table size="lg">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Requested</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Plan</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((r) => (
-            <TableRow key={r.id}>
-              <TableCell>{fmt(r.createdAt)}</TableCell>
-              <TableCell>{r.email}</TableCell>
-              <TableCell>{r.planCode}</TableCell>
-              <TableCell>
-                <Tag type={STATUS_TAG[r.status] ?? "gray"} size="sm">
-                  {r.status}
-                </Tag>
-              </TableCell>
-              <TableCell>
-                {r.status === "PENDING" && (
-                  <Stack orientation="horizontal" gap={2}>
-                    <Button kind="primary" size="sm" disabled={busy === r.id} onClick={() => fulfil(r.id)}>
-                      Approve &amp; email
-                    </Button>
-                    <Button kind="ghost" size="sm" disabled={busy === r.id} onClick={() => reject(r.id)}>
-                      Reject
-                    </Button>
-                  </Stack>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-          {rows.length === 0 && (
-            <TableRow>
-              <TableCell>No requests yet.</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-              <TableCell>{""}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        getRowId={(r) => r.id}
+        density="compact"
+        disableRowSelectionOnClick
+        hideFooter
+        autoHeight
+      />
     </Stack>
   );
 }

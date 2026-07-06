@@ -1,4 +1,4 @@
-import { Select, SelectItem, Stack, TextInput } from "@carbon/react";
+import { MenuItem, Stack, TextField } from "@mui/material";
 import type { PeriodFilterInput, PeriodPreset } from "@esti/contracts";
 import { financialYear } from "@esti/contracts";
 
@@ -16,90 +16,110 @@ const PRESETS: { id: PeriodPreset; label: string }[] = [
   { id: "CUSTOM", label: "Custom range" },
 ];
 
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
+
 export function PeriodFilter({ value, onChange }: Props) {
   const preset = value.preset ?? "CURRENT_FY";
   const currentFy = financialYear();
 
   return (
-    <Stack orientation="horizontal" gap={4} style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
-      <Select
+    <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", alignItems: "flex-end", rowGap: 2 }}>
+      <TextField
         id="period-preset"
-        labelText="Period"
+        select
+        label="Period"
+        size="small"
         value={preset}
         onChange={(e) => onChange({ ...value, preset: e.target.value as PeriodPreset })}
+        sx={{ minWidth: 180 }}
       >
         {PRESETS.map((p) => (
-          <SelectItem key={p.id} value={p.id} text={p.label} />
+          <MenuItem key={p.id} value={p.id}>{p.label}</MenuItem>
         ))}
-      </Select>
+      </TextField>
 
       {(preset === "FY" || preset === "QUARTER") && (
-        <Select
+        <TextField
           id="period-fy"
-          labelText="Financial year"
+          select
+          label="Financial year"
+          size="small"
           value={value.fy ?? currentFy}
           onChange={(e) => onChange({ ...value, fy: e.target.value })}
+          sx={{ minWidth: 140 }}
         >
           {[0, -1, -2].map((off) => {
             const y = Number(currentFy.slice(0, 4)) + off;
             const fy = `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
-            return <SelectItem key={fy} value={fy} text={`FY ${fy}`} />;
+            return <MenuItem key={fy} value={fy}>{`FY ${fy}`}</MenuItem>;
           })}
-        </Select>
+        </TextField>
       )}
 
       {preset === "QUARTER" && (
-        <Select
+        <TextField
           id="period-q"
-          labelText="Quarter"
+          select
+          label="Quarter"
+          size="small"
           value={value.quarter ?? "Q1"}
           onChange={(e) => onChange({ ...value, quarter: e.target.value as PeriodFilterInput["quarter"] })}
+          sx={{ minWidth: 100 }}
         >
           {(["Q1", "Q2", "Q3", "Q4"] as const).map((q) => (
-            <SelectItem key={q} value={q} text={q} />
+            <MenuItem key={q} value={q}>{q}</MenuItem>
           ))}
-        </Select>
+        </TextField>
       )}
 
       {preset === "MONTH" && (
-        <TextInput
+        <TextField
           id="period-month"
           type="month"
-          labelText="Month"
+          label="Month"
+          size="small"
           value={value.month ?? ""}
           onChange={(e) => onChange({ ...value, month: e.target.value })}
+          {...shrink}
         />
       )}
 
       {preset === "ASSESSMENT_YEAR" && (
-        <Select
+        <TextField
           id="period-ay"
-          labelText="Assessment year ending"
+          select
+          label="Assessment year ending"
+          size="small"
           value={String(value.assessmentYear ?? new Date().getFullYear())}
           onChange={(e) => onChange({ ...value, assessmentYear: Number(e.target.value) })}
+          sx={{ minWidth: 180 }}
         >
           {[0, 1, 2].map((off) => {
             const y = new Date().getFullYear() + off;
-            return <SelectItem key={y} value={String(y)} text={`Mar ${y}`} />;
+            return <MenuItem key={y} value={String(y)}>{`Mar ${y}`}</MenuItem>;
           })}
-        </Select>
+        </TextField>
       )}
 
       {preset === "CUSTOM" && (
         <>
-          <TextInput
+          <TextField
             id="period-from"
             type="date"
-            labelText="From"
+            label="From"
+            size="small"
             value={value.fromDate ?? ""}
             onChange={(e) => onChange({ ...value, fromDate: e.target.value })}
+            {...shrink}
           />
-          <TextInput
+          <TextField
             id="period-to"
             type="date"
-            labelText="To"
+            label="To"
+            size="small"
             value={value.toDate ?? ""}
             onChange={(e) => onChange({ ...value, toDate: e.target.value })}
+            {...shrink}
           />
         </>
       )}

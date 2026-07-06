@@ -1,5 +1,5 @@
-import { ArrowLeft } from "@carbon/icons-react";
-import { Button, Loading, Stack, Tag, Theme, Tile } from "@carbon/react";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Box, Button, Chip, CircularProgress, Paper, Stack, Typography } from "@mui/material";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
@@ -12,6 +12,13 @@ const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
 const RequestPlan = lazy(() => import("../platform-admin/RequestPlan.js"));
 const Security = lazy(() => import("../platform-admin/Security.js"));
+
+function chipTokens(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function AccountPortal() {
   const [me, setMe] = useState<Me | null>(null);
@@ -40,18 +47,18 @@ export function AccountPortal() {
 
   if (checking) {
     return (
-      <Theme theme="g100">
+      <div className="cds--g100">
         <main className="esti-portal-shell">
-          <Loading withOverlay={false} description="Loading" />
+          <CircularProgress />
         </main>
-      </Theme>
+      </div>
     );
   }
 
   // Not signed in → the account sign-in / create-account flow.
   if (!me?.account) {
     return (
-      <Suspense fallback={<Loading withOverlay description="Loading" />}>
+      <Suspense fallback={<CircularProgress />}>
         <PlatformLogin
           portal
           initialMode={wantsCreate ? "register" : "signin"}
@@ -64,58 +71,69 @@ export function AccountPortal() {
   // Signed in → the account dashboard.
   const account = me.account;
   return (
-    <Theme theme="g100">
-    <main className="esti-portal-shell">
-      <Stack gap={6}>
-        <Stack gap={3} orientation="horizontal">
-          <h1 className="esti-grow">AORMS Account</h1>
-          <span>{account.email}</span>
-          {account.publicId && (
-            <Tag type="cool-gray" size="md">
-              {account.publicId}
-            </Tag>
+    <div className="cds--g100">
+      <main className="esti-portal-shell">
+        <Stack spacing={3}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+            <Typography variant="h4" component="h1" className="esti-grow">
+              AORMS Account
+            </Typography>
+            <Typography variant="body2">{account.email}</Typography>
+            {account.publicId && (
+              <Chip size="medium" label={account.publicId} sx={chipTokens("cool-gray")} />
+            )}
+            <Button
+              component={RouterLink}
+              to="/login"
+              variant="text"
+              size="small"
+              color="inherit"
+              startIcon={<ArrowBack />}
+            >
+              Workspace sign-in
+            </Button>
+            <Button variant="text" size="small" color="inherit" onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </Stack>
+
+          {license && (
+            <Paper sx={{ p: 3 }}>
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <Typography variant="h6" component="h4" className="esti-grow">
+                    Current plan
+                  </Typography>
+                  <Chip
+                    size="medium"
+                    label={license.planCode}
+                    sx={chipTokens(license.status === "ACTIVE" ? "green" : "gray")}
+                  />
+                </Stack>
+                <Stack spacing={0.5}>
+                  <Typography variant="body2" color="text.secondary">
+                    Seats: {license.seats == null ? "Unlimited" : license.seats}
+                    {" · "}
+                    Devices: {license.deviceLimit == null ? "Unlimited" : license.deviceLimit}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {license.expiresAt
+                      ? `Renews / expires ${new Date(license.expiresAt).toLocaleDateString()}`
+                      : "Perpetual — no expiry"}
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Paper>
           )}
-          <Button as={RouterLink} to="/login" kind="ghost" size="sm" renderIcon={ArrowLeft}>
-            Workspace sign-in
-          </Button>
-          <Button kind="ghost" size="sm" onClick={handleSignOut}>
-            Sign out
-          </Button>
+
+          <Suspense fallback={<Box sx={{ display: "flex" }}><CircularProgress /></Box>}>
+            <RequestPlan />
+            <Companies me={me} onChange={setMe} />
+            <Security me={me} onChange={refresh} />
+            <Credentials />
+          </Suspense>
         </Stack>
-
-        {license && (
-          <Tile>
-            <Stack gap={3}>
-              <Stack gap={2} orientation="horizontal">
-                <h4 className="esti-grow">Current plan</h4>
-                <Tag type={license.status === "ACTIVE" ? "green" : "gray"} size="md">
-                  {license.planCode}
-                </Tag>
-              </Stack>
-              <Stack gap={1}>
-                <span className="esti-label esti-label--secondary">
-                  Seats: {license.seats == null ? "Unlimited" : license.seats}
-                  {" · "}
-                  Devices: {license.deviceLimit == null ? "Unlimited" : license.deviceLimit}
-                </span>
-                <span className="esti-label esti-label--secondary">
-                  {license.expiresAt
-                    ? `Renews / expires ${new Date(license.expiresAt).toLocaleDateString()}`
-                    : "Perpetual — no expiry"}
-                </span>
-              </Stack>
-            </Stack>
-          </Tile>
-        )}
-
-        <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
-          <RequestPlan />
-          <Companies me={me} onChange={setMe} />
-          <Security me={me} onChange={refresh} />
-          <Credentials />
-        </Suspense>
-      </Stack>
-    </main>
-    </Theme>
+      </main>
+    </div>
   );
 }
