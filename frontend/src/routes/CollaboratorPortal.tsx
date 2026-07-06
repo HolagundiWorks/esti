@@ -1,26 +1,28 @@
 import {
+  Alert,
+  Box,
   Button,
-  ClickableTile,
-  Column,
-  Content,
-  Form,
+  Card,
+  CardActionArea,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Stack,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   CONSULTANT_SUBMISSION_KIND_LABEL,
   CONSULTANT_SUBMISSION_STATUS_LABEL,
@@ -38,6 +40,13 @@ import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
+
+function chipTokens(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function CollaboratorPortal() {
   const navigate = useNavigate();
@@ -99,6 +108,134 @@ export function CollaboratorPortal() {
     onSuccess: () => utils.collab.submissionThread.invalidate(),
   });
 
+  const stageColumns: GridColDef[] = [
+    { field: "label", headerName: "Stage", flex: 1 },
+    { field: "billingPct", headerName: "Billing %", width: 120, valueGetter: (_v, row) => `${row.billingPct}%` },
+    { field: "status", headerName: "Status", width: 160 },
+  ];
+
+  const drawingColumns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", width: 160 },
+    { field: "title", headerName: "Title", flex: 1 },
+  ];
+
+  const taskColumns: GridColDef[] = [
+    {
+      field: "subject",
+      headerName: "Task",
+      flex: 1,
+      renderCell: ({ row }) => (
+        <div>
+          {row.subject}
+          {row.body && <div className="esti-label esti-label--secondary">{row.body}</div>}
+        </div>
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 120,
+      renderCell: ({ row }) => (
+        <Chip
+          size="small"
+          label={row.status === "RESOLVED" ? "Done" : "Open"}
+          sx={chipTokens(row.status === "RESOLVED" ? "green" : "blue")}
+        />
+      ),
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      width: 140,
+      sortable: false,
+      renderCell: ({ row }) =>
+        row.status !== "RESOLVED" ? (
+          <Button
+            variant="text"
+            size="small"
+            disabled={completeTask.isPending}
+            onClick={() => completeTask.mutate({ submissionId: row.id })}
+          >
+            Mark done
+          </Button>
+        ) : null,
+    },
+  ];
+
+  const submissionColumns: GridColDef[] = [
+    {
+      field: "kind",
+      headerName: "Type",
+      width: 130,
+      valueGetter: (_v, row) =>
+        CONSULTANT_SUBMISSION_KIND_LABEL[row.kind as ConsultantSubmissionKindT] ?? row.kind,
+    },
+    {
+      field: "subject",
+      headerName: "Subject",
+      flex: 1,
+      renderCell: ({ row }) => (
+        <div>
+          {row.subject}
+          {row.body && <div className="esti-label esti-label--secondary">{row.body}</div>}
+        </div>
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 170,
+      renderCell: ({ row }) => (
+        <Chip
+          size="small"
+          label={CONSULTANT_SUBMISSION_STATUS_LABEL[row.status as SubmissionStatus] ?? row.status}
+          sx={chipTokens(CONSULTANT_SUBMISSION_STATUS_TAG[row.status as SubmissionStatus] ?? "blue")}
+        />
+      ),
+    },
+    {
+      field: "responseNote",
+      headerName: "Firm response",
+      flex: 1,
+      valueGetter: (_v, row) => row.responseNote ?? "—",
+    },
+    {
+      field: "conversation",
+      headerName: "Conversation",
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <Button variant="text" size="small" onClick={() => setThreadFor({ id: row.id, subject: row.subject })}>
+          Open
+        </Button>
+      ),
+    },
+  ];
+
+  const activityColumns: GridColDef[] = [
+    {
+      field: "createdAt",
+      headerName: "When",
+      width: 200,
+      valueGetter: (_v, row) =>
+        new Date(row.createdAt as unknown as string).toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+    },
+    {
+      field: "summary",
+      headerName: "Update",
+      flex: 1,
+      renderCell: ({ row }) => (
+        <div>
+          {row.summary}
+          {row.actorName && <div className="esti-label esti-label--secondary">{row.actorName}</div>}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <PortalHeader
@@ -108,33 +245,41 @@ export function CollaboratorPortal() {
         onSignOut={() => logout.mutate()}
         signingOut={logout.isPending}
       />
-      <Content>
+      <Box component="main" sx={{ p: 4 }}>
         {!openId && (
-          <Stack gap={5}>
-            <Stack gap={2}>
-              <h1>Your engagements</h1>
-              <p>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
+              <Typography variant="h4" component="h1">Your engagements</Typography>
+              <Typography variant="body1">
                 Projects you are engaged on — status, stages, issued drawings,
                 your fee balance, and your deliverables, RFIs and notes.
-              </p>
+              </Typography>
             </Stack>
-            <Grid>
+            <Grid container spacing={2}>
               {(projectsQ.data ?? []).length === 0 && (
-                <p>No engagements yet.</p>
+                <Grid size={12}>
+                  <Typography variant="body1">No engagements yet.</Typography>
+                </Grid>
               )}
               {(projectsQ.data ?? []).map((p) => {
                 const balance = p.agreedFeePaise - p.paidPaise;
                 return (
-                  <Column key={p.id} sm={4} md={4} lg={4}>
-                    <ClickableTile onClick={() => navigate(`/projects/${p.id}`)}>
-                      <Stack gap={3}>
-                        <p>{p.ref}</p>
-                        <h3>{p.title}</h3>
-                        <Tag type="cool-gray">{p.status}</Tag>
-                        <p>Balance {formatINR(balance, { paise: false })}</p>
-                      </Stack>
-                    </ClickableTile>
-                  </Column>
+                  <Grid key={p.id} size={{ xs: 12, md: 6, lg: 3 }}>
+                    <Card className="esti-fill">
+                      <CardActionArea onClick={() => navigate(`/projects/${p.id}`)} sx={{ p: 2, height: 1 }}>
+                        <Stack spacing={1}>
+                          <Typography variant="body2">{p.ref}</Typography>
+                          <Typography variant="h6" component="h3">{p.title}</Typography>
+                          <Box>
+                            <Chip size="small" label={p.status} sx={chipTokens("cool-gray")} />
+                          </Box>
+                          <Typography variant="body2">
+                            Balance {formatINR(balance, { paise: false })}
+                          </Typography>
+                        </Stack>
+                      </CardActionArea>
+                    </Card>
+                  </Grid>
                 );
               })}
             </Grid>
@@ -142,270 +287,253 @@ export function CollaboratorPortal() {
         )}
 
         {openId && d && (
-          <Stack gap={6}>
-            <Stack gap={3}>
-              <Button kind="ghost" size="sm" onClick={() => navigate("/")}>
-                ← All engagements
-              </Button>
-              <h2>{d.project.title}</h2>
-              <p>
-                {d.project.ref} · {d.project.projectType} ·{" "}
-                {d.project.jurisdiction} ·{" "}
-                <Tag type="cool-gray">{d.project.status}</Tag>
-              </p>
-              <Stack orientation="horizontal" gap={3}>
-                <Button size="sm" onClick={() => setForm({ kind: "DELIVERABLE", subject: "", body: "" })}>
+          <Stack spacing={3}>
+            <Stack spacing={1}>
+              <Box>
+                <Button variant="text" size="small" onClick={() => navigate("/")}>
+                  ← All engagements
+                </Button>
+              </Box>
+              <Typography variant="h5" component="h2">{d.project.title}</Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+                <Typography variant="body2" color="text.secondary">
+                  {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·
+                </Typography>
+                <Chip size="small" label={d.project.status} sx={chipTokens("cool-gray")} />
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => setForm({ kind: "DELIVERABLE", subject: "", body: "" })}
+                >
                   Submit deliverable
                 </Button>
-                <Button size="sm" kind="tertiary" onClick={() => setForm({ kind: "RFI", subject: "", body: "" })}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setForm({ kind: "RFI", subject: "", body: "" })}
+                >
                   Raise RFI
                 </Button>
-                <Button size="sm" kind="tertiary" onClick={() => setForm({ kind: "NOTE", subject: "", body: "" })}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setForm({ kind: "NOTE", subject: "", body: "" })}
+                >
                   Add note
                 </Button>
               </Stack>
             </Stack>
 
-            <TableContainer title="Your engagement">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Scope</TableHeader>
-                    <TableHeader>Agreed</TableHeader>
-                    <TableHeader>Paid</TableHeader>
-                    <TableHeader>Balance</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{d.engagement.scope ?? "—"}</TableCell>
-                    <TableCell>
-                      {formatINR(d.engagement.agreedFeePaise, { paise: false })}
-                    </TableCell>
-                    <TableCell>
-                      {formatINR(d.engagement.paidPaise, { paise: false })}
-                    </TableCell>
-                    <TableCell>
-                      {formatINR(
-                        d.engagement.agreedFeePaise - d.engagement.paidPaise,
-                        { paise: false },
-                      )}
-                    </TableCell>
-                    <TableCell>{d.engagement.status}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <TableContainer title="Stages">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Stage</TableHeader>
-                    <TableHeader>Billing %</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.phases.map((ph) => (
-                    <TableRow key={ph.code}>
-                      <TableCell>{ph.label}</TableCell>
-                      <TableCell>{ph.billingPct}%</TableCell>
-                      <TableCell>{ph.status}</TableCell>
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">Your engagement</Typography>
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Scope</TableCell>
+                      <TableCell>Agreed</TableCell>
+                      <TableCell>Paid</TableCell>
+                      <TableCell>Balance</TableCell>
+                      <TableCell>Status</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <TableContainer title="Issued drawings">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Ref</TableHeader>
-                    <TableHeader>Title</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.drawings.map((dr) => (
-                    <TableRow key={dr.ref}>
-                      <TableCell>{dr.ref}</TableCell>
-                      <TableCell>{dr.title}</TableCell>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{d.engagement.scope ?? "—"}</TableCell>
+                      <TableCell>
+                        {formatINR(d.engagement.agreedFeePaise, { paise: false })}
+                      </TableCell>
+                      <TableCell>
+                        {formatINR(d.engagement.paidPaise, { paise: false })}
+                      </TableCell>
+                      <TableCell>
+                        {formatINR(
+                          d.engagement.agreedFeePaise - d.engagement.paidPaise,
+                          { paise: false },
+                        )}
+                      </TableCell>
+                      <TableCell>{d.engagement.status}</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
 
-            <TableContainer title="Tasks assigned to me">
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">Stages</Typography>
+              <DataGrid
+                rows={d.phases}
+                columns={stageColumns}
+                getRowId={(row) => row.code}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">Issued drawings</Typography>
+              <DataGrid
+                rows={d.drawings}
+                columns={drawingColumns}
+                getRowId={(row) => row.ref}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">Tasks assigned to me</Typography>
               <DataState
                 loading={assignedQ.isLoading}
                 isEmpty={(assignedQ.data ?? []).length === 0}
                 columnCount={3}
                 empty={{ title: "No assigned tasks", description: "Tasks the firm assigns to you appear here." }}
               >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>Task</TableHeader>
-                      <TableHeader>Status</TableHeader>
-                      <TableHeader>Action</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(assignedQ.data ?? []).map((t) => (
-                      <TableRow key={t.id}>
-                        <TableCell>
-                          {t.subject}
-                          {t.body && <div className="esti-label esti-label--secondary">{t.body}</div>}
-                        </TableCell>
-                        <TableCell>
-                          <Tag type={t.status === "RESOLVED" ? "green" : "blue"}>
-                            {t.status === "RESOLVED" ? "Done" : "Open"}
-                          </Tag>
-                        </TableCell>
-                        <TableCell>
-                          {t.status !== "RESOLVED" && (
-                            <Button kind="ghost" size="sm" disabled={completeTask.isPending}
-                              onClick={() => completeTask.mutate({ submissionId: t.id })}>
-                              Mark done
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  rows={assignedQ.data ?? []}
+                  columns={taskColumns}
+                  getRowHeight={() => "auto"}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  hideFooter
+                  autoHeight
+                />
               </DataState>
-            </TableContainer>
+            </Stack>
 
-            <TableContainer title="My deliverables, RFIs & notes">
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">My deliverables, RFIs &amp; notes</Typography>
               <DataState
                 loading={submissionsQ.isLoading}
                 isEmpty={(submissionsQ.data ?? []).length === 0}
                 columnCount={4}
                 empty={{ title: "Nothing submitted yet", description: "Your deliverables, RFIs and notes appear here." }}
               >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>Type</TableHeader>
-                      <TableHeader>Subject</TableHeader>
-                      <TableHeader>Status</TableHeader>
-                      <TableHeader>Firm response</TableHeader>
-                      <TableHeader>Conversation</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(submissionsQ.data ?? []).map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell>{CONSULTANT_SUBMISSION_KIND_LABEL[s.kind as ConsultantSubmissionKindT] ?? s.kind}</TableCell>
-                        <TableCell>
-                          {s.subject}
-                          {s.body && <div className="esti-label esti-label--secondary">{s.body}</div>}
-                        </TableCell>
-                        <TableCell>
-                          <Tag type={CONSULTANT_SUBMISSION_STATUS_TAG[s.status as SubmissionStatus] ?? "blue"}>
-                            {CONSULTANT_SUBMISSION_STATUS_LABEL[s.status as SubmissionStatus] ?? s.status}
-                          </Tag>
-                        </TableCell>
-                        <TableCell>{s.responseNote ?? "—"}</TableCell>
-                        <TableCell>
-                          <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
-                            Open
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  rows={submissionsQ.data ?? []}
+                  columns={submissionColumns}
+                  getRowHeight={() => "auto"}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  hideFooter
+                  autoHeight
+                />
               </DataState>
-            </TableContainer>
+            </Stack>
 
-            <TableContainer title="Activity">
+            <Stack spacing={1}>
+              <Typography variant="h6" component="h3">Activity</Typography>
               <DataState
                 loading={activityQ.isLoading}
                 isEmpty={(activityQ.data ?? []).length === 0}
                 columnCount={2}
                 empty={{ title: "No shared activity yet", description: "Updates the firm shares with you appear here." }}
               >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>When</TableHeader>
-                      <TableHeader>Update</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(activityQ.data ?? []).map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell>{new Date(a.createdAt as unknown as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</TableCell>
-                        <TableCell>
-                          {a.summary}
-                          {a.actorName && <div className="esti-label esti-label--secondary">{a.actorName}</div>}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  rows={activityQ.data ?? []}
+                  columns={activityColumns}
+                  getRowHeight={() => "auto"}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  hideFooter
+                  autoHeight
+                />
               </DataState>
-            </TableContainer>
+            </Stack>
           </Stack>
         )}
 
-        {/* ── submission modal ──────────────────────────────────────────── */}
-        <Modal
-          open={form !== null}
-          modalHeading={form ? `${CONSULTANT_SUBMISSION_KIND_LABEL[form.kind]} — ${d?.project.ref ?? ""}` : "Submit"}
-          primaryButtonText={submit.isPending ? "Submitting…" : "Submit"}
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={!form?.subject || submit.isPending}
-          onRequestClose={() => setForm(null)}
-          onRequestSubmit={() => form && openId && submit.mutate({
-            projectId: openId, kind: form.kind, subject: form.subject,
-            body: form.body || undefined,
-          })}
-        >
-          {form && (
-            <Form onSubmit={(e) => e.preventDefault()}>
-              <Stack gap={5}>
-                <Select id="cs-kind" labelText="Type" value={form.kind}
-                  onChange={(e) => setForm({ ...form, kind: e.target.value as ConsultantOriginKindT })}>
+        {/* ── submission dialog ─────────────────────────────────────────── */}
+        <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+          <DialogTitle>
+            {form ? `${CONSULTANT_SUBMISSION_KIND_LABEL[form.kind]} — ${d?.project.ref ?? ""}` : "Submit"}
+          </DialogTitle>
+          <DialogContent>
+            {form && (
+              <Stack spacing={2} sx={{ mt: 1 }}>
+                <TextField
+                  id="cs-kind"
+                  label="Type"
+                  select
+                  value={form.kind}
+                  onChange={(e) => setForm({ ...form, kind: e.target.value as ConsultantOriginKindT })}
+                  fullWidth
+                >
                   {ConsultantOriginKind.options.map((k) => (
-                    <SelectItem key={k} value={k} text={CONSULTANT_SUBMISSION_KIND_LABEL[k]} />
+                    <MenuItem key={k} value={k}>
+                      {CONSULTANT_SUBMISSION_KIND_LABEL[k]}
+                    </MenuItem>
                   ))}
-                </Select>
-                <TextInput id="cs-subject" labelText="Subject" value={form.subject}
-                  onChange={(e) => setForm({ ...form, subject: e.target.value })} />
-                <TextArea id="cs-body" labelText="Details (optional)" rows={4} value={form.body}
-                  onChange={(e) => setForm({ ...form, body: e.target.value })} />
+                </TextField>
+                <TextField
+                  id="cs-subject"
+                  label="Subject"
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  fullWidth
+                />
+                <TextField
+                  id="cs-body"
+                  label="Details (optional)"
+                  multiline
+                  rows={4}
+                  value={form.body}
+                  onChange={(e) => setForm({ ...form, body: e.target.value })}
+                  fullWidth
+                />
                 {submit.error && (
-                  <InlineNotification kind="error" title="Could not submit"
-                    subtitle={submit.error.message} hideCloseButton lowContrast />
+                  <Alert severity="error">
+                    <strong>Could not submit</strong> — {submit.error.message}
+                  </Alert>
                 )}
               </Stack>
-            </Form>
-          )}
-        </Modal>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setForm(null)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={!form?.subject || submit.isPending}
+              onClick={() =>
+                form && openId && submit.mutate({
+                  projectId: openId,
+                  kind: form.kind,
+                  subject: form.subject,
+                  body: form.body || undefined,
+                })
+              }
+            >
+              {submit.isPending ? "Submitting…" : "Submit"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* ── conversation thread modal ─────────────────────────────────── */}
-        <Modal
-          open={threadFor !== null}
-          modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
-          primaryButtonText="Close" passiveModal
-          onRequestClose={() => setThreadFor(null)}
-        >
-          {threadFor && (
-            <SubmissionThread
-              messages={threadQ.data ?? []}
-              loading={threadQ.isLoading}
-              pending={reply.isPending}
-              onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
-            />
-          )}
-        </Modal>
-      </Content>
+        {/* ── conversation thread dialog ────────────────────────────────── */}
+        <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+          <DialogTitle>
+            {threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
+          </DialogTitle>
+          <DialogContent>
+            {threadFor && (
+              <SubmissionThread
+                messages={threadQ.data ?? []}
+                loading={threadQ.isLoading}
+                pending={reply.isPending}
+                onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setThreadFor(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </>
   );
 }

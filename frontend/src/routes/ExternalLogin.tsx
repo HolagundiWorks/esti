@@ -1,13 +1,5 @@
-import { ArrowLeft } from "@carbon/icons-react";
-import {
-  Button,
-  Form,
-  InlineNotification,
-  Stack,
-  TextInput,
-  Theme,
-  Tile,
-} from "@carbon/react";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Alert, AlertTitle, Button, Link, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
@@ -17,7 +9,7 @@ import { trpc } from "../lib/trpc.js";
  * External-party access page (/access).
  * For EX_USER logins: clients, contractors, consultants, and site supervisors.
  * Intentionally minimal — no workspace resolution step, no account portal toggle.
- * Internal staff (IN_USER) use /login instead.
+ * Internal staff (IN_USER) use /login instead. Material UI.
  */
 export function ExternalLogin() {
   const navigate = useNavigate();
@@ -46,12 +38,12 @@ export function ExternalLogin() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
-    <Theme theme="g100">
+    <div className="cds--g100">
     <main className="esti-login-shell">
-      <Stack gap={5} className="esti-login-panel">
-        <Tile>
-          <Stack gap={5}>
-            <Stack gap={3}>
+      <Stack spacing={2} className="esti-login-panel">
+        <Paper sx={{ p: 3 }}>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
                   <img src="/esti-logo.png" alt="" />
@@ -61,78 +53,82 @@ export function ExternalLogin() {
               <p>
                 Sign in to your client, contractor, or collaborator portal.
                 If you are an office team member, use{" "}
-                <RouterLink to="/login">workspace login</RouterLink>.
+                <Link component={RouterLink} to="/login">
+                  workspace login
+                </Link>
+                .
               </p>
             </Stack>
 
-            <Form
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 login.mutate({ email, password, code: needCode ? code : undefined });
               }}
             >
-              <Stack gap={5}>
-                <TextInput
+              <Stack spacing={2}>
+                <TextField
                   id="access-email"
-                  labelText="Email"
+                  label="Email"
                   type="email"
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  fullWidth
                 />
-                <TextInput
+                <TextField
                   id="access-password"
-                  labelText="Password"
+                  label="Password"
                   type="password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  fullWidth
                 />
                 {needCode && (
-                  <TextInput
+                  <TextField
                     id="access-totp"
-                    labelText="Authenticator code"
+                    label="Authenticator code"
                     placeholder="123456"
-                    inputMode="numeric"
                     autoComplete="one-time-code"
                     helperText="6-digit code from your authenticator app."
+                    slotProps={{ htmlInput: { inputMode: "numeric" } }}
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
+                    fullWidth
                   />
                 )}
                 {showError && (
-                  <InlineNotification
-                    kind="error"
-                    title="Access denied"
-                    subtitle={errorText}
-                    hideCloseButton
-                    lowContrast
-                  />
+                  <Alert severity="error">
+                    <AlertTitle>Access denied</AlertTitle>
+                    {errorText}
+                  </Alert>
                 )}
                 <Button
                   type="submit"
+                  variant="contained"
                   disabled={login.isPending || (needCode && code.length < 6)}
                 >
                   {login.isPending ? "Signing in…" : needCode ? "Verify" : "Sign in"}
                 </Button>
               </Stack>
-            </Form>
+            </form>
 
             <Button
-              as={RouterLink}
+              component={RouterLink}
               to="/"
-              kind="ghost"
-              size="sm"
-              renderIcon={ArrowLeft}
+              variant="text"
+              size="small"
+              startIcon={<ArrowBack />}
             >
               Back to home
             </Button>
           </Stack>
-        </Tile>
+        </Paper>
       </Stack>
     </main>
-    </Theme>
+    </div>
   );
 }

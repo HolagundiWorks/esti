@@ -1,22 +1,28 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
   Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Add, Share, TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
+import Delete from "@mui/icons-material/Delete";
+import Share from "@mui/icons-material/Share";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
@@ -27,6 +33,13 @@ import { DataState } from "./DataState.js";
 import { ProjectMom } from "./ProjectMom.js";
 import { ProjectInspectionDetail } from "./ProjectInspectionDetail.js";
 import { DocumentReviseButton } from "./DocumentReviseButton.js";
+
+function tagSx(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 /** Generic PDF action cell: generate via worker, poll, then open. */
 function pdfPollOpts(initial: string) {
@@ -86,21 +99,15 @@ function PdfButton({
 }) {
   if (status === "READY" && url)
     return (
-      <Stack orientation="horizontal" gap={2}>
-        <Button
-          kind="ghost"
-          size="sm"
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-        >
+      <Stack direction="row" spacing={0.5}>
+        <Button variant="text" size="small" href={url} target="_blank" rel="noreferrer">
           Open PDF
         </Button>
         {share && (
           <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Share}
+            variant="text"
+            size="small"
+            startIcon={<Share />}
             onClick={() =>
               void shareViaWhatsApp({ fileUrl: url, fileName: share.fileName, text: share.text })
             }
@@ -113,7 +120,7 @@ function PdfButton({
   if (status === "PENDING" || status === "PROCESSING")
     return <span>Generating…</span>;
   return (
-    <Button kind="ghost" size="sm" disabled={pending} onClick={onGen}>
+    <Button variant="text" size="small" disabled={pending} onClick={onGen}>
       {status === "FAILED" ? "Retry PDF" : "Generate PDF"}
     </Button>
   );
@@ -121,7 +128,7 @@ function PdfButton({
 
 export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId: string; includeSpecs?: boolean }) {
   return (
-    <Stack gap={7} style={{ marginTop: "var(--cds-spacing-05)" }}>
+    <Stack spacing={4} sx={{ mt: 2 }}>
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
       {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
@@ -134,9 +141,46 @@ export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId
 function FinalEstimationRecords({ projectId }: { projectId: string }) {
   const setsQ = trpc.cms.finalSet.listByProject.useQuery({ projectId });
   const sets = setsQ.data ?? [];
+  const columns: GridColDef[] = [
+    { field: "revisionNo", headerName: "Rev", width: 90, renderCell: (p) => `Rev ${p.row.revisionNo}` },
+    { field: "title", headerName: "Title", flex: 1.4, minWidth: 160 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={tagSx(p.row.status === "FINAL" ? "green" : "gray")} />
+      ),
+    },
+    {
+      field: "totalPaise",
+      headerName: "Total",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.totalPaise),
+    },
+    {
+      field: "document",
+      headerName: "Document",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 140,
+      renderCell: (p) =>
+        p.row.pdfStatus === "READY" && p.row.pdfKey ? (
+          <Button variant="text" size="small" href={`/files/${p.row.pdfKey}`} target="_blank" rel="noreferrer">
+            Open PDF
+          </Button>
+        ) : p.row.pdfStatus === "PENDING" || p.row.pdfStatus === "PROCESSING" ? (
+          <span>Generating…</span>
+        ) : (
+          <Chip size="small" label={p.row.pdfStatus} sx={tagSx("gray")} />
+        ),
+    },
+  ];
   return (
     <div>
-      <h3>Final estimation records</h3>
+      <Typography variant="h6" component="h3">Final estimation records</Typography>
       <DataState
         loading={setsQ.isLoading}
         isEmpty={!setsQ.isLoading && sets.length === 0}
@@ -146,42 +190,14 @@ function FinalEstimationRecords({ projectId }: { projectId: string }) {
           description: "Freeze an estimate in Cost Management → BOQ to archive a revision here.",
         }}
       >
-        <TableContainer title="Final estimation records">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Rev</TableHeader>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Total</TableHeader>
-                <TableHeader>Document</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sets.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>Rev {s.revisionNo}</TableCell>
-                  <TableCell>{s.title}</TableCell>
-                  <TableCell>
-                    <Tag type={s.status === "FINAL" ? "green" : "gray"} size="sm">{s.status}</Tag>
-                  </TableCell>
-                  <TableCell>{formatINR(s.totalPaise)}</TableCell>
-                  <TableCell>
-                    {s.pdfStatus === "READY" && s.pdfKey ? (
-                      <Button kind="ghost" size="sm" href={`/files/${s.pdfKey}`} target="_blank" rel="noreferrer">
-                        Open PDF
-                      </Button>
-                    ) : s.pdfStatus === "PENDING" || s.pdfStatus === "PROCESSING" ? (
-                      <span>Generating…</span>
-                    ) : (
-                      <Tag type="gray" size="sm">{s.pdfStatus}</Tag>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={sets}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
     </div>
   );
@@ -214,20 +230,68 @@ function Inspections({ projectId }: { projectId: string }) {
   });
   const remove = trpc.inspections.remove.useMutation({ onSuccess: inv });
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
+    {
+      field: "dateVisit",
+      headerName: "Date",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => p.row.dateVisit ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      renderCell: (p) => (
+        <Chip
+          size="small"
+          label={p.row.status ?? "DRAFT"}
+          sx={tagSx(p.row.status === "ISSUED" || p.row.pdfStatus === "READY" ? "green" : "gray")}
+        />
+      ),
+    },
+    {
+      field: "inspectorName",
+      headerName: "Inspector",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => p.row.inspectorName ?? "—",
+    },
+    {
+      field: "document",
+      headerName: "Document",
+      sortable: false,
+      filterable: false,
+      flex: 1.2,
+      minWidth: 200,
+      renderCell: (p) => <InspectionPdf id={p.row.id} initial={p.row.pdfStatus} />,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 160,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={0.5}>
+          <Button variant="text" size="small" onClick={() => setDetailId(p.row.id)}>Open</Button>
+          <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
+            Delete
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h3>Site inspection reports</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>
+      <Box className="esti-row-between" sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" component="h3">Site inspection reports</Typography>
+        <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setOpen(true)}>
           New report
         </Button>
-      </div>
+      </Box>
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}
@@ -238,49 +302,14 @@ function Inspections({ projectId }: { projectId: string }) {
             "Record a site visit with observations and instructions.",
         }}
       >
-        <TableContainer title="Inspection reports">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Inspector</TableHeader>
-                <TableHeader>Document</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.ref}</TableCell>
-                  <TableCell>{s.dateVisit ?? "—"}</TableCell>
-                  <TableCell>
-                    <Tag type={s.status === "ISSUED" || s.pdfStatus === "READY" ? "green" : "gray"} size="sm">
-                      {s.status ?? "DRAFT"}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>{s.inspectorName ?? "—"}</TableCell>
-                  <TableCell>
-                    <InspectionPdf id={s.id} initial={s.pdfStatus} />
-                  </TableCell>
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      <Button kind="ghost" size="sm" onClick={() => setDetailId(s.id)}>Open</Button>
-                      <Button
-                        kind="danger--ghost"
-                        size="sm"
-                        onClick={() => setConfirmId(s.id)}
-                      >
-                        Delete
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
       <ConfirmModal
         open={!!confirmId}
@@ -299,78 +328,89 @@ function Inspections({ projectId }: { projectId: string }) {
         open={!!detailId}
         onClose={() => setDetailId(null)}
       />
-      <Modal
-        open={open}
-        modalHeading="New site inspection report"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={create.isPending}
-        size="lg"
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            dateVisit: f.dateVisit || undefined,
-            weather: f.weather || undefined,
-            attendees: f.attendees || undefined,
-            progress: f.progress || undefined,
-            observations: f.observations || undefined,
-            instructions: f.instructions || undefined,
-            inspectorName: f.inspectorName || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <div style={{ display: "flex", gap: "var(--cds-spacing-04)" }}>
-            <TextInput
-              id="si-date"
-              labelText="Date of visit"
-              type="date"
-              value={f.dateVisit}
-              onChange={set("dateVisit")}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New site inspection report</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <TextField
+                id="si-date"
+                label="Date of visit"
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={f.dateVisit}
+                onChange={set("dateVisit")}
+                fullWidth
+              />
+              <TextField
+                id="si-weather"
+                label="Weather"
+                value={f.weather}
+                onChange={set("weather")}
+                fullWidth
+              />
+              <TextField
+                id="si-by"
+                label="Inspected by"
+                value={f.inspectorName}
+                onChange={set("inspectorName")}
+                fullWidth
+              />
+            </Box>
+            <TextField
+              id="si-att"
+              label="Attendees"
+              value={f.attendees}
+              onChange={set("attendees")}
             />
-            <TextInput
-              id="si-weather"
-              labelText="Weather"
-              value={f.weather}
-              onChange={set("weather")}
+            <TextField
+              id="si-prog"
+              label="Progress of work"
+              multiline
+              rows={2}
+              value={f.progress}
+              onChange={set("progress")}
             />
-            <TextInput
-              id="si-by"
-              labelText="Inspected by"
-              value={f.inspectorName}
-              onChange={set("inspectorName")}
+            <TextField
+              id="si-obs"
+              label="Observations"
+              multiline
+              rows={3}
+              value={f.observations}
+              onChange={set("observations")}
             />
-          </div>
-          <TextInput
-            id="si-att"
-            labelText="Attendees"
-            value={f.attendees}
-            onChange={set("attendees")}
-          />
-          <TextArea
-            id="si-prog"
-            labelText="Progress of work"
-            rows={2}
-            value={f.progress}
-            onChange={set("progress")}
-          />
-          <TextArea
-            id="si-obs"
-            labelText="Observations"
-            rows={3}
-            value={f.observations}
-            onChange={set("observations")}
-          />
-          <TextArea
-            id="si-ins"
-            labelText="Instructions issued"
-            rows={3}
-            value={f.instructions}
-            onChange={set("instructions")}
-          />
-        </Stack>
-      </Modal>
+            <TextField
+              id="si-ins"
+              label="Instructions issued"
+              multiline
+              rows={3}
+              value={f.instructions}
+              onChange={set("instructions")}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                dateVisit: f.dateVisit || undefined,
+                weather: f.weather || undefined,
+                attendees: f.attendees || undefined,
+                progress: f.progress || undefined,
+                observations: f.observations || undefined,
+                instructions: f.instructions || undefined,
+                inspectorName: f.inspectorName || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -440,20 +480,57 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
   const setCell = (i: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
+    { field: "title", headerName: "Title", flex: 1.4, minWidth: 160 },
+    {
+      field: "versionNo",
+      headerName: "Ver",
+      width: 80,
+      renderCell: (p) => p.row.versionNo ?? 1,
+    },
+    {
+      field: "document",
+      headerName: "Document",
+      sortable: false,
+      filterable: false,
+      flex: 1.4,
+      minWidth: 240,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={0.5}>
+          <SpecPdf id={p.row.id} initial={p.row.pdfStatus} />
+          {(p.row.status === "ISSUED" || p.row.pdfStatus === "READY") && (
+            <DocumentReviseButton
+              entityType="SPEC_SHEET"
+              entityId={p.row.id}
+              onDone={inv}
+            />
+          )}
+        </Stack>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (p) => (
+        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h3>Specification sheets</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>
+      <Box className="esti-row-between" sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" component="h3">Specification sheets</Typography>
+        <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setOpen(true)}>
           New spec sheet
         </Button>
-      </div>
+      </Box>
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}
@@ -463,49 +540,14 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
           description: "Capture materials, makes and finishes by category.",
         }}
       >
-        <TableContainer title="Specification sheets">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Ver</TableHeader>
-                <TableHeader>Document</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.ref}</TableCell>
-                  <TableCell>{s.title}</TableCell>
-                  <TableCell>{s.versionNo ?? 1}</TableCell>
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      <SpecPdf id={s.id} initial={s.pdfStatus} />
-                      {(s.status === "ISSUED" || s.pdfStatus === "READY") && (
-                        <DocumentReviseButton
-                          entityType="SPEC_SHEET"
-                          entityId={s.id}
-                          onDone={inv}
-                        />
-                      )}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(s.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
       <ConfirmModal
         open={!!confirmId}
@@ -519,141 +561,141 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
         }}
         onClose={() => setConfirmId(null)}
       />
-      <Modal
-        open={open}
-        modalHeading="New specification sheet"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !title || !hasValidRow || create.isPending
-        }
-        size="lg"
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            title,
-            items: rows
-              .filter((r) => r.catalogItemId || r.item.trim())
-              .map((r) => ({
-                catalogItemId: r.catalogItemId,
-                category: r.category || undefined,
-                item: r.item.trim() || undefined,
-                make: r.make || undefined,
-                specification: r.specification || undefined,
-                finish: r.finish || undefined,
-                remarks: r.remarks || undefined,
-              })),
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="ss-title"
-            labelText="Sheet title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          {!catalogQ.isLoading && catalogItems.length === 0 && (
-            <InlineNotification
-              kind="info"
-              title="No active specification catalogue"
-              subtitle="Add and activate a catalogue version in Knowledge Bank → Specification."
-              lowContrast
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New specification sheet</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="ss-title"
+              label="Sheet title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
-          )}
-          {catalogItems.length > 0 && (
-            <Stack orientation="horizontal" gap={4}>
-              <Select
-                id="ss-catalog-pick"
-                labelText="Add from catalogue"
-                value={pickId}
-                onChange={(e) => setPickId(e.target.value)}
-              >
-                <SelectItem value="" text="Select catalogue item…" />
-                {catalogItems.map((item) => (
-                  <SelectItem
-                    key={item.id}
-                    value={item.id}
-                    text={`${item.category ? `${item.category} · ` : ""}${item.item}`}
-                  />
+            {!catalogQ.isLoading && catalogItems.length === 0 && (
+              <Alert severity="info">
+                <AlertTitle>No active specification catalogue</AlertTitle>
+                Add and activate a catalogue version in Knowledge Bank → Specification.
+              </Alert>
+            )}
+            {catalogItems.length > 0 && (
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-end" }}>
+                <TextField
+                  id="ss-catalog-pick"
+                  select
+                  label="Add from catalogue"
+                  value={pickId}
+                  onChange={(e) => setPickId(e.target.value)}
+                  sx={{ minWidth: 260 }}
+                >
+                  <MenuItem value="">Select catalogue item…</MenuItem>
+                  {catalogItems.map((item) => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {`${item.category ? `${item.category} · ` : ""}${item.item}`}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <Button
+                  variant="outlined"
+                  disabled={!pickId}
+                  onClick={() => {
+                    const picked = catalogItems.find((item) => item.id === pickId);
+                    if (!picked) return;
+                    setRows((rs) => [...rs.filter((r) => r.item.trim() || r.catalogItemId), rowFromCatalog(picked)]);
+                    setPickId("");
+                  }}
+                >
+                  Add row
+                </Button>
+              </Stack>
+            )}
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Item</TableCell>
+                  <TableCell>Make</TableCell>
+                  <TableCell>Specification</TableCell>
+                  <TableCell>Finish</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((r, i) => (
+                  <TableRow key={i}>
+                    {(
+                      [
+                        "category",
+                        "item",
+                        "make",
+                        "specification",
+                        "finish",
+                      ] as (keyof Row)[]
+                    ).map((k) => (
+                      <TableCell key={k}>
+                        <TextField
+                          id={`s-${k}-${i}`}
+                          aria-label={k}
+                          size="small"
+                          value={r[k]}
+                          onChange={(e) => setCell(i, k, e.target.value)}
+                        />
+                      </TableCell>
+                    ))}
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        aria-label="Remove row"
+                        disabled={rows.length === 1}
+                        onClick={() =>
+                          setRows((rs) => rs.filter((_, idx) => idx !== i))
+                        }
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </Select>
+              </TableBody>
+            </Table>
+            <Box>
               <Button
-                kind="tertiary"
-                disabled={!pickId}
-                onClick={() => {
-                  const picked = catalogItems.find((item) => item.id === pickId);
-                  if (!picked) return;
-                  setRows((rs) => [...rs.filter((r) => r.item.trim() || r.catalogItemId), rowFromCatalog(picked)]);
-                  setPickId("");
-                }}
+                variant="text"
+                size="small"
+                startIcon={<Add />}
+                onClick={() => setRows((rs) => [...rs, blankRow()])}
               >
                 Add row
               </Button>
-            </Stack>
-          )}
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Item</TableHeader>
-                <TableHeader>Make</TableHeader>
-                <TableHeader>Specification</TableHeader>
-                <TableHeader>Finish</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r, i) => (
-                <TableRow key={i}>
-                  {(
-                    [
-                      "category",
-                      "item",
-                      "make",
-                      "specification",
-                      "finish",
-                    ] as (keyof Row)[]
-                  ).map((k) => (
-                    <TableCell key={k}>
-                      <TextInput
-                        id={`s-${k}-${i}`}
-                        labelText=""
-                        hideLabel
-                        size="sm"
-                        value={r[k]}
-                        onChange={(e) => setCell(i, k, e.target.value)}
-                      />
-                    </TableCell>
-                  ))}
-                  <TableCell>
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      hasIconOnly
-                      iconDescription="Remove row"
-                      renderIcon={TrashCan}
-                      disabled={rows.length === 1}
-                      onClick={() =>
-                        setRows((rs) => rs.filter((_, idx) => idx !== i))
-                      }
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Add}
-            onClick={() => setRows((rs) => [...rs, blankRow()])}
+            variant="contained"
+            disabled={!title || !hasValidRow || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                title,
+                items: rows
+                  .filter((r) => r.catalogItemId || r.item.trim())
+                  .map((r) => ({
+                    catalogItemId: r.catalogItemId,
+                    category: r.category || undefined,
+                    item: r.item.trim() || undefined,
+                    make: r.make || undefined,
+                    specification: r.specification || undefined,
+                    finish: r.finish || undefined,
+                    remarks: r.remarks || undefined,
+                  })),
+              })
+            }
           >
-            Add row
+            {create.isPending ? "Creating…" : "Create"}
           </Button>
-        </Stack>
-      </Modal>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -1,20 +1,18 @@
 import {
+  Box,
   Button,
   Checkbox,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   TRANSMITTAL_CHANNELS,
   TRANSMITTAL_PURPOSES,
@@ -101,182 +99,203 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
     return { drawingId, drawingRef: d.ref, title: d.title, copies };
   });
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
+    { field: "recipient", headerName: "Recipient", flex: 1.2, minWidth: 140 },
+    {
+      field: "purpose",
+      headerName: "Purpose",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (p) =>
+        TRANSMITTAL_PURPOSES[p.row.purpose as TransmittalPurposeCode] ?? p.row.purpose,
+    },
+    {
+      field: "dateIssued",
+      headerName: "Date",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => p.row.dateIssued ?? "—",
+    },
+    {
+      field: "pdf",
+      headerName: "PDF",
+      sortable: false,
+      filterable: false,
+      flex: 1.2,
+      minWidth: 200,
+      renderCell: (p) => <TransmittalPdfCell id={p.row.id} initialStatus={p.row.pdfStatus} />,
+    },
+  ];
+
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "var(--cds-spacing-07)",
-        }}
+      <Box
+        className="esti-row-between"
+        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 4 }}
       >
-        <h3>Transmittals</h3>
+        <Typography variant="h6" component="h3">Transmittals</Typography>
         <Button
-          size="sm"
+          variant="contained"
+          size="small"
           disabled={ready.length === 0}
           onClick={() => setOpen(true)}
         >
           New transmittal
         </Button>
-      </div>
+      </Box>
       {ready.length === 0 && <p>Upload &amp; process drawings first.</p>}
-      <TableContainer
-        title="Issued transmittals"
-        description="Drawing issue records with cover-sheet PDFs"
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>Recipient</TableHeader>
-              <TableHeader>Purpose</TableHeader>
-              <TableHeader>Date</TableHeader>
-              <TableHeader>PDF</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data?.rows ?? []).map((t) => (
-              <TableRow key={t.id}>
-                <TableCell>{t.ref}</TableCell>
-                <TableCell>{t.recipient}</TableCell>
-                <TableCell>
-                  {TRANSMITTAL_PURPOSES[t.purpose as TransmittalPurposeCode] ??
-                    t.purpose}
-                </TableCell>
-                <TableCell>{t.dateIssued ?? "—"}</TableCell>
-                <TableCell>
-                  <TransmittalPdfCell id={t.id} initialStatus={t.pdfStatus} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack spacing={0.5}>
+        <Typography variant="subtitle1" component="h4">
+          Issued transmittals
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Drawing issue records with cover-sheet PDFs
+        </Typography>
+        <DataGrid
+          rows={listQ.data?.rows ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
+      </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="New drawing transmittal"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !form.recipient || items.length === 0 || create.isPending
-        }
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            recipient: form.recipient,
-            purpose: form.purpose as TransmittalPurposeCode,
-            channel: form.channel as TransmittalChannelCode,
-            dateIssued: form.dateIssued || null,
-            notes: form.notes || undefined,
-            items,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="tr-recipient"
-            labelText="Recipient"
-            value={form.recipient}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, recipient: e.target.value }))
-            }
-          />
-          <div style={{ display: "flex", gap: "var(--cds-spacing-04)" }}>
-            <Select
-              id="tr-purpose"
-              labelText="Purpose"
-              value={form.purpose}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New drawing transmittal</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="tr-recipient"
+              label="Recipient"
+              value={form.recipient}
               onChange={(e) =>
-                setForm((f) => ({ ...f, purpose: e.target.value }))
-              }
-            >
-              {(
-                Object.keys(TRANSMITTAL_PURPOSES) as TransmittalPurposeCode[]
-              ).map((k) => (
-                <SelectItem key={k} value={k} text={TRANSMITTAL_PURPOSES[k]} />
-              ))}
-            </Select>
-            <Select
-              id="tr-channel"
-              labelText="Channel"
-              value={form.channel}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, channel: e.target.value }))
-              }
-            >
-              {(
-                Object.keys(TRANSMITTAL_CHANNELS) as TransmittalChannelCode[]
-              ).map((k) => (
-                <SelectItem key={k} value={k} text={TRANSMITTAL_CHANNELS[k]} />
-              ))}
-            </Select>
-            <TextInput
-              id="tr-date"
-              labelText="Date issued"
-              type="date"
-              value={form.dateIssued}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, dateIssued: e.target.value }))
+                setForm((f) => ({ ...f, recipient: e.target.value }))
               }
             />
-          </div>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <TextField
+                id="tr-purpose"
+                select
+                label="Purpose"
+                value={form.purpose}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, purpose: e.target.value }))
+                }
+                fullWidth
+              >
+                {(
+                  Object.keys(TRANSMITTAL_PURPOSES) as TransmittalPurposeCode[]
+                ).map((k) => (
+                  <MenuItem key={k} value={k}>{TRANSMITTAL_PURPOSES[k]}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="tr-channel"
+                select
+                label="Channel"
+                value={form.channel}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, channel: e.target.value }))
+                }
+                fullWidth
+              >
+                {(
+                  Object.keys(TRANSMITTAL_CHANNELS) as TransmittalChannelCode[]
+                ).map((k) => (
+                  <MenuItem key={k} value={k}>{TRANSMITTAL_CHANNELS[k]}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="tr-date"
+                label="Date issued"
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={form.dateIssued}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, dateIssued: e.target.value }))
+                }
+                fullWidth
+              />
+            </Box>
 
-          <div>
-            <p style={{ marginBottom: "var(--cds-spacing-02)" }}>Drawings to include</p>
-            {ready.map((d) => {
-              const checked = d.id in picked;
-              return (
-                <div
-                  key={d.id}
-                  style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}
-                >
-                  <Checkbox
-                    id={`tr-d-${d.id}`}
-                    labelText={`${d.ref} — ${d.title}`}
-                    checked={checked}
-                    onChange={(_e, { checked: c }) =>
-                      setPicked((p) => {
-                        const next = { ...p };
-                        if (c) next[d.id] = 1;
-                        else delete next[d.id];
-                        return next;
-                      })
-                    }
-                  />
-                  {checked && (
-                    <TextInput
-                      id={`tr-c-${d.id}`}
-                      labelText="Copy count"
-                      hideLabel
-                      size="sm"
-                      type="number"
-                      value={String(picked[d.id])}
-                      onChange={(e) =>
-                        setPicked((p) => ({
-                          ...p,
-                          [d.id]: Math.max(1, Number(e.target.value) || 1),
-                        }))
+            <div>
+              <Typography variant="body2" sx={{ mb: 0.5 }}>Drawings to include</Typography>
+              {ready.map((d) => {
+                const checked = d.id in picked;
+                return (
+                  <Box key={d.id} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          id={`tr-d-${d.id}`}
+                          checked={checked}
+                          onChange={(e) => {
+                            const c = e.target.checked;
+                            setPicked((p) => {
+                              const next = { ...p };
+                              if (c) next[d.id] = 1;
+                              else delete next[d.id];
+                              return next;
+                            });
+                          }}
+                        />
                       }
-                      style={{ maxWidth: 90 }}
+                      label={`${d.ref} — ${d.title}`}
                     />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    {checked && (
+                      <TextField
+                        id={`tr-c-${d.id}`}
+                        aria-label="Copy count"
+                        size="small"
+                        type="number"
+                        value={String(picked[d.id])}
+                        onChange={(e) =>
+                          setPicked((p) => ({
+                            ...p,
+                            [d.id]: Math.max(1, Number(e.target.value) || 1),
+                          }))
+                        }
+                        sx={{ maxWidth: 90 }}
+                      />
+                    )}
+                  </Box>
+                );
+              })}
+            </div>
 
-          <TextArea
-            id="tr-notes"
-            labelText="Notes (optional)"
-            rows={2}
-            value={form.notes}
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
+            <TextField
+              id="tr-notes"
+              label="Notes (optional)"
+              multiline
+              rows={2}
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.recipient || items.length === 0 || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                recipient: form.recipient,
+                purpose: form.purpose as TransmittalPurposeCode,
+                channel: form.channel as TransmittalChannelCode,
+                dateIssued: form.dateIssued || null,
+                notes: form.notes || undefined,
+                items,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

@@ -1,13 +1,5 @@
-import { ArrowLeft } from "@carbon/icons-react";
-import {
-  Button,
-  Form,
-  InlineNotification,
-  Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Alert, AlertTitle, Button, Chip, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { setDesktopToken } from "../lib/api-base.js";
@@ -16,7 +8,7 @@ import { trpc } from "../lib/trpc.js";
 /**
  * First-run onboarding for a fresh AORMS-Lite install: name the firm, create the
  * admin (owner) login, and seed the fixed workspace. Runs once — the backend
- * refuses if the install already has users.
+ * refuses if the install already has users. Material UI.
  */
 export function Signup() {
   const navigate = useNavigate();
@@ -35,21 +27,26 @@ export function Signup() {
 
   return (
     <main className="esti-login-shell">
-      <Stack gap={5} className="esti-login-panel">
-        <Tile>
-          <Stack gap={5}>
-            <Stack gap={3}>
+      <Stack spacing={2} className="esti-login-panel">
+        <Paper sx={{ p: 3 }}>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
                   <img src="/esti-logo.png" alt="" />
                 </span>
                 <h3>ESTI AORMS</h3>
               </div>
-              <Stack orientation="horizontal" gap={3}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <p>Set up your workspace</p>
-                <Tag type="green" size="sm">
-                  Lite
-                </Tag>
+                <Chip
+                  label="Lite"
+                  size="small"
+                  sx={{
+                    backgroundColor: "var(--cds-tag-background-green)",
+                    color: "var(--cds-tag-color-green)",
+                  }}
+                />
               </Stack>
               <p>
                 Create your firm and admin account. Your Lite workspace comes
@@ -57,69 +54,70 @@ export function Signup() {
                 can activate and fill in — no GST billing.
               </p>
             </Stack>
-            <Form
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 bootstrap.mutate({ companyName, adminName, email, password });
               }}
             >
-              <Stack gap={5}>
-                <TextInput
+              <Stack spacing={2}>
+                <TextField
                   id="companyName"
-                  labelText="Firm name"
+                  label="Firm name"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   required
+                  fullWidth
                 />
-                <TextInput
+                <TextField
                   id="adminName"
-                  labelText="Your name (admin)"
+                  label="Your name (admin)"
                   value={adminName}
                   onChange={(e) => setAdminName(e.target.value)}
                   required
+                  fullWidth
                 />
-                <TextInput
+                <TextField
                   id="email"
-                  labelText="Admin email"
+                  label="Admin email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  fullWidth
                 />
-                <TextInput
+                <TextField
                   id="password"
-                  labelText="Password"
+                  label="Password"
                   type="password"
                   helperText="At least 8 characters."
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  fullWidth
                 />
                 {bootstrap.error && (
-                  <InlineNotification
-                    kind="error"
-                    title="Setup failed"
-                    subtitle={bootstrap.error.message}
-                    hideCloseButton
-                    lowContrast
-                  />
+                  <Alert severity="error">
+                    <AlertTitle>Setup failed</AlertTitle>
+                    {bootstrap.error.message}
+                  </Alert>
                 )}
-                <Button type="submit" disabled={bootstrap.isPending}>
+                <Button type="submit" variant="contained" disabled={bootstrap.isPending}>
                   {bootstrap.isPending ? "Setting up..." : "Create workspace"}
                 </Button>
                 <Button
-                  as={RouterLink}
+                  component={RouterLink}
                   to="/login"
-                  kind="ghost"
-                  size="sm"
-                  renderIcon={ArrowLeft}
+                  variant="text"
+                  size="small"
+                  startIcon={<ArrowBack />}
                 >
                   Already set up? Sign in
                 </Button>
               </Stack>
-            </Form>
+            </form>
           </Stack>
-        </Tile>
+        </Paper>
       </Stack>
     </main>
   );

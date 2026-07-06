@@ -1,13 +1,14 @@
 import {
   Checkbox,
-  Column,
+  Chip,
+  FormControlLabel,
   Grid,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -18,6 +19,11 @@ import { Link } from "react-router-dom";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 import { BOARD_COLUMNS, PRIORITY_TAG } from "./workHelpers.js";
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export function TaskBoardTab() {
   const utils = trpc.useUtils();
@@ -30,13 +36,21 @@ export function TaskBoardTab() {
   const byStatus = (status: string) => tasks.filter((t) => t.status === status);
 
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={5}>
-        <div className="esti-grow">
-          <p>Drag-free status board — move a task with its column menu.</p>
-        </div>
-        <Checkbox id="b-mine" labelText="My tasks" checked={myTasks}
-          onChange={(_e, { checked }) => setMyTasks(checked)} />
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+        <Typography variant="body2" sx={{ flex: 1 }}>
+          Drag-free status board — move a task with its column menu.
+        </Typography>
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="b-mine"
+              checked={myTasks}
+              onChange={(e) => setMyTasks(e.target.checked)}
+            />
+          }
+          label="My tasks"
+        />
       </Stack>
 
       <DataState
@@ -45,14 +59,14 @@ export function TaskBoardTab() {
         columnCount={4}
         empty={{ title: "No tasks", description: "Create a task on the Tasks tab to see it on the board." }}
       >
-        <Grid fullWidth>
+        <Grid container spacing={2}>
           {BOARD_COLUMNS.map(({ status, tag }) => {
             const colTasks = byStatus(status);
             return (
-              <Column key={status} sm={4} md={2} lg={4}>
-                <Stack gap={4}>
-                  <Stack orientation="horizontal" gap={3}>
-                    <Tag type={tag}>{TASK_STATUS_LABEL[status] ?? status}</Tag>
+              <Grid key={status} size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Stack spacing={2}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <Chip size="small" label={TASK_STATUS_LABEL[status] ?? status} sx={tagSx(tag)} />
                     <span className="esti-label esti-label--secondary">{colTasks.length}</span>
                   </Stack>
                   {colTasks.length === 0 ? (
@@ -61,13 +75,15 @@ export function TaskBoardTab() {
                     colTasks.map((t) => {
                       const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
                       return (
-                        <Tile key={t.id}>
-                          <Stack gap={3}>
+                        <Paper key={t.id} sx={{ p: 2 }}>
+                          <Stack spacing={1}>
                             <strong>{t.title}</strong>
-                            <Stack orientation="horizontal" gap={3}>
-                              <Tag type={PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
-                                {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
-                              </Tag>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                              <Chip
+                                size="small"
+                                label={TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
+                                sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
+                              />
                               {t.projectId && (
                                 <Link to={`/projects/${t.projectId}`}>{t.projectRef}</Link>
                               )}
@@ -77,23 +93,34 @@ export function TaskBoardTab() {
                             )}
                             {t.dueDate && (
                               overdue
-                                ? <Tag type="red" size="sm">Overdue · {t.dueDate}</Tag>
+                                ? (
+                                  <Chip
+                                    size="small"
+                                    label={`Overdue · ${t.dueDate}`}
+                                    sx={{ ...tagSx("red"), alignSelf: "flex-start" }}
+                                  />
+                                )
                                 : <span className="esti-label esti-label--helper">Due {t.dueDate}</span>
                             )}
-                            <Select id={`bs-${t.id}`} labelText="Move to" hideLabel size="sm"
+                            <TextField
+                              id={`bs-${t.id}`}
+                              select
+                              size="small"
                               value={t.status}
-                              onChange={(e) => update.mutate({ id: t.id, status: e.target.value as (typeof TaskStatus.options)[number] })}>
+                              onChange={(e) => update.mutate({ id: t.id, status: e.target.value as (typeof TaskStatus.options)[number] })}
+                              slotProps={{ htmlInput: { "aria-label": "Move to" } }}
+                            >
                               {TaskStatus.options.map((s) => (
-                                <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
+                                <MenuItem key={s} value={s}>{TASK_STATUS_LABEL[s] ?? s}</MenuItem>
                               ))}
-                            </Select>
+                            </TextField>
                           </Stack>
-                        </Tile>
+                        </Paper>
                       );
                     })
                   )}
                 </Stack>
-              </Column>
+              </Grid>
             );
           })}
         </Grid>

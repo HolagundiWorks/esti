@@ -1,15 +1,17 @@
-import { ArrowLeft, ArrowRight, Download, Login as LoginIcon } from "@carbon/icons-react";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import Download from "@mui/icons-material/Download";
+import LoginIcon from "@mui/icons-material/Login";
 import {
+  Alert,
+  AlertTitle,
   Button,
-  Dropdown,
-  Form,
-  InlineLoading,
-  InlineNotification,
+  CircularProgress,
+  MenuItem,
+  Paper,
   Stack,
-  TextInput,
-  Theme,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
 import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
@@ -163,17 +165,17 @@ export function Login() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
-    <Theme theme="g100">
+    <div className="cds--g100">
     <main className="esti-login-shell">
-      <Stack gap={5} className="esti-login-panel">
-        <Tile>
-          <Stack gap={6}>
-            <Stack gap={3}>
+      <Stack spacing={2} className="esti-login-panel">
+        <Paper sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <Stack spacing={1}>
               <div className="esti-login-brand">
                 <span className="esti-login-mark">
                   <img src="/esti-logo.png" alt="" />
                 </span>
-                <Stack gap={1}>
+                <Stack spacing={0.5}>
                   <h3>AORMS</h3>
                   <p className="esti-label esti-label--secondary">Architecture Office OS</p>
                 </Stack>
@@ -188,16 +190,20 @@ export function Login() {
               )}
             </Stack>
 
-            {fromGoogle.isPending && <InlineLoading description="Completing Google sign-in…" />}
+            {fromGoogle.isPending && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <CircularProgress size={16} />
+                <span className="esti-label esti-label--secondary">
+                  Completing Google sign-in…
+                </span>
+              </Stack>
+            )}
 
             {googleError && !companies && (
-              <InlineNotification
-                kind="warning"
-                title="Google sign-in"
-                subtitle={googleError}
-                lowContrast
-                onCloseButtonClick={() => setGoogleError(null)}
-              />
+              <Alert severity="warning" onClose={() => setGoogleError(null)}>
+                <AlertTitle>Google sign-in</AlertTitle>
+                {googleError}
+              </Alert>
             )}
 
             {companies ? (
@@ -214,22 +220,30 @@ export function Login() {
                       ? owned[0]!
                       : null;
                 const showDropdown = companies.length > 1 || owned.length > 1;
+                const tenantItems = [WORKSPACE_ITEM, ...companies.map(companyItem)];
                 return (
-                  <Stack gap={4}>
+                  <Stack spacing={2}>
                     {showDropdown ? (
                       <div className="esti-row">
-                        <Dropdown
+                        <TextField
                           id="tenant-select"
+                          select
                           className="esti-grow"
-                          titleText="Active company"
-                          label="Select where to work"
-                          items={[WORKSPACE_ITEM, ...companies.map(companyItem)]}
-                          itemToString={(item) => item?.label ?? ""}
-                          selectedItem={tenant ?? WORKSPACE_ITEM}
-                          onChange={({ selectedItem }) => setTenant(selectedItem ?? null)}
-                        />
+                          label="Active company"
+                          value={(tenant ?? WORKSPACE_ITEM).id}
+                          onChange={(e) =>
+                            setTenant(tenantItems.find((item) => item.id === e.target.value) ?? null)
+                          }
+                        >
+                          {tenantItems.map((item) => (
+                            <MenuItem key={item.id} value={item.id}>
+                              {item.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
                         <Button
-                          renderIcon={ArrowRight}
+                          variant="contained"
+                          endIcon={<ArrowForward />}
                           disabled={companyBusy}
                           onClick={() => void enterWorkspace()}
                         >
@@ -238,7 +252,8 @@ export function Login() {
                       </div>
                     ) : (
                       <Button
-                        renderIcon={ArrowRight}
+                        variant="contained"
+                        endIcon={<ArrowForward />}
                         disabled={companyBusy}
                         onClick={() => void enterWorkspace()}
                       >
@@ -250,17 +265,14 @@ export function Login() {
                       </Button>
                     )}
                     {companyError && (
-                      <InlineNotification
-                        kind="error"
-                        title="Could not open the company"
-                        subtitle={companyError}
-                        hideCloseButton
-                        lowContrast
-                      />
+                      <Alert severity="error">
+                        <AlertTitle>Could not open the company</AlertTitle>
+                        {companyError}
+                      </Alert>
                     )}
                     {owned.length > 0 && (
                       <Button
-                        kind="tertiary"
+                        variant="outlined"
                         disabled={companyBusy || !accountCompany}
                         onClick={() => accountCompany && void openCompanyAccount(accountCompany)}
                       >
@@ -269,19 +281,25 @@ export function Login() {
                           : "Company account (select a company above)"}
                       </Button>
                     )}
-                    <Button as={RouterLink} to="/account" kind="ghost" size="sm">
+                    <Button component={RouterLink} to="/account" variant="text" size="small">
                       Personal AORMS account
                     </Button>
                     {companies.length > 0 && PRO_DOWNLOAD_URL ? (
-                      <Button kind="ghost" size="sm" renderIcon={Download} href={PRO_DOWNLOAD_URL}>
+                      <Button variant="text" size="small" endIcon={<Download />} href={PRO_DOWNLOAD_URL}>
                         Download AORMS Pro desktop
                       </Button>
                     ) : (
-                      <Button as={RouterLink} to="/download" kind="ghost" size="sm" renderIcon={Download}>
+                      <Button
+                        component={RouterLink}
+                        to="/download"
+                        variant="text"
+                        size="small"
+                        endIcon={<Download />}
+                      >
                         {companies.length > 0 ? "Download AORMS Pro desktop" : "Download AORMS desktop"}
                       </Button>
                     )}
-                    <Button kind="ghost" size="sm" onClick={() => setCompanies(null)}>
+                    <Button variant="text" size="small" onClick={() => setCompanies(null)}>
                       Sign in as someone else
                     </Button>
                   </Stack>
@@ -290,12 +308,12 @@ export function Login() {
             ) : (
               <>
                 {PUBLIC_SITE && (
-                  <Stack gap={3}>
+                  <Stack spacing={1}>
                     <Button
-                      kind="tertiary"
-                      size="lg"
+                      variant="outlined"
+                      size="large"
                       className="esti-grow"
-                      renderIcon={LoginIcon}
+                      endIcon={<LoginIcon />}
                       disabled={fromGoogle.isPending}
                       onClick={startGoogle}
                     >
@@ -305,73 +323,79 @@ export function Login() {
                   </Stack>
                 )}
 
-                <Form
+                <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     login.mutate({ email, password, code: needCode ? code : undefined });
                   }}
                 >
-                  <Stack gap={5}>
-                    <TextInput
+                  <Stack spacing={2}>
+                    <TextField
                       id="email"
-                      labelText="Email"
+                      label="Email"
                       type="email"
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      fullWidth
                     />
-                    <TextInput
+                    <TextField
                       id="password"
-                      labelText="Password"
+                      label="Password"
                       type="password"
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      fullWidth
                     />
                     {needCode && (
-                      <TextInput
+                      <TextField
                         id="totp-code"
-                        labelText="Authenticator code"
+                        label="Authenticator code"
                         placeholder="123456"
-                        inputMode="numeric"
                         autoComplete="one-time-code"
                         helperText="6-digit code from your authenticator app."
+                        slotProps={{ htmlInput: { inputMode: "numeric" } }}
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
+                        fullWidth
                       />
                     )}
                     {showError && (
-                      <InlineNotification
-                        kind="error"
-                        title="Sign-in failed"
-                        subtitle={errorText}
-                        hideCloseButton
-                        lowContrast
-                      />
+                      <Alert severity="error">
+                        <AlertTitle>Sign-in failed</AlertTitle>
+                        {errorText}
+                      </Alert>
                     )}
                     <Button
                       type="submit"
-                      size="lg"
-                      renderIcon={ArrowRight}
+                      variant="contained"
+                      size="large"
+                      endIcon={<ArrowForward />}
                       disabled={login.isPending || (needCode && code.length < 6)}
                     >
                       {login.isPending ? "Signing in..." : needCode ? "Verify" : "Sign in"}
                     </Button>
                   </Stack>
-                </Form>
+                </form>
 
                 <div className="esti-row-between">
-                  <Button as={RouterLink} to={community ? "/recover" : "/forgot-password"} kind="ghost" size="sm">
+                  <Button
+                    component={RouterLink}
+                    to={community ? "/recover" : "/forgot-password"}
+                    variant="text"
+                    size="small"
+                  >
                     {community ? "Use backup code" : "Forgot password?"}
                   </Button>
                   {PUBLIC_SITE ? (
-                    <Button as={RouterLink} to="/account?mode=create" kind="ghost" size="sm">
+                    <Button component={RouterLink} to="/account?mode=create" variant="text" size="small">
                       Create free account
                     </Button>
                   ) : (
-                    <Button as={RouterLink} to="/signup" kind="ghost" size="sm">
+                    <Button component={RouterLink} to="/signup" variant="text" size="small">
                       {IS_DESKTOP ? "First time? Set up your studio" : "Create account"}
                     </Button>
                   )}
@@ -379,34 +403,46 @@ export function Login() {
               </>
             )}
           </Stack>
-        </Tile>
+        </Paper>
 
         {!companies && (
-          <Tile>
-            <Stack gap={2}>
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={1}>
               {PUBLIC_SITE && (
-                <Button as={RouterLink} to="/account" kind="ghost" size="sm">
+                <Button component={RouterLink} to="/account" variant="text" size="small">
                   Manage your AORMS account &amp; licence →
                 </Button>
               )}
               {PUBLIC_SITE && (
-                <Button as={RouterLink} to="/download" kind="ghost" size="sm" renderIcon={Download}>
+                <Button
+                  component={RouterLink}
+                  to="/download"
+                  variant="text"
+                  size="small"
+                  endIcon={<Download />}
+                >
                   Download AORMS desktop
                 </Button>
               )}
               {!community && (
-                <Button as={RouterLink} to="/access" kind="ghost" size="sm">
+                <Button component={RouterLink} to="/access" variant="text" size="small">
                   Client / consultant / contractor portal
                 </Button>
               )}
-              <Button as={RouterLink} to="/" kind="ghost" size="sm" renderIcon={ArrowLeft}>
+              <Button
+                component={RouterLink}
+                to="/"
+                variant="text"
+                size="small"
+                startIcon={<ArrowBack />}
+              >
                 Back to home
               </Button>
             </Stack>
-          </Tile>
+          </Paper>
         )}
       </Stack>
     </main>
-    </Theme>
+    </div>
   );
 }

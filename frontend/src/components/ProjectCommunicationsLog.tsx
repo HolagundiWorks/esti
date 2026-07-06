@@ -1,15 +1,18 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineLoading,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import {
   CLIENT_DISCUSSION_OUTCOME_LABEL,
   CLIENT_DISCUSSION_OUTCOME_TAG,
@@ -19,6 +22,7 @@ import {
   type ClientLogKindCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { trpc } from "../lib/trpc.js";
 import { ContextualComments } from "./ContextualComments.js";
 
@@ -34,6 +38,28 @@ const CAT: Record<Category, { label: string; tagType: "blue" | "gray" | "red" | 
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function TagChip({ color, label }: { color: string; label: ReactNode }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
+
+function Loading() {
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <CircularProgress size={16} />
+      <span className="esti-label--secondary">Loading…</span>
+    </Stack>
+  );
 }
 
 // ── Client Log ───────────────────────────────────────────────
@@ -66,82 +92,86 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <p className="esti-label--secondary">Meetings, calls, approvals, and decisions with the client.</p>
-        <Button size="sm" onClick={() => setOpen(true)}>Log interaction</Button>
-      </div>
-      {logQ.isLoading && <InlineLoading description="Loading…" />}
+        <Button variant="contained" size="small" onClick={() => setOpen(true)}>Log interaction</Button>
+      </Box>
+      {logQ.isLoading && <Loading />}
       {(logQ.data ?? []).length === 0 && !logQ.isLoading && <p>No interactions logged yet.</p>}
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {(logQ.data ?? []).map((e) => (
-          <div key={e.id} style={{ borderLeft: "3px solid var(--cds-border-subtle-01)", paddingLeft: "var(--cds-spacing-04)" }}>
-            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
-              <Tag type={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"} size="sm">
-                {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
-              </Tag>
+          <Box key={e.id} sx={{ borderLeft: "3px solid var(--cds-border-subtle-01)", pl: 1.5 }}>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+              <TagChip
+                color={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}
+                label={CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
+              />
               {e.outcome && (
-                <Tag
-                  type={
+                <TagChip
+                  color={
                     (CLIENT_DISCUSSION_OUTCOME_TAG as Record<string, "green" | "blue" | "red" | "teal" | "purple">)[e.outcome] ?? "gray"
                   }
-                  size="sm"
-                >
-                  {(CLIENT_DISCUSSION_OUTCOME_LABEL as Record<string, string>)[e.outcome] ?? e.outcome}
-                </Tag>
+                  label={(CLIENT_DISCUSSION_OUTCOME_LABEL as Record<string, string>)[e.outcome] ?? e.outcome}
+                />
               )}
               <strong>{e.subject}</strong>
               <span className="esti-label--secondary">{e.occurredAt}</span>
               <Button
-                kind="ghost" size="sm" style={{ marginLeft: "auto" }}
+                variant="text" size="small" sx={{ ml: "auto" }}
                 onClick={() => remove.mutate({ id: e.id })}
               >
                 Remove
               </Button>
-            </div>
-            {e.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{e.body}</p>}
+            </Box>
+            {e.body && <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>{e.body}</Box>}
             {e.followUpDate && (
               <span className="esti-label--secondary">Follow-up: {e.followUpDate}</span>
             )}
-          </div>
+          </Box>
         ))}
       </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="Log client interaction"
-        primaryButtonText={create.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!subject || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId, kind, occurredAt, subject,
-            body: body || undefined,
-            followUpDate: followUp || null,
-            outcome: (outcome || undefined) as ClientDiscussionOutcomeT | undefined,
-            budgetObjections: budgetObjections || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select id="cl-kind" labelText="Type" value={kind} onChange={(e) => setKind(e.target.value as ClientLogKindCode)}>
-            {(Object.keys(CLIENT_LOG_KINDS) as ClientLogKindCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={CLIENT_LOG_KINDS[k]} />
-            ))}
-          </Select>
-          <TextInput id="cl-date" labelText="Date" type="date" value={occurredAt} onChange={(e) => setOccurredAt(e.target.value)} />
-          <TextInput id="cl-subject" labelText="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-          <TextArea id="cl-body" labelText="Notes (optional)" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
-          <TextInput id="cl-followup" labelText="Follow-up date (optional)" type="date" value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
-          <Select id="cl-outcome" labelText="Discussion outcome (optional)" value={outcome} onChange={(e) => setOutcome(e.target.value)}>
-            <SelectItem value="" text="— None —" />
-            {ClientDiscussionOutcome.options.map((o) => (
-              <SelectItem key={o} value={o} text={CLIENT_DISCUSSION_OUTCOME_LABEL[o]} />
-            ))}
-          </Select>
-          <TextArea id="cl-budget" labelText="Budget objections (optional)" rows={2} value={budgetObjections} onChange={(e) => setBudgetObjections(e.target.value)} />
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Log client interaction</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="cl-kind" select label="Type" value={kind} onChange={(e) => setKind(e.target.value as ClientLogKindCode)}>
+              {(Object.keys(CLIENT_LOG_KINDS) as ClientLogKindCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{CLIENT_LOG_KINDS[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField id="cl-date" label="Date" type="date" slotProps={{ inputLabel: { shrink: true } }} value={occurredAt} onChange={(e) => setOccurredAt(e.target.value)} />
+            <TextField id="cl-subject" label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <TextField id="cl-body" label="Notes (optional)" multiline rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+            <TextField id="cl-followup" label="Follow-up date (optional)" type="date" slotProps={{ inputLabel: { shrink: true } }} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
+            <TextField id="cl-outcome" select label="Discussion outcome (optional)" value={outcome} onChange={(e) => setOutcome(e.target.value)}>
+              <MenuItem value="">— None —</MenuItem>
+              {ClientDiscussionOutcome.options.map((o) => (
+                <MenuItem key={o} value={o}>{CLIENT_DISCUSSION_OUTCOME_LABEL[o]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField id="cl-budget" label="Budget objections (optional)" multiline rows={2} value={budgetObjections} onChange={(e) => setBudgetObjections(e.target.value)} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!subject || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId, kind, occurredAt, subject,
+                body: body || undefined,
+                followUpDate: followUp || null,
+                outcome: (outcome || undefined) as ClientDiscussionOutcomeT | undefined,
+                budgetObjections: budgetObjections || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
@@ -178,56 +208,61 @@ function CriticalPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <p className="esti-label--secondary">Red-flag items requiring immediate attention.</p>
-        <Button size="sm" onClick={() => setOpen(true)}>Add critical note</Button>
-      </div>
-      {notesQ.isLoading && <InlineLoading description="Loading…" />}
+        <Button variant="contained" size="small" onClick={() => setOpen(true)}>Add critical note</Button>
+      </Box>
+      {notesQ.isLoading && <Loading />}
       {items.length === 0 && !notesQ.isLoading && <p>No critical notes.</p>}
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {items.map((n) => (
-          <div key={n.id} style={{ borderLeft: "3px solid var(--cds-support-error)", paddingLeft: "var(--cds-spacing-04)" }}>
-            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
-              <Tag type={PRIORITY_TAG[n.priority] ?? "gray"} size="sm">{n.priority}</Tag>
-              <Tag type={STATUS_TAG[n.status] ?? "gray"} size="sm">{n.status}</Tag>
-              <Tag type="gray" size="sm">{n.category}</Tag>
+          <Box key={n.id} sx={{ borderLeft: "3px solid var(--cds-support-error)", pl: 1.5 }}>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+              <TagChip color={PRIORITY_TAG[n.priority] ?? "gray"} label={n.priority} />
+              <TagChip color={STATUS_TAG[n.status] ?? "gray"} label={n.status} />
+              <TagChip color="gray" label={n.category} />
               <strong>{n.title}</strong>
               {n.owner && <span className="esti-label--secondary">Owner: {n.owner}</span>}
               {n.dueDate && <span className="esti-label--secondary">Due: {n.dueDate}</span>}
-            </div>
-            {n.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{n.body}</p>}
-          </div>
+            </Box>
+            {n.body && <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>{n.body}</Box>}
+          </Box>
         ))}
       </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="Add critical note"
-        primaryButtonText={create.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!title || !category || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId, title, category,
-            priority: priority as "LOW" | "MEDIUM" | "HIGH",
-            status: status as "OPEN" | "BLOCKED" | "RESOLVED",
-            body: body || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput id="cn-title" labelText="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <TextInput id="cn-cat" labelText="Category (e.g. Structural, Fire Safety)" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <Select id="cn-priority" labelText="Priority" value={priority} onChange={(e) => setPriority(e.target.value)}>
-            {["HIGH", "MEDIUM", "LOW"].map((p) => <SelectItem key={p} value={p} text={p} />)}
-          </Select>
-          <Select id="cn-status" labelText="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {["OPEN", "BLOCKED", "RESOLVED"].map((s) => <SelectItem key={s} value={s} text={s} />)}
-          </Select>
-          <TextArea id="cn-body" labelText="Notes (optional)" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add critical note</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="cn-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <TextField id="cn-cat" label="Category (e.g. Structural, Fire Safety)" value={category} onChange={(e) => setCategory(e.target.value)} />
+            <TextField id="cn-priority" select label="Priority" value={priority} onChange={(e) => setPriority(e.target.value)}>
+              {["HIGH", "MEDIUM", "LOW"].map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
+            </TextField>
+            <TextField id="cn-status" select label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+              {["OPEN", "BLOCKED", "RESOLVED"].map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            </TextField>
+            <TextField id="cn-body" label="Notes (optional)" multiline rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!title || !category || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId, title, category,
+                priority: priority as "LOW" | "MEDIUM" | "HIGH",
+                status: status as "OPEN" | "BLOCKED" | "RESOLVED",
+                body: body || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
@@ -256,12 +291,10 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
 
   if (siteInsQ.isError) {
     return (
-      <InlineNotification
-        kind="info"
-        title="Site supervision not enabled"
-        subtitle="Enable site supervision for this project to track site instructions."
-        hideCloseButton
-      />
+      <Alert severity="info">
+        <AlertTitle>Site supervision not enabled</AlertTitle>
+        Enable site supervision for this project to track site instructions.
+      </Alert>
     );
   }
 
@@ -269,42 +302,47 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <p className="esti-label--secondary">Architectural instructions and changes arising from site.</p>
-        <Button size="sm" onClick={() => setOpen(true)}>Add site instruction</Button>
-      </div>
-      {siteInsQ.isLoading && <InlineLoading description="Loading…" />}
+        <Button variant="contained" size="small" onClick={() => setOpen(true)}>Add site instruction</Button>
+      </Box>
+      {siteInsQ.isLoading && <Loading />}
       {items.length === 0 && !siteInsQ.isLoading && <p>No site instructions recorded.</p>}
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {items.map((si) => (
-          <div key={si.id} style={{ borderLeft: "3px solid var(--cds-border-interactive)", paddingLeft: "var(--cds-spacing-04)" }}>
-            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
-              <Tag type="teal" size="sm">{si.ref}</Tag>
+          <Box key={si.id} sx={{ borderLeft: "3px solid var(--cds-border-interactive)", pl: 1.5 }}>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+              <TagChip color="teal" label={si.ref} />
               <strong>{si.subject}</strong>
               <span className="esti-label--secondary">{si.issuedAt}</span>
-            </div>
-            {si.body && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{si.body}</p>}
-          </div>
+            </Box>
+            {si.body && <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>{si.body}</Box>}
+          </Box>
         ))}
       </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="Add site instruction"
-        primaryButtonText={create.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!subject || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({ projectId, subject, body: body || undefined, issuedAt })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput id="si-subject" labelText="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-          <TextInput id="si-date" labelText="Date" type="date" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} />
-          <TextArea id="si-body" labelText="Details (optional)" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add site instruction</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="si-subject" label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <TextField id="si-date" label="Date" type="date" slotProps={{ inputLabel: { shrink: true } }} value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} />
+            <TextField id="si-body" label="Details (optional)" multiline rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!subject || create.isPending}
+            onClick={() =>
+              create.mutate({ projectId, subject, body: body || undefined, issuedAt })
+            }
+          >
+            {create.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
@@ -343,64 +381,71 @@ function RevisionPanel({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--cds-spacing-05)" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <p className="esti-label--secondary">Design revisions — by category and source.</p>
-        <Button size="sm" onClick={() => setOpen(true)}>Record revision</Button>
-      </div>
-      {decisionsQ.isLoading && <InlineLoading description="Loading…" />}
+        <Button variant="contained" size="small" onClick={() => setOpen(true)}>Record revision</Button>
+      </Box>
+      {decisionsQ.isLoading && <Loading />}
       {items.length === 0 && !decisionsQ.isLoading && <p>No revision records.</p>}
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {items.map((d) => (
-          <div key={d.id} style={{ borderLeft: "3px solid var(--cds-support-warning)", paddingLeft: "var(--cds-spacing-04)" }}>
-            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center", flexWrap: "wrap" }}>
-              <Tag type={REVISION_CAT_TAG[d.revisionCategory!] ?? "gray"} size="sm">
-                {d.revisionCategory}
-              </Tag>
+          <Box key={d.id} sx={{ borderLeft: "3px solid var(--cds-support-warning)", pl: 1.5 }}>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+              <TagChip
+                color={REVISION_CAT_TAG[d.revisionCategory!] ?? "gray"}
+                label={d.revisionCategory}
+              />
               {d.revisionSource && (
-                <Tag type="gray" size="sm">
-                  {REVISION_SOURCE_LABEL[d.revisionSource] ?? d.revisionSource}
-                </Tag>
+                <TagChip
+                  color="gray"
+                  label={REVISION_SOURCE_LABEL[d.revisionSource] ?? d.revisionSource}
+                />
               )}
               <strong>{d.title}</strong>
-              <Tag type="gray" size="sm">{d.state}</Tag>
-            </div>
-            {d.rationale && <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>{d.rationale}</p>}
-          </div>
+              <TagChip color="gray" label={d.state} />
+            </Box>
+            {d.rationale && <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>{d.rationale}</Box>}
+          </Box>
         ))}
       </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="Record revision"
-        primaryButtonText={create.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!title || !rationale || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId, title, rationale,
-            revisionCategory: revisionCategory as "MINOR" | "MAJOR" | "CRITICAL",
-            revisionSource: revisionSource as
-              | "CLIENT_DRIVEN"
-              | "INTERNAL_ERROR"
-              | "TECHNICAL_QUERY"
-              | "SCOPE_CHANGE",
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput id="rv-title" labelText="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <TextArea id="rv-rationale" labelText="Rationale / description" rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} />
-          <Select id="rv-cat" labelText="Revision category" value={revisionCategory} onChange={(e) => setRevisionCategory(e.target.value)}>
-            {["MINOR", "MAJOR", "CRITICAL"].map((c) => <SelectItem key={c} value={c} text={c} />)}
-          </Select>
-          <Select id="rv-source" labelText="Revision source" value={revisionSource} onChange={(e) => setRevisionSource(e.target.value)}>
-            {Object.entries(REVISION_SOURCE_LABEL).map(([k, v]) => (
-              <SelectItem key={k} value={k} text={v} />
-            ))}
-          </Select>
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Record revision</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="rv-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <TextField id="rv-rationale" label="Rationale / description" multiline rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} />
+            <TextField id="rv-cat" select label="Revision category" value={revisionCategory} onChange={(e) => setRevisionCategory(e.target.value)}>
+              {["MINOR", "MAJOR", "CRITICAL"].map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
+            <TextField id="rv-source" select label="Revision source" value={revisionSource} onChange={(e) => setRevisionSource(e.target.value)}>
+              {Object.entries(REVISION_SOURCE_LABEL).map(([k, v]) => (
+                <MenuItem key={k} value={k}>{v}</MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!title || !rationale || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId, title, rationale,
+                revisionCategory: revisionCategory as "MINOR" | "MAJOR" | "CRITICAL",
+                revisionSource: revisionSource as
+                  | "CLIENT_DRIVEN"
+                  | "INTERNAL_ERROR"
+                  | "TECHNICAL_QUERY"
+                  | "SCOPE_CHANGE",
+              })
+            }
+          >
+            {create.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
@@ -410,19 +455,23 @@ export function ProjectCommunicationsLog({ projectId }: { projectId: string }) {
   const [active, setActive] = useState<Category>("clientlog");
 
   return (
-    <div style={{ marginTop: "var(--cds-spacing-06)" }}>
-      <div style={{ display: "flex", gap: "var(--cds-spacing-03)", flexWrap: "wrap", marginBottom: "var(--cds-spacing-06)" }}>
-        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => (
-          <Tag
-            key={key}
-            type={active === key ? cfg.tagType : "gray"}
-            onClick={() => setActive(key)}
-            style={{ cursor: "pointer" }}
-          >
-            {cfg.label}
-          </Tag>
-        ))}
-      </div>
+    <Box sx={{ mt: 3 }}>
+      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
+        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => {
+          const color = active === key ? cfg.tagType : "gray";
+          return (
+            <Chip
+              key={key}
+              label={cfg.label}
+              onClick={() => setActive(key)}
+              sx={{
+                backgroundColor: `var(--cds-tag-background-${color})`,
+                color: `var(--cds-tag-color-${color})`,
+              }}
+            />
+          );
+        })}
+      </Box>
 
       {active === "clientlog" && <ClientLogPanel projectId={projectId} />}
       {active === "internal" && (
@@ -437,6 +486,6 @@ export function ProjectCommunicationsLog({ projectId }: { projectId: string }) {
       {active === "critical"  && <CriticalPanel    projectId={projectId} />}
       {active === "site"      && <SiteChangesPanel projectId={projectId} />}
       {active === "revision"  && <RevisionPanel    projectId={projectId} />}
-    </div>
+    </Box>
   );
 }

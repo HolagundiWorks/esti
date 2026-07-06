@@ -1,15 +1,15 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  InlineLoading,
-  InlineNotification,
-  Select,
-  SelectItem,
+  Chip,
+  CircularProgress,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   REVISION_CATEGORY_LABEL,
   RevisionCategory,
@@ -29,6 +29,13 @@ type DraftSuggestion = {
   details: string;
   category: RevisionCategoryT;
 };
+
+function chipTokens(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function PortalMinutes({
   projectId,
@@ -108,66 +115,70 @@ export function PortalMinutes({
   const moms = momsQ.data ?? [];
 
   return (
-    <Stack gap={3}>
-      <h4>Meeting minutes</h4>
+    <Stack spacing={1}>
+      <Typography variant="h6" component="h4">Meeting minutes</Typography>
       <p className="esti-label esti-label--secondary">
         Minutes your architect has issued. ESTI can read them and draft your revision
         requests — review, edit, and send only the ones you want.
       </p>
 
       {error && (
-        <InlineNotification
-          kind="error"
-          title="Revision requests"
-          subtitle={error}
-          lowContrast
-          onCloseButtonClick={() => setError(null)}
-        />
+        <Alert severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Revision requests</AlertTitle>
+          {error}
+        </Alert>
       )}
 
       {momsQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
       {!momsQ.isLoading && moms.length === 0 && (
-        <Tile>
-          <p>No issued meeting minutes yet.</p>
-        </Tile>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="body1">No issued meeting minutes yet.</Typography>
+        </Paper>
       )}
 
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {moms.map((m) => {
           const momDrafts = drafts[m.id] ?? [];
           const hasRun = suggestedFor.has(m.id);
           return (
-            <Tile key={m.id}>
-              <Stack gap={3}>
-                <Stack orientation="horizontal" gap={3} style={{ flexWrap: "wrap", alignItems: "center" }}>
-                  <strong>
-                    {m.ref} — {m.title}
-                  </strong>
-                  {m.meetingDate && <Tag type="cool-gray" size="sm">{m.meetingDate}</Tag>}
+            <Paper key={m.id} sx={{ p: 2 }}>
+              <Stack spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
+                  <Typography variant="body1">
+                    <strong>{m.ref} — {m.title}</strong>
+                  </Typography>
+                  {m.meetingDate && (
+                    <Chip size="small" label={m.meetingDate} sx={chipTokens("cool-gray")} />
+                  )}
                 </Stack>
                 {m.attendees && (
                   <p className="esti-label esti-label--secondary">Attendees: {m.attendees}</p>
                 )}
                 {expandedId === m.id && m.minutes && (
-                  <p style={{ whiteSpace: "pre-wrap" }}>{m.minutes}</p>
+                  <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>{m.minutes}</Typography>
                 )}
-                <Stack orientation="horizontal" gap={3} style={{ flexWrap: "wrap" }}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
                   <Button
-                    kind="ghost"
-                    size="sm"
+                    variant="text"
+                    size="small"
                     onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}
                   >
                     {expandedId === m.id ? "Hide minutes" : "Read minutes"}
                   </Button>
                   <Button
-                    kind="tertiary"
-                    size="sm"
+                    variant="outlined"
+                    size="small"
                     disabled={suggestingId !== null}
                     onClick={() => void runSuggest(m.id)}
                   >
                     {hasRun ? "Ask ESTI again" : "Ask ESTI to draft my revision requests"}
                   </Button>
-                  {suggestingId === m.id && <InlineLoading description="ESTI is reading the minutes…" />}
+                  {suggestingId === m.id && (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <CircularProgress size={16} />
+                      <Typography variant="body2">ESTI is reading the minutes…</Typography>
+                    </Stack>
+                  )}
                 </Stack>
 
                 {hasRun && momDrafts.length === 0 && suggestingId !== m.id && (
@@ -178,49 +189,61 @@ export function PortalMinutes({
                 )}
 
                 {momDrafts.map((draft) => (
-                  <Tile key={draft.key}>
-                    <Stack gap={4}>
-                      <Tag type="purple" size="sm">
-                        ESTI draft — review before sending
-                      </Tag>
-                      <TextInput
+                  <Paper key={draft.key} sx={{ p: 2 }}>
+                    <Stack spacing={1.5}>
+                      <Stack direction="row">
+                        <Chip
+                          size="small"
+                          label="ESTI draft — review before sending"
+                          sx={chipTokens("purple")}
+                        />
+                      </Stack>
+                      <TextField
                         id={`sub-${draft.key}`}
-                        labelText="Subject"
+                        label="Subject"
                         value={draft.subject}
                         onChange={(e) => patchDraft(m.id, draft.key, { subject: e.target.value })}
+                        fullWidth
                       />
-                      <TextArea
+                      <TextField
                         id={`body-${draft.key}`}
-                        labelText="Request"
+                        label="Request"
+                        multiline
                         rows={3}
                         value={draft.details}
                         onChange={(e) => patchDraft(m.id, draft.key, { details: e.target.value })}
+                        fullWidth
                       />
-                      <Select
+                      <TextField
                         id={`cat-${draft.key}`}
-                        labelText="Impact"
+                        label="Impact"
+                        select
                         value={draft.category}
                         onChange={(e) =>
                           patchDraft(m.id, draft.key, {
                             category: e.target.value as RevisionCategoryT,
                           })
                         }
+                        fullWidth
                       >
                         {RevisionCategory.options.map((c) => (
-                          <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
+                          <MenuItem key={c} value={c}>
+                            {REVISION_CATEGORY_LABEL[c]}
+                          </MenuItem>
                         ))}
-                      </Select>
-                      <Stack orientation="horizontal" gap={3}>
+                      </TextField>
+                      <Stack direction="row" spacing={1}>
                         <Button
-                          size="sm"
+                          variant="contained"
+                          size="small"
                           disabled={sendingKey !== null || !draft.subject.trim() || !draft.details.trim()}
                           onClick={() => void sendDraft(m.id, draft)}
                         >
                           {sendingKey === draft.key ? "Sending…" : "Send to architect"}
                         </Button>
                         <Button
-                          size="sm"
-                          kind="ghost"
+                          variant="text"
+                          size="small"
                           disabled={sendingKey !== null}
                           onClick={() => dropDraft(m.id, draft.key)}
                         >
@@ -228,10 +251,10 @@ export function PortalMinutes({
                         </Button>
                       </Stack>
                     </Stack>
-                  </Tile>
+                  </Paper>
                 ))}
               </Stack>
-            </Tile>
+            </Paper>
           );
         })}
       </Stack>

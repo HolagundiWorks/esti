@@ -1,20 +1,20 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  FileUploaderButton,
-  InlineNotification,
-  Modal,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import { Launch } from "@carbon/icons-react";
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Launch from "@mui/icons-material/Launch";
 import { can } from "@esti/contracts";
 import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
@@ -23,12 +23,21 @@ import { ESTICAD_DOWNLOAD_URL, esticadDrawingUrl, openEsticadDrawing } from "../
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
+const HiddenFileInput = styled("input")({ display: "none" });
+
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   PENDING: "gray",
   PROCESSING: "blue",
   READY: "green",
   FAILED: "red",
 };
+
+function tagSx(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -128,22 +137,131 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     }
   }
 
+  const drawingColumns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.7, minWidth: 110 },
+    {
+      field: "title",
+      headerName: "Title",
+      flex: 1.5,
+      minWidth: 180,
+      renderCell: (p) => (
+        <div>
+          {p.row.title}
+          <div>{p.row.fileName}</div>
+          {p.row.revisionNote && <div>“{p.row.revisionNote}”</div>}
+        </div>
+      ),
+    },
+    {
+      field: "revNo",
+      headerName: "Rev",
+      width: 90,
+      renderCell: (p) => (
+        <Chip size="small" label={`Rev ${p.row.revNo}`} sx={tagSx(p.row.revNo > 1 ? "blue" : "gray")} />
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => (
+        <div>
+          <Chip size="small" label={p.row.status} sx={tagSx(STATUS_TAG[p.row.status] ?? "gray")} />
+          {p.row.status === "FAILED" && p.row.errorText && <div>{p.row.errorText}</div>}
+        </div>
+      ),
+    },
+    { field: "entityCount", headerName: "Entities", width: 90 },
+    {
+      field: "takeoff",
+      headerName: "Takeoff",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 170,
+      renderCell: (p) => (
+        <>
+          {p.row.status === "READY" && canTakeoff && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Launch />}
+              onClick={() => launchEsticad(p.row.id)}
+            >
+              Open in ESTICAD
+            </Button>
+          )}
+          {p.row.status === "READY" && !canTakeoff && "—"}
+        </>
+      ),
+    },
+    {
+      field: "issue",
+      headerName: "Issue",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 150,
+      renderCell: (p) =>
+        p.row.status === "READY" ? (
+          <DrawingIssueCell drawingId={p.row.id} initialStatus={p.row.issuePdfStatus} />
+        ) : null,
+    },
+    {
+      field: "versions",
+      headerName: "Versions",
+      sortable: false,
+      filterable: false,
+      width: 170,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={0.5}>
+          <Button
+            variant="text"
+            size="small"
+            onClick={() => setRevFor({ id: p.row.id, title: p.row.title })}
+          >
+            New rev
+          </Button>
+          <Button variant="text" size="small" onClick={() => setHistId(p.row.id)}>
+            History
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
+
+  const versionColumns: GridColDef[] = [
+    { field: "revNo", headerName: "Rev", width: 90, renderCell: (p) => `Rev ${p.row.revNo}` },
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 110 },
+    { field: "fileName", headerName: "File", flex: 1.4, minWidth: 160 },
+    {
+      field: "revisionNote",
+      headerName: "Note",
+      flex: 1.2,
+      minWidth: 120,
+      renderCell: (p) => p.row.revisionNote ?? "—",
+    },
+    {
+      field: "isCurrent",
+      headerName: "Current",
+      width: 110,
+      renderCell: (p) =>
+        p.row.isCurrent ? <Chip size="small" label="Current" sx={tagSx("green")} /> : "—",
+    },
+  ];
 
   return (
     <>
-      <h3 style={{ marginTop: "var(--cds-spacing-07)" }}>Drawings</h3>
-      <InlineNotification
-        kind="info"
-        title="Quantity takeoff in ESTICAD"
-        subtitle={
-          canTakeoff
-            ? "Upload DXF drawings here for the project register. Measure walls, slabs, and structural elements in the free ESTICAD desktop app — quantities sync to this project automatically."
-            : "Drawings are listed here for issue control. Quantity takeoff is performed in ESTICAD by staff with write access."
-        }
-        lowContrast
-        hideCloseButton
-        style={{ marginBottom: "var(--cds-spacing-04)" }}
-      />
+      <Typography variant="h6" component="h3" sx={{ mt: 4 }}>
+        Drawings
+      </Typography>
+      <Alert severity="info" sx={{ mb: 1.5 }}>
+        <AlertTitle>Quantity takeoff in ESTICAD</AlertTitle>
+        {canTakeoff
+          ? "Upload DXF drawings here for the project register. Measure walls, slabs, and structural elements in the free ESTICAD desktop app — quantities sync to this project automatically."
+          : "Drawings are listed here for issue control. Quantity takeoff is performed in ESTICAD by staff with write access."}
+      </Alert>
       {canTakeoff && (
         <p className="esti-label">
           <a href={ESTICAD_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
@@ -154,57 +272,43 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </p>
       )}
       {!canUpload && (
-        <InlineNotification
-          kind="info"
-          title="Upload not available"
-          subtitle="Your role is read-only. Ask a project lead or sign in with an Associate (or higher) account to upload DXF drawings."
-          lowContrast
-          hideCloseButton
-        />
+        <Alert severity="info">
+          <AlertTitle>Upload not available</AlertTitle>
+          Your role is read-only. Ask a project lead or sign in with an Associate (or higher) account to upload DXF drawings.
+        </Alert>
       )}
       {canUpload && uploadRequired && user?.isDemo && (
-        <InlineNotification
-          kind="info"
-          title="Upload password required"
-          subtitle="This demo has upload protection enabled — enter the upload password when prompted, same as a live firm."
-          lowContrast
-          hideCloseButton
-          style={{ marginBottom: "var(--cds-spacing-04)" }}
-        />
+        <Alert severity="info" sx={{ mb: 1.5 }}>
+          <AlertTitle>Upload password required</AlertTitle>
+          This demo has upload protection enabled — enter the upload password when prompted, same as a live firm.
+        </Alert>
       )}
-      <div
-        style={{
-          display: "flex",
-          gap: "var(--cds-spacing-04)",
-          alignItems: "flex-end",
-          margin: "var(--cds-spacing-04) 0",
-        }}
-      >
-        <TextInput
+      <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-end", my: 1.5 }}>
+        <TextField
           id="dwg-title"
-          labelText="Drawing title"
+          label="Drawing title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          style={{ maxWidth: 280 }}
+          sx={{ maxWidth: 280 }}
         />
-        <FileUploaderButton
-          labelText={file ? file.name : "Choose DXF"}
-          accept={[".dxf", ".DXF", "application/dxf", "image/vnd.dxf", "application/x-dxf"]}
-          disableLabelChanges
-          buttonKind="tertiary"
-          disabled={!canUpload}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFile(e.target.files?.[0] ?? null)
-          }
-        />
+        <Button variant="outlined" component="label" disabled={!canUpload}>
+          {file ? file.name : "Choose DXF"}
+          <HiddenFileInput
+            type="file"
+            accept=".dxf,.DXF,application/dxf,image/vnd.dxf,application/x-dxf"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFile(e.target.files?.[0] ?? null)
+            }
+          />
+        </Button>
         <Button
-          size="md"
+          variant="contained"
           disabled={!canUpload || !file || !title || busy}
           onClick={upload}
         >
           {busy ? "Uploading…" : "Upload drawing"}
         </Button>
-      </div>
+      </Box>
       {canUpload && (
         <p className="esti-label esti-label--secondary">
           AutoCAD / Revit / SketchUp: export or Save As <strong>DXF</strong> (.dxf), not DWG.
@@ -212,182 +316,104 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </p>
       )}
       {error && (
-        <InlineNotification
-          kind="error"
-          title="Upload failed"
-          subtitle={error}
-          lowContrast
-        />
+        <Alert severity="error">
+          <AlertTitle>Upload failed</AlertTitle>
+          {error}
+        </Alert>
       )}
       {esticadHint && (
-        <InlineNotification
-          kind="info"
-          title="ESTICAD"
-          subtitle={esticadHint}
-          lowContrast
-          onCloseButtonClick={() => setEsticadHint(null)}
-        />
+        <Alert severity="info" onClose={() => setEsticadHint(null)}>
+          <AlertTitle>ESTICAD</AlertTitle>
+          {esticadHint}
+        </Alert>
       )}
 
-      <TableContainer
-        title="Uploaded drawings"
-        description="DXF register — open ESTICAD to measure quantities"
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>Title</TableHeader>
-              <TableHeader>Rev</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Entities</TableHeader>
-              <TableHeader>Takeoff</TableHeader>
-              <TableHeader>Issue</TableHeader>
-              <TableHeader>Versions</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(drawingsQ.data ?? []).map((d) => {
-              return (
-                <TableRow key={d.id}>
-                  <TableCell>{d.ref}</TableCell>
-                  <TableCell>
-                    {d.title}
-                    <div>{d.fileName}</div>
-                    {d.revisionNote && <div>“{d.revisionNote}”</div>}
-                  </TableCell>
-                  <TableCell>
-                    <Tag type={d.revNo > 1 ? "blue" : "gray"}>
-                      Rev {d.revNo}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Tag type={STATUS_TAG[d.status] ?? "gray"}>{d.status}</Tag>
-                    {d.status === "FAILED" && d.errorText && (
-                      <div>{d.errorText}</div>
-                    )}
-                  </TableCell>
-                  <TableCell>{d.entityCount}</TableCell>
-                  <TableCell>
-                    {d.status === "READY" && canTakeoff && (
-                      <Button
-                        kind="primary"
-                        size="sm"
-                        renderIcon={Launch}
-                        onClick={() => launchEsticad(d.id)}
-                      >
-                        Open in ESTICAD
-                      </Button>
-                    )}
-                    {d.status === "READY" && !canTakeoff && "—"}
-                  </TableCell>
-                  <TableCell>
-                    {d.status === "READY" && (
-                      <DrawingIssueCell
-                        drawingId={d.id}
-                        initialStatus={d.issuePdfStatus}
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ display: "flex", gap: "var(--cds-spacing-02)" }}>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => setRevFor({ id: d.id, title: d.title })}
-                      >
-                        New rev
-                      </Button>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => setHistId(d.id)}
-                      >
-                        History
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack spacing={0.5} sx={{ mt: 2 }}>
+        <Typography variant="subtitle1" component="h4">
+          Uploaded drawings
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          DXF register — open ESTICAD to measure quantities
+        </Typography>
+        <DataGrid
+          rows={drawingsQ.data ?? []}
+          columns={drawingColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+          getRowHeight={() => "auto"}
+        />
+      </Stack>
 
-
-      <Modal
+      <Dialog
         open={!!revFor}
-        modalHeading={`Upload new revision — ${revFor?.title ?? ""}`}
-        primaryButtonText={busy ? "Uploading…" : "Upload revision"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!revFile || busy}
-        onRequestClose={() => {
+        onClose={() => {
           setRevFor(null);
           setRevFile(null);
           setRevNote("");
         }}
-        onRequestSubmit={uploadRevision}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <p>
-            The new DXF supersedes the current revision; the previous version is
-            kept in history.
-          </p>
-          <FileUploaderButton
-            labelText={revFile ? revFile.name : "Choose DXF"}
-            accept={[".dxf"]}
-            disableLabelChanges
-            buttonKind="tertiary"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setRevFile(e.target.files?.[0] ?? null)
-            }
-          />
-          <TextInput
-            id="rev-note"
-            labelText="Revision note (optional)"
-            value={revNote}
-            onChange={(e) => setRevNote(e.target.value)}
-          />
-        </Stack>
-      </Modal>
+        <DialogTitle>{`Upload new revision — ${revFor?.title ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <p>
+              The new DXF supersedes the current revision; the previous version is
+              kept in history.
+            </p>
+            <Box>
+              <Button variant="outlined" component="label">
+                {revFile ? revFile.name : "Choose DXF"}
+                <HiddenFileInput
+                  type="file"
+                  accept=".dxf"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setRevFile(e.target.files?.[0] ?? null)
+                  }
+                />
+              </Button>
+            </Box>
+            <TextField
+              id="rev-note"
+              label="Revision note (optional)"
+              value={revNote}
+              onChange={(e) => setRevNote(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => {
+              setRevFor(null);
+              setRevFile(null);
+              setRevNote("");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button variant="contained" disabled={!revFile || busy} onClick={uploadRevision}>
+            {busy ? "Uploading…" : "Upload revision"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={!!histId}
-        passiveModal
-        modalHeading="Revision history"
-        onRequestClose={() => setHistId(null)}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Rev</TableHeader>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>File</TableHeader>
-              <TableHeader>Note</TableHeader>
-              <TableHeader>Current</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(versionsQ.data ?? []).map((v) => (
-              <TableRow key={v.id}>
-                <TableCell>Rev {v.revNo}</TableCell>
-                <TableCell>{v.ref}</TableCell>
-                <TableCell>{v.fileName}</TableCell>
-                <TableCell>{v.revisionNote ?? "—"}</TableCell>
-                <TableCell>
-                  {v.isCurrent ? (
-                    <Tag type="green" size="sm">
-                      Current
-                    </Tag>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Modal>
+      <Dialog open={!!histId} onClose={() => setHistId(null)} fullWidth maxWidth="md">
+        <DialogTitle>Revision history</DialogTitle>
+        <DialogContent>
+          <DataGrid
+            rows={versionsQ.data ?? []}
+            columns={versionColumns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

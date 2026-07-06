@@ -2,19 +2,11 @@
  * AORMS Studio Intelligence — universal screen shell.
  *
  * One structure for every tab: a header, a row of 4 KPI cards, then a data table
- * that fills the rest of the viewport and scrolls *inside its Tile* (the page
- * itself never scrolls). Pure Carbon — Tile + DataTable only; status is the ●▲■
- * glyph in its alert colour (zoneState.ts). Colour only from `--cds-*` tokens.
+ * that fills the rest of the viewport and scrolls *inside its Paper* (the page
+ * itself never scrolls). Material UI; status is the ●▲■ glyph in its alert colour
+ * (zoneState.ts). Colour only from `--cds-*` tokens.
  */
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tile,
-} from "@carbon/react";
+import { Paper, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { GLYPH_CLASS, glyphFor, STATE_WORD } from "./zoneState.js";
@@ -93,14 +85,14 @@ export function AbstractScreenShell({
 
       <div className="esti-kpi-row">
         {kpis.slice(0, 4).map((k) => (
-          <Tile key={k.label} className="esti-kpi-card">
+          <Paper key={k.label} className="esti-kpi-card" sx={{ p: 2 }}>
             <span className="esti-label--helper">{k.label}</span>
             <h3 className={k.state ? `esti-state-${k.state}` : undefined}>{k.value}</h3>
-          </Tile>
+          </Paper>
         ))}
       </div>
 
-      <Tile className="esti-abstract-table">
+      <Paper className="esti-abstract-table" sx={{ p: 2 }}>
         {tableTitle && <span className="esti-label esti-label--secondary">{tableTitle}</span>}
         <div className="esti-abstract-table__scroll">
           {rows.length === 0 ? (
@@ -108,12 +100,12 @@ export function AbstractScreenShell({
               <StatusSymbol state="stable" sm /> {empty}
             </p>
           ) : (
-            <Table size="sm" useZebraStyles>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableHeader> </TableHeader>
+                  <TableCell> </TableCell>
                   {headers.map((h) => (
-                    <TableHeader key={h}>{h}</TableHeader>
+                    <TableCell key={h}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -123,6 +115,7 @@ export function AbstractScreenShell({
                     key={i}
                     className={r.href ? "esti-row-clickable" : undefined}
                     onClick={r.href ? () => navigate(r.href!) : undefined}
+                    hover={Boolean(r.href)}
                   >
                     <TableCell>
                       <StatusSymbol state={r.state ?? "stable"} sm />
@@ -136,7 +129,7 @@ export function AbstractScreenShell({
             </Table>
           )}
         </div>
-      </Tile>
+      </Paper>
     </div>
   );
 }

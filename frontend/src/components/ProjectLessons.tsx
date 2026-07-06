@@ -1,27 +1,28 @@
 import {
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Add } from "@carbon/icons-react";
-import { LESSON_CATEGORY_LABEL, type LessonCategory } from "@esti/contracts";
+  TextField,
+  Typography,
+} from "@mui/material";
+import Add from "@mui/icons-material/Add";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { LESSON_CATEGORY_LABEL, type LessonCategory, type TagColor } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
+import { StatusTag } from "./StatusTag.js";
 import { trpc } from "../lib/trpc.js";
+
+const LESSON_STATUS_TAG: Record<string, TagColor> = {
+  DRAFT: "gray",
+  PUBLISHED: "green",
+};
 
 export function ProjectLessons({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -51,73 +52,99 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
     setOpen(false);
   }
 
+  const rows = listQ.data ?? [];
+
+  const columns: GridColDef[] = [
+    { field: "title", headerName: "Title", flex: 2, minWidth: 180 },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (v) => LESSON_CATEGORY_LABEL[v as LessonCategory] ?? v,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => <StatusTag value={p.row.status} map={LESSON_STATUS_TAG} />,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 230,
+      renderCell: (p) =>
+        p.row.status === "DRAFT" ? (
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => {
+                setEditId(p.row.id);
+                setForm({
+                  title: p.row.title,
+                  category: p.row.category as LessonCategory,
+                  body: p.row.body,
+                  recommendations: p.row.recommendations,
+                  tags: p.row.tags ?? "",
+                });
+                setOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              disabled={publish.isPending}
+              onClick={() => publish.mutate({ id: p.row.id })}
+            >
+              Publish
+            </Button>
+            <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
+              Delete
+            </Button>
+          </Stack>
+        ) : null,
+    },
+  ];
+
   return (
     <div>
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: "var(--cds-spacing-03)" }}>
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", mb: 1 }}>
         <div>
-          <h3>Lessons learned</h3>
-          <p style={{ margin: 0, opacity: 0.85 }}>
+          <Typography variant="h6">Lessons learned</Typography>
+          <Typography variant="body2" sx={{ m: 0, opacity: 0.85 }}>
             Capture project-close insights; publish to the Knowledge Bank for reuse.
-          </p>
+          </Typography>
         </div>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>New lesson</Button>
+        <div>
+          <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setOpen(true)}>
+            New lesson
+          </Button>
+        </div>
       </Stack>
 
       <DataState
         loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
+        isEmpty={rows.length === 0}
         columnCount={4}
         empty={{
           title: "No lessons yet",
           description: "Record what worked, what did not, and recommendations for future projects.",
         }}
       >
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell>{l.title}</TableCell>
-                  <TableCell>
-                    {LESSON_CATEGORY_LABEL[l.category as LessonCategory] ?? l.category}
-                  </TableCell>
-                  <TableCell>
-                    <Tag type={l.status === "PUBLISHED" ? "green" : "gray"} size="sm">{l.status}</Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      {l.status === "DRAFT" && (
-                        <>
-                          <Button kind="ghost" size="sm" onClick={() => {
-                            setEditId(l.id);
-                            setForm({
-                              title: l.title,
-                              category: l.category as LessonCategory,
-                              body: l.body,
-                              recommendations: l.recommendations,
-                              tags: l.tags ?? "",
-                            });
-                            setOpen(true);
-                          }}>Edit</Button>
-                          <Button kind="ghost" size="sm" disabled={publish.isPending} onClick={() => publish.mutate({ id: l.id })}>Publish</Button>
-                          <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(l.id)}>Delete</Button>
-                        </>
-                      )}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
       <ConfirmModal
@@ -133,37 +160,71 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
         onClose={() => setConfirmId(null)}
       />
 
-      <Modal
-        open={open}
-        modalHeading={editId ? "Edit lesson" : "New lesson"}
-        primaryButtonText={create.isPending || update.isPending ? "Saving…" : editId ? "Save" : "Create draft"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.title || !form.body || create.isPending || update.isPending}
-        size="lg"
-        onRequestClose={resetForm}
-        onRequestSubmit={() => {
-          if (editId) {
-            update.mutate({ id: editId, ...form, tags: form.tags || undefined }, { onSuccess: resetForm });
-          } else {
-            create.mutate({ projectId, ...form, tags: form.tags || undefined }, { onSuccess: resetForm });
-          }
-        }}
-      >
-        <Stack gap={4}>
-          <TextInput id="ll-title" labelText="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-          <Select id="ll-cat" labelText="Category" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as LessonCategory }))}>
-            {(Object.keys(LESSON_CATEGORY_LABEL) as LessonCategory[]).map((k) => (
-              <SelectItem key={k} value={k} text={LESSON_CATEGORY_LABEL[k]} />
-            ))}
-          </Select>
-          <TextArea id="ll-body" labelText="What happened / context" rows={5} value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} />
-          <TextArea id="ll-rec" labelText="Recommendations for future projects" rows={4} value={form.recommendations} onChange={(e) => setForm((f) => ({ ...f, recommendations: e.target.value }))} />
-          <TextInput id="ll-tags" labelText="Tags (optional)" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} />
-          {editing?.status === "PUBLISHED" && (
-            <p>Published lessons are read-only in the register.</p>
-          )}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={resetForm} fullWidth maxWidth="md">
+        <DialogTitle>{editId ? "Edit lesson" : "New lesson"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="ll-title"
+              label="Title"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            />
+            <TextField
+              id="ll-cat"
+              select
+              label="Category"
+              value={form.category}
+              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as LessonCategory }))}
+            >
+              {(Object.keys(LESSON_CATEGORY_LABEL) as LessonCategory[]).map((k) => (
+                <MenuItem key={k} value={k}>{LESSON_CATEGORY_LABEL[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="ll-body"
+              label="What happened / context"
+              multiline
+              rows={5}
+              value={form.body}
+              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+            />
+            <TextField
+              id="ll-rec"
+              label="Recommendations for future projects"
+              multiline
+              rows={4}
+              value={form.recommendations}
+              onChange={(e) => setForm((f) => ({ ...f, recommendations: e.target.value }))}
+            />
+            <TextField
+              id="ll-tags"
+              label="Tags (optional)"
+              value={form.tags}
+              onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
+            />
+            {editing?.status === "PUBLISHED" && (
+              <Typography variant="body2">Published lessons are read-only in the register.</Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={resetForm}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.title || !form.body || create.isPending || update.isPending}
+            onClick={() => {
+              if (editId) {
+                update.mutate({ id: editId, ...form, tags: form.tags || undefined }, { onSuccess: resetForm });
+              } else {
+                create.mutate({ projectId, ...form, tags: form.tags || undefined }, { onSuccess: resetForm });
+              }
+            }}
+          >
+            {create.isPending || update.isPending ? "Saving…" : editId ? "Save" : "Create draft"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -172,51 +233,70 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
 export function LessonsBank() {
   const listQ = trpc.lessons.listPublished.useQuery();
 
+  const rows = (listQ.data ?? []).map((r) => ({ id: r.lesson.id, ...r }));
+
+  const columns: GridColDef<(typeof rows)[number]>[] = [
+    {
+      field: "title",
+      headerName: "Title",
+      flex: 1.5,
+      minWidth: 180,
+      valueGetter: (_v, row) => row.lesson.title,
+    },
+    {
+      field: "project",
+      headerName: "Project",
+      flex: 1.5,
+      minWidth: 200,
+      renderCell: (p) => (
+        <Link to={`/projects/${p.row.lesson.projectId}?tab=lessons`}>
+          {p.row.projectRef} · {p.row.projectTitle}
+        </Link>
+      ),
+    },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (_v, row) =>
+        LESSON_CATEGORY_LABEL[row.lesson.category as LessonCategory] ?? row.lesson.category,
+    },
+    {
+      field: "recommendation",
+      headerName: "Recommendation",
+      flex: 2.5,
+      minWidth: 260,
+      valueGetter: (_v, row) => row.lesson.recommendations || row.lesson.body.slice(0, 120),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <Stack gap={2}>
-        <h2>Lessons learned</h2>
-        <p>
+    <Stack spacing={2}>
+      <Stack spacing={1}>
+        <Typography variant="h5">Lessons learned</Typography>
+        <Typography variant="body1">
           Published recommendations from completed and active projects. Draft lessons are captured on each project&apos;s Lessons tab.
-        </p>
+        </Typography>
       </Stack>
       <DataState
         loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
+        isEmpty={rows.length === 0}
         columnCount={4}
         empty={{
           title: "No published lessons",
           description: "Publish lessons from a project when closing or handing over.",
         }}
       >
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Recommendation</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map(({ lesson, projectRef, projectTitle }) => (
-                <TableRow key={lesson.id}>
-                  <TableCell>{lesson.title}</TableCell>
-                  <TableCell>
-                    <Link to={`/projects/${lesson.projectId}?tab=lessons`}>
-                      {projectRef} · {projectTitle}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {LESSON_CATEGORY_LABEL[lesson.category as LessonCategory] ?? lesson.category}
-                  </TableCell>
-                  <TableCell>{lesson.recommendations || lesson.body.slice(0, 120)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          getRowHeight={() => "auto"}
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
     </Stack>
   );

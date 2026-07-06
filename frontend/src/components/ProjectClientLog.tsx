@@ -1,13 +1,15 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import {
   CLIENT_DISCUSSION_OUTCOME_LABEL,
   CLIENT_DISCUSSION_OUTCOME_TAG,
@@ -17,6 +19,7 @@ import {
   type ClientLogKindCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { trpc } from "../lib/trpc.js";
 
 const KIND_TAG: Partial<
@@ -27,6 +30,19 @@ const KIND_TAG: Partial<
   MEETING: "blue",
   SITE_VISIT: "teal",
 };
+
+function TagChip({ color, label }: { color: string; label: ReactNode }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -65,139 +81,150 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: "var(--cds-spacing-07)",
+          mt: 4,
         }}
       >
         <h3>Client communication</h3>
-        <Button size="sm" onClick={() => setOpen(true)}>
+        <Button variant="contained" size="small" onClick={() => setOpen(true)}>
           Log interaction
         </Button>
-      </div>
+      </Box>
 
-      <div style={{ marginTop: "var(--cds-spacing-03)" }}>
+      <Box sx={{ mt: 1 }}>
         {(logQ.data ?? []).length === 0 && <p>No interactions logged yet.</p>}
         {(logQ.data ?? []).map((e) => (
-          <div
+          <Box
             key={e.id}
-            style={{
-              padding: "var(--cds-spacing-03) 0 var(--cds-spacing-03) var(--cds-spacing-05)",
-              marginLeft: "var(--cds-spacing-03)",
-              position: "relative",
-            }}
+            sx={{ py: 1, pl: 2, ml: 1, position: "relative" }}
           >
-            <div style={{ display: "flex", gap: "var(--cds-spacing-03)", alignItems: "center" }}>
-              <Tag type={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}>
-                {CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
-              </Tag>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <TagChip
+                color={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}
+                label={CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
+              />
               {e.outcome && (
-                <Tag type={CLIENT_DISCUSSION_OUTCOME_TAG[e.outcome as ClientDiscussionOutcomeT] ?? "gray"}>
-                  {CLIENT_DISCUSSION_OUTCOME_LABEL[e.outcome as ClientDiscussionOutcomeT] ?? e.outcome}
-                </Tag>
+                <TagChip
+                  color={CLIENT_DISCUSSION_OUTCOME_TAG[e.outcome as ClientDiscussionOutcomeT] ?? "gray"}
+                  label={CLIENT_DISCUSSION_OUTCOME_LABEL[e.outcome as ClientDiscussionOutcomeT] ?? e.outcome}
+                />
               )}
               <strong>{e.subject}</strong>
               <span>{e.occurredAt}</span>
               <Button
-                kind="ghost"
-                size="sm"
-                style={{ marginLeft: "auto" }}
+                variant="text"
+                size="small"
+                sx={{ ml: "auto" }}
                 onClick={() => remove.mutate({ id: e.id })}
               >
                 Remove
               </Button>
-            </div>
+            </Box>
             {e.body && (
-              <p style={{ margin: "var(--cds-spacing-02) 0", whiteSpace: "pre-wrap" }}>
+              <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>
                 {e.body}
-              </p>
+              </Box>
             )}
             {e.followUpDate && <span>Follow-up: {e.followUpDate}</span>}
-          </div>
+          </Box>
         ))}
-      </div>
+      </Box>
 
-      <Modal
-        open={open}
-        modalHeading="Log client interaction"
-        primaryButtonText={create.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!subject || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            kind,
-            occurredAt,
-            subject,
-            body: body || undefined,
-            followUpDate: followUp || null,
-            outcome: (outcome || undefined) as ClientDiscussionOutcomeT | undefined,
-            budgetObjections: budgetObjections || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="cl-kind"
-            labelText="Type"
-            value={kind}
-            onChange={(e) => setKind(e.target.value as ClientLogKindCode)}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Log client interaction</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cl-kind"
+              select
+              label="Type"
+              value={kind}
+              onChange={(e) => setKind(e.target.value as ClientLogKindCode)}
+            >
+              {(Object.keys(CLIENT_LOG_KINDS) as ClientLogKindCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{CLIENT_LOG_KINDS[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cl-date"
+              label="Date"
+              type="date"
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={occurredAt}
+              onChange={(e) => setOccurredAt(e.target.value)}
+            />
+            <TextField
+              id="cl-subject"
+              label="Subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <TextField
+              id="cl-body"
+              label="Notes (optional)"
+              multiline
+              rows={3}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+            />
+            <TextField
+              id="cl-followup"
+              label="Follow-up date (optional)"
+              type="date"
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={followUp}
+              onChange={(e) => setFollowUp(e.target.value)}
+            />
+            <TextField
+              id="cl-outcome"
+              select
+              label="Discussion outcome (optional)"
+              value={outcome}
+              onChange={(e) => setOutcome(e.target.value)}
+            >
+              <MenuItem value="">— None —</MenuItem>
+              {ClientDiscussionOutcome.options.map((o) => (
+                <MenuItem key={o} value={o}>{CLIENT_DISCUSSION_OUTCOME_LABEL[o]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cl-budget"
+              label="Budget objections (optional)"
+              multiline
+              rows={2}
+              value={budgetObjections}
+              onChange={(e) => setBudgetObjections(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!subject || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                kind,
+                occurredAt,
+                subject,
+                body: body || undefined,
+                followUpDate: followUp || null,
+                outcome: (outcome || undefined) as ClientDiscussionOutcomeT | undefined,
+                budgetObjections: budgetObjections || undefined,
+              })
+            }
           >
-            {(Object.keys(CLIENT_LOG_KINDS) as ClientLogKindCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={CLIENT_LOG_KINDS[k]} />
-            ))}
-          </Select>
-          <TextInput
-            id="cl-date"
-            labelText="Date"
-            type="date"
-            value={occurredAt}
-            onChange={(e) => setOccurredAt(e.target.value)}
-          />
-          <TextInput
-            id="cl-subject"
-            labelText="Subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-          />
-          <TextArea
-            id="cl-body"
-            labelText="Notes (optional)"
-            rows={3}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-          />
-          <TextInput
-            id="cl-followup"
-            labelText="Follow-up date (optional)"
-            type="date"
-            value={followUp}
-            onChange={(e) => setFollowUp(e.target.value)}
-          />
-          <Select
-            id="cl-outcome"
-            labelText="Discussion outcome (optional)"
-            value={outcome}
-            onChange={(e) => setOutcome(e.target.value)}
-          >
-            <SelectItem value="" text="— None —" />
-            {ClientDiscussionOutcome.options.map((o) => (
-              <SelectItem key={o} value={o} text={CLIENT_DISCUSSION_OUTCOME_LABEL[o]} />
-            ))}
-          </Select>
-          <TextArea
-            id="cl-budget"
-            labelText="Budget objections (optional)"
-            rows={2}
-            value={budgetObjections}
-            onChange={(e) => setBudgetObjections(e.target.value)}
-          />
-        </Stack>
-      </Modal>
+            {create.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

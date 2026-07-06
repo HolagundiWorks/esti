@@ -1,5 +1,6 @@
-import { ClickableTile, Column, Stack, Tag, Tile } from "@carbon/react";
-import { ArrowRight } from "@carbon/icons-react";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import { Card, CardActionArea, Chip, Grid, Paper, Stack } from "@mui/material";
+import type { ReactNode } from "react";
 
 export const CHART_HEIGHT = "240px";
 
@@ -32,6 +33,21 @@ export const RISK_TAG: Record<"LOW" | "MEDIUM" | "HIGH", "red" | "magenta" | "gr
   MEDIUM: "magenta",
   LOW: "green",
 };
+
+/** MUI Chip carrying the exact Carbon tag colours. */
+export function TagChip({ type, label, ...rest }: { type: TagType; label: ReactNode } & Record<string, unknown>) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${type}, var(--cds-layer-01))`,
+        color: `var(--cds-tag-color-${type}, var(--cds-text-primary))`,
+      }}
+      {...rest}
+    />
+  );
+}
 
 export function formatEventType(et: string): string {
   return et
@@ -117,23 +133,21 @@ export function ZoneTile({
   const inner = (
     <div className="esti-row">
       <div className="esti-grow">
-        <Stack gap={3}>
+        <Stack spacing={1}>
           <h3>{title}</h3>
           {sub && <p>{sub}</p>}
         </Stack>
       </div>
-      {statusTag && (
-        <Tag type={statusTag.type} size="sm">
-          {statusTag.text}
-        </Tag>
-      )}
-      {to && <ArrowRight size={16} />}
+      {statusTag && <TagChip type={statusTag.type} label={statusTag.text} />}
+      {to && <ArrowForward sx={{ fontSize: 16 }} />}
     </div>
   );
   return to ? (
-    <ClickableTile className="esti-fill" onClick={() => navigate(to)}>{inner}</ClickableTile>
+    <Card className="esti-fill">
+      <CardActionArea sx={{ height: 1, p: 2 }} onClick={() => navigate(to)}>{inner}</CardActionArea>
+    </Card>
   ) : (
-    <Tile className="esti-fill">{inner}</Tile>
+    <Paper className="esti-fill" sx={{ p: 2 }}>{inner}</Paper>
   );
 }
 
@@ -152,11 +166,7 @@ export function ZoneHead({
         <h2>{title}</h2>
         {sub && <p style={{ color: "var(--cds-text-secondary)" }}>{sub}</p>}
       </div>
-      {statusTag && (
-        <Tag type={statusTag.type} size="sm">
-          {statusTag.text}
-        </Tag>
-      )}
+      {statusTag && <TagChip type={statusTag.type} label={statusTag.text} />}
     </div>
   );
 }
@@ -179,27 +189,23 @@ export function KpiChip({
   loading?: boolean;
 }) {
   const body = (
-    <Stack gap={3}>
+    <Stack spacing={1}>
       <div className="esti-row-between">
         <p>{label}</p>
-        {onClick && <ArrowRight size={16} />}
+        {onClick && <ArrowForward sx={{ fontSize: 16 }} />}
       </div>
       <h3>{loading ? "…" : value}</h3>
-      {tagText && (
-        <Tag type={tagType} size="sm">
-          {tagText}
-        </Tag>
-      )}
+      {tagText && <TagChip type={tagType} label={tagText} />}
     </Stack>
   );
   return onClick ? (
-    <ClickableTile className="esti-fill" style={edge(health)} onClick={onClick}>
-      {body}
-    </ClickableTile>
+    <Card className="esti-fill" style={edge(health)}>
+      <CardActionArea sx={{ height: 1, p: 2 }} onClick={onClick}>{body}</CardActionArea>
+    </Card>
   ) : (
-    <Tile className="esti-fill" style={edge(health)}>
+    <Paper className="esti-fill" style={edge(health)} sx={{ p: 2 }}>
       {body}
-    </Tile>
+    </Paper>
   );
 }
 
@@ -215,32 +221,30 @@ export function FilingTile({
   const worst = Math.min(...rows.map((r) => daysUntil(r.iso)));
   const health: CardHealth = worst <= 3 ? "alert" : worst <= 7 ? "watch" : "neutral";
   return (
-    <Column lg={4} md={4} sm={4}>
-      <ClickableTile
-        className="esti-fill"
-        style={edge(health)}
-        onClick={() => navigate("/filing")}
-      >
-        <Stack gap={5}>
-          <div className="esti-row">
-            <h4 className="esti-grow">{title}</h4>
-            <ArrowRight size={16} />
-          </div>
-          <Stack gap={4}>
-            {rows.map((r) => {
-              const days = daysUntil(r.iso);
-              return (
-                <Stack key={r.label} orientation="horizontal" gap={3}>
-                  <div className="esti-grow">
-                    <p>{r.label}</p>
-                  </div>
-                  <Tag type={dueTagType(days)} size="sm">{dueLabel(days)}</Tag>
-                </Stack>
-              );
-            })}
+    <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+      <Card className="esti-fill" style={edge(health)}>
+        <CardActionArea sx={{ height: 1, p: 2 }} onClick={() => navigate("/filing")}>
+          <Stack spacing={2}>
+            <div className="esti-row">
+              <h4 className="esti-grow">{title}</h4>
+              <ArrowForward sx={{ fontSize: 16 }} />
+            </div>
+            <Stack spacing={1.5}>
+              {rows.map((r) => {
+                const days = daysUntil(r.iso);
+                return (
+                  <Stack key={r.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <div className="esti-grow">
+                      <p>{r.label}</p>
+                    </div>
+                    <TagChip type={dueTagType(days)} label={dueLabel(days)} />
+                  </Stack>
+                );
+              })}
+            </Stack>
           </Stack>
-        </Stack>
-      </ClickableTile>
-    </Column>
+        </CardActionArea>
+      </Card>
+    </Grid>
   );
 }

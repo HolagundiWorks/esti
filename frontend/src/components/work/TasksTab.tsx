@@ -1,23 +1,26 @@
 import {
   Button,
-  ContentSwitcher,
-  Modal,
-  Select,
-  SelectItem,
+  Checkbox,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Checkbox,
-} from "@carbon/react";
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 import {
   PRIORITY_BAND_LABEL,
   TASK_CLASSIFICATION_LABEL,
@@ -46,6 +49,11 @@ import {
   confidenceTag,
   type WorkCategorySlug,
 } from "./workHelpers.js";
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export type TasksTabHandle = { openCreate: () => void };
 
@@ -127,45 +135,60 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
 
   return (
     <>
-      <Stack gap={5}>
-        <ContentSwitcher
-          selectedIndex={WORK_CATEGORY_SLUGS.indexOf(filterCategory)}
-          onChange={({ name }) => setFilterCategory((name as WorkCategorySlug) ?? "all")}
-          size="sm"
+      <Stack spacing={2}>
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={filterCategory}
+          onChange={(_e, value) => setFilterCategory((value as WorkCategorySlug) ?? "all")}
+          sx={{ alignSelf: "flex-start", flexWrap: "wrap" }}
         >
           {WORK_CATEGORY_SLUGS.map((slug) => (
-            <Switch key={slug} name={slug} text={WORK_CATEGORY_LABELS[slug]} />
+            <ToggleButton key={slug} value={slug}>{WORK_CATEGORY_LABELS[slug]}</ToggleButton>
           ))}
-        </ContentSwitcher>
-        <Stack orientation="horizontal" gap={5}>
-          <Checkbox id="t-open" labelText="Open only" checked={openOnly}
-            onChange={(_e, { checked }) => setOpenOnly(checked)} />
-          <Checkbox id="t-mine" labelText="My tasks" checked={myTasks}
-            onChange={(_e, { checked }) => setMyTasks(checked)} />
-          <Select id="t-status" labelText="Status" hideLabel size="sm"
+        </ToggleButtonGroup>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+          <FormControlLabel
+            control={
+              <Checkbox id="t-open" checked={openOnly}
+                onChange={(e) => setOpenOnly(e.target.checked)} />
+            }
+            label="Open only"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox id="t-mine" checked={myTasks}
+                onChange={(e) => setMyTasks(e.target.checked)} />
+            }
+            label="My tasks"
+          />
+          <TextField id="t-status" select size="small" sx={{ minWidth: 160 }}
             disabled={!!catFilter.status}
             value={catFilter.status ? catFilter.status : filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}>
-            <SelectItem value="" text="All statuses" />
+            onChange={(e) => setFilterStatus(e.target.value)}
+            slotProps={{ htmlInput: { "aria-label": "Status" } }}>
+            <MenuItem value="">All statuses</MenuItem>
             {TaskStatus.options.map((s) => (
-              <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
+              <MenuItem key={s} value={s}>{TASK_STATUS_LABEL[s] ?? s}</MenuItem>
             ))}
-          </Select>
-          <Select id="t-prio" labelText="Priority" hideLabel size="sm"
-            value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
-            <SelectItem value="" text="All priorities" />
+          </TextField>
+          <TextField id="t-prio" select size="small" sx={{ minWidth: 160 }}
+            value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}
+            slotProps={{ htmlInput: { "aria-label": "Priority" } }}>
+            <MenuItem value="">All priorities</MenuItem>
             {TaskPriority.options.map((p) => (
-              <SelectItem key={p} value={p} text={TASK_PRIORITY_LABEL[p] ?? p} />
+              <MenuItem key={p} value={p}>{TASK_PRIORITY_LABEL[p] ?? p}</MenuItem>
             ))}
-          </Select>
-          <Select id="t-standup-proj" labelText="Standup project" hideLabel size="sm"
-            value={standupProjectId} onChange={(e) => setStandupProjectId(e.target.value)}>
-            <SelectItem value="" text="— pick a project for standup —" />
+          </TextField>
+          <TextField id="t-standup-proj" select size="small" sx={{ minWidth: 220 }}
+            value={standupProjectId} onChange={(e) => setStandupProjectId(e.target.value)}
+            slotProps={{ htmlInput: { "aria-label": "Standup project" } }}>
+            <MenuItem value="">— pick a project for standup —</MenuItem>
             {(projectsQ.data ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />
+              <MenuItem key={p.id} value={p.id}>{`${p.ref} ${p.title}`}</MenuItem>
             ))}
-          </Select>
-          <Button kind="tertiary" size="sm" disabled={!standupProjectId} onClick={() => setStandupOpen(true)}>
+          </TextField>
+          <Button variant="outlined" size="small" disabled={!standupProjectId} onClick={() => setStandupOpen(true)}>
             Standup
           </Button>
         </Stack>
@@ -177,23 +200,24 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
           empty={{
             title: openOnly || myTasks ? "No matching tasks" : "No tasks yet",
             description: "Create a task to track work across the office and projects.",
-            action: <Button size="sm" onClick={() => setOpen(true)}>New task</Button>,
+            action: <Button variant="contained" size="small" onClick={() => setOpen(true)}>New task</Button>,
           }}
         >
-          <TableContainer title="Task list">
-            <Table>
+          <TableContainer component={Paper}>
+            <Typography variant="h6" sx={{ p: 2, pb: 1 }}>Task list</Typography>
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableHeader>Task</TableHeader>
-                  <TableHeader>Project</TableHeader>
-                  <TableHeader>Assignee</TableHeader>
-                  <TableHeader>Reviewer</TableHeader>
-                  <TableHeader>Priority</TableHeader>
-                  <TableHeader>Confidence</TableHeader>
-                  <TableHeader>Due</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader>Comments</TableHeader>
-                  <TableHeader></TableHeader>
+                  <TableCell>Task</TableCell>
+                  <TableCell>Project</TableCell>
+                  <TableCell>Assignee</TableCell>
+                  <TableCell>Reviewer</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Confidence</TableCell>
+                  <TableCell>Due</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Comments</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -207,16 +231,20 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                       className={targetTaskId === t.id ? "esti-task-row--target" : undefined}
                     >
                       <TableCell>
-                        {t.title}
-                        {t.interventionRequired && (
-                          <Tag type="red" size="sm">Intervention required</Tag>
-                        )}
-                        {t.description && <div>{t.description}</div>}
-                        {t.classification && (
-                          <Tag type="cool-gray" size="sm">
-                            {TASK_CLASSIFICATION_LABEL[t.classification] ?? t.classification}
-                          </Tag>
-                        )}
+                        <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
+                          <span>{t.title}</span>
+                          {t.interventionRequired && (
+                            <Chip size="small" label="Intervention required" sx={tagSx("red")} />
+                          )}
+                          {t.description && <div>{t.description}</div>}
+                          {t.classification && (
+                            <Chip
+                              size="small"
+                              label={TASK_CLASSIFICATION_LABEL[t.classification] ?? t.classification}
+                              sx={tagSx("cool-gray")}
+                            />
+                          )}
+                        </Stack>
                       </TableCell>
                       <TableCell>
                         {t.projectId
@@ -228,8 +256,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                           {t.assignee ?? "—"}
                           {hrEnabled && t.projectId && (
                             <Button
-                              kind="ghost"
-                              size="sm"
+                              variant="text"
+                              size="small"
                               onClick={() => {
                                 setReassign({ id: t.id, projectId: t.projectId ?? "", title: t.title });
                                 setReassignTo(t.assigneeId ?? "");
@@ -243,43 +271,46 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                       <TableCell>{"—"}</TableCell>
                       <TableCell>
                         <span className="esti-row" style={{ gap: "var(--cds-spacing-02)", flexWrap: "wrap" }}>
-                          <Tag type={PRIORITY_TAG[t.priority] ?? "gray"}>
-                            {TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
-                          </Tag>
-                          <Tag type={PRIORITY_BAND_TAG[band] ?? "gray"} size="sm">
-                            {PRIORITY_BAND_LABEL[band] ?? band}
-                          </Tag>
+                          <Chip
+                            size="small"
+                            label={TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
+                            sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
+                          />
+                          <Chip
+                            size="small"
+                            label={PRIORITY_BAND_LABEL[band] ?? band}
+                            sx={tagSx(PRIORITY_BAND_TAG[band] ?? "gray")}
+                          />
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Tag type={confidenceTag(t.confidenceScore)} size="sm">
-                          {t.confidenceScore}%
-                        </Tag>
+                        <Chip size="small" label={`${t.confidenceScore}%`} sx={tagSx(confidenceTag(t.confidenceScore))} />
                       </TableCell>
                       <TableCell>
                         {overdue
-                          ? <Tag type="red">Overdue · {t.dueDate}</Tag>
+                          ? <Chip size="small" label={`Overdue · ${t.dueDate}`} sx={tagSx("red")} />
                           : (t.dueDate ?? "—")}
                       </TableCell>
                       <TableCell>
-                        <Select id={`ts-${t.id}`} labelText="Status" hideLabel size="sm"
+                        <TextField id={`ts-${t.id}`} select size="small" sx={{ minWidth: 140 }}
                           value={t.status}
-                          onChange={(e) => update.mutate({ id: t.id, status: e.target.value as (typeof TaskStatus.options)[number] })}>
+                          onChange={(e) => update.mutate({ id: t.id, status: e.target.value as (typeof TaskStatus.options)[number] })}
+                          slotProps={{ htmlInput: { "aria-label": "Status" } }}>
                           {TaskStatus.options.map((s) => (
-                            <SelectItem key={s} value={s} text={TASK_STATUS_LABEL[s] ?? s} />
+                            <MenuItem key={s} value={s}>{TASK_STATUS_LABEL[s] ?? s}</MenuItem>
                           ))}
-                        </Select>
+                        </TextField>
                       </TableCell>
                       <TableCell>
                         {t.projectId ? (
-                          <Button kind="ghost" size="sm"
+                          <Button variant="text" size="small"
                             onClick={() => setCommentsTask({ id: t.id, projectId: t.projectId ?? "", title: t.title })}>
                             Comments
                           </Button>
                         ) : "—"}
                       </TableCell>
                       <TableCell>
-                        <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(t.id)}>
+                        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(t.id)}>
                           Remove
                         </Button>
                       </TableCell>
@@ -299,136 +330,152 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
         onClose={() => setConfirmId(null)}
       />
 
-      <Modal
-        open={open} modalHeading="New task"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.title || !form.projectId || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => create.mutate({
-          title: form.title, projectId: form.projectId,
-          assigneeId: form.assigneeId || null,
-          reviewerId: form.reviewerId || null,
-          classification: form.classification ? (form.classification as (typeof TaskClassification.options)[number]) : undefined,
-          workType: form.workType ? (form.workType as (typeof TaskWorkType.options)[number]) : undefined,
-          difficultyCoefficient: parseInt(form.difficultyCoefficient, 10) || 3,
-          estimatedHours: form.estimatedHours ? parseFloat(form.estimatedHours) : undefined,
-          priority: form.priority as (typeof TaskPriority.options)[number],
-          dueDate: form.dueDate || null,
-          description: form.description || undefined,
-        })}
-      >
-        <Stack gap={5}>
-          <TextInput id="nt-title" labelText="Title" value={form.title}
-            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-          <Select id="nt-proj" labelText="Project" value={form.projectId}
-            onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value, assigneeId: "", reviewerId: "" }))}>
-            <SelectItem value="" text="— select a project —" />
-            {(projectsQ.data ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id} text={`${p.ref} ${p.title}`} />
-            ))}
-          </Select>
-          {hrEnabled ? (
-            <Stack orientation="horizontal" gap={5}>
-              <Select id="nt-assignee" labelText="Assignee"
-                disabled={!form.projectId || team.length === 0}
-                helperText={!form.projectId ? "Select a project first" : team.length === 0 ? "No team members yet" : undefined}
-                value={form.assigneeId}
-                onChange={(e) => setForm((f) => ({ ...f, assigneeId: e.target.value }))}>
-                <SelectItem value="" text="— unassigned —" />
-                {team.map((m) => <SelectItem key={m.teamMemberId} value={m.teamMemberId} text={`${m.name} (${m.role})`} />)}
-              </Select>
-              <Select id="nt-reviewer" labelText="Reviewer"
-                disabled={!form.projectId || team.length === 0}
-                value={form.reviewerId}
-                onChange={(e) => setForm((f) => ({ ...f, reviewerId: e.target.value }))}>
-                <SelectItem value="" text="— none —" />
-                {team.map((m) => <SelectItem key={m.teamMemberId} value={m.teamMemberId} text={`${m.name} (${m.role})`} />)}
-              </Select>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New task</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <TextField id="nt-title" label="Title" value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <TextField id="nt-proj" select label="Project" value={form.projectId}
+              onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value, assigneeId: "", reviewerId: "" }))}>
+              <MenuItem value="">— select a project —</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>{`${p.ref} ${p.title}`}</MenuItem>
+              ))}
+            </TextField>
+            {hrEnabled ? (
+              <Stack direction="row" spacing={2}>
+                <TextField id="nt-assignee" select label="Assignee" fullWidth
+                  disabled={!form.projectId || team.length === 0}
+                  helperText={!form.projectId ? "Select a project first" : team.length === 0 ? "No team members yet" : undefined}
+                  value={form.assigneeId}
+                  onChange={(e) => setForm((f) => ({ ...f, assigneeId: e.target.value }))}>
+                  <MenuItem value="">— unassigned —</MenuItem>
+                  {team.map((m) => <MenuItem key={m.teamMemberId} value={m.teamMemberId}>{`${m.name} (${m.role})`}</MenuItem>)}
+                </TextField>
+                <TextField id="nt-reviewer" select label="Reviewer" fullWidth
+                  disabled={!form.projectId || team.length === 0}
+                  value={form.reviewerId}
+                  onChange={(e) => setForm((f) => ({ ...f, reviewerId: e.target.value }))}>
+                  <MenuItem value="">— none —</MenuItem>
+                  {team.map((m) => <MenuItem key={m.teamMemberId} value={m.teamMemberId}>{`${m.name} (${m.role})`}</MenuItem>)}
+                </TextField>
+              </Stack>
+            ) : (
+              <Typography variant="body2">Solo mode — new tasks assign to the principal architect automatically.</Typography>
+            )}
+            <Stack direction="row" spacing={2}>
+              <TextField id="nt-prio" select label="Priority" fullWidth value={form.priority}
+                onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
+                {TaskPriority.options.map((p) => (
+                  <MenuItem key={p} value={p}>{TASK_PRIORITY_LABEL[p] ?? p}</MenuItem>
+                ))}
+              </TextField>
+              <TextField id="nt-class" select label="Classification" fullWidth value={form.classification}
+                onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}>
+                <MenuItem value="">— none —</MenuItem>
+                {TaskClassification.options.map((c) => (
+                  <MenuItem key={c} value={c}>{TASK_CLASSIFICATION_LABEL[c] ?? c}</MenuItem>
+                ))}
+              </TextField>
+              <TextField id="nt-due" label="Due date" type="date" fullWidth value={form.dueDate}
+                slotProps={{ inputLabel: { shrink: true } }}
+                onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
             </Stack>
-          ) : (
-            <p>Solo mode — new tasks assign to the principal architect automatically.</p>
+            <Stack direction="row" spacing={2}>
+              <TextField id="nt-wtype" select label="Work type" fullWidth value={form.workType}
+                onChange={(e) => setForm((f) => ({ ...f, workType: e.target.value }))}>
+                <MenuItem value="">— none —</MenuItem>
+                {TaskWorkType.options.map((w) => (
+                  <MenuItem key={w} value={w}>{TASK_WORK_TYPE_LABEL[w] ?? w}</MenuItem>
+                ))}
+              </TextField>
+              <TextField id="nt-diff" select label="Difficulty (1–5)" fullWidth value={form.difficultyCoefficient}
+                onChange={(e) => setForm((f) => ({ ...f, difficultyCoefficient: e.target.value }))}>
+                {[1,2,3,4,5].map((d) => (
+                  <MenuItem key={d} value={String(d)}>{String(d)}</MenuItem>
+                ))}
+              </TextField>
+              <TextField id="nt-hrs" label="Est. hours" type="number" fullWidth value={form.estimatedHours}
+                onChange={(e) => setForm((f) => ({ ...f, estimatedHours: e.target.value }))} />
+            </Stack>
+            <TextField id="nt-desc" label="Description (optional)" multiline rows={2} value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.title || !form.projectId || create.isPending}
+            onClick={() => create.mutate({
+              title: form.title, projectId: form.projectId,
+              assigneeId: form.assigneeId || null,
+              reviewerId: form.reviewerId || null,
+              classification: form.classification ? (form.classification as (typeof TaskClassification.options)[number]) : undefined,
+              workType: form.workType ? (form.workType as (typeof TaskWorkType.options)[number]) : undefined,
+              difficultyCoefficient: parseInt(form.difficultyCoefficient, 10) || 3,
+              estimatedHours: form.estimatedHours ? parseFloat(form.estimatedHours) : undefined,
+              priority: form.priority as (typeof TaskPriority.options)[number],
+              dueDate: form.dueDate || null,
+              description: form.description || undefined,
+            })}
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={commentsTask !== null} onClose={() => setCommentsTask(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}</DialogTitle>
+        <DialogContent>
+          {commentsTask && (
+            <ContextualComments projectId={commentsTask.projectId} objectType="task"
+              objectId={commentsTask.id} heading="Task comments"
+              description="Contextual discussion linked directly to this task." />
           )}
-          <Stack orientation="horizontal" gap={5}>
-            <Select id="nt-prio" labelText="Priority" value={form.priority}
-              onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
-              {TaskPriority.options.map((p) => (
-                <SelectItem key={p} value={p} text={TASK_PRIORITY_LABEL[p] ?? p} />
-              ))}
-            </Select>
-            <Select id="nt-class" labelText="Classification" value={form.classification}
-              onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}>
-              <SelectItem value="" text="— none —" />
-              {TaskClassification.options.map((c) => (
-                <SelectItem key={c} value={c} text={TASK_CLASSIFICATION_LABEL[c] ?? c} />
-              ))}
-            </Select>
-            <TextInput id="nt-due" labelText="Due date" type="date" value={form.dueDate}
-              onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
-          </Stack>
-          <Stack orientation="horizontal" gap={5}>
-            <Select id="nt-wtype" labelText="Work type" value={form.workType}
-              onChange={(e) => setForm((f) => ({ ...f, workType: e.target.value }))}>
-              <SelectItem value="" text="— none —" />
-              {TaskWorkType.options.map((w) => (
-                <SelectItem key={w} value={w} text={TASK_WORK_TYPE_LABEL[w] ?? w} />
-              ))}
-            </Select>
-            <Select id="nt-diff" labelText="Difficulty (1–5)" value={form.difficultyCoefficient}
-              onChange={(e) => setForm((f) => ({ ...f, difficultyCoefficient: e.target.value }))}>
-              {[1,2,3,4,5].map((d) => (
-                <SelectItem key={d} value={String(d)} text={String(d)} />
-              ))}
-            </Select>
-            <TextInput id="nt-hrs" labelText="Est. hours" type="number" value={form.estimatedHours}
-              onChange={(e) => setForm((f) => ({ ...f, estimatedHours: e.target.value }))} />
-          </Stack>
-          <TextArea id="nt-desc" labelText="Description (optional)" rows={2} value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-        </Stack>
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={() => setCommentsTask(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={commentsTask !== null}
-        modalHeading={commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}
-        primaryButtonText="Close" secondaryButtonText="" passiveModal
-        onRequestClose={() => setCommentsTask(null)}
-      >
-        {commentsTask && (
-          <ContextualComments projectId={commentsTask.projectId} objectType="task"
-            objectId={commentsTask.id} heading="Task comments"
-            description="Contextual discussion linked directly to this task." />
-        )}
-      </Modal>
-
-      <Modal
-        open={reassign !== null}
-        modalHeading={reassign ? `Reassign — ${reassign.title}` : "Reassign task"}
-        primaryButtonText={update.isPending ? "Saving…" : "Reassign"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={update.isPending}
-        onRequestClose={() => setReassign(null)}
-        onRequestSubmit={() => {
-          if (!reassign) return;
-          update.mutate(
-            { id: reassign.id, assigneeId: reassignTo || null },
-            { onSuccess: () => setReassign(null) },
-          );
-        }}
-      >
-        <Select
-          id="reassign-to"
-          labelText="Assign to"
-          helperText={reassignMembers.length === 0 ? "No members are staffed on this project yet" : "Only members staffed on this project can be assigned"}
-          value={reassignTo}
-          onChange={(e) => setReassignTo(e.target.value)}
-        >
-          <SelectItem value="" text="— unassigned —" />
-          {reassignMembers.map((m) => (
-            <SelectItem key={m.teamMemberId} value={m.teamMemberId} text={`${m.name} (${m.role})`} />
-          ))}
-        </Select>
-      </Modal>
+      <Dialog open={reassign !== null} onClose={() => setReassign(null)} fullWidth maxWidth="xs">
+        <DialogTitle>{reassign ? `Reassign — ${reassign.title}` : "Reassign task"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="reassign-to"
+            select
+            label="Assign to"
+            fullWidth
+            sx={{ mt: 1 }}
+            helperText={reassignMembers.length === 0 ? "No members are staffed on this project yet" : "Only members staffed on this project can be assigned"}
+            value={reassignTo}
+            onChange={(e) => setReassignTo(e.target.value)}
+          >
+            <MenuItem value="">— unassigned —</MenuItem>
+            {reassignMembers.map((m) => (
+              <MenuItem key={m.teamMemberId} value={m.teamMemberId}>{`${m.name} (${m.role})`}</MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setReassign(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={update.isPending}
+            onClick={() => {
+              if (!reassign) return;
+              update.mutate(
+                { id: reassign.id, assigneeId: reassignTo || null },
+                { onSuccess: () => setReassign(null) },
+              );
+            }}
+          >
+            {update.isPending ? "Saving…" : "Reassign"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {standupProjectId && (
         <PulseStandupModal

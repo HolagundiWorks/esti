@@ -3,20 +3,24 @@
  * principal reaches for first: a new project or a new lead (both created inline
  * here, so the dashboard never has to hand off to a list screen just to open a
  * modal), plus jump-offs to the task and invoice flows. Hidden for read-only
- * roles that cannot create.
+ * roles that cannot create. Material UI.
  */
-import { Building, Receipt, Task, UserFollow } from "@carbon/icons-react";
+import Business from "@mui/icons-material/Business";
+import PersonAddAlt from "@mui/icons-material/PersonAddAlt";
+import ReceiptLong from "@mui/icons-material/ReceiptLong";
+import TaskAlt from "@mui/icons-material/TaskAlt";
 import {
+  Alert,
   Button,
-  Form,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Paper,
   Stack,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import { LEAD_SOURCE_LABEL, LeadSource, ProjectType, can } from "@esti/contracts";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -68,158 +72,169 @@ export function DashboardQuickActions() {
 
   if (!canWrite) return null;
 
+  const closeProj = () => {
+    setProjOpen(false);
+    createProject.reset();
+  };
+  const closeLead = () => {
+    setLeadOpen(false);
+    createLead.reset();
+  };
+
   return (
-    <Tile className="esti-fill">
-      <Stack gap={4}>
+    <Paper className="esti-fill" sx={{ p: 2 }}>
+      <Stack spacing={1.5}>
         <span className="esti-label esti-label--secondary">QUICK ACTIONS</span>
         <div className="esti-row">
-          <Button size="sm" renderIcon={Building} onClick={() => setProjOpen(true)}>
+          <Button size="small" variant="contained" startIcon={<Business />} onClick={() => setProjOpen(true)}>
             New project
           </Button>
-          <Button size="sm" kind="tertiary" renderIcon={UserFollow} onClick={() => setLeadOpen(true)}>
+          <Button size="small" variant="outlined" startIcon={<PersonAddAlt />} onClick={() => setLeadOpen(true)}>
             New lead
           </Button>
-          <Button size="sm" kind="tertiary" renderIcon={Task} onClick={() => navigate("/tasks")}>
+          <Button size="small" variant="outlined" startIcon={<TaskAlt />} onClick={() => navigate("/tasks")}>
             New task
           </Button>
-          <Button size="sm" kind="tertiary" renderIcon={Receipt} onClick={() => navigate("/invoices")}>
+          <Button size="small" variant="outlined" startIcon={<ReceiptLong />} onClick={() => navigate("/invoices")}>
             New invoice
           </Button>
         </div>
       </Stack>
 
       {/* New project */}
-      <Modal
-        open={projOpen}
-        modalHeading="New project"
-        primaryButtonText={createProject.isPending ? "Creating…" : "Create project"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={pTitle.trim().length < 2 || createProject.isPending}
-        onRequestClose={() => {
-          setProjOpen(false);
-          createProject.reset();
-        }}
-        onRequestSubmit={() =>
-          createProject.mutate({
-            title: pTitle.trim(),
-            projectType: pType as (typeof ProjectType.options)[number],
-            clientId: pClient || undefined,
-          })
-        }
-      >
-        <Form onSubmit={(e) => e.preventDefault()}>
-          <Stack gap={5}>
-            <TextInput
+      <Dialog open={projOpen} onClose={closeProj} fullWidth maxWidth="xs">
+        <DialogTitle>New project</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
               id="qa-proj-title"
-              labelText="Project title"
+              label="Project title"
               value={pTitle}
               onChange={(e) => setPTitle(e.target.value)}
+              fullWidth
             />
-            <Select
+            <TextField
               id="qa-proj-type"
-              labelText="Project type"
+              select
+              label="Project type"
               value={pType}
               onChange={(e) => setPType(e.target.value)}
+              fullWidth
             >
               {ProjectType.options.map((t) => (
-                <SelectItem key={t} value={t} text={t} />
+                <MenuItem key={t} value={t}>{t}</MenuItem>
               ))}
-            </Select>
-            <Select
+            </TextField>
+            <TextField
               id="qa-proj-client"
-              labelText="Client (optional)"
+              select
+              label="Client (optional)"
               value={pClient}
               onChange={(e) => setPClient(e.target.value)}
+              fullWidth
             >
-              <SelectItem value="" text="— none —" />
+              <MenuItem value="">— none —</MenuItem>
               {(clientsQ.data ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id} text={c.name} />
+                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
               ))}
-            </Select>
+            </TextField>
             {createProject.error && (
-              <InlineNotification
-                kind="error"
-                lowContrast
-                title="Could not create project"
-                subtitle={createProject.error.message}
-              />
+              <Alert severity="error">{createProject.error.message}</Alert>
             )}
           </Stack>
-        </Form>
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={closeProj}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={pTitle.trim().length < 2 || createProject.isPending}
+            onClick={() =>
+              createProject.mutate({
+                title: pTitle.trim(),
+                projectType: pType as (typeof ProjectType.options)[number],
+                clientId: pClient || undefined,
+              })
+            }
+          >
+            {createProject.isPending ? "Creating…" : "Create project"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* New lead */}
-      <Modal
-        open={leadOpen}
-        modalHeading="New lead"
-        primaryButtonText={createLead.isPending ? "Saving…" : "Capture lead"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={lName.trim().length === 0 || createLead.isPending}
-        onRequestClose={() => {
-          setLeadOpen(false);
-          createLead.reset();
-        }}
-        onRequestSubmit={() =>
-          createLead.mutate({
-            clientName: lName.trim(),
-            phone: lPhone || undefined,
-            email: lEmail || undefined,
-            leadSource: lSource as (typeof LeadSource.options)[number],
-            projectType: lType || undefined,
-          })
-        }
-      >
-        <Form onSubmit={(e) => e.preventDefault()}>
-          <Stack gap={5}>
-            <TextInput
+      <Dialog open={leadOpen} onClose={closeLead} fullWidth maxWidth="xs">
+        <DialogTitle>New lead</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
               id="qa-lead-name"
-              labelText="Enquirer name"
+              label="Enquirer name"
               value={lName}
               onChange={(e) => setLName(e.target.value)}
+              fullWidth
             />
-            <TextInput
+            <TextField
               id="qa-lead-phone"
-              labelText="Phone (optional)"
+              label="Phone (optional)"
               value={lPhone}
               onChange={(e) => setLPhone(e.target.value)}
+              fullWidth
             />
-            <TextInput
+            <TextField
               id="qa-lead-email"
-              labelText="Email (optional)"
+              label="Email (optional)"
               value={lEmail}
               onChange={(e) => setLEmail(e.target.value)}
+              fullWidth
             />
-            <Select
+            <TextField
               id="qa-lead-type"
-              labelText="Project type"
+              select
+              label="Project type"
               value={lType}
               onChange={(e) => setLType(e.target.value)}
+              fullWidth
             >
               {ProjectType.options.map((t) => (
-                <SelectItem key={t} value={t} text={t} />
+                <MenuItem key={t} value={t}>{t}</MenuItem>
               ))}
-            </Select>
-            <Select
+            </TextField>
+            <TextField
               id="qa-lead-source"
-              labelText="Lead source"
+              select
+              label="Lead source"
               value={lSource}
               onChange={(e) => setLSource(e.target.value)}
+              fullWidth
             >
               {LeadSource.options.map((s) => (
-                <SelectItem key={s} value={s} text={LEAD_SOURCE_LABEL[s]} />
+                <MenuItem key={s} value={s}>{LEAD_SOURCE_LABEL[s]}</MenuItem>
               ))}
-            </Select>
+            </TextField>
             {createLead.error && (
-              <InlineNotification
-                kind="error"
-                lowContrast
-                title="Could not create lead"
-                subtitle={createLead.error.message}
-              />
+              <Alert severity="error">{createLead.error.message}</Alert>
             )}
           </Stack>
-        </Form>
-      </Modal>
-    </Tile>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={closeLead}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={lName.trim().length === 0 || createLead.isPending}
+            onClick={() =>
+              createLead.mutate({
+                clientName: lName.trim(),
+                phone: lPhone || undefined,
+                email: lEmail || undefined,
+                leadSource: lSource as (typeof LeadSource.options)[number],
+                projectType: lType || undefined,
+              })
+            }
+          >
+            {createLead.isPending ? "Saving…" : "Capture lead"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   );
 }

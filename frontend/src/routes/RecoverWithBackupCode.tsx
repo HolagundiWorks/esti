@@ -1,5 +1,5 @@
-import { ArrowRight } from "@carbon/icons-react";
-import { Button, Form, InlineNotification, Stack, Tag, TextInput, Theme, Tile } from "@carbon/react";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import { Alert, AlertTitle, Button, Chip, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
@@ -7,7 +7,7 @@ import { trpc } from "../lib/trpc.js";
 /**
  * Offline account recovery (Community edition): reset the password with the
  * one-time backup code printed at first run — the only recovery path when there
- * is no email/online. On success a fresh backup code is shown once.
+ * is no email/online. On success a fresh backup code is shown once. Material UI.
  */
 export function RecoverWithBackupCode() {
   const navigate = useNavigate();
@@ -22,12 +22,12 @@ export function RecoverWithBackupCode() {
   const canSubmit = code.trim().length > 0 && next.length >= 8;
 
   return (
-    <Theme theme="g100">
+    <div className="cds--g100">
       <main className="esti-login-shell">
         <div className="esti-login-panel">
-          <Tile>
-            <Stack gap={6}>
-              <Stack gap={2}>
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Stack spacing={1}>
                 <h2>Recover with backup code</h2>
                 <p className="esti-label esti-label--secondary">
                   Enter the one-time backup code from your first run and choose a new password.
@@ -35,77 +35,85 @@ export function RecoverWithBackupCode() {
               </Stack>
 
               {newCode ? (
-                <Stack gap={4}>
-                  <InlineNotification
-                    kind="success"
-                    lowContrast
-                    hideCloseButton
-                    title="Password reset"
-                    subtitle="Save your new backup code below — the old one no longer works."
-                  />
-                  <Stack gap={1}>
+                <Stack spacing={2}>
+                  <Alert severity="success">
+                    <AlertTitle>Password reset</AlertTitle>
+                    Save your new backup code below — the old one no longer works.
+                  </Alert>
+                  <Stack spacing={0.5}>
                     <span className="esti-label esti-label--secondary">New backup code</span>
-                    <Tag type="cool-gray" size="md">
-                      {newCode}
-                    </Tag>
+                    <Stack direction="row">
+                      <Chip
+                        label={newCode}
+                        size="medium"
+                        sx={{
+                          backgroundColor: "var(--cds-tag-background-cool-gray)",
+                          color: "var(--cds-tag-color-cool-gray)",
+                        }}
+                      />
+                    </Stack>
                   </Stack>
-                  <Button renderIcon={ArrowRight} onClick={() => navigate("/login", { replace: true })}>
+                  <Button
+                    variant="contained"
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate("/login", { replace: true })}
+                  >
                     Continue to sign in
                   </Button>
                 </Stack>
               ) : (
-                <Form
+                <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (canSubmit && !recover.isPending) recover.mutate({ code: code.trim(), newPassword: next });
                   }}
                 >
-                  <Stack gap={5}>
-                    <TextInput
+                  <Stack spacing={2}>
+                    <TextField
                       id="rec-code"
-                      labelText="Backup code"
+                      label="Backup code"
                       placeholder="XXXX-XXXX-XXXX"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       required
+                      fullWidth
                     />
-                    <TextInput
+                    <TextField
                       id="rec-pass"
                       type="password"
-                      labelText="New password"
+                      label="New password"
                       helperText="At least 8 characters."
                       autoComplete="new-password"
                       value={next}
                       onChange={(e) => setNext(e.target.value)}
                       required
+                      fullWidth
                     />
                     {recover.error && (
-                      <InlineNotification
-                        kind="error"
-                        lowContrast
-                        hideCloseButton
-                        title="Recovery failed"
-                        subtitle={recover.error.message}
-                      />
+                      <Alert severity="error">
+                        <AlertTitle>Recovery failed</AlertTitle>
+                        {recover.error.message}
+                      </Alert>
                     )}
                     <Button
                       type="submit"
-                      renderIcon={ArrowRight}
+                      variant="contained"
+                      endIcon={<ArrowForward />}
                       disabled={recover.isPending || !canSubmit}
                     >
                       {recover.isPending ? "Resetting…" : "Reset password"}
                     </Button>
                   </Stack>
-                </Form>
+                </form>
               )}
 
-              <Button as={RouterLink} to="/login" kind="ghost" size="sm">
+              <Button component={RouterLink} to="/login" variant="text" size="small">
                 Back to sign in
               </Button>
             </Stack>
-          </Tile>
+          </Paper>
         </div>
       </main>
-    </Theme>
+    </div>
   );
 }

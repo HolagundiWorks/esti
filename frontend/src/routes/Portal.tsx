@@ -1,28 +1,31 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
+  Card,
+  CardActionArea,
   Checkbox,
-  ClickableTile,
-  Column,
-  Content,
-  Form,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   Grid,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Stack,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   formatINR,
   PORTAL_SUBMISSION_KIND_LABEL,
@@ -37,10 +40,12 @@ import {
   type RevisionCategory as RevisionCategoryT,
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
 import { PortalMinutes } from "../components/PortalMinutes.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -61,6 +66,13 @@ const AP_TAG: Record<
 // Approvals the client can still respond to.
 const RESPONDABLE = ["SENT", "REVISIONS"];
 
+/** Exact Carbon tag colours over MUI Chip (token vars stay defined on the shell). */
+function chipTokens(color: string) {
+  return {
+    backgroundColor: `var(--cds-tag-background-${color})`,
+    color: `var(--cds-tag-color-${color})`,
+  };
+}
 
 export function Portal() {
   const navigate = useNavigate();
@@ -184,6 +196,241 @@ export function Portal() {
     value: s.count,
   }));
 
+  // ── grid column definitions ───────────────────────────────────────────────
+  const invoiceCols: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 120 },
+    { field: "documentKind", headerName: "Document", flex: 1, minWidth: 120 },
+    { field: "dateInvoice", headerName: "Date", flex: 1, minWidth: 110, valueGetter: (v) => v ?? "—" },
+    {
+      field: "grandTotalPaise",
+      headerName: "Amount",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.grandTotalPaise, { paise: false }),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipTokens(INV_TAG[p.row.status] ?? "blue")} />
+      ),
+    },
+    {
+      field: "pdfUrl",
+      headerName: "Invoice",
+      width: 140,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) =>
+        p.row.pdfUrl ? (
+          <Button
+            variant="text"
+            size="small"
+            onClick={() =>
+              window.open(p.row.pdfUrl!, "_blank", "noopener,noreferrer")
+            }
+          >
+            Download
+          </Button>
+        ) : p.row.pdfStatus === "PENDING" || p.row.pdfStatus === "PROCESSING" ? (
+          "Preparing…"
+        ) : (
+          "—"
+        ),
+    },
+  ];
+
+  const approvalCols: GridColDef[] = [
+    { field: "title", headerName: "Item", flex: 2, minWidth: 180 },
+    { field: "sentDate", headerName: "Sent", flex: 1, minWidth: 110, valueGetter: (v) => v ?? "—" },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 140,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipTokens(AP_TAG[p.row.status] ?? "blue")} />
+      ),
+    },
+    {
+      field: "respond",
+      headerName: "Respond",
+      flex: 2,
+      minWidth: 340,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) =>
+        RESPONDABLE.includes(p.row.status) ? (
+          <Stack direction="row" spacing={1}>
+            <Button variant="text" size="small"
+              onClick={() => setDecision({
+                approvalId: p.row.id,
+                title: p.row.title,
+                decision: "APPROVED",
+                remarks: "",
+                revisionCategory: "",
+              })}>
+              Approve
+            </Button>
+            <Button variant="text" size="small"
+              onClick={() => setDecision({
+                approvalId: p.row.id,
+                title: p.row.title,
+                decision: "REVISIONS",
+                remarks: "",
+                revisionCategory: "MINOR",
+              })}>
+              Request revisions
+            </Button>
+            <Button variant="text" size="small" color="error"
+              onClick={() => setDecision({
+                approvalId: p.row.id,
+                title: p.row.title,
+                decision: "REJECTED",
+                remarks: "",
+                revisionCategory: "",
+              })}>
+              Reject
+            </Button>
+          </Stack>
+        ) : "—",
+    },
+  ];
+
+  const drawingCols: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 120 },
+    { field: "title", headerName: "Title", flex: 2, minWidth: 180 },
+    {
+      field: "acknowledge",
+      headerName: "Acknowledge",
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button variant="text" size="small" disabled={acknowledge.isPending}
+          onClick={() => acknowledge.mutate({
+            projectId: openId!, objectType: "drawing", objectId: p.row.id,
+            subject: `Drawing ${p.row.ref} — ${p.row.title}`,
+          })}>
+          Acknowledge receipt
+        </Button>
+      ),
+    },
+  ];
+
+  const transmittalCols: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 120 },
+    { field: "purpose", headerName: "Purpose", flex: 2, minWidth: 160 },
+    { field: "channel", headerName: "Channel", flex: 1, minWidth: 110 },
+    { field: "dateIssued", headerName: "Issued", flex: 1, minWidth: 110, valueGetter: (v) => v ?? "—" },
+  ];
+
+  const submissionCols: GridColDef[] = [
+    {
+      field: "kind",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (p) => PORTAL_SUBMISSION_KIND_LABEL[p.row.kind as PortalSubmissionKind] ?? p.row.kind,
+    },
+    {
+      field: "revisionCategory",
+      headerName: "Revision",
+      width: 120,
+      renderCell: (p) =>
+        p.row.revisionCategory ? (
+          <StatusTag
+            value={p.row.revisionCategory as RevisionCategoryT}
+            map={REVISION_CATEGORY_TAG}
+            label={REVISION_CATEGORY_LABEL[p.row.revisionCategory as RevisionCategoryT] ?? p.row.revisionCategory}
+          />
+        ) : "—",
+    },
+    { field: "subject", headerName: "Subject", flex: 2, minWidth: 160 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 160,
+      renderCell: (p) => (
+        <StatusTag
+          value={p.row.status as PortalSubmissionStatus}
+          map={PORTAL_SUBMISSION_STATUS_TAG}
+          label={PORTAL_SUBMISSION_STATUS_LABEL[p.row.status as PortalSubmissionStatus] ?? p.row.status}
+        />
+      ),
+    },
+    {
+      field: "responseNote",
+      headerName: "Architect response",
+      flex: 2,
+      minWidth: 220,
+      sortable: false,
+      renderCell: (p) =>
+        p.row.status === "IMPACT_SENT" ? (
+          <Stack spacing={0.5} sx={{ py: 1, alignItems: "flex-start" }}>
+            {p.row.affectsCosting && <Chip size="small" label="Affects costing" sx={chipTokens("red")} />}
+            {p.row.affectsTimeline && <Chip size="small" label="Affects timeline" sx={chipTokens("magenta")} />}
+            {p.row.isBillable && <Chip size="small" label="Billable" sx={chipTokens("purple")} />}
+            {p.row.architectComment && (
+              <span className="esti-label esti-label--helper">{p.row.architectComment}</span>
+            )}
+          </Stack>
+        ) : (p.row.responseNote ?? "—"),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      minWidth: 280,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          {p.row.status === "IMPACT_SENT" && (
+            <Button variant="contained" size="small"
+              onClick={() => setImpactResponse({
+                submissionId: p.row.id,
+                subject: p.row.subject,
+                affectsCosting: p.row.affectsCosting ?? false,
+                affectsTimeline: p.row.affectsTimeline ?? false,
+                isBillable: p.row.isBillable ?? false,
+                architectComment: p.row.architectComment,
+                remarks: "",
+              })}>
+              Review &amp; respond
+            </Button>
+          )}
+          <Button variant="text" size="small" onClick={() => setThreadFor({ id: p.row.id, subject: p.row.subject })}>
+            Conversation
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
+
+  const activityCols: GridColDef[] = [
+    {
+      field: "createdAt",
+      headerName: "When",
+      flex: 1,
+      minWidth: 170,
+      renderCell: (p) =>
+        new Date(p.row.createdAt as unknown as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+    },
+    {
+      field: "summary",
+      headerName: "Update",
+      flex: 3,
+      minWidth: 240,
+      sortable: false,
+      renderCell: (p) => (
+        <Box sx={{ py: 1 }}>
+          {p.row.summary}
+          {p.row.actorName && <div className="esti-label esti-label--secondary">{p.row.actorName}</div>}
+        </Box>
+      ),
+    },
+  ];
+
   return (
     <>
       <PortalHeader
@@ -193,241 +440,125 @@ export function Portal() {
         onSignOut={() => logout.mutate()}
         signingOut={logout.isPending}
       />
-      <Content>
+      <Box component="main" sx={{ p: { xs: 2, md: 4 } }}>
         {!openId && (
-          <Stack gap={5}>
-            <Stack gap={2}>
-              <h1>Your projects</h1>
-              <p>
+          <Stack spacing={3}>
+            <Stack spacing={1}>
+              <Typography variant="h4" component="h1">Your projects</Typography>
+              <Typography variant="body1">
                 Track status, invoices, approvals and issued drawings — and
                 respond to approvals, raise change requests or leave feedback.
-              </p>
+              </Typography>
             </Stack>
-            <Grid>
-              {(projectsQ.data ?? []).length === 0 && <p>No projects yet.</p>}
+            {(projectsQ.data ?? []).length === 0 && (
+              <Typography variant="body1">No projects yet.</Typography>
+            )}
+            <Grid container spacing={2}>
               {(projectsQ.data ?? []).map((p) => (
-                <Column key={p.id} sm={4} md={4} lg={4}>
-                  <ClickableTile onClick={() => navigate(`/projects/${p.id}`)}>
-                    <Stack gap={3}>
-                      <p>{p.ref}</p>
-                      <h3>{p.title}</h3>
-                      <Tag type="cool-gray">{p.status}</Tag>
-                    </Stack>
-                  </ClickableTile>
-                </Column>
+                <Grid key={p.id} size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Card className="esti-fill">
+                    <CardActionArea onClick={() => navigate(`/projects/${p.id}`)} sx={{ p: 2, height: 1 }}>
+                      <Stack spacing={1}>
+                        <Typography variant="body2" color="text.secondary">{p.ref}</Typography>
+                        <Typography variant="h6" component="h3">{p.title}</Typography>
+                        <Box>
+                          <Chip size="small" label={p.status} sx={chipTokens("cool-gray")} />
+                        </Box>
+                      </Stack>
+                    </CardActionArea>
+                  </Card>
+                </Grid>
               ))}
             </Grid>
           </Stack>
         )}
 
         {openId && d && (
-          <Stack gap={6}>
-            <Stack gap={3}>
-              <Button kind="ghost" size="sm" onClick={() => navigate("/")}>
-                ← All projects
-              </Button>
-              <h2>{d.project.title}</h2>
-              <Stack orientation="horizontal" gap={3} style={{ flexWrap: "wrap", alignItems: "center" }}>
+          <Stack spacing={4}>
+            <Stack spacing={1.5}>
+              <Box>
+                <Button variant="text" size="small" startIcon={<ArrowBackIcon />} onClick={() => navigate("/")}>
+                  All projects
+                </Button>
+              </Box>
+              <Typography variant="h4" component="h2">{d.project.title}</Typography>
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap", alignItems: "center" }}>
                 <span className="esti-label">
                   {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction}
                 </span>
-                <Tag type="cool-gray">{d.project.status}</Tag>
+                <Chip size="small" label={d.project.status} sx={chipTokens("cool-gray")} />
               </Stack>
-              <Stack orientation="horizontal" gap={3}>
-                <Button size="sm" onClick={() => setRequestOpen(true)}>Raise change request</Button>
-                <Button size="sm" kind="tertiary" onClick={() => setFeedbackOpen(true)}>Leave feedback</Button>
-                <Button size="sm" kind="tertiary" onClick={() => setMeetingOpen(true)}>Schedule a meeting</Button>
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap" }}>
+                <Button size="small" variant="contained" onClick={() => setRequestOpen(true)}>Raise change request</Button>
+                <Button size="small" variant="outlined" onClick={() => setFeedbackOpen(true)}>Leave feedback</Button>
+                <Button size="small" variant="outlined" onClick={() => setMeetingOpen(true)}>Schedule a meeting</Button>
               </Stack>
-              <InlineNotification
-                kind="info"
-                title="Revision categories"
-                subtitle="Classify every change request and revision response as Minor (small tweak), Major (scope or fee impact), or Critical (stop-work / safety). Your architect uses the same categories in the CRIF decision ledger."
-                lowContrast
-                hideCloseButton
-              />
+              <Alert severity="info">
+                <AlertTitle>Revision categories</AlertTitle>
+                Classify every change request and revision response as Minor (small tweak), Major (scope or fee impact), or Critical (stop-work / safety). Your architect uses the same categories in the CRIF decision ledger.
+              </Alert>
             </Stack>
 
             <Section title="Stages">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Stage</TableHeader>
-                    <TableHeader>Billing %</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.phases.map((ph) => (
-                    <TableRow key={ph.code}>
-                      <TableCell>{ph.label}</TableCell>
-                      <TableCell>{ph.billingPct}%</TableCell>
-                      <TableCell>{ph.status}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Section>
-
-            <Section title="Invoices">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Ref</TableHeader>
-                    <TableHeader>Document</TableHeader>
-                    <TableHeader>Date</TableHeader>
-                    <TableHeader>Amount</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Invoice</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.invoices.map((iv) => (
-                    <TableRow key={iv.ref}>
-                      <TableCell>{iv.ref}</TableCell>
-                      <TableCell>{iv.documentKind}</TableCell>
-                      <TableCell>{iv.dateInvoice ?? "—"}</TableCell>
-                      <TableCell>
-                        {formatINR(iv.grandTotalPaise, { paise: false })}
-                      </TableCell>
-                      <TableCell>
-                        <Tag type={INV_TAG[iv.status] ?? "blue"}>
-                          {iv.status}
-                        </Tag>
-                      </TableCell>
-                      <TableCell>
-                        {iv.pdfUrl ? (
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            onClick={() =>
-                              window.open(iv.pdfUrl!, "_blank", "noopener,noreferrer")
-                            }
-                          >
-                            Download
-                          </Button>
-                        ) : iv.pdfStatus === "PENDING" || iv.pdfStatus === "PROCESSING" ? (
-                          "Preparing…"
-                        ) : (
-                          "—"
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Section>
-
-            <Section title="Approvals">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Item</TableHeader>
-                    <TableHeader>Sent</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Respond</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.approvals.map((a) => (
-                    <TableRow key={a.id}>
-                      <TableCell>{a.title}</TableCell>
-                      <TableCell>{a.sentDate ?? "—"}</TableCell>
-                      <TableCell>
-                        <Tag type={AP_TAG[a.status] ?? "blue"}>{a.status}</Tag>
-                      </TableCell>
-                      <TableCell>
-                        {RESPONDABLE.includes(a.status) ? (
-                          <Stack orientation="horizontal" gap={2}>
-                            <Button kind="ghost" size="sm"
-                              onClick={() => setDecision({
-                                approvalId: a.id,
-                                title: a.title,
-                                decision: "APPROVED",
-                                remarks: "",
-                                revisionCategory: "",
-                              })}>
-                              Approve
-                            </Button>
-                            <Button kind="ghost" size="sm"
-                              onClick={() => setDecision({
-                                approvalId: a.id,
-                                title: a.title,
-                                decision: "REVISIONS",
-                                remarks: "",
-                                revisionCategory: "MINOR",
-                              })}>
-                              Request revisions
-                            </Button>
-                            <Button kind="danger--ghost" size="sm"
-                              onClick={() => setDecision({
-                                approvalId: a.id,
-                                title: a.title,
-                                decision: "REJECTED",
-                                remarks: "",
-                                revisionCategory: "",
-                              })}>
-                              Reject
-                            </Button>
-                          </Stack>
-                        ) : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Section>
-
-            <Section title="Issued drawings">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Ref</TableHeader>
-                    <TableHeader>Title</TableHeader>
-                    <TableHeader>Acknowledge</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {d.drawings.map((dr) => (
-                    <TableRow key={dr.id}>
-                      <TableCell>{dr.ref}</TableCell>
-                      <TableCell>{dr.title}</TableCell>
-                      <TableCell>
-                        <Button kind="ghost" size="sm" disabled={acknowledge.isPending}
-                          onClick={() => acknowledge.mutate({
-                            projectId: openId, objectType: "drawing", objectId: dr.id,
-                            subject: `Drawing ${dr.ref} — ${dr.title}`,
-                          })}>
-                          Acknowledge receipt
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Section>
-
-            {d.transmittals.length > 0 && (
-              <Section title="Transmittals">
-                <Table>
+              <Paper>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableHeader>Ref</TableHeader>
-                      <TableHeader>Purpose</TableHeader>
-                      <TableHeader>Channel</TableHeader>
-                      <TableHeader>Issued</TableHeader>
+                      <TableCell>Stage</TableCell>
+                      <TableCell>Billing %</TableCell>
+                      <TableCell>Status</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {d.transmittals.map((t) => (
-                      <TableRow key={t.ref}>
-                        <TableCell>{t.ref}</TableCell>
-                        <TableCell>{t.purpose}</TableCell>
-                        <TableCell>{t.channel}</TableCell>
-                        <TableCell>{t.dateIssued ?? "—"}</TableCell>
+                    {d.phases.map((ph) => (
+                      <TableRow key={ph.code}>
+                        <TableCell>{ph.label}</TableCell>
+                        <TableCell>{ph.billingPct}%</TableCell>
+                        <TableCell>{ph.status}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              </Paper>
+            </Section>
+
+            <Section title="Invoices">
+              <DataGrid
+                rows={d.invoices}
+                getRowId={(r) => r.ref}
+                columns={invoiceCols}
+                disableRowSelectionOnClick
+                autoHeight
+              />
+            </Section>
+
+            <Section title="Approvals">
+              <DataGrid
+                rows={d.approvals}
+                columns={approvalCols}
+                disableRowSelectionOnClick
+                autoHeight
+              />
+            </Section>
+
+            <Section title="Issued drawings">
+              <DataGrid
+                rows={d.drawings}
+                columns={drawingCols}
+                disableRowSelectionOnClick
+                autoHeight
+              />
+            </Section>
+
+            {d.transmittals.length > 0 && (
+              <Section title="Transmittals">
+                <DataGrid
+                  rows={d.transmittals}
+                  getRowId={(r) => r.ref}
+                  columns={transmittalCols}
+                  disableRowSelectionOnClick
+                  autoHeight
+                />
               </Section>
             )}
 
@@ -438,69 +569,14 @@ export function Portal() {
                 columnCount={6}
                 empty={{ title: "Nothing submitted yet", description: "Your acknowledgements, change requests and feedback appear here." }}
               >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>Type</TableHeader>
-                      <TableHeader>Revision</TableHeader>
-                      <TableHeader>Subject</TableHeader>
-                      <TableHeader>Status</TableHeader>
-                      <TableHeader>Architect response</TableHeader>
-                      <TableHeader>Actions</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(submissionsQ.data ?? []).map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell>{PORTAL_SUBMISSION_KIND_LABEL[s.kind as PortalSubmissionKind] ?? s.kind}</TableCell>
-                        <TableCell>
-                          {s.revisionCategory ? (
-                            <Tag type={REVISION_CATEGORY_TAG[s.revisionCategory as RevisionCategoryT] ?? "gray"} size="sm">
-                              {REVISION_CATEGORY_LABEL[s.revisionCategory as RevisionCategoryT] ?? s.revisionCategory}
-                            </Tag>
-                          ) : "—"}
-                        </TableCell>
-                        <TableCell>{s.subject}</TableCell>
-                        <TableCell>
-                          <Tag type={PORTAL_SUBMISSION_STATUS_TAG[s.status as PortalSubmissionStatus] ?? "blue"}>
-                            {PORTAL_SUBMISSION_STATUS_LABEL[s.status as PortalSubmissionStatus] ?? s.status}
-                          </Tag>
-                        </TableCell>
-                        <TableCell>
-                          {s.status === "IMPACT_SENT" ? (
-                            <Stack gap={3}>
-                              {s.affectsCosting && <Tag type="red" size="sm">Affects costing</Tag>}
-                              {s.affectsTimeline && <Tag type="magenta" size="sm">Affects timeline</Tag>}
-                              {s.isBillable && <Tag type="purple" size="sm">Billable</Tag>}
-                              {s.architectComment && <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>{s.architectComment}</p>}
-                            </Stack>
-                          ) : (s.responseNote ?? "—")}
-                        </TableCell>
-                        <TableCell>
-                          <Stack orientation="horizontal" gap={2}>
-                            {s.status === "IMPACT_SENT" && (
-                              <Button kind="primary" size="sm"
-                                onClick={() => setImpactResponse({
-                                  submissionId: s.id,
-                                  subject: s.subject,
-                                  affectsCosting: s.affectsCosting ?? false,
-                                  affectsTimeline: s.affectsTimeline ?? false,
-                                  isBillable: s.isBillable ?? false,
-                                  architectComment: s.architectComment,
-                                  remarks: "",
-                                })}>
-                                Review &amp; respond
-                              </Button>
-                            )}
-                            <Button kind="ghost" size="sm" onClick={() => setThreadFor({ id: s.id, subject: s.subject })}>
-                              Conversation
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  rows={submissionsQ.data ?? []}
+                  columns={submissionCols}
+                  getRowHeight={() => "auto"}
+                  disableRowSelectionOnClick
+                  autoHeight
+                  sx={{ "& .MuiDataGrid-cell": { py: 1 } }}
+                />
               </DataState>
             </Section>
 
@@ -508,23 +584,23 @@ export function Portal() {
             <PortalMinutes projectId={openId} onSubmitted={refresh} />
 
             {/* ── Revision dashboard ───────────────────────────────────────── */}
-            <Stack gap={3}>
-              <h4>Revision dashboard</h4>
-              <Grid>
-                <Column sm={4} md={4} lg={8}>
-                  <Tile>
-                    <Stack gap={3}>
-                      <p className="esti-label" style={{ margin: 0 }}>Change requests by category</p>
+            <Stack spacing={1.5}>
+              <Typography variant="h6" component="h4">Revision dashboard</Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper className="esti-fill" sx={{ p: 2 }}>
+                    <Stack spacing={1.5}>
+                      <span className="esti-label">Change requests by category</span>
                       {revisionStatsQ.isLoading ? (
-                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>Loading…</p>
+                        <span className="esti-label esti-label--secondary">Loading…</span>
                       ) : changesByCat.length === 0 ? (
-                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>No change requests yet.</p>
+                        <span className="esti-label esti-label--secondary">No change requests yet.</span>
                       ) : (
-                        <Table size="sm" useZebraStyles>
+                        <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableHeader>Category</TableHeader>
-                              <TableHeader>Count</TableHeader>
+                              <TableCell>Category</TableCell>
+                              <TableCell>Count</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -538,22 +614,22 @@ export function Portal() {
                         </Table>
                       )}
                     </Stack>
-                  </Tile>
-                </Column>
-                <Column sm={4} md={4} lg={8}>
-                  <Tile>
-                    <Stack gap={3}>
-                      <p className="esti-label" style={{ margin: 0 }}>Drawing revisions by type</p>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper className="esti-fill" sx={{ p: 2 }}>
+                    <Stack spacing={1.5}>
+                      <span className="esti-label">Drawing revisions by type</span>
                       {revisionStatsQ.isLoading ? (
-                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>Loading…</p>
+                        <span className="esti-label esti-label--secondary">Loading…</span>
                       ) : drawingsByRev.length === 0 ? (
-                        <p className="esti-label esti-label--secondary" style={{ margin: 0 }}>No drawing revisions yet.</p>
+                        <span className="esti-label esti-label--secondary">No drawing revisions yet.</span>
                       ) : (
-                        <Table size="sm" useZebraStyles>
+                        <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableHeader>Revision</TableHeader>
-                              <TableHeader>Count</TableHeader>
+                              <TableCell>Revision</TableCell>
+                              <TableCell>Count</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -567,8 +643,8 @@ export function Portal() {
                         </Table>
                       )}
                     </Stack>
-                  </Tile>
-                </Column>
+                  </Paper>
+                </Grid>
               </Grid>
             </Stack>
 
@@ -579,301 +655,377 @@ export function Portal() {
                 columnCount={2}
                 empty={{ title: "No shared activity yet", description: "Updates the firm shares with you appear here." }}
               >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeader>When</TableHeader>
-                      <TableHeader>Update</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(activityQ.data ?? []).map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell>{new Date(a.createdAt as unknown as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</TableCell>
-                        <TableCell>
-                          {a.summary}
-                          {a.actorName && <div className="esti-label esti-label--secondary">{a.actorName}</div>}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  rows={activityQ.data ?? []}
+                  columns={activityCols}
+                  getRowHeight={() => "auto"}
+                  disableRowSelectionOnClick
+                  autoHeight
+                  sx={{ "& .MuiDataGrid-cell": { py: 1 } }}
+                />
               </DataState>
             </Section>
           </Stack>
         )}
 
-        {/* ── approval decision modal ───────────────────────────────────── */}
-        <Modal
+        {/* ── approval decision dialog ──────────────────────────────────── */}
+        <Dialog
           open={decision !== null}
-          modalHeading={decision ? `Respond — ${decision.title}` : "Respond"}
-          primaryButtonText={respond.isPending ? "Submitting…" : "Submit response"}
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={
-            respond.isPending ||
-            (decision?.decision === "REVISIONS" && !decision.revisionCategory)
-          }
-          onRequestClose={() => setDecision(null)}
-          onRequestSubmit={() => decision && respond.mutate({
-            approvalId: decision.approvalId,
-            decision: decision.decision,
-            remarks: decision.remarks || undefined,
-            revisionCategory:
-              decision.decision === "REVISIONS"
-                ? (decision.revisionCategory as RevisionCategoryT)
-                : undefined,
-          })}
+          onClose={() => setDecision(null)}
+          fullWidth
+          maxWidth="sm"
         >
+          <DialogTitle>{decision ? `Respond — ${decision.title}` : "Respond"}</DialogTitle>
           {decision && (
-            <Stack gap={5}>
-              <Select id="dec-kind" labelText="Decision" value={decision.decision}
-                onChange={(e) => setDecision({
-                  ...decision,
-                  decision: e.target.value as PortalApprovalDecision,
-                  revisionCategory: e.target.value === "REVISIONS" ? "MINOR" : "",
-                })}>
-                <SelectItem value="APPROVED" text="Approve" />
-                <SelectItem value="REVISIONS" text="Request revisions" />
-                <SelectItem value="REJECTED" text="Reject" />
-              </Select>
-              {decision.decision === "REVISIONS" && (
-                <Select
-                  id="dec-rev-cat"
-                  labelText="Revision category"
-                  helperText="Major and Critical revisions may affect scope, fees and schedule."
-                  value={decision.revisionCategory}
+            <DialogContent>
+              <Stack spacing={2} sx={{ mt: 1 }}>
+                <TextField id="dec-kind" select label="Decision" value={decision.decision}
+                  fullWidth
                   onChange={(e) => setDecision({
                     ...decision,
-                    revisionCategory: e.target.value as RevisionCategoryT,
-                  })}
-                >
-                  {RevisionCategory.options.map((c) => (
-                    <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
-                  ))}
-                </Select>
-              )}
-              <TextArea id="dec-remarks" labelText="Remarks (optional)" rows={3}
-                value={decision.remarks}
-                onChange={(e) => setDecision({ ...decision, remarks: e.target.value })} />
-              {respond.error && (
-                <InlineNotification kind="error" title="Could not submit"
-                  subtitle={respond.error.message} hideCloseButton lowContrast />
-              )}
-            </Stack>
+                    decision: e.target.value as PortalApprovalDecision,
+                    revisionCategory: e.target.value === "REVISIONS" ? "MINOR" : "",
+                  })}>
+                  <MenuItem value="APPROVED">Approve</MenuItem>
+                  <MenuItem value="REVISIONS">Request revisions</MenuItem>
+                  <MenuItem value="REJECTED">Reject</MenuItem>
+                </TextField>
+                {decision.decision === "REVISIONS" && (
+                  <TextField
+                    id="dec-rev-cat"
+                    select
+                    label="Revision category"
+                    helperText="Major and Critical revisions may affect scope, fees and schedule."
+                    value={decision.revisionCategory}
+                    fullWidth
+                    onChange={(e) => setDecision({
+                      ...decision,
+                      revisionCategory: e.target.value as RevisionCategoryT,
+                    })}
+                  >
+                    {RevisionCategory.options.map((c) => (
+                      <MenuItem key={c} value={c}>{REVISION_CATEGORY_LABEL[c]}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                <TextField id="dec-remarks" label="Remarks (optional)" multiline rows={3}
+                  fullWidth
+                  value={decision.remarks}
+                  onChange={(e) => setDecision({ ...decision, remarks: e.target.value })} />
+                {respond.error && (
+                  <Alert severity="error">
+                    <AlertTitle>Could not submit</AlertTitle>
+                    {respond.error.message}
+                  </Alert>
+                )}
+              </Stack>
+            </DialogContent>
           )}
-        </Modal>
+          <DialogActions>
+            <Button variant="text" onClick={() => setDecision(null)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={
+                respond.isPending ||
+                (decision?.decision === "REVISIONS" && !decision.revisionCategory)
+              }
+              onClick={() => decision && respond.mutate({
+                approvalId: decision.approvalId,
+                decision: decision.decision,
+                remarks: decision.remarks || undefined,
+                revisionCategory:
+                  decision.decision === "REVISIONS"
+                    ? (decision.revisionCategory as RevisionCategoryT)
+                    : undefined,
+              })}
+            >
+              {respond.isPending ? "Submitting…" : "Submit response"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* ── change request modal ──────────────────────────────────────── */}
-        <Modal
-          open={requestOpen} modalHeading="Raise a change request"
-          primaryButtonText={changeRequest.isPending ? "Submitting…" : "Submit"}
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={!request.subject || !request.body || changeRequest.isPending}
-          onRequestClose={() => setRequestOpen(false)}
-          onRequestSubmit={() => openId && changeRequest.mutate({
-            projectId: openId,
-            subject: request.subject,
-            body: request.body,
-            revisionCategory: request.revisionCategory,
-            attentionToId: request.attentionToId || undefined,
-            refDrawingId: request.refDrawingId || undefined,
-          })}
+        {/* ── change request dialog ─────────────────────────────────────── */}
+        <Dialog
+          open={requestOpen}
+          onClose={() => setRequestOpen(false)}
+          fullWidth
+          maxWidth="sm"
         >
-          <Form onSubmit={(e) => e.preventDefault()}>
-            <Stack gap={5}>
-              <Select
+          <DialogTitle>Raise a change request</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
                 id="cr-cat"
-                labelText="Revision category"
+                select
+                label="Revision category"
                 helperText="How significant is this change for scope, fees or schedule?"
                 value={request.revisionCategory}
+                fullWidth
                 onChange={(e) => setRequest((r) => ({
                   ...r,
                   revisionCategory: e.target.value as RevisionCategoryT,
                 }))}
               >
                 {RevisionCategory.options.map((c) => (
-                  <SelectItem key={c} value={c} text={REVISION_CATEGORY_LABEL[c]} />
+                  <MenuItem key={c} value={c}>{REVISION_CATEGORY_LABEL[c]}</MenuItem>
                 ))}
-              </Select>
+              </TextField>
               {teamMembers.length > 0 && (
-                <Select
+                <TextField
                   id="cr-attn"
-                  labelText="Attention to (optional)"
+                  select
+                  label="Attention to (optional)"
                   helperText="Which team member should handle this?"
                   value={request.attentionToId}
+                  fullWidth
                   onChange={(e) => setRequest((r) => ({ ...r, attentionToId: e.target.value }))}
                 >
-                  <SelectItem value="" text="— any team member —" />
+                  <MenuItem value="">— any team member —</MenuItem>
                   {teamMembers.map((m) => (
-                    <SelectItem key={m.id} value={m.id} text={`${m.fullName} (${m.role})`} />
+                    <MenuItem key={m.id} value={m.id}>{`${m.fullName} (${m.role})`}</MenuItem>
                   ))}
-                </Select>
+                </TextField>
               )}
               {drawings.length > 0 && (
-                <Select
+                <TextField
                   id="cr-drawing"
-                  labelText="Reference drawing (optional)"
+                  select
+                  label="Reference drawing (optional)"
                   helperText="Which drawing does this change relate to?"
                   value={request.refDrawingId}
+                  fullWidth
                   onChange={(e) => setRequest((r) => ({ ...r, refDrawingId: e.target.value }))}
                 >
-                  <SelectItem value="" text="— no specific drawing —" />
+                  <MenuItem value="">— no specific drawing —</MenuItem>
                   {drawings.map((dr) => (
-                    <SelectItem key={dr.id} value={dr.id} text={`${dr.ref} — ${dr.title}`} />
+                    <MenuItem key={dr.id} value={dr.id}>{`${dr.ref} — ${dr.title}`}</MenuItem>
                   ))}
-                </Select>
+                </TextField>
               )}
-              <TextInput id="cr-subject" labelText="Subject" value={request.subject}
+              <TextField id="cr-subject" label="Subject" value={request.subject}
+                fullWidth
                 onChange={(e) => setRequest((r) => ({ ...r, subject: e.target.value }))} />
-              <TextArea id="cr-body" labelText="What would you like changed?" rows={4}
+              <TextField id="cr-body" label="What would you like changed?" multiline rows={4}
+                fullWidth
                 value={request.body}
                 onChange={(e) => setRequest((r) => ({ ...r, body: e.target.value }))} />
             </Stack>
-          </Form>
-        </Modal>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setRequestOpen(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={!request.subject || !request.body || changeRequest.isPending}
+              onClick={() => openId && changeRequest.mutate({
+                projectId: openId,
+                subject: request.subject,
+                body: request.body,
+                revisionCategory: request.revisionCategory,
+                attentionToId: request.attentionToId || undefined,
+                refDrawingId: request.refDrawingId || undefined,
+              })}
+            >
+              {changeRequest.isPending ? "Submitting…" : "Submit"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* ── feedback modal ────────────────────────────────────────────── */}
-        <Modal
-          open={feedbackOpen} modalHeading="Leave feedback"
-          primaryButtonText={submitFeedback.isPending ? "Submitting…" : "Submit"}
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={!feedback.subject || submitFeedback.isPending}
-          onRequestClose={() => setFeedbackOpen(false)}
-          onRequestSubmit={() => openId && submitFeedback.mutate({
-            projectId: openId, subject: feedback.subject,
-            body: feedback.body || undefined,
-            rating: feedback.rating ? Number(feedback.rating) : undefined,
-          })}
+        {/* ── feedback dialog ───────────────────────────────────────────── */}
+        <Dialog
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          fullWidth
+          maxWidth="sm"
         >
-          <Form onSubmit={(e) => e.preventDefault()}>
-            <Stack gap={5}>
-              <TextInput id="fb-subject" labelText="Subject" value={feedback.subject}
+          <DialogTitle>Leave feedback</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField id="fb-subject" label="Subject" value={feedback.subject}
+                fullWidth
                 onChange={(e) => setFeedback((f) => ({ ...f, subject: e.target.value }))} />
-              <Select id="fb-rating" labelText="Rating (optional)" value={feedback.rating}
+              <TextField id="fb-rating" select label="Rating (optional)" value={feedback.rating}
+                fullWidth
                 onChange={(e) => setFeedback((f) => ({ ...f, rating: e.target.value }))}>
-                <SelectItem value="" text="— no rating —" />
+                <MenuItem value="">— no rating —</MenuItem>
                 {[5, 4, 3, 2, 1].map((n) => (
-                  <SelectItem key={n} value={String(n)} text={`${n} / 5`} />
+                  <MenuItem key={n} value={String(n)}>{`${n} / 5`}</MenuItem>
                 ))}
-              </Select>
-              <TextArea id="fb-body" labelText="Comments (optional)" rows={4}
+              </TextField>
+              <TextField id="fb-body" label="Comments (optional)" multiline rows={4}
+                fullWidth
                 value={feedback.body}
                 onChange={(e) => setFeedback((f) => ({ ...f, body: e.target.value }))} />
             </Stack>
-          </Form>
-        </Modal>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setFeedbackOpen(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={!feedback.subject || submitFeedback.isPending}
+              onClick={() => openId && submitFeedback.mutate({
+                projectId: openId, subject: feedback.subject,
+                body: feedback.body || undefined,
+                rating: feedback.rating ? Number(feedback.rating) : undefined,
+              })}
+            >
+              {submitFeedback.isPending ? "Submitting…" : "Submit"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* ── schedule a meeting modal ────────────────────────────────── */}
-        <Modal
-          open={meetingOpen} modalHeading="Schedule a meeting"
-          primaryButtonText={requestMeeting.isPending ? "Submitting…" : "Request meeting"}
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={requestMeeting.isPending}
-          onRequestClose={() => setMeetingOpen(false)}
-          onRequestSubmit={() => openId && requestMeeting.mutate({
-            projectId: openId,
-            preferredDate: meeting.preferredDate || undefined,
-            mode: meeting.mode,
-            agenda: meeting.agenda || undefined,
-          })}
+        {/* ── schedule a meeting dialog ─────────────────────────────────── */}
+        <Dialog
+          open={meetingOpen}
+          onClose={() => setMeetingOpen(false)}
+          fullWidth
+          maxWidth="sm"
         >
-          <Stack gap={5}>
-            <Select id="mtg-mode" labelText="Mode" value={meeting.mode}
-              onChange={(e) => setMeeting((m) => ({ ...m, mode: e.target.value as "IN_PERSON" | "VIDEO_CALL" | "PHONE" }))}>
-              <SelectItem value="IN_PERSON" text="In person" />
-              <SelectItem value="VIDEO_CALL" text="Video call" />
-              <SelectItem value="PHONE" text="Phone call" />
-            </Select>
-            <TextInput id="mtg-date" labelText="Preferred date (optional)" type="date"
-              value={meeting.preferredDate}
-              onChange={(e) => setMeeting((m) => ({ ...m, preferredDate: e.target.value }))} />
-            <TextArea id="mtg-agenda" labelText="Agenda / notes (optional)" rows={3}
-              value={meeting.agenda}
-              onChange={(e) => setMeeting((m) => ({ ...m, agenda: e.target.value }))} />
-          </Stack>
-        </Modal>
-
-        {/* ── impact assessment response modal ─────────────────────────── */}
-        <Modal
-          open={impactResponse !== null}
-          modalHeading={impactResponse ? `Impact assessment — ${impactResponse.subject}` : "Impact assessment"}
-          primaryButtonText={respondImpact.isPending ? "Submitting…" : "Approve"}
-          secondaryButtonText="Reject"
-          danger={false}
-          primaryButtonDisabled={respondImpact.isPending}
-          onRequestClose={() => setImpactResponse(null)}
-          onSecondarySubmit={() => impactResponse && respondImpact.mutate({
-            submissionId: impactResponse.submissionId,
-            approved: false,
-            remarks: impactResponse.remarks || undefined,
-          })}
-          onRequestSubmit={() => impactResponse && respondImpact.mutate({
-            submissionId: impactResponse.submissionId,
-            approved: true,
-            remarks: impactResponse.remarks || undefined,
-          })}
-        >
-          {impactResponse && (
-            <Stack gap={5}>
-              <p>Your architect has assessed the impact of this change request:</p>
-              <Stack gap={3}>
-                <Checkbox
-                  id="ia-costing" labelText="Affects costing"
-                  checked={impactResponse.affectsCosting}
-                  readOnly
-                />
-                <Checkbox
-                  id="ia-timeline" labelText="Affects timeline"
-                  checked={impactResponse.affectsTimeline}
-                  readOnly
-                />
-                <Checkbox
-                  id="ia-billable" labelText="Additional billable work"
-                  checked={impactResponse.isBillable}
-                  readOnly
-                />
-              </Stack>
-              {impactResponse.architectComment && (
-                <Tile>
-                  <p style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)" }}>
-                    Architect's note
-                  </p>
-                  <p>{impactResponse.architectComment}</p>
-                </Tile>
-              )}
-              <TextArea
-                id="ia-remarks"
-                labelText="Your remarks (optional)"
-                helperText="Your response will be shared with the architect."
-                rows={3}
-                value={impactResponse.remarks}
-                onChange={(e) => setImpactResponse({ ...impactResponse, remarks: e.target.value })}
-              />
-              {respondImpact.error && (
-                <InlineNotification kind="error" title="Could not submit"
-                  subtitle={respondImpact.error.message} hideCloseButton lowContrast />
-              )}
+          <DialogTitle>Schedule a meeting</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField id="mtg-mode" select label="Mode" value={meeting.mode}
+                fullWidth
+                onChange={(e) => setMeeting((m) => ({ ...m, mode: e.target.value as "IN_PERSON" | "VIDEO_CALL" | "PHONE" }))}>
+                <MenuItem value="IN_PERSON">In person</MenuItem>
+                <MenuItem value="VIDEO_CALL">Video call</MenuItem>
+                <MenuItem value="PHONE">Phone call</MenuItem>
+              </TextField>
+              <TextField id="mtg-date" label="Preferred date (optional)" type="date"
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={meeting.preferredDate}
+                onChange={(e) => setMeeting((m) => ({ ...m, preferredDate: e.target.value }))} />
+              <TextField id="mtg-agenda" label="Agenda / notes (optional)" multiline rows={3}
+                fullWidth
+                value={meeting.agenda}
+                onChange={(e) => setMeeting((m) => ({ ...m, agenda: e.target.value }))} />
             </Stack>
-          )}
-        </Modal>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setMeetingOpen(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              disabled={requestMeeting.isPending}
+              onClick={() => openId && requestMeeting.mutate({
+                projectId: openId,
+                preferredDate: meeting.preferredDate || undefined,
+                mode: meeting.mode,
+                agenda: meeting.agenda || undefined,
+              })}
+            >
+              {requestMeeting.isPending ? "Submitting…" : "Request meeting"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        {/* ── conversation thread modal ─────────────────────────────────── */}
-        <Modal
-          open={threadFor !== null}
-          modalHeading={threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
-          primaryButtonText="Close" passiveModal
-          onRequestClose={() => setThreadFor(null)}
+        {/* ── impact assessment response dialog ─────────────────────────── */}
+        <Dialog
+          open={impactResponse !== null}
+          onClose={() => setImpactResponse(null)}
+          fullWidth
+          maxWidth="sm"
         >
-          {threadFor && (
-            <SubmissionThread
-              messages={threadQ.data ?? []}
-              loading={threadQ.isLoading}
-              pending={reply.isPending}
-              onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
-            />
+          <DialogTitle>
+            {impactResponse ? `Impact assessment — ${impactResponse.subject}` : "Impact assessment"}
+          </DialogTitle>
+          {impactResponse && (
+            <DialogContent>
+              <Stack spacing={2} sx={{ mt: 1 }}>
+                <Typography variant="body1">
+                  Your architect has assessed the impact of this change request:
+                </Typography>
+                <Stack spacing={0.5}>
+                  <FormControlLabel
+                    control={<Checkbox id="ia-costing" checked={impactResponse.affectsCosting} disabled />}
+                    label="Affects costing"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox id="ia-timeline" checked={impactResponse.affectsTimeline} disabled />}
+                    label="Affects timeline"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox id="ia-billable" checked={impactResponse.isBillable} disabled />}
+                    label="Additional billable work"
+                  />
+                </Stack>
+                {impactResponse.architectComment && (
+                  <Paper sx={{ p: 2 }}>
+                    <Stack spacing={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        Architect's note
+                      </Typography>
+                      <Typography variant="body1">{impactResponse.architectComment}</Typography>
+                    </Stack>
+                  </Paper>
+                )}
+                <TextField
+                  id="ia-remarks"
+                  label="Your remarks (optional)"
+                  helperText="Your response will be shared with the architect."
+                  multiline
+                  rows={3}
+                  fullWidth
+                  value={impactResponse.remarks}
+                  onChange={(e) => setImpactResponse({ ...impactResponse, remarks: e.target.value })}
+                />
+                {respondImpact.error && (
+                  <Alert severity="error">
+                    <AlertTitle>Could not submit</AlertTitle>
+                    {respondImpact.error.message}
+                  </Alert>
+                )}
+              </Stack>
+            </DialogContent>
           )}
-        </Modal>
-      </Content>
+          <DialogActions>
+            <Button
+              variant="outlined"
+              disabled={respondImpact.isPending}
+              onClick={() => impactResponse && respondImpact.mutate({
+                submissionId: impactResponse.submissionId,
+                approved: false,
+                remarks: impactResponse.remarks || undefined,
+              })}
+            >
+              Reject
+            </Button>
+            <Button
+              variant="contained"
+              disabled={respondImpact.isPending}
+              onClick={() => impactResponse && respondImpact.mutate({
+                submissionId: impactResponse.submissionId,
+                approved: true,
+                remarks: impactResponse.remarks || undefined,
+              })}
+            >
+              {respondImpact.isPending ? "Submitting…" : "Approve"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* ── conversation thread dialog ────────────────────────────────── */}
+        <Dialog
+          open={threadFor !== null}
+          onClose={() => setThreadFor(null)}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+          <DialogContent>
+            {threadFor && (
+              <SubmissionThread
+                messages={threadQ.data ?? []}
+                loading={threadQ.isLoading}
+                pending={reply.isPending}
+                onReply={(body) => reply.mutate({ submissionId: threadFor.id, body })}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button variant="contained" onClick={() => setThreadFor(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </>
   );
 }
@@ -883,7 +1035,12 @@ function Section({
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  return <TableContainer title={title}>{children}</TableContainer>;
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="h6" component="h3">{title}</Typography>
+      {children}
+    </Stack>
+  );
 }

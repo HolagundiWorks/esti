@@ -1,24 +1,28 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  InlineNotification,
-  Modal,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { can } from "@esti/contracts";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { can, type TagColor } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { StatusTag } from "./StatusTag.js";
 
 // Minutes of meeting (MoM). Draft minutes are office-internal; ISSUING locks
 // them and publishes them to the client portal, where ESTI reads them and
 // drafts the client's revision requests (which come back to the office as
 // change requests under Tasks → Client requests).
 
-const STATUS_TAG: Record<string, "gray" | "green"> = {
+const STATUS_TAG: Record<string, TagColor> = {
   DRAFT: "gray",
   ISSUED: "green",
 };
@@ -90,11 +94,11 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={3}>
-        <h4>Minutes of meeting</h4>
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Typography variant="h6">Minutes of meeting</Typography>
         {canWrite && (
-          <Button size="sm" onClick={openCreate}>
+          <Button variant="contained" size="small" onClick={openCreate}>
             Record minutes
           </Button>
         )}
@@ -105,58 +109,60 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
       </p>
 
       {errorText && (
-        <InlineNotification kind="error" title="Minutes" subtitle={errorText} lowContrast hideCloseButton />
+        <Alert severity="error">
+          <AlertTitle>Minutes</AlertTitle>
+          {errorText}
+        </Alert>
       )}
 
-      {listQ.isLoading && <p>Loading…</p>}
+      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
       {rows.length === 0 && !listQ.isLoading && (
-        <Tile>
-          <p>No meeting minutes recorded for this project yet.</p>
-        </Tile>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="body2">No meeting minutes recorded for this project yet.</Typography>
+        </Paper>
       )}
 
-      <Stack gap={3}>
+      <Stack spacing={1}>
         {rows.map((m) => (
-          <Tile key={m.id}>
-            <Stack gap={3}>
-              <Stack orientation="horizontal" gap={3}>
+          <Paper key={m.id} sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>
                   {m.ref} — {m.title}
                 </strong>
-                <Tag type={STATUS_TAG[m.status] ?? "gray"} size="sm">
-                  {m.status}
-                </Tag>
+                <StatusTag value={m.status} map={STATUS_TAG} />
                 {m.meetingDate && <span className="esti-label--secondary">{m.meetingDate}</span>}
               </Stack>
               {m.venue && <p className="esti-label--secondary">Venue: {m.venue}</p>}
               {m.attendees && <p className="esti-label--secondary">Attendees: {m.attendees}</p>}
               {expandedId === m.id && m.minutes && (
-                <p style={{ whiteSpace: "pre-wrap" }}>{m.minutes}</p>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>{m.minutes}</Typography>
               )}
-              <Stack orientation="horizontal" gap={3}>
+              <Stack direction="row" spacing={1}>
                 <Button
-                  size="sm"
-                  kind="ghost"
+                  size="small"
+                  variant="text"
                   onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}
                 >
                   {expandedId === m.id ? "Hide minutes" : "Read minutes"}
                 </Button>
                 {canWrite && m.status === "DRAFT" && (
                   <>
-                    <Button size="sm" kind="tertiary" onClick={() => openEdit(m)}>
+                    <Button size="small" variant="outlined" onClick={() => openEdit(m)}>
                       Edit
                     </Button>
                     <Button
-                      size="sm"
-                      kind="primary"
+                      size="small"
+                      variant="contained"
                       disabled={issue.isPending}
                       onClick={() => issue.mutate({ id: m.id })}
                     >
                       Issue to client
                     </Button>
                     <Button
-                      size="sm"
-                      kind="danger--ghost"
+                      size="small"
+                      variant="text"
+                      color="error"
                       disabled={remove.isPending}
                       onClick={() => remove.mutate({ id: m.id })}
                     >
@@ -166,57 +172,60 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
                 )}
               </Stack>
             </Stack>
-          </Tile>
+          </Paper>
         ))}
       </Stack>
 
-      <Modal
-        open={formOpen}
-        modalHeading={editingId ? "Edit minutes" : "Record minutes of meeting"}
-        primaryButtonText={busy ? "Saving…" : editingId ? "Save" : "Create draft"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={busy || !form.title.trim()}
-        onRequestClose={closeForm}
-        onRequestSubmit={submit}
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="mom-title"
-            labelText="Meeting title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-          />
-          <TextInput
-            id="mom-date"
-            labelText="Meeting date"
-            type="date"
-            value={form.meetingDate}
-            onChange={(e) => setForm({ ...form, meetingDate: e.target.value })}
-          />
-          <TextInput
-            id="mom-venue"
-            labelText="Venue"
-            value={form.venue}
-            onChange={(e) => setForm({ ...form, venue: e.target.value })}
-          />
-          <TextInput
-            id="mom-attendees"
-            labelText="Attendees"
-            helperText="Names as they should appear on the record."
-            value={form.attendees}
-            onChange={(e) => setForm({ ...form, attendees: e.target.value })}
-          />
-          <TextArea
-            id="mom-minutes"
-            labelText="Minutes"
-            helperText="What was discussed and agreed. ESTI reads this text to draft the client's revision requests."
-            rows={10}
-            value={form.minutes}
-            onChange={(e) => setForm({ ...form, minutes: e.target.value })}
-          />
-        </Stack>
-      </Modal>
+      <Dialog open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
+        <DialogTitle>{editingId ? "Edit minutes" : "Record minutes of meeting"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="mom-title"
+              label="Meeting title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+            />
+            <TextField
+              id="mom-date"
+              label="Meeting date"
+              type="date"
+              value={form.meetingDate}
+              onChange={(e) => setForm({ ...form, meetingDate: e.target.value })}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              id="mom-venue"
+              label="Venue"
+              value={form.venue}
+              onChange={(e) => setForm({ ...form, venue: e.target.value })}
+            />
+            <TextField
+              id="mom-attendees"
+              label="Attendees"
+              helperText="Names as they should appear on the record."
+              value={form.attendees}
+              onChange={(e) => setForm({ ...form, attendees: e.target.value })}
+            />
+            <TextField
+              id="mom-minutes"
+              label="Minutes"
+              helperText="What was discussed and agreed. ESTI reads this text to draft the client's revision requests."
+              multiline
+              rows={10}
+              value={form.minutes}
+              onChange={(e) => setForm({ ...form, minutes: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={closeForm}>Cancel</Button>
+          <Button variant="contained" disabled={busy || !form.title.trim()} onClick={submit}>
+            {busy ? "Saving…" : editingId ? "Save" : "Create draft"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

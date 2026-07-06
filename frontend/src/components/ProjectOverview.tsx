@@ -1,26 +1,24 @@
 import {
+  Alert,
+  Box,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
   Checkbox,
-  Column,
-  ClickableTile,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   Grid,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Tile,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -37,6 +35,12 @@ import {
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 import { AiDraftPanel } from "./AiStudio.js";
+import { StatusTag } from "./StatusTag.js";
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 function StatCard({
   label,
@@ -52,21 +56,29 @@ function StatCard({
   tag: string;
 }) {
   const body = (
-    <Stack gap={3}>
-      <Stack gap={2}>
-        <h4>{label}</h4>
-        <h2>{value}</h2>
+    <CardContent>
+      <Stack spacing={1}>
+        <Stack spacing={0.5}>
+          <Typography variant="subtitle2" component="h4">
+            {label}
+          </Typography>
+          <Typography variant="h4" component="h2">
+            {value}
+          </Typography>
+        </Stack>
+        <Chip size="small" label={tag} sx={{ ...tagSx("blue"), alignSelf: "flex-start" }} />
+        <Typography variant="body2">{detail}</Typography>
       </Stack>
-      <Tag type="blue">{tag}</Tag>
-      <p>{detail}</p>
-    </Stack>
+    </CardContent>
   );
   return onClick ? (
-    <ClickableTile onClick={onClick}>
-      {body}
-    </ClickableTile>
+    <Card className="esti-fill">
+      <CardActionArea onClick={onClick} className="esti-fill">
+        {body}
+      </CardActionArea>
+    </Card>
   ) : (
-    <Tile>{body}</Tile>
+    <Card className="esti-fill">{body}</Card>
   );
 }
 
@@ -102,6 +114,19 @@ function nextActionHint(
 function daysAgo(dateStr: string | Date): number {
   const d = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
   return Math.floor((Date.now() - d.getTime()) / 86_400_000);
+}
+
+function isCoolingOff(d: {
+  state?: string | null;
+  reviewDeadline?: string | null;
+}): boolean {
+  const state = (d.state ?? "OPEN") as DecisionState;
+  const today = new Date().toISOString().slice(0, 10);
+  return (
+    (state === "OPEN" || state === "CLIENT_REVIEW") &&
+    !!d.reviewDeadline &&
+    d.reviewDeadline < today
+  );
 }
 
 export function ProjectOverview({ projectId }: { projectId: string }) {
@@ -245,10 +270,223 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     ? DECISION_TRANSITIONS[(transitionDecision.state ?? "OPEN") as DecisionState] ?? []
     : [];
 
+  const revisionColumns: GridColDef[] = [
+    { field: "title", headerName: "Drawing", flex: 2, minWidth: 160 },
+    {
+      field: "revNo",
+      headerName: "Rev",
+      width: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={`Rev ${p.row.revNo}`} sx={tagSx("gray")} />
+      ),
+    },
+    {
+      field: "createdAt",
+      headerName: "Date",
+      width: 130,
+      renderCell: (p) =>
+        new Date(p.row.createdAt as unknown as string).toLocaleDateString("en-IN"),
+    },
+    {
+      field: "revisionNote",
+      headerName: "Note",
+      flex: 3,
+      minWidth: 160,
+      valueGetter: (v) => v ?? "—",
+    },
+  ];
+
+  const noteColumns: GridColDef[] = [
+    { field: "title", headerName: "Note", flex: 2, minWidth: 140 },
+    { field: "category", headerName: "Category", flex: 1, minWidth: 110 },
+    {
+      field: "owner",
+      headerName: "Owner",
+      flex: 1,
+      minWidth: 100,
+      valueGetter: (v) => v ?? "—",
+    },
+    {
+      field: "dueDate",
+      headerName: "Due",
+      flex: 1,
+      minWidth: 100,
+      valueGetter: (v) => v ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      renderCell: (p) => (
+        <Chip
+          size="small"
+          label={p.row.status}
+          sx={tagSx(
+            p.row.status === "RESOLVED"
+              ? "green"
+              : p.row.status === "BLOCKED"
+                ? "red"
+                : "blue",
+          )}
+        />
+      ),
+    },
+  ];
+
+  const decisionColumns: GridColDef[] = [
+    {
+      field: "title",
+      headerName: "Decision",
+      flex: 2,
+      minWidth: 160,
+      renderCell: (p) => (
+        <Stack spacing={0.5} sx={{ py: 0.5, alignItems: "flex-start" }}>
+          <span>{p.row.title}</span>
+          {p.row.programVersionId && (
+            <Chip
+              size="small"
+              label={`Program v${programVersionNo.get(p.row.programVersionId) ?? "?"}`}
+              sx={tagSx("cool-gray")}
+            />
+          )}
+        </Stack>
+      ),
+    },
+    {
+      field: "state",
+      headerName: "State",
+      width: 150,
+      renderCell: (p) => {
+        const state = (p.row.state ?? "OPEN") as DecisionState;
+        return (
+          <Stack spacing={0.5} sx={{ py: 0.5, alignItems: "flex-start" }}>
+            <StatusTag
+              value={state}
+              map={DECISION_STATE_TAG}
+              label={DECISION_STATE_LABEL[state]}
+            />
+            {isCoolingOff(p.row) && (
+              <Chip size="small" label="Cooling off" sx={tagSx("red")} />
+            )}
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "revisionCategory",
+      headerName: "Category",
+      width: 120,
+      renderCell: (p) => {
+        const cat = p.row.revisionCategory as RevisionCategory | null;
+        return cat ? (
+          <StatusTag
+            value={cat}
+            map={REVISION_CATEGORY_TAG}
+            label={REVISION_CATEGORY_LABEL[cat]}
+          />
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      field: "revisionSource",
+      headerName: "Source",
+      width: 140,
+      renderCell: (p) => {
+        const src = p.row.revisionSource as RevisionSource | null;
+        return src ? (
+          <StatusTag
+            value={src}
+            map={REVISION_SOURCE_TAG}
+            label={REVISION_SOURCE_LABEL[src]}
+          />
+        ) : (
+          "—"
+        );
+      },
+    },
+    {
+      field: "daysOpen",
+      headerName: "Days open",
+      width: 100,
+      valueGetter: (_v, row) => daysAgo(row.createdAt as unknown as string),
+      renderCell: (p) => `${p.value}d`,
+    },
+    {
+      field: "nextAction",
+      headerName: "Next action",
+      flex: 2,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (p) => {
+        const state = (p.row.state ?? "OPEN") as DecisionState;
+        const cat = p.row.revisionCategory as RevisionCategory | null;
+        return (
+          <span className="esti-label">
+            {nextActionHint(state, p.row.reviewDeadline, cat)}
+          </span>
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "",
+      width: 120,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => {
+        const state = (p.row.state ?? "OPEN") as DecisionState;
+        const canTransition = (DECISION_TRANSITIONS[state] ?? []).length > 0;
+        if (!canTransition) return null;
+        return (
+          <Button
+            variant="text"
+            color={isCoolingOff(p.row) ? "error" : "primary"}
+            size="small"
+            onClick={() => {
+              setTransitionId(p.row.id);
+              setAckChecked(false);
+              setToState((DECISION_TRANSITIONS[state] ?? [])[0] ?? "OPEN");
+            }}
+          >
+            Transition
+          </Button>
+        );
+      },
+    },
+  ];
+
+  const activityColumns: GridColDef[] = [
+    {
+      field: "createdAt",
+      headerName: "When",
+      flex: 1.2,
+      minWidth: 160,
+      renderCell: (p) =>
+        new Date(p.row.createdAt as unknown as string).toLocaleString("en-IN"),
+    },
+    { field: "eventType", headerName: "What", flex: 1, minWidth: 130 },
+    { field: "summary", headerName: "Summary", flex: 2, minWidth: 200 },
+    {
+      field: "actorName",
+      headerName: "Actor",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (v) => v ?? "System",
+    },
+  ];
+
+  const transitionCat = transitionDecision?.revisionCategory as RevisionCategory | null;
+  const isCriticalAccept =
+    toState === "ACCEPTED" &&
+    (transitionCat === "MAJOR" || transitionCat === "CRITICAL");
+  const needsAck = isCriticalAccept && !ackChecked;
+
   return (
-    <Stack gap={7}>
-      <Grid condensed>
-        <Column sm={4} md={4} lg={4}>
+    <Stack spacing={3}>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             label="Open tasks"
             value={openTasks.length}
@@ -256,8 +494,8 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             tag="Task load"
             onClick={() => navigate("/tasks")}
           />
-        </Column>
-        <Column sm={4} md={4} lg={4}>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             label="Pending approvals"
             value={pendingApprovals.length}
@@ -265,8 +503,8 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             tag="Approvals"
             onClick={() => navigate("/tasks?tab=activity")}
           />
-        </Column>
-        <Column sm={4} md={4} lg={4}>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             label="Current drawings"
             value={drawings.length}
@@ -274,8 +512,8 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             tag="Revisions"
             onClick={() => navigate(`/projects/${projectId}?tab=drawings`)}
           />
-        </Column>
-        <Column sm={4} md={4} lg={4}>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             label="Health signals"
             value={health.length}
@@ -286,119 +524,81 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
             }
             tag="Overview"
           />
-        </Column>
+        </Grid>
       </Grid>
 
       {revisions.length > 0 && (
-        <TableContainer
-          title="Drawing revision feed"
-          description="All superseded drawing versions for this project"
-        >
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Drawing</TableHeader>
-                <TableHeader>Rev</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Note</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {revisions.slice(0, 10).map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{r.title}</TableCell>
-                  <TableCell>
-                    <Tag type="gray" size="sm">
-                      Rev {r.revNo}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(r.createdAt as unknown as string).toLocaleDateString("en-IN")}
-                  </TableCell>
-                  <TableCell>{r.revisionNote ?? "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={1}>
+          <Typography variant="h6" component="h3">
+            Drawing revision feed
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            All superseded drawing versions for this project
+          </Typography>
+          <DataGrid
+            rows={revisions.slice(0, 10)}
+            columns={revisionColumns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Stack>
       )}
 
-      <Grid condensed>
-        <Column sm={4} md={8} lg={8}>
-          <div
-            style={{
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Box
+            sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
             }}
           >
-            <h3>Critical notes</h3>
-            <Button size="sm" onClick={() => setNoteOpen(true)}>
+            <Typography variant="h6" component="h3">
+              Critical notes
+            </Typography>
+            <Button variant="contained" size="small" onClick={() => setNoteOpen(true)}>
               Add note
             </Button>
-          </div>
-          <TableContainer
-            title="Critical notes"
-            description="Categories, owners, due dates, and status"
-          >
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Note</TableHeader>
-                  <TableHeader>Category</TableHeader>
-                  <TableHeader>Owner</TableHeader>
-                  <TableHeader>Due</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {notes.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5}>No critical notes yet.</TableCell>
-                  </TableRow>
-                )}
-                {notes.slice(0, 5).map((n) => (
-                  <TableRow key={n.id}>
-                    <TableCell>{n.title}</TableCell>
-                    <TableCell>{n.category}</TableCell>
-                    <TableCell>{n.owner ?? "—"}</TableCell>
-                    <TableCell>{n.dueDate ?? "—"}</TableCell>
-                    <TableCell>
-                      <Tag
-                        type={
-                          n.status === "RESOLVED"
-                            ? "green"
-                            : n.status === "BLOCKED"
-                              ? "red"
-                              : "blue"
-                        }
-                        size="sm"
-                      >
-                        {n.status}
-                      </Tag>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Column>
-        <Column sm={4} md={8} lg={8}>
-          <div
-            style={{
+          </Box>
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Categories, owners, due dates, and status
+            </Typography>
+            <DataGrid
+              rows={notes.slice(0, 5)}
+              columns={noteColumns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+              localeText={{ noRowsLabel: "No critical notes yet." }}
+            />
+          </Stack>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Box
+            sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
             }}
           >
-            <h3>Decision ledger</h3>
-            <Button size="sm" onClick={() => setDecisionOpen(true)}>
+            <Typography variant="h6" component="h3">
+              Decision ledger
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setDecisionOpen(true)}
+            >
               Add decision
             </Button>
-          </div>
-          <div style={{ margin: "var(--cds-spacing-04) 0" }}>
+          </Box>
+          <Box sx={{ my: 1 }}>
             <AiDraftPanel projectId={projectId} defaultKind="CRIF_SUMMARY" compact />
-          </div>
+          </Box>
           {allDecisions.length > 0 && (() => {
             const scopeChangeCount = allDecisions.filter(
               (d) => d.revisionSource === "SCOPE_CHANGE",
@@ -413,484 +613,446 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               </p>
             );
           })()}
-          <TableContainer
-            title="Decision ledger"
-            description="CRIF state machine: rationale, category, owner, and transitions"
-          >
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Decision</TableHeader>
-                  <TableHeader>State</TableHeader>
-                  <TableHeader>Category</TableHeader>
-                  <TableHeader>Source</TableHeader>
-                  <TableHeader>Days open</TableHeader>
-                  <TableHeader>Next action</TableHeader>
-                  <TableHeader></TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {allDecisions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      No decisions recorded yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {allDecisions.slice(0, 8).map((d) => {
-                  const state = (d.state ?? "OPEN") as DecisionState;
-                  const cat = d.revisionCategory as RevisionCategory | null;
-                  const src = d.revisionSource as RevisionSource | null;
-                  const days = daysAgo(d.createdAt as unknown as string);
-                  const canTransition =
-                    (DECISION_TRANSITIONS[state] ?? []).length > 0;
-                  const today = new Date().toISOString().slice(0, 10);
-                  const coolingOff =
-                    (state === "OPEN" || state === "CLIENT_REVIEW") &&
-                    !!d.reviewDeadline &&
-                    d.reviewDeadline < today;
-                  const hint = nextActionHint(state, d.reviewDeadline, cat);
-                  return (
-                    <TableRow key={d.id}>
-                      <TableCell>
-                        <Stack gap={2}>
-                          <span>{d.title}</span>
-                          {d.programVersionId && (
-                            <Tag type="cool-gray" size="sm">
-                              Program v{programVersionNo.get(d.programVersionId) ?? "?"}
-                            </Tag>
-                          )}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack gap={2}>
-                          <Tag type={DECISION_STATE_TAG[state]} size="sm">
-                            {DECISION_STATE_LABEL[state]}
-                          </Tag>
-                          {coolingOff && (
-                            <Tag type="red" size="sm">
-                              Cooling off
-                            </Tag>
-                          )}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        {cat ? (
-                          <Tag type={REVISION_CATEGORY_TAG[cat]} size="sm">
-                            {REVISION_CATEGORY_LABEL[cat]}
-                          </Tag>
-                        ) : (
-                          "—"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {src ? (
-                          <Tag type={REVISION_SOURCE_TAG[src]} size="sm">
-                            {REVISION_SOURCE_LABEL[src]}
-                          </Tag>
-                        ) : (
-                          "—"
-                        )}
-                      </TableCell>
-                      <TableCell>{days}d</TableCell>
-                      <TableCell>
-                        <p className="esti-label">{hint}</p>
-                      </TableCell>
-                      <TableCell>
-                        {canTransition && (
-                          <Button
-                            kind={coolingOff ? "danger--ghost" : "ghost"}
-                            size="sm"
-                            onClick={() => {
-                              setTransitionId(d.id);
-                              setAckChecked(false);
-                              setToState(
-                                (DECISION_TRANSITIONS[state] ?? [])[0] ?? "OPEN",
-                              );
-                            }}
-                          >
-                            Transition
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Column>
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              CRIF state machine: rationale, category, owner, and transitions
+            </Typography>
+            <DataGrid
+              rows={allDecisions.slice(0, 8)}
+              columns={decisionColumns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+              getRowHeight={() => "auto"}
+              localeText={{ noRowsLabel: "No decisions recorded yet." }}
+            />
+          </Stack>
+        </Grid>
       </Grid>
 
-      <TableContainer
-        title="Recent activity"
-        description="Latest timeline entries for this project"
-      >
-        <Table size="sm">
-          <TableHead>
-            <TableRow>
-              <TableHeader>When</TableHeader>
-              <TableHeader>What</TableHeader>
-              <TableHeader>Summary</TableHeader>
-              <TableHeader>Actor</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(activityQ.data ?? []).slice(0, 8).map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  {new Date(item.createdAt as unknown as string).toLocaleString(
-                    "en-IN",
-                  )}
-                </TableCell>
-                <TableCell>{item.eventType}</TableCell>
-                <TableCell>{item.summary}</TableCell>
-                <TableCell>{item.actorName ?? "System"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack spacing={1}>
+        <Typography variant="h6" component="h3">
+          Recent activity
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Latest timeline entries for this project
+        </Typography>
+        <DataGrid
+          rows={(activityQ.data ?? []).slice(0, 8)}
+          columns={activityColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
+      </Stack>
 
-      {/* Add critical note modal */}
-      <Modal
+      {/* Add critical note dialog */}
+      <Dialog
         open={noteOpen}
-        modalHeading="Add critical note"
-        primaryButtonText={noteCreate.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!note.title || noteCreate.isPending}
-        onRequestClose={() => setNoteOpen(false)}
-        onRequestSubmit={() =>
-          noteCreate.mutate({
-            projectId,
-            title: note.title,
-            category: note.category,
-            priority: note.priority as "LOW" | "MEDIUM" | "HIGH",
-            status: note.status as "OPEN" | "BLOCKED" | "RESOLVED",
-            visibility: "STAFF",
-            owner: note.owner || undefined,
-            dueDate: note.dueDate || null,
-            body: note.body || undefined,
-          })
-        }
+        onClose={() => setNoteOpen(false)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <TextInput
-            id="cn-title"
-            labelText="Title"
-            value={note.title}
-            onChange={(e) => setNote((f) => ({ ...f, title: e.target.value }))}
-          />
-          <TextInput
-            id="cn-category"
-            labelText="Category"
-            value={note.category}
-            onChange={(e) =>
-              setNote((f) => ({ ...f, category: e.target.value }))
-            }
-          />
-          <Stack orientation="horizontal" gap={5}>
-            <Select
-              id="cn-priority"
-              labelText="Priority"
-              value={note.priority}
-              onChange={(e) =>
-                setNote((f) => ({ ...f, priority: e.target.value }))
-              }
-            >
-              {["LOW", "MEDIUM", "HIGH"].map((p) => (
-                <SelectItem key={p} value={p} text={p} />
-              ))}
-            </Select>
-            <Select
-              id="cn-status"
-              labelText="Status"
-              value={note.status}
-              onChange={(e) =>
-                setNote((f) => ({ ...f, status: e.target.value }))
-              }
-            >
-              {["OPEN", "BLOCKED", "RESOLVED"].map((s) => (
-                <SelectItem key={s} value={s} text={s} />
-              ))}
-            </Select>
-          </Stack>
-          <TextInput
-            id="cn-owner"
-            labelText="Owner (optional)"
-            value={note.owner}
-            onChange={(e) => setNote((f) => ({ ...f, owner: e.target.value }))}
-          />
-          <TextInput
-            id="cn-due"
-            labelText="Due date (optional)"
-            type="date"
-            value={note.dueDate}
-            onChange={(e) =>
-              setNote((f) => ({ ...f, dueDate: e.target.value }))
-            }
-          />
-          <TextArea
-            id="cn-body"
-            labelText="Details (optional)"
-            rows={3}
-            value={note.body}
-            onChange={(e) => setNote((f) => ({ ...f, body: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
-
-      {/* Add decision modal */}
-      <Modal
-        open={decisionOpen}
-        modalHeading="Add decision"
-        primaryButtonText={decisionCreate.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !decision.title || !decision.rationale || decisionCreate.isPending
-        }
-        onRequestClose={() => setDecisionOpen(false)}
-        onRequestSubmit={() =>
-          decisionCreate.mutate({
-            projectId,
-            title: decision.title,
-            rationale: decision.rationale,
-            state: decision.state,
-            revisionCategory: decision.revisionCategory || undefined,
-            revisionSource: decision.revisionSource || undefined,
-            programVersionId: decision.programVersionId || undefined,
-            impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
-            ownerName: decision.ownerName || undefined,
-            reviewDeadline: decision.reviewDeadline || undefined,
-            linkedObjectType: decision.linkedObjectType || undefined,
-            linkedObjectId: decision.linkedObjectId || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="dc-title"
-            labelText="Decision title"
-            value={decision.title}
-            onChange={(e) =>
-              setDecision((f) => ({ ...f, title: e.target.value }))
-            }
-          />
-          <TextArea
-            id="dc-rationale"
-            labelText="Rationale"
-            rows={3}
-            value={decision.rationale}
-            onChange={(e) =>
-              setDecision((f) => ({ ...f, rationale: e.target.value }))
-            }
-          />
-          <Stack orientation="horizontal" gap={5}>
-            <Select
-              id="dc-state"
-              labelText="State"
-              value={decision.state}
-              onChange={(e) =>
-                setDecision((f) => ({
-                  ...f,
-                  state: e.target.value as DecisionState,
-                }))
-              }
-            >
-              {DecisionState.options.map((s) => (
-                <SelectItem
-                  key={s}
-                  value={s}
-                  text={DECISION_STATE_LABEL[s]}
-                />
-              ))}
-            </Select>
-            <Select
-              id="dc-category"
-              labelText="Revision category"
-              value={decision.revisionCategory}
-              onChange={(e) =>
-                setDecision((f) => ({
-                  ...f,
-                  revisionCategory: e.target.value as RevisionCategory | "",
-                }))
-              }
-            >
-              <SelectItem value="" text="None" />
-              {RevisionCategory.options.map((c) => (
-                <SelectItem
-                  key={c}
-                  value={c}
-                  text={REVISION_CATEGORY_LABEL[c]}
-                />
-              ))}
-            </Select>
-            <Select
-              id="dc-source"
-              labelText="Revision source"
-              value={decision.revisionSource}
-              onChange={(e) =>
-                setDecision((f) => ({
-                  ...f,
-                  revisionSource: e.target.value as RevisionSource | "",
-                }))
-              }
-            >
-              <SelectItem value="" text="None" />
-              {RevisionSource.options.map((s) => (
-                <SelectItem
-                  key={s}
-                  value={s}
-                  text={REVISION_SOURCE_LABEL[s]}
-                />
-              ))}
-            </Select>
-            <Select
-              id="dc-impact"
-              labelText="Impact"
-              value={decision.impact}
-              onChange={(e) =>
-                setDecision((f) => ({ ...f, impact: e.target.value }))
-              }
-            >
-              {["LOW", "MEDIUM", "HIGH"].map((s) => (
-                <SelectItem key={s} value={s} text={s} />
-              ))}
-            </Select>
-          </Stack>
-          {programVersions.length > 0 && (
-            <Select
-              id="dc-program-version"
-              labelText="Against program version"
-              helperText="The frozen program this revision is measured against"
-              value={decision.programVersionId}
-              onChange={(e) =>
-                setDecision((f) => ({ ...f, programVersionId: e.target.value }))
-              }
-            >
-              <SelectItem value="" text="None" />
-              {programVersions.map((pv) => (
-                <SelectItem key={pv.id} value={pv.id} text={`Program v${pv.version}`} />
-              ))}
-            </Select>
-          )}
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
-              id="dc-owner"
-              labelText="Owner (optional)"
-              value={decision.ownerName}
-              onChange={(e) =>
-                setDecision((f) => ({ ...f, ownerName: e.target.value }))
-              }
+        <DialogTitle>Add critical note</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cn-title"
+              label="Title"
+              value={note.title}
+              onChange={(e) => setNote((f) => ({ ...f, title: e.target.value }))}
+              fullWidth
             />
-            <TextInput
-              id="dc-deadline"
-              labelText="Review deadline (optional)"
+            <TextField
+              id="cn-category"
+              label="Category"
+              value={note.category}
+              onChange={(e) =>
+                setNote((f) => ({ ...f, category: e.target.value }))
+              }
+              fullWidth
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="cn-priority"
+                select
+                label="Priority"
+                value={note.priority}
+                onChange={(e) =>
+                  setNote((f) => ({ ...f, priority: e.target.value }))
+                }
+                fullWidth
+              >
+                {["LOW", "MEDIUM", "HIGH"].map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="cn-status"
+                select
+                label="Status"
+                value={note.status}
+                onChange={(e) =>
+                  setNote((f) => ({ ...f, status: e.target.value }))
+                }
+                fullWidth
+              >
+                {["OPEN", "BLOCKED", "RESOLVED"].map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <TextField
+              id="cn-owner"
+              label="Owner (optional)"
+              value={note.owner}
+              onChange={(e) => setNote((f) => ({ ...f, owner: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="cn-due"
+              label="Due date (optional)"
               type="date"
-              value={decision.reviewDeadline}
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={note.dueDate}
               onChange={(e) =>
-                setDecision((f) => ({ ...f, reviewDeadline: e.target.value }))
+                setNote((f) => ({ ...f, dueDate: e.target.value }))
               }
+              fullWidth
+            />
+            <TextField
+              id="cn-body"
+              label="Details (optional)"
+              multiline
+              rows={3}
+              value={note.body}
+              onChange={(e) => setNote((f) => ({ ...f, body: e.target.value }))}
+              fullWidth
             />
           </Stack>
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
-              id="dc-linktype"
-              labelText="Linked object type (optional)"
-              value={decision.linkedObjectType}
-              onChange={(e) =>
-                setDecision((f) => ({
-                  ...f,
-                  linkedObjectType: e.target.value,
-                }))
-              }
-            />
-            <TextInput
-              id="dc-linkid"
-              labelText="Linked object ID (optional)"
-              value={decision.linkedObjectId}
-              onChange={(e) =>
-                setDecision((f) => ({ ...f, linkedObjectId: e.target.value }))
-              }
-            />
-          </Stack>
-        </Stack>
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setNoteOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!note.title || noteCreate.isPending}
+            onClick={() =>
+              noteCreate.mutate({
+                projectId,
+                title: note.title,
+                category: note.category,
+                priority: note.priority as "LOW" | "MEDIUM" | "HIGH",
+                status: note.status as "OPEN" | "BLOCKED" | "RESOLVED",
+                visibility: "STAFF",
+                owner: note.owner || undefined,
+                dueDate: note.dueDate || null,
+                body: note.body || undefined,
+              })
+            }
+          >
+            {noteCreate.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {/* CRIF state transition modal */}
-      {(() => {
-        const cat = transitionDecision?.revisionCategory as RevisionCategory | null;
-        const isCriticalAccept =
-          toState === "ACCEPTED" &&
-          (cat === "MAJOR" || cat === "CRITICAL");
-        const needsAck = isCriticalAccept && !ackChecked;
-        return (
-          <Modal
-            open={!!transitionId}
-            modalHeading={`Transition: ${transitionDecision?.title ?? ""}`}
-            primaryButtonText={decisionTransition.isPending ? "Transitioning…" : "Confirm transition"}
-            secondaryButtonText="Cancel"
-            primaryButtonDisabled={decisionTransition.isPending || needsAck}
-            onRequestClose={() => { setTransitionId(null); setAckChecked(false); }}
-            onRequestSubmit={() => {
+      {/* Add decision dialog */}
+      <Dialog
+        open={decisionOpen}
+        onClose={() => setDecisionOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Add decision</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="dc-title"
+              label="Decision title"
+              value={decision.title}
+              onChange={(e) =>
+                setDecision((f) => ({ ...f, title: e.target.value }))
+              }
+              fullWidth
+            />
+            <TextField
+              id="dc-rationale"
+              label="Rationale"
+              multiline
+              rows={3}
+              value={decision.rationale}
+              onChange={(e) =>
+                setDecision((f) => ({ ...f, rationale: e.target.value }))
+              }
+              fullWidth
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="dc-state"
+                select
+                label="State"
+                value={decision.state}
+                onChange={(e) =>
+                  setDecision((f) => ({
+                    ...f,
+                    state: e.target.value as DecisionState,
+                  }))
+                }
+                fullWidth
+              >
+                {DecisionState.options.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {DECISION_STATE_LABEL[s]}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="dc-category"
+                select
+                label="Revision category"
+                value={decision.revisionCategory}
+                onChange={(e) =>
+                  setDecision((f) => ({
+                    ...f,
+                    revisionCategory: e.target.value as RevisionCategory | "",
+                  }))
+                }
+                fullWidth
+              >
+                <MenuItem value="">None</MenuItem>
+                {RevisionCategory.options.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {REVISION_CATEGORY_LABEL[c]}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="dc-source"
+                select
+                label="Revision source"
+                value={decision.revisionSource}
+                onChange={(e) =>
+                  setDecision((f) => ({
+                    ...f,
+                    revisionSource: e.target.value as RevisionSource | "",
+                  }))
+                }
+                fullWidth
+              >
+                <MenuItem value="">None</MenuItem>
+                {RevisionSource.options.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {REVISION_SOURCE_LABEL[s]}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                id="dc-impact"
+                select
+                label="Impact"
+                value={decision.impact}
+                onChange={(e) =>
+                  setDecision((f) => ({ ...f, impact: e.target.value }))
+                }
+                fullWidth
+              >
+                {["LOW", "MEDIUM", "HIGH"].map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            {programVersions.length > 0 && (
+              <TextField
+                id="dc-program-version"
+                select
+                label="Against program version"
+                helperText="The frozen program this revision is measured against"
+                value={decision.programVersionId}
+                onChange={(e) =>
+                  setDecision((f) => ({ ...f, programVersionId: e.target.value }))
+                }
+                fullWidth
+              >
+                <MenuItem value="">None</MenuItem>
+                {programVersions.map((pv) => (
+                  <MenuItem key={pv.id} value={pv.id}>
+                    {`Program v${pv.version}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="dc-owner"
+                label="Owner (optional)"
+                value={decision.ownerName}
+                onChange={(e) =>
+                  setDecision((f) => ({ ...f, ownerName: e.target.value }))
+                }
+                fullWidth
+              />
+              <TextField
+                id="dc-deadline"
+                label="Review deadline (optional)"
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={decision.reviewDeadline}
+                onChange={(e) =>
+                  setDecision((f) => ({ ...f, reviewDeadline: e.target.value }))
+                }
+                fullWidth
+              />
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="dc-linktype"
+                label="Linked object type (optional)"
+                value={decision.linkedObjectType}
+                onChange={(e) =>
+                  setDecision((f) => ({
+                    ...f,
+                    linkedObjectType: e.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <TextField
+                id="dc-linkid"
+                label="Linked object ID (optional)"
+                value={decision.linkedObjectId}
+                onChange={(e) =>
+                  setDecision((f) => ({ ...f, linkedObjectId: e.target.value }))
+                }
+                fullWidth
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setDecisionOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={
+              !decision.title || !decision.rationale || decisionCreate.isPending
+            }
+            onClick={() =>
+              decisionCreate.mutate({
+                projectId,
+                title: decision.title,
+                rationale: decision.rationale,
+                state: decision.state,
+                revisionCategory: decision.revisionCategory || undefined,
+                revisionSource: decision.revisionSource || undefined,
+                programVersionId: decision.programVersionId || undefined,
+                impact: decision.impact as "LOW" | "MEDIUM" | "HIGH",
+                ownerName: decision.ownerName || undefined,
+                reviewDeadline: decision.reviewDeadline || undefined,
+                linkedObjectType: decision.linkedObjectType || undefined,
+                linkedObjectId: decision.linkedObjectId || undefined,
+              })
+            }
+          >
+            {decisionCreate.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CRIF state transition dialog */}
+      <Dialog
+        open={!!transitionId}
+        onClose={() => {
+          setTransitionId(null);
+          setAckChecked(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{`Transition: ${transitionDecision?.title ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <div className="esti-inline-with-tag">
+              <span>Current state:</span>
+              <StatusTag
+                value={(transitionDecision?.state ?? "OPEN") as DecisionState}
+                map={DECISION_STATE_TAG}
+                label={
+                  DECISION_STATE_LABEL[
+                    (transitionDecision?.state ?? "OPEN") as DecisionState
+                  ]
+                }
+              />
+            </div>
+            <TextField
+              id="tr-tostate"
+              select
+              label="Move to"
+              value={toState}
+              onChange={(e) => {
+                setToState(e.target.value as DecisionState);
+                setAckChecked(false);
+              }}
+              fullWidth
+            >
+              {allowedNextStates.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {DECISION_STATE_LABEL[s]}
+                </MenuItem>
+              ))}
+            </TextField>
+            {isCriticalAccept && (
+              <>
+                <Alert severity="warning">
+                  <strong>Major/Critical revision</strong> — This decision is
+                  categorised as {transitionCat}. Accepting it may affect the
+                  project timeline, cost, or scope.
+                </Alert>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      id="tr-ack"
+                      checked={ackChecked}
+                      onChange={(e) => setAckChecked(e.target.checked)}
+                    />
+                  }
+                  label="I acknowledge this major/critical design revision has been reviewed and accepted."
+                />
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="text"
+            onClick={() => {
+              setTransitionId(null);
+              setAckChecked(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={decisionTransition.isPending || needsAck}
+            onClick={() => {
               if (!transitionId) return;
               decisionTransition.mutate({ id: transitionId, toState });
             }}
           >
-            <Stack gap={5}>
-              <div className="esti-inline-with-tag">
-                <span>Current state:</span>
-                <Tag
-                  type={
-                    DECISION_STATE_TAG[
-                      (transitionDecision?.state ?? "OPEN") as DecisionState
-                    ]
-                  }
-                  size="sm"
-                >
-                  {
-                    DECISION_STATE_LABEL[
-                      (transitionDecision?.state ?? "OPEN") as DecisionState
-                    ]
-                  }
-                </Tag>
-              </div>
-              <Select
-                id="tr-tostate"
-                labelText="Move to"
-                value={toState}
-                onChange={(e) => {
-                  setToState(e.target.value as DecisionState);
-                  setAckChecked(false);
-                }}
-              >
-                {allowedNextStates.map((s) => (
-                  <SelectItem key={s} value={s} text={DECISION_STATE_LABEL[s]} />
-                ))}
-              </Select>
-              {isCriticalAccept && (
-                <>
-                  <InlineNotification
-                    kind="warning"
-                    title="Major/Critical revision"
-                    subtitle={`This decision is categorised as ${cat}. Accepting it may affect the project timeline, cost, or scope.`}
-                    hideCloseButton
-                    lowContrast
-                  />
-                  <Checkbox
-                    id="tr-ack"
-                    labelText="I acknowledge this major/critical design revision has been reviewed and accepted."
-                    checked={ackChecked}
-                    onChange={(_: React.ChangeEvent<HTMLInputElement>, { checked }: { checked: boolean }) =>
-                      setAckChecked(checked)
-                    }
-                  />
-                </>
-              )}
-            </Stack>
-          </Modal>
-        );
-      })()}
+            {decisionTransition.isPending ? "Transitioning…" : "Confirm transition"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
