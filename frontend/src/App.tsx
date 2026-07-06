@@ -21,7 +21,6 @@ import {
   Rule,
   Settings as SettingsIcon,
   Store,
-  TaskComplete,
   Terminal,
   Tools,
   User,
@@ -328,7 +327,6 @@ function AppShell() {
   // Canonical V3 nav (consultancy-only). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
-    { label: "Tasks", to: "/tasks", icon: TaskComplete },
     {
       kind: "menu",
       label: "Library",

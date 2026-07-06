@@ -101,7 +101,6 @@
   z-index: 1200;
   width: max-content;
   max-width: calc(100vw - 32px);
-  overflow: hidden;
   // Liquid glass — stronger than the base Paper so the floating dock reads as glass.
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px) saturate(1.2);

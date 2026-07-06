@@ -27,23 +27,35 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const activeTop = Math.max(
-    0,
-    nav.findIndex((n) => leaves(n).some((l) => pathActive(pathname, l.to))),
-  );
-  const [selected, setSelected] = useState(activeTop);
-  useEffect(() => setSelected(activeTop), [activeTop]);
+  // -1 when the route is not under any tab (e.g. Studio Intelligence "/") → no tab
+  // is marked active.
+  const activeTop = nav.findIndex((n) => leaves(n).some((l) => pathActive(pathname, l.to)));
+  const [selected, setSelected] = useState(activeTop >= 0 ? activeTop : 0);
+  useEffect(() => {
+    if (activeTop >= 0) setSelected(activeTop);
+  }, [activeTop]);
 
   const current = nav[selected];
   const commands = current ? leaves(current) : [];
 
+  // Auto-hide the command row: it only shows when a tab is active (activeTop >= 0)
+  // or while hovering the ribbon. When a dock item is active (Studio Intelligence,
+  // Tasks) the route matches no tab, so the row collapses and only the tabs stay.
+  const [hover, setHover] = useState(false);
+  const showCommands = activeTop >= 0 || hover;
+
   return (
-    <Box className="esti-ribbon">
+    <Box
+      className="esti-ribbon"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       {/* Row 1: firm-name h1 (40%) + section tabs */}
       <Box className="esti-ribbon__nav">
         <h1 className="esti-ribbon__title" title={firmName}>{firmName}</h1>
+        <Box sx={{ flex: 1 }} />
         <Tabs
-          value={selected}
+          value={activeTop >= 0 ? selected : false}
           onChange={(_e, v: number) => {
             setSelected(v);
             // Any tab (leaf or multi-item menu) navigates straight to its first
@@ -55,7 +67,7 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
           variant="scrollable"
           allowScrollButtonsMobile
           aria-label="Primary navigation"
-          sx={{ flex: 1, minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0 } }}
+          sx={{ minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 0 } }}
         >
           {nav.map((n) => (
             <Tab key={n.label} label={n.label} />
@@ -63,6 +75,7 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
         </Tabs>
       </Box>
 
+      {showCommands && (
       <Stack direction="row" spacing={0.5} className="esti-ribbon__row">
         {commands.map((c) => {
           const Icon = c.icon;
@@ -92,6 +105,7 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
           );
         })}
       </Stack>
+      )}
     </Box>
   );
 }

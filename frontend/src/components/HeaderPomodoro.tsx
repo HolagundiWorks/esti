@@ -1,25 +1,24 @@
-import AccessTime from "@mui/icons-material/AccessTime";
-import { IconButton, Paper, Stack } from "@mui/material";
+import TimerOutlined from "@mui/icons-material/TimerOutlined";
+import { IconButton, Popover, Stack, Tooltip, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { fmtPomTime, usePomodoro } from "../contexts/PomodoroContext.js";
-import { useDismissOnOutsideClick } from "../lib/useDismissOnOutsideClick.js";
 import { PomodoroRing } from "./PomodoroRing.js";
-import { ScrollAffordance } from "./ScrollAffordance.js";
 
-/** Header focus-timer control — opens a floating dial panel (Alt+T). Material UI. */
+/**
+ * Focus-timer control for the dock — opens a floating dial panel (Alt+T) in a
+ * portaled MUI Popover anchored above the button (so it is never clipped by the
+ * dock's transform/overflow). Material UI.
+ */
 export function HeaderPomodoro() {
-  const [open, setOpen] = useState(false);
   const pom = usePomodoro();
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   const pomActive = pom.running || (pom.timeLeft < pom.duration && pom.timeLeft > 0);
-
-  useDismissOnOutsideClick(open, () => setOpen(false), [panelRef, triggerRef]);
+  const isFocus = pom.mode === "work";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!e.altKey) return;
-      if (e.key === "t" || e.key === "T") {
+      if (e.altKey && (e.key === "t" || e.key === "T")) {
         e.preventDefault();
         setOpen((o) => !o);
       }
@@ -28,22 +27,20 @@ export function HeaderPomodoro() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const isFocus = pom.mode === "work";
-
   return (
     <>
-      <IconButton
-        ref={triggerRef}
-        size="small"
-        color={open ? "primary" : "default"}
-        aria-label={`Focus timer${pomActive ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}
-        aria-expanded={open}
-        aria-controls="esti-pom-panel"
-        className={pomActive ? "esti-header-pom--active" : undefined}
-        onClick={() => setOpen((o) => !o)}
-      >
-        <AccessTime />
-      </IconButton>
+      <Tooltip title={`Focus timer${pomActive ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}>
+        <IconButton
+          ref={btnRef}
+          size="small"
+          color={open ? "primary" : "default"}
+          className={pomActive ? "esti-header-pom--active" : undefined}
+          aria-label="Focus timer"
+          onClick={() => setOpen((o) => !o)}
+        >
+          <TimerOutlined />
+        </IconButton>
+      </Tooltip>
 
       {pom.running && !open && (
         <span
@@ -55,18 +52,19 @@ export function HeaderPomodoro() {
         </span>
       )}
 
-      {open && (
-        <div ref={panelRef} id="esti-pom-panel" className="esti-float-widget esti-float-pom-header">
-          <Paper className="esti-float-panel-shell">
-            <ScrollAffordance>
-              <Stack spacing={2}>
-                <h4>Focus timer</h4>
-                <PomodoroRing />
-              </Stack>
-            </ScrollAffordance>
-          </Paper>
-        </div>
-      )}
+      <Popover
+        open={open}
+        anchorEl={btnRef.current}
+        onClose={() => setOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        slotProps={{ paper: { sx: { width: 260, p: 2 } } }}
+      >
+        <Stack spacing={2}>
+          <Typography variant="subtitle2">Focus timer</Typography>
+          <PomodoroRing />
+        </Stack>
+      </Popover>
     </>
   );
 }

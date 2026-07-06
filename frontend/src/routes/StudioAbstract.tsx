@@ -12,9 +12,11 @@ import {
   CardActionArea,
   CardContent,
   Chip,
+  FormControlLabel,
   Grid,
   LinearProgress,
   Stack,
+  Switch,
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
@@ -290,6 +292,40 @@ export function StudioAbstract() {
 
   const canInvoice = can(user?.role, "invoice:manage");
 
+  // Module toggles (moved off the dock) — admin-only, shown in the page header.
+  const isAdmin = can(user?.role, "firm:admin");
+  const setModule = trpc.settings.setModuleEnabled.useMutation({
+    onSuccess: () => settingsQ.refetch(),
+  });
+  const financialEnabled = settingsQ.data?.financialEnabled ?? true;
+  const projectEnabled = settingsQ.data?.projectEnabled ?? true;
+  const moduleToggles = isAdmin ? (
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <FormControlLabel
+        control={
+          <Switch
+            size="small"
+            checked={financialEnabled}
+            disabled={setModule.isPending}
+            onChange={(e) => setModule.mutate({ module: "financial", enabled: e.target.checked })}
+          />
+        }
+        label="Financial"
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            size="small"
+            checked={projectEnabled}
+            disabled={setModule.isPending}
+            onChange={(e) => setModule.mutate({ module: "project", enabled: e.target.checked })}
+          />
+        }
+        label="Project"
+      />
+    </Stack>
+  ) : undefined;
+
   const pending      = ac?.pendingApprovals   ?? [];
   const pendingCount = pending.length;
   const maxWaitDays  = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
@@ -419,6 +455,7 @@ export function StudioAbstract() {
         <PageHeader
           title="Studio Intelligence"
           description="Practice health · action items · project, finance and team signals"
+          actions={moduleToggles}
         />
 
         {/* Attention banner */}
