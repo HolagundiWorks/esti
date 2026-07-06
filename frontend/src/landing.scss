@@ -2416,10 +2416,24 @@ h1.esti-landing-lead-title {
 
 .esti-landing-footer.esti-landing-band {
   padding-block: var(--cds-spacing-10) var(--cds-spacing-09);
-  background: rgba(11, 11, 11, 0.92);
-  border-block-start: 1px solid var(--cds-border-subtle-01);
-  color: var(--cds-text-primary);
+  background: var(--lp-bg-dark); // Oceanic Noir — dark anchor band (white logos)
+  border-block-start: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--lp-ink-invert);
   backdrop-filter: blur(8px) saturate(1.08);
+
+  // The footer is a DARK band, but the --cds-text-* / MUI-link colours the
+  // markup uses are dark under the light theme and would merge into it. Force
+  // legible light text/links here (compound selector wins over per-element rules).
+  h2,
+  .esti-landing-footer__eyebrow { color: color-mix(in srgb, var(--lp-ink-invert) 62%, transparent); }
+  p,
+  span,
+  li,
+  .esti-landing-footer__addr { color: color-mix(in srgb, var(--lp-ink-invert) 80%, transparent); }
+  a,
+  .MuiLink-root { color: var(--lp-ink-invert); }
+  a:hover,
+  .MuiLink-root:hover { color: var(--lp-warm); }
 }
 
 .esti-landing-footer__grid {
@@ -3416,14 +3430,47 @@ h1.esti-landing-lead-title {
 }
 
 // Fixed bottom status bar
+// Partners / "built for" trust strip — inline, light (wireframe Partners slot).
+// Dark ink marks on the light canvas — deliberately NOT the fixed dark bar below.
+.esti-lp-partners {
+  width: 80%;
+  max-width: var(--lp-max);
+  margin: 0 auto;
+  padding: var(--cds-spacing-07) 0;
+  text-align: center;
+  border-bottom: 1px solid var(--lp-border);
+}
+.esti-lp-partners__lead {
+  margin: 0 0 var(--cds-spacing-05);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+}
+.esti-lp-partners__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cds-spacing-06) var(--cds-spacing-09);
+}
+.esti-lp-partners__mark {
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--lp-ink);
+  opacity: 0.72;
+}
+
 .esti-lp-statusbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: 28px;
-  background: rgba(11, 11, 11, 0.92);
-  border-top: 1px solid var(--cds-border-subtle);
+  background: var(--lp-bg-dark); // Oceanic Noir band
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -3433,7 +3480,7 @@ h1.esti-landing-lead-title {
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--cds-text-helper);
+  color: color-mix(in srgb, var(--lp-ink-invert) 72%, transparent); // light on dark
   overflow: hidden;
 
   &__item {

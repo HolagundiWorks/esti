@@ -111,16 +111,13 @@ const PARTNER_MARKS = [
 
 export function PartnersSection() {
   return (
-    <section className="esti-lp-statusbar" id="partners" aria-label="Built for Indian practice">
-      <span className="esti-lp-statusbar__item esti-lp-statusbar__ver">
-        Built for how Indian practices actually work
-      </span>
-      {PARTNER_MARKS.map((p) => (
-        <span key={p} className="esti-lp-statusbar__item">
-          <StatusDot color="green" />
-          {p}
-        </span>
-      ))}
+    <section className="esti-lp-partners" id="partners" aria-label="Built for Indian practice">
+      <p className="esti-lp-partners__lead">Built for how Indian practices actually work</p>
+      <div className="esti-lp-partners__row">
+        {PARTNER_MARKS.map((p) => (
+          <span key={p} className="esti-lp-partners__mark">{p}</span>
+        ))}
+      </div>
     </section>
   );
 }
