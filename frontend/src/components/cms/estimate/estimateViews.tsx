@@ -5,21 +5,17 @@
  * Cost Management tabs (Estimation · BOQ · BBS).
  */
 import {
+  Box,
   Button,
-  DataTableSkeleton,
-  NumberInput,
+  Chip,
+  IconButton,
+  Skeleton,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import { TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import { formatINR, type CostedEstimate, type RateSource } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../../DataState.js";
@@ -30,30 +26,38 @@ export const inr = (paise: number) => formatINR(paise, { paise: false });
 export const qty = (n: number) => n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 const scroll = { maxHeight: "58vh", overflowY: "auto" } as const;
 
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
+
 /** Variance tag — green when the rate book costs less than the estimate, red when more. */
 export function VarianceTag({ paise }: { paise: number }) {
-  if (paise === 0) return <Tag type="gray" size="sm">±0</Tag>;
+  if (paise === 0) return <Chip label="±0" size="small" sx={tagSx("gray")} />;
   return (
-    <Tag type={paise < 0 ? "green" : "red"} size="sm">
-      {paise < 0 ? "−" : "+"}
-      {inr(Math.abs(paise))}
-    </Tag>
+    <Chip
+      label={`${paise < 0 ? "−" : "+"}${inr(Math.abs(paise))}`}
+      size="small"
+      sx={tagSx(paise < 0 ? "green" : "red")}
+    />
   );
 }
 
 /** Where the costed rate came from — project override, office book, or estimate. */
 export function SourceTag({ source }: { source: RateSource }) {
-  if (source === "project") return <Tag type="purple" size="sm">project</Tag>;
-  if (source === "estimate") return <Tag type="cool-gray" size="sm">est.</Tag>;
+  if (source === "project") return <Chip label="project" size="small" sx={tagSx("purple")} />;
+  if (source === "estimate") return <Chip label="est." size="small" sx={tagSx("cool-gray")} />;
   return null; // rateBook is the norm — no tag
 }
 
 /** Summary chips: as-estimated vs costed + variance. */
 export function EstimateSummary({ c }: { c: Costed }) {
   return (
-    <Stack orientation="horizontal" gap={3}>
-      <Tag type="blue">Estimate {inr(c.abstract.totalEstimatedPaise)}</Tag>
-      <Tag type="teal">Costed {inr(c.grandTotalPaise)}</Tag>
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <Chip label={`Estimate ${inr(c.abstract.totalEstimatedPaise)}`} sx={tagSx("blue")} />
+      <Chip label={`Costed ${inr(c.grandTotalPaise)}`} sx={tagSx("teal")} />
       <VarianceTag paise={c.abstract.totalVariancePaise} />
     </Stack>
   );
@@ -61,7 +65,19 @@ export function EstimateSummary({ c }: { c: Costed }) {
 
 /** Shown by BOQ/BBS when no estimate is selected in the Estimation tab. */
 export function NoEstimate({ loading }: { loading: boolean }) {
-  if (loading) return <DataTableSkeleton columnCount={6} rowCount={4} showHeader={false} />;
+  if (loading) {
+    return (
+      <Stack spacing={0.5}>
+        {Array.from({ length: 4 }).map((_, row) => (
+          <Stack key={row} direction="row" spacing={1}>
+            {Array.from({ length: 6 }).map((__, col) => (
+              <Skeleton key={col} variant="rectangular" height={32} sx={{ flex: 1 }} />
+            ))}
+          </Stack>
+        ))}
+      </Stack>
+    );
+  }
   return (
     <span className="esti-label esti-label--helper">
       No estimate yet — import an <code>.aormsest</code> file in the Estimation tab.
@@ -69,88 +85,116 @@ export function NoEstimate({ loading }: { loading: boolean }) {
   );
 }
 
+/** Rate + source tag rendered together in one grid cell. */
+function RateWithSource({ paise, source }: { paise: number; source: RateSource }) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, height: 1 }}>
+      <span>{inr(paise)}</span>
+      <SourceTag source={source} />
+    </Box>
+  );
+}
+
 export function AbstractTab({ c }: { c: Costed }) {
   const rows = c.abstract.rows;
+  const columns: GridColDef[] = [
+    { field: "code", headerName: "Code", flex: 0.6, minWidth: 90 },
+    { field: "shortName", headerName: "Item", flex: 1.4, minWidth: 160 },
+    { field: "uom", headerName: "Unit", flex: 0.4, minWidth: 70 },
+    { field: "qty", headerName: "Qty", flex: 0.6, minWidth: 90, renderCell: (p) => qty(p.row.qty) },
+    {
+      field: "ratePaiseEstimated",
+      headerName: "Rate (est.)",
+      flex: 0.7,
+      minWidth: 100,
+      renderCell: (p) => inr(p.row.ratePaiseEstimated),
+    },
+    {
+      field: "ratePaise",
+      headerName: "Rate",
+      flex: 0.9,
+      minWidth: 120,
+      renderCell: (p) => <RateWithSource paise={p.row.ratePaise} source={p.row.rateSource} />,
+    },
+    {
+      field: "leadAmountPaise",
+      headerName: "Lead",
+      flex: 0.6,
+      minWidth: 90,
+      renderCell: (p) => (p.row.leadAmountPaise ? inr(p.row.leadAmountPaise) : "—"),
+    },
+    {
+      field: "amountPaise",
+      headerName: "Amount",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => inr(p.row.amountPaise),
+    },
+    {
+      field: "variancePaise",
+      headerName: "Variance",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => <VarianceTag paise={p.row.variancePaise} />,
+    },
+  ];
   return (
     <DataState loading={false} isEmpty={rows.length === 0} columnCount={9} empty={{ title: "No items" }}>
-      <TableContainer
-        title="Abstract of cost"
-        description={`As-estimated ${inr(c.abstract.totalEstimatedPaise)} · costed ${inr(c.abstract.totalCostedPaise)}${
-          c.abstract.totalLeadPaise ? ` · lead ${inr(c.abstract.totalLeadPaise)}` : ""
-        }`}
-      >
-        <div style={scroll}>
-          <Table size="sm" useZebraStyles stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Code</TableHeader>
-                <TableHeader>Item</TableHeader>
-                <TableHeader>Unit</TableHeader>
-                <TableHeader>Qty</TableHeader>
-                <TableHeader>Rate (est.)</TableHeader>
-                <TableHeader>Rate</TableHeader>
-                <TableHeader>Lead</TableHeader>
-                <TableHeader>Amount</TableHeader>
-                <TableHeader>Variance</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.code}>
-                  <TableCell>{r.code}</TableCell>
-                  <TableCell>{r.shortName}</TableCell>
-                  <TableCell>{r.uom}</TableCell>
-                  <TableCell>{qty(r.qty)}</TableCell>
-                  <TableCell>{inr(r.ratePaiseEstimated)}</TableCell>
-                  <TableCell>
-                    {inr(r.ratePaise)} <SourceTag source={r.rateSource} />
-                  </TableCell>
-                  <TableCell>{r.leadAmountPaise ? inr(r.leadAmountPaise) : "—"}</TableCell>
-                  <TableCell>{inr(r.amountPaise)}</TableCell>
-                  <TableCell>
-                    <VarianceTag paise={r.variancePaise} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      <Stack spacing={1}>
+        <div>
+          <Typography variant="subtitle1" component="h4">Abstract of cost</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {`As-estimated ${inr(c.abstract.totalEstimatedPaise)} · costed ${inr(c.abstract.totalCostedPaise)}${
+              c.abstract.totalLeadPaise ? ` · lead ${inr(c.abstract.totalLeadPaise)}` : ""
+            }`}
+          </Typography>
         </div>
-      </TableContainer>
+        <Box sx={scroll}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(row) => row.code}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Box>
+      </Stack>
     </DataState>
   );
 }
 
 export function BoqTab({ c }: { c: Costed }) {
+  const columns: GridColDef[] = [
+    { field: "code", headerName: "Code", flex: 0.6, minWidth: 90 },
+    { field: "shortName", headerName: "Description", flex: 1.6, minWidth: 180 },
+    { field: "uom", headerName: "Unit", flex: 0.4, minWidth: 70 },
+    { field: "qty", headerName: "Qty", flex: 0.6, minWidth: 90, renderCell: (p) => qty(p.row.qty) },
+    { field: "ratePaise", headerName: "Rate", flex: 0.7, minWidth: 100, renderCell: (p) => inr(p.row.ratePaise) },
+    { field: "amountPaise", headerName: "Amount", flex: 0.8, minWidth: 110, renderCell: (p) => inr(p.row.amountPaise) },
+  ];
   return (
     <DataState loading={false} isEmpty={c.boq.sections.length === 0} columnCount={6} empty={{ title: "No items" }}>
-      <Stack gap={5}>
+      <Stack spacing={2}>
         {c.boq.sections.map((sec) => (
-          <TableContainer key={sec.section} title={sec.section} description={`Subtotal ${inr(sec.subtotalPaise)}`}>
-            <Table size="sm" useZebraStyles>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Code</TableHeader>
-                  <TableHeader>Description</TableHeader>
-                  <TableHeader>Unit</TableHeader>
-                  <TableHeader>Qty</TableHeader>
-                  <TableHeader>Rate</TableHeader>
-                  <TableHeader>Amount</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sec.rows.map((r) => (
-                  <TableRow key={r.code}>
-                    <TableCell>{r.code}</TableCell>
-                    <TableCell>{r.shortName}</TableCell>
-                    <TableCell>{r.uom}</TableCell>
-                    <TableCell>{qty(r.qty)}</TableCell>
-                    <TableCell>{inr(r.ratePaise)}</TableCell>
-                    <TableCell>{inr(r.amountPaise)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Stack key={sec.section} spacing={1}>
+            <div>
+              <Typography variant="subtitle1" component="h4">{sec.section}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {`Subtotal ${inr(sec.subtotalPaise)}`}
+              </Typography>
+            </div>
+            <DataGrid
+              rows={sec.rows}
+              columns={columns}
+              getRowId={(row) => row.code}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+            />
+          </Stack>
         ))}
       </Stack>
     </DataState>
@@ -159,38 +203,41 @@ export function BoqTab({ c }: { c: Costed }) {
 
 export function MaterialsTab({ c }: { c: Costed }) {
   const rows = c.materials.rows;
+  const columns: GridColDef[] = [
+    { field: "code", headerName: "Code", flex: 0.6, minWidth: 90 },
+    { field: "name", headerName: "Material", flex: 1.6, minWidth: 180 },
+    { field: "unit", headerName: "Unit", flex: 0.4, minWidth: 70 },
+    { field: "qty", headerName: "Qty", flex: 0.6, minWidth: 90, renderCell: (p) => qty(p.row.qty) },
+    {
+      field: "ratePaise",
+      headerName: "Rate",
+      flex: 0.9,
+      minWidth: 120,
+      renderCell: (p) => <RateWithSource paise={p.row.ratePaise} source={p.row.rateSource} />,
+    },
+    { field: "amountPaise", headerName: "Value", flex: 0.8, minWidth: 110, renderCell: (p) => inr(p.row.amountPaise) },
+  ];
   return (
     <DataState loading={false} isEmpty={rows.length === 0} columnCount={6} empty={{ title: "No material take-off" }}>
-      <TableContainer title="Material take-off" description={`Procurement value ${inr(c.materials.totalPaise)}`}>
-        <div style={scroll}>
-          <Table size="sm" useZebraStyles stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Code</TableHeader>
-                <TableHeader>Material</TableHeader>
-                <TableHeader>Unit</TableHeader>
-                <TableHeader>Qty</TableHeader>
-                <TableHeader>Rate</TableHeader>
-                <TableHeader>Value</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.code}>
-                  <TableCell>{r.code}</TableCell>
-                  <TableCell>{r.name}</TableCell>
-                  <TableCell>{r.unit}</TableCell>
-                  <TableCell>{qty(r.qty)}</TableCell>
-                  <TableCell>
-                    {inr(r.ratePaise)} <SourceTag source={r.rateSource} />
-                  </TableCell>
-                  <TableCell>{inr(r.amountPaise)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      <Stack spacing={1}>
+        <div>
+          <Typography variant="subtitle1" component="h4">Material take-off</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {`Procurement value ${inr(c.materials.totalPaise)}`}
+          </Typography>
         </div>
-      </TableContainer>
+        <Box sx={scroll}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(row) => row.code}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Box>
+      </Stack>
     </DataState>
   );
 }
@@ -198,37 +245,38 @@ export function MaterialsTab({ c }: { c: Costed }) {
 /** Steel reinforcement — the BBS roll-up by diameter. */
 export function SteelTab({ c }: { c: Costed }) {
   const rows = c.steel.rows;
+  const columns: GridColDef[] = [
+    { field: "diaMm", headerName: "Ø (mm)", flex: 0.5, minWidth: 80 },
+    { field: "unitWeightKgM", headerName: "Unit wt (kg/m)", flex: 0.7, minWidth: 120 },
+    { field: "weightKg", headerName: "Weight (kg)", flex: 0.7, minWidth: 110, renderCell: (p) => qty(p.row.weightKg) },
+    {
+      field: "ratePaise",
+      headerName: "Rate (₹/kg)",
+      flex: 0.9,
+      minWidth: 130,
+      renderCell: (p) => <RateWithSource paise={p.row.ratePaise} source={p.row.rateSource} />,
+    },
+    { field: "amountPaise", headerName: "Value", flex: 0.8, minWidth: 110, renderCell: (p) => inr(p.row.amountPaise) },
+  ];
   return (
     <DataState loading={false} isEmpty={rows.length === 0} columnCount={5} empty={{ title: "No reinforcement" }}>
-      <TableContainer
-        title="Bar Bending Schedule — steel by diameter"
-        description={`${qty(c.steel.totalWeightKg)} kg · value ${inr(c.steel.totalPaise)}`}
-      >
-        <Table size="sm" useZebraStyles>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ø (mm)</TableHeader>
-              <TableHeader>Unit wt (kg/m)</TableHeader>
-              <TableHeader>Weight (kg)</TableHeader>
-              <TableHeader>Rate (₹/kg)</TableHeader>
-              <TableHeader>Value</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.diaMm}>
-                <TableCell>{r.diaMm}</TableCell>
-                <TableCell>{r.unitWeightKgM}</TableCell>
-                <TableCell>{qty(r.weightKg)}</TableCell>
-                <TableCell>
-                  {inr(r.ratePaise)} <SourceTag source={r.rateSource} />
-                </TableCell>
-                <TableCell>{inr(r.amountPaise)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack spacing={1}>
+        <div>
+          <Typography variant="subtitle1" component="h4">Bar Bending Schedule — steel by diameter</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {`${qty(c.steel.totalWeightKg)} kg · value ${inr(c.steel.totalPaise)}`}
+          </Typography>
+        </div>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowId={(row) => row.diaMm}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
+      </Stack>
     </DataState>
   );
 }
@@ -269,69 +317,77 @@ export function ProjectRateBook({ projectId }: { projectId: string | null }) {
   }
 
   const list = rows.data ?? [];
+
+  const columns: GridColDef[] = [
+    { field: "code", headerName: "Code", flex: 0.7, minWidth: 100 },
+    { field: "description", headerName: "Description", flex: 1.6, minWidth: 180 },
+    { field: "unit", headerName: "Unit", flex: 0.4, minWidth: 70 },
+    { field: "ratePaise", headerName: "Rate", flex: 0.7, minWidth: 100, renderCell: (p) => inr(p.row.ratePaise) },
+    {
+      field: "actions",
+      headerName: "Remove",
+      sortable: false,
+      filterable: false,
+      width: 90,
+      renderCell: (p) => (
+        <IconButton
+          size="small"
+          aria-label="Remove override"
+          disabled={remove.isPending}
+          onClick={() => remove.mutate({ id: p.row.id })}
+        >
+          <DeleteOutline fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={3}>
-        <Button size="sm" kind="tertiary" disabled={seed.isPending} onClick={() => seed.mutate({ projectId })}>
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Button size="small" variant="outlined" disabled={seed.isPending} onClick={() => seed.mutate({ projectId })}>
           {seed.isPending ? "Seeding…" : "Seed from office rate book"}
         </Button>
         <span className="esti-label esti-label--helper">{list.length} project override(s)</span>
       </Stack>
 
-      <Stack orientation="horizontal" gap={3} style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
-        <TextInput id="pr-code" labelText="Item code" value={code} onChange={(e) => setCode(e.target.value)} />
-        <TextInput id="pr-desc" labelText="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <TextInput id="pr-unit" labelText="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} />
-        <NumberInput
+      <Stack direction="row" spacing={1} sx={{ alignItems: "flex-end", flexWrap: "wrap" }}>
+        <TextField id="pr-code" size="small" label="Item code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <TextField id="pr-desc" size="small" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <TextField id="pr-unit" size="small" label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} />
+        <TextField
           id="pr-rate"
+          size="small"
           label="Rate (₹)"
-          min={0}
-          step={1}
+          type="number"
           value={rupees}
-          onChange={(_e, { value }) => setRupees(Number(value) || 0)}
+          onChange={(e) => setRupees(Number(e.target.value) || 0)}
+          slotProps={{ htmlInput: { min: 0, step: 1 } }}
         />
-        <Button size="sm" disabled={!code.trim() || setRate.isPending} onClick={saveOverride}>
+        <Button size="small" variant="contained" disabled={!code.trim() || setRate.isPending} onClick={saveOverride}>
           Save override
         </Button>
       </Stack>
 
       <DataState loading={rows.isLoading} isEmpty={list.length === 0} columnCount={5} empty={{ title: "No project overrides", description: "Seed from the office book or add an override above." }}>
-        <TableContainer title="Project rate book" description="Overrides win over the office rate book when re-costing.">
-          <div style={scroll}>
-            <Table size="sm" useZebraStyles stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Code</TableHeader>
-                  <TableHeader>Description</TableHeader>
-                  <TableHeader>Unit</TableHeader>
-                  <TableHeader>Rate</TableHeader>
-                  <TableHeader>Remove</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {list.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.code}</TableCell>
-                    <TableCell>{r.description}</TableCell>
-                    <TableCell>{r.unit}</TableCell>
-                    <TableCell>{inr(r.ratePaise)}</TableCell>
-                    <TableCell>
-                      <Button
-                        hasIconOnly
-                        size="sm"
-                        kind="ghost"
-                        renderIcon={TrashCan}
-                        iconDescription="Remove override"
-                        disabled={remove.isPending}
-                        onClick={() => remove.mutate({ id: r.id })}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <Stack spacing={1}>
+          <div>
+            <Typography variant="subtitle1" component="h4">Project rate book</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Overrides win over the office rate book when re-costing.
+            </Typography>
           </div>
-        </TableContainer>
+          <Box sx={scroll}>
+            <DataGrid
+              rows={list}
+              columns={columns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+            />
+          </Box>
+        </Stack>
       </DataState>
     </Stack>
   );

@@ -1,22 +1,29 @@
 import { useState } from "react";
 import {
+  Alert,
   Button,
-  InlineNotification,
-  Modal,
-  NumberInput,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
   Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Add, Checkmark, Close, Renew, TrashCan, View } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { canonicalUnit, formatINR, parseRateText } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { ConfirmModal } from "../ConfirmModal.js";
@@ -27,6 +34,11 @@ const STATUS_TAG: Record<string, "blue" | "green" | "red"> = {
   ACCEPTED: "green",
   REJECTED: "red",
 };
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 type QuoteLine = { materialName: string; unit: string; rateRupees: number };
 
@@ -102,11 +114,97 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
 
   const usableLines = (lines ?? []).filter((l) => l.materialName.trim() && l.unit.trim() && l.rateRupees > 0).length;
 
+  const quoteColumns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1 },
+    { field: "quoteDate", headerName: "Date", width: 120 },
+    { field: "lineCount", headerName: "Lines", width: 90 },
+    {
+      field: "totalPaise",
+      headerName: "Total",
+      width: 140,
+      valueFormatter: (value: number) => formatINR(value),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (params) => (
+        <Chip size="small" label={params.row.status} sx={chipSx(STATUS_TAG[params.row.status as string] ?? "blue")} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 170,
+      renderCell: (params) => {
+        const q = params.row as { id: string; status: string };
+        return (
+          <Stack direction="row" spacing={0.5}>
+            <IconButton
+              size="small"
+              aria-label="View lines"
+              title="View lines"
+              onClick={() => setOpenId(openId === q.id ? null : q.id)}
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+            {q.status === "RECEIVED" && (
+              <>
+                <IconButton
+                  size="small"
+                  aria-label="Accept → pricing history"
+                  title="Accept → pricing history"
+                  onClick={() => acceptM.mutate({ id: q.id })}
+                  disabled={acceptM.isPending}
+                >
+                  <CheckIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label="Reject"
+                  title="Reject"
+                  onClick={() => rejectM.mutate({ id: q.id })}
+                  disabled={rejectM.isPending}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </>
+            )}
+            <IconButton
+              size="small"
+              color="error"
+              aria-label="Remove"
+              title="Remove"
+              onClick={() => setConfirmRemove(q.id)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        );
+      },
+    },
+  ];
+
+  const lineColumns: GridColDef[] = [
+    { field: "materialName", headerName: "Material", flex: 2 },
+    { field: "unit", headerName: "Unit", width: 110 },
+    {
+      field: "ratePaise",
+      headerName: "Rate",
+      width: 140,
+      valueFormatter: (value: number) => formatINR(value),
+    },
+  ];
+
   return (
-    <Stack gap={4}>
+    <Stack spacing={2}>
       <div className="esti-row-between">
-        <h4>Quotations</h4>
-        <Button size="sm" renderIcon={Add} onClick={() => setAddOpen(true)}>New quote</Button>
+        <Typography variant="subtitle1" component="h4">Quotations</Typography>
+        <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
+          New quote
+        </Button>
       </div>
 
       <DataState
@@ -115,154 +213,166 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
         empty={{ title: "No quotations", description: "Record a quote received from this vendor; accept it to feed pricing history." }}
         columnCount={6}
       >
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Lines</TableHeader>
-                <TableHeader>Total</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {quotes.map((q) => (
-                <TableRow key={q.id}>
-                  <TableCell>{q.ref}</TableCell>
-                  <TableCell>{q.quoteDate}</TableCell>
-                  <TableCell>{q.lineCount}</TableCell>
-                  <TableCell>{formatINR(q.totalPaise)}</TableCell>
-                  <TableCell>
-                    <Tag type={STATUS_TAG[q.status] ?? "blue"} size="sm">{q.status}</Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      <Button kind="ghost" size="sm" renderIcon={View} hasIconOnly iconDescription="View lines"
-                        onClick={() => setOpenId(openId === q.id ? null : q.id)} />
-                      {q.status === "RECEIVED" && (
-                        <>
-                          <Button kind="ghost" size="sm" renderIcon={Checkmark} hasIconOnly iconDescription="Accept → pricing history"
-                            onClick={() => acceptM.mutate({ id: q.id })} disabled={acceptM.isPending} />
-                          <Button kind="ghost" size="sm" renderIcon={Close} hasIconOnly iconDescription="Reject"
-                            onClick={() => rejectM.mutate({ id: q.id })} disabled={rejectM.isPending} />
-                        </>
-                      )}
-                      <Button kind="danger--ghost" size="sm" renderIcon={TrashCan} hasIconOnly iconDescription="Remove"
-                        onClick={() => setConfirmRemove(q.id)} />
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={quotes}
+          columns={quoteColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
       {openId && detailQ.data && (
-        <TableContainer title={`${detailQ.data.ref} — lines`}>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Material</TableHeader>
-                <TableHeader>Unit</TableHeader>
-                <TableHeader>Rate</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {detailQ.data.lines.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell>{l.materialName}</TableCell>
-                  <TableCell>{l.unit}</TableCell>
-                  <TableCell>{formatINR(l.ratePaise)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={1}>
+          <Typography variant="subtitle2" component="h5">{`${detailQ.data.ref} — lines`}</Typography>
+          <DataGrid
+            rows={detailQ.data.lines}
+            columns={lineColumns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+            getRowHeight={() => "auto"}
+          />
+        </Stack>
       )}
 
       {acceptM.data && acceptM.data.priced > 0 && (
-        <InlineNotification kind="success" lowContrast hideCloseButton
-          title="Quote accepted" subtitle={`${acceptM.data.priced} price records added to pricing history.`} />
+        <Alert severity="success">
+          Quote accepted — {acceptM.data.priced} price records added to pricing history.
+        </Alert>
       )}
 
       {/* New quote modal — paste & parse */}
-      <Modal
-        open={addOpen}
-        modalHeading="New vendor quote"
-        size="lg"
-        primaryButtonText={createM.isPending ? "Saving…" : `Save ${usableLines} lines`}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={createM.isPending || !header.ref || usableLines === 0}
-        onRequestSubmit={save}
-        onRequestClose={() => setAddOpen(false)}
-        onSecondarySubmit={() => setAddOpen(false)}
-      >
-        <Stack gap={5}>
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput id="vq-ref" labelText="Quote ref" placeholder="Q-2026-014" value={header.ref}
-              onChange={(e) => setHeader({ ...header, ref: e.target.value })} />
-            <TextInput id="vq-date" labelText="Quote date" type="date" value={header.quoteDate}
-              onChange={(e) => setHeader({ ...header, quoteDate: e.target.value })} />
-          </Stack>
-          <TextArea id="vq-raw" labelText="Paste quote text" rows={6}
-            placeholder={"1. OPC 53 cement   bag   420\n2. River sand   Cum   2400"}
-            value={raw} onChange={(e) => setRaw(e.target.value)} />
-          <Button kind="tertiary" size="sm" renderIcon={Renew} onClick={parse} disabled={raw.trim() === ""}>
-            Parse lines
-          </Button>
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New vendor quote</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="vq-ref"
+                label="Quote ref"
+                placeholder="Q-2026-014"
+                value={header.ref}
+                onChange={(e) => setHeader({ ...header, ref: e.target.value })}
+                fullWidth
+              />
+              <TextField
+                id="vq-date"
+                label="Quote date"
+                type="date"
+                value={header.quoteDate}
+                onChange={(e) => setHeader({ ...header, quoteDate: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+            </Stack>
+            <TextField
+              id="vq-raw"
+              label="Paste quote text"
+              multiline
+              minRows={6}
+              placeholder={"1. OPC 53 cement   bag   420\n2. River sand   Cum   2400"}
+              value={raw}
+              onChange={(e) => setRaw(e.target.value)}
+              fullWidth
+            />
+            <Stack direction="row">
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AutorenewIcon />}
+                onClick={parse}
+                disabled={raw.trim() === ""}
+              >
+                Parse lines
+              </Button>
+            </Stack>
 
-          {lines && (
-            <TableContainer title={`${usableLines} usable lines`}>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Material</TableHeader>
-                    <TableHeader>Unit → canonical</TableHeader>
-                    <TableHeader>Rate (₹)</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {lines.map((l, i) => {
-                    const canon = canonicalUnit(l.unit);
-                    return (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <TextInput id={`vql-d-${i}`} labelText="" hideLabel size="sm" value={l.materialName}
-                            onChange={(e) => setLine(i, { materialName: e.target.value })} />
-                        </TableCell>
-                        <TableCell>
-                          <Stack orientation="horizontal" gap={2} className="esti-row">
+            {lines && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">{`${usableLines} usable lines`}</Typography>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Material</TableCell>
+                      <TableCell>Unit → canonical</TableCell>
+                      <TableCell>Rate (₹)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {lines.map((l, i) => {
+                      const canon = canonicalUnit(l.unit);
+                      return (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <TextField
+                              id={`vql-d-${i}`}
+                              size="small"
+                              value={l.materialName}
+                              onChange={(e) => setLine(i, { materialName: e.target.value })}
+                              slotProps={{ htmlInput: { "aria-label": "Material" } }}
+                              fullWidth
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Stack direction="row" spacing={1} className="esti-row">
+                              <div className="esti-input-sm">
+                                <TextField
+                                  id={`vql-u-${i}`}
+                                  size="small"
+                                  value={l.unit}
+                                  onChange={(e) => setLine(i, { unit: e.target.value })}
+                                  slotProps={{ htmlInput: { "aria-label": "Unit" } }}
+                                />
+                              </div>
+                              {l.unit.trim() !== "" && (
+                                <Chip
+                                  size="small"
+                                  label={canon ?? "unknown"}
+                                  sx={chipSx(canon ? "green" : "red")}
+                                />
+                              )}
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
                             <div className="esti-input-sm">
-                              <TextInput id={`vql-u-${i}`} labelText="" hideLabel size="sm" value={l.unit}
-                                onChange={(e) => setLine(i, { unit: e.target.value })} />
+                              <TextField
+                                id={`vql-r-${i}`}
+                                size="small"
+                                type="number"
+                                value={l.rateRupees}
+                                onChange={(e) => setLine(i, { rateRupees: Number(e.target.value) })}
+                                slotProps={{ htmlInput: { min: 0, step: 0.5, "aria-label": "Rate (₹)" } }}
+                              />
                             </div>
-                            {l.unit.trim() !== "" && (
-                              <Tag type={canon ? "green" : "red"} size="sm">{canon ?? "unknown"}</Tag>
-                            )}
-                          </Stack>
-                        </TableCell>
-                        <TableCell>
-                          <div className="esti-input-sm">
-                            <NumberInput id={`vql-r-${i}`} label="" hideLabel size="sm" min={0} step={0.5}
-                              value={l.rateRupees}
-                              onChange={(_e, { value }) => setLine(i, { rateRupees: Number(value) })} />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-          {createM.error && (
-            <InlineNotification kind="error" lowContrast hideCloseButton title="Could not save" subtitle={createM.error.message} />
-          )}
-        </Stack>
-      </Modal>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Stack>
+            )}
+            {createM.error && (
+              <Alert severity="error">Could not save — {createM.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={createM.isPending || !header.ref || usableLines === 0}
+            onClick={save}
+          >
+            {createM.isPending ? "Saving…" : `Save ${usableLines} lines`}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmModal
         open={!!confirmRemove} heading="Remove quote?" body="This deletes the quotation and its lines. Pricing history already recorded stays."
