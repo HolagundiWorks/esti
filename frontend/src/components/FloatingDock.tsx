@@ -3,7 +3,6 @@ import AssignmentOutlined from "@mui/icons-material/AssignmentOutlined";
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
-import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import {
   Divider,
@@ -23,6 +22,7 @@ import { can } from "@esti/contracts";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
+import { HeaderPomodoro } from "./HeaderPomodoro.js";
 import { OfficeHealthGlyph } from "./shell/OfficeHealthGlyph.js";
 import type { ZoneState } from "./dashboard/zoneState.js";
 
@@ -133,11 +133,7 @@ export function FloatingDock() {
               </IconButton>
             </Tooltip>
           )}
-          <Tooltip title="Search">
-            <IconButton size="small" onClick={() => navigate("/search")} aria-label="Search">
-              <SearchOutlined />
-            </IconButton>
-          </Tooltip>
+          <HeaderPomodoro />
           <Tooltip title="Calculator (Alt+C)">
             <IconButton
               ref={calcTriggerRef}

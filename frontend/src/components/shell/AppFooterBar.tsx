@@ -4,7 +4,6 @@ import { Box, IconButton, InputAdornment, Stack, TextField, Tooltip } from "@mui
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertsBell } from "../AlertsBell.js";
-import { HeaderPomodoro } from "../HeaderPomodoro.js";
 import { UserIdCard } from "../UserIdCard.js";
 
 /**
@@ -43,7 +42,6 @@ export function AppFooterBar({
       {/* Left utilities */}
       <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: 1 }}>
         <FooterClock />
-        <HeaderPomodoro />
       </Stack>
 
       {/* Centered open search */}
