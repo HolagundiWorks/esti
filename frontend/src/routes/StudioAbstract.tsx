@@ -460,7 +460,7 @@ export function StudioAbstract() {
         <Box
           className="esti-dash-rail"
           sx={{
-            flex: "0 0 30%", maxWidth: "30%", minWidth: 0,
+            flex: "0 0 20%", maxWidth: "20%", minWidth: 0,
             position: "sticky", top: 0, alignSelf: "flex-start",
             maxHeight: "calc(100vh - 132px)", overflowY: "auto",
             display: "flex", flexDirection: "column", gap: 2, pr: 0.5,
@@ -505,7 +505,7 @@ export function StudioAbstract() {
           {/* KPI telemetry — 2-up, compact for the narrow rail */}
           <Grid container spacing={1}>
             {heroKpis.map((k) => (
-              <Grid key={k.label} size={6}>
+              <Grid key={k.label} size={{ xs: 6, xl: 12 }}>
                 <Card sx={{ height: 1, borderTop: 2, borderTopColor: "primary.main" }}>
                   <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
                     <Typography variant="overline" color="text.secondary">{k.label}</Typography>
