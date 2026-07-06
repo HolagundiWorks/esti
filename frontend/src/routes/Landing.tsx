@@ -65,7 +65,7 @@ export function Landing() {
   }
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
         <MarketingHero onTrialScroll={scrollToTrial} />
 

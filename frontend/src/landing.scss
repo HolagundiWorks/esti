@@ -11,21 +11,28 @@
 // `.esti-lp-carbon` for dashboard-faithful previews only (documented exception).
 
 .esti-lp {
-  --lp-bg: var(--cds-background);
-  --lp-bg-muted: var(--cds-layer-02);
-  --lp-bg-dark: var(--cds-background-inverse);
-  --lp-ink: var(--cds-text-primary);
-  --lp-ink-muted: var(--cds-text-secondary);
-  --lp-ink-faint: var(--cds-text-disabled);
-  --lp-ink-invert: var(--cds-text-inverse);
-  --lp-accent: var(--cds-interactive);
-  --lp-accent-hover: var(--cds-interactive-hover, #0353e9);
-  --lp-accent-glow: rgba(15, 98, 254, 0.35); /* alpha glow — no token equivalent */
-  --lp-border: var(--cds-border-subtle);
-  --lp-border-dark: var(--cds-border-strong);
-  --lp-bg-soft: var(--cds-layer-01);
+  // ── MP025 palette — the marketing surface now matches the hyper-minimalist
+  // light app theme (Alex Cristache MP025). Self-contained values (no longer
+  // derived from the Carbon token layer) so the landing reads identically
+  // regardless of which Carbon theme wraps it. Deep-teal bands (Oceanic Noir)
+  // are on-brand and carry light Arctic-Powder text.
+  --lp-bg: #f1f6f4;            /* Arctic Powder — canvas */
+  --lp-bg-soft: #ffffff;       /* near-white card */
+  --lp-bg-muted: #d9e8e2;      /* Mystic Mint — quiet surface */
+  --lp-bg-dark: #172b36;       /* Oceanic Noir — deep-teal band */
+  --lp-ink: #172b36;           /* Oceanic Noir ink */
+  --lp-ink-muted: #516069;     /* muted teal-grey */
+  --lp-ink-faint: #8a969c;     /* quiet label grey */
+  --lp-ink-invert: #f1f6f4;    /* light text on dark-teal bands */
+  --lp-accent: #114c5a;        /* Nocturnal — deep-teal primary */
+  --lp-accent-hover: #0d3d48;
+  --lp-accent-glow: rgba(17, 76, 90, 0.28); /* teal glow */
+  --lp-warm: #ffc801;          /* Forsythia — warm highlight */
+  --lp-warm-2: #ff9932;        /* Deep Saffron */
+  --lp-border: rgba(23, 43, 54, 0.12);
+  --lp-border-dark: rgba(255, 255, 255, 0.14);
   --lp-max: min(80vw, 100rem);
-  --lp-radius: 2px;
+  --lp-radius: 0;              /* square corners everywhere */
   // Brand font — Open Sans across the whole product, landing included.
   --lp-font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
@@ -1050,7 +1057,7 @@
 
   &--review {
     background: var(--cds-tag-background-blue);
-    color: var(--cds-interactive);
+    color: var(--lp-accent);
   }
 }
 
@@ -1816,7 +1823,7 @@
 
   &--today .esti-cal-cell__day {
     font-weight: 700;
-    color: var(--cds-link-primary);
+    color: var(--lp-accent);
   }
 
   &__day {
@@ -1847,7 +1854,7 @@
 
   &--critical { border-inline-start-color: var(--cds-support-error); }
   &--high { border-inline-start-color: var(--cds-support-warning); }
-  &--medium { border-inline-start-color: var(--cds-link-primary); }
+  &--medium { border-inline-start-color: var(--lp-accent); }
   &--low { border-inline-start-color: var(--cds-border-subtle); }
   &--more {
     opacity: 0.75;
@@ -1901,9 +1908,9 @@
     min-height: 420px;
     pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(11, 11, 11, 0.18) 0%, rgba(11, 11, 11, 0.36) 64%, #0b0b0b 100%),
+      linear-gradient(180deg, rgba(241, 246, 244, 0) 0%, rgba(241, 246, 244, 0.45) 64%, #f1f6f4 100%),
       url("/landing-contour-bg.svg") center center / 100% auto no-repeat;
-    opacity: 0.62;
+    opacity: 0.32;
     z-index: 0;
   }
 
@@ -2241,7 +2248,7 @@ h1.esti-landing-lead-title {
   }
 
   &__icon {
-    color: var(--cds-interactive);
+    color: var(--lp-accent);
   }
 
   &__metric {
@@ -2509,10 +2516,10 @@ h1.esti-landing-lead-title {
     padding: 2px;
     background: conic-gradient(
       from var(--esti-case-study-angle),
-      var(--cds-interactive),
-      var(--cds-link-primary-hover),
+      var(--lp-accent),
+      var(--lp-accent-hover),
       var(--cds-support-info),
-      var(--cds-interactive)
+      var(--lp-accent)
     );
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
@@ -2556,7 +2563,7 @@ h1.esti-landing-lead-title {
   }
 
   &__icon {
-    color: var(--cds-interactive);
+    color: var(--lp-accent);
     flex-shrink: 0;
   }
 
@@ -2582,7 +2589,7 @@ h1.esti-landing-lead-title {
   .esti-case-study-card__glow {
     animation: none;
     opacity: 1;
-    background: var(--cds-interactive);
+    background: var(--lp-accent);
   }
 }
 
@@ -3259,7 +3266,7 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-pricing-tile--featured {
-  box-shadow: inset 0 0 0 1px var(--cds-border-interactive);
+  box-shadow: inset 0 0 0 1px var(--lp-accent);
 }
 
 .esti-lp-pricing-tile__body {
@@ -3323,7 +3330,7 @@ h1.esti-landing-lead-title {
 
 .esti-lp-inline-link {
   @include type.type-style("body-compact-01");
-  color: var(--cds-link-primary);
+  color: var(--lp-accent);
   text-decoration: none;
   width: fit-content;
 
@@ -3520,7 +3527,7 @@ h1.esti-landing-lead-title {
     li { margin-block-end: var(--cds-spacing-02); }
 
     a {
-      color: var(--cds-link-primary, #78a9ff);
+      color: var(--lp-accent);
       text-decoration: underline;
     }
 
@@ -3766,7 +3773,7 @@ h1.esti-landing-lead-title {
     flex-wrap: wrap;
 
     h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 300; }
-    a { color: var(--cds-link-primary, #0f62fe); text-decoration: none; }
+    a { color: var(--lp-accent); text-decoration: none; }
   }
 
   &__grid {
@@ -3828,7 +3835,7 @@ h1.esti-landing-lead-title {
   &__check { display: inline-block; vertical-align: middle; margin-right: var(--cds-spacing-02); }
 
   &--featured {
-    outline: 2px solid var(--cds-border-interactive);
+    outline: 2px solid var(--lp-accent);
     outline-offset: -2px;
   }
 }

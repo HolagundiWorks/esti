@@ -70,7 +70,7 @@ export function Investors() {
   }, []);
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
       <div className="esti-investor">
 

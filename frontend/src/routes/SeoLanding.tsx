@@ -36,7 +36,7 @@ export function SeoLanding({ slug }: { slug: string }) {
   }, [page]);
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
         <main id="main-content" className="esti-blog">
           <Link to="/" className="esti-blog__back">← AORMS home</Link>

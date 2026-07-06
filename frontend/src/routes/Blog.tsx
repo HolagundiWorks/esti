@@ -25,7 +25,7 @@ export function Blog() {
   }, []);
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
       <main id="main-content" className="esti-blog">
         <header className="esti-blog__head">

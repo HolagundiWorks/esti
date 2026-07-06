@@ -80,7 +80,7 @@ export function Download() {
     (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
         <LandingBand>
           <LandingEditorial>

@@ -27,7 +27,7 @@ export function BlogPost() {
   }, [post]);
 
   return (
-    <Theme theme="g100">
+    <Theme theme="white">
       <MarketingShell>
       <main id="main-content" className="esti-blog">
         <Link to="/blog" className="esti-blog__back">← All posts</Link>
