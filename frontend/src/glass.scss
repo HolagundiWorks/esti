@@ -139,12 +139,13 @@
   color: var(--cds-text-primary);
 }
 
-// Floating AORMS logo — top-right corner (no header bar).
+// Floating AORMS logo — bottom, just above the footer bar, dimmed.
 .esti-app-logo-float {
   position: fixed;
-  top: 8px;
+  bottom: 44px; // just above the 38px footer
   right: 12px;
   height: 24px;
+  opacity: 0.6;
   z-index: 1300;
   pointer-events: none;
 }

@@ -18,7 +18,6 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { LineChart } from "@mui/x-charts/LineChart";
 import {
   Bot,
   Building,
@@ -279,7 +278,6 @@ export function StudioAbstract() {
   const attQ      = trpc.dashboard.attendanceToday.useQuery(undefined, { enabled: hrEnabled });
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
-  const trendQ    = trpc.dashboard.trend.useQuery(undefined, { staleTime: 300_000 });
 
   const home = homeQ.data;
   const ac   = home?.actionCenter;
@@ -360,13 +358,6 @@ export function StudioAbstract() {
     ...riskProjects.slice(0, 5).map((p: any) => ({ id: `proj-${p.id}`, item: `${p.ref} — ${p.title}`, detail: "Delivery risk", when: "—", href: projectIssueHref(p), state: "critical" as ZoneState })),
     ...(billingReady.length > 0 ? [{ id: "billing-ready", item: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`, detail: fh?.readyToBillPaise ? formatINRShort(fh.readyToBillPaise) : "—", when: "—", href: "/invoices", state: "watch" as ZoneState }] : []),
   ];
-
-  // Trend
-  const trend = trendQ.data;
-  const months = (trend?.series ?? []).map((r) => r.month);
-  const billed = (trend?.series ?? []).map((r) => r.billedPaise / 100);
-  const collected = (trend?.series ?? []).map((r) => r.collectedPaise / 100);
-  const showTrend = Boolean(trend && trend.financialEnabled && months.length > 0);
 
   // ── DataGrid column definitions ─────────────────────────────────────────────
   const actionCols: GridColDef[] = [
@@ -487,77 +478,59 @@ export function StudioAbstract() {
           })}
         </Grid>
 
-        {/* Trend chart + side signal panels */}
+        {/* Signal panels */}
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <SectionCard title="Billed vs collected · last 12 months">
-              {showTrend ? (
-                <LineChart
-                  height={320}
-                  series={[
-                    { data: billed, label: "Billed", curve: "monotoneX", showMark: false },
-                    { data: collected, label: "Collected", curve: "monotoneX", showMark: false },
-                  ]}
-                  xAxis={[{ scaleType: "point", data: months }]}
-                  yAxis={[{ valueFormatter: (v: number) => formatINRShort(v * 100) }]}
-                  margin={{ left: 70 }}
-                />
-              ) : (
-                emptyText(
-                  trend && !trend.financialEnabled
-                    ? "Financials are turned off for this workspace."
-                    : "No invoice history yet — raise your first invoice to see the trend.",
-                )
-              )}
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <SectionCard title="Zone health">
+              <Stack spacing={1.5}>
+                {zones.map((z) => (
+                  <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <OfficeHealthGlyph state={z.state} size={12} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2">{z.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
+                    </Box>
+                    <ZoneChip state={z.state} />
+                  </Stack>
+                ))}
+              </Stack>
             </SectionCard>
           </Grid>
-          <Grid size={{ xs: 12, lg: 4 }}>
-            <Stack spacing={2}>
-              <SectionCard title="Zone health">
-                <Stack spacing={1.5}>
-                  {zones.map((z) => (
-                    <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                      <OfficeHealthGlyph state={z.state} size={12} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2">{z.label}</Typography>
-                        <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
-                      </Box>
-                      <ZoneChip state={z.state} />
-                    </Stack>
-                  ))}
-                </Stack>
-              </SectionCard>
-              <SectionCard title="Today">
-                <Stack direction="row" spacing={2}>
-                  {[
-                    { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
-                    { label: "Meetings", value: glanceQ.data?.meetingsToday },
-                    { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
-                  ].map((s) => (
-                    <Box key={s.label} sx={{ flex: 1 }}>
-                      <Typography variant="caption" color="text.secondary">{s.label}</Typography>
-                      <Typography variant="h5">{s.value ?? "—"}</Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              </SectionCard>
-              <SectionCard title="GST filing" action={<ZoneChip state={gst.state} label={gst.label} />}>
-                <Typography variant="body2">
-                  {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
-                </Typography>
-              </SectionCard>
-              {ri && (
-                <SectionCard
-                  title="Revisions"
-                  action={ri.totalDecisions && Math.round((ri.clientDriven / ri.totalDecisions) * 100) > 60
-                    ? <Chip size="small" label={`${Math.round((ri.clientDriven / ri.totalDecisions) * 100)}% client-driven`} sx={chipSx("magenta")} />
-                    : undefined}
-                >
-                  <Typography variant="body2">{ri.totalDecisions ?? 0} logged this cycle</Typography>
-                </SectionCard>
-              )}
-            </Stack>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <SectionCard title="Today">
+              <Stack direction="row" spacing={2}>
+                {[
+                  { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
+                  { label: "Meetings", value: glanceQ.data?.meetingsToday },
+                  { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
+                ].map((s) => (
+                  <Box key={s.label} sx={{ flex: 1 }}>
+                    <Typography variant="caption" color="text.secondary">{s.label}</Typography>
+                    <Typography variant="h5">{s.value ?? "—"}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </SectionCard>
           </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <SectionCard title="GST filing" action={<ZoneChip state={gst.state} label={gst.label} />}>
+              <Typography variant="body2">
+                {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
+              </Typography>
+            </SectionCard>
+          </Grid>
+          {ri && (
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <SectionCard
+                title="Revisions"
+                action={ri.totalDecisions && Math.round((ri.clientDriven / ri.totalDecisions) * 100) > 60
+                  ? <Chip size="small" label={`${Math.round((ri.clientDriven / ri.totalDecisions) * 100)}% client-driven`} sx={chipSx("magenta")} />
+                  : undefined}
+              >
+                <Typography variant="body2">{ri.totalDecisions ?? 0} logged this cycle</Typography>
+              </SectionCard>
+            </Grid>
+          )}
         </Grid>
 
         {/* Action items + top risks */}
