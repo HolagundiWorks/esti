@@ -1,18 +1,18 @@
 import {
-  Column,
+  Alert,
+  AlertTitle,
+  Box,
+  Chip,
   Grid,
-  InlineNotification,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  Tile,
-} from "@carbon/react";
+  Typography,
+} from "@mui/material";
 import { PROGRAM_SPACE_CATEGORY_LABEL, formatINR } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
@@ -26,10 +26,15 @@ function floorLabel(level: number): string {
   return `Floor ${level}`;
 }
 
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
 /**
  * Read-only "Program & feasibility" reference for site delivery. Feasibility (max
  * built extent) and the frozen program are the single source of truth upstream;
- * the site never edits them here — it reads the agreed baseline.
+ * the site never edits them here — it reads the agreed baseline. Material UI.
  */
 export function ProjectSiteReference({ projectId, compact = false }: { projectId: string; compact?: boolean }) {
   const q = trpc.program.siteReference.useQuery({ projectId });
@@ -38,8 +43,8 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
   if (q.isLoading) return <p className="esti-label--secondary">Loading reference…</p>;
   if (!data || (!data.assessment && !data.program)) {
     return (
-      <Stack gap={3}>
-        {!compact && <h4 style={{ margin: 0 }}>Program & feasibility</h4>}
+      <Stack spacing={1}>
+        {!compact && <Typography variant="h6" component="h4">Program & feasibility</Typography>}
         <p className="esti-label--secondary">
           No feasibility assessment or frozen program yet. Once the feasibility is recorded
           and the program is frozen, the agreed baseline appears here as the site reference.
@@ -52,27 +57,25 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
   const p = data.program;
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!compact && (
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
-          <h4 style={{ margin: 0 }}>Program & feasibility</h4>
-          {p && <Tag type="green" size="sm">Program v{p.version} · frozen</Tag>}
-        </div>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          <Typography variant="h6" component="h4">Program & feasibility</Typography>
+          {p && <Chip size="small" label={`Program v${p.version} · frozen`} sx={chipSx("green")} />}
+        </Box>
       )}
 
-      <InlineNotification
-        kind="info"
-        lowContrast
-        hideCloseButton
-        title="Source of truth"
-        subtitle="The feasibility envelope and frozen program are the agreed baseline for site delivery. This view is read-only — changes are made upstream in the project Pipeline and Program tabs."
-      />
+      <Alert severity="info">
+        <AlertTitle>Source of truth</AlertTitle>
+        The feasibility envelope and frozen program are the agreed baseline for site delivery.
+        This view is read-only — changes are made upstream in the project Pipeline and Program tabs.
+      </Alert>
 
       {/* Feasibility envelope */}
       {a && (
-        <Stack gap={3}>
-          <h5 style={{ margin: 0 }}>Feasibility envelope</h5>
-          <Grid condensed>
+        <Stack spacing={1}>
+          <Typography variant="subtitle2" component="h5">Feasibility envelope</Typography>
+          <Grid container spacing={1}>
             {[
               { label: "Site area", value: `${area(a.siteAreaSqm)} sqm` },
               { label: "Permissible FAR area", value: `${area(a.permissibleFarArea)} sqm` },
@@ -81,12 +84,12 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
               { label: "Ground coverage", value: `${area(a.actualGroundCoverage)} sqm` },
               { label: "Est. project cost", value: formatINR(a.estimatedProjectCostPaise, { paise: false }) },
             ].map((k) => (
-              <Column key={k.label} sm={2} md={4} lg={4}>
-                <Tile style={{ padding: "var(--cds-spacing-04)" }}>
+              <Grid key={k.label} size={{ xs: 6, md: 4 }}>
+                <Paper sx={{ p: 1.5 }}>
                   <p className="esti-label--secondary">{k.label}</p>
-                  <p style={{ fontSize: "1.125rem", fontWeight: 600, marginTop: "var(--cds-spacing-02)" }}>{k.value}</p>
-                </Tile>
-              </Column>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 0.5 }}>{k.value}</Typography>
+                </Paper>
+              </Grid>
             ))}
           </Grid>
         </Stack>
@@ -94,36 +97,34 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
 
       {/* Frozen program */}
       {p ? (
-        <Stack gap={3}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
-            <h5 style={{ margin: 0 }}>Frozen program (v{p.version})</h5>
-            <Tag type="gray" size="sm">{area(p.totalProgrammedAreaSqm)} sqm · {p.floorsUsed} floors</Tag>
-            {p.overEnvelope && <Tag type="red" size="sm">Over envelope</Tag>}
-          </div>
-          <TableContainer>
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Space</TableHeader>
-                  <TableHeader>Category</TableHeader>
-                  <TableHeader>Floor</TableHeader>
-                  <TableHeader>Count</TableHeader>
-                  <TableHeader>Area</TableHeader>
+        <Stack spacing={1}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+            <Typography variant="subtitle2" component="h5">Frozen program (v{p.version})</Typography>
+            <Chip size="small" label={`${area(p.totalProgrammedAreaSqm)} sqm · ${p.floorsUsed} floors`} sx={chipSx("gray")} />
+            {p.overEnvelope && <Chip size="small" label="Over envelope" sx={chipSx("red")} />}
+          </Box>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Space</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell>Floor</TableCell>
+                <TableCell>Count</TableCell>
+                <TableCell>Area</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {p.spaces.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>{s.name}</TableCell>
+                  <TableCell>{PROGRAM_SPACE_CATEGORY_LABEL[s.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? s.category}</TableCell>
+                  <TableCell>{floorLabel(s.floorLevel)}</TableCell>
+                  <TableCell>{s.count}</TableCell>
+                  <TableCell>{area(s.areaSqm)} sqm</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {p.spaces.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell>{s.name}</TableCell>
-                    <TableCell>{PROGRAM_SPACE_CATEGORY_LABEL[s.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? s.category}</TableCell>
-                    <TableCell>{floorLabel(s.floorLevel)}</TableCell>
-                    <TableCell>{s.count}</TableCell>
-                    <TableCell>{area(s.areaSqm)} sqm</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ))}
+            </TableBody>
+          </Table>
         </Stack>
       ) : (
         <p className="esti-label--secondary">
