@@ -1,16 +1,17 @@
 import {
   Accordion,
-  AccordionItem,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  AlertTitle,
   Button,
-  Column,
   Grid,
-  InlineNotification,
-  Select,
-  SelectItem,
+  MenuItem,
   Stack,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import {
   Jurisdiction,
   PROJECT_WORK_TYPE_LABEL,
@@ -95,293 +96,370 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
     setApprovedAt(b.approvedAt ?? "");
   }, [briefQ.data]);
 
-  if (projectQ.isLoading || briefQ.isLoading) return <p>Loading project info…</p>;
-  if (!projectQ.data) return <p>Project not found.</p>;
+  if (projectQ.isLoading || briefQ.isLoading)
+    return <Typography variant="body2">Loading project info…</Typography>;
+  if (!projectQ.data)
+    return <Typography variant="body2">Project not found.</Typography>;
 
   const p = projectQ.data;
   const phases = phasesQ.data ?? [];
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <div>
-        <h3>Project Info</h3>
-        <p style={{ margin: 0, opacity: 0.85 }}>
+        <Typography variant="h6" component="h3">
+          Project Info
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           Questionnaire answers and site context — the single source for
           project briefing data.
-        </p>
+        </Typography>
       </div>
 
       {(updateProject.error || updateSite.error || upsert.error) && (
-        <InlineNotification
-          kind="error"
-          lowContrast
-          title="Could not save"
-          subtitle={
-            (updateProject.error || updateSite.error || upsert.error)?.message ??
-            "Something went wrong — please try again."
-          }
-        />
+        <Alert severity="error">
+          <AlertTitle>Could not save</AlertTitle>
+          {(updateProject.error || updateSite.error || upsert.error)?.message ??
+            "Something went wrong — please try again."}
+        </Alert>
       )}
 
-      <Accordion>
-        <AccordionItem title="1. Project summary">
-          <Stack gap={4}>
-            <Grid narrow>
-              <Column sm={4} md={4} lg={8}>
-                <TextInput
-                  id="pi-title"
-                  labelText="Project title"
-                  value={identity.title}
-                  onChange={(e) => setIdentity((x) => ({ ...x, title: e.target.value }))}
-                />
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <CurrentPhaseSelect
-                  id="pi-current-stage"
-                  projectId={projectId}
-                  phases={phases}
-                  currentPhaseId={p.currentPhaseId}
-                  labelText="Current stage"
-                />
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <Select
-                  id="pi-type"
-                  labelText="Building use"
-                  value={identity.projectType}
-                  onChange={(e) => setIdentity((x) => ({ ...x, projectType: e.target.value }))}
+      <div>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography>1. Project summary</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    id="pi-title"
+                    label="Project title"
+                    value={identity.title}
+                    onChange={(e) => setIdentity((x) => ({ ...x, title: e.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <CurrentPhaseSelect
+                    id="pi-current-stage"
+                    projectId={projectId}
+                    phases={phases}
+                    currentPhaseId={p.currentPhaseId}
+                    labelText="Current stage"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <TextField
+                    id="pi-type"
+                    select
+                    label="Building use"
+                    value={identity.projectType}
+                    onChange={(e) => setIdentity((x) => ({ ...x, projectType: e.target.value }))}
+                    fullWidth
+                  >
+                    {ProjectType.options.map((t) => (
+                      <MenuItem key={t} value={t}>
+                        {t}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <TextField
+                    id="pi-work"
+                    select
+                    label="Work type"
+                    value={identity.workType}
+                    onChange={(e) => setIdentity((x) => ({ ...x, workType: e.target.value }))}
+                    fullWidth
+                  >
+                    {ProjectWorkType.options.map((t) => (
+                      <MenuItem key={t} value={t}>
+                        {PROJECT_WORK_TYPE_LABEL[t]}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <TextField
+                    id="pi-start"
+                    label="Start date"
+                    type="date"
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    value={identity.dateStart}
+                    onChange={(e) => setIdentity((x) => ({ ...x, dateStart: e.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <TextField
+                    id="pi-contract-value"
+                    label="Contract value (₹)"
+                    type="number"
+                    placeholder="0"
+                    helperText="Total fee/contract value for this project."
+                    slotProps={{ htmlInput: { min: 0 } }}
+                    value={identity.contractValueRupees}
+                    onChange={(e) => setIdentity((x) => ({ ...x, contractValueRupees: e.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={updateProject.isPending}
+                  onClick={() =>
+                    updateProject.mutate({
+                      id: projectId,
+                      title: identity.title,
+                      status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
+                      projectType: identity.projectType as (typeof ProjectType.options)[number],
+                      workType: identity.workType as (typeof ProjectWorkType.options)[number],
+                      jurisdiction: identity.jurisdiction as (typeof Jurisdiction.options)[number],
+                      dateStart: identity.dateStart || null,
+                      contractValuePaise:
+                        identity.contractValueRupees.trim() === ""
+                          ? 0
+                          : Math.round(Number(identity.contractValueRupees) * 100),
+                    })
+                  }
                 >
-                  {ProjectType.options.map((t) => (
-                    <SelectItem key={t} value={t} text={t} />
-                  ))}
-                </Select>
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <Select
-                  id="pi-work"
-                  labelText="Work type"
-                  value={identity.workType}
-                  onChange={(e) => setIdentity((x) => ({ ...x, workType: e.target.value }))}
+                  Save project summary
+                </Button>
+              </div>
+              <ProjectAppointment projectId={projectId} />
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography>2. Client &amp; occupants</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <TextField
+                id="bi-name"
+                label="Client name"
+                value={basic.clientName ?? ""}
+                onChange={(e) => setBasic((x) => ({ ...x, clientName: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="bi-mobile"
+                label="Mobile"
+                value={basic.mobile ?? ""}
+                onChange={(e) => setBasic((x) => ({ ...x, mobile: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="bi-email"
+                label="Email"
+                value={basic.email ?? ""}
+                onChange={(e) => setBasic((x) => ({ ...x, email: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="occ-staff"
+                label="Staff requirements"
+                multiline
+                rows={3}
+                value={occupants.staffRequirements ?? ""}
+                onChange={(e) => setOccupants((x) => ({ ...x, staffRequirements: e.target.value }))}
+                fullWidth
+              />
+              <div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    upsert.mutate({ projectId, section: "basicInfo", data: basic });
+                    upsert.mutate({ projectId, section: "occupants", data: occupants });
+                  }}
                 >
-                  {ProjectWorkType.options.map((t) => (
-                    <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />
-                  ))}
-                </Select>
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <TextInput
-                  id="pi-start"
-                  labelText="Start date"
-                  type="date"
-                  value={identity.dateStart}
-                  onChange={(e) => setIdentity((x) => ({ ...x, dateStart: e.target.value }))}
-                />
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <TextInput
-                  id="pi-contract-value"
-                  labelText="Contract value (₹)"
-                  type="number"
-                  min={0}
-                  placeholder="0"
-                  helperText="Total fee/contract value for this project."
-                  value={identity.contractValueRupees}
-                  onChange={(e) => setIdentity((x) => ({ ...x, contractValueRupees: e.target.value }))}
-                />
-              </Column>
-            </Grid>
-            <Button
-              size="sm"
-              disabled={updateProject.isPending}
-              onClick={() =>
-                updateProject.mutate({
-                  id: projectId,
-                  title: identity.title,
-                  status: p.status as "ENQUIRY" | "PROPOSAL" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
-                  projectType: identity.projectType as (typeof ProjectType.options)[number],
-                  workType: identity.workType as (typeof ProjectWorkType.options)[number],
-                  jurisdiction: identity.jurisdiction as (typeof Jurisdiction.options)[number],
-                  dateStart: identity.dateStart || null,
-                  contractValuePaise:
-                    identity.contractValueRupees.trim() === ""
-                      ? 0
-                      : Math.round(Number(identity.contractValueRupees) * 100),
-                })
-              }
-            >
-              Save project summary
-            </Button>
-            <ProjectAppointment projectId={projectId} />
-          </Stack>
-        </AccordionItem>
+                  Save client &amp; occupants
+                </Button>
+              </div>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
 
-        <AccordionItem title="2. Client & occupants">
-          <Stack gap={4}>
-            <TextInput
-              id="bi-name"
-              labelText="Client name"
-              value={basic.clientName ?? ""}
-              onChange={(e) => setBasic((x) => ({ ...x, clientName: e.target.value }))}
-            />
-            <TextInput
-              id="bi-mobile"
-              labelText="Mobile"
-              value={basic.mobile ?? ""}
-              onChange={(e) => setBasic((x) => ({ ...x, mobile: e.target.value }))}
-            />
-            <TextInput
-              id="bi-email"
-              labelText="Email"
-              value={basic.email ?? ""}
-              onChange={(e) => setBasic((x) => ({ ...x, email: e.target.value }))}
-            />
-            <TextArea
-              id="occ-staff"
-              labelText="Staff requirements"
-              value={occupants.staffRequirements ?? ""}
-              onChange={(e) => setOccupants((x) => ({ ...x, staffRequirements: e.target.value }))}
-              rows={3}
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                upsert.mutate({ projectId, section: "basicInfo", data: basic });
-                upsert.mutate({ projectId, section: "occupants", data: occupants });
-              }}
-            >
-              Save client & occupants
-            </Button>
-          </Stack>
-        </AccordionItem>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography>3. Site context</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <TextField
+                id="site-addr"
+                label="Site address"
+                value={identity.siteAddress}
+                onChange={(e) => setIdentity((x) => ({ ...x, siteAddress: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="site-area"
+                label="Site area (sq m)"
+                value={identity.siteAreaSqm}
+                onChange={(e) => setIdentity((x) => ({ ...x, siteAreaSqm: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="bi-terrain"
+                label="Terrain & site notes"
+                multiline
+                rows={3}
+                value={basic.terrain ?? ""}
+                onChange={(e) => setBasic((x) => ({ ...x, terrain: e.target.value }))}
+                fullWidth
+              />
+              <div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    updateSite.mutate({
+                      id: projectId,
+                      siteAddress: identity.siteAddress || undefined,
+                      siteAreaSqm: identity.siteAreaSqm ? Number(identity.siteAreaSqm) : undefined,
+                    });
+                    upsert.mutate({
+                      projectId,
+                      section: "basicInfo",
+                      data: { ...basic, siteAddress: identity.siteAddress },
+                    });
+                  }}
+                >
+                  Save site context
+                </Button>
+              </div>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
 
-        <AccordionItem title="3. Site context">
-          <Stack gap={4}>
-            <TextInput
-              id="site-addr"
-              labelText="Site address"
-              value={identity.siteAddress}
-              onChange={(e) => setIdentity((x) => ({ ...x, siteAddress: e.target.value }))}
-            />
-            <TextInput
-              id="site-area"
-              labelText="Site area (sq m)"
-              value={identity.siteAreaSqm}
-              onChange={(e) => setIdentity((x) => ({ ...x, siteAreaSqm: e.target.value }))}
-            />
-            <TextArea
-              id="bi-terrain"
-              labelText="Terrain & site notes"
-              value={basic.terrain ?? ""}
-              onChange={(e) => setBasic((x) => ({ ...x, terrain: e.target.value }))}
-              rows={3}
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                updateSite.mutate({
-                  id: projectId,
-                  siteAddress: identity.siteAddress || undefined,
-                  siteAreaSqm: identity.siteAreaSqm ? Number(identity.siteAreaSqm) : undefined,
-                });
-                upsert.mutate({
-                  projectId,
-                  section: "basicInfo",
-                  data: { ...basic, siteAddress: identity.siteAddress },
-                });
-              }}
-            >
-              Save site context
-            </Button>
-          </Stack>
-        </AccordionItem>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography>4. Design drivers</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <TextField
+                id="dg-style"
+                label="Style & preferences"
+                multiline
+                rows={3}
+                value={design.style ?? ""}
+                onChange={(e) => setDesign((x) => ({ ...x, style: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="dg-activities"
+                label="Important activities"
+                multiline
+                rows={3}
+                value={design.activities ?? ""}
+                onChange={(e) => setDesign((x) => ({ ...x, activities: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="dg-outdoor"
+                label="Outdoor preferences"
+                multiline
+                rows={3}
+                value={design.outdoorPrefs ?? ""}
+                onChange={(e) => setDesign((x) => ({ ...x, outdoorPrefs: e.target.value }))}
+                fullWidth
+              />
+              <div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => upsert.mutate({ projectId, section: "designPrefs", data: design })}
+                >
+                  Save design drivers
+                </Button>
+              </div>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
 
-        <AccordionItem title="4. Design drivers">
-          <Stack gap={4}>
-            <TextArea
-              id="dg-style"
-              labelText="Style & preferences"
-              value={design.style ?? ""}
-              onChange={(e) => setDesign((x) => ({ ...x, style: e.target.value }))}
-              rows={3}
-            />
-            <TextArea
-              id="dg-activities"
-              labelText="Important activities"
-              value={design.activities ?? ""}
-              onChange={(e) => setDesign((x) => ({ ...x, activities: e.target.value }))}
-              rows={3}
-            />
-            <TextArea
-              id="dg-outdoor"
-              labelText="Outdoor preferences"
-              value={design.outdoorPrefs ?? ""}
-              onChange={(e) => setDesign((x) => ({ ...x, outdoorPrefs: e.target.value }))}
-              rows={3}
-            />
-            <Button
-              size="sm"
-              onClick={() => upsert.mutate({ projectId, section: "designPrefs", data: design })}
-            >
-              Save design drivers
-            </Button>
-          </Stack>
-        </AccordionItem>
-
-        <AccordionItem title="5–7. Programme, materials, approval">
-          <Stack gap={4}>
-            <TextArea
-              id="pi-bua"
-              labelText="Built-up area / programme notes"
-              value={projInfo.intendedUse ?? ""}
-              onChange={(e) => setProjInfo((x) => ({ ...x, intendedUse: e.target.value }))}
-              rows={2}
-            />
-            <TextArea
-              id="mat-notes"
-              labelText="Materials palette"
-              value={materials.construction ?? ""}
-              onChange={(e) => setMaterials((x) => ({ ...x, construction: e.target.value }))}
-              rows={3}
-            />
-            <TextArea
-              id="assumptions"
-              labelText="Assumptions & exclusions"
-              value={assumptions}
-              onChange={(e) => setAssumptions(e.target.value)}
-              rows={3}
-            />
-            <TextArea
-              id="approval"
-              labelText="Client approval note"
-              value={approvalNote}
-              onChange={(e) => setApprovalNote(e.target.value)}
-              rows={2}
-            />
-            <TextInput
-              id="approved-at"
-              labelText="Approved on"
-              type="date"
-              value={approvedAt}
-              onChange={(e) => setApprovedAt(e.target.value)}
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                upsert.mutate({ projectId, section: "projectInfo", data: projInfo });
-                upsert.mutate({ projectId, section: "materials", data: materials });
-                upsert.mutate({ projectId, section: "assumptions", data: { assumptions } });
-                upsert.mutate({
-                  projectId,
-                  section: "approval",
-                  data: { approvalNote, approvedAt: approvedAt || undefined },
-                });
-              }}
-            >
-              Save programme & approval
-            </Button>
-          </Stack>
-        </AccordionItem>
-      </Accordion>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography>5–7. Programme, materials, approval</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <TextField
+                id="pi-bua"
+                label="Built-up area / programme notes"
+                multiline
+                rows={2}
+                value={projInfo.intendedUse ?? ""}
+                onChange={(e) => setProjInfo((x) => ({ ...x, intendedUse: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="mat-notes"
+                label="Materials palette"
+                multiline
+                rows={3}
+                value={materials.construction ?? ""}
+                onChange={(e) => setMaterials((x) => ({ ...x, construction: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="assumptions"
+                label="Assumptions & exclusions"
+                multiline
+                rows={3}
+                value={assumptions}
+                onChange={(e) => setAssumptions(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                id="approval"
+                label="Client approval note"
+                multiline
+                rows={2}
+                value={approvalNote}
+                onChange={(e) => setApprovalNote(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                id="approved-at"
+                label="Approved on"
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+                value={approvedAt}
+                onChange={(e) => setApprovedAt(e.target.value)}
+                fullWidth
+              />
+              <div>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    upsert.mutate({ projectId, section: "projectInfo", data: projInfo });
+                    upsert.mutate({ projectId, section: "materials", data: materials });
+                    upsert.mutate({ projectId, section: "assumptions", data: { assumptions } });
+                    upsert.mutate({
+                      projectId,
+                      section: "approval",
+                      data: { approvalNote, approvedAt: approvedAt || undefined },
+                    });
+                  }}
+                >
+                  Save programme &amp; approval
+                </Button>
+              </div>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      </div>
     </Stack>
   );
 }

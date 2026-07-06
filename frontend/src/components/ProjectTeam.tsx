@@ -1,18 +1,17 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   ASSIGNMENT_ROLES,
   type AssignmentRoleCode,
@@ -22,6 +21,11 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { StaffAvatar } from "./StaffAvatar.js";
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export function ProjectTeam({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -63,161 +67,227 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
   const team = (teamQ.data ?? []).filter((m) => m.active);
   const teamGroups = (teamsQ.data ?? []).filter((g) => g.active);
 
+  const assignmentColumns: GridColDef[] = [
+    {
+      field: "name",
+      headerName: "Member",
+      flex: 1.5,
+      minWidth: 180,
+      renderCell: (p) => (
+        <span className="esti-avatar-name-cell">
+          <StaffAvatar name={p.row.name} size="sm" />
+          {p.row.name}
+        </span>
+      ),
+    },
+    {
+      field: "memberRole",
+      headerName: "Designation",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (v) => TEAM_ROLES[v as TeamRoleCode] ?? v,
+    },
+    {
+      field: "role",
+      headerName: "Project role",
+      flex: 1,
+      minWidth: 140,
+      renderCell: (p) => (
+        <Chip
+          size="small"
+          label={ASSIGNMENT_ROLES[p.row.role as AssignmentRoleCode] ?? p.row.role}
+          sx={tagSx(p.row.role === "SITE_INCHARGE" ? "purple" : "blue")}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      width: 110,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          size="small"
+          disabled={remove.isPending}
+          onClick={() => remove.mutate({ id: p.row.id })}
+        >
+          Remove
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: "var(--cds-spacing-07)",
+          mt: 4,
         }}
       >
-        <h3>Project team</h3>
-        <Stack orientation="horizontal" gap={3}>
+        <Typography variant="h6" component="h3">
+          Project team
+        </Typography>
+        <Stack direction="row" spacing={1}>
           <Button
-            kind="tertiary"
-            size="sm"
+            variant="outlined"
+            size="small"
             disabled={teamGroups.length === 0}
             onClick={() => setTeamOpen(true)}
           >
             Assign team
           </Button>
           <Button
-            size="sm"
+            variant="contained"
+            size="small"
             disabled={team.length === 0}
             onClick={() => setOpen(true)}
           >
             Assign member
           </Button>
         </Stack>
-      </div>
-      {team.length === 0 && <p>Add staff in the Team register first.</p>}
-      <TableContainer
-        title="Assignments"
-        description="Site in-charge and project staff"
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Member</TableHeader>
-              <TableHeader>Designation</TableHeader>
-              <TableHeader>Project role</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data ?? []).map((a) => (
-              <TableRow key={a.id}>
-                <TableCell>
-                  <span className="esti-avatar-name-cell">
-                    <StaffAvatar name={a.name} size="sm" />
-                    {a.name}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {TEAM_ROLES[a.memberRole as TeamRoleCode] ?? a.memberRole}
-                </TableCell>
-                <TableCell>
-                  <Tag type={a.role === "SITE_INCHARGE" ? "purple" : "blue"}>
-                    {ASSIGNMENT_ROLES[a.role as AssignmentRoleCode] ?? a.role}
-                  </Tag>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    kind="ghost"
-                    size="sm"
-                    disabled={remove.isPending}
-                    onClick={() => remove.mutate({ id: a.id })}
-                  >
-                    Remove
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      </Box>
+      {team.length === 0 && (
+        <Typography variant="body2">
+          Add staff in the Team register first.
+        </Typography>
+      )}
+      <Stack spacing={0.5} sx={{ mt: 1 }}>
+        <Typography variant="subtitle1" component="h4">
+          Assignments
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Site in-charge and project staff
+        </Typography>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={assignmentColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
+      </Stack>
 
-      <Modal
+      <Dialog
         open={open}
-        modalHeading="Assign team member"
-        primaryButtonText={create.isPending ? "Assigning…" : "Assign"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!teamMemberId || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => create.mutate({ projectId, teamMemberId, role })}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <Select
-            id="as-member"
-            labelText="Team member"
-            value={teamMemberId}
-            onChange={(e) => setTeamMemberId(e.target.value)}
+        <DialogTitle>Assign team member</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="as-member"
+              select
+              label="Team member"
+              value={teamMemberId}
+              onChange={(e) => setTeamMemberId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {team.map((m) => (
+                <MenuItem key={m.id} value={m.id}>
+                  {m.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="as-role"
+              select
+              label="Project role"
+              value={role}
+              onChange={(e) => setRole(e.target.value as AssignmentRoleCode)}
+              fullWidth
+            >
+              {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map(
+                (k) => (
+                  <MenuItem key={k} value={k}>
+                    {ASSIGNMENT_ROLES[k]}
+                  </MenuItem>
+                ),
+              )}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!teamMemberId || create.isPending}
+            onClick={() => create.mutate({ projectId, teamMemberId, role })}
           >
-            <SelectItem value="" text="Select…" />
-            {team.map((m) => (
-              <SelectItem key={m.id} value={m.id} text={m.name} />
-            ))}
-          </Select>
-          <Select
-            id="as-role"
-            labelText="Project role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as AssignmentRoleCode)}
-          >
-            {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map(
-              (k) => (
-                <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
-              ),
-            )}
-          </Select>
-        </Stack>
-      </Modal>
+            {create.isPending ? "Assigning…" : "Assign"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
+      <Dialog
         open={teamOpen}
-        modalHeading="Assign a team"
-        primaryButtonText={assignTeam.isPending ? "Assigning…" : "Assign team"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!selTeamId || assignTeam.isPending}
-        onRequestClose={() => setTeamOpen(false)}
-        onRequestSubmit={() =>
-          assignTeam.mutate({ projectId, teamId: selTeamId, role: teamRole })
-        }
+        onClose={() => setTeamOpen(false)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <p>
-            Selecting a team staffs all of its active members onto this project
-            in one action. Members already assigned are skipped.
-          </p>
-          <Select
-            id="at-team"
-            labelText="Team"
-            value={selTeamId}
-            onChange={(e) => setSelTeamId(e.target.value)}
+        <DialogTitle>Assign a team</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Selecting a team staffs all of its active members onto this project
+              in one action. Members already assigned are skipped.
+            </Typography>
+            <TextField
+              id="at-team"
+              select
+              label="Team"
+              value={selTeamId}
+              onChange={(e) => setSelTeamId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {teamGroups.map((g) => (
+                <MenuItem key={g.id} value={g.id}>
+                  {`${g.name} (${g.members.length} member${g.members.length === 1 ? "" : "s"})`}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="at-role"
+              select
+              label="Project role for all members"
+              value={teamRole}
+              onChange={(e) => setTeamRole(e.target.value as AssignmentRoleCode)}
+              fullWidth
+            >
+              {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map((k) => (
+                <MenuItem key={k} value={k}>
+                  {ASSIGNMENT_ROLES[k]}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setTeamOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!selTeamId || assignTeam.isPending}
+            onClick={() =>
+              assignTeam.mutate({ projectId, teamId: selTeamId, role: teamRole })
+            }
           >
-            <SelectItem value="" text="Select…" />
-            {teamGroups.map((g) => (
-              <SelectItem
-                key={g.id}
-                value={g.id}
-                text={`${g.name} (${g.members.length} member${g.members.length === 1 ? "" : "s"})`}
-              />
-            ))}
-          </Select>
-          <Select
-            id="at-role"
-            labelText="Project role for all members"
-            value={teamRole}
-            onChange={(e) => setTeamRole(e.target.value as AssignmentRoleCode)}
-          >
-            {(Object.keys(ASSIGNMENT_ROLES) as AssignmentRoleCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={ASSIGNMENT_ROLES[k]} />
-            ))}
-          </Select>
-        </Stack>
-      </Modal>
+            {assignTeam.isPending ? "Assigning…" : "Assign team"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
