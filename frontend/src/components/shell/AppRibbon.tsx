@@ -99,7 +99,7 @@ export function AppRibbon({ nav, firmName }: { nav: RibbonNode[]; firmName: stri
                 textTransform: "none",
               }}
             >
-              {Icon ? <Icon size={22} /> : <span />}
+              {Icon ? <Icon sx={{ fontSize: 22 }} /> : <span />}
               {c.label}
             </Button>
           );

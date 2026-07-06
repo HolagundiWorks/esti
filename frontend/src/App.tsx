@@ -4,32 +4,31 @@ import {
   Analytics,
   Archive,
   Book,
-  Building,
-  Catalog,
-  Document,
+  Business as Building,
+  LibraryBooks as Catalog,
+  Description as Document,
   Email,
-  Enterprise,
-  Events,
-  Identification,
-  License,
-  ListChecked,
+  Apartment as Enterprise,
+  Event as Events,
+  Badge as Identification,
+  CardMembership as License,
+  Checklist as ListChecked,
   Map as MapIcon,
-  Money,
-  Partnership,
-  Purchase,
+  Payments as Money,
+  Handshake as Partnership,
+  ShoppingCart as Purchase,
   Receipt,
-  Report,
+  Assessment as Report,
   Rule,
   Settings as SettingsIcon,
   Store,
   Terminal,
-  Tools,
-  User,
-  UserMultiple,
-  UserProfile,
-  Wallet,
-  type CarbonIconType,
-} from "@carbon/icons-react";
+  Build as Tools,
+  Person as User,
+  Group as UserMultiple,
+  AccountCircle as UserProfile,
+  AccountBalanceWallet as Wallet,
+} from "@mui/icons-material";
 import {
   lazy,
   Suspense,
@@ -310,10 +309,10 @@ function AppShell() {
   // Third Parties · Office · Finance · LXOS · Admin). Spec: docs/esti/NAVIGATION.md.
   // A node is either a leaf `link` or a `menu` (collapsible; may nest, e.g. Studio ›
   // Libraries). Search is a header utility; AI Studio is a top-level sidebar entry.
-  type NavLink = { label: string; to: string; icon?: CarbonIconType };
+  type NavLink = { label: string; to: string; icon?: ComponentType<any> };
   type NavNode =
     | (NavLink & { kind?: "link" })
-    | { kind: "menu"; label: string; icon?: CarbonIconType; items: NavNode[] };
+    | { kind: "menu"; label: string; icon?: ComponentType<any>; items: NavNode[] };
   const rank = ROLE_RANK[user.role] ?? 0;
   const atLeast = (r: number) => rank >= r;
 
