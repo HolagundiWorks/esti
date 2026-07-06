@@ -80,7 +80,10 @@ Intelligence, now everywhere):
   outer border, just hairline row rules and tiny uppercase eyebrow headers.
 - **The only elevated surfaces are the floating widgets** (ESTI · Pomodoro ·
   Calculator), which use the **neumorphic** soft-UI treatment: same-colour panel
-  with a dark bottom-right shadow + a light top-left highlight, square corners.
+  with a dark bottom-right shadow + a light top-left highlight. **Neu is the one
+  exception to the square-corner rule — its corners are soft ROUNDED** (`20px`
+  panels, `16px` buttons), because rounded corners are intrinsic to the neumorphic
+  look. Everything else stays square.
 
 ---
 

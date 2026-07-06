@@ -44,6 +44,7 @@ import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
 import { AlertsBell } from "./components/AlertsBell.js";
 import { UserIdCard } from "./components/UserIdCard.js";
+import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { FloatingDock } from "./components/FloatingDock.js";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
@@ -567,6 +568,7 @@ function AppShell() {
             </main>
           </div>
           <UsageIdentity />
+          <AiAgentCommand />
           <FloatingDock />
           {/* Footer bar — former top nav bar, moved to the bottom. Centered search. */}
           <AppFooterBar

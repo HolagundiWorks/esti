@@ -24,18 +24,21 @@
 
 // ── Neumorphic (soft UI) — ESTI · Pomodoro · Calculator ──────────────────────
 // Panels/buttons that extrude softly from the flat Fog-Gray canvas: same
-// base colour, a dark bottom-right shadow + a light top-left highlight. Square
-// corners kept (app rule). Exempt file → box-shadow/rgba allowed here.
+// base colour, a dark bottom-right shadow + a light top-left highlight. Neu is
+// the ONE surface that breaks the square-corner rule — soft ROUNDED corners are
+// intrinsic to the neumorphic look. Exempt file → radius/box-shadow/rgba allowed.
 $neu-bg: #eceef2;
 $neu-dark: rgba(20, 21, 23, 0.16);
 $neu-light: rgba(255, 255, 255, 0.92);
+$neu-radius: 20px; // soft rounded corners for all neu panels
+$neu-btn-radius: 16px; // rounded neu buttons
 
 .esti-neu.MuiPaper-root,
 .esti-neu {
   background-color: $neu-bg !important;
   background-image: none !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: $neu-radius !important;
   backdrop-filter: none !important;
   box-shadow: 9px 9px 20px $neu-dark, -9px -9px 20px $neu-light !important;
 }
@@ -45,13 +48,13 @@ $neu-light: rgba(255, 255, 255, 0.92);
   background-color: $neu-bg !important;
   background-image: none !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: $neu-radius !important;
   box-shadow: inset 4px 4px 10px $neu-dark, inset -4px -4px 10px $neu-light !important;
 }
 
 .esti-neu-btn.MuiIconButton-root {
   background-color: $neu-bg;
-  border-radius: 0;
+  border-radius: $neu-btn-radius;
   box-shadow: 4px 4px 10px $neu-dark, -4px -4px 10px $neu-light;
   transition: box-shadow 120ms ease;
 
@@ -64,11 +67,34 @@ $neu-light: rgba(255, 255, 255, 0.92);
   }
 }
 
-// Studio Intelligence left rail (30/70 split) — its own scroll, hidden bar so it
-// reads as a fixed pane while the right 70% scrolls.
+// Studio Intelligence left rail (20/80 split) — its own scroll, hidden bar so it
+// reads as a fixed pane while the right 80% scrolls.
 .esti-dash-rail {
   scrollbar-width: none;
   &::-webkit-scrollbar { width: 0; height: 0; display: none; }
+}
+
+// ── Mobile Rail/Stage — stack: Rail first (full width), Stage below (full width).
+// Belt-and-suspenders for any inline rail (e.g. StudioAbstract) that isn't wrapped
+// in RailLayout; RailLayout also sets this responsively via sx.
+@media (max-width: 900px) {
+  .esti-dash-rail {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .esti-dash-stage {
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+  // Ask ESTI renders as a full page on mobile — square it (neu rounding off).
+  .esti-ai-bar {
+    border-radius: 0 !important;
+  }
 }
 
 // Flat Arctic-Powder canvas — one uniform colour across shell, content, ribbon

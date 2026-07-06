@@ -1,9 +1,10 @@
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
-import { Divider, IconButton, Paper, Stack, Tooltip } from "@mui/material";
+import { Box, Divider, IconButton, Paper, Stack, Tooltip } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ASK_ESTI_EVENT } from "./AiAgentCommand.js";
 import { AlertsBell } from "./AlertsBell.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
 import { HeaderPomodoro } from "./HeaderPomodoro.js";
@@ -64,33 +65,36 @@ export function FloatingDock() {
               <TaskAltOutlined />
             </IconButton>
           </Tooltip>
-          <HeaderPomodoro />
-          <Tooltip title="Calculator (Alt+C)">
-            <IconButton
-              ref={calcTriggerRef}
-              size="small"
-              color={showCalc ? "primary" : "default"}
-              onClick={() => setShowCalc((o) => !o)}
-              aria-label="Calculator"
-            >
-              <CalculateOutlined />
-            </IconButton>
-          </Tooltip>
+          {/* Pomodoro + Calculator — desktop only; hidden on mobile. */}
+          <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", gap: 1 }}>
+            <HeaderPomodoro />
+            <Tooltip title="Calculator (Alt+C)">
+              <IconButton
+                ref={calcTriggerRef}
+                size="small"
+                color={showCalc ? "primary" : "default"}
+                onClick={() => setShowCalc((o) => !o)}
+                aria-label="Calculator"
+              >
+                <CalculateOutlined />
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           {/* Notifications */}
           <AlertsBell />
 
           <Divider orientation="vertical" flexItem />
 
-          {/* ESTI AI agent — ESTI mark (neumorphic soft button) */}
-          <Tooltip title="Ask ESTI">
+          {/* ESTI AI agent — opens the floating Ask ESTI command bar (not a page) */}
+          <Tooltip title="Ask ESTI (Alt+A)">
             <IconButton
               className="esti-neu-btn"
               size="small"
-              onClick={() => navigate("/office/ai-studio")}
+              onClick={() => window.dispatchEvent(new CustomEvent(ASK_ESTI_EVENT))}
               aria-label="Ask ESTI AI"
             >
-              <span className="esti-brand esti-brand--esti" style={{ height: 20, width: 20 }} role="img" aria-label="ESTI" />
+              <span className="esti-brand esti-brand--esti esti-ai-bar__mark" role="img" aria-label="ESTI" />
             </IconButton>
           </Tooltip>
         </Stack>

@@ -3093,14 +3093,14 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
 }
 
 // ── Brand marks — one consistent, recoloured silhouette per brand ────────────
-// Both the ESTI mark and the AORMS wordmark render in the Forsythia accent, with
-// a transparent background (no square fill). The PNG is used as a CSS mask and
+// Both the ESTI mark and the AORMS wordmark render in the Radiant Orange accent,
+// with a transparent background (no square fill). The PNG is used as a CSS mask and
 // the fill comes from the brand colour var (glass.scss) — so the same asset reads
 // identically everywhere. Sizing comes from each call site's box (aspect-ratio
 // keeps it undistorted); colour is the only brand-specific value (CSS var).
 .esti-brand {
   display: inline-block;
-  background-color: var(--esti-brand-yellow);
+  background-color: var(--esti-brand-accent, var(--esti-brand-yellow));
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -3117,4 +3117,9 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   aspect-ratio: 816 / 216;
   -webkit-mask-image: url("/aorms-logo.png");
   mask-image: url("/aorms-logo.png");
+}
+// ESTI mark inside the Ask-ESTI command bar / dock button (fixed sizing helper).
+.esti-ai-bar__mark {
+  width: 20px;
+  height: 20px;
 }

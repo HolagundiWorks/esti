@@ -35,23 +35,33 @@ export function RailLayout({
 }) {
   return (
     <Box className="esti-glass-dash">
-      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", width: 1 }}>
-        {/* LEFT 30% — fixed rail */}
+      {/* On mobile the Rail stacks first, full width; the Stage follows below. */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 2,
+          alignItems: "flex-start",
+          width: 1,
+        }}
+      >
+        {/* RAIL (20% on desktop, full width first on mobile) */}
         <Box
           className="esti-dash-rail"
           sx={{
-            flex: "0 0 20%",
-            maxWidth: "20%",
+            flex: { xs: "1 1 auto", md: "0 0 20%" },
+            width: { xs: 1, md: "auto" },
+            maxWidth: { xs: "100%", md: "20%" },
             minWidth: 0,
-            position: "sticky",
+            position: { xs: "static", md: "sticky" },
             top: 0,
             alignSelf: "flex-start",
-            maxHeight: "calc(100vh - 132px)",
-            overflowY: "auto",
+            maxHeight: { xs: "none", md: "calc(100vh - 132px)" },
+            overflowY: { xs: "visible", md: "auto" },
             display: "flex",
             flexDirection: "column",
             gap: 2,
-            pr: 0.5,
+            pr: { xs: 0, md: 0.5 },
           }}
         >
           <Box sx={{ borderLeft: 3, borderLeftColor: "primary.main", pl: 1.5 }}>
@@ -69,8 +79,19 @@ export function RailLayout({
           {aside}
         </Box>
 
-        {/* STAGE (80%) — content */}
-        <Box className="esti-dash-stage" sx={{ flex: "1 1 80%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* STAGE (80% on desktop, full width below the rail on mobile) */}
+        <Box
+          className="esti-dash-stage"
+          sx={{
+            flex: { xs: "1 1 auto", md: "1 1 80%" },
+            width: { xs: 1, md: "auto" },
+            maxWidth: { xs: "100%", md: "80%" },
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
           {children}
         </Box>
       </Box>

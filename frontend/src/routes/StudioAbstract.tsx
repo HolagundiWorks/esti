@@ -252,12 +252,12 @@ function Sep() {
 // (grid/list) fills the 80%.
 function TabSplit({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-      <Box sx={{ flex: "0 0 20%", maxWidth: "20%", minWidth: 0, borderRight: 1, borderColor: "divider", pr: 1.5 }}>
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, alignItems: "flex-start" }}>
+      <Box sx={{ flex: { xs: "1 1 auto", md: "0 0 20%" }, width: { xs: 1, md: "auto" }, maxWidth: { xs: "100%", md: "20%" }, minWidth: 0, borderRight: { xs: 0, md: 1 }, borderColor: "divider", pr: { xs: 0, md: 1.5 } }}>
         <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>{title}</Typography>
         {action && <Box sx={{ mt: 1 }}>{action}</Box>}
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
+      <Box sx={{ flex: 1, minWidth: 0, width: { xs: 1, md: "auto" } }}>{children}</Box>
     </Box>
   );
 }
@@ -512,7 +512,8 @@ export function StudioAbstract() {
 
   return (
     <Box className="esti-glass-dash">
-      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", width: 1 }}>
+      {/* Mobile: Rail stacks first (full width), Stage follows below. */}
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, alignItems: "flex-start", width: 1 }}>
         {/* ── RAIL (20%) — fixed info column: logo · greeting · Today · zones · status · toggles ── */}
         <Box
           className="esti-dash-rail"
