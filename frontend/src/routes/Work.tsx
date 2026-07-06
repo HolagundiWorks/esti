@@ -1,12 +1,4 @@
-import {
-  Button,
-  Stack,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-} from "@carbon/react";
+import { Box, Button, Stack, Tab, Tabs } from "@mui/material";
 import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader.js";
@@ -67,7 +59,7 @@ export function Work() {
   const activeTab = allTabs[tabIndex]?.slug ?? "tasks";
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Work"
         description={
@@ -77,24 +69,26 @@ export function Work() {
         }
         actions={
           activeTab === "tasks" ? (
-            <Button onClick={() => tasksRef.current?.openCreate()}>New task</Button>
+            <Button variant="contained" onClick={() => tasksRef.current?.openCreate()}>New task</Button>
           ) : undefined
         }
       />
 
       <Tabs
-        selectedIndex={tabIndex}
-        onChange={({ selectedIndex }) =>
-          setSearchParams({ tab: allTabs[selectedIndex]?.slug ?? "tasks" }, { replace: true })
+        value={tabIndex}
+        onChange={(_e, v: number) =>
+          setSearchParams({ tab: allTabs[v]?.slug ?? "tasks" }, { replace: true })
         }
+        variant="scrollable"
+        allowScrollButtonsMobile
+        aria-label="Work sections"
       >
-        <TabList aria-label="Work sections" contained>
-          {allTabs.map((t) => <Tab key={t.slug}>{t.label}</Tab>)}
-        </TabList>
-        <TabPanels>
-          {allTabs.map((t) => <TabPanel key={t.slug}>{t.panel}</TabPanel>)}
-        </TabPanels>
+        {allTabs.map((t) => (
+          <Tab key={t.slug} label={t.label} />
+        ))}
       </Tabs>
+
+      <Box>{allTabs[tabIndex]?.panel}</Box>
     </Stack>
   );
 }

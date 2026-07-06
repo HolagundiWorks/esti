@@ -1,33 +1,30 @@
 import {
+  Alert,
+  Box,
   Button,
-  Column,
-  FileUploaderButton,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineLoading,
-  InlineNotification,
-  Modal,
+  Paper,
   Stack,
   Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
+
+const HiddenFileInput = styled("input")({ display: "none" });
 
 const DISCIPLINES: { id: string; label: string }[] = [
   { id: "INTERIORS", label: "Interiors" },
@@ -70,13 +67,14 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
   }
 
   return (
-    <Stack gap={5}>
-      <div className="esti-page-header">
-        <div className="esti-grow" />
-        <Button onClick={() => { setTitle(""); setNotes(""); setOpen(true); }}>New standard</Button>
-      </div>
+    <Stack spacing={2}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button variant="contained" onClick={() => { setTitle(""); setNotes(""); setOpen(true); }}>
+          New standard
+        </Button>
+      </Box>
       {error && (
-        <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast onCloseButtonClick={() => setError(null)} />
+        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
       )}
       <DataState
         loading={q.isLoading}
@@ -84,60 +82,91 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
         columnCount={1}
         empty={{ title: "No standards", description: `Add a ${discipline.toLowerCase()} standard with notes and drawings.` }}
       >
-        <Grid narrow>
+        <Grid container spacing={1}>
           {(q.data ?? []).map((s) => (
-            <Column key={s.id} lg={8} md={4} sm={4}>
-              <Tile className="esti-fill">
-                <Stack gap={3}>
-                  <Stack orientation="horizontal" gap={3} className="esti-page-header">
+            <Grid key={s.id} size={{ xs: 12, lg: 6 }}>
+              <Paper className="esti-fill" sx={{ p: 2, height: "100%" }}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                     <h4 className="esti-grow">{s.title}</h4>
-                    <Button kind="danger--ghost" size="sm" disabled={remove.isPending} onClick={() => remove.mutate({ id: s.id })}>
+                    <Button
+                      variant="text"
+                      color="error"
+                      size="small"
+                      disabled={remove.isPending}
+                      onClick={() => remove.mutate({ id: s.id })}
+                    >
                       Delete
                     </Button>
-                  </Stack>
+                  </Box>
                   {s.notes && <p className="esti-label esti-label--secondary">{s.notes}</p>}
-                  <Stack orientation="horizontal" gap={2}>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
                     {(s.files ?? []).map((f) => (
-                      <Tag key={f.id} type="blue" size="sm" filter onClose={() => removeFile.mutate({ id: f.id })}>
-                        {f.url ? <a href={f.url} target="_blank" rel="noreferrer">{f.kind}: {f.fileName}</a> : `${f.kind}: ${f.fileName}`}
-                      </Tag>
+                      <Chip
+                        key={f.id}
+                        size="small"
+                        onDelete={() => removeFile.mutate({ id: f.id })}
+                        sx={{
+                          backgroundColor: "var(--cds-tag-background-blue)",
+                          color: "var(--cds-tag-color-blue)",
+                        }}
+                        label={
+                          f.url
+                            ? <a href={f.url} target="_blank" rel="noreferrer">{f.kind}: {f.fileName}</a>
+                            : `${f.kind}: ${f.fileName}`
+                        }
+                      />
                     ))}
                   </Stack>
-                  <FileUploaderButton
-                    labelText={busyId === s.id ? "Uploading…" : "Attach file"}
-                    size="sm"
-                    accept={[".pdf", ".dwg", ".dxf", ".png", ".jpg"]}
-                    disableLabelChanges
-                    disabled={busyId === s.id}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const file = e.target.files?.[0];
-                      if (file) void attach(s.id, "PDF", file);
-                    }}
-                  />
+                  <Box>
+                    <Button variant="outlined" size="small" component="label" disabled={busyId === s.id}>
+                      {busyId === s.id ? "Uploading…" : "Attach file"}
+                      <HiddenFileInput
+                        type="file"
+                        accept=".pdf,.dwg,.dxf,.png,.jpg"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void attach(s.id, "PDF", file);
+                        }}
+                      />
+                    </Button>
+                  </Box>
                 </Stack>
-              </Tile>
-            </Column>
+              </Paper>
+            </Grid>
           ))}
         </Grid>
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New standard"
-        primaryButtonText={create.isPending ? "Saving…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!title.trim() || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => {
-          create.mutate({ discipline: discipline as never, title: title.trim(), notes: notes.trim() || undefined });
-          setOpen(false);
-        }}
-      >
-        <Stack gap={5}>
-          <TextInput id="std-title" labelText="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <TextArea id="std-notes" labelText="Technical notes" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New standard</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="std-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <TextField
+              id="std-notes"
+              label="Technical notes"
+              multiline
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!title.trim() || create.isPending}
+            onClick={() => {
+              create.mutate({ discipline: discipline as never, title: title.trim(), notes: notes.trim() || undefined });
+              setOpen(false);
+            }}
+          >
+            {create.isPending ? "Saving…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
@@ -161,78 +190,75 @@ function DocumentsTab() {
   );
 
   if (isLoading) {
-    return <InlineLoading description="Loading documents…" />;
+    return (
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <CircularProgress size={16} />
+        <Typography variant="body2">Loading documents…</Typography>
+      </Stack>
+    );
   }
 
   if (allFiles.length === 0) {
     return (
-      <InlineNotification
-        kind="info"
-        title="No documents yet"
-        subtitle="Attach files to standards in the Standards tab — they will appear here for quick reference."
-        lowContrast
-        hideCloseButton
-      />
+      <Alert severity="info">
+        Attach files to standards in the Standards tab — they will appear here for quick reference.
+      </Alert>
     );
   }
 
+  const columns: GridColDef[] = [
+    {
+      field: "fileName",
+      headerName: "File",
+      flex: 1.5,
+      minWidth: 180,
+      renderCell: (p) =>
+        p.row.url
+          ? <a href={p.row.url} target="_blank" rel="noreferrer">{p.row.fileName}</a>
+          : p.row.fileName,
+    },
+    { field: "standardTitle", headerName: "Standard", flex: 1.2, minWidth: 160 },
+    { field: "discipline", headerName: "Discipline", flex: 1, minWidth: 120 },
+    { field: "kind", headerName: "Kind", width: 120 },
+  ];
+
   return (
-    <Table size="sm">
-      <TableHead>
-        <TableRow>
-          <TableHeader>File</TableHeader>
-          <TableHeader>Standard</TableHeader>
-          <TableHeader>Discipline</TableHeader>
-          <TableHeader>Kind</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {allFiles.map((f) => (
-          <TableRow key={f.id}>
-            <TableCell>
-              {f.url
-                ? <a href={f.url} target="_blank" rel="noreferrer">{f.fileName}</a>
-                : f.fileName}
-            </TableCell>
-            <TableCell>{f.standardTitle}</TableCell>
-            <TableCell>{f.discipline}</TableCell>
-            <TableCell>{f.kind}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataGrid
+      rows={allFiles}
+      columns={columns}
+      density="compact"
+      disableRowSelectionOnClick
+      hideFooter
+      autoHeight
+    />
   );
 }
 
 /** Studio › Libraries › Standards Library — Documents tab (all attached files) + Standards tab (by discipline). */
 export function StandardsLibrary() {
+  const [tab, setTab] = useState(0);
+  const [discTab, setDiscTab] = useState(0);
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Standards Library"
         description="Office design standards by discipline — technical notes, drawings and standard details."
       />
-      <Tabs>
-        <TabList aria-label="Standards library sections" contained>
-          <Tab>Documents</Tab>
-          <Tab>Standards</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel><DocumentsTab /></TabPanel>
-          <TabPanel>
-            <Tabs>
-              <TabList aria-label="Disciplines" contained>
-                {DISCIPLINES.map((d) => <Tab key={d.id}>{d.label}</Tab>)}
-              </TabList>
-              <TabPanels>
-                {DISCIPLINES.map((d) => (
-                  <TabPanel key={d.id}><DisciplinePanel discipline={d.id} /></TabPanel>
-                ))}
-              </TabPanels>
-            </Tabs>
-          </TabPanel>
-        </TabPanels>
+      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Standards library sections">
+        <Tab label="Documents" />
+        <Tab label="Standards" />
       </Tabs>
+      {tab === 0 && <DocumentsTab />}
+      {tab === 1 && (
+        <Stack spacing={2}>
+          <Tabs value={discTab} onChange={(_e, v) => setDiscTab(v)} aria-label="Disciplines">
+            {DISCIPLINES.map((d) => <Tab key={d.id} label={d.label} />)}
+          </Tabs>
+          {DISCIPLINES.map((d, i) =>
+            discTab === i ? <DisciplinePanel key={d.id} discipline={d.id} /> : null,
+          )}
+        </Stack>
+      )}
     </Stack>
   );
 }

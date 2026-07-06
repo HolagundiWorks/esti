@@ -1,20 +1,21 @@
 import {
+  Alert,
+  Box,
   Button,
-  FileUploaderButton,
-  InlineNotification,
-  Select,
-  SelectItem,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
-  TextInput,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import {
   type FirmType,
   type GstType,
@@ -25,7 +26,7 @@ import {
   districtsFor,
   planAllows,
 } from "@esti/contracts";
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
 import { LicensePanel } from "../components/company/LicensePanel.js";
 import { MigrationPanel } from "../components/company/MigrationPanel.js";
@@ -42,6 +43,9 @@ import { useAuth } from "../lib/auth.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
+
+// Visually-hidden native file input (styled component, not a raw control tag).
+const HiddenFileInput = styled("input")({ display: "none" });
 
 const GST_LABEL: Record<string, string> = {
   [GstSystem.NOT_APPLICABLE]: "NA (not registered)",
@@ -165,310 +169,339 @@ export function Company() {
   const districts = districtsFor(f.state);
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Company profile"
         description={isOwner ? undefined : "Read-only — only the owner can edit."}
       />
       {msg && (
-        <InlineNotification
-          kind="success"
-          title="Saved"
-          subtitle={msg}
-          lowContrast
-          onCloseButtonClick={() => setMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setMsg(null)}>
+          {msg}
+        </Alert>
       )}
 
-      <Tile className="esti-form-panel--wide">
-        <Stack gap={5}>
-          <TextInput
+      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <TextField
             id="co-name"
-            labelText="Company name"
+            label="Company name"
+            fullWidth
             value={f.companyName}
             onChange={set("companyName")}
             disabled={!isOwner}
           />
 
-          <Stack orientation="horizontal" gap={5}>
-            <Select
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "center" }}>
+            <TextField
               id="co-type"
-              labelText="Firm type"
+              select
+              label="Firm type"
               value={f.firmType}
               onChange={set("firmType")}
               disabled={!isOwner}
+              sx={{ flex: 1, minWidth: 160 }}
             >
-              <SelectItem value="SOLO" text="Solo" />
-              <SelectItem value="PARTNERSHIP" text="Partnership" />
-            </Select>
+              <MenuItem value="SOLO">Solo</MenuItem>
+              <MenuItem value="PARTNERSHIP">Partnership</MenuItem>
+            </TextField>
             {firmQ.data?.logoUrl && (
               <img src={firmQ.data.logoUrl} alt="logo" className="esti-firm-logo" />
             )}
-            <FileUploaderButton
-              labelText="Upload logo"
-              accept={[".png", ".jpg", ".jpeg", ".svg", ".webp"]}
-              disableLabelChanges
-              buttonKind="tertiary"
-              disabled={!isOwner}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0];
-                if (file) void uploadLogo(file);
-              }}
-            />
+            <Button variant="outlined" component="label" disabled={!isOwner}>
+              Upload logo
+              <HiddenFileInput
+                type="file"
+                accept=".png,.jpg,.jpeg,.svg,.webp"
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  const file = e.target.files?.[0];
+                  if (file) void uploadLogo(file);
+                  e.target.value = "";
+                }}
+              />
+            </Button>
           </Stack>
 
-          <Stack orientation="horizontal" gap={5}>
-            <Select
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="co-gst"
-              labelText="GST type (sets invoice GST)"
+              select
+              label="GST type (sets invoice GST)"
               value={f.gstType}
               onChange={set("gstType")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             >
               {Object.values(GstSystem).map((g) => (
-                <SelectItem key={g} value={g} text={GST_LABEL[g] ?? g} />
+                <MenuItem key={g} value={g}>{GST_LABEL[g] ?? g}</MenuItem>
               ))}
-            </Select>
-            <TextInput
+            </TextField>
+            <TextField
               id="co-gstin"
-              labelText="GSTIN"
+              label="GSTIN"
               value={f.gstin}
               onChange={set("gstin")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
           </Stack>
-          <Toggle
-            id="co-tds"
-            labelText="TDS declaration — clients deduct TDS u/s 194J (10%)"
-            labelA="No TDS"
-            labelB="TDS deducted"
-            toggled={f.tdsApplicableDefault}
-            disabled={!isOwner}
-            onToggle={(checked) =>
-              setF((p) => ({ ...p, tdsApplicableDefault: checked }))
+          <FormControlLabel
+            control={
+              <Switch
+                id="co-tds"
+                checked={f.tdsApplicableDefault}
+                disabled={!isOwner}
+                onChange={(e) =>
+                  setF((p) => ({ ...p, tdsApplicableDefault: e.target.checked }))
+                }
+              />
             }
+            label="TDS declaration — clients deduct TDS u/s 194J (10%)"
           />
 
-          <h3>{f.firmType === "SOLO" ? "Architect" : "Primary signatory"}</h3>
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
+          <Typography variant="subtitle1" component="h3">
+            {f.firmType === "SOLO" ? "Architect" : "Primary signatory"}
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="co-arch"
-              labelText="Architect name"
+              label="Architect name"
               value={f.architectName}
               onChange={set("architectName")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <TextInput
+            <TextField
               id="co-coa"
-              labelText="COA registration no"
+              label="COA registration no"
               value={f.coaRegNo}
               onChange={set("coaRegNo")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <TextInput
+            <TextField
               id="co-pan"
-              labelText="PAN"
+              label="PAN"
               value={f.pan}
               onChange={set("pan")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
           </Stack>
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="co-email"
-              labelText="Email"
+              label="Email"
               type="email"
               value={f.email}
               onChange={set("email")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <Select
+            <TextField
               id="co-p1t"
-              labelText="Phone 1 type"
+              select
+              label="Phone 1 type"
               value={f.phone1Type}
               onChange={set("phone1Type")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             >
               {PhoneType.options.map((t) => (
-                <SelectItem key={t} value={t} text={t} />
+                <MenuItem key={t} value={t}>{t}</MenuItem>
               ))}
-            </Select>
-            <TextInput
+            </TextField>
+            <TextField
               id="co-p1"
-              labelText="Phone 1"
+              label="Phone 1"
               value={f.phone1}
               onChange={set("phone1")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <Select
+            <TextField
               id="co-p2t"
-              labelText="Phone 2 type"
+              select
+              label="Phone 2 type"
               value={f.phone2Type}
               onChange={set("phone2Type")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             >
               {PhoneType.options.map((t) => (
-                <SelectItem key={t} value={t} text={t} />
+                <MenuItem key={t} value={t}>{t}</MenuItem>
               ))}
-            </Select>
-            <TextInput
+            </TextField>
+            <TextField
               id="co-p2"
-              labelText="Phone 2"
+              label="Phone 2"
               value={f.phone2}
               onChange={set("phone2")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
           </Stack>
 
-          <h3>Address</h3>
-          <TextInput
+          <Typography variant="subtitle1" component="h3">Address</Typography>
+          <TextField
             id="co-a1"
-            labelText="Address line 1"
+            label="Address line 1"
+            fullWidth
             value={f.addressLine1}
             onChange={set("addressLine1")}
             disabled={!isOwner}
           />
-          <TextInput
+          <TextField
             id="co-a2"
-            labelText="Address line 2"
+            label="Address line 2"
+            fullWidth
             value={f.addressLine2}
             onChange={set("addressLine2")}
             disabled={!isOwner}
           />
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="co-city"
-              labelText="City"
+              label="City"
               value={f.city}
               onChange={set("city")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <TextInput
+            <TextField
               id="co-pin"
-              labelText="Pincode"
+              label="Pincode"
               value={f.pincode}
               onChange={set("pincode")}
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             />
-            <Select
+            <TextField
               id="co-state"
-              labelText="State"
+              select
+              label="State"
               value={f.state}
               onChange={(e) =>
                 setF((p) => ({ ...p, state: e.target.value, district: "" }))
               }
               disabled={!isOwner}
+              sx={{ flex: 1 }}
             >
               {STATES.map((s) => (
-                <SelectItem key={s} value={s} text={s} />
+                <MenuItem key={s} value={s}>{s}</MenuItem>
               ))}
-            </Select>
+            </TextField>
             {districts.length > 0 ? (
-              <Select
+              <TextField
                 id="co-dist"
-                labelText="District"
+                select
+                label="District"
                 value={f.district}
                 onChange={set("district")}
                 disabled={!isOwner}
+                sx={{ flex: 1 }}
               >
-                <SelectItem value="" text="Select…" />
+                <MenuItem value="">Select…</MenuItem>
                 {districts.map((d) => (
-                  <SelectItem key={d} value={d} text={d} />
+                  <MenuItem key={d} value={d}>{d}</MenuItem>
                 ))}
-              </Select>
+              </TextField>
             ) : (
-              <TextInput
+              <TextField
                 id="co-dist"
-                labelText="District"
+                label="District"
                 value={f.district}
                 onChange={set("district")}
                 disabled={!isOwner}
+                sx={{ flex: 1 }}
               />
             )}
           </Stack>
 
-          <Button
-            disabled={!isOwner || !f.companyName || update.isPending}
-            onClick={() =>
-              update.mutate({
-                ...f,
-                firmType: f.firmType,
-                gstType: f.gstType,
-                phone1Type: f.phone1Type as (typeof PhoneType.options)[number],
-                phone2Type: f.phone2Type as (typeof PhoneType.options)[number],
-              })
-            }
-          >
-            {update.isPending ? "Saving…" : "Save company profile"}
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              disabled={!isOwner || !f.companyName || update.isPending}
+              onClick={() =>
+                update.mutate({
+                  ...f,
+                  firmType: f.firmType,
+                  gstType: f.gstType,
+                  phone1Type: f.phone1Type as (typeof PhoneType.options)[number],
+                  phone2Type: f.phone2Type as (typeof PhoneType.options)[number],
+                })
+              }
+            >
+              {update.isPending ? "Saving…" : "Save company profile"}
+            </Button>
+          </Box>
         </Stack>
-      </Tile>
+      </Paper>
 
       {f.firmType === "PARTNERSHIP" && <Partners isOwner={isOwner} />}
 
-      <Tile className="esti-form-panel--wide">
-        <Stack gap={5}>
-          <h2>Team &amp; HR module</h2>
-          <p>
+      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">Team &amp; HR module</Typography>
+          <Typography variant="body2">
             Operating mode for your office: <strong>{ORG_MODE_LABEL[(settingsQ.data?.orgMode as "SOLO" | "STUDIO") ?? "STUDIO"]}</strong>.
             Team mode is always active and includes roster, assignments,
             attendance, workload visibility, and ASPRF.
-          </p>
-          <InlineNotification
-            kind="success"
-            title="Team mode active"
-            subtitle="The workspace runs with team navigation, workload, HR, attendance and performance modules enabled."
-            lowContrast
-            hideCloseButton
-          />
+          </Typography>
+          <Alert severity="success" icon={false}>
+            <strong>Team mode active</strong> — The workspace runs with team navigation, workload, HR, attendance and performance modules enabled.
+          </Alert>
           {hrStatusQ.data?.archives && hrStatusQ.data.archives.length > 0 && (
-            <Stack gap={2}>
-              <h3>Archive history</h3>
-              <Table size="sm" useZebraStyles={false}>
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Date / Reason</TableHeader>
-                    <TableHeader>Summary</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {hrStatusQ.data.archives.map((a) => (
-                    <TableRow key={a.id}>
-                      <TableCell>
-                        {new Date(a.createdAt).toLocaleString("en-IN")}
-                        {a.reason ? ` — ${a.reason}` : ""}
-                      </TableCell>
-                      <TableCell>
-                        {a.tasksRemapped} tasks · {a.membersArchived} members
-                      </TableCell>
+            <Stack spacing={1}>
+              <Typography variant="subtitle1" component="h3">Archive history</Typography>
+              <Box sx={{ overflowX: "auto" }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date / Reason</TableCell>
+                      <TableCell>Summary</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {hrStatusQ.data.archives.map((a) => (
+                      <TableRow key={a.id}>
+                        <TableCell>
+                          {new Date(a.createdAt).toLocaleString("en-IN")}
+                          {a.reason ? ` — ${a.reason}` : ""}
+                        </TableCell>
+                        <TableCell>
+                          {a.tasksRemapped} tasks · {a.membersArchived} members
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
             </Stack>
           )}
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile className="esti-form-panel--wide">
-        <Stack gap={5}>
-          <h2>PMC module</h2>
-          <p>
+      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">PMC module</Typography>
+          <Typography variant="body2">
             Project management for site coordination — construction inbox, snag register, site
             instructions, and monthly progress reports. Enable per project in Project settings.
-          </p>
-          <Toggle
-            id="pmc-toggle"
-            labelText="Enable PMC module"
-            labelA="Off"
-            labelB="On"
-            toggled={settingsQ.data?.pmcEnabled ?? false}
-            disabled={!isOwner || setPmc.isPending || settingsQ.isLoading}
-            onToggle={(checked) => setPmc.mutate({ pmcEnabled: checked })}
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                id="pmc-toggle"
+                checked={settingsQ.data?.pmcEnabled ?? false}
+                disabled={!isOwner || setPmc.isPending || settingsQ.isLoading}
+                onChange={(e) => setPmc.mutate({ pmcEnabled: e.target.checked })}
+              />
+            }
+            label="Enable PMC module"
           />
-          {!isOwner && <p>Only the owner can change this.</p>}
+          {!isOwner && <Typography variant="body2">Only the owner can change this.</Typography>}
         </Stack>
-      </Tile>
+      </Paper>
 
       {isOwner && !community && <LicensePanel />}
       {isOwner && <MigrationPanel />}
@@ -482,4 +515,3 @@ export function Company() {
     </Stack>
   );
 }
-

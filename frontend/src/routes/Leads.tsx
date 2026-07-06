@@ -1,25 +1,18 @@
 import {
+  Alert,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   LEAD_SOURCE_LABEL,
   LEAD_STATUS_LABEL,
@@ -49,6 +42,8 @@ export function Leads() {
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
   const inv = () => utils.leads.list.invalidate();
 
+  const [tab, setTab] = useState(0);
+
   // Create lead
   const [open, setOpen] = useState(false);
   const blank = {
@@ -77,195 +72,231 @@ export function Leads() {
 
   const leads = listQ.data ?? [];
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.7, minWidth: 90 },
+    {
+      field: "clientName",
+      headerName: "Enquirer",
+      flex: 1.4,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (p) => (
+        <Box sx={{ py: 0.5 }}>
+          <div>{p.row.clientName}</div>
+          <span className="esti-label--secondary">
+            {[p.row.phone, p.row.email].filter(Boolean).join(" · ") || "—"}
+          </span>
+        </Box>
+      ),
+    },
+    {
+      field: "leadSource",
+      headerName: "Source",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (_v, row) =>
+        LEAD_SOURCE_LABEL[row.leadSource as keyof typeof LEAD_SOURCE_LABEL] ?? row.leadSource,
+    },
+    {
+      field: "projectType",
+      headerName: "Project",
+      flex: 1.1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (p) => {
+        const l = p.row;
+        return l.convertedProjectId ? (
+          <Link to={`/projects/${l.convertedProjectId}`}>{l.projectType || "View project"}</Link>
+        ) : (
+          <Box sx={{ py: 0.5 }}>
+            <div>{l.projectType || "—"}</div>
+            <span className="esti-label--secondary">{l.city || ""}</span>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1.2,
+      minWidth: 170,
+      sortable: false,
+      renderCell: (p) => {
+        const l = p.row;
+        return l.convertedProjectId ? (
+          <StatusTag
+            value={l.status as LeadStatusT}
+            map={LEAD_STATUS_TAG}
+            label={LEAD_STATUS_LABEL[l.status as LeadStatusT] ?? l.status}
+          />
+        ) : (
+          <TextField
+            id={`st-${l.id}`}
+            select
+            size="small"
+            hiddenLabel
+            value={l.status}
+            disabled={setStatus.isPending}
+            onChange={(e) => setStatus.mutate({ id: l.id, status: e.target.value as LeadStatusT })}
+            sx={{ minWidth: 150 }}
+          >
+            {STATUS_OPTIONS.map((s) => (
+              <MenuItem key={s} value={s}>{LEAD_STATUS_LABEL[s]}</MenuItem>
+            ))}
+          </TextField>
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (p) => {
+        const l = p.row;
+        if (TERMINAL.has(l.status)) return null;
+        return (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              // A lead's project type is free text — only carry it over
+              // if it matches a real ProjectType, else pick a valid default.
+              const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
+                ? (l.projectType as string)
+                : ProjectType.options[0];
+              setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
+              setConvertId(l.id);
+            }}
+          >
+            Convert
+          </Button>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Leads"
         description="Inbound enquiries — qualify, then convert to a draft project."
-        actions={<Button onClick={() => setOpen(true)}>New lead</Button>}
+        actions={<Button variant="contained" onClick={() => setOpen(true)}>New lead</Button>}
       />
 
-      <Tabs>
-        <TabList aria-label="Lead development sections" contained>
-          <Tab>Lead register</Tab>
-          <Tab>Permissible development</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel>
-            <DataState
-              loading={listQ.isLoading}
-              isEmpty={leads.length === 0}
-              columnCount={6}
-              empty={{
-                title: "No leads yet",
-                description: "Capture an enquiry to start the acquisition funnel.",
-                action: <Button size="sm" onClick={() => setOpen(true)}>New lead</Button>,
-              }}
-            >
-        <TableContainer title={`${leads.length} leads`}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Enquirer</TableHeader>
-                <TableHeader>Source</TableHeader>
-                <TableHeader>Project</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {leads.map((l) => {
-                const terminal = TERMINAL.has(l.status);
-                return (
-                  <TableRow key={l.id}>
-                    <TableCell>{l.ref}</TableCell>
-                    <TableCell>
-                      <div>{l.clientName}</div>
-                      <span className="esti-label--secondary">
-                        {[l.phone, l.email].filter(Boolean).join(" · ") || "—"}
-                      </span>
-                    </TableCell>
-                    <TableCell>{LEAD_SOURCE_LABEL[l.leadSource as keyof typeof LEAD_SOURCE_LABEL] ?? l.leadSource}</TableCell>
-                    <TableCell>
-                      {l.convertedProjectId ? (
-                        <Link to={`/projects/${l.convertedProjectId}`}>{l.projectType || "View project"}</Link>
-                      ) : (
-                        <>
-                          <div>{l.projectType || "—"}</div>
-                          <span className="esti-label--secondary">{l.city || ""}</span>
-                        </>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {l.convertedProjectId ? (
-                        <StatusTag
-                          value={l.status as LeadStatusT}
-                          map={LEAD_STATUS_TAG}
-                          label={LEAD_STATUS_LABEL[l.status as LeadStatusT] ?? l.status}
-                        />
-                      ) : (
-                        <Select
-                          id={`st-${l.id}`}
-                          size="sm"
-                          labelText=""
-                          hideLabel
-                          value={l.status}
-                          disabled={setStatus.isPending}
-                          onChange={(e) => setStatus.mutate({ id: l.id, status: e.target.value as LeadStatusT })}
-                        >
-                          {STATUS_OPTIONS.map((s) => (
-                            <SelectItem key={s} value={s} text={LEAD_STATUS_LABEL[s]} />
-                          ))}
-                        </Select>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {!terminal && (
-                        <Button
-                          kind="tertiary"
-                          size="sm"
-                          onClick={() => {
-                            // A lead's project type is free text — only carry it over
-                            // if it matches a real ProjectType, else pick a valid default.
-                            const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
-                              ? (l.projectType as string)
-                              : ProjectType.options[0];
-                            setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
-                            setConvertId(l.id);
-                          }}
-                        >
-                          Convert
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-            </DataState>
-          </TabPanel>
-          <TabPanel>
-            <ComplianceCalculator />
-          </TabPanel>
-        </TabPanels>
+      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Lead development sections">
+        <Tab label="Lead register" />
+        <Tab label="Permissible development" />
       </Tabs>
 
+      {tab === 0 && (
+        <DataState
+          loading={listQ.isLoading}
+          isEmpty={leads.length === 0}
+          columnCount={6}
+          empty={{
+            title: "No leads yet",
+            description: "Capture an enquiry to start the acquisition funnel.",
+            action: <Button variant="contained" onClick={() => setOpen(true)}>New lead</Button>,
+          }}
+        >
+          <DataGrid
+            rows={leads}
+            columns={columns}
+            getRowHeight={() => "auto"}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </DataState>
+      )}
+      {tab === 1 && <ComplianceCalculator />}
+
       {/* Create lead */}
-      <Modal
-        open={open}
-        modalHeading="New lead"
-        primaryButtonText={create.isPending ? "Saving…" : "Capture lead"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.clientName || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            clientName: form.clientName,
-            phone: form.phone || undefined,
-            email: form.email || undefined,
-            leadSource: form.leadSource as (typeof SOURCE_OPTIONS)[number],
-            projectType: form.projectType || undefined,
-            siteLocation: form.siteLocation || undefined,
-            city: form.city || undefined,
-            notes: form.notes || undefined,
-          })
-        }
-      >
-        <Stack gap={4}>
-          <TextInput id="ld-name" labelText="Enquirer name" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
-          <TextInput id="ld-phone" labelText="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <TextInput id="ld-email" labelText="Email (optional)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Select id="ld-src" labelText="Lead source" value={form.leadSource} onChange={(e) => setForm({ ...form, leadSource: e.target.value })}>
-            {SOURCE_OPTIONS.map((s) => <SelectItem key={s} value={s} text={LEAD_SOURCE_LABEL[s]} />)}
-          </Select>
-          <TextInput id="ld-ptype" labelText="Project type (optional)" value={form.projectType} onChange={(e) => setForm({ ...form, projectType: e.target.value })} />
-          <TextInput id="ld-loc" labelText="Site location (optional)" value={form.siteLocation} onChange={(e) => setForm({ ...form, siteLocation: e.target.value })} />
-          <TextInput id="ld-city" labelText="City (optional)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-          <TextArea id="ld-notes" labelText="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          {create.error && <InlineNotification kind="error" title="Error" subtitle={create.error.message} lowContrast />}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New lead</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="ld-name" label="Enquirer name" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
+            <TextField id="ld-phone" label="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <TextField id="ld-email" label="Email (optional)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <TextField id="ld-src" select label="Lead source" value={form.leadSource} onChange={(e) => setForm({ ...form, leadSource: e.target.value })}>
+              {SOURCE_OPTIONS.map((s) => <MenuItem key={s} value={s}>{LEAD_SOURCE_LABEL[s]}</MenuItem>)}
+            </TextField>
+            <TextField id="ld-ptype" label="Project type (optional)" value={form.projectType} onChange={(e) => setForm({ ...form, projectType: e.target.value })} />
+            <TextField id="ld-loc" label="Site location (optional)" value={form.siteLocation} onChange={(e) => setForm({ ...form, siteLocation: e.target.value })} />
+            <TextField id="ld-city" label="City (optional)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            <TextField id="ld-notes" label="Notes (optional)" multiline rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            {create.error && <Alert severity="error">{create.error.message}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.clientName || create.isPending}
+            onClick={() =>
+              create.mutate({
+                clientName: form.clientName,
+                phone: form.phone || undefined,
+                email: form.email || undefined,
+                leadSource: form.leadSource as (typeof SOURCE_OPTIONS)[number],
+                projectType: form.projectType || undefined,
+                siteLocation: form.siteLocation || undefined,
+                city: form.city || undefined,
+                notes: form.notes || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Saving…" : "Capture lead"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Convert lead */}
-      <Modal
-        open={!!convertId}
-        modalHeading="Convert lead to draft project"
-        primaryButtonText={convert.isPending ? "Converting…" : "Create draft project"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!conv.projectTitle || !conv.projectType || convert.isPending}
-        onRequestClose={() => setConvertId(null)}
-        onRequestSubmit={() => {
-          if (!convertId) return;
-          convert.mutate({
-            id: convertId,
-            projectTitle: conv.projectTitle,
-            projectType: conv.projectType as (typeof ProjectType.options)[number],
-            workType: conv.workType as (typeof ProjectWorkType.options)[number],
-            clientId: conv.clientId || undefined,
-          });
-        }}
-      >
-        <Stack gap={4}>
-          <p className="esti-label--secondary">
-            Creates a client (or reuses an existing one) and a draft project in ENQUIRY stage. The lead is marked Qualified.
-          </p>
-          <TextInput id="cv-title" labelText="Project title" value={conv.projectTitle} onChange={(e) => setConv({ ...conv, projectTitle: e.target.value })} />
-          <Select id="cv-type" labelText="Project type" value={conv.projectType} onChange={(e) => setConv({ ...conv, projectType: e.target.value })}>
-            {ProjectType.options.map((t) => <SelectItem key={t} value={t} text={t} />)}
-          </Select>
-          <Select id="cv-work" labelText="Discipline" value={conv.workType} onChange={(e) => setConv({ ...conv, workType: e.target.value })}>
-            {ProjectWorkType.options.map((t) => <SelectItem key={t} value={t} text={PROJECT_WORK_TYPE_LABEL[t]} />)}
-          </Select>
-          <Select id="cv-client" labelText="Client" value={conv.clientId} onChange={(e) => setConv({ ...conv, clientId: e.target.value })}>
-            <SelectItem value="" text="— Create new client from lead —" />
-            {(clientsQ.data ?? []).map((c) => <SelectItem key={c.id} value={c.id} text={c.name} />)}
-          </Select>
-          {convert.error && <InlineNotification kind="error" title="Cannot convert" subtitle={convert.error.message} lowContrast />}
-        </Stack>
-      </Modal>
+      <Dialog open={!!convertId} onClose={() => setConvertId(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Convert lead to draft project</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <p className="esti-label--secondary">
+              Creates a client (or reuses an existing one) and a draft project in ENQUIRY stage. The lead is marked Qualified.
+            </p>
+            <TextField id="cv-title" label="Project title" value={conv.projectTitle} onChange={(e) => setConv({ ...conv, projectTitle: e.target.value })} />
+            <TextField id="cv-type" select label="Project type" value={conv.projectType} onChange={(e) => setConv({ ...conv, projectType: e.target.value })}>
+              {ProjectType.options.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            </TextField>
+            <TextField id="cv-work" select label="Discipline" value={conv.workType} onChange={(e) => setConv({ ...conv, workType: e.target.value })}>
+              {ProjectWorkType.options.map((t) => <MenuItem key={t} value={t}>{PROJECT_WORK_TYPE_LABEL[t]}</MenuItem>)}
+            </TextField>
+            <TextField id="cv-client" select label="Client" value={conv.clientId} onChange={(e) => setConv({ ...conv, clientId: e.target.value })}>
+              <MenuItem value="">— Create new client from lead —</MenuItem>
+              {(clientsQ.data ?? []).map((c) => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
+            </TextField>
+            {convert.error && <Alert severity="error">{convert.error.message}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setConvertId(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!conv.projectTitle || !conv.projectType || convert.isPending}
+            onClick={() => {
+              if (!convertId) return;
+              convert.mutate({
+                id: convertId,
+                projectTitle: conv.projectTitle,
+                projectType: conv.projectType as (typeof ProjectType.options)[number],
+                workType: conv.workType as (typeof ProjectWorkType.options)[number],
+                clientId: conv.clientId || undefined,
+              });
+            }}
+          >
+            {convert.isPending ? "Converting…" : "Create draft project"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

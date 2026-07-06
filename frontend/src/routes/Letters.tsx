@@ -1,19 +1,14 @@
 import {
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
@@ -79,69 +74,71 @@ export function Letters() {
   });
   const remove = trpc.letters.remove.useMutation({ onSuccess: inv });
 
+  const rows = listQ.data ?? [];
+
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 120 },
+    { field: "recipient", headerName: "Recipient", flex: 1, minWidth: 140 },
+    { field: "subject", headerName: "Subject", flex: 2, minWidth: 200 },
+    {
+      field: "document",
+      headerName: "Document",
+      sortable: false,
+      filterable: false,
+      flex: 1.4,
+      minWidth: 200,
+      renderCell: (p) => <LetterPdf id={p.row.id} initial={p.row.pdfStatus} />,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (p) => (
+        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Letters"
         description="Office correspondence on firm letterhead."
         actions={
-          <Stack orientation="horizontal" gap={3}>
-            <Link to="/office/documents">
-              <Button kind="ghost" size="sm">Document register</Button>
-            </Link>
-            <Button onClick={() => setOpen(true)}>New letter</Button>
+          <Stack direction="row" spacing={1}>
+            <Button component={Link} to="/office/documents" variant="text" size="small">
+              Document register
+            </Button>
+            <Button variant="contained" onClick={() => setOpen(true)}>New letter</Button>
           </Stack>
         }
       />
 
       <DataState
         loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
+        isEmpty={rows.length === 0}
         columnCount={5}
         empty={{
           title: "No letters yet",
           description: "Draft a letter and export it as a branded PDF.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New letter
             </Button>
           ),
         }}
       >
-        <TableContainer title="Letters">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Recipient</TableHeader>
-                <TableHeader>Subject</TableHeader>
-                <TableHeader>Document</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell>{l.ref}</TableCell>
-                  <TableCell>{l.recipient}</TableCell>
-                  <TableCell>{l.subject}</TableCell>
-                  <TableCell>
-                    <LetterPdf id={l.id} initial={l.pdfStatus} />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(l.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          autoHeight
+        />
       </DataState>
 
       <ConfirmModal
@@ -157,86 +154,90 @@ export function Letters() {
         onClose={() => setConfirmId(null)}
       />
 
-      <Modal
-        open={open}
-        modalHeading="New letter"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !f.recipient || !f.subject || !f.body || create.isPending
-        }
-        size="lg"
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId: f.projectId || undefined,
-            recipient: f.recipient,
-            subject: f.subject,
-            body: f.body,
-            dateLetter: f.dateLetter || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="l-tpl"
-            labelText="Start from template (optional)"
-            value=""
-            onChange={(e) => {
-              const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
-              if (t) setF((x) => ({ ...x, subject: t.title, body: t.body }));
-            }}
-          >
-            <SelectItem value="" text="— blank letter —" />
-            {(templatesQ.data ?? []).map((t) => (
-              <SelectItem key={t.id} value={t.id} text={t.title} />
-            ))}
-          </Select>
-          <Stack orientation="horizontal" gap={4}>
-            <TextInput
-              id="l-to"
-              labelText="Recipient"
-              value={f.recipient}
-              onChange={set("recipient")}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New letter</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="l-tpl"
+              select
+              label="Start from template (optional)"
+              value=""
+              onChange={(e) => {
+                const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
+                if (t) setF((x) => ({ ...x, subject: t.title, body: t.body }));
+              }}
+            >
+              <MenuItem value="">— blank letter —</MenuItem>
+              {(templatesQ.data ?? []).map((t) => (
+                <MenuItem key={t.id} value={t.id}>{t.title}</MenuItem>
+              ))}
+            </TextField>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="l-to"
+                label="Recipient"
+                value={f.recipient}
+                onChange={set("recipient")}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                id="l-date"
+                label="Date"
+                type="date"
+                value={f.dateLetter}
+                onChange={set("dateLetter")}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ flex: 1 }}
+              />
+            </Stack>
+            <TextField
+              id="l-proj"
+              select
+              label="Related project (optional)"
+              value={f.projectId}
+              onChange={set("projectId")}
+            >
+              <MenuItem value="">— none —</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="l-subj"
+              label="Subject"
+              value={f.subject}
+              onChange={set("subject")}
             />
-            <TextInput
-              id="l-date"
-              labelText="Date"
-              type="date"
-              value={f.dateLetter}
-              onChange={set("dateLetter")}
+            <TextField
+              id="l-body"
+              label="Body"
+              multiline
+              rows={10}
+              value={f.body}
+              onChange={set("body")}
             />
           </Stack>
-          <Select
-            id="l-proj"
-            labelText="Related project (optional)"
-            value={f.projectId}
-            onChange={set("projectId")}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!f.recipient || !f.subject || !f.body || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId: f.projectId || undefined,
+                recipient: f.recipient,
+                subject: f.subject,
+                body: f.body,
+                dateLetter: f.dateLetter || undefined,
+              })
+            }
           >
-            <SelectItem value="" text="— none —" />
-            {(projectsQ.data ?? []).map((p) => (
-              <SelectItem
-                key={p.id}
-                value={p.id}
-                text={`${p.ref} — ${p.title}`}
-              />
-            ))}
-          </Select>
-          <TextInput
-            id="l-subj"
-            labelText="Subject"
-            value={f.subject}
-            onChange={set("subject")}
-          />
-          <TextArea
-            id="l-body"
-            labelText="Body"
-            rows={10}
-            value={f.body}
-            onChange={set("body")}
-          />
-        </Stack>
-      </Modal>
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

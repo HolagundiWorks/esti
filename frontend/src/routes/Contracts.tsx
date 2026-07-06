@@ -1,36 +1,30 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   CONTRACT_TYPE_LABEL,
   ContractStatus,
   ContractType,
   formatINR,
+  type TagColor,
 } from "@esti/contracts";
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
-const STATUS_TAG: Record<
-  string,
-  "gray" | "green" | "blue" | "magenta" | "red"
-> = {
+const STATUS_TAG: Record<string, TagColor> = {
   DRAFT: "gray",
   ACTIVE: "green",
   ON_HOLD: "blue",
@@ -79,103 +73,121 @@ export function Contracts() {
     },
   });
 
+  const rows = listQ.data ?? [];
+
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 1, minWidth: 110 },
+    {
+      field: "title",
+      headerName: "Title / party",
+      flex: 2,
+      minWidth: 200,
+      renderCell: (p) => (
+        <Box>
+          {p.row.title}
+          <Box>{p.row.party}</Box>
+        </Box>
+      ),
+    },
+    {
+      field: "contractType",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (_v, row) =>
+        CONTRACT_TYPE_LABEL[row.contractType as keyof typeof CONTRACT_TYPE_LABEL] ??
+        row.contractType,
+    },
+    {
+      field: "valuePaise",
+      headerName: "Value",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) =>
+        p.row.valuePaise ? formatINR(p.row.valuePaise, { paise: false }) : "—",
+    },
+    {
+      field: "term",
+      headerName: "Term",
+      flex: 1.4,
+      minWidth: 160,
+      sortable: false,
+      renderCell: (p) => `${p.row.startDate ?? "—"} → ${p.row.endDate ?? "—"}`,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1.6,
+      minWidth: 220,
+      sortable: false,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <TextField
+            id={`c-st-${p.row.id}`}
+            select
+            size="small"
+            value={p.row.status}
+            onChange={(e) =>
+              updateStatus.mutate({
+                id: p.row.id,
+                status: e.target.value as (typeof ContractStatus.options)[number],
+              })
+            }
+            sx={{ minWidth: 120 }}
+          >
+            {ContractStatus.options.map((st) => (
+              <MenuItem key={st} value={st}>{st}</MenuItem>
+            ))}
+          </TextField>
+          <StatusTag value={p.row.status} map={STATUS_TAG} />
+        </Stack>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (p) => (
+        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
-        actions={<Button onClick={() => setOpen(true)}>New contract</Button>}
+        actions={<Button variant="contained" onClick={() => setOpen(true)}>New contract</Button>}
       />
 
       <DataState
         loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
+        isEmpty={rows.length === 0}
         columnCount={6}
         empty={{
           title: "No contracts yet",
           description:
             "Register an agreement to track parties, value and term.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New contract
             </Button>
           ),
         }}
       >
-        <TableContainer title="Contract register">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Title / party</TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Value</TableHeader>
-                <TableHeader>Term</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>{c.ref}</TableCell>
-                  <TableCell>
-                    {c.title}
-                    <div>{c.party}</div>
-                  </TableCell>
-                  <TableCell>
-                    {CONTRACT_TYPE_LABEL[
-                      c.contractType as keyof typeof CONTRACT_TYPE_LABEL
-                    ] ?? c.contractType}
-                  </TableCell>
-                  <TableCell>
-                    {c.valuePaise
-                      ? formatINR(c.valuePaise, { paise: false })
-                      : "—"}
-                  </TableCell>
-                  <TableCell>
-                    {c.startDate ?? "—"} → {c.endDate ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      id={`c-st-${c.id}`}
-                      labelText=""
-                      hideLabel
-                      size="sm"
-                      value={c.status}
-                      onChange={(e) =>
-                        updateStatus.mutate({
-                          id: c.id,
-                          status: e.target
-                            .value as (typeof ContractStatus.options)[number],
-                        })
-                      }
-                    >
-                      {ContractStatus.options.map((st) => (
-                        <SelectItem key={st} value={st} text={st} />
-                      ))}
-                    </Select>
-                    <Tag
-                      type={STATUS_TAG[c.status] ?? "gray"}
-                      size="sm"
-                    >
-                      {c.status}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(c.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          autoHeight
+          rowHeight={64}
+        />
       </DataState>
 
       <ConfirmModal
@@ -191,100 +203,110 @@ export function Contracts() {
         onClose={() => setConfirmId(null)}
       />
 
-      <Modal
-        open={open}
-        modalHeading="New contract"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!f.title || !f.party || create.isPending}
-        size="lg"
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId: f.projectId || undefined,
-            title: f.title,
-            party: f.party,
-            contractType:
-              f.contractType as (typeof ContractType.options)[number],
-            valuePaise: Math.round(Number(f.value || "0") * 100),
-            startDate: f.startDate || undefined,
-            endDate: f.endDate || undefined,
-            notes: f.notes || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="ct-title"
-            labelText="Title"
-            value={f.title}
-            onChange={set("title")}
-          />
-          <Stack orientation="horizontal" gap={4}>
-            <TextInput
-              id="ct-party"
-              labelText="Party"
-              value={f.party}
-              onChange={set("party")}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>New contract</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="ct-title"
+              label="Title"
+              value={f.title}
+              onChange={set("title")}
             />
-            <Select
-              id="ct-type"
-              labelText="Type"
-              value={f.contractType}
-              onChange={set("contractType")}
-            >
-              {ContractType.options.map((t) => (
-                <SelectItem key={t} value={t} text={CONTRACT_TYPE_LABEL[t]} />
-              ))}
-            </Select>
-          </Stack>
-          <Stack orientation="horizontal" gap={4}>
-            <TextInput
-              id="ct-val"
-              labelText="Value (₹)"
-              type="number"
-              value={f.value}
-              onChange={set("value")}
-            />
-            <TextInput
-              id="ct-start"
-              labelText="Start date"
-              type="date"
-              value={f.startDate}
-              onChange={set("startDate")}
-            />
-            <TextInput
-              id="ct-end"
-              labelText="End date"
-              type="date"
-              value={f.endDate}
-              onChange={set("endDate")}
-            />
-          </Stack>
-          <Select
-            id="ct-proj"
-            labelText="Related project (optional)"
-            value={f.projectId}
-            onChange={set("projectId")}
-          >
-            <SelectItem value="" text="— none —" />
-            {(projectsQ.data ?? []).map((p) => (
-              <SelectItem
-                key={p.id}
-                value={p.id}
-                text={`${p.ref} — ${p.title}`}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="ct-party"
+                label="Party"
+                value={f.party}
+                onChange={set("party")}
+                sx={{ flex: 1 }}
               />
-            ))}
-          </Select>
-          <TextArea
-            id="ct-notes"
-            labelText="Notes (optional)"
-            rows={3}
-            value={f.notes}
-            onChange={set("notes")}
-          />
-        </Stack>
-      </Modal>
+              <TextField
+                id="ct-type"
+                select
+                label="Type"
+                value={f.contractType}
+                onChange={set("contractType")}
+                sx={{ flex: 1 }}
+              >
+                {ContractType.options.map((t) => (
+                  <MenuItem key={t} value={t}>{CONTRACT_TYPE_LABEL[t]}</MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="ct-val"
+                label="Value (₹)"
+                type="number"
+                value={f.value}
+                onChange={set("value")}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                id="ct-start"
+                label="Start date"
+                type="date"
+                value={f.startDate}
+                onChange={set("startDate")}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                id="ct-end"
+                label="End date"
+                type="date"
+                value={f.endDate}
+                onChange={set("endDate")}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ flex: 1 }}
+              />
+            </Stack>
+            <TextField
+              id="ct-proj"
+              select
+              label="Related project (optional)"
+              value={f.projectId}
+              onChange={set("projectId")}
+            >
+              <MenuItem value="">— none —</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="ct-notes"
+              label="Notes (optional)"
+              multiline
+              rows={3}
+              value={f.notes}
+              onChange={set("notes")}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!f.title || !f.party || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId: f.projectId || undefined,
+                title: f.title,
+                party: f.party,
+                contractType:
+                  f.contractType as (typeof ContractType.options)[number],
+                valuePaise: Math.round(Number(f.value || "0") * 100),
+                startDate: f.startDate || undefined,
+                endDate: f.endDate || undefined,
+                notes: f.notes || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

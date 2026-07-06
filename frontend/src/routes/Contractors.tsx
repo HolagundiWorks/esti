@@ -1,21 +1,17 @@
 import {
+  Alert,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   CONTRACTOR_CATEGORIES,
   ContractorCategory,
@@ -46,6 +42,13 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
   if (score > 0) return "blue";
   return "gray";
 }
+
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
 
 export function Contractors({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -81,165 +84,236 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
     else create.mutate(payload);
   };
 
+  const columns: GridColDef[] = [
+    {
+      field: "name",
+      headerName: "Name",
+      flex: 1.4,
+      minWidth: 180,
+      renderCell: (p) => {
+        const c = p.row;
+        return (
+          <Box sx={{ py: 0.5 }}>
+            <span>{c.name}</span>
+            {!c.active && (
+              <Chip label="Inactive" size="small" sx={{ ...tagSx("gray"), ml: 1 }} />
+            )}
+            {c.companyName && <div className="esti-label esti-label--secondary">{c.companyName}</div>}
+            {(c.city || c.state) && (
+              <div className="esti-label esti-label--helper">
+                {[c.city, c.state].filter(Boolean).join(", ")}
+              </div>
+            )}
+          </Box>
+        );
+      },
+    },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (_v, row) => CONTRACTOR_CATEGORIES[row.category as ContractorCategoryCode] ?? row.category,
+    },
+    {
+      field: "contact",
+      headerName: "Contact",
+      flex: 1.2,
+      minWidth: 160,
+      sortable: false,
+      renderCell: (p) => {
+        const c = p.row;
+        return (
+          <Box sx={{ py: 0.5 }}>
+            <span>{c.contactPerson ?? "—"}</span>
+            {c.phone && <div className="esti-label esti-label--helper">{c.phone}</div>}
+            {c.email && <div className="esti-label esti-label--helper">{c.email}</div>}
+          </Box>
+        );
+      },
+    },
+    {
+      field: "gstin",
+      headerName: "GSTIN / PAN",
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (p) => {
+        const c = p.row;
+        return (
+          <Box sx={{ py: 0.5 }}>
+            <span>{c.gstin ?? "—"}</span>
+            {c.pan && <div className="esti-label esti-label--helper">{c.pan}</div>}
+          </Box>
+        );
+      },
+    },
+    {
+      field: "performance",
+      headerName: "Performance",
+      flex: 1,
+      minWidth: 130,
+      sortable: false,
+      renderCell: (p) => {
+        const score = contractorScore(p.row);
+        return score > 0 ? (
+          <Chip label={`${score.toFixed(1)} / 5`} size="small" sx={tagSx(scoreTag(score))} />
+        ) : (
+          <Chip label="Unrated" size="small" sx={tagSx("gray")} />
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 200,
+      renderCell: (p) => {
+        const c = p.row;
+        return (
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
+            <Button variant="text" size="small" onClick={() => setForm({
+              id: c.id, name: c.name, category: c.category as ContractorCategoryCode,
+              companyName: c.companyName ?? "", contactPerson: c.contactPerson ?? "",
+              gstin: c.gstin ?? "", pan: c.pan ?? "", email: c.email ?? "", phone: c.phone ?? "",
+              city: c.city ?? "", state: c.state ?? "",
+            })}>Edit</Button>
+            <Button variant="text" size="small" onClick={() => setRating({
+              id: c.id, name: c.name,
+              quality: c.qualityRating ? String(c.qualityRating) : "",
+              timeliness: c.timelinessRating ? String(c.timelinessRating) : "",
+              safety: c.safetyRating ? String(c.safetyRating) : "",
+              notes: c.notes ?? "",
+            })}>Rate</Button>
+            <Button variant="text" size="small" color="error" onClick={() => setConfirmId(c.id)}>Remove</Button>
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {embedded ? (
-        <Stack orientation="horizontal" gap={5} className="esti-page-header">
+        <Box className="esti-page-header" sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <div className="esti-grow" />
-          <Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
-        </Stack>
+          <Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
+        </Box>
       ) : (
         <PageHeader
           title="Contractors"
           description="Construction contractor register — trades, statutory ids and on-site performance."
-          actions={<Button onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
+          actions={<Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
         />
       )}
 
-      <Stack orientation="horizontal" gap={5}>
-        <Select id="ct-cat" labelText="Category" hideLabel size="sm" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <SelectItem value="" text="All categories" />
+      <Box sx={{ display: "flex", gap: 2 }}>
+        <TextField
+          id="ct-cat"
+          select
+          size="small"
+          label="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          sx={{ minWidth: 200 }}
+        >
+          <MenuItem value="">All categories</MenuItem>
           {ContractorCategory.options.map((c) => (
-            <SelectItem key={c} value={c} text={CONTRACTOR_CATEGORIES[c]} />
+            <MenuItem key={c} value={c}>{CONTRACTOR_CATEGORIES[c]}</MenuItem>
           ))}
-        </Select>
-      </Stack>
+        </TextField>
+      </Box>
 
       {listQ.error && (
-        <InlineNotification kind="error" title="Could not load contractors" subtitle={listQ.error.message} hideCloseButton lowContrast />
+        <Alert severity="error">{listQ.error.message}</Alert>
       )}
 
       <DataState
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={6}
-        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site.", action: <Button size="sm" onClick={() => setForm({ ...EMPTY })}>New contractor</Button> }}
+        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site.", action: <Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button> }}
       >
-        <TableContainer title="Contractors">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Contact</TableHeader>
-                <TableHeader>GSTIN / PAN</TableHeader>
-                <TableHeader>Performance</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((c) => {
-                const score = contractorScore(c);
-                return (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      {c.name}{!c.active && <Tag type="gray" size="sm">Inactive</Tag>}
-                      {c.companyName && <div className="esti-label esti-label--secondary">{c.companyName}</div>}
-                      {(c.city || c.state) && <div className="esti-label esti-label--helper">{[c.city, c.state].filter(Boolean).join(", ")}</div>}
-                    </TableCell>
-                    <TableCell>{CONTRACTOR_CATEGORIES[c.category as ContractorCategoryCode] ?? c.category}</TableCell>
-                    <TableCell>
-                      {c.contactPerson ?? "—"}
-                      {c.phone && <div className="esti-label esti-label--helper">{c.phone}</div>}
-                      {c.email && <div className="esti-label esti-label--helper">{c.email}</div>}
-                    </TableCell>
-                    <TableCell>
-                      {c.gstin ?? "—"}
-                      {c.pan && <div className="esti-label esti-label--helper">{c.pan}</div>}
-                    </TableCell>
-                    <TableCell>
-                      {score > 0 ? <Tag type={scoreTag(score)}>{score.toFixed(1)} / 5</Tag> : <Tag type="gray" size="sm">Unrated</Tag>}
-                    </TableCell>
-                    <TableCell>
-                      <Button kind="ghost" size="sm" onClick={() => setForm({
-                        id: c.id, name: c.name, category: c.category as ContractorCategoryCode,
-                        companyName: c.companyName ?? "", contactPerson: c.contactPerson ?? "",
-                        gstin: c.gstin ?? "", pan: c.pan ?? "", email: c.email ?? "", phone: c.phone ?? "",
-                        city: c.city ?? "", state: c.state ?? "",
-                      })}>Edit</Button>
-                      <Button kind="ghost" size="sm" onClick={() => setRating({
-                        id: c.id, name: c.name,
-                        quality: c.qualityRating ? String(c.qualityRating) : "",
-                        timeliness: c.timelinessRating ? String(c.timelinessRating) : "",
-                        safety: c.safetyRating ? String(c.safetyRating) : "",
-                        notes: c.notes ?? "",
-                      })}>Rate</Button>
-                      <Button kind="danger--ghost" size="sm" onClick={() => setConfirmId(c.id)}>Remove</Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowHeight={() => "auto"}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
       {/* create / edit */}
-      <Modal
-        open={form !== null}
-        modalHeading={form?.id ? "Edit contractor" : "New contractor"}
-        primaryButtonText={saving ? "Saving…" : form?.id ? "Save" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form?.name || saving}
-        onRequestClose={() => setForm(null)}
-        onRequestSubmit={submit}
-      >
-        {form && (
-          <Stack gap={5}>
-            <TextInput id="ct-name" labelText="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <Select id="ct-fcat" labelText="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ContractorCategoryCode })}>
-              {ContractorCategory.options.map((c) => <SelectItem key={c} value={c} text={CONTRACTOR_CATEGORIES[c]} />)}
-            </Select>
-            <TextInput id="ct-company" labelText="Company (optional)" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} />
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput id="ct-contact" labelText="Contact person" value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} />
-              <TextInput id="ct-phone" labelText="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+      <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{form?.id ? "Edit contractor" : "New contractor"}</DialogTitle>
+        <DialogContent>
+          {form && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField id="ct-name" label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <TextField id="ct-fcat" select label="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ContractorCategoryCode })}>
+                {ContractorCategory.options.map((c) => <MenuItem key={c} value={c}>{CONTRACTOR_CATEGORIES[c]}</MenuItem>)}
+              </TextField>
+              <TextField id="ct-company" label="Company (optional)" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} />
+              <Stack direction="row" spacing={2}>
+                <TextField id="ct-contact" label="Contact person" value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} sx={{ flex: 1 }} />
+                <TextField id="ct-phone" label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} sx={{ flex: 1 }} />
+              </Stack>
+              <TextField id="ct-email" label="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Stack direction="row" spacing={2}>
+                <TextField id="ct-gstin" label="GSTIN" value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase() })} sx={{ flex: 1 }} />
+                <TextField id="ct-pan" label="PAN" value={form.pan} onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })} sx={{ flex: 1 }} />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <TextField id="ct-city" label="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} sx={{ flex: 1 }} />
+                <TextField id="ct-state" label="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} sx={{ flex: 1 }} />
+              </Stack>
+              {err && <Alert severity="error">{err.message}</Alert>}
             </Stack>
-            <TextInput id="ct-email" labelText="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput id="ct-gstin" labelText="GSTIN" value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase() })} />
-              <TextInput id="ct-pan" labelText="PAN" value={form.pan} onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })} />
-            </Stack>
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput id="ct-city" labelText="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              <TextInput id="ct-state" labelText="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-            </Stack>
-            {err && <InlineNotification kind="error" title="Could not save" subtitle={err.message} hideCloseButton lowContrast />}
-          </Stack>
-        )}
-      </Modal>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setForm(null)}>Cancel</Button>
+          <Button variant="contained" disabled={!form?.name || saving} onClick={submit}>
+            {saving ? "Saving…" : form?.id ? "Save" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* rating */}
-      <Modal
-        open={rating !== null}
-        modalHeading={rating ? `Rate — ${rating.name}` : "Rate"}
-        primaryButtonText={setRatingM.isPending ? "Saving…" : "Save rating"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={setRatingM.isPending}
-        onRequestClose={() => setRating(null)}
-        onRequestSubmit={() => rating && setRatingM.mutate({
-          id: rating.id,
-          qualityRating: rating.quality ? Number(rating.quality) : undefined,
-          timelinessRating: rating.timeliness ? Number(rating.timeliness) : undefined,
-          safetyRating: rating.safety ? Number(rating.safety) : undefined,
-          notes: rating.notes || undefined,
-        })}
-      >
-        {rating && (
-          <Stack gap={5}>
-            {([["quality", "Quality"], ["timeliness", "Timeliness"], ["safety", "Safety"]] as const).map(([k, label]) => (
-              <Select key={k} id={`ct-r-${k}`} labelText={label} value={rating[k]}
-                onChange={(e) => setRating({ ...rating, [k]: e.target.value })}>
-                <SelectItem value="" text="— not rated —" />
-                {[5, 4, 3, 2, 1].map((n) => <SelectItem key={n} value={String(n)} text={`${n} / 5`} />)}
-              </Select>
-            ))}
-            <TextArea id="ct-r-notes" labelText="Notes (optional)" rows={3} value={rating.notes}
-              onChange={(e) => setRating({ ...rating, notes: e.target.value })} />
-            {setRatingM.error && <InlineNotification kind="error" title="Could not save" subtitle={setRatingM.error.message} hideCloseButton lowContrast />}
-          </Stack>
-        )}
-      </Modal>
+      <Dialog open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
+        <DialogContent>
+          {rating && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              {([["quality", "Quality"], ["timeliness", "Timeliness"], ["safety", "Safety"]] as const).map(([k, label]) => (
+                <TextField key={k} id={`ct-r-${k}`} select label={label} value={rating[k]}
+                  onChange={(e) => setRating({ ...rating, [k]: e.target.value })}>
+                  <MenuItem value="">— not rated —</MenuItem>
+                  {[5, 4, 3, 2, 1].map((n) => <MenuItem key={n} value={String(n)}>{`${n} / 5`}</MenuItem>)}
+                </TextField>
+              ))}
+              <TextField id="ct-r-notes" label="Notes (optional)" multiline rows={3} value={rating.notes}
+                onChange={(e) => setRating({ ...rating, notes: e.target.value })} />
+              {setRatingM.error && <Alert severity="error">{setRatingM.error.message}</Alert>}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setRating(null)}>Cancel</Button>
+          <Button variant="contained" disabled={setRatingM.isPending} onClick={() => rating && setRatingM.mutate({
+            id: rating.id,
+            qualityRating: rating.quality ? Number(rating.quality) : undefined,
+            timelinessRating: rating.timeliness ? Number(rating.timeliness) : undefined,
+            safetyRating: rating.safety ? Number(rating.safety) : undefined,
+            notes: rating.notes || undefined,
+          })}>
+            {setRatingM.isPending ? "Saving…" : "Save rating"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmModal
         open={!!confirmId} heading="Remove contractor?" body="This permanently removes the contractor from the register."

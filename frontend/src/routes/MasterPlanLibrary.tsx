@@ -1,26 +1,22 @@
 import {
+  Alert,
+  Box,
   Button,
-  FileUploaderButton,
-  InlineNotification,
-  Select,
-  SelectItem,
+  Chip,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  styled,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { MasterPlanCategory } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
+
+const HiddenFileInput = styled("input")({ display: "none" });
 
 /** Studio › Libraries › Master Plan Library — PDF / DWG / zoning / development files. */
 export function MasterPlanLibrary() {
@@ -60,39 +56,102 @@ export function MasterPlanLibrary() {
     }
   }
 
+  const columns: GridColDef[] = [
+    { field: "name", headerName: "Name", flex: 1.5, minWidth: 180 },
+    {
+      field: "category",
+      headerName: "Category",
+      width: 160,
+      renderCell: (p) => (
+        <Chip
+          label={p.row.category}
+          size="small"
+          sx={{
+            backgroundColor: "var(--cds-tag-background-gray)",
+            color: "var(--cds-tag-color-gray)",
+          }}
+        />
+      ),
+    },
+    {
+      field: "fileName",
+      headerName: "File",
+      flex: 1.5,
+      minWidth: 180,
+      renderCell: (p) =>
+        p.row.url ? (
+          <Button variant="text" size="small" href={p.row.url} target="_blank" rel="noreferrer">
+            {p.row.fileName}
+          </Button>
+        ) : (
+          p.row.fileName
+        ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      width: 100,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          color="error"
+          size="small"
+          disabled={remove.isPending}
+          onClick={() => remove.mutate({ id: p.row.id })}
+        >
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Master Plan Library"
         description="Reference master plans — PDF, DWG, zoning and development plans."
       />
 
-      <Stack orientation="horizontal" gap={4} className="esti-page-header">
-        <TextInput
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "flex-start" }}>
+        <TextField
           id="mp-name"
-          labelText="Name"
+          label="Name"
           placeholder="e.g. Whitefield zoning plan"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          sx={{ flex: 2, minWidth: 220 }}
         />
-        <Select id="mp-cat" labelText="Category" value={category} onChange={(e) => setCategory(e.target.value)}>
+        <TextField
+          id="mp-cat"
+          select
+          label="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          sx={{ flex: 1, minWidth: 160 }}
+        >
           {MasterPlanCategory.options.map((c) => (
-            <SelectItem key={c} value={c} text={c} />
+            <MenuItem key={c} value={c}>{c}</MenuItem>
           ))}
-        </Select>
-        <FileUploaderButton
-          labelText={file ? file.name : "Choose file"}
-          accept={[".pdf", ".dwg", ".dxf"]}
-          disableLabelChanges
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)}
-        />
-        <Button disabled={!file || busy} onClick={upload}>
-          {busy ? "Uploading…" : "Upload"}
-        </Button>
-      </Stack>
+        </TextField>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 56 }}>
+          <Button variant="outlined" component="label">
+            {file ? file.name : "Choose file"}
+            <HiddenFileInput
+              type="file"
+              accept=".pdf,.dwg,.dxf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+          </Button>
+          <Button variant="contained" disabled={!file || busy} onClick={upload}>
+            {busy ? "Uploading…" : "Upload"}
+          </Button>
+        </Stack>
+      </Box>
 
       {error && (
-        <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast onCloseButtonClick={() => setError(null)} />
+        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
       )}
 
       <DataState
@@ -101,40 +160,14 @@ export function MasterPlanLibrary() {
         columnCount={4}
         empty={{ title: "No master plans", description: "Upload a PDF or DWG reference plan." }}
       >
-        <TableContainer title="Master plans">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>File</TableHeader>
-                <TableHeader />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{r.name}</TableCell>
-                  <TableCell><Tag size="sm">{r.category}</Tag></TableCell>
-                  <TableCell>
-                    {r.url ? (
-                      <Button kind="ghost" size="sm" href={r.url} target="_blank" rel="noreferrer">
-                        {r.fileName}
-                      </Button>
-                    ) : (
-                      r.fileName
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button kind="danger--ghost" size="sm" disabled={remove.isPending} onClick={() => remove.mutate({ id: r.id })}>
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
     </Stack>
   );

@@ -1,29 +1,28 @@
 import {
+  Alert,
+  Box,
   Button,
-  FileUploaderButton,
-  InlineNotification,
-  Modal,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Stack,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
+
+const HiddenFileInput = styled("input")({ display: "none" });
 
 type Field = { key: string; label: string; type?: "text" | "number"; required?: boolean };
 
@@ -62,71 +61,82 @@ function CrudPanel({
     onCreate(payload);
   };
 
+  const columns: GridColDef[] = [
+    ...fields.map((f): GridColDef => ({
+      field: f.key,
+      headerName: f.label,
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => (p.row[f.key] == null ? "—" : String(p.row[f.key])),
+    })),
+    {
+      field: "__actions",
+      headerName: "",
+      width: 90,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          color="error"
+          size="small"
+          disabled={removing}
+          onClick={() => onRemove(String(p.row.id))}
+        >
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <div className="esti-page-header">
-        <div className="esti-grow" />
-        <Button onClick={() => { setForm({}); setOpen(true); }}>New entry</Button>
-      </div>
+    <Stack spacing={2}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button variant="contained" onClick={() => { setForm({}); setOpen(true); }}>New entry</Button>
+      </Box>
       <DataState
         loading={loading}
         isEmpty={rows.length === 0}
         columnCount={fields.length + 1}
         empty={{ title: "No entries", description: "Add a compliance reference entry." }}
       >
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                {fields.map((f) => <TableHeader key={f.key}>{f.label}</TableHeader>)}
-                <TableHeader />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={String(r.id)}>
-                  {fields.map((f) => (
-                    <TableCell key={f.key}>{r[f.key] == null ? "—" : String(r[f.key])}</TableCell>
-                  ))}
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      disabled={removing}
-                      onClick={() => onRemove(String(r.id))}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New entry"
-        primaryButtonText={creating ? "Saving…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={missingRequired || creating}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => { submit(); setOpen(false); }}
-      >
-        <Stack gap={5}>
-          {fields.map((f) => (
-            <TextInput
-              key={f.key}
-              id={`cmp-${f.key}`}
-              labelText={f.label + (f.required ? " *" : "")}
-              type={f.type === "number" ? "number" : "text"}
-              value={form[f.key] ?? ""}
-              onChange={set(f.key)}
-            />
-          ))}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New entry</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {fields.map((f) => (
+              <TextField
+                key={f.key}
+                id={`cmp-${f.key}`}
+                label={f.label + (f.required ? " *" : "")}
+                type={f.type === "number" ? "number" : "text"}
+                value={form[f.key] ?? ""}
+                onChange={set(f.key)}
+              />
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={missingRequired || creating}
+            onClick={() => { submit(); setOpen(false); }}
+          >
+            {creating ? "Saving…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
@@ -301,56 +311,108 @@ function DocumentsTab() {
     }
   }
 
+  const columns: GridColDef[] = [
+    { field: "title", headerName: "Title", flex: 1.5, minWidth: 180 },
+    {
+      field: "category",
+      headerName: "Category",
+      width: 150,
+      renderCell: (p) => (
+        <Chip
+          label={p.row.category}
+          size="small"
+          sx={{
+            backgroundColor: "var(--cds-tag-background-blue)",
+            color: "var(--cds-tag-color-blue)",
+          }}
+        />
+      ),
+    },
+    {
+      field: "fileName",
+      headerName: "File",
+      flex: 1.5,
+      minWidth: 180,
+      renderCell: (p) =>
+        p.row.url
+          ? <a href={p.row.url} target="_blank" rel="noreferrer">{p.row.fileName}</a>
+          : p.row.fileName,
+    },
+    {
+      field: "__actions",
+      headerName: "",
+      width: 90,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          color="error"
+          size="small"
+          disabled={remove.isPending}
+          onClick={() => remove.mutate({ id: p.row.id })}
+        >
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <div className="esti-page-header">
-        <div className="esti-grow" />
-        <Button onClick={() => setShowUpload((v) => !v)}>
+    <Stack spacing={2}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button variant="contained" onClick={() => setShowUpload((v) => !v)}>
           {showUpload ? "Cancel" : "Upload document"}
         </Button>
-      </div>
+      </Box>
 
       {showUpload && (
-        <Stack gap={4} style={{ padding: "var(--cds-spacing-05)", background: "var(--cds-layer-01)" }}>
-          <TextInput
-            id="cdoc-title"
-            labelText="Title"
-            placeholder="e.g. NBC 2016 Part 3"
-            value={uploadTitle}
-            onChange={(e) => setUploadTitle(e.target.value)}
-          />
-          <Stack gap={2}>
-            <span className="esti-label">Category</span>
-            <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap" }}>
-              {DOC_CATEGORIES.map((c) => (
-                <Tag
-                  key={c}
-                  type={uploadCategory === c ? "blue" : "gray"}
-                  size="sm"
-                  onClick={() => setUploadCategory(c)}
-                  style={{ cursor: "pointer" }}
-                >
-                  {c}
-                </Tag>
-              ))}
+        <Paper sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <TextField
+              id="cdoc-title"
+              label="Title"
+              placeholder="e.g. NBC 2016 Part 3"
+              value={uploadTitle}
+              onChange={(e) => setUploadTitle(e.target.value)}
+            />
+            <Stack spacing={1}>
+              <Typography variant="caption" color="text.secondary">Category</Typography>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+                {DOC_CATEGORIES.map((c) => (
+                  <Chip
+                    key={c}
+                    label={c}
+                    size="small"
+                    onClick={() => setUploadCategory(c)}
+                    sx={{
+                      cursor: "pointer",
+                      backgroundColor: `var(--cds-tag-background-${uploadCategory === c ? "blue" : "gray"})`,
+                      color: `var(--cds-tag-color-${uploadCategory === c ? "blue" : "gray"})`,
+                    }}
+                  />
+                ))}
+              </Stack>
             </Stack>
+            <Box>
+              <Button variant="outlined" size="small" component="label" disabled={busy}>
+                {busy ? "Uploading…" : "Choose file (PDF / DWG / DXF / image)"}
+                <HiddenFileInput
+                  type="file"
+                  accept=".pdf,.dwg,.dxf,.png,.jpg"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void upload(file);
+                  }}
+                />
+              </Button>
+            </Box>
           </Stack>
-          <FileUploaderButton
-            labelText={busy ? "Uploading…" : "Choose file (PDF / DWG / DXF / image)"}
-            size="sm"
-            accept={[".pdf", ".dwg", ".dxf", ".png", ".jpg"]}
-            disableLabelChanges
-            disabled={busy}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const file = e.target.files?.[0];
-              if (file) void upload(file);
-            }}
-          />
-        </Stack>
+        </Paper>
       )}
 
       {error && (
-        <InlineNotification kind="error" title="Upload failed" subtitle={error} lowContrast onCloseButtonClick={() => setError(null)} />
+        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
       )}
 
       <DataState
@@ -359,43 +421,14 @@ function DocumentsTab() {
         columnCount={4}
         empty={{ title: "No documents", description: "Upload NBC books, FAR notifications, fire NOC drawings, and other compliance reference documents." }}
       >
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>File</TableHeader>
-                <TableHeader />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(q.data ?? []).map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell>{d.title}</TableCell>
-                  <TableCell>
-                    <Tag type="blue" size="sm">{d.category}</Tag>
-                  </TableCell>
-                  <TableCell>
-                    {d.url
-                      ? <a href={d.url} target="_blank" rel="noreferrer">{d.fileName}</a>
-                      : d.fileName}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      disabled={remove.isPending}
-                      onClick={() => remove.mutate({ id: d.id })}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={q.data ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
     </Stack>
   );
@@ -403,39 +436,41 @@ function DocumentsTab() {
 
 /** Studio › Libraries › Compliance Library — Documents tab (uploaded PDFs) + Rules tab (NBC · FAR · Setbacks · Fire · Regulations). */
 export function ComplianceLibrary() {
+  const [tab, setTab] = useState(0);
+  const [ruleTab, setRuleTab] = useState(0);
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Compliance Library"
         description="Statutory reference data — NBC rules, FAR, setbacks, fire compliance, and regulations."
       />
-      <Tabs>
-        <TabList aria-label="Compliance library sections" contained>
-          <Tab>Documents</Tab>
-          <Tab>Rules</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel><DocumentsTab /></TabPanel>
-          <TabPanel>
-            <Tabs>
-              <TabList aria-label="Compliance areas" contained>
-                <Tab>NBC Rules</Tab>
-                <Tab>FAR Rules</Tab>
-                <Tab>Setbacks</Tab>
-                <Tab>Fire Compliance</Tab>
-                <Tab>Regulations</Tab>
-              </TabList>
-              <TabPanels>
-                <TabPanel><NbcPanel /></TabPanel>
-                <TabPanel><FarPanel /></TabPanel>
-                <TabPanel><SetbackPanel /></TabPanel>
-                <TabPanel><FirePanel /></TabPanel>
-                <TabPanel><RegulationPanel /></TabPanel>
-              </TabPanels>
-            </Tabs>
-          </TabPanel>
-        </TabPanels>
+      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Compliance library sections">
+        <Tab label="Documents" />
+        <Tab label="Rules" />
       </Tabs>
+      {tab === 0 && <DocumentsTab />}
+      {tab === 1 && (
+        <Stack spacing={2}>
+          <Tabs
+            value={ruleTab}
+            onChange={(_e, v) => setRuleTab(v)}
+            variant="scrollable"
+            allowScrollButtonsMobile
+            aria-label="Compliance areas"
+          >
+            <Tab label="NBC Rules" />
+            <Tab label="FAR Rules" />
+            <Tab label="Setbacks" />
+            <Tab label="Fire Compliance" />
+            <Tab label="Regulations" />
+          </Tabs>
+          {ruleTab === 0 && <NbcPanel />}
+          {ruleTab === 1 && <FarPanel />}
+          {ruleTab === 2 && <SetbackPanel />}
+          {ruleTab === 3 && <FirePanel />}
+          {ruleTab === 4 && <RegulationPanel />}
+        </Stack>
+      )}
     </Stack>
   );
 }

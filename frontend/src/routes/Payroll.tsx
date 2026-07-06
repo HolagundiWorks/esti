@@ -1,26 +1,37 @@
 import {
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR, parseRupeeInput } from "@esti/contracts";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
+
+/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
+function TagChip({ color, label }: { color: string; label: ReactNode }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** Finance › Payroll — monthly payslips (relocated from HR). */
 export function Payroll() {
@@ -44,13 +55,81 @@ export function Payroll() {
     },
   });
 
+  const rows = payrollQ.data ?? [];
+
+  const columns: GridColDef[] = [
+    { field: "name", headerName: "Member", flex: 1, minWidth: 140 },
+    { field: "month", headerName: "Month", flex: 0.8, minWidth: 110 },
+    ...(canSalary
+      ? ([
+          {
+            field: "grossPaise",
+            headerName: "Gross",
+            flex: 0.8,
+            minWidth: 120,
+            renderCell: (p) => formatINR(p.row.grossPaise, { paise: false }),
+          },
+          {
+            field: "deductionsPaise",
+            headerName: "Deductions",
+            flex: 0.8,
+            minWidth: 120,
+            renderCell: (p) => formatINR(p.row.deductionsPaise, { paise: false }),
+          },
+          {
+            field: "netPaise",
+            headerName: "Net",
+            flex: 0.8,
+            minWidth: 120,
+            renderCell: (p) => formatINR(p.row.netPaise, { paise: false }),
+          },
+        ] as GridColDef[])
+      : []),
+    {
+      field: "paid",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 130,
+      sortable: false,
+      renderCell: (p) => (
+        <TagChip
+          color={p.row.paid ? "green" : "gray"}
+          label={p.row.paid ? `Paid ${p.row.paidDate ?? ""}` : "Unpaid"}
+        />
+      ),
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      flex: 0.8,
+      minWidth: 120,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) =>
+        !p.row.paid ? (
+          <Button variant="text" size="small" onClick={() => markPaid.mutate({ id: p.row.id })}>
+            Mark paid
+          </Button>
+        ) : null,
+    },
+    {
+      field: "slip",
+      headerName: "Slip",
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => <PayslipPdfCell payslipId={p.row.id} initialStatus={p.row.pdfStatus} />,
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
         actions={
-          <Button disabled={team.length === 0} onClick={() => setOpen(true)}>
+          <Button variant="contained" disabled={team.length === 0} onClick={() => setOpen(true)}>
             Generate payslip
           </Button>
         }
@@ -58,109 +137,79 @@ export function Payroll() {
 
       <DataState
         loading={payrollQ.isLoading}
-        isEmpty={(payrollQ.data ?? []).length === 0}
+        isEmpty={rows.length === 0}
         columnCount={5}
         empty={{ title: "No payslips", description: "Generate a monthly payslip for a team member." }}
       >
-        <TableContainer title="Payslips" description="Monthly salary — net of deductions">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Member</TableHeader>
-                <TableHeader>Month</TableHeader>
-                {canSalary && <TableHeader>Gross</TableHeader>}
-                {canSalary && <TableHeader>Deductions</TableHeader>}
-                {canSalary && <TableHeader>Net</TableHeader>}
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Action</TableHeader>
-                <TableHeader>Slip</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(payrollQ.data ?? []).map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.name}</TableCell>
-                  <TableCell>{p.month}</TableCell>
-                  {canSalary && <TableCell>{formatINR(p.grossPaise, { paise: false })}</TableCell>}
-                  {canSalary && <TableCell>{formatINR(p.deductionsPaise, { paise: false })}</TableCell>}
-                  {canSalary && <TableCell>{formatINR(p.netPaise, { paise: false })}</TableCell>}
-                  <TableCell>
-                    <Tag type={p.paid ? "green" : "gray"}>
-                      {p.paid ? `Paid ${p.paidDate ?? ""}` : "Unpaid"}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    {!p.paid && (
-                      <Button kind="ghost" size="sm" onClick={() => markPaid.mutate({ id: p.id })}>
-                        Mark paid
-                      </Button>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <PayslipPdfCell payslipId={p.id} initialStatus={p.pdfStatus} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="Generate payslip"
-        primaryButtonText={generate.isPending ? "Generating…" : "Generate"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !py.teamMemberId || !/^\d{4}-\d{2}$/.test(py.month) || generate.isPending
-        }
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          generate.mutate({
-            teamMemberId: py.teamMemberId,
-            month: py.month,
-            grossPaise: py.gross ? parseRupeeInput(py.gross) : undefined,
-            deductionsPaise: py.deductions ? parseRupeeInput(py.deductions) : 0,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="py-m"
-            labelText="Member"
-            value={py.teamMemberId}
-            onChange={(e) => setPy((f) => ({ ...f, teamMemberId: e.target.value }))}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Generate payslip</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="py-m"
+              select
+              label="Member"
+              value={py.teamMemberId}
+              onChange={(e) => setPy((f) => ({ ...f, teamMemberId: e.target.value }))}
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {team.map((m) => (
+                <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="py-month"
+              label="Month (YYYY-MM)"
+              placeholder="2026-06"
+              value={py.month}
+              onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
+            />
+            {canSalary && (
+              <TextField
+                id="py-gross"
+                label="Gross (₹) — defaults to monthly salary"
+                value={py.gross}
+                onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
+              />
+            )}
+            {canSalary && (
+              <TextField
+                id="py-ded"
+                label="Deductions (₹)"
+                value={py.deductions}
+                onChange={(e) => setPy((f) => ({ ...f, deductions: e.target.value }))}
+              />
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!py.teamMemberId || !/^\d{4}-\d{2}$/.test(py.month) || generate.isPending}
+            onClick={() =>
+              generate.mutate({
+                teamMemberId: py.teamMemberId,
+                month: py.month,
+                grossPaise: py.gross ? parseRupeeInput(py.gross) : undefined,
+                deductionsPaise: py.deductions ? parseRupeeInput(py.deductions) : 0,
+              })
+            }
           >
-            <SelectItem value="" text="Select…" />
-            {team.map((m) => (
-              <SelectItem key={m.id} value={m.id} text={m.name} />
-            ))}
-          </Select>
-          <TextInput
-            id="py-month"
-            labelText="Month (YYYY-MM)"
-            placeholder="2026-06"
-            value={py.month}
-            onChange={(e) => setPy((f) => ({ ...f, month: e.target.value }))}
-          />
-          {canSalary && (
-            <TextInput
-              id="py-gross"
-              labelText="Gross (₹) — defaults to monthly salary"
-              value={py.gross}
-              onChange={(e) => setPy((f) => ({ ...f, gross: e.target.value }))}
-            />
-          )}
-          {canSalary && (
-            <TextInput
-              id="py-ded"
-              labelText="Deductions (₹)"
-              value={py.deductions}
-              onChange={(e) => setPy((f) => ({ ...f, deductions: e.target.value }))}
-            />
-          )}
-        </Stack>
-      </Modal>
+            {generate.isPending ? "Generating…" : "Generate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

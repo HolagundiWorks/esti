@@ -1,23 +1,16 @@
 import {
+  Alert,
+  Box,
   Button,
-  DataTable,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   CONSULTANT_DISCIPLINES,
   type ConsultantDisciplineCode,
@@ -26,15 +19,6 @@ import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
-
-const HEADERS = [
-  { key: "name", header: "Name" },
-  { key: "discipline", header: "Discipline" },
-  { key: "firm", header: "Firm" },
-  { key: "email", header: "Email" },
-  { key: "phone", header: "Phone" },
-  { key: "portal", header: "Portal" },
-];
 
 export function Consultants({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -86,19 +70,44 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
       firm: c.firm ?? "—",
       email: c.email ?? "—",
       phone: c.phone ?? "—",
-      portal: (
+    })) ?? [];
+
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? allRows.filter((r) =>
+        [r.name, r.discipline, r.firm, r.email, r.phone].some((v) =>
+          String(v).toLowerCase().includes(q),
+        ),
+      )
+    : allRows;
+
+  const columns: GridColDef[] = [
+    { field: "name", headerName: "Name", flex: 1.2, minWidth: 160 },
+    { field: "discipline", headerName: "Discipline", flex: 1, minWidth: 140 },
+    { field: "firm", headerName: "Firm", flex: 1, minWidth: 140 },
+    { field: "email", headerName: "Email", flex: 1.2, minWidth: 180 },
+    { field: "phone", headerName: "Phone", flex: 1, minWidth: 130 },
+    {
+      field: "portal",
+      headerName: "Portal",
+      sortable: false,
+      filterable: false,
+      width: 140,
+      renderCell: (p) => (
         <Button
-          kind="ghost"
-          size="sm"
-          onClick={() => setLogin({ id: c.id, name: c.name })}
+          variant="text"
+          size="small"
+          onClick={() => setLogin({ id: p.row.id, name: p.row.name })}
         >
           Create login
         </Button>
       ),
-    })) ?? [];
+    },
+  ];
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!embedded && (
         <PageHeader
           title="Consultants"
@@ -107,13 +116,9 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {loginMsg && (
-        <InlineNotification
-          kind="success"
-          title="Collaborator login"
-          subtitle={loginMsg}
-          lowContrast
-          onCloseButtonClick={() => setLoginMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setLoginMsg(null)}>
+          {loginMsg}
+        </Alert>
       )}
 
       <DataState
@@ -125,179 +130,174 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
           description:
             "Add discipline specialists the office engages on projects.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" onClick={() => setOpen(true)}>
               New consultant
             </Button>
           ),
         }}
       >
-        <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({
-            rows,
-            headers,
-            getTableProps,
-            getHeaderProps,
-            getRowProps,
-            onInputChange,
-          }) => (
-            <TableContainer>
-              <TableToolbar>
-                <TableToolbarContent>
-                  <TableToolbarSearch
-                    placeholder="Search consultants…"
-                    persistent
-                    onChange={onInputChange}
-                  />
-                  <Button onClick={() => setOpen(true)}>New consultant</Button>
-                </TableToolbarContent>
-              </TableToolbar>
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    {headers.map((header) => {
-                      const { key, ...rest } = getHeaderProps({ header });
-                      return (
-                        <TableHeader key={key} {...rest}>
-                          {header.header}
-                        </TableHeader>
-                      );
-                    })}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => {
-                    const { key, ...rest } = getRowProps({ row });
-                    return (
-                      <TableRow key={key} {...rest}>
-                        {row.cells.map((cell) => (
-                          <TableCell key={cell.id}>{cell.value}</TableCell>
-                        ))}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </DataTable>
+        <Stack spacing={2}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              alignItems: "center",
+            }}
+          >
+            <TextField
+              size="small"
+              placeholder="Search consultants…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              sx={{ flex: 1, minWidth: 240 }}
+            />
+            <Button variant="contained" onClick={() => setOpen(true)}>
+              New consultant
+            </Button>
+          </Box>
+          <DataGrid
+            rows={filtered}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Stack>
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New consultant"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.name || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            name: form.name,
-            discipline: form.discipline,
-            firm: form.firm || undefined,
-            email: form.email || undefined,
-            phone: form.phone || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="co-name"
-            labelText="Name"
-            value={form.name}
-            onChange={set("name")}
-          />
-          <Select
-            id="co-disc"
-            labelText="Discipline"
-            value={form.discipline}
-            onChange={set("discipline")}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New consultant</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="co-name"
+              label="Name"
+              value={form.name}
+              onChange={set("name")}
+            />
+            <TextField
+              id="co-disc"
+              select
+              label="Discipline"
+              value={form.discipline}
+              onChange={set("discipline")}
+            >
+              {(
+                Object.keys(CONSULTANT_DISCIPLINES) as ConsultantDisciplineCode[]
+              ).map((k) => (
+                <MenuItem key={k} value={k}>
+                  {CONSULTANT_DISCIPLINES[k]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="co-firm"
+              label="Firm (optional)"
+              value={form.firm}
+              onChange={set("firm")}
+            />
+            <TextField
+              id="co-email"
+              label="Email (optional)"
+              type="email"
+              value={form.email}
+              onChange={set("email")}
+            />
+            <TextField
+              id="co-phone"
+              label="Phone (optional)"
+              value={form.phone}
+              onChange={set("phone")}
+            />
+            {create.error && (
+              <Alert severity="error">{create.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!form.name || create.isPending}
+            onClick={() =>
+              create.mutate({
+                name: form.name,
+                discipline: form.discipline,
+                firm: form.firm || undefined,
+                email: form.email || undefined,
+                phone: form.phone || undefined,
+              })
+            }
           >
-            {(
-              Object.keys(CONSULTANT_DISCIPLINES) as ConsultantDisciplineCode[]
-            ).map((k) => (
-              <SelectItem key={k} value={k} text={CONSULTANT_DISCIPLINES[k]} />
-            ))}
-          </Select>
-          <TextInput
-            id="co-firm"
-            labelText="Firm (optional)"
-            value={form.firm}
-            onChange={set("firm")}
-          />
-          <TextInput
-            id="co-email"
-            labelText="Email (optional)"
-            type="email"
-            value={form.email}
-            onChange={set("email")}
-          />
-          <TextInput
-            id="co-phone"
-            labelText="Phone (optional)"
-            value={form.phone}
-            onChange={set("phone")}
-          />
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
+      <Dialog
         open={!!login}
-        modalHeading={`Create login — ${login?.name ?? ""}`}
-        primaryButtonText={createLogin.isPending ? "Creating…" : "Create login"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !loginForm.email ||
-          loginForm.password.length < 8 ||
-          createLogin.isPending
-        }
-        onRequestClose={() => setLogin(null)}
-        onRequestSubmit={() =>
-          login && createLogin.mutate({ consultantId: login.id, ...loginForm })
-        }
+        onClose={() => setLogin(null)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <p>
-            Gives this consultant a project-scoped portal login (their engaged
-            projects only).
-          </p>
-          <TextInput
-            id="cl-email"
-            labelText="Login email"
-            type="email"
-            value={loginForm.email}
-            onChange={(e) =>
-              setLoginForm((f) => ({ ...f, email: e.target.value }))
-            }
-          />
-          <TextInput
-            id="cl-password"
-            labelText="Temporary password (min 8 chars)"
-            type="password"
-            value={loginForm.password}
-            onChange={(e) =>
-              setLoginForm((f) => ({ ...f, password: e.target.value }))
-            }
-          />
-          {createLogin.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create login"
-              subtitle={createLogin.error.message}
-              hideCloseButton
-              lowContrast
+        <DialogTitle>{`Create login — ${login?.name ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <p>
+              Gives this consultant a project-scoped portal login (their engaged
+              projects only).
+            </p>
+            <TextField
+              id="cl-email"
+              label="Login email"
+              type="email"
+              value={loginForm.email}
+              onChange={(e) =>
+                setLoginForm((f) => ({ ...f, email: e.target.value }))
+              }
             />
-          )}
-        </Stack>
-      </Modal>
+            <TextField
+              id="cl-password"
+              label="Temporary password (min 8 chars)"
+              type="password"
+              value={loginForm.password}
+              onChange={(e) =>
+                setLoginForm((f) => ({ ...f, password: e.target.value }))
+              }
+            />
+            {createLogin.error && (
+              <Alert severity="error">{createLogin.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => setLogin(null)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={
+              !loginForm.email ||
+              loginForm.password.length < 8 ||
+              createLogin.isPending
+            }
+            onClick={() =>
+              login &&
+              createLogin.mutate({ consultantId: login.id, ...loginForm })
+            }
+          >
+            {createLogin.isPending ? "Creating…" : "Create login"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

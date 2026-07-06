@@ -1,19 +1,25 @@
 import {
+  Alert,
+  Box,
   Button,
-  InlineLoading,
-  InlineNotification,
+  Chip,
+  CircularProgress,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { UserAvatar } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import { QRCodeSVG } from "qrcode.react";
-import React, { createElement, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
+
+// Visually-hidden native file input (styled component, not a raw control tag).
+const HiddenFileInput = styled("input")({ display: "none" });
 
 export function Settings() {
   const { user } = useAuth();
@@ -23,7 +29,6 @@ export function Settings() {
   const [msg, setMsg] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const profileQ = trpc.users.myProfile.useQuery(undefined, { enabled: !!user });
 
@@ -102,231 +107,256 @@ export function Settings() {
   }
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="My profile"
         description={`Signed in as ${user?.email ?? ""}`}
       />
 
       {msg && (
-        <InlineNotification
-          kind="success"
-          title="Done"
-          subtitle={msg}
-          lowContrast
-          onCloseButtonClick={() => setMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setMsg(null)}>
+          {msg}
+        </Alert>
       )}
 
       {/* Profile photo */}
-      <Tile className="esti-form-panel">
-        <Stack gap={4}>
-          <h2>Profile photo</h2>
-          <Stack orientation="horizontal" gap={5} style={{ alignItems: "center" }}>
+      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">Profile photo</Typography>
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <div className="esti-profile-photo">
               {photoUrl ? (
                 <img src={photoUrl} alt={user?.fullName ?? "Photo"} />
               ) : (
-                <UserAvatar size={40} />
+                <AccountCircle sx={{ fontSize: 40 }} />
               )}
             </div>
-            <Stack gap={2}>
+            <Stack spacing={1}>
               <Button
-                kind="secondary"
-                size="sm"
+                variant="outlined"
+                size="small"
+                component="label"
                 disabled={uploading || user?.isDemo}
-                onClick={() => fileRef.current?.click()}
               >
-                {uploading ? <InlineLoading description="Uploading…" /> : "Upload photo"}
+                {uploading ? (
+                  <>
+                    <CircularProgress size={16} sx={{ mr: 1 }} />
+                    Uploading…
+                  </>
+                ) : (
+                  "Upload photo"
+                )}
+                <HiddenFileInput
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadPhoto(f);
+                    e.target.value = "";
+                  }}
+                />
               </Button>
-              <p className="esti-label esti-label--helper">JPG, PNG or WebP, max 2 MB</p>
+              <Typography variant="caption" color="text.secondary" className="esti-label esti-label--helper">
+                JPG, PNG or WebP, max 2 MB
+              </Typography>
             </Stack>
           </Stack>
-          {createElement("input", {
-            ref: fileRef,
-            type: "file",
-            accept: ".jpg,.jpeg,.png,.webp",
-            style: { display: "none" },
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) uploadPhoto(f);
-              e.target.value = "";
-            },
-          })}
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile className="esti-form-panel">
-        <Stack gap={3}>
-          <h2>Workspace preferences</h2>
-          <p>
+      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+        <Stack spacing={1}>
+          <Typography variant="h6" component="h2">Workspace preferences</Typography>
+          <Typography variant="body2" color="text.secondary">
             Theme (light or dark) and dashboard section toggles are in the
             floating dock at the bottom of the side nav — click the settings
             icon or press Alt+S.
-          </p>
+          </Typography>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile className="esti-form-panel">
-        <Stack gap={5}>
-          <h2>Display name</h2>
-          <TextInput
+      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">Display name</Typography>
+          <TextField
             id="pf-name"
-            labelText="Full name"
+            label="Full name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <TextInput
+          <TextField
             id="pf-designation"
-            labelText="Designation / job title"
+            label="Designation / job title"
             placeholder="e.g. Senior Architect"
             value={designation}
             onChange={(e) => setDesignation(e.target.value)}
           />
-          <Button
-            disabled={name.length < 2 || updateProfile.isPending}
-            onClick={() => updateProfile.mutate({ fullName: name, designation })}
-          >
-            {updateProfile.isPending ? "Saving…" : "Save profile"}
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              disabled={name.length < 2 || updateProfile.isPending}
+              onClick={() => updateProfile.mutate({ fullName: name, designation })}
+            >
+              {updateProfile.isPending ? "Saving…" : "Save profile"}
+            </Button>
+          </Box>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile className="esti-form-panel">
-        <Stack gap={5}>
-          <h2>Change password</h2>
-          <TextInput
+      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">Change password</Typography>
+          <TextField
             id="pf-cur"
-            labelText="Current password"
+            label="Current password"
             type="password"
             value={pw.current}
             onChange={(e) => setPw((p) => ({ ...p, current: e.target.value }))}
           />
-          <TextInput
+          <TextField
             id="pf-new"
-            labelText="New password (min 8 chars)"
+            label="New password (min 8 chars)"
             type="password"
             value={pw.next}
             onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))}
           />
-          <TextInput
+          <TextField
             id="pf-conf"
-            labelText="Confirm new password"
+            label="Confirm new password"
             type="password"
             value={pw.confirm}
             onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))}
           />
           {pw.next && pw.confirm && pw.next !== pw.confirm && (
-            <p>Passwords do not match.</p>
+            <Typography variant="body2">Passwords do not match.</Typography>
           )}
-          <Button
-            disabled={
-              !pw.current ||
-              pw.next.length < 8 ||
-              pw.next !== pw.confirm ||
-              changePassword.isPending
-            }
-            onClick={() =>
-              changePassword.mutate({
-                currentPassword: pw.current,
-                newPassword: pw.next,
-              })
-            }
-          >
-            {changePassword.isPending ? "Saving…" : "Change password"}
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              disabled={
+                !pw.current ||
+                pw.next.length < 8 ||
+                pw.next !== pw.confirm ||
+                changePassword.isPending
+              }
+              onClick={() =>
+                changePassword.mutate({
+                  currentPassword: pw.current,
+                  newPassword: pw.next,
+                })
+              }
+            >
+              {changePassword.isPending ? "Saving…" : "Change password"}
+            </Button>
+          </Box>
           {changePassword.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not change"
-              subtitle={changePassword.error.message}
-              hideCloseButton
-              lowContrast
-            />
+            <Alert severity="error">{changePassword.error.message}</Alert>
           )}
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile className="esti-form-panel">
-        <Stack gap={5}>
-          <Stack orientation="horizontal" gap={3}>
-            <h2>Two-factor authentication</h2>
-            <Tag type={totpEnabled ? "green" : "gray"}>{totpEnabled ? "On" : "Off"}</Tag>
+      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Typography variant="h6" component="h2">Two-factor authentication</Typography>
+            <Chip
+              label={totpEnabled ? "On" : "Off"}
+              size="small"
+              sx={{
+                backgroundColor: `var(--cds-tag-background-${totpEnabled ? "green" : "gray"})`,
+                color: `var(--cds-tag-color-${totpEnabled ? "green" : "gray"})`,
+              }}
+            />
           </Stack>
 
           {!totpEnabled && !totpSetup && (
             <>
-              <p className="esti-label esti-label--secondary">
+              <Typography variant="body2" color="text.secondary" className="esti-label esti-label--secondary">
                 Protect your login with an authenticator app (Google Authenticator, Authy, 1Password…).
-              </p>
-              <Button kind="tertiary" disabled={beginTotp.isPending} onClick={() => beginTotp.mutate()}>
-                Enable authenticator
-              </Button>
+              </Typography>
+              <Box>
+                <Button variant="outlined" disabled={beginTotp.isPending} onClick={() => beginTotp.mutate()}>
+                  Enable authenticator
+                </Button>
+              </Box>
             </>
           )}
 
           {totpSetup && (
             <>
-              <p>Scan this QR in your authenticator app (or enter the secret), then enter the 6-digit code.</p>
+              <Typography variant="body2">Scan this QR in your authenticator app (or enter the secret), then enter the 6-digit code.</Typography>
               <QRCodeSVG value={totpSetup.otpauthUrl} size={180} marginSize={4} />
-              <TextInput id="totp-secret" labelText="Secret key" value={totpSetup.secret} readOnly />
-              <TextInput id="totp-uri" labelText="otpauth URI" value={totpSetup.otpauthUrl} readOnly />
-              <TextInput
+              <TextField
+                id="totp-secret"
+                label="Secret key"
+                value={totpSetup.secret}
+                slotProps={{ input: { readOnly: true } }}
+              />
+              <TextField
+                id="totp-uri"
+                label="otpauth URI"
+                value={totpSetup.otpauthUrl}
+                slotProps={{ input: { readOnly: true } }}
+              />
+              <TextField
                 id="totp-confirm"
-                labelText="6-digit code"
+                label="6-digit code"
                 placeholder="123456"
-                inputMode="numeric"
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value)}
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
               />
-              <Stack orientation="horizontal" gap={3}>
+              <Stack direction="row" spacing={1}>
                 <Button
+                  variant="contained"
                   disabled={totpCode.length < 6 || enableTotp.isPending}
                   onClick={() => enableTotp.mutate({ secret: totpSetup.secret, code: totpCode })}
                 >
                   {enableTotp.isPending ? "Saving…" : "Confirm"}
                 </Button>
-                <Button kind="ghost" onClick={() => setTotpSetup(null)}>
+                <Button variant="text" onClick={() => setTotpSetup(null)}>
                   Cancel
                 </Button>
               </Stack>
               {enableTotp.error && (
-                <InlineNotification kind="error" title="Could not enable" subtitle={enableTotp.error.message} hideCloseButton lowContrast />
+                <Alert severity="error">{enableTotp.error.message}</Alert>
               )}
             </>
           )}
 
           {totpEnabled && !totpDisabling && (
-            <Button kind="danger--ghost" size="sm" onClick={() => { setTotpDisabling(true); setTotpCode(""); }}>
-              Disable
-            </Button>
+            <Box>
+              <Button variant="text" color="error" size="small" onClick={() => { setTotpDisabling(true); setTotpCode(""); }}>
+                Disable
+              </Button>
+            </Box>
           )}
 
           {totpEnabled && totpDisabling && (
             <>
-              <TextInput
+              <TextField
                 id="totp-off"
-                labelText="Current code to disable"
+                label="Current code to disable"
                 placeholder="123456"
-                inputMode="numeric"
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value)}
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
               />
-              <Stack orientation="horizontal" gap={3}>
-                <Button kind="danger" disabled={totpCode.length < 6 || disableTotp.isPending} onClick={() => disableTotp.mutate({ code: totpCode })}>
+              <Stack direction="row" spacing={1}>
+                <Button variant="contained" color="error" disabled={totpCode.length < 6 || disableTotp.isPending} onClick={() => disableTotp.mutate({ code: totpCode })}>
                   Confirm disable
                 </Button>
-                <Button kind="ghost" onClick={() => setTotpDisabling(false)}>
+                <Button variant="text" onClick={() => setTotpDisabling(false)}>
                   Cancel
                 </Button>
               </Stack>
               {disableTotp.error && (
-                <InlineNotification kind="error" title="Could not disable" subtitle={disableTotp.error.message} hideCloseButton lowContrast />
+                <Alert severity="error">{disableTotp.error.message}</Alert>
               )}
             </>
           )}
         </Stack>
-      </Tile>
+      </Paper>
     </Stack>
   );
 }

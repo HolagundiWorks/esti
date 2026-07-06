@@ -1,24 +1,21 @@
 import {
+  Alert,
+  Box,
   Button,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineNotification,
-  Modal,
-  ProgressBar,
-  Select,
-  SelectItem,
+  LinearProgress,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   ASSIGNABLE_STAFF_ROLES,
   GENERAL_STAFF_ROLES,
@@ -49,6 +46,19 @@ const TYPE_TAG_COLOR: Record<string, "purple" | "gray" | "blue" | "teal" | "cyan
   CONSULTANT: "teal",
   CONTRACTOR: "cyan",
 };
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 export function Users() {
   const { user } = useAuth();
@@ -139,303 +149,326 @@ export function Users() {
       ),
   });
 
+  const columns: GridColDef[] = [
+    { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
+    { field: "fullName", headerName: "Name", flex: 1, minWidth: 140 },
+    {
+      field: "type",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 130,
+      valueGetter: (_v, row) => USER_TYPE_LABEL[userType(row)],
+      renderCell: (p) => {
+        const type = userType(p.row);
+        return <TagChip color={TYPE_TAG_COLOR[type] ?? "gray"} label={USER_TYPE_LABEL[type]} />;
+      },
+    },
+    {
+      field: "level",
+      headerName: "Level",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (_v, row) => accessLabelForUser(row),
+    },
+    {
+      field: "role",
+      headerName: "Role",
+      flex: 1.2,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (p) => {
+        const u = p.row;
+        const isSelf = u.id === user?.id;
+        const scope =
+          u.role === "CLIENT"
+            ? " (client portal)"
+            : u.consultantId
+              ? " (consultant portal)"
+              : "";
+        if (!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId) {
+          return (
+            <TextField
+              select
+              size="small"
+              variant="standard"
+              value={isStaffRole(u.role) ? u.role : "ASSOCIATE"}
+              onChange={(e) =>
+                setRole.mutate({
+                  id: u.id,
+                  role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
+                })
+              }
+              sx={{ minWidth: 150 }}
+              slotProps={{ htmlInput: { "aria-label": "User role" } }}
+            >
+              {roleOptions.map((r) => (
+                <MenuItem key={r} value={r}>
+                  {STAFF_ROLE_LABEL[r]}
+                </MenuItem>
+              ))}
+            </TextField>
+          );
+        }
+        return (
+          <span>
+            {ROLE_LABEL[u.role] ?? u.role}
+            {scope}
+          </span>
+        );
+      },
+    },
+    {
+      field: "accountPublicId",
+      headerName: "AORMS ID",
+      flex: 1,
+      minWidth: 130,
+      valueGetter: (v) => v ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      valueGetter: (_v, row) => (row.disabled ? "Disabled" : "Active"),
+      renderCell: (p) => (
+        <TagChip color={p.row.disabled ? "red" : "green"} label={p.row.disabled ? "Disabled" : "Active"} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      minWidth: 320,
+      flex: 1.6,
+      renderCell: (p) => {
+        const u = p.row;
+        const isSelf = u.id === user?.id;
+        return (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+            <Button variant="text" size="small" onClick={() => setReset({ id: u.id, email: u.email })}>
+              Reset password
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => {
+                setLink({ id: u.id, email: u.email });
+                setLinkVal(u.accountPublicId ?? "");
+              }}
+            >
+              Link ID
+            </Button>
+            {!isSelf && (
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => setDisabled.mutate({ id: u.id, disabled: !u.disabled })}
+              >
+                {u.disabled ? "Enable" : "Disable"}
+              </Button>
+            )}
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
         actions={
-          <Stack orientation="horizontal" gap={3}>
+          <Stack direction="row" spacing={1}>
             <Button
-              kind="tertiary"
+              variant="outlined"
               onClick={() => resync.mutate()}
               disabled={resync.isPending}
             >
               {resync.isPending ? "Syncing…" : "Resync identity types"}
             </Button>
-            <Button onClick={() => setAddOpen(true)}>Add staff login</Button>
+            <Button variant="contained" onClick={() => setAddOpen(true)}>Add staff login</Button>
           </Stack>
         }
       />
 
-      <Tile>
-        <Stack gap={4}>
-          <Stack orientation="horizontal" gap={3}>
-            <h3 className="esti-label">Seat usage</h3>
-            <Tag type={plan === "LITE" ? "gray" : "blue"}>{PLAN_LABEL[plan]}</Tag>
+      <Paper sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Typography variant="subtitle1" component="h3" className="esti-label">Seat usage</Typography>
+            <TagChip color={plan === "LITE" ? "gray" : "blue"} label={PLAN_LABEL[plan]} />
           </Stack>
-          <Grid narrow>
+          <Grid container spacing={2}>
             {seats.map((s) => (
-              <Column key={s.label} sm={4} md={2} lg={4}>
+              <Grid key={s.label} size={{ xs: 12, sm: 6, lg: 3 }}>
                 {s.cap === null ? (
-                  <Stack gap={2}>
-                    <p className="esti-label">{s.label}</p>
-                    <p>{s.used} active · Unlimited</p>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" className="esti-label">{s.label}</Typography>
+                    <Typography variant="body2">{s.used} active · Unlimited</Typography>
                   </Stack>
                 ) : (
-                  <ProgressBar
-                    label={s.label}
-                    helperText={`${s.used} / ${s.cap} seats`}
-                    value={s.used}
-                    max={s.cap}
-                    status={s.used >= s.cap ? "error" : undefined}
-                  />
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" className="esti-label">{s.label}</Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(100, (s.used / s.cap) * 100)}
+                      color={s.used >= s.cap ? "error" : "primary"}
+                    />
+                    <Typography variant="caption" color="text.secondary">{s.used} / {s.cap} seats</Typography>
+                  </Stack>
                 )}
-              </Column>
+              </Grid>
             ))}
           </Grid>
         </Stack>
-      </Tile>
+      </Paper>
+
       {msg && (
-        <InlineNotification
-          kind="success"
-          title="Done"
-          subtitle={msg}
-          lowContrast
-          onCloseButtonClick={() => setMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setMsg(null)}>
+          {msg}
+        </Alert>
       )}
 
-      <TableContainer title="Logins">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Email</TableHeader>
-              <TableHeader>Name</TableHeader>
-              <TableHeader>Type</TableHeader>
-              <TableHeader>Level</TableHeader>
-              <TableHeader>Role</TableHeader>
-              <TableHeader>AORMS ID</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data ?? []).map((u) => {
-              const isSelf = u.id === user?.id;
-              const scope =
-                u.role === "CLIENT"
-                  ? " (client portal)"
-                  : u.consultantId
-                    ? " (consultant portal)"
-                    : "";
-              const type = userType(u);
-              return (
-                <TableRow key={u.id}>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>{u.fullName}</TableCell>
-                  <TableCell>
-                    <Tag type={TYPE_TAG_COLOR[type]} size="sm">
-                      {USER_TYPE_LABEL[type]}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    {accessLabelForUser(u)}
-                  </TableCell>
-                  <TableCell>
-                    {!isSelf &&
-                    u.role !== "OWNER" &&
-                    !u.clientId &&
-                    !u.consultantId ? (
-                      <Select
-                        id={`role-${u.id}`}
-                        labelText="User role"
-                        hideLabel
-                        size="sm"
-                        value={isStaffRole(u.role) ? u.role : "ASSOCIATE"}
-                        onChange={(e) =>
-                          setRole.mutate({
-                            id: u.id,
-                            role: e.target
-                              .value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
-                          })
-                        }
-                      >
-                        {roleOptions.map((r) => (
-                          <SelectItem
-                            key={r}
-                            value={r}
-                            text={STAFF_ROLE_LABEL[r]}
-                          />
-                        ))}
-                      </Select>
-                    ) : (
-                      <>
-                        {ROLE_LABEL[u.role] ?? u.role}
-                        {scope}
-                      </>
-                    )}
-                  </TableCell>
-                  <TableCell>{u.accountPublicId ?? "—"}</TableCell>
-                  <TableCell>
-                    <Tag type={u.disabled ? "red" : "green"}>
-                      {u.disabled ? "Disabled" : "Active"}
-                    </Tag>
-                  </TableCell>
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => setReset({ id: u.id, email: u.email })}
-                      >
-                        Reset password
-                      </Button>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setLink({ id: u.id, email: u.email });
-                          setLinkVal(u.accountPublicId ?? "");
-                        }}
-                      >
-                        Link ID
-                      </Button>
-                      {!isSelf && (
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setDisabled.mutate({
-                              id: u.id,
-                              disabled: !u.disabled,
-                            })
-                          }
-                        >
-                          {u.disabled ? "Enable" : "Disable"}
-                        </Button>
-                      )}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h3">Logins</Typography>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            loading={listQ.isLoading}
+            density="compact"
+            rowHeight={52}
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Stack>
+      </Paper>
 
-      <Modal
-        open={addOpen}
-        modalHeading="Add staff login"
-        primaryButtonText={createStaff.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !form.email ||
-          form.fullName.length < 2 ||
-          form.password.length < 8 ||
-          createStaff.isPending
-        }
-        onRequestClose={() => setAddOpen(false)}
-        onRequestSubmit={() => createStaff.mutate(form)}
-      >
-        <Stack gap={5}>
-          <p>Creates an office staff login at the chosen seniority tier.</p>
-          <TextInput
-            id="u-name"
-            labelText="Full name"
-            value={form.fullName}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, fullName: e.target.value }))
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add staff login</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">Creates an office staff login at the chosen seniority tier.</Typography>
+            <TextField
+              id="u-name"
+              label="Full name"
+              value={form.fullName}
+              onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+            />
+            <TextField
+              id="u-email"
+              label="Login email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            />
+            <TextField
+              id="u-role"
+              select
+              label="Role (seniority tier)"
+              value={form.role}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
+                }))
+              }
+            >
+              {roleOptions.map((r) => (
+                <MenuItem key={r} value={r}>{STAFF_ROLE_LABEL[r]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="u-pw"
+              label="Temporary password (min 8 chars)"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            />
+            {createStaff.error && (
+              <Alert severity="error">{createStaff.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setAddOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !form.email ||
+              form.fullName.length < 2 ||
+              form.password.length < 8 ||
+              createStaff.isPending
             }
-          />
-          <TextInput
-            id="u-email"
-            labelText="Login email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-          />
-          <Select
-            id="u-role"
-            labelText="Role (seniority tier)"
-            value={form.role}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                role: e.target.value as (typeof ASSIGNABLE_STAFF_ROLES)[number],
-              }))
+            onClick={() => createStaff.mutate(form)}
+          >
+            {createStaff.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Reset password — {reset?.email ?? ""}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <TextField
+              id="u-reset"
+              label="New password (min 8 chars)"
+              type="password"
+              fullWidth
+              value={resetPw}
+              onChange={(e) => setResetPw(e.target.value)}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setReset(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={resetPw.length < 8 || resetPassword.isPending}
+            onClick={() => reset && resetPassword.mutate({ id: reset.id, password: resetPw })}
+          >
+            {resetPassword.isPending ? "Saving…" : "Reset"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={link !== null} onClose={() => setLink(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Link identity — {link?.email ?? ""}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Link this firm login to a person&apos;s portable AORMS-U identity so their
+              certifications and growth follow them. Leave blank to unlink.
+            </Typography>
+            <TextField
+              id="u-link"
+              label="AORMS-U handle"
+              placeholder="AORMS-U-2K4P9F"
+              value={linkVal}
+              onChange={(e) => setLinkVal(e.target.value)}
+            />
+            {linkIdentity.error && (
+              <Alert severity="error">{linkIdentity.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setLink(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={linkIdentity.isPending}
+            onClick={() =>
+              link &&
+              linkIdentity.mutate({ id: link.id, accountPublicId: linkVal.trim() || null })
             }
           >
-            {roleOptions.map((r) => (
-              <SelectItem key={r} value={r} text={STAFF_ROLE_LABEL[r]} />
-            ))}
-          </Select>
-          <TextInput
-            id="u-pw"
-            labelText="Temporary password (min 8 chars)"
-            type="password"
-            value={form.password}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, password: e.target.value }))
-            }
-          />
-          {createStaff.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={createStaff.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
-
-      <Modal
-        open={reset !== null}
-        modalHeading={`Reset password — ${reset?.email ?? ""}`}
-        primaryButtonText={resetPassword.isPending ? "Saving…" : "Reset"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={resetPw.length < 8 || resetPassword.isPending}
-        onRequestClose={() => setReset(null)}
-        onRequestSubmit={() =>
-          reset && resetPassword.mutate({ id: reset.id, password: resetPw })
-        }
-      >
-        <TextInput
-          id="u-reset"
-          labelText="New password (min 8 chars)"
-          type="password"
-          value={resetPw}
-          onChange={(e) => setResetPw(e.target.value)}
-        />
-      </Modal>
-
-      <Modal
-        open={link !== null}
-        modalHeading={`Link identity — ${link?.email ?? ""}`}
-        primaryButtonText={linkIdentity.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        onRequestClose={() => setLink(null)}
-        onRequestSubmit={() =>
-          link &&
-          linkIdentity.mutate({ id: link.id, accountPublicId: linkVal.trim() || null })
-        }
-      >
-        <Stack gap={4}>
-          <p>
-            Link this firm login to a person&apos;s portable AORMS-U identity so their
-            certifications and growth follow them. Leave blank to unlink.
-          </p>
-          <TextInput
-            id="u-link"
-            labelText="AORMS-U handle"
-            placeholder="AORMS-U-2K4P9F"
-            value={linkVal}
-            onChange={(e) => setLinkVal(e.target.value)}
-          />
-          {linkIdentity.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not link"
-              subtitle={linkIdentity.error.message}
-              hideCloseButton
-              lowContrast
-            />
-          )}
-        </Stack>
-      </Modal>
-
+            {linkIdentity.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

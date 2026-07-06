@@ -1,37 +1,43 @@
 import {
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Download } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Download from "@mui/icons-material/Download";
 import {
   DOCUMENT_ENTITY_LABEL,
   DEFAULT_NUMBERING_SCOPES,
   OFFICE_TEMPLATE_KIND_LABEL,
   type DocumentEntityType,
   type OfficeTemplateKind,
+  type TagColor,
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader.js";
 import { DataState } from "../components/DataState.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { useAuth } from "../lib/auth.js";
 
 const ENTITY_TYPES = Object.keys(DOCUMENT_ENTITY_LABEL) as DocumentEntityType[];
+
+const DOC_STATUS_TAG: Record<string, TagColor> = { ISSUED: "green" };
 
 export function DocumentsRegister() {
   const { user } = useAuth();
@@ -79,6 +85,47 @@ export function DocumentsRegister() {
     return undefined;
   };
 
+  const columns: GridColDef[] = [
+    {
+      field: "ref",
+      headerName: "Ref",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) => {
+        const to = docLink(p.row.entityType, p.row.projectId);
+        return to ? <Link to={to}>{p.row.ref}</Link> : p.row.ref;
+      },
+    },
+    {
+      field: "entityType",
+      headerName: "Type",
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (_v, row) => DOCUMENT_ENTITY_LABEL[row.entityType as DocumentEntityType],
+    },
+    { field: "title", headerName: "Title", flex: 2, minWidth: 180 },
+    {
+      field: "projectRef",
+      headerName: "Project",
+      flex: 1,
+      minWidth: 110,
+      valueGetter: (v) => v ?? "—",
+    },
+    { field: "versionNo", headerName: "Ver", width: 80 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (p) => <StatusTag value={p.row.status} map={DOC_STATUS_TAG} />,
+    },
+    {
+      field: "pdfStatus",
+      headerName: "PDF",
+      width: 110,
+      valueGetter: (v) => (v === "READY" ? "Ready" : v),
+    },
+  ];
+
   return (
     <>
       <PageHeader
@@ -86,9 +133,9 @@ export function DocumentsRegister() {
         description="Unified view of issued office and project documents — numbers, versions, and PDF status."
         actions={
           <Button
-            kind="secondary"
-            size="sm"
-            renderIcon={Download}
+            variant="outlined"
+            size="small"
+            startIcon={<Download />}
             disabled={exportQ.isFetching}
             onClick={async () => {
               const data = await exportQ.refetch();
@@ -100,85 +147,79 @@ export function DocumentsRegister() {
         }
       />
 
-      <Stack gap={7}>
-        <Stack orientation="horizontal" gap={5}>
-          <Select id="doc-type-filter" labelText="Type" size="sm" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-            <SelectItem value="" text="All types" />
+      <Stack spacing={3} sx={{ mt: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <TextField
+            id="doc-type-filter"
+            select
+            size="small"
+            label="Type"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            sx={{ minWidth: 200 }}
+          >
+            <MenuItem value="">All types</MenuItem>
             {ENTITY_TYPES.map((t) => (
-              <SelectItem key={t} value={t} text={DOCUMENT_ENTITY_LABEL[t]} />
+              <MenuItem key={t} value={t}>{DOCUMENT_ENTITY_LABEL[t]}</MenuItem>
             ))}
-          </Select>
-          <Select id="doc-status-filter" labelText="Status" size="sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <SelectItem value="" text="All statuses" />
-            <SelectItem value="DRAFT" text="Draft" />
-            <SelectItem value="ISSUED" text="Issued" />
-          </Select>
+          </TextField>
+          <TextField
+            id="doc-status-filter"
+            select
+            size="small"
+            label="Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            sx={{ minWidth: 200 }}
+          >
+            <MenuItem value="">All statuses</MenuItem>
+            <MenuItem value="DRAFT">Draft</MenuItem>
+            <MenuItem value="ISSUED">Issued</MenuItem>
+          </TextField>
         </Stack>
 
         <DataState loading={listQ.isLoading} isEmpty={rows.length === 0} columnCount={7} empty={{ title: "No documents", description: "Create letters, site reports, BOQs, or MOM on a project." }}>
-          <TableContainer title="All documents">
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Ref</TableHeader>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Title</TableHeader>
-                  <TableHeader>Project</TableHeader>
-                  <TableHeader>Ver</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader>PDF</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((r) => {
-                  const to = docLink(r.entityType, r.projectId);
-                  return (
-                    <TableRow key={`${r.entityType}-${r.id}`}>
-                      <TableCell>{to ? <Link to={to}>{r.ref}</Link> : r.ref}</TableCell>
-                      <TableCell>{DOCUMENT_ENTITY_LABEL[r.entityType]}</TableCell>
-                      <TableCell>{r.title}</TableCell>
-                      <TableCell>{r.projectRef ?? "—"}</TableCell>
-                      <TableCell>{r.versionNo}</TableCell>
-                      <TableCell>
-                        <Tag type={r.status === "ISSUED" ? "green" : "gray"} size="sm">{r.status}</Tag>
-                      </TableCell>
-                      <TableCell>{r.pdfStatus === "READY" ? "Ready" : r.pdfStatus}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(r) => `${r.entityType}-${r.id}`}
+            density="compact"
+            disableRowSelectionOnClick
+            autoHeight
+          />
         </DataState>
 
         {isOwner && (
-          <Stack gap={5}>
-            <h3>Numbering patterns</h3>
+          <Stack spacing={2}>
+            <Typography variant="h6">Numbering patterns</Typography>
             <p className="esti-label esti-label--helper">Override FY-sequential prefixes per document scope.</p>
-            <Button
-              size="sm"
-              disabled={setPatterns.isPending}
-              onClick={() => {
-                const next = { ...(patternsQ.data ?? {}) };
-                for (const [scope, edit] of Object.entries(patternEdits)) {
-                  if (!edit.prefix && !edit.padding) continue;
-                  next[scope] = {
-                    prefix: edit.prefix || undefined,
-                    padding: edit.padding ? Number(edit.padding) : undefined,
-                  };
-                }
-                setPatterns.mutate(next);
-              }}
-            >
-              Save numbering defaults
-            </Button>
-            <TableContainer>
-              <Table size="sm">
+            <div>
+              <Button
+                variant="contained"
+                size="small"
+                disabled={setPatterns.isPending}
+                onClick={() => {
+                  const next = { ...(patternsQ.data ?? {}) };
+                  for (const [scope, edit] of Object.entries(patternEdits)) {
+                    if (!edit.prefix && !edit.padding) continue;
+                    next[scope] = {
+                      prefix: edit.prefix || undefined,
+                      padding: edit.padding ? Number(edit.padding) : undefined,
+                    };
+                  }
+                  setPatterns.mutate(next);
+                }}
+              >
+                Save numbering defaults
+              </Button>
+            </div>
+            <TableContainer component={Paper}>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Scope</TableHeader>
-                    <TableHeader>Default</TableHeader>
-                    <TableHeader>Prefix override</TableHeader>
+                    <TableCell>Scope</TableCell>
+                    <TableCell>Default</TableCell>
+                    <TableCell>Prefix override</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -187,11 +228,10 @@ export function DocumentsRegister() {
                       <TableCell>{scope}</TableCell>
                       <TableCell>{def.prefix}</TableCell>
                       <TableCell>
-                        <TextInput
+                        <TextField
                           id={`np-${scope}`}
-                          labelText="Prefix"
-                          hideLabel
-                          size="sm"
+                          size="small"
+                          aria-label="Prefix"
                           placeholder={def.prefix}
                           onChange={(e) =>
                             setPatternEdits((p) => ({
@@ -209,62 +249,78 @@ export function DocumentsRegister() {
           </Stack>
         )}
 
-        <Stack gap={4}>
-          <Stack orientation="horizontal" gap={3}>
-            <h3>Office templates</h3>
-            <Button size="sm" onClick={() => setTplOpen(true)}>New template</Button>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Typography variant="h6">Office templates</Typography>
+            <Button variant="contained" size="small" onClick={() => setTplOpen(true)}>New template</Button>
           </Stack>
-          <TableContainer title="Templates">
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Kind</TableHeader>
-                  <TableHeader>Title</TableHeader>
-                  <TableHeader></TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {(templatesQ.data ?? []).map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>{OFFICE_TEMPLATE_KIND_LABEL[t.kind as OfficeTemplateKind] ?? t.kind}</TableCell>
-                    <TableCell>{t.title}</TableCell>
-                    <TableCell>
-                      <Button kind="danger--ghost" size="sm" onClick={() => removeTemplate.mutate({ id: t.id })}>Remove</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <DataGrid
+            rows={templatesQ.data ?? []}
+            columns={[
+              {
+                field: "kind",
+                headerName: "Kind",
+                flex: 1,
+                minWidth: 140,
+                valueGetter: (v) => OFFICE_TEMPLATE_KIND_LABEL[v as OfficeTemplateKind] ?? v,
+              },
+              { field: "title", headerName: "Title", flex: 2, minWidth: 200 },
+              {
+                field: "actions",
+                headerName: "",
+                sortable: false,
+                filterable: false,
+                width: 110,
+                renderCell: (p) => (
+                  <Button variant="text" color="error" size="small" onClick={() => removeTemplate.mutate({ id: p.row.id })}>Remove</Button>
+                ),
+              },
+            ]}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
         </Stack>
       </Stack>
 
-      <Modal
-        open={tplOpen}
-        modalHeading="New office template"
-        primaryButtonText={createTemplate.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!tplForm.title || !tplForm.body || createTemplate.isPending}
-        onRequestClose={() => setTplOpen(false)}
-        onRequestSubmit={() => {
-          createTemplate.mutate(tplForm, {
-            onSuccess: () => {
-              setTplOpen(false);
-              setTplForm({ kind: "LETTER", title: "", body: "" });
-            },
-          });
-        }}
-      >
-        <Stack gap={5}>
-          <Select id="tpl-kind" labelText="Kind" value={tplForm.kind} onChange={(e) => setTplForm((f) => ({ ...f, kind: e.target.value as OfficeTemplateKind }))}>
-            {(Object.keys(OFFICE_TEMPLATE_KIND_LABEL) as OfficeTemplateKind[]).map((k) => (
-              <SelectItem key={k} value={k} text={OFFICE_TEMPLATE_KIND_LABEL[k]} />
-            ))}
-          </Select>
-          <TextInput id="tpl-title" labelText="Title" value={tplForm.title} onChange={(e) => setTplForm((f) => ({ ...f, title: e.target.value }))} />
-          <TextArea id="tpl-body" labelText="Body" rows={8} value={tplForm.body} onChange={(e) => setTplForm((f) => ({ ...f, body: e.target.value }))} />
-        </Stack>
-      </Modal>
+      <Dialog open={tplOpen} onClose={() => setTplOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New office template</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="tpl-kind"
+              select
+              label="Kind"
+              value={tplForm.kind}
+              onChange={(e) => setTplForm((f) => ({ ...f, kind: e.target.value as OfficeTemplateKind }))}
+            >
+              {(Object.keys(OFFICE_TEMPLATE_KIND_LABEL) as OfficeTemplateKind[]).map((k) => (
+                <MenuItem key={k} value={k}>{OFFICE_TEMPLATE_KIND_LABEL[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField id="tpl-title" label="Title" value={tplForm.title} onChange={(e) => setTplForm((f) => ({ ...f, title: e.target.value }))} />
+            <TextField id="tpl-body" label="Body" multiline rows={8} value={tplForm.body} onChange={(e) => setTplForm((f) => ({ ...f, body: e.target.value }))} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setTplOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!tplForm.title || !tplForm.body || createTemplate.isPending}
+            onClick={() => {
+              createTemplate.mutate(tplForm, {
+                onSuccess: () => {
+                  setTplOpen(false);
+                  setTplForm({ kind: "LETTER", title: "", body: "" });
+                },
+              });
+            }}
+          >
+            {createTemplate.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
